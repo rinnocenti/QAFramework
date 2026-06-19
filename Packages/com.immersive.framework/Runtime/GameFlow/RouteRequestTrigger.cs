@@ -55,7 +55,7 @@ namespace Immersive.Framework.GameFlow
                 return;
             }
 
-            var resolvedReason = string.IsNullOrWhiteSpace(reason) ? targetRoute.RouteName : reason.Trim();
+            string resolvedReason = string.IsNullOrWhiteSpace(reason) ? targetRoute.RouteName : reason.Trim();
             if (!FrameworkRuntimeHost.TryGetCurrent(out var runtimeHost))
             {
                 var unavailable = FrameworkRouteRequestResult.FailedRuntimeUnavailable(

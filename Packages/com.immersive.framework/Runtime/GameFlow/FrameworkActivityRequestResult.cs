@@ -88,7 +88,7 @@ namespace Immersive.Framework.GameFlow
             string source,
             string reason)
         {
-            var activityName = targetActivity != null ? targetActivity.ActivityName : "<none>";
+            string activityName = targetActivity != null ? targetActivity.ActivityName : "<none>";
             return new FrameworkActivityRequestResult(
                 FrameworkActivityRequestKind.IgnoredAlreadyInFlight,
                 $"Activity Request ignored. {FormatRequestContext(source, reason)} Another activity or route request is already in flight. targetActivity='{activityName}'.",

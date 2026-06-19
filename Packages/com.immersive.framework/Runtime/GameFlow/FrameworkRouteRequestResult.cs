@@ -88,7 +88,7 @@ namespace Immersive.Framework.GameFlow
             string source,
             string reason)
         {
-            var routeName = targetRoute != null ? targetRoute.RouteName : "<missing>";
+            string routeName = targetRoute != null ? targetRoute.RouteName : "<missing>";
             return new FrameworkRouteRequestResult(
                 FrameworkRouteRequestKind.IgnoredAlreadyInFlight,
                 $"Route Request ignored. {FormatRequestContext(source, reason)} Another route request is already in flight. targetRoute='{routeName}'.",

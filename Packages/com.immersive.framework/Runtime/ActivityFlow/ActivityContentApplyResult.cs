@@ -73,11 +73,11 @@ namespace Immersive.Framework.ActivityFlow
                 return Empty(activeActivity);
             }
 
-            var target = activeActivity != null
+            string target = activeActivity != null
                 ? $"for Activity '{activeActivity.ActivityName}'"
                 : "with no active Activity";
 
-            var message = $"Activity Content applied {bindingCount} binding(s) {target}. activated='{activatedCount}' deactivated='{deactivatedCount}' unchanged='{unchangedCount}'.";
+            string message = $"Activity Content applied {bindingCount} binding(s) {target}. activated='{activatedCount}' deactivated='{deactivatedCount}' unchanged='{unchangedCount}'.";
             if (missingActivityCount > 0)
             {
                 message += $" missingActivity='{missingActivityCount}'.";

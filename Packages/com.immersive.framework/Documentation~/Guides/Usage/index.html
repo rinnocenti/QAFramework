@@ -158,11 +158,11 @@
   <main>
     <section class="card">
       <h2>Estado atual</h2>
-      <p><strong>Corte atual:</strong> <code>IF-FW-2Y - Authoring Validation Baseline</code>.</p>
-      <p>O framework agora possui validação autoral editor-only para o baseline atual: <code>Active Game Application</code>, <code>Startup Route</code>, <code>Primary Scene</code>, <code>Startup Activity</code> opcional e <code>Activity Content Binding</code> nas cenas abertas.</p>
-      <p>A validação não muda lifecycle runtime e não adiciona Actor, Input, Camera, Save, Pooling, UGUI, pipeline ou stage novo.</p>
-      <p>O registro de Activity continua usando <code>FrameworkLogger</code> e não ganhou service locator, event bus global ou refatoração de consumo de eventos no conteúdo de cena.</p>
-      <p>O framework já consegue resolver uma aplicação ativa, validar uma <code>Startup Route</code>, validar a <code>Primary Scene</code>, criar um runtime persistente, iniciar uma Route por <code>Route Lifecycle</code>, trocar Route via <code>Route Request Trigger</code>, iniciar/trocar/limpar Activity via <code>Activity Request Trigger</code> e aplicar conteúdo authored de Activity.</p>
+      <p><strong>Corte atual:</strong> <code>IF-FW-3F - Flow Request Context Surface</code>.</p>
+      <p>O framework já consegue resolver uma aplicação ativa, validar uma <code>Startup Route</code>, validar a <code>Primary Scene</code>, criar um runtime persistente, iniciar/trocar Route por <code>Route Lifecycle</code>, iniciar/trocar/limpar Activity por <code>Activity Flow</code> e aplicar conteúdo authored de Activity.</p>
+      <p>O corte atual propaga <code>source</code> e <code>reason</code> do Game Flow para os contextos locais de lifecycle. Scripts derivados de <code>ActivityContentBehaviour</code> ou <code>RouteContentBehaviour</code> podem consultar <code>LifecycleSource</code>, <code>LifecycleReason</code>, <code>context.Source</code> e <code>context.Reason</code> sem acessar runtime host ou service locator.</p>
+      <p>A validação autoral editor-only continua existindo para o baseline atual, mas este corte não adiciona nova UX, validator, Actor, Input, Camera, Save, Pooling, UGUI, pipeline ou stage novo.</p>
+      <p>O registro de lifecycle continua usando <code>FrameworkLogger</code> e não ganhou service locator, event bus global ou refatoração ampla de consumo de eventos no conteúdo de cena.</p>
       <div class="note">
         O bootstrap cria um objeto interno <code>Immersive Framework Runtime</code> marcado como <code>DontDestroyOnLoad</code>. Esse objeto é o owner de escopo de aplicação e mantém o <code>Game Flow</code> vivo durante cargas Single. O <code>Game Flow</code> delega o início concreto da rota para <code>Route Lifecycle</code>, inclusive em solicitações runtime.
       </div>
@@ -264,6 +264,37 @@
     </section>
 
 
+    <section class="card">
+      <h2>Conteúdo de Route</h2>
+      <p>Use <code>Route Content Binding</code> para conteúdo simples authored diretamente na cena que deve pertencer ao escopo de uma Route.</p>
+      <ol>
+        <li>Crie ou configure um asset <code>Route</code>.</li>
+        <li>Selecione o GameObject de cena que deve pertencer a essa Route.</li>
+        <li>Adicione <code>Immersive Framework &gt; Route Content Binding</code>.</li>
+        <li>No campo <code>Route</code>, atribua uma Route específica ou deixe vazio para vincular pela Primary Scene ativa.</li>
+      </ol>
+      <p>Quando a Route muda, o framework envia exit para o conteúdo da Route anterior antes de carregar a próxima Primary Scene, resolve a nova cena e então envia enter para o conteúdo da nova Route antes da Startup Activity. O binding de Route não esconde nem mostra o GameObject automaticamente; ele apenas notifica o lifecycle local.</p>
+      <p>Para scripts comuns de jogo, derive de <code>RouteContentBehaviour</code> e sobrescreva os callbacks protegidos:</p>
+      <pre><code>public sealed class MyRouteContent : RouteContentBehaviour
+{
+    protected override void OnRouteContentEntered(RouteContentLifecycleContext context)
+    {
+        // iniciar lógica local da Route
+        // context.Source / context.Reason informam a origem da transição
+    }
+
+    protected override void OnRouteContentExited(RouteContentLifecycleContext context)
+    {
+        // encerrar lógica local da Route
+    }
+}</code></pre>
+      <p>Para casos avançados, componentes abaixo do root também podem implementar <code>IRouteContentLifecycleReceiver</code> diretamente.</p>
+      <div class="warning">
+        Route Content é escopo de Route. Use Activity Content para conteúdo momentâneo dentro da Route. Este binding não cria Actor, Input, Camera, Save, Pooling, Addressables ou pipeline novo.
+      </div>
+    </section>
+
+
 
     <section class="card">
       <h2>Conteúdo de Activity</h2>
@@ -281,6 +312,21 @@
         <li>sem Activity ativa: todos os bindings ficam inativos;</li>
         <li>binding sem Activity atribuída: warning explícito.</li>
       </ul>
+      <p>Para scripts comuns de jogo dentro desse conteúdo, derive de <code>ActivityContentBehaviour</code> e sobrescreva os callbacks protegidos:</p>
+      <pre><code>public sealed class MyActivityContent : ActivityContentBehaviour
+{
+    protected override void OnActivityContentEntered(ActivityContentLifecycleContext context)
+    {
+        // iniciar lógica local da Activity
+        // context.Source / context.Reason informam a origem da transição
+    }
+
+    protected override void OnActivityContentExited(ActivityContentLifecycleContext context)
+    {
+        // encerrar lógica local da Activity
+    }
+}</code></pre>
+      <p>Para casos avançados, componentes abaixo do root também podem implementar <code>IActivityContentLifecycleReceiver</code> diretamente.</p>
       <p>Resumo esperado:</p>
       <pre><code>[Immersive Framework] Activity Content applied 2 binding(s) for Activity 'Activity 02'. activated='1' deactivated='1' unchanged='0'.</code></pre>
       <p>Detalhe esperado:</p>
@@ -508,6 +554,14 @@
   </ol>
   <p>Os assets em <code>Assets/ImmersiveFrameworkQA/</code> sao alvos de cenario. Eles nao substituem o <code>Active Game Application</code> normal do projeto e nao criam um boot paralelo.</p>
   <p>Considere PASS quando os smokes executarem a sequencia esperada, o <code>Reset QA Scenario</code> restaurar o baseline e os logs canonicos confirmarem a ordem correta dos requests.</p>
+</section>
+
+
+<section>
+  <h2>Content lifecycle state helpers</h2>
+  <p><code>ActivityContentBehaviour</code> and <code>RouteContentBehaviour</code> expose a minimal state surface for gameplay scripts. Use <code>IsActivityContentActive</code> or <code>IsRouteContentActive</code> when the component needs to know if its local content scope is currently active. Use the callback context for transition-specific data such as previous or next Activity/Route, plus <code>Source</code> and <code>Reason</code> to understand whether the transition came from startup, QA, a trigger, or another request path.</p>
+  <p>This is local component state only. It does not create a global registry, service locator, validator or pipeline.</p>
+  <p>Startup route boot uses <code>source='GameApplication'</code> and <code>reason='startup'</code>. Runtime requests preserve their existing request source and reason.</p>
 </section>
 
 </body>

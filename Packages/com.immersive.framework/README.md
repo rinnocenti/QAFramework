@@ -18,6 +18,18 @@ Technical infrastructure remains outside this package:
 
 ## Current cut
 
+`IF-FW-3F - Flow Request Context Surface` propagates request `source` and `reason` from Game Flow into Route/Activity content lifecycle contexts. `ActivityContentLifecycleContext` and `RouteContentLifecycleContext` now expose `Source` and `Reason`, and the Behaviour base classes expose `LifecycleSource` and `LifecycleReason`. This keeps local gameplay scripts informed about whether a lifecycle transition came from startup, QA, a trigger, or another request path without exposing runtime hosts or service locators. It does not change Route switching, Activity visibility, scene loading, validation, QA UI, Actor, Input, Camera, Save, Pooling or pipeline ownership.
+
+`IF-FW-3E - Content Lifecycle State Surface` adds a minimal runtime state surface to Activity/Route content lifecycle. Callback contexts now expose their lifecycle phase, and `ActivityContentBehaviour` / `RouteContentBehaviour` expose current active-state helpers and last context data for gameplay scripts. This does not change Route switching, Activity visibility, scene loading, validation, QA UI, Actor, Input, Camera, Save, Pooling or pipeline ownership.
+
+`IF-FW-3D - Content Lifecycle Behaviours` adds optional base MonoBehaviours for scene-authored content. `ActivityContentBehaviour` and `RouteContentBehaviour` implement the receiver interfaces and expose protected virtual callbacks, so gameplay scripts can participate in Activity/Route lifecycle without repeating interface boilerplate. This is an ergonomics layer only; it does not change routing, Activity visibility, scene loading, validation, QA UI, Actor, Input, Camera, Save, Pooling or pipeline ownership.
+
+`IF-FW-3C - Content Lifecycle Receiver Safety` protects Activity and Route content receiver dispatch. If one local receiver throws, the framework logs contextual failure and continues dispatching the remaining receivers instead of aborting the Route/Activity flow.
+
+`IF-FW-3B - Route Content Lifecycle Receivers` adds the matching runtime extension point for scene-authored Route content. Components under a `Route Content Binding` root can implement `IRouteContentLifecycleReceiver` to receive `OnRouteContentEntered` and `OnRouteContentExited` callbacks when their Route enters or exits. Route content is a Route-scoped scene boundary; it notifies local objects but does not own GameObject visibility, load scenes, start activities, spawn actors, own input, camera, save, pooling or a new pipeline.
+
+`IF-FW-3A - Activity Content Lifecycle Receivers` adds the first runtime extension point for scene-authored Activity content. Components under an `Activity Content Binding` root can implement `IActivityContentLifecycleReceiver` to receive `OnActivityContentEntered` and `OnActivityContentExited` callbacks when their bound Activity enters or exits. The callback is local to the content root; it does not create a service locator, pipeline, actor system, input, camera, save or pooling integration.
+
 `IF-FW-2Y - Authoring Validation Baseline` adds an editor-only authoring validation surface without changing runtime lifecycle. Project Settings and the relevant Inspectors can now report the current baseline configuration for Active Game Application, Startup Route, Primary Scene, optional Startup Activity, and open-scene Activity Content Bindings. Validation logs use `FrameworkLogger` and do not introduce Actor, Input, Camera, Save, Pooling, UGUI, or a new runtime pipeline.
 
 `IF-FW-2W-FIX5 - QA Scenario Reset Button` extends `FrameworkQaCanvas` with an in-Play-Mode baseline reset. The reset returns the runtime to a configured baseline Route/Activity without leaving Play Mode, so the Unity Console is preserved between smoke runs. If no explicit reset Route/Activity is configured, the canvas falls back to the current Game Application's Startup Route and that Route's Startup Activity.
@@ -220,6 +232,75 @@ Player builds always use framework startup. `Current Scene Only` is only an auth
 Use `Current Scene Only` when creating or debugging an isolated scene that should not be replaced by the Startup Route scene.
 
 
+
+## Route Content Lifecycle Receivers
+
+A component under a `Route Content Binding` root can react to the Route lifecycle by implementing:
+
+```csharp
+using Immersive.Framework.RouteLifecycle;
+using UnityEngine;
+
+public sealed class MyRouteContent : MonoBehaviour, IRouteContentLifecycleReceiver
+{
+    public void OnRouteContentEntered(RouteContentLifecycleContext context)
+    {
+        // Start local Route-scoped behavior for context.Route.
+    }
+
+    public void OnRouteContentExited(RouteContentLifecycleContext context)
+    {
+        // Stop or release local Route-scoped behavior for context.Route.
+    }
+}
+```
+
+Callback rules:
+
+- exit for the previous Route is sent before the next Primary Scene is loaded, while previous Route scene content still exists;
+- enter for the next Route is sent after the next Primary Scene is resolved and active, before the Startup Activity is started;
+- receivers are discovered only under the binding root, including inactive children;
+- the receiver does not own Route Lifecycle and should not request Route or Activity changes from inside the callback unless the game explicitly wants that behavior.
+
+Use Route content for Route-scoped scene behavior such as local environment systems, music triggers, navigation roots or persistent objects that should live across multiple Activities in the same Route. This is intentionally not an Actor, Input, Camera, Save, Pooling, Addressables or reset system.
+
+## Route Content Binding
+
+Add `Route Content Binding` to a scene GameObject when that object belongs to a Route scope. Route Lifecycle notifies matching route content after the Route Primary Scene is resolved and notifies the previous Route content before the next Route scene is loaded. It does not automatically hide or show the root GameObject; scene loading and authored object state remain the visibility boundary for Route content.
+
+The `Route` reference is optional. When assigned, the binding matches only that Route asset. When empty, the binding matches any active Route whose Primary Scene is the GameObject scene. Keep Route content roots broad and stable. Use `Activity Content Binding` for moment-to-moment gameplay sections inside a Route.
+
+
+## Activity Content Lifecycle Receivers
+
+A component under an `Activity Content Binding` root can react to the Activity lifecycle by implementing:
+
+```csharp
+using Immersive.Framework.ActivityFlow;
+using UnityEngine;
+
+public sealed class MyActivityContent : MonoBehaviour, IActivityContentLifecycleReceiver
+{
+    public void OnActivityContentEntered(ActivityContentLifecycleContext context)
+    {
+        // Start local content behavior for context.Activity.
+    }
+
+    public void OnActivityContentExited(ActivityContentLifecycleContext context)
+    {
+        // Stop or release local content behavior for context.Activity.
+    }
+}
+```
+
+Callback rules:
+
+- enter is sent after the matching `Activity Content Binding` root is activated;
+- exit is sent before the previous Activity binding root is deactivated;
+- receivers are discovered only under the binding root, including inactive children;
+- the receiver does not own Activity Flow and should not request Route or Activity changes from inside the callback unless the game explicitly wants that behavior.
+
+This is the first implementation extension point for scene-authored Activity content. It is intentionally not an Actor, Input, Camera, Save, Pooling or reset system.
 
 ## Activity Content Binding
 

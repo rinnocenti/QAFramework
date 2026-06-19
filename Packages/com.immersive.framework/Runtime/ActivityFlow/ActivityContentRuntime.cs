@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Diagnostics;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -11,6 +14,8 @@ namespace Immersive.Framework.ActivityFlow
     internal sealed class ActivityContentRuntime
     {
         private const int MaxObservedBindingsInMessage = 8;
+
+        private readonly FrameworkLogger _logger = FrameworkLogger.Create();
 
         private ActivityContentApplyResult _lastApplyResult;
         private bool _hasLastApplyResult;
@@ -32,7 +37,7 @@ namespace Immersive.Framework.ActivityFlow
                 return;
             }
 
-            StoreLastApplyResult(ApplyActiveActivity(activityEnteredEvent.Activity));
+            StoreLastApplyResult(ApplyActivityTransition(activityEnteredEvent.PreviousActivity, activityEnteredEvent.Activity, activityEnteredEvent.Source, activityEnteredEvent.Reason));
         }
 
         internal void HandleActivityExited(ActivityExitedEvent activityExitedEvent)
@@ -42,11 +47,19 @@ namespace Immersive.Framework.ActivityFlow
                 return;
             }
 
-            StoreLastApplyResult(ApplyActiveActivity(null));
+            StoreLastApplyResult(ApplyActivityTransition(activityExitedEvent.Activity, null, activityExitedEvent.Source, activityExitedEvent.Reason));
         }
 
         internal ActivityContentApplyResult ApplyActiveActivity(ActivityAsset activeActivity)
         {
+            return ApplyActivityTransition(null, activeActivity, "Unknown", "None");
+        }
+
+        private ActivityContentApplyResult ApplyActivityTransition(ActivityAsset previousActivity, ActivityAsset activeActivity, string source, string reason)
+        {
+            var resolvedSource = NormalizeSource(source);
+            var resolvedReason = NormalizeReason(reason);
+
             var bindings = Object.FindObjectsByType<ActivityContentBinding>(FindObjectsInactive.Include);
             if (bindings == null || bindings.Length == 0)
             {
@@ -87,10 +100,25 @@ namespace Immersive.Framework.ActivityFlow
                 }
 
                 var shouldBeActive = activeActivity != null && ReferenceEquals(binding.Activity, activeActivity);
+                var exitsPreviousActivity = previousActivity != null
+                    && !ReferenceEquals(previousActivity, activeActivity)
+                    && ReferenceEquals(binding.Activity, previousActivity);
+                var entersActiveActivity = shouldBeActive && !ReferenceEquals(previousActivity, activeActivity);
+
+                if (exitsPreviousActivity)
+                {
+                    DispatchActivityContentExited(binding, previousActivity, activeActivity, resolvedSource, resolvedReason);
+                }
+
                 var wasActive = binding.gameObject.activeSelf;
                 var changed = binding.SetContentActive(shouldBeActive);
                 var action = ResolveAction(shouldBeActive, wasActive, changed);
-                var reason = shouldBeActive ? "MatchedActiveActivity" : "DifferentActivity";
+                var observationReason = shouldBeActive ? "MatchedActiveActivity" : "DifferentActivity";
+
+                if (entersActiveActivity)
+                {
+                    DispatchActivityContentEntered(binding, activeActivity, previousActivity, resolvedSource, resolvedReason);
+                }
 
                 if (changed)
                 {
@@ -114,7 +142,7 @@ namespace Immersive.Framework.ActivityFlow
                     binding,
                     binding.Activity.ActivityName,
                     action,
-                    reason);
+                    observationReason);
             }
 
             return ActivityContentApplyResult.Applied(
@@ -134,6 +162,97 @@ namespace Immersive.Framework.ActivityFlow
             _hasLastApplyResult = true;
         }
 
+        private void DispatchActivityContentEntered(
+            ActivityContentBinding binding,
+            ActivityAsset activity,
+            ActivityAsset previousActivity,
+            string source,
+            string reason)
+        {
+            var context = ActivityContentLifecycleContext.Entered(activity, previousActivity, binding, source, reason);
+            DispatchActivityContentLifecycle(
+                binding,
+                "Entered",
+                activity,
+                receiver => receiver.OnActivityContentEntered(context));
+        }
+
+        private void DispatchActivityContentExited(
+            ActivityContentBinding binding,
+            ActivityAsset activity,
+            ActivityAsset nextActivity,
+            string source,
+            string reason)
+        {
+            var context = ActivityContentLifecycleContext.Exited(activity, nextActivity, binding, source, reason);
+            DispatchActivityContentLifecycle(
+                binding,
+                "Exited",
+                activity,
+                receiver => receiver.OnActivityContentExited(context));
+        }
+
+        private void DispatchActivityContentLifecycle(
+            ActivityContentBinding binding,
+            string phase,
+            ActivityAsset activity,
+            Action<IActivityContentLifecycleReceiver> dispatch)
+        {
+            if (binding == null || dispatch == null)
+            {
+                return;
+            }
+
+            var behaviours = binding.GetComponentsInChildren<MonoBehaviour>(true);
+            if (behaviours == null || behaviours.Length == 0)
+            {
+                return;
+            }
+
+            for (var i = 0; i < behaviours.Length; i++)
+            {
+                if (behaviours[i] is not IActivityContentLifecycleReceiver receiver)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    dispatch(receiver);
+                }
+                catch (Exception exception)
+                {
+                    LogActivityContentReceiverException(binding, phase, activity, receiver, exception);
+                }
+            }
+        }
+
+        private void LogActivityContentReceiverException(
+            ActivityContentBinding binding,
+            string phase,
+            ActivityAsset activity,
+            IActivityContentLifecycleReceiver receiver,
+            Exception exception)
+        {
+            var receiverType = receiver != null ? receiver.GetType().FullName : "<missing>";
+            var activityName = activity != null ? activity.ActivityName : "<none>";
+            var exceptionType = exception != null ? exception.GetType().Name : "<unknown>";
+            var exceptionMessage = exception != null ? exception.Message : string.Empty;
+
+            _logger.Error(
+                $"Activity Content lifecycle receiver failed. phase='{FormatValue(phase)}' activity='{FormatValue(activityName)}' object='{FormatValue(binding.ObjectName)}' scene='{FormatValue(binding.SceneName)}' receiver='{FormatValue(receiverType)}' exception='{FormatValue(exceptionType)}' message='{FormatValue(exceptionMessage)}'.");
+        }
+
+
+        private static string NormalizeSource(string source)
+        {
+            return string.IsNullOrWhiteSpace(source) ? "Unknown" : source.Trim();
+        }
+
+        private static string NormalizeReason(string reason)
+        {
+            return string.IsNullOrWhiteSpace(reason) ? "None" : reason.Trim();
+        }
         private static string ResolveAction(bool shouldBeActive, bool wasActive, bool changed)
         {
             if (changed)

@@ -27,8 +27,8 @@ namespace Immersive.Framework.SceneLifecycle
                 return SceneLifecycleLoadResult.Failed("Route Primary Scene is missing.");
             }
 
-            var sceneName = route.PrimarySceneName;
-            var scenePath = route.PrimaryScenePath;
+            string sceneName = route.PrimarySceneName;
+            string scenePath = route.PrimaryScenePath;
             if (string.IsNullOrWhiteSpace(sceneName))
             {
                 return SceneLifecycleLoadResult.Failed("Route Primary Scene name is empty.");
@@ -41,8 +41,8 @@ namespace Immersive.Framework.SceneLifecycle
             }
 
             var loadedScene = FindLoadedScene(scenePath, sceneName);
-            var alreadyLoaded = loadedScene.IsValid() && loadedScene.isLoaded;
-            var loadMode = AlreadyLoadedMode;
+            bool alreadyLoaded = loadedScene.IsValid() && loadedScene.isLoaded;
+            string loadMode = AlreadyLoadedMode;
 
             if (!alreadyLoaded)
             {
@@ -80,7 +80,7 @@ namespace Immersive.Framework.SceneLifecycle
 
         private static async Task<SceneLifecycleLoadResult> TryLoadSceneSingleAsync(string scenePath, string sceneName)
         {
-            if (!TryGetLoadSceneIdentifier(scenePath, sceneName, out var sceneIdentifier))
+            if (!TryGetLoadSceneIdentifier(scenePath, sceneName, out string sceneIdentifier))
             {
                 return SceneLifecycleLoadResult.Failed(
                     $"Scene Lifecycle cannot load Primary Scene '{sceneName}'. Add it to the active Build Profile or Shared Scene List.");

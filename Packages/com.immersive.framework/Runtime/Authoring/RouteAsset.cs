@@ -59,7 +59,7 @@ namespace Immersive.Framework.Authoring
 
                 if (!string.IsNullOrWhiteSpace(primaryScenePath))
                 {
-                    var fileName = System.IO.Path.GetFileNameWithoutExtension(primaryScenePath);
+                    string fileName = System.IO.Path.GetFileNameWithoutExtension(primaryScenePath);
                     if (!string.IsNullOrWhiteSpace(fileName))
                     {
                         return fileName;

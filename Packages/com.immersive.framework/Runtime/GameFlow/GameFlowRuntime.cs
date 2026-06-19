@@ -32,7 +32,7 @@ namespace Immersive.Framework.GameFlow
                 return FrameworkGameFlowStartResult.Failed("Startup Route Primary Scene is missing.");
             }
 
-            var routeLifecycleResult = await StartRouteCoreAsync(startupRoute);
+            var routeLifecycleResult = await StartRouteCoreAsync(startupRoute, "GameApplication", "startup");
             if (!routeLifecycleResult.Started)
             {
                 return FrameworkGameFlowStartResult.Failed(routeLifecycleResult.Message);
@@ -85,7 +85,7 @@ namespace Immersive.Framework.GameFlow
             _routeRequestInFlight = true;
             try
             {
-                var routeLifecycleResult = await StartRouteCoreAsync(targetRoute);
+                var routeLifecycleResult = await StartRouteCoreAsync(targetRoute, resolvedSource, resolvedReason);
                 if (!routeLifecycleResult.Started)
                 {
                     return FrameworkRouteRequestResult.FailedInvalidConfig(
@@ -146,7 +146,7 @@ namespace Immersive.Framework.GameFlow
             _activityRequestInFlight = true;
             try
             {
-                var activityFlowResult = await _routeLifecycleRuntime.StartActivityAsync(targetActivity);
+                var activityFlowResult = await _routeLifecycleRuntime.StartActivityAsync(targetActivity, resolvedSource, resolvedReason);
                 if (!activityFlowResult.Completed)
                 {
                     return FrameworkActivityRequestResult.FailedInvalidConfig(
@@ -195,7 +195,7 @@ namespace Immersive.Framework.GameFlow
             _activityRequestInFlight = true;
             try
             {
-                var activityFlowResult = await _routeLifecycleRuntime.ClearActivityAsync();
+                var activityFlowResult = await _routeLifecycleRuntime.ClearActivityAsync(resolvedSource, resolvedReason);
                 if (!activityFlowResult.Completed)
                 {
                     return FrameworkActivityRequestResult.FailedInvalidConfig(
@@ -217,9 +217,9 @@ namespace Immersive.Framework.GameFlow
             }
         }
 
-        private Task<RouteLifecycleStartResult> StartRouteCoreAsync(RouteAsset route)
+        private Task<RouteLifecycleStartResult> StartRouteCoreAsync(RouteAsset route, string source, string reason)
         {
-            return _routeLifecycleRuntime.StartRouteAsync(route);
+            return _routeLifecycleRuntime.StartRouteAsync(route, source, reason);
         }
     }
 }

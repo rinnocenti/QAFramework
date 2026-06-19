@@ -43,8 +43,11 @@ namespace Immersive.Framework.ActivityFlow
             return _activityExitedEvents.Subscribe(handler);
         }
 
-        internal Task<ActivityFlowStartResult> StartStartupActivityAsync(RouteAsset route)
+        internal Task<ActivityFlowStartResult> StartStartupActivityAsync(RouteAsset route, string source, string reason)
         {
+            var resolvedSource = NormalizeSource(source);
+            var resolvedReason = NormalizeReason(reason);
+
             if (route == null)
             {
                 return Task.FromResult(ActivityFlowStartResult.Failed("Route is missing."));
@@ -54,25 +57,31 @@ namespace Immersive.Framework.ActivityFlow
             if (!route.HasStartupActivity)
             {
                 _currentActivity = null;
-                var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, null);
+                var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, null, resolvedSource, resolvedReason);
                 return Task.FromResult(ActivityFlowStartResult.SkippedNoStartupActivity(previousActivity, contentResult));
             }
 
-            return StartActivityCoreAsync(route.StartupActivity, previousActivity);
+            return StartActivityCoreAsync(route.StartupActivity, previousActivity, resolvedSource, resolvedReason);
         }
 
-        internal Task<ActivityFlowStartResult> StartActivityAsync(ActivityAsset activity)
+        internal Task<ActivityFlowStartResult> StartActivityAsync(ActivityAsset activity, string source, string reason)
         {
+            var resolvedSource = NormalizeSource(source);
+            var resolvedReason = NormalizeReason(reason);
+
             if (activity == null)
             {
                 return Task.FromResult(ActivityFlowStartResult.Failed("Activity is missing."));
             }
 
-            return StartActivityCoreAsync(activity, _currentActivity);
+            return StartActivityCoreAsync(activity, _currentActivity, resolvedSource, resolvedReason);
         }
 
-        internal Task<ActivityFlowStartResult> ClearActivityAsync()
+        internal Task<ActivityFlowStartResult> ClearActivityAsync(string source, string reason)
         {
+            var resolvedSource = NormalizeSource(source);
+            var resolvedReason = NormalizeReason(reason);
+
             var previousActivity = _currentActivity;
             if (previousActivity == null)
             {
@@ -80,12 +89,15 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             _currentActivity = null;
-            var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, null);
+            var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, null, resolvedSource, resolvedReason);
             return Task.FromResult(ActivityFlowStartResult.ClearedByRequest(previousActivity, contentResult));
         }
 
-        private Task<ActivityFlowStartResult> StartActivityCoreAsync(ActivityAsset nextActivity, ActivityAsset previousActivity)
+        private Task<ActivityFlowStartResult> StartActivityCoreAsync(ActivityAsset nextActivity, ActivityAsset previousActivity, string source, string reason)
         {
+            var resolvedSource = NormalizeSource(source);
+            var resolvedReason = NormalizeReason(reason);
+
             if (nextActivity == null)
             {
                 return Task.FromResult(ActivityFlowStartResult.Failed("Activity is missing."));
@@ -97,14 +109,17 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             _currentActivity = nextActivity;
-            var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, nextActivity);
+            var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, nextActivity, resolvedSource, resolvedReason);
             return Task.FromResult(ActivityFlowStartResult.StartedWith(nextActivity, previousActivity, contentResult));
         }
 
-        private ActivityContentApplyResult ApplyActivityContentThroughLifecycleEvents(ActivityAsset previousActivity, ActivityAsset nextActivity)
+        private ActivityContentApplyResult ApplyActivityContentThroughLifecycleEvents(ActivityAsset previousActivity, ActivityAsset nextActivity, string source, string reason)
         {
+            var resolvedSource = NormalizeSource(source);
+            var resolvedReason = NormalizeReason(reason);
+
             _activityContentRuntime.ClearLastApplyResult();
-            PublishActivityTransition(previousActivity, nextActivity);
+            PublishActivityTransition(previousActivity, nextActivity, resolvedSource, resolvedReason);
 
             if (_activityContentRuntime.HasLastApplyResult)
             {
@@ -116,17 +131,27 @@ namespace Immersive.Framework.ActivityFlow
             return _activityContentRuntime.ApplyActiveActivity(nextActivity);
         }
 
-        private void PublishActivityTransition(ActivityAsset previousActivity, ActivityAsset nextActivity)
+        private void PublishActivityTransition(ActivityAsset previousActivity, ActivityAsset nextActivity, string source, string reason)
         {
             if (previousActivity != null && !ReferenceEquals(previousActivity, nextActivity))
             {
-                _activityExitedEvents.Publish(new ActivityExitedEvent(previousActivity, nextActivity));
+                _activityExitedEvents.Publish(new ActivityExitedEvent(previousActivity, nextActivity, source, reason));
             }
 
             if (nextActivity != null && !ReferenceEquals(previousActivity, nextActivity))
             {
-                _activityEnteredEvents.Publish(new ActivityEnteredEvent(nextActivity, previousActivity));
+                _activityEnteredEvents.Publish(new ActivityEnteredEvent(nextActivity, previousActivity, source, reason));
             }
+        }
+
+        private static string NormalizeSource(string source)
+        {
+            return string.IsNullOrWhiteSpace(source) ? "Unknown" : source.Trim();
+        }
+
+        private static string NormalizeReason(string reason)
+        {
+            return string.IsNullOrWhiteSpace(reason) ? "None" : reason.Trim();
         }
     }
 }

@@ -119,7 +119,7 @@ namespace Immersive.Framework.ActivityFlow
             ActivityAsset previousActivity,
             ActivityContentApplyResult activityContentResult)
         {
-            var message = previousActivity != null && !ReferenceEquals(previousActivity, activity)
+            string message = previousActivity != null && !ReferenceEquals(previousActivity, activity)
                 ? $"Activity Flow switched from Activity '{previousActivity.ActivityName}' to Activity '{activity.ActivityName}'."
                 : $"Activity Flow started Activity '{activity.ActivityName}'.";
 

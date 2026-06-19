@@ -426,8 +426,8 @@ namespace Immersive.Framework.Diagnostics
                 }
 
                 var targetActivity = ResolveResetActivity(targetRoute);
-                var routeName = GetAssetName(targetRoute, "<none>");
-                var activityName = GetAssetName(targetActivity, "<none>");
+                string routeName = GetAssetName(targetRoute, "<none>");
+                string activityName = GetAssetName(targetActivity, "<none>");
                 _logger.Info($"QA Scenario reset started. route='{FormatValue(routeName)}' activity='{FormatValue(activityName)}'.");
 
                 if (!await RequestRouteCoreAsync(runtimeHost, targetRoute, ResolveResetStepReason("route"), allowAlreadyActive: true))
@@ -465,7 +465,7 @@ namespace Immersive.Framework.Diagnostics
 
         private async void RunActivitySmoke()
         {
-            var missingTargets = string.Empty;
+            string missingTargets = string.Empty;
             AppendMissingQaAsset(ref missingTargets, secondaryActivity == null, "Secondary Activity");
             AppendMissingQaAsset(ref missingTargets, primaryActivity == null, "Primary Activity");
             if (!TryValidateSmokeTargets("Activity Smoke", missingTargets))
@@ -499,7 +499,7 @@ namespace Immersive.Framework.Diagnostics
 
         private async void RunRouteSmoke()
         {
-            var missingTargets = string.Empty;
+            string missingTargets = string.Empty;
             AppendMissingQaAsset(ref missingTargets, alternateRoute == null, "Alternate Route");
             AppendMissingQaAsset(ref missingTargets, canonicalRoute == null, "Canonical Route");
             if (!TryValidateSmokeTargets("Route Smoke", missingTargets))
@@ -521,7 +521,7 @@ namespace Immersive.Framework.Diagnostics
 
         private async void RunClearActivitySmoke()
         {
-            var missingTargets = string.Empty;
+            string missingTargets = string.Empty;
             AppendMissingQaAsset(ref missingTargets, primaryActivity == null, "Primary Activity");
             if (!TryValidateSmokeTargets("Clear Activity Smoke", missingTargets))
             {
@@ -548,7 +548,7 @@ namespace Immersive.Framework.Diagnostics
 
         private async void RunNoActivityRouteSmoke()
         {
-            var missingTargets = string.Empty;
+            string missingTargets = string.Empty;
             AppendMissingQaAsset(ref missingTargets, noActivityRoute == null, "No-Activity Route");
             if (!TryValidateSmokeTargets("No-Activity Route Smoke", missingTargets))
             {
@@ -561,7 +561,7 @@ namespace Immersive.Framework.Diagnostics
 
         private async void RunNoContentActivitySmoke()
         {
-            var missingTargets = string.Empty;
+            string missingTargets = string.Empty;
             AppendMissingQaAsset(ref missingTargets, noContentActivity == null, "No-Content Activity");
             if (!TryValidateSmokeTargets("No-Content Activity Smoke", missingTargets))
             {
@@ -604,7 +604,7 @@ namespace Immersive.Framework.Diagnostics
             _logger.Info($"QA Smoke started. name='{smokeName}'.");
             try
             {
-                var completed = await sequence(runtimeHost);
+                bool completed = await sequence(runtimeHost);
                 if (completed)
                 {
                     _logger.Info($"QA Smoke completed. name='{smokeName}'.");
@@ -742,7 +742,7 @@ namespace Immersive.Framework.Diagnostics
 
         private string ResolveResetStepReason(string suffix)
         {
-            var baseReason = ResolveReason(resetReason, "qa.reset");
+            string baseReason = ResolveReason(resetReason, "qa.reset");
             return $"{baseReason}.{suffix}";
         }
 
@@ -768,13 +768,13 @@ namespace Immersive.Framework.Diagnostics
 
         private string GetQaAssetsStatus()
         {
-            var missingCore = string.Empty;
+            string missingCore = string.Empty;
             AppendMissingQaAsset(ref missingCore, canonicalRoute == null, "Canonical Route");
             AppendMissingQaAsset(ref missingCore, alternateRoute == null, "Alternate Route");
             AppendMissingQaAsset(ref missingCore, primaryActivity == null, "Primary Activity");
             AppendMissingQaAsset(ref missingCore, secondaryActivity == null, "Secondary Activity");
 
-            var missingOptional = string.Empty;
+            string missingOptional = string.Empty;
             AppendMissingQaAsset(ref missingOptional, noActivityRoute == null, "No-Activity Route");
             AppendMissingQaAsset(ref missingOptional, noContentActivity == null, "No-Content Activity");
 

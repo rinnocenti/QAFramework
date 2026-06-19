@@ -162,3 +162,201 @@ The Inspector also warns when Activity Content Bindings are nested under each ot
 ## Atualização IF-FW-2T
 
 O `ActivityContentRuntime` passou a consumir os eventos canônicos de lifecycle emitidos pelo `ActivityFlowRuntime` por meio de `Foundation.Events`. O comportamento público do `ActivityContentBinding` permanece o mesmo: ligar/desligar `GameObject` de cena conforme a Activity ativa. A mudança é apenas de ownership/integração: o conteúdo passa a reagir ao lifecycle canônico em vez de depender de chamada direta como caminho principal.
+
+## Amendment — IF-FW-3A Activity Content Lifecycle Receivers
+
+`ActivityContentRuntime` now dispatches local lifecycle callbacks to components under an `ActivityContentBinding` root.
+
+A component can implement:
+
+```text
+IActivityContentLifecycleReceiver
+```
+
+to receive:
+
+```text
+OnActivityContentEntered(ActivityContentLifecycleContext context)
+OnActivityContentExited(ActivityContentLifecycleContext context)
+```
+
+This keeps the Activity owner unchanged:
+
+```text
+ActivityFlowRuntime owns active Activity identity.
+ActivityContentRuntime owns scene-authored content visibility and local content callback dispatch.
+ActivityContentBinding remains a marker/root, not a lifecycle owner.
+```
+
+Ordering rules:
+
+- enter callbacks are sent after the matching content root is activated;
+- exit callbacks are sent before the previous Activity content root is deactivated;
+- receivers are searched only below the matching binding root, including inactive children;
+- callbacks are local extension points, not a service locator or global event bus.
+
+This amendment does not add Actor, Input, Camera, Save, Pooling, reset, spawn, content profiles, inventory, discovery, pipelines or registries.
+
+
+## Amendment — IF-FW-3B Route Content Lifecycle Receivers
+
+`RouteLifecycleRuntime` now owns a minimal `RouteContentRuntime` for scene-authored Route content participation.
+
+A scene object can use:
+
+```text
+RouteContentBinding
+```
+
+and components below that root can implement:
+
+```text
+IRouteContentLifecycleReceiver
+```
+
+to receive:
+
+```text
+OnRouteContentEntered(RouteContentLifecycleContext context)
+OnRouteContentExited(RouteContentLifecycleContext context)
+```
+
+This keeps ownership narrow:
+
+```text
+RouteLifecycleRuntime owns active Route identity.
+SceneLifecycleRuntime owns Primary Scene loading.
+ActivityFlowRuntime owns active Activity identity.
+RouteContentRuntime owns local Route content callback dispatch only.
+RouteContentBinding remains a marker/root, not a lifecycle owner.
+```
+
+Ordering rules:
+
+- previous Route content receives exit before the next Primary Scene load starts, while old scene content may still exist;
+- next Route content receives enter after the next Primary Scene is resolved and active;
+- Startup Activity begins after Route content enter;
+- receivers are searched only below the matching Route Content Binding root, including inactive children;
+- callbacks are local extension points, not a service locator or global event bus.
+
+This amendment does not add Actor, Input, Camera, Save, Pooling, Addressables, reset, spawn, content profiles, inventory, discovery, pipelines or registries.
+
+
+### IF-FW-3B-FIX1 — Route Content non-destructive lifecycle
+
+Route Content Binding was narrowed to a non-destructive lifecycle boundary. It notifies local `IRouteContentLifecycleReceiver` components on route enter/exit, but does not automatically toggle the root GameObject active state. This avoids route-scoped content disappearing permanently when multiple route assets share the same Primary Scene or when authored content uses a different route asset than the active QA route. An empty Route reference matches by Primary Scene; an assigned Route reference matches that specific Route asset.
+
+## Amendment — IF-FW-3C Content Lifecycle Receiver Safety
+
+Activity and Route content receiver dispatch is protected at the framework boundary.
+
+If a local receiver throws during one of these callbacks:
+
+```text
+OnActivityContentEntered
+OnActivityContentExited
+OnRouteContentEntered
+OnRouteContentExited
+```
+
+the content runtime logs a contextual error and continues dispatching the remaining receivers under the same binding root.
+
+This keeps local gameplay component failures from aborting Route or Activity flow. The framework does not hide the failure; it reports the receiver type, phase, binding object, scene and exception summary through `FrameworkLogger`.
+
+This amendment does not add negative QA automation, validators, Inspectors, Actor, Input, Camera, Save, Pooling, Addressables, reset, spawn, content profiles, inventory, discovery, pipelines or registries.
+
+
+## Amendment — IF-FW-3D Content Lifecycle Behaviours
+
+The framework now exposes optional base MonoBehaviours for common scene-authored content scripts:
+
+```text
+ActivityContentBehaviour
+RouteContentBehaviour
+```
+
+They implement the lower-level receiver interfaces:
+
+```text
+IActivityContentLifecycleReceiver
+IRouteContentLifecycleReceiver
+```
+
+and expose protected virtual callbacks for derived gameplay scripts:
+
+```text
+protected virtual void OnActivityContentEntered(ActivityContentLifecycleContext context)
+protected virtual void OnActivityContentExited(ActivityContentLifecycleContext context)
+protected virtual void OnRouteContentEntered(RouteContentLifecycleContext context)
+protected virtual void OnRouteContentExited(RouteContentLifecycleContext context)
+```
+
+The receiver interfaces remain the canonical dispatch contract. The Behaviour base classes are an ergonomics layer for normal MonoBehaviour scripts, so user-authored components do not need to repeat explicit interface implementation when all they need is a local lifecycle hook.
+
+This amendment does not alter Route switching, Activity switching, scene loading, Activity content visibility, Route content visibility, logging policy, validation, QA UI, Actor, Input, Camera, Save, Pooling, Addressables, reset, spawn, content profiles, inventory, discovery, pipelines or registries.
+
+
+
+## Amendment — IF-FW-3E Content Lifecycle State Surface
+
+Decision:
+
+- Activity and Route content lifecycle contexts expose an explicit lifecycle phase.
+- `ActivityContentBehaviour` keeps a minimal local state surface:
+  - `IsActivityContentActive`;
+  - `HasActivityContentContext`;
+  - `LastActivityContentContext`;
+  - `ActiveActivity`;
+  - `ActivityContentBinding`.
+- `RouteContentBehaviour` keeps the equivalent Route state surface:
+  - `IsRouteContentActive`;
+  - `HasRouteContentContext`;
+  - `LastRouteContentContext`;
+  - `ActiveRoute`;
+  - `RouteContentBinding`.
+
+Rationale:
+
+- Gameplay components should not need to maintain duplicate booleans just to know whether their content scope is active.
+- The state is local to the authored component and does not introduce a global lifecycle registry or service locator.
+- Exit callbacks set the local active flag to `false` before the overridable exit method runs. The exiting Activity/Route remains available through the callback context.
+
+Boundaries:
+
+- Does not change Activity content visibility policy.
+- Does not change Route content non-destructive policy.
+- Does not add Actor, Input, Camera, Save, Pooling, Addressables, spawning, inventory or lifecycle pipelines.
+
+
+
+## Amendment — IF-FW-3F Flow Request Context Surface
+
+Decision:
+
+- Game Flow request metadata is propagated into local content lifecycle contexts.
+- `ActivityContentLifecycleContext` exposes:
+  - `Source`;
+  - `Reason`.
+- `RouteContentLifecycleContext` exposes the same metadata.
+- `ActivityContentBehaviour` and `RouteContentBehaviour` expose convenience properties:
+  - `LifecycleSource`;
+  - `LifecycleReason`.
+
+Rationale:
+
+- Gameplay components reacting to local content lifecycle often need to know why the transition happened.
+- The information already exists at the request boundary as `source` and `reason`; it should not be lost before reaching local content.
+- Passing this data through immutable contexts avoids service locator access to `FrameworkRuntimeHost` or direct dependency on QA/runtime request components.
+
+Defaults:
+
+- Startup route boot uses `source='GameApplication'` and `reason='startup'`.
+- Missing source is normalized to `Unknown`.
+- Missing reason is normalized to `None`.
+
+Boundaries:
+
+- Does not change request acceptance/rejection semantics.
+- Does not change Route content non-destructive policy.
+- Does not change Activity content visibility policy.
+- Does not add Actor, Input, Camera, Save, Pooling, Addressables, spawning, inventory, validators, Inspectors, service locators or lifecycle pipelines.

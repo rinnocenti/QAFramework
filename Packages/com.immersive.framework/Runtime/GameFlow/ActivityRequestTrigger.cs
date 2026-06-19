@@ -53,7 +53,7 @@ namespace Immersive.Framework.GameFlow
                 return;
             }
 
-            var resolvedReason = string.IsNullOrWhiteSpace(reason) ? targetActivity.ActivityName : reason.Trim();
+            string resolvedReason = string.IsNullOrWhiteSpace(reason) ? targetActivity.ActivityName : reason.Trim();
             if (!TryGetRuntimeHost(targetActivity, resolvedReason, out var runtimeHost))
             {
                 return;
@@ -80,7 +80,7 @@ namespace Immersive.Framework.GameFlow
                 return;
             }
 
-            var resolvedReason = string.IsNullOrWhiteSpace(reason) ? DefaultClearReason : reason.Trim();
+            string resolvedReason = string.IsNullOrWhiteSpace(reason) ? DefaultClearReason : reason.Trim();
             if (!TryGetRuntimeHost(null, resolvedReason, out var runtimeHost))
             {
                 return;
