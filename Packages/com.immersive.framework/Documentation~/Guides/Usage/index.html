@@ -158,9 +158,10 @@
   <main>
     <section class="card">
       <h2>Estado atual</h2>
-      <p><strong>Corte atual:</strong> <code>IF-FW-2M - Activity Flow Active State</code>.</p>
-      <p>O <code>Activity Flow</code> agora é owner explícito da Activity ativa. Ele registra quando uma Activity inicia, troca, permanece ativa ou é limpa porque a Route não declara <code>Startup Activity</code>. O logging continua passando por <code>FrameworkLogger</code> sobre <code>com.immersive.logging</code>.</p>
-      <p>O framework já consegue resolver uma aplicação ativa, validar uma <code>Startup Route</code>, validar a <code>Primary Scene</code>, criar um runtime persistente, iniciar uma Route por <code>Route Lifecycle</code>, aceitar uma solicitação runtime simples para trocar para outra Route via <code>Route Request Trigger</code> e iniciar/atualizar a <code>Startup Activity</code> opcional da Route com diagnostics emitidos pelo runtime persistente.</p>
+      <p><strong>Corte atual:</strong> <code>IF-FW-2S - Activity Lifecycle Events</code>.</p>
+      <p>O framework agora emite eventos canônicos de lifecycle de Activity por meio de <code>Foundation.Events</code>, mantendo o mesmo comportamento visual de <code>Activity Content Binding</code>.</p>
+      <p>O registro de Activity continua usando <code>FrameworkLogger</code> e não ganhou service locator, event bus global ou refatoração de consumo de eventos no conteúdo de cena.</p>
+      <p>O framework já consegue resolver uma aplicação ativa, validar uma <code>Startup Route</code>, validar a <code>Primary Scene</code>, criar um runtime persistente, iniciar uma Route por <code>Route Lifecycle</code>, trocar Route via <code>Route Request Trigger</code>, iniciar/trocar/limpar Activity via <code>Activity Request Trigger</code> e aplicar conteúdo authored de Activity.</p>
       <div class="note">
         O bootstrap cria um objeto interno <code>Immersive Framework Runtime</code> marcado como <code>DontDestroyOnLoad</code>. Esse objeto é o owner de escopo de aplicação e mantém o <code>Game Flow</code> vivo durante cargas Single. O <code>Game Flow</code> delega o início concreto da rota para <code>Route Lifecycle</code>, inclusive em solicitações runtime.
       </div>
@@ -186,7 +187,7 @@
         </div>
         <div class="card">
           <h3>Activity</h3>
-          <p>Asset público que identifica uma etapa de gameplay dentro de uma Route. Neste corte, a Activity tem apenas identidade e pode ser iniciada como <code>Startup Activity</code>.</p>
+          <p>Asset público que identifica uma etapa de gameplay dentro de uma Route. Neste corte, a Activity tem apenas identidade e pode ser iniciada como <code>Startup Activity</code>, solicitada por <code>Activity Request Trigger</code> ou limpa por request explícito.</p>
         </div>
         <div class="card">
           <h3>Game Flow</h3>
@@ -201,6 +202,14 @@
         <div class="card">
           <h3>Route Request Trigger</h3>
           <p>Componente público para objetos de cena ou botões de UI solicitarem outra Route sem expor pipeline, stage, command, fact ou snapshot.</p>
+        </div>
+        <div class="card">
+          <h3>Activity Request Trigger</h3>
+          <p>Componente público para objetos de cena ou botões de UI solicitarem outra Activity dentro da Route ativa.</p>
+        </div>
+        <div class="card">
+          <h3>Activity Content Binding</h3>
+          <p>Marcador simples para GameObjects de cena que devem ficar ativos apenas enquanto uma Activity específica está ativa.</p>
         </div>
         <div class="card">
           <h3>Framework Logger</h3>
@@ -218,6 +227,8 @@
         <li>Na seção <code>Startup</code>, clique em <code>Create and Assign Startup Route</code>.</li>
         <li>Selecione o asset <code>Route</code> criado.</li>
         <li>Na seção <code>Scene</code>, atribua uma <code>Primary Scene</code>.</li>
+        <li>Opcionalmente atribua uma <code>Startup Activity</code> na Route.</li>
+        <li>Opcionalmente adicione <code>Activity Content Binding</code> em GameObjects de cena.</li>
         <li>Entre em Play Mode.</li>
       </ol>
       <p>Também é possível selecionar um <code>Game Application</code> e usar <code>Set as Active Game Application</code> no Inspector.</p>
@@ -232,6 +243,51 @@
       <pre><code>[Immersive Framework] Boot succeeded. Application Runtime started. Game Application 'Game Application' resolved. Startup Route 'Startup Route' resolved. Primary Scene 'StartupScene' declared. Game Flow started with Startup Route 'Startup Route'. Route Lifecycle started Route 'Startup Route'. Scene Lifecycle resolved Primary Scene 'StartupScene' and set it active. alreadyLoaded='False'. loadMode='Single'. Validation Mode: Standard.</code></pre>
     </section>
 
+
+
+    <section class="card">
+      <h2>Conteúdo de Activity</h2>
+      <p>Use <code>Activity Content Binding</code> para conteúdo simples authored diretamente na cena.</p>
+      <ol>
+        <li>Crie ou configure um asset <code>Activity</code>.</li>
+        <li>Selecione o GameObject de cena que deve pertencer a essa Activity.</li>
+        <li>Adicione <code>Immersive Framework &gt; Activity Content Binding</code>.</li>
+        <li>No campo <code>Activity</code>, atribua a Activity dona desse conteúdo.</li>
+      </ol>
+      <p>Quando a Activity ativa muda, o framework aplica os bindings carregados na cena:</p>
+      <ul>
+        <li>binding da Activity ativa: GameObject ativo;</li>
+        <li>binding de outra Activity: GameObject inativo;</li>
+        <li>sem Activity ativa: todos os bindings ficam inativos;</li>
+        <li>binding sem Activity atribuída: warning explícito.</li>
+      </ul>
+      <p>Resumo esperado:</p>
+      <pre><code>[Immersive Framework] Activity Content applied 2 binding(s) for Activity 'Activity 02'. activated='1' deactivated='1' unchanged='0'.</code></pre>
+      <p>Detalhe esperado:</p>
+      <pre><code>[Immersive Framework] Activity Content Binding diagnostics. activeActivity='Activity 02' observations=[object='Panel_Activity02' scene='StartupScene' assignedActivity='Activity 02' action='Activate' reason='MatchedActiveActivity'; object='Panel_Activity01' scene='StartupScene' assignedActivity='Activity 01' action='Deactivate' reason='DifferentActivity'].</code></pre>
+      <p>Warning esperado para binding incompleto:</p>
+      <pre><code>[Immersive Framework] Activity Content Binding warning. warnings=[object='Panel_MissingActivity' scene='StartupScene' reason='MissingActivityReference'].</code></pre>
+      <div class="warning">
+        Este binding é uma solução mínima para conteúdo simples de cena. Ele não substitui futuros sistemas de Actor, Spawn, Pooling, Presentation, Input, Camera ou Save. Evite aninhar bindings de Activities diferentes até existir policy própria.
+      </div>
+    </section>
+
+
+    <section class="card">
+      <h2>Solicitar outra Activity</h2>
+      <ol>
+        <li>Crie ou configure outro asset <code>Activity</code>.</li>
+        <li>Adicione <code>Activity Request Trigger</code> a um GameObject da cena atual.</li>
+        <li>No campo <code>Target Activity</code>, atribua a Activity de destino.</li>
+        <li>Opcionalmente preencha <code>Reason</code>.</li>
+        <li>Em um botão/UI Event, chame <code>ActivityRequestTrigger.RequestActivity</code> ou <code>ActivityRequestTrigger.ClearActivity</code>.</li>
+      </ol>
+      <p>Log esperado em sucesso:</p>
+      <pre><code>[Immersive Framework] Activity Request completed. source='ActivityRequestTrigger' reason='Target Activity'. Activity Flow switched from Activity 'Previous Activity' to Activity 'Target Activity'.</code></pre>
+      <p>Para limpar a Activity atual sem trocar Route, conecte o botão/evento em <code>ActivityRequestTrigger.ClearActivity</code>.</p>
+      <pre><code>[Immersive Framework] Activity Request completed. source='ActivityRequestTrigger' reason='Clear Activity'. Activity Flow cleared Activity 'Previous Activity' by request.</code></pre>
+      <p>Se a Activity solicitada já estiver ativa, o request é ignorado explicitamente.</p>
+    </section>
 
     <section class="card">
       <h2>Solicitar outra Route</h2>
@@ -277,7 +333,7 @@
         <li>transições entre Routes;</li>
         <li>cenas adicionais por Route;</li>
         <li>loading screen/transições visuais;</li>
-        <li>Activity Flow;</li>
+        <li>Activity content avançado, nested content policy e content loading;</li>
         <li>Actor lifecycle;</li>
         <li>Input, Camera, Save;</li>
         <li>integração de Pooling;</li>
@@ -300,6 +356,8 @@
           <tr><td><code>Runtime/RouteLifecycle/RouteLifecycleRuntime.cs</code></td><td>Owner mínimo de Route Lifecycle. Inicia uma Route e delega cena para Scene Lifecycle.</td></tr>
           <tr><td><code>Runtime/SceneLifecycle/SceneLifecycleRuntime.cs</code></td><td>Owner mínimo de Scene Lifecycle. Carrega a Primary Scene com modo Single quando necessário.</td></tr>
           <tr><td><code>Runtime/GameFlow/RouteRequestTrigger.cs</code></td><td>Componente público para solicitar troca de Route a partir de objetos de cena ou UI.</td></tr>
+          <tr><td><code>Runtime/ActivityFlow/ActivityContentBinding.cs</code></td><td>Componente público que marca GameObjects de cena como conteúdo de uma Activity.</td></tr>
+          <tr><td><code>Runtime/ActivityFlow/ActivityContentRuntime.cs</code></td><td>Owner mínimo que aplica visibilidade dos bindings e produz diagnostics de observabilidade.</td></tr>
           <tr><td><code>Editor/Authoring/RouteAssetEditor.cs</code></td><td>Inspector da Route para atribuir SceneAsset sem armazenar tipo editor-only no runtime.</td></tr>
         </tbody>
       </table>
@@ -347,6 +405,42 @@
   <p>Route request completion logs are now emitted by the persistent <code>FrameworkRuntimeHost</code>, not by the scene-authored <code>RouteRequestTrigger</code>.</p>
   <p>This keeps diagnostics alive when a request loads another scene with <code>LoadSceneMode.Single</code> and destroys the requesting scene object.</p>
   <pre><code>[Immersive Framework] Route Request completed. source='RouteRequestTrigger' reason='Second Route'. Route Lifecycle switched from Route 'Startup Route' to Route 'Second Route'. Scene Lifecycle resolved Primary Scene 'SecondScene' and set it active. alreadyLoaded='False'. loadMode='Single'.</code></pre>
+</section>
+
+
+<section>
+  <h2>Activity Content Binding authoring guardrails</h2>
+  <p>The <strong>Activity Content Binding</strong> Inspector now explains exactly what the component does: it activates this GameObject when the assigned Activity is active and deactivates it otherwise.</p>
+  <ul>
+    <li><strong>Missing Activity</strong> is shown as an authoring error. Runtime still skips it and emits a warning.</li>
+    <li><strong>Nested Activity Content Bindings</strong> are shown as warnings because nested content policy does not exist yet.</li>
+    <li>The component does not spawn, pool, reset, save, bind actors, bind input, bind camera, or load content.</li>
+  </ul>
+</section>
+
+
+<section>
+  <h2>IF-FW-2T — Activity Content e eventos de Activity</h2>
+  <p>O conteúdo de Activity continua usando <code>Activity Content Binding</code>, mas agora a aplicação de visibilidade é acionada pelo fluxo de eventos canônicos de Activity emitidos pelo <code>ActivityFlowRuntime</code>.</p>
+  <p>O comportamento visual não muda: a Activity ativa liga seus bindings e desliga os demais. A diferença é arquitetural: o caminho passa por <code>ActivityEnteredEvent</code> e <code>ActivityExitedEvent</code> usando <code>Foundation.Events</code>.</p>
+</section>
+
+<section>
+  <h2>IF-FW-2U — Route Lifecycle Events</h2>
+  <p><code>RouteLifecycleRuntime</code> now publishes canonical route lifecycle events using <code>com.immersive.foundation</code>.</p>
+  <ul>
+    <li><code>RouteEnteredEvent</code> is emitted when a Route becomes active.</li>
+    <li><code>RouteExitedEvent</code> is emitted when the previous Route is replaced by another Route.</li>
+  </ul>
+  <p>This does not change visible route behavior. It creates the event boundary that future modules can consume without being called directly by Game Flow.</p>
+</section>
+
+
+<section>
+  <h2>Framework QA Canvas</h2>
+  <p>Para smokes manuais, adicione o componente <strong>Immersive Framework &gt; QA &gt; Framework QA Canvas</strong> em um GameObject de desenvolvimento.</p>
+  <p>Ele permite disparar <em>Route Request</em>, <em>Activity Request</em> e <em>Clear Activity</em> por botões IMGUI, sem criar dependência runtime com UGUI.</p>
+  <p>Use apenas como ferramenta de desenvolvimento. O componente pode persistir entre cenas para continuar disponível depois de um carregamento <code>Single</code>.</p>
 </section>
 
 </body>

@@ -8,19 +8,19 @@ namespace Immersive.Framework.Editor.Editor.Authoring
     [CustomEditor(typeof(RouteAsset))]
     internal sealed class RouteAssetEditor : UnityEditor.Editor
     {
-        private SerializedProperty routeName;
-        private SerializedProperty primaryScenePath;
-        private SerializedProperty primarySceneName;
-        private SerializedProperty startupActivity;
-        private SerializedProperty description;
+        private SerializedProperty _routeName;
+        private SerializedProperty _primaryScenePath;
+        private SerializedProperty _primarySceneName;
+        private SerializedProperty _startupActivity;
+        private SerializedProperty _description;
 
         private void OnEnable()
         {
-            routeName = serializedObject.FindProperty("routeName");
-            primaryScenePath = serializedObject.FindProperty("primaryScenePath");
-            primarySceneName = serializedObject.FindProperty("primarySceneName");
-            startupActivity = serializedObject.FindProperty("startupActivity");
-            description = serializedObject.FindProperty("description");
+            _routeName = serializedObject.FindProperty("routeName");
+            _primaryScenePath = serializedObject.FindProperty("primaryScenePath");
+            _primarySceneName = serializedObject.FindProperty("primarySceneName");
+            _startupActivity = serializedObject.FindProperty("startupActivity");
+            _description = serializedObject.FindProperty("description");
         }
 
         public override void OnInspectorGUI()
@@ -34,8 +34,8 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Identity", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(routeName, new GUIContent("Route Name"));
-            EditorGUILayout.PropertyField(description, new GUIContent("Description"));
+            EditorGUILayout.PropertyField(_routeName, new GUIContent("Route Name"));
+            EditorGUILayout.PropertyField(_description, new GUIContent("Description"));
 
             EditorGUILayout.Space(6);
             DrawPrimaryScene();
@@ -70,10 +70,10 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
             using (new EditorGUI.DisabledScope(true))
             {
-                EditorGUILayout.TextField("Scene Path", primaryScenePath.stringValue ?? string.Empty);
+                EditorGUILayout.TextField("Scene Path", _primaryScenePath.stringValue ?? string.Empty);
             }
 
-            if (string.IsNullOrWhiteSpace(primaryScenePath.stringValue))
+            if (string.IsNullOrWhiteSpace(_primaryScenePath.stringValue))
             {
                 EditorGUILayout.HelpBox(
                     "Primary Scene is required for the Startup Route to pass boot validation.",
@@ -90,7 +90,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
         private void DrawStartupActivity()
         {
             EditorGUILayout.LabelField("Activity", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(startupActivity, new GUIContent("Startup Activity"));
+            EditorGUILayout.PropertyField(_startupActivity, new GUIContent("Startup Activity"));
             EditorGUILayout.HelpBox(
                 "Optional. If assigned, Activity Flow starts this Activity after the Route Primary Scene is resolved. The Activity currently has identity only; it does not load content, actors, input, camera, save or pause.",
                 MessageType.None);
@@ -102,16 +102,16 @@ namespace Immersive.Framework.Editor.Editor.Authoring
                     var activity = ImmersiveFrameworkEditorSettingsUtility.CreateStartupActivityAsset();
                     if (activity != null)
                     {
-                        startupActivity.objectReferenceValue = activity;
+                        _startupActivity.objectReferenceValue = activity;
                         Selection.activeObject = activity;
                     }
                 }
 
-                using (new EditorGUI.DisabledScope(startupActivity.objectReferenceValue == null))
+                using (new EditorGUI.DisabledScope(_startupActivity.objectReferenceValue == null))
                 {
                     if (GUILayout.Button("Select Startup Activity"))
                     {
-                        Selection.activeObject = startupActivity.objectReferenceValue;
+                        Selection.activeObject = _startupActivity.objectReferenceValue;
                     }
                 }
             }
@@ -119,25 +119,25 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
         private SceneAsset LoadCurrentSceneAsset()
         {
-            if (string.IsNullOrWhiteSpace(primaryScenePath.stringValue))
+            if (string.IsNullOrWhiteSpace(_primaryScenePath.stringValue))
             {
                 return null;
             }
 
-            return AssetDatabase.LoadAssetAtPath<SceneAsset>(primaryScenePath.stringValue);
+            return AssetDatabase.LoadAssetAtPath<SceneAsset>(_primaryScenePath.stringValue);
         }
 
         private void SetPrimaryScene(SceneAsset sceneAsset)
         {
             if (sceneAsset == null)
             {
-                primaryScenePath.stringValue = string.Empty;
-                primarySceneName.stringValue = string.Empty;
+                _primaryScenePath.stringValue = string.Empty;
+                _primarySceneName.stringValue = string.Empty;
                 return;
             }
 
-            primaryScenePath.stringValue = AssetDatabase.GetAssetPath(sceneAsset);
-            primarySceneName.stringValue = sceneAsset.name;
+            _primaryScenePath.stringValue = AssetDatabase.GetAssetPath(sceneAsset);
+            _primarySceneName.stringValue = sceneAsset.name;
         }
     }
 }

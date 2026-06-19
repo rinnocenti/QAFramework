@@ -1,4 +1,5 @@
 using System;
+using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Diagnostics;
@@ -47,6 +48,7 @@ namespace Immersive.Framework.Bootstrap
                 }
 
                 logger.Info($"Boot succeeded. Application Runtime started. {result.Message} {gameFlowResult.Message} Validation Mode: {result.ValidationMode}.");
+                LogActivityContentObservability(logger, gameFlowResult.RouteLifecycleResult.ActivityFlowResult.ActivityContentResult);
             }
             catch (Exception exception)
             {
@@ -57,6 +59,19 @@ namespace Immersive.Framework.Bootstrap
         internal static FrameworkBootResult Boot()
         {
             return FrameworkBootValidator.Validate(LoadSettings());
+        }
+
+        private static void LogActivityContentObservability(FrameworkLogger logger, ActivityContentApplyResult activityContentResult)
+        {
+            if (activityContentResult.HasDetailMessage)
+            {
+                logger.Info(activityContentResult.DetailMessage);
+            }
+
+            if (activityContentResult.HasWarningMessage)
+            {
+                logger.Warning(activityContentResult.WarningMessage);
+            }
         }
 
         private static ImmersiveFrameworkSettingsAsset LoadSettings()

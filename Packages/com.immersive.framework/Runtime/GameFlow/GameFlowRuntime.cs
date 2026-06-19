@@ -6,12 +6,13 @@ namespace Immersive.Framework.GameFlow
 {
     /// <summary>
     /// Minimal owner for the game-flow route handoff.
-    /// It accepts route requests and delegates route startup to Route Lifecycle.
+    /// It accepts route and activity requests and delegates route startup to Route Lifecycle.
     /// </summary>
     internal sealed class GameFlowRuntime
     {
-        private readonly RouteLifecycleRuntime routeLifecycleRuntime = new RouteLifecycleRuntime();
-        private bool routeRequestInFlight;
+        private readonly RouteLifecycleRuntime _routeLifecycleRuntime = new RouteLifecycleRuntime();
+        private bool _routeRequestInFlight;
+        private bool _activityRequestInFlight;
 
         internal async Task<FrameworkGameFlowStartResult> StartAsync(GameApplicationAsset gameApplication)
         {
@@ -66,17 +67,22 @@ namespace Immersive.Framework.GameFlow
                     resolvedReason);
             }
 
-            if (routeRequestInFlight)
+            if (_routeRequestInFlight)
             {
                 return FrameworkRouteRequestResult.IgnoredAlreadyInFlight(targetRoute, resolvedSource, resolvedReason);
             }
 
-            if (routeLifecycleRuntime.IsRouteActive(targetRoute))
+            if (_activityRequestInFlight)
+            {
+                return FrameworkRouteRequestResult.IgnoredAlreadyInFlight(targetRoute, resolvedSource, resolvedReason);
+            }
+
+            if (_routeLifecycleRuntime.IsRouteActive(targetRoute))
             {
                 return FrameworkRouteRequestResult.IgnoredAlreadyActive(targetRoute, resolvedSource, resolvedReason);
             }
 
-            routeRequestInFlight = true;
+            _routeRequestInFlight = true;
             try
             {
                 var routeLifecycleResult = await StartRouteCoreAsync(targetRoute);
@@ -97,13 +103,123 @@ namespace Immersive.Framework.GameFlow
             }
             finally
             {
-                routeRequestInFlight = false;
+                _routeRequestInFlight = false;
+            }
+        }
+
+        internal async Task<FrameworkActivityRequestResult> RequestActivityAsync(
+            ActivityAsset targetActivity,
+            string source,
+            string reason)
+        {
+            var resolvedSource = FrameworkActivityRequestResult.NormalizeSource(source);
+            var resolvedReason = FrameworkActivityRequestResult.NormalizeReason(reason);
+
+            if (targetActivity == null)
+            {
+                return FrameworkActivityRequestResult.FailedInvalidConfig(
+                    "Activity Request failed. Target Activity is missing.",
+                    null,
+                    resolvedSource,
+                    resolvedReason);
+            }
+
+            if (!_routeLifecycleRuntime.HasActiveRoute)
+            {
+                return FrameworkActivityRequestResult.FailedInvalidConfig(
+                    "Activity Request failed. No active Route is available.",
+                    targetActivity,
+                    resolvedSource,
+                    resolvedReason);
+            }
+
+            if (_routeRequestInFlight || _activityRequestInFlight)
+            {
+                return FrameworkActivityRequestResult.IgnoredAlreadyInFlight(targetActivity, resolvedSource, resolvedReason);
+            }
+
+            if (_routeLifecycleRuntime.IsActivityActive(targetActivity))
+            {
+                return FrameworkActivityRequestResult.IgnoredAlreadyActive(targetActivity, resolvedSource, resolvedReason);
+            }
+
+            _activityRequestInFlight = true;
+            try
+            {
+                var activityFlowResult = await _routeLifecycleRuntime.StartActivityAsync(targetActivity);
+                if (!activityFlowResult.Completed)
+                {
+                    return FrameworkActivityRequestResult.FailedInvalidConfig(
+                        activityFlowResult.Message,
+                        targetActivity,
+                        resolvedSource,
+                        resolvedReason);
+                }
+
+                return FrameworkActivityRequestResult.SucceededWith(
+                    targetActivity,
+                    resolvedSource,
+                    resolvedReason,
+                    activityFlowResult);
+            }
+            finally
+            {
+                _activityRequestInFlight = false;
+            }
+        }
+
+        internal async Task<FrameworkActivityRequestResult> ClearActivityAsync(string source, string reason)
+        {
+            var resolvedSource = FrameworkActivityRequestResult.NormalizeSource(source);
+            var resolvedReason = FrameworkActivityRequestResult.NormalizeReason(reason);
+
+            if (!_routeLifecycleRuntime.HasActiveRoute)
+            {
+                return FrameworkActivityRequestResult.FailedInvalidConfig(
+                    "Activity Request failed. No active Route is available.",
+                    null,
+                    resolvedSource,
+                    resolvedReason);
+            }
+
+            if (_routeRequestInFlight || _activityRequestInFlight)
+            {
+                return FrameworkActivityRequestResult.IgnoredAlreadyInFlight(null, resolvedSource, resolvedReason);
+            }
+
+            if (!_routeLifecycleRuntime.HasActiveActivity)
+            {
+                return FrameworkActivityRequestResult.IgnoredNoActiveActivity(resolvedSource, resolvedReason);
+            }
+
+            _activityRequestInFlight = true;
+            try
+            {
+                var activityFlowResult = await _routeLifecycleRuntime.ClearActivityAsync();
+                if (!activityFlowResult.Completed)
+                {
+                    return FrameworkActivityRequestResult.FailedInvalidConfig(
+                        activityFlowResult.Message,
+                        null,
+                        resolvedSource,
+                        resolvedReason);
+                }
+
+                return FrameworkActivityRequestResult.SucceededWith(
+                    null,
+                    resolvedSource,
+                    resolvedReason,
+                    activityFlowResult);
+            }
+            finally
+            {
+                _activityRequestInFlight = false;
             }
         }
 
         private Task<RouteLifecycleStartResult> StartRouteCoreAsync(RouteAsset route)
         {
-            return routeLifecycleRuntime.StartRouteAsync(route);
+            return _routeLifecycleRuntime.StartRouteAsync(route);
         }
     }
 }

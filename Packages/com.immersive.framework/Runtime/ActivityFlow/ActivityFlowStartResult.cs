@@ -3,7 +3,7 @@ using Immersive.Framework.Authoring;
 namespace Immersive.Framework.ActivityFlow
 {
     /// <summary>
-    /// Minimal immutable result for starting an Activity from a Route.
+    /// Minimal immutable result for starting or clearing an Activity.
     /// This is diagnostics data, not an activity service.
     /// </summary>
     internal readonly struct ActivityFlowStartResult
@@ -15,7 +15,8 @@ namespace Immersive.Framework.ActivityFlow
             bool cleared,
             string message,
             ActivityAsset activity,
-            ActivityAsset previousActivity)
+            ActivityAsset previousActivity,
+            ActivityContentApplyResult activityContentResult)
         {
             Started = started;
             Skipped = skipped;
@@ -24,6 +25,7 @@ namespace Immersive.Framework.ActivityFlow
             Message = message ?? string.Empty;
             Activity = activity;
             PreviousActivity = previousActivity;
+            ActivityContentResult = activityContentResult;
         }
 
         public bool Started { get; }
@@ -40,20 +42,32 @@ namespace Immersive.Framework.ActivityFlow
 
         public ActivityAsset PreviousActivity { get; }
 
+        public ActivityContentApplyResult ActivityContentResult { get; }
+
         public bool ReplacedPreviousActivity => Started && PreviousActivity != null && !ReferenceEquals(PreviousActivity, Activity);
 
         public bool Completed => Started || Skipped || KeptActive || Cleared;
 
         public static ActivityFlowStartResult Failed(string message)
         {
-            return new ActivityFlowStartResult(false, false, false, false, message, null, null);
+            return new ActivityFlowStartResult(false, false, false, false, message, null, null, default);
         }
 
-        public static ActivityFlowStartResult SkippedNoStartupActivity(ActivityAsset previousActivity)
+        public static ActivityFlowStartResult SkippedNoStartupActivity(
+            ActivityAsset previousActivity,
+            ActivityContentApplyResult activityContentResult)
         {
             if (previousActivity == null)
             {
-                return new ActivityFlowStartResult(false, true, false, false, string.Empty, null, null);
+                return new ActivityFlowStartResult(
+                    false,
+                    true,
+                    false,
+                    false,
+                    AppendContentMessage(string.Empty, activityContentResult),
+                    null,
+                    null,
+                    activityContentResult);
             }
 
             return new ActivityFlowStartResult(
@@ -61,9 +75,30 @@ namespace Immersive.Framework.ActivityFlow
                 false,
                 false,
                 true,
-                $"Activity Flow cleared Activity '{previousActivity.ActivityName}' because Route has no Startup Activity.",
+                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' because Route has no Startup Activity.", activityContentResult),
                 null,
-                previousActivity);
+                previousActivity,
+                activityContentResult);
+        }
+
+        public static ActivityFlowStartResult ClearedByRequest(
+            ActivityAsset previousActivity,
+            ActivityContentApplyResult activityContentResult)
+        {
+            if (previousActivity == null)
+            {
+                return Failed("Activity Flow cannot clear Activity because no Activity is active.");
+            }
+
+            return new ActivityFlowStartResult(
+                false,
+                false,
+                false,
+                true,
+                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' by request.", activityContentResult),
+                null,
+                previousActivity,
+                activityContentResult);
         }
 
         public static ActivityFlowStartResult KeptCurrentActivity(ActivityAsset activity)
@@ -75,10 +110,14 @@ namespace Immersive.Framework.ActivityFlow
                 false,
                 $"Activity Flow kept Activity '{activity.ActivityName}' active.",
                 activity,
-                activity);
+                activity,
+                default);
         }
 
-        public static ActivityFlowStartResult StartedWith(ActivityAsset activity, ActivityAsset previousActivity)
+        public static ActivityFlowStartResult StartedWith(
+            ActivityAsset activity,
+            ActivityAsset previousActivity,
+            ActivityContentApplyResult activityContentResult)
         {
             var message = previousActivity != null && !ReferenceEquals(previousActivity, activity)
                 ? $"Activity Flow switched from Activity '{previousActivity.ActivityName}' to Activity '{activity.ActivityName}'."
@@ -89,9 +128,25 @@ namespace Immersive.Framework.ActivityFlow
                 false,
                 false,
                 false,
-                message,
+                AppendContentMessage(message, activityContentResult),
                 activity,
-                previousActivity);
+                previousActivity,
+                activityContentResult);
+        }
+
+        private static string AppendContentMessage(string message, ActivityContentApplyResult activityContentResult)
+        {
+            if (!activityContentResult.HasBindings)
+            {
+                return message ?? string.Empty;
+            }
+
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                return activityContentResult.Message;
+            }
+
+            return $"{message} {activityContentResult.Message}";
         }
     }
 }

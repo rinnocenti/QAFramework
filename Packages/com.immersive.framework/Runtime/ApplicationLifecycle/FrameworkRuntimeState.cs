@@ -81,5 +81,18 @@ namespace Immersive.Framework.ApplicationLifecycle
                 routeRequestResult.RouteLifecycleResult.ActivityFlowResult,
                 gameFlowStarted);
         }
+
+        public static FrameworkRuntimeState FromActivityRequestResult(
+            FrameworkRuntimeState previousState,
+            FrameworkActivityRequestResult activityRequestResult)
+        {
+            return new FrameworkRuntimeState(
+                previousState.GameApplication,
+                previousState.CurrentRoute,
+                previousState.RouteLifecycleResult,
+                previousState.PrimarySceneResult,
+                activityRequestResult.ActivityFlowResult,
+                previousState.GameFlowStarted);
+        }
     }
 }

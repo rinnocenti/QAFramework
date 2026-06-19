@@ -26,6 +26,7 @@
       "depth": 0,
       "source": "embedded",
       "dependencies": {
+        "com.immersive.foundation": "https://github.com/ImmersiveGames/com.immersive.foundation.git",
         "com.immersive.logging": "https://github.com/ImmersiveGames/com.immersive.logging.git"
       }
     },

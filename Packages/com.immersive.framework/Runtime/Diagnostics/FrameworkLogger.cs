@@ -10,11 +10,11 @@ namespace Immersive.Framework.Diagnostics
     {
         private const string Prefix = "[Immersive Framework]";
 
-        private readonly Logger logger;
+        private readonly Logger _logger;
 
         private FrameworkLogger(Logger logger)
         {
-            this.logger = logger;
+            this._logger = logger;
         }
 
         internal static FrameworkLogger Create()
@@ -27,17 +27,17 @@ namespace Immersive.Framework.Diagnostics
 
         internal void Info(string message)
         {
-            logger.Info(Format(message));
+            _logger.Info(Format(message));
         }
 
         internal void Warning(string message)
         {
-            logger.Warning(Format(message));
+            _logger.Warning(Format(message));
         }
 
         internal void Error(string message)
         {
-            logger.Error(Format(message));
+            _logger.Error(Format(message));
         }
 
         private static string Format(string message)

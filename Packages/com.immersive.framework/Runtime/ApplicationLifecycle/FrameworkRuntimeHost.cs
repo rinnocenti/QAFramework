@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Diagnostics;
 using Immersive.Framework.GameFlow;
@@ -14,27 +15,27 @@ namespace Immersive.Framework.ApplicationLifecycle
     {
         private const string RuntimeHostName = "Immersive Framework Runtime";
 
-        private static FrameworkRuntimeHost current;
+        private static FrameworkRuntimeHost _current;
 
-        private GameApplicationAsset gameApplication;
-        private GameFlowRuntime gameFlowRuntime;
-        private FrameworkRuntimeState state;
-        private FrameworkLogger logger;
+        private GameApplicationAsset _gameApplication;
+        private GameFlowRuntime _gameFlowRuntime;
+        private FrameworkRuntimeState _state;
+        private FrameworkLogger _logger;
 
-        public FrameworkRuntimeState State => state;
+        public FrameworkRuntimeState State => _state;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStaticState()
         {
-            current = null;
+            _current = null;
         }
 
         internal static FrameworkRuntimeHost Create(GameApplicationAsset gameApplication)
         {
-            if (current != null)
+            if (_current != null)
             {
-                UnityEngine.Object.Destroy(current.gameObject);
-                current = null;
+                UnityEngine.Object.Destroy(_current.gameObject);
+                _current = null;
             }
 
             var runtimeObject = new GameObject(RuntimeHostName);
@@ -42,20 +43,20 @@ namespace Immersive.Framework.ApplicationLifecycle
 
             var host = runtimeObject.AddComponent<FrameworkRuntimeHost>();
             host.Initialize(gameApplication);
-            current = host;
+            _current = host;
             return host;
         }
 
         internal static bool TryGetCurrent(out FrameworkRuntimeHost runtimeHost)
         {
-            runtimeHost = current;
+            runtimeHost = _current;
             return runtimeHost != null;
         }
 
         internal async Task<FrameworkGameFlowStartResult> StartAsync()
         {
-            var result = await gameFlowRuntime.StartAsync(gameApplication);
-            state = FrameworkRuntimeState.FromGameFlowResult(gameApplication, result);
+            var result = await _gameFlowRuntime.StartAsync(_gameApplication);
+            _state = FrameworkRuntimeState.FromGameFlowResult(_gameApplication, result);
             return result;
         }
 
@@ -64,47 +65,108 @@ namespace Immersive.Framework.ApplicationLifecycle
             string source,
             string reason)
         {
-            var result = await gameFlowRuntime.RequestRouteAsync(targetRoute, source, reason);
+            var result = await _gameFlowRuntime.RequestRouteAsync(targetRoute, source, reason);
             if (result.Succeeded)
             {
-                state = FrameworkRuntimeState.FromRouteRequestResult(gameApplication, result, true);
+                _state = FrameworkRuntimeState.FromRouteRequestResult(_gameApplication, result, true);
             }
 
             LogRouteRequestResult(result);
             return result;
         }
 
+        internal async Task<FrameworkActivityRequestResult> RequestActivityAsync(
+            ActivityAsset targetActivity,
+            string source,
+            string reason)
+        {
+            var result = await _gameFlowRuntime.RequestActivityAsync(targetActivity, source, reason);
+            if (result.Succeeded)
+            {
+                _state = FrameworkRuntimeState.FromActivityRequestResult(_state, result);
+            }
+
+            LogActivityRequestResult(result);
+            return result;
+        }
+
+        internal async Task<FrameworkActivityRequestResult> ClearActivityAsync(string source, string reason)
+        {
+            var result = await _gameFlowRuntime.ClearActivityAsync(source, reason);
+            if (result.Succeeded)
+            {
+                _state = FrameworkRuntimeState.FromActivityRequestResult(_state, result);
+            }
+
+            LogActivityRequestResult(result);
+            return result;
+        }
+
         private void Initialize(GameApplicationAsset application)
         {
-            gameApplication = application;
-            gameFlowRuntime = new GameFlowRuntime();
-            logger = FrameworkLogger.Create();
-            state = FrameworkRuntimeState.Empty(application);
+            _gameApplication = application;
+            _gameFlowRuntime = new GameFlowRuntime();
+            _logger = FrameworkLogger.Create();
+            _state = FrameworkRuntimeState.Empty(application);
         }
 
         private void LogRouteRequestResult(FrameworkRouteRequestResult result)
         {
             if (result.Succeeded)
             {
-                logger.Info(result.Message);
+                _logger.Info(result.Message);
+                LogActivityContentObservability(result.RouteLifecycleResult.ActivityFlowResult.ActivityContentResult);
                 return;
             }
 
             if (result.Kind == FrameworkRouteRequestKind.IgnoredAlreadyActive ||
                 result.Kind == FrameworkRouteRequestKind.IgnoredAlreadyInFlight)
             {
-                logger.Warning(result.Message);
+                _logger.Warning(result.Message);
                 return;
             }
 
-            logger.Error(result.Message);
+            _logger.Error(result.Message);
+        }
+
+        private void LogActivityRequestResult(FrameworkActivityRequestResult result)
+        {
+            if (result.Succeeded)
+            {
+                _logger.Info(result.Message);
+                LogActivityContentObservability(result.ActivityFlowResult.ActivityContentResult);
+                return;
+            }
+
+            if (result.Kind == FrameworkActivityRequestKind.IgnoredAlreadyActive ||
+                result.Kind == FrameworkActivityRequestKind.IgnoredAlreadyInFlight ||
+                result.Kind == FrameworkActivityRequestKind.IgnoredNoActiveActivity)
+            {
+                _logger.Warning(result.Message);
+                return;
+            }
+
+            _logger.Error(result.Message);
+        }
+
+        private void LogActivityContentObservability(ActivityContentApplyResult activityContentResult)
+        {
+            if (activityContentResult.HasDetailMessage)
+            {
+                _logger.Info(activityContentResult.DetailMessage);
+            }
+
+            if (activityContentResult.HasWarningMessage)
+            {
+                _logger.Warning(activityContentResult.WarningMessage);
+            }
         }
 
         private void OnDestroy()
         {
-            if (current == this)
+            if (_current == this)
             {
-                current = null;
+                _current = null;
             }
         }
     }

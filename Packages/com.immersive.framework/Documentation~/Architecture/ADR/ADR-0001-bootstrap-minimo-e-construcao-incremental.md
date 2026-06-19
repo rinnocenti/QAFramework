@@ -325,3 +325,12 @@ O ADR é considerado respeitado se o primeiro skeleton do package:
 - criar apenas o necessário para o corte atual;
 - preservar fail fast para configuração obrigatória ausente;
 - não introduzir fallback silencioso.
+
+## ADRs relacionados
+
+- `ADR-0002 — Activity Content Binding mínimo e observável`: define o primeiro marcador mínimo de conteúdo de Activity sem copiar a arquitetura pesada de discovery/contributor/inventory da Base 2.0.
+
+
+## Update — Route lifecycle events
+
+Route lifecycle changes may emit canonical events through `com.immersive.foundation`, but the owner of Route state remains `RouteLifecycleRuntime`. Game Flow accepts route requests; Scene Lifecycle loads scenes; event consumers must not turn Foundation.Events into a service locator or replace lifecycle ownership.

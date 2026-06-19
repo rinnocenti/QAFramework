@@ -15,7 +15,7 @@ namespace Immersive.Framework.GameFlow
     {
         private const string DefaultSource = nameof(RouteRequestTrigger);
 
-        private FrameworkLogger logger;
+        private FrameworkLogger _logger;
 
         [Header("Route")]
         [SerializeField] private RouteAsset targetRoute;
@@ -23,7 +23,7 @@ namespace Immersive.Framework.GameFlow
         [Header("Request")]
         [SerializeField] private string reason;
 
-        private bool requestInFlight;
+        private bool _requestInFlight;
 
         public RouteAsset TargetRoute
         {
@@ -33,25 +33,25 @@ namespace Immersive.Framework.GameFlow
 
         private void Awake()
         {
-            logger = FrameworkLogger.Create();
+            _logger = FrameworkLogger.Create();
         }
 
         public async void RequestRoute()
         {
-            if (logger == null)
+            if (_logger == null)
             {
-                logger = FrameworkLogger.Create();
+                _logger = FrameworkLogger.Create();
             }
 
-            if (requestInFlight)
+            if (_requestInFlight)
             {
-                logger.Warning("Route Request ignored. This Route Request Trigger already has a request in flight.");
+                _logger.Warning("Route Request ignored. This Route Request Trigger already has a request in flight.");
                 return;
             }
 
             if (targetRoute == null)
             {
-                logger.Error("Route Request failed. Target Route is missing.");
+                _logger.Error("Route Request failed. Target Route is missing.");
                 return;
             }
 
@@ -63,18 +63,18 @@ namespace Immersive.Framework.GameFlow
                     targetRoute,
                     DefaultSource,
                     resolvedReason);
-                logger.Error(unavailable.Message);
+                _logger.Error(unavailable.Message);
                 return;
             }
 
-            requestInFlight = true;
+            _requestInFlight = true;
             try
             {
                 await runtimeHost.RequestRouteAsync(targetRoute, DefaultSource, resolvedReason);
             }
             finally
             {
-                requestInFlight = false;
+                _requestInFlight = false;
             }
         }
     }

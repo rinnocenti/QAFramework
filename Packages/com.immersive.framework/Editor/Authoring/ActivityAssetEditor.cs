@@ -7,13 +7,13 @@ namespace Immersive.Framework.Editor.Editor.Authoring
     [CustomEditor(typeof(ActivityAsset))]
     internal sealed class ActivityAssetEditor : UnityEditor.Editor
     {
-        private SerializedProperty activityName;
-        private SerializedProperty description;
+        private SerializedProperty _activityName;
+        private SerializedProperty _description;
 
         private void OnEnable()
         {
-            activityName = serializedObject.FindProperty("activityName");
-            description = serializedObject.FindProperty("description");
+            _activityName = serializedObject.FindProperty("activityName");
+            _description = serializedObject.FindProperty("description");
         }
 
         public override void OnInspectorGUI()
@@ -27,8 +27,8 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Identity", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(activityName, new GUIContent("Activity Name"));
-            EditorGUILayout.PropertyField(description, new GUIContent("Description"));
+            EditorGUILayout.PropertyField(_activityName, new GUIContent("Activity Name"));
+            EditorGUILayout.PropertyField(_description, new GUIContent("Description"));
 
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Current Scope", EditorStyles.boldLabel);

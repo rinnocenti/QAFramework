@@ -18,15 +18,41 @@ Technical infrastructure remains outside this package:
 
 ## Current cut
 
-`IF-FW-2M - Activity Flow Active State` makes `ActivityFlowRuntime` the owner of the active Activity identity and records Activity transitions in route diagnostics.
+`IF-FW-2S - Activity Lifecycle Events` adds canonical Activity enter/exit lifecycle events on top of the existing Activity Flow runtime:
+
+- `ActivityFlowRuntime` emits `ActivityEnteredEvent` and `ActivityExitedEvent` through `Foundation.Events`;
+- start, switch and clear transitions are surfaced as lifecycle events;
+- `ActivityContentBinding` and the existing Activity diagnostics remain unchanged.
+
+`IF-FW-2R - Activity Content Binding Authoring Guardrails` improves the Inspector for scene-authored Activity content without changing runtime behavior.
 
 This cut adds:
 
-- previous/current Activity tracking inside `ActivityFlowRuntime`;
-- Activity diagnostics for start, switch, keep-active and clear-no-startup-activity cases;
-- route diagnostics now append any non-empty Activity Flow message, not only first start.
+- a custom Inspector for `ActivityContentBinding`;
+- an authoring error when the binding has no Activity assigned;
+- a clear explanation that the binding only controls GameObject active state;
+- warnings for nested Activity Content Binding hierarchies, because nested content policy does not exist yet.
 
-It still does not add activity content, actors, input, camera, save, pause, pooling, activity transitions, or activity content loading.
+`IF-FW-2Q - Activity Content Binding Observability` improves diagnostics for scene-authored Activity content without changing behavior.
+
+This cut adds:
+
+- per-binding Activity Content diagnostics with object name, scene, assigned Activity, action and reason;
+- warning diagnostics for bindings missing an Activity reference;
+- summary counts for activated, deactivated, unchanged and missing-activity bindings;
+- documentation/ADR updates that define `ActivityContentBinding` as a minimal scene-authored marker, not a replacement for future Actor, Spawn, Pooling or Presentation systems.
+
+`IF-FW-2P - Activity Content Binding` added the first scene-authored Activity content boundary:
+
+- `ActivityContentBinding` as a MonoBehaviour for GameObjects that should be active for one Activity;
+- `ActivityContentRuntime` as the owner that applies bindings when Activity changes or clears;
+- Activity diagnostics that report content binding application when bindings exist.
+
+It still does not add actors, input, camera, save, pause, pooling, route-level activity transition policy, spawning, or content loading. Activity content is only visibility control for scene-authored GameObjects.
+
+`IF-FW-2O - Runtime Activity Clear Request` added an explicit runtime request for clearing the active Activity without switching Route.
+
+`IF-FW-2M - Activity Flow Active State` made `ActivityFlowRuntime` the owner of the active Activity identity and records Activity transitions in route diagnostics.
 
 `IF-FW-2L - Startup Activity Contract` introduced the first Activity authoring asset and lets a Route optionally start one Activity after its Primary Scene is resolved.
 
@@ -53,6 +79,11 @@ This is intentionally not a broad service locator. User-authored objects still d
 
 Earlier cuts:
 
+- `IF-FW-2R — Activity Content Binding Authoring Guardrails`: adds Inspector guardrails for missing Activity references and nested binding hierarchy.
+- `IF-FW-2Q — Activity Content Binding Observability`: improves Activity Content diagnostics without changing content behavior.
+- `IF-FW-2P — Activity Content Binding`: adds scene-authored Activity content visibility binding.
+- `IF-FW-2O — Runtime Activity Clear Request`: added explicit runtime clear for active Activity.
+- `IF-FW-2M — Activity Flow Active State`: made Activity Flow own the active Activity identity and report start/switch/clear/keep diagnostics.
 - `IF-FW-2L — Startup Activity Contract`: introduced `ActivityAsset`, optional `Startup Activity` on Route, and minimal `ActivityFlowRuntime`.
 - `IF-FW-2I — Route Switch Ownership`: moved active Route ownership to Route Lifecycle and made switch diagnostics report previous/next Route.
 - `IF-FW-2H — Runtime Route Request Trigger`: added the first scene-authored route request boundary.
@@ -69,7 +100,7 @@ Earlier cuts:
 - `IF-FW-1B — Shared Boot Validation`: shares runtime/editor boot validation rules.
 - `IF-FW-1A — Minimal Bootstrap`: introduced Game Application, Project Settings, Validation Mode, internal bootstrap, and minimal boot diagnostics.
 
-This cut still intentionally does not introduce Activity content, Actor, Input, Camera, Save, Pooling integration, module graph, route transition policies, loading screen, unload policy, or advanced diagnostics.
+This cut still intentionally does not introduce Actor, Input, Camera, Save, Pooling integration, module graph, route transition policies, loading screen, unload policy, or advanced diagnostics.
 
 ## First setup
 
@@ -138,6 +169,79 @@ Player builds always use framework startup. `Current Scene Only` is only an auth
 
 Use `Current Scene Only` when creating or debugging an isolated scene that should not be replaced by the Startup Route scene.
 
+
+
+## Activity Content Binding
+
+Add `Activity Content Binding` to a scene GameObject when that object should be active only while a specific Activity is active.
+
+Inspector fields:
+
+- `Activity`: the Activity that owns this scene content.
+
+When Activity Flow starts, switches, or clears an Activity, the framework applies all loaded scene bindings:
+
+- bindings that match the active Activity are activated;
+- bindings for other Activities are deactivated;
+- bindings without an assigned Activity are skipped.
+
+Keep Activity Content Binding roots simple. Avoid nesting different Activity bindings under each other until nested content policy exists.
+
+### Activity Content Binding authoring guardrails
+
+The `Activity Content Binding` Inspector shows the currently assigned Activity and explains the current scope of the component.
+
+Guardrails:
+
+- missing `Activity` reference is shown as an authoring error;
+- parent/child `Activity Content Binding` nesting is shown as a warning;
+- the Inspector states that this component only controls GameObject active state.
+
+Nested Activity content is intentionally not supported yet. Keep Activity content roots flat until a dedicated nested content policy exists.
+
+Expected switch log when bindings exist:
+
+```text
+[Immersive Framework] Activity Request completed. source='ActivityRequestTrigger' reason='atividade.change'. Activity Flow switched from Activity 'Activity 01' to Activity 'Activity 02'. Activity Content applied 2 binding(s) for Activity 'Activity 02'. activated='1' deactivated='1' unchanged='0'.
+```
+
+Expected observability detail log:
+
+```text
+[Immersive Framework] Activity Content Binding diagnostics. activeActivity='Activity 02' observations=[object='Panel_Activity02' scene='StartupScene' assignedActivity='Activity 02' action='Activate' reason='MatchedActiveActivity'; object='Panel_Activity01' scene='StartupScene' assignedActivity='Activity 01' action='Deactivate' reason='DifferentActivity'].
+```
+
+If a binding has no Activity assigned, the framework emits a warning:
+
+```text
+[Immersive Framework] Activity Content Binding warning. warnings=[object='Panel_MissingActivity' scene='StartupScene' reason='MissingActivityReference'].
+```
+
+These diagnostics are intentionally runtime diagnostics only. They do not create a registry, scanner asset, content profile or validation window.
+
+## Runtime Activity Request Trigger
+
+Add `Activity Request Trigger` to a GameObject when a scene object or UI Button needs to request another Activity inside the active Route.
+
+Inspector fields:
+
+- `Target Activity`: the Activity to start.
+- `Reason`: optional diagnostic text. If empty, the target activity name is used.
+
+For a Unity UI Button, wire the button `OnClick` event to:
+
+```text
+ActivityRequestTrigger.RequestActivity
+```
+
+Expected success log:
+
+```text
+[Immersive Framework] Activity Request completed. source='ActivityRequestTrigger' reason='<Reason>'. Activity Flow switched from Activity '<Previous Activity>' to Activity '<Target Activity>'.
+```
+
+If the requested Activity is already active, the request is ignored explicitly instead of silently restarting the same Activity. If `ClearActivity` is called with no active Activity, the request is also ignored explicitly.
+
 ## Runtime Route Request Trigger
 
 Add `Route Request Trigger` to a GameObject when a scene object or UI Button needs to request another Route.
@@ -192,3 +296,49 @@ Expected route request success log now includes source and reason:
 ```text
 [Immersive Framework] Route Request completed. source='RouteRequestTrigger' reason='Second Route'. Route Lifecycle switched from Route 'Startup Route' to Route 'Second Route'. Scene Lifecycle resolved Primary Scene 'SecondScene' and set it active. alreadyLoaded='False'. loadMode='Single'.
 ```
+
+
+### Runtime Activity Clear Request
+
+`ActivityRequestTrigger.ClearActivity` clears the current active Activity without changing Route or Scene. The request still passes through `FrameworkRuntimeHost`, `GameFlowRuntime`, `RouteLifecycleRuntime`, and `ActivityFlowRuntime`; scene objects do not own Activity lifecycle.
+
+Expected clear log:
+
+```text
+[Immersive Framework] Activity Request completed. source='ActivityRequestTrigger' reason='<Reason>'. Activity Flow cleared Activity '<Previous Activity>' by request.
+```
+
+### IF-FW-2T — Activity Content consumes Activity lifecycle events
+
+ActivityContentRuntime now subscribes to the Activity lifecycle events emitted by ActivityFlowRuntime. Activity content visibility still behaves the same, but the content update path is now aligned with the canonical ActivityEntered/ActivityExited events from Foundation.Events.
+
+
+### IF-FW-2U — Route Lifecycle Events
+
+RouteLifecycleRuntime now emits canonical Route lifecycle events through `com.immersive.foundation`:
+
+```text
+RouteExitedEvent
+RouteEnteredEvent
+```
+
+The Route lifecycle owner remains `RouteLifecycleRuntime`. Game Flow still accepts route requests, Scene Lifecycle still owns scene loading, and Activity Flow still owns Activity state. No consumer has been added yet; this cut only establishes the event boundary for future systems such as Activity, camera, input, save, actors, and pooling scopes.
+
+
+## IF-FW-2V — Framework QA Canvas
+
+Este corte adiciona um componente de desenvolvimento para padronizar smokes manuais:
+
+```text
+Immersive Framework > QA > Framework QA Canvas
+```
+
+O QA Canvas usa IMGUI para evitar dependência nova de UGUI no runtime do framework. Ele permite configurar listas de `Route` e `Activity` e disparar:
+
+```text
+Request Route
+Request Activity
+Clear Active Activity
+```
+
+O componente pode persistir entre cenas para continuar disponível após `LoadSceneMode.Single`. Ele não é parte do runtime de produto nem substitui testes automatizados; é uma superfície de QA manual para gerar logs consistentes durante o desenvolvimento.

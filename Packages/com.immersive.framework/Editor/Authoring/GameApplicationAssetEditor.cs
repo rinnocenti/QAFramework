@@ -7,15 +7,15 @@ namespace Immersive.Framework.Editor.Editor.Authoring
     [CustomEditor(typeof(GameApplicationAsset))]
     internal sealed class GameApplicationAssetEditor : UnityEditor.Editor
     {
-        private SerializedProperty applicationName;
-        private SerializedProperty startupRoute;
-        private SerializedProperty validationMode;
+        private SerializedProperty _applicationName;
+        private SerializedProperty _startupRoute;
+        private SerializedProperty _validationMode;
 
         private void OnEnable()
         {
-            applicationName = serializedObject.FindProperty("applicationName");
-            startupRoute = serializedObject.FindProperty("startupRoute");
-            validationMode = serializedObject.FindProperty("validationMode");
+            _applicationName = serializedObject.FindProperty("applicationName");
+            _startupRoute = serializedObject.FindProperty("startupRoute");
+            _validationMode = serializedObject.FindProperty("validationMode");
         }
 
         public override void OnInspectorGUI()
@@ -29,7 +29,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Application", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(applicationName, new GUIContent("Application Name"));
+            EditorGUILayout.PropertyField(_applicationName, new GUIContent("Application Name"));
 
             EditorGUILayout.Space(6);
             DrawProjectAssignment();
@@ -39,7 +39,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Validation", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(validationMode, new GUIContent("Validation Mode"));
+            EditorGUILayout.PropertyField(_validationMode, new GUIContent("Validation Mode"));
             EditorGUILayout.HelpBox(
                 "Validation Mode controls validation and diagnostics severity. Required configuration must still fail in every mode.",
                 MessageType.None);
@@ -100,7 +100,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
         private void DrawStartup()
         {
             EditorGUILayout.LabelField("Startup", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(startupRoute, new GUIContent("Startup Route"));
+            EditorGUILayout.PropertyField(_startupRoute, new GUIContent("Startup Route"));
             EditorGUILayout.HelpBox(
                 "The Startup Route is the first route accepted by Game Flow after framework boot. It must declare a Primary Scene, but this cut still does not load scenes yet.",
                 MessageType.None);
@@ -112,16 +112,16 @@ namespace Immersive.Framework.Editor.Editor.Authoring
                     var route = ImmersiveFrameworkEditorSettingsUtility.CreateStartupRouteAsset();
                     if (route != null)
                     {
-                        startupRoute.objectReferenceValue = route;
+                        _startupRoute.objectReferenceValue = route;
                         Selection.activeObject = route;
                     }
                 }
 
-                using (new EditorGUI.DisabledScope(startupRoute.objectReferenceValue == null))
+                using (new EditorGUI.DisabledScope(_startupRoute.objectReferenceValue == null))
                 {
                     if (GUILayout.Button("Select Startup Route"))
                     {
-                        Selection.activeObject = startupRoute.objectReferenceValue;
+                        Selection.activeObject = _startupRoute.objectReferenceValue;
                     }
                 }
             }
