@@ -1,3 +1,4 @@
+using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.RouteLifecycle;
@@ -16,12 +17,14 @@ namespace Immersive.Framework.ApplicationLifecycle
             RouteAsset currentRoute,
             RouteLifecycleStartResult routeLifecycleResult,
             SceneLifecycleLoadResult primarySceneResult,
+            ActivityFlowStartResult activityFlowResult,
             bool gameFlowStarted)
         {
             GameApplication = gameApplication;
             CurrentRoute = currentRoute;
             RouteLifecycleResult = routeLifecycleResult;
             PrimarySceneResult = primarySceneResult;
+            ActivityFlowResult = activityFlowResult;
             GameFlowStarted = gameFlowStarted;
         }
 
@@ -33,6 +36,12 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         public SceneLifecycleLoadResult PrimarySceneResult { get; }
 
+        public ActivityFlowStartResult ActivityFlowResult { get; }
+
+        public ActivityAsset CurrentActivity => ActivityFlowResult.Activity;
+
+        public string CurrentActivityName => CurrentActivity != null ? CurrentActivity.ActivityName : string.Empty;
+
         public bool GameFlowStarted { get; }
 
         public string CurrentRouteName => CurrentRoute != null ? CurrentRoute.RouteName : string.Empty;
@@ -43,7 +52,7 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         public static FrameworkRuntimeState Empty(GameApplicationAsset gameApplication)
         {
-            return new FrameworkRuntimeState(gameApplication, null, default, default, false);
+            return new FrameworkRuntimeState(gameApplication, null, default, default, default, false);
         }
 
         public static FrameworkRuntimeState FromGameFlowResult(
@@ -55,6 +64,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                 gameFlowResult.StartupRoute,
                 gameFlowResult.RouteLifecycleResult,
                 gameFlowResult.SceneLifecycleResult,
+                gameFlowResult.RouteLifecycleResult.ActivityFlowResult,
                 gameFlowResult.Started);
         }
 
@@ -68,6 +78,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                 routeRequestResult.TargetRoute,
                 routeRequestResult.RouteLifecycleResult,
                 routeRequestResult.RouteLifecycleResult.SceneLifecycleResult,
+                routeRequestResult.RouteLifecycleResult.ActivityFlowResult,
                 gameFlowStarted);
         }
     }

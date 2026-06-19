@@ -9,6 +9,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
         internal const string SettingsPath = "Assets/ImmersiveFramework/Resources/ImmersiveFrameworkSettings.asset";
         internal const string GameApplicationDefaultPath = "Assets/ImmersiveFramework/GameApplication.asset";
         internal const string StartupRouteDefaultPath = "Assets/ImmersiveFramework/Routes/StartupRoute.asset";
+        internal const string StartupActivityDefaultPath = "Assets/ImmersiveFramework/Activities/StartupActivity.asset";
         internal const string UsageGuidePath = "Packages/com.immersive.framework/Documentation~/Guides/Usage/index.html";
 
         internal static ImmersiveFrameworkSettingsAsset LoadOrCreateSettingsAsset()
@@ -53,6 +54,19 @@ namespace Immersive.Framework.Editor.Editor.Settings
             AssetDatabase.Refresh();
 
             return route;
+        }
+
+        internal static ActivityAsset CreateStartupActivityAsset()
+        {
+            EnsureDirectory("Assets/ImmersiveFramework/Activities");
+
+            var path = AssetDatabase.GenerateUniqueAssetPath(StartupActivityDefaultPath);
+            var activity = ScriptableObject.CreateInstance<ActivityAsset>();
+            AssetDatabase.CreateAsset(activity, path);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            return activity;
         }
 
         internal static GameApplicationAsset GetActiveGameApplication()

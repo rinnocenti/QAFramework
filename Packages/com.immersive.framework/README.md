@@ -18,7 +18,18 @@ Technical infrastructure remains outside this package:
 
 ## Current cut
 
-`IF-FW-2K - Framework Logging Integration` adds a framework-owned logging boundary on top of `com.immersive.logging`:
+`IF-FW-2L - Startup Activity Contract` introduces the first Activity authoring asset and lets a Route optionally start one Activity after its Primary Scene is resolved.
+
+This cut adds:
+
+- `ActivityAsset` as a public authoring asset;
+- optional `Startup Activity` on `RouteAsset`;
+- minimal `ActivityFlowRuntime` owned separately from Route and Scene lifecycle;
+- route diagnostics append `Activity Flow started Activity '...'` only when a Startup Activity is assigned.
+
+It still does not add activity content, actors, input, camera, save, pause, pooling, activity transitions, or activity content loading.
+
+`IF-FW-2K - Framework Logging Integration` added a framework-owned logging boundary on top of `com.immersive.logging`:
 
 - `Bootstrap`, `FrameworkRuntimeHost` and `RouteRequestTrigger` no longer call `Debug.Log` directly;
 - the framework keeps the same diagnostic text, but emits it through `FrameworkLogger`;
@@ -56,7 +67,7 @@ Earlier cuts:
 - `IF-FW-1B — Shared Boot Validation`: shares runtime/editor boot validation rules.
 - `IF-FW-1A — Minimal Bootstrap`: introduced Game Application, Project Settings, Validation Mode, internal bootstrap, and minimal boot diagnostics.
 
-This cut still intentionally does not introduce Activity, Actor, Input, Camera, Save, Pooling integration, module graph, route transition policies, loading screen, unload policy, or advanced diagnostics.
+This cut still intentionally does not introduce Activity content, Actor, Input, Camera, Save, Pooling integration, module graph, route transition policies, loading screen, unload policy, or advanced diagnostics.
 
 ## First setup
 
@@ -66,7 +77,8 @@ This cut still intentionally does not introduce Activity, Actor, Input, Camera, 
 4. In the `Startup` section, click `Create and Assign Startup Route`.
 5. Select the created `Route` asset.
 6. Assign a `Primary Scene` in the Route Inspector.
-7. Enter Play Mode.
+7. Optionally create and assign a `Startup Activity` in the Route Inspector.
+8. Enter Play Mode.
 
 Alternative assignment flow:
 
@@ -77,7 +89,7 @@ The framework boot should succeed once an Active Game Application, Startup Route
 
 If any required setup is missing, the framework fails fast in Play Mode. Project Settings also previews the same required-missing status before entering Play Mode.
 
-Expected happy-path boot log when the Startup Scene is already loaded:
+Expected happy-path boot log when the Startup Scene is already loaded and no Startup Activity is assigned:
 
 ```text
 [Immersive Framework] Boot succeeded. Application Runtime started. Game Application 'Game Application' resolved. Startup Route 'Startup Route' resolved. Primary Scene 'StartupScene' declared. Game Flow started with Startup Route 'Startup Route'. Route Lifecycle started Route 'Startup Route'. Scene Lifecycle resolved Primary Scene 'StartupScene' and set it active. alreadyLoaded='True'. loadMode='AlreadyLoaded'. Validation Mode: Standard.

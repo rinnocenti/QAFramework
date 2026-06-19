@@ -25,6 +25,10 @@ namespace Immersive.Framework.Authoring
         private string primarySceneName = string.Empty;
 
         [SerializeField]
+        [Tooltip("Optional first Activity started after this route primary scene is resolved.")]
+        private ActivityAsset startupActivity;
+
+        [SerializeField]
         [TextArea(2, 4)]
         [Tooltip("Optional authoring note for the route. This has no runtime behavior yet.")]
         private string description = string.Empty;
@@ -67,6 +71,10 @@ namespace Immersive.Framework.Authoring
         }
 
         public bool HasPrimaryScene => !string.IsNullOrWhiteSpace(primaryScenePath);
+
+        public ActivityAsset StartupActivity => startupActivity;
+
+        public bool HasStartupActivity => startupActivity != null;
 
         public string Description => description ?? string.Empty;
     }

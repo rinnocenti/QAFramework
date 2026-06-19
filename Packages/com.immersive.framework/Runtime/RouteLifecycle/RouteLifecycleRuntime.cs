@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.SceneLifecycle;
 
@@ -11,6 +12,7 @@ namespace Immersive.Framework.RouteLifecycle
     internal sealed class RouteLifecycleRuntime
     {
         private readonly SceneLifecycleRuntime sceneLifecycleRuntime = new SceneLifecycleRuntime();
+        private readonly ActivityFlowRuntime activityFlowRuntime = new ActivityFlowRuntime();
         private RouteAsset currentRoute;
 
         internal RouteAsset CurrentRoute => currentRoute;
@@ -39,8 +41,14 @@ namespace Immersive.Framework.RouteLifecycle
                 return RouteLifecycleStartResult.Failed(sceneLifecycleResult.Message);
             }
 
+            var activityFlowResult = await activityFlowRuntime.StartStartupActivityAsync(route);
+            if (!activityFlowResult.Completed)
+            {
+                return RouteLifecycleStartResult.Failed(activityFlowResult.Message);
+            }
+
             currentRoute = route;
-            return RouteLifecycleStartResult.StartedWith(route, previousRoute, sceneLifecycleResult);
+            return RouteLifecycleStartResult.StartedWith(route, previousRoute, sceneLifecycleResult, activityFlowResult);
         }
     }
 }

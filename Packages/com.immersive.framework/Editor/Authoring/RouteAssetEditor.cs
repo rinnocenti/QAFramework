@@ -1,4 +1,5 @@
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Editor.Editor.Settings;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
         private SerializedProperty routeName;
         private SerializedProperty primaryScenePath;
         private SerializedProperty primarySceneName;
+        private SerializedProperty startupActivity;
         private SerializedProperty description;
 
         private void OnEnable()
@@ -17,6 +19,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             routeName = serializedObject.FindProperty("routeName");
             primaryScenePath = serializedObject.FindProperty("primaryScenePath");
             primarySceneName = serializedObject.FindProperty("primarySceneName");
+            startupActivity = serializedObject.FindProperty("startupActivity");
             description = serializedObject.FindProperty("description");
         }
 
@@ -26,7 +29,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
             EditorGUILayout.LabelField("Route", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "A Route is an entry in the Game Flow. This cut declares the Primary Scene but does not load it yet.",
+                "A Route is an entry in the Game Flow. It declares a Primary Scene and can optionally declare the first Activity to start after the scene is resolved.",
                 MessageType.Info);
 
             EditorGUILayout.Space(6);
@@ -38,9 +41,12 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             DrawPrimaryScene();
 
             EditorGUILayout.Space(6);
+            DrawStartupActivity();
+
+            EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Current Scope", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "This Route currently declares identity and one Primary Scene. Scene loading, transitions, Activity, Input, Camera, Save, and Pooling are intentionally not part of this Route yet.",
+                "This Route currently declares identity, one Primary Scene, and an optional Startup Activity reference. Activity content, actors, input, camera, save, pause and pooling are intentionally not part of this Route yet.",
                 MessageType.None);
 
             serializedObject.ApplyModifiedProperties();
@@ -76,8 +82,38 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             else
             {
                 EditorGUILayout.HelpBox(
-                    "Primary Scene is declared for validation and diagnostics. The framework still does not load scenes in this cut.",
+                    "Primary Scene is loaded by Scene Lifecycle when this Route starts.",
                     MessageType.Info);
+            }
+        }
+
+        private void DrawStartupActivity()
+        {
+            EditorGUILayout.LabelField("Activity", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(startupActivity, new GUIContent("Startup Activity"));
+            EditorGUILayout.HelpBox(
+                "Optional. If assigned, Activity Flow starts this Activity after the Route Primary Scene is resolved. The Activity currently has identity only; it does not load content, actors, input, camera, save or pause.",
+                MessageType.None);
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Create and Assign Startup Activity"))
+                {
+                    var activity = ImmersiveFrameworkEditorSettingsUtility.CreateStartupActivityAsset();
+                    if (activity != null)
+                    {
+                        startupActivity.objectReferenceValue = activity;
+                        Selection.activeObject = activity;
+                    }
+                }
+
+                using (new EditorGUI.DisabledScope(startupActivity.objectReferenceValue == null))
+                {
+                    if (GUILayout.Button("Select Startup Activity"))
+                    {
+                        Selection.activeObject = startupActivity.objectReferenceValue;
+                    }
+                }
             }
         }
 

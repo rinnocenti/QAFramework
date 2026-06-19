@@ -1,3 +1,4 @@
+using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.SceneLifecycle;
 
@@ -14,13 +15,15 @@ namespace Immersive.Framework.RouteLifecycle
             string message,
             RouteAsset route,
             RouteAsset previousRoute,
-            SceneLifecycleLoadResult sceneLifecycleResult)
+            SceneLifecycleLoadResult sceneLifecycleResult,
+            ActivityFlowStartResult activityFlowResult)
         {
             Started = started;
             Message = message ?? string.Empty;
             Route = route;
             PreviousRoute = previousRoute;
             SceneLifecycleResult = sceneLifecycleResult;
+            ActivityFlowResult = activityFlowResult;
         }
 
         public bool Started { get; }
@@ -35,26 +38,31 @@ namespace Immersive.Framework.RouteLifecycle
 
         public SceneLifecycleLoadResult SceneLifecycleResult { get; }
 
+        public ActivityFlowStartResult ActivityFlowResult { get; }
+
         public static RouteLifecycleStartResult Failed(string message)
         {
-            return new RouteLifecycleStartResult(false, message, null, null, default);
+            return new RouteLifecycleStartResult(false, message, null, null, default, default);
         }
 
         public static RouteLifecycleStartResult StartedWith(
             RouteAsset route,
             RouteAsset previousRoute,
-            SceneLifecycleLoadResult sceneLifecycleResult)
+            SceneLifecycleLoadResult sceneLifecycleResult,
+            ActivityFlowStartResult activityFlowResult)
         {
+            var activityMessage = activityFlowResult.Started ? $" {activityFlowResult.Message}" : string.Empty;
             var message = previousRoute != null
-                ? $"Route Lifecycle switched from Route '{previousRoute.RouteName}' to Route '{route.RouteName}'. {sceneLifecycleResult.Message}"
-                : $"Route Lifecycle started Route '{route.RouteName}'. {sceneLifecycleResult.Message}";
+                ? $"Route Lifecycle switched from Route '{previousRoute.RouteName}' to Route '{route.RouteName}'. {sceneLifecycleResult.Message}{activityMessage}"
+                : $"Route Lifecycle started Route '{route.RouteName}'. {sceneLifecycleResult.Message}{activityMessage}";
 
             return new RouteLifecycleStartResult(
                 true,
                 message,
                 route,
                 previousRoute,
-                sceneLifecycleResult);
+                sceneLifecycleResult,
+                activityFlowResult);
         }
     }
 }

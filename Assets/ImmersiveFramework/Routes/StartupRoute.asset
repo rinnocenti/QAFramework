@@ -15,4 +15,5 @@ MonoBehaviour:
   routeName: Startup Route
   primaryScenePath: Assets/Scenes/StartupScene.unity
   primarySceneName: StartupScene
+  startupActivity: {fileID: 11400000, guid: 92ed42b61ac7d9e47ab9e64ea50c9f1a, type: 2}
   description: 
