@@ -14,6 +14,12 @@
       "dependencies": {},
       "hash": "ee927cd3f735f5c5b08572b4df5ba2aab03bf5ce"
     },
+    "com.immersive.foundation": {
+      "version": "file:com.immersive.foundation",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.addressables": {
       "version": "3.1.0",
       "depth": 0,
