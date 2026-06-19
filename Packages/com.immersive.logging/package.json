@@ -1,0 +1,11 @@
+{
+  "name": "com.immersive.logging",
+  "displayName": "Immersive Logging",
+  "version": "0.1.0",
+  "description": "generic logging primitives for the Immersive Framework",
+  "author": {
+    "name": "Immersive Games"
+  },
+  "unity": "6000.5",
+  "unityRelease": "0f1"
+}
