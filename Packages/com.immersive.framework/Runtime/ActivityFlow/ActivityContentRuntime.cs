@@ -12,17 +12,17 @@ namespace Immersive.Framework.ActivityFlow
     {
         private const int MaxObservedBindingsInMessage = 8;
 
-        private ActivityContentApplyResult lastApplyResult;
-        private bool hasLastApplyResult;
+        private ActivityContentApplyResult _lastApplyResult;
+        private bool _hasLastApplyResult;
 
-        internal bool HasLastApplyResult => hasLastApplyResult;
+        internal bool HasLastApplyResult => _hasLastApplyResult;
 
-        internal ActivityContentApplyResult LastApplyResult => lastApplyResult;
+        internal ActivityContentApplyResult LastApplyResult => _lastApplyResult;
 
         internal void ClearLastApplyResult()
         {
-            lastApplyResult = default;
-            hasLastApplyResult = false;
+            _lastApplyResult = default;
+            _hasLastApplyResult = false;
         }
 
         internal void HandleActivityEntered(ActivityEnteredEvent activityEnteredEvent)
@@ -130,8 +130,8 @@ namespace Immersive.Framework.ActivityFlow
 
         private void StoreLastApplyResult(ActivityContentApplyResult applyResult)
         {
-            lastApplyResult = applyResult;
-            hasLastApplyResult = true;
+            _lastApplyResult = applyResult;
+            _hasLastApplyResult = true;
         }
 
         private static string ResolveAction(bool shouldBeActive, bool wasActive, bool changed)

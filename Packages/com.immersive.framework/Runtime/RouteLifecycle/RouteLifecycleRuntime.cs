@@ -13,38 +13,38 @@ namespace Immersive.Framework.RouteLifecycle
     /// </summary>
     internal sealed class RouteLifecycleRuntime
     {
-        private readonly SceneLifecycleRuntime sceneLifecycleRuntime = new SceneLifecycleRuntime();
-        private readonly ActivityFlowRuntime activityFlowRuntime = new ActivityFlowRuntime();
-        private readonly EventBus<RouteEnteredEvent> routeEnteredEvents = new EventBus<RouteEnteredEvent>();
-        private readonly EventBus<RouteExitedEvent> routeExitedEvents = new EventBus<RouteExitedEvent>();
-        private RouteAsset currentRoute;
+        private readonly SceneLifecycleRuntime _sceneLifecycleRuntime = new SceneLifecycleRuntime();
+        private readonly ActivityFlowRuntime _activityFlowRuntime = new ActivityFlowRuntime();
+        private readonly EventBus<RouteEnteredEvent> _routeEnteredEvents = new EventBus<RouteEnteredEvent>();
+        private readonly EventBus<RouteExitedEvent> _routeExitedEvents = new EventBus<RouteExitedEvent>();
+        private RouteAsset _currentRoute;
 
-        internal RouteAsset CurrentRoute => currentRoute;
+        internal RouteAsset CurrentRoute => _currentRoute;
 
-        internal ActivityAsset CurrentActivity => activityFlowRuntime.CurrentActivity;
+        internal ActivityAsset CurrentActivity => _activityFlowRuntime.CurrentActivity;
 
-        internal bool HasActiveRoute => currentRoute != null;
+        internal bool HasActiveRoute => _currentRoute != null;
 
-        internal bool HasActiveActivity => activityFlowRuntime.HasActiveActivity;
+        internal bool HasActiveActivity => _activityFlowRuntime.HasActiveActivity;
 
         internal bool IsRouteActive(RouteAsset route)
         {
-            return route != null && ReferenceEquals(currentRoute, route);
+            return route != null && ReferenceEquals(_currentRoute, route);
         }
 
         internal IEventBinding SubscribeRouteEntered(Action<RouteEnteredEvent> handler)
         {
-            return routeEnteredEvents.Subscribe(handler);
+            return _routeEnteredEvents.Subscribe(handler);
         }
 
         internal IEventBinding SubscribeRouteExited(Action<RouteExitedEvent> handler)
         {
-            return routeExitedEvents.Subscribe(handler);
+            return _routeExitedEvents.Subscribe(handler);
         }
 
         internal bool IsActivityActive(ActivityAsset activity)
         {
-            return activityFlowRuntime.IsActivityActive(activity);
+            return _activityFlowRuntime.IsActivityActive(activity);
         }
 
         internal async Task<RouteLifecycleStartResult> StartRouteAsync(RouteAsset route)
@@ -59,20 +59,20 @@ namespace Immersive.Framework.RouteLifecycle
                 return RouteLifecycleStartResult.Failed("Route Primary Scene is missing.");
             }
 
-            var previousRoute = currentRoute;
-            var sceneLifecycleResult = await sceneLifecycleRuntime.LoadPrimarySceneAsync(route);
+            var previousRoute = _currentRoute;
+            var sceneLifecycleResult = await _sceneLifecycleRuntime.LoadPrimarySceneAsync(route);
             if (!sceneLifecycleResult.Loaded)
             {
                 return RouteLifecycleStartResult.Failed(sceneLifecycleResult.Message);
             }
 
-            var activityFlowResult = await activityFlowRuntime.StartStartupActivityAsync(route);
+            var activityFlowResult = await _activityFlowRuntime.StartStartupActivityAsync(route);
             if (!activityFlowResult.Completed)
             {
                 return RouteLifecycleStartResult.Failed(activityFlowResult.Message);
             }
 
-            currentRoute = route;
+            _currentRoute = route;
             PublishRouteTransition(previousRoute, route);
             return RouteLifecycleStartResult.StartedWith(route, previousRoute, sceneLifecycleResult, activityFlowResult);
         }
@@ -81,33 +81,33 @@ namespace Immersive.Framework.RouteLifecycle
         {
             if (previousRoute != null && !ReferenceEquals(previousRoute, nextRoute))
             {
-                routeExitedEvents.Publish(new RouteExitedEvent(previousRoute, nextRoute));
+                _routeExitedEvents.Publish(new RouteExitedEvent(previousRoute, nextRoute));
             }
 
             if (nextRoute != null && !ReferenceEquals(previousRoute, nextRoute))
             {
-                routeEnteredEvents.Publish(new RouteEnteredEvent(nextRoute, previousRoute));
+                _routeEnteredEvents.Publish(new RouteEnteredEvent(nextRoute, previousRoute));
             }
         }
 
         internal Task<ActivityFlowStartResult> StartActivityAsync(ActivityAsset activity)
         {
-            if (currentRoute == null)
+            if (_currentRoute == null)
             {
                 return Task.FromResult(ActivityFlowStartResult.Failed("No active Route is available."));
             }
 
-            return activityFlowRuntime.StartActivityAsync(activity);
+            return _activityFlowRuntime.StartActivityAsync(activity);
         }
 
         internal Task<ActivityFlowStartResult> ClearActivityAsync()
         {
-            if (currentRoute == null)
+            if (_currentRoute == null)
             {
                 return Task.FromResult(ActivityFlowStartResult.Failed("No active Route is available."));
             }
 
-            return activityFlowRuntime.ClearActivityAsync();
+            return _activityFlowRuntime.ClearActivityAsync();
         }
     }
 }

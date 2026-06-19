@@ -18,6 +18,16 @@ Technical infrastructure remains outside this package:
 
 ## Current cut
 
+`IF-FW-2W-FIX5 - QA Scenario Reset Button` extends `FrameworkQaCanvas` with an in-Play-Mode baseline reset. The reset returns the runtime to a configured baseline Route/Activity without leaving Play Mode, so the Unity Console is preserved between smoke runs. If no explicit reset Route/Activity is configured, the canvas falls back to the current Game Application's Startup Route and that Route's Startup Activity.
+
+`IF-FW-2W - QA Scenario Presets` extends `FrameworkQaCanvas` with canonical manual smoke buttons and semantic scenario targets:
+
+- `Run Activity Smoke`, `Run Route Smoke`, `Run Clear Activity Smoke`, `Run No-Activity Route Smoke`, `Run No-Content Activity Smoke` and `Run Negative Smoke`;
+- semantic scenario targets such as `Canonical Route`, `Alternate Route`, `No-Activity Route`, `Primary Activity`, `Secondary Activity` and `No-Content Activity`;
+- dedicated QA assets live under `Assets/ImmersiveFrameworkQA/` and are used as scenario targets instead of replacing the project boot;
+- ordered smoke logs for repeatable manual QA;
+- the canvas stays IMGUI-based and continues to avoid UGUI, automated tests and new event-bus infrastructure.
+
 `IF-FW-2S - Activity Lifecycle Events` adds canonical Activity enter/exit lifecycle events on top of the existing Activity Flow runtime:
 
 - `ActivityFlowRuntime` emits `ActivityEnteredEvent` and `ActivityExitedEvent` through `Foundation.Events`;
@@ -143,6 +153,22 @@ Documentation~/Guides/Usage/index.html
 ```
 
 This guide records only what already exists in the package and should be updated cut by cut.
+
+## Framework QA Canvas
+
+`FrameworkQaCanvas` is a development-only manual QA surface. It is not a product runtime UI and does not replace automated tests.
+
+The `Reset QA Scenario` button returns the current Play Mode session to a baseline without stopping Play Mode. This preserves the Console log while giving each smoke a predictable starting point.
+
+Baseline reset behavior:
+
+- `Reset Route` is used when assigned. If empty, the current Game Application's Startup Route is used.
+- `Reset Activity` is used when assigned. If empty, the resolved reset Route's Startup Activity is used.
+- if the reset Route has no Startup Activity and no explicit Reset Activity, the reset clears the active Activity.
+- reset requests use `source='FrameworkQaCanvas'` and `qa.reset.*` reasons by default.
+
+QA assets under `Assets/ImmersiveFrameworkQA/` remain scenario targets. They should not become the Active Game Application by default.
+
 
 ## Architecture
 
@@ -342,3 +368,44 @@ Clear Active Activity
 ```
 
 O componente pode persistir entre cenas para continuar disponível após `LoadSceneMode.Single`. Ele não é parte do runtime de produto nem substitui testes automatizados; é uma superfície de QA manual para gerar logs consistentes durante o desenvolvimento.
+
+## IF-FW-2W — QA Scenario Presets
+
+O `Framework QA Canvas` passou a expor presets manuais padronizados para reduzir variação humana nos logs.
+
+A pasta `Assets/ImmersiveFrameworkQA/` concentra os assets de teste manual do framework. Eles não sao assets de producao e existem somente para gerar logs padronizados de smoke.
+O `Active Game Application` normal do projeto continua sendo o asset de produto do projeto; os assets QA nao devem virar boot padrao.
+A `StartupScene` do projeto permanece como cena normal de produto/dev, nao como cena QA paralela.
+Os nomes `QA_CanonicalRoute`, `QA_AlternateRoute`, `QA_PrimaryContentActivity` e `QA_SecondaryContentActivity` representam papéis de teste, nao nomes de gameplay.
+O catálogo também pode incluir `QA_NoActivityRoute` e `QA_NoContentActivity` para testes sem Startup Activity ou sem conteúdo correspondente.
+
+Em `Immersive Framework > QA > Framework QA Canvas`, o Inspector mostra alvos semânticos de cenário:
+
+- `Canonical Route`
+- `Alternate Route`
+- `No-Activity Route`
+- `Primary Activity`
+- `Secondary Activity`
+- `No-Content Activity`
+
+O componente também expõe os botões:
+
+- `Run Activity Smoke`
+- `Run Route Smoke`
+- `Run Clear Activity Smoke`
+- `Run No-Activity Route Smoke`
+- `Run No-Content Activity Smoke`
+- `Run Negative Smoke`
+
+Esses smokes executam sequências canônicas em ordem, mantendo `source='FrameworkQaCanvas'` nos requests e emitindo logs de início/fim pelo `FrameworkLogger`. O canvas continua IMGUI/OnGUI, continua manual e não adiciona UGUI, testes automatizados, event bus novo ou mudança de lifecycle.
+
+Smokes principais:
+
+- `Run Activity Smoke`: Secondary Activity -> Primary Activity -> Clear -> Primary Activity.
+- `Run Route Smoke`: Alternate Route -> Canonical Route.
+- `Run Clear Activity Smoke`: Clear -> Primary Activity -> Clear.
+- `Run No-Activity Route Smoke`: solicita uma Route valida sem Startup Activity.
+- `Run No-Content Activity Smoke`: solicita uma Activity valida sem binding/conteudo esperado.
+- `Run Negative Smoke`: Clear -> Clear novamente, sem assumir boot QA.
+
+O QA Canvas preserva referencias serializadas antigas com `FormerlySerializedAs`, mas os campos publicos de authoring devem ser lidos como papeis de cenario, nao como nomes de assets de gameplay.

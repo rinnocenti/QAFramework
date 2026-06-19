@@ -614,12 +614,21 @@ MonoBehaviour:
     width: 660
     height: 500
   routeTargets:
-  - {fileID: 11400000, guid: ab232d2f09b89b1458dde990193e781c, type: 2}
-  - {fileID: 11400000, guid: b151e96aaf1658848b76986cd5c8e128, type: 2}
+  - {fileID: 11400000, guid: c782be7cec6147dfa0cbc5006f8e36dc, type: 2}
+  - {fileID: 11400000, guid: 4988278d7f1b4e13bfbd37efa7a0a657, type: 2}
   routeReason: qa.route
+  canonicalRoute: {fileID: 11400000, guid: c782be7cec6147dfa0cbc5006f8e36dc, type: 2}
+  alternateRoute: {fileID: 11400000, guid: 4988278d7f1b4e13bfbd37efa7a0a657, type: 2}
+  noActivityRoute: {fileID: 11400000, guid: 0a2d8b77f3de4f1d976a8ebc0e5b71f4, type: 2}
+  primaryActivity: {fileID: 11400000, guid: a9fb61714d4d4cdd95b7ddb0835a7a29, type: 2}
+  secondaryActivity: {fileID: 11400000, guid: 4f86e4e9c7dd4ef19428ee7863c8bcd6, type: 2}
+  noContentActivity: {fileID: 11400000, guid: d7594dc5aefa4a84ad13ec90641f936f, type: 2}
+  resetRoute: {fileID: 11400000, guid: ab232d2f09b89b1458dde990193e781c, type: 2}
+  resetActivity: {fileID: 11400000, guid: 92ed42b61ac7d9e47ab9e64ea50c9f1a, type: 2}
+  resetReason: qa.reset
   activityTargets:
-  - {fileID: 11400000, guid: 92ed42b61ac7d9e47ab9e64ea50c9f1a, type: 2}
-  - {fileID: 11400000, guid: 65dc5dc1b271ad34a95734ee924a46ef, type: 2}
+  - {fileID: 11400000, guid: a9fb61714d4d4cdd95b7ddb0835a7a29, type: 2}
+  - {fileID: 11400000, guid: 4f86e4e9c7dd4ef19428ee7863c8bcd6, type: 2}
   activityReason: qa.activity
   clearActivityReason: qa.activity.clear
 --- !u!4 &1602478679
