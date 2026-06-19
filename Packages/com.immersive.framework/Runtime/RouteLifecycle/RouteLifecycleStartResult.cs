@@ -51,7 +51,7 @@ namespace Immersive.Framework.RouteLifecycle
             SceneLifecycleLoadResult sceneLifecycleResult,
             ActivityFlowStartResult activityFlowResult)
         {
-            var activityMessage = activityFlowResult.Started ? $" {activityFlowResult.Message}" : string.Empty;
+            var activityMessage = !string.IsNullOrWhiteSpace(activityFlowResult.Message) ? $" {activityFlowResult.Message}" : string.Empty;
             var message = previousRoute != null
                 ? $"Route Lifecycle switched from Route '{previousRoute.RouteName}' to Route '{route.RouteName}'. {sceneLifecycleResult.Message}{activityMessage}"
                 : $"Route Lifecycle started Route '{route.RouteName}'. {sceneLifecycleResult.Message}{activityMessage}";

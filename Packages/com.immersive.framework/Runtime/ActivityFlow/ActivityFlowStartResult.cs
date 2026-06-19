@@ -11,42 +11,87 @@ namespace Immersive.Framework.ActivityFlow
         public ActivityFlowStartResult(
             bool started,
             bool skipped,
+            bool keptActive,
+            bool cleared,
             string message,
-            ActivityAsset activity)
+            ActivityAsset activity,
+            ActivityAsset previousActivity)
         {
             Started = started;
             Skipped = skipped;
+            KeptActive = keptActive;
+            Cleared = cleared;
             Message = message ?? string.Empty;
             Activity = activity;
+            PreviousActivity = previousActivity;
         }
 
         public bool Started { get; }
 
         public bool Skipped { get; }
 
+        public bool KeptActive { get; }
+
+        public bool Cleared { get; }
+
         public string Message { get; }
 
         public ActivityAsset Activity { get; }
 
-        public bool Completed => Started || Skipped;
+        public ActivityAsset PreviousActivity { get; }
+
+        public bool ReplacedPreviousActivity => Started && PreviousActivity != null && !ReferenceEquals(PreviousActivity, Activity);
+
+        public bool Completed => Started || Skipped || KeptActive || Cleared;
 
         public static ActivityFlowStartResult Failed(string message)
         {
-            return new ActivityFlowStartResult(false, false, message, null);
+            return new ActivityFlowStartResult(false, false, false, false, message, null, null);
         }
 
-        public static ActivityFlowStartResult SkippedNoStartupActivity()
+        public static ActivityFlowStartResult SkippedNoStartupActivity(ActivityAsset previousActivity)
         {
-            return new ActivityFlowStartResult(false, true, string.Empty, null);
+            if (previousActivity == null)
+            {
+                return new ActivityFlowStartResult(false, true, false, false, string.Empty, null, null);
+            }
+
+            return new ActivityFlowStartResult(
+                false,
+                false,
+                false,
+                true,
+                $"Activity Flow cleared Activity '{previousActivity.ActivityName}' because Route has no Startup Activity.",
+                null,
+                previousActivity);
         }
 
-        public static ActivityFlowStartResult StartedWith(ActivityAsset activity)
+        public static ActivityFlowStartResult KeptCurrentActivity(ActivityAsset activity)
         {
+            return new ActivityFlowStartResult(
+                false,
+                false,
+                true,
+                false,
+                $"Activity Flow kept Activity '{activity.ActivityName}' active.",
+                activity,
+                activity);
+        }
+
+        public static ActivityFlowStartResult StartedWith(ActivityAsset activity, ActivityAsset previousActivity)
+        {
+            var message = previousActivity != null && !ReferenceEquals(previousActivity, activity)
+                ? $"Activity Flow switched from Activity '{previousActivity.ActivityName}' to Activity '{activity.ActivityName}'."
+                : $"Activity Flow started Activity '{activity.ActivityName}'.";
+
             return new ActivityFlowStartResult(
                 true,
                 false,
-                $"Activity Flow started Activity '{activity.ActivityName}'.",
-                activity);
+                false,
+                false,
+                message,
+                activity,
+                previousActivity);
         }
     }
 }

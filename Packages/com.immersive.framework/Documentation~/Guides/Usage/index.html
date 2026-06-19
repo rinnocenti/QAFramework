@@ -158,9 +158,9 @@
   <main>
     <section class="card">
       <h2>Estado atual</h2>
-      <p><strong>Corte atual:</strong> <code>IF-FW-2L - Startup Activity Contract</code>.</p>
-      <p>Routes agora podem declarar uma <code>Startup Activity</code> opcional. Quando configurada, o <code>Activity Flow</code> inicia essa Activity depois que a <code>Primary Scene</code> da Route é resolvida. O logging continua passando por <code>FrameworkLogger</code> sobre <code>com.immersive.logging</code>.</p>
-      <p>O framework já consegue resolver uma aplicação ativa, validar uma <code>Startup Route</code>, validar a <code>Primary Scene</code>, criar um runtime persistente, iniciar uma Route por <code>Route Lifecycle</code> e aceitar uma solicitação runtime simples para trocar para outra Route via <code>Route Request Trigger</code>, iniciar uma <code>Startup Activity</code> opcional por Route, com diagnostics de request emitidos pelo runtime persistente.</p>
+      <p><strong>Corte atual:</strong> <code>IF-FW-2M - Activity Flow Active State</code>.</p>
+      <p>O <code>Activity Flow</code> agora é owner explícito da Activity ativa. Ele registra quando uma Activity inicia, troca, permanece ativa ou é limpa porque a Route não declara <code>Startup Activity</code>. O logging continua passando por <code>FrameworkLogger</code> sobre <code>com.immersive.logging</code>.</p>
+      <p>O framework já consegue resolver uma aplicação ativa, validar uma <code>Startup Route</code>, validar a <code>Primary Scene</code>, criar um runtime persistente, iniciar uma Route por <code>Route Lifecycle</code>, aceitar uma solicitação runtime simples para trocar para outra Route via <code>Route Request Trigger</code> e iniciar/atualizar a <code>Startup Activity</code> opcional da Route com diagnostics emitidos pelo runtime persistente.</p>
       <div class="note">
         O bootstrap cria um objeto interno <code>Immersive Framework Runtime</code> marcado como <code>DontDestroyOnLoad</code>. Esse objeto é o owner de escopo de aplicação e mantém o <code>Game Flow</code> vivo durante cargas Single. O <code>Game Flow</code> delega o início concreto da rota para <code>Route Lifecycle</code>, inclusive em solicitações runtime.
       </div>

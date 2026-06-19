@@ -5,7 +5,7 @@ namespace Immersive.Framework.ActivityFlow
 {
     /// <summary>
     /// Minimal owner for Activity entry.
-    /// It currently starts only the optional Startup Activity declared by a Route.
+    /// It owns the active Activity identity for the current application runtime.
     /// </summary>
     internal sealed class ActivityFlowRuntime
     {
@@ -20,14 +20,21 @@ namespace Immersive.Framework.ActivityFlow
                 return Task.FromResult(ActivityFlowStartResult.Failed("Route is missing."));
             }
 
+            var previousActivity = currentActivity;
             if (!route.HasStartupActivity)
             {
                 currentActivity = null;
-                return Task.FromResult(ActivityFlowStartResult.SkippedNoStartupActivity());
+                return Task.FromResult(ActivityFlowStartResult.SkippedNoStartupActivity(previousActivity));
             }
 
-            currentActivity = route.StartupActivity;
-            return Task.FromResult(ActivityFlowStartResult.StartedWith(currentActivity));
+            var nextActivity = route.StartupActivity;
+            if (ReferenceEquals(previousActivity, nextActivity))
+            {
+                return Task.FromResult(ActivityFlowStartResult.KeptCurrentActivity(nextActivity));
+            }
+
+            currentActivity = nextActivity;
+            return Task.FromResult(ActivityFlowStartResult.StartedWith(nextActivity, previousActivity));
         }
     }
 }

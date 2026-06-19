@@ -15,4 +15,5 @@ MonoBehaviour:
   routeName: Secound Route
   primaryScenePath: Assets/Scenes/SecoundScene.unity
   primarySceneName: SecoundScene
+  startupActivity: {fileID: 0}
   description: 

@@ -18,16 +18,17 @@ Technical infrastructure remains outside this package:
 
 ## Current cut
 
-`IF-FW-2L - Startup Activity Contract` introduces the first Activity authoring asset and lets a Route optionally start one Activity after its Primary Scene is resolved.
+`IF-FW-2M - Activity Flow Active State` makes `ActivityFlowRuntime` the owner of the active Activity identity and records Activity transitions in route diagnostics.
 
 This cut adds:
 
-- `ActivityAsset` as a public authoring asset;
-- optional `Startup Activity` on `RouteAsset`;
-- minimal `ActivityFlowRuntime` owned separately from Route and Scene lifecycle;
-- route diagnostics append `Activity Flow started Activity '...'` only when a Startup Activity is assigned.
+- previous/current Activity tracking inside `ActivityFlowRuntime`;
+- Activity diagnostics for start, switch, keep-active and clear-no-startup-activity cases;
+- route diagnostics now append any non-empty Activity Flow message, not only first start.
 
 It still does not add activity content, actors, input, camera, save, pause, pooling, activity transitions, or activity content loading.
+
+`IF-FW-2L - Startup Activity Contract` introduced the first Activity authoring asset and lets a Route optionally start one Activity after its Primary Scene is resolved.
 
 `IF-FW-2K - Framework Logging Integration` added a framework-owned logging boundary on top of `com.immersive.logging`:
 
@@ -52,6 +53,7 @@ This is intentionally not a broad service locator. User-authored objects still d
 
 Earlier cuts:
 
+- `IF-FW-2L — Startup Activity Contract`: introduced `ActivityAsset`, optional `Startup Activity` on Route, and minimal `ActivityFlowRuntime`.
 - `IF-FW-2I — Route Switch Ownership`: moved active Route ownership to Route Lifecycle and made switch diagnostics report previous/next Route.
 - `IF-FW-2H — Runtime Route Request Trigger`: added the first scene-authored route request boundary.
 - `IF-FW-2G — Route Lifecycle Runtime Owner`: separates Route startup from Game Flow through `RouteLifecycleRuntime`.
