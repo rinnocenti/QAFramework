@@ -4,6 +4,7 @@
 
 ## Rules
 
+- `Validation/Preconditions` is the first active participant.
 - Keep it free of lifecycle ownership.
 - Keep it free of service locator patterns.
 - Keep it free of composition-root responsibilities.
