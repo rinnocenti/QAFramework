@@ -1,0 +1,16 @@
+{
+  "name": "Immersive.Pooling.Unity",
+  "rootNamespace": "Immersive.Pooling",
+  "references": [
+    "Immersive.Pooling.Runtime"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
