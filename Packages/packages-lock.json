@@ -20,6 +20,12 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "com.immersive.logging": {
+      "version": "file:com.immersive.logging",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.addressables": {
       "version": "3.1.0",
       "depth": 0,
