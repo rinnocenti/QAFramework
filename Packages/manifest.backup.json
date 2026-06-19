@@ -1,8 +1,5 @@
 {
   "dependencies": {
-    "com.immersive.foundation": "https://github.com/ImmersiveGames/com.immersive.foundation.git",
-    "com.immersive.logging": "https://github.com/ImmersiveGames/com.immersive.logging.git",
-    "com.immersive.pooling": "https://github.com/ImmersiveGames/com.immersive.pooling.git",
     "com.gitamend.improvedtimers": "https://github.com/adammyhre/Unity-Improved-Timers.git",
     "com.gitamend.unityutils": "https://github.com/adammyhre/Unity-Utils.git",
     "com.unity.addressables": "3.1.0",

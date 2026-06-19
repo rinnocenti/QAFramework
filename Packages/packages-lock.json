@@ -15,22 +15,25 @@
       "hash": "ee927cd3f735f5c5b08572b4df5ba2aab03bf5ce"
     },
     "com.immersive.foundation": {
-      "version": "file:com.immersive.foundation",
+      "version": "https://github.com/ImmersiveGames/com.immersive.foundation.git",
       "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
+      "source": "git",
+      "dependencies": {},
+      "hash": "1116a7c5e3f3b984708b6ab4e6db458e4006d6ea"
     },
     "com.immersive.logging": {
-      "version": "file:com.immersive.logging",
+      "version": "https://github.com/ImmersiveGames/com.immersive.logging.git",
       "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
+      "source": "git",
+      "dependencies": {},
+      "hash": "1fa88443baebfb9ce2a611fdae7c0d99f77b01f5"
     },
     "com.immersive.pooling": {
-      "version": "file:com.immersive.pooling",
+      "version": "https://github.com/ImmersiveGames/com.immersive.pooling.git",
       "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
+      "source": "git",
+      "dependencies": {},
+      "hash": "ccedf13bf292b66c9735864dc957c464060a51a6"
     },
     "com.unity.addressables": {
       "version": "3.1.0",
