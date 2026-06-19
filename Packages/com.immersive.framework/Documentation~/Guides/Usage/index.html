@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Immersive Framework — Guia de Uso Inicial</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #18202a;
+      --muted: #56616f;
+      --line: #d9dee7;
+      --accent: #244f9e;
+      --accent-soft: #eaf0ff;
+      --warn: #7a4a00;
+      --warn-bg: #fff4d8;
+      --ok: #0f5f3b;
+      --ok-bg: #e5f6ed;
+      --code-bg: #101827;
+      --code-text: #f4f7fb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      padding: 32px 24px 24px;
+    }
+
+    main {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1, h2, h3 { line-height: 1.2; margin: 0 0 12px; }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.35rem; margin-top: 32px; }
+    h3 { font-size: 1.05rem; margin-top: 20px; }
+    p { margin: 0 0 12px; }
+    a { color: var(--accent); }
+
+    .eyebrow {
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      margin-bottom: 8px;
+    }
+
+    .subtitle { color: var(--muted); max-width: 820px; font-size: 1rem; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin: 16px 0 8px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .note {
+      background: var(--accent-soft);
+      border: 1px solid #cbd9ff;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin: 16px 0;
+    }
+
+    .warning {
+      background: var(--warn-bg);
+      border: 1px solid #f1d18d;
+      color: var(--warn);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin: 16px 0;
+    }
+
+    .success {
+      background: var(--ok-bg);
+      border: 1px solid #afdfc5;
+      color: var(--ok);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin: 16px 0;
+    }
+
+    code {
+      background: #eef1f6;
+      color: #1f2937;
+      padding: 0.12rem 0.3rem;
+      border-radius: 4px;
+      font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 14px 16px;
+      border-radius: 10px;
+      overflow-x: auto;
+      border: 1px solid #263349;
+    }
+
+    pre code { background: transparent; color: inherit; padding: 0; border-radius: 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 12px 0 18px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th { background: #eef2f8; font-weight: 700; }
+    tr:last-child td { border-bottom: 0; }
+    ul, ol { margin-top: 8px; padding-left: 22px; }
+    li { margin: 6px 0; }
+    .small { color: var(--muted); font-size: 0.92rem; }
+    .footer { color: var(--muted); margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="eyebrow">Immersive Framework</div>
+    <h1>Guia de Uso Inicial</h1>
+    <p class="subtitle">
+      Guia incremental do package <code>com.immersive.framework</code>. Este documento registra apenas o que existe no corte atual e deve crescer junto com o framework.
+    </p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Estado atual</h2>
+      <p><strong>Corte atual:</strong> <code>IF-FW-2K - Framework Logging Integration</code>.</p>
+      <p>As mensagens principais do framework agora passam por <code>FrameworkLogger</code> sobre <code>com.immersive.logging</code>, mas o texto observado no Console continua equivalente ao corte anterior.</p>
+      <p>O framework já consegue resolver uma aplicação ativa, validar uma <code>Startup Route</code>, validar a <code>Primary Scene</code>, criar um runtime persistente, iniciar uma Route por <code>Route Lifecycle</code> e aceitar uma solicitação runtime simples para trocar para outra Route via <code>Route Request Trigger</code>, com diagnostics de request emitidos pelo runtime persistente.</p>
+      <div class="note">
+        O bootstrap cria um objeto interno <code>Immersive Framework Runtime</code> marcado como <code>DontDestroyOnLoad</code>. Esse objeto é o owner de escopo de aplicação e mantém o <code>Game Flow</code> vivo durante cargas Single. O <code>Game Flow</code> delega o início concreto da rota para <code>Route Lifecycle</code>, inclusive em solicitações runtime.
+      </div>
+      <div class="warning">
+        Para testar uma cena isolada sem boot do framework, use <code>Project Settings &gt; Immersive Framework &gt; Editor Play Mode Startup &gt; Current Scene Only</code>.
+      </div>
+    </section>
+
+    <section>
+      <h2>Conceitos existentes</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Game Application</h3>
+          <p>Asset raiz do jogo. Define identidade da aplicação, <code>Startup Route</code> e <code>Validation Mode</code>.</p>
+        </div>
+        <div class="card">
+          <h3>Immersive Framework Settings</h3>
+          <p>Project Settings que aponta para o <code>Game Application</code> ativo.</p>
+        </div>
+        <div class="card">
+          <h3>Route</h3>
+          <p>Asset público que identifica uma entrada do fluxo do jogo e declara uma <code>Primary Scene</code>.</p>
+        </div>
+        <div class="card">
+          <h3>Game Flow</h3>
+          <p>Owner runtime mínimo que aceita a <code>Startup Route</code> após o bootstrap e delega o início concreto da rota para o <code>Route Lifecycle</code>.</p>
+        </div>
+        <div class="card">
+          <h3>Route Lifecycle</h3>
+          <p>Owner runtime mínimo que inicia uma Route e delega o carregamento/ativação de cena para o <code>Scene Lifecycle</code>. Ele existe para impedir que Game Flow ou Bootstrap virem owners de cena.</p>
+          <h3>Application Runtime</h3>
+          <p>Owner runtime persistente criado pelo bootstrap. Mantém o <code>Game Flow</code> deste boot e guarda um estado mínimo de diagnóstico. Não é service locator nem asset de configuração.</p>
+        </div>
+        <div class="card">
+          <h3>Route Request Trigger</h3>
+          <p>Componente público para objetos de cena ou botões de UI solicitarem outra Route sem expor pipeline, stage, command, fact ou snapshot.</p>
+        </div>
+        <div class="card">
+          <h3>Framework Logger</h3>
+          <p>Fronteira interna de logging do framework. Compoe <code>com.immersive.logging</code> sem criar logger global, service locator ou UI de diagnostics.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Primeira configuração</h2>
+      <ol>
+        <li>Abra <code>Project Settings &gt; Immersive Framework</code>.</li>
+        <li>Clique em <code>Create and Assign Game Application</code>.</li>
+        <li>Selecione o asset <code>Game Application</code>.</li>
+        <li>Na seção <code>Startup</code>, clique em <code>Create and Assign Startup Route</code>.</li>
+        <li>Selecione o asset <code>Route</code> criado.</li>
+        <li>Na seção <code>Scene</code>, atribua uma <code>Primary Scene</code>.</li>
+        <li>Entre em Play Mode.</li>
+      </ol>
+      <p>Também é possível selecionar um <code>Game Application</code> e usar <code>Set as Active Game Application</code> no Inspector.</p>
+    </section>
+
+    <section>
+      <h2>Logs esperados</h2>
+      <div class="success">Com Active Game Application, Startup Route e Primary Scene configurados, o boot deve passar.</div>
+      <p>Quando a Startup Scene já está aberta:</p>
+      <pre><code>[Immersive Framework] Boot succeeded. Application Runtime started. Game Application 'Game Application' resolved. Startup Route 'Startup Route' resolved. Primary Scene 'StartupScene' declared. Game Flow started with Startup Route 'Startup Route'. Route Lifecycle started Route 'Startup Route'. Scene Lifecycle resolved Primary Scene 'StartupScene' and set it active. alreadyLoaded='True'. loadMode='AlreadyLoaded'. Validation Mode: Standard.</code></pre>
+      <p>Quando outra cena está aberta e a Startup Scene é carregada pelo framework:</p>
+      <pre><code>[Immersive Framework] Boot succeeded. Application Runtime started. Game Application 'Game Application' resolved. Startup Route 'Startup Route' resolved. Primary Scene 'StartupScene' declared. Game Flow started with Startup Route 'Startup Route'. Route Lifecycle started Route 'Startup Route'. Scene Lifecycle resolved Primary Scene 'StartupScene' and set it active. alreadyLoaded='False'. loadMode='Single'. Validation Mode: Standard.</code></pre>
+    </section>
+
+
+    <section class="card">
+      <h2>Solicitar outra Route</h2>
+      <ol>
+        <li>Crie ou configure outro asset <code>Route</code>.</li>
+        <li>Atribua uma <code>Primary Scene</code> para essa Route.</li>
+        <li>Garanta que a cena esteja no Build Profile se ela não estiver carregada.</li>
+        <li>Adicione <code>Route Request Trigger</code> a um GameObject da cena atual.</li>
+        <li>No campo <code>Target Route</code>, atribua a Route de destino.</li>
+        <li>Em um botão/UI Event, chame <code>RouteRequestTrigger.RequestRoute</code>.</li>
+      </ol>
+      <p>Log esperado em sucesso:</p>
+      <pre><code>[Immersive Framework] Route Request completed. source='RouteRequestTrigger' reason='Target Route'. Route Lifecycle started Route 'Target Route'. Scene Lifecycle resolved Primary Scene 'TargetScene' and set it active. alreadyLoaded='False'. loadMode='Single'.</code></pre>
+    </section>
+
+    <section>
+      <h2>Validação obrigatória</h2>
+      <table>
+        <thead>
+          <tr><th>Configuração ausente</th><th>Resultado esperado</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Active Game Application</td>
+            <td>Boot falha explicitamente. Não existe fallback.</td>
+          </tr>
+          <tr>
+            <td>Startup Route</td>
+            <td>Boot falha explicitamente. A Route deve ser atribuída no Game Application.</td>
+          </tr>
+          <tr>
+            <td>Startup Route Primary Scene</td>
+            <td>Boot falha explicitamente. A cena deve ser declarada no asset Route.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>O que ainda não existe</h2>
+      <p>Estes itens não fazem parte do corte atual:</p>
+      <ul>
+        <li>transições entre Routes;</li>
+        <li>cenas adicionais por Route;</li>
+        <li>loading screen/transições visuais;</li>
+        <li>Activity Flow;</li>
+        <li>Actor lifecycle;</li>
+        <li>Input, Camera, Save;</li>
+        <li>integração de Pooling;</li>
+        <li>module graph completo;</li>
+        <li>diagnostics avançado.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Arquivos principais</h2>
+      <table>
+        <thead><tr><th>Arquivo</th><th>Papel</th></tr></thead>
+        <tbody>
+          <tr><td><code>Runtime/Authoring/GameApplicationAsset.cs</code></td><td>Raiz pública da aplicação.</td></tr>
+          <tr><td><code>Runtime/Authoring/RouteAsset.cs</code></td><td>Route pública com identidade e Primary Scene.</td></tr>
+          <tr><td><code>Runtime/Bootstrap/ImmersiveFrameworkBootstrap.cs</code></td><td>Bootstrap interno mínimo. Resolve configuração, valida e cria o runtime de aplicação.</td></tr>
+          <tr><td><code>Runtime/ApplicationLifecycle/FrameworkRuntimeHost.cs</code></td><td>Owner persistente de escopo de aplicação. Mantém o Game Flow vivo entre cargas de cena.</td></tr>
+          <tr><td><code>Runtime/ApplicationLifecycle/FrameworkRuntimeState.cs</code></td><td>Estado mínimo de diagnóstico do runtime atual.</td></tr>
+          <tr><td><code>Runtime/GameFlow/GameFlowRuntime.cs</code></td><td>Owner mínimo de Game Flow. Delega startup e solicitações de Route para Route Lifecycle.</td></tr>
+          <tr><td><code>Runtime/RouteLifecycle/RouteLifecycleRuntime.cs</code></td><td>Owner mínimo de Route Lifecycle. Inicia uma Route e delega cena para Scene Lifecycle.</td></tr>
+          <tr><td><code>Runtime/SceneLifecycle/SceneLifecycleRuntime.cs</code></td><td>Owner mínimo de Scene Lifecycle. Carrega a Primary Scene com modo Single quando necessário.</td></tr>
+          <tr><td><code>Runtime/GameFlow/RouteRequestTrigger.cs</code></td><td>Componente público para solicitar troca de Route a partir de objetos de cena ou UI.</td></tr>
+          <tr><td><code>Editor/Authoring/RouteAssetEditor.cs</code></td><td>Inspector da Route para atribuir SceneAsset sem armazenar tipo editor-only no runtime.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <p class="footer">
+      Guia incremental. Atualizar a cada corte funcional aceito.
+    </p>
+  
+        <section>
+            <h2>Editor Play Mode Startup</h2>
+            <p>Use <strong>Project Settings &gt; Immersive Framework &gt; Editor Play Mode</strong> to choose how Play Mode starts while developing in the Unity Editor.</p>
+            <table>
+                <thead>
+                    <tr><th>Mode</th><th>Behavior</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>Framework Startup</code></td><td>Runs the normal framework boot: Game Application, Startup Route, Game Flow, and Scene Lifecycle. If the Startup Scene is not already loaded, it is loaded with <code>LoadSceneMode.Single</code>.</td></tr>
+                    <tr><td><code>Current Scene Only</code></td><td>Skips framework boot in the Editor so the currently open scene can be tested in isolation.</td></tr>
+                </tbody>
+            </table>
+            <p><code>Current Scene Only</code> is editor-only. Player builds always use framework startup.</p>
+            <p>Expected skip log:</p>
+            <pre><code>[Immersive Framework] Boot skipped. Editor Play Mode Startup is set to Current Scene Only.</code></pre>
+        </section>
+
+    </main>
+
+<section>
+  <h2>IF-FW-2I — Route switch ownership</h2>
+  <p><strong>Route Lifecycle</strong> now owns the active Route identity.</p>
+  <p><strong>Game Flow</strong> accepts route requests and delegates route startup/switching to Route Lifecycle. It does not own the current Route state.</p>
+  <pre><code>Route Request Trigger
+  -&gt; Application Runtime
+      -&gt; Game Flow
+          -&gt; Route Lifecycle
+              -&gt; Scene Lifecycle</code></pre>
+  <p>Expected route switch diagnostics include the previous Route and the target Route:</p>
+  <pre><code>[Immersive Framework] Route Request completed. source='RouteRequestTrigger' reason='Second Route'. Route Lifecycle switched from Route 'Startup Route' to Route 'Second Route'. Scene Lifecycle resolved Primary Scene 'SecondScene' and set it active. alreadyLoaded='False'. loadMode='Single'.</code></pre>
+</section>
+
+
+<section>
+  <h2>IF-FW-2J — Route request diagnostics ownership</h2>
+  <p>Route request completion logs are now emitted by the persistent <code>FrameworkRuntimeHost</code>, not by the scene-authored <code>RouteRequestTrigger</code>.</p>
+  <p>This keeps diagnostics alive when a request loads another scene with <code>LoadSceneMode.Single</code> and destroys the requesting scene object.</p>
+  <pre><code>[Immersive Framework] Route Request completed. source='RouteRequestTrigger' reason='Second Route'. Route Lifecycle switched from Route 'Startup Route' to Route 'Second Route'. Scene Lifecycle resolved Primary Scene 'SecondScene' and set it active. alreadyLoaded='False'. loadMode='Single'.</code></pre>
+</section>
+
+</body>
+</html>

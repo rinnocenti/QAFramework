@@ -21,6 +21,14 @@
       "dependencies": {},
       "hash": "1116a7c5e3f3b984708b6ab4e6db458e4006d6ea"
     },
+    "com.immersive.framework": {
+      "version": "file:com.immersive.framework",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.immersive.logging": "https://github.com/ImmersiveGames/com.immersive.logging.git"
+      }
+    },
     "com.immersive.logging": {
       "version": "https://github.com/ImmersiveGames/com.immersive.logging.git",
       "depth": 0,

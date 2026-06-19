@@ -6,8 +6,7 @@ using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using UnityEngine;
-
-namespace ImmersiveFramework.Tools.Editor
+namespace Editor
 {
     /// <summary>
     /// Setup inicial do projeto consumidor.
@@ -79,6 +78,13 @@ namespace ImmersiveFramework.Tools.Editor
             new("git.improvedtimers", "Improved Timers", "https://github.com/adammyhre/Unity-Improved-Timers.git", "com.gitamend.improvedtimers")
         };
 
+        private static readonly PackageSpec[] ImmersiveCorePackages =
+        {
+            new("immersive.foundation", "Immersive Foundation", "https://github.com/ImmersiveGames/com.immersive.foundation.git#v0.1.0", "com.immersive.foundation"),
+            new("immersive.logging", "Immersive Logging", "https://github.com/ImmersiveGames/com.immersive.logging.git#v0.1.0", "com.immersive.logging"),
+            new("immersive.pooling", "Immersive Pooling", "https://github.com/ImmersiveGames/com.immersive.pooling.git#v0.1.0", "com.immersive.pooling")
+        };
+
         private static readonly PackageSpec[] OptionalUnityPackages =
         {
             new("unity.localization", "Unity Localization", "com.unity.localization", "com.unity.localization"),
@@ -148,6 +154,12 @@ namespace ImmersiveFramework.Tools.Editor
             PackageInstaller.Enqueue(InitialGitTools);
         }
 
+        [MenuItem(MenuRoot + "Packages/Install Immersive Core Packages")]
+        public static void InstallImmersiveCorePackages()
+        {
+            PackageInstaller.Enqueue(ImmersiveCorePackages);
+        }
+
         [MenuItem(MenuRoot + "Packages/Install Optional Unity Packages")]
         public static void InstallOptionalUnityPackages()
         {
@@ -190,6 +202,12 @@ namespace ImmersiveFramework.Tools.Editor
         {
             SetupValidator.ValidateFolders(InitialFolders);
             PackageStatusReporter.ReportKnownPackages(UnityCorePackages.Concat(InitialGitTools));
+        }
+
+        [MenuItem(MenuRoot + "Validate Immersive Packages")]
+        public static void ValidateImmersivePackages()
+        {
+            PackageStatusReporter.ReportKnownPackages(ImmersiveCorePackages);
         }
 
         private readonly struct PackageSpec
@@ -348,6 +366,7 @@ namespace ImmersiveFramework.Tools.Editor
             private static readonly Dictionary<string, PackageSpec> SpecsByKey =
                 UnityCorePackages
                     .Concat(InitialGitTools)
+                    .Concat(ImmersiveCorePackages)
                     .Concat(OptionalUnityPackages)
                     .ToDictionary(spec => spec.Key, spec => spec);
 

@@ -1,0 +1,13 @@
+{
+  "name": "com.immersive.framework",
+  "version": "0.1.0",
+  "displayName": "Immersive Framework",
+  "description": "Minimal lifecycle framework bootstrap for Immersive games. Development package; expands incrementally by architectural cuts.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Immersive Games"
+  },
+  "dependencies": {
+    "com.immersive.logging": "https://github.com/ImmersiveGames/com.immersive.logging.git"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Immersive.Framework.Runtime",
+  "rootNamespace": "Immersive.Framework",
+  "references": [
+    "Immersive.Logging.Runtime",
+    "Immersive.Logging.Unity"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
