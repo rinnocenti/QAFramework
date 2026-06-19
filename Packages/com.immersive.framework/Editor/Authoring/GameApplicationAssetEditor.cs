@@ -1,5 +1,6 @@
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Editor.Editor.Settings;
+using Immersive.Framework.Editor.Editor.Validation;
 using UnityEditor;
 using UnityEngine;
 namespace Immersive.Framework.Editor.Editor.Authoring
@@ -47,17 +48,29 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Current Scope", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "This asset currently controls application identity, project assignment, Startup Route, and validation mode. The Route declares a Primary Scene, but Scene Lifecycle, Activity, Actor, Input, Camera, Save, and Pooling are intentionally not part of this asset yet.",
+                "This asset controls application identity, project assignment, Startup Route, and validation mode. The Route declares the Primary Scene loaded by Scene Lifecycle. Actor, Input, Camera, Save, and Pooling are intentionally not part of this asset yet.",
                 MessageType.Info);
 
             serializedObject.ApplyModifiedProperties();
+
+            EditorGUILayout.Space(6);
+            DrawAuthoringValidation();
+        }
+
+        private void DrawAuthoringValidation()
+        {
+            var report = FrameworkAuthoringValidator.ValidateGameApplication((GameApplicationAsset)target, true);
+
+            EditorGUILayout.LabelField("Authoring Validation", EditorStyles.boldLabel);
+            FrameworkAuthoringValidationGui.DrawSummary(report);
+            FrameworkAuthoringValidationGui.DrawIssues(report, false);
         }
 
         private void DrawProjectAssignment()
         {
             var gameApplication = (GameApplicationAsset)target;
             var activeGameApplication = ImmersiveFrameworkEditorSettingsUtility.GetActiveGameApplication();
-            var isActive = activeGameApplication == gameApplication;
+            bool isActive = activeGameApplication == gameApplication;
 
             EditorGUILayout.LabelField("Project Assignment", EditorStyles.boldLabel);
 
@@ -102,7 +115,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             EditorGUILayout.LabelField("Startup", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_startupRoute, new GUIContent("Startup Route"));
             EditorGUILayout.HelpBox(
-                "The Startup Route is the first route accepted by Game Flow after framework boot. It must declare a Primary Scene, but this cut still does not load scenes yet.",
+                "The Startup Route is the first route accepted by Game Flow after framework boot. It must declare a Primary Scene, which Scene Lifecycle loads when the Route starts.",
                 MessageType.None);
 
             using (new EditorGUILayout.HorizontalScope())

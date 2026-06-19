@@ -1,11 +1,13 @@
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Bootstrap;
+using Immersive.Framework.Editor.Editor.Validation;
 using UnityEditor;
 using UnityEngine;
 namespace Immersive.Framework.Editor.Editor.Settings
 {
     internal static class ImmersiveFrameworkSettingsProvider
     {
+        private static FrameworkAuthoringValidationReport _lastAuthoringValidationReport;
         [SettingsProvider]
         public static SettingsProvider CreateProvider()
         {
@@ -23,7 +25,9 @@ namespace Immersive.Framework.Editor.Editor.Settings
                     "Usage Guide",
                     "Boot Status",
                     "Editor Play Mode",
-                    "Current Scene Only"
+                    "Current Scene Only",
+                    "Authoring Validation",
+                    "Validate"
                 }
             };
         }
@@ -86,6 +90,9 @@ namespace Immersive.Framework.Editor.Editor.Settings
             DrawBootStatus(settings);
 
             EditorGUILayout.Space(8);
+            DrawAuthoringValidation(settings);
+
+            EditorGUILayout.Space(8);
             DrawConfigurationFiles();
 
             EditorGUILayout.Space(8);
@@ -117,6 +124,43 @@ namespace Immersive.Framework.Editor.Editor.Settings
                     $"Required: {bootStatus.Message}",
                     MessageType.Error);
             }
+        }
+
+
+        private static void DrawAuthoringValidation(ImmersiveFrameworkSettingsAsset settings)
+        {
+            EditorGUILayout.LabelField("Authoring Validation", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                "Checks the current framework authoring baseline: Active Game Application, Startup Route, Primary Scene, optional Startup Activity, and scene-authored Activity Content Bindings. This does not create runtime lifecycle or configure Actor, Input, Camera, Save, or Pooling.",
+                MessageType.None);
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Validate Authoring"))
+                {
+                    _lastAuthoringValidationReport = FrameworkAuthoringValidator.ValidateProjectSettings(settings, true);
+                    FrameworkAuthoringValidationGui.LogReport("Project Settings", _lastAuthoringValidationReport);
+                }
+
+                using (new EditorGUI.DisabledScope(_lastAuthoringValidationReport == null))
+                {
+                    if (GUILayout.Button("Clear Result"))
+                    {
+                        _lastAuthoringValidationReport = null;
+                    }
+                }
+            }
+
+            if (_lastAuthoringValidationReport == null)
+            {
+                EditorGUILayout.HelpBox(
+                    "Run validation to produce an explicit authoring report for the current open scenes.",
+                    MessageType.Info);
+                return;
+            }
+
+            FrameworkAuthoringValidationGui.DrawSummary(_lastAuthoringValidationReport);
+            FrameworkAuthoringValidationGui.DrawIssues(_lastAuthoringValidationReport, false);
         }
 
         private static void DrawConfigurationFiles()

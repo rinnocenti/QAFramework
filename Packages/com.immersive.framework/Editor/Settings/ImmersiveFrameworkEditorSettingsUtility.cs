@@ -34,7 +34,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
         {
             EnsureDirectory("Assets/ImmersiveFramework");
 
-            var path = AssetDatabase.GenerateUniqueAssetPath(GameApplicationDefaultPath);
+            string path = AssetDatabase.GenerateUniqueAssetPath(GameApplicationDefaultPath);
             var gameApplication = ScriptableObject.CreateInstance<GameApplicationAsset>();
             AssetDatabase.CreateAsset(gameApplication, path);
             AssetDatabase.SaveAssets();
@@ -47,7 +47,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
         {
             EnsureDirectory("Assets/ImmersiveFramework/Routes");
 
-            var path = AssetDatabase.GenerateUniqueAssetPath(StartupRouteDefaultPath);
+            string path = AssetDatabase.GenerateUniqueAssetPath(StartupRouteDefaultPath);
             var route = ScriptableObject.CreateInstance<RouteAsset>();
             AssetDatabase.CreateAsset(route, path);
             AssetDatabase.SaveAssets();
@@ -60,7 +60,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
         {
             EnsureDirectory("Assets/ImmersiveFramework/Activities");
 
-            var path = AssetDatabase.GenerateUniqueAssetPath(StartupActivityDefaultPath);
+            string path = AssetDatabase.GenerateUniqueAssetPath(StartupActivityDefaultPath);
             var activity = ScriptableObject.CreateInstance<ActivityAsset>();
             AssetDatabase.CreateAsset(activity, path);
             AssetDatabase.SaveAssets();
@@ -117,7 +117,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
 
         internal static void OpenUsageGuide()
         {
-            var absolutePath = Path.GetFullPath(UsageGuidePath).Replace("\\", "/");
+            string absolutePath = Path.GetFullPath(UsageGuidePath).Replace("\\", "/");
             Application.OpenURL($"file:///{absolutePath}");
         }
 
@@ -128,12 +128,12 @@ namespace Immersive.Framework.Editor.Editor.Settings
                 return;
             }
 
-            var parts = path.Split('/');
-            var current = parts[0];
+            string[] parts = path.Split('/');
+            string current = parts[0];
 
-            for (var i = 1; i < parts.Length; i++)
+            for (int i = 1; i < parts.Length; i++)
             {
-                var next = $"{current}/{parts[i]}";
+                string next = $"{current}/{parts[i]}";
                 if (!AssetDatabase.IsValidFolder(next))
                 {
                     AssetDatabase.CreateFolder(current, parts[i]);

@@ -1,5 +1,6 @@
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Editor.Editor.Settings;
+using Immersive.Framework.Editor.Editor.Validation;
 using UnityEditor;
 using UnityEngine;
 
@@ -46,10 +47,22 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Current Scope", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "This Route currently declares identity, one Primary Scene, and an optional Startup Activity reference. Activity content, actors, input, camera, save, pause and pooling are intentionally not part of this Route yet.",
+                "This Route declares identity, one Primary Scene, and an optional Startup Activity reference. Scene-authored Activity content is handled by ActivityContentBinding. Actors, input, camera, save, pause and pooling are intentionally not part of this Route yet.",
                 MessageType.None);
 
             serializedObject.ApplyModifiedProperties();
+
+            EditorGUILayout.Space(6);
+            DrawAuthoringValidation();
+        }
+
+        private void DrawAuthoringValidation()
+        {
+            var report = FrameworkAuthoringValidator.ValidateRoute((RouteAsset)target, true);
+
+            EditorGUILayout.LabelField("Authoring Validation", EditorStyles.boldLabel);
+            FrameworkAuthoringValidationGui.DrawSummary(report);
+            FrameworkAuthoringValidationGui.DrawIssues(report, false);
         }
 
         private void DrawPrimaryScene()
@@ -92,7 +105,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             EditorGUILayout.LabelField("Activity", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_startupActivity, new GUIContent("Startup Activity"));
             EditorGUILayout.HelpBox(
-                "Optional. If assigned, Activity Flow starts this Activity after the Route Primary Scene is resolved. The Activity currently has identity only; it does not load content, actors, input, camera, save or pause.",
+                "Optional. If assigned, Activity Flow starts this Activity after the Route Primary Scene is resolved. Scene-authored Activity content can react through ActivityContentBinding; actors, input, camera, save and pause are still out of scope.",
                 MessageType.None);
 
             using (new EditorGUILayout.HorizontalScope())

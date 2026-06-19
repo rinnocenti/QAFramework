@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.GameFlow;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
@@ -429,7 +430,7 @@ namespace Immersive.Framework.Diagnostics
                 var activityName = GetAssetName(targetActivity, "<none>");
                 _logger.Info($"QA Scenario reset started. route='{FormatValue(routeName)}' activity='{FormatValue(activityName)}'.");
 
-                if (!await RequestRouteCoreAsync(runtimeHost, targetRoute, ResolveResetStepReason("route")))
+                if (!await RequestRouteCoreAsync(runtimeHost, targetRoute, ResolveResetStepReason("route"), allowAlreadyActive: true))
                 {
                     _logger.Warning($"QA Scenario reset aborted. route='{FormatValue(routeName)}' activity='{FormatValue(activityName)}' reason='Route request failed'.");
                     return;
@@ -438,13 +439,13 @@ namespace Immersive.Framework.Diagnostics
                 await Task.Yield();
                 if (targetActivity != null)
                 {
-                    if (!await RequestActivityCoreAsync(runtimeHost, targetActivity, ResolveResetStepReason("activity")))
+                    if (!await RequestActivityCoreAsync(runtimeHost, targetActivity, ResolveResetStepReason("activity"), allowAlreadyActive: true))
                     {
                         _logger.Warning($"QA Scenario reset aborted. route='{FormatValue(routeName)}' activity='{FormatValue(activityName)}' reason='Activity request failed'.");
                         return;
                     }
                 }
-                else if (!await ClearActivityCoreAsync(runtimeHost, ResolveResetStepReason("clear")))
+                else if (!await ClearActivityCoreAsync(runtimeHost, ResolveResetStepReason("clear"), allowNoActiveActivity: true))
                 {
                     _logger.Warning($"QA Scenario reset aborted. route='{FormatValue(routeName)}' activity='<none>' reason='Activity clear failed'.");
                     return;
@@ -529,7 +530,7 @@ namespace Immersive.Framework.Diagnostics
 
             await RunSmokeAsync("Clear Activity Smoke", async runtimeHost =>
             {
-                if (!await ClearActivityCoreAsync(runtimeHost, ResolveReason(clearActivityReason, "qa.activity.clear")))
+                if (!await ClearActivityCoreAsync(runtimeHost, ResolveReason(clearActivityReason, "qa.activity.clear"), allowNoActiveActivity: true))
                 {
                     return false;
                 }
@@ -575,13 +576,13 @@ namespace Immersive.Framework.Diagnostics
         {
             await RunSmokeAsync("Negative Smoke", async runtimeHost =>
             {
-                if (!await ClearActivityCoreAsync(runtimeHost, ResolveReason(clearActivityReason, "qa.activity.clear")))
+                if (!await ClearActivityCoreAsync(runtimeHost, ResolveReason(clearActivityReason, "qa.activity.clear"), allowNoActiveActivity: true))
                 {
                     return false;
                 }
 
                 await Task.Yield();
-                return await ClearActivityCoreAsync(runtimeHost, ResolveReason(clearActivityReason, "qa.activity.clear"));
+                return await ClearActivityCoreAsync(runtimeHost, ResolveReason(clearActivityReason, "qa.activity.clear"), requireNoActiveActivity: true);
             });
         }
 
@@ -623,7 +624,11 @@ namespace Immersive.Framework.Diagnostics
             }
         }
 
-        private async Task<bool> RequestRouteCoreAsync(FrameworkRuntimeHost runtimeHost, RouteAsset route, string reason)
+        private async Task<bool> RequestRouteCoreAsync(
+            FrameworkRuntimeHost runtimeHost,
+            RouteAsset route,
+            string reason,
+            bool allowAlreadyActive = false)
         {
             if (route == null)
             {
@@ -631,11 +636,15 @@ namespace Immersive.Framework.Diagnostics
                 return false;
             }
 
-            await runtimeHost.RequestRouteAsync(route, QaSource, reason);
-            return true;
+            var result = await runtimeHost.RequestRouteAsync(route, QaSource, reason);
+            return result.Succeeded || (allowAlreadyActive && result.Kind == FrameworkRouteRequestKind.IgnoredAlreadyActive);
         }
 
-        private async Task<bool> RequestActivityCoreAsync(FrameworkRuntimeHost runtimeHost, ActivityAsset activity, string reason)
+        private async Task<bool> RequestActivityCoreAsync(
+            FrameworkRuntimeHost runtimeHost,
+            ActivityAsset activity,
+            string reason,
+            bool allowAlreadyActive = false)
         {
             if (activity == null)
             {
@@ -643,14 +652,23 @@ namespace Immersive.Framework.Diagnostics
                 return false;
             }
 
-            await runtimeHost.RequestActivityAsync(activity, QaSource, reason);
-            return true;
+            var result = await runtimeHost.RequestActivityAsync(activity, QaSource, reason);
+            return result.Succeeded || (allowAlreadyActive && result.Kind == FrameworkActivityRequestKind.IgnoredAlreadyActive);
         }
 
-        private async Task<bool> ClearActivityCoreAsync(FrameworkRuntimeHost runtimeHost, string reason)
+        private async Task<bool> ClearActivityCoreAsync(
+            FrameworkRuntimeHost runtimeHost,
+            string reason,
+            bool allowNoActiveActivity = false,
+            bool requireNoActiveActivity = false)
         {
-            await runtimeHost.ClearActivityAsync(QaSource, reason);
-            return true;
+            var result = await runtimeHost.ClearActivityAsync(QaSource, reason);
+            if (requireNoActiveActivity)
+            {
+                return result.Kind == FrameworkActivityRequestKind.IgnoredNoActiveActivity;
+            }
+
+            return result.Succeeded || (allowNoActiveActivity && result.Kind == FrameworkActivityRequestKind.IgnoredNoActiveActivity);
         }
 
         private bool TryGetRuntimeHost(string message, out FrameworkRuntimeHost runtimeHost)

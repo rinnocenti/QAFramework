@@ -1,4 +1,5 @@
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Editor.Editor.Validation;
 using UnityEditor;
 using UnityEngine;
 
@@ -33,10 +34,21 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Current Scope", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "This Activity currently has identity only. It does not load content, bind actors, control input, camera, save, pause or pooling yet.",
+                "This Activity is an identity target for Activity Flow and scene-authored ActivityContentBinding. It does not bind actors, control input, camera, save, pause or pooling yet.",
                 MessageType.None);
 
             serializedObject.ApplyModifiedProperties();
+
+            EditorGUILayout.Space(6);
+            DrawAuthoringValidation();
+        }
+        private void DrawAuthoringValidation()
+        {
+            var report = FrameworkAuthoringValidator.ValidateActivity((ActivityAsset)target);
+
+            EditorGUILayout.LabelField("Authoring Validation", EditorStyles.boldLabel);
+            FrameworkAuthoringValidationGui.DrawSummary(report);
+            FrameworkAuthoringValidationGui.DrawIssues(report, false);
         }
     }
 }

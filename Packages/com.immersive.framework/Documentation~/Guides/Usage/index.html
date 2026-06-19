@@ -158,8 +158,9 @@
   <main>
     <section class="card">
       <h2>Estado atual</h2>
-      <p><strong>Corte atual:</strong> <code>IF-FW-2S - Activity Lifecycle Events</code>.</p>
-      <p>O framework agora emite eventos canônicos de lifecycle de Activity por meio de <code>Foundation.Events</code>, mantendo o mesmo comportamento visual de <code>Activity Content Binding</code>.</p>
+      <p><strong>Corte atual:</strong> <code>IF-FW-2Y - Authoring Validation Baseline</code>.</p>
+      <p>O framework agora possui validação autoral editor-only para o baseline atual: <code>Active Game Application</code>, <code>Startup Route</code>, <code>Primary Scene</code>, <code>Startup Activity</code> opcional e <code>Activity Content Binding</code> nas cenas abertas.</p>
+      <p>A validação não muda lifecycle runtime e não adiciona Actor, Input, Camera, Save, Pooling, UGUI, pipeline ou stage novo.</p>
       <p>O registro de Activity continua usando <code>FrameworkLogger</code> e não ganhou service locator, event bus global ou refatoração de consumo de eventos no conteúdo de cena.</p>
       <p>O framework já consegue resolver uma aplicação ativa, validar uma <code>Startup Route</code>, validar a <code>Primary Scene</code>, criar um runtime persistente, iniciar uma Route por <code>Route Lifecycle</code>, trocar Route via <code>Route Request Trigger</code>, iniciar/trocar/limpar Activity via <code>Activity Request Trigger</code> e aplicar conteúdo authored de Activity.</p>
       <div class="note">
@@ -229,9 +230,28 @@
         <li>Na seção <code>Scene</code>, atribua uma <code>Primary Scene</code>.</li>
         <li>Opcionalmente atribua uma <code>Startup Activity</code> na Route.</li>
         <li>Opcionalmente adicione <code>Activity Content Binding</code> em GameObjects de cena.</li>
+        <li>Volte para <code>Project Settings &gt; Immersive Framework</code> e clique em <code>Validate Authoring</code>.</li>
         <li>Entre em Play Mode.</li>
       </ol>
       <p>Também é possível selecionar um <code>Game Application</code> e usar <code>Set as Active Game Application</code> no Inspector.</p>
+    </section>
+
+
+    <section class="card">
+      <h2>Validação autoral</h2>
+      <p>Use <code>Project Settings &gt; Immersive Framework &gt; Validate Authoring</code> para gerar um relatório explícito do authoring atual.</p>
+      <p>A validação cobre o baseline existente:</p>
+      <ul>
+        <li><code>Active Game Application</code> atribuído;</li>
+        <li><code>Startup Route</code> atribuído no Game Application;</li>
+        <li><code>Primary Scene</code> válida na Route;</li>
+        <li><code>Startup Activity</code> opcional;</li>
+        <li><code>Activity Content Binding</code> nas cenas abertas, incluindo Activity ausente e nesting.</li>
+      </ul>
+      <p>O botão emite logs por <code>FrameworkLogger</code>. Os Inspectors mostram o mesmo diagnóstico sem emitir log a cada repaint.</p>
+      <div class="warning">
+        Esta validação é editor-only. Ela não cria lifecycle runtime, não executa boot, não substitui smoke manual e não configura Actor, Input, Camera, Save ou Pooling.
+      </div>
     </section>
 
     <section>
@@ -453,13 +473,16 @@
   <p>O catálogo também inclui <code>QA_NoActivityRoute</code> e <code>QA_NoContentActivity</code> para validar, respectivamente, uma Route sem Startup Activity e uma Activity sem conteúdo correspondente.</p>
   <p>Os assets QA são alvos de cenário do canvas. Eles não substituem o <code>Active Game Application</code> e não exigem que a cena normal seja convertida para QA.</p>
   <p>Use <strong>Reset QA Scenario</strong> entre smokes para voltar ao baseline sem parar o Play Mode e sem limpar o Console. O reset usa os campos <code>Reset Route</code> e <code>Reset Activity</code> quando configurados. Se eles estiverem vazios, o canvas usa o <code>Startup Route</code> do <code>Active Game Application</code> normal e a <code>Startup Activity</code> dessa rota.</p>
+  <p>Os smokes do <code>FrameworkQaCanvas</code> só registram <code>QA Smoke completed</code> quando os resultados esperados das requests são observados. Requests usadas como preparação podem aceitar <code>IgnoredNoActiveActivity</code>; passos que precisam mudar Route ou Activity exigem sucesso real.</p>
   <p>Isso permite executar vários smokes na mesma sessão de Play Mode mantendo logs comparáveis: rode um smoke, use <strong>Reset QA Scenario</strong>, rode o próximo smoke.</p>
   <p>No Inspector, configure explicitamente os alvos esperados:</p>
   <ul>
-    <li><code>Startup Route</code></li>
-    <li><code>Secondary Route</code></li>
-    <li><code>Activity 01</code></li>
-    <li><code>Activity 02</code></li>
+    <li><code>Canonical Route</code></li>
+    <li><code>Alternate Route</code></li>
+    <li><code>Primary Activity</code></li>
+    <li><code>Secondary Activity</code></li>
+    <li><code>No-Activity Route</code></li>
+    <li><code>No-Content Activity</code></li>
   </ul>
   <p>Os botões novos executam sequências canônicas em ordem:</p>
   <ul>
@@ -471,6 +494,20 @@
     <li><code>Run Negative Smoke</code>: Clear, Clear novamente.</li>
   </ul>
   <p>O componente continua IMGUI/OnGUI, continua manual e mantém <code>source='FrameworkQaCanvas'</code> nos requests.</p>
+</section>
+
+<section>
+  <h2>Manual QA and Smoke Scenarios</h2>
+  <p>Use o <code>Framework QA Canvas</code> como superficie manual de desenvolvimento para gerar logs canonicos de smoke sem criar dependencia em UGUI ou testes automatizados.</p>
+  <ol>
+    <li>Entre em Play Mode.</li>
+    <li>Rode um smoke manual no <code>Framework QA Canvas</code>.</li>
+    <li>Use <code>Reset QA Scenario</code> para voltar ao baseline sem sair do Play Mode.</li>
+    <li>Rode outro smoke na mesma sessao.</li>
+    <li>Valide ausencia de <code>CS errors</code>, <code>Exceptions</code>, <code>FATAL</code> e <code>missing targets</code>.</li>
+  </ol>
+  <p>Os assets em <code>Assets/ImmersiveFrameworkQA/</code> sao alvos de cenario. Eles nao substituem o <code>Active Game Application</code> normal do projeto e nao criam um boot paralelo.</p>
+  <p>Considere PASS quando os smokes executarem a sequencia esperada, o <code>Reset QA Scenario</code> restaurar o baseline e os logs canonicos confirmarem a ordem correta dos requests.</p>
 </section>
 
 </body>

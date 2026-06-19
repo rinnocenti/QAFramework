@@ -18,7 +18,11 @@ Technical infrastructure remains outside this package:
 
 ## Current cut
 
+`IF-FW-2Y - Authoring Validation Baseline` adds an editor-only authoring validation surface without changing runtime lifecycle. Project Settings and the relevant Inspectors can now report the current baseline configuration for Active Game Application, Startup Route, Primary Scene, optional Startup Activity, and open-scene Activity Content Bindings. Validation logs use `FrameworkLogger` and do not introduce Actor, Input, Camera, Save, Pooling, UGUI, or a new runtime pipeline.
+
 `IF-FW-2W-FIX5 - QA Scenario Reset Button` extends `FrameworkQaCanvas` with an in-Play-Mode baseline reset. The reset returns the runtime to a configured baseline Route/Activity without leaving Play Mode, so the Unity Console is preserved between smoke runs. If no explicit reset Route/Activity is configured, the canvas falls back to the current Game Application's Startup Route and that Route's Startup Activity.
+
+`IF-FW-2X - QA Smoke Result Semantics` tightens the manual smoke buttons so `QA Smoke completed` is emitted only when each scenario observes its expected request result. Preparation clears may accept the explicit `IgnoredNoActiveActivity` outcome; state-changing route/activity steps still require success.
 
 `IF-FW-2W - QA Scenario Presets` extends `FrameworkQaCanvas` with canonical manual smoke buttons and semantic scenario targets:
 
@@ -73,8 +77,6 @@ It still does not add actors, input, camera, save, pause, pooling, route-level a
 - `FrameworkRuntimeHost` remains the owner of the final route request log;
 - there is still no global logger, service locator, or diagnostics UI.
 
-`IF-FW-2J — Route Request Diagnostics Ownership` remains part of the history below.
-
 `IF-FW-2J — Route Request Diagnostics Ownership` moves route request completion diagnostics to the persistent Application Runtime host and records request source/reason:
 
 - `RouteRequestTrigger` can still be added to a GameObject and wired to UnityEvents/UI Buttons;
@@ -112,6 +114,21 @@ Earlier cuts:
 
 This cut still intentionally does not introduce Actor, Input, Camera, Save, Pooling integration, module graph, route transition policies, loading screen, unload policy, or advanced diagnostics.
 
+## QA Baseline
+
+O baseline funcional e arquitetural validado do framework e o modelo de QA manual adotado para este package.
+
+- O jogo/framework continua bootando pelo `Active Game Application` normal do projeto.
+- Nao existe `QA_GameApplication` como aplicacao paralela padrao.
+- A superficie manual de QA e `Immersive Framework > QA > Framework QA Canvas`, em IMGUI/OnGUI.
+- Os assets em `Assets/ImmersiveFrameworkQA/` sao `scenario targets`, nao substitutos do boot do projeto.
+- Para repetir smokes na mesma sessao de Play Mode, use `Reset QA Scenario`.
+- Para validar uma Route sem Activity inicial, use `QA_NoActivityRoute`.
+- Para validar uma Activity sem conteudo correspondente, use `QA_NoContentActivity`.
+- Para trocar entre Activities, use `QA_PrimaryContentActivity` e `QA_SecondaryContentActivity`.
+- Para trocar entre Routes, use `QA_CanonicalRoute` e `QA_AlternateRoute`.
+- Considere PASS quando os logs canonicos aparecerem na ordem esperada e nao houver CS errors, Exceptions, FATAL ou missing targets.
+
 ## First setup
 
 1. Open `Project Settings > Immersive Framework`.
@@ -121,7 +138,8 @@ This cut still intentionally does not introduce Actor, Input, Camera, Save, Pool
 5. Select the created `Route` asset.
 6. Assign a `Primary Scene` in the Route Inspector.
 7. Optionally create and assign a `Startup Activity` in the Route Inspector.
-8. Enter Play Mode.
+8. Return to `Project Settings > Immersive Framework` and click `Validate Authoring`.
+9. Enter Play Mode.
 
 Alternative assignment flow:
 
@@ -130,7 +148,7 @@ Alternative assignment flow:
 
 The framework boot should succeed once an Active Game Application, Startup Route, and Startup Route Primary Scene are assigned. If the Primary Scene is not already loaded, it must be available to Unity runtime loading, usually by being included in Build Settings.
 
-If any required setup is missing, the framework fails fast in Play Mode. Project Settings also previews the same required-missing status before entering Play Mode.
+If any required setup is missing, the framework fails fast in Play Mode. Project Settings also previews the same required-missing status before entering Play Mode. Use `Validate Authoring` to produce an explicit editor-only report for the current authoring baseline and open-scene Activity Content Bindings.
 
 Expected happy-path boot log when the Startup Scene is already loaded and no Startup Activity is assigned:
 
@@ -179,6 +197,12 @@ Documentation~/Architecture/ADR/
 ```
 
 Start with:
+
+```text
+ADR-IF-FW-0001-lifecycle-qa-baseline.md
+```
+
+Then review:
 
 ```text
 ADR-0001-bootstrap-minimo-e-construcao-incremental.md

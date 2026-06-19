@@ -1,5 +1,6 @@
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Editor.Editor.Validation;
 using UnityEditor;
 using UnityEngine;
 
@@ -39,6 +40,22 @@ namespace Immersive.Framework.Editor.Editor.Authoring
                 MessageType.None);
 
             serializedObject.ApplyModifiedProperties();
+
+            EditorGUILayout.Space(6);
+            DrawAuthoringValidation();
+        }
+
+        private void DrawAuthoringValidation()
+        {
+            var report = new FrameworkAuthoringValidationReport();
+            for (int i = 0; i < targets.Length; i++)
+            {
+                report.AddRange(FrameworkAuthoringValidator.ValidateActivityContentBinding(targets[i] as ActivityContentBinding));
+            }
+
+            EditorGUILayout.LabelField("Authoring Validation", EditorStyles.boldLabel);
+            FrameworkAuthoringValidationGui.DrawSummary(report);
+            FrameworkAuthoringValidationGui.DrawIssues(report, false);
         }
 
         private void DrawActivityStatus()
@@ -63,7 +80,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             }
 
             var activityAsset = _activity.objectReferenceValue as ActivityAsset;
-            var activityName = activityAsset != null ? activityAsset.ActivityName : _activity.objectReferenceValue.name;
+            string activityName = activityAsset != null ? activityAsset.ActivityName : _activity.objectReferenceValue.name;
 
             EditorGUILayout.HelpBox(
                 $"This GameObject is authored as content for Activity '{activityName}'. It will be active only while that Activity is active.",
@@ -100,7 +117,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
                     MessageType.Warning);
             }
 
-            var childBindingCount = CountChildBindings(binding);
+            int childBindingCount = CountChildBindings(binding);
             if (childBindingCount > 0)
             {
                 EditorGUILayout.HelpBox(
@@ -127,9 +144,9 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
         private static int CountChildBindings(ActivityContentBinding binding)
         {
-            var all = binding.GetComponentsInChildren<ActivityContentBinding>(true);
-            var count = 0;
-            for (var i = 0; i < all.Length; i++)
+            ActivityContentBinding[] all = binding.GetComponentsInChildren<ActivityContentBinding>(true);
+            int count = 0;
+            for (int i = 0; i < all.Length; i++)
             {
                 if (all[i] != null && all[i] != binding)
                 {

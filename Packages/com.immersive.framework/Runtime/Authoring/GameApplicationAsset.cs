@@ -17,7 +17,7 @@ namespace Immersive.Framework.Authoring
         private string applicationName = "Game Application";
 
         [SerializeField]
-        [Tooltip("First route requested by the Game Flow after framework boot. This cut validates the route but does not load scenes yet.")]
+        [Tooltip("First route requested by the Game Flow after framework boot. The Route declares the Primary Scene loaded by Scene Lifecycle.")]
         private RouteAsset startupRoute;
 
         [SerializeField]
