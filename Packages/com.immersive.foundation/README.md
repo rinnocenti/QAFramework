@@ -5,6 +5,8 @@ Internal package skeleton for reusable primitives of the Immersive Framework.
 ## Boundary
 
 - Validation is the first active participant.
+- Events is the next active participant and uses a local, instantiable bus.
+- No global bus, singleton, service locator, reflection util, or filtered bus in this cut.
 - No lifecycle ownership.
 - No service locator.
 - No composition root.
