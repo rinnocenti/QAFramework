@@ -18,6 +18,10 @@ Technical infrastructure remains outside this package:
 
 ## Current cut
 
+`IF-FW-4A-R4 - CameraFlow Removal` removes the exploratory physical-camera CameraFlow implementation from the package. The removed path placed real Unity cameras under Route/Activity content and let content activation/destruction mask camera selection, so it is not retained as a fallback or legacy lane. Camera will re-enter in a clean cut as a persistent output rig plus semantic virtual-camera requests, with Cinemachine as the concrete adapter and AudioListener ownership reserved for a separate AudioFlow.
+
+`IF-FW-3J - Request Trigger Event State Surface` adds local read-only request state to `RouteRequestTrigger` and `ActivityRequestTrigger` on top of the Foundation event boundary. Triggers now expose `IsRequestInFlight`, last event phase, last outcome, last reason, last message and convenience outcome flags for local scripts that need to query request state after receiving typed events. It does not add trigger-owned UnityEvents; request result notification remains published through `com.immersive.foundation`.
+
 `IF-FW-3I-FIX1 - Request Trigger Foundation Events` corrects the request-trigger result boundary. `RouteRequestTrigger` and `ActivityRequestTrigger` can still be invoked by UI Buttons/UnityEvents, but request result notification is now published through `com.immersive.foundation` typed events instead of trigger-owned UnityEvents. Inspector UnityEvent usage remains isolated to explicit bridge components such as `ActivityContentLifecycleEvents` and `RouteContentLifecycleEvents`.
 
 `IF-FW-3H - Content Lifecycle UnityEvent Bridge` adds runtime UnityEvent bridge components for scene-authored Route and Activity content. `ActivityContentLifecycleEvents` and `RouteContentLifecycleEvents` invoke no-argument UnityEvents on local enter/exit, letting authored scene objects trigger simple gameplay reactions without custom scripts, service locators, validators, new QA UI, pipeline stages, Actor, Input, Camera, Save or Pooling.
@@ -130,7 +134,7 @@ Earlier cuts:
 - `IF-FW-1B — Shared Boot Validation`: shares runtime/editor boot validation rules.
 - `IF-FW-1A — Minimal Bootstrap`: introduced Game Application, Project Settings, Validation Mode, internal bootstrap, and minimal boot diagnostics.
 
-This cut still intentionally does not introduce Actor, Input, Camera, Save, Pooling integration, module graph, route transition policies, loading screen, unload policy, or advanced diagnostics.
+This cut still intentionally does not introduce Actor, Input, Save, Pooling integration, module graph, route transition policies, loading screen, unload policy, Cinemachine, camera profiles, player camera ownership, or advanced diagnostics.
 
 ## QA Baseline
 
@@ -206,107 +210,11 @@ Baseline reset behavior:
 QA assets under `Assets/ImmersiveFrameworkQA/` remain scenario targets. They should not become the Active Game Application by default.
 
 
-## Architecture
 
-Architectural decisions live in:
+## CameraFlow status
 
-```text
-Documentation~/Architecture/ADR/
-```
+The exploratory physical-camera CameraFlow was removed. There is currently no canonical camera runtime in the package. Do not place framework camera components under Route/Activity content until the clean CameraFlow cut introduces the persistent output rig and Cinemachine request adapter.
 
-Start with:
-
-```text
-ADR-IF-FW-0001-lifecycle-qa-baseline.md
-```
-
-Then review:
-
-```text
-ADR-0001-bootstrap-minimo-e-construcao-incremental.md
-```
-
-## Editor Play Mode Startup
-
-`Project Settings > Immersive Framework` includes an editor-only startup mode:
-
-- `Framework Startup`: normal framework boot through `Game Application -> Startup Route -> Primary Scene`.
-- `Current Scene Only`: skips framework boot in the Unity Editor so the currently open scene can be tested in isolation.
-
-Player builds always use framework startup. `Current Scene Only` is only an authoring workflow switch.
-
-Use `Current Scene Only` when creating or debugging an isolated scene that should not be replaced by the Startup Route scene.
-
-
-
-## Route Content Lifecycle Receivers
-
-A component under a `Route Content Binding` root can react to the Route lifecycle by implementing:
-
-```csharp
-using Immersive.Framework.RouteLifecycle;
-using UnityEngine;
-
-public sealed class MyRouteContent : MonoBehaviour, IRouteContentLifecycleReceiver
-{
-    public void OnRouteContentEntered(RouteContentLifecycleContext context)
-    {
-        // Start local Route-scoped behavior for context.Route.
-    }
-
-    public void OnRouteContentExited(RouteContentLifecycleContext context)
-    {
-        // Stop or release local Route-scoped behavior for context.Route.
-    }
-}
-```
-
-Callback rules:
-
-- exit for the previous Route is sent before the next Primary Scene is loaded, while previous Route scene content still exists;
-- enter for the next Route is sent after the next Primary Scene is resolved and active, before the Startup Activity is started;
-- receivers are discovered only under the binding root, including inactive children;
-- the receiver does not own Route Lifecycle and should not request Route or Activity changes from inside the callback unless the game explicitly wants that behavior.
-
-Use Route content for Route-scoped scene behavior such as local environment systems, music triggers, navigation roots or persistent objects that should live across multiple Activities in the same Route. This is intentionally not an Actor, Input, Camera, Save, Pooling, Addressables or reset system.
-
-## Route Content Binding
-
-Add `Route Content Binding` to a scene GameObject when that object belongs to a Route scope. Route Lifecycle notifies matching route content after the Route Primary Scene is resolved and notifies the previous Route content before the next Route scene is loaded. It does not automatically hide or show the root GameObject; scene loading and authored object state remain the visibility boundary for Route content.
-
-The `Route` reference is optional. When assigned, the binding matches only that Route asset. When empty, the binding matches any active Route whose Primary Scene is the GameObject scene. Keep Route content roots broad and stable. Use `Activity Content Binding` for moment-to-moment gameplay sections inside a Route.
-
-
-## Activity Content Lifecycle Receivers
-
-A component under an `Activity Content Binding` root can react to the Activity lifecycle by implementing:
-
-```csharp
-using Immersive.Framework.ActivityFlow;
-using UnityEngine;
-
-public sealed class MyActivityContent : MonoBehaviour, IActivityContentLifecycleReceiver
-{
-    public void OnActivityContentEntered(ActivityContentLifecycleContext context)
-    {
-        // Start local content behavior for context.Activity.
-    }
-
-    public void OnActivityContentExited(ActivityContentLifecycleContext context)
-    {
-        // Stop or release local content behavior for context.Activity.
-    }
-}
-```
-
-Callback rules:
-
-- enter is sent after the matching `Activity Content Binding` root is activated;
-- exit is sent before the previous Activity binding root is deactivated;
-- receivers are discovered only under the binding root, including inactive children;
-- the receiver does not own Activity Flow and should not request Route or Activity changes from inside the callback unless the game explicitly wants that behavior.
-
-This is the first implementation extension point for scene-authored Activity content. It is intentionally not an Actor, Input, Camera, Save, Pooling or reset system.
 
 ## Activity Content Binding
 
@@ -379,6 +287,20 @@ Expected success log:
 
 If the requested Activity is already active, the request is ignored explicitly instead of silently restarting the same Activity. If `ClearActivity` is called with no active Activity, the request is also ignored explicitly.
 
+The trigger also exposes read-only local request state for scripts that subscribe to typed request events:
+
+```text
+IsRequestInFlight
+LastEventPhase
+LastOutcome
+LastReason
+LastMessage
+LastRequestClearedActivity
+LastRequestSucceeded / LastRequestIgnored / LastRequestFailed
+```
+
+These properties are updated before the trigger publishes its Foundation event, so event handlers can read the current state immediately.
+
 ## Runtime Route Request Trigger
 
 Add `Route Request Trigger` to a GameObject when a scene object or UI Button needs to request another Route.
@@ -401,6 +323,19 @@ Expected success log:
 ```
 
 If the requested route is already active, the request is ignored explicitly instead of silently reloading the same route.
+
+The trigger also exposes read-only local request state for scripts that subscribe to typed request events:
+
+```text
+IsRequestInFlight
+LastEventPhase
+LastOutcome
+LastReason
+LastMessage
+LastRequestSucceeded / LastRequestIgnored / LastRequestFailed
+```
+
+These properties are updated before the trigger publishes its Foundation event, so event handlers can read the current state immediately.
 
 ## IF-FW-2I — Route switch ownership
 
@@ -520,3 +455,22 @@ Smokes principais:
 - `Run Negative Smoke`: Clear -> Clear novamente, sem assumir boot QA.
 
 O QA Canvas preserva referencias serializadas antigas com `FormerlySerializedAs`, mas os campos publicos de authoring devem ser lidos como papeis de cenario, nao como nomes de assets de gameplay.
+
+### IF-FW-3K — Request Trigger UnityEvent Bridges
+
+`RouteRequestTrigger` and `ActivityRequestTrigger` continue to publish typed `com.immersive.foundation` events as their canonical result channel.
+
+For Inspector-authored reactions, optional bridge components are available:
+
+- `RouteRequestTriggerUnityEventBridge`
+- `ActivityRequestTriggerUnityEventBridge`
+
+Each bridge must live on the same GameObject as its corresponding trigger. It subscribes to the trigger Foundation events and exposes UnityEvents for:
+
+- Request Submitted
+- Request Succeeded
+- Request Ignored
+- Request Failed
+- Request Completed
+
+This keeps the architecture split explicit: typed events for framework/code integration, UnityEvents only for authored Inspector bridges.

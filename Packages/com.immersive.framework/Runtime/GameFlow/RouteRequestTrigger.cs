@@ -20,6 +20,10 @@ namespace Immersive.Framework.GameFlow
         private readonly EventBus<RouteRequestTriggerEvent> _requestEvents = new EventBus<RouteRequestTriggerEvent>();
         private FrameworkLogger _logger;
         private bool _requestInFlight;
+        private FlowRequestEventPhase _lastEventPhase = FlowRequestEventPhase.Completed;
+        private FlowRequestOutcome _lastOutcome = FlowRequestOutcome.None;
+        private string _lastReason = string.Empty;
+        private string _lastMessage = string.Empty;
 
         [Header("Route")]
         [SerializeField] private RouteAsset targetRoute;
@@ -32,6 +36,22 @@ namespace Immersive.Framework.GameFlow
             get => targetRoute;
             set => targetRoute = value;
         }
+
+        public bool IsRequestInFlight => _requestInFlight;
+
+        public FlowRequestEventPhase LastEventPhase => _lastEventPhase;
+
+        public FlowRequestOutcome LastOutcome => _lastOutcome;
+
+        public string LastReason => _lastReason;
+
+        public string LastMessage => _lastMessage;
+
+        public bool LastRequestSucceeded => _lastOutcome == FlowRequestOutcome.Succeeded;
+
+        public bool LastRequestIgnored => _lastOutcome == FlowRequestOutcome.Ignored;
+
+        public bool LastRequestFailed => _lastOutcome == FlowRequestOutcome.Failed;
 
         public IEventBinding SubscribeRequestEvents(Action<RouteRequestTriggerEvent> handler)
         {
@@ -114,6 +134,9 @@ namespace Immersive.Framework.GameFlow
 
         private void PublishSubmitted(string resolvedReason)
         {
+            var message = $"Route Request submitted. source='{DefaultSource}' reason='{resolvedReason}'.";
+            SetRequestState(FlowRequestEventPhase.Submitted, FlowRequestOutcome.Submitted, resolvedReason, message);
+
             _requestEvents.Publish(new RouteRequestTriggerEvent(
                 this,
                 targetRoute,
@@ -121,11 +144,13 @@ namespace Immersive.Framework.GameFlow
                 FlowRequestOutcome.Submitted,
                 DefaultSource,
                 resolvedReason,
-                $"Route Request submitted. source='{DefaultSource}' reason='{resolvedReason}'."));
+                message));
         }
 
         private void PublishCompleted(FlowRequestOutcome outcome, string resolvedReason, string message)
         {
+            SetRequestState(FlowRequestEventPhase.Completed, outcome, resolvedReason, message);
+
             _requestEvents.Publish(new RouteRequestTriggerEvent(
                 this,
                 targetRoute,
@@ -134,6 +159,18 @@ namespace Immersive.Framework.GameFlow
                 DefaultSource,
                 resolvedReason,
                 message));
+        }
+
+        private void SetRequestState(
+            FlowRequestEventPhase phase,
+            FlowRequestOutcome outcome,
+            string resolvedReason,
+            string message)
+        {
+            _lastEventPhase = phase;
+            _lastOutcome = outcome;
+            _lastReason = resolvedReason ?? string.Empty;
+            _lastMessage = message ?? string.Empty;
         }
 
         private static FlowRequestOutcome MapOutcome(FrameworkRouteRequestKind resultKind)

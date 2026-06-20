@@ -426,3 +426,55 @@ Rules:
 - Event payload includes phase, outcome, source, reason, message and target asset references where applicable.
 - Inspector-facing UnityEvent bridges remain explicit bridge components only, such as `ActivityContentLifecycleEvents` and `RouteContentLifecycleEvents`.
 - This cut does not add Actor, Input, Camera, Save, Pooling, Addressables, validators, custom Inspectors, QA UI or a new pipeline.
+
+
+## Amendment — IF-FW-3J Request Trigger Event State Surface
+
+`IF-FW-3J` keeps the `IF-FW-3I-FIX1` event boundary and adds read-only local request state to authored Game Flow triggers.
+
+Decision:
+
+- `RouteRequestTrigger` and `ActivityRequestTrigger` expose `IsRequestInFlight`, last event phase, last outcome, last reason, last message and convenience outcome flags.
+- `ActivityRequestTrigger` also exposes whether the last request was a clear-activity request.
+- State is updated before publishing `RouteRequestTriggerEvent` or `ActivityRequestTriggerEvent` through `com.immersive.foundation`.
+- The canonical result notification remains the typed Foundation event.
+- The trigger does not expose result UnityEvents.
+- Inspector-facing UnityEvent result bridges, if needed later, must be explicit bridge components that subscribe to these typed events rather than replacing them.
+- This cut does not add Actor, Input, Camera, Save, Pooling, Addressables, validators, custom Inspectors, QA UI or a new pipeline.
+
+
+## Amendment — IF-FW-3K Request Trigger UnityEvent Bridges
+
+Request trigger results remain canonical Foundation events. The framework may expose UnityEvent integration only through explicit bridge components.
+
+Decision:
+
+- `RouteRequestTrigger` and `ActivityRequestTrigger` publish typed Foundation events.
+- `RouteRequestTriggerUnityEventBridge` and `ActivityRequestTriggerUnityEventBridge` subscribe to those events and expose Inspector callbacks.
+- UnityEvent result callbacks must not be embedded directly in the request triggers.
+
+Rationale:
+
+- Keeps package boundaries clear.
+- Preserves typed event integration for code.
+- Still supports authored Inspector workflows without creating a parallel event system.
+## Amendment — IF-FW-4A-R4 CameraFlow Removal
+
+The exploratory `CameraFlow` implementation from `IF-FW-4A-R1` through `IF-FW-4A-R3` is removed from the package.
+
+Reason:
+
+- The removed implementation used real Unity `Camera` components inside Route/Activity content.
+- `ActivityContentBinding` owns GameObject activation and can disable or destroy those camera objects before camera authority can be meaningfully resolved.
+- A physical camera under content scope masks responsibility: content lifecycle decides object availability, while CameraFlow appears to decide camera selection.
+- The framework must not keep this as a fallback, legacy path, or parallel lane.
+
+Decision:
+
+- Remove `Runtime/CameraFlow` from the active package.
+- Do not keep `FrameworkCameraBinding`, `FrameworkCameraAuthority`, `FrameworkCameraRequest`, `FrameworkCameraScope`, `FrameworkCameraActivatedEvent`, or `FrameworkCameraDeactivatedEvent` as active runtime types.
+- Reintroduce camera later as a clean CameraFlow cut based on a persistent output rig and semantic virtual-camera requests.
+- The future canonical shape should be: persistent Unity output camera with Cinemachine Brain, route/activity/pause/presentation virtual camera requests, and a semantic priority model: `Pause > Presentation > Activity > Route > Default`.
+- Audio listener ownership remains outside camera and belongs to a future AudioFlow that guarantees one active listener per session.
+
+This removal does not add Cinemachine, AudioFlow, Actor, Input, Save, Pooling, Addressables, validators, custom Inspectors, QA UI or a new lifecycle pipeline.

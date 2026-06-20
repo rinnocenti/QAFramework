@@ -21,6 +21,11 @@ namespace Immersive.Framework.GameFlow
         private readonly EventBus<ActivityRequestTriggerEvent> _requestEvents = new EventBus<ActivityRequestTriggerEvent>();
         private FrameworkLogger _logger;
         private bool _requestInFlight;
+        private FlowRequestEventPhase _lastEventPhase = FlowRequestEventPhase.Completed;
+        private FlowRequestOutcome _lastOutcome = FlowRequestOutcome.None;
+        private string _lastReason = string.Empty;
+        private string _lastMessage = string.Empty;
+        private bool _lastRequestClearedActivity;
 
         [Header("Activity")]
         [SerializeField] private ActivityAsset targetActivity;
@@ -33,6 +38,24 @@ namespace Immersive.Framework.GameFlow
             get => targetActivity;
             set => targetActivity = value;
         }
+
+        public bool IsRequestInFlight => _requestInFlight;
+
+        public FlowRequestEventPhase LastEventPhase => _lastEventPhase;
+
+        public FlowRequestOutcome LastOutcome => _lastOutcome;
+
+        public string LastReason => _lastReason;
+
+        public string LastMessage => _lastMessage;
+
+        public bool LastRequestClearedActivity => _lastRequestClearedActivity;
+
+        public bool LastRequestSucceeded => _lastOutcome == FlowRequestOutcome.Succeeded;
+
+        public bool LastRequestIgnored => _lastOutcome == FlowRequestOutcome.Ignored;
+
+        public bool LastRequestFailed => _lastOutcome == FlowRequestOutcome.Failed;
 
         public IEventBinding SubscribeRequestEvents(Action<ActivityRequestTriggerEvent> handler)
         {
@@ -165,6 +188,9 @@ namespace Immersive.Framework.GameFlow
 
         private void PublishSubmitted(bool clearsActivity, string resolvedReason)
         {
+            var message = $"Activity Request submitted. source='{DefaultSource}' reason='{resolvedReason}'.";
+            SetRequestState(clearsActivity, FlowRequestEventPhase.Submitted, FlowRequestOutcome.Submitted, resolvedReason, message);
+
             _requestEvents.Publish(new ActivityRequestTriggerEvent(
                 this,
                 targetActivity,
@@ -173,11 +199,13 @@ namespace Immersive.Framework.GameFlow
                 FlowRequestOutcome.Submitted,
                 DefaultSource,
                 resolvedReason,
-                $"Activity Request submitted. source='{DefaultSource}' reason='{resolvedReason}'."));
+                message));
         }
 
         private void PublishCompleted(bool clearsActivity, FlowRequestOutcome outcome, string resolvedReason, string message)
         {
+            SetRequestState(clearsActivity, FlowRequestEventPhase.Completed, outcome, resolvedReason, message);
+
             _requestEvents.Publish(new ActivityRequestTriggerEvent(
                 this,
                 targetActivity,
@@ -187,6 +215,20 @@ namespace Immersive.Framework.GameFlow
                 DefaultSource,
                 resolvedReason,
                 message));
+        }
+
+        private void SetRequestState(
+            bool clearsActivity,
+            FlowRequestEventPhase phase,
+            FlowRequestOutcome outcome,
+            string resolvedReason,
+            string message)
+        {
+            _lastRequestClearedActivity = clearsActivity;
+            _lastEventPhase = phase;
+            _lastOutcome = outcome;
+            _lastReason = resolvedReason ?? string.Empty;
+            _lastMessage = message ?? string.Empty;
         }
 
         private static FlowRequestOutcome MapOutcome(FrameworkActivityRequestKind resultKind)

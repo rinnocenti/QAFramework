@@ -158,7 +158,7 @@
   <main>
     <section class="card">
       <h2>Estado atual</h2>
-      <p><strong>Corte atual:</strong> <code>IF-FW-3I-FIX1 - Request Trigger Foundation Events</code>.</p>
+      <p><strong>Corte atual:</strong> <code>IF-FW-3J - Request Trigger Event State Surface</code>.</p>
       <p>Os triggers authored de GameFlow podem continuar sendo chamados por UI/Button UnityEvents, mas o resultado dos requests agora usa eventos tipados de <code>com.immersive.foundation</code>. UnityEvent fica reservado a bridges explícitos de Inspector, como <code>ActivityContentLifecycleEvents</code> e <code>RouteContentLifecycleEvents</code>.</p>
       <p>A ordem definida no corte anterior continua valendo: callbacks de entrada rodam do root para os filhos; callbacks de saída rodam dos filhos para o root.</p>
       <p>O framework já consegue resolver uma aplicação ativa, validar uma <code>Startup Route</code>, validar a <code>Primary Scene</code>, criar um runtime persistente, iniciar/trocar Route por <code>Route Lifecycle</code>, iniciar/trocar/limpar Activity por <code>Activity Flow</code> e aplicar conteúdo authored de Activity.</p>
@@ -454,6 +454,20 @@
             <pre><code>[Immersive Framework] Boot skipped. Editor Play Mode Startup is set to Current Scene Only.</code></pre>
         </section>
 
+
+
+    <h2 id="request-trigger-event-state">Request Trigger Event State Surface</h2>
+      <p><code>RouteRequestTrigger</code> e <code>ActivityRequestTrigger</code> mantêm o resultado canônico em eventos tipados do <code>com.immersive.foundation</code>, mas agora também expõem estado local somente leitura para scripts próximos ao trigger.</p>
+      <pre><code>IsRequestInFlight
+LastEventPhase
+LastOutcome
+LastReason
+LastMessage
+LastRequestSucceeded / LastRequestIgnored / LastRequestFailed</code></pre>
+      <p><code>ActivityRequestTrigger</code> também expõe <code>LastRequestClearedActivity</code>.</p>
+      <p>O estado é atualizado antes de publicar <code>RouteRequestTriggerEvent</code> ou <code>ActivityRequestTriggerEvent</code>, então handlers inscritos via <code>SubscribeRequestEvents(...)</code> podem consultar as propriedades imediatamente.</p>
+      <p>Isso não reintroduz UnityEvents de resultado nos triggers. Resultado técnico continua no package de eventos; UnityEvent segue permitido apenas em bridges explícitos.</p>
+
     <h2 id="request-trigger-foundation-events">Request Trigger Foundation Events</h2>
       <p><code>RouteRequestTrigger</code> e <code>ActivityRequestTrigger</code> publicam eventos tipados usando <code>com.immersive.foundation</code>.</p>
       <ul>
@@ -576,6 +590,25 @@
   <p>This is local component state only. It does not create a global registry, service locator, validator or pipeline.</p>
   <p>For simple authored reactions that do not need lifecycle context, use <code>ActivityContentLifecycleEvents</code> or <code>RouteContentLifecycleEvents</code>. These bridge local enter/exit to no-argument UnityEvents.</p>
   <p>Startup route boot uses <code>source='GameApplication'</code> and <code>reason='startup'</code>. Runtime requests preserve their existing request source and reason.</p>
+</section>
+
+
+<section id="request-trigger-unity-event-bridges">
+  <h2>Request Trigger UnityEvent Bridges</h2>
+  <p>Route and Activity request triggers publish typed Foundation events. When an Inspector-authored reaction is needed, add the matching bridge on the same GameObject as the trigger.</p>
+  <ul>
+    <li><code>RouteRequestTriggerUnityEventBridge</code></li>
+    <li><code>ActivityRequestTriggerUnityEventBridge</code></li>
+  </ul>
+  <p>The bridge exposes UnityEvents for submitted, succeeded, ignored, failed and completed request results.</p>
+</section>
+
+
+<section id="cameraflow-status">
+  <h2>CameraFlow status</h2>
+  <p>The exploratory physical-camera binding was removed from the package. There is no canonical CameraFlow component to configure in this cut.</p>
+  <p>Do not place real framework cameras under <code>RouteContentBinding</code> or <code>ActivityContentBinding</code> as the framework camera path. Those roots may be deactivated or destroyed by lifecycle ownership, which masks camera selection.</p>
+  <p>The next clean camera cut should introduce a persistent output camera rig and Cinemachine-backed virtual camera requests. AudioListener ownership remains reserved for the future AudioFlow.</p>
 </section>
 
 </body>
