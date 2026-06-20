@@ -16,21 +16,21 @@ namespace Immersive.Framework.RouteLifecycle
 
         internal void ExitRouteContent(RouteAsset route, RouteAsset nextRoute, string source, string reason)
         {
-            var resolvedSource = NormalizeSource(source);
-            var resolvedReason = NormalizeReason(reason);
+            string resolvedSource = NormalizeSource(source);
+            string resolvedReason = NormalizeReason(reason);
 
             if (route == null || ReferenceEquals(route, nextRoute))
             {
                 return;
             }
 
-            var bindings = Object.FindObjectsByType<RouteContentBinding>(FindObjectsInactive.Include);
+            RouteContentBinding[] bindings = Object.FindObjectsByType<RouteContentBinding>(FindObjectsInactive.Include);
             if (bindings == null || bindings.Length == 0)
             {
                 return;
             }
 
-            for (var i = 0; i < bindings.Length; i++)
+            for (int i = 0; i < bindings.Length; i++)
             {
                 var binding = bindings[i];
                 if (!IsValidBindingForRoute(binding, route))
@@ -44,21 +44,21 @@ namespace Immersive.Framework.RouteLifecycle
 
         internal void EnterRouteContent(RouteAsset route, RouteAsset previousRoute, string source, string reason)
         {
-            var resolvedSource = NormalizeSource(source);
-            var resolvedReason = NormalizeReason(reason);
+            string resolvedSource = NormalizeSource(source);
+            string resolvedReason = NormalizeReason(reason);
 
             if (route == null || ReferenceEquals(route, previousRoute))
             {
                 return;
             }
 
-            var bindings = Object.FindObjectsByType<RouteContentBinding>(FindObjectsInactive.Include);
+            RouteContentBinding[] bindings = Object.FindObjectsByType<RouteContentBinding>(FindObjectsInactive.Include);
             if (bindings == null || bindings.Length == 0)
             {
                 return;
             }
 
-            for (var i = 0; i < bindings.Length; i++)
+            for (int i = 0; i < bindings.Length; i++)
             {
                 var binding = bindings[i];
                 if (!IsValidBindingForRoute(binding, route))
@@ -97,6 +97,7 @@ namespace Immersive.Framework.RouteLifecycle
                 binding,
                 "Entered",
                 route,
+                true,
                 receiver => receiver.OnRouteContentEntered(context));
         }
 
@@ -112,6 +113,7 @@ namespace Immersive.Framework.RouteLifecycle
                 binding,
                 "Exited",
                 route,
+                false,
                 receiver => receiver.OnRouteContentExited(context));
         }
 
@@ -119,6 +121,7 @@ namespace Immersive.Framework.RouteLifecycle
             RouteContentBinding binding,
             string phase,
             RouteAsset route,
+            bool parentFirst,
             Action<IRouteContentLifecycleReceiver> dispatch)
         {
             if (binding == null || dispatch == null)
@@ -126,13 +129,17 @@ namespace Immersive.Framework.RouteLifecycle
                 return;
             }
 
-            var behaviours = binding.GetComponentsInChildren<MonoBehaviour>(true);
+            MonoBehaviour[] behaviours = binding.GetComponentsInChildren<MonoBehaviour>(true);
             if (behaviours == null || behaviours.Length == 0)
             {
                 return;
             }
 
-            for (var i = 0; i < behaviours.Length; i++)
+            int start = parentFirst ? 0 : behaviours.Length - 1;
+            int end = parentFirst ? behaviours.Length : -1;
+            int step = parentFirst ? 1 : -1;
+
+            for (int i = start; i != end; i += step)
             {
                 if (behaviours[i] is not IRouteContentLifecycleReceiver receiver)
                 {
@@ -157,10 +164,10 @@ namespace Immersive.Framework.RouteLifecycle
             IRouteContentLifecycleReceiver receiver,
             Exception exception)
         {
-            var receiverType = receiver != null ? receiver.GetType().FullName : "<missing>";
-            var routeName = route != null ? route.RouteName : "<none>";
-            var exceptionType = exception != null ? exception.GetType().Name : "<unknown>";
-            var exceptionMessage = exception != null ? exception.Message : string.Empty;
+            string receiverType = receiver != null ? receiver.GetType().FullName : "<missing>";
+            string routeName = route != null ? route.RouteName : "<none>";
+            string exceptionType = exception != null ? exception.GetType().Name : "<unknown>";
+            string exceptionMessage = exception != null ? exception.Message : string.Empty;
 
             _logger.Error(
                 $"Route Content lifecycle receiver failed. phase='{FormatValue(phase)}' route='{FormatValue(routeName)}' object='{FormatValue(binding.ObjectName)}' scene='{FormatValue(binding.SceneName)}' receiver='{FormatValue(receiverType)}' exception='{FormatValue(exceptionType)}' message='{FormatValue(exceptionMessage)}'.");

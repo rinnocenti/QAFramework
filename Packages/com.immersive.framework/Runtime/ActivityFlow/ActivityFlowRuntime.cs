@@ -45,8 +45,8 @@ namespace Immersive.Framework.ActivityFlow
 
         internal Task<ActivityFlowStartResult> StartStartupActivityAsync(RouteAsset route, string source, string reason)
         {
-            var resolvedSource = NormalizeSource(source);
-            var resolvedReason = NormalizeReason(reason);
+            string resolvedSource = NormalizeSource(source);
+            string resolvedReason = NormalizeReason(reason);
 
             if (route == null)
             {
@@ -66,8 +66,8 @@ namespace Immersive.Framework.ActivityFlow
 
         internal Task<ActivityFlowStartResult> StartActivityAsync(ActivityAsset activity, string source, string reason)
         {
-            var resolvedSource = NormalizeSource(source);
-            var resolvedReason = NormalizeReason(reason);
+            string resolvedSource = NormalizeSource(source);
+            string resolvedReason = NormalizeReason(reason);
 
             if (activity == null)
             {
@@ -79,8 +79,8 @@ namespace Immersive.Framework.ActivityFlow
 
         internal Task<ActivityFlowStartResult> ClearActivityAsync(string source, string reason)
         {
-            var resolvedSource = NormalizeSource(source);
-            var resolvedReason = NormalizeReason(reason);
+            string resolvedSource = NormalizeSource(source);
+            string resolvedReason = NormalizeReason(reason);
 
             var previousActivity = _currentActivity;
             if (previousActivity == null)
@@ -95,8 +95,8 @@ namespace Immersive.Framework.ActivityFlow
 
         private Task<ActivityFlowStartResult> StartActivityCoreAsync(ActivityAsset nextActivity, ActivityAsset previousActivity, string source, string reason)
         {
-            var resolvedSource = NormalizeSource(source);
-            var resolvedReason = NormalizeReason(reason);
+            string resolvedSource = NormalizeSource(source);
+            string resolvedReason = NormalizeReason(reason);
 
             if (nextActivity == null)
             {
@@ -115,8 +115,8 @@ namespace Immersive.Framework.ActivityFlow
 
         private ActivityContentApplyResult ApplyActivityContentThroughLifecycleEvents(ActivityAsset previousActivity, ActivityAsset nextActivity, string source, string reason)
         {
-            var resolvedSource = NormalizeSource(source);
-            var resolvedReason = NormalizeReason(reason);
+            string resolvedSource = NormalizeSource(source);
+            string resolvedReason = NormalizeReason(reason);
 
             _activityContentRuntime.ClearLastApplyResult();
             PublishActivityTransition(previousActivity, nextActivity, resolvedSource, resolvedReason);

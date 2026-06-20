@@ -158,11 +158,10 @@
   <main>
     <section class="card">
       <h2>Estado atual</h2>
-      <p><strong>Corte atual:</strong> <code>IF-FW-3I-FIX1 - Request Trigger Foundation Events</code>.</p>
-      <p>Os triggers authored de GameFlow podem continuar sendo chamados por UI/Button UnityEvents, mas o resultado dos requests agora usa eventos tipados de <code>com.immersive.foundation</code>. UnityEvent fica reservado a bridges explícitos de Inspector, como <code>ActivityContentLifecycleEvents</code> e <code>RouteContentLifecycleEvents</code>.</p>
-      <p>A ordem definida no corte anterior continua valendo: callbacks de entrada rodam do root para os filhos; callbacks de saída rodam dos filhos para o root.</p>
+      <p><strong>Corte atual:</strong> <code>IF-FW-3G - Content Lifecycle Dispatch Order</code>.</p>
+      <p>O lifecycle local de conteúdo agora tem ordem definida: callbacks de entrada rodam do root para os filhos; callbacks de saída rodam dos filhos para o root. Isso mantém preparação e limpeza locais previsíveis sem criar prioridades configuráveis ou pipeline novo.</p>
       <p>O framework já consegue resolver uma aplicação ativa, validar uma <code>Startup Route</code>, validar a <code>Primary Scene</code>, criar um runtime persistente, iniciar/trocar Route por <code>Route Lifecycle</code>, iniciar/trocar/limpar Activity por <code>Activity Flow</code> e aplicar conteúdo authored de Activity.</p>
-      <p>O corte atual corrige a fronteira de eventos dos request triggers. Scripts podem assinar <code>SubscribeRequestEvents(...)</code> nos triggers para receber <code>RouteRequestTriggerEvent</code> ou <code>ActivityRequestTriggerEvent</code>, com phase, outcome, source, reason e message.</p>
+      <p>O corte atual propaga <code>source</code> e <code>reason</code> do Game Flow para os contextos locais de lifecycle. Scripts derivados de <code>ActivityContentBehaviour</code> ou <code>RouteContentBehaviour</code> podem consultar <code>LifecycleSource</code>, <code>LifecycleReason</code>, <code>context.Source</code> e <code>context.Reason</code> sem acessar runtime host ou service locator.</p>
       <p>A validação autoral editor-only continua existindo para o baseline atual, mas este corte não adiciona nova UX, validator, Actor, Input, Camera, Save, Pooling, UGUI, pipeline ou stage novo.</p>
       <p>O registro de lifecycle continua usando <code>FrameworkLogger</code> e não ganhou service locator, event bus global ou refatoração ampla de consumo de eventos no conteúdo de cena.</p>
       <div class="note">
@@ -276,7 +275,6 @@
         <li>No campo <code>Route</code>, atribua uma Route específica ou deixe vazio para vincular pela Primary Scene ativa.</li>
       </ol>
       <p>Quando a Route muda, o framework envia exit para o conteúdo da Route anterior antes de carregar a próxima Primary Scene, resolve a nova cena e então envia enter para o conteúdo da nova Route antes da Startup Activity. O binding de Route não esconde nem mostra o GameObject automaticamente; ele apenas notifica o lifecycle local.</p>
-      <p>Para reações simples sem script customizado, adicione <code>Immersive Framework &gt; Route Content Lifecycle Events</code> em um objeto abaixo do binding e conecte os eventos <code>Entered</code> e <code>Exited</code> no Inspector.</p>
       <p>Para scripts comuns de jogo, derive de <code>RouteContentBehaviour</code> e sobrescreva os callbacks protegidos:</p>
       <pre><code>public sealed class MyRouteContent : RouteContentBehaviour
 {
@@ -315,7 +313,6 @@
         <li>sem Activity ativa: todos os bindings ficam inativos;</li>
         <li>binding sem Activity atribuída: warning explícito.</li>
       </ul>
-      <p>Para reações simples sem script customizado, adicione <code>Immersive Framework &gt; Activity Content Lifecycle Events</code> em um objeto abaixo do binding e conecte os eventos <code>Entered</code> e <code>Exited</code> no Inspector.</p>
       <p>Para scripts comuns de jogo dentro desse conteúdo, derive de <code>ActivityContentBehaviour</code> e sobrescreva os callbacks protegidos:</p>
       <pre><code>public sealed class MyActivityContent : ActivityContentBehaviour
 {
@@ -454,16 +451,7 @@
             <pre><code>[Immersive Framework] Boot skipped. Editor Play Mode Startup is set to Current Scene Only.</code></pre>
         </section>
 
-    <h2 id="request-trigger-foundation-events">Request Trigger Foundation Events</h2>
-      <p><code>RouteRequestTrigger</code> e <code>ActivityRequestTrigger</code> publicam eventos tipados usando <code>com.immersive.foundation</code>.</p>
-      <ul>
-        <li><code>RouteRequestTrigger.SubscribeRequestEvents(...)</code> publica <code>RouteRequestTriggerEvent</code>.</li>
-        <li><code>ActivityRequestTrigger.SubscribeRequestEvents(...)</code> publica <code>ActivityRequestTriggerEvent</code>.</li>
-      </ul>
-      <p>O payload expõe <code>Phase</code>, <code>Outcome</code>, <code>Source</code>, <code>Reason</code> e <code>Message</code>. Os triggers continuam podendo ser chamados por UI/Button UnityEvents, mas seus resultados não são UnityEvents canônicos.</p>
-      <p>Quando for necessário expor uma reação simples no Inspector, use um bridge explícito. O core do GameFlow não deve substituir o package de eventos por UnityEvent.</p>
-
-</main>
+    </main>
 
 <section>
   <h2>IF-FW-2I — Route switch ownership</h2>
@@ -574,7 +562,6 @@
   <h2>Content lifecycle state helpers</h2>
   <p><code>ActivityContentBehaviour</code> and <code>RouteContentBehaviour</code> expose a minimal state surface for gameplay scripts. Use <code>IsActivityContentActive</code> or <code>IsRouteContentActive</code> when the component needs to know if its local content scope is currently active. Use the callback context for transition-specific data such as previous or next Activity/Route, plus <code>Source</code> and <code>Reason</code> to understand whether the transition came from startup, QA, a trigger, or another request path.</p>
   <p>This is local component state only. It does not create a global registry, service locator, validator or pipeline.</p>
-  <p>For simple authored reactions that do not need lifecycle context, use <code>ActivityContentLifecycleEvents</code> or <code>RouteContentLifecycleEvents</code>. These bridge local enter/exit to no-argument UnityEvents.</p>
   <p>Startup route boot uses <code>source='GameApplication'</code> and <code>reason='startup'</code>. Runtime requests preserve their existing request source and reason.</p>
 </section>
 

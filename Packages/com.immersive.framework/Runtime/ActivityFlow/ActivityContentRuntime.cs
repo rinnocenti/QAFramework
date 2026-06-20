@@ -57,25 +57,25 @@ namespace Immersive.Framework.ActivityFlow
 
         private ActivityContentApplyResult ApplyActivityTransition(ActivityAsset previousActivity, ActivityAsset activeActivity, string source, string reason)
         {
-            var resolvedSource = NormalizeSource(source);
-            var resolvedReason = NormalizeReason(reason);
+            string resolvedSource = NormalizeSource(source);
+            string resolvedReason = NormalizeReason(reason);
 
-            var bindings = Object.FindObjectsByType<ActivityContentBinding>(FindObjectsInactive.Include);
+            ActivityContentBinding[] bindings = Object.FindObjectsByType<ActivityContentBinding>(FindObjectsInactive.Include);
             if (bindings == null || bindings.Length == 0)
             {
                 return ActivityContentApplyResult.Empty(activeActivity);
             }
 
-            var bindingCount = 0;
-            var activatedCount = 0;
-            var deactivatedCount = 0;
-            var unchangedCount = 0;
-            var missingActivityCount = 0;
+            int bindingCount = 0;
+            int activatedCount = 0;
+            int deactivatedCount = 0;
+            int unchangedCount = 0;
+            int missingActivityCount = 0;
             var observedBindings = new List<string>(MaxObservedBindingsInMessage);
             var warningBindings = new List<string>();
-            var omittedObservationCount = 0;
+            int omittedObservationCount = 0;
 
-            for (var i = 0; i < bindings.Length; i++)
+            for (int i = 0; i < bindings.Length; i++)
             {
                 var binding = bindings[i];
                 if (binding == null || !binding.IsSceneBinding)
@@ -99,21 +99,21 @@ namespace Immersive.Framework.ActivityFlow
                     continue;
                 }
 
-                var shouldBeActive = activeActivity != null && ReferenceEquals(binding.Activity, activeActivity);
-                var exitsPreviousActivity = previousActivity != null
+                bool shouldBeActive = activeActivity != null && ReferenceEquals(binding.Activity, activeActivity);
+                bool exitsPreviousActivity = previousActivity != null
                     && !ReferenceEquals(previousActivity, activeActivity)
                     && ReferenceEquals(binding.Activity, previousActivity);
-                var entersActiveActivity = shouldBeActive && !ReferenceEquals(previousActivity, activeActivity);
+                bool entersActiveActivity = shouldBeActive && !ReferenceEquals(previousActivity, activeActivity);
 
                 if (exitsPreviousActivity)
                 {
                     DispatchActivityContentExited(binding, previousActivity, activeActivity, resolvedSource, resolvedReason);
                 }
 
-                var wasActive = binding.gameObject.activeSelf;
-                var changed = binding.SetContentActive(shouldBeActive);
-                var action = ResolveAction(shouldBeActive, wasActive, changed);
-                var observationReason = shouldBeActive ? "MatchedActiveActivity" : "DifferentActivity";
+                bool wasActive = binding.gameObject.activeSelf;
+                bool changed = binding.SetContentActive(shouldBeActive);
+                string action = ResolveAction(shouldBeActive, wasActive, changed);
+                string observationReason = shouldBeActive ? "MatchedActiveActivity" : "DifferentActivity";
 
                 if (entersActiveActivity)
                 {
@@ -174,6 +174,7 @@ namespace Immersive.Framework.ActivityFlow
                 binding,
                 "Entered",
                 activity,
+                true,
                 receiver => receiver.OnActivityContentEntered(context));
         }
 
@@ -189,6 +190,7 @@ namespace Immersive.Framework.ActivityFlow
                 binding,
                 "Exited",
                 activity,
+                false,
                 receiver => receiver.OnActivityContentExited(context));
         }
 
@@ -196,6 +198,7 @@ namespace Immersive.Framework.ActivityFlow
             ActivityContentBinding binding,
             string phase,
             ActivityAsset activity,
+            bool parentFirst,
             Action<IActivityContentLifecycleReceiver> dispatch)
         {
             if (binding == null || dispatch == null)
@@ -203,13 +206,17 @@ namespace Immersive.Framework.ActivityFlow
                 return;
             }
 
-            var behaviours = binding.GetComponentsInChildren<MonoBehaviour>(true);
+            MonoBehaviour[] behaviours = binding.GetComponentsInChildren<MonoBehaviour>(true);
             if (behaviours == null || behaviours.Length == 0)
             {
                 return;
             }
 
-            for (var i = 0; i < behaviours.Length; i++)
+            int start = parentFirst ? 0 : behaviours.Length - 1;
+            int end = parentFirst ? behaviours.Length : -1;
+            int step = parentFirst ? 1 : -1;
+
+            for (int i = start; i != end; i += step)
             {
                 if (behaviours[i] is not IActivityContentLifecycleReceiver receiver)
                 {
@@ -234,10 +241,10 @@ namespace Immersive.Framework.ActivityFlow
             IActivityContentLifecycleReceiver receiver,
             Exception exception)
         {
-            var receiverType = receiver != null ? receiver.GetType().FullName : "<missing>";
-            var activityName = activity != null ? activity.ActivityName : "<none>";
-            var exceptionType = exception != null ? exception.GetType().Name : "<unknown>";
-            var exceptionMessage = exception != null ? exception.Message : string.Empty;
+            string receiverType = receiver != null ? receiver.GetType().FullName : "<missing>";
+            string activityName = activity != null ? activity.ActivityName : "<none>";
+            string exceptionType = exception != null ? exception.GetType().Name : "<unknown>";
+            string exceptionMessage = exception != null ? exception.Message : string.Empty;
 
             _logger.Error(
                 $"Activity Content lifecycle receiver failed. phase='{FormatValue(phase)}' activity='{FormatValue(activityName)}' object='{FormatValue(binding.ObjectName)}' scene='{FormatValue(binding.SceneName)}' receiver='{FormatValue(receiverType)}' exception='{FormatValue(exceptionType)}' message='{FormatValue(exceptionMessage)}'.");
@@ -294,8 +301,8 @@ namespace Immersive.Framework.ActivityFlow
                 return string.Empty;
             }
 
-            var activeActivityName = activeActivity != null ? activeActivity.ActivityName : "<none>";
-            var details = $"Activity Content Binding diagnostics. activeActivity='{FormatValue(activeActivityName)}' observations=[{string.Join("; ", observedBindings)}]";
+            string activeActivityName = activeActivity != null ? activeActivity.ActivityName : "<none>";
+            string details = $"Activity Content Binding diagnostics. activeActivity='{FormatValue(activeActivityName)}' observations=[{string.Join("; ", observedBindings)}]";
             if (omittedObservationCount > 0)
             {
                 details += $" omitted='{omittedObservationCount}'";

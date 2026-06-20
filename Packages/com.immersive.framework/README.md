@@ -18,6 +18,12 @@ Technical infrastructure remains outside this package:
 
 ## Current cut
 
+`IF-FW-3I-FIX1 - Request Trigger Foundation Events` corrects the request-trigger result boundary. `RouteRequestTrigger` and `ActivityRequestTrigger` can still be invoked by UI Buttons/UnityEvents, but request result notification is now published through `com.immersive.foundation` typed events instead of trigger-owned UnityEvents. Inspector UnityEvent usage remains isolated to explicit bridge components such as `ActivityContentLifecycleEvents` and `RouteContentLifecycleEvents`.
+
+`IF-FW-3H - Content Lifecycle UnityEvent Bridge` adds runtime UnityEvent bridge components for scene-authored Route and Activity content. `ActivityContentLifecycleEvents` and `RouteContentLifecycleEvents` invoke no-argument UnityEvents on local enter/exit, letting authored scene objects trigger simple gameplay reactions without custom scripts, service locators, validators, new QA UI, pipeline stages, Actor, Input, Camera, Save or Pooling.
+
+`IF-FW-3G - Content Lifecycle Dispatch Order` makes local content receiver dispatch deterministic for Route and Activity scopes. Enter callbacks are dispatched parent-to-child, while exit callbacks are dispatched child-to-parent. This lets parent/root behaviours prepare shared state before children enter, and lets children release local work before the parent/root exits. It does not change Route switching, Activity visibility, scene loading, validation, QA UI, Actor, Input, Camera, Save, Pooling or pipeline ownership.
+
 `IF-FW-3F - Flow Request Context Surface` propagates request `source` and `reason` from Game Flow into Route/Activity content lifecycle contexts. `ActivityContentLifecycleContext` and `RouteContentLifecycleContext` now expose `Source` and `Reason`, and the Behaviour base classes expose `LifecycleSource` and `LifecycleReason`. This keeps local gameplay scripts informed about whether a lifecycle transition came from startup, QA, a trigger, or another request path without exposing runtime hosts or service locators. It does not change Route switching, Activity visibility, scene loading, validation, QA UI, Actor, Input, Camera, Save, Pooling or pipeline ownership.
 
 `IF-FW-3E - Content Lifecycle State Surface` adds a minimal runtime state surface to Activity/Route content lifecycle. Callback contexts now expose their lifecycle phase, and `ActivityContentBehaviour` / `RouteContentBehaviour` expose current active-state helpers and last context data for gameplay scripts. This does not change Route switching, Activity visibility, scene loading, validation, QA UI, Actor, Input, Camera, Save, Pooling or pipeline ownership.
@@ -420,7 +426,7 @@ Route request completion logs are now emitted by the persistent `FrameworkRuntim
 
 Reason: when a route request uses `LoadSceneMode.Single`, the requesting scene object may be destroyed as part of the route switch. Diagnostics should therefore be owned by an application-scope runtime object that survives the scene change.
 
-The trigger remains the public UnityEvent boundary. It validates obvious local authoring issues, then submits the request to the runtime host.
+The trigger remains invokable from Unity UI events and validates obvious local authoring issues before submitting the request to the runtime host. Result notification is not owned by trigger UnityEvents; use the typed Foundation event subscription surface on the trigger for code-level result handling.
 
 Expected route request success log now includes source and reason:
 

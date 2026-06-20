@@ -50,8 +50,8 @@ namespace Immersive.Framework.RouteLifecycle
 
         internal async Task<RouteLifecycleStartResult> StartRouteAsync(RouteAsset route, string source, string reason)
         {
-            var resolvedSource = NormalizeSource(source);
-            var resolvedReason = NormalizeReason(reason);
+            string resolvedSource = NormalizeSource(source);
+            string resolvedReason = NormalizeReason(reason);
 
             if (route == null)
             {
@@ -64,7 +64,7 @@ namespace Immersive.Framework.RouteLifecycle
             }
 
             var previousRoute = _currentRoute;
-            var changesRoute = previousRoute == null || !ReferenceEquals(previousRoute, route);
+            bool changesRoute = previousRoute == null || !ReferenceEquals(previousRoute, route);
 
             if (changesRoute)
             {
@@ -113,8 +113,8 @@ namespace Immersive.Framework.RouteLifecycle
 
         internal Task<ActivityFlowStartResult> StartActivityAsync(ActivityAsset activity, string source, string reason)
         {
-            var resolvedSource = NormalizeSource(source);
-            var resolvedReason = NormalizeReason(reason);
+            string resolvedSource = NormalizeSource(source);
+            string resolvedReason = NormalizeReason(reason);
 
             if (_currentRoute == null)
             {
@@ -126,8 +126,8 @@ namespace Immersive.Framework.RouteLifecycle
 
         internal Task<ActivityFlowStartResult> ClearActivityAsync(string source, string reason)
         {
-            var resolvedSource = NormalizeSource(source);
-            var resolvedReason = NormalizeReason(reason);
+            string resolvedSource = NormalizeSource(source);
+            string resolvedReason = NormalizeReason(reason);
 
             if (_currentRoute == null)
             {

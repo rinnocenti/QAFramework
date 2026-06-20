@@ -46,8 +46,8 @@ namespace Immersive.Framework.GameFlow
             string source,
             string reason)
         {
-            var resolvedSource = FrameworkRouteRequestResult.NormalizeSource(source);
-            var resolvedReason = FrameworkRouteRequestResult.NormalizeReason(reason);
+            string resolvedSource = FrameworkRouteRequestResult.NormalizeSource(source);
+            string resolvedReason = FrameworkRouteRequestResult.NormalizeReason(reason);
 
             if (targetRoute == null)
             {
@@ -112,8 +112,8 @@ namespace Immersive.Framework.GameFlow
             string source,
             string reason)
         {
-            var resolvedSource = FrameworkActivityRequestResult.NormalizeSource(source);
-            var resolvedReason = FrameworkActivityRequestResult.NormalizeReason(reason);
+            string resolvedSource = FrameworkActivityRequestResult.NormalizeSource(source);
+            string resolvedReason = FrameworkActivityRequestResult.NormalizeReason(reason);
 
             if (targetActivity == null)
             {
@@ -170,8 +170,8 @@ namespace Immersive.Framework.GameFlow
 
         internal async Task<FrameworkActivityRequestResult> ClearActivityAsync(string source, string reason)
         {
-            var resolvedSource = FrameworkActivityRequestResult.NormalizeSource(source);
-            var resolvedReason = FrameworkActivityRequestResult.NormalizeReason(reason);
+            string resolvedSource = FrameworkActivityRequestResult.NormalizeSource(source);
+            string resolvedReason = FrameworkActivityRequestResult.NormalizeReason(reason);
 
             if (!_routeLifecycleRuntime.HasActiveRoute)
             {

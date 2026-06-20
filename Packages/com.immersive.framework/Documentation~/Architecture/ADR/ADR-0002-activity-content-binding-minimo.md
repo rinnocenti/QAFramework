@@ -360,3 +360,69 @@ Boundaries:
 - Does not change Route content non-destructive policy.
 - Does not change Activity content visibility policy.
 - Does not add Actor, Input, Camera, Save, Pooling, Addressables, spawning, inventory, validators, Inspectors, service locators or lifecycle pipelines.
+
+
+## Amendment — IF-FW-3G Content Lifecycle Dispatch Order
+
+Decision:
+
+- Activity content lifecycle receiver dispatch is deterministic by phase:
+  - enter dispatch runs parent-to-child within the `ActivityContentBinding` hierarchy;
+  - exit dispatch runs child-to-parent within the same hierarchy.
+- Route content lifecycle receiver dispatch follows the same phase order:
+  - enter dispatch runs parent-to-child within the `RouteContentBinding` hierarchy;
+  - exit dispatch runs child-to-parent within the same hierarchy.
+
+Rationale:
+
+- Parent/root behaviours commonly prepare shared local state for child behaviours when content enters.
+- Child behaviours commonly need to release local work before a parent/root behaviour tears down shared state when content exits.
+- The rule is small, deterministic, and local to the binding root. It avoids introducing priority assets, registries, inspectors, validators or pipeline stages before the framework has a real need for them.
+
+Boundaries:
+
+- Does not add configurable priorities.
+- Does not add validators, Inspectors, QA UI, registries or lifecycle pipelines.
+- Does not change Activity content visibility policy.
+- Does not change Route content non-destructive policy.
+- Does not add Actor, Input, Camera, Save, Pooling, Addressables, spawning or inventory.
+
+## Amendment — IF-FW-3H Content Lifecycle UnityEvent Bridge
+
+Decision:
+
+- Add no-argument UnityEvent bridge components for local content lifecycle:
+  - `ActivityContentLifecycleEvents` under Activity content roots;
+  - `RouteContentLifecycleEvents` under Route content roots.
+- The bridge components inherit from the existing Behaviour base classes and invoke authored UnityEvents on enter/exit.
+- The canonical lifecycle contract remains the receiver interface plus Behaviour base class. UnityEvent bridges are an authored convenience layer for simple scene reactions.
+
+Rationale:
+
+- The framework needs a minimal path from Game Flow / Activity Flow to scene-authored gameplay without forcing a custom script for every small reaction.
+- UnityEvent bridges let simple content start/stop local effects, objectives, panels, triggers or scene-authored scripts when Route/Activity content enters or exits.
+- This keeps the framework moving toward a playable local content loop instead of expanding validators, inspectors, registries or bootstrap setup.
+
+Boundaries:
+
+- Does not pass lifecycle context through UnityEvent arguments in this cut.
+- Does not add validators, Inspectors, QA UI, registries or lifecycle pipelines.
+- Does not change Activity content visibility policy.
+- Does not change Route content non-destructive policy.
+- Does not add Actor, Input, Camera, Save, Pooling, Addressables, spawning or inventory.
+
+## Amendment — IF-FW-3I-FIX1 Request Trigger Foundation Events
+
+`IF-FW-3I-FIX1` corrects the request-trigger result boundary.
+
+Rules:
+
+- `RouteRequestTrigger` and `ActivityRequestTrigger` remain scene-authored request boundaries only.
+- The runtime owner of request execution remains `FrameworkRuntimeHost -> GameFlowRuntime -> RouteLifecycleRuntime/ActivityFlowRuntime`.
+- Triggers may be invoked from Unity UI/Button UnityEvents, but they do not expose result UnityEvents as their canonical result surface.
+- Request result notification is published through `com.immersive.foundation` typed events.
+- Route triggers publish `RouteRequestTriggerEvent` through `SubscribeRequestEvents(...)`.
+- Activity triggers publish `ActivityRequestTriggerEvent` through `SubscribeRequestEvents(...)`.
+- Event payload includes phase, outcome, source, reason, message and target asset references where applicable.
+- Inspector-facing UnityEvent bridges remain explicit bridge components only, such as `ActivityContentLifecycleEvents` and `RouteContentLifecycleEvents`.
+- This cut does not add Actor, Input, Camera, Save, Pooling, Addressables, validators, custom Inspectors, QA UI or a new pipeline.
