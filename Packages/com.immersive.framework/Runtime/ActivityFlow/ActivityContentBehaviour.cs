@@ -22,7 +22,7 @@ namespace Immersive.Framework.ActivityFlow
             ? LastActivityContentContext.Activity
             : null;
 
-        public ActivityContentBinding ActivityContentBinding => LastActivityContentContext.Binding;
+        public ActivityLocalVisibilityAdapter ActivityLocalVisibilityAdapter => LastActivityContentContext.Binding;
 
         public string LifecycleSource => HasActivityContentContext
             ? LastActivityContentContext.Source

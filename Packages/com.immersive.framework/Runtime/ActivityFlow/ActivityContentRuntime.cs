@@ -63,7 +63,7 @@ namespace Immersive.Framework.ActivityFlow
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
 
-            ActivityContentBinding[] bindings = Object.FindObjectsByType<ActivityContentBinding>(FindObjectsInactive.Include);
+            ActivityLocalVisibilityAdapter[] bindings = Object.FindObjectsByType<ActivityLocalVisibilityAdapter>(FindObjectsInactive.Include);
             if (bindings == null || bindings.Length == 0)
             {
                 return ActivityContentApplyResult.Empty(activeActivity);
@@ -207,7 +207,7 @@ namespace Immersive.Framework.ActivityFlow
         }
 
         private static ActivityContentEntry CreateActivityContentEntry(
-            ActivityContentBinding binding,
+            ActivityLocalVisibilityAdapter binding,
             ActivityAsset activity,
             string source,
             string reason,
@@ -233,7 +233,7 @@ namespace Immersive.Framework.ActivityFlow
         }
 
         private void DispatchActivityContentEntered(
-            ActivityContentBinding binding,
+            ActivityLocalVisibilityAdapter binding,
             ActivityAsset activity,
             ActivityAsset previousActivity,
             string source,
@@ -253,7 +253,7 @@ namespace Immersive.Framework.ActivityFlow
         }
 
         private void DispatchActivityContentExited(
-            ActivityContentBinding binding,
+            ActivityLocalVisibilityAdapter binding,
             ActivityAsset activity,
             ActivityAsset nextActivity,
             string source,
@@ -273,7 +273,7 @@ namespace Immersive.Framework.ActivityFlow
         }
 
         private void DispatchActivityContentLifecycle(
-            ActivityContentBinding binding,
+            ActivityLocalVisibilityAdapter binding,
             string phase,
             ActivityAsset activity,
             bool parentFirst,
@@ -321,7 +321,7 @@ namespace Immersive.Framework.ActivityFlow
         }
 
         private void LogActivityContentReceiverException(
-            ActivityContentBinding binding,
+            ActivityLocalVisibilityAdapter binding,
             string phase,
             ActivityAsset activity,
             IActivityContentLifecycleReceiver receiver,
@@ -359,7 +359,7 @@ namespace Immersive.Framework.ActivityFlow
         private static void AddObservation(
             List<string> observedBindings,
             ref int omittedObservationCount,
-            ActivityContentBinding binding,
+            ActivityLocalVisibilityAdapter binding,
             string assignedActivity,
             string action,
             string reason)
@@ -374,7 +374,7 @@ namespace Immersive.Framework.ActivityFlow
                 $"object='{FormatValue(binding.ObjectName)}' scene='{FormatValue(binding.SceneName)}' assignedActivity='{FormatValue(assignedActivity)}' action='{FormatValue(action)}' reason='{FormatValue(reason)}'");
         }
 
-        private static void AddWarning(List<string> warningBindings, ActivityContentBinding binding, string reason)
+        private static void AddWarning(List<string> warningBindings, ActivityLocalVisibilityAdapter binding, string reason)
         {
             warningBindings.Add(
                 $"object='{FormatValue(binding.ObjectName)}' scene='{FormatValue(binding.SceneName)}' reason='{FormatValue(reason)}'");

@@ -199,6 +199,11 @@ namespace Immersive.Framework.Diagnostics
                     RunStandardSmoke();
                 }
 
+                if (GUILayout.Button("Run Activity Baseline Smoke"))
+                {
+                    RunActivityBaselineSmoke();
+                }
+
                 using (new GUILayout.HorizontalScope())
                 {
                     if (GUILayout.Button("Route"))
@@ -651,6 +656,67 @@ namespace Immersive.Framework.Diagnostics
             });
         }
 
+        private async void RunActivityBaselineSmoke()
+        {
+            string missingTargets = string.Empty;
+            AppendMissingQaAsset(ref missingTargets, secondaryActivity == null, "Secondary Activity");
+            AppendMissingQaAsset(ref missingTargets, primaryActivity == null, "Primary Activity");
+            if (!TryValidateSmokeTargets("Activity Baseline Smoke", missingTargets))
+            {
+                return;
+            }
+
+            await RunSmokeAsync("Activity Baseline Smoke", async runtimeHost =>
+            {
+                if (!await RequestActivityCoreAsync(
+                    runtimeHost,
+                    primaryActivity,
+                    ResolveReason(activityReason, GetAssetName(primaryActivity, "QA Primary Content Activity")),
+                    allowAlreadyActive: true))
+                {
+                    return false;
+                }
+
+                await Task.Yield();
+
+                var secondaryResult = await RequestActivityWithResultCoreAsync(
+                    runtimeHost,
+                    secondaryActivity,
+                    ResolveReason(activityReason, GetAssetName(secondaryActivity, "QA Secondary Content Activity")));
+                if (!ValidateActivityBaselineStartedStep(secondaryResult, "secondary", secondaryActivity, requireActivityContent: true))
+                {
+                    return false;
+                }
+
+                await Task.Yield();
+
+                var primaryResult = await RequestActivityWithResultCoreAsync(
+                    runtimeHost,
+                    primaryActivity,
+                    ResolveReason(activityReason, GetAssetName(primaryActivity, "QA Primary Content Activity")));
+                if (!ValidateActivityBaselineStartedStep(primaryResult, "primary", primaryActivity, requireActivityContent: false))
+                {
+                    return false;
+                }
+
+                await Task.Yield();
+
+                var clearResult = await ClearActivityWithResultCoreAsync(runtimeHost, ResolveReason(clearActivityReason, "qa.activity.clear"));
+                if (!ValidateActivityBaselineClearedStep(clearResult, "clear"))
+                {
+                    return false;
+                }
+
+                await Task.Yield();
+
+                var restoreResult = await RequestActivityWithResultCoreAsync(
+                    runtimeHost,
+                    primaryActivity,
+                    ResolveReason(activityReason, GetAssetName(primaryActivity, "QA Primary Content Activity")));
+                return ValidateActivityBaselineStartedStep(restoreResult, "restore-primary", primaryActivity, requireActivityContent: false);
+            });
+        }
+
         private async void RunActivitySmoke()
         {
             string missingTargets = string.Empty;
@@ -910,6 +976,91 @@ namespace Immersive.Framework.Diagnostics
             return true;
         }
 
+        private bool ValidateActivityBaselineStartedStep(
+            FrameworkActivityRequestResult result,
+            string stepName,
+            ActivityAsset expectedActivity,
+            bool requireActivityContent)
+        {
+            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string expectedActivityName = GetAssetName(expectedActivity, "<missing>");
+
+            if (!result.Succeeded)
+            {
+                _logger.Warning($"QA Activity Baseline Smoke step failed. step='{FormatValue(normalizedStepName)}' activity='{FormatValue(expectedActivityName)}' reason='Activity request did not succeed' status='{FormatValue(result.Kind.ToString())}'.");
+                return false;
+            }
+
+            var activityFlowResult = result.ActivityFlowResult;
+            if (!activityFlowResult.Started)
+            {
+                _logger.Warning($"QA Activity Baseline Smoke step failed. step='{FormatValue(normalizedStepName)}' activity='{FormatValue(expectedActivityName)}' reason='Activity flow did not start'.");
+                return false;
+            }
+
+            if (!ReferenceEquals(activityFlowResult.Activity, expectedActivity))
+            {
+                string actualActivityName = activityFlowResult.Activity != null
+                    ? GetAssetName(activityFlowResult.Activity, "<unnamed>")
+                    : "<none>";
+                _logger.Warning($"QA Activity Baseline Smoke step failed. step='{FormatValue(normalizedStepName)}' expectedActivity='{FormatValue(expectedActivityName)}' actualActivity='{FormatValue(actualActivityName)}' reason='Unexpected active Activity'.");
+                return false;
+            }
+
+            var readinessState = activityFlowResult.ActivityReadinessState;
+            if (!readinessState.IsReady || readinessState.HasBlockingIssues)
+            {
+                _logger.Warning($"QA Activity Baseline Smoke step failed. step='{FormatValue(normalizedStepName)}' activity='{FormatValue(expectedActivityName)}' activityReadiness='{FormatValue(readinessState.DiagnosticStatus)}' activityReadinessReason='{FormatValue(readinessState.DiagnosticReason)}' activityReadinessIssues='{readinessState.BlockingIssueCount}'.");
+                return false;
+            }
+
+            var activityContentResult = activityFlowResult.ActivityContentResult;
+            if (activityContentResult.HasLifecycleFailures)
+            {
+                var lifecycleResult = activityContentResult.LifecycleResult;
+                _logger.Warning($"QA Activity Baseline Smoke step failed. step='{FormatValue(normalizedStepName)}' activity='{FormatValue(expectedActivityName)}' reason='Activity Content lifecycle failure' activityContentEnterFailed='{lifecycleResult.EnterFailedReceiverCount}' activityContentExitFailed='{lifecycleResult.ExitFailedReceiverCount}'.");
+                return false;
+            }
+
+            if (requireActivityContent && !activityFlowResult.HasActivityContent)
+            {
+                _logger.Warning($"QA Activity Baseline Smoke step failed. step='{FormatValue(normalizedStepName)}' activity='{FormatValue(expectedActivityName)}' reason='Expected Activity Content Set handle was not registered' activityContentHandles='{activityFlowResult.ActivityContentSet.Count}'.");
+                return false;
+            }
+
+            var lifecycle = activityContentResult.LifecycleResult;
+            _logger.Info($"QA Activity Baseline Smoke step completed. step='{FormatValue(normalizedStepName)}' activity='{FormatValue(expectedActivityName)}' activityReadiness='{FormatValue(readinessState.DiagnosticStatus)}' activityReadinessIssues='{readinessState.BlockingIssueCount}' activityContentHandles='{activityFlowResult.ActivityContentSet.Count}' activityContentLifecycle='{FormatValue(lifecycle.DiagnosticStatus)}' activityContentEnterFailed='{lifecycle.EnterFailedReceiverCount}' activityContentExitFailed='{lifecycle.ExitFailedReceiverCount}'.");
+            return true;
+        }
+
+        private bool ValidateActivityBaselineClearedStep(FrameworkActivityRequestResult result, string stepName)
+        {
+            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+
+            if (!result.Succeeded)
+            {
+                _logger.Warning($"QA Activity Baseline Smoke step failed. step='{FormatValue(normalizedStepName)}' reason='Clear Activity request did not succeed' status='{FormatValue(result.Kind.ToString())}'.");
+                return false;
+            }
+
+            var activityFlowResult = result.ActivityFlowResult;
+            if (!activityFlowResult.Cleared || !activityFlowResult.ActivityState.IsNone)
+            {
+                _logger.Warning($"QA Activity Baseline Smoke step failed. step='{FormatValue(normalizedStepName)}' reason='Activity flow did not clear to None' activityState='{FormatValue(activityFlowResult.ActivityState.DiagnosticStatus)}'.");
+                return false;
+            }
+
+            var readinessState = activityFlowResult.ActivityReadinessState;
+            if (!readinessState.IsNone || readinessState.HasBlockingIssues)
+            {
+                _logger.Warning($"QA Activity Baseline Smoke step failed. step='{FormatValue(normalizedStepName)}' activityReadiness='{FormatValue(readinessState.DiagnosticStatus)}' activityReadinessReason='{FormatValue(readinessState.DiagnosticReason)}' activityReadinessIssues='{readinessState.BlockingIssueCount}' reason='Expected no active Activity readiness'.");
+                return false;
+            }
+
+            _logger.Info($"QA Activity Baseline Smoke step completed. step='{FormatValue(normalizedStepName)}' activityState='{FormatValue(activityFlowResult.ActivityState.DiagnosticStatus)}' activityReadiness='{FormatValue(readinessState.DiagnosticStatus)}' activityReadinessReason='{FormatValue(readinessState.DiagnosticReason)}' activityReadinessIssues='{readinessState.BlockingIssueCount}' activityContentHandles='{activityFlowResult.ActivityContentSet.Count}'.");
+            return true;
+        }
+
         private static bool IsValidRouteCallbackDispatch(RouteContentLifecycleDispatchResult result)
         {
             return result is { Executed: true, BindingCount: > 0, ReceiverCount: > 0, FailedReceiverCount: 0 };
@@ -1068,14 +1219,26 @@ namespace Immersive.Framework.Diagnostics
             string reason,
             bool allowAlreadyActive = false)
         {
+            var result = await RequestActivityWithResultCoreAsync(runtimeHost, activity, reason);
+            return result.Succeeded || (allowAlreadyActive && result.Kind == FrameworkActivityRequestKind.IgnoredAlreadyActive);
+        }
+
+        private async Task<FrameworkActivityRequestResult> RequestActivityWithResultCoreAsync(
+            FrameworkRuntimeHost runtimeHost,
+            ActivityAsset activity,
+            string reason)
+        {
             if (activity == null)
             {
                 _logger.Error("QA Activity Request failed. Target Activity is missing.");
-                return false;
+                return FrameworkActivityRequestResult.FailedInvalidConfig(
+                    "QA Activity Request failed. Target Activity is missing.",
+                    activity,
+                    QaSource,
+                    reason);
             }
 
-            var result = await runtimeHost.RequestActivityAsync(activity, QaSource, reason);
-            return result.Succeeded || (allowAlreadyActive && result.Kind == FrameworkActivityRequestKind.IgnoredAlreadyActive);
+            return await runtimeHost.RequestActivityAsync(activity, QaSource, reason);
         }
 
         private async Task<bool> ClearActivityCoreAsync(
@@ -1084,13 +1247,20 @@ namespace Immersive.Framework.Diagnostics
             bool allowNoActiveActivity = false,
             bool requireNoActiveActivity = false)
         {
-            var result = await runtimeHost.ClearActivityAsync(QaSource, reason);
+            var result = await ClearActivityWithResultCoreAsync(runtimeHost, reason);
             if (requireNoActiveActivity)
             {
                 return result.Kind == FrameworkActivityRequestKind.IgnoredNoActiveActivity;
             }
 
             return result.Succeeded || (allowNoActiveActivity && result.Kind == FrameworkActivityRequestKind.IgnoredNoActiveActivity);
+        }
+
+        private async Task<FrameworkActivityRequestResult> ClearActivityWithResultCoreAsync(
+            FrameworkRuntimeHost runtimeHost,
+            string reason)
+        {
+            return await runtimeHost.ClearActivityAsync(QaSource, reason);
         }
 
         private bool TryGetRuntimeHost(string message, out FrameworkRuntimeHost runtimeHost)

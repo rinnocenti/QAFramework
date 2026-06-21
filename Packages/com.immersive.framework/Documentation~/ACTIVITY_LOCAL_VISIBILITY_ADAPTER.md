@@ -1,6 +1,6 @@
 # Activity Local Visibility Adapter
 
-Status: APPLIED / PENDING COMPILE-SMOKE  
+Status: CLOSED / COMPILE-SMOKE PASS  
 Fase: F4  
 Corte: F4E  
 Roadmap: IF-FW-ROAD-4E — Reclassificar ActivityContentBinding
@@ -79,7 +79,7 @@ O resultado de runtime continua sendo `ActivityContentApplyResult`, porque ele a
 
 ## Critério de smoke
 
-F4E não adiciona comportamento funcional novo. O smoke deve preservar:
+F4E não adiciona comportamento funcional novo. O smoke preservou:
 
 ```text
 QA Smoke completed. name='Standard Smoke'

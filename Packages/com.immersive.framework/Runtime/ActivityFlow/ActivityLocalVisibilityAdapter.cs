@@ -12,7 +12,7 @@ namespace Immersive.Framework.ActivityFlow
     [DisallowMultipleComponent]
     [AddComponentMenu("Immersive Framework/Activity Local Visibility Adapter")]
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
-    public sealed class ActivityContentBinding : MonoBehaviour
+    public sealed class ActivityLocalVisibilityAdapter : MonoBehaviour
     {
         [SerializeField]
         [Tooltip("Activity that owns this local visibility adapter. This only toggles this GameObject when that Activity is active; it is not canonical Activity materialization.")]

@@ -97,7 +97,7 @@ ADR status uses Accepted.
 Cut/phase status uses Closed / PASS or Closed / Accepted.
 ```
 
-F0 is closed. F1 is closed. F2 is closed. F3 Route baseline is closed. F4 Activity baseline is open with F4A, F4B, F4C and F4D closed, and F4E applied/pending smoke. Do not skip directly to Surface, RuntimeMaterialization or consumers.
+F0 is closed. F1 is closed. F2 is closed. F3 Route baseline is closed. F4 Activity baseline is open with F4A, F4B, F4C, F4D and F4E closed, and F4F applied/pending smoke. Do not skip directly to Surface, RuntimeMaterialization or consumers.
 
 
 ## F4A — ActivityRuntimeState refinado
@@ -233,13 +233,42 @@ IF-FW-ROAD-4E — Reclassificar ActivityContentBinding
 Status:
 
 ```text
-F4E — APPLIED / PENDING COMPILE-SMOKE
+F4E — CLOSED / COMPILE-SMOKE PASS
 ```
 
 See:
 
 ```text
 Documentation~/ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md
+Documentation~/F4E_CLOSURE.md
+```
+
+## F4F — Activity Baseline Smoke
+
+F4F implements the roadmap item:
+
+```text
+IF-FW-ROAD-4F — Activity smoke
+```
+
+It adds a dedicated QA button:
+
+```text
+Run Activity Baseline Smoke
+```
+
+The smoke validates Activity switch, ActivityContentSet, ActivityReadinessState, clear-to-none and restore. It is QA/dev tooling only and does not add profile loading, materialization, release, actors, input, camera, reset, Surface or RuntimeMaterialization.
+
+Status:
+
+```text
+F4F — APPLIED / PENDING COMPILE-SMOKE
+```
+
+See:
+
+```text
+Documentation~/ACTIVITY_BASELINE_SMOKE.md
 ```
 
 

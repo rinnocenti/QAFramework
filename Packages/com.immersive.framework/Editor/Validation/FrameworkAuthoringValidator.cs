@@ -74,7 +74,7 @@ namespace Immersive.Framework.Editor.Validation
             return ValidateActivity(activity, FrameworkValidationMode.Standard);
         }
 
-        internal static FrameworkAuthoringValidationReport ValidateActivityContentBinding(ActivityContentBinding binding)
+        internal static FrameworkAuthoringValidationReport ValidateActivityContentBinding(ActivityLocalVisibilityAdapter binding)
         {
             return ValidateActivityContentBinding(binding, FrameworkValidationMode.Standard);
         }
@@ -201,7 +201,7 @@ namespace Immersive.Framework.Editor.Validation
         }
 
         private static FrameworkAuthoringValidationReport ValidateActivityContentBinding(
-            ActivityContentBinding binding,
+            ActivityLocalVisibilityAdapter binding,
             FrameworkValidationMode validationMode)
         {
             var report = new FrameworkAuthoringValidationReport(validationMode);
@@ -400,7 +400,7 @@ namespace Immersive.Framework.Editor.Validation
             FrameworkAuthoringValidationReport report,
             FrameworkValidationMode validationMode)
         {
-            ActivityContentBinding[] bindings = Object.FindObjectsByType<ActivityContentBinding>(FindObjectsInactive.Include);
+            ActivityLocalVisibilityAdapter[] bindings = Object.FindObjectsByType<ActivityLocalVisibilityAdapter>(FindObjectsInactive.Include);
             if (bindings == null || bindings.Length == 0)
             {
                 report.AddInfo("No Activity Content Binding components were found in open scenes.", null);
@@ -480,12 +480,12 @@ namespace Immersive.Framework.Editor.Validation
                 : FrameworkValidationMode.Strict;
         }
 
-        private static ActivityContentBinding FindParentActivityContentBinding(ActivityContentBinding binding)
+        private static ActivityLocalVisibilityAdapter FindParentActivityContentBinding(ActivityLocalVisibilityAdapter binding)
         {
             var parent = binding.transform.parent;
             while (parent != null)
             {
-                if (parent.TryGetComponent<ActivityContentBinding>(out var parentBinding))
+                if (parent.TryGetComponent<ActivityLocalVisibilityAdapter>(out var parentBinding))
                 {
                     return parentBinding;
                 }
@@ -496,9 +496,9 @@ namespace Immersive.Framework.Editor.Validation
             return null;
         }
 
-        private static int CountChildActivityContentBindings(ActivityContentBinding binding)
+        private static int CountChildActivityContentBindings(ActivityLocalVisibilityAdapter binding)
         {
-            ActivityContentBinding[] all = binding.GetComponentsInChildren<ActivityContentBinding>(true);
+            ActivityLocalVisibilityAdapter[] all = binding.GetComponentsInChildren<ActivityLocalVisibilityAdapter>(true);
             int count = 0;
             for (int i = 0; i < all.Length; i++)
             {

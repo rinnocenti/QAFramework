@@ -6,9 +6,9 @@ using UnityEngine;
 
 namespace Immersive.Framework.Editor.Authoring
 {
-    [CustomEditor(typeof(ActivityContentBinding))]
+    [CustomEditor(typeof(ActivityLocalVisibilityAdapter))]
     [CanEditMultipleObjects]
-    internal sealed class ActivityContentBindingEditor : UnityEditor.Editor
+    internal sealed class ActivityLocalVisibilityAdapterEditor : UnityEditor.Editor
     {
         private SerializedProperty _activity;
 
@@ -50,7 +50,7 @@ namespace Immersive.Framework.Editor.Authoring
             var report = new FrameworkAuthoringValidationReport();
             for (int i = 0; i < targets.Length; i++)
             {
-                report.AddRange(FrameworkAuthoringValidator.ValidateActivityContentBinding(targets[i] as ActivityContentBinding));
+                report.AddRange(FrameworkAuthoringValidator.ValidateActivityContentBinding(targets[i] as ActivityLocalVisibilityAdapter));
             }
 
             EditorGUILayout.LabelField("Authoring Validation", EditorStyles.boldLabel);
@@ -103,7 +103,7 @@ namespace Immersive.Framework.Editor.Authoring
                 return;
             }
 
-            var binding = target as ActivityContentBinding;
+            var binding = target as ActivityLocalVisibilityAdapter;
             if (binding == null)
             {
                 return;
@@ -126,12 +126,12 @@ namespace Immersive.Framework.Editor.Authoring
             }
         }
 
-        private static ActivityContentBinding FindParentBinding(ActivityContentBinding binding)
+        private static ActivityLocalVisibilityAdapter FindParentBinding(ActivityLocalVisibilityAdapter binding)
         {
             var parent = binding.transform.parent;
             while (parent != null)
             {
-                if (parent.TryGetComponent<ActivityContentBinding>(out var parentBinding))
+                if (parent.TryGetComponent<ActivityLocalVisibilityAdapter>(out var parentBinding))
                 {
                     return parentBinding;
                 }
@@ -142,9 +142,9 @@ namespace Immersive.Framework.Editor.Authoring
             return null;
         }
 
-        private static int CountChildBindings(ActivityContentBinding binding)
+        private static int CountChildBindings(ActivityLocalVisibilityAdapter binding)
         {
-            ActivityContentBinding[] all = binding.GetComponentsInChildren<ActivityContentBinding>(true);
+            ActivityLocalVisibilityAdapter[] all = binding.GetComponentsInChildren<ActivityLocalVisibilityAdapter>(true);
             int count = 0;
             for (int i = 0; i < all.Length; i++)
             {

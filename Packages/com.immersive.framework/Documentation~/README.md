@@ -73,8 +73,19 @@ Smoke valida.
 | 37 | [`QA_AUTHORING_VALIDATION_HYGIENE.md`](QA_AUTHORING_VALIDATION_HYGIENE.md) | Corte F3G1: higiene da validação de authoring no QA. |
 | 38 | [`F3G_CLOSURE.md`](F3G_CLOSURE.md) | Fechamento do F3G/F3G1 por smoke. |
 | 39 | [`F3_CLOSURE.md`](F3_CLOSURE.md) | Fechamento técnico da Fase 3. |
-| 40 | [`Guides/`](Guides/) | Guias de uso/visualização. |
-| 41 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
+| 42 | [`ACTIVITY_RUNTIME_STATE_REFINED.md`](ACTIVITY_RUNTIME_STATE_REFINED.md) | Corte técnico F4A: `ActivityRuntimeState` refinado. |
+| 43 | [`F4A_CLOSURE.md`](F4A_CLOSURE.md) | Fechamento do F4A por compile-smoke. |
+| 44 | [`ACTIVITY_CONTENT_SET_MINIMAL.md`](ACTIVITY_CONTENT_SET_MINIMAL.md) | Corte técnico F4B: `ActivityContentSet` mínimo. |
+| 45 | [`F4B_CLOSURE.md`](F4B_CLOSURE.md) | Fechamento do F4B por compile-smoke. |
+| 46 | [`ACTIVITY_CONTENT_LIFECYCLE_RESULT.md`](ACTIVITY_CONTENT_LIFECYCLE_RESULT.md) | Corte técnico F4C: `ActivityContentLifecycleResult`. |
+| 47 | [`F4C_CLOSURE.md`](F4C_CLOSURE.md) | Fechamento do F4C por compile-smoke. |
+| 48 | [`ACTIVITY_READINESS_STATE_MINIMAL.md`](ACTIVITY_READINESS_STATE_MINIMAL.md) | Corte técnico F4D: `ActivityReadinessState` mínimo. |
+| 49 | [`F4D_CLOSURE.md`](F4D_CLOSURE.md) | Fechamento do F4D por compile-smoke. |
+| 50 | [`ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md`](ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md) | Corte F4E: reclassificação do `ActivityContentBinding`. |
+| 51 | [`F4E_CLOSURE.md`](F4E_CLOSURE.md) | Fechamento do F4E por compile-smoke. |
+| 52 | [`ACTIVITY_BASELINE_SMOKE.md`](ACTIVITY_BASELINE_SMOKE.md) | Corte F4F: smoke dedicado de Activity baseline. |
+| 53 | [`Guides/`](Guides/) | Guias de uso/visualização. |
+| 54 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
 ---
 
@@ -118,6 +129,17 @@ Documentation~/
 ├─ QA_AUTHORING_VALIDATION_HYGIENE.md
 ├─ F3G_CLOSURE.md
 ├─ F3_CLOSURE.md
+├─ ACTIVITY_RUNTIME_STATE_REFINED.md
+├─ F4A_CLOSURE.md
+├─ ACTIVITY_CONTENT_SET_MINIMAL.md
+├─ F4B_CLOSURE.md
+├─ ACTIVITY_CONTENT_LIFECYCLE_RESULT.md
+├─ F4C_CLOSURE.md
+├─ ACTIVITY_READINESS_STATE_MINIMAL.md
+├─ F4D_CLOSURE.md
+├─ ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md
+├─ F4E_CLOSURE.md
+├─ ACTIVITY_BASELINE_SMOKE.md
 ├─ Planning/
 │  ├─ Immersive-Framework-Roadmap-Revisado.md
 │  └─ Capability-Traceability-Matrix.md
