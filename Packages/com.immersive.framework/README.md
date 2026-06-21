@@ -26,13 +26,19 @@ Completed F1 cuts:
 
 ```text
 F1A — CLOSED / ACCEPTED
-F1B — APPLIED / PENDING COMPILE-SMOKE
+F1B — CLOSED / COMPILE-SMOKE PASS
 ```
 
-Next authorized step after F1B validation:
+Current F1 cut:
 
 ```text
-F1C — FrameworkFact minimal model
+F1C — APPLIED / PENDING COMPILE-SMOKE
+```
+
+Next authorized step after F1C validation:
+
+```text
+F1D — ValidationMode semantics
 ```
 
 Status distinction:
@@ -84,6 +90,8 @@ Then follow the roadmap order:
 5. Documentation~/F0_CLOSURE.md
 6. Documentation~/F1_ADR_ACCEPTANCE.md
 7. Documentation~/API_STATUS_CONVENTION.md
+8. Documentation~/F1B_CLOSURE.md
+9. Documentation~/FRAMEWORK_FACT_MINIMAL_MODEL.md
 ```
 
 ## F0 closure status
@@ -164,10 +172,30 @@ Documentation~/API_STATUS_CONVENTION.md
 
 F1B does not create FrameworkFact, typed identity primitives, ContentIdentity final shape or ValidationMode semantics.
 
-Next authorized step after compile/smoke validation:
+F1B was closed after compile-smoke validation. See:
 
 ```text
-F1C — FrameworkFact minimal model
+Documentation~/F1B_CLOSURE.md
+```
+
+## F1C FrameworkFact minimal model
+
+F1C introduces the minimal structured diagnostics model required by `ADR-DIAG-001`:
+
+```text
+Runtime/Diagnostics/FrameworkFact.cs
+Runtime/Diagnostics/FrameworkFactCode.cs
+Runtime/Diagnostics/FrameworkFactScope.cs
+Runtime/Diagnostics/FrameworkFactSeverity.cs
+Documentation~/FRAMEWORK_FACT_MINIMAL_MODEL.md
+```
+
+F1C does not create a fact recorder, service locator, event bus, telemetry, dashboard, persistence layer, validator integration or lifecycle behavior change.
+
+Next authorized step after F1C compile/smoke validation:
+
+```text
+F1D — ValidationMode semantics
 ```
 
 Do not start F2 until F1 gives identity/status/diagnostics enough structure to prevent new public ambiguity.

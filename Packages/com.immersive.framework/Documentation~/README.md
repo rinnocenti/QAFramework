@@ -42,8 +42,10 @@ Smoke valida.
 | 6 | [`F0_CLOSURE.md`](F0_CLOSURE.md) | Fechamento formal da Fase 0 após smoke. |
 | 7 | [`F1_ADR_ACCEPTANCE.md`](F1_ADR_ACCEPTANCE.md) | Aceite dos ADRs da F1 antes de implementação técnica. |
 | 8 | [`API_STATUS_CONVENTION.md`](API_STATUS_CONVENTION.md) | Convenção mínima de status de API aplicada no F1B. |
-| 9 | [`Guides/`](Guides/) | Guias de uso/visualização. |
-| 10 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
+| 9 | [`F1B_CLOSURE.md`](F1B_CLOSURE.md) | Fechamento do F1B após compile-smoke. |
+| 10 | [`FRAMEWORK_FACT_MINIMAL_MODEL.md`](FRAMEWORK_FACT_MINIMAL_MODEL.md) | Modelo mínimo de `FrameworkFact` criado no F1C. |
+| 11 | [`Guides/`](Guides/) | Guias de uso/visualização. |
+| 12 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
 ---
 
@@ -57,6 +59,8 @@ Documentation~/
 ├─ F0_CLOSURE.md
 ├─ F1_ADR_ACCEPTANCE.md
 ├─ API_STATUS_CONVENTION.md
+├─ F1B_CLOSURE.md
+├─ FRAMEWORK_FACT_MINIMAL_MODEL.md
 ├─ Planning/
 │  ├─ Immersive-Framework-Roadmap-Revisado.md
 │  └─ Capability-Traceability-Matrix.md
@@ -239,7 +243,18 @@ BASELINE_SMOKE.md registra o smoke mínimo.
 F0_CLOSURE.md registra a matriz ADR → resultado.
 ```
 
-## 8. Checklist antes de abrir um corte técnico
+
+## 8. Status F1 em andamento
+
+| Item | Status | Observação |
+|---|---|---|
+| `F1A` | `CLOSED / ACCEPTED` | ADRs de Identity, Diagnostics e Content Identity aceitos. |
+| `F1B` | `CLOSED / COMPILE-SMOKE PASS` | Convenção mínima de status de API aplicada e validada por smoke. |
+| `F1C` | `APPLIED / PENDING COMPILE-SMOKE` | Modelo mínimo de `FrameworkFact` criado; aguarda validação no Unity. |
+
+F1 ainda não está fechada. Ainda faltam os cortes técnicos de `ValidationMode`, typed identity primitives e revisão de content identity/handle.
+
+## 9. Checklist antes de abrir um corte técnico
 
 ```text
 1. Qual fase do roadmap este corte pertence?
@@ -253,7 +268,7 @@ F0_CLOSURE.md registra a matriz ADR → resultado.
 
 ---
 
-## 9. Regra contra avanço prematuro
+## 10. Regra contra avanço prematuro
 
 ```text
 Não avançar para feature enquanto o baseline ativo ainda for ambíguo.
@@ -263,9 +278,9 @@ Não copiar shape do NewScripts; preservar capacidades e redesenhar boundaries.
 
 ---
 
-## 10. Foco atual
+## 11. Foco atual
 
-F0 está fechado e F1A aceitou os ADRs da fase.
+F0 está fechado, F1A aceitou os ADRs da fase e F1B passou em compile-smoke.
 
 ```text
 F0A — CLOSED / ADRS ACCEPTED.
@@ -273,14 +288,15 @@ F0B — CLOSED / HYGIENE APPLIED / SMOKE PASS.
 F0C — CLOSED / FORMAL CLOSURE.
 F0  — CLOSED / PASS.
 F1A — CLOSED / ACCEPTED.
-F1B — APPLIED / PENDING COMPILE-SMOKE.
+F1B — CLOSED / COMPILE-SMOKE PASS.
+F1C — APPLIED / PENDING COMPILE-SMOKE.
 F1  — OPEN.
 ```
 
-Próximo passo autorizado após validação do F1B:
+Próximo passo autorizado após validação do F1C:
 
 ```text
-F1C — FrameworkFact minimal model.
+F1D — ValidationMode semantics.
 ```
 
-F1B é o primeiro corte técnico da F1. Não iniciar F2 enquanto F1 não compilar, o smoke baseline não passar e as novas superfícies não estiverem marcadas como Stable, Experimental ou Internal.
+Não iniciar F2 enquanto F1 não compilar, o smoke baseline não passar e as novas superfícies não estiverem marcadas como Stable, Experimental ou Internal.
