@@ -19,6 +19,7 @@ namespace Immersive.Framework.SessionLifecycle
             RouteAsset currentRoute,
             RouteLifecycleStartResult routeLifecycleResult,
             RouteContentSet routeContentSet,
+            SessionContentSet sessionContentSet,
             SceneLifecycleLoadResult primarySceneResult,
             ActivityFlowStartResult activityFlowResult,
             bool sessionStarted)
@@ -27,6 +28,7 @@ namespace Immersive.Framework.SessionLifecycle
             CurrentRoute = currentRoute;
             RouteLifecycleResult = routeLifecycleResult;
             RouteContentSet = routeContentSet;
+            SessionContentSet = sessionContentSet;
             PrimarySceneResult = primarySceneResult;
             ActivityFlowResult = activityFlowResult;
             SessionStarted = sessionStarted;
@@ -39,6 +41,8 @@ namespace Immersive.Framework.SessionLifecycle
         public RouteLifecycleStartResult RouteLifecycleResult { get; }
 
         public RouteContentSet RouteContentSet { get; }
+
+        public SessionContentSet SessionContentSet { get; }
 
         public SceneLifecycleLoadResult PrimarySceneResult { get; }
 
@@ -60,9 +64,13 @@ namespace Immersive.Framework.SessionLifecycle
 
         public bool HasActiveActivity => CurrentActivity != null;
 
+        public bool HasSessionContent => SessionContentSet.HasContent;
+
+        public int SessionContentCount => SessionContentSet.Count;
+
         public static SessionRuntimeState Empty(GameApplicationAsset gameApplication)
         {
-            return new SessionRuntimeState(gameApplication, null, default, default, default, default, false);
+            return new SessionRuntimeState(gameApplication, null, default, default, SessionContentSet.Empty(), default, default, false);
         }
 
         public static SessionRuntimeState FromGameFlowResult(
@@ -74,21 +82,23 @@ namespace Immersive.Framework.SessionLifecycle
                 gameFlowResult.StartupRoute,
                 gameFlowResult.RouteLifecycleResult,
                 gameFlowResult.RouteLifecycleResult.RouteContentSet,
+                SessionContentSet.Empty(),
                 gameFlowResult.SceneLifecycleResult,
                 gameFlowResult.RouteLifecycleResult.ActivityFlowResult,
                 gameFlowResult.Started);
         }
 
         public static SessionRuntimeState FromRouteRequestResult(
-            GameApplicationAsset gameApplication,
+            SessionRuntimeState previousState,
             FrameworkRouteRequestResult routeRequestResult,
             bool sessionStarted)
         {
             return new SessionRuntimeState(
-                gameApplication,
+                previousState.GameApplication,
                 routeRequestResult.TargetRoute,
                 routeRequestResult.RouteLifecycleResult,
                 routeRequestResult.RouteLifecycleResult.RouteContentSet,
+                previousState.SessionContentSet,
                 routeRequestResult.RouteLifecycleResult.SceneLifecycleResult,
                 routeRequestResult.RouteLifecycleResult.ActivityFlowResult,
                 sessionStarted);
@@ -103,6 +113,7 @@ namespace Immersive.Framework.SessionLifecycle
                 previousState.CurrentRoute,
                 previousState.RouteLifecycleResult,
                 previousState.RouteContentSet,
+                previousState.SessionContentSet,
                 previousState.PrimarySceneResult,
                 activityRequestResult.ActivityFlowResult,
                 previousState.SessionStarted);

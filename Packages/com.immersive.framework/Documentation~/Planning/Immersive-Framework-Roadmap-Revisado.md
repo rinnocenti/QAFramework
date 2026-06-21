@@ -733,6 +733,7 @@ ADR files follow the plan order first and the stable ADR id second.
 F0 — CLOSED / PASS
 F1 — CLOSED / PASS
 F2A — CLOSED / ADRS ACCEPTED
+F2B — CLOSED / COMPILE-SMOKE PASS
 ```
 
 F2A aceitou os ADRs necessários para iniciar a execução técnica de Session scope:
@@ -748,7 +749,7 @@ F2-03 — ADR-SETTINGS-001 — Accepted
 O próximo corte autorizado é:
 
 ```text
-F2B — APPLIED / PENDING COMPILE-SMOKE
+F2C — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 F2B deve cobrir o início técnico de:

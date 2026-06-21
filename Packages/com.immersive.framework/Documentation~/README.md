@@ -57,8 +57,10 @@ Smoke valida.
 | 21 | [`F2A_SESSION_SCOPE_ADR_ACCEPTANCE.md`](F2A_SESSION_SCOPE_ADR_ACCEPTANCE.md) | Aceite dos ADRs de Session scope antes da implementação técnica F2. |
 | 22 | [`F2A_REMOVED_FILES.txt`](F2A_REMOVED_FILES.txt) | Lista de paths ADR duplicados/obsoletos a remover se o pacote for aplicado por overlay. |
 | 23 | [`SESSION_RUNTIME_STATE_BOUNDARY.md`](SESSION_RUNTIME_STATE_BOUNDARY.md) | Corte técnico F2B: fronteira explícita de `SessionRuntimeState`. |
-| 24 | [`Guides/`](Guides/) | Guias de uso/visualização. |
-| 25 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
+| 24 | [`F2B_CLOSURE.md`](F2B_CLOSURE.md) | Fechamento do F2B após compile-smoke. |
+| 25 | [`SESSION_CONTENT_SET_MINIMAL_MODEL.md`](SESSION_CONTENT_SET_MINIMAL_MODEL.md) | Corte técnico F2C: modelo mínimo de `SessionContentSet`. |
+| 26 | [`Guides/`](Guides/) | Guias de uso/visualização. |
+| 27 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
 ---
 
@@ -87,6 +89,8 @@ Documentation~/
 ├─ F2A_SESSION_SCOPE_ADR_ACCEPTANCE.md
 ├─ F2A_REMOVED_FILES.txt
 ├─ SESSION_RUNTIME_STATE_BOUNDARY.md
+├─ F2B_CLOSURE.md
+├─ SESSION_CONTENT_SET_MINIMAL_MODEL.md
 ├─ Planning/
 │  ├─ Immersive-Framework-Roadmap-Revisado.md
 │  └─ Capability-Traceability-Matrix.md
@@ -178,12 +182,24 @@ Não trate `Draft / Deferred` como autorização para implementar.
 Status atual:
 
 ```text
-F2B — APPLIED / PENDING COMPILE-SMOKE
+F2B — CLOSED / COMPILE-SMOKE PASS
 ```
 
 Documento técnico: [`SESSION_RUNTIME_STATE_BOUNDARY.md`](SESSION_RUNTIME_STATE_BOUNDARY.md).
 
-Este corte cria a fronteira explícita `Runtime/SessionLifecycle/SessionRuntimeState.cs` e conecta o estado ao `FrameworkRuntimeHost`, sem criar `SessionContentSet` ainda.
+Este corte criou a fronteira explícita `Runtime/SessionLifecycle/SessionRuntimeState.cs` e conectou o estado ao `FrameworkRuntimeHost`, sem criar `SessionContentSet`.
+
+### F2C — SessionContentSet minimal model
+
+Status atual:
+
+```text
+F2C — APPLIED / PENDING COMPILE-SMOKE
+```
+
+Documento técnico: [`SESSION_CONTENT_SET_MINIMAL_MODEL.md`](SESSION_CONTENT_SET_MINIMAL_MODEL.md).
+
+Este corte cria `SessionContentOwnership`, `SessionContentEntry` e `SessionContentSet`, e conecta o set vazio ao `SessionRuntimeState`. Não cria loading, persistent scenes, release policy, Surface, RuntimeMaterialization ou consumers.
 
 ### F3 — Route baseline
 

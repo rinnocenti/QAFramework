@@ -73,7 +73,7 @@ namespace Immersive.Framework.ApplicationLifecycle
             var result = await _gameFlowRuntime.RequestRouteAsync(targetRoute, source, reason);
             if (result.Succeeded)
             {
-                _state = FrameworkRuntimeState.FromRouteRequestResult(_gameApplication, result, true);
+                _state = FrameworkRuntimeState.FromRouteRequestResult(_state, result, true);
             }
 
             LogRouteRequestResult(result);

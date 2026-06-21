@@ -55,13 +55,14 @@ Current F2 status:
 
 ```text
 F2A — CLOSED / ADRS ACCEPTED
-F2B — APPLIED / PENDING COMPILE-SMOKE
+F2B — CLOSED / COMPILE-SMOKE PASS
+F2C — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 Current authorized validation:
 
 ```text
-F2B — compile-smoke
+F2C — compile-smoke
 ```
 
 Status distinction:
@@ -81,7 +82,31 @@ F2B introduces an explicit `SessionRuntimeState` boundary owned by the current `
 Runtime/SessionLifecycle/SessionRuntimeState.cs
 ```
 
-The old `FrameworkRuntimeState` remains as a compatibility facade and delegates to `SessionRuntimeState`. This cut does not create `SessionContentSet`, persistent scenes, Route baseline, Surface, RuntimeMaterialization or consumers.
+The old `FrameworkRuntimeState` remains as a compatibility facade and delegates to `SessionRuntimeState`. F2B did not create `SessionContentSet`, persistent scenes, Route baseline, Surface, RuntimeMaterialization or consumers.
+
+F2B is closed by compile-smoke. See:
+
+```text
+Documentation~/F2B_CLOSURE.md
+```
+
+## F2C — SessionContentSet minimal model
+
+F2C introduces the minimal Session content model:
+
+```text
+Runtime/SessionLifecycle/SessionContentOwnership.cs
+Runtime/SessionLifecycle/SessionContentEntry.cs
+Runtime/SessionLifecycle/SessionContentSet.cs
+```
+
+The initial set can be empty. This cut defines ownership semantics only; it does not create loading, release, persistent scenes, Surface, RuntimeMaterialization or consumers.
+
+See:
+
+```text
+Documentation~/SESSION_CONTENT_SET_MINIMAL_MODEL.md
+```
 
 See:
 
@@ -355,9 +380,9 @@ Documentation~/F1_CLOSURE.md
 ## Current F2 validation
 
 ```text
-F2B — APPLIED / PENDING COMPILE-SMOKE
+F2C — APPLIED / PENDING COMPILE-SMOKE
 ```
 
-F2B is the first technical Session scope cut. Validate it with the standard boot/route/activity/clear smoke before opening F2C.
+F2B is closed by compile-smoke. F2C is the current technical Session scope cut and must be validated with the standard boot/route/activity/clear smoke before opening the final F2 checkpoint.
 
 Do not start F3, Surface, RuntimeMaterialization or consumers before F2 technical closure.

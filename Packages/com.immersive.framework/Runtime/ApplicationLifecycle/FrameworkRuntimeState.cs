@@ -29,6 +29,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                 currentRoute,
                 routeLifecycleResult,
                 routeContentSet,
+                SessionContentSet.Empty(),
                 primarySceneResult,
                 activityFlowResult,
                 gameFlowStarted);
@@ -43,6 +44,8 @@ namespace Immersive.Framework.ApplicationLifecycle
         public RouteLifecycleStartResult RouteLifecycleResult => SessionState.RouteLifecycleResult;
 
         public RouteContentSet RouteContentSet => SessionState.RouteContentSet;
+
+        public SessionContentSet SessionContentSet => SessionState.SessionContentSet;
 
         public SceneLifecycleLoadResult PrimarySceneResult => SessionState.PrimarySceneResult;
 
@@ -80,18 +83,17 @@ namespace Immersive.Framework.ApplicationLifecycle
         }
 
         public static FrameworkRuntimeState FromRouteRequestResult(
-            GameApplicationAsset gameApplication,
+            FrameworkRuntimeState previousState,
             FrameworkRouteRequestResult routeRequestResult,
             bool gameFlowStarted)
         {
             return new FrameworkRuntimeState(
-                gameApplication,
-                routeRequestResult.TargetRoute,
-                routeRequestResult.RouteLifecycleResult,
-                routeRequestResult.RouteLifecycleResult.RouteContentSet,
-                routeRequestResult.RouteLifecycleResult.SceneLifecycleResult,
-                routeRequestResult.RouteLifecycleResult.ActivityFlowResult,
-                gameFlowStarted);
+                SessionRuntimeState.FromRouteRequestResult(previousState.SessionState, routeRequestResult, gameFlowStarted));
+        }
+
+        private FrameworkRuntimeState(SessionRuntimeState sessionState)
+        {
+            SessionState = sessionState;
         }
 
         public static FrameworkRuntimeState FromActivityRequestResult(
@@ -99,13 +101,7 @@ namespace Immersive.Framework.ApplicationLifecycle
             FrameworkActivityRequestResult activityRequestResult)
         {
             return new FrameworkRuntimeState(
-                previousState.GameApplication,
-                previousState.CurrentRoute,
-                previousState.RouteLifecycleResult,
-                previousState.RouteContentSet,
-                previousState.PrimarySceneResult,
-                activityRequestResult.ActivityFlowResult,
-                previousState.GameFlowStarted);
+                SessionRuntimeState.FromActivityRequestResult(previousState.SessionState, activityRequestResult));
         }
     }
 }
