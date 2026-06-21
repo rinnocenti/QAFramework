@@ -70,8 +70,10 @@ F3B — CLOSED / COMPILE-SMOKE PASS
 F3C — CLOSED / COMPILE-SMOKE PASS
 F3D — CLOSED / COMPILE-SMOKE PASS
 F3E — CLOSED / COMPILE-SMOKE PASS
-F3F — APPLIED / PENDING ROUTE CALLBACK SCENE SETUP
-F3F1 — APPLIED / PENDING COMPILE-SMOKE
+F3F — CLOSED / CALLBACK-SMOKE PASS
+F3F1 — CLOSED / COMPILE-SMOKE PASS
+F3G — APPLIED / PENDING COMPILE-SMOKE
+F3G1 — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 F3A accepted:
@@ -232,8 +234,10 @@ F3F1 reduces the default QA panel surface. The normal validation path now appear
 Status:
 
 ```text
-F3F — APPLIED / PENDING ROUTE CALLBACK SCENE SETUP
-F3F1 — APPLIED / PENDING COMPILE-SMOKE
+F3F — CLOSED / CALLBACK-SMOKE PASS
+F3F1 — CLOSED / COMPILE-SMOKE PASS
+F3G — APPLIED / PENDING COMPILE-SMOKE
+F3G1 — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 See:
@@ -241,6 +245,18 @@ See:
 ```text
 Documentation~/ROUTE_LOCAL_CALLBACK_SMOKE.md
 ```
+
+## F3G — Route validator expansion
+
+F3G implements the roadmap item:
+
+```text
+IF-FW-ROAD-3F — Route validator expansion
+```
+
+The validator now checks `RouteContentBinding` components in loaded scenes for missing Route references, scene/Route mismatches and missing `IRouteContentLifecycleReceiver` components. F3G1 keeps the binding Inspector minimal and exposes the loaded-scene validation through the QA panel. See `Documentation~/ROUTE_VALIDATOR_EXPANSION.md` and `Documentation~/QA_AUTHORING_VALIDATION_HYGIENE.md`.
+
+F3G does not create scene objects, mutate scenes, load additive scenes, create Surface, create RuntimeMaterialization, execute release policy or introduce consumers.
 
 ## F2B — SessionRuntimeState explicit boundary
 

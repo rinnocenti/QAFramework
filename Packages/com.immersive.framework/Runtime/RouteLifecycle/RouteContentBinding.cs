@@ -14,6 +14,7 @@ namespace Immersive.Framework.RouteLifecycle
     public sealed class RouteContentBinding : MonoBehaviour
     {
         [SerializeField]
+        [Tooltip("Route asset that owns this scene. Use the Route whose Primary Scene is this scene.")]
         private RouteAsset route;
 
         public RouteAsset Route => route;

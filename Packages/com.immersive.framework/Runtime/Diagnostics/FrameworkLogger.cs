@@ -16,7 +16,7 @@ namespace Immersive.Framework.Diagnostics
 
         private FrameworkLogger(Logger logger)
         {
-            this._logger = logger;
+            _logger = logger;
         }
 
         internal static FrameworkLogger Create()

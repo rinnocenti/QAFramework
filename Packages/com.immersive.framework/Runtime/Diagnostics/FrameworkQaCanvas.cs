@@ -233,6 +233,11 @@ namespace Immersive.Framework.Diagnostics
 
             using (new EditorDisabledScope(_requestInFlight))
             {
+                if (GUILayout.Button("Validate Loaded Route Content"))
+                {
+                    ValidateLoadedRouteContentAuthoring();
+                }
+
                 if (GUILayout.Button("Run Route Callback Smoke"))
                 {
                     RunRouteCallbackSmoke();
@@ -907,10 +912,154 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool IsValidRouteCallbackDispatch(RouteContentLifecycleDispatchResult result)
         {
-            return result.Executed
-                && result.BindingCount > 0
-                && result.ReceiverCount > 0
-                && result.FailedReceiverCount == 0;
+            return result is { Executed: true, BindingCount: > 0, ReceiverCount: > 0, FailedReceiverCount: 0 };
+        }
+
+
+        private void ValidateLoadedRouteContentAuthoring()
+        {
+            EnsureLogger();
+
+            RouteContentBinding[] bindings = FindObjectsByType<RouteContentBinding>(
+                FindObjectsInactive.Include);
+
+            if (bindings == null || bindings.Length == 0)
+            {
+                _logger.Warning("QA Authoring Validation completed. scope='Loaded Route Content' bindings='0' issues='1' reason='No RouteContentBinding found in loaded scenes'.");
+                return;
+            }
+
+            int issueCount = 0;
+            int errorCount = 0;
+            int warningCount = 0;
+
+            for (int i = 0; i < bindings.Length; i++)
+            {
+                ValidateLoadedRouteContentBinding(bindings[i], ref issueCount, ref errorCount, ref warningCount);
+            }
+
+            if (issueCount == 0)
+            {
+                _logger.Info($"QA Authoring Validation completed. scope='Loaded Route Content' bindings='{bindings.Length}' issues='0'.");
+                return;
+            }
+
+            _logger.Warning($"QA Authoring Validation completed. scope='Loaded Route Content' bindings='{bindings.Length}' issues='{issueCount}' errors='{errorCount}' warnings='{warningCount}'.");
+        }
+
+        private void ValidateLoadedRouteContentBinding(
+            RouteContentBinding binding,
+            ref int issueCount,
+            ref int errorCount,
+            ref int warningCount)
+        {
+            if (binding == null)
+            {
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    "RouteContentBinding is missing.");
+                return;
+            }
+
+            string objectName = binding.gameObject != null ? binding.gameObject.name : "<missing>";
+            string sceneName = binding.gameObject != null && binding.gameObject.scene.IsValid()
+                ? binding.gameObject.scene.name
+                : "<no-scene>";
+
+            if (binding.Route == null)
+            {
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    $"RouteContentBinding object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Missing Route'.");
+                return;
+            }
+
+            if (!DoesBindingSceneMatchRoute(binding))
+            {
+                AddQaAuthoringWarning(
+                    ref issueCount,
+                    ref warningCount,
+                    $"RouteContentBinding object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' route='{FormatValue(GetAssetName(binding.Route, "<unnamed>"))}' issue='Route does not own this scene'. expectedPrimaryScene='{FormatValue(binding.Route.PrimaryScenePath)}'.");
+            }
+
+            int receiverCount = CountRouteContentLifecycleReceivers(binding);
+            if (receiverCount == 0)
+            {
+                AddQaAuthoringWarning(
+                    ref issueCount,
+                    ref warningCount,
+                    $"RouteContentBinding object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' route='{FormatValue(GetAssetName(binding.Route, "<unnamed>"))}' issue='No IRouteContentLifecycleReceiver under binding'.");
+            }
+        }
+
+        private void AddQaAuthoringIssue(
+            ref int issueCount,
+            ref int errorCount,
+            string message)
+        {
+            issueCount++;
+            errorCount++;
+            _logger.Error($"QA Authoring Validation issue. severity='Error' {message}");
+        }
+
+        private void AddQaAuthoringWarning(
+            ref int issueCount,
+            ref int warningCount,
+            string message)
+        {
+            issueCount++;
+            warningCount++;
+            _logger.Warning($"QA Authoring Validation issue. severity='Warning' {message}");
+        }
+
+        private static bool DoesBindingSceneMatchRoute(RouteContentBinding binding)
+        {
+            if (binding == null || binding.Route == null || binding.gameObject == null)
+            {
+                return false;
+            }
+
+            var scene = binding.gameObject.scene;
+            if (!scene.IsValid() || !scene.isLoaded)
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(binding.Route.PrimaryScenePath)
+                && !string.IsNullOrWhiteSpace(scene.path))
+            {
+                return string.Equals(scene.path, binding.Route.PrimaryScenePath, StringComparison.OrdinalIgnoreCase);
+            }
+
+            return !string.IsNullOrWhiteSpace(binding.Route.PrimarySceneName)
+                && string.Equals(scene.name, binding.Route.PrimarySceneName, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static int CountRouteContentLifecycleReceivers(RouteContentBinding binding)
+        {
+            if (binding == null)
+            {
+                return 0;
+            }
+
+            MonoBehaviour[] behaviours = binding.GetComponentsInChildren<MonoBehaviour>(true);
+            if (behaviours == null || behaviours.Length == 0)
+            {
+                return 0;
+            }
+
+            int count = 0;
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                if (behaviours[i] is IRouteContentLifecycleReceiver)
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         private async Task<bool> RequestActivityCoreAsync(
@@ -974,10 +1123,7 @@ namespace Immersive.Framework.Diagnostics
 
         private void EnsureLogger()
         {
-            if (_logger == null)
-            {
-                _logger = FrameworkLogger.Create();
-            }
+            _logger ??= FrameworkLogger.Create();
         }
 
         private bool TryValidateSmokeTargets(string smokeName, string missingTargets)

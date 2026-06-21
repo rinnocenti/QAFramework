@@ -105,7 +105,7 @@ Após aplicar o corte:
 3. Route Smoke passa.
 4. Activity Smoke passa.
 5. Clear Activity Smoke passa.
-6. Project Settings > Immersive Framework > Validate Authoring continua funcionando.
+6. Validação de authoring continua disponível pelas superfícies QA/editor definidas pela fase atual.
 ```
 
 Smoke negativo opcional:

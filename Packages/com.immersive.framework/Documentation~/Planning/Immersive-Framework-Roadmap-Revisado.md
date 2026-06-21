@@ -264,15 +264,16 @@ F3B — CLOSED / COMPILE-SMOKE PASS
 F3C — CLOSED / COMPILE-SMOKE PASS
 F3D — CLOSED / COMPILE-SMOKE PASS
 F3E — CLOSED / COMPILE-SMOKE PASS
-F3F — APPLIED / PENDING ROUTE CALLBACK SCENE SETUP
-F3F1 — APPLIED / PENDING COMPILE-SMOKE
+F3F — CLOSED / CALLBACK-SMOKE PASS
+F3F1 — CLOSED / COMPILE-SMOKE PASS
+F3G — APPLIED / PENDING COMPILE-SMOKE
+F3G1 — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 Corte técnico atual:
 
 ```text
-F3F — IF-FW-ROAD-3E — Route local callback smoke
-F3F1 — QA panel simplification before F3F closure
+F3G — IF-FW-ROAD-3F — Route validator expansion
 ```
 
 | ID | Entrega | Detalhes |
@@ -281,8 +282,8 @@ F3F1 — QA panel simplification before F3F closure
 | IF-FW-ROAD-3B | `RouteExitResult` mínimo | CLOSED em F3C. Resultado explícito da saída anterior, mesmo que ainda simples. |
 | IF-FW-ROAD-3C | `RouteContentRuntime` execution decision | CLOSED em F3D. Ativo e conectado ao `RouteLifecycleRuntime` para callbacks locais de Route Content na Primary Scene carregada. |
 | IF-FW-ROAD-3D | `RouteContentSet` semantics | CLOSED em F3E. `RouteContentSet` tem `RouteContentEntry` e `RouteContentOwnership` explícitos; Primary Scene baseline é required/owned. |
-| IF-FW-ROAD-3E | Route local callback smoke | APPLIED em F3F. QA Canvas tem smoke dedicado e `RouteContentLifecycleSmokeProbe` para validar receivers reais. F3F1 simplifica o painel antes do fechamento. |
-| IF-FW-ROAD-3F | Route validator expansion | Validar o baseline ativo, não features futuras. |
+| IF-FW-ROAD-3E | Route local callback smoke | CLOSED em F3F. QA Canvas tem smoke dedicado e `RouteContentLifecycleSmokeProbe` validado com receivers reais. F3F1 simplifica o painel e fechou por Standard Smoke. |
+| IF-FW-ROAD-3F | Route validator expansion | APPLIED em F3G/F3G1. Valida `RouteContentBinding` em cenas carregadas via QA, Route errada e ausência de receivers; Inspector fica mínimo. |
 
 ### Não entra
 

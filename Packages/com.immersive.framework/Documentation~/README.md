@@ -65,7 +65,13 @@ Smoke valida.
 | 29 | [`ROUTE_RUNTIME_STATE_TYPED.md`](ROUTE_RUNTIME_STATE_TYPED.md) | Corte técnico F3B: `RouteRuntimeState` tipado. |
 | 30 | [`F3B_CLOSURE.md`](F3B_CLOSURE.md) | Fechamento do F3B por compile-smoke. |
 | 31 | [`ROUTE_EXIT_RESULT_MINIMAL.md`](ROUTE_EXIT_RESULT_MINIMAL.md) | Corte técnico F3C: `RouteExitResult` mínimo. |
-| 30 | [`Guides/`](Guides/) | Guias de uso/visualização. |
+| 32 | [`ROUTE_CONTENT_RUNTIME_EXECUTION_DECISION.md`](ROUTE_CONTENT_RUNTIME_EXECUTION_DECISION.md) | Corte técnico F3D: ativação do `RouteContentRuntime`. |
+| 33 | [`ROUTE_CONTENT_SET_SEMANTICS.md`](ROUTE_CONTENT_SET_SEMANTICS.md) | Corte técnico F3E: ownership explícito de Route content. |
+| 34 | [`ROUTE_LOCAL_CALLBACK_SMOKE.md`](ROUTE_LOCAL_CALLBACK_SMOKE.md) | Corte técnico F3F: smoke de callbacks locais de Route. |
+| 35 | [`QA_PANEL_SIMPLIFICATION.md`](QA_PANEL_SIMPLIFICATION.md) | Corte F3F1: simplificação do painel QA. |
+| 36 | [`ROUTE_VALIDATOR_EXPANSION.md`](ROUTE_VALIDATOR_EXPANSION.md) | Corte F3G: expansão dos validators de Route. |
+| 37 | [`QA_AUTHORING_VALIDATION_HYGIENE.md`](QA_AUTHORING_VALIDATION_HYGIENE.md) | Corte F3G1: higiene da validação de authoring no QA. |
+| 38 | [`Guides/`](Guides/) | Guias de uso/visualização. |
 | 31 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
 ---
@@ -101,6 +107,13 @@ Documentation~/
 ├─ SESSION_CONTENT_SET_MINIMAL_MODEL.md
 ├─ F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md
 ├─ ROUTE_RUNTIME_STATE_TYPED.md
+├─ ROUTE_EXIT_RESULT_MINIMAL.md
+├─ ROUTE_CONTENT_RUNTIME_EXECUTION_DECISION.md
+├─ ROUTE_CONTENT_SET_SEMANTICS.md
+├─ ROUTE_LOCAL_CALLBACK_SMOKE.md
+├─ QA_PANEL_SIMPLIFICATION.md
+├─ ROUTE_VALIDATOR_EXPANSION.md
+├─ QA_AUTHORING_VALIDATION_HYGIENE.md
 ├─ Planning/
 │  ├─ Immersive-Framework-Roadmap-Revisado.md
 │  └─ Capability-Traceability-Matrix.md
@@ -235,7 +248,7 @@ Este checkpoint fecha `IF-FW-ROAD-2F — Session smoke` a partir dos smokes de F
 
 Documento de aceite: [`F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md`](F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md).
 
-F3A abriu a implementação técnica da F3. O corte técnico atual é F3F1, uma higiene do painel QA antes de fechar F3F.
+F3A abriu a implementação técnica da F3. O corte técnico atual é F3G, expansão dos validators de Route para fechar o baseline da F3.
 
 
 ### F3B — RouteRuntimeState tipado
@@ -295,8 +308,10 @@ Este corte implementa `IF-FW-ROAD-3D` tornando ownership explícito por item em 
 Status atual:
 
 ```text
-F3F — APPLIED / PENDING ROUTE CALLBACK SCENE SETUP
-F3F1 — APPLIED / PENDING COMPILE-SMOKE
+F3F — CLOSED / CALLBACK-SMOKE PASS
+F3F1 — CLOSED / COMPILE-SMOKE PASS
+F3G — APPLIED / PENDING COMPILE-SMOKE
+F3G1 — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 Documento técnico: [`ROUTE_LOCAL_CALLBACK_SMOKE.md

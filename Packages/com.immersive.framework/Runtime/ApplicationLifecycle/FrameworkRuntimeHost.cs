@@ -39,12 +39,12 @@ namespace Immersive.Framework.ApplicationLifecycle
         {
             if (_current != null)
             {
-                UnityEngine.Object.Destroy(_current.gameObject);
+                Destroy(_current.gameObject);
                 _current = null;
             }
 
             var runtimeObject = new GameObject(RuntimeHostName);
-            UnityEngine.Object.DontDestroyOnLoad(runtimeObject);
+            DontDestroyOnLoad(runtimeObject);
 
             var host = runtimeObject.AddComponent<FrameworkRuntimeHost>();
             host.Initialize(gameApplication);

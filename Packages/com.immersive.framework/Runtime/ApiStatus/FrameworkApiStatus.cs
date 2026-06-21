@@ -3,7 +3,7 @@ namespace Immersive.Framework.ApiStatus
     /// <summary>
     /// API status: Stable. Canonical metadata categories used to classify public and semi-public framework surfaces.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Stable, "Canonical API maturity metadata introduced by F1B.")]
+    [FrameworkApiStatus(Stable, "Canonical API maturity metadata introduced by F1B.")]
     public enum FrameworkApiStatus
     {
         /// <summary>Surface may be consumed by games and external modules. Changes require ADR/migration.</summary>

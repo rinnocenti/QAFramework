@@ -1,5 +1,6 @@
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.RouteLifecycle;
 using UnityEditor;
 using UnityEngine;
 
@@ -45,6 +46,7 @@ namespace Immersive.Framework.Editor.Validation
             if (includeOpenSceneBindings)
             {
                 ValidateOpenSceneActivityContentBindings(report, validationMode);
+                ValidateOpenSceneRouteContentBindings(report, validationMode);
             }
 
             if (!report.HasIssues)
@@ -75,6 +77,11 @@ namespace Immersive.Framework.Editor.Validation
         internal static FrameworkAuthoringValidationReport ValidateActivityContentBinding(ActivityContentBinding binding)
         {
             return ValidateActivityContentBinding(binding, FrameworkValidationMode.Standard);
+        }
+
+        internal static FrameworkAuthoringValidationReport ValidateRouteContentBinding(RouteContentBinding binding)
+        {
+            return ValidateRouteContentBinding(binding, FrameworkValidationMode.Standard);
         }
 
         private static FrameworkAuthoringValidationReport ValidateGameApplication(
@@ -212,7 +219,7 @@ namespace Immersive.Framework.Editor.Validation
                     binding);
             }
 
-            var parentBinding = FindParentBinding(binding);
+            var parentBinding = FindParentActivityContentBinding(binding);
             if (parentBinding != null)
             {
                 report.AddWarning(
@@ -220,7 +227,7 @@ namespace Immersive.Framework.Editor.Validation
                     binding);
             }
 
-            int childBindingCount = CountChildBindings(binding);
+            int childBindingCount = CountChildActivityContentBindings(binding);
             if (childBindingCount > 0)
             {
                 report.AddWarning(
@@ -236,6 +243,120 @@ namespace Immersive.Framework.Editor.Validation
             }
 
             return report;
+        }
+
+        private static FrameworkAuthoringValidationReport ValidateRouteContentBinding(
+            RouteContentBinding binding,
+            FrameworkValidationMode validationMode)
+        {
+            var report = new FrameworkAuthoringValidationReport(validationMode);
+
+            if (binding == null)
+            {
+                report.AddError("Route Content Binding is missing.", null);
+                return report;
+            }
+
+            string objectName = binding.gameObject != null ? binding.gameObject.name : "<missing>";
+
+            if (binding.Route == null)
+            {
+                report.AddError(
+                    $"Route Content Binding on GameObject '{objectName}' has no Route assigned.",
+                    binding);
+            }
+            else
+            {
+                ValidateRouteContentBindingSceneRoute(report, binding, objectName);
+            }
+
+            var parentBinding = FindParentRouteContentBinding(binding);
+            if (parentBinding != null)
+            {
+                report.AddWarning(
+                    $"Route Content Binding on GameObject '{objectName}' is nested under '{parentBinding.gameObject.name}'. Nested Route content policy is not defined in F3; keep Route content roots flat.",
+                    binding);
+            }
+
+            int childBindingCount = CountChildRouteContentBindings(binding);
+            if (childBindingCount > 0)
+            {
+                report.AddWarning(
+                    $"Route Content Binding on GameObject '{objectName}' has {childBindingCount} child Route Content Binding component(s). Keep Route content roots flat for the F3 callback baseline.",
+                    binding);
+            }
+
+            int receiverCount = CountRouteContentLifecycleReceivers(binding);
+            if (receiverCount == 0)
+            {
+                report.AddWarning(
+                    $"Route Content Binding on GameObject '{objectName}' has no IRouteContentLifecycleReceiver in itself or its children. Route Content Runtime will dispatch with zero receivers, and Route Callback Smoke cannot use this binding as callback proof.",
+                    binding);
+            }
+            else
+            {
+                report.AddInfo(
+                    $"Route Content Binding on GameObject '{objectName}' has {receiverCount} Route content lifecycle receiver(s).",
+                    binding);
+            }
+
+            if (!report.HasIssues)
+            {
+                report.AddInfo(
+                    $"Route Content Binding on GameObject '{objectName}' is valid for the F3 Route callback baseline.",
+                    binding);
+            }
+
+            return report;
+        }
+
+        private static void ValidateRouteContentBindingSceneRoute(
+            FrameworkAuthoringValidationReport report,
+            RouteContentBinding binding,
+            string objectName)
+        {
+            var route = binding.Route;
+            var scene = binding.gameObject != null ? binding.gameObject.scene : default;
+
+            if (!scene.IsValid())
+            {
+                report.AddInfo(
+                    $"Route Content Binding on GameObject '{objectName}' is not in a valid scene. Scene-route validation is skipped for prefabs or disconnected objects.",
+                    binding);
+                return;
+            }
+
+            if (!scene.isLoaded)
+            {
+                report.AddInfo(
+                    $"Route Content Binding on GameObject '{objectName}' is in scene '{scene.name}', but the scene is not loaded. Scene-route validation only checks loaded scenes.",
+                    binding);
+                return;
+            }
+
+            string scenePath = scene.path;
+            if (string.IsNullOrWhiteSpace(scenePath))
+            {
+                report.AddWarning(
+                    $"Route Content Binding on GameObject '{objectName}' is in an unsaved scene. Save the scene so it can be compared against Route.PrimaryScenePath.",
+                    binding);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(route.PrimaryScenePath))
+            {
+                report.AddWarning(
+                    $"Route Content Binding on GameObject '{objectName}' points to Route '{GetRouteLabel(route)}', but that Route has no Primary Scene path.",
+                    binding);
+                return;
+            }
+
+            if (!string.Equals(scenePath, route.PrimaryScenePath, System.StringComparison.OrdinalIgnoreCase))
+            {
+                report.AddWarning(
+                    $"Route Content Binding on GameObject '{objectName}' points to Route '{GetRouteLabel(route)}', but it is authored in scene '{scenePath}'. The Route primary scene is '{route.PrimaryScenePath}'. This will cause Route callbacks and Route Callback Smoke to resolve the binding for the wrong Route.",
+                    binding);
+            }
         }
 
         private static void ValidatePrimarySceneReference(FrameworkAuthoringValidationReport report, RouteAsset route)
@@ -310,6 +431,41 @@ namespace Immersive.Framework.Editor.Validation
             }
         }
 
+        private static void ValidateOpenSceneRouteContentBindings(
+            FrameworkAuthoringValidationReport report,
+            FrameworkValidationMode validationMode)
+        {
+            RouteContentBinding[] bindings = Object.FindObjectsByType<RouteContentBinding>(FindObjectsInactive.Include);
+            if (bindings == null || bindings.Length == 0)
+            {
+                report.AddInfo("No Route Content Binding components were found in open scenes.", null);
+                return;
+            }
+
+            int sceneBindingCount = 0;
+            for (int i = 0; i < bindings.Length; i++)
+            {
+                var binding = bindings[i];
+                if (binding == null || !binding.gameObject.scene.IsValid())
+                {
+                    continue;
+                }
+
+                if (!binding.gameObject.scene.isLoaded)
+                {
+                    continue;
+                }
+
+                sceneBindingCount++;
+                report.AddRange(ValidateRouteContentBinding(binding, validationMode));
+            }
+
+            if (sceneBindingCount == 0)
+            {
+                report.AddInfo("No scene-authored Route Content Binding components were found in loaded scenes.", null);
+            }
+        }
+
         private static FrameworkValidationMode ResolveValidationMode(ImmersiveFrameworkSettingsAsset settings)
         {
             return settings != null && settings.ActiveGameApplication != null
@@ -324,7 +480,7 @@ namespace Immersive.Framework.Editor.Validation
                 : FrameworkValidationMode.Strict;
         }
 
-        private static ActivityContentBinding FindParentBinding(ActivityContentBinding binding)
+        private static ActivityContentBinding FindParentActivityContentBinding(ActivityContentBinding binding)
         {
             var parent = binding.transform.parent;
             while (parent != null)
@@ -340,7 +496,7 @@ namespace Immersive.Framework.Editor.Validation
             return null;
         }
 
-        private static int CountChildBindings(ActivityContentBinding binding)
+        private static int CountChildActivityContentBindings(ActivityContentBinding binding)
         {
             ActivityContentBinding[] all = binding.GetComponentsInChildren<ActivityContentBinding>(true);
             int count = 0;
@@ -353,6 +509,69 @@ namespace Immersive.Framework.Editor.Validation
             }
 
             return count;
+        }
+
+        private static RouteContentBinding FindParentRouteContentBinding(RouteContentBinding binding)
+        {
+            var parent = binding.transform.parent;
+            while (parent != null)
+            {
+                if (parent.TryGetComponent<RouteContentBinding>(out var parentBinding))
+                {
+                    return parentBinding;
+                }
+
+                parent = parent.parent;
+            }
+
+            return null;
+        }
+
+        private static int CountChildRouteContentBindings(RouteContentBinding binding)
+        {
+            RouteContentBinding[] all = binding.GetComponentsInChildren<RouteContentBinding>(true);
+            int count = 0;
+            for (int i = 0; i < all.Length; i++)
+            {
+                if (all[i] != null && all[i] != binding)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private static int CountRouteContentLifecycleReceivers(RouteContentBinding binding)
+        {
+            MonoBehaviour[] behaviours = binding.GetComponentsInChildren<MonoBehaviour>(true);
+            if (behaviours == null || behaviours.Length == 0)
+            {
+                return 0;
+            }
+
+            int count = 0;
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                if (behaviours[i] is IRouteContentLifecycleReceiver)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private static string GetRouteLabel(RouteAsset route)
+        {
+            if (route == null)
+            {
+                return "<none>";
+            }
+
+            return string.IsNullOrWhiteSpace(route.RouteName)
+                ? route.name
+                : route.RouteName;
         }
     }
 }
