@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Immersive Framework — Guia de Uso Inicial</title>
+  <title>Immersive Framework — Guia F0A</title>
   <style>
     :root {
       --bg: #f6f7f9;
@@ -15,527 +15,86 @@
       --accent-soft: #eaf0ff;
       --warn: #7a4a00;
       --warn-bg: #fff4d8;
-      --ok: #0f5f3b;
-      --ok-bg: #e5f6ed;
       --code-bg: #101827;
       --code-text: #f4f7fb;
     }
-
     * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.55;
-    }
-
-    header {
-      background: var(--panel);
-      border-bottom: 1px solid var(--line);
-      padding: 32px 24px 24px;
-    }
-
-    main {
-      max-width: 1040px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.55; }
+    header { background: var(--panel); border-bottom: 1px solid var(--line); padding: 32px 24px 24px; }
+    main { max-width: 1040px; margin: 0 auto; padding: 24px; }
     h1, h2, h3 { line-height: 1.2; margin: 0 0 12px; }
     h1 { font-size: 2rem; }
     h2 { font-size: 1.35rem; margin-top: 32px; }
     h3 { font-size: 1.05rem; margin-top: 20px; }
     p { margin: 0 0 12px; }
     a { color: var(--accent); }
-
-    .eyebrow {
-      color: var(--accent);
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
-      font-size: 0.78rem;
-      margin-bottom: 8px;
-    }
-
-    .subtitle { color: var(--muted); max-width: 820px; font-size: 1rem; }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px;
-      margin: 16px 0 8px;
-    }
-
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 18px;
-    }
-
-    .note {
-      background: var(--accent-soft);
-      border: 1px solid #cbd9ff;
-      border-radius: 12px;
-      padding: 14px 16px;
-      margin: 16px 0;
-    }
-
-    .warning {
-      background: var(--warn-bg);
-      border: 1px solid #f1d18d;
-      color: var(--warn);
-      border-radius: 12px;
-      padding: 14px 16px;
-      margin: 16px 0;
-    }
-
-    .success {
-      background: var(--ok-bg);
-      border: 1px solid #afdfc5;
-      color: var(--ok);
-      border-radius: 12px;
-      padding: 14px 16px;
-      margin: 16px 0;
-    }
-
-    code {
-      background: #eef1f6;
-      color: #1f2937;
-      padding: 0.12rem 0.3rem;
-      border-radius: 4px;
-      font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
-      font-size: 0.92em;
-    }
-
-    pre {
-      background: var(--code-bg);
-      color: var(--code-text);
-      padding: 14px 16px;
-      border-radius: 10px;
-      overflow-x: auto;
-      border: 1px solid #263349;
-    }
-
+    code { background: #eef1f6; color: #1f2937; padding: 0.12rem 0.3rem; border-radius: 4px; font-family: "Cascadia Mono", Consolas, "Courier New", monospace; font-size: 0.92em; }
+    pre { background: var(--code-bg); color: var(--code-text); padding: 14px 16px; border-radius: 10px; overflow-x: auto; border: 1px solid #263349; }
     pre code { background: transparent; color: inherit; padding: 0; border-radius: 0; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      overflow: hidden;
-      margin: 12px 0 18px;
-    }
-
-    th, td {
-      text-align: left;
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--line);
-      vertical-align: top;
-    }
-
+    table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin: 12px 0 18px; }
+    th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
     th { background: #eef2f8; font-weight: 700; }
     tr:last-child td { border-bottom: 0; }
-    ul, ol { margin-top: 8px; padding-left: 22px; }
-    li { margin: 6px 0; }
-    .small { color: var(--muted); font-size: 0.92rem; }
+    .eyebrow { color: var(--accent); font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; font-size: 0.78rem; margin-bottom: 8px; }
+    .subtitle { color: var(--muted); max-width: 820px; font-size: 1rem; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin: 16px 0; }
+    .note { background: var(--accent-soft); border: 1px solid #cbd9ff; border-radius: 12px; padding: 14px 16px; margin: 16px 0; }
+    .warning { background: var(--warn-bg); border: 1px solid #f1d18d; color: var(--warn); border-radius: 12px; padding: 14px 16px; margin: 16px 0; }
     .footer { color: var(--muted); margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); }
   </style>
 </head>
 <body>
   <header>
     <div class="eyebrow">Immersive Framework</div>
-    <h1>Guia de Uso Inicial</h1>
-    <p class="subtitle">
-      Guia incremental do package <code>com.immersive.framework</code>. Este documento registra apenas o que existe no corte atual e deve crescer junto com o framework.
-    </p>
+    <h1>Guia F0A — Baseline Reconciliation</h1>
+    <p class="subtitle">Este guia foi reduzido para refletir o começo correto do roadmap. F0A é uma fase de decisão/documentação; o próximo corte técnico é F0B.</p>
   </header>
-
   <main>
     <section class="card">
       <h2>Estado atual</h2>
-      <p><strong>Baseline congelado:</strong> <code>IF-FW-4C</code> + <code>IF-FW-4D</code>.</p>
-      <p>O framework possui uma base inicial de <code>ContentFlow</code>, registra a Primary Scene carregada como <code>RouteContentSet</code> e permite que a Route referencie um <code>RouteContentProfileAsset</code> com cenas adicionais planejadas.</p>
-      <p>As cenas adicionais continuam sendo apenas planejamento: não são carregadas, descarregadas ou validadas como obrigatórias em runtime.</p>
-      <p>O framework já consegue resolver uma aplicação ativa, validar uma <code>Startup Route</code>, validar a <code>Primary Scene</code>, criar um runtime persistente, iniciar/trocar Route, iniciar/trocar/limpar Activity e aplicar conteúdo authored simples de Activity.</p>
-      <div class="warning">
-        O corte <code>IF-FW-4E — Route Scene Composition Execution</code> foi deferido e não faz parte do baseline atual. O próximo passo arquitetural é normalizar os escopos <code>Session</code>, <code>Route</code>, <code>Activity</code> e <code>Local</code> antes de executar composição additive de Route.
-      </div>
-      <div class="note">
-        O bootstrap cria um objeto interno <code>Immersive Framework Runtime</code> marcado como <code>DontDestroyOnLoad</code>. Esse objeto é o owner de escopo de aplicação e mantém o <code>Game Flow</code> vivo durante cargas Single. O <code>Game Flow</code> delega o início concreto da rota para <code>Route Lifecycle</code>, inclusive em solicitações runtime.
-      </div>
-      <div class="warning">
-        Para testar uma cena isolada sem boot do framework, use <code>Project Settings &gt; Immersive Framework &gt; Editor Play Mode Startup &gt; Current Scene Only</code>.
-      </div>
+      <p><strong>Fase aceita:</strong> <code>F0A — Baseline ADRs</code>.</p>
+      <p><strong>Próximo corte técnico:</strong> <code>F0B — Baseline hygiene</code>.</p>
+      <p>O framework ainda não deve avançar para novas features. A prioridade é fazer o código, package metadata, README, inspectors e smokes concordarem com os ADRs aceitos.</p>
+      <div class="warning">Este guia não deve prometer execução de subsistemas deferred, como <code>CameraFlow</code>, <code>RouteContentRuntime</code> ou additive scenes.</div>
     </section>
 
     <section>
-      <h2>Conceitos existentes</h2>
-      <div class="grid">
-        <div class="card">
-          <h3>Game Application</h3>
-          <p>Asset raiz do jogo. Define identidade da aplicação, <code>Startup Route</code> e <code>Validation Mode</code>.</p>
-        </div>
-        <div class="card">
-          <h3>Immersive Framework Settings</h3>
-          <p>Project Settings que aponta para o <code>Game Application</code> ativo.</p>
-        </div>
-        <div class="card">
-          <h3>Route</h3>
-          <p>Asset público que identifica uma entrada do fluxo do jogo, declara uma <code>Primary Scene</code>, pode referenciar um <code>Route Content Profile</code> e pode iniciar uma <code>Startup Activity</code>.</p>
-        </div>
-        <div class="card">
-          <h3>Activity</h3>
-          <p>Asset público que identifica uma etapa de gameplay dentro de uma Route. Neste corte, a Activity tem apenas identidade e pode ser iniciada como <code>Startup Activity</code>, solicitada por <code>Activity Request Trigger</code> ou limpa por request explícito.</p>
-        </div>
-        <div class="card">
-          <h3>Game Flow</h3>
-          <p>Owner runtime mínimo que aceita a <code>Startup Route</code> após o bootstrap e delega o início concreto da rota para o <code>Route Lifecycle</code>.</p>
-        </div>
-        <div class="card">
-          <h3>Route Lifecycle</h3>
-          <p>Owner runtime mínimo que inicia uma Route e delega o carregamento/ativação de cena para o <code>Scene Lifecycle</code>. Ele existe para impedir que Game Flow ou Bootstrap virem owners de cena.</p>
-          <h3>Application Runtime</h3>
-          <p>Owner runtime persistente criado pelo bootstrap. Mantém o <code>Game Flow</code> deste boot e guarda um estado mínimo de diagnóstico. Não é service locator nem asset de configuração.</p>
-        </div>
-        <div class="card">
-          <h3>Route Request Trigger</h3>
-          <p>Componente público para objetos de cena ou botões de UI solicitarem outra Route sem expor pipeline, stage, command, fact ou snapshot.</p>
-        </div>
-        <div class="card">
-          <h3>Activity Request Trigger</h3>
-          <p>Componente público para objetos de cena ou botões de UI solicitarem outra Activity dentro da Route ativa.</p>
-        </div>
-        <div class="card">
-          <h3>Activity Content Binding</h3>
-          <p>Marcador simples para GameObjects de cena que devem ficar ativos apenas enquanto uma Activity específica está ativa.</p>
-        </div>
-        <div class="card">
-          <h3>Framework Logger</h3>
-          <p>Fronteira interna de logging do framework. Compoe <code>com.immersive.logging</code> sem criar logger global, service locator ou UI de diagnostics.</p>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <h2>Primeira configuração</h2>
-      <ol>
-        <li>Abra <code>Project Settings &gt; Immersive Framework</code>.</li>
-        <li>Clique em <code>Create and Assign Game Application</code>.</li>
-        <li>Selecione o asset <code>Game Application</code>.</li>
-        <li>Na seção <code>Startup</code>, clique em <code>Create and Assign Startup Route</code>.</li>
-        <li>Selecione o asset <code>Route</code> criado.</li>
-        <li>Na seção <code>Scene</code>, atribua uma <code>Primary Scene</code>.</li>
-        <li>Opcionalmente crie e atribua um <code>Route Content Profile</code>. As cenas adicionais declaradas ali são planejamento apenas neste corte.</li>
-        <li>Opcionalmente atribua uma <code>Startup Activity</code> na Route.</li>
-        <li>Opcionalmente adicione <code>Activity Content Binding</code> em GameObjects de cena simples.</li>
-        <li>Entre em Play Mode.</li>
-      </ol>
-      <p>Também é possível selecionar um <code>Game Application</code> e usar <code>Set as Active Game Application</code> no Inspector.</p>
-    </section>
-
-    <section>
-      <h2>Logs esperados</h2>
-      <div class="success">Com Active Game Application, Startup Route e Primary Scene configurados, o boot deve passar.</div>
-      <p>Quando a Startup Scene já está aberta:</p>
-      <pre><code>[Immersive Framework] Boot succeeded. Application Runtime started. Game Application 'Game Application' resolved. Startup Route 'Startup Route' resolved. Primary Scene 'StartupScene' declared. Game Flow started with Startup Route 'Startup Route'. Route Lifecycle started Route 'Startup Route'. Scene Lifecycle resolved Primary Scene 'StartupScene' and set it active. alreadyLoaded='True'. loadMode='AlreadyLoaded'. Validation Mode: Standard.</code></pre>
-      <p>Quando outra cena está aberta e a Startup Scene é carregada pelo framework:</p>
-      <pre><code>[Immersive Framework] Boot succeeded. Application Runtime started. Game Application 'Game Application' resolved. Startup Route 'Startup Route' resolved. Primary Scene 'StartupScene' declared. Game Flow started with Startup Route 'Startup Route'. Route Lifecycle started Route 'Startup Route'. Scene Lifecycle resolved Primary Scene 'StartupScene' and set it active. alreadyLoaded='False'. loadMode='Single'. Validation Mode: Standard.</code></pre>
-    </section>
-
-
-
-    <section class="card">
-      <h2>Conteúdo de Activity</h2>
-      <p>Use <code>Activity Content Binding</code> para conteúdo simples authored diretamente na cena.</p>
-      <ol>
-        <li>Crie ou configure um asset <code>Activity</code>.</li>
-        <li>Selecione o GameObject de cena que deve pertencer a essa Activity.</li>
-        <li>Adicione <code>Immersive Framework &gt; Activity Content Binding</code>.</li>
-        <li>No campo <code>Activity</code>, atribua a Activity dona desse conteúdo.</li>
-      </ol>
-      <p>Quando a Activity ativa muda, o framework aplica os bindings carregados na cena:</p>
-      <ul>
-        <li>binding da Activity ativa: GameObject ativo;</li>
-        <li>binding de outra Activity: GameObject inativo;</li>
-        <li>sem Activity ativa: todos os bindings ficam inativos;</li>
-        <li>binding sem Activity atribuída: warning explícito.</li>
-      </ul>
-      <p>Resumo esperado:</p>
-      <pre><code>[Immersive Framework] Activity Content applied 2 binding(s) for Activity 'Activity 02'. activated='1' deactivated='1' unchanged='0'.</code></pre>
-      <p>Detalhe esperado:</p>
-      <pre><code>[Immersive Framework] Activity Content Binding diagnostics. activeActivity='Activity 02' observations=[object='Panel_Activity02' scene='StartupScene' assignedActivity='Activity 02' action='Activate' reason='MatchedActiveActivity'; object='Panel_Activity01' scene='StartupScene' assignedActivity='Activity 01' action='Deactivate' reason='DifferentActivity'].</code></pre>
-      <p>Warning esperado para binding incompleto:</p>
-      <pre><code>[Immersive Framework] Activity Content Binding warning. warnings=[object='Panel_MissingActivity' scene='StartupScene' reason='MissingActivityReference'].</code></pre>
-      <div class="warning">
-        Este binding é uma solução mínima para conteúdo simples de cena. Ele não substitui futuros sistemas de Actor, Spawn, Pooling, Presentation, Input, Camera ou Save. Evite aninhar bindings de Activities diferentes até existir policy própria.
-      </div>
-    </section>
-
-
-    <section class="card">
-      <h2>Solicitar outra Activity</h2>
-      <ol>
-        <li>Crie ou configure outro asset <code>Activity</code>.</li>
-        <li>Adicione <code>Activity Request Trigger</code> a um GameObject da cena atual.</li>
-        <li>No campo <code>Target Activity</code>, atribua a Activity de destino.</li>
-        <li>Opcionalmente preencha <code>Reason</code>.</li>
-        <li>Em um botão/UI Event, chame <code>ActivityRequestTrigger.RequestActivity</code> ou <code>ActivityRequestTrigger.ClearActivity</code>.</li>
-      </ol>
-      <p>Log esperado em sucesso:</p>
-      <pre><code>[Immersive Framework] Activity Request completed. source='ActivityRequestTrigger' reason='Target Activity'. Activity Flow switched from Activity 'Previous Activity' to Activity 'Target Activity'.</code></pre>
-      <p>Para limpar a Activity atual sem trocar Route, conecte o botão/evento em <code>ActivityRequestTrigger.ClearActivity</code>.</p>
-      <pre><code>[Immersive Framework] Activity Request completed. source='ActivityRequestTrigger' reason='Clear Activity'. Activity Flow cleared Activity 'Previous Activity' by request.</code></pre>
-      <p>Se a Activity solicitada já estiver ativa, o request é ignorado explicitamente.</p>
-    </section>
-
-    <section class="card">
-      <h2>Solicitar outra Route</h2>
-      <ol>
-        <li>Crie ou configure outro asset <code>Route</code>.</li>
-        <li>Atribua uma <code>Primary Scene</code> para essa Route.</li>
-        <li>Garanta que a cena esteja no Build Profile se ela não estiver carregada.</li>
-        <li>Adicione <code>Route Request Trigger</code> a um GameObject da cena atual.</li>
-        <li>No campo <code>Target Route</code>, atribua a Route de destino.</li>
-        <li>Em um botão/UI Event, chame <code>RouteRequestTrigger.RequestRoute</code>.</li>
-      </ol>
-      <p>Log esperado em sucesso:</p>
-      <pre><code>[Immersive Framework] Route Request completed. source='RouteRequestTrigger' reason='Target Route'. Route Lifecycle started Route 'Target Route'. Scene Lifecycle resolved Primary Scene 'TargetScene' and set it active. alreadyLoaded='False'. loadMode='Single'.</code></pre>
-    </section>
-
-    <section>
-      <h2>Validação obrigatória</h2>
+      <h2>Status F0A das superfícies atuais</h2>
       <table>
-        <thead>
-          <tr><th>Configuração ausente</th><th>Resultado esperado</th></tr>
-        </thead>
+        <thead><tr><th>Superfície</th><th>Status</th><th>Uso no baseline</th></tr></thead>
         <tbody>
-          <tr>
-            <td>Active Game Application</td>
-            <td>Boot falha explicitamente. Não existe fallback.</td>
-          </tr>
-          <tr>
-            <td>Startup Route</td>
-            <td>Boot falha explicitamente. A Route deve ser atribuída no Game Application.</td>
-          </tr>
-          <tr>
-            <td>Startup Route Primary Scene</td>
-            <td>Boot falha explicitamente. A cena deve ser declarada no asset Route.</td>
-          </tr>
+          <tr><td><code>Game Application</code>, <code>Route</code>, <code>Activity</code>, request triggers</td><td><code>Experimental</code></td><td>Permitidos para desenvolvimento inicial; identities/states serão refinados nas próximas fases.</td></tr>
+          <tr><td><code>ContentFlow</code></td><td><code>Experimental</code></td><td>Vocabulário preservado; ainda não é materialization API estável.</td></tr>
+          <tr><td><code>RouteContentProfileAsset</code></td><td><code>Deferred / Planning-only</code></td><td>Não executa additive scenes no baseline atual.</td></tr>
+          <tr><td><code>RouteContentRuntime</code></td><td><code>Deferred</code></td><td>Não tratar callbacks de Route como contrato ativo até F3.</td></tr>
+          <tr><td><code>CameraFlow</code></td><td><code>Deferred</code></td><td>Camera é consumer avançado; não deve ser dependência obrigatória do core.</td></tr>
+          <tr><td><code>FrameworkQaCanvas</code></td><td><code>Development Tooling</code></td><td>Ferramenta manual de smoke; não API de produto.</td></tr>
+          <tr><td><code>ValidationMode</code></td><td><code>Experimental</code></td><td>Semântica concreta vem em F1.</td></tr>
         </tbody>
       </table>
     </section>
 
-    <section>
-      <h2>O que ainda não existe</h2>
-      <p>Estes itens não fazem parte do corte atual:</p>
-      <ul>
-        <li>transições entre Routes;</li>
-        <li>cenas adicionais por Route;</li>
-        <li>loading screen/transições visuais;</li>
-        <li>Activity content avançado, nested content policy e content loading;</li>
-        <li>Actor lifecycle;</li>
-        <li>Input, Camera, Save;</li>
-        <li>integração de Pooling;</li>
-        <li>module graph completo;</li>
-        <li>diagnostics avançado.</li>
-      </ul>
+    <section class="card">
+      <h2>Como validar F0A</h2>
+      <ol>
+        <li>Confirmar que os cinco ADRs de <code>Documentation~/ADRs/F0A-baseline-adrs/</code> estão como <code>Accepted</code>.</li>
+        <li>Confirmar que <code>README.md</code> e <code>Documentation~/README.md</code> apontam F0B como próximo corte.</li>
+        <li>Não adicionar runtime behavior novo neste corte.</li>
+      </ol>
     </section>
 
     <section>
-      <h2>Arquivos principais</h2>
-      <table>
-        <thead><tr><th>Arquivo</th><th>Papel</th></tr></thead>
-        <tbody>
-          <tr><td><code>Runtime/Authoring/GameApplicationAsset.cs</code></td><td>Raiz pública da aplicação.</td></tr>
-          <tr><td><code>Runtime/Authoring/RouteAsset.cs</code></td><td>Route pública com identidade e Primary Scene.</td></tr>
-          <tr><td><code>Runtime/Bootstrap/ImmersiveFrameworkBootstrap.cs</code></td><td>Bootstrap interno mínimo. Resolve configuração, valida e cria o runtime de aplicação.</td></tr>
-          <tr><td><code>Runtime/ApplicationLifecycle/FrameworkRuntimeHost.cs</code></td><td>Owner persistente de escopo de aplicação. Mantém o Game Flow vivo entre cargas de cena.</td></tr>
-          <tr><td><code>Runtime/ApplicationLifecycle/FrameworkRuntimeState.cs</code></td><td>Estado mínimo de diagnóstico do runtime atual.</td></tr>
-          <tr><td><code>Runtime/GameFlow/GameFlowRuntime.cs</code></td><td>Owner mínimo de Game Flow. Delega startup e solicitações de Route para Route Lifecycle.</td></tr>
-          <tr><td><code>Runtime/RouteLifecycle/RouteLifecycleRuntime.cs</code></td><td>Owner mínimo de Route Lifecycle. Inicia uma Route e delega cena para Scene Lifecycle.</td></tr>
-          <tr><td><code>Runtime/SceneLifecycle/SceneLifecycleRuntime.cs</code></td><td>Owner mínimo de Scene Lifecycle. Carrega a Primary Scene com modo Single quando necessário.</td></tr>
-          <tr><td><code>Runtime/GameFlow/RouteRequestTrigger.cs</code></td><td>Componente público para solicitar troca de Route a partir de objetos de cena ou UI.</td></tr>
-          <tr><td><code>Runtime/ActivityFlow/ActivityContentBinding.cs</code></td><td>Componente público que marca GameObjects de cena como conteúdo de uma Activity.</td></tr>
-          <tr><td><code>Runtime/ActivityFlow/ActivityContentRuntime.cs</code></td><td>Owner mínimo que aplica visibilidade dos bindings e produz diagnostics de observabilidade.</td></tr>
-          <tr><td><code>Editor/Authoring/RouteAssetEditor.cs</code></td><td>Inspector da Route para atribuir SceneAsset sem armazenar tipo editor-only no runtime.</td></tr>
-        </tbody>
-      </table>
+      <h2>Próximo passo técnico</h2>
+      <pre><code>F0B — Baseline hygiene
+1. Remover/congelar CameraFlow do core ativo.
+2. Remover Cinemachine como dependência obrigatória do core, salvo split opcional explícito.
+3. Marcar RouteContentRuntime como deferred até F3.
+4. Deixar RouteContentProfileAsset explicitamente planning-only.
+5. Manter FrameworkQaCanvas como development tooling.
+6. Criar/atualizar BASELINE_SMOKE.md.</code></pre>
     </section>
 
-    <p class="footer">
-      Guia incremental. Atualizar a cada corte funcional aceito.
-    </p>
-  
-        <section>
-            <h2>Editor Play Mode Startup</h2>
-            <p>Use <strong>Project Settings &gt; Immersive Framework &gt; Editor Play Mode</strong> to choose how Play Mode starts while developing in the Unity Editor.</p>
-            <table>
-                <thead>
-                    <tr><th>Mode</th><th>Behavior</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td><code>Framework Startup</code></td><td>Runs the normal framework boot: Game Application, Startup Route, Game Flow, and Scene Lifecycle. If the Startup Scene is not already loaded, it is loaded with <code>LoadSceneMode.Single</code>.</td></tr>
-                    <tr><td><code>Current Scene Only</code></td><td>Skips framework boot in the Editor so the currently open scene can be tested in isolation.</td></tr>
-                </tbody>
-            </table>
-            <p><code>Current Scene Only</code> is editor-only. Player builds always use framework startup.</p>
-            <p>Expected skip log:</p>
-            <pre><code>[Immersive Framework] Boot skipped. Editor Play Mode Startup is set to Current Scene Only.</code></pre>
-        </section>
-
-    </main>
-
-<section>
-  <h2>IF-FW-2I — Route switch ownership</h2>
-  <p><strong>Route Lifecycle</strong> now owns the active Route identity.</p>
-  <p><strong>Game Flow</strong> accepts route requests and delegates route startup/switching to Route Lifecycle. It does not own the current Route state.</p>
-  <pre><code>Route Request Trigger
-  -&gt; Application Runtime
-      -&gt; Game Flow
-          -&gt; Route Lifecycle
-              -&gt; Scene Lifecycle</code></pre>
-  <p>Expected route switch diagnostics include the previous Route and the target Route:</p>
-  <pre><code>[Immersive Framework] Route Request completed. source='RouteRequestTrigger' reason='Second Route'. Route Lifecycle switched from Route 'Startup Route' to Route 'Second Route'. Scene Lifecycle resolved Primary Scene 'SecondScene' and set it active. alreadyLoaded='False'. loadMode='Single'.</code></pre>
-</section>
-
-
-<section>
-  <h2>IF-FW-2J — Route request diagnostics ownership</h2>
-  <p>Route request completion logs are now emitted by the persistent <code>FrameworkRuntimeHost</code>, not by the scene-authored <code>RouteRequestTrigger</code>.</p>
-  <p>This keeps diagnostics alive when a request loads another scene with <code>LoadSceneMode.Single</code> and destroys the requesting scene object.</p>
-  <pre><code>[Immersive Framework] Route Request completed. source='RouteRequestTrigger' reason='Second Route'. Route Lifecycle switched from Route 'Startup Route' to Route 'Second Route'. Scene Lifecycle resolved Primary Scene 'SecondScene' and set it active. alreadyLoaded='False'. loadMode='Single'.</code></pre>
-</section>
-
-
-<section>
-  <h2>Activity Content Binding authoring guardrails</h2>
-  <p>The <strong>Activity Content Binding</strong> Inspector now explains exactly what the component does: it activates this GameObject when the assigned Activity is active and deactivates it otherwise.</p>
-  <ul>
-    <li><strong>Missing Activity</strong> is shown as an authoring error. Runtime still skips it and emits a warning.</li>
-    <li><strong>Nested Activity Content Bindings</strong> are shown as warnings because nested content policy does not exist yet.</li>
-    <li>The component does not spawn, pool, reset, save, bind actors, bind input, bind camera, or load content.</li>
-  </ul>
-</section>
-
-
-<section>
-  <h2>IF-FW-2T — Activity Content e eventos de Activity</h2>
-  <p>O conteúdo de Activity continua usando <code>Activity Content Binding</code>, mas agora a aplicação de visibilidade é acionada pelo fluxo de eventos canônicos de Activity emitidos pelo <code>ActivityFlowRuntime</code>.</p>
-  <p>O comportamento visual não muda: a Activity ativa liga seus bindings e desliga os demais. A diferença é arquitetural: o caminho passa por <code>ActivityEnteredEvent</code> e <code>ActivityExitedEvent</code> usando <code>Foundation.Events</code>.</p>
-</section>
-
-<section>
-  <h2>IF-FW-2U — Route Lifecycle Events</h2>
-  <p><code>RouteLifecycleRuntime</code> now publishes canonical route lifecycle events using <code>com.immersive.foundation</code>.</p>
-  <ul>
-    <li><code>RouteEnteredEvent</code> is emitted when a Route becomes active.</li>
-    <li><code>RouteExitedEvent</code> is emitted when the previous Route is replaced by another Route.</li>
-  </ul>
-  <p>This does not change visible route behavior. It creates the event boundary that future modules can consume without being called directly by Game Flow.</p>
-</section>
-
-
-
-<section>
-  <h2>IF-FW-4C — ContentFlow Core + Route Content Set</h2>
-  <p>O framework agora possui uma linguagem mínima comum para materialização de conteúdo em <code>Runtime/ContentFlow</code>.</p>
-  <p>Neste corte, a aplicação prática é Route: quando uma Route carrega sua Primary Scene, o <code>RouteLifecycleRuntime</code> registra essa cena como um handle em <code>RouteContentSet</code>.</p>
-  <pre><code>scope = Route
-kind = Scene
-requiredness = Required
-owner = Route
-resource = Primary Scene</code></pre>
-  <p>Isso ainda não muda o carregamento real da cena. A Route continua usando a Primary Scene como antes. A diferença é que a materialização passa a ter um registro rastreável para futuros materializers e contributions.</p>
-  <div class="warning">
-    <strong>Importante:</strong> <code>ActivityContentBinding</code> continua sendo apenas um adapter simples de visibilidade local. Ele não é o trilho canônico para câmera, áudio, actors, pause, presentation ou streaming de conteúdo.
-  </div>
-  <p>O log esperado de uma Route bem-sucedida agora inclui um trecho de <code>Route Content Set</code> com pelo menos um handle <code>Route/Scene/Required</code>.</p>
-</section>
-
-
-<section>
-  <h2>IF-FW-4D — Route Content Profile Planning</h2>
-  <p>A Route pode apontar para um <code>RouteContentProfileAsset</code>. O profile declara cenas adicionais de Route, mas o runtime ainda não executa carga additive neste corte.</p>
-  <pre><code>Route
-├── Primary Scene      // carregada como antes
-├── Content Profile    // planejamento
-│   └── Additional Scenes
-└── Startup Activity</code></pre>
-  <p>Quando um profile é atribuído, o log de Route passa a incluir o plano:</p>
-  <pre><code>Route Content Plan profile='StartupRouteContentProfile' additionalScenes='1' plannedOnly='True'</code></pre>
-  <div class="warning">
-    <strong>Limite intencional:</strong> cenas adicionais planejadas não são carregadas ainda. A execução de composição de cenas foi deferida até existir uma base homogênea de escopos para Session, Route, Activity e Local.
-  </div>
-</section>
-
-<section>
-  <h2>Freeze — Materialização top-down</h2>
-  <p>O baseline atual congela <code>IF-FW-4C</code> e <code>IF-FW-4D</code> como base de materialização. A evolução não deve ser guiada por problemas pontuais de câmera ou áudio.</p>
-  <pre><code>Session
-↓
-Route
-↓
-Activity
-↓
-Local</code></pre>
-  <p>O próximo corte deve criar sets/states mínimos para esses escopos antes de voltar para Route additive, Activity content real, câmera, áudio, pause ou actors.</p>
-</section>
-
-<section>
-  <h2>Framework QA Canvas</h2>
-  <p>Para smokes manuais, adicione o componente <strong>Immersive Framework &gt; QA &gt; Framework QA Canvas</strong> em um GameObject de desenvolvimento.</p>
-  <p>Ele permite disparar <em>Route Request</em>, <em>Activity Request</em> e <em>Clear Activity</em> por botões IMGUI, sem criar dependência runtime com UGUI.</p>
-  <p>Use apenas como ferramenta de desenvolvimento. O componente pode persistir entre cenas para continuar disponível depois de um carregamento <code>Single</code>.</p>
-</section>
-
-<section>
-  <h2>QA Scenario Presets</h2>
-  <p>O Framework QA Canvas foi estendido com presets manuais padronizados para reduzir variação humana nos logs de smoke.</p>
-  <p>A pasta <code>Assets/ImmersiveFrameworkQA/</code> concentra os assets de teste manual do framework. Eles não são assets de produção e existem somente para gerar logs padronizados de smoke.</p>
-  <p>O <code>Active Game Application</code> normal do projeto continua sendo o asset de produto do projeto; os assets QA não devem virar boot padrão.</p>
-  <p>A <code>StartupScene</code> do projeto permanece como cena normal de produto/dev, não como cena QA paralela.</p>
-  <p>Os nomes <code>QA_CanonicalRoute</code>, <code>QA_AlternateRoute</code>, <code>QA_NoActivityRoute</code>, <code>QA_PrimaryContentActivity</code>, <code>QA_SecondaryContentActivity</code> e <code>QA_NoContentActivity</code> representam papéis de teste, não nomes de gameplay.</p>
-  <p>O catálogo também inclui <code>QA_NoActivityRoute</code> e <code>QA_NoContentActivity</code> para validar, respectivamente, uma Route sem Startup Activity e uma Activity sem conteúdo correspondente.</p>
-  <p>Os assets QA são alvos de cenário do canvas. Eles não substituem o <code>Active Game Application</code> e não exigem que a cena normal seja convertida para QA.</p>
-  <p>Use <strong>Reset QA Scenario</strong> entre smokes para voltar ao baseline sem parar o Play Mode e sem limpar o Console. O reset usa os campos <code>Reset Route</code> e <code>Reset Activity</code> quando configurados. Se eles estiverem vazios, o canvas usa o <code>Startup Route</code> do <code>Active Game Application</code> normal e a <code>Startup Activity</code> dessa rota.</p>
-  <p>Isso permite executar vários smokes na mesma sessão de Play Mode mantendo logs comparáveis: rode um smoke, use <strong>Reset QA Scenario</strong>, rode o próximo smoke.</p>
-  <p>No Inspector, configure explicitamente os alvos esperados:</p>
-  <ul>
-    <li><code>Startup Route</code></li>
-    <li><code>Secondary Route</code></li>
-    <li><code>Activity 01</code></li>
-    <li><code>Activity 02</code></li>
-  </ul>
-  <p>Os botões novos executam sequências canônicas em ordem:</p>
-  <ul>
-    <li><code>Run Activity Smoke</code>: Secondary Activity, Primary Activity, Clear, Primary Activity.</li>
-    <li><code>Run Route Smoke</code>: Alternate Route, Canonical Route.</li>
-    <li><code>Run Clear Activity Smoke</code>: Clear, Primary Activity, Clear.</li>
-    <li><code>Run No-Activity Route Smoke</code>: solicita uma Route válida sem Startup Activity.</li>
-    <li><code>Run No-Content Activity Smoke</code>: solicita uma Activity válida sem conteúdo correspondente.</li>
-    <li><code>Run Negative Smoke</code>: Clear, Clear novamente.</li>
-  </ul>
-  <p>O componente continua IMGUI/OnGUI, continua manual e mantém <code>source='FrameworkQaCanvas'</code> nos requests.</p>
-</section>
-
-<section>
-  <h2>Manual QA and Smoke Scenarios</h2>
-  <p>Use o <code>Framework QA Canvas</code> como superficie manual de desenvolvimento para gerar logs canonicos de smoke sem criar dependencia em UGUI ou testes automatizados.</p>
-  <ol>
-    <li>Entre em Play Mode.</li>
-    <li>Rode um smoke manual no <code>Framework QA Canvas</code>.</li>
-    <li>Use <code>Reset QA Scenario</code> para voltar ao baseline sem sair do Play Mode.</li>
-    <li>Rode outro smoke na mesma sessao.</li>
-    <li>Valide ausencia de <code>CS errors</code>, <code>Exceptions</code>, <code>FATAL</code> e <code>missing targets</code>.</li>
-  </ol>
-  <p>Os assets em <code>Assets/ImmersiveFrameworkQA/</code> sao alvos de cenario. Eles nao substituem o <code>Active Game Application</code> normal do projeto e nao criam um boot paralelo.</p>
-  <p>Considere PASS quando os smokes executarem a sequencia esperada, o <code>Reset QA Scenario</code> restaurar o baseline e os logs canonicos confirmarem a ordem correta dos requests.</p>
-</section>
-
+    <p class="footer">Guia incremental. Atualizar novamente ao fechar F0B.</p>
+  </main>
 </body>
 </html>

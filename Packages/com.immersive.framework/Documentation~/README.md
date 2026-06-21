@@ -75,7 +75,7 @@ Architecture/ADR/ = decisões históricas do package atual.
 
 | Status | Significado |
 |---|---|
-| `Proposed` | Pronto para revisão/aceite imediato. |
+| `Proposed` | Pronto para revisão/aceite imediato, mas ainda não aceito. |
 | `Draft / Deferred` | Rascunho de fase futura; não é decisão aceita. |
 | `Accepted` | Decisão aprovada. |
 | `Superseded` | Substituído por ADR posterior. |
@@ -110,11 +110,11 @@ Não trate `Draft / Deferred` como autorização para implementar.
 
 | ADR | Título | Status | Tipo | Escopo | Arquivo |
 |---|---|---|---|---|---|
-| ADR-BL-001 | Baseline Reconciliation | Proposed | Baseline / Reconciliação | Package atual | [`abrir`](ADRs/F0A-baseline-adrs/01-ADR-BL-001-baseline-reconciliation.md) |
-| ADR-BL-002 | Core vs Consumers | Proposed | Arquitetura | Core / Consumers | [`abrir`](ADRs/F0A-baseline-adrs/02-ADR-BL-002-core-vs-consumers.md) |
-| ADR-BL-003 | Public API Status Policy | Proposed | API Policy | Package público | [`abrir`](ADRs/F0A-baseline-adrs/03-ADR-BL-003-public-api-status-policy.md) |
-| ADR-BL-004 | QA and Diagnostics Boundary | Proposed | Diagnostics / Tooling | Runtime / QA / Editor | [`abrir`](ADRs/F0A-baseline-adrs/04-ADR-BL-004-qa-and-diagnostics-boundary.md) |
-| ADR-BL-005 | Dependency Policy | Proposed | Package / Dependencies | UPM / asmdef | [`abrir`](ADRs/F0A-baseline-adrs/05-ADR-BL-005-dependency-policy.md) |
+| ADR-BL-001 | Baseline Reconciliation | Accepted | Baseline / Reconciliação | Package atual | [`abrir`](ADRs/F0A-baseline-adrs/01-ADR-BL-001-baseline-reconciliation.md) |
+| ADR-BL-002 | Core vs Consumers | Accepted | Arquitetura | Core / Consumers | [`abrir`](ADRs/F0A-baseline-adrs/02-ADR-BL-002-core-vs-consumers.md) |
+| ADR-BL-003 | Public API Status Policy | Accepted | API Policy | Package público | [`abrir`](ADRs/F0A-baseline-adrs/03-ADR-BL-003-public-api-status-policy.md) |
+| ADR-BL-004 | QA and Diagnostics Boundary | Accepted | Diagnostics / Tooling | Runtime / QA / Editor | [`abrir`](ADRs/F0A-baseline-adrs/04-ADR-BL-004-qa-and-diagnostics-boundary.md) |
+| ADR-BL-005 | Dependency Policy | Accepted | Package / Dependencies | UPM / asmdef | [`abrir`](ADRs/F0A-baseline-adrs/05-ADR-BL-005-dependency-policy.md) |
 
 ### F1 — API status, Identity and Diagnostics
 
@@ -227,24 +227,20 @@ Não copiar shape do NewScripts; preservar capacidades e redesenhar boundaries.
 
 ---
 
-## 9. Primeiro foco atual
+## 9. Foco atual
 
-A próxima decisão deve começar por:
+F0A está aceito como fase de decisão/documentação.
 
-```text
-F0A — Baseline ADRs
-```
-
-ADRs imediatos:
-
-1. `ADR-BL-001 — Baseline Reconciliation`
-2. `ADR-BL-002 — Core vs Consumers`
-3. `ADR-BL-003 — Public API Status Policy`
-4. `ADR-BL-004 — QA and Diagnostics Boundary`
-5. `ADR-BL-005 — Dependency Policy`
-
-Depois disso vem:
+Próximo corte técnico:
 
 ```text
 F0B — Baseline hygiene
 ```
+
+Alvo do F0B:
+
+```text
+Aplicar somente a higiene mínima para código, package metadata, README, inspectors e guia não contradizerem os ADRs aceitos.
+```
+
+Não iniciar F1 enquanto F0B não compilar e o smoke baseline não passar.
