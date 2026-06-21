@@ -43,6 +43,8 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         public RouteLifecycleStartResult RouteLifecycleResult => SessionState.RouteLifecycleResult;
 
+        public RouteRuntimeState RouteState => SessionState.RouteState;
+
         public RouteContentSet RouteContentSet => SessionState.RouteContentSet;
 
         public SessionContentSet SessionContentSet => SessionState.SessionContentSet;
@@ -58,6 +60,8 @@ namespace Immersive.Framework.ApplicationLifecycle
         public bool GameFlowStarted => SessionState.SessionStarted;
 
         public string CurrentRouteName => SessionState.CurrentRouteName;
+
+        public string CurrentRouteIdentity => SessionState.CurrentRouteIdentity;
 
         public string ActiveSceneName => SessionState.ActiveSceneName;
 

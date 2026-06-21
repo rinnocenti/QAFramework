@@ -40,6 +40,8 @@ namespace Immersive.Framework.SessionLifecycle
 
         public RouteLifecycleStartResult RouteLifecycleResult { get; }
 
+        public RouteRuntimeState RouteState => RouteLifecycleResult.RouteState;
+
         public RouteContentSet RouteContentSet { get; }
 
         public SessionContentSet SessionContentSet { get; }
@@ -52,6 +54,8 @@ namespace Immersive.Framework.SessionLifecycle
 
         public string CurrentRouteName => CurrentRoute != null ? CurrentRoute.RouteName : string.Empty;
 
+        public string CurrentRouteIdentity => RouteState.DiagnosticIdentity;
+
         public string CurrentActivityName => CurrentActivity != null ? CurrentActivity.ActivityName : string.Empty;
 
         public string ActiveSceneName => PrimarySceneResult.SceneName;
@@ -61,6 +65,8 @@ namespace Immersive.Framework.SessionLifecycle
         public bool SessionStarted { get; }
 
         public bool HasActiveRoute => CurrentRoute != null;
+
+        public bool HasRouteState => RouteState.HasRoute;
 
         public bool HasActiveActivity => CurrentActivity != null;
 

@@ -19,22 +19,23 @@ namespace Immersive.Framework.RouteLifecycle
         private readonly ActivityFlowRuntime _activityFlowRuntime = new ActivityFlowRuntime();
         private readonly EventBus<RouteEnteredEvent> _routeEnteredEvents = new EventBus<RouteEnteredEvent>();
         private readonly EventBus<RouteExitedEvent> _routeExitedEvents = new EventBus<RouteExitedEvent>();
-        private RouteAsset _currentRoute;
-        private RouteContentSet _currentRouteContentSet;
+        private RouteRuntimeState _currentRouteState;
 
-        internal RouteAsset CurrentRoute => _currentRoute;
+        internal RouteRuntimeState CurrentRouteState => _currentRouteState;
 
-        internal RouteContentSet CurrentRouteContentSet => _currentRouteContentSet;
+        internal RouteAsset CurrentRoute => _currentRouteState.Route;
+
+        internal RouteContentSet CurrentRouteContentSet => _currentRouteState.RouteContentSet;
 
         internal ActivityAsset CurrentActivity => _activityFlowRuntime.CurrentActivity;
 
-        internal bool HasActiveRoute => _currentRoute != null;
+        internal bool HasActiveRoute => CurrentRoute != null;
 
         internal bool HasActiveActivity => _activityFlowRuntime.HasActiveActivity;
 
         internal bool IsRouteActive(RouteAsset route)
         {
-            return route != null && ReferenceEquals(_currentRoute, route);
+            return route != null && ReferenceEquals(CurrentRoute, route);
         }
 
         internal IEventBinding SubscribeRouteEntered(Action<RouteEnteredEvent> handler)
@@ -67,7 +68,7 @@ namespace Immersive.Framework.RouteLifecycle
                 return RouteLifecycleStartResult.Failed("Route Primary Scene is missing.");
             }
 
-            var previousRoute = _currentRoute;
+            var previousRoute = CurrentRoute;
             var routeContentPlan = RouteContentMaterializationPlan.FromRoute(route);
             var sceneLifecycleResult = await _sceneLifecycleRuntime.LoadPrimarySceneAsync(route);
             if (!sceneLifecycleResult.Loaded)
@@ -88,10 +89,10 @@ namespace Immersive.Framework.RouteLifecycle
                 return RouteLifecycleStartResult.Failed(activityFlowResult.Message);
             }
 
-            _currentRoute = route;
-            _currentRouteContentSet = routeContentSet;
+            var result = RouteLifecycleStartResult.StartedWith(route, previousRoute, sceneLifecycleResult, routeContentSet, activityFlowResult, source, reason);
+            _currentRouteState = result.RouteState;
             PublishRouteTransition(previousRoute, route, source, reason);
-            return RouteLifecycleStartResult.StartedWith(route, previousRoute, sceneLifecycleResult, routeContentSet, activityFlowResult);
+            return result;
         }
 
         private void PublishRouteTransition(
@@ -116,7 +117,7 @@ namespace Immersive.Framework.RouteLifecycle
             string source,
             string reason)
         {
-            if (_currentRoute == null)
+            if (CurrentRoute == null)
             {
                 return Task.FromResult(ActivityFlowStartResult.Failed("No active Route is available."));
             }
@@ -126,7 +127,7 @@ namespace Immersive.Framework.RouteLifecycle
 
         internal Task<ActivityFlowStartResult> ClearActivityAsync(string source, string reason)
         {
-            if (_currentRoute == null)
+            if (CurrentRoute == null)
             {
                 return Task.FromResult(ActivityFlowStartResult.Failed("No active Route is available."));
             }

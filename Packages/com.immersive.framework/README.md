@@ -65,13 +65,14 @@ F2  — CLOSED / PASS
 Current authorized roadmap step:
 
 ```text
-F3B — IF-FW-ROAD-3A — RouteRuntimeState tipado
+F3C — IF-FW-ROAD-3B — RouteExitResult mínimo
 ```
 
-F3A status:
+F3 status:
 
 ```text
 F3A — CLOSED / ADRS ACCEPTED
+F3B — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 F3A accepted:
@@ -95,6 +96,35 @@ Cut/phase status uses Closed / PASS or Closed / Accepted.
 ```
 
 F0 is closed. F1 is closed. F2 is closed. F3 may start with Route baseline ADR review and acceptance. Do not skip directly to Surface, RuntimeMaterialization or consumers.
+
+
+## F3B — RouteRuntimeState tipado
+
+F3B implements the roadmap item:
+
+```text
+IF-FW-ROAD-3A — RouteRuntimeState tipado
+```
+
+It introduces:
+
+```text
+Runtime/RouteLifecycle/RouteRuntimeState.cs
+```
+
+`RouteLifecycleRuntime` now owns the active Route through `RouteRuntimeState`, which carries a typed `FrameworkIdentityKey` for the active Route. This does not implement `RouteExitResult`, active `RouteContentRuntime` callbacks, additive scene loading, Surface or RuntimeMaterialization.
+
+Status:
+
+```text
+F3B — APPLIED / PENDING COMPILE-SMOKE
+```
+
+See:
+
+```text
+Documentation~/ROUTE_RUNTIME_STATE_TYPED.md
+```
 
 ## F2B — SessionRuntimeState explicit boundary
 

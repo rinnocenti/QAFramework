@@ -81,7 +81,7 @@ Regras:
 |---|---|---|---|---|---|---|---|---|---|---|
 | Route asset declarativo | Preservar; dividir campos de subsistemas | F3 | F3 | IF-FW-ROAD-3A | Presente / Parcial | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Sem ajuste. |
 | Route identity tipada | Redesenhar como typed ID | F1 | F1 | IF-FW-ROAD-1B | Parcial / Ausente | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Sem ajuste. |
-| Route runtime state | Preservar como `RouteRuntimeState` | F3 | F3 | IF-FW-ROAD-3A | Parcial / Ambíguo / ADR aceito em F3A | Coberto | Core | RuntimeContentHandle + ContributionSet + release policy | Baixo / controlado | Próximo corte autorizado: F3B. |
+| Route runtime state | Preservar como `RouteRuntimeState` | F3 | F3 | IF-FW-ROAD-3A | Implementado em F3B / Pendente smoke | Coberto | Core | RuntimeContentHandle + ContributionSet + release policy | Baixo / controlado | Próximo corte conforme plano: F3C — RouteExitResult mínimo. |
 | Route exit plan | Preservar como `RouteExitResult` | F3 | F3 | IF-FW-ROAD-3B | Parcial / Ambíguo / ADR aceito em F3A | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Entra depois de RouteRuntimeState. |
 | Scene composition plan/result | Preservar plan/result explícitos | F6 | F6 | IF-FW-ROAD-6A, 6B, 6C | Parcial / Ausente | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Sem ajuste. |
 | Primary scene loading | Preservar; já existe no package | F3 | F3 | IF-FW-ROAD-3C | Presente / Parcial | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Sem ajuste. |

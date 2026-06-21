@@ -62,8 +62,9 @@ Smoke valida.
 | 26 | [`F2C_CLOSURE.md`](F2C_CLOSURE.md) | Fechamento do F2C após compile-smoke. |
 | 27 | [`F2_CLOSURE.md`](F2_CLOSURE.md) | Fechamento formal da Fase 2 antes de abrir F3. |
 | 28 | [`F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md`](F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md) | Aceite dos ADRs de Route baseline para abrir a implementação da F3. |
-| 26 | [`Guides/`](Guides/) | Guias de uso/visualização. |
-| 27 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
+| 29 | [`ROUTE_RUNTIME_STATE_TYPED.md`](ROUTE_RUNTIME_STATE_TYPED.md) | Corte técnico F3B: `RouteRuntimeState` tipado. |
+| 30 | [`Guides/`](Guides/) | Guias de uso/visualização. |
+| 31 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
 ---
 
@@ -97,6 +98,7 @@ Documentation~/
 ├─ F2_CLOSURE.md
 ├─ SESSION_CONTENT_SET_MINIMAL_MODEL.md
 ├─ F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md
+├─ ROUTE_RUNTIME_STATE_TYPED.md
 ├─ Planning/
 │  ├─ Immersive-Framework-Roadmap-Revisado.md
 │  └─ Capability-Traceability-Matrix.md
@@ -231,7 +233,26 @@ Este checkpoint fecha `IF-FW-ROAD-2F — Session smoke` a partir dos smokes de F
 
 Documento de aceite: [`F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md`](F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md).
 
-Próximo corte autorizado pelo roadmap: `F3B — IF-FW-ROAD-3A — RouteRuntimeState tipado`.
+F3A abriu a implementação técnica da F3. O corte técnico atual é F3B.
+
+
+### F3B — RouteRuntimeState tipado
+
+Status atual:
+
+```text
+F3B — APPLIED / PENDING COMPILE-SMOKE
+```
+
+Documento técnico: [`ROUTE_RUNTIME_STATE_TYPED.md`](ROUTE_RUNTIME_STATE_TYPED.md).
+
+Este corte implementa `IF-FW-ROAD-3A` criando `Runtime/RouteLifecycle/RouteRuntimeState.cs` e conectando o snapshot tipado ao `RouteLifecycleRuntime` e ao `RouteLifecycleStartResult`.
+
+Próximo corte conforme roadmap:
+
+```text
+F3C — IF-FW-ROAD-3B — RouteExitResult mínimo
+```
 
 ### F4 — Activity content and readiness
 
