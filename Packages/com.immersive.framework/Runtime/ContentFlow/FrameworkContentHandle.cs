@@ -1,5 +1,5 @@
-using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Identity;
 
 namespace Immersive.Framework.ContentFlow
 {
@@ -11,6 +11,37 @@ namespace Immersive.Framework.ContentFlow
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public readonly struct FrameworkContentHandle
     {
+        public FrameworkContentHandle(
+            FrameworkContentIdentity identity,
+            FrameworkContentRequiredness requiredness,
+            string ownerName,
+            string resourceName,
+            string resourcePath,
+            bool active,
+            string source,
+            string reason,
+            string message)
+        {
+            if (!identity.IsValid)
+            {
+                throw new System.ArgumentException("Content identity must be valid.", nameof(identity));
+            }
+
+            Identity = identity;
+            Scope = identity.Scope;
+            Kind = identity.Kind;
+            Requiredness = requiredness;
+            OwnerId = identity.Owner.Value.Value;
+            OwnerName = Normalize(ownerName);
+            ContentId = identity.ContentId.StableText;
+            ResourceName = Normalize(resourceName);
+            ResourcePath = Normalize(resourcePath);
+            Active = active;
+            Source = Normalize(source);
+            Reason = Normalize(reason);
+            Message = Normalize(message);
+        }
+
         public FrameworkContentHandle(
             string contentId,
             FrameworkContentScope scope,
@@ -24,20 +55,20 @@ namespace Immersive.Framework.ContentFlow
             string source,
             string reason,
             string message)
+            : this(
+                FrameworkContentIdentity.FromOwnerValue(scope, kind, ownerId, contentId),
+                requiredness,
+                ownerName,
+                resourceName,
+                resourcePath,
+                active,
+                source,
+                reason,
+                message)
         {
-            ContentId = Normalize(contentId);
-            Scope = scope;
-            Kind = kind;
-            Requiredness = requiredness;
-            OwnerId = Normalize(ownerId);
-            OwnerName = Normalize(ownerName);
-            ResourceName = Normalize(resourceName);
-            ResourcePath = Normalize(resourcePath);
-            Active = active;
-            Source = Normalize(source);
-            Reason = Normalize(reason);
-            Message = Normalize(message);
         }
+
+        public FrameworkContentIdentity Identity { get; }
 
         public string ContentId { get; }
 
@@ -63,9 +94,11 @@ namespace Immersive.Framework.ContentFlow
 
         public string Message { get; }
 
-        public bool HasContentId => !string.IsNullOrWhiteSpace(ContentId);
+        public bool HasContentId => Identity.IsValid;
 
         public bool HasResource => !string.IsNullOrWhiteSpace(ResourceName) || !string.IsNullOrWhiteSpace(ResourcePath);
+
+        public FrameworkIdentityKey OwnerIdentity => Identity.Owner;
 
         public string ToDiagnosticString()
         {
@@ -75,7 +108,7 @@ namespace Immersive.Framework.ContentFlow
                 resource = "<none>";
             }
 
-            return $"id='{ContentId}' scope='{Scope}' kind='{Kind}' requiredness='{Requiredness}' owner='{OwnerName}' resource='{resource}' active='{Active}'";
+            return $"identity='{Identity.StableText}' id='{ContentId}' scope='{Scope}' kind='{Kind}' requiredness='{Requiredness}' owner='{OwnerName}' resource='{resource}' active='{Active}'";
         }
 
         public static FrameworkContentHandle RoutePrimaryScene(
@@ -88,18 +121,26 @@ namespace Immersive.Framework.ContentFlow
             string reason,
             string message)
         {
-            var normalizedOwnerId = Normalize(ownerId);
             var normalizedSceneName = Normalize(sceneName);
-            var contentId = !string.IsNullOrWhiteSpace(normalizedOwnerId) && !string.IsNullOrWhiteSpace(normalizedSceneName)
-                ? $"route:{normalizedOwnerId}:primary-scene:{normalizedSceneName}"
-                : $"route:primary-scene:{Guid.NewGuid():N}";
+            var normalizedScenePath = Normalize(scenePath);
+            var sceneIdentity = !string.IsNullOrWhiteSpace(normalizedSceneName)
+                ? normalizedSceneName
+                : normalizedScenePath;
+            if (string.IsNullOrWhiteSpace(sceneIdentity))
+            {
+                throw new System.ArgumentException("Route primary scene content identity requires a scene name or scene path.", nameof(sceneName));
+            }
 
-            return new FrameworkContentHandle(
-                contentId,
+            var contentId = $"primary-scene:{sceneIdentity}";
+            var identity = FrameworkContentIdentity.FromOwnerValue(
                 FrameworkContentScope.Route,
                 FrameworkContentKind.Scene,
+                ownerId,
+                contentId);
+
+            return new FrameworkContentHandle(
+                identity,
                 FrameworkContentRequiredness.Required,
-                normalizedOwnerId,
                 ownerName,
                 sceneName,
                 scenePath,

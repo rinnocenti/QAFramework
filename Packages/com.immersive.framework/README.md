@@ -29,18 +29,25 @@ F1A — CLOSED / ACCEPTED
 F1B — CLOSED / COMPILE-SMOKE PASS
 F1C — CLOSED / COMPILE-SMOKE PASS
 F1D — CLOSED / COMPILE-SMOKE PASS
+F1E — CLOSED / COMPILE-SMOKE PASS
 ```
 
 Current F1 cuts pending validation:
 
 ```text
-F1E — APPLIED / PENDING COMPILE-SMOKE
+F1F — APPLIED / PENDING COMPILE-SMOKE
 ```
 
-Next authorized step after F1E validation:
+Documentation hygiene applied:
 
 ```text
-F1F — Content identity / FrameworkContentHandle review
+F1E1 — CLOSED / DOCUMENTATION ONLY
+```
+
+Next authorized step after F1F validation:
+
+```text
+F1 closure — formal F1 checkpoint before F2
 ```
 
 Status distinction:
@@ -87,18 +94,40 @@ Then follow the roadmap order:
 ```text
 1. Documentation~/Planning/Immersive-Framework-Roadmap-Revisado.md
 2. Documentation~/Planning/Capability-Traceability-Matrix.md
-3. Documentation~/ADRs/F0A-baseline-adrs/
-4. Documentation~/BASELINE_SMOKE.md
-5. Documentation~/F0_CLOSURE.md
-6. Documentation~/F1_ADR_ACCEPTANCE.md
-7. Documentation~/API_STATUS_CONVENTION.md
-8. Documentation~/F1B_CLOSURE.md
-9. Documentation~/FRAMEWORK_FACT_MINIMAL_MODEL.md
-10. Documentation~/F1C_CLOSURE.md
-11. Documentation~/VALIDATION_MODE_SEMANTICS.md
-12. Documentation~/F1D_CLOSURE.md
-13. Documentation~/TYPED_IDENTITY_PRIMITIVES.md
+3. Documentation~/ADR_NAMING_CONVENTION.md
+4. Documentation~/ADRs/F0A-baseline-adrs/
+5. Documentation~/BASELINE_SMOKE.md
+6. Documentation~/F0_CLOSURE.md
+7. Documentation~/F1_ADR_ACCEPTANCE.md
+8. Documentation~/API_STATUS_CONVENTION.md
+9. Documentation~/F1B_CLOSURE.md
+10. Documentation~/FRAMEWORK_FACT_MINIMAL_MODEL.md
+11. Documentation~/F1C_CLOSURE.md
+12. Documentation~/VALIDATION_MODE_SEMANTICS.md
+13. Documentation~/F1D_CLOSURE.md
+14. Documentation~/TYPED_IDENTITY_PRIMITIVES.md
+15. Documentation~/F1E_CLOSURE.md
+16. Documentation~/F1E1_ADR_NAMING_ALIGNMENT.md
+17. Documentation~/CONTENT_IDENTITY_AND_HANDLE_REVIEW.md
 ```
+
+## ADR file naming
+
+ADR files are now ordered by roadmap/cut first and by architectural ADR id second:
+
+```text
+<plan-order>-<adr-id>-<slug>.md
+```
+
+Example:
+
+```text
+F1A-01-ADR-ID-001-typed-identity-policy.md
+F1A-02-ADR-DIAG-001-frameworkfact-vs-human-log.md
+F1A-03-ADR-CONTENT-001-content-identity-domain.md
+```
+
+This keeps execution order visible while preserving stable ADR ids. See `Documentation~/ADR_NAMING_CONVENTION.md` and `Documentation~/F1E1_ADR_NAMING_ALIGNMENT.md`.
 
 ## F0 closure status
 
@@ -242,10 +271,24 @@ Documentation~/TYPED_IDENTITY_PRIMITIVES.md
 
 F1E does not migrate existing serialized strings, does not create domain-specific `RouteId`/`ActivityId` types yet and does not alter lifecycle behavior.
 
-Next authorized step after F1E compile-smoke validation:
+F1E was closed after compile-smoke validation. See:
 
 ```text
-F1F — Content identity / FrameworkContentHandle review
+Documentation~/F1E_CLOSURE.md
 ```
+
+## F1F Content identity / FrameworkContentHandle review
+
+F1F applies the content identity ADR to the existing `FrameworkContentHandle` without advancing SessionContentSet, Surface or RuntimeMaterialization.
+
+New minimal content identity primitives:
+
+```text
+Runtime/ContentFlow/FrameworkContentId.cs
+Runtime/ContentFlow/FrameworkContentIdentity.cs
+Documentation~/CONTENT_IDENTITY_AND_HANDLE_REVIEW.md
+```
+
+`FrameworkContentHandle` now exposes a composed `Identity` and `OwnerIdentity`. The previous `Guid.NewGuid()` fallback in `RoutePrimaryScene` was removed; required content identity must be deterministic or fail visibly.
 
 Do not start F2 until F1 gives identity/status/diagnostics enough structure to prevent new public ambiguity.
