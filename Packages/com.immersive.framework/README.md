@@ -97,7 +97,7 @@ ADR status uses Accepted.
 Cut/phase status uses Closed / PASS or Closed / Accepted.
 ```
 
-F0 is closed. F1 is closed. F2 is closed. F3 Route baseline is closed. F4 Activity baseline is open with F4A applied and pending compile-smoke. Do not skip directly to Surface, RuntimeMaterialization or consumers.
+F0 is closed. F1 is closed. F2 is closed. F3 Route baseline is closed. F4 Activity baseline is open with F4A closed and F4B applied/pending smoke. Do not skip directly to Surface, RuntimeMaterialization or consumers.
 
 
 ## F4A — ActivityRuntimeState refinado
@@ -120,13 +120,44 @@ Runtime/ActivityFlow/ActivityRuntimeState.cs
 Status:
 
 ```text
-F4A — APPLIED / PENDING COMPILE-SMOKE
+F4A — CLOSED / COMPILE-SMOKE PASS
+F4B — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 See:
 
 ```text
 Documentation~/ACTIVITY_RUNTIME_STATE_REFINED.md
+Documentation~/F4A_CLOSURE.md
+```
+
+## F4B — ActivityContentSet mínimo
+
+F4B implements the roadmap item:
+
+```text
+IF-FW-ROAD-4B — ActivityContentSet mínimo
+```
+
+It introduces:
+
+```text
+Runtime/ActivityFlow/ActivityContentEntry.cs
+Runtime/ActivityFlow/ActivityContentSet.cs
+```
+
+`ActivityContentSet` records scene-authored local content handles for the active Activity. It does not load profiles, materialize prefabs, unload/release content, discover local contributions, or create Surface/RuntimeMaterialization.
+
+Status:
+
+```text
+F4B — APPLIED / PENDING COMPILE-SMOKE
+```
+
+See:
+
+```text
+Documentation~/ACTIVITY_CONTENT_SET_MINIMAL.md
 ```
 
 

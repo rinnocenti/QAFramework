@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Diagnostics;
+using Immersive.Framework.ContentFlow;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using Immersive.Framework.ApiStatus;
@@ -75,6 +76,7 @@ namespace Immersive.Framework.ActivityFlow
             int missingActivityCount = 0;
             var observedBindings = new List<string>(MaxObservedBindingsInMessage);
             var warningBindings = new List<string>();
+            var activeContentEntries = new List<ActivityContentEntry>();
             int omittedObservationCount = 0;
 
             for (int i = 0; i < bindings.Length; i++)
@@ -117,6 +119,11 @@ namespace Immersive.Framework.ActivityFlow
                 string action = ResolveAction(shouldBeActive, wasActive, changed);
                 string observationReason = shouldBeActive ? "MatchedActiveActivity" : "DifferentActivity";
 
+                if (shouldBeActive)
+                {
+                    activeContentEntries.Add(CreateActivityContentEntry(binding, activeActivity, resolvedSource, resolvedReason, action));
+                }
+
                 if (entersActiveActivity)
                 {
                     DispatchActivityContentEntered(binding, activeActivity, previousActivity, resolvedSource, resolvedReason);
@@ -147,6 +154,8 @@ namespace Immersive.Framework.ActivityFlow
                     observationReason);
             }
 
+            var activityContentSet = ActivityContentSet.FromEntries(activeActivity, activeContentEntries);
+
             return ActivityContentApplyResult.Applied(
                 activeActivity,
                 bindingCount,
@@ -154,8 +163,29 @@ namespace Immersive.Framework.ActivityFlow
                 deactivatedCount,
                 unchangedCount,
                 missingActivityCount,
+                activityContentSet,
                 BuildDetailMessage(activeActivity, observedBindings, omittedObservationCount),
                 BuildWarningMessage(warningBindings));
+        }
+
+        private static ActivityContentEntry CreateActivityContentEntry(
+            ActivityContentBinding binding,
+            ActivityAsset activity,
+            string source,
+            string reason,
+            string action)
+        {
+            var handle = FrameworkContentHandle.ActivitySceneAuthoredBinding(
+                ActivityContentSet.CreateActivityOwnerId(activity),
+                activity != null ? activity.ActivityName : string.Empty,
+                binding != null ? binding.ObjectName : string.Empty,
+                binding != null ? binding.SceneName : string.Empty,
+                true,
+                source,
+                reason,
+                $"Activity content binding action='{FormatValue(action)}'.");
+
+            return new ActivityContentEntry(handle);
         }
 
         private void StoreLastApplyResult(ActivityContentApplyResult applyResult)

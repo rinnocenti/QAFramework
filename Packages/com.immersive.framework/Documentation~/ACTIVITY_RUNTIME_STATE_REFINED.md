@@ -1,6 +1,6 @@
 # F4A — ActivityRuntimeState refinado
 
-Status: **APPLIED / PENDING COMPILE-SMOKE**  
+Status: **CLOSED / COMPILE-SMOKE PASS**  
 Roadmap item: `IF-FW-ROAD-4A — ActivityRuntimeState refinado`
 
 ## Objetivo
@@ -124,5 +124,5 @@ Clear Activity logs incluem activityState='None'.
 ## Próximo corte
 
 ```text
-F4B — IF-FW-ROAD-4B — ActivityContentSet mínimo
+F4B — IF-FW-ROAD-4B — ActivityContentSet mínimo — APPLIED / PENDING COMPILE-SMOKE
 ```

@@ -314,8 +314,8 @@ Status atual:
 ```text
 F3F — CLOSED / CALLBACK-SMOKE PASS
 F3F1 — CLOSED / COMPILE-SMOKE PASS
-F3G — APPLIED / PENDING COMPILE-SMOKE
-F3G1 — APPLIED / PENDING COMPILE-SMOKE
+F3G — CLOSED / COMPILE-SMOKE PASS
+F3G1 — CLOSED / COMPILE-SMOKE PASS
 ```
 
 Documento técnico: [`ROUTE_LOCAL_CALLBACK_SMOKE.md
@@ -327,7 +327,8 @@ Este corte implementa `IF-FW-ROAD-3E` adicionando o smoke explícito `Run Route 
 
 | Corte | Documento | Status |
 |---|---|---|
-| F4A | [`ACTIVITY_RUNTIME_STATE_REFINED.md`](ACTIVITY_RUNTIME_STATE_REFINED.md) | Applied / Pending compile-smoke |
+| F4A | [`ACTIVITY_RUNTIME_STATE_REFINED.md`](ACTIVITY_RUNTIME_STATE_REFINED.md) / [`F4A_CLOSURE.md`](F4A_CLOSURE.md) | Closed / Compile-smoke pass |
+| F4B | [`ACTIVITY_CONTENT_SET_MINIMAL.md`](ACTIVITY_CONTENT_SET_MINIMAL.md) | Applied / Pending compile-smoke |
 
 | Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
 |---|---|---|---|---|---|---|

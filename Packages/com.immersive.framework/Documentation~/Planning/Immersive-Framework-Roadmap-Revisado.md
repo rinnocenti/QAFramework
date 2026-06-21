@@ -319,13 +319,14 @@ Status atual:
 
 ```text
 F4 — OPEN
-F4A — APPLIED / PENDING COMPILE-SMOKE
+F4A — CLOSED / COMPILE-SMOKE PASS
+F4B — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 | ID | Entrega | Detalhes |
 |---|---|---|
-| IF-FW-ROAD-4A | `ActivityRuntimeState` refinado | APPLIED em F4A. Estado explícito `None`/`Active`, identidade tipada `Activity:*` e `Transitioning` reservado. |
-| IF-FW-ROAD-4B | `ActivityContentSet` mínimo | Registro do conteúdo local ativo da Activity. |
+| IF-FW-ROAD-4A | `ActivityRuntimeState` refinado | CLOSED em F4A. Estado explícito `None`/`Active`, identidade tipada `Activity:*` e `Transitioning` reservado. |
+| IF-FW-ROAD-4B | `ActivityContentSet` mínimo | APPLIED em F4B. Snapshot de conteúdo scene-authored local registrado para a Activity ativa; sem profile loading/materialization/release. |
 | IF-FW-ROAD-4C | `ActivityContentLifecycleResult` | Resultado tipado de enter/exit/clear com diagnostics. |
 | IF-FW-ROAD-4D | `ActivityReadinessState` mínimo | Inicialmente pode ser sempre ready após bindings aplicados. |
 | IF-FW-ROAD-4E | Reclassificar `ActivityContentBinding` | Documentar/nomear como Local Visibility Adapter, não materialização canônica. |

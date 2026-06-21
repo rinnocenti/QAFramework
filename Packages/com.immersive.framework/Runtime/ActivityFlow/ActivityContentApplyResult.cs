@@ -16,6 +16,7 @@ namespace Immersive.Framework.ActivityFlow
             int deactivatedCount,
             int unchangedCount,
             int missingActivityCount,
+            ActivityContentSet activityContentSet,
             string message,
             string detailMessage,
             string warningMessage)
@@ -26,6 +27,7 @@ namespace Immersive.Framework.ActivityFlow
             DeactivatedCount = deactivatedCount;
             UnchangedCount = unchangedCount;
             MissingActivityCount = missingActivityCount;
+            ActivityContentSet = activityContentSet;
             Message = message ?? string.Empty;
             DetailMessage = detailMessage ?? string.Empty;
             WarningMessage = warningMessage ?? string.Empty;
@@ -43,6 +45,12 @@ namespace Immersive.Framework.ActivityFlow
 
         public int MissingActivityCount { get; }
 
+        public ActivityContentSet ActivityContentSet { get; }
+
+        public int ActivityContentCount => ActivityContentSet.Count;
+
+        public bool HasActivityContent => ActivityContentSet.HasContent;
+
         public string Message { get; }
 
         public string DetailMessage { get; }
@@ -57,7 +65,7 @@ namespace Immersive.Framework.ActivityFlow
 
         public static ActivityContentApplyResult Empty(ActivityAsset activeActivity = null)
         {
-            return new ActivityContentApplyResult(activeActivity, 0, 0, 0, 0, 0, string.Empty, string.Empty, string.Empty);
+            return new ActivityContentApplyResult(activeActivity, 0, 0, 0, 0, 0, ActivityContentSet.Empty(activeActivity), string.Empty, string.Empty, string.Empty);
         }
 
         public static ActivityContentApplyResult Applied(
@@ -67,6 +75,7 @@ namespace Immersive.Framework.ActivityFlow
             int deactivatedCount,
             int unchangedCount,
             int missingActivityCount,
+            ActivityContentSet activityContentSet,
             string detailMessage,
             string warningMessage)
         {
@@ -79,7 +88,7 @@ namespace Immersive.Framework.ActivityFlow
                 ? $"for Activity '{activeActivity.ActivityName}'"
                 : "with no active Activity";
 
-            string message = $"Activity Content applied {bindingCount} binding(s) {target}. activated='{activatedCount}' deactivated='{deactivatedCount}' unchanged='{unchangedCount}'.";
+            string message = $"Activity Content applied {bindingCount} binding(s) {target}. activated='{activatedCount}' deactivated='{deactivatedCount}' unchanged='{unchangedCount}' activityContentHandles='{activityContentSet.Count}'.";
             if (missingActivityCount > 0)
             {
                 message += $" missingActivity='{missingActivityCount}'.";
@@ -92,6 +101,7 @@ namespace Immersive.Framework.ActivityFlow
                 deactivatedCount,
                 unchangedCount,
                 missingActivityCount,
+                activityContentSet,
                 message,
                 detailMessage,
                 warningMessage);

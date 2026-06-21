@@ -150,6 +150,45 @@ namespace Immersive.Framework.ContentFlow
                 message);
         }
 
+        public static FrameworkContentHandle ActivitySceneAuthoredBinding(
+            string ownerId,
+            string ownerName,
+            string objectName,
+            string sceneName,
+            bool active,
+            string source,
+            string reason,
+            string message)
+        {
+            var normalizedObjectName = Normalize(objectName);
+            var normalizedSceneName = Normalize(sceneName);
+            if (string.IsNullOrWhiteSpace(normalizedObjectName))
+            {
+                throw new System.ArgumentException("Activity scene-authored binding content identity requires an object name.", nameof(objectName));
+            }
+
+            var sceneSegment = !string.IsNullOrWhiteSpace(normalizedSceneName)
+                ? normalizedSceneName
+                : "unknown-scene";
+            var contentId = $"scene-authored-binding:{sceneSegment}:{normalizedObjectName}";
+            var identity = FrameworkContentIdentity.FromOwnerValue(
+                FrameworkContentScope.Activity,
+                FrameworkContentKind.SceneAuthored,
+                ownerId,
+                contentId);
+
+            return new FrameworkContentHandle(
+                identity,
+                FrameworkContentRequiredness.Optional,
+                ownerName,
+                objectName,
+                sceneSegment,
+                active,
+                source,
+                reason,
+                message);
+        }
+
         private static string Normalize(string value)
         {
             return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
