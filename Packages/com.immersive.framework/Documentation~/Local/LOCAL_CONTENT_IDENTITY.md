@@ -1,6 +1,6 @@
 # F5 — Local Content Identity and scene-authored local ids
 
-Status: F5C APPLIED / PENDING COMPILE-SMOKE  
+Status: F5E APPLIED / PENDING COMPILE-SMOKE  
 Fase: F5 — Local Contribution baseline  
 Documento técnico vivo: identidade local e authoring local mínimo
 
@@ -155,18 +155,101 @@ Use ids curtos, estáveis, em minúsculas e orientados ao papel autoral. Não co
 
 ---
 
-## Escopo ainda não implementado
+## F5D — loaded local contribution discovery
 
-F5C ainda não implementa:
+F5D cria discovery carregado para contribuições locais scene-authored.
+
+Arquivos novos:
 
 ```text
-LocalContributionDiscovery
+Runtime/LocalContribution/LocalContributionDiscovery.cs
+Runtime/LocalContribution/LocalContributionDiscoveryResult.cs
+Runtime/LocalContribution/LocalContributionDiscoveryIssue.cs
+Runtime/LocalContribution/LocalContributionDiscoveryIssueKind.cs
+Runtime/LocalContribution/LocalContributionHandle.cs
+Runtime/LocalContribution/LocalContributionSet.cs
+Runtime/LocalContribution/LocalContributionSourceKind.cs
+```
+
+O discovery lê os componentes de authoring existentes:
+
+```text
+RouteContentBinding
+ActivityLocalVisibilityAdapter
+```
+
+E produz:
+
+```text
 LocalContributionSet
-LocalContributionHandle
+LocalContributionHandle[]
+LocalContributionDiscoveryIssue[]
+```
+
+Regras do F5D:
+
+```text
+Local Content Id ausente = issue estruturada
+Route/Activity owner ausente = issue estruturada
+LocalContentIdentity inválida = issue estruturada
+LocalContentIdentity duplicada no mesmo escopo/owner/local id = issue estruturada
+GameObject.name/scene/path/hierarchy = diagnostics only
+```
+
+O F5D também muda a QA surface: a validação autoral local deve ser rodada pelo `Framework QA Canvas`, botão `Validate Loaded Local Contributions`. O log esperado em sucesso usa:
+
+```text
+QA Authoring Validation completed. scope='Loaded Local Contributions' ... issues='0'
+```
+
+## F5E — LocalContributionSet consolidation
+
+F5E não cria nova superfície de authoring e não muda comportamento visual. O corte consolida o `LocalContributionSet` como snapshot consultável.
+
+O set passa a expor consultas internas por:
+
+```text
+FrameworkContentScope
+LocalContributionSourceKind
+LocalContentIdentity
+```
+
+APIs adicionadas:
+
+```text
+SessionCount
+RouteCount
+ActivityCount
+RouteContentBindingCount
+ActivityLocalVisibilityAdapterCount
+HasScope(contentScope)
+CountByScope(contentScope)
+CountBySource(sourceKind)
+Contains(identity)
+TryGet(identity, out handle)
+GetByScope(contentScope)
+GetBySource(sourceKind)
+```
+
+O diagnóstico de QA continua vindo de `Framework QA Canvas > Validate Loaded Local Contributions`, mas agora o texto do set inclui resumo por escopo/source, por exemplo:
+
+```text
+handles='2' session='0' route='1' activity='1' routeBindings='1' activityAdapters='1'
+```
+
+Esse corte ainda não torna o set consumidor de lifecycle, não aplica requiredness e não materializa conteúdo.
+
+---
+
+## Escopo ainda não implementado
+
+F5E ainda não implementa:
+
+```text
 Required/Optional policy
-Runtime scanner
-ActivityContentSet integration
-RouteContentSet integration
+Runtime scanner por capability
+ActivityContentSet integration funcional
+RouteContentSet integration funcional
 Surface
 Actors
 Input
@@ -175,6 +258,8 @@ Reset
 Snapshot
 Save
 Pooling
+Materialization
+Release/unload policy
 ```
 
 ---
@@ -193,4 +278,4 @@ Boot succeeded                                1
 QA Smoke completed. name='Standard Smoke'     1
 ```
 
-Depois de configurar os `Local Content Id` nos bindings/adapters das cenas abertas, `Project Settings > Immersive Framework > Validate Authoring` deve reportar `issues='0'` para o escopo já coberto por F5C.
+Depois de configurar os `Local Content Id` nos bindings/adapters das cenas abertas, use o `Framework QA Canvas` e rode `Validate Loaded Local Contributions`. O log deve reportar `issues='0'` para o escopo carregado e incluir contagens por escopo/source no `LocalContributionSet`.

@@ -367,7 +367,7 @@ Status atual:
 ```text
 F5A — CLOSED / ADR ACCEPTED
 F5B — CLOSED / STANDARD COMPILE-SMOKE PASS
-F5  — OPEN / F5C APPLIED / PENDING COMPILE-SMOKE
+F5  — OPEN / F5E APPLIED / PENDING COMPILE-SMOKE
 ```
 
 Sequência obrigatória:
@@ -385,9 +385,9 @@ ActivityContentSet / RouteContentSet como fronteira de busca
 |---|---|---|
 | IF-FW-ROAD-5A | ADR: Local Identity | CLOSED em F5A. Define `LocalContentIdentity`, proíbe path/name como chave funcional e bloqueia reaproveitamento direto do marker experimental com fallback por `GameObject.name`. |
 | IF-FW-ROAD-5B | `LocalContentIdentity` | CLOSED / STANDARD COMPILE-SMOKE PASS. Tipo pequeno, imutável, validável, ordinal e sem fallback silencioso. Não cria marker/discovery. |
-| IF-FW-ROAD-5C | `ActivityLocalVisibilityAdapter` / `RouteContentBinding` | APPLIED / PENDING COMPILE-SMOKE. Bindings/adapters scene-authored recebem `Local Content Id` explícito; sem capability runtime ainda. |
-| IF-FW-ROAD-5D | `LocalContributionDiscovery` scoped | Descobre apenas dentro de content sets conhecidos; não usa busca global como eixo funcional. |
-| IF-FW-ROAD-5E | `LocalContributionSet` | Set tipado por scope com identities locais explícitas. |
+| IF-FW-ROAD-5C | `ActivityLocalVisibilityAdapter` / `RouteContentBinding` | CLOSED / QA COMPILE-SMOKE PASS. Bindings/adapters scene-authored recebem `Local Content Id` explícito; sem capability runtime ainda. |
+| IF-FW-ROAD-5D | `LocalContributionDiscovery` loaded | CLOSED / QA COMPILE-SMOKE PASS. Descobre bindings/adapters carregados com Local Content Id explícito e reporta issues estruturadas. Integração formal por ContentSet fica diferida. |
+| IF-FW-ROAD-5E | `LocalContributionSet` | APPLIED / PENDING COMPILE-SMOKE. Set tipado e consultável por scope/source/identity, com resumo diagnóstico por escopo. |
 | IF-FW-ROAD-5F | Required/Optional policy | Required ausente falha com `FrameworkFact`; optional ausente gera skip diagnosticado. |
 | IF-FW-ROAD-5G | Local validators | Duplicidade, identity vazia, binding/adapter sem id e required ausente. |
 | IF-FW-ROAD-5H | Local smoke | Activity enter → contribution set populado → required policy validada. |
@@ -804,14 +804,14 @@ F3 — CLOSED / PASS
 F4 — CLOSED / ACTIVITY BASELINE PASS
 F5A — CLOSED / ADR ACCEPTED
 F5B — CLOSED / STANDARD COMPILE-SMOKE PASS
-F5  — OPEN / F5C APPLIED / PENDING COMPILE-SMOKE
+F5  — OPEN / F5E APPLIED / PENDING COMPILE-SMOKE
 ```
 
 F5A aceitou o ADR necessário para iniciar a execução técnica de Local Contribution:
 
 ```text
 F5-01 — ADR-LOCAL-001 — Local Identity — Accepted
-F5-02 — ADR-LOCAL-002 — Local Contribution Discovery and Requiredness — Draft / Deferred
+F5-02 — ADR-LOCAL-002 — Local Contribution Discovery and Requiredness — Partially Accepted / Discovery and Set Consolidation Applied / Requiredness Deferred
 ```
 
 ## Ação imediata
@@ -819,30 +819,31 @@ F5-02 — ADR-LOCAL-002 — Local Contribution Discovery and Requiredness — Dr
 O corte aplicado atual é:
 
 ```text
-F5C — IF-FW-ROAD-5C — explicit local ids on existing scene-authored bindings
+F5E — IF-FW-ROAD-5E — local contribution set consolidation
 ```
 
 Escopo aplicado:
 
 ```text
-- usar RouteContentBinding e ActivityLocalVisibilityAdapter como superfície real de authoring local;
-- adicionar Local Content Id explícito nesses componentes;
-- remover FrameworkContentContributionMarker/IFrameworkContentContribution como precursor obsoleto;
-- validar missing Local Content Id no authoring;
-- não criar discovery;
-- não criar LocalContributionSet;
+- consolidar LocalContributionSet como snapshot consultável;
+- expor contagens por Session/Route/Activity;
+- expor contagens por RouteContentBinding/ActivityLocalVisibilityAdapter;
+- permitir consulta por LocalContentIdentity;
+- permitir filtros por scope/source;
+- manter GameObject.name, scene e component como diagnostics only;
+- não criar requiredness policy;
+- não criar materialização;
 - não alterar ActivityContentRuntime;
-- não criar componente LocalContributionMarker separado.
+- não criar capability inventory vivo.
 ```
 
-Depois do compile-smoke, o próximo corte autorizado será F5D — scoped discovery limitado a ContentSets conhecidos.
+Depois do compile-smoke, o próximo corte autorizado será F5F — Required/Optional policy mínima, sem materialização e sem consumers reais se o smoke pedir ajuste prévio.
 
 ## Não avançar ainda
 
 ```text
-Local contribution authoring
-Scoped discovery
 Requiredness policy
+Local validators avançados
 Surface
 Runtime roots/materialization
 Input/Camera/Actor/Save/Pooling

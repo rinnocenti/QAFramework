@@ -5,6 +5,8 @@ using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.RouteLifecycle;
+using Immersive.Framework.ActivityFlow;
+using Immersive.Framework.LocalContribution;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
@@ -238,9 +240,9 @@ namespace Immersive.Framework.Diagnostics
 
             using (new EditorDisabledScope(_requestInFlight))
             {
-                if (GUILayout.Button("Validate Loaded Route Content"))
+                if (GUILayout.Button("Validate Loaded Local Contributions"))
                 {
-                    ValidateLoadedRouteContentAuthoring();
+                    ValidateLoadedLocalContributionsAuthoring();
                 }
 
                 if (GUILayout.Button("Run Route Callback Smoke"))
@@ -1072,14 +1074,24 @@ namespace Immersive.Framework.Diagnostics
 
         private void ValidateLoadedRouteContentAuthoring()
         {
+            ValidateLoadedLocalContributionsAuthoring();
+        }
+
+        private void ValidateLoadedLocalContributionsAuthoring()
+        {
             EnsureLogger();
 
-            RouteContentBinding[] bindings = FindObjectsByType<RouteContentBinding>(
+            RouteContentBinding[] routeBindings = FindObjectsByType<RouteContentBinding>(
+                FindObjectsInactive.Include);
+            ActivityLocalVisibilityAdapter[] activityAdapters = FindObjectsByType<ActivityLocalVisibilityAdapter>(
                 FindObjectsInactive.Include);
 
-            if (bindings == null || bindings.Length == 0)
+            int routeBindingCount = routeBindings != null ? routeBindings.Length : 0;
+            int activityAdapterCount = activityAdapters != null ? activityAdapters.Length : 0;
+
+            if (routeBindingCount == 0 && activityAdapterCount == 0)
             {
-                _logger.Warning("QA Authoring Validation completed. scope='Loaded Route Content' bindings='0' issues='1' reason='No RouteContentBinding found in loaded scenes'.");
+                _logger.Warning("QA Authoring Validation completed. scope='Loaded Local Contributions' routeBindings='0' activityAdapters='0' localContributions='0' issues='1' reason='No local contribution authoring components found in loaded scenes'.");
                 return;
             }
 
@@ -1087,18 +1099,44 @@ namespace Immersive.Framework.Diagnostics
             int errorCount = 0;
             int warningCount = 0;
 
-            for (int i = 0; i < bindings.Length; i++)
+            if (routeBindings != null)
             {
-                ValidateLoadedRouteContentBinding(bindings[i], ref issueCount, ref errorCount, ref warningCount);
+                for (int i = 0; i < routeBindings.Length; i++)
+                {
+                    ValidateLoadedRouteContentBinding(routeBindings[i], ref issueCount, ref errorCount, ref warningCount);
+                }
             }
+
+            var discoveryResult = LocalContributionDiscovery.DiscoverLoadedSceneAuthored();
+            AddLocalContributionDiscoveryIssues(discoveryResult, ref issueCount, ref errorCount);
 
             if (issueCount == 0)
             {
-                _logger.Info($"QA Authoring Validation completed. scope='Loaded Route Content' bindings='{bindings.Length}' issues='0'.");
+                _logger.Info($"QA Authoring Validation completed. scope='Loaded Local Contributions' routeBindings='{routeBindingCount}' activityAdapters='{activityAdapterCount}' localContributions='{discoveryResult.ContributionCount}' issues='0'. {discoveryResult.ContributionSet.ToDiagnosticString()}");
                 return;
             }
 
-            _logger.Warning($"QA Authoring Validation completed. scope='Loaded Route Content' bindings='{bindings.Length}' issues='{issueCount}' errors='{errorCount}' warnings='{warningCount}'.");
+            _logger.Warning($"QA Authoring Validation completed. scope='Loaded Local Contributions' routeBindings='{routeBindingCount}' activityAdapters='{activityAdapterCount}' localContributions='{discoveryResult.ContributionCount}' issues='{issueCount}' errors='{errorCount}' warnings='{warningCount}'.");
+        }
+
+        private void AddLocalContributionDiscoveryIssues(
+            LocalContributionDiscoveryResult discoveryResult,
+            ref int issueCount,
+            ref int errorCount)
+        {
+            if (!discoveryResult.HasIssues)
+            {
+                return;
+            }
+
+            var issues = discoveryResult.Issues;
+            for (int i = 0; i < issues.Count; i++)
+            {
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    $"LocalContributionDiscovery {issues[i].ToDiagnosticString()}.");
+            }
         }
 
         private void ValidateLoadedRouteContentBinding(

@@ -1,10 +1,10 @@
 # F5-02 — ADR-LOCAL-002 — Local Contribution Discovery and Requiredness
 
-Status: Draft / Deferred  
+Status: Partially Accepted / Discovery and Set Consolidation Applied / Requiredness Deferred  
 Fase: F5  
 Ordem no Plano: F5-02  
 Tipo: Local / Discovery  
-Escopo: LocalContributionSet  
+Escopo: LocalContributionDiscovery / LocalContributionSet / Requiredness futura  
 Depende de: F5-01 — ADR-LOCAL-001 — Local Identity
 
 ---
@@ -27,9 +27,9 @@ capability inventory vivo antes de runtime handles
 
 ---
 
-## Decisão proposta
+## Decisão aplicada parcialmente em F5D
 
-Local discovery deve operar sobre ContentSets conhecidos e identidades locais explícitas.
+Local discovery deve operar sobre identidades locais explícitas. O F5D aplica a primeira versão sobre conteúdo scene-authored carregado e mantém integração funcional com `ActivityContentSet`/`RouteContentSet` para corte posterior.
 
 Fluxo conceitual:
 
@@ -42,13 +42,13 @@ RouteContentSet / ActivityContentSet
 → Required/Optional policy
 ```
 
-`ActivityContentSet` e `RouteContentSet` delimitam onde procurar. Eles não fornecem a identity funcional da contribuição.
+`ActivityContentSet` e `RouteContentSet` continuam não fornecendo a identity funcional da contribuição. No F5D, o discovery carregado ainda usa os bindings/adapters existentes como superfície de enumeração; integração funcional por ContentSet fica diferida.
 
 `ActivityLocalVisibilityAdapter` / `RouteContentBinding` deve carregar ou produzir uma `LocalContentIdentity` válida conforme ADR-LOCAL-001.
 
 ---
 
-## Requiredness
+## Requiredness — deferred
 
 Requiredness pertence à contribuição ou à policy que consome aquela contribuição, não ao nome do GameObject.
 
@@ -100,12 +100,20 @@ F5 não deve criar scanner por capability específica. Capability descriptors si
 
 ---
 
-## Critérios de validação futuros
+## Critérios de validação
 
-- Discovery limitado ao content set ativo.
-- Nenhum caminho required usa fallback silencioso.
+Aplicado em F5D:
+
 - `LocalContributionSet` é produzido a partir de bindings/adapters com `LocalContentIdentity` explícita.
-- Duplicidade e missing identity aparecem no validator.
+- Missing identity aparece como issue estruturada.
+- Duplicidade aparece como issue estruturada.
+- `GameObject.name`, scene name, scene path e hierarchy path não são fallback funcional.
+- QA usa `Framework QA Canvas > Validate Loaded Local Contributions`.
+
+Futuro:
+
+- Discovery limitado formalmente ao content set ativo.
+- Nenhum caminho required usa fallback silencioso.
 - Required ausente falha de forma estruturada.
 - Optional ausente não bloqueia, mas fica diagnosticado.
 
@@ -130,3 +138,28 @@ Runtime materialization consumers
 Não criar discovery por `FindObjectsByType` como eixo funcional.
 
 Se for necessário usar API Unity para enumerar componentes, a enumeração deve ser limitada pelos roots/entries de ContentSet carregado e deve produzir diagnostics explícitos.
+
+
+---
+
+## F5D — aplicação
+
+O F5D introduz discovery carregado e inerte:
+
+```text
+LocalContributionDiscovery
+LocalContributionDiscoveryResult
+LocalContributionDiscoveryIssue
+LocalContributionHandle
+LocalContributionSet
+```
+
+A saída é diagnóstica/autoral neste corte. Não materializa, não carrega, não descarrega, não aplica requiredness e não cria runtime references vivos.
+
+---
+
+## F5E — aplicação
+
+O F5E consolida `LocalContributionSet` como snapshot consultável. O set agora expõe contagens e filtros por `FrameworkContentScope`, `LocalContributionSourceKind` e `LocalContentIdentity`.
+
+Este corte ainda não introduz requiredness, policy, materialização, release ou consumers. O objetivo é permitir que o próximo corte de policy consulte o set sem varrer novamente a cena nem depender de `GameObject.name`, scene path ou hierarchy path.
