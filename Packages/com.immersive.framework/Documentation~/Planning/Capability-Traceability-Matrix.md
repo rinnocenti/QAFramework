@@ -120,7 +120,7 @@ Regras:
 ### Local
 | Capacidade | Decisão | Fase original | Fase revisada | Corte | Status package | Status roadmap | Prioridade | Bloqueadores | Risco | Observação |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Contributor marker | Preservar como `LocalContributionMarker` | F5 | F5 | IF-FW-ROAD-5C | Parcial / Ausente | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Não reutilizar marker experimental atual enquanto houver fallback por `GameObject.name`. |
+| Contributor marker | Preservar como `ActivityLocalVisibilityAdapter` / `RouteContentBinding` | F5 | F5 | IF-FW-ROAD-5C | Parcial / Ausente | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Não manter marker experimental paralelo; F5C usa `RouteContentBinding` e `ActivityLocalVisibilityAdapter` com `Local Content Id` explícito. |
 | Local content identity | Redesenhar como `LocalContentIdentity` | F5 | F5 | IF-FW-ROAD-5A, 5B | Tipo aplicado / Pending compile-smoke | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | F5B cria `LocalContentIdentity`, `LocalContentId` e `LocalContentScopeKind`; sem marker/discovery. |
 | Scoped contribution discovery | Preservar discovery scoped; remover scan global | F5 | F5 | IF-FW-ROAD-5D | Parcial / Ausente | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Discovery deve usar ContentSet como fronteira de busca, não como identity funcional. |
 | Contribution set | Criar `LocalContributionSet` | F5 | F5 | IF-FW-ROAD-5E | Parcial / Ausente | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Sem ajuste. |
@@ -548,7 +548,7 @@ Antes de abrir um corte técnico, responder:
 
 | Capacidade | O que faz | Origem NS | Decisão | Fase | Corte |
 |---|---|---|---|---|---|
-| Contributor marker | Objeto authored marca-se como contribuidor relevante para Activity/Route. | `ActivityObjectContributor` | Preservar como `LocalContributionMarker` | F5 | IF-FW-ROAD-5C |
+| Contributor marker | Objeto authored marca-se como contribuidor relevante para Activity/Route. | `ActivityObjectContributor` | Preservar como `ActivityLocalVisibilityAdapter` / `RouteContentBinding` | F5 | IF-FW-ROAD-5C |
 | Local content identity | Identidade tipada de objeto local; substitui `targetId` string. | `ActivityObjectContributor.targetId` (frágil) | Redesenhar como `LocalContentIdentity` | F5 | IF-FW-ROAD-5A, 5B |
 | Scoped contribution discovery | Descobre contributors dentro do conteúdo carregado do escopo. | `ActivityEntryObjectContributorDiscoveryStage` | Preservar discovery scoped; remover scan global | F5 | IF-FW-ROAD-5D |
 | Contribution set | Conjunto tipado de contributions por escopo (Activity ou Route). | `ActivityObjectContributor` → inventory | Criar `LocalContributionSet` | F5 | IF-FW-ROAD-5E |

@@ -212,10 +212,19 @@ namespace Immersive.Framework.Editor.Validation
                 return report;
             }
 
+            string objectName = binding.gameObject != null ? binding.gameObject.name : "<missing>";
+
             if (binding.Activity == null)
             {
                 report.AddError(
-                    $"Activity Local Visibility Adapter on GameObject '{binding.gameObject.name}' has no Activity assigned.",
+                    $"Activity Local Visibility Adapter on GameObject '{objectName}' has no Activity assigned.",
+                    binding);
+            }
+
+            if (!binding.HasExplicitLocalContentId)
+            {
+                report.AddError(
+                    $"Activity Local Visibility Adapter on GameObject '{objectName}' has no Local Content Id. F5 local identity requires an explicit id; GameObject names and hierarchy paths are diagnostics only.",
                     binding);
             }
 
@@ -223,7 +232,7 @@ namespace Immersive.Framework.Editor.Validation
             if (parentBinding != null)
             {
                 report.AddWarning(
-                    $"Activity Local Visibility Adapter on GameObject '{binding.gameObject.name}' is nested under '{parentBinding.gameObject.name}'. Nested Activity local visibility policy is not defined yet.",
+                    $"Activity Local Visibility Adapter on GameObject '{objectName}' is nested under '{parentBinding.gameObject.name}'. Nested Activity local visibility policy is not defined yet.",
                     binding);
             }
 
@@ -231,14 +240,14 @@ namespace Immersive.Framework.Editor.Validation
             if (childBindingCount > 0)
             {
                 report.AddWarning(
-                    $"Activity Local Visibility Adapter on GameObject '{binding.gameObject.name}' has {childBindingCount} child Activity Local Visibility Adapter component(s). Keep Activity local visibility adapter roots flat for now.",
+                    $"Activity Local Visibility Adapter on GameObject '{objectName}' has {childBindingCount} child Activity Local Visibility Adapter component(s). Keep Activity local visibility adapter roots flat for now.",
                     binding);
             }
 
             if (!report.HasIssues)
             {
                 report.AddInfo(
-                    $"Activity Local Visibility Adapter on GameObject '{binding.gameObject.name}' is valid for the current framework scope.",
+                    $"Activity Local Visibility Adapter on GameObject '{objectName}' is valid for the current framework scope.",
                     binding);
             }
 
@@ -268,6 +277,13 @@ namespace Immersive.Framework.Editor.Validation
             else
             {
                 ValidateRouteContentBindingSceneRoute(report, binding, objectName);
+            }
+
+            if (!binding.HasExplicitLocalContentId)
+            {
+                report.AddError(
+                    $"Route Content Binding on GameObject '{objectName}' has no Local Content Id. F5 local identity requires an explicit id; GameObject names and hierarchy paths are diagnostics only.",
+                    binding);
             }
 
             var parentBinding = FindParentRouteContentBinding(binding);

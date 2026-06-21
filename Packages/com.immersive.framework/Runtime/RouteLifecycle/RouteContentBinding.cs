@@ -1,6 +1,7 @@
 using Immersive.Framework.Authoring;
 using UnityEngine;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.LocalContribution;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -17,7 +18,31 @@ namespace Immersive.Framework.RouteLifecycle
         [Tooltip("Route asset that owns this scene. Use the Route whose Primary Scene is this scene.")]
         private RouteAsset route;
 
+        [SerializeField]
+        [Tooltip("Explicit local content id for this scene-authored Route contribution. Required for F5 local identity. GameObject names and hierarchy paths are diagnostics only and are not used as fallback.")]
+        private string localContentId = string.Empty;
+
         public RouteAsset Route => route;
+
+        public LocalContentScopeKind LocalScopeKind => LocalContentScopeKind.SceneAuthored;
+
+        public string LocalContentIdText => !string.IsNullOrWhiteSpace(localContentId)
+            ? localContentId.Trim()
+            : string.Empty;
+
+        public bool HasExplicitLocalContentId => !string.IsNullOrWhiteSpace(localContentId);
+
+        public bool TryGetLocalContentId(out LocalContentId localId)
+        {
+            if (!HasExplicitLocalContentId)
+            {
+                localId = default;
+                return false;
+            }
+
+            localId = LocalContentId.From(localContentId);
+            return true;
+        }
 
         internal bool IsSceneBinding => gameObject.scene.IsValid() && gameObject.scene.isLoaded;
 

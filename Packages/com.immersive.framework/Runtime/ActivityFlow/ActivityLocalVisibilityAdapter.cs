@@ -1,6 +1,7 @@
 using UnityEngine;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.LocalContribution;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -18,7 +19,31 @@ namespace Immersive.Framework.ActivityFlow
         [Tooltip("Activity that owns this local visibility adapter. This only toggles this GameObject when that Activity is active; it is not canonical Activity materialization.")]
         private ActivityAsset activity;
 
+        [SerializeField]
+        [Tooltip("Explicit local content id for this scene-authored Activity contribution. Required for F5 local identity. GameObject names and hierarchy paths are diagnostics only and are not used as fallback.")]
+        private string localContentId = string.Empty;
+
         public ActivityAsset Activity => activity;
+
+        public LocalContentScopeKind LocalScopeKind => LocalContentScopeKind.SceneAuthored;
+
+        public string LocalContentIdText => !string.IsNullOrWhiteSpace(localContentId)
+            ? localContentId.Trim()
+            : string.Empty;
+
+        public bool HasExplicitLocalContentId => !string.IsNullOrWhiteSpace(localContentId);
+
+        public bool TryGetLocalContentId(out LocalContentId localId)
+        {
+            if (!HasExplicitLocalContentId)
+            {
+                localId = default;
+                return false;
+            }
+
+            localId = LocalContentId.From(localContentId);
+            return true;
+        }
 
         internal bool IsSceneBinding => gameObject.scene.IsValid() && gameObject.scene.isLoaded;
 

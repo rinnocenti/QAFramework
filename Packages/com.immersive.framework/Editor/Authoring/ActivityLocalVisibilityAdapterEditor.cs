@@ -11,10 +11,12 @@ namespace Immersive.Framework.Editor.Authoring
     internal sealed class ActivityLocalVisibilityAdapterEditor : UnityEditor.Editor
     {
         private SerializedProperty _activity;
+        private SerializedProperty _localContentId;
 
         private void OnEnable()
         {
             _activity = serializedObject.FindProperty("activity");
+            _localContentId = serializedObject.FindProperty("localContentId");
         }
 
         public override void OnInspectorGUI()
@@ -29,6 +31,15 @@ namespace Immersive.Framework.Editor.Authoring
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Binding", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_activity, new GUIContent("Activity"));
+
+            EditorGUILayout.Space(6);
+            EditorGUILayout.LabelField("Local Identity", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(
+                _localContentId,
+                new GUIContent(
+                    "Local Content Id",
+                    "Explicit local id required by F5 local identity. GameObject name and hierarchy path are diagnostics only and are not used as fallback."));
+            DrawLocalIdentityStatus();
 
             DrawActivityStatus();
             DrawHierarchyGuardrails();
@@ -56,6 +67,32 @@ namespace Immersive.Framework.Editor.Authoring
             EditorGUILayout.LabelField("Authoring Validation", EditorStyles.boldLabel);
             FrameworkAuthoringValidationGui.DrawSummary(report);
             FrameworkAuthoringValidationGui.DrawIssues(report, false);
+        }
+
+        private void DrawLocalIdentityStatus()
+        {
+            if (serializedObject.isEditingMultipleObjects)
+            {
+                if (_localContentId.hasMultipleDifferentValues)
+                {
+                    EditorGUILayout.HelpBox(
+                        "Multiple selected adapters have different Local Content Id values.",
+                        MessageType.Info);
+                    return;
+                }
+            }
+
+            if (_localContentId == null || string.IsNullOrWhiteSpace(_localContentId.stringValue))
+            {
+                EditorGUILayout.HelpBox(
+                    "Local Content Id is required for F5 local identity. GameObject names and hierarchy paths are diagnostics only and are not fallback identities.",
+                    MessageType.Error);
+                return;
+            }
+
+            EditorGUILayout.HelpBox(
+                $"This Activity local visibility contribution uses explicit local id '{_localContentId.stringValue.Trim()}'.",
+                MessageType.Info);
         }
 
         private void DrawActivityStatus()

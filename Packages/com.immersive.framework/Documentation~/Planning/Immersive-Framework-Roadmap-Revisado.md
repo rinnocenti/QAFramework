@@ -366,8 +366,8 @@ Status atual:
 
 ```text
 F5A — CLOSED / ADR ACCEPTED
-F5B — APPLIED / PENDING COMPILE-SMOKE
-F5  — OPEN / NEXT AFTER PASS: F5C LOCALCONTRIBUTIONMARKER
+F5B — CLOSED / STANDARD COMPILE-SMOKE PASS
+F5  — OPEN / F5C APPLIED / PENDING COMPILE-SMOKE
 ```
 
 Sequência obrigatória:
@@ -375,7 +375,7 @@ Sequência obrigatória:
 ```text
 ActivityContentSet / RouteContentSet como fronteira de busca
 → LocalContentIdentity explícita
-→ LocalContributionMarker sem fallback funcional
+→ explicit local ids on existing scene-authored bindings
 → Scoped discovery
 → LocalContributionSet
 → Required/Optional policy
@@ -384,12 +384,12 @@ ActivityContentSet / RouteContentSet como fronteira de busca
 | ID | Entrega | Detalhes |
 |---|---|---|
 | IF-FW-ROAD-5A | ADR: Local Identity | CLOSED em F5A. Define `LocalContentIdentity`, proíbe path/name como chave funcional e bloqueia reaproveitamento direto do marker experimental com fallback por `GameObject.name`. |
-| IF-FW-ROAD-5B | `LocalContentIdentity` | APPLIED / PENDING COMPILE-SMOKE. Tipo pequeno, imutável, validável, ordinal e sem fallback silencioso. Não cria marker/discovery. |
-| IF-FW-ROAD-5C | `LocalContributionMarker` | Marker authored mínimo com id explícito obrigatório; sem capability runtime ainda. |
+| IF-FW-ROAD-5B | `LocalContentIdentity` | CLOSED / STANDARD COMPILE-SMOKE PASS. Tipo pequeno, imutável, validável, ordinal e sem fallback silencioso. Não cria marker/discovery. |
+| IF-FW-ROAD-5C | `ActivityLocalVisibilityAdapter` / `RouteContentBinding` | APPLIED / PENDING COMPILE-SMOKE. Bindings/adapters scene-authored recebem `Local Content Id` explícito; sem capability runtime ainda. |
 | IF-FW-ROAD-5D | `LocalContributionDiscovery` scoped | Descobre apenas dentro de content sets conhecidos; não usa busca global como eixo funcional. |
 | IF-FW-ROAD-5E | `LocalContributionSet` | Set tipado por scope com identities locais explícitas. |
 | IF-FW-ROAD-5F | Required/Optional policy | Required ausente falha com `FrameworkFact`; optional ausente gera skip diagnosticado. |
-| IF-FW-ROAD-5G | Local validators | Duplicidade, identity vazia, marker sem id e required ausente. |
+| IF-FW-ROAD-5G | Local validators | Duplicidade, identity vazia, binding/adapter sem id e required ausente. |
 | IF-FW-ROAD-5H | Local smoke | Activity enter → contribution set populado → required policy validada. |
 
 ### Não entra
@@ -406,7 +406,7 @@ ActivityContentSet / RouteContentSet como fronteira de busca
 
 ```text
 ActivityContentSet F4 pode delimitar discovery, mas não é identity funcional F5.
-FrameworkContentContributionMarker atual é precursor experimental, não contrato F5 canônico.
+FrameworkContentContributionMarker era precursor experimental e foi removido no F5C por ficar obsoleto diante dos bindings/adapters scene-authored com Local Content Id explícito.
 GameObject.name, scene path e hierarchy path são diagnostics, não chaves funcionais.
 targetId universal não deve ser recriado.
 ```
@@ -803,8 +803,8 @@ F2 — CLOSED / PASS
 F3 — CLOSED / PASS
 F4 — CLOSED / ACTIVITY BASELINE PASS
 F5A — CLOSED / ADR ACCEPTED
-F5B — APPLIED / PENDING COMPILE-SMOKE
-F5  — OPEN / NEXT AFTER PASS: F5C LOCALCONTRIBUTIONMARKER
+F5B — CLOSED / STANDARD COMPILE-SMOKE PASS
+F5  — OPEN / F5C APPLIED / PENDING COMPILE-SMOKE
 ```
 
 F5A aceitou o ADR necessário para iniciar a execução técnica de Local Contribution:
@@ -816,29 +816,31 @@ F5-02 — ADR-LOCAL-002 — Local Contribution Discovery and Requiredness — Dr
 
 ## Ação imediata
 
-O próximo corte autorizado é:
+O corte aplicado atual é:
 
 ```text
-F5B — IF-FW-ROAD-5B — LocalContentIdentity
+F5C — IF-FW-ROAD-5C — explicit local ids on existing scene-authored bindings
 ```
 
-Escopo esperado:
+Escopo aplicado:
 
 ```text
-- criar tipo pequeno, imutável e validável para identidade local;
-- manter comparação ordinal e texto diagnóstico estável;
-- rejeitar id funcional ausente;
-- não criar marker;
+- usar RouteContentBinding e ActivityLocalVisibilityAdapter como superfície real de authoring local;
+- adicionar Local Content Id explícito nesses componentes;
+- remover FrameworkContentContributionMarker/IFrameworkContentContribution como precursor obsoleto;
+- validar missing Local Content Id no authoring;
 - não criar discovery;
 - não criar LocalContributionSet;
 - não alterar ActivityContentRuntime;
-- não promover FrameworkContentContributionMarker enquanto houver fallback por GameObject.name.
+- não criar componente LocalContributionMarker separado.
 ```
+
+Depois do compile-smoke, o próximo corte autorizado será F5D — scoped discovery limitado a ContentSets conhecidos.
 
 ## Não avançar ainda
 
 ```text
-LocalContributionMarker
+Local contribution authoring
 Scoped discovery
 Requiredness policy
 Surface

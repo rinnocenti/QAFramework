@@ -290,6 +290,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.RouteLifecycle.RouteContentBinding
   route: {fileID: 11400000, guid: 4988278d7f1b4e13bfbd37efa7a0a657, type: 2}
+  localContentId: qa-route-alternate-probe
 --- !u!4 &773700887
 Transform:
   m_ObjectHideFlags: 0

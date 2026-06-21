@@ -11,7 +11,7 @@ Depende de: F5-01 — ADR-LOCAL-001 — Local Identity
 
 ## Contexto
 
-O package possui bindings locais simples e um marker precursor (`FrameworkContentContributionMarker`), mas ainda não possui discovery scoped, `LocalContributionSet` ou policy de requiredness.
+O package possui bindings/adapters locais simples. A partir do F5C, `RouteContentBinding` e `ActivityLocalVisibilityAdapter` passam a carregar `Local Content Id` explícito; o precursor genérico `FrameworkContentContributionMarker` foi removido por ficar obsoleto e por não ter consumer real.
 
 O `NewScripts` tinha capacidades úteis de discovery local, reports, scan targets, reset, snapshot, restore e release, mas elas se apoiavam demais em `targetId`, `sceneName`, paths e matching textual entre stages.
 
@@ -36,7 +36,7 @@ Fluxo conceitual:
 ```text
 RouteContentSet / ActivityContentSet
 → Local discovery scope
-→ LocalContributionMarker
+→ existing scene-authored bindings with explicit local ids
 → LocalContributionDiscovery
 → LocalContributionSet
 → Required/Optional policy
@@ -44,7 +44,7 @@ RouteContentSet / ActivityContentSet
 
 `ActivityContentSet` e `RouteContentSet` delimitam onde procurar. Eles não fornecem a identity funcional da contribuição.
 
-`LocalContributionMarker` deve carregar ou produzir uma `LocalContentIdentity` válida conforme ADR-LOCAL-001.
+`ActivityLocalVisibilityAdapter` / `RouteContentBinding` deve carregar ou produzir uma `LocalContentIdentity` válida conforme ADR-LOCAL-001.
 
 ---
 
@@ -58,9 +58,9 @@ Regras propostas:
 |---|---|
 | Contribution required ausente | Failure estruturado / `FrameworkFact`. |
 | Contribution optional ausente | Skip diagnosticado. |
-| Marker sem identity explícita | Validation failure. |
+| Binding/adapter sem identity explícita | Validation failure. |
 | Duplicidade no mesmo escopo | Validation failure. |
-| Marker fora do content set ativo | Ignorado ou diagnosticado como out-of-scope, não consumido. |
+| Binding/adapter fora do content set ativo | Ignorado ou diagnosticado como out-of-scope, não consumido. |
 
 ---
 
@@ -77,7 +77,7 @@ Regras propostas:
 
 - Depende de `LocalContentIdentity` implementado antes.
 - Pode exigir validators editor-only por fase.
-- Pode exigir migração ou substituição do `FrameworkContentContributionMarker` atual.
+- Exige que discovery futuro consuma os bindings/adapters existentes, não um marker genérico paralelo.
 - Não resolve ainda runtime references/lifetime.
 
 ---
@@ -104,7 +104,7 @@ F5 não deve criar scanner por capability específica. Capability descriptors si
 
 - Discovery limitado ao content set ativo.
 - Nenhum caminho required usa fallback silencioso.
-- `LocalContributionSet` é produzido a partir de markers com `LocalContentIdentity` explícita.
+- `LocalContributionSet` é produzido a partir de bindings/adapters com `LocalContentIdentity` explícita.
 - Duplicidade e missing identity aparecem no validator.
 - Required ausente falha de forma estruturada.
 - Optional ausente não bloqueia, mas fica diagnosticado.

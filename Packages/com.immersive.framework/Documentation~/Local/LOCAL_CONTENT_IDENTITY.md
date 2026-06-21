@@ -1,21 +1,29 @@
-# F5B — LocalContentIdentity
+# F5 — Local Content Identity and scene-authored local ids
 
-Status: APPLIED / PENDING COMPILE-SMOKE  
+Status: F5C APPLIED / PENDING COMPILE-SMOKE  
 Fase: F5 — Local Contribution baseline  
-Corte: F5B  
-Tipo: Runtime identity primitive  
+Documento técnico vivo: identidade local e authoring local mínimo
 
 ---
 
 ## Objetivo
 
-Criar o primeiro tipo técnico da F5: `LocalContentIdentity`.
+F5 começa criando identidade local explícita para contribuições scene-authored, sem reintroduzir `targetId` universal e sem usar nome/path de GameObject como fallback funcional.
 
-Este corte implementa apenas identidade local tipada. Ele não cria marker, discovery, validator, contribution set, requiredness, capability system ou integração com `ActivityContentSet`/`RouteContentSet`.
+A F5 usa os componentes reais já existentes na cena como superfície de authoring:
+
+```text
+RouteContentBinding
+ActivityLocalVisibilityAdapter
+```
+
+Não há `LocalContributionMarker` separado no F5C.
 
 ---
 
-## Arquivos criados
+## F5B — LocalContentIdentity
+
+F5B criou apenas os tipos de identidade:
 
 ```text
 Runtime/LocalContribution/LocalContentId.cs
@@ -23,11 +31,7 @@ Runtime/LocalContribution/LocalContentIdentity.cs
 Runtime/LocalContribution/LocalContentScopeKind.cs
 ```
 
----
-
-## Modelo criado
-
-`LocalContentIdentity` é uma identidade funcional para uma contribuição local dentro de um owner de conteúdo conhecido.
+`LocalContentIdentity` identifica uma contribuição local dentro de um owner de conteúdo conhecido.
 
 Composição técnica:
 
@@ -50,44 +54,116 @@ Exemplo:
 local:Activity:QA_PrimaryContentActivity:SceneAuthored:primary-panel
 ```
 
----
-
-## Regras aplicadas no código
-
-O construtor de `LocalContentIdentity` falha explicitamente quando:
+Regras aplicadas no código:
 
 ```text
-contentScope não é Session, Route ou Activity
-scopeOwner é inválido
-scopeOwner.Domain não corresponde ao contentScope
-localScopeKind é Unknown
-localId é vazio, nulo ou whitespace
+contentScope deve ser Session, Route ou Activity
+scopeOwner deve ser válido
+scopeOwner.Domain deve corresponder ao contentScope
+localScopeKind não pode ser Unknown
+localId não pode ser vazio/nulo/whitespace
 ```
 
-`LocalContentId` exige valor explícito por `FrameworkIdentityValue`. Não existe fallback para:
+---
+
+## F5C — explicit local ids on existing scene-authored bindings
+
+F5C não cria marker paralelo. O corte adiciona `Local Content Id` aos componentes que já marcam conteúdo local de cena:
+
+```text
+Runtime/RouteLifecycle/RouteContentBinding.cs
+Runtime/ActivityFlow/ActivityLocalVisibilityAdapter.cs
+```
+
+Cada um passa a expor:
+
+```text
+LocalScopeKind = SceneAuthored
+LocalContentIdText
+HasExplicitLocalContentId
+TryGetLocalContentId(out LocalContentId localId)
+```
+
+O id é obrigatório para validação autoral. Ele ainda não é consumido por discovery runtime, `LocalContributionSet`, requiredness ou materialização.
+
+---
+
+## Remoção do precursor obsoleto
+
+F5C remove o trilho genérico experimental:
+
+```text
+Runtime/ContentFlow/FrameworkContentContributionMarker.cs
+Runtime/ContentFlow/IFrameworkContentContribution.cs
+```
+
+Motivo: esse precursor não tinha consumer real e competia com os bindings/adapters reais de cena. A identidade local deve entrar no ponto de authoring que o usuário já configura, não em um componente paralelo.
+
+---
+
+## Não são identidade funcional
+
+Estes valores podem aparecer em diagnostics, labels e mensagens de validator, mas não são chave funcional:
 
 ```text
 GameObject.name
 Scene name
 Scene path
 Hierarchy path
+Transform path
 targetId universal
+ownerPath
+componentPath
 ```
 
 ---
 
-## Escopo deliberadamente não implementado
+## Como configurar cenas para validação
 
-Este corte não implementa:
+### Route content
+
+Em cada GameObject com `Route Content Binding`:
 
 ```text
-LocalContributionMarker
-FrameworkContentContributionMarker refactor
+Route: Route dona da cena
+Local Content Id: id estável e explícito dentro daquela Route
+```
+
+Exemplos QA:
+
+```text
+QA_RouteContent_Canonical  -> qa-route-canonical-probe
+QA_RouteContent_Alternate  -> qa-route-alternate-probe
+```
+
+### Activity local visibility
+
+Em cada GameObject com `Activity Local Visibility Adapter`:
+
+```text
+Activity: Activity dona desse conteúdo local
+Local Content Id: id estável e explícito dentro daquela Activity
+```
+
+Exemplo QA:
+
+```text
+Local Visibility Adapter -> qa-activity-secondary-local-visibility
+```
+
+Use ids curtos, estáveis, em minúsculas e orientados ao papel autoral. Não copie o nome do GameObject como regra.
+
+---
+
+## Escopo ainda não implementado
+
+F5C ainda não implementa:
+
+```text
 LocalContributionDiscovery
 LocalContributionSet
 LocalContributionHandle
 Required/Optional policy
-Editor validator
 Runtime scanner
 ActivityContentSet integration
 RouteContentSet integration
@@ -107,15 +183,14 @@ Pooling
 
 O pacote deve compilar sem alterar comportamento runtime.
 
-Não há smoke funcional novo neste corte. A validação esperada é compile-smoke e execução dos smokes canônicos já existentes para garantir ausência de regressão.
-
-Critério de aceite:
+Critério de compile-smoke mínimo:
 
 ```text
-error CS                                                        0
-Exception                                                       0
-FATAL                                                           0
-Standard Smoke completed                                        1
-Route Callback Smoke completed                                 1
-Activity Baseline Smoke completed                              1
+error CS                                      0
+Exception                                     0
+FATAL                                         0
+Boot succeeded                                1
+QA Smoke completed. name='Standard Smoke'     1
 ```
+
+Depois de configurar os `Local Content Id` nos bindings/adapters das cenas abertas, `Project Settings > Immersive Framework > Validate Authoring` deve reportar `issues='0'` para o escopo já coberto por F5C.

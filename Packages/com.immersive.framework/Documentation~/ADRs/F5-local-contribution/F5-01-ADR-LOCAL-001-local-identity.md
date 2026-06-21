@@ -24,7 +24,7 @@ Nenhum dos dois é materialização canônica de Activity e nenhum dos dois deve
 
 A auditoria bruta do `NewScripts` mostra que o eixo local antigo usava `targetId` como cola textual para contributors, requirements, snapshot, restore, reset, release, placement, anchors e diagnostics. Esse padrão preserva capacidades úteis, mas cria acoplamento frágil por string.
 
-A auditoria do package atual mostra outro risco: `FrameworkContentContributionMarker` e `IFrameworkContentContribution` existem como API Experimental, mas ainda não têm discovery canônico nem consumer real. O marker atual também permite fallback de `ContributionId` para `GameObject.name`, o que viola a política de identidade aceita na F1/F5.
+A auditoria que abriu a F5 identificou outro risco: `FrameworkContentContributionMarker` e `IFrameworkContentContribution` existiam como API Experimental, sem discovery canônico nem consumer real. O marker também permitia fallback de `ContributionId` para `GameObject.name`, o que violava a política de identidade aceita na F1/F5. O F5C remove esse precursor em vez de manter trilho paralelo.
 
 Portanto F5 precisa começar por identidade local própria antes de marker, discovery, requiredness ou contribution set.
 
@@ -107,18 +107,20 @@ O padrão do `NewScripts` deve ser migrado conceitualmente assim:
 
 Em particular, qualquer handle derivado de `sceneName`, `objectName`, hierarchy ou path dentro do snapshot F4 permanece diagnóstico/local ao adapter de visibilidade.
 
-### 5. `FrameworkContentContributionMarker` atual não é contrato F5
+### 5. Precursor genérico não permanece como contrato F5
 
-`FrameworkContentContributionMarker` é precursor experimental. Ele não pode ser promovido diretamente para `LocalContributionMarker` enquanto permitir fallback de `ContributionId` para `GameObject.name`.
+`FrameworkContentContributionMarker` e `IFrameworkContentContribution` eram precursores experimentais sem consumer real e com risco de fallback funcional por `GameObject.name`.
 
-Opções aceitáveis para corte técnico posterior:
+A linha F5 não deve manter esse trilho paralelo quando os marcadores reais de cena já existem:
 
 ```text
-1. Substituir por novo LocalContributionMarker com explicitLocalId obrigatório.
-2. Refatorar FrameworkContentContributionMarker removendo fallback funcional e mantendo compatibilidade apenas documental/experimental.
+RouteContentBinding
+ActivityLocalVisibilityAdapter
 ```
 
-F5A não escolhe a implementação entre as duas opções. F5A só congela a regra arquitetural.
+Decisão aplicada no F5C: remover o precursor genérico obsoleto e acrescentar `Local Content Id` explícito nos bindings/adapters scene-authored existentes.
+
+Consequência: a identidade local entra onde o autor já configura a cena hoje. Não há componente `LocalContributionMarker` separado no F5C.
 
 ---
 
@@ -166,7 +168,7 @@ Eles não definem, por si só, contribuição local, capability, requiredness ou
 - Remove pressão para ressuscitar `targetId` como cola universal.
 - Impede fallback invisível por rename de GameObject.
 - Permite validators determinísticos.
-- Cria base segura para `LocalContributionMarker`, `LocalContributionSet`, requiredness e Surface.
+- Cria base segura para `ActivityLocalVisibilityAdapter` / `RouteContentBinding`, `LocalContributionSet`, requiredness e Surface.
 - Mantém labels e paths úteis como diagnostics sem virarem contrato.
 
 ### Negativas / trade-offs
@@ -184,7 +186,7 @@ F5A não implementa:
 
 ```text
 LocalContentIdentity.cs
-LocalContributionMarker
+Local contribution authoring
 LocalContributionDiscovery
 LocalContributionSet
 LocalContributionHandle
@@ -208,11 +210,11 @@ Pooling
 
 ## Critérios de validação para cortes técnicos posteriores
 
-- Marker local sem identidade explícita falha em validation.
+- Binding/adapter scene-authored sem `Local Content Id` explícito falha em validation.
 - Duplicidade da mesma identidade no mesmo escopo falha em validation.
 - Paths/nomes aparecem apenas em diagnostics.
 - `ActivityContentSet` F4 pode ser usado como fonte de escopo, mas não como chave funcional.
-- `FrameworkContentContributionMarker` não pode gerar identidade funcional F5 a partir de `GameObject.name`.
+- `FrameworkContentContributionMarker`/`IFrameworkContentContribution` não permanecem como API paralela; o precursor obsoleto é removido.
 - Required ausente deve falhar por policy estruturada quando requiredness entrar.
 - Optional ausente deve gerar skip diagnosticado quando requiredness entrar.
 
@@ -225,7 +227,7 @@ F5 deve seguir esta ordem:
 ```text
 F5A — ADR Local Identity
 F5B — LocalContentIdentity type
-F5C — LocalContributionMarker sem fallback funcional
+F5C — explicit local ids on scene-authored bindings
 F5D — Scoped discovery limitado a ContentSets conhecidos
 F5E — LocalContributionSet
 F5F — Required/Optional policy
