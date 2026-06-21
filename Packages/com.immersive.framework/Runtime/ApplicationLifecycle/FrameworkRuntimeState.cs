@@ -3,6 +3,7 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.SceneLifecycle;
+using Immersive.Framework.SessionLifecycle;
 using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.ApplicationLifecycle
@@ -23,38 +24,41 @@ namespace Immersive.Framework.ApplicationLifecycle
             ActivityFlowStartResult activityFlowResult,
             bool gameFlowStarted)
         {
-            GameApplication = gameApplication;
-            CurrentRoute = currentRoute;
-            RouteLifecycleResult = routeLifecycleResult;
-            RouteContentSet = routeContentSet;
-            PrimarySceneResult = primarySceneResult;
-            ActivityFlowResult = activityFlowResult;
-            GameFlowStarted = gameFlowStarted;
+            SessionState = new SessionRuntimeState(
+                gameApplication,
+                currentRoute,
+                routeLifecycleResult,
+                routeContentSet,
+                primarySceneResult,
+                activityFlowResult,
+                gameFlowStarted);
         }
 
-        public GameApplicationAsset GameApplication { get; }
+        public SessionRuntimeState SessionState { get; }
 
-        public RouteAsset CurrentRoute { get; }
+        public GameApplicationAsset GameApplication => SessionState.GameApplication;
 
-        public RouteLifecycleStartResult RouteLifecycleResult { get; }
+        public RouteAsset CurrentRoute => SessionState.CurrentRoute;
 
-        public RouteContentSet RouteContentSet { get; }
+        public RouteLifecycleStartResult RouteLifecycleResult => SessionState.RouteLifecycleResult;
 
-        public SceneLifecycleLoadResult PrimarySceneResult { get; }
+        public RouteContentSet RouteContentSet => SessionState.RouteContentSet;
 
-        public ActivityFlowStartResult ActivityFlowResult { get; }
+        public SceneLifecycleLoadResult PrimarySceneResult => SessionState.PrimarySceneResult;
 
-        public ActivityAsset CurrentActivity => ActivityFlowResult.Activity;
+        public ActivityFlowStartResult ActivityFlowResult => SessionState.ActivityFlowResult;
 
-        public string CurrentActivityName => CurrentActivity != null ? CurrentActivity.ActivityName : string.Empty;
+        public ActivityAsset CurrentActivity => SessionState.CurrentActivity;
 
-        public bool GameFlowStarted { get; }
+        public string CurrentActivityName => SessionState.CurrentActivityName;
 
-        public string CurrentRouteName => CurrentRoute != null ? CurrentRoute.RouteName : string.Empty;
+        public bool GameFlowStarted => SessionState.SessionStarted;
 
-        public string ActiveSceneName => PrimarySceneResult.SceneName;
+        public string CurrentRouteName => SessionState.CurrentRouteName;
 
-        public string ActiveScenePath => PrimarySceneResult.ScenePath;
+        public string ActiveSceneName => SessionState.ActiveSceneName;
+
+        public string ActiveScenePath => SessionState.ActiveScenePath;
 
         public static FrameworkRuntimeState Empty(GameApplicationAsset gameApplication)
         {

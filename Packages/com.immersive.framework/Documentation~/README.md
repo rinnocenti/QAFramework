@@ -56,8 +56,9 @@ Smoke valida.
 | 20 | [`F1_CLOSURE.md`](F1_CLOSURE.md) | Fechamento formal da Fase 1 antes de abrir F2. |
 | 21 | [`F2A_SESSION_SCOPE_ADR_ACCEPTANCE.md`](F2A_SESSION_SCOPE_ADR_ACCEPTANCE.md) | Aceite dos ADRs de Session scope antes da implementação técnica F2. |
 | 22 | [`F2A_REMOVED_FILES.txt`](F2A_REMOVED_FILES.txt) | Lista de paths ADR duplicados/obsoletos a remover se o pacote for aplicado por overlay. |
-| 23 | [`Guides/`](Guides/) | Guias de uso/visualização. |
-| 24 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
+| 23 | [`SESSION_RUNTIME_STATE_BOUNDARY.md`](SESSION_RUNTIME_STATE_BOUNDARY.md) | Corte técnico F2B: fronteira explícita de `SessionRuntimeState`. |
+| 24 | [`Guides/`](Guides/) | Guias de uso/visualização. |
+| 25 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
 ---
 
@@ -85,6 +86,7 @@ Documentation~/
 ├─ F1_CLOSURE.md
 ├─ F2A_SESSION_SCOPE_ADR_ACCEPTANCE.md
 ├─ F2A_REMOVED_FILES.txt
+├─ SESSION_RUNTIME_STATE_BOUNDARY.md
 ├─ Planning/
 │  ├─ Immersive-Framework-Roadmap-Revisado.md
 │  └─ Capability-Traceability-Matrix.md
@@ -169,6 +171,19 @@ Não trate `Draft / Deferred` como autorização para implementar.
 | F2-01 | ADR-SESSION-001 | Session Scope and Owner | Accepted | Session | Session runtime | [`abrir`](ADRs/F2-session-scope/F2-01-ADR-SESSION-001-session-scope-and-owner.md) |
 | F2-02 | ADR-SESSION-002 | SessionContent Ownership Semantics | Accepted | Session / Content | SessionContentSet | [`abrir`](ADRs/F2-session-scope/F2-02-ADR-SESSION-002-sessioncontent-ownership-semantics.md) |
 | F2-03 | ADR-SETTINGS-001 | Settings Source Policy | Accepted | Bootstrap / Settings | Project Settings / runtime bootstrap | [`abrir`](ADRs/F2-session-scope/F2-03-ADR-SETTINGS-001-settings-source-policy.md) |
+
+
+### F2B — SessionRuntimeState explicit boundary
+
+Status atual:
+
+```text
+F2B — APPLIED / PENDING COMPILE-SMOKE
+```
+
+Documento técnico: [`SESSION_RUNTIME_STATE_BOUNDARY.md`](SESSION_RUNTIME_STATE_BOUNDARY.md).
+
+Este corte cria a fronteira explícita `Runtime/SessionLifecycle/SessionRuntimeState.cs` e conecta o estado ao `FrameworkRuntimeHost`, sem criar `SessionContentSet` ainda.
 
 ### F3 — Route baseline
 

@@ -3,6 +3,7 @@ using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Diagnostics;
 using Immersive.Framework.GameFlow;
+using Immersive.Framework.SessionLifecycle;
 using UnityEngine;
 using Immersive.Framework.ApiStatus;
 
@@ -25,6 +26,8 @@ namespace Immersive.Framework.ApplicationLifecycle
         private FrameworkLogger _logger;
 
         public FrameworkRuntimeState State => _state;
+
+        public SessionRuntimeState SessionState => _state.SessionState;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStaticState()

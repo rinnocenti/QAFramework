@@ -719,3 +719,12 @@ Antes de abrir um corte técnico, responder:
 | **F10** | Input mode contract, Activity input consumer, Input mode owner, Player slot/command binding, Snapshot envelope, Snapshot participant, Snapshot set, Save backend port, Schema versioning, Pause surface consumer, Pause state contract, Pause lifecycle, Activity snapshot, Local snapshot participant |
 | **F11** | Camera consumer, Camera anchor binding, Camera scope, Camera binding result, Virtual camera binding, BGM lifecycle consumer, SFX dispatch, Actor materialization, Actor contribution, Actor runtime identity, Actor reset/release, Player actor binding, Pooling rent/return, Pool ownership, Pooled materializer, Runtime spawned contribution |
 | **F12** | Projectile as RuntimeSpawned, Impact handling, Damage as capability, Attributes as snapshot-capable |
+
+
+### F2B — SessionRuntimeState explicit boundary
+
+| Capability | Cut | Status | Evidence | Notes |
+|---|---|---|---|---|
+| Session runtime state | F2B | APPLIED / PENDING COMPILE-SMOKE | `Runtime/SessionLifecycle/SessionRuntimeState.cs` | Explicit Session state boundary created. `FrameworkRuntimeState` remains compatibility facade. |
+
+F2B intentionally does not implement `SessionContentSet`, persistent scenes, Route baseline, Surface or RuntimeMaterialization.

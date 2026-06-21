@@ -55,12 +55,13 @@ Current F2 status:
 
 ```text
 F2A — CLOSED / ADRS ACCEPTED
+F2B — APPLIED / PENDING COMPILE-SMOKE
 ```
 
-Next authorized cut:
+Current authorized validation:
 
 ```text
-F2B — SessionRuntimeState explicit boundary
+F2B — compile-smoke
 ```
 
 Status distinction:
@@ -71,6 +72,22 @@ Cut/phase status uses Closed / PASS or Closed / Accepted.
 ```
 
 F0 is closed. F1 is closed. F2A accepted the Session scope ADRs. F2 may now move to the first technical cut, but must not skip directly to Route, Surface, RuntimeMaterialization or consumers.
+
+## F2B — SessionRuntimeState explicit boundary
+
+F2B introduces an explicit `SessionRuntimeState` boundary owned by the current `FrameworkRuntimeHost`.
+
+```text
+Runtime/SessionLifecycle/SessionRuntimeState.cs
+```
+
+The old `FrameworkRuntimeState` remains as a compatibility facade and delegates to `SessionRuntimeState`. This cut does not create `SessionContentSet`, persistent scenes, Route baseline, Surface, RuntimeMaterialization or consumers.
+
+See:
+
+```text
+Documentation~/SESSION_RUNTIME_STATE_BOUNDARY.md
+```
 
 ## Active baseline decisions
 
@@ -125,6 +142,7 @@ Then follow the roadmap order:
 18. Documentation~/F1F_CLOSURE.md
 19. Documentation~/F1_CLOSURE.md
 20. Documentation~/F2A_SESSION_SCOPE_ADR_ACCEPTANCE.md
+21. Documentation~/SESSION_RUNTIME_STATE_BOUNDARY.md
 ```
 
 ## ADR file naming
@@ -334,8 +352,12 @@ See:
 Documentation~/F1_CLOSURE.md
 ```
 
-## Next authorized cut
+## Current F2 validation
 
 ```text
-F2B — SessionRuntimeState explicit boundary
+F2B — APPLIED / PENDING COMPILE-SMOKE
 ```
+
+F2B is the first technical Session scope cut. Validate it with the standard boot/route/activity/clear smoke before opening F2C.
+
+Do not start F3, Surface, RuntimeMaterialization or consumers before F2 technical closure.

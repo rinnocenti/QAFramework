@@ -748,7 +748,7 @@ F2-03 — ADR-SETTINGS-001 — Accepted
 O próximo corte autorizado é:
 
 ```text
-F2B — SessionRuntimeState explicit boundary
+F2B — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 F2B deve cobrir o início técnico de:
@@ -778,3 +778,11 @@ F10/F11 Consumers
 ```
 
 Esses cortes dependem de F2 técnico fechado.
+
+### F2B status — SessionRuntimeState explicit boundary
+
+Status: APPLIED / PENDING COMPILE-SMOKE
+
+F2B covers `IF-FW-ROAD-2B` by introducing `Runtime/SessionLifecycle/SessionRuntimeState.cs` and making `FrameworkRuntimeState` a compatibility facade over the explicit Session state.
+
+F2B does not implement `SessionContentSet`, persistent scenes, Route baseline, Surface or RuntimeMaterialization.
