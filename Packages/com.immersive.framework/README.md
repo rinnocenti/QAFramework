@@ -97,7 +97,37 @@ ADR status uses Accepted.
 Cut/phase status uses Closed / PASS or Closed / Accepted.
 ```
 
-F0 is closed. F1 is closed. F2 is closed. F3 Route baseline is closed. F4 may start with Activity baseline work. Do not skip directly to Surface, RuntimeMaterialization or consumers.
+F0 is closed. F1 is closed. F2 is closed. F3 Route baseline is closed. F4 Activity baseline is open with F4A applied and pending compile-smoke. Do not skip directly to Surface, RuntimeMaterialization or consumers.
+
+
+## F4A — ActivityRuntimeState refinado
+
+F4A implements the roadmap item:
+
+```text
+IF-FW-ROAD-4A — ActivityRuntimeState refinado
+```
+
+It introduces:
+
+```text
+Runtime/ActivityFlow/ActivityRuntimeStatus.cs
+Runtime/ActivityFlow/ActivityRuntimeState.cs
+```
+
+`ActivityFlowRuntime` now owns the current Activity through `ActivityRuntimeState`, with explicit `None`/`Active` status and a typed `FrameworkIdentityKey` in the `Activity` domain. `Transitioning` is reserved but not emitted in this cut.
+
+Status:
+
+```text
+F4A — APPLIED / PENDING COMPILE-SMOKE
+```
+
+See:
+
+```text
+Documentation~/ACTIVITY_RUNTIME_STATE_REFINED.md
+```
 
 
 ## F3B — RouteRuntimeState tipado

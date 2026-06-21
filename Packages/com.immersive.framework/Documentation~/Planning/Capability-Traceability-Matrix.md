@@ -103,7 +103,7 @@ Regras:
 |---|---|---|---|---|---|---|---|---|---|---|
 | Activity asset declarativo | Preservar; reduzir fields cross-cutting | F4 | F4 | IF-FW-ROAD-4A | Presente / Parcial | Coberto | Core | Route handoff + ActivityContentSet | Baixo / controlado | Sem ajuste. |
 | Activity content profile | Preservar como perfil separado | F4 | Deferred após F4/F6 | IF-FW-ROAD-4B | Parcial / Ausente | Coberto com ajuste / Deferred | Core | Route handoff + ActivityContentSet | Risco de entrar cedo demais | F4 deve criar ActivityContentSet/readiness mínimo; profile avançado vem depois de scene composition/release. |
-| Activity runtime state | Redesenhar com typed IDs | F4 | F4 | IF-FW-ROAD-4A | Parcial / Ausente | Coberto | Core | RuntimeContentHandle + ContributionSet + release policy | Baixo / controlado | Sem ajuste. |
+| Activity runtime state | Redesenhar com typed IDs | F4 | F4A | IF-FW-ROAD-4A | Presente / Parcial | Coberto | Core | ActivityContentSet + readiness mínimo | Baixo / controlado | F4A introduz `ActivityRuntimeState` com status `None`/`Active` e identidade `Activity:*`; `Transitioning` fica reservado. |
 | Activity entry context | Preservar boundary; reduzir payload | F4 | F4 | IF-FW-ROAD-4B | Parcial / Ausente | Coberto | Core | Route handoff + ActivityContentSet | Baixo / controlado | Sem ajuste. |
 | Activity content set | Preservar como `ActivityContentSet` | F4 | F4 | IF-FW-ROAD-4B | Parcial / Ausente | Coberto | Core | Route handoff + ActivityContentSet | Baixo / controlado | Sem ajuste. |
 | Activity content loading | Preservar com plan/result/handles | F4–F6 | F6+ | IF-FW-ROAD-4B, 6D | Parcial / Ausente | Coberto com ajuste / Deferred | Core | Route handoff + ActivityContentSet | Baixo / controlado | Carregamento real de cenas da Activity depende de plan/result/release. |
@@ -528,7 +528,7 @@ Antes de abrir um corte técnico, responder:
 |---|---|---|---|---|---|
 | Activity asset declarativo | Define unidade jogável/contextual. | `ActivityAsset` | Preservar; reduzir fields cross-cutting | F4 | IF-FW-ROAD-4A |
 | Activity content profile | Declara cenas/conteúdo que a Activity precisa carregar. | `ActivityContentProfileAsset`, `ActivityContentSceneEntry` | Preservar como perfil separado | F4 | IF-FW-ROAD-4B |
-| Activity runtime state | Estado ativo/none/transition da Activity. | `SessionActivityIdentity`, `SessionActivityCycleKey` | Redesenhar com typed IDs | F4 | IF-FW-ROAD-4A |
+| Activity runtime state | Estado ativo/none/transition da Activity. | `SessionActivityIdentity`, `SessionActivityCycleKey` | `ActivityRuntimeState` com typed identity | F4A | IF-FW-ROAD-4A |
 | Activity entry context | Contexto de entrada recebido do handoff da Route. | `SessionActivityEntryHandoff` | Preservar boundary; reduzir payload | F4 | IF-FW-ROAD-4B |
 | Activity content set | Registro de cenas/conteúdo efetivamente carregados. | `ActivityContentLoadedSet` | Preservar como `ActivityContentSet` | F4 | IF-FW-ROAD-4B |
 | Activity content loading | Carrega cenas de conteúdo da Activity via adapter. | `UnityActivityContentSceneAdapter` | Preservar com plan/result/handles | F4–F6 | IF-FW-ROAD-4B, 6D |

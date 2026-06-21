@@ -53,9 +53,13 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         public ActivityFlowStartResult ActivityFlowResult => SessionState.ActivityFlowResult;
 
+        public ActivityRuntimeState ActivityState => SessionState.ActivityState;
+
         public ActivityAsset CurrentActivity => SessionState.CurrentActivity;
 
         public string CurrentActivityName => SessionState.CurrentActivityName;
+
+        public string CurrentActivityIdentity => SessionState.CurrentActivityIdentity;
 
         public bool GameFlowStarted => SessionState.SessionStarted;
 

@@ -16,7 +16,7 @@ namespace Immersive.Framework.ActivityFlow
             bool keptActive,
             bool cleared,
             string message,
-            ActivityAsset activity,
+            ActivityRuntimeState activityState,
             ActivityAsset previousActivity,
             ActivityContentApplyResult activityContentResult)
         {
@@ -25,7 +25,7 @@ namespace Immersive.Framework.ActivityFlow
             KeptActive = keptActive;
             Cleared = cleared;
             Message = message ?? string.Empty;
-            Activity = activity;
+            ActivityState = activityState;
             PreviousActivity = previousActivity;
             ActivityContentResult = activityContentResult;
         }
@@ -40,7 +40,9 @@ namespace Immersive.Framework.ActivityFlow
 
         public string Message { get; }
 
-        public ActivityAsset Activity { get; }
+        public ActivityRuntimeState ActivityState { get; }
+
+        public ActivityAsset Activity => ActivityState.Activity;
 
         public ActivityAsset PreviousActivity { get; }
 
@@ -50,12 +52,17 @@ namespace Immersive.Framework.ActivityFlow
 
         public bool Completed => Started || Skipped || KeptActive || Cleared;
 
+        public bool HasActivityState => ActivityState.IsActive || ActivityState.IsNone || ActivityState.IsTransitioning;
+
+        public string ActivityIdentity => ActivityState.DiagnosticIdentity;
+
         public static ActivityFlowStartResult Failed(string message)
         {
-            return new ActivityFlowStartResult(false, false, false, false, message, null, null, default);
+            return new ActivityFlowStartResult(false, false, false, false, message, default, null, default);
         }
 
         public static ActivityFlowStartResult SkippedNoStartupActivity(
+            ActivityRuntimeState activityState,
             ActivityAsset previousActivity,
             ActivityContentApplyResult activityContentResult)
         {
@@ -66,8 +73,8 @@ namespace Immersive.Framework.ActivityFlow
                     true,
                     false,
                     false,
-                    AppendContentMessage(string.Empty, activityContentResult),
-                    null,
+                    AppendContentMessage(ActivityStateMessage(activityState), activityContentResult),
+                    activityState,
                     null,
                     activityContentResult);
             }
@@ -77,13 +84,14 @@ namespace Immersive.Framework.ActivityFlow
                 false,
                 false,
                 true,
-                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' because Route has no Startup Activity.", activityContentResult),
-                null,
+                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' because Route has no Startup Activity. {ActivityStateMessage(activityState)}", activityContentResult),
+                activityState,
                 previousActivity,
                 activityContentResult);
         }
 
         public static ActivityFlowStartResult ClearedByRequest(
+            ActivityRuntimeState activityState,
             ActivityAsset previousActivity,
             ActivityContentApplyResult activityContentResult)
         {
@@ -97,33 +105,34 @@ namespace Immersive.Framework.ActivityFlow
                 false,
                 false,
                 true,
-                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' by request.", activityContentResult),
-                null,
+                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' by request. {ActivityStateMessage(activityState)}", activityContentResult),
+                activityState,
                 previousActivity,
                 activityContentResult);
         }
 
-        public static ActivityFlowStartResult KeptCurrentActivity(ActivityAsset activity)
+        public static ActivityFlowStartResult KeptCurrentActivity(ActivityRuntimeState activityState)
         {
             return new ActivityFlowStartResult(
                 false,
                 false,
                 true,
                 false,
-                $"Activity Flow kept Activity '{activity.ActivityName}' active.",
-                activity,
-                activity,
+                $"Activity Flow kept Activity '{activityState.ActivityName}' active. {ActivityStateMessage(activityState)}",
+                activityState,
+                activityState.Activity,
                 default);
         }
 
         public static ActivityFlowStartResult StartedWith(
-            ActivityAsset activity,
+            ActivityRuntimeState activityState,
             ActivityAsset previousActivity,
             ActivityContentApplyResult activityContentResult)
         {
+            var activity = activityState.Activity;
             string message = previousActivity != null && !ReferenceEquals(previousActivity, activity)
-                ? $"Activity Flow switched from Activity '{previousActivity.ActivityName}' to Activity '{activity.ActivityName}'."
-                : $"Activity Flow started Activity '{activity.ActivityName}'.";
+                ? $"Activity Flow switched from Activity '{previousActivity.ActivityName}' to Activity '{activity.ActivityName}'. {ActivityStateMessage(activityState)}"
+                : $"Activity Flow started Activity '{activity.ActivityName}'. {ActivityStateMessage(activityState)}";
 
             return new ActivityFlowStartResult(
                 true,
@@ -131,9 +140,19 @@ namespace Immersive.Framework.ActivityFlow
                 false,
                 false,
                 AppendContentMessage(message, activityContentResult),
-                activity,
+                activityState,
                 previousActivity,
                 activityContentResult);
+        }
+
+        private static string ActivityStateMessage(ActivityRuntimeState activityState)
+        {
+            if (activityState.IsActive)
+            {
+                return $"activityState='{activityState.DiagnosticStatus}' activityIdentity='{activityState.DiagnosticIdentity}'.";
+            }
+
+            return $"activityState='{activityState.DiagnosticStatus}'.";
         }
 
         private static string AppendContentMessage(string message, ActivityContentApplyResult activityContentResult)

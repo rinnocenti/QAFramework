@@ -318,13 +318,13 @@ Objetivo: amadurecer Activity sem copiar `ActivityEntryPipeline`.
 Status atual:
 
 ```text
-F4 — OPEN / NEXT
-F4A — PLANNED
+F4 — OPEN
+F4A — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 | ID | Entrega | Detalhes |
 |---|---|---|
-| IF-FW-ROAD-4A | `ActivityRuntimeState` refinado | Estado ativo/none/transition, se necessário. |
+| IF-FW-ROAD-4A | `ActivityRuntimeState` refinado | APPLIED em F4A. Estado explícito `None`/`Active`, identidade tipada `Activity:*` e `Transitioning` reservado. |
 | IF-FW-ROAD-4B | `ActivityContentSet` mínimo | Registro do conteúdo local ativo da Activity. |
 | IF-FW-ROAD-4C | `ActivityContentLifecycleResult` | Resultado tipado de enter/exit/clear com diagnostics. |
 | IF-FW-ROAD-4D | `ActivityReadinessState` mínimo | Inicialmente pode ser sempre ready após bindings aplicados. |

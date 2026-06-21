@@ -325,6 +325,10 @@ Este corte implementa `IF-FW-ROAD-3E` adicionando o smoke explícito `Run Route 
 
 ### F4 — Activity content and readiness
 
+| Corte | Documento | Status |
+|---|---|---|
+| F4A | [`ACTIVITY_RUNTIME_STATE_REFINED.md`](ACTIVITY_RUNTIME_STATE_REFINED.md) | Applied / Pending compile-smoke |
+
 | Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
 |---|---|---|---|---|---|---|
 | F4-01 | ADR-ACTIVITY-001 | ActivityContentSet and Readiness Baseline | Draft / Deferred | Activity | ActivityFlow | [`abrir`](ADRs/F4-activity-content-and-readiness/F4-01-ADR-ACTIVITY-001-activitycontentset-and-readiness-baseline.md) |

@@ -8,7 +8,7 @@ namespace Immersive.Framework.ActivityFlow
 {
     /// <summary>
     /// Minimal owner for Activity entry and exit identity.
-    /// It owns the active Activity identity for the current application runtime and emits canonical lifecycle events.
+    /// It owns the active Activity runtime state for the current application runtime and emits canonical lifecycle events.
     /// </summary>
     [FrameworkApiStatus(FrameworkApiStatus.Internal, "Runtime implementation detail; not game-facing API.")]
     internal sealed class ActivityFlowRuntime
@@ -18,21 +18,24 @@ namespace Immersive.Framework.ActivityFlow
         private readonly EventBus<ActivityExitedEvent> _activityExitedEvents = new EventBus<ActivityExitedEvent>();
         private readonly IEventBinding _activityContentEnteredBinding;
         private readonly IEventBinding _activityContentExitedBinding;
-        private ActivityAsset _currentActivity;
+        private ActivityRuntimeState _currentActivityState;
 
         internal ActivityFlowRuntime()
         {
+            _currentActivityState = ActivityRuntimeState.Empty();
             _activityContentEnteredBinding = _activityEnteredEvents.Subscribe(_activityContentRuntime.HandleActivityEntered);
             _activityContentExitedBinding = _activityExitedEvents.Subscribe(_activityContentRuntime.HandleActivityExited);
         }
 
-        internal ActivityAsset CurrentActivity => _currentActivity;
+        internal ActivityRuntimeState CurrentActivityState => _currentActivityState;
 
-        internal bool HasActiveActivity => _currentActivity != null;
+        internal ActivityAsset CurrentActivity => _currentActivityState.Activity;
+
+        internal bool HasActiveActivity => _currentActivityState.IsActive;
 
         internal bool IsActivityActive(ActivityAsset activity)
         {
-            return activity != null && ReferenceEquals(_currentActivity, activity);
+            return activity != null && ReferenceEquals(_currentActivityState.Activity, activity);
         }
 
         internal IEventBinding SubscribeActivityEntered(Action<ActivityEnteredEvent> handler)
@@ -55,12 +58,12 @@ namespace Immersive.Framework.ActivityFlow
                 return Task.FromResult(ActivityFlowStartResult.Failed("Route is missing."));
             }
 
-            var previousActivity = _currentActivity;
+            var previousActivity = _currentActivityState.Activity;
             if (!route.HasStartupActivity)
             {
-                _currentActivity = null;
+                _currentActivityState = ActivityRuntimeState.None(previousActivity, resolvedSource, resolvedReason);
                 var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, null, resolvedSource, resolvedReason);
-                return Task.FromResult(ActivityFlowStartResult.SkippedNoStartupActivity(previousActivity, contentResult));
+                return Task.FromResult(ActivityFlowStartResult.SkippedNoStartupActivity(_currentActivityState, previousActivity, contentResult));
             }
 
             return StartActivityCoreAsync(route.StartupActivity, previousActivity, resolvedSource, resolvedReason);
@@ -76,7 +79,7 @@ namespace Immersive.Framework.ActivityFlow
                 return Task.FromResult(ActivityFlowStartResult.Failed("Activity is missing."));
             }
 
-            return StartActivityCoreAsync(activity, _currentActivity, resolvedSource, resolvedReason);
+            return StartActivityCoreAsync(activity, _currentActivityState.Activity, resolvedSource, resolvedReason);
         }
 
         internal Task<ActivityFlowStartResult> ClearActivityAsync(string source, string reason)
@@ -84,15 +87,15 @@ namespace Immersive.Framework.ActivityFlow
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
 
-            var previousActivity = _currentActivity;
+            var previousActivity = _currentActivityState.Activity;
             if (previousActivity == null)
             {
                 return Task.FromResult(ActivityFlowStartResult.Failed("Activity Flow cannot clear Activity because no Activity is active."));
             }
 
-            _currentActivity = null;
+            _currentActivityState = ActivityRuntimeState.None(previousActivity, resolvedSource, resolvedReason);
             var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, null, resolvedSource, resolvedReason);
-            return Task.FromResult(ActivityFlowStartResult.ClearedByRequest(previousActivity, contentResult));
+            return Task.FromResult(ActivityFlowStartResult.ClearedByRequest(_currentActivityState, previousActivity, contentResult));
         }
 
         private Task<ActivityFlowStartResult> StartActivityCoreAsync(ActivityAsset nextActivity, ActivityAsset previousActivity, string source, string reason)
@@ -107,12 +110,17 @@ namespace Immersive.Framework.ActivityFlow
 
             if (ReferenceEquals(previousActivity, nextActivity))
             {
-                return Task.FromResult(ActivityFlowStartResult.KeptCurrentActivity(nextActivity));
+                if (!_currentActivityState.IsActive)
+                {
+                    _currentActivityState = ActivityRuntimeState.ActiveWith(nextActivity, previousActivity, resolvedSource, resolvedReason);
+                }
+
+                return Task.FromResult(ActivityFlowStartResult.KeptCurrentActivity(_currentActivityState));
             }
 
-            _currentActivity = nextActivity;
+            _currentActivityState = ActivityRuntimeState.ActiveWith(nextActivity, previousActivity, resolvedSource, resolvedReason);
             var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, nextActivity, resolvedSource, resolvedReason);
-            return Task.FromResult(ActivityFlowStartResult.StartedWith(nextActivity, previousActivity, contentResult));
+            return Task.FromResult(ActivityFlowStartResult.StartedWith(_currentActivityState, previousActivity, contentResult));
         }
 
         private ActivityContentApplyResult ApplyActivityContentThroughLifecycleEvents(ActivityAsset previousActivity, ActivityAsset nextActivity, string source, string reason)

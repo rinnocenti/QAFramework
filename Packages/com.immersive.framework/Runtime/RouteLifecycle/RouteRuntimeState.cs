@@ -49,7 +49,9 @@ namespace Immersive.Framework.RouteLifecycle
 
         public bool Entered { get; }
 
-        public ActivityAsset CurrentActivity => ActivityFlowResult.Activity;
+        public ActivityRuntimeState ActivityState => ActivityFlowResult.ActivityState;
+
+        public ActivityAsset CurrentActivity => ActivityState.Activity;
 
         public bool HasRoute => Route != null;
 
@@ -57,11 +59,15 @@ namespace Immersive.Framework.RouteLifecycle
 
         public bool HasRouteContent => RouteContentSet.HasContent;
 
-        public bool HasActiveActivity => CurrentActivity != null;
+        public bool HasActiveActivity => ActivityState.IsActive;
+
+        public bool HasActivityIdentity => ActivityState.HasIdentity;
 
         public string RouteName => Route != null ? Route.RouteName : string.Empty;
 
-        public string CurrentActivityName => CurrentActivity != null ? CurrentActivity.ActivityName : string.Empty;
+        public string CurrentActivityName => ActivityState.ActivityName;
+
+        public string CurrentActivityIdentity => ActivityState.DiagnosticIdentity;
 
         public string SceneName => SceneLifecycleResult.SceneName;
 
