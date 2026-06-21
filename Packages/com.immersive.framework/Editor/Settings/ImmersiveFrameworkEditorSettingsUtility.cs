@@ -10,6 +10,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
         internal const string GameApplicationDefaultPath = "Assets/ImmersiveFramework/GameApplication.asset";
         internal const string StartupRouteDefaultPath = "Assets/ImmersiveFramework/Routes/StartupRoute.asset";
         internal const string StartupActivityDefaultPath = "Assets/ImmersiveFramework/Activities/StartupActivity.asset";
+        internal const string RouteContentProfileDefaultPath = "Assets/ImmersiveFramework/Routes/RouteContentProfile.asset";
         internal const string UsageGuidePath = "Packages/com.immersive.framework/Documentation~/Guides/Usage/index.html";
 
         internal static ImmersiveFrameworkSettingsAsset LoadOrCreateSettingsAsset()
@@ -34,7 +35,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
         {
             EnsureDirectory("Assets/ImmersiveFramework");
 
-            string path = AssetDatabase.GenerateUniqueAssetPath(GameApplicationDefaultPath);
+            var path = AssetDatabase.GenerateUniqueAssetPath(GameApplicationDefaultPath);
             var gameApplication = ScriptableObject.CreateInstance<GameApplicationAsset>();
             AssetDatabase.CreateAsset(gameApplication, path);
             AssetDatabase.SaveAssets();
@@ -47,7 +48,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
         {
             EnsureDirectory("Assets/ImmersiveFramework/Routes");
 
-            string path = AssetDatabase.GenerateUniqueAssetPath(StartupRouteDefaultPath);
+            var path = AssetDatabase.GenerateUniqueAssetPath(StartupRouteDefaultPath);
             var route = ScriptableObject.CreateInstance<RouteAsset>();
             AssetDatabase.CreateAsset(route, path);
             AssetDatabase.SaveAssets();
@@ -60,13 +61,26 @@ namespace Immersive.Framework.Editor.Editor.Settings
         {
             EnsureDirectory("Assets/ImmersiveFramework/Activities");
 
-            string path = AssetDatabase.GenerateUniqueAssetPath(StartupActivityDefaultPath);
+            var path = AssetDatabase.GenerateUniqueAssetPath(StartupActivityDefaultPath);
             var activity = ScriptableObject.CreateInstance<ActivityAsset>();
             AssetDatabase.CreateAsset(activity, path);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
             return activity;
+        }
+
+        internal static RouteContentProfileAsset CreateRouteContentProfileAsset()
+        {
+            EnsureDirectory("Assets/ImmersiveFramework/Routes");
+
+            var path = AssetDatabase.GenerateUniqueAssetPath(RouteContentProfileDefaultPath);
+            var profile = ScriptableObject.CreateInstance<RouteContentProfileAsset>();
+            AssetDatabase.CreateAsset(profile, path);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            return profile;
         }
 
         internal static GameApplicationAsset GetActiveGameApplication()
@@ -117,7 +131,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
 
         internal static void OpenUsageGuide()
         {
-            string absolutePath = Path.GetFullPath(UsageGuidePath).Replace("\\", "/");
+            var absolutePath = Path.GetFullPath(UsageGuidePath).Replace("\\", "/");
             Application.OpenURL($"file:///{absolutePath}");
         }
 
@@ -128,12 +142,12 @@ namespace Immersive.Framework.Editor.Editor.Settings
                 return;
             }
 
-            string[] parts = path.Split('/');
-            string current = parts[0];
+            var parts = path.Split('/');
+            var current = parts[0];
 
-            for (int i = 1; i < parts.Length; i++)
+            for (var i = 1; i < parts.Length; i++)
             {
-                string next = $"{current}/{parts[i]}";
+                var next = $"{current}/{parts[i]}";
                 if (!AssetDatabase.IsValidFolder(next))
                 {
                     AssetDatabase.CreateFolder(current, parts[i]);

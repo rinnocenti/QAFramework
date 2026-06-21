@@ -472,9 +472,26 @@ Reason:
 Decision:
 
 - Remove `Runtime/CameraFlow` from the active package.
-- Do not keep `FrameworkCameraBinding`, `FrameworkCameraAuthority`, `FrameworkCameraRequest`, `FrameworkCameraScope`, `FrameworkCameraActivatedEvent`, or `FrameworkCameraDeactivatedEvent` as active runtime types.
+- Do not keep the exploratory physical-camera implementation as an active runtime lane. Future camera types may reuse clean names only if they follow the persistent output rig + virtual-camera request model.
 - Reintroduce camera later as a clean CameraFlow cut based on a persistent output rig and semantic virtual-camera requests.
 - The future canonical shape should be: persistent Unity output camera with Cinemachine Brain, route/activity/pause/presentation virtual camera requests, and a semantic priority model: `Pause > Presentation > Activity > Route > Default`.
 - Audio listener ownership remains outside camera and belongs to a future AudioFlow that guarantees one active listener per session.
 
 This removal does not add Cinemachine, AudioFlow, Actor, Input, Save, Pooling, Addressables, validators, custom Inspectors, QA UI or a new lifecycle pipeline.
+
+## Amendment — IF-FW-4B Camera Output Rig + Cinemachine Boundary
+
+Camera re-enters through the clean path after the exploratory physical-camera binding was removed.
+
+Decision:
+
+- CameraFlow owns semantic camera request resolution, not content visibility.
+- The physical Unity render camera belongs to a persistent `FrameworkCameraOutputRig`.
+- The output rig must have a Unity `Camera` and `CinemachineBrain`.
+- Route, Activity, Pause, Presentation and Default scopes contribute virtual camera requests through `FrameworkCinemachineCameraBinding`.
+- Request rigs must not contain Unity `Camera` or `CinemachineBrain`.
+- Camera priority is semantic: `Pause > Presentation > Activity > Route > Default`.
+- The Cinemachine adapter translates the selected semantic request into Cinemachine priority.
+- CameraFlow does not control `AudioListener`; listener ownership belongs to future AudioFlow.
+
+This keeps content lifecycle and camera authority separate. Activity/Route content can activate or unload local virtual camera request rigs, but the render camera remains session-scoped and persistent.

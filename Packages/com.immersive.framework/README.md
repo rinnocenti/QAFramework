@@ -16,125 +16,92 @@ Technical infrastructure remains outside this package:
 - `com.immersive.logging`
 - `com.immersive.pooling`
 
-## Current cut
+## Frozen baseline — Content Materialization Planning
 
-`IF-FW-4A-R4 - CameraFlow Removal` removes the exploratory physical-camera CameraFlow implementation from the package. The removed path placed real Unity cameras under Route/Activity content and let content activation/destruction mask camera selection, so it is not retained as a fallback or legacy lane. Camera will re-enter in a clean cut as a persistent output rig plus semantic virtual-camera requests, with Cinemachine as the concrete adapter and AudioListener ownership reserved for a separate AudioFlow.
+The current materialization baseline is frozen at:
 
-`IF-FW-3J - Request Trigger Event State Surface` adds local read-only request state to `RouteRequestTrigger` and `ActivityRequestTrigger` on top of the Foundation event boundary. Triggers now expose `IsRequestInFlight`, last event phase, last outcome, last reason, last message and convenience outcome flags for local scripts that need to query request state after receiving typed events. It does not add trigger-owned UnityEvents; request result notification remains published through `com.immersive.foundation`.
+```text
+IF-FW-4C — ContentFlow Core + Route Content Set Baseline
+IF-FW-4D — Route Content Profile Planning Baseline
+```
 
-`IF-FW-3I-FIX1 - Request Trigger Foundation Events` corrects the request-trigger result boundary. `RouteRequestTrigger` and `ActivityRequestTrigger` can still be invoked by UI Buttons/UnityEvents, but request result notification is now published through `com.immersive.foundation` typed events instead of trigger-owned UnityEvents. Inspector UnityEvent usage remains isolated to explicit bridge components such as `ActivityContentLifecycleEvents` and `RouteContentLifecycleEvents`.
+Validation status:
 
-`IF-FW-3H - Content Lifecycle UnityEvent Bridge` adds runtime UnityEvent bridge components for scene-authored Route and Activity content. `ActivityContentLifecycleEvents` and `RouteContentLifecycleEvents` invoke no-argument UnityEvents on local enter/exit, letting authored scene objects trigger simple gameplay reactions without custom scripts, service locators, validators, new QA UI, pipeline stages, Actor, Input, Camera, Save or Pooling.
+```text
+IF-FW-4C: CLOSED / COMPILE PASS
+IF-FW-4D: CLOSED / COMPILE PASS
+Smoke: optional for both cuts because they do not change visible scene behavior beyond diagnostics/authoring.
+```
 
-`IF-FW-3G - Content Lifecycle Dispatch Order` makes local content receiver dispatch deterministic for Route and Activity scopes. Enter callbacks are dispatched parent-to-child, while exit callbacks are dispatched child-to-parent. This lets parent/root behaviours prepare shared state before children enter, and lets children release local work before the parent/root exits. It does not change Route switching, Activity visibility, scene loading, validation, QA UI, Actor, Input, Camera, Save, Pooling or pipeline ownership.
+This baseline establishes the first common language for content materialization and applies it only to Route primary-scene tracking and Route content planning.
 
-`IF-FW-3F - Flow Request Context Surface` propagates request `source` and `reason` from Game Flow into Route/Activity content lifecycle contexts. `ActivityContentLifecycleContext` and `RouteContentLifecycleContext` now expose `Source` and `Reason`, and the Behaviour base classes expose `LifecycleSource` and `LifecycleReason`. This keeps local gameplay scripts informed about whether a lifecycle transition came from startup, QA, a trigger, or another request path without exposing runtime hosts or service locators. It does not change Route switching, Activity visibility, scene loading, validation, QA UI, Actor, Input, Camera, Save, Pooling or pipeline ownership.
+Important frozen decisions:
 
-`IF-FW-3E - Content Lifecycle State Surface` adds a minimal runtime state surface to Activity/Route content lifecycle. Callback contexts now expose their lifecycle phase, and `ActivityContentBehaviour` / `RouteContentBehaviour` expose current active-state helpers and last context data for gameplay scripts. This does not change Route switching, Activity visibility, scene loading, validation, QA UI, Actor, Input, Camera, Save, Pooling or pipeline ownership.
+- content is not `GameObject.SetActive`;
+- `ActivityContentBinding` and `RouteContentBinding` are local visibility/lifecycle adapters, not canonical materialization;
+- CameraFlow and AudioFlow are intentionally out of scope until materialization scopes are planned top-down;
+- Route additive scene execution is deferred;
+- Activity content profiles are deferred;
+- no fallback path is allowed for required content once execution cuts begin.
 
-`IF-FW-3D - Content Lifecycle Behaviours` adds optional base MonoBehaviours for scene-authored content. `ActivityContentBehaviour` and `RouteContentBehaviour` implement the receiver interfaces and expose protected virtual callbacks, so gameplay scripts can participate in Activity/Route lifecycle without repeating interface boilerplate. This is an ergonomics layer only; it does not change routing, Activity visibility, scene loading, validation, QA UI, Actor, Input, Camera, Save, Pooling or pipeline ownership.
+The planned order is top-down:
 
-`IF-FW-3C - Content Lifecycle Receiver Safety` protects Activity and Route content receiver dispatch. If one local receiver throws, the framework logs contextual failure and continues dispatching the remaining receivers instead of aborting the Route/Activity flow.
+```text
+Session
+↓
+Route
+↓
+Activity
+↓
+Local
+```
 
-`IF-FW-3B - Route Content Lifecycle Receivers` adds the matching runtime extension point for scene-authored Route content. Components under a `Route Content Binding` root can implement `IRouteContentLifecycleReceiver` to receive `OnRouteContentEntered` and `OnRouteContentExited` callbacks when their Route enters or exits. Route content is a Route-scoped scene boundary; it notifies local objects but does not own GameObject visibility, load scenes, start activities, spawn actors, own input, camera, save, pooling or a new pipeline.
+The next implementation step must not be route-additive execution. It should first normalize the scope model across Session, Route, Activity and Local.
 
-`IF-FW-3A - Activity Content Lifecycle Receivers` adds the first runtime extension point for scene-authored Activity content. Components under an `Activity Content Binding` root can implement `IActivityContentLifecycleReceiver` to receive `OnActivityContentEntered` and `OnActivityContentExited` callbacks when their bound Activity enters or exits. The callback is local to the content root; it does not create a service locator, pipeline, actor system, input, camera, save or pooling integration.
+Deferred / do not apply as current baseline:
 
-`IF-FW-2Y - Authoring Validation Baseline` adds an editor-only authoring validation surface without changing runtime lifecycle. Project Settings and the relevant Inspectors can now report the current baseline configuration for Active Game Application, Startup Route, Primary Scene, optional Startup Activity, and open-scene Activity Content Bindings. Validation logs use `FrameworkLogger` and do not introduce Actor, Input, Camera, Save, Pooling, UGUI, or a new runtime pipeline.
+```text
+IF-FW-4E — Route Scene Composition Execution
+```
 
-`IF-FW-2W-FIX5 - QA Scenario Reset Button` extends `FrameworkQaCanvas` with an in-Play-Mode baseline reset. The reset returns the runtime to a configured baseline Route/Activity without leaving Play Mode, so the Unity Console is preserved between smoke runs. If no explicit reset Route/Activity is configured, the canvas falls back to the current Game Application's Startup Route and that Route's Startup Activity.
+That route-additive cut is conceptually useful later, but it was produced too early. It should be replaced by a later route execution cut after the scope-set baseline is documented and implemented.
 
-`IF-FW-2X - QA Smoke Result Semantics` tightens the manual smoke buttons so `QA Smoke completed` is emitted only when each scenario observes its expected request result. Preparation clears may accept the explicit `IgnoredNoActiveActivity` outcome; state-changing route/activity steps still require success.
+## Cut history summary
 
-`IF-FW-2W - QA Scenario Presets` extends `FrameworkQaCanvas` with canonical manual smoke buttons and semantic scenario targets:
+Earlier cuts remain part of project history, but the active architectural front is now materialization.
 
-- `Run Activity Smoke`, `Run Route Smoke`, `Run Clear Activity Smoke`, `Run No-Activity Route Smoke`, `Run No-Content Activity Smoke` and `Run Negative Smoke`;
-- semantic scenario targets such as `Canonical Route`, `Alternate Route`, `No-Activity Route`, `Primary Activity`, `Secondary Activity` and `No-Content Activity`;
-- dedicated QA assets live under `Assets/ImmersiveFrameworkQA/` and are used as scenario targets instead of replacing the project boot;
-- ordered smoke logs for repeatable manual QA;
-- the canvas stays IMGUI-based and continues to avoid UGUI, automated tests and new event-bus infrastructure.
+## IF-FW-4C — ContentFlow Core + Route Content Set Baseline
 
-`IF-FW-2S - Activity Lifecycle Events` adds canonical Activity enter/exit lifecycle events on top of the existing Activity Flow runtime:
-
-- `ActivityFlowRuntime` emits `ActivityEnteredEvent` and `ActivityExitedEvent` through `Foundation.Events`;
-- start, switch and clear transitions are surfaced as lifecycle events;
-- `ActivityContentBinding` and the existing Activity diagnostics remain unchanged.
-
-`IF-FW-2R - Activity Content Binding Authoring Guardrails` improves the Inspector for scene-authored Activity content without changing runtime behavior.
+`IF-FW-4C` introduces the first common content materialization language and applies it to Route primary scene loading without changing route behavior.
 
 This cut adds:
 
-- a custom Inspector for `ActivityContentBinding`;
-- an authoring error when the binding has no Activity assigned;
-- a clear explanation that the binding only controls GameObject active state;
-- warnings for nested Activity Content Binding hierarchies, because nested content policy does not exist yet.
+- `Runtime/ContentFlow` with scope, kind, requiredness, handle, set, materializer and contribution marker contracts;
+- `RouteContentSet`, owned by Route Lifecycle;
+- registration of the active Route primary scene as a required Route-scoped `Scene` content handle;
+- diagnostics that append the Route Content Set summary to successful Route lifecycle logs.
 
-`IF-FW-2Q - Activity Content Binding Observability` improves diagnostics for scene-authored Activity content without changing behavior.
+This cut does not add camera, audio, actor, pause, presentation, Addressables, additive scene composition or prefab materialization. The existing `ActivityContentBinding` remains a simple local visibility adapter and is not promoted to canonical materialization.
+
+Route is intentionally handled before Activity: the Route materializes the context where Activities later contribute content.
+
+
+## IF-FW-4D — Route Content Profile Planning Baseline
+
+`IF-FW-4D` adds a Route-owned authoring/planning surface for future route content composition without changing runtime scene loading behavior.
 
 This cut adds:
 
-- per-binding Activity Content diagnostics with object name, scene, assigned Activity, action and reason;
-- warning diagnostics for bindings missing an Activity reference;
-- summary counts for activated, deactivated, unchanged and missing-activity bindings;
-- documentation/ADR updates that define `ActivityContentBinding` as a minimal scene-authored marker, not a replacement for future Actor, Spawn, Pooling or Presentation systems.
+- `RouteContentProfileAsset`;
+- `RouteContentSceneEntry`;
+- Route inspector assignment for an optional Content Profile;
+- a Route Content Profile inspector for declaring additional scenes;
+- `RouteContentMaterializationPlan`;
+- diagnostics that append planned additional Route scenes to the `RouteContentSet` message when a profile is assigned.
 
-`IF-FW-2P - Activity Content Binding` added the first scene-authored Activity content boundary:
+The current runtime still loads only the Route Primary Scene. Additional scenes declared in the profile are planned-only and may become additive materialization inputs after the scope model is solved top-down.
 
-- `ActivityContentBinding` as a MonoBehaviour for GameObjects that should be active for one Activity;
-- `ActivityContentRuntime` as the owner that applies bindings when Activity changes or clears;
-- Activity diagnostics that report content binding application when bindings exist.
-
-It still does not add actors, input, camera, save, pause, pooling, route-level activity transition policy, spawning, or content loading. Activity content is only visibility control for scene-authored GameObjects.
-
-`IF-FW-2O - Runtime Activity Clear Request` added an explicit runtime request for clearing the active Activity without switching Route.
-
-`IF-FW-2M - Activity Flow Active State` made `ActivityFlowRuntime` the owner of the active Activity identity and records Activity transitions in route diagnostics.
-
-`IF-FW-2L - Startup Activity Contract` introduced the first Activity authoring asset and lets a Route optionally start one Activity after its Primary Scene is resolved.
-
-`IF-FW-2K - Framework Logging Integration` added a framework-owned logging boundary on top of `com.immersive.logging`:
-
-- `Bootstrap`, `FrameworkRuntimeHost` and `RouteRequestTrigger` no longer call `Debug.Log` directly;
-- the framework keeps the same diagnostic text, but emits it through `FrameworkLogger`;
-- `FrameworkRuntimeHost` remains the owner of the final route request log;
-- there is still no global logger, service locator, or diagnostics UI.
-
-`IF-FW-2J — Route Request Diagnostics Ownership` moves route request completion diagnostics to the persistent Application Runtime host and records request source/reason:
-
-- `RouteRequestTrigger` can still be added to a GameObject and wired to UnityEvents/UI Buttons;
-- the trigger now only submits the request and performs local preflight checks;
-- `FrameworkRuntimeHost` owns the final success/warning/error log for route requests;
-- request diagnostics include `source` and `reason`;
-- `GameFlowRuntime` accepts or rejects the request;
-- `RouteLifecycleRuntime` starts/switches the requested Route;
-- `SceneLifecycleRuntime` loads/activates the target Route primary scene.
-
-This is intentionally not a broad service locator. User-authored objects still do not see pipelines, stages, commands, facts or snapshots. The public authoring concept is only: request this Route.
-
-Earlier cuts:
-
-- `IF-FW-2R — Activity Content Binding Authoring Guardrails`: adds Inspector guardrails for missing Activity references and nested binding hierarchy.
-- `IF-FW-2Q — Activity Content Binding Observability`: improves Activity Content diagnostics without changing content behavior.
-- `IF-FW-2P — Activity Content Binding`: adds scene-authored Activity content visibility binding.
-- `IF-FW-2O — Runtime Activity Clear Request`: added explicit runtime clear for active Activity.
-- `IF-FW-2M — Activity Flow Active State`: made Activity Flow own the active Activity identity and report start/switch/clear/keep diagnostics.
-- `IF-FW-2L — Startup Activity Contract`: introduced `ActivityAsset`, optional `Startup Activity` on Route, and minimal `ActivityFlowRuntime`.
-- `IF-FW-2I — Route Switch Ownership`: moved active Route ownership to Route Lifecycle and made switch diagnostics report previous/next Route.
-- `IF-FW-2H — Runtime Route Request Trigger`: added the first scene-authored route request boundary.
-- `IF-FW-2G — Route Lifecycle Runtime Owner`: separates Route startup from Game Flow through `RouteLifecycleRuntime`.
-- `IF-FW-2F — Application Runtime Host`: introduced the persistent `Immersive Framework Runtime` object and `FrameworkRuntimeHost`.
-- `IF-FW-2E — Startup Primary Scene Single Load`: makes the Startup Route primary scene replace the currently loaded scene when the framework has to load it.
-- `IF-FW-2D — Editor Play Mode Startup`: added an editor-only switch to run the current scene without framework boot.
-- `IF-FW-2C — Scene Lifecycle Primary Scene Load`: introduced the first Scene Lifecycle owner and primary scene loading.
-- `IF-FW-2B — Route Primary Scene Contract`: introduced `Primary Scene` on Route and required it in boot validation.
-- `IF-FW-2A — Startup Route Contract`: introduced `Route`, `Startup Route`, boot validation for startup route, and minimal `GameFlowRuntime`.
-- `IF-FW-1E — Active Application Assignment UX`: lets the `Game Application` Inspector show and set project assignment.
-- `IF-FW-1D — Project Settings UX`: improves the Immersive Framework Project Settings page.
-- `IF-FW-1C — Game Application Inspector UX`: adds a custom Inspector for the Game Application asset.
-- `IF-FW-1B — Shared Boot Validation`: shares runtime/editor boot validation rules.
-- `IF-FW-1A — Minimal Bootstrap`: introduced Game Application, Project Settings, Validation Mode, internal bootstrap, and minimal boot diagnostics.
-
-This cut still intentionally does not introduce Actor, Input, Save, Pooling integration, module graph, route transition policies, loading screen, unload policy, Cinemachine, camera profiles, player camera ownership, or advanced diagnostics.
+This cut does not add camera, audio, actor, pause, presentation, Addressables, prefab materialization, Activity content profiles, or additive scene execution.
 
 ## QA Baseline
 
@@ -159,8 +126,8 @@ O baseline funcional e arquitetural validado do framework e o modelo de QA manua
 4. In the `Startup` section, click `Create and Assign Startup Route`.
 5. Select the created `Route` asset.
 6. Assign a `Primary Scene` in the Route Inspector.
-7. Optionally create and assign a `Startup Activity` in the Route Inspector.
-8. Return to `Project Settings > Immersive Framework` and click `Validate Authoring`.
+7. Optionally create and assign a `Route Content Profile` in the Route Inspector. Additional scenes declared there are planning data only in this frozen baseline.
+8. Optionally create and assign a `Startup Activity` in the Route Inspector.
 9. Enter Play Mode.
 
 Alternative assignment flow:
@@ -170,7 +137,7 @@ Alternative assignment flow:
 
 The framework boot should succeed once an Active Game Application, Startup Route, and Startup Route Primary Scene are assigned. If the Primary Scene is not already loaded, it must be available to Unity runtime loading, usually by being included in Build Settings.
 
-If any required setup is missing, the framework fails fast in Play Mode. Project Settings also previews the same required-missing status before entering Play Mode. Use `Validate Authoring` to produce an explicit editor-only report for the current authoring baseline and open-scene Activity Content Bindings.
+If any required setup is missing, the framework fails fast in Play Mode. Project Settings also previews the same required-missing status before entering Play Mode.
 
 Expected happy-path boot log when the Startup Scene is already loaded and no Startup Activity is assigned:
 
@@ -182,6 +149,19 @@ Expected happy-path boot log when another scene was open and the framework loade
 
 ```text
 [Immersive Framework] Boot succeeded. Application Runtime started. Game Application 'Game Application' resolved. Startup Route 'Startup Route' resolved. Primary Scene 'StartupScene' declared. Game Flow started with Startup Route 'Startup Route'. Route Lifecycle started Route 'Startup Route'. Scene Lifecycle resolved Primary Scene 'StartupScene' and set it active. alreadyLoaded='False'. loadMode='Single'. Validation Mode: Standard.
+```
+
+
+Current boot logs include a Route Content Set fragment after the primary scene is resolved. When a Route Content Profile is assigned, the same message also includes the planned additional scenes. Example without additional scenes:
+
+```text
+Route Content Set registered 1 handle(s). scope='Route' owner='Startup Route' handles='1' details=[id='route:Assets/Scenes/StartupScene.unity:primary-scene:StartupScene' scope='Route' kind='Scene' requiredness='Required' owner='Startup Route' resource='StartupScene' active='True'].
+```
+
+Example with a Route Content Profile assigned:
+
+```text
+Route Content Set registered 1 handle(s). scope='Route' owner='Startup Route' handles='1' details=[...]. Route Content Plan profile='StartupRouteContentProfile' additionalScenes='1' plannedOnly='True' details=[id='lighting' scene='StartupLighting' requiredness='Optional' index='0']
 ```
 
 ## Usage guide
@@ -210,10 +190,37 @@ Baseline reset behavior:
 QA assets under `Assets/ImmersiveFrameworkQA/` remain scenario targets. They should not become the Active Game Application by default.
 
 
+## Architecture
 
-## CameraFlow status
+Architectural decisions live in:
 
-The exploratory physical-camera CameraFlow was removed. There is currently no canonical camera runtime in the package. Do not place framework camera components under Route/Activity content until the clean CameraFlow cut introduces the persistent output rig and Cinemachine request adapter.
+```text
+Documentation~/Architecture/ADR/
+```
+
+Start with:
+
+```text
+ADR-IF-FW-0001-lifecycle-qa-baseline.md
+```
+
+Then review:
+
+```text
+ADR-0001-bootstrap-minimo-e-construcao-incremental.md
+```
+
+## Editor Play Mode Startup
+
+`Project Settings > Immersive Framework` includes an editor-only startup mode:
+
+- `Framework Startup`: normal framework boot through `Game Application -> Startup Route -> Primary Scene`.
+- `Current Scene Only`: skips framework boot in the Unity Editor so the currently open scene can be tested in isolation.
+
+Player builds always use framework startup. `Current Scene Only` is only an authoring workflow switch.
+
+Use `Current Scene Only` when creating or debugging an isolated scene that should not be replaced by the Startup Route scene.
+
 
 
 ## Activity Content Binding
@@ -287,20 +294,6 @@ Expected success log:
 
 If the requested Activity is already active, the request is ignored explicitly instead of silently restarting the same Activity. If `ClearActivity` is called with no active Activity, the request is also ignored explicitly.
 
-The trigger also exposes read-only local request state for scripts that subscribe to typed request events:
-
-```text
-IsRequestInFlight
-LastEventPhase
-LastOutcome
-LastReason
-LastMessage
-LastRequestClearedActivity
-LastRequestSucceeded / LastRequestIgnored / LastRequestFailed
-```
-
-These properties are updated before the trigger publishes its Foundation event, so event handlers can read the current state immediately.
-
 ## Runtime Route Request Trigger
 
 Add `Route Request Trigger` to a GameObject when a scene object or UI Button needs to request another Route.
@@ -323,19 +316,6 @@ Expected success log:
 ```
 
 If the requested route is already active, the request is ignored explicitly instead of silently reloading the same route.
-
-The trigger also exposes read-only local request state for scripts that subscribe to typed request events:
-
-```text
-IsRequestInFlight
-LastEventPhase
-LastOutcome
-LastReason
-LastMessage
-LastRequestSucceeded / LastRequestIgnored / LastRequestFailed
-```
-
-These properties are updated before the trigger publishes its Foundation event, so event handlers can read the current state immediately.
 
 ## IF-FW-2I — Route switch ownership
 
@@ -361,7 +341,7 @@ Route request completion logs are now emitted by the persistent `FrameworkRuntim
 
 Reason: when a route request uses `LoadSceneMode.Single`, the requesting scene object may be destroyed as part of the route switch. Diagnostics should therefore be owned by an application-scope runtime object that survives the scene change.
 
-The trigger remains invokable from Unity UI events and validates obvious local authoring issues before submitting the request to the runtime host. Result notification is not owned by trigger UnityEvents; use the typed Foundation event subscription surface on the trigger for code-level result handling.
+The trigger remains the public UnityEvent boundary. It validates obvious local authoring issues, then submits the request to the runtime host.
 
 Expected route request success log now includes source and reason:
 
@@ -455,22 +435,3 @@ Smokes principais:
 - `Run Negative Smoke`: Clear -> Clear novamente, sem assumir boot QA.
 
 O QA Canvas preserva referencias serializadas antigas com `FormerlySerializedAs`, mas os campos publicos de authoring devem ser lidos como papeis de cenario, nao como nomes de assets de gameplay.
-
-### IF-FW-3K — Request Trigger UnityEvent Bridges
-
-`RouteRequestTrigger` and `ActivityRequestTrigger` continue to publish typed `com.immersive.foundation` events as their canonical result channel.
-
-For Inspector-authored reactions, optional bridge components are available:
-
-- `RouteRequestTriggerUnityEventBridge`
-- `ActivityRequestTriggerUnityEventBridge`
-
-Each bridge must live on the same GameObject as its corresponding trigger. It subscribes to the trigger Foundation events and exposes UnityEvents for:
-
-- Request Submitted
-- Request Succeeded
-- Request Ignored
-- Request Failed
-- Request Completed
-
-This keeps the architecture split explicit: typed events for framework/code integration, UnityEvents only for authored Inspector bridges.

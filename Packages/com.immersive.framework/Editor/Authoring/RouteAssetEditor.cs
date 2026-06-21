@@ -1,6 +1,5 @@
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Editor.Editor.Settings;
-using Immersive.Framework.Editor.Editor.Validation;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,6 +11,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
         private SerializedProperty _routeName;
         private SerializedProperty _primaryScenePath;
         private SerializedProperty _primarySceneName;
+        private SerializedProperty _routeContentProfile;
         private SerializedProperty _startupActivity;
         private SerializedProperty _description;
 
@@ -20,6 +20,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             _routeName = serializedObject.FindProperty("routeName");
             _primaryScenePath = serializedObject.FindProperty("primaryScenePath");
             _primarySceneName = serializedObject.FindProperty("primarySceneName");
+            _routeContentProfile = serializedObject.FindProperty("routeContentProfile");
             _startupActivity = serializedObject.FindProperty("startupActivity");
             _description = serializedObject.FindProperty("description");
         }
@@ -42,27 +43,18 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             DrawPrimaryScene();
 
             EditorGUILayout.Space(6);
+            DrawRouteContentProfile();
+
+            EditorGUILayout.Space(6);
             DrawStartupActivity();
 
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Current Scope", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "This Route declares identity, one Primary Scene, and an optional Startup Activity reference. Scene-authored Activity content is handled by ActivityContentBinding. Actors, input, camera, save, pause and pooling are intentionally not part of this Route yet.",
+                "This Route currently declares identity, one Primary Scene, an optional Route Content Profile for planning, and an optional Startup Activity. Additional Route scene execution, Activity content, actors, input, camera, save, pause and pooling come later.",
                 MessageType.None);
 
             serializedObject.ApplyModifiedProperties();
-
-            EditorGUILayout.Space(6);
-            DrawAuthoringValidation();
-        }
-
-        private void DrawAuthoringValidation()
-        {
-            var report = FrameworkAuthoringValidator.ValidateRoute((RouteAsset)target, true);
-
-            EditorGUILayout.LabelField("Authoring Validation", EditorStyles.boldLabel);
-            FrameworkAuthoringValidationGui.DrawSummary(report);
-            FrameworkAuthoringValidationGui.DrawIssues(report, false);
         }
 
         private void DrawPrimaryScene()
@@ -100,12 +92,43 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             }
         }
 
+
+        private void DrawRouteContentProfile()
+        {
+            EditorGUILayout.LabelField("Route Content", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_routeContentProfile, new GUIContent("Content Profile"));
+            EditorGUILayout.HelpBox(
+                "Optional. This baseline only plans additional Route content. Additional scenes declared in the profile are not loaded yet; execution comes in a later Route composition cut.",
+                MessageType.None);
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Create and Assign Content Profile"))
+                {
+                    var profile = ImmersiveFrameworkEditorSettingsUtility.CreateRouteContentProfileAsset();
+                    if (profile != null)
+                    {
+                        _routeContentProfile.objectReferenceValue = profile;
+                        Selection.activeObject = profile;
+                    }
+                }
+
+                using (new EditorGUI.DisabledScope(_routeContentProfile.objectReferenceValue == null))
+                {
+                    if (GUILayout.Button("Select Content Profile"))
+                    {
+                        Selection.activeObject = _routeContentProfile.objectReferenceValue;
+                    }
+                }
+            }
+        }
+
         private void DrawStartupActivity()
         {
             EditorGUILayout.LabelField("Activity", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_startupActivity, new GUIContent("Startup Activity"));
             EditorGUILayout.HelpBox(
-                "Optional. If assigned, Activity Flow starts this Activity after the Route Primary Scene is resolved. Scene-authored Activity content can react through ActivityContentBinding; actors, input, camera, save and pause are still out of scope.",
+                "Optional. If assigned, Activity Flow starts this Activity after the Route Primary Scene is resolved. The Activity currently has identity only; it does not load content, actors, input, camera, save or pause.",
                 MessageType.None);
 
             using (new EditorGUILayout.HorizontalScope())

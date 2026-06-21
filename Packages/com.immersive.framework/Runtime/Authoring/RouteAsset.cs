@@ -4,7 +4,7 @@ namespace Immersive.Framework.Authoring
 {
     /// <summary>
     /// Public authoring asset that identifies an entry in the game flow.
-    /// This cut declares the primary scene for the route, but scene loading is still not implemented here.
+    /// This asset declares the route primary scene, optional route content profile, and optional startup activity.
     /// </summary>
     [CreateAssetMenu(
         fileName = "Route",
@@ -23,6 +23,10 @@ namespace Immersive.Framework.Authoring
         [SerializeField]
         [Tooltip("Cached human-readable scene name shown in framework diagnostics.")]
         private string primarySceneName = string.Empty;
+
+        [SerializeField]
+        [Tooltip("Optional Route Content Profile. This baseline only plans declared content; additional scene loading comes later.")]
+        private RouteContentProfileAsset routeContentProfile;
 
         [SerializeField]
         [Tooltip("Optional first Activity started after this route primary scene is resolved.")]
@@ -59,7 +63,7 @@ namespace Immersive.Framework.Authoring
 
                 if (!string.IsNullOrWhiteSpace(primaryScenePath))
                 {
-                    string fileName = System.IO.Path.GetFileNameWithoutExtension(primaryScenePath);
+                    var fileName = System.IO.Path.GetFileNameWithoutExtension(primaryScenePath);
                     if (!string.IsNullOrWhiteSpace(fileName))
                     {
                         return fileName;
@@ -71,6 +75,10 @@ namespace Immersive.Framework.Authoring
         }
 
         public bool HasPrimaryScene => !string.IsNullOrWhiteSpace(primaryScenePath);
+
+        public RouteContentProfileAsset RouteContentProfile => routeContentProfile;
+
+        public bool HasRouteContentProfile => routeContentProfile != null;
 
         public ActivityAsset StartupActivity => startupActivity;
 
