@@ -88,7 +88,9 @@ Smoke valida.
 | 54 | [`F4G_CLOSURE_HYGIENE.md`](F4G_CLOSURE_HYGIENE.md) | Higiene pré-fechamento da Fase 4. |
 | 55 | [`F4_CLOSURE.md`](F4_CLOSURE.md) | Fechamento técnico da Fase 4. |
 | 56 | [`F5A_LOCAL_IDENTITY_ADR_ACCEPTANCE.md`](F5A_LOCAL_IDENTITY_ADR_ACCEPTANCE.md) | Aceite do ADR de identidade local que abre a F5. |
-| 57 | [`Guides/`](Guides/) | Guias de uso/visualização. |
+| 57 | [`LOCAL_CONTENT_IDENTITY.md`](LOCAL_CONTENT_IDENTITY.md) | Corte técnico F5B: `LocalContentIdentity` tipado. |
+| 58 | [`F5B_CLOSURE.md`](F5B_CLOSURE.md) | Fechamento pendente do F5B por compile-smoke. |
+| 59 | [`Guides/`](Guides/) | Guias de uso/visualização. |
 | 57 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
 ---
@@ -362,6 +364,13 @@ Este corte implementa `IF-FW-ROAD-3E` adicionando o smoke explícito `Run Route 
 | F4G | [`F4G_CLOSURE_HYGIENE.md`](F4G_CLOSURE_HYGIENE.md) | Closed / Compile-smoke pass |
 | F4 | [`F4_CLOSURE.md`](F4_CLOSURE.md) | Closed / Activity baseline pass |
 
+### F5 — Local contribution baseline
+
+| Corte | Documento | Status |
+|---|---|---|
+| F5A | [`F5A_LOCAL_IDENTITY_ADR_ACCEPTANCE.md`](F5A_LOCAL_IDENTITY_ADR_ACCEPTANCE.md) | Closed / ADR accepted |
+| F5B | [`LOCAL_CONTENT_IDENTITY.md`](LOCAL_CONTENT_IDENTITY.md) / [`F5B_CLOSURE.md`](F5B_CLOSURE.md) | Applied / Pending compile-smoke |
+
 | Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
 |---|---|---|---|---|---|---|
 | F4-01 | ADR-ACTIVITY-001 | ActivityContentSet and Readiness Baseline | Draft / Deferred | Activity | ActivityFlow | [`abrir`](ADRs/F4-activity-content-and-readiness/F4-01-ADR-ACTIVITY-001-activitycontentset-and-readiness-baseline.md) |
@@ -375,7 +384,7 @@ Este corte implementa `IF-FW-ROAD-3E` adicionando o smoke explícito `Run Route 
 
 Documento de aceite: [`F5A_LOCAL_IDENTITY_ADR_ACCEPTANCE.md`](F5A_LOCAL_IDENTITY_ADR_ACCEPTANCE.md).
 
-F5A aceita a identidade local explícita como pré-requisito para qualquer marker, discovery ou requiredness. O próximo corte autorizado é `F5B — LocalContentIdentity`.
+F5A aceita a identidade local explícita como pré-requisito para qualquer marker, discovery ou requiredness. F5B aplica o tipo `LocalContentIdentity`; o próximo corte só abre depois do compile-smoke.
 
 ### F6 — Route scene composition and release
 
@@ -494,7 +503,8 @@ F2 está fechado. O próximo avanço deve começar pela Fase 3, seguindo ADRs e 
 | `F3` | `CLOSED / PASS` | Route baseline fechado e validado. |
 | `F4` | `CLOSED / ACTIVITY BASELINE PASS` | Activity baseline fechado no F4G. |
 | `F5A` | `CLOSED / ADR ACCEPTED` | ADR de Local Identity aceito; não altera runtime. |
-| `F5` | `OPEN / NEXT: F5B` | Próximo corte técnico autorizado é `LocalContentIdentity`. |
+| `F5B` | `APPLIED / PENDING COMPILE-SMOKE` | `LocalContentIdentity` aplicado; aguardando validação no Unity. |
+| `F5` | `OPEN / NEXT AFTER PASS: F5C` | Próximo corte autorizado após o compile-smoke do F5B é `LocalContributionMarker`. |
 
 F4 estabilizou `ActivityContentSet` como snapshot local/diagnóstico dos adapters de visibilidade. F5 não deve transformar esse snapshot em identidade funcional.
 
@@ -536,12 +546,13 @@ F2 — CLOSED / PASS.
 F3 — CLOSED / PASS.
 F4 — CLOSED / ACTIVITY BASELINE PASS.
 F5A — CLOSED / ADR ACCEPTED.
+F5B — APPLIED / PENDING COMPILE-SMOKE.
 ```
 
-Próximo passo autorizado:
+Próximo passo autorizado após validação do F5B:
 
 ```text
-F5B — IF-FW-ROAD-5B — LocalContentIdentity.
+F5C — IF-FW-ROAD-5C — LocalContributionMarker sem fallback funcional.
 ```
 
-Não iniciar marker, discovery, Surface, RuntimeMaterialization ou consumers antes do corte técnico de identidade local.
+Não iniciar discovery, LocalContributionSet, Surface, RuntimeMaterialization ou consumers antes do marker local explícito.

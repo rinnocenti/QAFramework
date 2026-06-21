@@ -366,7 +366,8 @@ Status atual:
 
 ```text
 F5A — CLOSED / ADR ACCEPTED
-F5  — OPEN / NEXT: F5B LOCALCONTENTIDENTITY
+F5B — APPLIED / PENDING COMPILE-SMOKE
+F5  — OPEN / NEXT AFTER PASS: F5C LOCALCONTRIBUTIONMARKER
 ```
 
 Sequência obrigatória:
@@ -383,7 +384,7 @@ ActivityContentSet / RouteContentSet como fronteira de busca
 | ID | Entrega | Detalhes |
 |---|---|---|
 | IF-FW-ROAD-5A | ADR: Local Identity | CLOSED em F5A. Define `LocalContentIdentity`, proíbe path/name como chave funcional e bloqueia reaproveitamento direto do marker experimental com fallback por `GameObject.name`. |
-| IF-FW-ROAD-5B | `LocalContentIdentity` | Próximo corte técnico. Tipo pequeno, imutável, validável, ordinal e sem fallback silencioso. Não cria marker/discovery. |
+| IF-FW-ROAD-5B | `LocalContentIdentity` | APPLIED / PENDING COMPILE-SMOKE. Tipo pequeno, imutável, validável, ordinal e sem fallback silencioso. Não cria marker/discovery. |
 | IF-FW-ROAD-5C | `LocalContributionMarker` | Marker authored mínimo com id explícito obrigatório; sem capability runtime ainda. |
 | IF-FW-ROAD-5D | `LocalContributionDiscovery` scoped | Descobre apenas dentro de content sets conhecidos; não usa busca global como eixo funcional. |
 | IF-FW-ROAD-5E | `LocalContributionSet` | Set tipado por scope com identities locais explícitas. |
@@ -802,7 +803,8 @@ F2 — CLOSED / PASS
 F3 — CLOSED / PASS
 F4 — CLOSED / ACTIVITY BASELINE PASS
 F5A — CLOSED / ADR ACCEPTED
-F5  — OPEN / NEXT: F5B LOCALCONTENTIDENTITY
+F5B — APPLIED / PENDING COMPILE-SMOKE
+F5  — OPEN / NEXT AFTER PASS: F5C LOCALCONTRIBUTIONMARKER
 ```
 
 F5A aceitou o ADR necessário para iniciar a execução técnica de Local Contribution:
