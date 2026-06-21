@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Immersive.Framework.Authoring;
 using UnityEngine;
 
 namespace Immersive.Framework.Editor.Validation
@@ -6,6 +7,18 @@ namespace Immersive.Framework.Editor.Validation
     internal sealed class FrameworkAuthoringValidationReport
     {
         private readonly List<FrameworkAuthoringValidationIssue> _issues = new List<FrameworkAuthoringValidationIssue>();
+
+        internal FrameworkAuthoringValidationReport()
+            : this(FrameworkValidationMode.Standard)
+        {
+        }
+
+        internal FrameworkAuthoringValidationReport(FrameworkValidationMode validationMode)
+        {
+            ValidationMode = validationMode;
+        }
+
+        internal FrameworkValidationMode ValidationMode { get; }
 
         internal IReadOnlyList<FrameworkAuthoringValidationIssue> Issues => _issues;
 
@@ -51,9 +64,16 @@ namespace Immersive.Framework.Editor.Validation
 
         private void Add(FrameworkAuthoringValidationSeverity severity, string message, Object context)
         {
-            _issues.Add(new FrameworkAuthoringValidationIssue(severity, message, context));
+            if (severity == FrameworkAuthoringValidationSeverity.Info &&
+                !FrameworkValidationModePolicy.IncludeInfoDiagnostics(ValidationMode))
+            {
+                return;
+            }
 
-            switch (severity)
+            var resolvedSeverity = ResolveSeverity(severity);
+            _issues.Add(new FrameworkAuthoringValidationIssue(resolvedSeverity, message, context));
+
+            switch (resolvedSeverity)
             {
                 case FrameworkAuthoringValidationSeverity.Error:
                     ErrorCount++;
@@ -65,6 +85,17 @@ namespace Immersive.Framework.Editor.Validation
                     InfoCount++;
                     break;
             }
+        }
+
+        private FrameworkAuthoringValidationSeverity ResolveSeverity(FrameworkAuthoringValidationSeverity severity)
+        {
+            if (severity == FrameworkAuthoringValidationSeverity.Warning &&
+                FrameworkValidationModePolicy.TreatWarningsAsErrors(ValidationMode))
+            {
+                return FrameworkAuthoringValidationSeverity.Error;
+            }
+
+            return severity;
         }
     }
 }

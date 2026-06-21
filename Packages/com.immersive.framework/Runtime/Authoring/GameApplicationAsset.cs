@@ -24,7 +24,7 @@ namespace Immersive.Framework.Authoring
         private RouteAsset startupRoute;
 
         [SerializeField]
-        [Tooltip("Controls validation and diagnostics severity. Required configuration must still fail in every mode.")]
+        [Tooltip("Controls validation and diagnostics severity. Required configuration fails in every mode; Strict promotes warnings, Standard keeps them, Release suppresses info diagnostics.")]
         private FrameworkValidationMode validationMode = FrameworkValidationMode.Standard;
 
         public string ApplicationName

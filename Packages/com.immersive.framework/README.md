@@ -29,16 +29,17 @@ F1A — CLOSED / ACCEPTED
 F1B — CLOSED / COMPILE-SMOKE PASS
 ```
 
-Current F1 cut:
+Current F1 cuts pending validation:
 
 ```text
 F1C — APPLIED / PENDING COMPILE-SMOKE
+F1D — APPLIED / PENDING COMPILE-SMOKE
 ```
 
-Next authorized step after F1C validation:
+Next authorized step after F1C/F1D validation:
 
 ```text
-F1D — ValidationMode semantics
+F1E — Typed identity primitives mínimos
 ```
 
 Status distinction:
@@ -60,7 +61,7 @@ F0 is closed. F1A accepted the ADRs for typed identity, structured diagnostics a
 | `RouteContentRuntime` | `Deferred` | Route local callbacks are frozen and hidden from authoring menus until F3 decides the Route baseline. |
 | `CameraFlow` | `Removed from core baseline` | Camera is a future consumer. The core package no longer carries CameraFlow source or a mandatory Cinemachine dependency. |
 | `FrameworkQaCanvas` | `Development Tooling` | Manual smoke tool compiled only in the Unity Editor or development builds. Not product API. |
-| `ValidationMode` | `Experimental` | Concrete semantics are deferred to F1. |
+| `ValidationMode` | `Experimental` | Minimal F1D semantics: required config fails in every mode; Strict promotes warnings; Standard keeps warnings; Release suppresses info diagnostics. |
 
 ## Core rule
 
@@ -92,6 +93,7 @@ Then follow the roadmap order:
 7. Documentation~/API_STATUS_CONVENTION.md
 8. Documentation~/F1B_CLOSURE.md
 9. Documentation~/FRAMEWORK_FACT_MINIMAL_MODEL.md
+10. Documentation~/VALIDATION_MODE_SEMANTICS.md
 ```
 
 ## F0 closure status
@@ -192,10 +194,28 @@ Documentation~/FRAMEWORK_FACT_MINIMAL_MODEL.md
 
 F1C does not create a fact recorder, service locator, event bus, telemetry, dashboard, persistence layer, validator integration or lifecycle behavior change.
 
-Next authorized step after F1C compile/smoke validation:
+## F1D ValidationMode semantics
+
+F1D gives `ValidationMode` concrete minimum semantics:
 
 ```text
-F1D — ValidationMode semantics
+Strict   — required configuration fails; warnings are promoted to errors; info diagnostics are included.
+Standard — required configuration fails; warnings remain warnings; info diagnostics are included.
+Release  — required configuration fails; warnings remain warnings; info diagnostics are suppressed.
+```
+
+See:
+
+```text
+Documentation~/VALIDATION_MODE_SEMANTICS.md
+```
+
+F1D does not change Game Flow, Route Lifecycle, Activity Flow or Scene Lifecycle behavior.
+
+Next authorized step after F1C/F1D compile-smoke validation:
+
+```text
+F1E — Typed identity primitives mínimos
 ```
 
 Do not start F2 until F1 gives identity/status/diagnostics enough structure to prevent new public ambiguity.

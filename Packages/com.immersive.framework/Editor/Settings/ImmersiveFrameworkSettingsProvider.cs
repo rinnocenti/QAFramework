@@ -115,7 +115,7 @@ namespace Immersive.Framework.Editor.Settings
             if (bootStatus.Succeeded)
             {
                 EditorGUILayout.HelpBox(
-                    $"Ready: {bootStatus.Message} Validation Mode: {bootStatus.ValidationMode}.",
+                    $"Ready: {bootStatus.Message} Validation Mode: {bootStatus.ValidationMode}. {FrameworkValidationModePolicy.GetSummary(bootStatus.ValidationMode)}",
                     MessageType.Info);
             }
             else
@@ -131,7 +131,7 @@ namespace Immersive.Framework.Editor.Settings
         {
             EditorGUILayout.LabelField("Authoring Validation", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "Checks the current framework authoring baseline: Active Game Application, Startup Route, Primary Scene, optional Startup Activity, and scene-authored Activity Content Bindings. This does not create runtime lifecycle or configure Actor, Input, Camera, Save, or Pooling.",
+                "Checks the current framework authoring baseline: Active Game Application, Startup Route, Primary Scene, optional Startup Activity, and scene-authored Activity Content Bindings. Validation Mode controls diagnostic strictness: Strict promotes warnings, Standard keeps warnings, Release suppresses info diagnostics.",
                 MessageType.None);
 
             using (new EditorGUILayout.HorizontalScope())

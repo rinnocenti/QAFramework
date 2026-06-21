@@ -11,7 +11,8 @@ namespace Immersive.Framework.Editor.Validation
             ImmersiveFrameworkSettingsAsset settings,
             bool includeOpenSceneBindings)
         {
-            var report = new FrameworkAuthoringValidationReport();
+            var validationMode = ResolveValidationMode(settings);
+            var report = new FrameworkAuthoringValidationReport(validationMode);
 
             if (settings == null)
             {
@@ -20,6 +21,8 @@ namespace Immersive.Framework.Editor.Validation
                     null);
                 return report;
             }
+
+            report.AddInfo($"Validation Mode policy: {FrameworkValidationModePolicy.GetSummary(validationMode)}", settings);
 
             if (settings.EditorPlayModeStartup == FrameworkEditorPlayModeStartup.CurrentSceneOnly)
             {
@@ -36,12 +39,12 @@ namespace Immersive.Framework.Editor.Validation
             }
             else
             {
-                report.AddRange(ValidateGameApplication(settings.ActiveGameApplication, true));
+                report.AddRange(ValidateGameApplication(settings.ActiveGameApplication, true, validationMode));
             }
 
             if (includeOpenSceneBindings)
             {
-                ValidateOpenSceneActivityContentBindings(report);
+                ValidateOpenSceneActivityContentBindings(report, validationMode);
             }
 
             if (!report.HasIssues)
@@ -56,7 +59,30 @@ namespace Immersive.Framework.Editor.Validation
             GameApplicationAsset gameApplication,
             bool validateDependencies)
         {
-            var report = new FrameworkAuthoringValidationReport();
+            return ValidateGameApplication(gameApplication, validateDependencies, ResolveValidationMode(gameApplication));
+        }
+
+        internal static FrameworkAuthoringValidationReport ValidateRoute(RouteAsset route, bool validateDependencies)
+        {
+            return ValidateRoute(route, validateDependencies, FrameworkValidationMode.Standard);
+        }
+
+        internal static FrameworkAuthoringValidationReport ValidateActivity(ActivityAsset activity)
+        {
+            return ValidateActivity(activity, FrameworkValidationMode.Standard);
+        }
+
+        internal static FrameworkAuthoringValidationReport ValidateActivityContentBinding(ActivityContentBinding binding)
+        {
+            return ValidateActivityContentBinding(binding, FrameworkValidationMode.Standard);
+        }
+
+        private static FrameworkAuthoringValidationReport ValidateGameApplication(
+            GameApplicationAsset gameApplication,
+            bool validateDependencies,
+            FrameworkValidationMode validationMode)
+        {
+            var report = new FrameworkAuthoringValidationReport(validationMode);
 
             if (gameApplication == null)
             {
@@ -79,7 +105,7 @@ namespace Immersive.Framework.Editor.Validation
             }
             else if (validateDependencies)
             {
-                report.AddRange(ValidateRoute(gameApplication.StartupRoute, true));
+                report.AddRange(ValidateRoute(gameApplication.StartupRoute, true, validationMode));
             }
 
             if (!report.HasIssues)
@@ -90,9 +116,12 @@ namespace Immersive.Framework.Editor.Validation
             return report;
         }
 
-        internal static FrameworkAuthoringValidationReport ValidateRoute(RouteAsset route, bool validateDependencies)
+        private static FrameworkAuthoringValidationReport ValidateRoute(
+            RouteAsset route,
+            bool validateDependencies,
+            FrameworkValidationMode validationMode)
         {
-            var report = new FrameworkAuthoringValidationReport();
+            var report = new FrameworkAuthoringValidationReport(validationMode);
 
             if (route == null)
             {
@@ -126,7 +155,7 @@ namespace Immersive.Framework.Editor.Validation
             }
             else if (validateDependencies)
             {
-                report.AddRange(ValidateActivity(route.StartupActivity));
+                report.AddRange(ValidateActivity(route.StartupActivity, validationMode));
             }
 
             if (!report.HasIssues)
@@ -137,9 +166,11 @@ namespace Immersive.Framework.Editor.Validation
             return report;
         }
 
-        internal static FrameworkAuthoringValidationReport ValidateActivity(ActivityAsset activity)
+        private static FrameworkAuthoringValidationReport ValidateActivity(
+            ActivityAsset activity,
+            FrameworkValidationMode validationMode)
         {
-            var report = new FrameworkAuthoringValidationReport();
+            var report = new FrameworkAuthoringValidationReport(validationMode);
 
             if (activity == null)
             {
@@ -162,9 +193,11 @@ namespace Immersive.Framework.Editor.Validation
             return report;
         }
 
-        internal static FrameworkAuthoringValidationReport ValidateActivityContentBinding(ActivityContentBinding binding)
+        private static FrameworkAuthoringValidationReport ValidateActivityContentBinding(
+            ActivityContentBinding binding,
+            FrameworkValidationMode validationMode)
         {
-            var report = new FrameworkAuthoringValidationReport();
+            var report = new FrameworkAuthoringValidationReport(validationMode);
 
             if (binding == null)
             {
@@ -242,7 +275,9 @@ namespace Immersive.Framework.Editor.Validation
             }
         }
 
-        private static void ValidateOpenSceneActivityContentBindings(FrameworkAuthoringValidationReport report)
+        private static void ValidateOpenSceneActivityContentBindings(
+            FrameworkAuthoringValidationReport report,
+            FrameworkValidationMode validationMode)
         {
             ActivityContentBinding[] bindings = Object.FindObjectsByType<ActivityContentBinding>(FindObjectsInactive.Include);
             if (bindings == null || bindings.Length == 0)
@@ -265,15 +300,28 @@ namespace Immersive.Framework.Editor.Validation
                     continue;
                 }
 
-
                 sceneBindingCount++;
-                report.AddRange(ValidateActivityContentBinding(binding));
+                report.AddRange(ValidateActivityContentBinding(binding, validationMode));
             }
 
             if (sceneBindingCount == 0)
             {
                 report.AddInfo("No scene-authored Activity Content Binding components were found in loaded scenes.", null);
             }
+        }
+
+        private static FrameworkValidationMode ResolveValidationMode(ImmersiveFrameworkSettingsAsset settings)
+        {
+            return settings != null && settings.ActiveGameApplication != null
+                ? settings.ActiveGameApplication.ValidationMode
+                : FrameworkValidationMode.Strict;
+        }
+
+        private static FrameworkValidationMode ResolveValidationMode(GameApplicationAsset gameApplication)
+        {
+            return gameApplication != null
+                ? gameApplication.ValidationMode
+                : FrameworkValidationMode.Strict;
         }
 
         private static ActivityContentBinding FindParentBinding(ActivityContentBinding binding)

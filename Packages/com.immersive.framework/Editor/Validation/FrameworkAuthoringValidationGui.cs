@@ -22,7 +22,7 @@ namespace Immersive.Framework.Editor.Validation
                     : MessageType.Info;
 
             EditorGUILayout.HelpBox(
-                $"Authoring Validation: errors='{report.ErrorCount}' warnings='{report.WarningCount}' info='{report.InfoCount}'.",
+                $"Authoring Validation: mode='{report.ValidationMode}' errors='{report.ErrorCount}' warnings='{report.WarningCount}' info='{report.InfoCount}'.",
                 messageType);
         }
 
@@ -66,7 +66,7 @@ namespace Immersive.Framework.Editor.Validation
             }
 
             var logger = FrameworkLogger.Create();
-            string summary = $"Authoring Validation completed. scope='{title}' errors='{report.ErrorCount}' warnings='{report.WarningCount}' info='{report.InfoCount}'.";
+            string summary = $"Authoring Validation completed. scope='{title}' mode='{report.ValidationMode}' errors='{report.ErrorCount}' warnings='{report.WarningCount}' info='{report.InfoCount}'.";
 
             if (report.ErrorCount > 0)
             {
