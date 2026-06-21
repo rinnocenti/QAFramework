@@ -69,7 +69,9 @@ F3A — CLOSED / ADRS ACCEPTED
 F3B — CLOSED / COMPILE-SMOKE PASS
 F3C — CLOSED / COMPILE-SMOKE PASS
 F3D — CLOSED / COMPILE-SMOKE PASS
-F3E — APPLIED / PENDING COMPILE-SMOKE
+F3E — CLOSED / COMPILE-SMOKE PASS
+F3F — APPLIED / PENDING ROUTE CALLBACK SCENE SETUP
+F3F1 — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 F3A accepted:
@@ -196,13 +198,48 @@ The baseline Primary Scene is now represented as required Route content with exp
 Status:
 
 ```text
-F3E — APPLIED / PENDING COMPILE-SMOKE
+F3E — CLOSED / COMPILE-SMOKE PASS
 ```
 
 See:
 
 ```text
 Documentation~/ROUTE_CONTENT_SET_SEMANTICS.md
+Documentation~/F3E_CLOSURE.md
+```
+
+## F3F — Route local callback smoke
+
+F3F implements the roadmap item:
+
+```text
+IF-FW-ROAD-3E — Route local callback smoke
+```
+
+It adds QA/development tooling to validate real local receivers under `RouteContentBinding` roots:
+
+```text
+Runtime/Diagnostics/RouteContentLifecycleSmokeProbe.cs
+FrameworkQaCanvas — Run Route Callback Smoke
+```
+
+This smoke requires at least one local `IRouteContentLifecycleReceiver` in each QA route scene. Dispatch with zero receivers remains visible and should not be accepted as callback proof. F3F does not create scene assets, additive scene loading, release policy, Surface, RuntimeMaterialization or consumers.
+
+## F3F1 — QA panel simplification
+
+F3F1 reduces the default QA panel surface. The normal validation path now appears as core smokes, while manual route/activity requests and edge smokes are hidden under `Show advanced/manual controls`. A new `Run Standard Smoke` button executes the core route/activity/clear validation path in one sequence. The specialized Route Content callback smoke remains visible but explicitly documents that scene probes are required. See `Documentation~/QA_PANEL_SIMPLIFICATION.md`.
+
+Status:
+
+```text
+F3F — APPLIED / PENDING ROUTE CALLBACK SCENE SETUP
+F3F1 — APPLIED / PENDING COMPILE-SMOKE
+```
+
+See:
+
+```text
+Documentation~/ROUTE_LOCAL_CALLBACK_SMOKE.md
 ```
 
 ## F2B — SessionRuntimeState explicit boundary
