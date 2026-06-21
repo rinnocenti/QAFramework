@@ -733,7 +733,7 @@ Antes de abrir um corte técnico, responder:
 | Session runtime state | F2B | CLOSED / COMPILE-SMOKE PASS | `Runtime/SessionLifecycle/SessionRuntimeState.cs` | Explicit Session state boundary created. `FrameworkRuntimeState` remains compatibility facade. |
 | Session content set | F2C | CLOSED / COMPILE-SMOKE PASS | `Runtime/SessionLifecycle/SessionContentSet.cs` | Minimal Session content set created; initial set can be empty. |
 | Session content ownership | F2C | CLOSED / COMPILE-SMOKE PASS | `Runtime/SessionLifecycle/SessionContentOwnership.cs` | `Registered`, `Owned` and `DiagnosticOnly` semantics created. |
-| Session smoke | F2D | CLOSED / DOCUMENTATION ONLY | `Documentation~/F2_CLOSURE.md` | F2B/F2C smokes close the technical Session phase. |
+| Session smoke | F2D | CLOSED / DOCUMENTATION ONLY | `Documentation~/COMPLETENESS_TRACKER.md` | F2B/F2C smokes close the technical Session phase. |
 
 F2 intentionally does not implement persistent scenes, Route baseline, Surface or RuntimeMaterialization.
 
