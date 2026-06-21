@@ -11,12 +11,14 @@ Fonte de evidência: smoke F0B enviado após `IF-FW-F0B-baseline-hygiene`.
 
 F0 está fechado.
 
-```text
-F0A aceitou os ADRs de baseline.
-F0B aplicou a higiene mínima exigida por esses ADRs.
-O smoke F0B passou.
-Nenhum bloqueador F0 permanece aberto.
-```
+| Item | Status | Evidência |
+|---|---|---|
+| `F0A` | `CLOSED / ADRS ACCEPTED` | ADRs de baseline aceitos. |
+| `F0B` | `CLOSED / HYGIENE APPLIED / SMOKE PASS` | Higiene mínima aplicada e smoke F0B aprovado. |
+| `F0C` | `CLOSED / FORMAL CLOSURE` | Este documento registra o fechamento. |
+| `F0` | `CLOSED / PASS` | Nenhum bloqueador F0 permanece aberto. |
+
+Nota: os arquivos ADR permanecem com `Status: Accepted`, porque `Accepted` é status de decisão arquitetural. `Closed` é status de corte/fase.
 
 Este fechamento não autoriza implementação direta de F1. Ele autoriza abrir a etapa de revisão/aceite dos ADRs da F1.
 

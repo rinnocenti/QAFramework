@@ -40,8 +40,9 @@ Smoke valida.
 | 4 | [`Architecture/ADR/`](Architecture/ADR/) | ADRs históricos do package atual. |
 | 5 | [`BASELINE_SMOKE.md`](BASELINE_SMOKE.md) | Smoke manual mínimo do baseline ativo. |
 | 6 | [`F0_CLOSURE.md`](F0_CLOSURE.md) | Fechamento formal da Fase 0 após smoke. |
-| 7 | [`Guides/`](Guides/) | Guias de uso/visualização. |
-| 8 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
+| 7 | [`F1_ADR_ACCEPTANCE.md`](F1_ADR_ACCEPTANCE.md) | Aceite dos ADRs da F1 antes de implementação técnica. |
+| 8 | [`Guides/`](Guides/) | Guias de uso/visualização. |
+| 9 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
 ---
 
@@ -53,6 +54,7 @@ Documentation~/
 ├─ ADR-TEMPLATE.md
 ├─ BASELINE_SMOKE.md
 ├─ F0_CLOSURE.md
+├─ F1_ADR_ACCEPTANCE.md
 ├─ Planning/
 │  ├─ Immersive-Framework-Roadmap-Revisado.md
 │  └─ Capability-Traceability-Matrix.md
@@ -124,9 +126,9 @@ Não trate `Draft / Deferred` como autorização para implementar.
 
 | ADR | Título | Status | Tipo | Escopo | Arquivo |
 |---|---|---|---|---|---|
-| ADR-CONTENT-001 | Content Identity Domain | Draft / Deferred | ContentFlow | Content identity | [`abrir`](ADRs/F1-api-status-identity-and-diagnostics/01-ADR-CONTENT-001-content-identity-domain.md) |
-| ADR-DIAG-001 | FrameworkFact vs Human Log | Draft / Deferred | Diagnostics | Diagnostics | [`abrir`](ADRs/F1-api-status-identity-and-diagnostics/02-ADR-DIAG-001-frameworkfact-vs-human-log.md) |
-| ADR-ID-001 | Typed Identity Policy | Draft / Deferred | Identity | Framework-wide | [`abrir`](ADRs/F1-api-status-identity-and-diagnostics/03-ADR-ID-001-typed-identity-policy.md) |
+| ADR-CONTENT-001 | Content Identity Domain | Accepted | ContentFlow | Content identity | [`abrir`](ADRs/F1-api-status-identity-and-diagnostics/01-ADR-CONTENT-001-content-identity-domain.md) |
+| ADR-DIAG-001 | FrameworkFact vs Human Log | Accepted | Diagnostics | Diagnostics | [`abrir`](ADRs/F1-api-status-identity-and-diagnostics/02-ADR-DIAG-001-frameworkfact-vs-human-log.md) |
+| ADR-ID-001 | Typed Identity Policy | Accepted | Identity | Framework-wide | [`abrir`](ADRs/F1-api-status-identity-and-diagnostics/03-ADR-ID-001-typed-identity-policy.md) |
 
 ### F2 — Session scope
 
@@ -209,11 +211,18 @@ Não trate `Draft / Deferred` como autorização para implementar.
 
 ## 7. Status F0 fechado
 
+| Item | Status | Observação |
+|---|---|---|
+| `F0A` | `CLOSED / ADRS ACCEPTED` | ADRs de baseline aceitos. |
+| `F0B` | `CLOSED / HYGIENE APPLIED / SMOKE PASS` | Higiene aplicada e smoke aprovado. |
+| `F0C` | `CLOSED / FORMAL CLOSURE` | Fechamento registrado em `F0_CLOSURE.md`. |
+| `F0` | `CLOSED / PASS` | Nenhum bloqueador F0 permanece aberto. |
+
+Nota de status:
+
 ```text
-F0A ADRs aceitos.
-F0B higiene aplicada.
-F0B smoke passou.
-F0C fechamento registrado em F0_CLOSURE.md.
+ADR = Accepted.
+Corte/fase = Closed.
 ```
 
 Resumo aplicado:
@@ -254,21 +263,21 @@ Não copiar shape do NewScripts; preservar capacidades e redesenhar boundaries.
 
 ## 10. Foco atual
 
-F0 está fechado.
+F0 está fechado e F1A aceitou os ADRs da fase.
 
 ```text
-F0A — ADRs aceitos.
-F0B — higiene aplicada.
-F0B smoke — PASS.
-F0C — fechamento registrado em F0_CLOSURE.md.
+F0A — CLOSED / ADRS ACCEPTED.
+F0B — CLOSED / HYGIENE APPLIED / SMOKE PASS.
+F0C — CLOSED / FORMAL CLOSURE.
+F0  — CLOSED / PASS.
+F1A — CLOSED / ACCEPTED.
+F1  — OPEN.
 ```
 
 Próximo passo autorizado:
 
 ```text
-F1A — revisão e aceite dos ADRs de API status, Identity and Diagnostics.
+F1B — API status convention and minimal markers.
 ```
 
-A implementação técnica de F1 só deve começar depois do aceite dos ADRs relevantes da F1.
-
-Não iniciar F2 enquanto F1 não compilar, o smoke baseline não passar e as novas superfícies não estiverem marcadas como Stable, Experimental ou Internal.
+F1B é o primeiro corte técnico autorizado da F1. Não iniciar F2 enquanto F1 não compilar, o smoke baseline não passar e as novas superfícies não estiverem marcadas como Stable, Experimental ou Internal.

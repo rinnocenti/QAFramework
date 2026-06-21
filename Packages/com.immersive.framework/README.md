@@ -10,19 +10,38 @@ com.immersive.framework
 
 ## Current roadmap position
 
-Current accepted phase:
+Closed phase:
 
 ```text
-F0 — Closed / PASS
+F0 — CLOSED / PASS
+```
+
+Current phase:
+
+```text
+F1 — OPEN
+```
+
+Completed F1 cut:
+
+```text
+F1A — CLOSED / ACCEPTED
 ```
 
 Next authorized step:
 
 ```text
-F1A — ADR review and acceptance for API status, Identity and Diagnostics
+F1B — API status convention and minimal markers
 ```
 
-F0A accepted the baseline ADRs. F0B applied the minimum hygiene required after those ADRs. F0C records that the F0 baseline smoke passed and no F0 blocker remains open.
+Status distinction:
+
+```text
+ADR status uses Accepted.
+Cut/phase status uses Closed / PASS or Closed / Accepted.
+```
+
+F0 is closed. F1A accepted the ADRs for typed identity, structured diagnostics and content identity. Runtime implementation of F1 starts only after this ADR acceptance.
 
 ## Active baseline decisions
 
@@ -62,7 +81,19 @@ Then follow the roadmap order:
 3. Documentation~/ADRs/F0A-baseline-adrs/
 4. Documentation~/BASELINE_SMOKE.md
 5. Documentation~/F0_CLOSURE.md
+6. Documentation~/F1_ADR_ACCEPTANCE.md
 ```
+
+## F0 closure status
+
+| Item | Status | Evidence |
+|---|---|---|
+| `F0A` | `CLOSED / ADRS ACCEPTED` | Baseline ADRs accepted. |
+| `F0B` | `CLOSED / HYGIENE APPLIED / SMOKE PASS` | Baseline hygiene applied and smoke passed. |
+| `F0C` | `CLOSED / FORMAL CLOSURE` | `Documentation~/F0_CLOSURE.md`. |
+| `F0` | `CLOSED / PASS` | No F0 blocker remains open. |
+
+ADR files themselves keep `Status: Accepted`; they are decisions, not cuts. The F0 cut/phase status is `Closed`.
 
 ## F0A accepted ADRs
 
@@ -111,16 +142,20 @@ Damage
 Attributes
 ```
 
-## Next step: F1 ADR review
+## F1A accepted ADRs
 
-F1 must start with ADR review/acceptance before implementation. After the ADRs are accepted, F1 should introduce the first explicit API/identity/diagnostics foundation:
+| ADR | Decision |
+|---|---|
+| `ADR-ID-001 — Typed Identity Policy` | New functional identities need explicit domains and typed wrappers. Strings remain valid for labels, source, reason and diagnostics. |
+| `ADR-DIAG-001 — FrameworkFact vs Human Log` | Human logs and structured facts are separate. New validation/smoke should not parse log text as a functional contract. |
+| `ADR-CONTENT-001 — Content Identity Domain` | Content identity is composed from owner, scope, kind and content id. Path/name alone are not stable public identity. |
+
+## Next step: F1B API status convention
+
+F1 technical work can now start, but only in small cuts that implement the accepted F1 ADRs. Recommended first technical cut:
 
 ```text
-1. Framework API status convention or code marker.
-2. Typed identity policy.
-3. FrameworkFact minimum.
-4. ValidationMode concrete semantics.
-5. Content identity ADR/review.
+F1B — API status convention and minimal markers
 ```
 
-Do not start F1 implementation until the relevant F1 ADRs are accepted. Do not start F2 until F1 gives identity/status/diagnostics enough structure to prevent new public ambiguity.
+Do not start F2 until F1 gives identity/status/diagnostics enough structure to prevent new public ambiguity.
