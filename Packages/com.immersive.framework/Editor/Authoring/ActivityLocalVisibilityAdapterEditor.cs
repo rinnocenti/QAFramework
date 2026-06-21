@@ -50,7 +50,7 @@ namespace Immersive.Framework.Editor.Authoring
             var report = new FrameworkAuthoringValidationReport();
             for (int i = 0; i < targets.Length; i++)
             {
-                report.AddRange(FrameworkAuthoringValidator.ValidateActivityContentBinding(targets[i] as ActivityLocalVisibilityAdapter));
+                report.AddRange(FrameworkAuthoringValidator.ValidateActivityLocalVisibilityAdapter(targets[i] as ActivityLocalVisibilityAdapter));
             }
 
             EditorGUILayout.LabelField("Authoring Validation", EditorStyles.boldLabel);

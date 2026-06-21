@@ -45,7 +45,7 @@ namespace Immersive.Framework.Editor.Validation
 
             if (includeOpenSceneBindings)
             {
-                ValidateOpenSceneActivityContentBindings(report, validationMode);
+                ValidateOpenSceneActivityLocalVisibilityAdapters(report, validationMode);
                 ValidateOpenSceneRouteContentBindings(report, validationMode);
             }
 
@@ -74,9 +74,9 @@ namespace Immersive.Framework.Editor.Validation
             return ValidateActivity(activity, FrameworkValidationMode.Standard);
         }
 
-        internal static FrameworkAuthoringValidationReport ValidateActivityContentBinding(ActivityLocalVisibilityAdapter binding)
+        internal static FrameworkAuthoringValidationReport ValidateActivityLocalVisibilityAdapter(ActivityLocalVisibilityAdapter binding)
         {
-            return ValidateActivityContentBinding(binding, FrameworkValidationMode.Standard);
+            return ValidateActivityLocalVisibilityAdapter(binding, FrameworkValidationMode.Standard);
         }
 
         internal static FrameworkAuthoringValidationReport ValidateRouteContentBinding(RouteContentBinding binding)
@@ -200,7 +200,7 @@ namespace Immersive.Framework.Editor.Validation
             return report;
         }
 
-        private static FrameworkAuthoringValidationReport ValidateActivityContentBinding(
+        private static FrameworkAuthoringValidationReport ValidateActivityLocalVisibilityAdapter(
             ActivityLocalVisibilityAdapter binding,
             FrameworkValidationMode validationMode)
         {
@@ -219,7 +219,7 @@ namespace Immersive.Framework.Editor.Validation
                     binding);
             }
 
-            var parentBinding = FindParentActivityContentBinding(binding);
+            var parentBinding = FindParentActivityLocalVisibilityAdapter(binding);
             if (parentBinding != null)
             {
                 report.AddWarning(
@@ -227,7 +227,7 @@ namespace Immersive.Framework.Editor.Validation
                     binding);
             }
 
-            int childBindingCount = CountChildActivityContentBindings(binding);
+            int childBindingCount = CountChildActivityLocalVisibilityAdapters(binding);
             if (childBindingCount > 0)
             {
                 report.AddWarning(
@@ -396,7 +396,7 @@ namespace Immersive.Framework.Editor.Validation
             }
         }
 
-        private static void ValidateOpenSceneActivityContentBindings(
+        private static void ValidateOpenSceneActivityLocalVisibilityAdapters(
             FrameworkAuthoringValidationReport report,
             FrameworkValidationMode validationMode)
         {
@@ -422,7 +422,7 @@ namespace Immersive.Framework.Editor.Validation
                 }
 
                 sceneBindingCount++;
-                report.AddRange(ValidateActivityContentBinding(binding, validationMode));
+                report.AddRange(ValidateActivityLocalVisibilityAdapter(binding, validationMode));
             }
 
             if (sceneBindingCount == 0)
@@ -480,7 +480,7 @@ namespace Immersive.Framework.Editor.Validation
                 : FrameworkValidationMode.Strict;
         }
 
-        private static ActivityLocalVisibilityAdapter FindParentActivityContentBinding(ActivityLocalVisibilityAdapter binding)
+        private static ActivityLocalVisibilityAdapter FindParentActivityLocalVisibilityAdapter(ActivityLocalVisibilityAdapter binding)
         {
             var parent = binding.transform.parent;
             while (parent != null)
@@ -496,7 +496,7 @@ namespace Immersive.Framework.Editor.Validation
             return null;
         }
 
-        private static int CountChildActivityContentBindings(ActivityLocalVisibilityAdapter binding)
+        private static int CountChildActivityLocalVisibilityAdapters(ActivityLocalVisibilityAdapter binding)
         {
             ActivityLocalVisibilityAdapter[] all = binding.GetComponentsInChildren<ActivityLocalVisibilityAdapter>(true);
             int count = 0;

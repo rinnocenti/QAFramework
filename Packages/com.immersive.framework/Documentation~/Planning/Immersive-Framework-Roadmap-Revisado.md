@@ -333,7 +333,7 @@ F4F — APPLIED / PENDING COMPILE-SMOKE
 | IF-FW-ROAD-4B | `ActivityContentSet` mínimo | CLOSED em F4B. Snapshot de conteúdo scene-authored local registrado para a Activity ativa; sem profile loading/materialization/release. |
 | IF-FW-ROAD-4C | `ActivityContentLifecycleResult` | CLOSED em F4C. Resultado agregado de callbacks locais enter/exit, com contagem de bindings, receivers e falhas. |
 | IF-FW-ROAD-4D | `ActivityReadinessState` mínimo | CLOSED em F4D. Readiness mínimo `Ready`/`None`/`NotReady` após aplicação baseline de Activity Content. |
-| IF-FW-ROAD-4E | Reclassificar `ActivityContentBinding` | CLOSED em F4E. `ActivityContentBinding` permanece como classe serializada, mas passa a ser tratado no authoring como Activity Local Visibility Adapter, não materialização canônica. |
+| IF-FW-ROAD-4E | Reclassificar `ActivityLocalVisibilityAdapter` | CLOSED em F4E. `ActivityLocalVisibilityAdapter` permanece como classe serializada, mas passa a ser tratado no authoring como Activity Local Visibility Adapter, não materialização canônica. |
 | IF-FW-ROAD-4F | Activity smoke | APPLIED em F4F. `Run Activity Baseline Smoke` valida switch → content set → readiness → clear → restore. |
 
 ### Não entra
@@ -347,7 +347,7 @@ F4F — APPLIED / PENDING COMPILE-SMOKE
 
 ```text
 Activity tem ContentSet e Readiness mínimos.
-ActivityContentBinding continua simples, mas não confunde a arquitetura.
+ActivityLocalVisibilityAdapter continua simples, mas não confunde a arquitetura.
 ```
 
 ---
