@@ -18,7 +18,8 @@ namespace Immersive.Framework.ActivityFlow
             string message,
             ActivityRuntimeState activityState,
             ActivityAsset previousActivity,
-            ActivityContentApplyResult activityContentResult)
+            ActivityContentApplyResult activityContentResult,
+            ActivityReadinessState activityReadinessState)
         {
             Started = started;
             Skipped = skipped;
@@ -28,6 +29,7 @@ namespace Immersive.Framework.ActivityFlow
             ActivityState = activityState;
             PreviousActivity = previousActivity;
             ActivityContentResult = activityContentResult;
+            ActivityReadinessState = activityReadinessState;
         }
 
         public bool Started { get; }
@@ -52,9 +54,15 @@ namespace Immersive.Framework.ActivityFlow
 
         public ActivityContentLifecycleResult ActivityContentLifecycleResult => ActivityContentResult.LifecycleResult;
 
+        public ActivityReadinessState ActivityReadinessState { get; }
+
         public bool HasActivityContent => ActivityContentSet.HasContent;
 
         public bool HasActivityContentLifecycle => ActivityContentLifecycleResult.Executed;
+
+        public bool HasActivityReadiness => ActivityReadinessState.IsReady || ActivityReadinessState.IsNone || ActivityReadinessState.IsNotReady;
+
+        public bool IsActivityReady => ActivityReadinessState.IsReady;
 
         public bool ReplacedPreviousActivity => Started && PreviousActivity != null && !ReferenceEquals(PreviousActivity, Activity);
 
@@ -66,7 +74,7 @@ namespace Immersive.Framework.ActivityFlow
 
         public static ActivityFlowStartResult Failed(string message)
         {
-            return new ActivityFlowStartResult(false, false, false, false, message, default, null, default);
+            return new ActivityFlowStartResult(false, false, false, false, message, default, null, default, default);
         }
 
         public static ActivityFlowStartResult SkippedNoStartupActivity(
@@ -74,6 +82,7 @@ namespace Immersive.Framework.ActivityFlow
             ActivityAsset previousActivity,
             ActivityContentApplyResult activityContentResult)
         {
+            var readinessState = BuildReadinessState(activityState, activityContentResult);
             if (previousActivity == null)
             {
                 return new ActivityFlowStartResult(
@@ -81,10 +90,11 @@ namespace Immersive.Framework.ActivityFlow
                     true,
                     false,
                     false,
-                    AppendContentMessage(ActivityStateMessage(activityState), activityContentResult),
+                    AppendContentMessage(CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState), activityContentResult),
                     activityState,
                     null,
-                    activityContentResult);
+                    activityContentResult,
+                    readinessState);
             }
 
             return new ActivityFlowStartResult(
@@ -92,10 +102,11 @@ namespace Immersive.Framework.ActivityFlow
                 false,
                 false,
                 true,
-                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' because Route has no Startup Activity. {ActivityStateMessage(activityState)}", activityContentResult),
+                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' because Route has no Startup Activity. {CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState)}", activityContentResult),
                 activityState,
                 previousActivity,
-                activityContentResult);
+                activityContentResult,
+                readinessState);
         }
 
         public static ActivityFlowStartResult ClearedByRequest(
@@ -108,28 +119,33 @@ namespace Immersive.Framework.ActivityFlow
                 return Failed("Activity Flow cannot clear Activity because no Activity is active.");
             }
 
+            var readinessState = BuildReadinessState(activityState, activityContentResult);
             return new ActivityFlowStartResult(
                 false,
                 false,
                 false,
                 true,
-                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' by request. {ActivityStateMessage(activityState)}", activityContentResult),
+                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' by request. {CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState)}", activityContentResult),
                 activityState,
                 previousActivity,
-                activityContentResult);
+                activityContentResult,
+                readinessState);
         }
 
         public static ActivityFlowStartResult KeptCurrentActivity(ActivityRuntimeState activityState)
         {
+            var activityContentResult = ActivityContentApplyResult.Empty(activityState.Activity);
+            var readinessState = BuildReadinessState(activityState, activityContentResult);
             return new ActivityFlowStartResult(
                 false,
                 false,
                 true,
                 false,
-                $"Activity Flow kept Activity '{activityState.ActivityName}' active. {ActivityStateMessage(activityState)}",
+                $"Activity Flow kept Activity '{activityState.ActivityName}' active. {CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState)}",
                 activityState,
                 activityState.Activity,
-                default);
+                activityContentResult,
+                readinessState);
         }
 
         public static ActivityFlowStartResult StartedWith(
@@ -138,9 +154,11 @@ namespace Immersive.Framework.ActivityFlow
             ActivityContentApplyResult activityContentResult)
         {
             var activity = activityState.Activity;
+            var readinessState = BuildReadinessState(activityState, activityContentResult);
+            string stateMessage = CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState);
             string message = previousActivity != null && !ReferenceEquals(previousActivity, activity)
-                ? $"Activity Flow switched from Activity '{previousActivity.ActivityName}' to Activity '{activity.ActivityName}'. {ActivityStateMessage(activityState)}"
-                : $"Activity Flow started Activity '{activity.ActivityName}'. {ActivityStateMessage(activityState)}";
+                ? $"Activity Flow switched from Activity '{previousActivity.ActivityName}' to Activity '{activity.ActivityName}'. {stateMessage}"
+                : $"Activity Flow started Activity '{activity.ActivityName}'. {stateMessage}";
 
             return new ActivityFlowStartResult(
                 true,
@@ -150,7 +168,17 @@ namespace Immersive.Framework.ActivityFlow
                 AppendContentMessage(message, activityContentResult),
                 activityState,
                 previousActivity,
-                activityContentResult);
+                activityContentResult,
+                readinessState);
+        }
+
+        private static ActivityReadinessState BuildReadinessState(ActivityRuntimeState activityState, ActivityContentApplyResult activityContentResult)
+        {
+            return ActivityReadinessState.FromActivityResult(
+                activityState,
+                activityContentResult,
+                activityState.Source,
+                activityState.Reason);
         }
 
         private static string ActivityStateMessage(ActivityRuntimeState activityState)
@@ -161,6 +189,31 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             return $"activityState='{activityState.DiagnosticStatus}'.";
+        }
+
+        private static string ActivityReadinessMessage(ActivityReadinessState activityReadinessState)
+        {
+            if (activityReadinessState.IsReady)
+            {
+                return $"activityReadiness='{activityReadinessState.DiagnosticStatus}' activityReadinessReason='{activityReadinessState.DiagnosticReason}' activityReadinessIssues='0'.";
+            }
+
+            if (activityReadinessState.IsNotReady)
+            {
+                return $"activityReadiness='{activityReadinessState.DiagnosticStatus}' activityReadinessReason='{activityReadinessState.DiagnosticReason}' activityReadinessIssues='{activityReadinessState.BlockingIssueCount}'.";
+            }
+
+            return $"activityReadiness='{activityReadinessState.DiagnosticStatus}' activityReadinessReason='{activityReadinessState.DiagnosticReason}' activityReadinessIssues='0'.";
+        }
+
+        private static string CombineStateAndReadinessMessage(string stateMessage, ActivityReadinessState readinessState)
+        {
+            if (string.IsNullOrWhiteSpace(stateMessage))
+            {
+                return ActivityReadinessMessage(readinessState);
+            }
+
+            return $"{stateMessage} {ActivityReadinessMessage(readinessState)}";
         }
 
         private static string AppendContentMessage(string message, ActivityContentApplyResult activityContentResult)

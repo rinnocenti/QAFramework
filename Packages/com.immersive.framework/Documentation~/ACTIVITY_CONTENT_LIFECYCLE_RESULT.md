@@ -109,5 +109,5 @@ activityContentExitFailed='0'.
 ## Próximo corte
 
 ```text
-F4D — IF-FW-ROAD-4D — ActivityReadinessState mínimo
+F4D — IF-FW-ROAD-4D — ActivityReadinessState mínimo (applied/pending smoke)
 ```

@@ -321,16 +321,18 @@ Status atual:
 F4 — OPEN
 F4A — CLOSED / COMPILE-SMOKE PASS
 F4B — CLOSED / COMPILE-SMOKE PASS
-F4C — APPLIED / PENDING COMPILE-SMOKE
+F4C — CLOSED / COMPILE-SMOKE PASS
+F4D — CLOSED / COMPILE-SMOKE PASS
+F4E — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 | ID | Entrega | Detalhes |
 |---|---|---|
 | IF-FW-ROAD-4A | `ActivityRuntimeState` refinado | CLOSED em F4A. Estado explícito `None`/`Active`, identidade tipada `Activity:*` e `Transitioning` reservado. |
 | IF-FW-ROAD-4B | `ActivityContentSet` mínimo | CLOSED em F4B. Snapshot de conteúdo scene-authored local registrado para a Activity ativa; sem profile loading/materialization/release. |
-| IF-FW-ROAD-4C | `ActivityContentLifecycleResult` | APPLIED em F4C. Resultado agregado de callbacks locais enter/exit, com contagem de bindings, receivers e falhas. |
-| IF-FW-ROAD-4D | `ActivityReadinessState` mínimo | Inicialmente pode ser sempre ready após bindings aplicados. |
-| IF-FW-ROAD-4E | Reclassificar `ActivityContentBinding` | Documentar/nomear como Local Visibility Adapter, não materialização canônica. |
+| IF-FW-ROAD-4C | `ActivityContentLifecycleResult` | CLOSED em F4C. Resultado agregado de callbacks locais enter/exit, com contagem de bindings, receivers e falhas. |
+| IF-FW-ROAD-4D | `ActivityReadinessState` mínimo | CLOSED em F4D. Readiness mínimo `Ready`/`None`/`NotReady` após aplicação baseline de Activity Content. |
+| IF-FW-ROAD-4E | Reclassificar `ActivityContentBinding` | APPLIED em F4E. `ActivityContentBinding` permanece como classe serializada, mas passa a ser tratado no authoring como Activity Local Visibility Adapter, não materialização canônica. |
 | IF-FW-ROAD-4F | Activity smoke | Activity switch → content set → readiness → clear. |
 
 ### Não entra

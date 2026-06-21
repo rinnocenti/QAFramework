@@ -97,7 +97,7 @@ ADR status uses Accepted.
 Cut/phase status uses Closed / PASS or Closed / Accepted.
 ```
 
-F0 is closed. F1 is closed. F2 is closed. F3 Route baseline is closed. F4 Activity baseline is open with F4A and F4B closed, and F4C applied/pending smoke. Do not skip directly to Surface, RuntimeMaterialization or consumers.
+F0 is closed. F1 is closed. F2 is closed. F3 Route baseline is closed. F4 Activity baseline is open with F4A, F4B, F4C and F4D closed, and F4E applied/pending smoke. Do not skip directly to Surface, RuntimeMaterialization or consumers.
 
 
 ## F4A — ActivityRuntimeState refinado
@@ -179,13 +179,67 @@ Runtime/ActivityFlow/ActivityContentLifecycleResult.cs
 Status:
 
 ```text
-F4C — APPLIED / PENDING COMPILE-SMOKE
+F4C — CLOSED / COMPILE-SMOKE PASS
 ```
 
 See:
 
 ```text
 Documentation~/ACTIVITY_CONTENT_LIFECYCLE_RESULT.md
+Documentation~/F4C_CLOSURE.md
+```
+
+## F4D — ActivityReadinessState mínimo
+
+F4D implements the roadmap item:
+
+```text
+IF-FW-ROAD-4D — ActivityReadinessState mínimo
+```
+
+It introduces:
+
+```text
+Runtime/ActivityFlow/ActivityReadinessStatus.cs
+Runtime/ActivityFlow/ActivityReadinessState.cs
+```
+
+`ActivityReadinessState` records the minimal readiness of the active Activity after Activity Content baseline application. In this cut, an active Activity is `Ready` when baseline content application has no blocking issue. No-active-Activity state is represented as `None`. This does not implement visual readiness, actor readiness, async gates, Surface, RuntimeMaterialization or consumers.
+
+Status:
+
+```text
+F4D — CLOSED / COMPILE-SMOKE PASS
+```
+
+See:
+
+```text
+Documentation~/ACTIVITY_READINESS_STATE_MINIMAL.md
+Documentation~/F4D_CLOSURE.md
+```
+
+
+## F4E — Activity Local Visibility Adapter
+
+F4E implements the roadmap item:
+
+```text
+IF-FW-ROAD-4E — Reclassificar ActivityContentBinding
+```
+
+`ActivityContentBinding` remains the serialized C# component name, but its authoring role is now documented and exposed as `Activity Local Visibility Adapter`: a scene-authored adapter that toggles a local GameObject for the active Activity. It is not canonical Activity materialization.
+
+Status:
+
+```text
+F4E — APPLIED / PENDING COMPILE-SMOKE
+```
+
+See:
+
+```text
+Documentation~/ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md
 ```
 
 

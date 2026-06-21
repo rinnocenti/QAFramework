@@ -221,7 +221,7 @@ namespace Immersive.Framework.ActivityFlow
                 true,
                 source,
                 reason,
-                $"Activity content binding action='{FormatValue(action)}'.");
+                $"Activity local visibility adapter action='{FormatValue(action)}'.");
 
             return new ActivityContentEntry(handle);
         }
@@ -333,7 +333,7 @@ namespace Immersive.Framework.ActivityFlow
             string exceptionMessage = exception != null ? exception.Message : string.Empty;
 
             _logger.Error(
-                $"Activity Content lifecycle receiver failed. phase='{FormatValue(phase)}' activity='{FormatValue(activityName)}' object='{FormatValue(binding.ObjectName)}' scene='{FormatValue(binding.SceneName)}' receiver='{FormatValue(receiverType)}' exception='{FormatValue(exceptionType)}' message='{FormatValue(exceptionMessage)}'.");
+                $"Activity Local Visibility Adapter lifecycle receiver failed. phase='{FormatValue(phase)}' activity='{FormatValue(activityName)}' object='{FormatValue(binding.ObjectName)}' scene='{FormatValue(binding.SceneName)}' receiver='{FormatValue(receiverType)}' exception='{FormatValue(exceptionType)}' message='{FormatValue(exceptionMessage)}'.");
         }
 
 
@@ -388,7 +388,7 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             string activeActivityName = activeActivity != null ? activeActivity.ActivityName : "<none>";
-            string details = $"Activity Content Binding diagnostics. activeActivity='{FormatValue(activeActivityName)}' observations=[{string.Join("; ", observedBindings)}]";
+            string details = $"Activity Local Visibility Adapter diagnostics. activeActivity='{FormatValue(activeActivityName)}' observations=[{string.Join("; ", observedBindings)}]";
             if (omittedObservationCount > 0)
             {
                 details += $" omitted='{omittedObservationCount}'";
@@ -404,7 +404,7 @@ namespace Immersive.Framework.ActivityFlow
                 return string.Empty;
             }
 
-            return $"Activity Content Binding warning. warnings=[{string.Join("; ", warningBindings)}].";
+            return $"Activity Local Visibility Adapter warning. warnings=[{string.Join("; ", warningBindings)}].";
         }
 
         private static string FormatValue(string value)

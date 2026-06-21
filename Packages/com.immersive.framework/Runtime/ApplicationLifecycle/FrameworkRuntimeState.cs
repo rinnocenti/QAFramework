@@ -59,6 +59,12 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         public ActivityContentLifecycleResult ActivityContentLifecycleResult => SessionState.ActivityContentLifecycleResult;
 
+        public ActivityReadinessState ActivityReadinessState => SessionState.ActivityReadinessState;
+
+        public bool HasActivityReadiness => SessionState.HasActivityReadiness;
+
+        public bool IsActivityReady => SessionState.IsActivityReady;
+
         public ActivityAsset CurrentActivity => SessionState.CurrentActivity;
 
         public string CurrentActivityName => SessionState.CurrentActivityName;

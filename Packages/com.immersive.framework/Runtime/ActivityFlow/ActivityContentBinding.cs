@@ -5,15 +5,17 @@ using Immersive.Framework.ApiStatus;
 namespace Immersive.Framework.ActivityFlow
 {
     /// <summary>
-    /// Scene-authored binding between one GameObject and one Activity.
-    /// Activity Flow uses this component to activate content for the active Activity.
+    /// Scene-authored local visibility adapter between one GameObject and one Activity.
+    /// Activity Flow uses this component to toggle local scene-authored content for the active Activity.
+    /// It is not canonical Activity materialization.
     /// </summary>
     [DisallowMultipleComponent]
-    [AddComponentMenu("Immersive Framework/Activity Content Binding")]
+    [AddComponentMenu("Immersive Framework/Activity Local Visibility Adapter")]
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public sealed class ActivityContentBinding : MonoBehaviour
     {
         [SerializeField]
+        [Tooltip("Activity that owns this local visibility adapter. This only toggles this GameObject when that Activity is active; it is not canonical Activity materialization.")]
         private ActivityAsset activity;
 
         public ActivityAsset Activity => activity;
