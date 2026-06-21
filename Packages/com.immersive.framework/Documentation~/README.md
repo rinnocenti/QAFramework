@@ -44,9 +44,12 @@ Smoke valida.
 | 8 | [`API_STATUS_CONVENTION.md`](API_STATUS_CONVENTION.md) | Convenção mínima de status de API aplicada no F1B. |
 | 9 | [`F1B_CLOSURE.md`](F1B_CLOSURE.md) | Fechamento do F1B após compile-smoke. |
 | 10 | [`FRAMEWORK_FACT_MINIMAL_MODEL.md`](FRAMEWORK_FACT_MINIMAL_MODEL.md) | Modelo mínimo de `FrameworkFact` criado no F1C. |
-| 11 | [`VALIDATION_MODE_SEMANTICS.md`](VALIDATION_MODE_SEMANTICS.md) | Semântica mínima de `ValidationMode` criada no F1D. |
-| 12 | [`Guides/`](Guides/) | Guias de uso/visualização. |
-| 13 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
+| 11 | [`F1C_CLOSURE.md`](F1C_CLOSURE.md) | Fechamento do F1C após compile-smoke. |
+| 12 | [`VALIDATION_MODE_SEMANTICS.md`](VALIDATION_MODE_SEMANTICS.md) | Semântica mínima de `ValidationMode` criada no F1D. |
+| 13 | [`F1D_CLOSURE.md`](F1D_CLOSURE.md) | Fechamento do F1D após compile-smoke. |
+| 14 | [`TYPED_IDENTITY_PRIMITIVES.md`](TYPED_IDENTITY_PRIMITIVES.md) | Primitivos mínimos de identidade tipada criados no F1E. |
+| 15 | [`Guides/`](Guides/) | Guias de uso/visualização. |
+| 16 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
 ---
 
@@ -62,7 +65,10 @@ Documentation~/
 ├─ API_STATUS_CONVENTION.md
 ├─ F1B_CLOSURE.md
 ├─ FRAMEWORK_FACT_MINIMAL_MODEL.md
+├─ F1C_CLOSURE.md
 ├─ VALIDATION_MODE_SEMANTICS.md
+├─ F1D_CLOSURE.md
+├─ TYPED_IDENTITY_PRIMITIVES.md
 ├─ Planning/
 │  ├─ Immersive-Framework-Roadmap-Revisado.md
 │  └─ Capability-Traceability-Matrix.md
@@ -252,10 +258,11 @@ F0_CLOSURE.md registra a matriz ADR → resultado.
 |---|---|---|
 | `F1A` | `CLOSED / ACCEPTED` | ADRs de Identity, Diagnostics e Content Identity aceitos. |
 | `F1B` | `CLOSED / COMPILE-SMOKE PASS` | Convenção mínima de status de API aplicada e validada por smoke. |
-| `F1C` | `APPLIED / PENDING COMPILE-SMOKE` | Modelo mínimo de `FrameworkFact` criado; aguarda validação no Unity. |
-| `F1D` | `APPLIED / PENDING COMPILE-SMOKE` | Semântica mínima de `ValidationMode` criada; aguarda validação no Unity. |
+| `F1C` | `CLOSED / COMPILE-SMOKE PASS` | Modelo mínimo de `FrameworkFact` criado e validado. |
+| `F1D` | `CLOSED / COMPILE-SMOKE PASS` | Semântica mínima de `ValidationMode` criada e validada. |
+| `F1E` | `APPLIED / PENDING COMPILE-SMOKE` | Primitivos mínimos de identidade tipada criados; aguarda validação no Unity. |
 
-F1 ainda não está fechada. Ainda faltam os cortes técnicos de typed identity primitives e revisão de content identity/handle.
+F1 ainda não está fechada. Ainda falta validar F1E e concluir a revisão de content identity/handle.
 
 ## 9. Checklist antes de abrir um corte técnico
 
@@ -283,7 +290,7 @@ Não copiar shape do NewScripts; preservar capacidades e redesenhar boundaries.
 
 ## 11. Foco atual
 
-F0 está fechado, F1A aceitou os ADRs da fase e F1B passou em compile-smoke.
+F0 está fechado. F1A aceitou os ADRs da fase. F1B, F1C e F1D passaram em compile-smoke. F1E está aplicado e aguarda validação.
 
 ```text
 F0A — CLOSED / ADRS ACCEPTED.
@@ -292,15 +299,16 @@ F0C — CLOSED / FORMAL CLOSURE.
 F0  — CLOSED / PASS.
 F1A — CLOSED / ACCEPTED.
 F1B — CLOSED / COMPILE-SMOKE PASS.
-F1C — APPLIED / PENDING COMPILE-SMOKE.
-F1D — APPLIED / PENDING COMPILE-SMOKE.
+F1C — CLOSED / COMPILE-SMOKE PASS.
+F1D — CLOSED / COMPILE-SMOKE PASS.
+F1E — APPLIED / PENDING COMPILE-SMOKE.
 F1  — OPEN.
 ```
 
-Próximo passo autorizado após validação do F1C/F1D:
+Próximo passo autorizado após validação do F1E:
 
 ```text
-F1E — Typed identity primitives mínimos.
+F1F — Content identity / FrameworkContentHandle review.
 ```
 
 Não iniciar F2 enquanto F1 não compilar, o smoke baseline não passar e as novas superfícies não estiverem marcadas como Stable, Experimental ou Internal.

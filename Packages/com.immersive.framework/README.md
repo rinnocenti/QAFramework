@@ -27,19 +27,20 @@ Completed F1 cuts:
 ```text
 F1A — CLOSED / ACCEPTED
 F1B — CLOSED / COMPILE-SMOKE PASS
+F1C — CLOSED / COMPILE-SMOKE PASS
+F1D — CLOSED / COMPILE-SMOKE PASS
 ```
 
 Current F1 cuts pending validation:
 
 ```text
-F1C — APPLIED / PENDING COMPILE-SMOKE
-F1D — APPLIED / PENDING COMPILE-SMOKE
+F1E — APPLIED / PENDING COMPILE-SMOKE
 ```
 
-Next authorized step after F1C/F1D validation:
+Next authorized step after F1E validation:
 
 ```text
-F1E — Typed identity primitives mínimos
+F1F — Content identity / FrameworkContentHandle review
 ```
 
 Status distinction:
@@ -93,7 +94,10 @@ Then follow the roadmap order:
 7. Documentation~/API_STATUS_CONVENTION.md
 8. Documentation~/F1B_CLOSURE.md
 9. Documentation~/FRAMEWORK_FACT_MINIMAL_MODEL.md
-10. Documentation~/VALIDATION_MODE_SEMANTICS.md
+10. Documentation~/F1C_CLOSURE.md
+11. Documentation~/VALIDATION_MODE_SEMANTICS.md
+12. Documentation~/F1D_CLOSURE.md
+13. Documentation~/TYPED_IDENTITY_PRIMITIVES.md
 ```
 
 ## F0 closure status
@@ -182,7 +186,7 @@ Documentation~/F1B_CLOSURE.md
 
 ## F1C FrameworkFact minimal model
 
-F1C introduces the minimal structured diagnostics model required by `ADR-DIAG-001`:
+F1C is closed after compile-smoke validation and introduces the minimal structured diagnostics model required by `ADR-DIAG-001`:
 
 ```text
 Runtime/Diagnostics/FrameworkFact.cs
@@ -194,9 +198,15 @@ Documentation~/FRAMEWORK_FACT_MINIMAL_MODEL.md
 
 F1C does not create a fact recorder, service locator, event bus, telemetry, dashboard, persistence layer, validator integration or lifecycle behavior change.
 
+See:
+
+```text
+Documentation~/F1C_CLOSURE.md
+```
+
 ## F1D ValidationMode semantics
 
-F1D gives `ValidationMode` concrete minimum semantics:
+F1D is closed after compile-smoke validation and gives `ValidationMode` concrete minimum semantics:
 
 ```text
 Strict   — required configuration fails; warnings are promoted to errors; info diagnostics are included.
@@ -212,10 +222,30 @@ Documentation~/VALIDATION_MODE_SEMANTICS.md
 
 F1D does not change Game Flow, Route Lifecycle, Activity Flow or Scene Lifecycle behavior.
 
-Next authorized step after F1C/F1D compile-smoke validation:
+See:
 
 ```text
-F1E — Typed identity primitives mínimos
+Documentation~/F1D_CLOSURE.md
+```
+
+## F1E Typed identity primitives
+
+F1E introduces minimal identity primitives required by `ADR-ID-001`:
+
+```text
+Runtime/Identity/FrameworkIdentityDomain.cs
+Runtime/Identity/FrameworkIdentityValue.cs
+Runtime/Identity/FrameworkIdentityKey.cs
+Runtime/Identity/IFrameworkIdentity.cs
+Documentation~/TYPED_IDENTITY_PRIMITIVES.md
+```
+
+F1E does not migrate existing serialized strings, does not create domain-specific `RouteId`/`ActivityId` types yet and does not alter lifecycle behavior.
+
+Next authorized step after F1E compile-smoke validation:
+
+```text
+F1F — Content identity / FrameworkContentHandle review
 ```
 
 Do not start F2 until F1 gives identity/status/diagnostics enough structure to prevent new public ambiguity.
