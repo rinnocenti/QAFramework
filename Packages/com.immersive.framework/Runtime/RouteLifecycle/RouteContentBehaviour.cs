@@ -4,6 +4,7 @@ using UnityEngine;
 namespace Immersive.Framework.RouteLifecycle
 {
     /// <summary>
+    /// API status: Deferred until F3. This type is retained as frozen transitional source, not as active baseline API.
     /// Optional base class for MonoBehaviours under a Route Content Binding root.
     /// Prefer this for scene-authored Route content that needs lifecycle callbacks
     /// without manually implementing IRouteContentLifecycleReceiver.

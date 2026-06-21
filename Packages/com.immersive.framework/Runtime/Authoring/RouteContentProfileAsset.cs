@@ -5,6 +5,7 @@ using UnityEngine;
 namespace Immersive.Framework.Authoring
 {
     /// <summary>
+    /// API status: Deferred / Planning-only. Additional scenes are declarations only in the active baseline.
     /// Authoring profile for Route-owned content declarations.
     /// The baseline cut only plans additional scenes; actual additive loading is introduced later.
     /// </summary>

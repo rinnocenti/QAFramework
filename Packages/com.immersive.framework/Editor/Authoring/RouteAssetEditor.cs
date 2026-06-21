@@ -1,9 +1,9 @@
 using Immersive.Framework.Authoring;
-using Immersive.Framework.Editor.Editor.Settings;
+using Immersive.Framework.Editor.Settings;
 using UnityEditor;
 using UnityEngine;
 
-namespace Immersive.Framework.Editor.Editor.Authoring
+namespace Immersive.Framework.Editor.Authoring
 {
     [CustomEditor(typeof(RouteAsset))]
     internal sealed class RouteAssetEditor : UnityEditor.Editor
@@ -98,8 +98,8 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             EditorGUILayout.LabelField("Route Content", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_routeContentProfile, new GUIContent("Content Profile"));
             EditorGUILayout.HelpBox(
-                "Optional. This baseline only plans additional Route content. Additional scenes declared in the profile are not loaded yet; execution comes in a later Route composition cut.",
-                MessageType.None);
+                "Optional and planning-only. Additional scenes declared in the profile are not loaded in F0B; execution belongs to F6 Route scene composition/release.",
+                MessageType.Warning);
 
             using (new EditorGUILayout.HorizontalScope())
             {

@@ -1,0 +1,25 @@
+# F0B removed files
+
+These files were removed from the active core baseline by F0B.
+
+Reason: CameraFlow is Deferred/consumer-level and Cinemachine must not be a mandatory dependency of com.immersive.framework core.
+
+```text
+com.immersive.framework/Runtime/CameraFlow/FrameworkCameraActivatedEvent.cs
+com.immersive.framework/Runtime/CameraFlow/FrameworkCameraActivatedEvent.cs.meta
+com.immersive.framework/Runtime/CameraFlow/FrameworkCameraAuthority.cs
+com.immersive.framework/Runtime/CameraFlow/FrameworkCameraAuthority.cs.meta
+com.immersive.framework/Runtime/CameraFlow/FrameworkCameraDeactivatedEvent.cs
+com.immersive.framework/Runtime/CameraFlow/FrameworkCameraDeactivatedEvent.cs.meta
+com.immersive.framework/Runtime/CameraFlow/FrameworkCameraOutputRig.cs
+com.immersive.framework/Runtime/CameraFlow/FrameworkCameraOutputRig.cs.meta
+com.immersive.framework/Runtime/CameraFlow/FrameworkCameraRequest.cs
+com.immersive.framework/Runtime/CameraFlow/FrameworkCameraRequest.cs.meta
+com.immersive.framework/Runtime/CameraFlow/FrameworkCameraScope.cs
+com.immersive.framework/Runtime/CameraFlow/FrameworkCameraScope.cs.meta
+com.immersive.framework/Runtime/CameraFlow/FrameworkCinemachineCameraBinding.cs
+com.immersive.framework/Runtime/CameraFlow/FrameworkCinemachineCameraBinding.cs.meta
+com.immersive.framework/Runtime/CameraFlow/IFrameworkCameraRequestDriver.cs
+com.immersive.framework/Runtime/CameraFlow/IFrameworkCameraRequestDriver.cs.meta
+com.immersive.framework/Runtime/CameraFlow.meta
+```

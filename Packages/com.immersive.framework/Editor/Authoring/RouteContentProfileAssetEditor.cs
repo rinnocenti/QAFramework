@@ -2,7 +2,7 @@ using Immersive.Framework.Authoring;
 using UnityEditor;
 using UnityEngine;
 
-namespace Immersive.Framework.Editor.Editor.Authoring
+namespace Immersive.Framework.Editor.Authoring
 {
     [CustomEditor(typeof(RouteContentProfileAsset))]
     internal sealed class RouteContentProfileAssetEditor : UnityEditor.Editor
@@ -24,8 +24,8 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
             EditorGUILayout.LabelField("Route Content Profile", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "Declares Route-owned content for planning. In this baseline, additional scenes are recorded in the Route Content Plan but are not loaded yet.",
-                MessageType.Info);
+                "Status: Deferred / Planning-only. This asset declares future Route-owned content. In F0B, additional scenes are recorded for diagnostics/planning only and are not loaded.",
+                MessageType.Warning);
 
             EditorGUILayout.Space(6);
             EditorGUILayout.PropertyField(_profileId, new GUIContent("Profile Id"));
@@ -41,8 +41,8 @@ namespace Immersive.Framework.Editor.Editor.Authoring
         {
             EditorGUILayout.LabelField("Additional Route Scenes", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "These scenes are declarations only in this cut. They become additive Route scene materialization inputs in a later cut.",
-                MessageType.None);
+                "These scenes are declarations only. Additive execution belongs to F6 Route scene composition/release, not F0B.",
+                MessageType.Warning);
 
             for (var i = 0; i < _additionalScenes.arraySize; i++)
             {

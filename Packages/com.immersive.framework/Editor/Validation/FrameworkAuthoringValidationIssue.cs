@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Immersive.Framework.Editor.Editor.Validation
+namespace Immersive.Framework.Editor.Validation
 {
     internal readonly struct FrameworkAuthoringValidationIssue
     {

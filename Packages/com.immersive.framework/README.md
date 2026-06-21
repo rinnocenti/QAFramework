@@ -13,27 +13,27 @@ com.immersive.framework
 Current accepted phase:
 
 ```text
-F0A — Baseline ADRs
+F0B — Baseline hygiene
 ```
 
 Next technical phase:
 
 ```text
-F0B — Baseline hygiene
+F1 — API status, Identity and Diagnostics
 ```
 
-F0A is a reconciliation phase. It does not add runtime behavior. Its purpose is to decide what the current package baseline officially means before new primitives are introduced.
+F0B applies the minimum hygiene required after the F0A ADRs. It does not introduce a new lifecycle feature. Its purpose is to make source, package metadata, inspectors and documentation stop contradicting the accepted baseline.
 
 ## Active baseline decisions
 
-| Area | F0A status | Consequence |
+| Area | F0B status | Consequence |
 |---|---|---|
 | Bootstrap, Game Application, Route, Activity and request triggers | `Experimental` | Usable for development, but identity/state semantics still need F1/F3/F4 refinement. |
 | `ContentFlow` materializer/contribution vocabulary | `Experimental` | Preserved as vocabulary, not stable materialization API. |
-| `RouteContentProfileAsset` | `Deferred / Planning-only` | Additional scenes are not executed by the active baseline. |
-| `RouteContentRuntime` | `Deferred` | Route local content callbacks are not canonical until F3 decides/connects them. |
-| `CameraFlow` | `Deferred` | Camera is a future consumer; Cinemachine must not remain a mandatory core dependency after F0B. |
-| `FrameworkQaCanvas` | `Development Tooling` | Manual smoke tool, not product API. |
+| `RouteContentProfileAsset` | `Deferred / Planning-only` | Additional scenes are declared for planning/diagnostics only; they are not loaded by F0B. |
+| `RouteContentRuntime` | `Deferred` | Route local callbacks are frozen and hidden from authoring menus until F3 decides the Route baseline. |
+| `CameraFlow` | `Removed from core baseline` | Camera is a future consumer. The core package no longer carries CameraFlow source or a mandatory Cinemachine dependency. |
+| `FrameworkQaCanvas` | `Development Tooling` | Manual smoke tool compiled only in the Unity Editor or development builds. Not product API. |
 | `ValidationMode` | `Experimental` | Concrete semantics are deferred to F1. |
 
 ## Core rule
@@ -60,6 +60,7 @@ Then follow the roadmap order:
 1. Documentation~/Planning/Immersive-Framework-Roadmap-Revisado.md
 2. Documentation~/Planning/Capability-Traceability-Matrix.md
 3. Documentation~/ADRs/F0A-baseline-adrs/
+4. Documentation~/BASELINE_SMOKE.md
 ```
 
 ## F0A accepted ADRs
@@ -72,14 +73,29 @@ Then follow the roadmap order:
 | `ADR-BL-004 — QA and Diagnostics Boundary` | Separates logging/facts/validators from QA UI. |
 | `ADR-BL-005 — Dependency Policy` | Keeps core dependencies minimal; Cinemachine is not core while CameraFlow is deferred. |
 
-## What F0A does not do
+## F0B applied hygiene
 
-F0A does not implement:
+```text
+1. CameraFlow source removed from the core package.
+2. com.unity.cinemachine removed from com.immersive.framework/package.json.
+3. Unity.Cinemachine removed from Runtime asmdef references.
+4. Optional/external project manifest entries for CameraFlow/Pooling/external timer utilities removed from this baseline package snapshot.
+5. RouteContentRuntime family marked deferred and hidden from authoring menus.
+6. ContentFlow source marked Experimental.
+7. RouteContentProfile inspectors now show Planning-only / Deferred warnings.
+8. FrameworkQaCanvas is development tooling only.
+9. Editor namespace hygiene fixed from Immersive.Framework.Editor.Editor.* to Immersive.Framework.Editor.*.
+10. Baseline smoke documentation added.
+```
+
+## What F0B does not implement
+
+F0B does not implement:
 
 ```text
 SessionContentSet
 RouteContentRuntime connection
-additive scenes
+Route additive scene execution
 Surface
 RuntimeSpawned
 Input
@@ -94,19 +110,16 @@ Damage
 Attributes
 ```
 
-## Next cut: F0B
+## Next cut: F1
 
-F0B should apply only the minimum hygiene needed to make code, package metadata and docs stop contradicting the accepted ADRs.
-
-Expected F0B targets:
+F1 should introduce the first explicit API/identity/diagnostics foundation:
 
 ```text
-1. Remove or freeze CameraFlow from the active core baseline.
-2. Remove Cinemachine as mandatory core dependency unless an explicit optional split is created.
-3. Mark RouteContentRuntime as deferred until F3 or remove misleading docs.
-4. Mark RouteContentProfileAsset as planning-only in Inspector/docs.
-5. Keep FrameworkQaCanvas as development tooling, not product API.
-6. Add/update baseline smoke documentation.
+1. Framework API status convention or code marker.
+2. Typed identity policy.
+3. FrameworkFact minimum.
+4. ValidationMode concrete semantics.
+5. Content identity ADR/review.
 ```
 
-Do not start F1 until F0B compiles and the baseline smoke still passes.
+Do not start F2 until F1 gives identity/status/diagnostics enough structure to prevent new public ambiguity.

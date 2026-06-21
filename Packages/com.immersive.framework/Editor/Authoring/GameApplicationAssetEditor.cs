@@ -1,9 +1,9 @@
 using Immersive.Framework.Authoring;
-using Immersive.Framework.Editor.Editor.Settings;
-using Immersive.Framework.Editor.Editor.Validation;
+using Immersive.Framework.Editor.Settings;
+using Immersive.Framework.Editor.Validation;
 using UnityEditor;
 using UnityEngine;
-namespace Immersive.Framework.Editor.Editor.Authoring
+namespace Immersive.Framework.Editor.Authoring
 {
     [CustomEditor(typeof(GameApplicationAsset))]
     internal sealed class GameApplicationAssetEditor : UnityEditor.Editor

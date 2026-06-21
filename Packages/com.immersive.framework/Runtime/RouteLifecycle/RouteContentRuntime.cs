@@ -7,6 +7,7 @@ using Object = UnityEngine.Object;
 namespace Immersive.Framework.RouteLifecycle
 {
     /// <summary>
+    /// API status: Deferred until F3. This type is retained as frozen transitional source, not as active baseline API.
     /// Minimal owner for notifying Route-scoped scene content.
     /// It does not load scenes, start activities, spawn actors, or own Route identity.
     /// </summary>

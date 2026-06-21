@@ -1,3 +1,4 @@
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Threading.Tasks;
 using Immersive.Framework.ApplicationLifecycle;
@@ -11,6 +12,7 @@ namespace Immersive.Framework.Diagnostics
 {
     /// <summary>
     /// Minimal development QA surface for exercising framework runtime requests.
+    /// API status: Development Tooling. Compiled only in the Unity Editor or development builds.
     /// Uses IMGUI to avoid adding a UGUI/package dependency to the framework runtime.
     /// </summary>
     [DisallowMultipleComponent]
@@ -843,3 +845,4 @@ namespace Immersive.Framework.Diagnostics
         }
     }
 }
+#endif

@@ -1,9 +1,9 @@
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Bootstrap;
-using Immersive.Framework.Editor.Editor.Validation;
+using Immersive.Framework.Editor.Validation;
 using UnityEditor;
 using UnityEngine;
-namespace Immersive.Framework.Editor.Editor.Settings
+namespace Immersive.Framework.Editor.Settings
 {
     internal static class ImmersiveFrameworkSettingsProvider
     {

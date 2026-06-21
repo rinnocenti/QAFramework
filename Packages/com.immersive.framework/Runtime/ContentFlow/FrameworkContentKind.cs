@@ -1,6 +1,7 @@
 namespace Immersive.Framework.ContentFlow
 {
     /// <summary>
+    /// API status: Experimental. Do not treat this as a stable materialization or contribution contract before F1/F5/F8.
     /// Declares the concrete materialization family represented by a content handle.
     /// </summary>
     public enum FrameworkContentKind

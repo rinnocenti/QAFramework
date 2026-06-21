@@ -3,6 +3,7 @@ using System;
 namespace Immersive.Framework.ContentFlow
 {
     /// <summary>
+    /// API status: Experimental. Do not treat this as a stable materialization or contribution contract before F1/F5/F8.
     /// Immutable runtime identity for content materialized or discovered by the framework.
     /// A handle records ownership and release intent; it does not expose a service locator.
     /// </summary>

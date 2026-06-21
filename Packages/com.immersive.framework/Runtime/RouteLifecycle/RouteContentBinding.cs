@@ -4,11 +4,12 @@ using UnityEngine;
 namespace Immersive.Framework.RouteLifecycle
 {
     /// <summary>
+    /// API status: Deferred until F3. This type is retained as frozen transitional source, not as active baseline API.
     /// Scene-authored boundary for Route-scoped content.
     /// Route Lifecycle uses this component to notify local receivers; it does not own GameObject visibility.
     /// </summary>
     [DisallowMultipleComponent]
-    [AddComponentMenu("Immersive Framework/Route Content Binding")]
+    [AddComponentMenu("")]
     public sealed class RouteContentBinding : MonoBehaviour
     {
         [SerializeField]

@@ -3,6 +3,7 @@ using UnityEngine;
 namespace Immersive.Framework.ContentFlow
 {
     /// <summary>
+    /// API status: Experimental. Do not treat this as a stable materialization or contribution contract before F1/F5/F8.
     /// Generic authored contribution marker for route/activity content.
     /// This is discovery data only; it does not materialize, activate, or release objects.
     /// </summary>

@@ -38,8 +38,9 @@ Smoke valida.
 | 2 | [`Planning/Capability-Traceability-Matrix.md`](Planning/Capability-Traceability-Matrix.md) | Cobertura das capacidades do `NewScripts`, bloqueadores e riscos. |
 | 3 | [`ADRs/`](ADRs/) | ADRs novos/propostos, organizados por ordem do plano. |
 | 4 | [`Architecture/ADR/`](Architecture/ADR/) | ADRs históricos do package atual. |
-| 5 | [`Guides/`](Guides/) | Guias de uso/visualização. |
-| 6 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
+| 5 | [`BASELINE_SMOKE.md`](BASELINE_SMOKE.md) | Smoke manual mínimo do baseline ativo. |
+| 6 | [`Guides/`](Guides/) | Guias de uso/visualização. |
+| 7 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
 ---
 
@@ -49,6 +50,7 @@ Smoke valida.
 Documentation~/
 ├─ README.md
 ├─ ADR-TEMPLATE.md
+├─ BASELINE_SMOKE.md
 ├─ Planning/
 │  ├─ Immersive-Framework-Roadmap-Revisado.md
 │  └─ Capability-Traceability-Matrix.md
@@ -203,7 +205,18 @@ Não trate `Draft / Deferred` como autorização para implementar.
 
 ---
 
-## 7. Checklist antes de abrir um corte técnico
+## 7. Status F0B aplicado
+
+```text
+CameraFlow saiu do core ativo.
+Cinemachine saiu das dependências obrigatórias de com.immersive.framework.
+RouteContentRuntime ficou Deferred até F3.
+RouteContentProfileAsset ficou Planning-only.
+FrameworkQaCanvas ficou Development Tooling.
+BASELINE_SMOKE.md registra o smoke mínimo.
+```
+
+## 8. Checklist antes de abrir um corte técnico
 
 ```text
 1. Qual fase do roadmap este corte pertence?
@@ -217,7 +230,7 @@ Não trate `Draft / Deferred` como autorização para implementar.
 
 ---
 
-## 8. Regra contra avanço prematuro
+## 9. Regra contra avanço prematuro
 
 ```text
 Não avançar para feature enquanto o baseline ativo ainda for ambíguo.
@@ -227,20 +240,22 @@ Não copiar shape do NewScripts; preservar capacidades e redesenhar boundaries.
 
 ---
 
-## 9. Foco atual
+## 10. Foco atual
 
 F0A está aceito como fase de decisão/documentação.
+
+F0B foi aplicado como higiene mínima do baseline.
 
 Próximo corte técnico:
 
 ```text
-F0B — Baseline hygiene
+F1 — API status, Identity and Diagnostics
 ```
 
-Alvo do F0B:
+Alvo do F1:
 
 ```text
-Aplicar somente a higiene mínima para código, package metadata, README, inspectors e guia não contradizerem os ADRs aceitos.
+Criar status explícito de API, política de identidade tipada, FrameworkFact mínimo e semântica concreta para ValidationMode.
 ```
 
-Não iniciar F1 enquanto F0B não compilar e o smoke baseline não passar.
+Não iniciar F2 enquanto F1 não compilar, o smoke baseline não passar e as novas superfícies não estiverem marcadas como Stable, Experimental ou Internal.

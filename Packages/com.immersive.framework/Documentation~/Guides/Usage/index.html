@@ -46,16 +46,16 @@
 <body>
   <header>
     <div class="eyebrow">Immersive Framework</div>
-    <h1>Guia F0A — Baseline Reconciliation</h1>
-    <p class="subtitle">Este guia foi reduzido para refletir o começo correto do roadmap. F0A é uma fase de decisão/documentação; o próximo corte técnico é F0B.</p>
+    <h1>Guia F0B — Baseline Hygiene</h1>
+    <p class="subtitle">Este guia foi reduzido para refletir o começo correto do roadmap. F0B aplica a higiene mínima depois dos ADRs de F0A; o próximo corte técnico é F1.</p>
   </header>
   <main>
     <section class="card">
       <h2>Estado atual</h2>
-      <p><strong>Fase aceita:</strong> <code>F0A — Baseline ADRs</code>.</p>
-      <p><strong>Próximo corte técnico:</strong> <code>F0B — Baseline hygiene</code>.</p>
-      <p>O framework ainda não deve avançar para novas features. A prioridade é fazer o código, package metadata, README, inspectors e smokes concordarem com os ADRs aceitos.</p>
-      <div class="warning">Este guia não deve prometer execução de subsistemas deferred, como <code>CameraFlow</code>, <code>RouteContentRuntime</code> ou additive scenes.</div>
+      <p><strong>Fase aceita:</strong> <code>F0B — Baseline hygiene</code>.</p>
+      <p><strong>Próximo corte técnico:</strong> <code>F1 — API status, Identity and Diagnostics</code>.</p>
+      <p>O framework ainda não deve avançar para features. A prioridade seguinte é dar status, identidade e diagnostics mínimos para impedir novas APIs ambíguas.</p>
+      <div class="warning">Este guia não promete execução de subsistemas deferred, como <code>RouteContentRuntime</code> ou additive scenes. <code>CameraFlow</code> foi removido do core ativo.</div>
     </section>
 
     <section>
@@ -67,34 +67,34 @@
           <tr><td><code>ContentFlow</code></td><td><code>Experimental</code></td><td>Vocabulário preservado; ainda não é materialization API estável.</td></tr>
           <tr><td><code>RouteContentProfileAsset</code></td><td><code>Deferred / Planning-only</code></td><td>Não executa additive scenes no baseline atual.</td></tr>
           <tr><td><code>RouteContentRuntime</code></td><td><code>Deferred</code></td><td>Não tratar callbacks de Route como contrato ativo até F3.</td></tr>
-          <tr><td><code>CameraFlow</code></td><td><code>Deferred</code></td><td>Camera é consumer avançado; não deve ser dependência obrigatória do core.</td></tr>
-          <tr><td><code>FrameworkQaCanvas</code></td><td><code>Development Tooling</code></td><td>Ferramenta manual de smoke; não API de produto.</td></tr>
+          <tr><td><code>CameraFlow</code></td><td><code>Removed from core baseline</code></td><td>Camera é consumer avançado; Cinemachine não é dependência obrigatória do core.</td></tr>
+          <tr><td><code>FrameworkQaCanvas</code></td><td><code>Development Tooling</code></td><td>Ferramenta manual de smoke; compila apenas no Editor ou em development build.</td></tr>
           <tr><td><code>ValidationMode</code></td><td><code>Experimental</code></td><td>Semântica concreta vem em F1.</td></tr>
         </tbody>
       </table>
     </section>
 
     <section class="card">
-      <h2>Como validar F0A</h2>
+      <h2>Como validar F0B</h2>
       <ol>
-        <li>Confirmar que os cinco ADRs de <code>Documentation~/ADRs/F0A-baseline-adrs/</code> estão como <code>Accepted</code>.</li>
-        <li>Confirmar que <code>README.md</code> e <code>Documentation~/README.md</code> apontam F0B como próximo corte.</li>
-        <li>Não adicionar runtime behavior novo neste corte.</li>
+        <li>Confirmar que o projeto compila sem erros CS.</li>
+        <li>Confirmar que <code>com.immersive.framework</code> não depende mais de <code>com.unity.cinemachine</code>.</li>
+        <li>Confirmar que <code>Runtime/CameraFlow</code> não faz parte do core ativo.</li>
+        <li>Executar o smoke mínimo descrito em <code>Documentation~/BASELINE_SMOKE.md</code>.</li>
       </ol>
     </section>
 
     <section>
       <h2>Próximo passo técnico</h2>
-      <pre><code>F0B — Baseline hygiene
-1. Remover/congelar CameraFlow do core ativo.
-2. Remover Cinemachine como dependência obrigatória do core, salvo split opcional explícito.
-3. Marcar RouteContentRuntime como deferred até F3.
-4. Deixar RouteContentProfileAsset explicitamente planning-only.
-5. Manter FrameworkQaCanvas como development tooling.
-6. Criar/atualizar BASELINE_SMOKE.md.</code></pre>
+      <pre><code>F1 — API status, Identity and Diagnostics
+1. Criar convenção ou marcador de API status.
+2. Aceitar Typed Identity Policy.
+3. Criar FrameworkFact mínimo.
+4. Dar semântica concreta ao ValidationMode.
+5. Revisar Content identity antes de expandir ContentFlow.</code></pre>
     </section>
 
-    <p class="footer">Guia incremental. Atualizar novamente ao fechar F0B.</p>
+    <p class="footer">Guia incremental. Atualizar novamente ao fechar F1.</p>
   </main>
 </body>
 </html>

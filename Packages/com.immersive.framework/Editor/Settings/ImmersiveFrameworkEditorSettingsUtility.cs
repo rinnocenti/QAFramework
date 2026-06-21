@@ -2,7 +2,7 @@ using System.IO;
 using Immersive.Framework.Authoring;
 using UnityEditor;
 using UnityEngine;
-namespace Immersive.Framework.Editor.Editor.Settings
+namespace Immersive.Framework.Editor.Settings
 {
     internal static class ImmersiveFrameworkEditorSettingsUtility
     {

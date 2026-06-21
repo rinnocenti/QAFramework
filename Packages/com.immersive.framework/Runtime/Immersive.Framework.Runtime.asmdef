@@ -4,8 +4,7 @@
   "references": [
     "Immersive.Foundation.Runtime",
     "Immersive.Logging.Runtime",
-    "Immersive.Logging.Unity",
-    "Unity.Cinemachine"
+    "Immersive.Logging.Unity"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
