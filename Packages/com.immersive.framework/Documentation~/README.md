@@ -59,6 +59,8 @@ Smoke valida.
 | 23 | [`SESSION_RUNTIME_STATE_BOUNDARY.md`](SESSION_RUNTIME_STATE_BOUNDARY.md) | Corte técnico F2B: fronteira explícita de `SessionRuntimeState`. |
 | 24 | [`F2B_CLOSURE.md`](F2B_CLOSURE.md) | Fechamento do F2B após compile-smoke. |
 | 25 | [`SESSION_CONTENT_SET_MINIMAL_MODEL.md`](SESSION_CONTENT_SET_MINIMAL_MODEL.md) | Corte técnico F2C: modelo mínimo de `SessionContentSet`. |
+| 26 | [`F2C_CLOSURE.md`](F2C_CLOSURE.md) | Fechamento do F2C após compile-smoke. |
+| 27 | [`F2_CLOSURE.md`](F2_CLOSURE.md) | Fechamento formal da Fase 2 antes de abrir F3. |
 | 26 | [`Guides/`](Guides/) | Guias de uso/visualização. |
 | 27 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
@@ -90,6 +92,8 @@ Documentation~/
 ├─ F2A_REMOVED_FILES.txt
 ├─ SESSION_RUNTIME_STATE_BOUNDARY.md
 ├─ F2B_CLOSURE.md
+├─ F2C_CLOSURE.md
+├─ F2_CLOSURE.md
 ├─ SESSION_CONTENT_SET_MINIMAL_MODEL.md
 ├─ Planning/
 │  ├─ Immersive-Framework-Roadmap-Revisado.md
@@ -194,12 +198,27 @@ Este corte criou a fronteira explícita `Runtime/SessionLifecycle/SessionRuntime
 Status atual:
 
 ```text
-F2C — APPLIED / PENDING COMPILE-SMOKE
+F2C — CLOSED / COMPILE-SMOKE PASS
 ```
 
 Documento técnico: [`SESSION_CONTENT_SET_MINIMAL_MODEL.md`](SESSION_CONTENT_SET_MINIMAL_MODEL.md).
 
 Este corte cria `SessionContentOwnership`, `SessionContentEntry` e `SessionContentSet`, e conecta o set vazio ao `SessionRuntimeState`. Não cria loading, persistent scenes, release policy, Surface, RuntimeMaterialization ou consumers.
+
+Fechamento: [`F2C_CLOSURE.md`](F2C_CLOSURE.md).
+
+### F2D — F2 technical closure checkpoint
+
+Status atual:
+
+```text
+F2D — CLOSED / DOCUMENTATION ONLY
+F2  — CLOSED / PASS
+```
+
+Documento de fechamento: [`F2_CLOSURE.md`](F2_CLOSURE.md).
+
+Este checkpoint fecha `IF-FW-ROAD-2F — Session smoke` a partir dos smokes de F2B e F2C. Não altera runtime e não cria feature nova.
 
 ### F3 — Route baseline
 
@@ -318,14 +337,17 @@ F0_CLOSURE.md registra a matriz ADR → resultado.
 F1 está fechada. F1E1 apenas corrigiu a navegação documental dos ADRs e F1F validou a identidade composta de content handles no smoke de fechamento.
 
 
-## 9. Status F2 aberto
+## 9. Status F2 fechado
 
 | Item | Status | Observação |
 |---|---|---|
 | `F2A` | `CLOSED / ADRS ACCEPTED` | ADRs de Session scope, SessionContent ownership e Settings source aceitos. |
-| `F2` | `OPEN` | A fase pode seguir para o primeiro corte técnico, mas ainda não está fechada. |
+| `F2B` | `CLOSED / COMPILE-SMOKE PASS` | `SessionRuntimeState` explícito implementado e validado. |
+| `F2C` | `CLOSED / COMPILE-SMOKE PASS` | `SessionContentSet` mínimo e ownership semantics implementados e validados. |
+| `F2D` | `CLOSED / DOCUMENTATION ONLY` | Checkpoint formal de fechamento de F2. |
+| `F2` | `CLOSED / PASS` | Todos os itens do roadmap F2 foram cobertos. |
 
-F2A não altera runtime. Ele apenas destrava os cortes técnicos de Session scope.
+F2 está fechado. O próximo avanço deve começar pela Fase 3, seguindo ADRs e roadmap.
 
 
 ## 10. Checklist antes de abrir um corte técnico
@@ -354,7 +376,7 @@ Não copiar shape do NewScripts; preservar capacidades e redesenhar boundaries.
 
 ## 12. Foco atual
 
-F0 está fechado. F1 está fechado. F2A aceitou os ADRs de Session scope. A próxima etapa autorizada é o primeiro corte técnico de F2.
+F0 está fechado. F1 está fechado. F2 está fechado. A próxima etapa autorizada é abrir F3 com revisão/aceite dos ADRs de Route baseline.
 
 ```text
 F0A — CLOSED / ADRS ACCEPTED.
@@ -370,12 +392,16 @@ F1E1 — CLOSED / DOCUMENTATION ONLY.
 F1F — CLOSED / COMPILE-SMOKE PASS.
 F1  — CLOSED / PASS.
 F2A — CLOSED / ADRS ACCEPTED.
+F2B — CLOSED / COMPILE-SMOKE PASS.
+F2C — CLOSED / COMPILE-SMOKE PASS.
+F2D — CLOSED / DOCUMENTATION ONLY.
+F2  — CLOSED / PASS.
 ```
 
 Próximo passo autorizado:
 
 ```text
-F2B — SessionRuntimeState explicit boundary.
+F3A — Route baseline ADR review and acceptance.
 ```
 
-Não iniciar F3, Surface, RuntimeMaterialization ou consumers antes do fechamento técnico de F2.
+Não iniciar Surface, RuntimeMaterialization ou consumers antes do fechamento técnico de F3/F6/F8 conforme roadmap.

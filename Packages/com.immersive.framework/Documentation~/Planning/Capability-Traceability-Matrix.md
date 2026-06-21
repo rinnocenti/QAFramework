@@ -66,10 +66,10 @@ Regras:
 | Config de runtime obrigatória | Preservar fail-fast | F1 | F1 | IF-FW-ROAD-1D | Parcial / Ausente | Coberto | Core | RuntimeContentHandle + ContributionSet + release policy | Baixo / controlado | Sem ajuste. |
 | Registry imutável de config | Preservar como contexto explícito | F1 | F1 | IF-FW-ROAD-1D | Parcial / Ausente | Coberto | Core | Baseline ADRs + API/identity policy | Baixo / controlado | Sem ajuste. |
 | Pipeline de composição em fases | Redesenhar sem DependencyManager público | F2 | Futura F2/F3 | IF-FW-ROAD-2C | Parcial / Ausente | Coberto com ajuste / Deferred | Core | Baseline ADRs + API/identity policy | Baixo / controlado | Não obrigatório como corte imediato. Preservar o padrão, mas evitar composition genérico cedo demais. |
-| Session runtime state | Preservar; tipar IDs | F2 | F2 | IF-FW-ROAD-2B | Presente / F2B | Coberto | Core | RuntimeContentHandle + ContributionSet + release policy | Baixo / controlado | Sem ajuste. |
+| Session runtime state | Preservar; tipar IDs | F2 | F2 | IF-FW-ROAD-2B | Presente / F2B fechado | Coberto | Core | RuntimeContentHandle + ContributionSet + release policy | Baixo / controlado | Sem ajuste. |
 | Session composition context | Redesenhar; composição interna | F2 | Deferred | IF-FW-ROAD-2C | Parcial / Ausente | Coberto com ajuste / Deferred | Core | Baseline ADRs + API/identity policy | Risco de entrar cedo demais | Conceito válido, mas perigoso cedo. Primeiro formalizar Session scope/content sem service locator. |
 | Persistent scenes policy | Preservar conceito | F2 | F6 ou futura Session Persistent Content | IF-FW-ROAD-2C | Parcial / Ausente | Coberto, mas com correção | Core | Baseline ADRs + API/identity policy | Risco de entrar cedo demais | Não puxar scene ownership para F2; depende de scene composition/release. |
-| Session content set | Preservar como `SessionContentSet` | F2 | F2 | IF-FW-ROAD-2C | Presente / F2C mínimo | Coberto, mas com correção | Core | Baseline ADRs + API/identity policy | Baixo / controlado | Mantém F2, mas como set mínimo, possivelmente vazio/diagnóstico. |
+| Session content set | Preservar como `SessionContentSet` | F2 | F2 | IF-FW-ROAD-2C | Presente / F2C fechado | Coberto | Core | Baseline ADRs + API/identity policy | Baixo / controlado | Mantém F2, mas como set mínimo, possivelmente vazio/diagnóstico. |
 | Startup route signal | Preservar sinal; remover evento estático global | F2 | F2 | IF-FW-ROAD-2F | Parcial / Ausente | Coberto | Core | Baseline ADRs + API/identity policy | Baixo / controlado | Sem ajuste. |
 | Runtime policy (Strict/Release) | Preservar | F1 | F1 | IF-FW-ROAD-1D | Parcial / Ausente | Coberto | Core | RuntimeContentHandle + ContributionSet + release policy | Baixo / controlado | Sem ajuste. |
 | Player participation | Preservar typed; adiar implementação | F10+ | F10+/F11 | — | Parcial / Ausente | Coberto com ajuste / Deferred | Core | Baseline ADRs + API/identity policy | Risco de ficar sem corte rastreável | Adiar. Entra com Input/Actor boundary, não no core inicial. |
@@ -488,8 +488,8 @@ Antes de abrir um corte técnico, responder:
 | Session composition context | Registra e fornece dependências sem service locator público. | `SessionOperationalRuntimeComposer` | Redesenhar; composição interna | F2 | IF-FW-ROAD-2C |
 | Persistent scenes policy | Garante que cenas persistentes existem antes da rota inicial. | `RuntimePersistentScenesComposition`, `RuntimePersistentScenesPolicyAsset` | Preservar conceito | F2 | IF-FW-ROAD-2C |
 | Session content set | Registro de conteúdo que vive acima de Route (câmera, áudio, etc.). | `SessionOperationalRuntimeComposer` (implícito) | Preservar como `SessionContentSet` | F2 | IF-FW-ROAD-2C |
-| Settings source policy | Define a origem explícita de settings do bootstrap sem fallback silencioso. | `ImmersiveFrameworkSettingsAsset`, `Resources.Load` | Aceitar como temporário e documentado para F2 | F2 | IF-FW-ROAD-2E |
-| Startup route signal | Dispara a rota inicial após Session estar pronta. | `StartupRequestEmitter`, `StartupRouteEmitter` | Preservar sinal; remover evento estático global | F2 | IF-FW-ROAD-2F |
+| Settings source policy | Define a origem explícita de settings do bootstrap sem fallback silencioso. | `ImmersiveFrameworkSettingsAsset`, `Resources.Load` | Aceito como temporário e documentado para F2 | F2 | IF-FW-ROAD-2E |
+| Startup route signal | Dispara a rota inicial após Session estar pronta. | `StartupRequestEmitter`, `StartupRouteEmitter` | Preservado via smoke de Session; evento estático global não foi criado | F2 | IF-FW-ROAD-2F |
 | Runtime policy (Strict/Release) | Define comportamento em caso de erro (fatal vs. degraded). | `GlobalCompositionRoot.RuntimePolicy`, `IDegradedModeReporter` | Preservar | F1 | IF-FW-ROAD-1D |
 | Player participation | Mantém participantes/slots/estado de sessão entre rotas. | `PlayerParticipationRuntime`, `SessionParticipationContext` | Preservar typed; adiar implementação | F10+ | — |
 | Subsystem composition descriptors | Cada subsistema declara suas dependências separadamente. | `AudioCompositionDescriptor`, `CameraPresentationCompositionDescriptor` etc. | Preservar padrão descriptor | F11 | IF-FW-ROAD-11C, 11D |
@@ -721,10 +721,13 @@ Antes de abrir um corte técnico, responder:
 | **F12** | Projectile as RuntimeSpawned, Impact handling, Damage as capability, Attributes as snapshot-capable |
 
 
-### F2B — SessionRuntimeState explicit boundary
+### F2 closure — Session scope
 
 | Capability | Cut | Status | Evidence | Notes |
 |---|---|---|---|---|
-| Session runtime state | F2B | APPLIED / PENDING COMPILE-SMOKE | `Runtime/SessionLifecycle/SessionRuntimeState.cs` | Explicit Session state boundary created. `FrameworkRuntimeState` remains compatibility facade. |
+| Session runtime state | F2B | CLOSED / COMPILE-SMOKE PASS | `Runtime/SessionLifecycle/SessionRuntimeState.cs` | Explicit Session state boundary created. `FrameworkRuntimeState` remains compatibility facade. |
+| Session content set | F2C | CLOSED / COMPILE-SMOKE PASS | `Runtime/SessionLifecycle/SessionContentSet.cs` | Minimal Session content set created; initial set can be empty. |
+| Session content ownership | F2C | CLOSED / COMPILE-SMOKE PASS | `Runtime/SessionLifecycle/SessionContentOwnership.cs` | `Registered`, `Owned` and `DiagnosticOnly` semantics created. |
+| Session smoke | F2D | CLOSED / DOCUMENTATION ONLY | `Documentation~/F2_CLOSURE.md` | F2B/F2C smokes close the technical Session phase. |
 
-F2B intentionally does not implement `SessionContentSet`, persistent scenes, Route baseline, Surface or RuntimeMaterialization.
+F2 intentionally does not implement persistent scenes, Route baseline, Surface or RuntimeMaterialization.

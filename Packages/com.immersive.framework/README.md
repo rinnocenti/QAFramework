@@ -15,6 +15,7 @@ Closed phases:
 ```text
 F0 — CLOSED / PASS
 F1 — CLOSED / PASS
+F2 — CLOSED / PASS
 ```
 
 Completed F1 cuts:
@@ -56,13 +57,15 @@ Current F2 status:
 ```text
 F2A — CLOSED / ADRS ACCEPTED
 F2B — CLOSED / COMPILE-SMOKE PASS
-F2C — APPLIED / PENDING COMPILE-SMOKE
+F2C — CLOSED / COMPILE-SMOKE PASS
+F2D — CLOSED / DOCUMENTATION ONLY
+F2  — CLOSED / PASS
 ```
 
-Current authorized validation:
+Current authorized roadmap step:
 
 ```text
-F2C — compile-smoke
+F3A — Route baseline ADR review and acceptance
 ```
 
 Status distinction:
@@ -72,7 +75,7 @@ ADR status uses Accepted.
 Cut/phase status uses Closed / PASS or Closed / Accepted.
 ```
 
-F0 is closed. F1 is closed. F2A accepted the Session scope ADRs. F2 may now move to the first technical cut, but must not skip directly to Route, Surface, RuntimeMaterialization or consumers.
+F0 is closed. F1 is closed. F2 is closed. F3 may start with Route baseline ADR review and acceptance. Do not skip directly to Surface, RuntimeMaterialization or consumers.
 
 ## F2B — SessionRuntimeState explicit boundary
 
@@ -102,16 +105,28 @@ Runtime/SessionLifecycle/SessionContentSet.cs
 
 The initial set can be empty. This cut defines ownership semantics only; it does not create loading, release, persistent scenes, Surface, RuntimeMaterialization or consumers.
 
-See:
+F2C is closed by compile-smoke. See:
 
 ```text
 Documentation~/SESSION_CONTENT_SET_MINIMAL_MODEL.md
+Documentation~/F2C_CLOSURE.md
+```
+
+## F2 closure
+
+F2 is formally closed. See:
+
+```text
+Documentation~/F2_CLOSURE.md
 ```
 
 See:
 
 ```text
 Documentation~/SESSION_RUNTIME_STATE_BOUNDARY.md
+Documentation~/SESSION_CONTENT_SET_MINIMAL_MODEL.md
+Documentation~/F2C_CLOSURE.md
+Documentation~/F2_CLOSURE.md
 ```
 
 ## Active baseline decisions
@@ -168,6 +183,9 @@ Then follow the roadmap order:
 19. Documentation~/F1_CLOSURE.md
 20. Documentation~/F2A_SESSION_SCOPE_ADR_ACCEPTANCE.md
 21. Documentation~/SESSION_RUNTIME_STATE_BOUNDARY.md
+Documentation~/SESSION_CONTENT_SET_MINIMAL_MODEL.md
+Documentation~/F2C_CLOSURE.md
+Documentation~/F2_CLOSURE.md
 ```
 
 ## ADR file naming
@@ -377,12 +395,18 @@ See:
 Documentation~/F1_CLOSURE.md
 ```
 
-## Current F2 validation
+## F2 closure
 
 ```text
-F2C — APPLIED / PENDING COMPILE-SMOKE
+F2A — CLOSED / ADRS ACCEPTED
+F2B — CLOSED / COMPILE-SMOKE PASS
+F2C — CLOSED / COMPILE-SMOKE PASS
+F2D — CLOSED / DOCUMENTATION ONLY
+F2  — CLOSED / PASS
 ```
 
-F2B is closed by compile-smoke. F2C is the current technical Session scope cut and must be validated with the standard boot/route/activity/clear smoke before opening the final F2 checkpoint.
+F2 is closed. Do not start Surface, RuntimeMaterialization or consumers before their roadmap phases. The next authorized step is:
 
-Do not start F3, Surface, RuntimeMaterialization or consumers before F2 technical closure.
+```text
+F3A — Route baseline ADR review and acceptance
+```

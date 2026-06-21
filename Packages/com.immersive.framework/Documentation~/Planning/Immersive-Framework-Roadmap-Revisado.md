@@ -734,6 +734,9 @@ F0 — CLOSED / PASS
 F1 — CLOSED / PASS
 F2A — CLOSED / ADRS ACCEPTED
 F2B — CLOSED / COMPILE-SMOKE PASS
+F2C — CLOSED / COMPILE-SMOKE PASS
+F2D — CLOSED / DOCUMENTATION ONLY
+F2  — CLOSED / PASS
 ```
 
 F2A aceitou os ADRs necessários para iniciar a execução técnica de Session scope:
@@ -749,41 +752,39 @@ F2-03 — ADR-SETTINGS-001 — Accepted
 O próximo corte autorizado é:
 
 ```text
-F2C — APPLIED / PENDING COMPILE-SMOKE
+F3A — Route baseline ADR review and acceptance
 ```
 
-F2B deve cobrir o início técnico de:
+F2 foi fechado pelo checkpoint técnico:
 
 ```text
-IF-FW-ROAD-2B — SessionRuntimeState explícito
-```
-
-Mantendo em vista:
-
-```text
-IF-FW-ROAD-2A — Session Scope já aceito por ADR
-IF-FW-ROAD-2C — SessionContentSet mínimo fica preferencialmente para F2C
-IF-FW-ROAD-2D — SessionContentOwnership semantics fica preferencialmente para F2C
-IF-FW-ROAD-2E — Settings source policy já aceito por ADR
-IF-FW-ROAD-2F — Session smoke fecha a fase técnica
+IF-FW-ROAD-2A — Session Scope coberto por ADR aceito
+IF-FW-ROAD-2B — SessionRuntimeState explícito coberto por F2B
+IF-FW-ROAD-2C — SessionContentSet mínimo coberto por F2C
+IF-FW-ROAD-2D — SessionContentOwnership semantics coberto por F2C
+IF-FW-ROAD-2E — Settings source policy coberto por ADR aceito
+IF-FW-ROAD-2F — Session smoke coberto pelos smokes de F2B/F2C
 ```
 
 ## Não avançar ainda
 
 ```text
-F3 Route baseline
 F4 Activity content/readiness
 F7 Surface
 F8 Runtime roots/materialization
 F10/F11 Consumers
 ```
 
-Esses cortes dependem de F2 técnico fechado.
+Esses cortes dependem das fases intermediárias do roadmap. F3 pode iniciar somente por ADR review/acceptance de Route baseline.
 
-### F2B status — SessionRuntimeState explicit boundary
+### F2 closure status — Session scope
 
-Status: APPLIED / PENDING COMPILE-SMOKE
+Status: CLOSED / PASS
 
 F2B covers `IF-FW-ROAD-2B` by introducing `Runtime/SessionLifecycle/SessionRuntimeState.cs` and making `FrameworkRuntimeState` a compatibility facade over the explicit Session state.
 
-F2B does not implement `SessionContentSet`, persistent scenes, Route baseline, Surface or RuntimeMaterialization.
+F2C covers `IF-FW-ROAD-2C` and `IF-FW-ROAD-2D` by introducing `SessionContentSet`, `SessionContentEntry` and `SessionContentOwnership`.
+
+F2D closes `IF-FW-ROAD-2F` as a documentation-only checkpoint after F2B/F2C smoke passed.
+
+F2 does not implement persistent scenes, Route baseline, Surface or RuntimeMaterialization.
