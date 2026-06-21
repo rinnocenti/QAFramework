@@ -46,6 +46,7 @@ F1A-03-ADR-CONTENT-001-content-identity-domain.md
 | `ADRs/F1-api-status-identity-and-diagnostics/01-ADR-CONTENT-001-content-identity-domain.md` | `ADRs/F1-api-status-identity-and-diagnostics/F1A-03-ADR-CONTENT-001-content-identity-domain.md` |
 | `ADRs/F2-session-scope/01-ADR-SESSION-001-session-scope-and-owner.md` | `ADRs/F2-session-scope/F2-01-ADR-SESSION-001-session-scope-and-owner.md` |
 | `ADRs/F2-session-scope/02-ADR-SESSION-002-sessioncontent-ownership-semantics.md` | `ADRs/F2-session-scope/F2-02-ADR-SESSION-002-sessioncontent-ownership-semantics.md` |
+| — | `ADRs/F2-session-scope/F2-03-ADR-SETTINGS-001-settings-source-policy.md` |
 | `ADRs/F3-route-baseline/01-ADR-ROUTE-001-routeruntimestate-and-routecontentruntime-status.md` | `ADRs/F3-route-baseline/F3-01-ADR-ROUTE-001-routeruntimestate-and-routecontentruntime-status.md` |
 | `ADRs/F3-route-baseline/02-ADR-ROUTE-002-routecontentset-semantics.md` | `ADRs/F3-route-baseline/F3-02-ADR-ROUTE-002-routecontentset-semantics.md` |
 | `ADRs/F4-activity-content-and-readiness/01-ADR-ACTIVITY-001-activitycontentset-and-readiness-baseline.md` | `ADRs/F4-activity-content-and-readiness/F4-01-ADR-ACTIVITY-001-activitycontentset-and-readiness-baseline.md` |

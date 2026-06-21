@@ -1,7 +1,8 @@
 # F2-01 — ADR-SESSION-001 — Session Scope and Owner
 
-Status: Draft / Deferred  
+Status: Accepted  
 Fase: F2  
+Cut de decisão: F2A  
 Ordem no Plano: F2-01  
 Tipo: Session  
 Escopo: Session runtime
@@ -10,56 +11,131 @@ Escopo: Session runtime
 
 ## Contexto
 
-O package tem `FrameworkRuntimeHost`, mas ainda não formaliza Session como scope de conteúdo, estado e ownership.
+F0 fechou o baseline do package e F1 fechou as regras mínimas de API status, diagnostics, typed identity e content identity. A próxima dependência do roadmap é F2: formalizar Session como scope antes de Route baseline, Activity content set, Surface, RuntimeMaterialization ou consumers.
+
+O package já possui `FrameworkRuntimeHost` e `FrameworkRuntimeState`, mas a Session ainda não está declarada como boundary arquitetural explícito. Sem isso, `SessionContentSet`, startup route, diagnostics e futuros conteúdos persistentes podem cair em um manager global ou em service locator.
+
+---
 
 ## Decisão
 
-`FrameworkRuntimeHost` deve ser tratado como owner inicial da Session runtime. Ele não deve virar service locator.
+A Session é o escopo runtime superior do framework durante uma execução do jogo.
 
-Session deve possuir:
+`FrameworkRuntimeHost` fica aceito como owner inicial da Session runtime. Ele pode orquestrar boot, startup route e requests, mas não pode virar service locator público.
 
-- active application;
-- lifecycle status;
-- startup route state;
-- session diagnostics;
-- `SessionContentSet` mínimo;
-- boundaries para future persistent content.
+A Session deve ter estado próprio explícito, por refinamento de `FrameworkRuntimeState` ou por novo `SessionRuntimeState` em corte técnico posterior. Esse estado deve cobrir, no mínimo:
 
-Session não deve possuir diretamente camera/audio/input/actor concretos.
+- identidade da Session;
+- referência à `GameApplicationAsset` ativa;
+- status/lifecycle da Session;
+- startup route declarada/resolvida;
+- diagnostics/facts associados ao escopo Session;
+- ponte para `SessionContentSet` mínimo.
+
+A identidade da Session deve seguir a política F1:
+
+```text
+FrameworkIdentityDomain.Session + FrameworkIdentityValue
+```
+
+Strings continuam válidas para labels, nomes de objeto, reason e mensagens humanas, mas não devem ser usadas como chave funcional nova sem domínio.
+
+---
+
+## Restrições
+
+A Session não deve possuir diretamente consumers concretos:
+
+```text
+Camera
+Audio
+Input
+Actor
+Pooling
+Save
+Pause
+Projectile
+Damage
+Attributes
+```
+
+A Session também não deve criar:
+
+```text
+public service registry
+public service locator
+global dependency manager
+runtime lifecycle pipeline pesado
+fallback silencioso para configuração obrigatória ausente
+```
+
+---
 
 ## Consequências
 
 ### Positivas
 
 - Formaliza o topo do lifecycle.
-- Prepara persistent content.
-- Mantém composition explícita.
+- Cria owner claro para conteúdo session-scoped.
+- Prepara `SessionContentSet` sem criar manager global.
+- Mantém F3/F4/F7/F8 dependentes de uma base de Session explícita.
 
-### Negativas / trade-offs
+### Trade-offs
 
-- Pode exigir ajuste de `FrameworkRuntimeState`.
-- Alguns consumers precisarão esperar contexts futuros.
+- Pode exigir pequeno ajuste em `FrameworkRuntimeState`.
+- Alguns consumers precisarão esperar phases posteriores.
+- `FrameworkRuntimeHost` continua simples, mas passa a ter boundary arquitetural formal.
+
+---
 
 ## Fora do escopo
 
-- Service registry público.
 - Player participation.
-- Persistent subsystem hosts concretos.
+- Runtime roots.
+- Persistent scenes.
+- Surface.
+- Runtime materialization.
+- Route baseline.
+- Activity content/readiness.
+- Concrete consumer hosts.
 
-## Critérios de validação
+---
 
-- Existe `SessionRuntimeState` ou equivalente.
-- Host é owner claro da Session.
-- Não há novo service locator público.
+## Critérios de validação da implementação posterior
 
-## Impacto esperado
+- Existe estado explícito de Session ou refinamento equivalente de `FrameworkRuntimeState`.
+- O host é owner claro da Session.
+- A Session possui identidade tipada.
+- Não há service locator público novo.
+- Boot continua: Session válida → Startup Route → Route Smoke.
 
-Destrava `SessionContentSet` e ownership.
+---
 
 ## Relação com roadmap
 
-F2.
+Cobre:
+
+```text
+IF-FW-ROAD-2A — ADR: Session Scope
+IF-FW-ROAD-2B — SessionRuntimeState explícito
+IF-FW-ROAD-2F — Session smoke
+```
+
+Prepara:
+
+```text
+IF-FW-ROAD-2C — SessionContentSet mínimo
+IF-FW-ROAD-2D — SessionContentOwnership semantics
+```
+
+---
 
 ## Notas de implementação
 
-O host pode continuar simples; não criar pipeline Session pesada.
+O corte técnico seguinte deve ser pequeno:
+
+```text
+F2B — SessionRuntimeState explicit boundary
+```
+
+Não criar pipeline de Session pesada. Não introduzir consumers. Não abrir F3 antes de Session owner e state ficarem claros.

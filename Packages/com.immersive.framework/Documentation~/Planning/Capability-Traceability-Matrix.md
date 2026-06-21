@@ -258,6 +258,7 @@ Regras:
 ### F2
 - Session — Session runtime state
 - Session — Session content set
+- Session — Settings source policy
 - Session — Startup route signal
 
 ### Futura F2/F3
@@ -487,6 +488,7 @@ Antes de abrir um corte técnico, responder:
 | Session composition context | Registra e fornece dependências sem service locator público. | `SessionOperationalRuntimeComposer` | Redesenhar; composição interna | F2 | IF-FW-ROAD-2C |
 | Persistent scenes policy | Garante que cenas persistentes existem antes da rota inicial. | `RuntimePersistentScenesComposition`, `RuntimePersistentScenesPolicyAsset` | Preservar conceito | F2 | IF-FW-ROAD-2C |
 | Session content set | Registro de conteúdo que vive acima de Route (câmera, áudio, etc.). | `SessionOperationalRuntimeComposer` (implícito) | Preservar como `SessionContentSet` | F2 | IF-FW-ROAD-2C |
+| Settings source policy | Define a origem explícita de settings do bootstrap sem fallback silencioso. | `ImmersiveFrameworkSettingsAsset`, `Resources.Load` | Aceitar como temporário e documentado para F2 | F2 | IF-FW-ROAD-2E |
 | Startup route signal | Dispara a rota inicial após Session estar pronta. | `StartupRequestEmitter`, `StartupRouteEmitter` | Preservar sinal; remover evento estático global | F2 | IF-FW-ROAD-2F |
 | Runtime policy (Strict/Release) | Define comportamento em caso de erro (fatal vs. degraded). | `GlobalCompositionRoot.RuntimePolicy`, `IDegradedModeReporter` | Preservar | F1 | IF-FW-ROAD-1D |
 | Player participation | Mantém participantes/slots/estado de sessão entre rotas. | `PlayerParticipationRuntime`, `SessionParticipationContext` | Preservar typed; adiar implementação | F10+ | — |
@@ -706,7 +708,7 @@ Antes de abrir um corte técnico, responder:
 |---|---|
 | **F0B** | Boot global, QA Canvas boundary, Smoke doc |
 | **F1** | Config de runtime, Runtime policy, Session diagnostics/facts, FrameworkFact, Typed identity policy, Content identity, Boot fail-fast |
-| **F2** | Session runtime state, Session composition context, Persistent scenes, Session content set, Startup route signal, Audio listener (Session) |
+| **F2** | Session runtime state, Session composition context, Persistent scenes, Session content set, Settings source policy, Startup route signal, Audio listener (Session) |
 | **F3** | Route asset, Route runtime state, Route exit result, Route primary scene, Route → Activity handoff, Route startup activity policy |
 | **F4** | Activity asset, Activity content profile, Activity runtime state, Activity entry context, Activity content set, Activity content lifecycle result, Readiness gate, Activity exit plan |
 | **F5** | Contributor marker, Local content identity, Scoped discovery, Contribution set, Requiredness policy, Capability inventory (descriptor), Stale/foreign check |

@@ -703,6 +703,7 @@ ADR files follow the plan order first and the stable ADR id second.
 | F1A-03 | ADR-CONTENT-001 | Content identity domain. |
 | F2-01 | ADR-SESSION-001 | Session Scope and owner. |
 | F2-02 | ADR-SESSION-002 | SessionContent ownership semantics. |
+| F2-03 | ADR-SETTINGS-001 | Settings source policy. |
 | F3-01 | ADR-ROUTE-001 | RouteRuntimeState and RouteContentRuntime status. |
 | F3-02 | ADR-ROUTE-002 | RouteContentSet semantics. |
 | F4-01 | ADR-ACTIVITY-001 | ActivityContentSet and Readiness baseline. |
@@ -730,32 +731,50 @@ ADR files follow the plan order first and the stable ADR id second.
 
 ```text
 F0 — CLOSED / PASS
-F1A — CLOSED / ACCEPTED
-F1B — CLOSED / COMPILE-SMOKE PASS
-F1C — CLOSED / COMPILE-SMOKE PASS
-F1D — CLOSED / COMPILE-SMOKE PASS
-F1E — APPLIED / PENDING COMPILE-SMOKE
-F1E1 — documentation navigation hygiene
+F1 — CLOSED / PASS
+F2A — CLOSED / ADRS ACCEPTED
+```
+
+F2A aceitou os ADRs necessários para iniciar a execução técnica de Session scope:
+
+```text
+F2-01 — ADR-SESSION-001 — Accepted
+F2-02 — ADR-SESSION-002 — Accepted
+F2-03 — ADR-SETTINGS-001 — Accepted
 ```
 
 ## Ação imediata
 
-Validar F1E após aplicar a higiene documental F1E1.
+O próximo corte autorizado é:
 
 ```text
-1. Compile sem erro CS.
-2. Boot smoke.
-3. Route Smoke.
-4. Activity Smoke.
-5. Clear Activity Smoke.
+F2B — SessionRuntimeState explicit boundary
 ```
 
-## Primeiro corte técnico depois do F1E
-
-Se F1E passar no smoke, o próximo corte técnico deve ser:
+F2B deve cobrir o início técnico de:
 
 ```text
-F1F — Content identity / FrameworkContentHandle review
+IF-FW-ROAD-2B — SessionRuntimeState explícito
 ```
 
-F1F deve consumir os primitivos de identidade de F1E, mas ainda não deve abrir SessionContentSet, RouteContentRuntime ativo, Surface ou RuntimeMaterialization.
+Mantendo em vista:
+
+```text
+IF-FW-ROAD-2A — Session Scope já aceito por ADR
+IF-FW-ROAD-2C — SessionContentSet mínimo fica preferencialmente para F2C
+IF-FW-ROAD-2D — SessionContentOwnership semantics fica preferencialmente para F2C
+IF-FW-ROAD-2E — Settings source policy já aceito por ADR
+IF-FW-ROAD-2F — Session smoke fecha a fase técnica
+```
+
+## Não avançar ainda
+
+```text
+F3 Route baseline
+F4 Activity content/readiness
+F7 Surface
+F8 Runtime roots/materialization
+F10/F11 Consumers
+```
+
+Esses cortes dependem de F2 técnico fechado.

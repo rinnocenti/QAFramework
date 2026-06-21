@@ -1,0 +1,16 @@
+# F2A removed stale files
+
+If this package is applied by zip overlay instead of patch, remove these stale pre-F1E1 duplicate ADR paths if they still exist:
+
+```text
+Packages/com.immersive.framework/Documentation~/ADRs/F2-session-scope/01-ADR-SESSION-001-session-scope-and-owner.md
+Packages/com.immersive.framework/Documentation~/ADRs/F2-session-scope/02-ADR-SESSION-002-sessioncontent-ownership-semantics.md
+```
+
+The canonical ADR paths are:
+
+```text
+Packages/com.immersive.framework/Documentation~/ADRs/F2-session-scope/F2-01-ADR-SESSION-001-session-scope-and-owner.md
+Packages/com.immersive.framework/Documentation~/ADRs/F2-session-scope/F2-02-ADR-SESSION-002-sessioncontent-ownership-semantics.md
+Packages/com.immersive.framework/Documentation~/ADRs/F2-session-scope/F2-03-ADR-SETTINGS-001-settings-source-policy.md
+```

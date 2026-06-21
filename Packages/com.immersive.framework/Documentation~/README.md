@@ -54,8 +54,10 @@ Smoke valida.
 | 18 | [`CONTENT_IDENTITY_AND_HANDLE_REVIEW.md`](CONTENT_IDENTITY_AND_HANDLE_REVIEW.md) | Revisão F1F de content identity e `FrameworkContentHandle`. |
 | 19 | [`F1F_CLOSURE.md`](F1F_CLOSURE.md) | Fechamento do F1F após compile-smoke. |
 | 20 | [`F1_CLOSURE.md`](F1_CLOSURE.md) | Fechamento formal da Fase 1 antes de abrir F2. |
-| 19 | [`Guides/`](Guides/) | Guias de uso/visualização. |
-| 20 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
+| 21 | [`F2A_SESSION_SCOPE_ADR_ACCEPTANCE.md`](F2A_SESSION_SCOPE_ADR_ACCEPTANCE.md) | Aceite dos ADRs de Session scope antes da implementação técnica F2. |
+| 22 | [`F2A_REMOVED_FILES.txt`](F2A_REMOVED_FILES.txt) | Lista de paths ADR duplicados/obsoletos a remover se o pacote for aplicado por overlay. |
+| 23 | [`Guides/`](Guides/) | Guias de uso/visualização. |
+| 24 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
 ---
 
@@ -81,6 +83,8 @@ Documentation~/
 ├─ CONTENT_IDENTITY_AND_HANDLE_REVIEW.md
 ├─ F1F_CLOSURE.md
 ├─ F1_CLOSURE.md
+├─ F2A_SESSION_SCOPE_ADR_ACCEPTANCE.md
+├─ F2A_REMOVED_FILES.txt
 ├─ Planning/
 │  ├─ Immersive-Framework-Roadmap-Revisado.md
 │  └─ Capability-Traceability-Matrix.md
@@ -162,8 +166,9 @@ Não trate `Draft / Deferred` como autorização para implementar.
 
 | Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
 |---|---|---|---|---|---|---|
-| F2-01 | ADR-SESSION-001 | Session Scope and Owner | Draft / Deferred | Session | Session runtime | [`abrir`](ADRs/F2-session-scope/F2-01-ADR-SESSION-001-session-scope-and-owner.md) |
-| F2-02 | ADR-SESSION-002 | SessionContent Ownership Semantics | Draft / Deferred | Session / Content | SessionContentSet | [`abrir`](ADRs/F2-session-scope/F2-02-ADR-SESSION-002-sessioncontent-ownership-semantics.md) |
+| F2-01 | ADR-SESSION-001 | Session Scope and Owner | Accepted | Session | Session runtime | [`abrir`](ADRs/F2-session-scope/F2-01-ADR-SESSION-001-session-scope-and-owner.md) |
+| F2-02 | ADR-SESSION-002 | SessionContent Ownership Semantics | Accepted | Session / Content | SessionContentSet | [`abrir`](ADRs/F2-session-scope/F2-02-ADR-SESSION-002-sessioncontent-ownership-semantics.md) |
+| F2-03 | ADR-SETTINGS-001 | Settings Source Policy | Accepted | Bootstrap / Settings | Project Settings / runtime bootstrap | [`abrir`](ADRs/F2-session-scope/F2-03-ADR-SETTINGS-001-settings-source-policy.md) |
 
 ### F3 — Route baseline
 
@@ -281,7 +286,18 @@ F0_CLOSURE.md registra a matriz ADR → resultado.
 
 F1 está fechada. F1E1 apenas corrigiu a navegação documental dos ADRs e F1F validou a identidade composta de content handles no smoke de fechamento.
 
-## 9. Checklist antes de abrir um corte técnico
+
+## 9. Status F2 aberto
+
+| Item | Status | Observação |
+|---|---|---|
+| `F2A` | `CLOSED / ADRS ACCEPTED` | ADRs de Session scope, SessionContent ownership e Settings source aceitos. |
+| `F2` | `OPEN` | A fase pode seguir para o primeiro corte técnico, mas ainda não está fechada. |
+
+F2A não altera runtime. Ele apenas destrava os cortes técnicos de Session scope.
+
+
+## 10. Checklist antes de abrir um corte técnico
 
 ```text
 1. Qual fase do roadmap este corte pertence?
@@ -295,7 +311,7 @@ F1 está fechada. F1E1 apenas corrigiu a navegação documental dos ADRs e F1F v
 
 ---
 
-## 10. Regra contra avanço prematuro
+## 11. Regra contra avanço prematuro
 
 ```text
 Não avançar para feature enquanto o baseline ativo ainda for ambíguo.
@@ -305,9 +321,9 @@ Não copiar shape do NewScripts; preservar capacidades e redesenhar boundaries.
 
 ---
 
-## 11. Foco atual
+## 12. Foco atual
 
-F0 está fechado. F1 está fechado. A próxima fase autorizada é F2, começando por revisão/aceite dos ADRs de Session scope.
+F0 está fechado. F1 está fechado. F2A aceitou os ADRs de Session scope. A próxima etapa autorizada é o primeiro corte técnico de F2.
 
 ```text
 F0A — CLOSED / ADRS ACCEPTED.
@@ -322,12 +338,13 @@ F1E — CLOSED / COMPILE-SMOKE PASS.
 F1E1 — CLOSED / DOCUMENTATION ONLY.
 F1F — CLOSED / COMPILE-SMOKE PASS.
 F1  — CLOSED / PASS.
+F2A — CLOSED / ADRS ACCEPTED.
 ```
 
 Próximo passo autorizado:
 
 ```text
-F2A — Session scope ADR review and acceptance.
+F2B — SessionRuntimeState explicit boundary.
 ```
 
-Não iniciar implementação técnica de F2 antes do aceite dos ADRs de Session scope.
+Não iniciar F3, Surface, RuntimeMaterialization ou consumers antes do fechamento técnico de F2.

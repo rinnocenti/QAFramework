@@ -35,10 +35,32 @@ F1 closure:
 F1 closure — CLOSED / PASS
 ```
 
-Next authorized phase:
+## F2A accepted ADRs
+
+F2A accepted the ADRs required to start technical work on Session scope:
+
+| Ordem no Plano | ADR | Decision |
+|---|---|---|
+| `F2-01` | `ADR-SESSION-001 — Session Scope and Owner` | Session is the top runtime scope; `FrameworkRuntimeHost` is the initial Session owner but not a service locator. |
+| `F2-02` | `ADR-SESSION-002 — SessionContent Ownership Semantics` | `SessionContentSet` is Session-owned state/data with explicit `Registered`, `Owned` and `DiagnosticOnly` semantics. |
+| `F2-03` | `ADR-SETTINGS-001 — Settings Source Policy` | `Resources` is accepted as the temporary explicit bootstrap settings source for F2; missing required settings must fail visibly. |
+
+See:
 
 ```text
-F2 — Session scope
+Documentation~/F2A_SESSION_SCOPE_ADR_ACCEPTANCE.md
+```
+
+Current F2 status:
+
+```text
+F2A — CLOSED / ADRS ACCEPTED
+```
+
+Next authorized cut:
+
+```text
+F2B — SessionRuntimeState explicit boundary
 ```
 
 Status distinction:
@@ -48,7 +70,7 @@ ADR status uses Accepted.
 Cut/phase status uses Closed / PASS or Closed / Accepted.
 ```
 
-F0 is closed. F1 is closed. F2 may start only from its ADR/review sequence; do not skip directly to consumers or later runtime materialization.
+F0 is closed. F1 is closed. F2A accepted the Session scope ADRs. F2 may now move to the first technical cut, but must not skip directly to Route, Surface, RuntimeMaterialization or consumers.
 
 ## Active baseline decisions
 
@@ -102,6 +124,7 @@ Then follow the roadmap order:
 17. Documentation~/CONTENT_IDENTITY_AND_HANDLE_REVIEW.md
 18. Documentation~/F1F_CLOSURE.md
 19. Documentation~/F1_CLOSURE.md
+20. Documentation~/F2A_SESSION_SCOPE_ADR_ACCEPTANCE.md
 ```
 
 ## ADR file naming
@@ -311,8 +334,8 @@ See:
 Documentation~/F1_CLOSURE.md
 ```
 
-Next authorized phase:
+## Next authorized cut
 
 ```text
-F2 — Session scope
+F2B — SessionRuntimeState explicit boundary
 ```
