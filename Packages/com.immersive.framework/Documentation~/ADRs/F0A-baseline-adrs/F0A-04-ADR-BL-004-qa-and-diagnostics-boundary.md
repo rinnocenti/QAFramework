@@ -1,7 +1,8 @@
-# ADR-BL-004 — QA and Diagnostics Boundary
+# F0A-04 — ADR-BL-004 — QA and Diagnostics Boundary
 
 Status: Accepted  
 Fase: F0A  
+Ordem no Plano: F0A-04  
 Tipo: Diagnostics / Tooling  
 Escopo: Runtime / QA / Editor
 

@@ -1,7 +1,8 @@
-# ADR-RELEASE-001 — Content Release Plan by Scope
+# F6-01 — ADR-RELEASE-001 — Content Release Plan by Scope
 
 Status: Draft / Deferred  
 Fase: F6  
+Ordem no Plano: F6-01  
 Tipo: Release / Ownership  
 Escopo: Session/Route/Activity content
 

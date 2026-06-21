@@ -1,7 +1,8 @@
-# ADR-ROUTE-001 — RouteRuntimeState and RouteContentRuntime Status
+# F3-01 — ADR-ROUTE-001 — RouteRuntimeState and RouteContentRuntime Status
 
 Status: Draft / Deferred  
 Fase: F3  
+Ordem no Plano: F3-01  
 Tipo: Route  
 Escopo: Route lifecycle
 

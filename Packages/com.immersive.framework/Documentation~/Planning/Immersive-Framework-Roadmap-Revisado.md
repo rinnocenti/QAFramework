@@ -689,99 +689,73 @@ Só remover do fluxo principal depois de ActivityContentSet/RouteContentSet defi
 
 # Parte IV — Backlog de ADRs revisado
 
-| Fase | ADR | Tema |
+ADR files follow the plan order first and the stable ADR id second.
+
+| Ordem no Plano | ADR | Tema |
 |---|---|---|
-| F0A | ADR-BL-001 | Baseline Reconciliation: CameraFlow, RouteContentRuntime, ContentFlow, RouteContentProfile, QA Canvas, ValidationMode. |
-| F0A | ADR-BL-002 | Core vs Consumers. |
-| F0A | ADR-BL-003 | Public API Status Policy. |
-| F0A | ADR-BL-004 | QA/Diagnostics Boundary. |
-| F0A | ADR-BL-005 | Dependency Policy. |
-| F1 | ADR-ID-001 | Typed Identity Policy. |
-| F1 | ADR-DIAG-001 | FrameworkFact vs human log. |
-| F1 | ADR-CONTENT-001 | Content identity domain. |
-| F2 | ADR-SESSION-001 | Session Scope and owner. |
-| F2 | ADR-SESSION-002 | SessionContent ownership semantics. |
-| F3 | ADR-ROUTE-001 | RouteRuntimeState and RouteContentRuntime status. |
-| F3 | ADR-ROUTE-002 | RouteContentSet semantics. |
-| F4 | ADR-ACTIVITY-001 | ActivityContentSet and Readiness baseline. |
-| F5 | ADR-LOCAL-001 | Local identity. |
-| F5 | ADR-LOCAL-002 | Local contribution discovery and requiredness. |
-| F6 | ADR-SCENE-001 | Route scene composition plan/result. |
-| F6 | ADR-RELEASE-001 | Content release plan by scope. |
-| F7 | ADR-SURFACE-001 | Surface as space contract. |
-| F8 | ADR-RUNTIME-001 | Runtime ownership and roots. |
-| F8 | ADR-RUNTIME-002 | Materialization request/result/handle. |
-| F9 | ADR-SURFACE-002 | Surface binding and content placement. |
-| F10 | ADR-INPUT-001 | Input ownership. |
-| F10 | ADR-SAVE-001 | Snapshot envelope and schema. |
-| F10 | ADR-PAUSE-001 | Pause as Surface/Input/Activity consumer. |
-| F11 | ADR-CAMERA-001 | Camera as Surface consumer. |
-| F11 | ADR-AUDIO-001 | Audio as lifecycle consumer. |
-| F11 | ADR-ACTOR-001 | Actor runtime boundary. |
-| F11 | ADR-POOL-001 | Pooling package boundary. |
+| F0A-01 | ADR-BL-001 | Baseline Reconciliation: CameraFlow, RouteContentRuntime, ContentFlow, RouteContentProfile, QA Canvas, ValidationMode. |
+| F0A-02 | ADR-BL-002 | Core vs Consumers. |
+| F0A-03 | ADR-BL-003 | Public API Status Policy. |
+| F0A-04 | ADR-BL-004 | QA/Diagnostics Boundary. |
+| F0A-05 | ADR-BL-005 | Dependency Policy. |
+| F1A-01 | ADR-ID-001 | Typed Identity Policy. |
+| F1A-02 | ADR-DIAG-001 | FrameworkFact vs human log. |
+| F1A-03 | ADR-CONTENT-001 | Content identity domain. |
+| F2-01 | ADR-SESSION-001 | Session Scope and owner. |
+| F2-02 | ADR-SESSION-002 | SessionContent ownership semantics. |
+| F3-01 | ADR-ROUTE-001 | RouteRuntimeState and RouteContentRuntime status. |
+| F3-02 | ADR-ROUTE-002 | RouteContentSet semantics. |
+| F4-01 | ADR-ACTIVITY-001 | ActivityContentSet and Readiness baseline. |
+| F5-01 | ADR-LOCAL-001 | Local identity. |
+| F5-02 | ADR-LOCAL-002 | Local contribution discovery and requiredness. |
+| F6-01 | ADR-RELEASE-001 | Content release plan by scope. |
+| F6-02 | ADR-SCENE-001 | Route scene composition plan/result. |
+| F7-01 | ADR-SURFACE-001 | Surface as space contract. |
+| F8-01 | ADR-RUNTIME-001 | Runtime ownership and roots. |
+| F8-02 | ADR-RUNTIME-002 | Materialization request/result/handle. |
+| F9-01 | ADR-SURFACE-002 | Surface binding and content placement. |
+| F10-01 | ADR-INPUT-001 | Input ownership. |
+| F10-02 | ADR-PAUSE-001 | Pause as Surface/Input/Activity consumer. |
+| F10-03 | ADR-SAVE-001 | Snapshot envelope and schema. |
+| F11-01 | ADR-ACTOR-001 | Actor runtime boundary. |
+| F11-02 | ADR-AUDIO-001 | Audio as lifecycle consumer. |
+| F11-03 | ADR-CAMERA-001 | Camera as Surface consumer. |
+| F11-04 | ADR-POOL-001 | Pooling package boundary. |
 
 ---
 
 # Parte V — Próximo passo recomendado
 
+## Estado atual
+
+```text
+F0 — CLOSED / PASS
+F1A — CLOSED / ACCEPTED
+F1B — CLOSED / COMPILE-SMOKE PASS
+F1C — CLOSED / COMPILE-SMOKE PASS
+F1D — CLOSED / COMPILE-SMOKE PASS
+F1E — APPLIED / PENDING COMPILE-SMOKE
+F1E1 — documentation navigation hygiene
+```
+
 ## Ação imediata
 
-Criar um documento único:
+Validar F1E após aplicar a higiene documental F1E1.
 
 ```text
-ADR-BL-001 — Baseline Reconciliation
+1. Compile sem erro CS.
+2. Boot smoke.
+3. Route Smoke.
+4. Activity Smoke.
+5. Clear Activity Smoke.
 ```
 
-Ele deve responder:
+## Primeiro corte técnico depois do F1E
 
-1. `CameraFlow` fica ativo, experimental congelado ou removido?
-2. `RouteContentRuntime` fica ativo, experimental congelado ou removido?
-3. `ContentFlow` público fica estável, experimental ou internal?
-4. `RouteContentProfileAsset` é planning-only ou execução futura explícita?
-5. `FrameworkQaCanvas` é runtime dev tool, editor tooling ou package separado?
-6. `ValidationMode` terá semântica concreta agora ou será placeholder documentado?
-
-## Primeiro corte técnico depois do ADR
-
-Se o ADR não mandar remover muita coisa, o primeiro corte técnico deve ser:
+Se F1E passar no smoke, o próximo corte técnico deve ser:
 
 ```text
-F0B — Baseline hygiene
+F1F — Content identity / FrameworkContentHandle review
 ```
 
-Não `SessionContentSet` ainda.
-
-Motivo:
-
-```text
-Antes de criar novos conceitos, o package precisa parar de mentir sobre o que já existe.
-```
-
-Depois da higiene, seguir para:
-
-```text
-F1 — API status + Identity + Diagnostics
-```
-
----
-
-# Parte VI — Sumário executivo
-
-O roadmap original é bom como visão macro. A versão revisada melhora a execução porque:
-
-```text
-1. separa decisão de implementação;
-2. evita conectar feature nova na fase de reconciliação;
-3. não mistura additive scene com runtime spawned;
-4. divide Surface em declaração e binding;
-5. coloca identity/API status antes de expandir ContentFlow;
-6. mantém consumers fora até existirem Surface/Runtime/Contribution;
-7. preserva a simplicidade atual do package por mais tempo.
-```
-
-Frase operacional:
-
-```text
-Não avançar para feature enquanto o baseline ativo ainda for ambíguo.
-Não avançar para consumer enquanto owner, identity, content set e release ainda forem ambíguos.
-```
+F1F deve consumir os primitivos de identidade de F1E, mas ainda não deve abrir SessionContentSet, RouteContentRuntime ativo, Surface ou RuntimeMaterialization.

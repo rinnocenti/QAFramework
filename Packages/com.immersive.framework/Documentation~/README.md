@@ -36,20 +36,22 @@ Smoke valida.
 |---:|---|---|
 | 1 | [`Planning/Immersive-Framework-Roadmap-Revisado.md`](Planning/Immersive-Framework-Roadmap-Revisado.md) | Sequência de fases e limites de cada fase. |
 | 2 | [`Planning/Capability-Traceability-Matrix.md`](Planning/Capability-Traceability-Matrix.md) | Cobertura das capacidades do `NewScripts`, bloqueadores e riscos. |
-| 3 | [`ADRs/`](ADRs/) | ADRs novos/propostos, organizados por ordem do plano. |
-| 4 | [`Architecture/ADR/`](Architecture/ADR/) | ADRs históricos do package atual. |
-| 5 | [`BASELINE_SMOKE.md`](BASELINE_SMOKE.md) | Smoke manual mínimo do baseline ativo. |
-| 6 | [`F0_CLOSURE.md`](F0_CLOSURE.md) | Fechamento formal da Fase 0 após smoke. |
-| 7 | [`F1_ADR_ACCEPTANCE.md`](F1_ADR_ACCEPTANCE.md) | Aceite dos ADRs da F1 antes de implementação técnica. |
-| 8 | [`API_STATUS_CONVENTION.md`](API_STATUS_CONVENTION.md) | Convenção mínima de status de API aplicada no F1B. |
-| 9 | [`F1B_CLOSURE.md`](F1B_CLOSURE.md) | Fechamento do F1B após compile-smoke. |
-| 10 | [`FRAMEWORK_FACT_MINIMAL_MODEL.md`](FRAMEWORK_FACT_MINIMAL_MODEL.md) | Modelo mínimo de `FrameworkFact` criado no F1C. |
-| 11 | [`F1C_CLOSURE.md`](F1C_CLOSURE.md) | Fechamento do F1C após compile-smoke. |
-| 12 | [`VALIDATION_MODE_SEMANTICS.md`](VALIDATION_MODE_SEMANTICS.md) | Semântica mínima de `ValidationMode` criada no F1D. |
-| 13 | [`F1D_CLOSURE.md`](F1D_CLOSURE.md) | Fechamento do F1D após compile-smoke. |
-| 14 | [`TYPED_IDENTITY_PRIMITIVES.md`](TYPED_IDENTITY_PRIMITIVES.md) | Primitivos mínimos de identidade tipada criados no F1E. |
-| 15 | [`Guides/`](Guides/) | Guias de uso/visualização. |
-| 16 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
+| 3 | [`ADR_NAMING_CONVENTION.md`](ADR_NAMING_CONVENTION.md) | Regra de nomenclatura para ADRs alinhada ao plano. |
+| 4 | [`ADRs/`](ADRs/) | ADRs novos/propostos, organizados por ordem do plano. |
+| 5 | [`Architecture/ADR/`](Architecture/ADR/) | ADRs históricos do package atual. |
+| 6 | [`BASELINE_SMOKE.md`](BASELINE_SMOKE.md) | Smoke manual mínimo do baseline ativo. |
+| 7 | [`F0_CLOSURE.md`](F0_CLOSURE.md) | Fechamento formal da Fase 0 após smoke. |
+| 8 | [`F1_ADR_ACCEPTANCE.md`](F1_ADR_ACCEPTANCE.md) | Aceite dos ADRs da F1 antes de implementação técnica. |
+| 9 | [`API_STATUS_CONVENTION.md`](API_STATUS_CONVENTION.md) | Convenção mínima de status de API aplicada no F1B. |
+| 10 | [`F1B_CLOSURE.md`](F1B_CLOSURE.md) | Fechamento do F1B após compile-smoke. |
+| 11 | [`FRAMEWORK_FACT_MINIMAL_MODEL.md`](FRAMEWORK_FACT_MINIMAL_MODEL.md) | Modelo mínimo de `FrameworkFact` criado no F1C. |
+| 12 | [`F1C_CLOSURE.md`](F1C_CLOSURE.md) | Fechamento do F1C após compile-smoke. |
+| 13 | [`VALIDATION_MODE_SEMANTICS.md`](VALIDATION_MODE_SEMANTICS.md) | Semântica mínima de `ValidationMode` criada no F1D. |
+| 14 | [`F1D_CLOSURE.md`](F1D_CLOSURE.md) | Fechamento do F1D após compile-smoke. |
+| 15 | [`TYPED_IDENTITY_PRIMITIVES.md`](TYPED_IDENTITY_PRIMITIVES.md) | Primitivos mínimos de identidade tipada criados no F1E. |
+| 16 | [`F1E1_ADR_NAMING_ALIGNMENT.md`](F1E1_ADR_NAMING_ALIGNMENT.md) | Fechamento da higiene de nomenclatura dos ADRs. |
+| 17 | [`Guides/`](Guides/) | Guias de uso/visualização. |
+| 18 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
 ---
 
@@ -59,6 +61,7 @@ Smoke valida.
 Documentation~/
 ├─ README.md
 ├─ ADR-TEMPLATE.md
+├─ ADR_NAMING_CONVENTION.md
 ├─ BASELINE_SMOKE.md
 ├─ F0_CLOSURE.md
 ├─ F1_ADR_ACCEPTANCE.md
@@ -69,6 +72,7 @@ Documentation~/
 ├─ VALIDATION_MODE_SEMANTICS.md
 ├─ F1D_CLOSURE.md
 ├─ TYPED_IDENTITY_PRIMITIVES.md
+├─ F1E1_ADR_NAMING_ALIGNMENT.md
 ├─ Planning/
 │  ├─ Immersive-Framework-Roadmap-Revisado.md
 │  └─ Capability-Traceability-Matrix.md
@@ -87,6 +91,8 @@ Observação:
 ```text
 ADRs/ = decisões planejadas/propostas para o roadmap.
 Architecture/ADR/ = decisões históricas do package atual.
+
+ADR file names use the plan order first: `<plan-order>-<adr-id>-<slug>.md`. The stable architectural id remains the `ADR-*` segment.
 ```
 
 ---
@@ -128,98 +134,98 @@ Não trate `Draft / Deferred` como autorização para implementar.
 
 ### F0A — Baseline ADRs
 
-| ADR | Título | Status | Tipo | Escopo | Arquivo |
-|---|---|---|---|---|---|
-| ADR-BL-001 | Baseline Reconciliation | Accepted | Baseline / Reconciliação | Package atual | [`abrir`](ADRs/F0A-baseline-adrs/01-ADR-BL-001-baseline-reconciliation.md) |
-| ADR-BL-002 | Core vs Consumers | Accepted | Arquitetura | Core / Consumers | [`abrir`](ADRs/F0A-baseline-adrs/02-ADR-BL-002-core-vs-consumers.md) |
-| ADR-BL-003 | Public API Status Policy | Accepted | API Policy | Package público | [`abrir`](ADRs/F0A-baseline-adrs/03-ADR-BL-003-public-api-status-policy.md) |
-| ADR-BL-004 | QA and Diagnostics Boundary | Accepted | Diagnostics / Tooling | Runtime / QA / Editor | [`abrir`](ADRs/F0A-baseline-adrs/04-ADR-BL-004-qa-and-diagnostics-boundary.md) |
-| ADR-BL-005 | Dependency Policy | Accepted | Package / Dependencies | UPM / asmdef | [`abrir`](ADRs/F0A-baseline-adrs/05-ADR-BL-005-dependency-policy.md) |
+| Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
+|---|---|---|---|---|---|---|
+| F0A-01 | ADR-BL-001 | Baseline Reconciliation | Accepted | Baseline / Reconciliação | Package atual | [`abrir`](ADRs/F0A-baseline-adrs/F0A-01-ADR-BL-001-baseline-reconciliation.md) |
+| F0A-02 | ADR-BL-002 | Core vs Consumers | Accepted | Arquitetura | Core / Consumers | [`abrir`](ADRs/F0A-baseline-adrs/F0A-02-ADR-BL-002-core-vs-consumers.md) |
+| F0A-03 | ADR-BL-003 | Public API Status Policy | Accepted | API Policy | Package público | [`abrir`](ADRs/F0A-baseline-adrs/F0A-03-ADR-BL-003-public-api-status-policy.md) |
+| F0A-04 | ADR-BL-004 | QA and Diagnostics Boundary | Accepted | Diagnostics / Tooling | Runtime / QA / Editor | [`abrir`](ADRs/F0A-baseline-adrs/F0A-04-ADR-BL-004-qa-and-diagnostics-boundary.md) |
+| F0A-05 | ADR-BL-005 | Dependency Policy | Accepted | Package / Dependencies | UPM / asmdef | [`abrir`](ADRs/F0A-baseline-adrs/F0A-05-ADR-BL-005-dependency-policy.md) |
 
 ### F1 — API status, Identity and Diagnostics
 
-| ADR | Título | Status | Tipo | Escopo | Arquivo |
-|---|---|---|---|---|---|
-| ADR-CONTENT-001 | Content Identity Domain | Accepted | ContentFlow | Content identity | [`abrir`](ADRs/F1-api-status-identity-and-diagnostics/01-ADR-CONTENT-001-content-identity-domain.md) |
-| ADR-DIAG-001 | FrameworkFact vs Human Log | Accepted | Diagnostics | Diagnostics | [`abrir`](ADRs/F1-api-status-identity-and-diagnostics/02-ADR-DIAG-001-frameworkfact-vs-human-log.md) |
-| ADR-ID-001 | Typed Identity Policy | Accepted | Identity | Framework-wide | [`abrir`](ADRs/F1-api-status-identity-and-diagnostics/03-ADR-ID-001-typed-identity-policy.md) |
+| Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
+|---|---|---|---|---|---|---|
+| F1A-01 | ADR-ID-001 | Typed Identity Policy | Accepted | Identity | Framework-wide | [`abrir`](ADRs/F1-api-status-identity-and-diagnostics/F1A-01-ADR-ID-001-typed-identity-policy.md) |
+| F1A-02 | ADR-DIAG-001 | FrameworkFact vs Human Log | Accepted | Diagnostics | Diagnostics | [`abrir`](ADRs/F1-api-status-identity-and-diagnostics/F1A-02-ADR-DIAG-001-frameworkfact-vs-human-log.md) |
+| F1A-03 | ADR-CONTENT-001 | Content Identity Domain | Accepted | ContentFlow | Content identity | [`abrir`](ADRs/F1-api-status-identity-and-diagnostics/F1A-03-ADR-CONTENT-001-content-identity-domain.md) |
 
 ### F2 — Session scope
 
-| ADR | Título | Status | Tipo | Escopo | Arquivo |
-|---|---|---|---|---|---|
-| ADR-SESSION-001 | Session Scope and Owner | Draft / Deferred | Session | Session runtime | [`abrir`](ADRs/F2-session-scope/01-ADR-SESSION-001-session-scope-and-owner.md) |
-| ADR-SESSION-002 | SessionContent Ownership Semantics | Draft / Deferred | Session / Content | SessionContentSet | [`abrir`](ADRs/F2-session-scope/02-ADR-SESSION-002-sessioncontent-ownership-semantics.md) |
+| Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
+|---|---|---|---|---|---|---|
+| F2-01 | ADR-SESSION-001 | Session Scope and Owner | Draft / Deferred | Session | Session runtime | [`abrir`](ADRs/F2-session-scope/F2-01-ADR-SESSION-001-session-scope-and-owner.md) |
+| F2-02 | ADR-SESSION-002 | SessionContent Ownership Semantics | Draft / Deferred | Session / Content | SessionContentSet | [`abrir`](ADRs/F2-session-scope/F2-02-ADR-SESSION-002-sessioncontent-ownership-semantics.md) |
 
 ### F3 — Route baseline
 
-| ADR | Título | Status | Tipo | Escopo | Arquivo |
-|---|---|---|---|---|---|
-| ADR-ROUTE-001 | RouteRuntimeState and RouteContentRuntime Status | Draft / Deferred | Route | Route lifecycle | [`abrir`](ADRs/F3-route-baseline/01-ADR-ROUTE-001-routeruntimestate-and-routecontentruntime-status.md) |
-| ADR-ROUTE-002 | RouteContentSet Semantics | Draft / Deferred | Route / Content | RouteContentSet | [`abrir`](ADRs/F3-route-baseline/02-ADR-ROUTE-002-routecontentset-semantics.md) |
+| Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
+|---|---|---|---|---|---|---|
+| F3-01 | ADR-ROUTE-001 | RouteRuntimeState and RouteContentRuntime Status | Draft / Deferred | Route | Route lifecycle | [`abrir`](ADRs/F3-route-baseline/F3-01-ADR-ROUTE-001-routeruntimestate-and-routecontentruntime-status.md) |
+| F3-02 | ADR-ROUTE-002 | RouteContentSet Semantics | Draft / Deferred | Route / Content | RouteContentSet | [`abrir`](ADRs/F3-route-baseline/F3-02-ADR-ROUTE-002-routecontentset-semantics.md) |
 
 ### F4 — Activity content and readiness
 
-| ADR | Título | Status | Tipo | Escopo | Arquivo |
-|---|---|---|---|---|---|
-| ADR-ACTIVITY-001 | ActivityContentSet and Readiness Baseline | Draft / Deferred | Activity | ActivityFlow | [`abrir`](ADRs/F4-activity-content-and-readiness/01-ADR-ACTIVITY-001-activitycontentset-and-readiness-baseline.md) |
+| Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
+|---|---|---|---|---|---|---|
+| F4-01 | ADR-ACTIVITY-001 | ActivityContentSet and Readiness Baseline | Draft / Deferred | Activity | ActivityFlow | [`abrir`](ADRs/F4-activity-content-and-readiness/F4-01-ADR-ACTIVITY-001-activitycontentset-and-readiness-baseline.md) |
 
 ### F5 — Local contribution
 
-| ADR | Título | Status | Tipo | Escopo | Arquivo |
-|---|---|---|---|---|---|
-| ADR-LOCAL-001 | Local Identity | Draft / Deferred | Local | LocalContentIdentity | [`abrir`](ADRs/F5-local-contribution/01-ADR-LOCAL-001-local-identity.md) |
-| ADR-LOCAL-002 | Local Contribution Discovery and Requiredness | Draft / Deferred | Local | LocalContributionSet | [`abrir`](ADRs/F5-local-contribution/02-ADR-LOCAL-002-local-contribution-discovery-and-requiredness.md) |
+| Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
+|---|---|---|---|---|---|---|
+| F5-01 | ADR-LOCAL-001 | Local Identity | Draft / Deferred | Local | LocalContentIdentity | [`abrir`](ADRs/F5-local-contribution/F5-01-ADR-LOCAL-001-local-identity.md) |
+| F5-02 | ADR-LOCAL-002 | Local Contribution Discovery and Requiredness | Draft / Deferred | Local | LocalContributionSet | [`abrir`](ADRs/F5-local-contribution/F5-02-ADR-LOCAL-002-local-contribution-discovery-and-requiredness.md) |
 
 ### F6 — Route scene composition and release
 
-| ADR | Título | Status | Tipo | Escopo | Arquivo |
-|---|---|---|---|---|---|
-| ADR-RELEASE-001 | Content Release Plan by Scope | Draft / Deferred | Release / Ownership | Session/Route/Activity content | [`abrir`](ADRs/F6-route-scene-composition-and-release/01-ADR-RELEASE-001-content-release-plan-by-scope.md) |
-| ADR-SCENE-001 | Route Scene Composition Plan and Result | Draft / Deferred | Scene / Route | Route scene composition | [`abrir`](ADRs/F6-route-scene-composition-and-release/02-ADR-SCENE-001-route-scene-composition-plan-and-result.md) |
+| Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
+|---|---|---|---|---|---|---|
+| F6-01 | ADR-RELEASE-001 | Content Release Plan by Scope | Draft / Deferred | Release / Ownership | Session/Route/Activity content | [`abrir`](ADRs/F6-route-scene-composition-and-release/F6-01-ADR-RELEASE-001-content-release-plan-by-scope.md) |
+| F6-02 | ADR-SCENE-001 | Route Scene Composition Plan and Result | Draft / Deferred | Scene / Route | Route scene composition | [`abrir`](ADRs/F6-route-scene-composition-and-release/F6-02-ADR-SCENE-001-route-scene-composition-plan-and-result.md) |
 
 ### F7 — Surface declaration
 
-| ADR | Título | Status | Tipo | Escopo | Arquivo |
-|---|---|---|---|---|---|
-| ADR-SURFACE-001 | Surface as Space Contract | Draft / Deferred | Surface | Surface declaration | [`abrir`](ADRs/F7-surface-declaration/01-ADR-SURFACE-001-surface-as-space-contract.md) |
+| Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
+|---|---|---|---|---|---|---|
+| F7-01 | ADR-SURFACE-001 | Surface as Space Contract | Draft / Deferred | Surface | Surface declaration | [`abrir`](ADRs/F7-surface-declaration/F7-01-ADR-SURFACE-001-surface-as-space-contract.md) |
 
 ### F8 — Runtime roots and materialization
 
-| ADR | Título | Status | Tipo | Escopo | Arquivo |
-|---|---|---|---|---|---|
-| ADR-RUNTIME-001 | Runtime Ownership and Roots | Draft / Deferred | RuntimeSpawned | Runtime roots | [`abrir`](ADRs/F8-runtime-roots-and-materialization/01-ADR-RUNTIME-001-runtime-ownership-and-roots.md) |
-| ADR-RUNTIME-002 | Materialization Request Result Handle | Draft / Deferred | RuntimeSpawned / Content | Materialization | [`abrir`](ADRs/F8-runtime-roots-and-materialization/02-ADR-RUNTIME-002-materialization-request-result-handle.md) |
+| Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
+|---|---|---|---|---|---|---|
+| F8-01 | ADR-RUNTIME-001 | Runtime Ownership and Roots | Draft / Deferred | RuntimeSpawned | Runtime roots | [`abrir`](ADRs/F8-runtime-roots-and-materialization/F8-01-ADR-RUNTIME-001-runtime-ownership-and-roots.md) |
+| F8-02 | ADR-RUNTIME-002 | Materialization Request Result Handle | Draft / Deferred | RuntimeSpawned / Content | Materialization | [`abrir`](ADRs/F8-runtime-roots-and-materialization/F8-02-ADR-RUNTIME-002-materialization-request-result-handle.md) |
 
 ### F9 — Surface binding and runtime placement
 
-| ADR | Título | Status | Tipo | Escopo | Arquivo |
-|---|---|---|---|---|---|
-| ADR-SURFACE-002 | Surface Binding and Content Placement | Draft / Deferred | Surface / Runtime | SurfaceBinding | [`abrir`](ADRs/F9-surface-binding-and-runtime-placement/01-ADR-SURFACE-002-surface-binding-and-content-placement.md) |
+| Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
+|---|---|---|---|---|---|---|
+| F9-01 | ADR-SURFACE-002 | Surface Binding and Content Placement | Draft / Deferred | Surface / Runtime | SurfaceBinding | [`abrir`](ADRs/F9-surface-binding-and-runtime-placement/F9-01-ADR-SURFACE-002-surface-binding-and-content-placement.md) |
 
 ### F10 — Consumers intermediários
 
-| ADR | Título | Status | Tipo | Escopo | Arquivo |
-|---|---|---|---|---|---|
-| ADR-INPUT-001 | Input Ownership | Draft / Deferred | Consumer / Input | Input | [`abrir`](ADRs/F10-consumers-intermedi-rios/01-ADR-INPUT-001-input-ownership.md) |
-| ADR-PAUSE-001 | Pause as Surface Input Activity Consumer | Draft / Deferred | Consumer / Pause | Pause | [`abrir`](ADRs/F10-consumers-intermedi-rios/02-ADR-PAUSE-001-pause-as-surface-input-activity-consumer.md) |
-| ADR-SAVE-001 | Snapshot Envelope and Schema | Draft / Deferred | Consumer / Save | Snapshot | [`abrir`](ADRs/F10-consumers-intermedi-rios/03-ADR-SAVE-001-snapshot-envelope-and-schema.md) |
+| Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
+|---|---|---|---|---|---|---|
+| F10-01 | ADR-INPUT-001 | Input Ownership | Draft / Deferred | Consumer / Input | Input | [`abrir`](ADRs/F10-consumers-intermedi-rios/F10-01-ADR-INPUT-001-input-ownership.md) |
+| F10-02 | ADR-PAUSE-001 | Pause as Surface Input Activity Consumer | Draft / Deferred | Consumer / Pause | Pause | [`abrir`](ADRs/F10-consumers-intermedi-rios/F10-02-ADR-PAUSE-001-pause-as-surface-input-activity-consumer.md) |
+| F10-03 | ADR-SAVE-001 | Snapshot Envelope and Schema | Draft / Deferred | Consumer / Save | Snapshot | [`abrir`](ADRs/F10-consumers-intermedi-rios/F10-03-ADR-SAVE-001-snapshot-envelope-and-schema.md) |
 
 ### F11 — Consumers avançados
 
-| ADR | Título | Status | Tipo | Escopo | Arquivo |
-|---|---|---|---|---|---|
-| ADR-ACTOR-001 | Actor Runtime Boundary | Draft / Deferred | Consumer / Actor | Actor runtime | [`abrir`](ADRs/F11-consumers-avan-ados/01-ADR-ACTOR-001-actor-runtime-boundary.md) |
-| ADR-AUDIO-001 | Audio as Lifecycle Consumer | Draft / Deferred | Consumer / Audio | Audio | [`abrir`](ADRs/F11-consumers-avan-ados/02-ADR-AUDIO-001-audio-as-lifecycle-consumer.md) |
-| ADR-CAMERA-001 | Camera as Surface Consumer | Draft / Deferred | Consumer / Camera | Camera | [`abrir`](ADRs/F11-consumers-avan-ados/03-ADR-CAMERA-001-camera-as-surface-consumer.md) |
-| ADR-POOL-001 | Pooling Package Boundary | Draft / Deferred | Consumer / Pooling | Pooling | [`abrir`](ADRs/F11-consumers-avan-ados/04-ADR-POOL-001-pooling-package-boundary.md) |
+| Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
+|---|---|---|---|---|---|---|
+| F11-01 | ADR-ACTOR-001 | Actor Runtime Boundary | Draft / Deferred | Consumer / Actor | Actor runtime | [`abrir`](ADRs/F11-consumers-avan-ados/F11-01-ADR-ACTOR-001-actor-runtime-boundary.md) |
+| F11-02 | ADR-AUDIO-001 | Audio as Lifecycle Consumer | Draft / Deferred | Consumer / Audio | Audio | [`abrir`](ADRs/F11-consumers-avan-ados/F11-02-ADR-AUDIO-001-audio-as-lifecycle-consumer.md) |
+| F11-03 | ADR-CAMERA-001 | Camera as Surface Consumer | Draft / Deferred | Consumer / Camera | Camera | [`abrir`](ADRs/F11-consumers-avan-ados/F11-03-ADR-CAMERA-001-camera-as-surface-consumer.md) |
+| F11-04 | ADR-POOL-001 | Pooling Package Boundary | Draft / Deferred | Consumer / Pooling | Pooling | [`abrir`](ADRs/F11-consumers-avan-ados/F11-04-ADR-POOL-001-pooling-package-boundary.md) |
 
 ### Unassigned — Unassigned / revisar metadata
 
-| ADR | Título | Status | Tipo | Escopo | Arquivo |
-|---|---|---|---|---|---|
-| ADR-0001 | Bootstrap mínimo e construção incremental do Immersive Framework |  |  |  | [`abrir`](ADRs/Unassigned-unassigned/02-ADR-0001-bootstrap-m-nimo-e-constru-o-incremental-do-immersive-framework.md) |
-| ADR-0002 | Activity Content Binding mínimo e observável |  |  |  | [`abrir`](ADRs/Unassigned-unassigned/03-ADR-0002-activity-content-binding-m-nimo-e-observ-vel.md) |
+| Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
+|---|---|---|---|---|---|---|
+| — | ADR-0001 | Bootstrap mínimo e construção incremental do Immersive Framework |  |  |  | [`abrir`](ADRs/Unassigned-unassigned/02-ADR-0001-bootstrap-m-nimo-e-constru-o-incremental-do-immersive-framework.md) |
+| — | ADR-0002 | Activity Content Binding mínimo e observável |  |  |  | [`abrir`](ADRs/Unassigned-unassigned/03-ADR-0002-activity-content-binding-m-nimo-e-observ-vel.md) |
 
 ---
 
@@ -261,8 +267,9 @@ F0_CLOSURE.md registra a matriz ADR → resultado.
 | `F1C` | `CLOSED / COMPILE-SMOKE PASS` | Modelo mínimo de `FrameworkFact` criado e validado. |
 | `F1D` | `CLOSED / COMPILE-SMOKE PASS` | Semântica mínima de `ValidationMode` criada e validada. |
 | `F1E` | `APPLIED / PENDING COMPILE-SMOKE` | Primitivos mínimos de identidade tipada criados; aguarda validação no Unity. |
+| `F1E1` | `CLOSED / DOCUMENTATION ONLY` | ADRs renomeados para seguir ordem do plano; não altera runtime. |
 
-F1 ainda não está fechada. Ainda falta validar F1E e concluir a revisão de content identity/handle.
+F1 ainda não está fechada. Ainda falta validar F1E e concluir a revisão de content identity/handle. F1E1 apenas corrigiu a navegação documental dos ADRs.
 
 ## 9. Checklist antes de abrir um corte técnico
 
@@ -290,7 +297,7 @@ Não copiar shape do NewScripts; preservar capacidades e redesenhar boundaries.
 
 ## 11. Foco atual
 
-F0 está fechado. F1A aceitou os ADRs da fase. F1B, F1C e F1D passaram em compile-smoke. F1E está aplicado e aguarda validação.
+F0 está fechado. F1A aceitou os ADRs da fase. F1B, F1C e F1D passaram em compile-smoke. F1E está aplicado e aguarda validação. F1E1 fechou a higiene documental de nomenclatura dos ADRs.
 
 ```text
 F0A — CLOSED / ADRS ACCEPTED.
@@ -302,6 +309,7 @@ F1B — CLOSED / COMPILE-SMOKE PASS.
 F1C — CLOSED / COMPILE-SMOKE PASS.
 F1D — CLOSED / COMPILE-SMOKE PASS.
 F1E — APPLIED / PENDING COMPILE-SMOKE.
+F1E1 — CLOSED / DOCUMENTATION ONLY.
 F1  — OPEN.
 ```
 

@@ -1,7 +1,8 @@
-# ADR-SESSION-002 — SessionContent Ownership Semantics
+# F2-02 — ADR-SESSION-002 — SessionContent Ownership Semantics
 
 Status: Draft / Deferred  
 Fase: F2  
+Ordem no Plano: F2-02  
 Tipo: Session / Content  
 Escopo: SessionContentSet
 

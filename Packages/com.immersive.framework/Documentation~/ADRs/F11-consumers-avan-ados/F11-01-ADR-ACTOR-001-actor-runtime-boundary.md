@@ -1,7 +1,8 @@
-# ADR-ACTOR-001 — Actor Runtime Boundary
+# F11-01 — ADR-ACTOR-001 — Actor Runtime Boundary
 
 Status: Draft / Deferred  
 Fase: F11  
+Ordem no Plano: F11-01  
 Tipo: Consumer / Actor  
 Escopo: Actor runtime
 

@@ -1,7 +1,8 @@
-# ADR-PAUSE-001 — Pause as Surface Input Activity Consumer
+# F10-02 — ADR-PAUSE-001 — Pause as Surface Input Activity Consumer
 
 Status: Draft / Deferred  
 Fase: F10  
+Ordem no Plano: F10-02  
 Tipo: Consumer / Pause  
 Escopo: Pause
 

@@ -21,11 +21,23 @@ F1A não altera runtime, editor tooling, asmdef, package manifest ou comportamen
 
 ## 2. ADRs aceitos
 
-| ADR | Resultado | Decisão central |
-|---|---|---|
-| `ADR-ID-001 — Typed Identity Policy` | Accepted | Identidade funcional nova deve ter domínio explícito e tipo próprio; string crua fica para label/debug/source/reason. |
-| `ADR-DIAG-001 — FrameworkFact vs Human Log` | Accepted | Log humano e fact estruturado são contratos diferentes; não parsear log como fonte funcional de verdade. |
-| `ADR-CONTENT-001 — Content Identity Domain` | Accepted | Content identity deve compor owner, scope, kind e id; path/name não bastam como chave funcional pública. |
+| Ordem no Plano | ADR | Resultado | Decisão central |
+|---|---|---|---|
+| `F1A-01` | `ADR-ID-001 — Typed Identity Policy` | Accepted | Identidade funcional nova deve ter domínio explícito e tipo próprio; string crua fica para label/debug/source/reason. |
+| `F1A-02` | `ADR-DIAG-001 — FrameworkFact vs Human Log` | Accepted | Log humano e fact estruturado são contratos diferentes; não parsear log como fonte funcional de verdade. |
+| `F1A-03` | `ADR-CONTENT-001 — Content Identity Domain` | Accepted | Content identity deve compor owner, scope, kind e id; path/name não bastam como chave funcional pública. |
+
+---
+
+## 2.1. Arquivos ADR
+
+Os arquivos seguem a ordem do plano antes do id arquitetural:
+
+```text
+F1A-01-ADR-ID-001-typed-identity-policy.md
+F1A-02-ADR-DIAG-001-frameworkfact-vs-human-log.md
+F1A-03-ADR-CONTENT-001-content-identity-domain.md
+```
 
 ---
 

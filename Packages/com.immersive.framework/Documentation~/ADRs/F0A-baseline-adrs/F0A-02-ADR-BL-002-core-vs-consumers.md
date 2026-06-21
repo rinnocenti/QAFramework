@@ -1,7 +1,8 @@
-# ADR-BL-002 — Core vs Consumers
+# F0A-02 — ADR-BL-002 — Core vs Consumers
 
 Status: Accepted  
 Fase: F0A  
+Ordem no Plano: F0A-02  
 Tipo: Arquitetura  
 Escopo: Core / Consumers
 
