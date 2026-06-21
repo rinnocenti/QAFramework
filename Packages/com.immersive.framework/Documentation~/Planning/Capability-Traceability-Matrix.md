@@ -81,14 +81,14 @@ Regras:
 |---|---|---|---|---|---|---|---|---|---|---|
 | Route asset declarativo | Preservar; dividir campos de subsistemas | F3 | F3 | IF-FW-ROAD-3A | Presente / Parcial | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Sem ajuste. |
 | Route identity tipada | Redesenhar como typed ID | F1 | F1 | IF-FW-ROAD-1B | Parcial / Ausente | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Sem ajuste. |
-| Route runtime state | Preservar como `RouteRuntimeState` | F3 | F3 | IF-FW-ROAD-3A | Parcial / Ambíguo | Coberto | Core | RuntimeContentHandle + ContributionSet + release policy | Baixo / controlado | Sem ajuste. |
-| Route exit plan | Preservar como `RouteExitResult` | F3 | F3 | IF-FW-ROAD-3B | Parcial / Ambíguo | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Sem ajuste. |
+| Route runtime state | Preservar como `RouteRuntimeState` | F3 | F3 | IF-FW-ROAD-3A | Parcial / Ambíguo / ADR aceito em F3A | Coberto | Core | RuntimeContentHandle + ContributionSet + release policy | Baixo / controlado | Próximo corte autorizado: F3B. |
+| Route exit plan | Preservar como `RouteExitResult` | F3 | F3 | IF-FW-ROAD-3B | Parcial / Ambíguo / ADR aceito em F3A | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Entra depois de RouteRuntimeState. |
 | Scene composition plan/result | Preservar plan/result explícitos | F6 | F6 | IF-FW-ROAD-6A, 6B, 6C | Parcial / Ausente | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Sem ajuste. |
 | Primary scene loading | Preservar; já existe no package | F3 | F3 | IF-FW-ROAD-3C | Presente / Parcial | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Sem ajuste. |
 | Additive scene loading | Preservar com plan/result | F6 | F6 | IF-FW-ROAD-6D | Parcial / Ausente | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Sem ajuste. |
 | Active scene policy | Preservar como parte do plan | F6 | F6 | IF-FW-ROAD-6A | Parcial / Ausente | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Sem ajuste. |
 | Route content profile execution | Preservar execução; separar de planning | F6 | F6 | IF-FW-ROAD-6E | Parcial / Ambíguo | Coberto | Core | Route baseline + Content identity | Risco de entrar cedo demais | Sem ajuste. |
-| Route → Activity handoff | Preservar boundary; reduzir payload | F3 | F3 | IF-FW-ROAD-3C | Parcial / Ausente | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Sem ajuste. |
+| Route → Activity handoff | Preservar boundary; reduzir payload | F3 | F3 | IF-FW-ROAD-3C | Parcial / Ausente / ADR aceito em F3A | Coberto | Core | Route baseline + Content identity | Baixo / controlado | RouteContentRuntime será ativado na F3 antes da Startup Activity. |
 | Route startup activity policy | Preservar como policy simples | F3 | F3 | IF-FW-ROAD-3C | Parcial / Ausente | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Sem ajuste. |
 | Route contribution set | Redesenhar como `RouteContributionSet` | F5+ | F5/F7/F10+ | F7 via Surface | Parcial / Ausente | Coberto com ajuste / Deferred | Core | Route baseline + Content identity | Baixo / controlado | Contribution genérico em F5; surfaces em F7; consumers reais depois. |
 | Route surface set | Redesenhar como `RouteSurfaceSet` | F7 | F7 | IF-FW-ROAD-7G | Parcial / Ausente | Coberto, mas com correção | Core | LocalContributionSet para discovery; Runtime binding só na F9 | Baixo / controlado | Correto. |

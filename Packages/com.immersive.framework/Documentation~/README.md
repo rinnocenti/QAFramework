@@ -61,6 +61,7 @@ Smoke valida.
 | 25 | [`SESSION_CONTENT_SET_MINIMAL_MODEL.md`](SESSION_CONTENT_SET_MINIMAL_MODEL.md) | Corte técnico F2C: modelo mínimo de `SessionContentSet`. |
 | 26 | [`F2C_CLOSURE.md`](F2C_CLOSURE.md) | Fechamento do F2C após compile-smoke. |
 | 27 | [`F2_CLOSURE.md`](F2_CLOSURE.md) | Fechamento formal da Fase 2 antes de abrir F3. |
+| 28 | [`F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md`](F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md) | Aceite dos ADRs de Route baseline para abrir a implementação da F3. |
 | 26 | [`Guides/`](Guides/) | Guias de uso/visualização. |
 | 27 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
@@ -95,6 +96,7 @@ Documentation~/
 ├─ F2C_CLOSURE.md
 ├─ F2_CLOSURE.md
 ├─ SESSION_CONTENT_SET_MINIMAL_MODEL.md
+├─ F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md
 ├─ Planning/
 │  ├─ Immersive-Framework-Roadmap-Revisado.md
 │  └─ Capability-Traceability-Matrix.md
@@ -224,8 +226,12 @@ Este checkpoint fecha `IF-FW-ROAD-2F — Session smoke` a partir dos smokes de F
 
 | Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
 |---|---|---|---|---|---|---|
-| F3-01 | ADR-ROUTE-001 | RouteRuntimeState and RouteContentRuntime Status | Draft / Deferred | Route | Route lifecycle | [`abrir`](ADRs/F3-route-baseline/F3-01-ADR-ROUTE-001-routeruntimestate-and-routecontentruntime-status.md) |
-| F3-02 | ADR-ROUTE-002 | RouteContentSet Semantics | Draft / Deferred | Route / Content | RouteContentSet | [`abrir`](ADRs/F3-route-baseline/F3-02-ADR-ROUTE-002-routecontentset-semantics.md) |
+| F3-01 | ADR-ROUTE-001 | RouteRuntimeState and RouteContentRuntime Status | Accepted | Route | Route lifecycle | [`abrir`](ADRs/F3-route-baseline/F3-01-ADR-ROUTE-001-routeruntimestate-and-routecontentruntime-status.md) |
+| F3-02 | ADR-ROUTE-002 | RouteContentSet Semantics | Accepted | Route / Content | RouteContentSet | [`abrir`](ADRs/F3-route-baseline/F3-02-ADR-ROUTE-002-routecontentset-semantics.md) |
+
+Documento de aceite: [`F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md`](F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md).
+
+Próximo corte autorizado pelo roadmap: `F3B — IF-FW-ROAD-3A — RouteRuntimeState tipado`.
 
 ### F4 — Activity content and readiness
 

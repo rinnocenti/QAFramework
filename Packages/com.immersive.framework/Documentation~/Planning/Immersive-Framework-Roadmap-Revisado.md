@@ -256,6 +256,18 @@ RuntimeHost continua simples.
 
 Objetivo: estabilizar Route sem pular para additive composition.
 
+Status atual:
+
+```text
+F3A — CLOSED / ADRS ACCEPTED
+```
+
+Próximo corte autorizado:
+
+```text
+F3B — IF-FW-ROAD-3A — RouteRuntimeState tipado
+```
+
 | ID | Entrega | Detalhes |
 |---|---|---|
 | IF-FW-ROAD-3A | `RouteRuntimeState` tipado | Estado da rota ativa com identity própria, não só referência direta a `RouteAsset`. |

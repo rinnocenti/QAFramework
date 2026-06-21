@@ -65,7 +65,26 @@ F2  — CLOSED / PASS
 Current authorized roadmap step:
 
 ```text
-F3A — Route baseline ADR review and acceptance
+F3B — IF-FW-ROAD-3A — RouteRuntimeState tipado
+```
+
+F3A status:
+
+```text
+F3A — CLOSED / ADRS ACCEPTED
+```
+
+F3A accepted:
+
+| Ordem no Plano | ADR | Decision |
+|---|---|---|
+| `F3-01` | `ADR-ROUTE-001 — RouteRuntimeState and RouteContentRuntime Status` | Route gets explicit runtime state. `RouteContentRuntime` becomes Active in F3 with scope limited to route-local callbacks in the loaded Primary Scene. |
+| `F3-02` | `ADR-ROUTE-002 — RouteContentSet Semantics` | `RouteContentSet` is an immutable route snapshot; ownership must be explicit; release remains F6. |
+
+See:
+
+```text
+Documentation~/F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md
 ```
 
 Status distinction:
@@ -136,7 +155,7 @@ Documentation~/F2_CLOSURE.md
 | Bootstrap, Game Application, Route, Activity and request triggers | `Experimental` | Usable for development, but identity/state semantics still need F1/F3/F4 refinement. |
 | `ContentFlow` materializer/contribution vocabulary | `Experimental` | Preserved as vocabulary, not stable materialization API. |
 | `RouteContentProfileAsset` | `Deferred / Planning-only` | Additional scenes are declared for planning/diagnostics only; they are not loaded by F0B. |
-| `RouteContentRuntime` | `Deferred` | Route local callbacks are frozen and hidden from authoring menus until F3 decides the Route baseline. |
+| `RouteContentRuntime` | `Accepted for F3 activation` | F3A accepted activation of route-local callbacks during the Route baseline; implementation starts after `RouteRuntimeState`. |
 | `CameraFlow` | `Removed from core baseline` | Camera is a future consumer. The core package no longer carries CameraFlow source or a mandatory Cinemachine dependency. |
 | `FrameworkQaCanvas` | `Development Tooling` | Manual smoke tool compiled only in the Unity Editor or development builds. Not product API. |
 | `ValidationMode` | `Experimental` | Minimal F1D semantics: required config fails in every mode; Strict promotes warnings; Standard keeps warnings; Release suppresses info diagnostics. |
