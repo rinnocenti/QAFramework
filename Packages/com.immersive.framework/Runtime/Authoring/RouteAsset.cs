@@ -3,6 +3,7 @@ using UnityEngine;
 namespace Immersive.Framework.Authoring
 {
     /// <summary>
+    /// API status: Experimental. Public authoring asset retained for the baseline before F1/F3 identity and route-state hardening.
     /// Public authoring asset that identifies an entry in the game flow.
     /// This asset declares the route primary scene, optional route content profile, and optional startup activity.
     /// </summary>

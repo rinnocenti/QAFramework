@@ -8,6 +8,7 @@ using UnityEngine;
 namespace Immersive.Framework.GameFlow
 {
     /// <summary>
+    /// API status: Experimental. Public scene-authored request boundary kept for baseline smoke and development use.
     /// Simple scene-authored activity request boundary.
     /// Designed for UnityEvents/UI Buttons to invoke requests, while publishing typed Foundation events for results.
     /// </summary>

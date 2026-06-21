@@ -39,8 +39,9 @@ Smoke valida.
 | 3 | [`ADRs/`](ADRs/) | ADRs novos/propostos, organizados por ordem do plano. |
 | 4 | [`Architecture/ADR/`](Architecture/ADR/) | ADRs históricos do package atual. |
 | 5 | [`BASELINE_SMOKE.md`](BASELINE_SMOKE.md) | Smoke manual mínimo do baseline ativo. |
-| 6 | [`Guides/`](Guides/) | Guias de uso/visualização. |
-| 7 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
+| 6 | [`F0_CLOSURE.md`](F0_CLOSURE.md) | Fechamento formal da Fase 0 após smoke. |
+| 7 | [`Guides/`](Guides/) | Guias de uso/visualização. |
+| 8 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
 ---
 
@@ -51,6 +52,7 @@ Documentation~/
 ├─ README.md
 ├─ ADR-TEMPLATE.md
 ├─ BASELINE_SMOKE.md
+├─ F0_CLOSURE.md
 ├─ Planning/
 │  ├─ Immersive-Framework-Roadmap-Revisado.md
 │  └─ Capability-Traceability-Matrix.md
@@ -205,7 +207,16 @@ Não trate `Draft / Deferred` como autorização para implementar.
 
 ---
 
-## 7. Status F0B aplicado
+## 7. Status F0 fechado
+
+```text
+F0A ADRs aceitos.
+F0B higiene aplicada.
+F0B smoke passou.
+F0C fechamento registrado em F0_CLOSURE.md.
+```
+
+Resumo aplicado:
 
 ```text
 CameraFlow saiu do core ativo.
@@ -214,6 +225,7 @@ RouteContentRuntime ficou Deferred até F3.
 RouteContentProfileAsset ficou Planning-only.
 FrameworkQaCanvas ficou Development Tooling.
 BASELINE_SMOKE.md registra o smoke mínimo.
+F0_CLOSURE.md registra a matriz ADR → resultado.
 ```
 
 ## 8. Checklist antes de abrir um corte técnico
@@ -242,20 +254,21 @@ Não copiar shape do NewScripts; preservar capacidades e redesenhar boundaries.
 
 ## 10. Foco atual
 
-F0A está aceito como fase de decisão/documentação.
-
-F0B foi aplicado como higiene mínima do baseline.
-
-Próximo corte técnico:
+F0 está fechado.
 
 ```text
-F1 — API status, Identity and Diagnostics
+F0A — ADRs aceitos.
+F0B — higiene aplicada.
+F0B smoke — PASS.
+F0C — fechamento registrado em F0_CLOSURE.md.
 ```
 
-Alvo do F1:
+Próximo passo autorizado:
 
 ```text
-Criar status explícito de API, política de identidade tipada, FrameworkFact mínimo e semântica concreta para ValidationMode.
+F1A — revisão e aceite dos ADRs de API status, Identity and Diagnostics.
 ```
+
+A implementação técnica de F1 só deve começar depois do aceite dos ADRs relevantes da F1.
 
 Não iniciar F2 enquanto F1 não compilar, o smoke baseline não passar e as novas superfícies não estiverem marcadas como Stable, Experimental ou Internal.

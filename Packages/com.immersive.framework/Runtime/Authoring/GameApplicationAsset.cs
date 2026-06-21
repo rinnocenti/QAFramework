@@ -3,6 +3,7 @@ using UnityEngine;
 namespace Immersive.Framework.Authoring
 {
     /// <summary>
+    /// API status: Experimental. Public authoring root retained as the baseline entry point before F1 identity/status hardening.
     /// Public root asset for an Immersive game/application.
     /// Keep this asset small: it should grow only when a real framework cut needs a new decision.
     /// </summary>

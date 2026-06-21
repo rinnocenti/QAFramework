@@ -13,16 +13,16 @@ com.immersive.framework
 Current accepted phase:
 
 ```text
-F0B — Baseline hygiene
+F0 — Closed / PASS
 ```
 
-Next technical phase:
+Next authorized step:
 
 ```text
-F1 — API status, Identity and Diagnostics
+F1A — ADR review and acceptance for API status, Identity and Diagnostics
 ```
 
-F0B applies the minimum hygiene required after the F0A ADRs. It does not introduce a new lifecycle feature. Its purpose is to make source, package metadata, inspectors and documentation stop contradicting the accepted baseline.
+F0A accepted the baseline ADRs. F0B applied the minimum hygiene required after those ADRs. F0C records that the F0 baseline smoke passed and no F0 blocker remains open.
 
 ## Active baseline decisions
 
@@ -61,6 +61,7 @@ Then follow the roadmap order:
 2. Documentation~/Planning/Capability-Traceability-Matrix.md
 3. Documentation~/ADRs/F0A-baseline-adrs/
 4. Documentation~/BASELINE_SMOKE.md
+5. Documentation~/F0_CLOSURE.md
 ```
 
 ## F0A accepted ADRs
@@ -110,9 +111,9 @@ Damage
 Attributes
 ```
 
-## Next cut: F1
+## Next step: F1 ADR review
 
-F1 should introduce the first explicit API/identity/diagnostics foundation:
+F1 must start with ADR review/acceptance before implementation. After the ADRs are accepted, F1 should introduce the first explicit API/identity/diagnostics foundation:
 
 ```text
 1. Framework API status convention or code marker.
@@ -122,4 +123,4 @@ F1 should introduce the first explicit API/identity/diagnostics foundation:
 5. Content identity ADR/review.
 ```
 
-Do not start F2 until F1 gives identity/status/diagnostics enough structure to prevent new public ambiguity.
+Do not start F1 implementation until the relevant F1 ADRs are accepted. Do not start F2 until F1 gives identity/status/diagnostics enough structure to prevent new public ambiguity.

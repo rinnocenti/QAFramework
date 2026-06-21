@@ -3,6 +3,7 @@ using UnityEngine;
 namespace Immersive.Framework.Authoring
 {
     /// <summary>
+    /// API status: Experimental. Public authoring asset retained for the baseline before F1/F4 identity and activity-state hardening.
     /// Public authoring asset for a gameplay activity.
     /// This first cut only identifies the activity; content, actors, input, camera, save and pause are added later.
     /// </summary>
