@@ -262,21 +262,22 @@ Status atual:
 F3A — CLOSED / ADRS ACCEPTED
 F3B — CLOSED / COMPILE-SMOKE PASS
 F3C — CLOSED / COMPILE-SMOKE PASS
-F3D — APPLIED / PENDING COMPILE-SMOKE
+F3D — CLOSED / COMPILE-SMOKE PASS
+F3E — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 Corte técnico atual:
 
 ```text
-F3D — IF-FW-ROAD-3C — RouteContentRuntime execution decision
+F3E — IF-FW-ROAD-3D — RouteContentSet semantics
 ```
 
 | ID | Entrega | Detalhes |
 |---|---|---|
 | IF-FW-ROAD-3A | `RouteRuntimeState` tipado | CLOSED em F3B. Estado da rota ativa com identity própria, não só referência direta a `RouteAsset`. |
 | IF-FW-ROAD-3B | `RouteExitResult` mínimo | CLOSED em F3C. Resultado explícito da saída anterior, mesmo que ainda simples. |
-| IF-FW-ROAD-3C | `RouteContentRuntime` execution decision | APPLIED em F3D. Ativo e conectado ao `RouteLifecycleRuntime` para callbacks locais de Route Content na Primary Scene carregada. |
-| IF-FW-ROAD-3D | `RouteContentSet` semantics | Definir se é registro, ownership ou ambos com tipos separados. |
+| IF-FW-ROAD-3C | `RouteContentRuntime` execution decision | CLOSED em F3D. Ativo e conectado ao `RouteLifecycleRuntime` para callbacks locais de Route Content na Primary Scene carregada. |
+| IF-FW-ROAD-3D | `RouteContentSet` semantics | APPLIED em F3E. `RouteContentSet` tem `RouteContentEntry` e `RouteContentOwnership` explícitos; Primary Scene baseline é required/owned. |
 | IF-FW-ROAD-3E | Route local callback smoke | Só se `RouteContentRuntime` for ativo. Confirmar route enter/exit callbacks. |
 | IF-FW-ROAD-3F | Route validator expansion | Validar o baseline ativo, não features futuras. |
 

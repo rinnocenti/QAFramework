@@ -68,7 +68,8 @@ Current F3 status:
 F3A — CLOSED / ADRS ACCEPTED
 F3B — CLOSED / COMPILE-SMOKE PASS
 F3C — CLOSED / COMPILE-SMOKE PASS
-F3D — APPLIED / PENDING COMPILE-SMOKE
+F3D — CLOSED / COMPILE-SMOKE PASS
+F3E — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 F3A accepted:
@@ -165,13 +166,43 @@ IF-FW-ROAD-3C — RouteContentRuntime execution decision
 Status:
 
 ```text
-F3D — APPLIED / PENDING COMPILE-SMOKE
+F3D — CLOSED / COMPILE-SMOKE PASS
 ```
 
 See:
 
 ```text
 Documentation~/ROUTE_CONTENT_RUNTIME_EXECUTION_DECISION.md
+Documentation~/F3D_CLOSURE.md
+```
+
+## F3E — RouteContentSet semantics
+
+F3E implements the roadmap item:
+
+```text
+IF-FW-ROAD-3D — RouteContentSet semantics
+```
+
+`RouteContentSet` remains an immutable snapshot of content known by the active Route. The cut adds explicit per-item ownership semantics through:
+
+```text
+Runtime/RouteLifecycle/RouteContentOwnership.cs
+Runtime/RouteLifecycle/RouteContentEntry.cs
+```
+
+The baseline Primary Scene is now represented as required Route content with explicit `Owned` semantics. This does not implement release, additive scene loading, Surface, RuntimeMaterialization or consumers.
+
+Status:
+
+```text
+F3E — APPLIED / PENDING COMPILE-SMOKE
+```
+
+See:
+
+```text
+Documentation~/ROUTE_CONTENT_SET_SEMANTICS.md
 ```
 
 ## F2B — SessionRuntimeState explicit boundary

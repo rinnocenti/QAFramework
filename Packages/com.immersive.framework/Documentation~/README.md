@@ -235,7 +235,7 @@ Este checkpoint fecha `IF-FW-ROAD-2F — Session smoke` a partir dos smokes de F
 
 Documento de aceite: [`F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md`](F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md).
 
-F3A abriu a implementação técnica da F3. O corte técnico atual é F3D.
+F3A abriu a implementação técnica da F3. O corte técnico atual é F3E.
 
 
 ### F3B — RouteRuntimeState tipado
@@ -269,12 +269,25 @@ Este corte implementou `IF-FW-ROAD-3B` criando `Runtime/RouteLifecycle/RouteExit
 Status atual:
 
 ```text
-F3D — APPLIED / PENDING COMPILE-SMOKE
+F3D — CLOSED / COMPILE-SMOKE PASS
 ```
 
-Documento técnico: [`ROUTE_CONTENT_RUNTIME_EXECUTION_DECISION.md`](ROUTE_CONTENT_RUNTIME_EXECUTION_DECISION.md).
+Documento técnico: [`ROUTE_CONTENT_RUNTIME_EXECUTION_DECISION.md`](ROUTE_CONTENT_RUNTIME_EXECUTION_DECISION.md).  
+Fechamento: [`F3D_CLOSURE.md`](F3D_CLOSURE.md).
 
 Este corte implementa `IF-FW-ROAD-3C` ativando `RouteContentRuntime` no baseline da F3 e conectando callbacks locais de Route Content ao `RouteLifecycleRuntime`.
+
+### F3E — RouteContentSet semantics
+
+Status atual:
+
+```text
+F3E — APPLIED / PENDING COMPILE-SMOKE
+```
+
+Documento técnico: [`ROUTE_CONTENT_SET_SEMANTICS.md`](ROUTE_CONTENT_SET_SEMANTICS.md).
+
+Este corte implementa `IF-FW-ROAD-3D` tornando ownership explícito por item em `RouteContentSet` por meio de `RouteContentEntry` e `RouteContentOwnership`.
 
 ### F4 — Activity content and readiness
 

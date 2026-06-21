@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentFlow;
 using Immersive.Framework.SceneLifecycle;
@@ -6,20 +9,35 @@ using Immersive.Framework.ApiStatus;
 namespace Immersive.Framework.RouteLifecycle
 {
     /// <summary>
-    /// Route-owned content handles materialized for the active route.
-    /// This baseline records the loaded primary scene as route content; additional scenes/prefabs come later.
+    /// Route-owned content snapshot for the active Route scope.
+    /// This baseline records the loaded primary scene with explicit ownership semantics; additional scenes/prefabs come later.
     /// </summary>
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     internal readonly struct RouteContentSet
     {
+        private readonly RouteContentEntry[] entries;
+
         public RouteContentSet(
             RouteAsset route,
             FrameworkContentSet contentSet,
-            RouteContentMaterializationPlan contentPlan)
+            RouteContentMaterializationPlan contentPlan,
+            IReadOnlyList<RouteContentEntry> entries)
         {
             Route = route;
             ContentSet = contentSet;
             ContentPlan = contentPlan;
+
+            if (entries == null || entries.Count == 0)
+            {
+                this.entries = Array.Empty<RouteContentEntry>();
+                return;
+            }
+
+            this.entries = new RouteContentEntry[entries.Count];
+            for (var i = 0; i < entries.Count; i++)
+            {
+                this.entries[i] = entries[i];
+            }
         }
 
         public RouteAsset Route { get; }
@@ -28,9 +46,19 @@ namespace Immersive.Framework.RouteLifecycle
 
         public RouteContentMaterializationPlan ContentPlan { get; }
 
+        public IReadOnlyList<RouteContentEntry> Entries => entries ?? Array.Empty<RouteContentEntry>();
+
         public bool HasContent => ContentSet.HasContent;
 
         public int Count => ContentSet.Count;
+
+        public int RegisteredCount => CountOwnership(RouteContentOwnership.Registered);
+
+        public int OwnedCount => CountOwnership(RouteContentOwnership.Owned);
+
+        public int DiagnosticOnlyCount => CountOwnership(RouteContentOwnership.DiagnosticOnly);
+
+        public bool HasOwnedContent => OwnedCount > 0;
 
         public string DiagnosticMessage
         {
@@ -44,7 +72,33 @@ namespace Immersive.Framework.RouteLifecycle
                 }
 
                 var planMessage = ContentPlan.HasProfile ? $" {ContentPlan.ToDiagnosticString()}" : string.Empty;
-                return $"Route Content Set registered {Count} handle(s). {ContentSet.ToDiagnosticString()}.{planMessage}";
+                return $"Route Content Set registered {Count} handle(s). registered='{RegisteredCount}' owned='{OwnedCount}' diagnosticOnly='{DiagnosticOnlyCount}' {ContentSet.ToDiagnosticString()}.{planMessage}";
+            }
+        }
+
+        public string OwnershipDiagnosticMessage
+        {
+            get
+            {
+                if (!HasContent)
+                {
+                    return "Route Content Set ownership is empty.";
+                }
+
+                var builder = new StringBuilder();
+                builder.Append($"Route Content Set ownership registered='{RegisteredCount}' owned='{OwnedCount}' diagnosticOnly='{DiagnosticOnlyCount}' details=[");
+                for (var i = 0; i < Entries.Count; i++)
+                {
+                    if (i > 0)
+                    {
+                        builder.Append(" | ");
+                    }
+
+                    builder.Append(Entries[i].ToDiagnosticString());
+                }
+
+                builder.Append("]");
+                return builder.ToString();
             }
         }
 
@@ -55,7 +109,8 @@ namespace Immersive.Framework.RouteLifecycle
             return new RouteContentSet(
                 route,
                 FrameworkContentSet.Empty(FrameworkContentScope.Route, ownerId, ownerName),
-                RouteContentMaterializationPlan.FromRoute(route));
+                RouteContentMaterializationPlan.FromRoute(route),
+                Array.Empty<RouteContentEntry>());
         }
 
         public static RouteContentSet FromPrimaryScene(
@@ -80,11 +135,13 @@ namespace Immersive.Framework.RouteLifecycle
                 source,
                 reason,
                 sceneLifecycleResult.Message);
+            var entry = new RouteContentEntry(handle, RouteContentOwnership.Owned);
 
             return new RouteContentSet(
                 route,
                 FrameworkContentSet.Single(FrameworkContentScope.Route, ownerId, route.RouteName, handle),
-                contentPlan);
+                contentPlan,
+                new[] { entry });
         }
 
         private static string CreateRouteOwnerId(RouteAsset route)
@@ -100,6 +157,25 @@ namespace Immersive.Framework.RouteLifecycle
             }
 
             return route.RouteName;
+        }
+
+        private int CountOwnership(RouteContentOwnership ownership)
+        {
+            if (entries == null || entries.Length == 0)
+            {
+                return 0;
+            }
+
+            var count = 0;
+            for (var i = 0; i < entries.Length; i++)
+            {
+                if (entries[i].Ownership == ownership)
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
     }
 }
