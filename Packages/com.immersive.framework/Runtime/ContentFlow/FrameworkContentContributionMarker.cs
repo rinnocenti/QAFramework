@@ -1,4 +1,5 @@
 using UnityEngine;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.ContentFlow
 {
@@ -8,6 +9,7 @@ namespace Immersive.Framework.ContentFlow
     /// This is discovery data only; it does not materialize, activate, or release objects.
     /// </summary>
     [DisallowMultipleComponent]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public sealed class FrameworkContentContributionMarker : MonoBehaviour, IFrameworkContentContribution
     {
         [SerializeField]

@@ -1,5 +1,6 @@
 using Immersive.Framework.Authoring;
 using UnityEngine;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -8,6 +9,7 @@ namespace Immersive.Framework.ActivityFlow
     /// Prefer this for scene-authored Activity content that needs lifecycle callbacks
     /// without manually implementing IActivityContentLifecycleReceiver.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public abstract class ActivityContentBehaviour : MonoBehaviour, IActivityContentLifecycleReceiver
     {
         public bool IsActivityContentActive { get; private set; }

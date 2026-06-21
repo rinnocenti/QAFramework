@@ -1,3 +1,4 @@
+using Immersive.Framework.ApiStatus;
 namespace Immersive.Framework.Authoring
 {
     /// <summary>
@@ -5,6 +6,7 @@ namespace Immersive.Framework.Authoring
     /// Public authoring mode that controls validation and diagnostics severity.
     /// This must not enable silent fallback for required configuration.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public enum FrameworkValidationMode
     {
         Strict = 0,

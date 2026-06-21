@@ -1,10 +1,12 @@
 using Immersive.Framework.Authoring;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.ActivityFlow
 {
     /// <summary>
     /// Diagnostics-only result for applying scene-authored Activity content bindings.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     internal readonly struct ActivityContentApplyResult
     {
         public ActivityContentApplyResult(

@@ -4,6 +4,7 @@ using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Diagnostics;
 using UnityEngine;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.GameFlow
 {
@@ -14,6 +15,7 @@ namespace Immersive.Framework.GameFlow
     /// </summary>
     [DisallowMultipleComponent]
     [AddComponentMenu("Immersive Framework/Activity Request Trigger")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public sealed class ActivityRequestTrigger : MonoBehaviour
     {
         private const string DefaultSource = nameof(ActivityRequestTrigger);

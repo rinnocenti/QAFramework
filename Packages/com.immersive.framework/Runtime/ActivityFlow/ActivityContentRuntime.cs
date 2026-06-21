@@ -4,6 +4,7 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.Diagnostics;
 using UnityEngine;
 using Object = UnityEngine.Object;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -11,6 +12,7 @@ namespace Immersive.Framework.ActivityFlow
     /// Minimal owner for applying Activity content visibility in loaded scenes.
     /// It does not load scenes, spawn actors, or own Activity identity.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Runtime implementation detail; not game-facing API.")]
     internal sealed class ActivityContentRuntime
     {
         private const int MaxObservedBindingsInMessage = 8;

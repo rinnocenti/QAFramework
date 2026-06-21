@@ -1,4 +1,5 @@
 using Immersive.Framework.Authoring;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.Bootstrap
 {
@@ -6,6 +7,7 @@ namespace Immersive.Framework.Bootstrap
     /// Shared internal validation for the minimal framework boot configuration.
     /// Used by runtime boot and editor status preview to avoid duplicated rules.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Runtime implementation detail; not game-facing API.")]
     internal static class FrameworkBootValidator
     {
         internal static FrameworkBootResult Validate(ImmersiveFrameworkSettingsAsset settings)

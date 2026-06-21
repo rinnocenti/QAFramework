@@ -1,4 +1,5 @@
 using Immersive.Framework.Authoring;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.Bootstrap
 {
@@ -6,6 +7,7 @@ namespace Immersive.Framework.Bootstrap
     /// Minimal immutable result for the framework boot attempt.
     /// This is diagnostics data, not a service locator entry point.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public readonly struct FrameworkBootResult
     {
         public FrameworkBootResult(

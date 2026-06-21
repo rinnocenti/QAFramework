@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.Authoring
 {
@@ -13,6 +14,7 @@ namespace Immersive.Framework.Authoring
         fileName = "Route Content Profile",
         menuName = "Immersive Framework/Route Content Profile",
         order = 11)]
+    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route content profile is planning-only until route scene composition/release phases.")]
     public sealed class RouteContentProfileAsset : ScriptableObject
     {
         [SerializeField]

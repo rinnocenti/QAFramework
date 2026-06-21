@@ -1,9 +1,11 @@
+using Immersive.Framework.ApiStatus;
 namespace Immersive.Framework.SceneLifecycle
 {
     /// <summary>
     /// Minimal immutable result for a Scene Lifecycle primary scene load.
     /// This is diagnostics data, not a global scene service.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     internal readonly struct SceneLifecycleLoadResult
     {
         public SceneLifecycleLoadResult(

@@ -1,8 +1,10 @@
+using Immersive.Framework.ApiStatus;
 namespace Immersive.Framework.RouteLifecycle
 {
     /// <summary>
     /// Identifies the lifecycle phase represented by a Route content callback context.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route local content callbacks are frozen until F3 Route baseline.")]
     public enum RouteContentLifecyclePhase
     {
         None = 0,

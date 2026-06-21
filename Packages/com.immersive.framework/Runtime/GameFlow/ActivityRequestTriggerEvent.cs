@@ -1,5 +1,6 @@
 using Immersive.Foundation.Events;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.GameFlow
 {
@@ -7,6 +8,7 @@ namespace Immersive.Framework.GameFlow
     /// Foundation event emitted by a scene-authored ActivityRequestTrigger.
     /// It is the typed integration surface for code; UnityEvent bridges must live in explicit bridge components.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public sealed class ActivityRequestTriggerEvent : IEvent
     {
         public ActivityRequestTriggerEvent(

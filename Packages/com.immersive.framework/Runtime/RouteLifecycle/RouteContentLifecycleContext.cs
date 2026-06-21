@@ -1,5 +1,6 @@
 using Immersive.Framework.Authoring;
 using UnityEngine;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -7,6 +8,7 @@ namespace Immersive.Framework.RouteLifecycle
     /// Local context passed to scene-authored Route content receivers.
     /// This describes one Route content root reacting to the canonical Route lifecycle.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route local content callbacks are frozen until F3 Route baseline.")]
     public readonly struct RouteContentLifecycleContext
     {
         internal RouteContentLifecycleContext(

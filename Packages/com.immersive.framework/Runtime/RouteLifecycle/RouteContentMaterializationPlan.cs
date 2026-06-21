@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -9,6 +10,7 @@ namespace Immersive.Framework.RouteLifecycle
     /// Route content plan derived from Route authoring data.
     /// In this baseline it records additional scene declarations without executing additive loading.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route content profile planning data only; additive execution is deferred to F6.")]
     internal readonly struct RouteContentMaterializationPlan
     {
         private readonly RouteContentScenePlanEntry[] _additionalScenes;

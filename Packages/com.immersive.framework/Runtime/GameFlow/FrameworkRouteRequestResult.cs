@@ -1,5 +1,6 @@
 using Immersive.Framework.Authoring;
 using Immersive.Framework.RouteLifecycle;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.GameFlow
 {
@@ -7,6 +8,7 @@ namespace Immersive.Framework.GameFlow
     /// Immutable result for a completed runtime route request.
     /// This is diagnostics data and does not expose a service locator.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     internal readonly struct FrameworkRouteRequestResult
     {
         public FrameworkRouteRequestResult(

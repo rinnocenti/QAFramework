@@ -1,6 +1,7 @@
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.SceneLifecycle;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -8,6 +9,7 @@ namespace Immersive.Framework.RouteLifecycle
     /// Minimal immutable result for starting a Route.
     /// This is diagnostics data for route lifecycle ownership, not a global route service.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     internal readonly struct RouteLifecycleStartResult
     {
         public RouteLifecycleStartResult(

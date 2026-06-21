@@ -1,5 +1,6 @@
 using UnityEngine;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -9,6 +10,7 @@ namespace Immersive.Framework.ActivityFlow
     /// </summary>
     [DisallowMultipleComponent]
     [AddComponentMenu("Immersive Framework/Activity Content Binding")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public sealed class ActivityContentBinding : MonoBehaviour
     {
         [SerializeField]

@@ -1,5 +1,6 @@
 using Immersive.Framework.Authoring;
 using UnityEngine;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -7,6 +8,7 @@ namespace Immersive.Framework.ActivityFlow
     /// Local context passed to scene-authored Activity content receivers.
     /// This describes one Activity content root reacting to the canonical Activity lifecycle.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public readonly struct ActivityContentLifecycleContext
     {
         internal ActivityContentLifecycleContext(

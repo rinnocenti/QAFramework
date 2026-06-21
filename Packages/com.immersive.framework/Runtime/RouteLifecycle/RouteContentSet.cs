@@ -1,6 +1,7 @@
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentFlow;
 using Immersive.Framework.SceneLifecycle;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -8,6 +9,7 @@ namespace Immersive.Framework.RouteLifecycle
     /// Route-owned content handles materialized for the active route.
     /// This baseline records the loaded primary scene as route content; additional scenes/prefabs come later.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     internal readonly struct RouteContentSet
     {
         public RouteContentSet(

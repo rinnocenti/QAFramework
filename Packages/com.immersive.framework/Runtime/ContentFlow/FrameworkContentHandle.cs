@@ -1,4 +1,5 @@
 using System;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.ContentFlow
 {
@@ -7,6 +8,7 @@ namespace Immersive.Framework.ContentFlow
     /// Immutable runtime identity for content materialized or discovered by the framework.
     /// A handle records ownership and release intent; it does not expose a service locator.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public readonly struct FrameworkContentHandle
     {
         public FrameworkContentHandle(

@@ -3,9 +3,11 @@ using Immersive.Logging.Loggers;
 using Immersive.Logging.Policies;
 using Immersive.Logging.Records;
 using Immersive.Logging.Unity;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.Diagnostics
 {
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Framework logging adapter; not game-facing API.")]
     internal sealed class FrameworkLogger
     {
         private const string Prefix = "[Immersive Framework]";

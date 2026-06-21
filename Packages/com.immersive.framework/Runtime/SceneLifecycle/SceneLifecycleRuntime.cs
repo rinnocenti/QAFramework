@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Immersive.Framework.Authoring;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.SceneLifecycle
 {
@@ -10,6 +11,7 @@ namespace Immersive.Framework.SceneLifecycle
     /// Minimal owner for scene lifecycle operations.
     /// It resolves, loads and activates the Startup Route primary scene when requested by Game Flow.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Runtime implementation detail; not game-facing API.")]
     internal sealed class SceneLifecycleRuntime
     {
         private const string AlreadyLoadedMode = "AlreadyLoaded";

@@ -1,5 +1,6 @@
 using Immersive.Framework.Authoring;
 using UnityEngine;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -9,6 +10,7 @@ namespace Immersive.Framework.RouteLifecycle
     /// Prefer this for scene-authored Route content that needs lifecycle callbacks
     /// without manually implementing IRouteContentLifecycleReceiver.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route local content callbacks are frozen until F3 Route baseline.")]
     public abstract class RouteContentBehaviour : MonoBehaviour, IRouteContentLifecycleReceiver
     {
         public bool IsRouteContentActive { get; private set; }

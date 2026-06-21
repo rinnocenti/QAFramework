@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ContentFlow;
 using UnityEngine;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.Authoring
 {
@@ -9,6 +10,7 @@ namespace Immersive.Framework.Authoring
     /// This declaration is planning data only in the baseline cut; execution comes in a later route composition cut.
     /// </summary>
     [Serializable]
+    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route content profile is planning-only until route scene composition/release phases.")]
     public sealed class RouteContentSceneEntry
     {
         [SerializeField]

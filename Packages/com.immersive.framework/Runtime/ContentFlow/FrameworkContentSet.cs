@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.ContentFlow
 {
@@ -8,6 +9,7 @@ namespace Immersive.Framework.ContentFlow
     /// API status: Experimental. Do not treat this as a stable materialization or contribution contract before F1/F5/F8.
     /// Immutable set of content handles owned by one lifecycle scope and owner.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public readonly struct FrameworkContentSet
     {
         private readonly FrameworkContentHandle[] _handles;

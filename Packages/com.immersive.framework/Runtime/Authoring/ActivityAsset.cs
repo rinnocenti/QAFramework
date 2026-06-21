@@ -1,4 +1,5 @@
 using UnityEngine;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.Authoring
 {
@@ -11,6 +12,7 @@ namespace Immersive.Framework.Authoring
         fileName = "Activity",
         menuName = "Immersive Framework/Activity",
         order = 20)]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public sealed class ActivityAsset : ScriptableObject
     {
         [SerializeField]

@@ -22,16 +22,17 @@ Current phase:
 F1 — OPEN
 ```
 
-Completed F1 cut:
+Completed F1 cuts:
 
 ```text
 F1A — CLOSED / ACCEPTED
+F1B — APPLIED / PENDING COMPILE-SMOKE
 ```
 
-Next authorized step:
+Next authorized step after F1B validation:
 
 ```text
-F1B — API status convention and minimal markers
+F1C — FrameworkFact minimal model
 ```
 
 Status distinction:
@@ -82,6 +83,7 @@ Then follow the roadmap order:
 4. Documentation~/BASELINE_SMOKE.md
 5. Documentation~/F0_CLOSURE.md
 6. Documentation~/F1_ADR_ACCEPTANCE.md
+7. Documentation~/API_STATUS_CONVENTION.md
 ```
 
 ## F0 closure status
@@ -150,12 +152,22 @@ Attributes
 | `ADR-DIAG-001 — FrameworkFact vs Human Log` | Human logs and structured facts are separate. New validation/smoke should not parse log text as a functional contract. |
 | `ADR-CONTENT-001 — Content Identity Domain` | Content identity is composed from owner, scope, kind and content id. Path/name alone are not stable public identity. |
 
-## Next step: F1B API status convention
+## F1B API status convention
 
-F1 technical work can now start, but only in small cuts that implement the accepted F1 ADRs. Recommended first technical cut:
+F1B adds a minimal source-level API status marker and applies it to the existing runtime surfaces.
 
 ```text
-F1B — API status convention and minimal markers
+Runtime/ApiStatus/FrameworkApiStatus.cs
+Runtime/ApiStatus/FrameworkApiStatusAttribute.cs
+Documentation~/API_STATUS_CONVENTION.md
+```
+
+F1B does not create FrameworkFact, typed identity primitives, ContentIdentity final shape or ValidationMode semantics.
+
+Next authorized step after compile/smoke validation:
+
+```text
+F1C — FrameworkFact minimal model
 ```
 
 Do not start F2 until F1 gives identity/status/diagnostics enough structure to prevent new public ambiguity.

@@ -3,6 +3,7 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.SceneLifecycle;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.ApplicationLifecycle
 {
@@ -10,6 +11,7 @@ namespace Immersive.Framework.ApplicationLifecycle
     /// Minimal immutable snapshot of the current framework runtime state.
     /// This is diagnostics/state data owned by the Application Runtime, not a service locator.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     internal readonly struct FrameworkRuntimeState
     {
         public FrameworkRuntimeState(

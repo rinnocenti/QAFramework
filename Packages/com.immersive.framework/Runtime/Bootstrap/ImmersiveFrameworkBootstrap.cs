@@ -4,6 +4,7 @@ using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Diagnostics;
 using UnityEngine;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.Bootstrap
 {
@@ -12,6 +13,7 @@ namespace Immersive.Framework.Bootstrap
     /// It resolves and validates the active Game Application, then hands off to the first lifecycle owner.
     /// Activity, Actor, Input, Camera, Save and Pooling lifecycles are not owned here.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Runtime implementation detail; not game-facing API.")]
     internal static class ImmersiveFrameworkBootstrap
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]

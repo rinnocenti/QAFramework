@@ -3,6 +3,7 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.Diagnostics;
 using UnityEngine;
 using Object = UnityEngine.Object;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -11,6 +12,7 @@ namespace Immersive.Framework.RouteLifecycle
     /// Minimal owner for notifying Route-scoped scene content.
     /// It does not load scenes, start activities, spawn actors, or own Route identity.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route local content callbacks are frozen until F3 Route baseline.")]
     internal sealed class RouteContentRuntime
     {
         private readonly FrameworkLogger _logger = FrameworkLogger.Create();

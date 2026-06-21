@@ -1,5 +1,7 @@
+using Immersive.Framework.ApiStatus;
 namespace Immersive.Framework.GameFlow
 {
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     internal enum FrameworkActivityRequestKind
     {
         Succeeded = 0,

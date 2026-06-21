@@ -1,3 +1,4 @@
+using Immersive.Framework.ApiStatus;
 namespace Immersive.Framework.ContentFlow
 {
     /// <summary>
@@ -5,6 +6,7 @@ namespace Immersive.Framework.ContentFlow
     /// Marker contract for objects that materialize content handles for a specific scope and kind.
     /// Concrete materializers define their own command/result types.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public interface IFrameworkContentMaterializer
     {
         FrameworkContentScope Scope { get; }

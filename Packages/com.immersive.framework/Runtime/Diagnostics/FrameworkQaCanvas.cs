@@ -7,6 +7,7 @@ using Immersive.Framework.GameFlow;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.Diagnostics
 {
@@ -17,6 +18,7 @@ namespace Immersive.Framework.Diagnostics
     /// </summary>
     [DisallowMultipleComponent]
     [AddComponentMenu("Immersive Framework/QA/Framework QA Canvas")]
+    [FrameworkApiStatus(FrameworkApiStatus.DevelopmentTooling, "QA smoke UI for Editor/development builds; not product API.")]
     public sealed class FrameworkQaCanvas : MonoBehaviour
     {
         private const string QaSource = nameof(FrameworkQaCanvas);

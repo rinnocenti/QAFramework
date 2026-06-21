@@ -1,5 +1,6 @@
 using Immersive.Framework.Authoring;
 using UnityEngine;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -10,6 +11,7 @@ namespace Immersive.Framework.RouteLifecycle
     /// </summary>
     [DisallowMultipleComponent]
     [AddComponentMenu("")]
+    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route local content callbacks are frozen until F3 Route baseline.")]
     public sealed class RouteContentBinding : MonoBehaviour
     {
         [SerializeField]

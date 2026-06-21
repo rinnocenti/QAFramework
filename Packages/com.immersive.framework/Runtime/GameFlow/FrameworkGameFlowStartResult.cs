@@ -1,6 +1,7 @@
 using Immersive.Framework.Authoring;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.SceneLifecycle;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.GameFlow
 {
@@ -8,6 +9,7 @@ namespace Immersive.Framework.GameFlow
     /// Minimal immutable result for starting the Game Flow.
     /// This is diagnostics data for the first route handoff, not a global runtime service.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     internal readonly struct FrameworkGameFlowStartResult
     {
         public FrameworkGameFlowStartResult(

@@ -1,3 +1,4 @@
+using Immersive.Framework.ApiStatus;
 namespace Immersive.Framework.RouteLifecycle
 {
     /// <summary>
@@ -5,6 +6,7 @@ namespace Immersive.Framework.RouteLifecycle
     /// Implement this on a component under a Route Content Binding root when scene-authored content
     /// needs to react to Route enter/exit without owning Route Lifecycle.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route local content callbacks are frozen until F3 Route baseline.")]
     public interface IRouteContentLifecycleReceiver
     {
         void OnRouteContentEntered(RouteContentLifecycleContext context);

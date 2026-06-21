@@ -4,6 +4,7 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.Diagnostics;
 using Immersive.Framework.GameFlow;
 using UnityEngine;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.ApplicationLifecycle
 {
@@ -11,6 +12,7 @@ namespace Immersive.Framework.ApplicationLifecycle
     /// Minimal persistent application-scope runtime owner for the framework.
     /// It owns the Game Flow instance for this boot, but does not expose a global service locator.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Runtime implementation detail; not game-facing API.")]
     internal sealed class FrameworkRuntimeHost : MonoBehaviour
     {
         private const string RuntimeHostName = "Immersive Framework Runtime";

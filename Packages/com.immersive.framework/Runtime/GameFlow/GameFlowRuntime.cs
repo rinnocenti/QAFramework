@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.RouteLifecycle;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.GameFlow
 {
@@ -8,6 +9,7 @@ namespace Immersive.Framework.GameFlow
     /// Minimal owner for the game-flow route handoff.
     /// It accepts route and activity requests and delegates route startup to Route Lifecycle.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Runtime implementation detail; not game-facing API.")]
     internal sealed class GameFlowRuntime
     {
         private readonly RouteLifecycleRuntime _routeLifecycleRuntime = new RouteLifecycleRuntime();

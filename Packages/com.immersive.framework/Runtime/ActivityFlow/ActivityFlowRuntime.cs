@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Immersive.Foundation.Events;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -9,6 +10,7 @@ namespace Immersive.Framework.ActivityFlow
     /// Minimal owner for Activity entry and exit identity.
     /// It owns the active Activity identity for the current application runtime and emits canonical lifecycle events.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Runtime implementation detail; not game-facing API.")]
     internal sealed class ActivityFlowRuntime
     {
         private readonly ActivityContentRuntime _activityContentRuntime = new ActivityContentRuntime();

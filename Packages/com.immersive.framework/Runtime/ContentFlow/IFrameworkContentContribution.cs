@@ -1,3 +1,4 @@
+using Immersive.Framework.ApiStatus;
 namespace Immersive.Framework.ContentFlow
 {
     /// <summary>
@@ -5,6 +6,7 @@ namespace Immersive.Framework.ContentFlow
     /// Minimal authored/runtime contribution contract exposed by materialized content.
     /// Contributions are consumed by subsystem-specific adapters in later cuts.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public interface IFrameworkContentContribution
     {
         FrameworkContentScope ContributionScope { get; }

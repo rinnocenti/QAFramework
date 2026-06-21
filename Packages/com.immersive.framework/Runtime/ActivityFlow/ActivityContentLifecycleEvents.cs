@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -9,6 +10,7 @@ namespace Immersive.Framework.ActivityFlow
     /// </summary>
     [DisallowMultipleComponent]
     [AddComponentMenu("Immersive Framework/Activity Content Lifecycle Events")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public sealed class ActivityContentLifecycleEvents : ActivityContentBehaviour
     {
         [Header("Activity Content Lifecycle")]

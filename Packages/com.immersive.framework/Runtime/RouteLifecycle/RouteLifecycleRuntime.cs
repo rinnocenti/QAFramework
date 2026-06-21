@@ -4,6 +4,7 @@ using Immersive.Foundation.Events;
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.SceneLifecycle;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -11,6 +12,7 @@ namespace Immersive.Framework.RouteLifecycle
     /// Minimal owner for starting and switching Routes.
     /// It owns the active Route identity and delegates scene loading to Scene Lifecycle.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Runtime implementation detail; not game-facing API.")]
     internal sealed class RouteLifecycleRuntime
     {
         private readonly SceneLifecycleRuntime _sceneLifecycleRuntime = new SceneLifecycleRuntime();

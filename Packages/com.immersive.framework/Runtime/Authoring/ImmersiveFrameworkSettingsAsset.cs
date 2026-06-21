@@ -1,4 +1,5 @@
 using UnityEngine;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.Authoring
 {
@@ -6,6 +7,7 @@ namespace Immersive.Framework.Authoring
     /// Project-level backing asset for Immersive Framework settings.
     /// Users should edit this through Project Settings > Immersive Framework.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public sealed class ImmersiveFrameworkSettingsAsset : ScriptableObject
     {
         public const string ResourcesPath = "ImmersiveFrameworkSettings";

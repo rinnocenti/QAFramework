@@ -1,4 +1,5 @@
 using Immersive.Framework.Authoring;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -6,6 +7,7 @@ namespace Immersive.Framework.ActivityFlow
     /// Minimal immutable result for starting or clearing an Activity.
     /// This is diagnostics data, not an activity service.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     internal readonly struct ActivityFlowStartResult
     {
         public ActivityFlowStartResult(

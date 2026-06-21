@@ -1,5 +1,6 @@
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentFlow;
+using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -7,6 +8,7 @@ namespace Immersive.Framework.RouteLifecycle
     /// Runtime planning record for one additional Route scene declaration.
     /// This is not a loaded scene handle yet.
     /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route content profile planning data only; additive execution is deferred to F6.")]
     internal readonly struct RouteContentScenePlanEntry
     {
         public RouteContentScenePlanEntry(

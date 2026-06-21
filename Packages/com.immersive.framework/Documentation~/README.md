@@ -41,8 +41,9 @@ Smoke valida.
 | 5 | [`BASELINE_SMOKE.md`](BASELINE_SMOKE.md) | Smoke manual mínimo do baseline ativo. |
 | 6 | [`F0_CLOSURE.md`](F0_CLOSURE.md) | Fechamento formal da Fase 0 após smoke. |
 | 7 | [`F1_ADR_ACCEPTANCE.md`](F1_ADR_ACCEPTANCE.md) | Aceite dos ADRs da F1 antes de implementação técnica. |
-| 8 | [`Guides/`](Guides/) | Guias de uso/visualização. |
-| 9 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
+| 8 | [`API_STATUS_CONVENTION.md`](API_STATUS_CONVENTION.md) | Convenção mínima de status de API aplicada no F1B. |
+| 9 | [`Guides/`](Guides/) | Guias de uso/visualização. |
+| 10 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
 ---
 
@@ -55,6 +56,7 @@ Documentation~/
 ├─ BASELINE_SMOKE.md
 ├─ F0_CLOSURE.md
 ├─ F1_ADR_ACCEPTANCE.md
+├─ API_STATUS_CONVENTION.md
 ├─ Planning/
 │  ├─ Immersive-Framework-Roadmap-Revisado.md
 │  └─ Capability-Traceability-Matrix.md
@@ -271,13 +273,14 @@ F0B — CLOSED / HYGIENE APPLIED / SMOKE PASS.
 F0C — CLOSED / FORMAL CLOSURE.
 F0  — CLOSED / PASS.
 F1A — CLOSED / ACCEPTED.
+F1B — APPLIED / PENDING COMPILE-SMOKE.
 F1  — OPEN.
 ```
 
-Próximo passo autorizado:
+Próximo passo autorizado após validação do F1B:
 
 ```text
-F1B — API status convention and minimal markers.
+F1C — FrameworkFact minimal model.
 ```
 
-F1B é o primeiro corte técnico autorizado da F1. Não iniciar F2 enquanto F1 não compilar, o smoke baseline não passar e as novas superfícies não estiverem marcadas como Stable, Experimental ou Internal.
+F1B é o primeiro corte técnico da F1. Não iniciar F2 enquanto F1 não compilar, o smoke baseline não passar e as novas superfícies não estiverem marcadas como Stable, Experimental ou Internal.
