@@ -1,9 +1,9 @@
 # F4 Closure — Activity Content and Readiness Baseline
 
-Status: READY TO CLOSE / PENDING F4G COMPILE-SMOKE  
+Status: CLOSED / ACTIVITY BASELINE PASS  
 Fase: F4  
-Último corte: F4F  
-Próxima fase autorizada após smoke F4G: F5 — Local Contribution, iniciando por ADR/identidade local
+Último corte: F4G  
+Próxima fase autorizada: F5 — Local Contribution, iniciando por ADR/identidade local
 
 ---
 
@@ -16,13 +16,13 @@ F4C — CLOSED / COMPILE-SMOKE PASS
 F4D — CLOSED / COMPILE-SMOKE PASS
 F4E — CLOSED / COMPILE-SMOKE PASS
 F4F — CLOSED / COMPILE-SMOKE PASS
-F4G — APPLIED / PENDING COMPILE-SMOKE
-F4  — READY TO CLOSE / PENDING F4G COMPILE-SMOKE
+F4G — CLOSED / COMPILE-SMOKE PASS
+F4  — CLOSED / ACTIVITY BASELINE PASS
 ```
 
 ## Shape final da F4
 
-F4 está pronto para fechamento após o smoke do F4G. O baseline mínimo de Activity não copia `ActivityEntryPipeline` da Base antiga:
+F4 foi fechada após o smoke final do F4G. O baseline mínimo de Activity não copia `ActivityEntryPipeline` da Base antiga:
 
 ```text
 ActivityAsset
@@ -78,4 +78,4 @@ LocalContributionSet implementation
 F5A — ADR Local Identity
 ```
 
-F5A deve começar por decisão/contrato de identidade local antes de discovery, requiredness ou runtime inventory.
+F5A começa por decisão/contrato de identidade local antes de discovery, requiredness ou runtime inventory.

@@ -1,6 +1,6 @@
 # F4G — F4 Closure Hygiene
 
-Status: APPLIED / PENDING COMPILE-SMOKE  
+Status: CLOSED / COMPILE-SMOKE PASS  
 Fase: F4  
 Corte: F4G  
 Roadmap: IF-FW-ROAD-4G — F4 closure hygiene
@@ -38,24 +38,32 @@ RuntimeMaterialization
 actors/input/camera/reset/snapshot
 ```
 
-## Validação requerida
+## Validação final
 
-Rodar:
+Smoke final validado:
 
 ```text
-Run Activity Baseline Smoke
-Run Standard Smoke
-Run Route Callback Smoke
-Validate Loaded Route Content
+Boot succeeded                                                       1
+QA Smoke completed. name='Activity Baseline Smoke'                   1
+QA Activity Baseline Smoke step completed. step='secondary'           1
+QA Activity Baseline Smoke step completed. step='primary'             1
+QA Activity Baseline Smoke step completed. step='clear'               1
+QA Activity Baseline Smoke step completed. step='restore-primary'     1
+QA Smoke completed. name='Standard Smoke'                            1
+QA Smoke completed. name='Route Callback Smoke'                      1
+QA Authoring Validation completed. scope='Loaded Route Content'       1
+issues='0'                                                           1
+Activity Request ignored. source='FrameworkQaCanvas' reason='qa.activity' 0
+UnityEngine.Debug:LogWarning                                         0
+QA Smoke aborted                                                     0
+Exception                                                            0
+FATAL                                                                0
+error CS                                                            0
 ```
 
-Critérios:
+Resultado:
 
 ```text
-QA Smoke completed. name='Activity Baseline Smoke'
-QA Smoke completed. name='Standard Smoke'
-QA Smoke completed. name='Route Callback Smoke'
-QA Authoring Validation completed. scope='Loaded Route Content' bindings='1' issues='0'
-Activity Request ignored. source='FrameworkQaCanvas' reason='qa.activity' = ausente no Activity Baseline Smoke
-Exception / FATAL / error CS = ausentes
+F4G — CLOSED / COMPILE-SMOKE PASS
+F4  — CLOSED / ACTIVITY BASELINE PASS
 ```

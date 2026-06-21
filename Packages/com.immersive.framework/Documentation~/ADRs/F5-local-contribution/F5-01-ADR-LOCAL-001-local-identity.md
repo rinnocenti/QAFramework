@@ -1,61 +1,250 @@
 # F5-01 — ADR-LOCAL-001 — Local Identity
 
-Status: Draft / Deferred  
+Status: Accepted  
 Fase: F5  
 Ordem no Plano: F5-01  
-Tipo: Local  
-Escopo: LocalContentIdentity
+Tipo: Local / Identity  
+Escopo: LocalContentIdentity  
+Corte de aceite: F5A
 
 ---
 
 ## Contexto
 
-O `NewScripts` usava `targetId` como cola universal. O package precisa de uma identidade local tipada antes de contribution discovery.
+A F4 fechou o baseline mínimo de Activity com `ActivityContentSet`, `ActivityReadinessState` e `ActivityLocalVisibilityAdapter`.
+
+A fronteira de F4 é deliberada:
+
+```text
+ActivityLocalVisibilityAdapter = adapter local de visibilidade scene-authored.
+ActivityContentSet = snapshot local/diagnóstico dos adapters de visibilidade.
+```
+
+Nenhum dos dois é materialização canônica de Activity e nenhum dos dois deve virar identidade funcional da F5.
+
+A auditoria bruta do `NewScripts` mostra que o eixo local antigo usava `targetId` como cola textual para contributors, requirements, snapshot, restore, reset, release, placement, anchors e diagnostics. Esse padrão preserva capacidades úteis, mas cria acoplamento frágil por string.
+
+A auditoria do package atual mostra outro risco: `FrameworkContentContributionMarker` e `IFrameworkContentContribution` existem como API Experimental, mas ainda não têm discovery canônico nem consumer real. O marker atual também permite fallback de `ContributionId` para `GameObject.name`, o que viola a política de identidade aceita na F1/F5.
+
+Portanto F5 precisa começar por identidade local própria antes de marker, discovery, requiredness ou contribution set.
+
+---
 
 ## Decisão
 
-Definir `LocalContentIdentity` como identidade funcional de objetos/contributions locais.
+Definir `LocalContentIdentity` como identidade funcional própria para contribuições locais scene-authored dentro de um escopo conhecido.
 
-Regras:
+`LocalContentIdentity` identifica uma contribuição local. Ela não identifica qualquer objeto do jogo de forma universal e não substitui identidades de Route, Activity, Session, RuntimeContent, Surface ou Actor.
 
-- Não usar GameObject name, transform path ou scene path como identity funcional.
-- Labels podem existir para Inspector/diagnostics.
-- Identity deve ser validável e única dentro do escopo relevante.
-- O escopo pode ser Activity, Route, SceneContent ou outro definido pelo ContentSet.
+Composição conceitual:
+
+```text
+LocalContentIdentity =
+  scope owner identity
+  + local scope kind
+  + explicit local id
+```
+
+Exemplo conceitual:
+
+```text
+Activity:QA_PrimaryContentActivity
++ SceneAuthoredLocal
++ primary-panel
+```
+
+Forma textual diagnóstica esperada:
+
+```text
+local:<scope-domain>:<scope-owner>:<local-scope-kind>:<local-id>
+```
+
+A forma textual é para logs, diagnostics e comparação de smoke. A API técnica deve ser tipo de valor imutável e validável, não string solta.
+
+---
+
+## Regras obrigatórias
+
+### 1. Sem fallback funcional por nome/path
+
+Não usar como chave funcional:
+
+```text
+GameObject.name
+Transform path
+Hierarchy path
+Scene path
+Scene name
+Component path
+ownerPath
+componentPath
+targetId universal genérico
+```
+
+Esses valores podem existir apenas como diagnostics, labels, observability ou mensagem de validator.
+
+### 2. Identidade local é explícita quando houver marker
+
+Se um marker local existir, a identidade local deve ser obrigatória e explícita.
+
+Ausência de identidade em marker local futuro deve gerar falha de validação estruturada. Não pode gerar fallback silencioso.
+
+### 3. `targetId` não é modelo canônico
+
+O padrão do `NewScripts` deve ser migrado conceitualmente assim:
+
+| Padrão antigo | Decisão F5 |
+|---|---|
+| `targetId` como cola universal | Substituir por `LocalContentIdentity` tipada por escopo. |
+| `sceneName + targetId` | Usar content set/entry como contexto de discovery e `LocalContentIdentity` como chave funcional. |
+| `roleId` | Metadata/diagnóstico; não chave primária. |
+| `componentPath` / `ownerPath` | Diagnóstico apenas. |
+| `placementId`, `slotId`, `anchorId` | Tipos específicos futuros; não colapsar em targetId universal. |
+
+### 4. `ActivityContentSet` F4 não é identidade F5
+
+`ActivityContentSet` pode delimitar fonte/escopo de discovery em F5, mas não fornece a identidade funcional da contribuição.
+
+Em particular, qualquer handle derivado de `sceneName`, `objectName`, hierarchy ou path dentro do snapshot F4 permanece diagnóstico/local ao adapter de visibilidade.
+
+### 5. `FrameworkContentContributionMarker` atual não é contrato F5
+
+`FrameworkContentContributionMarker` é precursor experimental. Ele não pode ser promovido diretamente para `LocalContributionMarker` enquanto permitir fallback de `ContributionId` para `GameObject.name`.
+
+Opções aceitáveis para corte técnico posterior:
+
+```text
+1. Substituir por novo LocalContributionMarker com explicitLocalId obrigatório.
+2. Refatorar FrameworkContentContributionMarker removendo fallback funcional e mantendo compatibilidade apenas documental/experimental.
+```
+
+F5A não escolhe a implementação entre as duas opções. F5A só congela a regra arquitetural.
+
+---
+
+## Semântica de escopo
+
+A identidade local é única dentro de um escopo funcional definido.
+
+Escopos admitidos conceitualmente:
+
+```text
+Session local content
+Route local content
+Activity local content
+Scene-authored local content dentro de um ContentSet conhecido
+```
+
+Escopo não deve ser inferido apenas por cena ou hierarquia. A cena carregada pode ser contexto de discovery, mas não o owner funcional da identidade.
+
+---
+
+## Relação com handles existentes
+
+### `FrameworkContentIdentity`
+
+`FrameworkContentIdentity` continua identificando handles de content em ContentFlow.
+
+`LocalContentIdentity` é menor e mais específica: identifica uma contribuição local dentro de content conhecido.
+
+### `RouteContentSet` / `ActivityContentSet`
+
+Sets existentes podem fornecer fronteira de busca e diagnóstico.
+
+Eles não definem, por si só, contribuição local, capability, requiredness ou runtime reference.
+
+### Futuro `LocalContributionHandle`
+
+`LocalContributionHandle` deve carregar `LocalContentIdentity` e metadata de contribuição, mas só deve entrar depois do tipo de identidade.
+
+---
 
 ## Consequências
 
 ### Positivas
 
-- Evita repetir `targetId`.
-- Permite validators.
-- Base para requiredness e capability descriptors.
+- Remove pressão para ressuscitar `targetId` como cola universal.
+- Impede fallback invisível por rename de GameObject.
+- Permite validators determinísticos.
+- Cria base segura para `LocalContributionMarker`, `LocalContributionSet`, requiredness e Surface.
+- Mantém labels e paths úteis como diagnostics sem virarem contrato.
 
 ### Negativas / trade-offs
 
-- Exige authoring explícito.
-- Pode exigir migration de markers existentes.
+- Authoring local passa a exigir id explícito em markers.
+- F5B precisa criar tipo novo antes de qualquer discovery útil.
+- Markers experimentais existentes não podem ser reaproveitados sem ajuste.
+- Migração futura do shape antigo precisará mapear `targetId` para identidade local tipada.
+
+---
 
 ## Fora do escopo
 
-- Capability inventory.
-- Runtime references.
-- Snapshot/restore.
+F5A não implementa:
 
-## Critérios de validação
+```text
+LocalContentIdentity.cs
+LocalContributionMarker
+LocalContributionDiscovery
+LocalContributionSet
+LocalContributionHandle
+Local validators runtime/editor
+ActivityContentProfile loading
+Canonical Activity materialization
+Additive Activity loading
+Release/unload policy
+RuntimeMaterialization
+Surface
+Actors
+Input
+Camera
+Reset
+Snapshot
+Save
+Pooling
+```
 
-- Marker sem identity falha em validation.
-- Duplicidade no mesmo scope é detectada.
-- Paths/nomes só aparecem como diagnóstico.
+---
 
-## Impacto esperado
+## Critérios de validação para cortes técnicos posteriores
 
-Base para LocalContributionSet e Surface.
+- Marker local sem identidade explícita falha em validation.
+- Duplicidade da mesma identidade no mesmo escopo falha em validation.
+- Paths/nomes aparecem apenas em diagnostics.
+- `ActivityContentSet` F4 pode ser usado como fonte de escopo, mas não como chave funcional.
+- `FrameworkContentContributionMarker` não pode gerar identidade funcional F5 a partir de `GameObject.name`.
+- Required ausente deve falhar por policy estruturada quando requiredness entrar.
+- Optional ausente deve gerar skip diagnosticado quando requiredness entrar.
 
-## Relação com roadmap
+---
 
-F5.
+## Impacto esperado no roadmap
 
-## Notas de implementação
+F5 deve seguir esta ordem:
 
-Alinha com ADR-ID-001.
+```text
+F5A — ADR Local Identity
+F5B — LocalContentIdentity type
+F5C — LocalContributionMarker sem fallback funcional
+F5D — Scoped discovery limitado a ContentSets conhecidos
+F5E — LocalContributionSet
+F5F — Required/Optional policy
+F5G — Local validators
+F5H — Local smoke
+```
+
+F5B não deve criar discovery. F5C não deve criar capability system. F5D não deve usar scan global como fonte de verdade.
+
+---
+
+## Relação com ADRs anteriores
+
+Este ADR aplica:
+
+```text
+F1A-01 — ADR-ID-001 — Typed Identity Policy
+F1A-03 — ADR-CONTENT-001 — Content Identity Domain
+F4-01  — ADR-ACTIVITY-001 — ActivityContentSet and Readiness Baseline
+```
+
+A decisão reforça que strings podem existir como labels/diagnostics, mas não como chave funcional sem domínio explícito.

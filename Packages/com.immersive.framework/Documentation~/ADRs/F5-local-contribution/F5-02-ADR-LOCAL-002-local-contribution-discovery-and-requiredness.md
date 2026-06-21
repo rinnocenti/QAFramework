@@ -3,63 +3,130 @@
 Status: Draft / Deferred  
 Fase: F5  
 Ordem no Plano: F5-02  
-Tipo: Local  
-Escopo: LocalContributionSet
+Tipo: Local / Discovery  
+Escopo: LocalContributionSet  
+Depende de: F5-01 — ADR-LOCAL-001 — Local Identity
 
 ---
 
 ## Contexto
 
-O package tem bindings locais simples e marker precursor, mas não possui discovery scoped, contribution set ou requiredness policy.
+O package possui bindings locais simples e um marker precursor (`FrameworkContentContributionMarker`), mas ainda não possui discovery scoped, `LocalContributionSet` ou policy de requiredness.
 
-## Decisão
+O `NewScripts` tinha capacidades úteis de discovery local, reports, scan targets, reset, snapshot, restore e release, mas elas se apoiavam demais em `targetId`, `sceneName`, paths e matching textual entre stages.
 
-Local discovery deve operar sobre `ActivityContentSet`/`RouteContentSet`, não sobre busca global.
-
-Fluxo:
+A F5 deve preservar a capacidade de descobrir contribuições locais, mas sem reintroduzir:
 
 ```text
-ContentSet
+targetId universal
+FindObjectsByType global como fonte de verdade
+GameObject.name como fallback funcional
+scene path/hierarchy path como identity
+capability inventory vivo antes de runtime handles
+```
+
+---
+
+## Decisão proposta
+
+Local discovery deve operar sobre ContentSets conhecidos e identidades locais explícitas.
+
+Fluxo conceitual:
+
+```text
+RouteContentSet / ActivityContentSet
+→ Local discovery scope
 → LocalContributionMarker
 → LocalContributionDiscovery
 → LocalContributionSet
 → Required/Optional policy
 ```
 
-Required ausente gera failure/fact estruturado. Optional ausente gera skip diagnosticado.
+`ActivityContentSet` e `RouteContentSet` delimitam onde procurar. Eles não fornecem a identity funcional da contribuição.
+
+`LocalContributionMarker` deve carregar ou produzir uma `LocalContentIdentity` válida conforme ADR-LOCAL-001.
+
+---
+
+## Requiredness
+
+Requiredness pertence à contribuição ou à policy que consome aquela contribuição, não ao nome do GameObject.
+
+Regras propostas:
+
+| Caso | Resultado |
+|---|---|
+| Contribution required ausente | Failure estruturado / `FrameworkFact`. |
+| Contribution optional ausente | Skip diagnosticado. |
+| Marker sem identity explícita | Validation failure. |
+| Duplicidade no mesmo escopo | Validation failure. |
+| Marker fora do content set ativo | Ignorado ou diagnosticado como out-of-scope, não consumido. |
+
+---
 
 ## Consequências
 
 ### Positivas
 
-- Evita `FindObjectsByType` global como eixo.
-- Cria base para capabilities.
-- Dá semântica clara para required/optional.
+- Discovery deixa de ser varredura global oportunista.
+- `LocalContributionSet` vira snapshot determinístico do ciclo local.
+- Required/Optional fica validável antes de consumers reais.
+- Surface, Snapshot, Reset e Actors podem consumir uma base comum depois, sem capturar o core.
 
 ### Negativas / trade-offs
 
-- Depende de ContentSet maduro.
-- Pode exigir mais validators.
+- Depende de `LocalContentIdentity` implementado antes.
+- Pode exigir validators editor-only por fase.
+- Pode exigir migração ou substituição do `FrameworkContentContributionMarker` atual.
+- Não resolve ainda runtime references/lifetime.
+
+---
 
 ## Fora do escopo
 
-- Reset/snapshot/release.
-- Actors, Surface, RuntimeSpawned.
+```text
+Reset/snapshot/release execution
+Actors
+Surface
+RuntimeMaterialization
+Runtime capability references
+Pooling
+Input
+Camera
+Save backend
+```
 
-## Critérios de validação
+F5 não deve criar scanner por capability específica. Capability descriptors simples podem existir apenas se forem necessários para o `LocalContributionSet`; runtime refs vivos ficam para fases posteriores.
+
+---
+
+## Critérios de validação futuros
 
 - Discovery limitado ao content set ativo.
+- Nenhum caminho required usa fallback silencioso.
+- `LocalContributionSet` é produzido a partir de markers com `LocalContentIdentity` explícita.
+- Duplicidade e missing identity aparecem no validator.
 - Required ausente falha de forma estruturada.
-- ContributionSet é produzido em Activity enter.
+- Optional ausente não bloqueia, mas fica diagnosticado.
+
+---
 
 ## Impacto esperado
 
-Pré-requisito para Surface, snapshot participants e capability inventory.
+Pré-requisito para:
 
-## Relação com roadmap
+```text
+Surface declaration
+Snapshot participants
+Reset participants
+Capability descriptors
+Runtime materialization consumers
+```
 
-F5.
+---
 
-## Notas de implementação
+## Notas de implementação futura
 
-Não criar scanner por capability nesta fase.
+Não criar discovery por `FindObjectsByType` como eixo funcional.
+
+Se for necessário usar API Unity para enumerar componentes, a enumeração deve ser limitada pelos roots/entries de ContentSet carregado e deve produzir diagnostics explícitos.

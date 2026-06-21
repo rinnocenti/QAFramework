@@ -277,11 +277,13 @@ Corte técnico atual:
 F3 — CLOSED / PASS
 ```
 
-Próximo corte autorizado:
+Próximo corte autorizado após F3:
 
 ```text
 F4A — IF-FW-ROAD-4A — ActivityRuntimeState refinado
 ```
+
+Status: histórico. F4 já foi fechada no baseline atual.
 
 | ID | Entrega | Detalhes |
 |---|---|---|
@@ -318,14 +320,14 @@ Objetivo: amadurecer Activity sem copiar `ActivityEntryPipeline`.
 Status atual:
 
 ```text
-F4 — READY TO CLOSE / PENDING F4G COMPILE-SMOKE
+F4 — CLOSED / ACTIVITY BASELINE PASS
 F4A — CLOSED / COMPILE-SMOKE PASS
 F4B — CLOSED / COMPILE-SMOKE PASS
 F4C — CLOSED / COMPILE-SMOKE PASS
 F4D — CLOSED / COMPILE-SMOKE PASS
 F4E — CLOSED / COMPILE-SMOKE PASS
 F4F — CLOSED / COMPILE-SMOKE PASS
-F4G — APPLIED / PENDING COMPILE-SMOKE
+F4G — CLOSED / COMPILE-SMOKE PASS
 ```
 
 | ID | Entrega | Detalhes |
@@ -336,7 +338,7 @@ F4G — APPLIED / PENDING COMPILE-SMOKE
 | IF-FW-ROAD-4D | `ActivityReadinessState` mínimo | CLOSED em F4D. Readiness mínimo `Ready`/`None`/`NotReady` após aplicação baseline de Activity Content. |
 | IF-FW-ROAD-4E | Reclassificar `ActivityLocalVisibilityAdapter` | CLOSED em F4E. `ActivityLocalVisibilityAdapter` é classe C# e authoring surface do adapter local de visibilidade; não é materialização canônica. |
 | IF-FW-ROAD-4F | Activity smoke | CLOSED em F4F. `Run Activity Baseline Smoke` valida switch → content set → readiness → clear → restore. |
-| IF-FW-ROAD-4G | F4 closure hygiene | APPLIED em F4G / PENDING COMPILE-SMOKE. Remove warning redundante do Activity Baseline Smoke, alinha mensagens do Activity Local Visibility Adapter e prepara fechamento formal da F4. |
+| IF-FW-ROAD-4G | F4 closure hygiene | CLOSED em F4G. Remove warning redundante do Activity Baseline Smoke, alinha mensagens do Activity Local Visibility Adapter e registra a fronteira formal F4 → F5. |
 
 ### Não entra
 
@@ -358,14 +360,21 @@ ActivityLocalVisibilityAdapter continua simples, mas não confunde a arquitetura
 
 ## Fase 5 — Local Contribution baseline
 
-Objetivo: trazer o melhor do Local do NewScripts sem targetId universal nem scan global.
+Objetivo: trazer o melhor do Local do NewScripts sem `targetId` universal, sem fallback por nome/path e sem scan global como fonte de verdade.
+
+Status atual:
+
+```text
+F5A — CLOSED / ADR ACCEPTED
+F5  — OPEN / NEXT: F5B LOCALCONTENTIDENTITY
+```
 
 Sequência obrigatória:
 
 ```text
-ActivityContentSet / RouteContentSet
-→ LocalContentIdentity
-→ LocalContributionMarker
+ActivityContentSet / RouteContentSet como fronteira de busca
+→ LocalContentIdentity explícita
+→ LocalContributionMarker sem fallback funcional
 → Scoped discovery
 → LocalContributionSet
 → Required/Optional policy
@@ -373,13 +382,13 @@ ActivityContentSet / RouteContentSet
 
 | ID | Entrega | Detalhes |
 |---|---|---|
-| IF-FW-ROAD-5A | ADR: Local Identity | Define `LocalContentIdentity` e proíbe path/name como chave funcional. |
-| IF-FW-ROAD-5B | `LocalContentIdentity` | Tipo pequeno, imutável, validável. |
-| IF-FW-ROAD-5C | `LocalContributionMarker` | Marker authored mínimo; sem capability runtime ainda. |
-| IF-FW-ROAD-5D | `LocalContributionDiscovery` scoped | Descobre apenas dentro de content sets conhecidos. |
-| IF-FW-ROAD-5E | `LocalContributionSet` | Set tipado por scope. |
-| IF-FW-ROAD-5F | Required/Optional policy | Required ausente falha com `FrameworkFact`; optional ausente gera skip. |
-| IF-FW-ROAD-5G | Local validators | Duplicidade, identity vazia, required ausente. |
+| IF-FW-ROAD-5A | ADR: Local Identity | CLOSED em F5A. Define `LocalContentIdentity`, proíbe path/name como chave funcional e bloqueia reaproveitamento direto do marker experimental com fallback por `GameObject.name`. |
+| IF-FW-ROAD-5B | `LocalContentIdentity` | Próximo corte técnico. Tipo pequeno, imutável, validável, ordinal e sem fallback silencioso. Não cria marker/discovery. |
+| IF-FW-ROAD-5C | `LocalContributionMarker` | Marker authored mínimo com id explícito obrigatório; sem capability runtime ainda. |
+| IF-FW-ROAD-5D | `LocalContributionDiscovery` scoped | Descobre apenas dentro de content sets conhecidos; não usa busca global como eixo funcional. |
+| IF-FW-ROAD-5E | `LocalContributionSet` | Set tipado por scope com identities locais explícitas. |
+| IF-FW-ROAD-5F | Required/Optional policy | Required ausente falha com `FrameworkFact`; optional ausente gera skip diagnosticado. |
+| IF-FW-ROAD-5G | Local validators | Duplicidade, identity vazia, marker sem id e required ausente. |
 | IF-FW-ROAD-5H | Local smoke | Activity enter → contribution set populado → required policy validada. |
 
 ### Não entra
@@ -389,6 +398,17 @@ ActivityContentSet / RouteContentSet
 - Reset/snapshot/release.
 - Surface.
 - Actors.
+- ActivityContentProfile loading.
+- Canonical Activity materialization.
+
+### Guardrails aceitos em F5A
+
+```text
+ActivityContentSet F4 pode delimitar discovery, mas não é identity funcional F5.
+FrameworkContentContributionMarker atual é precursor experimental, não contrato F5 canônico.
+GameObject.name, scene path e hierarchy path são diagnostics, não chaves funcionais.
+targetId universal não deve ser recriado.
+```
 
 ### Done
 
@@ -396,6 +416,7 @@ ActivityContentSet / RouteContentSet
 Local deixa de ser só SetActive.
 Contribution existe sem virar capability system completo.
 Discovery é scoped, não global.
+Nenhuma identidade required depende de fallback silencioso.
 ```
 
 ---
@@ -777,19 +798,18 @@ ADR files follow the plan order first and the stable ADR id second.
 ```text
 F0 — CLOSED / PASS
 F1 — CLOSED / PASS
-F2A — CLOSED / ADRS ACCEPTED
-F2B — CLOSED / COMPILE-SMOKE PASS
-F2C — CLOSED / COMPILE-SMOKE PASS
-F2D — CLOSED / DOCUMENTATION ONLY
-F2  — CLOSED / PASS
+F2 — CLOSED / PASS
+F3 — CLOSED / PASS
+F4 — CLOSED / ACTIVITY BASELINE PASS
+F5A — CLOSED / ADR ACCEPTED
+F5  — OPEN / NEXT: F5B LOCALCONTENTIDENTITY
 ```
 
-F2A aceitou os ADRs necessários para iniciar a execução técnica de Session scope:
+F5A aceitou o ADR necessário para iniciar a execução técnica de Local Contribution:
 
 ```text
-F2-01 — ADR-SESSION-001 — Accepted
-F2-02 — ADR-SESSION-002 — Accepted
-F2-03 — ADR-SETTINGS-001 — Accepted
+F5-01 — ADR-LOCAL-001 — Local Identity — Accepted
+F5-02 — ADR-LOCAL-002 — Local Contribution Discovery and Requiredness — Draft / Deferred
 ```
 
 ## Ação imediata
@@ -797,39 +817,31 @@ F2-03 — ADR-SETTINGS-001 — Accepted
 O próximo corte autorizado é:
 
 ```text
-F3A — Route baseline ADR review and acceptance
+F5B — IF-FW-ROAD-5B — LocalContentIdentity
 ```
 
-F2 foi fechado pelo checkpoint técnico:
+Escopo esperado:
 
 ```text
-IF-FW-ROAD-2A — Session Scope coberto por ADR aceito
-IF-FW-ROAD-2B — SessionRuntimeState explícito coberto por F2B
-IF-FW-ROAD-2C — SessionContentSet mínimo coberto por F2C
-IF-FW-ROAD-2D — SessionContentOwnership semantics coberto por F2C
-IF-FW-ROAD-2E — Settings source policy coberto por ADR aceito
-IF-FW-ROAD-2F — Session smoke coberto pelos smokes de F2B/F2C
+- criar tipo pequeno, imutável e validável para identidade local;
+- manter comparação ordinal e texto diagnóstico estável;
+- rejeitar id funcional ausente;
+- não criar marker;
+- não criar discovery;
+- não criar LocalContributionSet;
+- não alterar ActivityContentRuntime;
+- não promover FrameworkContentContributionMarker enquanto houver fallback por GameObject.name.
 ```
 
 ## Não avançar ainda
 
 ```text
-F4 Activity content/readiness
-F7 Surface
-F8 Runtime roots/materialization
-F10/F11 Consumers
+LocalContributionMarker
+Scoped discovery
+Requiredness policy
+Surface
+Runtime roots/materialization
+Input/Camera/Actor/Save/Pooling
 ```
 
-Esses cortes dependem das fases intermediárias do roadmap. F3 pode iniciar somente por ADR review/acceptance de Route baseline.
-
-### F2 closure status — Session scope
-
-Status: CLOSED / PASS
-
-F2B covers `IF-FW-ROAD-2B` by introducing `Runtime/SessionLifecycle/SessionRuntimeState.cs` and making `FrameworkRuntimeState` a compatibility facade over the explicit Session state.
-
-F2C covers `IF-FW-ROAD-2C` and `IF-FW-ROAD-2D` by introducing `SessionContentSet`, `SessionContentEntry` and `SessionContentOwnership`.
-
-F2D closes `IF-FW-ROAD-2F` as a documentation-only checkpoint after F2B/F2C smoke passed.
-
-F2 does not implement persistent scenes, Route baseline, Surface or RuntimeMaterialization.
+Esses cortes dependem da identidade local tipada e das fases intermediárias do roadmap.

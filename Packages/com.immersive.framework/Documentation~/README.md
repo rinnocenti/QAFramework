@@ -87,7 +87,8 @@ Smoke valida.
 | 53 | [`F4F_CLOSURE.md`](F4F_CLOSURE.md) | Fechamento do F4F por compile-smoke. |
 | 54 | [`F4G_CLOSURE_HYGIENE.md`](F4G_CLOSURE_HYGIENE.md) | Higiene pré-fechamento da Fase 4. |
 | 55 | [`F4_CLOSURE.md`](F4_CLOSURE.md) | Fechamento técnico da Fase 4. |
-| 56 | [`Guides/`](Guides/) | Guias de uso/visualização. |
+| 56 | [`F5A_LOCAL_IDENTITY_ADR_ACCEPTANCE.md`](F5A_LOCAL_IDENTITY_ADR_ACCEPTANCE.md) | Aceite do ADR de identidade local que abre a F5. |
+| 57 | [`Guides/`](Guides/) | Guias de uso/visualização. |
 | 57 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
 ---
@@ -358,8 +359,8 @@ Este corte implementa `IF-FW-ROAD-3E` adicionando o smoke explícito `Run Route 
 | F4D | [`ACTIVITY_READINESS_STATE_MINIMAL.md`](ACTIVITY_READINESS_STATE_MINIMAL.md) / [`F4D_CLOSURE.md`](F4D_CLOSURE.md) | Closed / Compile-smoke pass |
 | F4E | [`ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md`](ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md) / [`F4E_CLOSURE.md`](F4E_CLOSURE.md) | Closed / Compile-smoke pass |
 | F4F | [`ACTIVITY_BASELINE_SMOKE.md`](ACTIVITY_BASELINE_SMOKE.md) / [`F4F_CLOSURE.md`](F4F_CLOSURE.md) | Closed / Compile-smoke pass |
-| F4G | [`F4G_CLOSURE_HYGIENE.md`](F4G_CLOSURE_HYGIENE.md) | Applied / Pending compile-smoke |
-| F4 | [`F4_CLOSURE.md`](F4_CLOSURE.md) | Ready to close / Pending F4G compile-smoke |
+| F4G | [`F4G_CLOSURE_HYGIENE.md`](F4G_CLOSURE_HYGIENE.md) | Closed / Compile-smoke pass |
+| F4 | [`F4_CLOSURE.md`](F4_CLOSURE.md) | Closed / Activity baseline pass |
 
 | Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
 |---|---|---|---|---|---|---|
@@ -369,8 +370,12 @@ Este corte implementa `IF-FW-ROAD-3E` adicionando o smoke explícito `Run Route 
 
 | Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
 |---|---|---|---|---|---|---|
-| F5-01 | ADR-LOCAL-001 | Local Identity | Draft / Deferred | Local | LocalContentIdentity | [`abrir`](ADRs/F5-local-contribution/F5-01-ADR-LOCAL-001-local-identity.md) |
+| F5-01 | ADR-LOCAL-001 | Local Identity | Accepted | Local / Identity | LocalContentIdentity | [`abrir`](ADRs/F5-local-contribution/F5-01-ADR-LOCAL-001-local-identity.md) |
 | F5-02 | ADR-LOCAL-002 | Local Contribution Discovery and Requiredness | Draft / Deferred | Local | LocalContributionSet | [`abrir`](ADRs/F5-local-contribution/F5-02-ADR-LOCAL-002-local-contribution-discovery-and-requiredness.md) |
+
+Documento de aceite: [`F5A_LOCAL_IDENTITY_ADR_ACCEPTANCE.md`](F5A_LOCAL_IDENTITY_ADR_ACCEPTANCE.md).
+
+F5A aceita a identidade local explícita como pré-requisito para qualquer marker, discovery ou requiredness. O próximo corte autorizado é `F5B — LocalContentIdentity`.
 
 ### F6 — Route scene composition and release
 
@@ -482,7 +487,20 @@ F1 está fechada. F1E1 apenas corrigiu a navegação documental dos ADRs e F1F v
 F2 está fechado. O próximo avanço deve começar pela Fase 3, seguindo ADRs e roadmap.
 
 
-## 10. Checklist antes de abrir um corte técnico
+## 10. Status F3/F4 fechado e F5 aberto
+
+| Item | Status | Observação |
+|---|---|---|
+| `F3` | `CLOSED / PASS` | Route baseline fechado e validado. |
+| `F4` | `CLOSED / ACTIVITY BASELINE PASS` | Activity baseline fechado no F4G. |
+| `F5A` | `CLOSED / ADR ACCEPTED` | ADR de Local Identity aceito; não altera runtime. |
+| `F5` | `OPEN / NEXT: F5B` | Próximo corte técnico autorizado é `LocalContentIdentity`. |
+
+F4 estabilizou `ActivityContentSet` como snapshot local/diagnóstico dos adapters de visibilidade. F5 não deve transformar esse snapshot em identidade funcional.
+
+---
+
+## 11. Checklist antes de abrir um corte técnico
 
 ```text
 1. Qual fase do roadmap este corte pertence?
@@ -491,12 +509,13 @@ F2 está fechado. O próximo avanço deve começar pela Fase 3, seguindo ADRs e 
 4. O ADR necessário está aceito ou explicitamente aprovado para o corte?
 5. O corte cria consumer antes de core? Se sim, parar.
 6. O corte usa string/path/GameObject name como chave funcional? Se sim, redesenhar.
-7. O validator ou smoke da fase será atualizado?
+7. O corte usa targetId universal genérico? Se sim, redesenhar.
+8. O validator ou smoke da fase será atualizado?
 ```
 
 ---
 
-## 11. Regra contra avanço prematuro
+## 12. Regra contra avanço prematuro
 
 ```text
 Não avançar para feature enquanto o baseline ativo ainda for ambíguo.
@@ -506,34 +525,23 @@ Não copiar shape do NewScripts; preservar capacidades e redesenhar boundaries.
 
 ---
 
-## 12. Foco atual
+## 13. Foco atual
 
-F0 está fechado. F1 está fechado. F2 está fechado. A próxima etapa autorizada é abrir F3 com revisão/aceite dos ADRs de Route baseline.
+F0, F1, F2, F3 e F4 estão fechadas. F5 está aberta somente no trilho de Local Contribution.
 
 ```text
-F0A — CLOSED / ADRS ACCEPTED.
-F0B — CLOSED / HYGIENE APPLIED / SMOKE PASS.
-F0C — CLOSED / FORMAL CLOSURE.
-F0  — CLOSED / PASS.
-F1A — CLOSED / ACCEPTED.
-F1B — CLOSED / COMPILE-SMOKE PASS.
-F1C — CLOSED / COMPILE-SMOKE PASS.
-F1D — CLOSED / COMPILE-SMOKE PASS.
-F1E — CLOSED / COMPILE-SMOKE PASS.
-F1E1 — CLOSED / DOCUMENTATION ONLY.
-F1F — CLOSED / COMPILE-SMOKE PASS.
-F1  — CLOSED / PASS.
-F2A — CLOSED / ADRS ACCEPTED.
-F2B — CLOSED / COMPILE-SMOKE PASS.
-F2C — CLOSED / COMPILE-SMOKE PASS.
-F2D — CLOSED / DOCUMENTATION ONLY.
-F2  — CLOSED / PASS.
+F0 — CLOSED / PASS.
+F1 — CLOSED / PASS.
+F2 — CLOSED / PASS.
+F3 — CLOSED / PASS.
+F4 — CLOSED / ACTIVITY BASELINE PASS.
+F5A — CLOSED / ADR ACCEPTED.
 ```
 
 Próximo passo autorizado:
 
 ```text
-F3A — Route baseline ADR review and acceptance.
+F5B — IF-FW-ROAD-5B — LocalContentIdentity.
 ```
 
-Não iniciar Surface, RuntimeMaterialization ou consumers antes do fechamento técnico de F3/F6/F8 conforme roadmap.
+Não iniciar marker, discovery, Surface, RuntimeMaterialization ou consumers antes do corte técnico de identidade local.
