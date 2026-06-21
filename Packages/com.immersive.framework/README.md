@@ -10,16 +10,11 @@ com.immersive.framework
 
 ## Current roadmap position
 
-Closed phase:
+Closed phases:
 
 ```text
 F0 — CLOSED / PASS
-```
-
-Current phase:
-
-```text
-F1 — OPEN
+F1 — CLOSED / PASS
 ```
 
 Completed F1 cuts:
@@ -30,24 +25,20 @@ F1B — CLOSED / COMPILE-SMOKE PASS
 F1C — CLOSED / COMPILE-SMOKE PASS
 F1D — CLOSED / COMPILE-SMOKE PASS
 F1E — CLOSED / COMPILE-SMOKE PASS
-```
-
-Current F1 cuts pending validation:
-
-```text
-F1F — APPLIED / PENDING COMPILE-SMOKE
-```
-
-Documentation hygiene applied:
-
-```text
 F1E1 — CLOSED / DOCUMENTATION ONLY
+F1F — CLOSED / COMPILE-SMOKE PASS
 ```
 
-Next authorized step after F1F validation:
+F1 closure:
 
 ```text
-F1 closure — formal F1 checkpoint before F2
+F1 closure — CLOSED / PASS
+```
+
+Next authorized phase:
+
+```text
+F2 — Session scope
 ```
 
 Status distinction:
@@ -57,7 +48,7 @@ ADR status uses Accepted.
 Cut/phase status uses Closed / PASS or Closed / Accepted.
 ```
 
-F0 is closed. F1A accepted the ADRs for typed identity, structured diagnostics and content identity. Runtime implementation of F1 starts only after this ADR acceptance.
+F0 is closed. F1 is closed. F2 may start only from its ADR/review sequence; do not skip directly to consumers or later runtime materialization.
 
 ## Active baseline decisions
 
@@ -109,6 +100,8 @@ Then follow the roadmap order:
 15. Documentation~/F1E_CLOSURE.md
 16. Documentation~/F1E1_ADR_NAMING_ALIGNMENT.md
 17. Documentation~/CONTENT_IDENTITY_AND_HANDLE_REVIEW.md
+18. Documentation~/F1F_CLOSURE.md
+19. Documentation~/F1_CLOSURE.md
 ```
 
 ## ADR file naming
@@ -291,4 +284,35 @@ Documentation~/CONTENT_IDENTITY_AND_HANDLE_REVIEW.md
 
 `FrameworkContentHandle` now exposes a composed `Identity` and `OwnerIdentity`. The previous `Guid.NewGuid()` fallback in `RoutePrimaryScene` was removed; required content identity must be deterministic or fail visibly.
 
-Do not start F2 until F1 gives identity/status/diagnostics enough structure to prevent new public ambiguity.
+F1F was closed after compile-smoke validation. See:
+
+```text
+Documentation~/F1F_CLOSURE.md
+```
+
+## F1 closure
+
+F1 is closed after F1F smoke validation.
+
+F1 established the minimum baseline for:
+
+```text
+API status markers
+FrameworkFact minimal model
+ValidationMode semantics
+typed identity primitives
+content identity for FrameworkContentHandle
+ADR naming aligned to roadmap order
+```
+
+See:
+
+```text
+Documentation~/F1_CLOSURE.md
+```
+
+Next authorized phase:
+
+```text
+F2 — Session scope
+```
