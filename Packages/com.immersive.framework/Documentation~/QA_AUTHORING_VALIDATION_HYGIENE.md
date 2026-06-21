@@ -1,6 +1,6 @@
 # F3G1 — QA authoring validation hygiene
 
-Status: APPLIED / PENDING COMPILE-SMOKE
+Status: CLOSED / COMPILE-SMOKE PASS
 
 ## Purpose
 

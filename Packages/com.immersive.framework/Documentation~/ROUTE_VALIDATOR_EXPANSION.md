@@ -1,7 +1,7 @@
 # F3G — Route validator expansion
 
-Status: APPLIED / PENDING COMPILE-SMOKE
-Hygiene: F3G1 applied before smoke to reduce UI noise.
+Status: CLOSED / COMPILE-SMOKE PASS
+Hygiene: F3G1 closed with F3G after revised smoke.
 
 ## Roadmap item
 

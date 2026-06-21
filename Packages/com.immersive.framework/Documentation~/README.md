@@ -71,8 +71,10 @@ Smoke valida.
 | 35 | [`QA_PANEL_SIMPLIFICATION.md`](QA_PANEL_SIMPLIFICATION.md) | Corte F3F1: simplificação do painel QA. |
 | 36 | [`ROUTE_VALIDATOR_EXPANSION.md`](ROUTE_VALIDATOR_EXPANSION.md) | Corte F3G: expansão dos validators de Route. |
 | 37 | [`QA_AUTHORING_VALIDATION_HYGIENE.md`](QA_AUTHORING_VALIDATION_HYGIENE.md) | Corte F3G1: higiene da validação de authoring no QA. |
-| 38 | [`Guides/`](Guides/) | Guias de uso/visualização. |
-| 31 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
+| 38 | [`F3G_CLOSURE.md`](F3G_CLOSURE.md) | Fechamento do F3G/F3G1 por smoke. |
+| 39 | [`F3_CLOSURE.md`](F3_CLOSURE.md) | Fechamento técnico da Fase 3. |
+| 40 | [`Guides/`](Guides/) | Guias de uso/visualização. |
+| 41 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
 ---
 
@@ -114,6 +116,8 @@ Documentation~/
 ├─ QA_PANEL_SIMPLIFICATION.md
 ├─ ROUTE_VALIDATOR_EXPANSION.md
 ├─ QA_AUTHORING_VALIDATION_HYGIENE.md
+├─ F3G_CLOSURE.md
+├─ F3_CLOSURE.md
 ├─ Planning/
 │  ├─ Immersive-Framework-Roadmap-Revisado.md
 │  └─ Capability-Traceability-Matrix.md

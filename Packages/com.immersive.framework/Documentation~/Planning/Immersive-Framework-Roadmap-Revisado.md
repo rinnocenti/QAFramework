@@ -266,14 +266,21 @@ F3D — CLOSED / COMPILE-SMOKE PASS
 F3E — CLOSED / COMPILE-SMOKE PASS
 F3F — CLOSED / CALLBACK-SMOKE PASS
 F3F1 — CLOSED / COMPILE-SMOKE PASS
-F3G — APPLIED / PENDING COMPILE-SMOKE
-F3G1 — APPLIED / PENDING COMPILE-SMOKE
+F3G — CLOSED / COMPILE-SMOKE PASS
+F3G1 — CLOSED / COMPILE-SMOKE PASS
+F3  — CLOSED / PASS
 ```
 
 Corte técnico atual:
 
 ```text
-F3G — IF-FW-ROAD-3F — Route validator expansion
+F3 — CLOSED / PASS
+```
+
+Próximo corte autorizado:
+
+```text
+F4A — IF-FW-ROAD-4A — ActivityRuntimeState refinado
 ```
 
 | ID | Entrega | Detalhes |
@@ -283,7 +290,7 @@ F3G — IF-FW-ROAD-3F — Route validator expansion
 | IF-FW-ROAD-3C | `RouteContentRuntime` execution decision | CLOSED em F3D. Ativo e conectado ao `RouteLifecycleRuntime` para callbacks locais de Route Content na Primary Scene carregada. |
 | IF-FW-ROAD-3D | `RouteContentSet` semantics | CLOSED em F3E. `RouteContentSet` tem `RouteContentEntry` e `RouteContentOwnership` explícitos; Primary Scene baseline é required/owned. |
 | IF-FW-ROAD-3E | Route local callback smoke | CLOSED em F3F. QA Canvas tem smoke dedicado e `RouteContentLifecycleSmokeProbe` validado com receivers reais. F3F1 simplifica o painel e fechou por Standard Smoke. |
-| IF-FW-ROAD-3F | Route validator expansion | APPLIED em F3G/F3G1. Valida `RouteContentBinding` em cenas carregadas via QA, Route errada e ausência de receivers; Inspector fica mínimo. |
+| IF-FW-ROAD-3F | Route validator expansion | CLOSED em F3G/F3G1. Valida `RouteContentBinding` em cenas carregadas via QA, Route errada e ausência de receivers; Inspector fica mínimo. |
 
 ### Não entra
 
@@ -298,6 +305,8 @@ F3G — IF-FW-ROAD-3F — Route validator expansion
 RouteContentRuntime não fica ambíguo.
 RouteContentSet tem semântica clara.
 Route switch continua funcionando.
+Callbacks locais de Route são validados com receivers reais.
+Authoring mínimo de RouteContentBinding tem validação QA.
 ```
 
 ---
@@ -305,6 +314,13 @@ Route switch continua funcionando.
 ## Fase 4 — Activity content set e readiness mínimo
 
 Objetivo: amadurecer Activity sem copiar `ActivityEntryPipeline`.
+
+Status atual:
+
+```text
+F4 — OPEN / NEXT
+F4A — PLANNED
+```
 
 | ID | Entrega | Detalhes |
 |---|---|---|

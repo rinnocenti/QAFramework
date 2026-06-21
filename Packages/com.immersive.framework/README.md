@@ -72,8 +72,9 @@ F3D — CLOSED / COMPILE-SMOKE PASS
 F3E — CLOSED / COMPILE-SMOKE PASS
 F3F — CLOSED / CALLBACK-SMOKE PASS
 F3F1 — CLOSED / COMPILE-SMOKE PASS
-F3G — APPLIED / PENDING COMPILE-SMOKE
-F3G1 — APPLIED / PENDING COMPILE-SMOKE
+F3G — CLOSED / COMPILE-SMOKE PASS
+F3G1 — CLOSED / COMPILE-SMOKE PASS
+F3  — CLOSED / PASS
 ```
 
 F3A accepted:
@@ -96,7 +97,7 @@ ADR status uses Accepted.
 Cut/phase status uses Closed / PASS or Closed / Accepted.
 ```
 
-F0 is closed. F1 is closed. F2 is closed. F3 may start with Route baseline ADR review and acceptance. Do not skip directly to Surface, RuntimeMaterialization or consumers.
+F0 is closed. F1 is closed. F2 is closed. F3 Route baseline is closed. F4 may start with Activity baseline work. Do not skip directly to Surface, RuntimeMaterialization or consumers.
 
 
 ## F3B — RouteRuntimeState tipado
@@ -236,8 +237,9 @@ Status:
 ```text
 F3F — CLOSED / CALLBACK-SMOKE PASS
 F3F1 — CLOSED / COMPILE-SMOKE PASS
-F3G — APPLIED / PENDING COMPILE-SMOKE
-F3G1 — APPLIED / PENDING COMPILE-SMOKE
+F3G — CLOSED / COMPILE-SMOKE PASS
+F3G1 — CLOSED / COMPILE-SMOKE PASS
+F3  — CLOSED / PASS
 ```
 
 See:
@@ -257,6 +259,29 @@ IF-FW-ROAD-3F — Route validator expansion
 The validator now checks `RouteContentBinding` components in loaded scenes for missing Route references, scene/Route mismatches and missing `IRouteContentLifecycleReceiver` components. F3G1 keeps the binding Inspector minimal and exposes the loaded-scene validation through the QA panel. See `Documentation~/ROUTE_VALIDATOR_EXPANSION.md` and `Documentation~/QA_AUTHORING_VALIDATION_HYGIENE.md`.
 
 F3G does not create scene objects, mutate scenes, load additive scenes, create Surface, create RuntimeMaterialization, execute release policy or introduce consumers.
+
+Status:
+
+```text
+F3G — CLOSED / COMPILE-SMOKE PASS
+F3G1 — CLOSED / COMPILE-SMOKE PASS
+```
+
+See:
+
+```text
+Documentation~/ROUTE_VALIDATOR_EXPANSION.md
+Documentation~/QA_AUTHORING_VALIDATION_HYGIENE.md
+Documentation~/F3G_CLOSURE.md
+```
+
+## F3 closure
+
+F3 is formally closed. See:
+
+```text
+Documentation~/F3_CLOSURE.md
+```
 
 ## F2B — SessionRuntimeState explicit boundary
 
@@ -317,7 +342,7 @@ Documentation~/F2_CLOSURE.md
 | Bootstrap, Game Application, Route, Activity and request triggers | `Experimental` | Usable for development, but identity/state semantics still need F1/F3/F4 refinement. |
 | `ContentFlow` materializer/contribution vocabulary | `Experimental` | Preserved as vocabulary, not stable materialization API. |
 | `RouteContentProfileAsset` | `Deferred / Planning-only` | Additional scenes are declared for planning/diagnostics only; they are not loaded by F0B. |
-| `RouteContentRuntime` | `Accepted for F3 activation` | F3A accepted activation of route-local callbacks during the Route baseline; implementation starts after `RouteRuntimeState`. |
+| `RouteContentRuntime` | `Active / F3 baseline closed` | Route-local callbacks are active in the loaded Primary Scene. Additive loading, release and materialization remain deferred. |
 | `CameraFlow` | `Removed from core baseline` | Camera is a future consumer. The core package no longer carries CameraFlow source or a mandatory Cinemachine dependency. |
 | `FrameworkQaCanvas` | `Development Tooling` | Manual smoke tool compiled only in the Unity Editor or development builds. Not product API. |
 | `ValidationMode` | `Experimental` | Minimal F1D semantics: required config fails in every mode; Strict promotes warnings; Standard keeps warnings; Release suppresses info diagnostics. |
