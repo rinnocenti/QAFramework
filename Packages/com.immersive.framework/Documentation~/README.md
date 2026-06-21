@@ -63,6 +63,8 @@ Smoke valida.
 | 27 | [`F2_CLOSURE.md`](F2_CLOSURE.md) | Fechamento formal da Fase 2 antes de abrir F3. |
 | 28 | [`F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md`](F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md) | Aceite dos ADRs de Route baseline para abrir a implementação da F3. |
 | 29 | [`ROUTE_RUNTIME_STATE_TYPED.md`](ROUTE_RUNTIME_STATE_TYPED.md) | Corte técnico F3B: `RouteRuntimeState` tipado. |
+| 30 | [`F3B_CLOSURE.md`](F3B_CLOSURE.md) | Fechamento do F3B por compile-smoke. |
+| 31 | [`ROUTE_EXIT_RESULT_MINIMAL.md`](ROUTE_EXIT_RESULT_MINIMAL.md) | Corte técnico F3C: `RouteExitResult` mínimo. |
 | 30 | [`Guides/`](Guides/) | Guias de uso/visualização. |
 | 31 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
@@ -233,7 +235,7 @@ Este checkpoint fecha `IF-FW-ROAD-2F — Session smoke` a partir dos smokes de F
 
 Documento de aceite: [`F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md`](F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md).
 
-F3A abriu a implementação técnica da F3. O corte técnico atual é F3B.
+F3A abriu a implementação técnica da F3. O corte técnico atual é F3C.
 
 
 ### F3B — RouteRuntimeState tipado
@@ -241,17 +243,30 @@ F3A abriu a implementação técnica da F3. O corte técnico atual é F3B.
 Status atual:
 
 ```text
-F3B — APPLIED / PENDING COMPILE-SMOKE
+F3B — CLOSED / COMPILE-SMOKE PASS
 ```
 
-Documento técnico: [`ROUTE_RUNTIME_STATE_TYPED.md`](ROUTE_RUNTIME_STATE_TYPED.md).
+Documento técnico: [`ROUTE_RUNTIME_STATE_TYPED.md`](ROUTE_RUNTIME_STATE_TYPED.md).  
+Fechamento: [`F3B_CLOSURE.md`](F3B_CLOSURE.md).
 
-Este corte implementa `IF-FW-ROAD-3A` criando `Runtime/RouteLifecycle/RouteRuntimeState.cs` e conectando o snapshot tipado ao `RouteLifecycleRuntime` e ao `RouteLifecycleStartResult`.
+Este corte implementou `IF-FW-ROAD-3A` criando `Runtime/RouteLifecycle/RouteRuntimeState.cs` e conectando o snapshot tipado ao `RouteLifecycleRuntime` e ao `RouteLifecycleStartResult`.
+
+### F3C — RouteExitResult mínimo
+
+Status atual:
+
+```text
+F3C — APPLIED / PENDING COMPILE-SMOKE
+```
+
+Documento técnico: [`ROUTE_EXIT_RESULT_MINIMAL.md`](ROUTE_EXIT_RESULT_MINIMAL.md).
+
+Este corte implementa `IF-FW-ROAD-3B` criando `Runtime/RouteLifecycle/RouteExitResult.cs` e conectando o resultado mínimo de saída ao `RouteLifecycleStartResult`.
 
 Próximo corte conforme roadmap:
 
 ```text
-F3C — IF-FW-ROAD-3B — RouteExitResult mínimo
+F3D — IF-FW-ROAD-3C — RouteContentRuntime execution decision
 ```
 
 ### F4 — Activity content and readiness

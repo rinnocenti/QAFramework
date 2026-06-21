@@ -260,19 +260,20 @@ Status atual:
 
 ```text
 F3A — CLOSED / ADRS ACCEPTED
-F3B — APPLIED / PENDING COMPILE-SMOKE
+F3B — CLOSED / COMPILE-SMOKE PASS
+F3C — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 Próximo corte autorizado:
 
 ```text
-F3C — IF-FW-ROAD-3B — RouteExitResult mínimo
+F3D — IF-FW-ROAD-3C — RouteContentRuntime execution decision
 ```
 
 | ID | Entrega | Detalhes |
 |---|---|---|
-| IF-FW-ROAD-3A | `RouteRuntimeState` tipado | APPLIED em F3B. Estado da rota ativa com identity própria, não só referência direta a `RouteAsset`. |
-| IF-FW-ROAD-3B | `RouteExitResult` mínimo | Resultado explícito da saída anterior, mesmo que ainda simples. |
+| IF-FW-ROAD-3A | `RouteRuntimeState` tipado | CLOSED em F3B. Estado da rota ativa com identity própria, não só referência direta a `RouteAsset`. |
+| IF-FW-ROAD-3B | `RouteExitResult` mínimo | APPLIED em F3C. Resultado explícito da saída anterior, mesmo que ainda simples. |
 | IF-FW-ROAD-3C | `RouteContentRuntime` execution decision | Se ativo: conectar ao `RouteLifecycleRuntime` para primary scene/local callbacks. Se deferido: remover do runtime ativo. |
 | IF-FW-ROAD-3D | `RouteContentSet` semantics | Definir se é registro, ownership ou ambos com tipos separados. |
 | IF-FW-ROAD-3E | Route local callback smoke | Só se `RouteContentRuntime` for ativo. Confirmar route enter/exit callbacks. |

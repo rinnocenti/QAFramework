@@ -65,14 +65,15 @@ F2  — CLOSED / PASS
 Current authorized roadmap step:
 
 ```text
-F3C — IF-FW-ROAD-3B — RouteExitResult mínimo
+F3D — IF-FW-ROAD-3C — RouteContentRuntime execution decision
 ```
 
 F3 status:
 
 ```text
 F3A — CLOSED / ADRS ACCEPTED
-F3B — APPLIED / PENDING COMPILE-SMOKE
+F3B — CLOSED / COMPILE-SMOKE PASS
+F3C — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 F3A accepted:
@@ -117,13 +118,42 @@ Runtime/RouteLifecycle/RouteRuntimeState.cs
 Status:
 
 ```text
-F3B — APPLIED / PENDING COMPILE-SMOKE
+F3B — CLOSED / COMPILE-SMOKE PASS
 ```
 
 See:
 
 ```text
 Documentation~/ROUTE_RUNTIME_STATE_TYPED.md
+Documentation~/F3B_CLOSURE.md
+```
+
+## F3C — RouteExitResult mínimo
+
+F3C implements the roadmap item:
+
+```text
+IF-FW-ROAD-3B — RouteExitResult mínimo
+```
+
+It introduces:
+
+```text
+Runtime/RouteLifecycle/RouteExitResult.cs
+```
+
+`RouteLifecycleStartResult` now carries a minimal `RouteExitResult` for Route switches. This records the previous Route exit as explicit state/diagnostics. It does not execute Route content release, active `RouteContentRuntime` callbacks, additive scene loading, Surface or RuntimeMaterialization.
+
+Status:
+
+```text
+F3C — APPLIED / PENDING COMPILE-SMOKE
+```
+
+See:
+
+```text
+Documentation~/ROUTE_EXIT_RESULT_MINIMAL.md
 ```
 
 ## F2B — SessionRuntimeState explicit boundary

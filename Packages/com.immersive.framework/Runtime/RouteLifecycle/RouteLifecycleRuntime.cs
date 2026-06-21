@@ -68,7 +68,8 @@ namespace Immersive.Framework.RouteLifecycle
                 return RouteLifecycleStartResult.Failed("Route Primary Scene is missing.");
             }
 
-            var previousRoute = CurrentRoute;
+            var previousRouteState = _currentRouteState;
+            var previousRoute = previousRouteState.Route;
             var routeContentPlan = RouteContentMaterializationPlan.FromRoute(route);
             var sceneLifecycleResult = await _sceneLifecycleRuntime.LoadPrimarySceneAsync(route);
             if (!sceneLifecycleResult.Loaded)
@@ -89,7 +90,7 @@ namespace Immersive.Framework.RouteLifecycle
                 return RouteLifecycleStartResult.Failed(activityFlowResult.Message);
             }
 
-            var result = RouteLifecycleStartResult.StartedWith(route, previousRoute, sceneLifecycleResult, routeContentSet, activityFlowResult, source, reason);
+            var result = RouteLifecycleStartResult.StartedWith(route, previousRouteState, sceneLifecycleResult, routeContentSet, activityFlowResult, source, reason);
             _currentRouteState = result.RouteState;
             PublishRouteTransition(previousRoute, route, source, reason);
             return result;
