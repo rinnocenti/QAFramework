@@ -57,6 +57,8 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         public ActivityContentSet ActivityContentSet => SessionState.ActivityContentSet;
 
+        public ActivityContentLifecycleResult ActivityContentLifecycleResult => SessionState.ActivityContentLifecycleResult;
+
         public ActivityAsset CurrentActivity => SessionState.CurrentActivity;
 
         public string CurrentActivityName => SessionState.CurrentActivityName;

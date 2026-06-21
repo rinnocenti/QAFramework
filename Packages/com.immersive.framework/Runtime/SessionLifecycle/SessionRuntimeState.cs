@@ -52,6 +52,8 @@ namespace Immersive.Framework.SessionLifecycle
 
         public ActivityContentSet ActivityContentSet => ActivityFlowResult.ActivityContentSet;
 
+        public ActivityContentLifecycleResult ActivityContentLifecycleResult => ActivityFlowResult.ActivityContentLifecycleResult;
+
         public ActivityRuntimeState ActivityState => ActivityFlowResult.ActivityState;
 
         public ActivityAsset CurrentActivity => ActivityState.Activity;
@@ -77,6 +79,8 @@ namespace Immersive.Framework.SessionLifecycle
         public bool HasActiveActivity => ActivityState.IsActive;
 
         public bool HasActivityContent => ActivityContentSet.HasContent;
+
+        public bool HasActivityContentLifecycle => ActivityContentLifecycleResult.Executed;
 
         public bool HasActivityIdentity => ActivityState.HasIdentity;
 

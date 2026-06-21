@@ -97,7 +97,7 @@ ADR status uses Accepted.
 Cut/phase status uses Closed / PASS or Closed / Accepted.
 ```
 
-F0 is closed. F1 is closed. F2 is closed. F3 Route baseline is closed. F4 Activity baseline is open with F4A closed and F4B applied/pending smoke. Do not skip directly to Surface, RuntimeMaterialization or consumers.
+F0 is closed. F1 is closed. F2 is closed. F3 Route baseline is closed. F4 Activity baseline is open with F4A and F4B closed, and F4C applied/pending smoke. Do not skip directly to Surface, RuntimeMaterialization or consumers.
 
 
 ## F4A — ActivityRuntimeState refinado
@@ -121,7 +121,6 @@ Status:
 
 ```text
 F4A — CLOSED / COMPILE-SMOKE PASS
-F4B — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 See:
@@ -151,13 +150,42 @@ Runtime/ActivityFlow/ActivityContentSet.cs
 Status:
 
 ```text
-F4B — APPLIED / PENDING COMPILE-SMOKE
+F4B — CLOSED / COMPILE-SMOKE PASS
 ```
 
 See:
 
 ```text
 Documentation~/ACTIVITY_CONTENT_SET_MINIMAL.md
+Documentation~/F4B_CLOSURE.md
+```
+
+## F4C — ActivityContentLifecycleResult
+
+F4C implements the roadmap item:
+
+```text
+IF-FW-ROAD-4C — ActivityContentLifecycleResult
+```
+
+It introduces:
+
+```text
+Runtime/ActivityFlow/ActivityContentLifecycleResult.cs
+```
+
+`ActivityContentLifecycleResult` records local Activity Content enter/exit callback dispatch counts. It does not load profiles, release content, materialize objects, or create Surface/RuntimeMaterialization.
+
+Status:
+
+```text
+F4C — APPLIED / PENDING COMPILE-SMOKE
+```
+
+See:
+
+```text
+Documentation~/ACTIVITY_CONTENT_LIFECYCLE_RESULT.md
 ```
 
 

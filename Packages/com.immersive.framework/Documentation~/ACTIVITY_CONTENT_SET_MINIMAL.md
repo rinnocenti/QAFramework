@@ -1,6 +1,6 @@
 # F4B — ActivityContentSet mínimo
 
-Status: **APPLIED / PENDING COMPILE-SMOKE**  
+Status: **CLOSED / COMPILE-SMOKE PASS**  
 Roadmap item: `IF-FW-ROAD-4B — ActivityContentSet mínimo`
 
 ## Objetivo
@@ -101,7 +101,6 @@ F4B não implementa:
 
 ```text
 ActivityContentProfile loading
-ActivityContentLifecycleResult
 ActivityReadinessState
 ActivityExitPlan real
 release/unload

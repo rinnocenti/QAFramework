@@ -45,6 +45,8 @@ namespace Immersive.Framework.RouteLifecycle
 
         public ActivityContentSet ActivityContentSet => ActivityFlowResult.ActivityContentSet;
 
+        public ActivityContentLifecycleResult ActivityContentLifecycleResult => ActivityFlowResult.ActivityContentLifecycleResult;
+
         public string Source { get; }
 
         public string Reason { get; }
@@ -64,6 +66,8 @@ namespace Immersive.Framework.RouteLifecycle
         public bool HasActiveActivity => ActivityState.IsActive;
 
         public bool HasActivityContent => ActivityContentSet.HasContent;
+
+        public bool HasActivityContentLifecycle => ActivityContentLifecycleResult.Executed;
 
         public bool HasActivityIdentity => ActivityState.HasIdentity;
 

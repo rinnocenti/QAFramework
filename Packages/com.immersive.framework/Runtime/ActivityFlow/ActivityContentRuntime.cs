@@ -74,6 +74,12 @@ namespace Immersive.Framework.ActivityFlow
             int deactivatedCount = 0;
             int unchangedCount = 0;
             int missingActivityCount = 0;
+            int lifecycleEnterBindingCount = 0;
+            int lifecycleEnterReceiverCount = 0;
+            int lifecycleEnterFailedReceiverCount = 0;
+            int lifecycleExitBindingCount = 0;
+            int lifecycleExitReceiverCount = 0;
+            int lifecycleExitFailedReceiverCount = 0;
             var observedBindings = new List<string>(MaxObservedBindingsInMessage);
             var warningBindings = new List<string>();
             var activeContentEntries = new List<ActivityContentEntry>();
@@ -111,7 +117,17 @@ namespace Immersive.Framework.ActivityFlow
 
                 if (exitsPreviousActivity)
                 {
-                    DispatchActivityContentExited(binding, previousActivity, activeActivity, resolvedSource, resolvedReason);
+                    lifecycleExitBindingCount++;
+                    DispatchActivityContentExited(
+                        binding,
+                        previousActivity,
+                        activeActivity,
+                        resolvedSource,
+                        resolvedReason,
+                        out int exitReceiverCount,
+                        out int exitFailedReceiverCount);
+                    lifecycleExitReceiverCount += exitReceiverCount;
+                    lifecycleExitFailedReceiverCount += exitFailedReceiverCount;
                 }
 
                 bool wasActive = binding.gameObject.activeSelf;
@@ -126,7 +142,17 @@ namespace Immersive.Framework.ActivityFlow
 
                 if (entersActiveActivity)
                 {
-                    DispatchActivityContentEntered(binding, activeActivity, previousActivity, resolvedSource, resolvedReason);
+                    lifecycleEnterBindingCount++;
+                    DispatchActivityContentEntered(
+                        binding,
+                        activeActivity,
+                        previousActivity,
+                        resolvedSource,
+                        resolvedReason,
+                        out int enterReceiverCount,
+                        out int enterFailedReceiverCount);
+                    lifecycleEnterReceiverCount += enterReceiverCount;
+                    lifecycleEnterFailedReceiverCount += enterFailedReceiverCount;
                 }
 
                 if (changed)
@@ -155,6 +181,17 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var activityContentSet = ActivityContentSet.FromEntries(activeActivity, activeContentEntries);
+            var lifecycleResult = ActivityContentLifecycleResult.ExecutedWith(
+                previousActivity,
+                activeActivity,
+                lifecycleEnterBindingCount,
+                lifecycleEnterReceiverCount,
+                lifecycleEnterFailedReceiverCount,
+                lifecycleExitBindingCount,
+                lifecycleExitReceiverCount,
+                lifecycleExitFailedReceiverCount,
+                resolvedSource,
+                resolvedReason);
 
             return ActivityContentApplyResult.Applied(
                 activeActivity,
@@ -164,6 +201,7 @@ namespace Immersive.Framework.ActivityFlow
                 unchangedCount,
                 missingActivityCount,
                 activityContentSet,
+                lifecycleResult,
                 BuildDetailMessage(activeActivity, observedBindings, omittedObservationCount),
                 BuildWarningMessage(warningBindings));
         }
@@ -199,7 +237,9 @@ namespace Immersive.Framework.ActivityFlow
             ActivityAsset activity,
             ActivityAsset previousActivity,
             string source,
-            string reason)
+            string reason,
+            out int receiverCount,
+            out int failedReceiverCount)
         {
             var context = ActivityContentLifecycleContext.Entered(activity, previousActivity, binding, source, reason);
             DispatchActivityContentLifecycle(
@@ -207,7 +247,9 @@ namespace Immersive.Framework.ActivityFlow
                 "Entered",
                 activity,
                 true,
-                receiver => receiver.OnActivityContentEntered(context));
+                receiver => receiver.OnActivityContentEntered(context),
+                out receiverCount,
+                out failedReceiverCount);
         }
 
         private void DispatchActivityContentExited(
@@ -215,7 +257,9 @@ namespace Immersive.Framework.ActivityFlow
             ActivityAsset activity,
             ActivityAsset nextActivity,
             string source,
-            string reason)
+            string reason,
+            out int receiverCount,
+            out int failedReceiverCount)
         {
             var context = ActivityContentLifecycleContext.Exited(activity, nextActivity, binding, source, reason);
             DispatchActivityContentLifecycle(
@@ -223,7 +267,9 @@ namespace Immersive.Framework.ActivityFlow
                 "Exited",
                 activity,
                 false,
-                receiver => receiver.OnActivityContentExited(context));
+                receiver => receiver.OnActivityContentExited(context),
+                out receiverCount,
+                out failedReceiverCount);
         }
 
         private void DispatchActivityContentLifecycle(
@@ -231,8 +277,13 @@ namespace Immersive.Framework.ActivityFlow
             string phase,
             ActivityAsset activity,
             bool parentFirst,
-            Action<IActivityContentLifecycleReceiver> dispatch)
+            Action<IActivityContentLifecycleReceiver> dispatch,
+            out int receiverCount,
+            out int failedReceiverCount)
         {
+            receiverCount = 0;
+            failedReceiverCount = 0;
+
             if (binding == null || dispatch == null)
             {
                 return;
@@ -255,12 +306,15 @@ namespace Immersive.Framework.ActivityFlow
                     continue;
                 }
 
+                receiverCount++;
+
                 try
                 {
                     dispatch(receiver);
                 }
                 catch (Exception exception)
                 {
+                    failedReceiverCount++;
                     LogActivityContentReceiverException(binding, phase, activity, receiver, exception);
                 }
             }

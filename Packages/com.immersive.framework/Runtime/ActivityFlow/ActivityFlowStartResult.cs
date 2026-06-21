@@ -50,7 +50,11 @@ namespace Immersive.Framework.ActivityFlow
 
         public ActivityContentSet ActivityContentSet => ActivityContentResult.ActivityContentSet;
 
+        public ActivityContentLifecycleResult ActivityContentLifecycleResult => ActivityContentResult.LifecycleResult;
+
         public bool HasActivityContent => ActivityContentSet.HasContent;
+
+        public bool HasActivityContentLifecycle => ActivityContentLifecycleResult.Executed;
 
         public bool ReplacedPreviousActivity => Started && PreviousActivity != null && !ReferenceEquals(PreviousActivity, Activity);
 

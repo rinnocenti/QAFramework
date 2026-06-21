@@ -328,7 +328,8 @@ Este corte implementa `IF-FW-ROAD-3E` adicionando o smoke explícito `Run Route 
 | Corte | Documento | Status |
 |---|---|---|
 | F4A | [`ACTIVITY_RUNTIME_STATE_REFINED.md`](ACTIVITY_RUNTIME_STATE_REFINED.md) / [`F4A_CLOSURE.md`](F4A_CLOSURE.md) | Closed / Compile-smoke pass |
-| F4B | [`ACTIVITY_CONTENT_SET_MINIMAL.md`](ACTIVITY_CONTENT_SET_MINIMAL.md) | Applied / Pending compile-smoke |
+| F4B | [`ACTIVITY_CONTENT_SET_MINIMAL.md`](ACTIVITY_CONTENT_SET_MINIMAL.md) / [`F4B_CLOSURE.md`](F4B_CLOSURE.md) | Closed / Compile-smoke pass |
+| F4C | [`ACTIVITY_CONTENT_LIFECYCLE_RESULT.md`](ACTIVITY_CONTENT_LIFECYCLE_RESULT.md) | Applied / Pending compile-smoke |
 
 | Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
 |---|---|---|---|---|---|---|
