@@ -13,7 +13,7 @@ Este arquivo substitui os antigos documentos de fechamento e aceite de fase. Os 
 | F2 | `CLOSED / PASS` | Session scope closed | `Session/SESSION_RUNTIME_STATE_BOUNDARY.md`, `Session/SESSION_CONTENT_SET_MINIMAL_MODEL.md` |
 | F3 | `CLOSED / PASS` | Route baseline closed | `Route/ROUTE_RUNTIME_STATE_TYPED.md`, `Route/ROUTE_EXIT_RESULT_MINIMAL.md`, `Route/ROUTE_CONTENT_RUNTIME_EXECUTION_DECISION.md`, `Route/ROUTE_CONTENT_SET_SEMANTICS.md`, `Route/ROUTE_LOCAL_CALLBACK_SMOKE.md`, `Route/ROUTE_VALIDATOR_EXPANSION.md`, `Route/QA_PANEL_SIMPLIFICATION.md`, `Route/QA_AUTHORING_VALIDATION_HYGIENE.md` |
 | F4 | `CLOSED / ACTIVITY BASELINE PASS` | Activity baseline closed | `Activity/ACTIVITY_RUNTIME_STATE_REFINED.md`, `Activity/ACTIVITY_CONTENT_SET_MINIMAL.md`, `Activity/ACTIVITY_CONTENT_LIFECYCLE_RESULT.md`, `Activity/ACTIVITY_READINESS_STATE_MINIMAL.md`, `Activity/ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md`, `Activity/ACTIVITY_BASELINE_SMOKE.md` |
-| F5 | `OPEN / LOCAL CONTRIBUTION` | F5E applied / pending compile-smoke | `Local/LOCAL_CONTENT_IDENTITY.md` |
+| F5 | `OPEN / LOCAL CONTRIBUTION` | F5F applied / pending compile-smoke | `Local/LOCAL_CONTENT_IDENTITY.md` |
 
 ## Consolidation rule
 
@@ -38,5 +38,5 @@ Keep these docs as the durable record for implementation details:
 
 | Next authorized step | Reason |
 |---|---|
-| `F5E compile-smoke` | `F5D` passed QA compile-smoke. `F5E` is applied and pending compile-smoke validation. |
-| `F5F` | Authorized only after F5E compile-smoke passes. |
+| `F5F compile-smoke` | `F5E` passed QA compile-smoke. `F5F` is applied and pending compile-smoke validation. |
+| `F5G` | Authorized only after F5F compile-smoke passes. |

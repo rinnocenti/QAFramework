@@ -1,6 +1,7 @@
 using UnityEngine;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.ContentFlow;
 using Immersive.Framework.LocalContribution;
 
 namespace Immersive.Framework.ActivityFlow
@@ -23,7 +24,13 @@ namespace Immersive.Framework.ActivityFlow
         [Tooltip("Explicit local content id for this scene-authored Activity contribution. Required for F5 local identity. GameObject names and hierarchy paths are diagnostics only and are not used as fallback.")]
         private string localContentId = string.Empty;
 
+        [SerializeField]
+        [Tooltip("Declares whether this local Activity contribution should be treated as required by future contribution consumers. F5F records this policy but does not validate absence yet.")]
+        private FrameworkContentRequiredness requiredness = FrameworkContentRequiredness.Required;
+
         public ActivityAsset Activity => activity;
+
+        public FrameworkContentRequiredness Requiredness => requiredness;
 
         public LocalContentScopeKind LocalScopeKind => LocalContentScopeKind.SceneAuthored;
 

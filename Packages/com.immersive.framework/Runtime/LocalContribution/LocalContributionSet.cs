@@ -10,7 +10,7 @@ namespace Immersive.Framework.LocalContribution
     /// API status: Internal. Immutable snapshot of local contributions discovered in currently loaded scene-authored content.
     /// This is not materialization state, not requiredness policy and not a runtime reference inventory.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Local contribution set introduced by F5D and consolidated in F5E; scoped consumers come later.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Local contribution set introduced by F5D, consolidated in F5E, and carrying requiredness metadata from F5F; scoped consumers come later.")]
     internal readonly struct LocalContributionSet
     {
         private readonly LocalContributionHandle[] handles;
@@ -51,6 +51,10 @@ namespace Immersive.Framework.LocalContribution
 
         public int ActivityLocalVisibilityAdapterCount => CountBySource(LocalContributionSourceKind.ActivityLocalVisibilityAdapter);
 
+        public int RequiredCount => CountByRequiredness(FrameworkContentRequiredness.Required);
+
+        public int OptionalCount => CountByRequiredness(FrameworkContentRequiredness.Optional);
+
         public bool HasScope(FrameworkContentScope contentScope)
         {
             return CountByScope(contentScope) > 0;
@@ -88,6 +92,27 @@ namespace Immersive.Framework.LocalContribution
             for (var i = 0; i < items.Count; i++)
             {
                 if (items[i].SourceKind == sourceKind)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        public int CountByRequiredness(FrameworkContentRequiredness requiredness)
+        {
+            if (!HasContributions)
+            {
+                return 0;
+            }
+
+            var normalized = NormalizeRequiredness(requiredness);
+            var count = 0;
+            var items = Handles;
+            for (var i = 0; i < items.Count; i++)
+            {
+                if (NormalizeRequiredness(items[i].Requiredness) == normalized)
                 {
                     count++;
                 }
@@ -143,6 +168,17 @@ namespace Immersive.Framework.LocalContribution
             return Filter(handle => handle.SourceKind == sourceKind);
         }
 
+        public IReadOnlyList<LocalContributionHandle> GetByRequiredness(FrameworkContentRequiredness requiredness)
+        {
+            if (!HasContributions)
+            {
+                return Array.Empty<LocalContributionHandle>();
+            }
+
+            var normalized = NormalizeRequiredness(requiredness);
+            return Filter(handle => NormalizeRequiredness(handle.Requiredness) == normalized);
+        }
+
         public string DiagnosticMessage
         {
             get
@@ -166,7 +202,7 @@ namespace Immersive.Framework.LocalContribution
             var limit = Math.Max(0, maxHandles);
             var shown = Math.Min(limit, Count);
             var builder = new StringBuilder();
-            builder.Append($"handles='{Count}' session='{SessionCount}' route='{RouteCount}' activity='{ActivityCount}' routeBindings='{RouteContentBindingCount}' activityAdapters='{ActivityLocalVisibilityAdapterCount}' details=[");
+            builder.Append($"handles='{Count}' session='{SessionCount}' route='{RouteCount}' activity='{ActivityCount}' routeBindings='{RouteContentBindingCount}' activityAdapters='{ActivityLocalVisibilityAdapterCount}' required='{RequiredCount}' optional='{OptionalCount}' details=[");
 
             for (var i = 0; i < shown; i++)
             {
@@ -185,6 +221,13 @@ namespace Immersive.Framework.LocalContribution
             }
 
             return builder.ToString();
+        }
+
+        private static FrameworkContentRequiredness NormalizeRequiredness(FrameworkContentRequiredness requiredness)
+        {
+            return requiredness == FrameworkContentRequiredness.Required
+                ? FrameworkContentRequiredness.Required
+                : FrameworkContentRequiredness.Optional;
         }
 
         private IReadOnlyList<LocalContributionHandle> Filter(Func<LocalContributionHandle, bool> predicate)

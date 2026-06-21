@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.ContentFlow;
 
 namespace Immersive.Framework.LocalContribution
 {
@@ -7,12 +8,13 @@ namespace Immersive.Framework.LocalContribution
     /// API status: Internal. Immutable diagnostic handle for one discovered local contribution.
     /// It is not a materialization handle, lifecycle owner, release token or runtime object reference.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Local contribution handle introduced by F5D; not game-facing API.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Local contribution handle introduced by F5D and carrying requiredness metadata from F5F; not game-facing API.")]
     internal readonly struct LocalContributionHandle : IEquatable<LocalContributionHandle>
     {
         public LocalContributionHandle(
             LocalContentIdentity identity,
             LocalContributionSourceKind sourceKind,
+            FrameworkContentRequiredness requiredness,
             string sceneName,
             string objectName,
             string componentType)
@@ -29,6 +31,7 @@ namespace Immersive.Framework.LocalContribution
 
             Identity = identity;
             SourceKind = sourceKind;
+            Requiredness = NormalizeRequiredness(requiredness);
             SceneName = Normalize(sceneName, "<no-scene>");
             ObjectName = Normalize(objectName, "<missing>");
             ComponentType = Normalize(componentType, "<unknown>");
@@ -37,6 +40,8 @@ namespace Immersive.Framework.LocalContribution
         public LocalContentIdentity Identity { get; }
 
         public LocalContributionSourceKind SourceKind { get; }
+
+        public FrameworkContentRequiredness Requiredness { get; }
 
         public string SceneName { get; }
 
@@ -50,6 +55,7 @@ namespace Immersive.Framework.LocalContribution
         {
             return Identity.Equals(other.Identity)
                 && SourceKind == other.SourceKind
+                && Requiredness == other.Requiredness
                 && string.Equals(SceneName, other.SceneName, StringComparison.Ordinal)
                 && string.Equals(ObjectName, other.ObjectName, StringComparison.Ordinal)
                 && string.Equals(ComponentType, other.ComponentType, StringComparison.Ordinal);
@@ -66,6 +72,7 @@ namespace Immersive.Framework.LocalContribution
             {
                 var hashCode = Identity.GetHashCode();
                 hashCode = (hashCode * 397) ^ (int)SourceKind;
+                hashCode = (hashCode * 397) ^ (int)Requiredness;
                 hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(SceneName);
                 hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(ObjectName);
                 hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(ComponentType);
@@ -75,7 +82,7 @@ namespace Immersive.Framework.LocalContribution
 
         public string ToDiagnosticString()
         {
-            return $"identity='{FormatValue(Identity.StableText)}' scope='{Identity.ContentScope}' owner='{FormatValue(Identity.ScopeOwner.Value.Value)}' localId='{FormatValue(Identity.LocalId.StableText)}' localScopeKind='{Identity.LocalScopeKind}' source='{SourceKind}' scene='{FormatValue(SceneName)}' object='{FormatValue(ObjectName)}' component='{FormatValue(ComponentType)}'";
+            return $"identity='{FormatValue(Identity.StableText)}' scope='{Identity.ContentScope}' owner='{FormatValue(Identity.ScopeOwner.Value.Value)}' localId='{FormatValue(Identity.LocalId.StableText)}' localScopeKind='{Identity.LocalScopeKind}' source='{SourceKind}' requiredness='{Requiredness}' scene='{FormatValue(SceneName)}' object='{FormatValue(ObjectName)}' component='{FormatValue(ComponentType)}'";
         }
 
         public override string ToString()
@@ -91,6 +98,13 @@ namespace Immersive.Framework.LocalContribution
         public static bool operator !=(LocalContributionHandle left, LocalContributionHandle right)
         {
             return !left.Equals(right);
+        }
+
+        private static FrameworkContentRequiredness NormalizeRequiredness(FrameworkContentRequiredness requiredness)
+        {
+            return requiredness == FrameworkContentRequiredness.Required
+                ? FrameworkContentRequiredness.Required
+                : FrameworkContentRequiredness.Optional;
         }
 
         private static string Normalize(string value, string fallback)

@@ -12,11 +12,13 @@ namespace Immersive.Framework.Editor.Authoring
     {
         private SerializedProperty _activity;
         private SerializedProperty _localContentId;
+        private SerializedProperty _requiredness;
 
         private void OnEnable()
         {
             _activity = serializedObject.FindProperty("activity");
             _localContentId = serializedObject.FindProperty("localContentId");
+            _requiredness = serializedObject.FindProperty("requiredness");
         }
 
         public override void OnInspectorGUI()
@@ -39,6 +41,11 @@ namespace Immersive.Framework.Editor.Authoring
                 new GUIContent(
                     "Local Content Id",
                     "Explicit local id required by F5 local identity. GameObject name and hierarchy path are diagnostics only and are not used as fallback."));
+            EditorGUILayout.PropertyField(
+                _requiredness,
+                new GUIContent(
+                    "Requiredness",
+                    "Authoring policy recorded by F5F. Required contributions can block future consumers; Optional contributions can be skipped with diagnostics. Absence validation is not active yet."));
             DrawLocalIdentityStatus();
 
             DrawActivityStatus();
@@ -91,8 +98,15 @@ namespace Immersive.Framework.Editor.Authoring
             }
 
             EditorGUILayout.HelpBox(
-                $"This Activity local visibility contribution uses explicit local id '{_localContentId.stringValue.Trim()}'.",
+                $"This Activity local visibility contribution uses explicit local id '{_localContentId.stringValue.Trim()}' and requiredness '{GetRequirednessLabel()}'.",
                 MessageType.Info);
+        }
+
+        private string GetRequirednessLabel()
+        {
+            return _requiredness != null && !_requiredness.hasMultipleDifferentValues
+                ? _requiredness.enumDisplayNames[_requiredness.enumValueIndex]
+                : "Mixed";
         }
 
         private void DrawActivityStatus()

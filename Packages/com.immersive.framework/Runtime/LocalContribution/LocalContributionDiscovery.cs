@@ -16,7 +16,7 @@ namespace Immersive.Framework.LocalContribution
     /// This discovery requires explicit local ids and emits structured issues instead of falling back to GameObject names or paths.
     /// It does not materialize, release, load, unload, reset, snapshot or own lifecycle state.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Loaded scene-authored local contribution discovery introduced by F5D.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Loaded scene-authored local contribution discovery introduced by F5D and extended with requiredness metadata in F5F.")]
     internal static class LocalContributionDiscovery
     {
         public static LocalContributionDiscoveryResult DiscoverLoadedSceneAuthored()
@@ -125,6 +125,7 @@ namespace Immersive.Framework.LocalContribution
                     binding.LocalScopeKind,
                     localId,
                     LocalContributionSourceKind.RouteContentBinding,
+                    binding.Requiredness,
                     binding.SceneName,
                     binding.ObjectName,
                     nameof(RouteContentBinding));
@@ -184,6 +185,7 @@ namespace Immersive.Framework.LocalContribution
                     adapter.LocalScopeKind,
                     localId,
                     LocalContributionSourceKind.ActivityLocalVisibilityAdapter,
+                    adapter.Requiredness,
                     adapter.SceneName,
                     adapter.ObjectName,
                     nameof(ActivityLocalVisibilityAdapter));
@@ -198,6 +200,7 @@ namespace Immersive.Framework.LocalContribution
             LocalContentScopeKind localScopeKind,
             LocalContentId localId,
             LocalContributionSourceKind sourceKind,
+            FrameworkContentRequiredness requiredness,
             string sceneName,
             string objectName,
             string componentType)
@@ -205,7 +208,7 @@ namespace Immersive.Framework.LocalContribution
             try
             {
                 var identity = new LocalContentIdentity(contentScope, ownerKey, localScopeKind, localId);
-                handles.Add(new LocalContributionHandle(identity, sourceKind, sceneName, objectName, componentType));
+                handles.Add(new LocalContributionHandle(identity, sourceKind, requiredness, sceneName, objectName, componentType));
             }
             catch (Exception exception)
             {

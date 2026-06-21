@@ -10,11 +10,13 @@ namespace Immersive.Framework.Editor.Authoring
     {
         private SerializedProperty _route;
         private SerializedProperty _localContentId;
+        private SerializedProperty _requiredness;
 
         private void OnEnable()
         {
             _route = serializedObject.FindProperty("route");
             _localContentId = serializedObject.FindProperty("localContentId");
+            _requiredness = serializedObject.FindProperty("requiredness");
         }
 
         public override void OnInspectorGUI()
@@ -35,6 +37,12 @@ namespace Immersive.Framework.Editor.Authoring
                     "Local Content Id",
                     "Explicit local id required by F5 local identity. GameObject name and hierarchy path are diagnostics only and are not used as fallback."));
 
+            EditorGUILayout.PropertyField(
+                _requiredness,
+                new GUIContent(
+                    "Requiredness",
+                    "Authoring policy recorded by F5F. Required contributions can block future consumers; Optional contributions can be skipped with diagnostics. Absence validation is not active yet."));
+
             if (_localContentId != null && _localContentId.hasMultipleDifferentValues)
             {
                 EditorGUILayout.HelpBox(
@@ -50,10 +58,17 @@ namespace Immersive.Framework.Editor.Authoring
             else
             {
                 EditorGUILayout.HelpBox(
-                    $"This Route local contribution uses explicit local id '{_localContentId.stringValue.Trim()}'.",
+                    $"This Route local contribution uses explicit local id '{_localContentId.stringValue.Trim()}' and requiredness '{GetRequirednessLabel()}'.",
                     MessageType.Info);
             }
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private string GetRequirednessLabel()
+        {
+            return _requiredness != null && !_requiredness.hasMultipleDifferentValues
+                ? _requiredness.enumDisplayNames[_requiredness.enumValueIndex]
+                : "Mixed";
         }
     }
 }

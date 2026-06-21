@@ -1,6 +1,6 @@
 # F5 — Local Content Identity and scene-authored local ids
 
-Status: F5E APPLIED / PENDING COMPILE-SMOKE  
+Status: F5F APPLIED / PENDING COMPILE-SMOKE  
 Fase: F5 — Local Contribution baseline  
 Documento técnico vivo: identidade local e authoring local mínimo
 
@@ -243,7 +243,7 @@ Esse corte ainda não torna o set consumidor de lifecycle, não aplica requiredn
 
 ## Escopo ainda não implementado
 
-F5E ainda não implementa:
+F5E ainda não implementava:
 
 ```text
 Required/Optional policy
@@ -279,3 +279,58 @@ QA Smoke completed. name='Standard Smoke'     1
 ```
 
 Depois de configurar os `Local Content Id` nos bindings/adapters das cenas abertas, use o `Framework QA Canvas` e rode `Validate Loaded Local Contributions`. O log deve reportar `issues='0'` para o escopo carregado e incluir contagens por escopo/source no `LocalContributionSet`.
+
+
+## F5F — Requiredness policy mínima
+
+F5F registra `Required/Optional` nas contribuições locais reais sem alterar materialização ou comportamento visual.
+
+A superfície de authoring passa a expor `Requiredness` em:
+
+```text
+RouteContentBinding
+ActivityLocalVisibilityAdapter
+```
+
+O discovery copia esse valor para cada `LocalContributionHandle`. O `LocalContributionSet` passa a expor:
+
+```text
+RequiredCount
+OptionalCount
+CountByRequiredness(requiredness)
+GetByRequiredness(requiredness)
+```
+
+O diagnóstico de QA passa a incluir resumo por requiredness, por exemplo:
+
+```text
+handles='2' session='0' route='1' activity='1' routeBindings='1' activityAdapters='1' required='2' optional='0'
+```
+
+Regras do F5F:
+
+```text
+- Requiredness é dado funcional da contribuição, não nome de GameObject.
+- GameObject.name, scene name e hierarchy path continuam apenas diagnósticos.
+- Binding/adapter presente continua exigindo Local Content Id explícito, mesmo se Optional.
+- F5F não valida ausência de contribuição required porque ainda não existe lista declarativa de expected contributions.
+- F5F não materializa, não carrega, não descarrega e não consome requiredness no runtime visual.
+```
+
+Escopo ainda diferido após F5F:
+
+```text
+Required ausente bloquear lifecycle
+Optional ausente gerar skip estruturado
+Integração funcional com RouteContentSet/ActivityContentSet
+Surface
+Actors
+Input
+Camera
+Reset
+Snapshot
+Save
+Pooling
+Materialization
+Release/unload policy
+```

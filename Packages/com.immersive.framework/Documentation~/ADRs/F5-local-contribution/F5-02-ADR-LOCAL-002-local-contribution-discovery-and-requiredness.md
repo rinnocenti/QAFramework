@@ -1,6 +1,6 @@
 # F5-02 — ADR-LOCAL-002 — Local Contribution Discovery and Requiredness
 
-Status: Partially Accepted / Discovery and Set Consolidation Applied / Requiredness Deferred  
+Status: Partially Accepted / Discovery, Set Consolidation and Requiredness Metadata Applied / Absence Policy Deferred  
 Fase: F5  
 Ordem no Plano: F5-02  
 Tipo: Local / Discovery  
@@ -48,9 +48,9 @@ RouteContentSet / ActivityContentSet
 
 ---
 
-## Requiredness — deferred
+## Requiredness — F5F metadata applied / absence policy deferred
 
-Requiredness pertence à contribuição ou à policy que consome aquela contribuição, não ao nome do GameObject.
+Requiredness pertence à contribuição ou à policy que consome aquela contribuição, não ao nome do GameObject. Em F5F, `RouteContentBinding` e `ActivityLocalVisibilityAdapter` carregam `FrameworkContentRequiredness` e o discovery copia esse valor para o `LocalContributionHandle`.
 
 Regras propostas:
 
@@ -118,6 +118,22 @@ Futuro:
 - Optional ausente não bloqueia, mas fica diagnosticado.
 
 ---
+
+
+## F5F — aplicação
+
+O F5F aplica requiredness como metadata funcional da contribuição descoberta:
+
+```text
+RouteContentBinding.Requiredness
+ActivityLocalVisibilityAdapter.Requiredness
+LocalContributionHandle.Requiredness
+LocalContributionSet.RequiredCount / OptionalCount
+```
+
+A policy de ausência continua diferida. Portanto, F5F ainda não sabe que uma contribuição required “deveria existir” se ela não está declarada em uma lista expected. O corte apenas garante que, quando uma contribuição existe e é descoberta, seu requiredness viaja junto com a identity local.
+
+Binding/adapter presente sem `Local Content Id` continua sendo erro de authoring mesmo se `Requiredness = Optional`; optionalidade não é fallback de identity.
 
 ## Impacto esperado
 

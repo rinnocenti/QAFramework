@@ -367,7 +367,7 @@ Status atual:
 ```text
 F5A — CLOSED / ADR ACCEPTED
 F5B — CLOSED / STANDARD COMPILE-SMOKE PASS
-F5  — OPEN / F5E APPLIED / PENDING COMPILE-SMOKE
+F5  — OPEN / F5F APPLIED / PENDING COMPILE-SMOKE
 ```
 
 Sequência obrigatória:
@@ -804,14 +804,14 @@ F3 — CLOSED / PASS
 F4 — CLOSED / ACTIVITY BASELINE PASS
 F5A — CLOSED / ADR ACCEPTED
 F5B — CLOSED / STANDARD COMPILE-SMOKE PASS
-F5  — OPEN / F5E APPLIED / PENDING COMPILE-SMOKE
+F5  — OPEN / F5F APPLIED / PENDING COMPILE-SMOKE
 ```
 
 F5A aceitou o ADR necessário para iniciar a execução técnica de Local Contribution:
 
 ```text
 F5-01 — ADR-LOCAL-001 — Local Identity — Accepted
-F5-02 — ADR-LOCAL-002 — Local Contribution Discovery and Requiredness — Partially Accepted / Discovery and Set Consolidation Applied / Requiredness Deferred
+F5-02 — ADR-LOCAL-002 — Local Contribution Discovery and Requiredness — Partially Accepted / Discovery, Set Consolidation and Requiredness Metadata Applied / Absence Policy Deferred
 ```
 
 ## Ação imediata
@@ -820,6 +820,7 @@ O corte aplicado atual é:
 
 ```text
 F5E — IF-FW-ROAD-5E — local contribution set consolidation
+F5F — IF-FW-ROAD-5F — requiredness metadata on local contributions
 ```
 
 Escopo aplicado:
@@ -837,7 +838,7 @@ Escopo aplicado:
 - não criar capability inventory vivo.
 ```
 
-Depois do compile-smoke, o próximo corte autorizado será F5F — Required/Optional policy mínima, sem materialização e sem consumers reais se o smoke pedir ajuste prévio.
+Depois do compile-smoke, o próximo corte autorizado será F5G — expected contribution/absence policy ou integração limitada ao content set ativo, sem materialização se o smoke pedir ajuste prévio.
 
 ## Não avançar ainda
 
