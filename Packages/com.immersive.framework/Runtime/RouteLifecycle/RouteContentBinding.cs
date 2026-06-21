@@ -5,13 +5,12 @@ using Immersive.Framework.ApiStatus;
 namespace Immersive.Framework.RouteLifecycle
 {
     /// <summary>
-    /// API status: Deferred until F3. This type is retained as frozen transitional source, not as active baseline API.
     /// Scene-authored boundary for Route-scoped content.
     /// Route Lifecycle uses this component to notify local receivers; it does not own GameObject visibility.
     /// </summary>
     [DisallowMultipleComponent]
-    [AddComponentMenu("")]
-    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route local content callbacks are frozen until F3 Route baseline.")]
+    [AddComponentMenu("Immersive Framework/Route Content Binding")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Route local content callbacks are active in the F3 Route baseline and may still change before stabilization.")]
     public sealed class RouteContentBinding : MonoBehaviour
     {
         [SerializeField]

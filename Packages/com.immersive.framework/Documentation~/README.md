@@ -235,7 +235,7 @@ Este checkpoint fecha `IF-FW-ROAD-2F — Session smoke` a partir dos smokes de F
 
 Documento de aceite: [`F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md`](F3A_ROUTE_BASELINE_ADR_ACCEPTANCE.md).
 
-F3A abriu a implementação técnica da F3. O corte técnico atual é F3C.
+F3A abriu a implementação técnica da F3. O corte técnico atual é F3D.
 
 
 ### F3B — RouteRuntimeState tipado
@@ -256,18 +256,25 @@ Este corte implementou `IF-FW-ROAD-3A` criando `Runtime/RouteLifecycle/RouteRunt
 Status atual:
 
 ```text
-F3C — APPLIED / PENDING COMPILE-SMOKE
+F3C — CLOSED / COMPILE-SMOKE PASS
 ```
 
-Documento técnico: [`ROUTE_EXIT_RESULT_MINIMAL.md`](ROUTE_EXIT_RESULT_MINIMAL.md).
+Documento técnico: [`ROUTE_EXIT_RESULT_MINIMAL.md`](ROUTE_EXIT_RESULT_MINIMAL.md).  
+Fechamento: [`F3C_CLOSURE.md`](F3C_CLOSURE.md).
 
-Este corte implementa `IF-FW-ROAD-3B` criando `Runtime/RouteLifecycle/RouteExitResult.cs` e conectando o resultado mínimo de saída ao `RouteLifecycleStartResult`.
+Este corte implementou `IF-FW-ROAD-3B` criando `Runtime/RouteLifecycle/RouteExitResult.cs` e conectando o resultado mínimo de saída ao `RouteLifecycleStartResult`.
 
-Próximo corte conforme roadmap:
+### F3D — RouteContentRuntime execution decision
+
+Status atual:
 
 ```text
-F3D — IF-FW-ROAD-3C — RouteContentRuntime execution decision
+F3D — APPLIED / PENDING COMPILE-SMOKE
 ```
+
+Documento técnico: [`ROUTE_CONTENT_RUNTIME_EXECUTION_DECISION.md`](ROUTE_CONTENT_RUNTIME_EXECUTION_DECISION.md).
+
+Este corte implementa `IF-FW-ROAD-3C` ativando `RouteContentRuntime` no baseline da F3 e conectando callbacks locais de Route Content ao `RouteLifecycleRuntime`.
 
 ### F4 — Activity content and readiness
 

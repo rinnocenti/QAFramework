@@ -86,7 +86,9 @@ A implementação deve ser incremental:
 F3B — RouteRuntimeState tipado
 F3C — RouteExitResult mínimo
 F3D — RouteContentRuntime active integration
-F3E — Route local callback smoke / validator baseline
+F3E — RouteContentSet semantics
+F3F — Route local callback smoke
+F3G — Route validator expansion
 ```
 
 Não pular para F6, F7, F8, F9 ou consumers.

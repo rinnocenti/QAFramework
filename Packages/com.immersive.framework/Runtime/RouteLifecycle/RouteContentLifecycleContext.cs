@@ -8,7 +8,7 @@ namespace Immersive.Framework.RouteLifecycle
     /// Local context passed to scene-authored Route content receivers.
     /// This describes one Route content root reacting to the canonical Route lifecycle.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route local content callbacks are frozen until F3 Route baseline.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Route local content callbacks are active in the F3 Route baseline and may still change before stabilization.")]
     public readonly struct RouteContentLifecycleContext
     {
         internal RouteContentLifecycleContext(

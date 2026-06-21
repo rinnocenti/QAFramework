@@ -5,12 +5,11 @@ using Immersive.Framework.ApiStatus;
 namespace Immersive.Framework.RouteLifecycle
 {
     /// <summary>
-    /// API status: Deferred until F3. This type is retained as frozen transitional source, not as active baseline API.
     /// Optional base class for MonoBehaviours under a Route Content Binding root.
     /// Prefer this for scene-authored Route content that needs lifecycle callbacks
     /// without manually implementing IRouteContentLifecycleReceiver.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route local content callbacks are frozen until F3 Route baseline.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Route local content callbacks are active in the F3 Route baseline and may still change before stabilization.")]
     public abstract class RouteContentBehaviour : MonoBehaviour, IRouteContentLifecycleReceiver
     {
         public bool IsRouteContentActive { get; private set; }

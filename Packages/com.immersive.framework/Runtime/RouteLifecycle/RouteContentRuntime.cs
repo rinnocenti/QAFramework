@@ -8,71 +8,123 @@ using Immersive.Framework.ApiStatus;
 namespace Immersive.Framework.RouteLifecycle
 {
     /// <summary>
-    /// API status: Deferred until F3. This type is retained as frozen transitional source, not as active baseline API.
     /// Minimal owner for notifying Route-scoped scene content.
-    /// It does not load scenes, start activities, spawn actors, or own Route identity.
+    /// It does not load scenes, start activities, spawn actors, release content, or own Route identity.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route local content callbacks are frozen until F3 Route baseline.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Runtime implementation detail activated by F3D for Route-local content callbacks.")]
     internal sealed class RouteContentRuntime
     {
         private readonly FrameworkLogger _logger = FrameworkLogger.Create();
 
-        internal void ExitRouteContent(RouteAsset route, RouteAsset nextRoute, string source, string reason)
+        internal RouteContentLifecycleDispatchResult ExitRouteContent(RouteAsset route, RouteAsset nextRoute, string source, string reason)
         {
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
 
             if (route == null || ReferenceEquals(route, nextRoute))
             {
-                return;
+                return RouteContentLifecycleDispatchResult.Skipped(
+                    RouteContentLifecyclePhase.Exited,
+                    route,
+                    nextRoute,
+                    resolvedSource,
+                    resolvedReason);
             }
 
             RouteContentBinding[] bindings = Object.FindObjectsByType<RouteContentBinding>(FindObjectsInactive.Include);
-            if (bindings == null || bindings.Length == 0)
-            {
-                return;
-            }
+            int bindingCount = 0;
+            int receiverCount = 0;
+            int failedReceiverCount = 0;
 
-            for (int i = 0; i < bindings.Length; i++)
+            if (bindings != null)
             {
-                var binding = bindings[i];
-                if (!IsValidBindingForRoute(binding, route))
+                for (int i = 0; i < bindings.Length; i++)
                 {
-                    continue;
-                }
+                    var binding = bindings[i];
+                    if (!IsValidBindingForRoute(binding, route))
+                    {
+                        continue;
+                    }
 
-                DispatchRouteContentExited(binding, route, nextRoute, resolvedSource, resolvedReason);
+                    bindingCount++;
+                    DispatchRouteContentExited(
+                        binding,
+                        route,
+                        nextRoute,
+                        resolvedSource,
+                        resolvedReason,
+                        out int bindingReceiverCount,
+                        out int bindingFailedReceiverCount);
+                    receiverCount += bindingReceiverCount;
+                    failedReceiverCount += bindingFailedReceiverCount;
+                }
             }
+
+            return RouteContentLifecycleDispatchResult.ExecutedWith(
+                RouteContentLifecyclePhase.Exited,
+                route,
+                nextRoute,
+                bindingCount,
+                receiverCount,
+                failedReceiverCount,
+                resolvedSource,
+                resolvedReason);
         }
 
-        internal void EnterRouteContent(RouteAsset route, RouteAsset previousRoute, string source, string reason)
+        internal RouteContentLifecycleDispatchResult EnterRouteContent(RouteAsset route, RouteAsset previousRoute, string source, string reason)
         {
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
 
             if (route == null || ReferenceEquals(route, previousRoute))
             {
-                return;
+                return RouteContentLifecycleDispatchResult.Skipped(
+                    RouteContentLifecyclePhase.Entered,
+                    route,
+                    previousRoute,
+                    resolvedSource,
+                    resolvedReason);
             }
 
             RouteContentBinding[] bindings = Object.FindObjectsByType<RouteContentBinding>(FindObjectsInactive.Include);
-            if (bindings == null || bindings.Length == 0)
-            {
-                return;
-            }
+            int bindingCount = 0;
+            int receiverCount = 0;
+            int failedReceiverCount = 0;
 
-            for (int i = 0; i < bindings.Length; i++)
+            if (bindings != null)
             {
-                var binding = bindings[i];
-                if (!IsValidBindingForRoute(binding, route))
+                for (int i = 0; i < bindings.Length; i++)
                 {
-                    continue;
+                    var binding = bindings[i];
+                    if (!IsValidBindingForRoute(binding, route))
+                    {
+                        continue;
+                    }
+
+                    bindingCount++;
+                    DispatchRouteContentEntered(
+                        binding,
+                        route,
+                        previousRoute,
+                        resolvedSource,
+                        resolvedReason,
+                        out int bindingReceiverCount,
+                        out int bindingFailedReceiverCount);
+                    receiverCount += bindingReceiverCount;
+                    failedReceiverCount += bindingFailedReceiverCount;
                 }
-
-                DispatchRouteContentEntered(binding, route, previousRoute, resolvedSource, resolvedReason);
             }
-        }
 
+            return RouteContentLifecycleDispatchResult.ExecutedWith(
+                RouteContentLifecyclePhase.Entered,
+                route,
+                previousRoute,
+                bindingCount,
+                receiverCount,
+                failedReceiverCount,
+                resolvedSource,
+                resolvedReason);
+        }
 
         private static string NormalizeSource(string source)
         {
@@ -83,6 +135,7 @@ namespace Immersive.Framework.RouteLifecycle
         {
             return string.IsNullOrWhiteSpace(reason) ? "None" : reason.Trim();
         }
+
         private static bool IsValidBindingForRoute(RouteContentBinding binding, RouteAsset route)
         {
             return binding != null && binding.MatchesRoute(route);
@@ -93,7 +146,9 @@ namespace Immersive.Framework.RouteLifecycle
             RouteAsset route,
             RouteAsset previousRoute,
             string source,
-            string reason)
+            string reason,
+            out int receiverCount,
+            out int failedReceiverCount)
         {
             var context = RouteContentLifecycleContext.Entered(route, previousRoute, binding, source, reason);
             DispatchRouteContentLifecycle(
@@ -101,7 +156,9 @@ namespace Immersive.Framework.RouteLifecycle
                 "Entered",
                 route,
                 true,
-                receiver => receiver.OnRouteContentEntered(context));
+                receiver => receiver.OnRouteContentEntered(context),
+                out receiverCount,
+                out failedReceiverCount);
         }
 
         private void DispatchRouteContentExited(
@@ -109,7 +166,9 @@ namespace Immersive.Framework.RouteLifecycle
             RouteAsset route,
             RouteAsset nextRoute,
             string source,
-            string reason)
+            string reason,
+            out int receiverCount,
+            out int failedReceiverCount)
         {
             var context = RouteContentLifecycleContext.Exited(route, nextRoute, binding, source, reason);
             DispatchRouteContentLifecycle(
@@ -117,7 +176,9 @@ namespace Immersive.Framework.RouteLifecycle
                 "Exited",
                 route,
                 false,
-                receiver => receiver.OnRouteContentExited(context));
+                receiver => receiver.OnRouteContentExited(context),
+                out receiverCount,
+                out failedReceiverCount);
         }
 
         private void DispatchRouteContentLifecycle(
@@ -125,8 +186,13 @@ namespace Immersive.Framework.RouteLifecycle
             string phase,
             RouteAsset route,
             bool parentFirst,
-            Action<IRouteContentLifecycleReceiver> dispatch)
+            Action<IRouteContentLifecycleReceiver> dispatch,
+            out int receiverCount,
+            out int failedReceiverCount)
         {
+            receiverCount = 0;
+            failedReceiverCount = 0;
+
             if (binding == null || dispatch == null)
             {
                 return;
@@ -149,12 +215,15 @@ namespace Immersive.Framework.RouteLifecycle
                     continue;
                 }
 
+                receiverCount++;
+
                 try
                 {
                     dispatch(receiver);
                 }
                 catch (Exception exception)
                 {
+                    failedReceiverCount++;
                     LogRouteContentReceiverException(binding, phase, route, receiver, exception);
                 }
             }

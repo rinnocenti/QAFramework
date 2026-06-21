@@ -62,18 +62,13 @@ F2D — CLOSED / DOCUMENTATION ONLY
 F2  — CLOSED / PASS
 ```
 
-Current authorized roadmap step:
-
-```text
-F3D — IF-FW-ROAD-3C — RouteContentRuntime execution decision
-```
-
-F3 status:
+Current F3 status:
 
 ```text
 F3A — CLOSED / ADRS ACCEPTED
 F3B — CLOSED / COMPILE-SMOKE PASS
-F3C — APPLIED / PENDING COMPILE-SMOKE
+F3C — CLOSED / COMPILE-SMOKE PASS
+F3D — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 F3A accepted:
@@ -147,13 +142,36 @@ Runtime/RouteLifecycle/RouteExitResult.cs
 Status:
 
 ```text
-F3C — APPLIED / PENDING COMPILE-SMOKE
+F3C — CLOSED / COMPILE-SMOKE PASS
 ```
 
 See:
 
 ```text
 Documentation~/ROUTE_EXIT_RESULT_MINIMAL.md
+Documentation~/F3C_CLOSURE.md
+```
+
+## F3D — RouteContentRuntime execution decision
+
+F3D implements the roadmap item:
+
+```text
+IF-FW-ROAD-3C — RouteContentRuntime execution decision
+```
+
+`RouteContentRuntime` is now connected to `RouteLifecycleRuntime` for Route-local callbacks in the loaded Primary Scene. The canonical order is: previous Route Content exit before `Single` scene load, next Route Content enter after scene load, Startup Activity after Route Content enter.
+
+Status:
+
+```text
+F3D — APPLIED / PENDING COMPILE-SMOKE
+```
+
+See:
+
+```text
+Documentation~/ROUTE_CONTENT_RUNTIME_EXECUTION_DECISION.md
 ```
 
 ## F2B — SessionRuntimeState explicit boundary

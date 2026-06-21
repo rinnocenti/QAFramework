@@ -66,6 +66,10 @@ O atributo é metadata de documentação/validação. Ele não muda runtime beha
 | `FrameworkLogger` | `Internal` |
 | `FrameworkQaCanvas` | `DevelopmentTooling` |
 
+## Atualização F3D
+
+`RouteContentRuntime` deixou de ser deferred no baseline da F3. O owner técnico é `Internal`; as superfícies autorais locais de Route Content são `Experimental` enquanto a F3 estabiliza callback smoke e validators.
+
 ---
 
 ## Fora do escopo

@@ -17,6 +17,7 @@ namespace Immersive.Framework.RouteLifecycle
     {
         private readonly SceneLifecycleRuntime _sceneLifecycleRuntime = new SceneLifecycleRuntime();
         private readonly ActivityFlowRuntime _activityFlowRuntime = new ActivityFlowRuntime();
+        private readonly RouteContentRuntime _routeContentRuntime = new RouteContentRuntime();
         private readonly EventBus<RouteEnteredEvent> _routeEnteredEvents = new EventBus<RouteEnteredEvent>();
         private readonly EventBus<RouteExitedEvent> _routeExitedEvents = new EventBus<RouteExitedEvent>();
         private RouteRuntimeState _currentRouteState;
@@ -70,6 +71,7 @@ namespace Immersive.Framework.RouteLifecycle
 
             var previousRouteState = _currentRouteState;
             var previousRoute = previousRouteState.Route;
+            var routeContentExitResult = _routeContentRuntime.ExitRouteContent(previousRoute, route, source, reason);
             var routeContentPlan = RouteContentMaterializationPlan.FromRoute(route);
             var sceneLifecycleResult = await _sceneLifecycleRuntime.LoadPrimarySceneAsync(route);
             if (!sceneLifecycleResult.Loaded)
@@ -84,13 +86,24 @@ namespace Immersive.Framework.RouteLifecycle
                 source,
                 reason);
 
+            var routeContentEnterResult = _routeContentRuntime.EnterRouteContent(route, previousRoute, source, reason);
+
             var activityFlowResult = await _activityFlowRuntime.StartStartupActivityAsync(route, source, reason);
             if (!activityFlowResult.Completed)
             {
                 return RouteLifecycleStartResult.Failed(activityFlowResult.Message);
             }
 
-            var result = RouteLifecycleStartResult.StartedWith(route, previousRouteState, sceneLifecycleResult, routeContentSet, activityFlowResult, source, reason);
+            var result = RouteLifecycleStartResult.StartedWith(
+                route,
+                previousRouteState,
+                sceneLifecycleResult,
+                routeContentSet,
+                routeContentEnterResult,
+                routeContentExitResult,
+                activityFlowResult,
+                source,
+                reason);
             _currentRouteState = result.RouteState;
             PublishRouteTransition(previousRoute, route, source, reason);
             return result;

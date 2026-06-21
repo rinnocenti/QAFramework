@@ -55,7 +55,7 @@
       <p><strong>Fase aceita:</strong> <code>F0B — Baseline hygiene</code>.</p>
       <p><strong>Próximo corte técnico:</strong> <code>F1 — API status, Identity and Diagnostics</code>.</p>
       <p>O framework ainda não deve avançar para features. A prioridade seguinte é dar status, identidade e diagnostics mínimos para impedir novas APIs ambíguas.</p>
-      <div class="warning">Este guia não promete execução de subsistemas deferred, como <code>RouteContentRuntime</code> ou additive scenes. <code>CameraFlow</code> foi removido do core ativo.</div>
+      <div class="warning">Este guia não promete execução de subsistemas deferred, como additive scenes. <code>RouteContentRuntime</code> está ativo na F3 apenas para callbacks locais de Route Content na Primary Scene carregada. <code>CameraFlow</code> foi removido do core ativo.</div>
     </section>
 
     <section>
@@ -66,7 +66,7 @@
           <tr><td><code>Game Application</code>, <code>Route</code>, <code>Activity</code>, request triggers</td><td><code>Experimental</code></td><td>Permitidos para desenvolvimento inicial; identities/states serão refinados nas próximas fases.</td></tr>
           <tr><td><code>ContentFlow</code></td><td><code>Experimental</code></td><td>Vocabulário preservado; ainda não é materialization API estável.</td></tr>
           <tr><td><code>RouteContentProfileAsset</code></td><td><code>Deferred / Planning-only</code></td><td>Não executa additive scenes no baseline atual.</td></tr>
-          <tr><td><code>RouteContentRuntime</code></td><td><code>Deferred</code></td><td>Não tratar callbacks de Route como contrato ativo até F3.</td></tr>
+          <tr><td><code>RouteContentRuntime</code></td><td><code>Experimental / Active in F3</code></td><td>Callbacks locais de Route Content na Primary Scene; sem additive scenes, Surface ou RuntimeMaterialization.</td></tr>
           <tr><td><code>CameraFlow</code></td><td><code>Removed from core baseline</code></td><td>Camera é consumer avançado; Cinemachine não é dependência obrigatória do core.</td></tr>
           <tr><td><code>FrameworkQaCanvas</code></td><td><code>Development Tooling</code></td><td>Ferramenta manual de smoke; compila apenas no Editor ou em development build.</td></tr>
           <tr><td><code>ValidationMode</code></td><td><code>Experimental</code></td><td>Semântica mínima definida no F1D: Strict, Standard e Release controlam severidade/ruído sem criar fallback.</td></tr>
