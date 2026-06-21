@@ -3,13 +3,13 @@
 Status: CLOSED / COMPILE-SMOKE PASS  
 Fase: F4  
 Corte: F4E  
-Roadmap: IF-FW-ROAD-4E — Reclassificar ActivityContentBinding
+Roadmap: IF-FW-ROAD-4E — Reclassificar Activity Local Visibility Adapter
 
 ---
 
 ## Evidência
 
-F4E foi validado por smoke após a reclassificação de `ActivityContentBinding` como Activity Local Visibility Adapter.
+F4E foi validado por smoke após a reclassificação do adapter local de Activity como Activity Local Visibility Adapter.
 
 Critérios observados:
 
@@ -29,8 +29,7 @@ issues='0'
 F4E fecha a mudança de nomenclatura/semântica do componente local de Activity:
 
 ```text
-ActivityContentBinding = nome C# serializado mantido
-Activity Local Visibility Adapter = papel de authoring/runtime local
+ActivityLocalVisibilityAdapter = classe C# e papel de authoring/runtime local
 ```
 
 A decisão evita tratar o adapter local de visibilidade como materialização canônica da Activity.
@@ -38,7 +37,6 @@ A decisão evita tratar o adapter local de visibilidade como materialização ca
 ## Fora do escopo
 
 ```text
-renomear classe C#
 quebrar assets existentes
 ActivityContentProfile loading
 canonical Activity materialization

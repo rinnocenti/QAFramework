@@ -668,16 +668,19 @@ namespace Immersive.Framework.Diagnostics
 
             await RunSmokeAsync("Activity Baseline Smoke", async runtimeHost =>
             {
-                if (!await RequestActivityCoreAsync(
-                    runtimeHost,
-                    primaryActivity,
-                    ResolveReason(activityReason, GetAssetName(primaryActivity, "QA Primary Content Activity")),
-                    allowAlreadyActive: true))
+                if (!ReferenceEquals(runtimeHost.State.CurrentActivity, primaryActivity))
                 {
-                    return false;
+                    if (!await RequestActivityCoreAsync(
+                        runtimeHost,
+                        primaryActivity,
+                        ResolveReason(activityReason, GetAssetName(primaryActivity, "QA Primary Content Activity"))))
+                    {
+                        return false;
+                    }
+
+                    await Task.Yield();
                 }
 
-                await Task.Yield();
 
                 var secondaryResult = await RequestActivityWithResultCoreAsync(
                     runtimeHost,

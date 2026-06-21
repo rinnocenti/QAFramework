@@ -108,8 +108,8 @@ Regras:
 | Activity content set | Preservar como `ActivityContentSet` | F4 | F4B | IF-FW-ROAD-4B | Presente mínimo | Coberto | Core | Route handoff + ActivityContentSet | Baixo / controlado | F4B fechado; snapshot mínimo de conteúdo scene-authored local; profile/loading/release continuam fora. |
 | Activity content loading | Preservar com plan/result/handles | F4–F6 | F6+ | IF-FW-ROAD-4B, 6D | Parcial / Ausente | Coberto com ajuste / Deferred | Core | Route handoff + ActivityContentSet | Baixo / controlado | Carregamento real de cenas da Activity depende de plan/result/release. |
 | Activity content lifecycle result | Criar como `ActivityContentLifecycleResult` | F4 | F4C | IF-FW-ROAD-4C | Presente mínimo | Coberto | Core | Route handoff + ActivityContentSet | Baixo / controlado | F4C fechado; resultado agregado de callbacks locais enter/exit; não é release/loading. |
-| Readiness gate | Preservar como state/result | F4 | F4D/F4F | IF-FW-ROAD-4D, IF-FW-ROAD-4F | Presente mínimo / Smoke dedicado aplicado | Coberto | Core | Route handoff + ActivityContentSet | Baixo / controlado | F4D adiciona `ActivityReadinessState`; F4F adiciona smoke dedicado de Activity baseline com readiness/content/clear. |
-| Activity baseline smoke | Validar switch/content/readiness/clear | F4 | F4F | IF-FW-ROAD-4F | Aplicado / Pending smoke | Coberto | QA / Dev Tooling | F4A-F4E | Baixo / controlado | `Run Activity Baseline Smoke` valida Secondary com content handle, Primary sem handle local, clear para None e restore. |
+| Readiness gate | Preservar como state/result | F4 | F4D/F4F | IF-FW-ROAD-4D, IF-FW-ROAD-4F | Presente mínimo / Smoke dedicado fechado | Coberto | Core | Route handoff + ActivityContentSet | Baixo / controlado | F4D adiciona `ActivityReadinessState`; F4F fecha smoke dedicado de Activity baseline com readiness/content/clear/restore. |
+| Activity baseline smoke | Validar switch/content/readiness/clear | F4 | F4F | IF-FW-ROAD-4F | Implementado / Smoke PASS | Coberto | QA / Dev Tooling | F4A-F4E | Baixo / controlado | `Run Activity Baseline Smoke` validado; cobre Secondary com content handle, Primary sem handle local, clear para None e restore. |
 | Activity exit plan | Preservar como `ActivityExitPlan` | F4 | F6/F8 | IF-FW-ROAD-4B | Parcial / Ausente | Coberto, mas com correção | Core | Route handoff + ActivityContentSet | Baixo / controlado | Exit simples em F4; plano de release completo após release/runtime policy. |
 | Activity reset plan | Preservar; entrar depois de LocalContributionSet | F5+ | Futura após F5/F10 | — | Parcial / Ausente | Coberto com ajuste / Deferred | Core | Route handoff + ActivityContentSet | Risco de ficar sem corte rastreável | Depende de LocalContributionSet e snapshot/reset participants. |
 | Participant binding | Preservar boundary; redesenhar ownership | F10–F11 | F10–F11 | IF-FW-ROAD-10B, 11F | Parcial / Ausente | Coberto | Core | Route handoff + ActivityContentSet | Baixo / controlado | Sem ajuste. |
@@ -736,3 +736,8 @@ Antes de abrir um corte técnico, responder:
 | Session smoke | F2D | CLOSED / DOCUMENTATION ONLY | `Documentation~/F2_CLOSURE.md` | F2B/F2C smokes close the technical Session phase. |
 
 F2 intentionally does not implement persistent scenes, Route baseline, Surface or RuntimeMaterialization.
+
+
+## F4 closure note
+
+F4 fecha o baseline mínimo de Activity. `ActivityContentSet` permanece snapshot local/diagnóstico de adapters de visibilidade. F5 deve iniciar por identidade local própria, sem reutilizar nome/path de cena ou GameObject como chave funcional canônica.

@@ -5,7 +5,7 @@ using Immersive.Framework.ApiStatus;
 namespace Immersive.Framework.ActivityFlow
 {
     /// <summary>
-    /// Optional base class for MonoBehaviours under an Activity Content Binding root.
+    /// Optional base class for MonoBehaviours under an Activity Local Visibility Adapter root.
     /// Prefer this for scene-authored Activity content that needs lifecycle callbacks
     /// without manually implementing IActivityContentLifecycleReceiver.
     /// </summary>

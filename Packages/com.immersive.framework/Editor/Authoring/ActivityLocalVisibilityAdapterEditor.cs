@@ -21,7 +21,7 @@ namespace Immersive.Framework.Editor.Authoring
         {
             serializedObject.Update();
 
-            EditorGUILayout.LabelField("Activity Content Binding", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Activity Local Visibility Adapter", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
                 "Marks this GameObject as scene-authored content for one Activity. Activity Flow activates it when the assigned Activity is active and deactivates it otherwise.",
                 MessageType.Info);
@@ -36,7 +36,7 @@ namespace Immersive.Framework.Editor.Authoring
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Current Scope", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "This binding only controls the active state of this GameObject. It does not spawn, pool, reset, save, bind actors, bind input, bind camera or load Activity content.",
+                "This adapter only controls the active state of this GameObject. It does not spawn, pool, reset, save, bind actors, bind input, bind camera or load Activity content.",
                 MessageType.None);
 
             serializedObject.ApplyModifiedProperties();
@@ -65,7 +65,7 @@ namespace Immersive.Framework.Editor.Authoring
                 if (_activity.hasMultipleDifferentValues)
                 {
                     EditorGUILayout.HelpBox(
-                        "Multiple selected bindings have different Activity references.",
+                        "Multiple selected adapters have different Activity references.",
                         MessageType.Info);
                     return;
                 }
@@ -74,7 +74,7 @@ namespace Immersive.Framework.Editor.Authoring
             if (_activity.objectReferenceValue == null)
             {
                 EditorGUILayout.HelpBox(
-                    "Activity is missing. This binding will be skipped by Activity Content Runtime and will produce a runtime warning.",
+                    "Activity is missing. This adapter will be skipped by Activity Content Runtime and will produce a runtime warning.",
                     MessageType.Error);
                 return;
             }
@@ -113,7 +113,7 @@ namespace Immersive.Framework.Editor.Authoring
             if (parentBinding != null)
             {
                 EditorGUILayout.HelpBox(
-                    $"A parent GameObject also has Activity Content Binding: '{parentBinding.gameObject.name}'. Nested Activity content policy does not exist yet. Keep Activity content roots flat for now.",
+                    $"A parent GameObject also has Activity Local Visibility Adapter: '{parentBinding.gameObject.name}'. Nested Activity local visibility adapter policy does not exist yet. Keep Activity local visibility adapter roots flat for now.",
                     MessageType.Warning);
             }
 
@@ -121,7 +121,7 @@ namespace Immersive.Framework.Editor.Authoring
             if (childBindingCount > 0)
             {
                 EditorGUILayout.HelpBox(
-                    $"This GameObject contains {childBindingCount} child Activity Content Binding component(s). Nested Activity content policy does not exist yet. Keep Activity content roots flat for now.",
+                    $"This GameObject contains {childBindingCount} child Activity Local Visibility Adapter component(s). Nested Activity local visibility adapter policy does not exist yet. Keep Activity local visibility adapter roots flat for now.",
                     MessageType.Warning);
             }
         }

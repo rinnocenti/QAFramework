@@ -81,11 +81,14 @@ Smoke valida.
 | 47 | [`F4C_CLOSURE.md`](F4C_CLOSURE.md) | Fechamento do F4C por compile-smoke. |
 | 48 | [`ACTIVITY_READINESS_STATE_MINIMAL.md`](ACTIVITY_READINESS_STATE_MINIMAL.md) | Corte técnico F4D: `ActivityReadinessState` mínimo. |
 | 49 | [`F4D_CLOSURE.md`](F4D_CLOSURE.md) | Fechamento do F4D por compile-smoke. |
-| 50 | [`ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md`](ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md) | Corte F4E: reclassificação do `ActivityContentBinding`. |
+| 50 | [`ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md`](ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md) | Corte F4E: `ActivityLocalVisibilityAdapter`. |
 | 51 | [`F4E_CLOSURE.md`](F4E_CLOSURE.md) | Fechamento do F4E por compile-smoke. |
 | 52 | [`ACTIVITY_BASELINE_SMOKE.md`](ACTIVITY_BASELINE_SMOKE.md) | Corte F4F: smoke dedicado de Activity baseline. |
-| 53 | [`Guides/`](Guides/) | Guias de uso/visualização. |
-| 54 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
+| 53 | [`F4F_CLOSURE.md`](F4F_CLOSURE.md) | Fechamento do F4F por compile-smoke. |
+| 54 | [`F4G_CLOSURE_HYGIENE.md`](F4G_CLOSURE_HYGIENE.md) | Higiene pré-fechamento da Fase 4. |
+| 55 | [`F4_CLOSURE.md`](F4_CLOSURE.md) | Fechamento técnico da Fase 4. |
+| 56 | [`Guides/`](Guides/) | Guias de uso/visualização. |
+| 57 | [`ADR-TEMPLATE.md`](ADR-TEMPLATE.md) | Template para novos ADRs. |
 
 ---
 
@@ -353,7 +356,10 @@ Este corte implementa `IF-FW-ROAD-3E` adicionando o smoke explícito `Run Route 
 | F4B | [`ACTIVITY_CONTENT_SET_MINIMAL.md`](ACTIVITY_CONTENT_SET_MINIMAL.md) / [`F4B_CLOSURE.md`](F4B_CLOSURE.md) | Closed / Compile-smoke pass |
 | F4C | [`ACTIVITY_CONTENT_LIFECYCLE_RESULT.md`](ACTIVITY_CONTENT_LIFECYCLE_RESULT.md) / [`F4C_CLOSURE.md`](F4C_CLOSURE.md) | Closed / Compile-smoke pass |
 | F4D | [`ACTIVITY_READINESS_STATE_MINIMAL.md`](ACTIVITY_READINESS_STATE_MINIMAL.md) / [`F4D_CLOSURE.md`](F4D_CLOSURE.md) | Closed / Compile-smoke pass |
-| F4E | [`ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md`](ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md) | Applied / Pending compile-smoke |
+| F4E | [`ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md`](ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md) / [`F4E_CLOSURE.md`](F4E_CLOSURE.md) | Closed / Compile-smoke pass |
+| F4F | [`ACTIVITY_BASELINE_SMOKE.md`](ACTIVITY_BASELINE_SMOKE.md) / [`F4F_CLOSURE.md`](F4F_CLOSURE.md) | Closed / Compile-smoke pass |
+| F4G | [`F4G_CLOSURE_HYGIENE.md`](F4G_CLOSURE_HYGIENE.md) | Applied / Pending compile-smoke |
+| F4 | [`F4_CLOSURE.md`](F4_CLOSURE.md) | Ready to close / Pending F4G compile-smoke |
 
 | Ordem no Plano | ADR | Título | Status | Tipo | Escopo | Arquivo |
 |---|---|---|---|---|---|---|

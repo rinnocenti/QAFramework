@@ -3,7 +3,7 @@
 Status: CLOSED / COMPILE-SMOKE PASS  
 Fase: F4  
 Corte: F4E  
-Roadmap: IF-FW-ROAD-4E — Reclassificar ActivityContentBinding
+Roadmap: IF-FW-ROAD-4E — Reclassificar Activity Local Visibility Adapter
 
 ---
 
@@ -18,19 +18,19 @@ ActivityContentLifecycleResult
 ActivityReadinessState
 ```
 
-O componente `ActivityContentBinding` continuava correto tecnicamente, mas o nome de uso podia sugerir que ele era a materialização canônica da Activity.
+O componente de visibilidade local de Activity precisava ter nome coerente com seu papel real para não sugerir materialização canônica da Activity.
 
 Isso ainda não é verdade nesta fase.
 
 ## Decisão
 
-Em F4E, `ActivityContentBinding` passa a ser tratado como:
+Em F4E, o componente passa a ser tratado como:
 
 ```text
 Activity Local Visibility Adapter
 ```
 
-A classe C# permanece `ActivityContentBinding` para não quebrar assets e serialização já criados.
+No fechamento de F4, a classe C# foi renomeada para `ActivityLocalVisibilityAdapter`, preservando o `.meta`/GUID pelo fluxo de rename seguro da Unity/IDE.
 
 O papel semântico é:
 
@@ -75,7 +75,7 @@ Activity Local Visibility Adapter diagnostics
 Activity Local Visibility Adapter warning
 ```
 
-O resultado de runtime continua sendo `ActivityContentApplyResult`, porque ele ainda pertence ao baseline de Activity Content.
+O resultado de runtime continua sendo `ActivityContentApplyResult`, porque ele ainda pertence ao baseline de Activity Content. O adapter local é apenas a superfície scene-authored desse baseline.
 
 ## Critério de smoke
 

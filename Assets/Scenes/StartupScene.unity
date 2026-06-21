@@ -336,7 +336,7 @@ GameObject:
   - component: {fileID: 554083603}
   - component: {fileID: 554083602}
   m_Layer: 0
-  m_Name: Activity Content Binding
+  m_Name: Local Visibility Adapter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

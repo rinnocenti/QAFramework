@@ -97,7 +97,7 @@ ADR status uses Accepted.
 Cut/phase status uses Closed / PASS or Closed / Accepted.
 ```
 
-F0 is closed. F1 is closed. F2 is closed. F3 Route baseline is closed. F4 Activity baseline is open with F4A, F4B, F4C, F4D and F4E closed, and F4F applied/pending smoke. Do not skip directly to Surface, RuntimeMaterialization or consumers.
+F0 is closed. F1 is closed. F2 is closed. F3 Route baseline is closed. F4 Activity baseline is functionally validated through F4F. F4G closure hygiene is applied/pending compile-smoke before F5. Do not skip directly to Surface, RuntimeMaterialization or consumers.
 
 
 ## F4A — ActivityRuntimeState refinado
@@ -225,10 +225,10 @@ Documentation~/F4D_CLOSURE.md
 F4E implements the roadmap item:
 
 ```text
-IF-FW-ROAD-4E — Reclassificar ActivityContentBinding
+IF-FW-ROAD-4E — Reclassificar Activity Local Visibility Adapter
 ```
 
-`ActivityContentBinding` remains the serialized C# component name, but its authoring role is now documented and exposed as `Activity Local Visibility Adapter`: a scene-authored adapter that toggles a local GameObject for the active Activity. It is not canonical Activity materialization.
+`ActivityLocalVisibilityAdapter` is the C# component and authoring surface for scene-authored local visibility toggling. It is not canonical Activity materialization.
 
 Status:
 
@@ -262,7 +262,7 @@ The smoke validates Activity switch, ActivityContentSet, ActivityReadinessState,
 Status:
 
 ```text
-F4F — APPLIED / PENDING COMPILE-SMOKE
+F4F — CLOSED / COMPILE-SMOKE PASS
 ```
 
 See:

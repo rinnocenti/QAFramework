@@ -318,13 +318,14 @@ Objetivo: amadurecer Activity sem copiar `ActivityEntryPipeline`.
 Status atual:
 
 ```text
-F4 — OPEN
+F4 — READY TO CLOSE / PENDING F4G COMPILE-SMOKE
 F4A — CLOSED / COMPILE-SMOKE PASS
 F4B — CLOSED / COMPILE-SMOKE PASS
 F4C — CLOSED / COMPILE-SMOKE PASS
 F4D — CLOSED / COMPILE-SMOKE PASS
 F4E — CLOSED / COMPILE-SMOKE PASS
-F4F — APPLIED / PENDING COMPILE-SMOKE
+F4F — CLOSED / COMPILE-SMOKE PASS
+F4G — APPLIED / PENDING COMPILE-SMOKE
 ```
 
 | ID | Entrega | Detalhes |
@@ -333,8 +334,9 @@ F4F — APPLIED / PENDING COMPILE-SMOKE
 | IF-FW-ROAD-4B | `ActivityContentSet` mínimo | CLOSED em F4B. Snapshot de conteúdo scene-authored local registrado para a Activity ativa; sem profile loading/materialization/release. |
 | IF-FW-ROAD-4C | `ActivityContentLifecycleResult` | CLOSED em F4C. Resultado agregado de callbacks locais enter/exit, com contagem de bindings, receivers e falhas. |
 | IF-FW-ROAD-4D | `ActivityReadinessState` mínimo | CLOSED em F4D. Readiness mínimo `Ready`/`None`/`NotReady` após aplicação baseline de Activity Content. |
-| IF-FW-ROAD-4E | Reclassificar `ActivityLocalVisibilityAdapter` | CLOSED em F4E. `ActivityLocalVisibilityAdapter` permanece como classe serializada, mas passa a ser tratado no authoring como Activity Local Visibility Adapter, não materialização canônica. |
-| IF-FW-ROAD-4F | Activity smoke | APPLIED em F4F. `Run Activity Baseline Smoke` valida switch → content set → readiness → clear → restore. |
+| IF-FW-ROAD-4E | Reclassificar `ActivityLocalVisibilityAdapter` | CLOSED em F4E. `ActivityLocalVisibilityAdapter` é classe C# e authoring surface do adapter local de visibilidade; não é materialização canônica. |
+| IF-FW-ROAD-4F | Activity smoke | CLOSED em F4F. `Run Activity Baseline Smoke` valida switch → content set → readiness → clear → restore. |
+| IF-FW-ROAD-4G | F4 closure hygiene | APPLIED em F4G / PENDING COMPILE-SMOKE. Remove warning redundante do Activity Baseline Smoke, alinha mensagens do Activity Local Visibility Adapter e prepara fechamento formal da F4. |
 
 ### Não entra
 
@@ -342,6 +344,8 @@ F4F — APPLIED / PENDING COMPILE-SMOKE
 - Actor/input/camera.
 - Reset/snapshot/release.
 - Local contribution inventory.
+
+Nota de fronteira: `ActivityContentSet` em F4 é snapshot local/diagnóstico de adapters de visibilidade. `LocalContributionSet` em F5 deve definir identidade funcional própria, sem usar nome/path de GameObject ou cena como chave canônica.
 
 ### Done
 
