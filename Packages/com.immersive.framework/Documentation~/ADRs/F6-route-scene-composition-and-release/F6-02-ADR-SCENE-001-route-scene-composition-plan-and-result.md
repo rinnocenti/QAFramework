@@ -1,6 +1,6 @@
 # F6-02 — ADR-SCENE-001 — Route Scene Composition Plan and Result
 
-Status: Accepted / F6C RouteSceneCompositionResult applied / execution not started  
+Status: Accepted / F6D additive primitive applied / route execution not started  
 Fase: F6  
 Ordem no Plano: F6-02  
 Tipo: Scene / Route / Content composition  
@@ -9,6 +9,21 @@ Escopo: Route scene composition
 ---
 
 
+
+## Aplicação F6D
+
+F6D adiciona o primitivo interno de carregamento additive no `SceneLifecycleRuntime`:
+
+```text
+SceneLifecycleRuntime.LoadAdditiveSceneAsync
+SceneLifecycleLoadResult.LoadedAdditiveScene
+```
+
+O primitivo carrega uma cena por nome/path usando `LoadSceneMode.Additive`, detecta cena já carregada, preserva diagnostics de `alreadyLoaded`/`loadMode` e retorna falha explícita quando a cena não pode ser resolvida pelo Build Profile/Shared Scene List.
+
+O corte não conecta `RouteContentProfileAsset` ao fluxo real de Route, não altera o carregamento `Single` da Primary Scene, não descarrega cenas, não cria release e não registra additional scenes no `RouteContentSet`.
+
+---
 
 ## Aplicação F6C
 

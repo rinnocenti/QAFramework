@@ -809,7 +809,8 @@ F5B — CLOSED / STANDARD COMPILE-SMOKE PASS
 F5  — CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS
 F6A — CLOSED / ADR ACCEPTED / DOCS ONLY
 F6B — CLOSED / ROUTE SCENE COMPOSITION PLAN PASS
-F6C — APPLIED / ROUTE SCENE COMPOSITION RESULT PENDING SMOKE
+F6C — CLOSED / ROUTE SCENE COMPOSITION RESULT PASS
+F6D — APPLIED / SCENE LIFECYCLE ADDITIVE PRIMITIVE PENDING SMOKE
 ```
 
 ADR status relevante para a fronteira atual:
@@ -818,7 +819,7 @@ ADR status relevante para a fronteira atual:
 F5-01 — ADR-LOCAL-001 — Local Identity — Accepted
 F5-02 — ADR-LOCAL-002 — Local Contribution Discovery and Requiredness — Applied through F5H / Expected Declarations Deferred
 F6-01 — ADR-RELEASE-001 — Content Release Plan by Scope — Accepted / implementation not started
-F6-02 — ADR-SCENE-001 — Route Scene Composition Plan and Result — Accepted / F6C result applied / execution not started
+F6-02 — ADR-SCENE-001 — Route Scene Composition Plan and Result — Accepted / F6D additive primitive applied / route execution not started
 ```
 
 ## Ação imediata
@@ -826,32 +827,32 @@ F6-02 — ADR-SCENE-001 — Route Scene Composition Plan and Result — Accepted
 O corte atual é:
 
 ```text
-F6C — RouteSceneCompositionResult
+F6D — SceneLifecycle additive primitive
 ```
 
 Escopo aplicado:
 
 ```text
-- manter F6B fechado por smoke;
-- adicionar resultado inerte de Route scene composition;
-- registrar status agregado e status por entry;
-- manter additive execution, release e RouteContentProfileAsset execution fora do corte.
+- manter F6B e F6C fechados por smoke;
+- adicionar primitivo interno de carregamento additive no SceneLifecycleRuntime;
+- retornar SceneLifecycleLoadResult para cenas additive carregadas ou já carregadas;
+- manter RouteContentProfileAsset execution, release e Route composition completa fora do corte.
 ```
 
 Próximo passo autorizado após compile/smoke:
 
 ```text
-F6D — SceneLifecycle additive primitive
+F6E — RouteContentProfileAsset execution
 ```
 
-F6C deve ser inerte/puro: cria o resultado, mas não carrega additive scenes, não libera conteúdo e não altera lifecycle runtime.
+F6D deve ser um primitive cut: cria capacidade interna de loading additive, mas não muda o fluxo real de Route ainda.
 
 ## Não avançar ainda
 
 ```text
 Expected contribution declarations
 Materialização canônica
-Additive execution antes de F6D
+RouteContentProfileAsset execution antes de F6E
 Release físico antes de F6F
 Surface
 Runtime roots/materialization

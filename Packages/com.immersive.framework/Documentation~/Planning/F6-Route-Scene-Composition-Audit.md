@@ -1,6 +1,6 @@
 # F6 — Route Scene Composition and Release Audit
 
-Status: `F6C ROUTE SCENE COMPOSITION RESULT APPLIED / PENDING COMPILE-SMOKE`  
+Status: `F6D SCENE LIFECYCLE ADDITIVE PRIMITIVE APPLIED / PENDING COMPILE-SMOKE`  
 Tipo: planejamento/auditoria documental  
 Escopo: Route scene composition, additive scene loading e release por escopo
 
@@ -67,6 +67,15 @@ RouteSceneCompositionEntryStatus
 
 F6C é inerte: cria dados de resultado para registrar evidência de composição depois da execução, mas ainda não executa additive loading, não altera SceneLifecycleRuntime e não cria release. O resultado diferencia loaded, already loaded, skipped, failed e not executed, preservando contagem de issues e blocking issues para o executor futuro.
 
+### Aplicado em F6D
+
+```text
+SceneLifecycleRuntime.LoadAdditiveSceneAsync
+SceneLifecycleLoadResult.LoadedAdditiveScene
+```
+
+F6D adiciona apenas o primitivo interno de carregamento additive. Ele valida cena vazia, verifica se a cena já está carregada, carrega via `LoadSceneMode.Additive` quando necessário, resolve a cena carregada e retorna `SceneLifecycleLoadResult` com `Loaded`, `AlreadyLoaded`, `SceneName`, `ScenePath`, `LoadMode` e mensagem diagnóstica. Ele não é consumido ainda por `RouteLifecycleRuntime`, não executa `RouteContentProfileAsset`, não registra additional scene em `RouteContentSet` e não descarrega cenas.
+
 ### Presente
 
 ```text
@@ -86,7 +95,6 @@ RouteExitResult mínimo
 
 ```text
 Additive scene execution
-SceneLifecycle additive primitive
 RouteContentProfileAsset execution
 ContentReleasePlan
 ContentReleaseResult
@@ -159,7 +167,7 @@ Exit callbacks da Route anterior devem rodar antes do release da Route anterior.
 | ADR | Status | Decisão central |
 |---|---|---|
 | `F6-01 — ADR-RELEASE-001` | `Accepted / implementation not started` | Release será por `ContentReleasePlan`/`ContentReleaseResult`, guiado por ownership explícito. |
-| `F6-02 — ADR-SCENE-001` | `Accepted / F6C result applied / execution not started` | Route scene composition usa `RouteSceneCompositionPlan`/`RouteSceneCompositionResult`, antes de additive execution. |
+| `F6-02 — ADR-SCENE-001` | `Accepted / F6D additive primitive applied / route execution not started` | Route scene composition usa `RouteSceneCompositionPlan`/`RouteSceneCompositionResult`; additive primitive existe, mas Route profile execution ainda não está conectado. |
 
 ---
 
@@ -168,8 +176,8 @@ Exit callbacks da Route anterior devem rodar antes do release da Route anterior.
 ```text
 F6A — ADR completion and audit                  [docs-only]
 F6B — RouteSceneCompositionPlan                 [runtime inert/pure] [CLOSED / PASS]
-F6C — RouteSceneCompositionResult               [runtime inert/result] [APPLIED / PENDING COMPILE-SMOKE]
-F6D — SceneLifecycle additive primitive         [runtime execution primitive]
+F6C — RouteSceneCompositionResult               [runtime inert/result] [CLOSED / PASS]
+F6D — SceneLifecycle additive primitive         [runtime execution primitive] [APPLIED / PENDING COMPILE-SMOKE]
 F6E — RouteContentProfileAsset execution        [route profile → composition]
 F6F — ContentReleasePlan / ContentReleaseResult [release planning/execution]
 F6G — Scene/release smoke                       [QA]
@@ -177,16 +185,16 @@ F6G — Scene/release smoke                       [QA]
 
 ---
 
-## Critério para fechar F6C
+## Critério para fechar F6D
 
-F6C pode ser fechado quando o package compilar no Unity e o smoke baseline continuar sem regressão. O corte deve permanecer limitado ao result inerte. Não deve carregar additive scenes, descarregar cenas ou criar release ainda.
+F6D pode ser fechado quando o package compilar no Unity e o smoke baseline continuar sem regressão. O corte deve permanecer limitado ao primitivo interno de additive loading. Não deve conectar `RouteContentProfileAsset` ao fluxo de Route, descarregar cenas ou criar release ainda.
 
 ---
 
-## Não autorizado pela F6C
+## Não autorizado pela F6D
 
 ```text
-Additive execution antes de F6D
+RouteContentProfileAsset execution antes de F6E
 Release físico antes de ContentReleasePlan
 Surface
 RuntimeRootRegistry

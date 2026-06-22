@@ -55,5 +55,20 @@ namespace Immersive.Framework.SceneLifecycle
                 alreadyLoaded,
                 loadMode);
         }
+
+        public static SceneLifecycleLoadResult LoadedAdditiveScene(
+            string sceneName,
+            string scenePath,
+            bool alreadyLoaded,
+            string loadMode)
+        {
+            return new SceneLifecycleLoadResult(
+                true,
+                $"Scene Lifecycle resolved Additive Scene '{sceneName}'. alreadyLoaded='{alreadyLoaded}'. loadMode='{loadMode}'.",
+                sceneName,
+                scenePath,
+                alreadyLoaded,
+                loadMode);
+        }
     }
 }

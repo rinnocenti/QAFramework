@@ -16,6 +16,7 @@ namespace Immersive.Framework.SceneLifecycle
     {
         private const string AlreadyLoadedMode = "AlreadyLoaded";
         private const string SingleLoadMode = "Single";
+        private const string AdditiveLoadMode = "Additive";
 
         internal async Task<SceneLifecycleLoadResult> LoadPrimarySceneAsync(RouteAsset route)
         {
@@ -80,21 +81,90 @@ namespace Immersive.Framework.SceneLifecycle
             return SceneLifecycleLoadResult.LoadedPrimaryScene(sceneName, scenePath, alreadyLoaded, loadMode);
         }
 
-        private static async Task<SceneLifecycleLoadResult> TryLoadSceneSingleAsync(string scenePath, string sceneName)
+
+        internal async Task<SceneLifecycleLoadResult> LoadAdditiveSceneAsync(string sceneName, string scenePath)
         {
+            sceneName = Normalize(sceneName);
+            scenePath = Normalize(scenePath);
+            if (string.IsNullOrWhiteSpace(sceneName) && string.IsNullOrWhiteSpace(scenePath))
+            {
+                return SceneLifecycleLoadResult.Failed("Scene Lifecycle cannot load Additive Scene because scene name and path are empty.");
+            }
+
+            var loadedScene = FindLoadedScene(scenePath, sceneName);
+            if (loadedScene.IsValid() && loadedScene.isLoaded)
+            {
+                return SceneLifecycleLoadResult.LoadedAdditiveScene(
+                    GetSceneNameForDiagnostics(loadedScene, sceneName),
+                    GetScenePathForDiagnostics(loadedScene, scenePath),
+                    true,
+                    AlreadyLoadedMode);
+            }
+
+            var loadResult = await TryLoadSceneAdditiveAsync(scenePath, sceneName);
+            if (!loadResult.Loaded)
+            {
+                return loadResult;
+            }
+
+            loadedScene = FindLoadedScene(scenePath, sceneName);
+            if (!loadedScene.IsValid() || !loadedScene.isLoaded)
+            {
+                return SceneLifecycleLoadResult.Failed(
+                    $"Scene Lifecycle could not resolve loaded Additive Scene '{ResolveSceneLabel(scenePath, sceneName)}' after load.");
+            }
+
+            return SceneLifecycleLoadResult.LoadedAdditiveScene(
+                GetSceneNameForDiagnostics(loadedScene, sceneName),
+                GetScenePathForDiagnostics(loadedScene, scenePath),
+                false,
+                AdditiveLoadMode);
+        }
+
+        private static Task<SceneLifecycleLoadResult> TryLoadSceneSingleAsync(string scenePath, string sceneName)
+        {
+            return TryLoadSceneAsync(
+                scenePath,
+                sceneName,
+                LoadSceneMode.Single,
+                "Primary Scene",
+                SingleLoadMode,
+                SceneLifecycleLoadResult.LoadedPrimaryScene);
+        }
+
+        private static Task<SceneLifecycleLoadResult> TryLoadSceneAdditiveAsync(string scenePath, string sceneName)
+        {
+            return TryLoadSceneAsync(
+                scenePath,
+                sceneName,
+                LoadSceneMode.Additive,
+                "Additive Scene",
+                AdditiveLoadMode,
+                SceneLifecycleLoadResult.LoadedAdditiveScene);
+        }
+
+        private static async Task<SceneLifecycleLoadResult> TryLoadSceneAsync(
+            string scenePath,
+            string sceneName,
+            LoadSceneMode sceneLoadMode,
+            string sceneRoleLabel,
+            string resultLoadMode,
+            Func<string, string, bool, string, SceneLifecycleLoadResult> createLoadedResult)
+        {
+            var sceneLabel = ResolveSceneLabel(scenePath, sceneName);
             if (!TryGetLoadSceneIdentifier(scenePath, sceneName, out string sceneIdentifier))
             {
                 return SceneLifecycleLoadResult.Failed(
-                    $"Scene Lifecycle cannot load Primary Scene '{sceneName}'. Add it to the active Build Profile or Shared Scene List.");
+                    $"Scene Lifecycle cannot load {sceneRoleLabel} '{sceneLabel}'. Add it to the active Build Profile or Shared Scene List.");
             }
 
             try
             {
-                var operation = SceneManager.LoadSceneAsync(sceneIdentifier, LoadSceneMode.Single);
+                var operation = SceneManager.LoadSceneAsync(sceneIdentifier, sceneLoadMode);
                 if (operation == null)
                 {
                     return SceneLifecycleLoadResult.Failed(
-                        $"Scene Lifecycle failed to start loading Primary Scene '{sceneName}'. Make sure the scene is included in Build Settings.");
+                        $"Scene Lifecycle failed to start loading {sceneRoleLabel} '{sceneLabel}'. Make sure the scene is included in Build Settings.");
                 }
 
                 while (!operation.isDone)
@@ -102,12 +172,12 @@ namespace Immersive.Framework.SceneLifecycle
                     await Task.Yield();
                 }
 
-                return SceneLifecycleLoadResult.LoadedPrimaryScene(sceneName, scenePath, false, SingleLoadMode);
+                return createLoadedResult(sceneName, scenePath, false, resultLoadMode);
             }
             catch (Exception exception)
             {
                 return SceneLifecycleLoadResult.Failed(
-                    $"Scene Lifecycle failed to load Primary Scene '{sceneName}'. {exception.GetType().Name}: {exception.Message}");
+                    $"Scene Lifecycle failed to load {sceneRoleLabel} '{sceneLabel}'. {exception.GetType().Name}: {exception.Message}");
             }
         }
 
@@ -141,6 +211,46 @@ namespace Immersive.Framework.SceneLifecycle
             }
 
             return SceneManager.GetSceneByName(sceneName);
+        }
+
+        private static string GetSceneNameForDiagnostics(Scene scene, string fallbackSceneName)
+        {
+            if (scene.IsValid() && !string.IsNullOrWhiteSpace(scene.name))
+            {
+                return scene.name;
+            }
+
+            return Normalize(fallbackSceneName);
+        }
+
+        private static string GetScenePathForDiagnostics(Scene scene, string fallbackScenePath)
+        {
+            if (scene.IsValid() && !string.IsNullOrWhiteSpace(scene.path))
+            {
+                return scene.path;
+            }
+
+            return Normalize(fallbackScenePath);
+        }
+
+        private static string ResolveSceneLabel(string scenePath, string sceneName)
+        {
+            if (!string.IsNullOrWhiteSpace(sceneName))
+            {
+                return sceneName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(scenePath))
+            {
+                return scenePath;
+            }
+
+            return "<missing>";
+        }
+
+        private static string Normalize(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
         }
 
         private static bool IsSceneMatch(Scene scene, string scenePath, string sceneName)
