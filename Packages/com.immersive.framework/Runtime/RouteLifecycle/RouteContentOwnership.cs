@@ -15,7 +15,7 @@ namespace Immersive.Framework.RouteLifecycle
         Registered = 0,
 
         /// <summary>
-        /// The Route owns the item in the current baseline semantics. Real release remains a later roadmap concern.
+        /// The Route owns the item in the current baseline semantics. F6F can translate this to release intent; physical release remains a later cut concern.
         /// </summary>
         Owned = 1,
 

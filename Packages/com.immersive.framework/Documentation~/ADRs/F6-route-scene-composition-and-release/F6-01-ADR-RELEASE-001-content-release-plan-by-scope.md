@@ -1,6 +1,6 @@
 # F6-01 — ADR-RELEASE-001 — Content Release Plan by Scope
 
-Status: Accepted / F6 implementation not started  
+Status: Accepted / F6F release plan-result model applied / physical unload pending  
 Fase: F6  
 Ordem no Plano: F6-01  
 Tipo: Release / Ownership / Lifecycle cleanup  
@@ -256,7 +256,7 @@ Esses itens dependem de F8-F11.
 
 ## Critérios de validação
 
-F6 release só pode ser considerado pronto quando houver smoke comprovando:
+F6 release completo só pode ser considerado pronto quando houver smoke comprovando:
 
 ```text
 Route exit gera ContentReleasePlan.
@@ -276,8 +276,8 @@ Standard Smoke e Route Callback Smoke continuam passando.
 Este ADR autoriza os cortes F6 relacionados a release:
 
 ```text
-F6F — ContentReleasePlan / ContentReleaseResult
-F6G — Scene/release smoke
+F6F — ContentReleasePlan / ContentReleaseResult [model/planning, no physical unload]
+F6G — Scene/release smoke [physical unload execution + QA]
 ```
 
 Ele não autoriza F8 runtime materialization, F9 Surface binding ou F11 Pooling/Actor release.
@@ -302,3 +302,35 @@ F8-01 — Runtime ownership and roots
 F8-02 — Materialization request/result/handle
 F11-04 — Pooling package boundary
 ```
+
+
+---
+
+## Implementação F6F
+
+F6F aplica o modelo inicial sem executar side effects físicos.
+
+Entraram no runtime:
+
+```text
+ContentReleasePlan
+ContentReleasePlanEntry
+ContentReleaseResult
+ContentReleaseResultEntry
+ContentReleaseAction
+ContentReleaseOwnership
+ContentReleaseStatus
+ContentReleaseEntryStatus
+RouteContentSet.CreateReleasePlan
+```
+
+Política aplicada pelo builder de Route:
+
+```text
+Primary Scene ativa -> action None; continua controlada por LoadSceneMode.Single.
+Owned additive Route Scene -> action UnloadScene planejada.
+Registered content -> action None.
+DiagnosticOnly content -> action None.
+```
+
+`ContentReleaseResult.NotExecutedResult` existe para preservar evidência estruturada antes da execução. F6F não chama `SceneManager.UnloadSceneAsync`, não destrói GameObjects, não retorna objetos a pool e não altera a ordem de troca de Route.

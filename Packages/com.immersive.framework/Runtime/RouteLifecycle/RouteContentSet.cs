@@ -10,7 +10,7 @@ namespace Immersive.Framework.RouteLifecycle
 {
     /// <summary>
     /// Route-owned content snapshot for the active Route scope.
-    /// This baseline records the loaded primary scene with explicit ownership semantics; additional scenes/prefabs come later.
+    /// This baseline records the loaded primary scene with explicit ownership semantics; additional scenes are represented by F6 scene composition; release planning is introduced in F6F.
     /// </summary>
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     internal readonly struct RouteContentSet
@@ -193,6 +193,115 @@ namespace Immersive.Framework.RouteLifecycle
                 new FrameworkContentSet(FrameworkContentScope.Route, ownerId, route.RouteName, handles),
                 contentPlan,
                 entries);
+        }
+
+
+        public ContentReleasePlan CreateReleasePlan(
+            string source,
+            string reason)
+        {
+            if (!HasContent)
+            {
+                return ContentReleasePlan.Empty(
+                    FrameworkContentScope.Route,
+                    ContentSet.OwnerId,
+                    ContentSet.OwnerName,
+                    source,
+                    reason,
+                    "Route Content Set is empty; no Route content release entries were planned.");
+            }
+
+            var releaseEntries = new List<ContentReleasePlanEntry>(Entries.Count);
+            for (var i = 0; i < Entries.Count; i++)
+            {
+                var entry = Entries[i];
+                var releaseOwnership = ToReleaseOwnership(entry.Ownership);
+                var action = DetermineReleaseAction(entry);
+                releaseEntries.Add(new ContentReleasePlanEntry(
+                    entry.Handle,
+                    releaseOwnership,
+                    action,
+                    BuildReleasePlanEntryMessage(entry, action)));
+            }
+
+            return new ContentReleasePlan(
+                FrameworkContentScope.Route,
+                ContentSet.OwnerId,
+                ContentSet.OwnerName,
+                releaseEntries,
+                source,
+                reason,
+                "Route content release plan created from active Route Content Set.");
+        }
+
+        private static ContentReleaseOwnership ToReleaseOwnership(RouteContentOwnership ownership)
+        {
+            switch (ownership)
+            {
+                case RouteContentOwnership.Owned:
+                    return ContentReleaseOwnership.Owned;
+                case RouteContentOwnership.DiagnosticOnly:
+                    return ContentReleaseOwnership.DiagnosticOnly;
+                default:
+                    return ContentReleaseOwnership.Registered;
+            }
+        }
+
+        private static ContentReleaseAction DetermineReleaseAction(RouteContentEntry entry)
+        {
+            if (!entry.IsOwned)
+            {
+                return ContentReleaseAction.None;
+            }
+
+            if (entry.Handle.Kind != FrameworkContentKind.Scene)
+            {
+                return ContentReleaseAction.None;
+            }
+
+            if (entry.Handle.Active)
+            {
+                return ContentReleaseAction.None;
+            }
+
+            if (!entry.Handle.HasResource)
+            {
+                return ContentReleaseAction.None;
+            }
+
+            return ContentReleaseAction.UnloadScene;
+        }
+
+        private static string BuildReleasePlanEntryMessage(
+            RouteContentEntry entry,
+            ContentReleaseAction action)
+        {
+            if (!entry.IsOwned)
+            {
+                return "Route content is not Owned; release action is not planned.";
+            }
+
+            if (entry.Handle.Kind != FrameworkContentKind.Scene)
+            {
+                return "Only scene unload release actions are planned in F6F.";
+            }
+
+            if (entry.Handle.Active)
+            {
+                return "Active Primary Scene is controlled by LoadSceneMode.Single; manual unload is not planned.";
+            }
+
+            if (!entry.Handle.HasResource)
+            {
+                return "Scene content has no resolvable resource; release action is not planned.";
+            }
+
+            if (action == ContentReleaseAction.UnloadScene)
+            {
+                return "Owned additive Route scene is planned for unload on Route release.";
+            }
+
+            return "Release action is not planned.";
         }
 
         private static string CreateRouteOwnerId(RouteAsset route)

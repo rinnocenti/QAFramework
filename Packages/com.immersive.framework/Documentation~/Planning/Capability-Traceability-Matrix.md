@@ -96,7 +96,7 @@ Regras:
 | Route validator expansion | Detectar configuração incorreta de Route Content | F3 | F3 | IF-FW-ROAD-3F | Implementado em F3G/F3G1 / Smoke PASS | Coberto | Editor / QA | F3F fechado | Baixo / controlado | Valida `RouteContentBinding` em cenas carregadas via QA: Route ausente, Route de cena errada e receivers ausentes. Inspector fica reduzido a tooltip; F3 fechada. |
 | Route contribution set | Redesenhar como `RouteContributionSet` | F5+ | F5/F7/F10+ | F7 via Surface | Parcial / Ausente | Coberto com ajuste / Deferred | Core | Route baseline + Content identity | Baixo / controlado | Contribution genérico em F5; surfaces em F7; consumers reais depois. |
 | Route surface set | Redesenhar como `RouteSurfaceSet` | F7 | F7 | IF-FW-ROAD-7G | Parcial / Ausente | Coberto, mas com correção | Core | LocalContributionSet para discovery; Runtime binding só na F9 | Baixo / controlado | Correto. |
-| Content release plan | Preservar como `ContentReleasePlan` | F6 | F6 | IF-FW-ROAD-6F | ADR aceito / implementação ausente | F6A fechado; F6F futuro | Core | Scene composition result + ownership explícito | Baixo / controlado | Release físico só depois de composition/result; LocalContributionHandle não é release handle. |
+| Content release plan | Preservar como `ContentReleasePlan` | F6 | F6 | IF-FW-ROAD-6F | Modelo aplicado / unload físico pendente | F6F aplicado; F6G futuro | Core | Scene composition result + ownership explícito | Baixo / controlado | Release físico só depois de composition/result; LocalContributionHandle não é release handle. |
 
 ### Activity
 | Capacidade | Decisão | Fase original | Fase revisada | Corte | Status package | Status roadmap | Prioridade | Bloqueadores | Risco | Observação |
@@ -717,7 +717,7 @@ Antes de abrir um corte técnico, responder:
 | **F3** | Route asset, Route runtime state, Route exit result, Route primary scene, Route → Activity handoff, Route startup activity policy |
 | **F4** | Activity asset, Activity content profile, Activity runtime state, Activity entry context, Activity content set, Activity content lifecycle result, Readiness gate, Activity exit plan |
 | **F5** | Local content identity, explicit local ids on existing bindings, scoped loaded discovery, LocalContributionSet, Requiredness metadata, LocalContributionValidator, Local Contribution Smoke |
-| **F6** | F6A ADR completion accepted; F6B RouteSceneCompositionPlan; F6C RouteSceneCompositionResult; F6D Additive scene loading; F6E Route content profile execution; F6F ContentReleasePlan; F6G Scene/release smoke |
+| **F6** | F6A ADR completion accepted; F6B RouteSceneCompositionPlan; F6C RouteSceneCompositionResult; F6D Additive scene loading; F6E Route content profile execution closed by profile smoke; F6F ContentReleasePlan/Result model applied; F6G Scene/release execution smoke pending |
 | **F7** | Surface identity, Surface root, Surface slot, Surface anchor, Surface endpoint, Surface set por scope, Duplicate detection, Overlay root vs content root, Local slots/anchors |
 | **F8** | Runtime scope root, Runtime root registry, Materialization request/result, Runtime content handle, Prefab materializer, Runtime release policy, Destroy policy, Runtime identity, Local release participant, Exit freeze |
 | **F9** | Surface binding request/result, Surface content handle, Runtime surface binding, Spawn origin/slot, Surface lifecycle policy, Pause content materialization |

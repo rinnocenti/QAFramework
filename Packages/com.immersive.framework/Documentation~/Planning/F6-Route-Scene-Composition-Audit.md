@@ -1,6 +1,6 @@
 # F6 — Route Scene Composition and Release Audit
 
-Status: `F6E ROUTE CONTENT PROFILE EXECUTION APPLIED / BASELINE SMOKE PASS / PROFILE SMOKE PENDING`  
+Status: `F6F CONTENT RELEASE PLAN/RESULT APPLIED / PENDING COMPILE-SMOKE`  
 Tipo: planejamento/auditoria documental  
 Escopo: Route scene composition, additive scene loading e release por escopo
 
@@ -84,7 +84,24 @@ RouteLifecycleRuntime -> RouteSceneCompositionPlan -> RouteSceneCompositionResul
 RouteContentSet.FromSceneCompositionResult
 ```
 
-F6E conecta a execução de `RouteContentProfileAsset` ao fluxo de Route. O runtime monta `RouteSceneCompositionPlan`, carrega a Primary Scene em `Single`, carrega additional scenes válidas em `Additive`, produz `RouteSceneCompositionResult` e registra cenas carregadas em `RouteContentSet`. Required additional scene inválida ou com load failure bloqueia a Route composition. Optional inválida/falha é registrada como issue não bloqueante. F6E ainda não descarrega cenas e não cria ContentReleasePlan/Result. O baseline sem profile passou com `routeSceneLoaded='1'`; falta evidência com profile/additional scene carregando `routeSceneLoaded > 1`.
+F6E conecta a execução de `RouteContentProfileAsset` ao fluxo de Route. O runtime monta `RouteSceneCompositionPlan`, carrega a Primary Scene em `Single`, carrega additional scenes válidas em `Additive`, produz `RouteSceneCompositionResult` e registra cenas carregadas em `RouteContentSet`. Required additional scene inválida ou com load failure bloqueia a Route composition. Optional inválida/falha é registrada como issue não bloqueante. F6E foi validado com profile/additional scene: `routeSceneLoaded='2'`, `routeSceneOwnedLoaded='2'`, `routeSceneFailed='0'`, `routeSceneBlockingIssues='0'` e `routeContentHandles='2'`. F6E ainda não descarrega cenas.
+
+
+### Aplicado em F6F
+
+```text
+ContentReleasePlan
+ContentReleasePlanEntry
+ContentReleaseResult
+ContentReleaseResultEntry
+ContentReleaseAction
+ContentReleaseOwnership
+ContentReleaseStatus
+ContentReleaseEntryStatus
+RouteContentSet.CreateReleasePlan
+```
+
+F6F introduz o modelo estruturado de release por escopo e o primeiro builder de plano a partir do `RouteContentSet`. O corte é side-effect free: cria intenção de release e resultado `NotExecuted`, mas não descarrega cenas, não destrói objetos e não altera a ordem runtime de troca de Route. A política aplicada ao plano é: Primary Scene ativa continua controlada por `LoadSceneMode.Single` e não recebe unload manual; additional Route scene carregada como `Owned` recebe ação planejada `UnloadScene`; conteúdo `Registered` e `DiagnosticOnly` não recebe release action.
 
 ### Presente
 
@@ -104,9 +121,7 @@ RouteExitResult mínimo
 ### Ausente
 
 ```text
-ContentReleasePlan
-ContentReleaseResult
-Additive scene unload/release
+Additive scene unload/release físico
 Expected contribution asset
 RuntimeContentHandle avançado
 RuntimeRootRegistry
@@ -123,7 +138,7 @@ O asset agora declara additional scenes consumidas por Route scene composition, 
 Decisão de F6:
 
 ```text
-RouteContentProfileAsset execution carrega additional scenes; release físico começa somente em F6F com ContentReleasePlan/Result.
+RouteContentProfileAsset execution carrega additional scenes; F6F cria ContentReleasePlan/Result e o release físico fica para o corte executor seguinte.
 ```
 
 ### 2. Fallback de content id em RouteContentSceneEntry
@@ -174,8 +189,8 @@ Exit callbacks da Route anterior devem rodar antes do release da Route anterior.
 
 | ADR | Status | Decisão central |
 |---|---|---|
-| `F6-01 — ADR-RELEASE-001` | `Accepted / implementation not started` | Release será por `ContentReleasePlan`/`ContentReleaseResult`, guiado por ownership explícito. |
-| `F6-02 — ADR-SCENE-001` | `Accepted / F6E baseline smoke pass / profile smoke pending` | Route scene composition usa `RouteSceneCompositionPlan`/`RouteSceneCompositionResult`; Route profile execution carrega additional scenes via additive primitive. |
+| `F6-01 — ADR-RELEASE-001` | `Accepted / F6F model applied / physical unload pending` | Release é planejado por `ContentReleasePlan`/`ContentReleaseResult`, guiado por ownership explícito. |
+| `F6-02 — ADR-SCENE-001` | `Accepted / F6E profile smoke pass` | Route scene composition usa `RouteSceneCompositionPlan`/`RouteSceneCompositionResult`; Route profile execution carrega additional scenes via additive primitive. |
 
 ---
 
@@ -186,23 +201,23 @@ F6A — ADR completion and audit                  [docs-only]
 F6B — RouteSceneCompositionPlan                 [runtime inert/pure] [CLOSED / PASS]
 F6C — RouteSceneCompositionResult               [runtime inert/result] [CLOSED / PASS]
 F6D — SceneLifecycle additive primitive         [runtime execution primitive] [CLOSED / PASS]
-F6E — RouteContentProfileAsset execution        [route profile → composition] [BASELINE PASS / PROFILE SMOKE PENDING]
-F6F — ContentReleasePlan / ContentReleaseResult [release planning/execution]
-F6G — Scene/release smoke                       [QA]
+F6E — RouteContentProfileAsset execution        [route profile → composition] [CLOSED / PROFILE SMOKE PASS]
+F6F — ContentReleasePlan / ContentReleaseResult [release planning/result model] [APPLIED / PENDING SMOKE]
+F6G — Scene release execution                   [physical unload + QA]
 ```
 
 ---
 
-## Critério para fechar F6E
+## Critério para fechar F6F
 
-F6E pode ser fechado quando o package compilar no Unity, o smoke baseline continuar sem regressão e o `Route Scene Composition Smoke` confirmar uma Route com `RouteContentProfileAsset` carregando pelo menos uma additional scene. A evidência esperada é `RouteSceneCompositionResult` com `routeSceneLoaded > 1`, `routeSceneBlockingIssues='0'` e `RouteContentSet` com handle adicional. O corte deve permanecer sem unload/release físico.
+F6F pode ser fechado quando o package compilar no Unity e os smokes baseline continuarem sem regressão. Como F6F é modelo/planejamento side-effect free, não deve adicionar unload físico. Evidência esperada: Standard Smoke, Activity Baseline Smoke, Local Contribution Smoke, Route Callback Smoke e Route Scene Composition Smoke continuam passando.
 
 ---
 
-## Não autorizado pela F6E
+## Não autorizado pela F6F
 
 ```text
-Release físico antes de F6F / ContentReleasePlan
+Release físico/unload antes do corte executor pós-F6F
 Surface
 RuntimeRootRegistry
 Prefab materializer

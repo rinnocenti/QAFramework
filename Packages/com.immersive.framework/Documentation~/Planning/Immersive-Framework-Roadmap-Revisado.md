@@ -818,8 +818,8 @@ ADR status relevante para a fronteira atual:
 ```text
 F5-01 — ADR-LOCAL-001 — Local Identity — Accepted
 F5-02 — ADR-LOCAL-002 — Local Contribution Discovery and Requiredness — Applied through F5H / Expected Declarations Deferred
-F6-01 — ADR-RELEASE-001 — Content Release Plan by Scope — Accepted / implementation not started
-F6-02 — ADR-SCENE-001 — Route Scene Composition Plan and Result — Accepted / F6E route profile execution applied / pending smoke
+F6-01 — ADR-RELEASE-001 — Content Release Plan by Scope — Accepted / F6F release plan-result model applied / physical unload pending
+F6-02 — ADR-SCENE-001 — Route Scene Composition Plan and Result — Accepted / F6E route profile execution closed by profile smoke
 ```
 
 ## Ação imediata
@@ -827,34 +827,34 @@ F6-02 — ADR-SCENE-001 — Route Scene Composition Plan and Result — Accepted
 O corte atual é:
 
 ```text
-F6E — RouteContentProfileAsset execution [APPLIED / PENDING SMOKE]
+F6F — ContentReleasePlan / ContentReleaseResult [APPLIED / PENDING SMOKE]
 ```
 
 Escopo aplicado:
 
 ```text
-- manter F6B, F6C e F6D fechados por smoke;
-- montar RouteSceneCompositionPlan no fluxo de Route;
-- executar Primary Scene em Single e additional scenes válidas em Additive;
-- produzir RouteSceneCompositionResult;
-- registrar cenas carregadas em RouteContentSet;
-- manter release/unload fora do corte.
+- manter F6B, F6C, F6D e F6E fechados por smoke;
+- adicionar ContentReleasePlan/ContentReleaseResult;
+- criar release planning a partir de RouteContentSet;
+- planejar UnloadScene para additional Route scene Owned;
+- manter Primary Scene ativa sem unload manual;
+- manter execução física de unload fora do corte.
 ```
 
 Próximo passo autorizado após compile/smoke:
 
 ```text
-F6F — ContentReleasePlan / ContentReleaseResult
+F6G — Scene release execution / release smoke
 ```
 
-F6F deve iniciar release planning/execution sem avançar para Surface, RuntimeRootRegistry ou materialização canônica.
+F6G deve executar unload físico somente para ações `UnloadScene` planejadas e manter Surface, RuntimeRootRegistry e materialização canônica fora do escopo.
 
 ## Não avançar ainda
 
 ```text
 Expected contribution declarations
 Materialização canônica
-Release físico antes de F6F
+Release físico antes de F6G
 Surface
 Runtime roots/materialization
 Input/Camera/Actor/Save/Pooling

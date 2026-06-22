@@ -38,7 +38,7 @@ RouteSceneCompositionEntryStatus
 
 O resultado registra evidência por entry depois de uma tentativa de composição: loaded, already loaded, skipped, failed e not executed. Ele também agrega status, contagens de loaded/failed/skipped/not executed, active scene policy, active scene diagnóstica, issues e blocking issues.
 
-O corte não carrega additive scenes, não descarrega cenas, não altera `SceneLifecycleRuntime`, não cria `ContentReleasePlan`, não cria `ContentReleaseResult` e não registra handles adicionais no `RouteContentSet`.
+O corte não carrega additive scenes, não descarrega cenas, não altera `SceneLifecycleRuntime`, não executa `ContentReleasePlan`, não executa `ContentReleaseResult` e não registra handles adicionais no `RouteContentSet`.
 
 ---
 
@@ -106,7 +106,7 @@ Fluxo conceitual de troca de Route:
 ```text
 previous Route state
 → previous RouteContentRuntime Exit callbacks
-→ previous ContentReleasePlan execution, quando existir no F6F
+→ previous ContentReleasePlan execution, quando o executor físico existir pós-F6F
 → next RouteSceneCompositionPlan
 → next RouteSceneCompositionResult
 → next RouteContentSet
@@ -114,7 +114,7 @@ previous Route state
 → next Startup Activity policy
 ```
 
-Enquanto `ContentReleasePlan` ainda não existir, a liberação física continua limitada ao comportamento atual de `LoadSceneMode.Single` para Primary Scene. F6 não deve fingir que additive release está resolvido antes do ADR de release e do corte de release.
+Com F6F, `ContentReleasePlan`/`ContentReleaseResult` existem como modelo e planejamento. A liberação física ainda continua limitada ao comportamento atual de `LoadSceneMode.Single` para Primary Scene. F6 não deve fingir que additive release está resolvido antes do corte executor de release físico.
 
 ---
 
@@ -230,7 +230,7 @@ A ordem aceita para troca de Route é:
 ```text
 1. Validar próxima Route e construir RouteSceneCompositionPlan.
 2. Executar RouteContentRuntime.Exit para a Route anterior ainda observável.
-3. Executar release da Route anterior quando ContentReleasePlan existir.
+3. Executar release da Route anterior quando o executor físico de ContentReleasePlan existir.
 4. Carregar Primary Scene da próxima Route.
 5. Carregar additive scenes da próxima Route conforme plan e requiredness.
 6. Produzir RouteSceneCompositionResult.
