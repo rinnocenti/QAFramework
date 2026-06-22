@@ -1,6 +1,6 @@
 # F7-01 — ADR-ANCHOR-001 — Content Anchor as Placement Contract
 
-Status: Accepted / F7D Route Content Anchor authoring applied  
+Status: Accepted / F7E ContentAnchorSet applied  
 Fase: F7  
 Ordem no Plano: F7-01  
 Tipo: Content Anchor  
@@ -246,10 +246,20 @@ F7D introduced the first passive Route-scoped authoring component:
 RouteContentAnchor
 ```
 
-It declares Route owner, Anchor Id, Kind, Requiredness, Display Name and Description, and can produce a local `ContentAnchorDeclaration`. F7D does not add discovery, `ContentAnchorSet`, validators, smoke, RuntimeRoot/materialization or gameplay consumers.
+It declares Route owner, Anchor Id, Kind, Requiredness, Display Name and Description, and can produce a local `ContentAnchorDeclaration`. F7D does not add discovery, validators, smoke, RuntimeRoot/materialization or gameplay consumers.
+
+F7E introduced the passive scoped set model:
+
+```text
+ContentAnchorSet
+ContentAnchorSetIssue
+ContentAnchorSetIssueKind
+```
+
+`ContentAnchorSet` stores unique `ContentAnchorDeclaration` entries and records local diagnostic issues for invalid declarations, duplicate full identity and duplicate owner/scope/anchor id. It does not discover scene objects, integrate with Route lifecycle, validate authoring globally, emit logs, bind runtime content or serve gameplay consumers.
 
 Próximo corte autorizado:
 
 ```text
-F7E — ContentAnchorSet
+F7F — Route Content Anchor discovery
 ```

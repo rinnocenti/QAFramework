@@ -1,6 +1,6 @@
 # Content Anchor Declaration Model
 
-Status: F7C closed / PASS; F7D applied / pending compile-smoke  
+Status: F7C closed / PASS; F7D closed / PASS; F7E applied / pending compile-smoke  
 Package: `com.immersive.framework`  
 Scope: Passive declaration model only
 
@@ -93,4 +93,4 @@ Camera/Pause/UI/Actor consumers
 F7D — Route Content Anchor authoring
 ```
 
-F7D introduced the first public Route-scope authoring component. F7E may introduce the scoped result model, but it should still avoid discovery, validators, runtime materialization and gameplay consumers.
+F7D introduced the first public Route-scope authoring component. F7E introduced the passive scoped set model. Discovery, validators, runtime materialization and gameplay consumers remain out of scope.

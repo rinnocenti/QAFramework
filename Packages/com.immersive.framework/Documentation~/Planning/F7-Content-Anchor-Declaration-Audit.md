@@ -1,6 +1,6 @@
 # F7 — Content Anchor Declaration Audit
 
-Status: F7D applied / pending compile-smoke  
+Status: F7D closed / PASS; F7E applied / pending compile-smoke  
 Package: `com.immersive.framework`  
 Scope: Content Anchor declaration baseline  
 Runtime changes in F7A: none
@@ -259,7 +259,7 @@ F7B smoke validation passed without regression.
 
 ## 13. F7C — ContentAnchor declaration model
 
-Status: Applied / pending compile-smoke
+Status: Closed / PASS
 
 F7C adds passive declaration models only:
 
@@ -293,7 +293,7 @@ F7D — Route Content Anchor authoring
 
 ## 14. F7D — Route Content Anchor authoring
 
-Status: Applied / pending compile-smoke
+Status: Closed / PASS
 
 F7D adds the first public authoring component for Content Anchor declaration:
 
@@ -328,8 +328,49 @@ Prefab materialization
 Camera/Pause/UI/Actor consumers
 ```
 
+F7E followed this cut.
+
+---
+
+## 15. F7E — ContentAnchorSet
+
+Status: Applied / pending compile-smoke
+
+F7E adds the passive scoped set model:
+
+```text
+ContentAnchorSet
+ContentAnchorSetIssue
+ContentAnchorSetIssueKind
+```
+
+The set stores unique `ContentAnchorDeclaration` entries and records local diagnostic issues for:
+
+```text
+InvalidDeclaration
+DuplicateIdentity
+DuplicateAnchorId
+```
+
+It exposes count/query helpers by scope, kind and requiredness. It is still a local passive model.
+
+F7E intentionally does not add:
+
+```text
+RouteContentAnchor discovery
+ActivityContentAnchor
+FrameworkAuthoringValidator rules
+RouteLifecycleRuntime integration
+ContentAnchorRegistry
+Content Anchor smoke
+Runtime binding
+RuntimeRootRegistry
+Prefab materialization
+Camera/Pause/UI/Actor consumers
+```
+
 Next authorized cut:
 
 ```text
-F7E — ContentAnchorSet
+F7F — Route Content Anchor discovery
 ```

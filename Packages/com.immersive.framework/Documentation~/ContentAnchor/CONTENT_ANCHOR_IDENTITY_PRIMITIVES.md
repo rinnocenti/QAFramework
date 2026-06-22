@@ -111,8 +111,8 @@ Camera/Pause/UI/Actor consumers
 
 ## Follow-up
 
-F7C introduced the passive declaration model. F7D introduced `RouteContentAnchor` authoring. The next authorized implementation step after F7D is:
+F7C introduced the passive declaration model. F7D introduced `RouteContentAnchor` authoring. F7E introduced the passive `ContentAnchorSet`. The next authorized implementation step after F7E is:
 
 ```text
-F7E — ContentAnchorSet
+F7F — Route Content Anchor discovery
 ```

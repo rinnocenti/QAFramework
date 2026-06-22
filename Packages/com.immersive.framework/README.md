@@ -44,6 +44,7 @@ Documentation~/Planning/F7-Content-Anchor-Declaration-Audit.md
 Documentation~/Route/ROUTE_CONTENT_PROFILE_USAGE.md
 Documentation~/Route/ROUTE_SCENE_COMPOSITION_SMOKE.md
 Documentation~/Route/ROUTE_RELEASE_SMOKE.md
+Documentation~/ContentAnchor/CONTENT_ANCHOR_SET.md
 Documentation~/ADRs/
 ```
 
@@ -58,7 +59,7 @@ Documentation~/ADRs/
 
 The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release for scene content. It is not yet a Content Anchor, RuntimeSpawned, Actor, Camera, Input, Save, Reset or Pooling framework.
 
-Do not skip from F7 directly to runtime materialization or gameplay consumers. F7 is currently limited to Content Anchor declaration. `F7B — ContentAnchor identity primitives` and `F7C — ContentAnchor declaration model` are closed/pass; `F7D — Route Content Anchor authoring` is applied and pending compile-smoke. The next authorized cut after validation is `F7E — ContentAnchorSet`.
+Do not skip from F7 directly to runtime materialization or gameplay consumers. F7 is currently limited to Content Anchor declaration. `F7B — ContentAnchor identity primitives` and `F7C — ContentAnchor declaration model` are closed/pass; `F7D — Route Content Anchor authoring` is closed/pass. `F7E — ContentAnchorSet` is applied and pending compile-smoke. The next authorized cut after validation is `F7F — Route Content Anchor discovery`.
 
 ## F7 Content Anchor boundary
 

@@ -57,5 +57,6 @@ Docs técnicos:
 - [`ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md`](ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md)
 - [`ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md`](ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md)
 - [`ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md`](ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md)
+- [`ContentAnchor/CONTENT_ANCHOR_SET.md`](ContentAnchor/CONTENT_ANCHOR_SET.md)
 
 `COMPLETENESS_TRACKER.md` consolida o estado que antes estava espalhado por arquivos de fechamento e aceite.

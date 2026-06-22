@@ -1,6 +1,6 @@
 # Route Content Anchor Authoring
 
-Status: F7D applied / pending compile-smoke  
+Status: F7D closed / PASS; F7E applied / pending compile-smoke  
 Package: `com.immersive.framework`
 
 ---
