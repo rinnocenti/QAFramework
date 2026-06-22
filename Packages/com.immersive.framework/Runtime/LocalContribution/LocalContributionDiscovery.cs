@@ -6,8 +6,7 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentFlow;
 using Immersive.Framework.Identity;
 using Immersive.Framework.RouteLifecycle;
-using UnityEngine;
-using Object = UnityEngine.Object;
+using Immersive.Framework.SceneLifecycle;
 
 namespace Immersive.Framework.LocalContribution
 {
@@ -25,7 +24,7 @@ namespace Immersive.Framework.LocalContribution
             var issues = new List<LocalContributionDiscoveryIssue>();
 
             CollectRouteBindings(null, handles, issues);
-            CollectActivityAdapters(null, handles, issues);
+            CollectActivityAdapters(null, null, handles, issues);
             AddDuplicateIssues(handles, issues);
 
             SortHandles(handles);
@@ -54,6 +53,11 @@ namespace Immersive.Framework.LocalContribution
 
         public static LocalContributionDiscoveryResult DiscoverLoadedActivity(ActivityAsset activity)
         {
+            return DiscoverLoadedActivity(activity, null);
+        }
+
+        public static LocalContributionDiscoveryResult DiscoverLoadedActivity(ActivityAsset activity, RouteAsset routeScope)
+        {
             var handles = new List<LocalContributionHandle>();
             var issues = new List<LocalContributionDiscoveryIssue>();
 
@@ -65,7 +69,7 @@ namespace Immersive.Framework.LocalContribution
                 return new LocalContributionDiscoveryResult(LocalContributionSet.Empty(), issues);
             }
 
-            CollectActivityAdapters(activity, handles, issues);
+            CollectActivityAdapters(activity, routeScope, handles, issues);
             AddDuplicateIssues(handles, issues);
 
             SortHandles(handles);
@@ -77,13 +81,15 @@ namespace Immersive.Framework.LocalContribution
             List<LocalContributionHandle> handles,
             List<LocalContributionDiscoveryIssue> issues)
         {
-            RouteContentBinding[] bindings = Object.FindObjectsByType<RouteContentBinding>(FindObjectsInactive.Include);
-            if (bindings == null || bindings.Length == 0)
+            var bindings = routeFilter != null
+                ? SceneScopedComponentQuery.GetComponentsInRoutePrimaryScene<RouteContentBinding>(routeFilter)
+                : SceneScopedComponentQuery.GetComponentsInLoadedScenes<RouteContentBinding>();
+            if (bindings == null || bindings.Count == 0)
             {
                 return;
             }
 
-            for (var i = 0; i < bindings.Length; i++)
+            for (var i = 0; i < bindings.Count; i++)
             {
                 var binding = bindings[i];
                 if (binding == null || !binding.IsSceneBinding)
@@ -134,16 +140,19 @@ namespace Immersive.Framework.LocalContribution
 
         private static void CollectActivityAdapters(
             ActivityAsset activityFilter,
+            RouteAsset routeScope,
             List<LocalContributionHandle> handles,
             List<LocalContributionDiscoveryIssue> issues)
         {
-            ActivityLocalVisibilityAdapter[] adapters = Object.FindObjectsByType<ActivityLocalVisibilityAdapter>(FindObjectsInactive.Include);
-            if (adapters == null || adapters.Length == 0)
+            var adapters = routeScope != null
+                ? SceneScopedComponentQuery.GetComponentsInRoutePrimaryScene<ActivityLocalVisibilityAdapter>(routeScope)
+                : SceneScopedComponentQuery.GetComponentsInLoadedScenes<ActivityLocalVisibilityAdapter>();
+            if (adapters == null || adapters.Count == 0)
             {
                 return;
             }
 
-            for (var i = 0; i < adapters.Length; i++)
+            for (var i = 0; i < adapters.Count; i++)
             {
                 var adapter = adapters[i];
                 if (adapter == null || !adapter.IsSceneBinding)

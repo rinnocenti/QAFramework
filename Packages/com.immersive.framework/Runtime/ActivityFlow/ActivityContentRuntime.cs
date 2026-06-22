@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Diagnostics;
 using Immersive.Framework.ContentFlow;
+using Immersive.Framework.SceneLifecycle;
 using UnityEngine;
-using Object = UnityEngine.Object;
 using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.ActivityFlow
@@ -22,8 +22,14 @@ namespace Immersive.Framework.ActivityFlow
 
         private ActivityContentApplyResult _lastApplyResult;
         private bool _hasLastApplyResult;
+        private RouteAsset _routeScope;
 
         internal bool HasLastApplyResult => _hasLastApplyResult;
+
+        internal void SetRouteScope(RouteAsset route)
+        {
+            _routeScope = route;
+        }
 
         internal ActivityContentApplyResult LastApplyResult => _lastApplyResult;
 
@@ -63,8 +69,8 @@ namespace Immersive.Framework.ActivityFlow
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
 
-            ActivityLocalVisibilityAdapter[] bindings = Object.FindObjectsByType<ActivityLocalVisibilityAdapter>(FindObjectsInactive.Include);
-            if (bindings == null || bindings.Length == 0)
+            var bindings = SceneScopedComponentQuery.GetComponentsInRoutePrimaryScene<ActivityLocalVisibilityAdapter>(_routeScope);
+            if (bindings == null || bindings.Count == 0)
             {
                 return ActivityContentApplyResult.Empty(activeActivity);
             }
@@ -85,7 +91,7 @@ namespace Immersive.Framework.ActivityFlow
             var activeContentEntries = new List<ActivityContentEntry>();
             int omittedObservationCount = 0;
 
-            for (int i = 0; i < bindings.Length; i++)
+            for (int i = 0; i < bindings.Count; i++)
             {
                 var binding = bindings[i];
                 if (binding == null || !binding.IsSceneBinding)

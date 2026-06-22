@@ -1,8 +1,8 @@
 using System;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Diagnostics;
+using Immersive.Framework.SceneLifecycle;
 using UnityEngine;
-using Object = UnityEngine.Object;
 using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.RouteLifecycle
@@ -31,14 +31,14 @@ namespace Immersive.Framework.RouteLifecycle
                     resolvedReason);
             }
 
-            RouteContentBinding[] bindings = Object.FindObjectsByType<RouteContentBinding>(FindObjectsInactive.Include);
+            var bindings = SceneScopedComponentQuery.GetComponentsInRoutePrimaryScene<RouteContentBinding>(route);
             int bindingCount = 0;
             int receiverCount = 0;
             int failedReceiverCount = 0;
 
             if (bindings != null)
             {
-                for (int i = 0; i < bindings.Length; i++)
+                for (int i = 0; i < bindings.Count; i++)
                 {
                     var binding = bindings[i];
                     if (!IsValidBindingForRoute(binding, route))
@@ -86,14 +86,14 @@ namespace Immersive.Framework.RouteLifecycle
                     resolvedReason);
             }
 
-            RouteContentBinding[] bindings = Object.FindObjectsByType<RouteContentBinding>(FindObjectsInactive.Include);
+            var bindings = SceneScopedComponentQuery.GetComponentsInRoutePrimaryScene<RouteContentBinding>(route);
             int bindingCount = 0;
             int receiverCount = 0;
             int failedReceiverCount = 0;
 
             if (bindings != null)
             {
-                for (int i = 0; i < bindings.Length; i++)
+                for (int i = 0; i < bindings.Count; i++)
                 {
                     var binding = bindings[i];
                     if (!IsValidBindingForRoute(binding, route))

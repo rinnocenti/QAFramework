@@ -18,6 +18,7 @@ namespace Immersive.Framework.ActivityFlow
         private readonly EventBus<ActivityExitedEvent> _activityExitedEvents = new EventBus<ActivityExitedEvent>();
         private readonly IEventBinding _activityContentEnteredBinding;
         private readonly IEventBinding _activityContentExitedBinding;
+        private RouteAsset _currentRoute;
         private ActivityRuntimeState _currentActivityState;
 
         internal ActivityFlowRuntime()
@@ -58,6 +59,7 @@ namespace Immersive.Framework.ActivityFlow
                 return Task.FromResult(ActivityFlowStartResult.Failed("Route is missing."));
             }
 
+            _currentRoute = route;
             var previousActivity = _currentActivityState.Activity;
             if (!route.HasStartupActivity)
             {
@@ -71,6 +73,11 @@ namespace Immersive.Framework.ActivityFlow
 
         internal Task<ActivityFlowStartResult> StartActivityAsync(ActivityAsset activity, string source, string reason)
         {
+            return StartActivityAsync(activity, _currentRoute, source, reason);
+        }
+
+        internal Task<ActivityFlowStartResult> StartActivityAsync(ActivityAsset activity, RouteAsset route, string source, string reason)
+        {
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
 
@@ -79,13 +86,28 @@ namespace Immersive.Framework.ActivityFlow
                 return Task.FromResult(ActivityFlowStartResult.Failed("Activity is missing."));
             }
 
+            if (route != null)
+            {
+                _currentRoute = route;
+            }
+
             return StartActivityCoreAsync(activity, _currentActivityState.Activity, resolvedSource, resolvedReason);
         }
 
         internal Task<ActivityFlowStartResult> ClearActivityAsync(string source, string reason)
         {
+            return ClearActivityAsync(_currentRoute, source, reason);
+        }
+
+        internal Task<ActivityFlowStartResult> ClearActivityAsync(RouteAsset route, string source, string reason)
+        {
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
+
+            if (route != null)
+            {
+                _currentRoute = route;
+            }
 
             var previousActivity = _currentActivityState.Activity;
             if (previousActivity == null)
@@ -128,6 +150,7 @@ namespace Immersive.Framework.ActivityFlow
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
 
+            _activityContentRuntime.SetRouteScope(_currentRoute);
             _activityContentRuntime.ClearLastApplyResult();
             PublishActivityTransition(previousActivity, nextActivity, resolvedSource, resolvedReason);
 

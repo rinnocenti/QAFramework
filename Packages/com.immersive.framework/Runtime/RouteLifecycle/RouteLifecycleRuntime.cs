@@ -136,7 +136,7 @@ namespace Immersive.Framework.RouteLifecycle
                 return Task.FromResult(ActivityFlowStartResult.Failed("No active Route is available."));
             }
 
-            return _activityFlowRuntime.StartActivityAsync(activity, source, reason);
+            return _activityFlowRuntime.StartActivityAsync(activity, CurrentRoute, source, reason);
         }
 
         internal Task<ActivityFlowStartResult> ClearActivityAsync(string source, string reason)
@@ -146,7 +146,7 @@ namespace Immersive.Framework.RouteLifecycle
                 return Task.FromResult(ActivityFlowStartResult.Failed("No active Route is available."));
             }
 
-            return _activityFlowRuntime.ClearActivityAsync(source, reason);
+            return _activityFlowRuntime.ClearActivityAsync(CurrentRoute, source, reason);
         }
     }
 }
