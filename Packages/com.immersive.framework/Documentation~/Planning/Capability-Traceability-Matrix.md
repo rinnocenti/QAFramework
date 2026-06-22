@@ -53,7 +53,7 @@ Regras:
 | `PersistentScenesPolicy` | Não puxar scene ownership para F2. Reavaliar com Route scene composition/release ou futura Session persistent content. |
 | `CapabilityInventory` | Em F5 apenas descriptor/contribution simples. Runtime refs/inventory vivo só depois de RuntimeHandle/lifetime. |
 | `Content Anchor` | Dividida em declaração (`F7`) e binding/runtime placement (`F9`). |
-| `Content Anchor` naming | F7A accepted `Content Anchor`; rejected hook-style names and duplicated anchor naming; use `ContentAnchorPoint` for a specific point. |
+| `Content Anchor` naming | F7A accepted `Content Anchor`; rejected hook-style names and duplicated anchor naming; use `ContentAnchorPoint` for a specific point. F7B introduced passive identity primitives. |
 | `RuntimeSpawned` | Entra só depois de identity/content/release; consumers não podem criar roots ad hoc. |
 | Campos `—` | Tratados como `Deferred` ou `Requer detalhamento`; não podem ficar sem status no backlog. |
 
@@ -155,7 +155,7 @@ Regras:
 ### Content Anchor
 | Capacidade | Decisão | Fase original | Fase revisada | Corte | Status package | Status roadmap | Prioridade | Bloqueadores | Risco | Observação |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Content Anchor identity | Criar `ContentAnchorIdentity` tipado | F7 | F7 | IF-FW-ROAD-7B | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
+| Content Anchor identity primitives | Criar `ContentAnchorId`, `ContentAnchorScope`, `ContentAnchorKind` e `ContentAnchorRequiredness` | F7 | F7 | IF-FW-ROAD-7B | Aplicado em F7B / pending smoke | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
 | Content Anchor root | Criar `ContentAnchorRoot` com role tipado | F7 | F7 | IF-FW-ROAD-7C | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
 | Content Anchor slot | Criar `ContentAnchorSlot` typed | F7 | F7 | IF-FW-ROAD-7D | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
 | Content Anchor point | Criar `ContentAnchorPoint` typed | F7 | F7 | IF-FW-ROAD-7E | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Ponto semântico não implica montagem. |
@@ -589,7 +589,7 @@ Antes de abrir um corte técnico, responder:
 
 | Capacidade | O que faz | Origem NS | Decisão | Fase | Corte |
 |---|---|---|---|---|---|
-| Content Anchor identity | Identidade tipada de Content Anchor; distingue pause/camera/overlay/content. | String solta por endpoint (problema) | Criar `ContentAnchorIdentity` tipado | F7 | IF-FW-ROAD-7B |
+| Content Anchor identity primitives | Id, scope, kind e requiredness tipados para Content Anchor. | String solta por endpoint (problema) | Criar `ContentAnchorId`, `ContentAnchorScope`, `ContentAnchorKind`, `ContentAnchorRequiredness` | F7 | IF-FW-ROAD-7B |
 | Content Anchor root | Raiz física (Transform) associada a um Content Anchor com role definido. | Container de pause, overlay root | Criar `ContentAnchorRoot` com role tipado | F7 | IF-FW-ROAD-7C |
 | Content Anchor slot | Ponto authored de binding físico; não usa `GameObject.Find`. | Content Anchor slots em cena | Criar `ContentAnchorSlot` typed | F7 | IF-FW-ROAD-7D |
 | Content Anchor point | Ponto authored de posicionamento/reference typed. | Anchors de câmera/actor | Criar `ContentAnchorPoint` typed | F7 | IF-FW-ROAD-7E |

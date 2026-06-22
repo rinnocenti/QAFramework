@@ -58,7 +58,7 @@ Documentation~/ADRs/
 
 The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release for scene content. It is not yet a Content Anchor, RuntimeSpawned, Actor, Camera, Input, Save, Reset or Pooling framework.
 
-Do not skip from F7 directly to runtime materialization or gameplay consumers. F7 is currently limited to Content Anchor declaration. The next authorized cut is `F7B — ContentAnchor identity primitives`.
+Do not skip from F7 directly to runtime materialization or gameplay consumers. F7 is currently limited to Content Anchor declaration. `F7B — ContentAnchor identity primitives` is applied and the next authorized cut is `F7C — ContentAnchor declaration model`.
 
 ## F7 Content Anchor boundary
 

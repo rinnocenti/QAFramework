@@ -1,6 +1,6 @@
 # F7-01 — ADR-ANCHOR-001 — Content Anchor as Placement Contract
 
-Status: Accepted / F7A  
+Status: Accepted / F7B identity primitives applied  
 Fase: F7  
 Ordem no Plano: F7-01  
 Tipo: Content Anchor  
@@ -216,10 +216,21 @@ F7 só pode fechar quando houver:
 
 ## Corte atual
 
-F7A aceita este ADR e define o detalhe do modelo. F7A não cria runtime, componente, validator ou smoke novo.
+F7A aceitou este ADR e definiu o detalhe do modelo.
+
+F7B introduziu apenas primitivas passivas de identidade:
+
+```text
+ContentAnchorId
+ContentAnchorScope
+ContentAnchorKind
+ContentAnchorRequiredness
+```
+
+F7B não cria componente de authoring, discovery, validator, set/registry, materialization, binding runtime ou smoke novo.
 
 Próximo corte autorizado:
 
 ```text
-F7B — ContentAnchor identity primitives
+F7C — ContentAnchor declaration model
 ```

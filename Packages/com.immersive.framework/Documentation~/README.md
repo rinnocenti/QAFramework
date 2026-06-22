@@ -54,5 +54,6 @@ Docs técnicos:
 - [`Local/LOCAL_CONTENT_IDENTITY.md`](Local/LOCAL_CONTENT_IDENTITY.md)
 - [`Planning/F6-Route-Scene-Composition-Audit.md`](Planning/F6-Route-Scene-Composition-Audit.md)
 - [`Planning/F7-Content-Anchor-Declaration-Audit.md`](Planning/F7-Content-Anchor-Declaration-Audit.md)
+- [`ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md`](ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md)
 
 `COMPLETENESS_TRACKER.md` consolida o estado que antes estava espalhado por arquivos de fechamento e aceite.

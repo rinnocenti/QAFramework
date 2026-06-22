@@ -1,6 +1,6 @@
 # F7 — Content Anchor Declaration Audit
 
-Status: F7A applied / pending doc review  
+Status: F7B applied / pending compile-smoke  
 Package: `com.immersive.framework`  
 Scope: Content Anchor declaration baseline  
 Runtime changes in F7A: none
@@ -167,7 +167,7 @@ scope owner + anchor id + kind
 | Cut | Name | Scope |
 |---|---|---|
 | F7A | Content Anchor ADR/detail audit | Accepted docs only. |
-| F7B | ContentAnchor identity primitives | Id, scope, kind, requiredness. |
+| F7B | ContentAnchor identity primitives | Applied: `ContentAnchorId`, `ContentAnchorScope`, `ContentAnchorKind`, `ContentAnchorRequiredness`. |
 | F7C | ContentAnchor declaration model | Root/Slot/Point passive model. |
 | F7D | Route Content Anchor authoring | First public authoring component for Route scope. |
 | F7E | ContentAnchorSet | Scoped result model and diagnostics. |
@@ -217,6 +217,44 @@ F7A is complete when:
 ## 11. Status after F7A
 
 ```text
-F7A — APPLIED / PENDING DOC REVIEW
-Next: F7B — ContentAnchor identity primitives
+F7A — APPLIED / DOC REVIEW ACCEPTED
+```
+
+---
+
+## 12. F7B — ContentAnchor identity primitives
+
+Status: Applied / pending compile-smoke
+
+F7B adds only passive runtime primitives:
+
+| Primitive | Purpose |
+|---|---|
+| `ContentAnchorId` | Explicit stable authored id for a Content Anchor. |
+| `ContentAnchorScope` | Route, Activity or Local lifecycle/authored scope. |
+| `ContentAnchorKind` | Root, Slot or Point declaration intent. |
+| `ContentAnchorRequiredness` | Optional or Required authoring validation policy. |
+
+F7B intentionally does not add:
+
+```text
+RouteContentAnchor
+ActivityContentAnchor
+ContentAnchorRoot
+ContentAnchorSlot
+ContentAnchorPoint
+ContentAnchorSet
+Content Anchor discovery
+Content Anchor validators
+smoke buttons
+RuntimeRootRegistry
+Prefab materialization
+runtime binding
+consumer systems
+```
+
+Next authorized cut:
+
+```text
+F7C — ContentAnchor declaration model
 ```

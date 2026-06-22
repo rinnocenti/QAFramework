@@ -491,7 +491,8 @@ Nenhum consumer concreto ainda capturou o modelo.
 
 ```text
 F7A — CLOSED / DOCS
-Next — F7B / ContentAnchor identity primitives
+F7B — Applied / pending compile-smoke
+Next — F7C / ContentAnchor declaration model
 ```
 
 Naming guardrail: do not reintroduce the rejected previous placement-point vocabulary or `duplicated anchor naming` as canonical concept names.
