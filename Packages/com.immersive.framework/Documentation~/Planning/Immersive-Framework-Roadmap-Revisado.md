@@ -431,7 +431,7 @@ Objetivo: separar scene composition de runtime spawned/materialization.
 | ID | Entrega | Detalhes |
 |---|---|---|
 | IF-FW-ROAD-6A | ADR: Route Scene Composition | Plan/result, primary/additive, active scene, ownership. |
-| IF-FW-ROAD-6B | `RouteSceneCompositionPlan` | Plano antes de load/unload. |
+| IF-FW-ROAD-6B | `RouteSceneCompositionPlan` | APPLIED / PENDING COMPILE-SMOKE. Plano inerte antes de load/unload; sem additive execution, sem result e sem release. |
 | IF-FW-ROAD-6C | `RouteSceneCompositionResult` | Resultado depois de load/unload. |
 | IF-FW-ROAD-6D | Additive scene support | Agora sim, baseado em plan/result e content ownership. |
 | IF-FW-ROAD-6E | `RouteContentProfileAsset` execution | Executar somente se deixou de ser planning-only. Requiredness passa a bloquear. |

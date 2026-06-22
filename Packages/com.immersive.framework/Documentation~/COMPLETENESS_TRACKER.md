@@ -14,7 +14,7 @@ Este arquivo substitui os antigos documentos de fechamento e aceite de fase. Os 
 | F3 | `CLOSED / PASS` | Route baseline closed | `Route/ROUTE_RUNTIME_STATE_TYPED.md`, `Route/ROUTE_EXIT_RESULT_MINIMAL.md`, `Route/ROUTE_CONTENT_RUNTIME_EXECUTION_DECISION.md`, `Route/ROUTE_CONTENT_SET_SEMANTICS.md`, `Route/ROUTE_LOCAL_CALLBACK_SMOKE.md`, `Route/ROUTE_VALIDATOR_EXPANSION.md`, `Route/QA_PANEL_SIMPLIFICATION.md`, `Route/QA_AUTHORING_VALIDATION_HYGIENE.md` |
 | F4 | `CLOSED / ACTIVITY BASELINE PASS` | Activity baseline closed | `Activity/ACTIVITY_RUNTIME_STATE_REFINED.md`, `Activity/ACTIVITY_CONTENT_SET_MINIMAL.md`, `Activity/ACTIVITY_CONTENT_LIFECYCLE_RESULT.md`, `Activity/ACTIVITY_READINESS_STATE_MINIMAL.md`, `Activity/ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md`, `Activity/ACTIVITY_BASELINE_SMOKE.md` |
 | F5 | `CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS` | F5H local smoke passed; F5 closure audit completed | `Local/LOCAL_CONTENT_IDENTITY.md` |
-| F6 | `OPEN / ADR ACCEPTED` | F6A ADR completion/audit closed; next gate is F6B RouteSceneCompositionPlan | `Planning/F6-Route-Scene-Composition-Audit.md`, `ADRs/F6-route-scene-composition-and-release/` |
+| F6 | `OPEN / F6B APPLIED` | RouteSceneCompositionPlan inert model added; pending Unity compile/smoke before F6C | `Planning/F6-Route-Scene-Composition-Audit.md`, `ADRs/F6-route-scene-composition-and-release/` |
 
 ## Consolidation rule
 
@@ -39,7 +39,7 @@ Keep these docs as the durable record for implementation details:
 
 | Next authorized step | Reason |
 |---|---|
-| `F6B — RouteSceneCompositionPlan` | F6A ADR completion/audit is closed. Start with inert planning data only; do not execute additive loading before F6C/F6D. |
+| `F6B — RouteSceneCompositionPlan compile/smoke` | Inert planning data was added. Validate Unity compilation before advancing to F6C RouteSceneCompositionResult. |
 
 ## F5 closure audit
 
@@ -80,9 +80,9 @@ Confirmed removals and exclusions:
 
 ## F6 ADR gate
 
-Status: `OPEN / ADR ACCEPTED`.
+Status: `OPEN / F6B APPLIED`.
 
-F6A completed the route scene composition and release ADR gate. This is documentation/architecture only; no runtime, editor, asmdef or scene execution was changed.
+F6A completed the route scene composition and release ADR gate. F6B added inert runtime planning types for Route scene composition. No additive scene loading, unloading, release, Surface, RuntimeRoot or materialization execution was added.
 
 Accepted ADRs:
 
@@ -93,10 +93,10 @@ Audit doc:
 
 - `Planning/F6-Route-Scene-Composition-Audit.md`.
 
-Next implementation gate:
+Current validation gate:
 
 ```text
-F6B — RouteSceneCompositionPlan
+F6B — RouteSceneCompositionPlan compile/smoke
 ```
 
-F6B must be inert planning data only. It must not load additive scenes, unload scenes, create Surface, create RuntimeRootRegistry, create prefab materialization or touch Actor/Input/Camera/Reset/Save/Pooling.
+F6B is inert planning data only. It does not load additive scenes, unload scenes, create Surface, create RuntimeRootRegistry, create prefab materialization or touch Actor/Input/Camera/Reset/Save/Pooling. F6C must not start until Unity compilation/smoke confirms this cut.

@@ -1,6 +1,6 @@
 # F6 — Route Scene Composition and Release Audit
 
-Status: `F6A ADR COMPLETED / IMPLEMENTATION NOT STARTED`  
+Status: `F6B ROUTE SCENE COMPOSITION PLAN APPLIED / PENDING COMPILE-SMOKE`  
 Tipo: planejamento/auditoria documental  
 Escopo: Route scene composition, additive scene loading e release por escopo
 
@@ -42,6 +42,19 @@ F5 não entrega release handle, runtime reference, materialização, Surface ou 
 ---
 
 ## Estado atual do package relevante para F6
+
+### Aplicado em F6B
+
+```text
+RouteSceneCompositionPlan
+RouteSceneCompositionPlanEntry
+RouteSceneRole
+RouteSceneLoadMode
+RouteSceneActiveScenePolicy
+RouteContentSceneEntry.ExplicitContentId
+```
+
+F6B é inerte: cria dados de planejamento side-effect free para Primary Scene e additional scenes declaradas em RouteContentProfileAsset. Ele registra role, load mode esperado, requiredness, ownership, execution order, active scene policy e diagnóstico de explicit content id. Não carrega additive scenes e não produz result.
 
 ### Presente
 
@@ -144,7 +157,7 @@ Exit callbacks da Route anterior devem rodar antes do release da Route anterior.
 
 ```text
 F6A — ADR completion and audit                  [docs-only]
-F6B — RouteSceneCompositionPlan                 [runtime inert/pure]
+F6B — RouteSceneCompositionPlan                 [runtime inert/pure] [APPLIED / PENDING COMPILE-SMOKE]
 F6C — RouteSceneCompositionResult               [runtime inert/result]
 F6D — SceneLifecycle additive primitive         [runtime execution primitive]
 F6E — RouteContentProfileAsset execution        [route profile → composition]
@@ -154,16 +167,9 @@ F6G — Scene/release smoke                       [QA]
 
 ---
 
-## Critério para iniciar F6B
+## Critério para fechar F6B
 
-F6B pode começar quando estes ADRs estiverem aceitos no package:
-
-```text
-F6-01 — ADR-RELEASE-001 — Accepted
-F6-02 — ADR-SCENE-001 — Accepted
-```
-
-F6B deve criar apenas o plan inerte. Não deve carregar additive scenes ainda.
+F6B pode ser fechado quando o package compilar no Unity e o smoke baseline continuar sem regressão. O corte deve permanecer limitado ao plan inerte. Não deve carregar additive scenes ainda.
 
 ---
 

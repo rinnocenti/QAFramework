@@ -14,7 +14,7 @@ namespace Immersive.Framework.Authoring
     public sealed class RouteContentSceneEntry
     {
         [SerializeField]
-        [Tooltip("Stable content id within the Route Content Profile. If empty, the scene name is used.")]
+        [Tooltip("Stable content id within the Route Content Profile. F6 execution requires this value to be explicit; the legacy fallback is diagnostics/planning-only.")]
         private string contentId = string.Empty;
 
         [SerializeField]
@@ -28,6 +28,16 @@ namespace Immersive.Framework.Authoring
         [SerializeField]
         [Tooltip("Whether this scene declaration is required once route scene composition execution is implemented.")]
         private FrameworkContentRequiredness requiredness = FrameworkContentRequiredness.Optional;
+
+        public string ExplicitContentId
+        {
+            get
+            {
+                return !string.IsNullOrWhiteSpace(contentId) ? contentId.Trim() : string.Empty;
+            }
+        }
+
+        public bool HasExplicitContentId => !string.IsNullOrWhiteSpace(ExplicitContentId);
 
         public string ContentId
         {
