@@ -9,9 +9,9 @@ namespace Immersive.Framework.RouteLifecycle
 {
     /// <summary>
     /// Immutable evidence record produced after a Route scene composition attempt.
-    /// F6C adds the result model only; it does not load additive scenes or release content.
+    /// F6E records evidence produced by primary/additive route scene composition. It does not authorize release/unload.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F6C inert Route scene composition result; no additive execution or release side effects.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F6E Route scene composition result; additive execution evidence only, no release/unload side effects.")]
     internal readonly struct RouteSceneCompositionResult
     {
         private readonly RouteSceneCompositionResultEntry[] _entries;
@@ -20,6 +20,7 @@ namespace Immersive.Framework.RouteLifecycle
             RouteSceneCompositionPlan plan,
             IReadOnlyList<RouteSceneCompositionResultEntry> entries,
             RouteSceneCompositionStatus status,
+            SceneLifecycleLoadResult primarySceneLoadResult,
             string activeSceneName,
             string activeScenePath,
             string source,
@@ -28,6 +29,7 @@ namespace Immersive.Framework.RouteLifecycle
         {
             Plan = plan;
             Status = status;
+            PrimarySceneLoadResult = primarySceneLoadResult;
             ActiveSceneName = Normalize(activeSceneName);
             ActiveScenePath = Normalize(activeScenePath);
             Source = Normalize(source);
@@ -57,6 +59,8 @@ namespace Immersive.Framework.RouteLifecycle
         public string RouteOwnerName => Plan.RouteOwnerName;
 
         public RouteSceneCompositionStatus Status { get; }
+
+        public SceneLifecycleLoadResult PrimarySceneLoadResult { get; }
 
         public IReadOnlyList<RouteSceneCompositionResultEntry> Entries => _entries ?? Array.Empty<RouteSceneCompositionResultEntry>();
 
@@ -142,6 +146,7 @@ namespace Immersive.Framework.RouteLifecycle
                 plan,
                 entries,
                 RouteSceneCompositionStatus.NotExecuted,
+                default,
                 string.Empty,
                 string.Empty,
                 source,
@@ -176,25 +181,149 @@ namespace Immersive.Framework.RouteLifecycle
             {
                 entries.Add(RouteSceneCompositionResultEntry.NotExecutedEntry(
                     plan.AdditionalScenes[i],
-                    "Additive scene execution is deferred to F6D."));
+                    "Additive scene execution was not requested by this primary-scene-only result."));
             }
 
             var status = primarySceneLoadResult.Loaded
                 ? (plan.HasAdditionalScenes ? RouteSceneCompositionStatus.SucceededWithIssues : RouteSceneCompositionStatus.Succeeded)
                 : RouteSceneCompositionStatus.Failed;
             var message = primarySceneLoadResult.Loaded
-                ? $"Route scene composition recorded primary scene result. additiveExecution='Deferred' additionalScenes='{plan.AdditionalSceneCount}'."
+                ? $"Route scene composition recorded primary scene result. additiveExecution='NotRequested' additionalScenes='{plan.AdditionalSceneCount}'."
                 : "Route scene composition failed while resolving the primary scene.";
 
             return new RouteSceneCompositionResult(
                 plan,
                 entries,
                 status,
+                primarySceneLoadResult,
                 primarySceneLoadResult.Loaded ? primarySceneLoadResult.SceneName : string.Empty,
                 primarySceneLoadResult.Loaded ? primarySceneLoadResult.ScenePath : string.Empty,
                 source,
                 reason,
                 message);
+        }
+
+
+        public static RouteSceneCompositionResult ExecutedResult(
+            RouteSceneCompositionPlan plan,
+            IReadOnlyList<RouteSceneCompositionResultEntry> entries,
+            SceneLifecycleLoadResult primarySceneLoadResult,
+            string source,
+            string reason)
+        {
+            var status = DetermineStatus(entries);
+            var activeSceneName = primarySceneLoadResult.Loaded ? primarySceneLoadResult.SceneName : string.Empty;
+            var activeScenePath = primarySceneLoadResult.Loaded ? primarySceneLoadResult.ScenePath : string.Empty;
+            var message = BuildExecutedMessage(plan, entries, status);
+
+            return new RouteSceneCompositionResult(
+                plan,
+                entries,
+                status,
+                primarySceneLoadResult,
+                activeSceneName,
+                activeScenePath,
+                source,
+                reason,
+                message);
+        }
+
+        private static RouteSceneCompositionStatus DetermineStatus(IReadOnlyList<RouteSceneCompositionResultEntry> entries)
+        {
+            if (entries == null || entries.Count == 0)
+            {
+                return RouteSceneCompositionStatus.NotExecuted;
+            }
+
+            var hasIssue = false;
+            for (var i = 0; i < entries.Count; i++)
+            {
+                var entry = entries[i];
+                if (entry.BlocksComposition)
+                {
+                    return RouteSceneCompositionStatus.Failed;
+                }
+
+                if (entry.HasIssue)
+                {
+                    hasIssue = true;
+                }
+            }
+
+            return hasIssue
+                ? RouteSceneCompositionStatus.SucceededWithIssues
+                : RouteSceneCompositionStatus.Succeeded;
+        }
+
+        private static string BuildExecutedMessage(
+            RouteSceneCompositionPlan plan,
+            IReadOnlyList<RouteSceneCompositionResultEntry> entries,
+            RouteSceneCompositionStatus status)
+        {
+            var entryCount = entries != null ? entries.Count : 0;
+            var loaded = CountByStatus(entries, RouteSceneCompositionEntryStatus.Loaded)
+                + CountByStatus(entries, RouteSceneCompositionEntryStatus.AlreadyLoaded);
+            var failed = CountByStatus(entries, RouteSceneCompositionEntryStatus.Failed);
+            var skipped = CountByStatus(entries, RouteSceneCompositionEntryStatus.Skipped);
+            var notExecuted = CountByStatus(entries, RouteSceneCompositionEntryStatus.NotExecuted);
+            var issues = CountIssues(entries, false);
+            var blockingIssues = CountIssues(entries, true);
+            var routeName = !string.IsNullOrWhiteSpace(plan.RouteOwnerName) ? plan.RouteOwnerName : "<missing>";
+
+            return $"Route scene composition executed for Route '{routeName}'. status='{status}' entries='{entryCount}' loaded='{loaded}' failed='{failed}' skipped='{skipped}' notExecuted='{notExecuted}' issues='{issues}' blockingIssues='{blockingIssues}' additiveScenes='{plan.AdditionalSceneCount}'.";
+        }
+
+        private static int CountByStatus(
+            IReadOnlyList<RouteSceneCompositionResultEntry> entries,
+            RouteSceneCompositionEntryStatus status)
+        {
+            if (entries == null || entries.Count == 0)
+            {
+                return 0;
+            }
+
+            var count = 0;
+            for (var i = 0; i < entries.Count; i++)
+            {
+                if (entries[i].Status == status)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private static int CountIssues(
+            IReadOnlyList<RouteSceneCompositionResultEntry> entries,
+            bool blockingOnly)
+        {
+            if (entries == null || entries.Count == 0)
+            {
+                return 0;
+            }
+
+            var count = 0;
+            for (var i = 0; i < entries.Count; i++)
+            {
+                var entry = entries[i];
+                if (blockingOnly)
+                {
+                    if (entry.BlocksComposition)
+                    {
+                        count++;
+                    }
+
+                    continue;
+                }
+
+                if (entry.HasIssue)
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         private static IReadOnlyList<RouteSceneCompositionResultEntry> CreateNotExecutedEntries(

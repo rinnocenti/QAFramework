@@ -5,9 +5,9 @@ namespace Immersive.Framework.RouteLifecycle
 {
     /// <summary>
     /// Immutable evidence record for one scene after Route scene composition.
-    /// This is not a loaded scene handle and it does not authorize release/unload.
+    /// This is evidence derived from scene loading and it does not authorize release/unload.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F6C inert route scene composition result entry; execution and release are deferred.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F6E route scene composition result entry; additive execution evidence only, release deferred.")]
     internal readonly struct RouteSceneCompositionResultEntry
     {
         public RouteSceneCompositionResultEntry(

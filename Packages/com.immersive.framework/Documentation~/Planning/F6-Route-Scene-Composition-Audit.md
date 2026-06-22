@@ -1,6 +1,6 @@
 # F6 — Route Scene Composition and Release Audit
 
-Status: `F6D SCENE LIFECYCLE ADDITIVE PRIMITIVE APPLIED / PENDING COMPILE-SMOKE`  
+Status: `F6E ROUTE CONTENT PROFILE EXECUTION APPLIED / BASELINE SMOKE PASS / PROFILE SMOKE PENDING`  
 Tipo: planejamento/auditoria documental  
 Escopo: Route scene composition, additive scene loading e release por escopo
 
@@ -74,16 +74,26 @@ SceneLifecycleRuntime.LoadAdditiveSceneAsync
 SceneLifecycleLoadResult.LoadedAdditiveScene
 ```
 
-F6D adiciona apenas o primitivo interno de carregamento additive. Ele valida cena vazia, verifica se a cena já está carregada, carrega via `LoadSceneMode.Additive` quando necessário, resolve a cena carregada e retorna `SceneLifecycleLoadResult` com `Loaded`, `AlreadyLoaded`, `SceneName`, `ScenePath`, `LoadMode` e mensagem diagnóstica. Ele não é consumido ainda por `RouteLifecycleRuntime`, não executa `RouteContentProfileAsset`, não registra additional scene em `RouteContentSet` e não descarrega cenas.
+F6D adicionou o primitivo interno de carregamento additive e foi validado por smoke baseline. Ele valida cena vazia, verifica se a cena já está carregada, carrega via `LoadSceneMode.Additive` quando necessário, resolve a cena carregada e retorna `SceneLifecycleLoadResult` com `Loaded`, `AlreadyLoaded`, `SceneName`, `ScenePath`, `LoadMode` e mensagem diagnóstica.
+
+### Aplicado em F6E
+
+```text
+RouteSceneCompositionRuntime
+RouteLifecycleRuntime -> RouteSceneCompositionPlan -> RouteSceneCompositionResult
+RouteContentSet.FromSceneCompositionResult
+```
+
+F6E conecta a execução de `RouteContentProfileAsset` ao fluxo de Route. O runtime monta `RouteSceneCompositionPlan`, carrega a Primary Scene em `Single`, carrega additional scenes válidas em `Additive`, produz `RouteSceneCompositionResult` e registra cenas carregadas em `RouteContentSet`. Required additional scene inválida ou com load failure bloqueia a Route composition. Optional inválida/falha é registrada como issue não bloqueante. F6E ainda não descarrega cenas e não cria ContentReleasePlan/Result. O baseline sem profile passou com `routeSceneLoaded='1'`; falta evidência com profile/additional scene carregando `routeSceneLoaded > 1`.
 
 ### Presente
 
 ```text
 RouteAsset com Primary Scene
-RouteContentProfileAsset planning-only
-RouteContentSceneEntry planning-only
-RouteContentMaterializationPlan planning-only
-RouteContentScenePlanEntry planning-only
+RouteContentProfileAsset executado pela Route scene composition
+RouteContentSceneEntry exige ExplicitContentId para execution readiness
+RouteContentMaterializationPlan usado como declaração diagnóstica
+RouteContentSet registra Primary e additional scenes carregadas
 SceneLifecycleRuntime com Primary Scene loading
 RouteContentSet com Primary Scene Route-owned
 RouteContentRuntime com callbacks locais de Route
@@ -94,8 +104,6 @@ RouteExitResult mínimo
 ### Ausente
 
 ```text
-Additive scene execution
-RouteContentProfileAsset execution
 ContentReleasePlan
 ContentReleaseResult
 Additive scene unload/release
@@ -108,14 +116,14 @@ RuntimeRootRegistry
 
 ## Riscos encontrados
 
-### 1. RouteContentProfileAsset ainda é planning-only
+### 1. RouteContentProfileAsset execution não faz release
 
-O asset já declara additional scenes, mas elas ainda não são executadas.
+O asset agora declara additional scenes consumidas por Route scene composition, mas isso ainda não autoriza descarregamento físico.
 
 Decisão de F6:
 
 ```text
-RouteContentProfileAsset só pode ser executado depois de RouteSceneCompositionPlan/Result.
+RouteContentProfileAsset execution carrega additional scenes; release físico começa somente em F6F com ContentReleasePlan/Result.
 ```
 
 ### 2. Fallback de content id em RouteContentSceneEntry
@@ -167,7 +175,7 @@ Exit callbacks da Route anterior devem rodar antes do release da Route anterior.
 | ADR | Status | Decisão central |
 |---|---|---|
 | `F6-01 — ADR-RELEASE-001` | `Accepted / implementation not started` | Release será por `ContentReleasePlan`/`ContentReleaseResult`, guiado por ownership explícito. |
-| `F6-02 — ADR-SCENE-001` | `Accepted / F6D additive primitive applied / route execution not started` | Route scene composition usa `RouteSceneCompositionPlan`/`RouteSceneCompositionResult`; additive primitive existe, mas Route profile execution ainda não está conectado. |
+| `F6-02 — ADR-SCENE-001` | `Accepted / F6E baseline smoke pass / profile smoke pending` | Route scene composition usa `RouteSceneCompositionPlan`/`RouteSceneCompositionResult`; Route profile execution carrega additional scenes via additive primitive. |
 
 ---
 
@@ -177,25 +185,24 @@ Exit callbacks da Route anterior devem rodar antes do release da Route anterior.
 F6A — ADR completion and audit                  [docs-only]
 F6B — RouteSceneCompositionPlan                 [runtime inert/pure] [CLOSED / PASS]
 F6C — RouteSceneCompositionResult               [runtime inert/result] [CLOSED / PASS]
-F6D — SceneLifecycle additive primitive         [runtime execution primitive] [APPLIED / PENDING COMPILE-SMOKE]
-F6E — RouteContentProfileAsset execution        [route profile → composition]
+F6D — SceneLifecycle additive primitive         [runtime execution primitive] [CLOSED / PASS]
+F6E — RouteContentProfileAsset execution        [route profile → composition] [BASELINE PASS / PROFILE SMOKE PENDING]
 F6F — ContentReleasePlan / ContentReleaseResult [release planning/execution]
 F6G — Scene/release smoke                       [QA]
 ```
 
 ---
 
-## Critério para fechar F6D
+## Critério para fechar F6E
 
-F6D pode ser fechado quando o package compilar no Unity e o smoke baseline continuar sem regressão. O corte deve permanecer limitado ao primitivo interno de additive loading. Não deve conectar `RouteContentProfileAsset` ao fluxo de Route, descarregar cenas ou criar release ainda.
+F6E pode ser fechado quando o package compilar no Unity, o smoke baseline continuar sem regressão e o `Route Scene Composition Smoke` confirmar uma Route com `RouteContentProfileAsset` carregando pelo menos uma additional scene. A evidência esperada é `RouteSceneCompositionResult` com `routeSceneLoaded > 1`, `routeSceneBlockingIssues='0'` e `RouteContentSet` com handle adicional. O corte deve permanecer sem unload/release físico.
 
 ---
 
-## Não autorizado pela F6D
+## Não autorizado pela F6E
 
 ```text
-RouteContentProfileAsset execution antes de F6E
-Release físico antes de ContentReleasePlan
+Release físico antes de F6F / ContentReleasePlan
 Surface
 RuntimeRootRegistry
 Prefab materializer

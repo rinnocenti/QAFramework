@@ -12,6 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd969b54c69d4c4293022f4fa1b2432a, type: 3}
   m_Name: RouteContentProfile
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.RouteContentProfileAsset
-  profileId: 
-  additionalScenes: []
-  description: 
+  profileId: route.primary.aditional
+  additionalScenes:
+  - contentId: scene.addictive.scene01
+    scenePath: Assets/Scenes/AdditionalRouteScene.unity
+    sceneName: AdditionalRouteScene
+    requiredness: 10
+  description: Cena aditiva

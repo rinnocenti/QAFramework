@@ -50,7 +50,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Current Scope", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "This Route currently declares identity, one Primary Scene, an optional Route Content Profile for planning, and an optional Startup Activity. Additional Route scene execution, Activity content, actors, input, camera, save, pause and pooling come later.",
+                "This Route declares identity, one Primary Scene, an optional Route Content Profile executed by Route scene composition, and an optional Startup Activity. Release/unload, Activity materialization, actors, input, camera, save, pause and pooling come later.",
                 MessageType.None);
 
             serializedObject.ApplyModifiedProperties();
@@ -97,7 +97,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             EditorGUILayout.LabelField("Route Content", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_routeContentProfile, new GUIContent("Content Profile"));
             EditorGUILayout.HelpBox(
-                "Optional and planning-only. Additional scenes declared in the profile are not loaded in F0B; execution belongs to F6 Route scene composition/release.",
+                "Optional. Additional scenes declared in the profile are loaded additively by F6E Route scene composition. Release/unload remains deferred to a later cut.",
                 MessageType.Warning);
 
             using (new EditorGUILayout.HorizontalScope())

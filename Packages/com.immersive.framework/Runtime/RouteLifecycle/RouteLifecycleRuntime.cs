@@ -18,9 +18,15 @@ namespace Immersive.Framework.RouteLifecycle
         private readonly SceneLifecycleRuntime _sceneLifecycleRuntime = new SceneLifecycleRuntime();
         private readonly ActivityFlowRuntime _activityFlowRuntime = new ActivityFlowRuntime();
         private readonly RouteContentRuntime _routeContentRuntime = new RouteContentRuntime();
+        private readonly RouteSceneCompositionRuntime _routeSceneCompositionRuntime;
         private readonly EventBus<RouteEnteredEvent> _routeEnteredEvents = new EventBus<RouteEnteredEvent>();
         private readonly EventBus<RouteExitedEvent> _routeExitedEvents = new EventBus<RouteExitedEvent>();
         private RouteRuntimeState _currentRouteState;
+
+        internal RouteLifecycleRuntime()
+        {
+            _routeSceneCompositionRuntime = new RouteSceneCompositionRuntime(_sceneLifecycleRuntime);
+        }
 
         internal RouteRuntimeState CurrentRouteState => _currentRouteState;
 
@@ -73,16 +79,18 @@ namespace Immersive.Framework.RouteLifecycle
             var previousRoute = previousRouteState.Route;
             var routeContentExitResult = _routeContentRuntime.ExitRouteContent(previousRoute, route, source, reason);
             var routeContentPlan = RouteContentMaterializationPlan.FromRoute(route);
-            var sceneLifecycleResult = await _sceneLifecycleRuntime.LoadPrimarySceneAsync(route);
-            if (!sceneLifecycleResult.Loaded)
+            var routeSceneCompositionPlan = RouteSceneCompositionPlan.FromRoute(route, source, reason);
+            var routeSceneCompositionResult = await _routeSceneCompositionRuntime.ExecuteAsync(routeSceneCompositionPlan);
+            if (routeSceneCompositionResult.Failed || routeSceneCompositionResult.HasBlockingIssues)
             {
-                return RouteLifecycleStartResult.Failed(sceneLifecycleResult.Message);
+                return RouteLifecycleStartResult.Failed(routeSceneCompositionResult.ToDiagnosticString());
             }
 
-            var routeContentSet = RouteContentSet.FromPrimaryScene(
+            var sceneLifecycleResult = routeSceneCompositionResult.PrimarySceneLoadResult;
+            var routeContentSet = RouteContentSet.FromSceneCompositionResult(
                 route,
                 routeContentPlan,
-                sceneLifecycleResult,
+                routeSceneCompositionResult,
                 source,
                 reason);
 
@@ -98,6 +106,7 @@ namespace Immersive.Framework.RouteLifecycle
                 route,
                 previousRouteState,
                 sceneLifecycleResult,
+                routeSceneCompositionResult,
                 routeContentSet,
                 routeContentEnterResult,
                 routeContentExitResult,

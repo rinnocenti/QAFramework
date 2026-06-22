@@ -14,7 +14,7 @@ Este arquivo substitui os antigos documentos de fechamento e aceite de fase. Os 
 | F3 | `CLOSED / PASS` | Route baseline closed | `Route/ROUTE_RUNTIME_STATE_TYPED.md`, `Route/ROUTE_EXIT_RESULT_MINIMAL.md`, `Route/ROUTE_CONTENT_RUNTIME_EXECUTION_DECISION.md`, `Route/ROUTE_CONTENT_SET_SEMANTICS.md`, `Route/ROUTE_LOCAL_CALLBACK_SMOKE.md`, `Route/ROUTE_VALIDATOR_EXPANSION.md`, `Route/QA_PANEL_SIMPLIFICATION.md`, `Route/QA_AUTHORING_VALIDATION_HYGIENE.md` |
 | F4 | `CLOSED / ACTIVITY BASELINE PASS` | Activity baseline closed | `Activity/ACTIVITY_RUNTIME_STATE_REFINED.md`, `Activity/ACTIVITY_CONTENT_SET_MINIMAL.md`, `Activity/ACTIVITY_CONTENT_LIFECYCLE_RESULT.md`, `Activity/ACTIVITY_READINESS_STATE_MINIMAL.md`, `Activity/ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md`, `Activity/ACTIVITY_BASELINE_SMOKE.md` |
 | F5 | `CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS` | F5H local smoke passed; F5 closure audit completed | `Local/LOCAL_CONTENT_IDENTITY.md` |
-| F6 | `OPEN / F6D APPLIED` | RouteSceneCompositionPlan/Result added; SceneLifecycle additive primitive added; pending Unity compile/smoke before Route profile execution | `Planning/F6-Route-Scene-Composition-Audit.md`, `ADRs/F6-route-scene-composition-and-release/` |
+| F6 | `OPEN / F6E BASELINE PASS / PROFILE SMOKE PENDING` | RouteSceneCompositionPlan/Result added; SceneLifecycle additive primitive added; RouteContentProfileAsset execution connected; baseline smoke without profile passed; profile/additional-scene smoke pending before release planning | `Planning/F6-Route-Scene-Composition-Audit.md`, `ADRs/F6-route-scene-composition-and-release/` |
 
 ## Consolidation rule
 
@@ -39,7 +39,7 @@ Keep these docs as the durable record for implementation details:
 
 | Next authorized step | Reason |
 |---|---|
-| `F6D — SceneLifecycle additive primitive compile/smoke` | F6C passed smoke and F6D added the internal additive scene loading primitive. Validate Unity compilation before wiring RouteContentProfileAsset execution. |
+| `F6E — RouteContentProfileAsset execution profile smoke` | Baseline without profile passed. Configure a RouteContentProfileAsset with an additional scene and run Route Scene Composition Smoke before release planning. |
 
 ## F5 closure audit
 
@@ -80,9 +80,9 @@ Confirmed removals and exclusions:
 
 ## F6 ADR gate
 
-Status: `OPEN / F6D APPLIED`.
+Status: `OPEN / F6E BASELINE PASS / PROFILE SMOKE PENDING`.
 
-F6A completed the route scene composition and release ADR gate. F6B added inert runtime planning types for Route scene composition and passed baseline smoke. F6C added inert runtime result types for Route scene composition and passed baseline smoke. F6D added an internal SceneLifecycle additive load primitive. Route composition still does not consume additional scenes, and no unloading, release, Surface, RuntimeRoot or materialization execution was added.
+F6A completed the route scene composition and release ADR gate. F6B added runtime planning types for Route scene composition and passed baseline smoke. F6C added runtime result types for Route scene composition and passed baseline smoke. F6D added an internal SceneLifecycle additive load primitive and passed baseline smoke. F6E connects RouteContentProfileAsset execution through RouteSceneCompositionPlan/Result, loads valid additional scenes additively and records loaded scenes in RouteContentSet. Baseline without profile passed with one loaded scene; profile/additional-scene smoke remains pending. No unloading, release, Surface, RuntimeRoot or prefab materialization was added.
 
 Accepted ADRs:
 
@@ -96,7 +96,7 @@ Audit doc:
 Current validation gate:
 
 ```text
-F6D — SceneLifecycle additive primitive compile/smoke
+F6E — RouteContentProfileAsset execution compile/smoke
 ```
 
-F6B and F6C are closed by smoke evidence. F6D adds the additive scene loading primitive only. It does not wire additional scenes into Route lifecycle, unload scenes, create Surface, create RuntimeRootRegistry, create prefab materialization or touch Actor/Input/Camera/Reset/Save/Pooling. F6E must not start until Unity compilation/smoke confirms this cut.
+F6B, F6C and F6D are closed by smoke evidence. F6E wires additional scenes into Route lifecycle through scene composition execution. The baseline without profile has passed; F6F must not start until Route Scene Composition Smoke confirms a profile with at least one additional scene. F6E does not unload scenes, create ContentReleasePlan/Result, create Surface, create RuntimeRootRegistry, create prefab materialization or touch Actor/Input/Camera/Reset/Save/Pooling.

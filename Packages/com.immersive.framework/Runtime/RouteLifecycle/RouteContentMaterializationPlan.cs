@@ -8,9 +8,9 @@ namespace Immersive.Framework.RouteLifecycle
 {
     /// <summary>
     /// Route content plan derived from Route authoring data.
-    /// In this baseline it records additional scene declarations without executing additive loading.
+    /// It records Route-authored scene declarations consumed by Route scene composition.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route content profile planning data only; additive execution is deferred to F6.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route content profile declaration data consumed by F6 route scene composition.")]
     internal readonly struct RouteContentMaterializationPlan
     {
         private readonly RouteContentScenePlanEntry[] _additionalScenes;
@@ -96,7 +96,7 @@ namespace Immersive.Framework.RouteLifecycle
             }
 
             var builder = new StringBuilder();
-            builder.Append($"Route Content Plan profile='{ProfileId}' additionalScenes='{AdditionalSceneCount}' plannedOnly='True' details=[");
+            builder.Append($"Route Content Plan profile='{ProfileId}' additionalScenes='{AdditionalSceneCount}' execution='RouteSceneComposition' details=[");
             for (var i = 0; i < _additionalScenes.Length; i++)
             {
                 if (i > 0)

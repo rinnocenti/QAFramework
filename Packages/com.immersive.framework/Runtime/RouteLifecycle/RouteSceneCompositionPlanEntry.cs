@@ -8,7 +8,7 @@ namespace Immersive.Framework.RouteLifecycle
     /// Inert planning record for one scene declared by a Route scene composition plan.
     /// This is not a loaded scene handle and it does not authorize release/unload.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F6B inert route scene composition plan entry; additive execution is deferred.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Route scene composition plan entry consumed by F6E; release is deferred.")]
     internal readonly struct RouteSceneCompositionPlanEntry
     {
         public RouteSceneCompositionPlanEntry(

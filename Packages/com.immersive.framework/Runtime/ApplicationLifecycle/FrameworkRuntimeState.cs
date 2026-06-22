@@ -45,6 +45,8 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         public RouteRuntimeState RouteState => SessionState.RouteState;
 
+        public RouteSceneCompositionResult RouteSceneCompositionResult => SessionState.RouteSceneCompositionResult;
+
         public RouteContentSet RouteContentSet => SessionState.RouteContentSet;
 
         public SessionContentSet SessionContentSet => SessionState.SessionContentSet;

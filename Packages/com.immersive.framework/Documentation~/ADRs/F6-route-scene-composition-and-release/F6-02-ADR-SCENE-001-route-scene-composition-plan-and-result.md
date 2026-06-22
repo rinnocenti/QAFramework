@@ -321,7 +321,7 @@ Este ADR autoriza os próximos cortes F6 de scene composition:
 F6B — RouteSceneCompositionPlan
 F6C — RouteSceneCompositionResult
 F6D — Additive route scene loading primitive
-F6E — RouteContentProfileAsset execution
+F6E — RouteContentProfileAsset execution [APPLIED / PENDING SMOKE]
 ```
 
 Não autoriza F7 Surface, F8 runtime roots/materialization ou F9 runtime placement.
@@ -347,3 +347,33 @@ F8-01 — Runtime ownership and roots
 F8-02 — Materialization request/result/handle
 F9-01 — Surface binding and content placement
 ```
+
+---
+
+## Implementation note — F6E
+
+F6E connects the accepted ADR to runtime execution without starting release/unload.
+
+Implemented boundary:
+
+```text
+RouteLifecycleRuntime
+  -> RouteSceneCompositionPlan.FromRoute
+  -> RouteSceneCompositionRuntime.ExecuteAsync
+      -> SceneLifecycleRuntime.LoadPrimarySceneAsync
+      -> SceneLifecycleRuntime.LoadAdditiveSceneAsync for valid additional scenes
+  -> RouteSceneCompositionResult
+  -> RouteContentSet.FromSceneCompositionResult
+```
+
+Semantics:
+
+```text
+Primary Scene remains Single and active.
+Required additional scene invalid/load failure blocks Route composition.
+Optional additional scene invalid/load failure records a non-blocking issue.
+Loaded additional scenes are Route-owned content handles.
+No unload/release is executed in F6E.
+```
+
+F6E does not authorize Surface, RuntimeRootRegistry, prefab materialization, Activity canonical materialization, Actor, Input, Camera, Save or Pooling work.

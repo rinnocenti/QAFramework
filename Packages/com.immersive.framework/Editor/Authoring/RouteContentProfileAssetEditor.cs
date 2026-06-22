@@ -23,7 +23,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
             EditorGUILayout.LabelField("Route Content Profile", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "Status: Deferred / Planning-only. This asset declares future Route-owned content. In F0B, additional scenes are recorded for diagnostics/planning only and are not loaded.",
+                "Status: Experimental / Executed by F6E. This asset declares Route-owned additional scenes. Valid entries are loaded additively during Route scene composition; release/unload remains deferred.",
                 MessageType.Warning);
 
             EditorGUILayout.Space(6);
@@ -40,7 +40,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
         {
             EditorGUILayout.LabelField("Additional Route Scenes", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "These scenes are declarations only. Additive execution belongs to F6 Route scene composition/release, not F0B.",
+                "These scenes are loaded additively by F6E Route scene composition when the owning Route starts. Release/unload is still deferred to a later cut.",
                 MessageType.Warning);
 
             for (var i = 0; i < _additionalScenes.arraySize; i++)
@@ -111,7 +111,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             if (string.IsNullOrWhiteSpace(scenePath.stringValue))
             {
                 EditorGUILayout.HelpBox(
-                    "Scene is missing. This declaration is ignored by the runtime plan until a scene is assigned.",
+                    "Scene is missing. Optional entries are skipped by composition; required entries can block the Route once executed.",
                     MessageType.Warning);
             }
 

@@ -810,7 +810,7 @@ F5  — CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS
 F6A — CLOSED / ADR ACCEPTED / DOCS ONLY
 F6B — CLOSED / ROUTE SCENE COMPOSITION PLAN PASS
 F6C — CLOSED / ROUTE SCENE COMPOSITION RESULT PASS
-F6D — APPLIED / SCENE LIFECYCLE ADDITIVE PRIMITIVE PENDING SMOKE
+F6D — CLOSED / SCENE LIFECYCLE ADDITIVE PRIMITIVE PASS
 ```
 
 ADR status relevante para a fronteira atual:
@@ -819,7 +819,7 @@ ADR status relevante para a fronteira atual:
 F5-01 — ADR-LOCAL-001 — Local Identity — Accepted
 F5-02 — ADR-LOCAL-002 — Local Contribution Discovery and Requiredness — Applied through F5H / Expected Declarations Deferred
 F6-01 — ADR-RELEASE-001 — Content Release Plan by Scope — Accepted / implementation not started
-F6-02 — ADR-SCENE-001 — Route Scene Composition Plan and Result — Accepted / F6D additive primitive applied / route execution not started
+F6-02 — ADR-SCENE-001 — Route Scene Composition Plan and Result — Accepted / F6E route profile execution applied / pending smoke
 ```
 
 ## Ação imediata
@@ -827,32 +827,33 @@ F6-02 — ADR-SCENE-001 — Route Scene Composition Plan and Result — Accepted
 O corte atual é:
 
 ```text
-F6D — SceneLifecycle additive primitive
+F6E — RouteContentProfileAsset execution [APPLIED / PENDING SMOKE]
 ```
 
 Escopo aplicado:
 
 ```text
-- manter F6B e F6C fechados por smoke;
-- adicionar primitivo interno de carregamento additive no SceneLifecycleRuntime;
-- retornar SceneLifecycleLoadResult para cenas additive carregadas ou já carregadas;
-- manter RouteContentProfileAsset execution, release e Route composition completa fora do corte.
+- manter F6B, F6C e F6D fechados por smoke;
+- montar RouteSceneCompositionPlan no fluxo de Route;
+- executar Primary Scene em Single e additional scenes válidas em Additive;
+- produzir RouteSceneCompositionResult;
+- registrar cenas carregadas em RouteContentSet;
+- manter release/unload fora do corte.
 ```
 
 Próximo passo autorizado após compile/smoke:
 
 ```text
-F6E — RouteContentProfileAsset execution
+F6F — ContentReleasePlan / ContentReleaseResult
 ```
 
-F6D deve ser um primitive cut: cria capacidade interna de loading additive, mas não muda o fluxo real de Route ainda.
+F6F deve iniciar release planning/execution sem avançar para Surface, RuntimeRootRegistry ou materialização canônica.
 
 ## Não avançar ainda
 
 ```text
 Expected contribution declarations
 Materialização canônica
-RouteContentProfileAsset execution antes de F6E
 Release físico antes de F6F
 Surface
 Runtime roots/materialization

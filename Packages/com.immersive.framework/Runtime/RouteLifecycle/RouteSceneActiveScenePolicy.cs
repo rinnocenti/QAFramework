@@ -4,9 +4,9 @@ namespace Immersive.Framework.RouteLifecycle
 {
     /// <summary>
     /// Policy that describes which scene should remain active after Route scene composition.
-    /// F6B records policy only; execution starts in later F6 cuts.
+    /// F6E currently preserves Primary Scene as the active scene after composition.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F6B inert route scene composition planning vocabulary.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Route scene composition planning vocabulary consumed by F6E.")]
     internal enum RouteSceneActiveScenePolicy
     {
         Unknown = 0,

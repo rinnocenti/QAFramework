@@ -17,6 +17,7 @@ namespace Immersive.Framework.RouteLifecycle
             RouteAsset route,
             FrameworkIdentityKey routeIdentity,
             SceneLifecycleLoadResult sceneLifecycleResult,
+            RouteSceneCompositionResult routeSceneCompositionResult,
             RouteContentSet routeContentSet,
             ActivityFlowStartResult activityFlowResult,
             string source,
@@ -26,6 +27,7 @@ namespace Immersive.Framework.RouteLifecycle
             Route = route;
             RouteIdentity = routeIdentity;
             SceneLifecycleResult = sceneLifecycleResult;
+            RouteSceneCompositionResult = routeSceneCompositionResult;
             RouteContentSet = routeContentSet;
             ActivityFlowResult = activityFlowResult;
             Source = source ?? string.Empty;
@@ -38,6 +40,8 @@ namespace Immersive.Framework.RouteLifecycle
         public FrameworkIdentityKey RouteIdentity { get; }
 
         public SceneLifecycleLoadResult SceneLifecycleResult { get; }
+
+        public RouteSceneCompositionResult RouteSceneCompositionResult { get; }
 
         public RouteContentSet RouteContentSet { get; }
 
@@ -97,6 +101,7 @@ namespace Immersive.Framework.RouteLifecycle
         public static RouteRuntimeState EnteredWith(
             RouteAsset route,
             SceneLifecycleLoadResult sceneLifecycleResult,
+            RouteSceneCompositionResult routeSceneCompositionResult,
             RouteContentSet routeContentSet,
             ActivityFlowStartResult activityFlowResult,
             string source,
@@ -106,6 +111,7 @@ namespace Immersive.Framework.RouteLifecycle
                 route,
                 CreateRouteIdentity(route),
                 sceneLifecycleResult,
+                routeSceneCompositionResult,
                 routeContentSet,
                 activityFlowResult,
                 source,

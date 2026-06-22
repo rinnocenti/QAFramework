@@ -6,15 +6,14 @@ using Immersive.Framework.ApiStatus;
 namespace Immersive.Framework.Authoring
 {
     /// <summary>
-    /// API status: Deferred / Planning-only. Additional scenes are declarations only in the active baseline.
-    /// Authoring profile for Route-owned content declarations.
-    /// The baseline cut only plans additional scenes; actual additive loading is introduced later.
+    /// API status: Experimental. Authoring profile for Route-owned content declarations.
+    /// Additional scenes declared here are consumed by Route scene composition in F6E.
     /// </summary>
     [CreateAssetMenu(
         fileName = "Route Content Profile",
         menuName = "Immersive Framework/Route Content Profile",
         order = 11)]
-    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route content profile is planning-only until route scene composition/release phases.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Route content profile is consumed by F6E route scene composition; release remains deferred.")]
     public sealed class RouteContentProfileAsset : ScriptableObject
     {
         [SerializeField]
@@ -22,7 +21,7 @@ namespace Immersive.Framework.Authoring
         private string profileId = string.Empty;
 
         [SerializeField]
-        [Tooltip("Additional scenes declared by the Route. These are planned only in this cut; they are not loaded yet.")]
+        [Tooltip("Additional scenes declared by the Route and loaded additively by Route scene composition when execution-ready.")]
         private RouteContentSceneEntry[] additionalScenes = Array.Empty<RouteContentSceneEntry>();
 
         [SerializeField]

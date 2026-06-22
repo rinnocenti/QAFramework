@@ -28,7 +28,7 @@ namespace Immersive.Framework.Authoring
         private string primarySceneName = string.Empty;
 
         [SerializeField]
-        [Tooltip("Optional Route Content Profile. This baseline only plans declared content; additional scene loading comes later.")]
+        [Tooltip("Optional Route Content Profile. Route scene composition loads execution-ready additional scenes additively.")]
         private RouteContentProfileAsset routeContentProfile;
 
         [SerializeField]

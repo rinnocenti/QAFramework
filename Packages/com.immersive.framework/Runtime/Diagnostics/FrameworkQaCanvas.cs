@@ -53,6 +53,11 @@ namespace Immersive.Framework.Diagnostics
         [SerializeField] private RouteAsset alternateRoute;
         [SerializeField] private RouteAsset noActivityRoute;
 
+        [Header("Route Scene Composition Smoke")]
+        [SerializeField] private RouteAsset routeSceneCompositionRoute;
+        [SerializeField] private int expectedRouteSceneLoadedCount = 2;
+        [SerializeField] private int expectedRouteSceneOwnedLoadedCount = 2;
+
         [Header("Smoke Scenario Activities")]
         [FormerlySerializedAs("activity01")]
         [SerializeField] private ActivityAsset primaryActivity;
@@ -184,6 +189,8 @@ namespace Immersive.Framework.Diagnostics
             GUILayout.Label("QA Scenario", GUI.skin.box);
             GUILayout.Label($"Canonical Route: {GetAssetName(canonicalRoute, "<missing>")}");
             GUILayout.Label($"Alternate Route: {GetAssetName(alternateRoute, "<missing>")}");
+            GUILayout.Label($"Composition Route: {GetAssetName(routeSceneCompositionRoute, "<missing>")}");
+            GUILayout.Label($"Expected Route Scenes: {Math.Max(1, expectedRouteSceneLoadedCount)} loaded / {Math.Max(1, expectedRouteSceneOwnedLoadedCount)} owned");
             GUILayout.Label($"Primary Activity: {GetAssetName(primaryActivity, "<missing>")}");
             GUILayout.Label($"Secondary Activity: {GetAssetName(secondaryActivity, "<missing>")}");
             GUILayout.Label(GetCoreQaAssetsStatus());
@@ -254,6 +261,11 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Route Callback Smoke"))
                 {
                     RunRouteCallbackSmoke();
+                }
+
+                if (GUILayout.Button("Run Route Scene Composition Smoke"))
+                {
+                    RunRouteSceneCompositionSmoke();
                 }
             }
         }
@@ -936,6 +948,60 @@ namespace Immersive.Framework.Diagnostics
             });
         }
 
+        private async void RunRouteSceneCompositionSmoke()
+        {
+            string missingTargets = string.Empty;
+            AppendMissingQaAsset(ref missingTargets, routeSceneCompositionRoute == null, "Route Scene Composition Route");
+            AppendMissingQaAsset(ref missingTargets, alternateRoute == null, "Alternate Route / Preparation Route");
+
+            if (routeSceneCompositionRoute != null)
+            {
+                AppendMissingQaAsset(ref missingTargets, !routeSceneCompositionRoute.HasRouteContentProfile, "Route Content Profile on Composition Route");
+                if (routeSceneCompositionRoute.HasRouteContentProfile)
+                {
+                    AppendMissingQaAsset(
+                        ref missingTargets,
+                        !routeSceneCompositionRoute.RouteContentProfile.HasAdditionalScenes,
+                        "Additional Scene in Route Content Profile");
+                }
+            }
+
+            if (!TryValidateSmokeTargets("Route Scene Composition Smoke", missingTargets))
+            {
+                return;
+            }
+
+            await RunSmokeAsync("Route Scene Composition Smoke", async runtimeHost =>
+            {
+                if (ReferenceEquals(runtimeHost.State.CurrentRoute, routeSceneCompositionRoute))
+                {
+                    if (ReferenceEquals(alternateRoute, routeSceneCompositionRoute))
+                    {
+                        _logger.Warning("QA Route Scene Composition Smoke step failed. step='prepare' reason='Composition Route is already active and Alternate Route points to the same Route'.");
+                        return false;
+                    }
+
+                    var prepareResult = await RequestRouteWithResultCoreAsync(
+                        runtimeHost,
+                        alternateRoute,
+                        ResolveReason(routeReason, GetAssetName(alternateRoute, "qa.route.composition.prepare")));
+                    if (!prepareResult.Succeeded)
+                    {
+                        _logger.Warning($"QA Route Scene Composition Smoke step failed. step='prepare' reason='Preparation Route request did not succeed' status='{FormatValue(prepareResult.Kind.ToString())}'.");
+                        return false;
+                    }
+
+                    await Task.Yield();
+                }
+
+                var compositionResult = await RequestRouteWithResultCoreAsync(
+                    runtimeHost,
+                    routeSceneCompositionRoute,
+                    ResolveReason(routeReason, GetAssetName(routeSceneCompositionRoute, "qa.route.composition")));
+                return ValidateRouteSceneCompositionSmokeStep(compositionResult, "composition");
+            });
+        }
+
         private async void RunClearActivitySmoke()
         {
             string missingTargets = string.Empty;
@@ -1190,6 +1256,74 @@ namespace Immersive.Framework.Diagnostics
             }
 
             _logger.Info($"QA Activity Baseline Smoke step completed. step='{FormatValue(normalizedStepName)}' activityState='{FormatValue(activityFlowResult.ActivityState.DiagnosticStatus)}' activityReadiness='{FormatValue(readinessState.DiagnosticStatus)}' activityReadinessReason='{FormatValue(readinessState.DiagnosticReason)}' activityReadinessIssues='{readinessState.BlockingIssueCount}' activityContentHandles='{activityFlowResult.ActivityContentSet.Count}'.");
+            return true;
+        }
+
+        private bool ValidateRouteSceneCompositionSmokeStep(FrameworkRouteRequestResult result, string stepName)
+        {
+            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string routeName = result.TargetRoute != null ? GetAssetName(result.TargetRoute, "<unnamed>") : "<missing>";
+
+            if (!result.Succeeded)
+            {
+                _logger.Warning($"QA Route Scene Composition Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Route request did not succeed' status='{FormatValue(result.Kind.ToString())}'.");
+                return false;
+            }
+
+            var lifecycleResult = result.RouteLifecycleResult;
+            if (!lifecycleResult.Started)
+            {
+                _logger.Warning($"QA Route Scene Composition Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Route lifecycle did not start'.");
+                return false;
+            }
+
+            var composition = lifecycleResult.RouteSceneCompositionResult;
+            if (!composition.Succeeded || composition.HasBlockingIssues)
+            {
+                _logger.Warning($"QA Route Scene Composition Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Route scene composition did not succeed' status='{FormatValue(composition.Status.ToString())}' loaded='{composition.LoadedCount}' failed='{composition.FailedCount}' blockingIssues='{composition.BlockingIssueCount}'.");
+                return false;
+            }
+
+            int expectedLoaded = Math.Max(1, expectedRouteSceneLoadedCount);
+            if (composition.LoadedCount < expectedLoaded)
+            {
+                _logger.Warning($"QA Route Scene Composition Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Loaded scene count below expectation' expectedLoaded='{expectedLoaded}' actualLoaded='{composition.LoadedCount}' failed='{composition.FailedCount}' blockingIssues='{composition.BlockingIssueCount}'.");
+                return false;
+            }
+
+            int expectedOwnedLoaded = Math.Max(1, expectedRouteSceneOwnedLoadedCount);
+            if (composition.OwnedLoadedCount < expectedOwnedLoaded)
+            {
+                _logger.Warning($"QA Route Scene Composition Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Owned loaded scene count below expectation' expectedOwnedLoaded='{expectedOwnedLoaded}' actualOwnedLoaded='{composition.OwnedLoadedCount}' loaded='{composition.LoadedCount}'.");
+                return false;
+            }
+
+            var contentSet = lifecycleResult.RouteContentSet;
+            if (contentSet.Count < expectedOwnedLoaded)
+            {
+                _logger.Warning($"QA Route Scene Composition Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Route Content Set handle count below expectation' expectedHandles='{expectedOwnedLoaded}' actualHandles='{contentSet.Count}' loaded='{composition.LoadedCount}' ownedLoaded='{composition.OwnedLoadedCount}'.");
+                return false;
+            }
+
+            _logger.Info(
+                "QA Route Scene Composition Smoke step completed.",
+                LogFields.Of(
+                    LogFields.Field("step", normalizedStepName),
+                    LogFields.Field("route", routeName),
+                    LogFields.Field("routeSceneComposition", composition.Status.ToString()),
+                    LogFields.Field("routeSceneEntries", composition.EntryCount),
+                    LogFields.Field("routeSceneLoaded", composition.LoadedCount),
+                    LogFields.Field("routeSceneOwnedLoaded", composition.OwnedLoadedCount),
+                    LogFields.Field("routeSceneAlreadyLoaded", composition.AlreadyLoadedCount),
+                    LogFields.Field("routeSceneFailed", composition.FailedCount),
+                    LogFields.Field("routeSceneIssues", composition.IssueCount),
+                    LogFields.Field("routeSceneBlockingIssues", composition.BlockingIssueCount),
+                    LogFields.Field("routeContentHandles", contentSet.Count),
+                    LogFields.Field("routeContentOwned", contentSet.OwnedCount),
+                    LogFields.Field("routeContentDiagnosticOnly", contentSet.DiagnosticOnlyCount)));
+            _logger.Debug(
+                "QA Route Scene Composition Smoke diagnostics.",
+                LogFields.Field("details", composition.ToDiagnosticString()));
             return true;
         }
 
@@ -1581,6 +1715,7 @@ namespace Immersive.Framework.Diagnostics
             string missingOptional = string.Empty;
             AppendMissingQaAsset(ref missingOptional, noActivityRoute == null, "No-Activity Route");
             AppendMissingQaAsset(ref missingOptional, noContentActivity == null, "No-Content Activity");
+            AppendMissingQaAsset(ref missingOptional, routeSceneCompositionRoute == null, "Route Scene Composition Route");
 
             if (string.IsNullOrEmpty(missingCore) && string.IsNullOrEmpty(missingOptional))
             {

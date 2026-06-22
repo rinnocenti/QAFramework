@@ -144,6 +144,57 @@ namespace Immersive.Framework.RouteLifecycle
                 new[] { entry });
         }
 
+        public static RouteContentSet FromSceneCompositionResult(
+            RouteAsset route,
+            RouteContentMaterializationPlan contentPlan,
+            RouteSceneCompositionResult compositionResult,
+            string source,
+            string reason)
+        {
+            if (route == null || !compositionResult.Succeeded || compositionResult.LoadedCount == 0)
+            {
+                return Empty(route);
+            }
+
+            var ownerId = CreateRouteOwnerId(route);
+            var handles = new List<FrameworkContentHandle>(compositionResult.LoadedCount);
+            var entries = new List<RouteContentEntry>(compositionResult.LoadedCount);
+
+            for (var i = 0; i < compositionResult.Entries.Count; i++)
+            {
+                var resultEntry = compositionResult.Entries[i];
+                if (!resultEntry.Loaded || !resultEntry.ContentIdentity.IsValid)
+                {
+                    continue;
+                }
+
+                var handle = new FrameworkContentHandle(
+                    resultEntry.ContentIdentity,
+                    resultEntry.Requiredness,
+                    route.RouteName,
+                    resultEntry.SceneName,
+                    resultEntry.ScenePath,
+                    resultEntry.ActiveScene,
+                    source,
+                    reason,
+                    resultEntry.Message);
+
+                handles.Add(handle);
+                entries.Add(new RouteContentEntry(handle, resultEntry.Ownership));
+            }
+
+            if (handles.Count == 0)
+            {
+                return Empty(route);
+            }
+
+            return new RouteContentSet(
+                route,
+                new FrameworkContentSet(FrameworkContentScope.Route, ownerId, route.RouteName, handles),
+                contentPlan,
+                entries);
+        }
+
         private static string CreateRouteOwnerId(RouteAsset route)
         {
             if (route == null)

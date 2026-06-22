@@ -9,9 +9,9 @@ namespace Immersive.Framework.RouteLifecycle
 {
     /// <summary>
     /// Inert, side-effect-free plan for the scenes declared by a Route.
-    /// F6B creates planning data only; additive loading, release and result production are later F6 cuts.
+    /// The plan remains side-effect free and is consumed by F6E route scene composition execution.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F6B inert Route scene composition plan; no additive execution or release side effects.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "Route scene composition plan consumed by F6E; no release/unload side effects.")]
     internal readonly struct RouteSceneCompositionPlan
     {
         private readonly RouteSceneCompositionPlanEntry[] _additionalScenes;

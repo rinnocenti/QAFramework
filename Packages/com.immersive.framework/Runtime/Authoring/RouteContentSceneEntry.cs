@@ -7,10 +7,10 @@ namespace Immersive.Framework.Authoring
 {
     /// <summary>
     /// Authoring declaration for one additional scene owned by a Route content profile.
-    /// This declaration is planning data only in the baseline cut; execution comes in a later route composition cut.
+    /// F6E route scene composition executes declarations that have scene data and explicit content id.
     /// </summary>
     [Serializable]
-    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Route content profile is planning-only until route scene composition/release phases.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Route content scene entries are consumed by F6E route scene composition; release remains deferred.")]
     public sealed class RouteContentSceneEntry
     {
         [SerializeField]
