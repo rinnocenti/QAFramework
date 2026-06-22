@@ -13,7 +13,7 @@ namespace Immersive.Framework.ContentFlow
         Prefab = 20,
         SceneAuthored = 30,
         RuntimeRoot = 40,
-        SurfaceSlot = 50,
+        ContentAnchorSlot = 50,
         RuntimeSpawned = 60
     }
 }

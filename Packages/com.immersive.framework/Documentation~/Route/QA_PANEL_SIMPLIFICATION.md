@@ -19,7 +19,7 @@ This made the normal validation path harder to read and made the specialized Rou
 
 ## Decision
 
-The QA panel now has a smaller default surface:
+The QA panel now has a smaller default QA interface:
 
 1. Runtime status.
 2. Core QA scenario summary.
@@ -27,7 +27,7 @@ The QA panel now has a smaller default surface:
 4. Route Content callback smoke.
 5. Collapsed advanced/manual controls.
 
-The advanced section keeps manual and edge controls available, but they are no longer part of the default QA surface.
+The advanced section keeps manual and edge controls available, but they are no longer part of the default QA interface.
 
 ## Core controls
 
@@ -71,7 +71,7 @@ This cut does not add:
 
 - runtime lifecycle;
 - additive scene loading;
-- Surface;
+- Content Anchor;
 - RuntimeMaterialization;
 - consumers;
 - release policy;

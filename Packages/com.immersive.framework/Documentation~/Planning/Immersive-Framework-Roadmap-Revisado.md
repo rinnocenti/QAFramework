@@ -17,7 +17,7 @@ A regra prática é:
 
 ```text
 Primeiro estabilizar owners, identidade, conteúdo e contribuição.
-Depois materialização, surface e release.
+Depois materialização, Content Anchor e release.
 Só então consumidores como Input, Save, Pause, Camera, Audio, Actor, Pooling e Projectile.
 ```
 
@@ -31,7 +31,7 @@ O roadmap original está correto na direção macro:
 - preserva o que o package já acertou;
 - reconhece `CameraFlow`, `RouteContentRuntime`, `ContentFlow`, `RouteContentProfileAsset`, `FrameworkQaCanvas` e `ValidationMode` como decisões obrigatórias;
 - mantém camera/audio/actor/save fora do core inicial;
-- traz `LocalContributionSet`, `RuntimeRootRegistry`, `Surface` e consumers em fases posteriores.
+- traz `LocalContributionSet`, `RuntimeRootRegistry`, `Content Anchor` e consumers em fases posteriores.
 
 Mas ele ainda pode gerar retrabalho por quatro motivos.
 
@@ -64,27 +64,27 @@ Route scene composition/additive deve ficar em fase própria de Route Content,
 depois de RouteContentSet e release semantics.
 ```
 
-### 1.3. Surface aparece como se dependesse de RuntimeSpawned
+### 1.3. Content Anchor aparece como se dependesse de RuntimeSpawned
 
-Surface é primeiro um contrato authored/local:
+Content Anchor é primeiro um contrato authored/local:
 
 ```text
-SurfaceIdentity
-SurfaceRoot
-SurfaceSlot
-SurfaceAnchor
-SurfaceEndpoint
-SurfaceSet
+ContentAnchorIdentity
+ContentAnchorRoot
+ContentAnchorSlot
+ContentAnchorAnchor
+ContentAnchorEndpoint
+ContentAnchorSet
 ```
 
-Ela não precisa começar com prefab spawn. Só a segunda camada, `SurfaceBinding`/`SurfaceContentHandle`, depende de materialização/release.
+Ela não precisa começar com prefab spawn. Só a segunda camada, `ContentAnchorBinding`/`ContentAnchorContentHandle`, depende de materialização/release.
 
 Correção:
 
 ```text
-Dividir Surface em:
-1. Surface declaration baseline.
-2. Surface binding/runtime content depois.
+Dividir Content Anchor em:
+1. Content Anchor declaration baseline.
+2. Content Anchor binding/runtime content depois.
 ```
 
 ### 1.4. LocalContribution já quer substituir discovery global cedo demais
@@ -120,7 +120,7 @@ Uma fase só fecha quando:
 ```text
 1. O baseline compila.
 2. Smoke feliz mínimo passa.
-3. Nenhuma surface pública nova fica ambígua.
+3. Nenhuma API entry point pública nova fica ambígua.
 4. Toda API nova está marcada como Stable, Experimental ou Internal.
 5. Não há fallback silencioso para caminho required.
 6. O docs/ADR refletem o código.
@@ -135,9 +135,9 @@ manager global
 service locator público
 materializer genérico sem primeiro uso real
 contribution inventory sem discovery real
-surface consumer antes de SurfaceSet
+content anchor consumer antes de ContentAnchorSet
 pooling antes de RuntimeContentHandle
-camera antes de Surface
+camera antes de Content Anchor
 actor antes de RuntimeMaterialization
 ```
 
@@ -207,7 +207,7 @@ Objetivo: colocar travas antes de expandir ContentFlow/Local/Runtime.
 - SessionContentSet.
 - Runtime roots.
 - Materializer.
-- Surface.
+- Content Anchor.
 - Additive scene.
 - Consumers.
 
@@ -298,7 +298,7 @@ Status: histórico. F4 já foi fechada no baseline atual.
 
 - Additive scene execution.
 - Runtime materialization.
-- Surface.
+- Content Anchor.
 - Camera.
 
 ### Done
@@ -336,7 +336,7 @@ F4G — CLOSED / COMPILE-SMOKE PASS
 | IF-FW-ROAD-4B | `ActivityContentSet` mínimo | CLOSED em F4B. Snapshot de conteúdo scene-authored local registrado para a Activity ativa; sem profile loading/materialization/release. |
 | IF-FW-ROAD-4C | `ActivityContentLifecycleResult` | CLOSED em F4C. Resultado agregado de callbacks locais enter/exit, com contagem de bindings, receivers e falhas. |
 | IF-FW-ROAD-4D | `ActivityReadinessState` mínimo | CLOSED em F4D. Readiness mínimo `Ready`/`None`/`NotReady` após aplicação baseline de Activity Content. |
-| IF-FW-ROAD-4E | Reclassificar `ActivityLocalVisibilityAdapter` | CLOSED em F4E. `ActivityLocalVisibilityAdapter` é classe C# e authoring surface do adapter local de visibilidade; não é materialização canônica. |
+| IF-FW-ROAD-4E | Reclassificar `ActivityLocalVisibilityAdapter` | CLOSED em F4E. `ActivityLocalVisibilityAdapter` é classe C# e authoring entry point do adapter local de visibilidade; não é materialização canônica. |
 | IF-FW-ROAD-4F | Activity smoke | CLOSED em F4F. `Run Activity Baseline Smoke` valida switch → content set → readiness → clear → restore. |
 | IF-FW-ROAD-4G | F4 closure hygiene | CLOSED em F4G. Remove warning redundante do Activity Baseline Smoke, alinha mensagens do Activity Local Visibility Adapter e registra a fronteira formal F4 → F5. |
 
@@ -399,7 +399,7 @@ ActivityContentSet / RouteContentSet como fronteira de busca
 - Capabilities específicas.
 - Runtime references.
 - Reset/snapshot/release.
-- Surface.
+- Content Anchor.
 - Actors.
 - ActivityContentProfile loading.
 - Canonical Activity materialization.
@@ -443,7 +443,7 @@ Objetivo: separar scene composition de runtime spawned/materialization.
 - Prefab materializer.
 - Runtime spawned.
 - Pool.
-- Surface consumers.
+- Content Anchor consumers.
 
 ### Done
 
@@ -455,25 +455,25 @@ RouteContentProfile deixa de parecer promessa falsa.
 
 ---
 
-## Fase 7 — Surface declaration baseline
+## Fase 7 — Content Anchor declaration baseline
 
-Objetivo: criar Surface como contrato authored/local, sem camera/pause/UI ainda.
+Objetivo: criar Content Anchor como contrato authored/local, sem camera/pause/UI ainda.
 
 | ID | Entrega | Detalhes |
 |---|---|---|
-| IF-FW-ROAD-7A | ADR: Surface como contrato de espaço | Surface não é camera, pause, UI ou presentation. |
-| IF-FW-ROAD-7B | `SurfaceIdentity` | Identity tipada. |
-| IF-FW-ROAD-7C | `SurfaceRoot` | Root com role, sem materialização ainda. |
-| IF-FW-ROAD-7D | `SurfaceSlot` | Slot authored tipado. |
-| IF-FW-ROAD-7E | `SurfaceAnchor` | Anchor authored tipado. |
-| IF-FW-ROAD-7F | `SurfaceEndpoint` | Componente authored que declara roots/slots/anchors. |
-| IF-FW-ROAD-7G | `SurfaceSet` por scope | Route/Activity/Local podem expor surfaces descobertas. |
-| IF-FW-ROAD-7H | Surface validators | Sem identity, duplicate slot/anchor/root role. |
-| IF-FW-ROAD-7I | Surface smoke | Scene com endpoint → discovery scoped → SurfaceSet populado. |
+| IF-FW-ROAD-7A | ADR: Content Anchor como contrato de espaço | Content Anchor não é camera, pause, UI ou presentation. |
+| IF-FW-ROAD-7B | `ContentAnchorIdentity` | Identity tipada. |
+| IF-FW-ROAD-7C | `ContentAnchorRoot` | Root com role, sem materialização ainda. |
+| IF-FW-ROAD-7D | `ContentAnchorSlot` | Slot authored tipado. |
+| IF-FW-ROAD-7E | `ContentAnchorAnchor` | Anchor authored tipado. |
+| IF-FW-ROAD-7F | `ContentAnchorEndpoint` | Componente authored que declara roots/slots/anchors. |
+| IF-FW-ROAD-7G | `ContentAnchorSet` por scope | Route/Activity/Local podem expor content anchors descobertas. |
+| IF-FW-ROAD-7H | Content Anchor validators | Sem identity, duplicate slot/anchor/root role. |
+| IF-FW-ROAD-7I | Content Anchor smoke | Scene com endpoint → discovery scoped → ContentAnchorSet populado. |
 
 ### Não entra
 
-- `SurfaceBindingRequest` com prefab.
+- `ContentAnchorBindingRequest` com prefab.
 - Camera.
 - Pause.
 - UI.
@@ -483,7 +483,7 @@ Objetivo: criar Surface como contrato authored/local, sem camera/pause/UI ainda.
 ### Done
 
 ```text
-Surface existe como dado e contrato.
+Content Anchor existe como dado e contrato.
 Nenhum consumer concreto ainda capturou o modelo.
 ```
 
@@ -522,18 +522,18 @@ Materialização não depende de subsistema específico.
 
 ---
 
-## Fase 9 — Surface binding e content placement
+## Fase 9 — Content Anchor binding e content placement
 
-Objetivo: conectar Surface declaration com runtime materialization.
+Objetivo: conectar Content Anchor declaration com runtime materialization.
 
 | ID | Entrega | Detalhes |
 |---|---|---|
-| IF-FW-ROAD-9A | `SurfaceBindingRequest` | Solicita root/slot/anchor por identity. |
-| IF-FW-ROAD-9B | `SurfaceBindingResult` | Resultado com diagnostics e handle. |
-| IF-FW-ROAD-9C | `SurfaceContentHandle` | Binding + runtime content + release. |
-| IF-FW-ROAD-9D | `RuntimeSurfaceBinding` | Materializa prefab em SurfaceSlot/SurfaceRoot. |
-| IF-FW-ROAD-9E | Binding release order | Surface binding libera antes de content/root exit. |
-| IF-FW-ROAD-9F | Surface binding smoke | Prefab em slot → Activity exit → binding released → content released. |
+| IF-FW-ROAD-9A | `ContentAnchorBindingRequest` | Solicita root/slot/anchor por identity. |
+| IF-FW-ROAD-9B | `ContentAnchorBindingResult` | Resultado com diagnostics e handle. |
+| IF-FW-ROAD-9C | `ContentAnchorContentHandle` | Binding + runtime content + release. |
+| IF-FW-ROAD-9D | `RuntimeContentAnchorBinding` | Materializa prefab em ContentAnchorSlot/ContentAnchorRoot. |
+| IF-FW-ROAD-9E | Binding release order | Content Anchor binding libera antes de content/root exit. |
+| IF-FW-ROAD-9F | Content Anchor binding smoke | Prefab em slot → Activity exit → binding released → content released. |
 
 ### Não entra
 
@@ -545,7 +545,7 @@ Objetivo: conectar Surface declaration com runtime materialization.
 ### Done
 
 ```text
-Surface pode receber conteúdo runtime sem virar pause/camera.
+Content Anchor pode receber conteúdo runtime sem virar pause/camera.
 ```
 
 ---
@@ -559,7 +559,7 @@ Ordem recomendada:
 ```text
 Input
 Snapshot/Save contract
-Pause as Surface consumer
+Pause as Content Anchor consumer
 ```
 
 | ID | Entrega | Módulo | Regra |
@@ -569,8 +569,8 @@ Pause as Surface consumer
 | IF-FW-ROAD-10C | ADR: Snapshot model | Save | Envelope typed: owner, schema, version, payload. |
 | IF-FW-ROAD-10D | `ISnapshotParticipant` | Save | Capability-level, sem backend concreto. |
 | IF-FW-ROAD-10E | `SnapshotSet` | Save | Captura/restaura participants descobertos. |
-| IF-FW-ROAD-10F | ADR: Pause as consumer | Pause | Pause consome Surface/Input/Activity; não possui surface. |
-| IF-FW-ROAD-10G | `PauseSurfaceConsumer` | Pause | Usa SurfaceBinding; não instancia diretamente em endpoint local. |
+| IF-FW-ROAD-10F | ADR: Pause as consumer | Pause | Pause consome Content Anchor/Input/Activity; não possui content anchor. |
+| IF-FW-ROAD-10G | `PauseContentAnchorConsumer` | Pause | Usa ContentAnchorBinding; não instancia diretamente em endpoint local. |
 
 ### Done
 
@@ -583,7 +583,7 @@ Nenhum deles descobre o mundo sozinho.
 
 ## Fase 11 — Consumers avançados
 
-Objetivo: plugar subsistemas que dependem de Surface + Runtime + Contribution.
+Objetivo: plugar subsistemas que dependem de Content Anchor + Runtime + Contribution.
 
 Ordem sugerida:
 
@@ -596,7 +596,7 @@ Pooling
 
 | ID | Entrega | Módulo | Regra |
 |---|---|---|---|
-| IF-FW-ROAD-11A | ADR: Camera as consumer | Camera | Camera consome Surface/Anchor; não define lifecycle core. |
+| IF-FW-ROAD-11A | ADR: Camera as consumer | Camera | Camera consome Content Anchor/Anchor; não define lifecycle core. |
 | IF-FW-ROAD-11B | Camera consumer baseline | Camera | Sem `FrameworkCameraAuthority` static global. |
 | IF-FW-ROAD-11C | ADR: Audio as consumer | Audio | Audio recebe lifecycle context; não possui route/activity. |
 | IF-FW-ROAD-11D | Audio lifecycle consumer | Audio | Port/adapter, sem global service locator. |
@@ -661,11 +661,11 @@ F5   Local contribution
   ↓
 F6   Route scene composition + release
   ↓
-F7   Surface declaration
+F7   Content Anchor declaration
   ↓
 F8   Runtime roots/materialization
   ↓
-F9   Surface binding/runtime placement
+F9   Content Anchor binding/runtime placement
   ↓
 F10  Consumers intermediários
   ↓
@@ -733,15 +733,15 @@ Revisado:
 F6, junto de RouteSceneCompositionPlan/Result.
 ```
 
-## 5. Surface
+## 5. Content Anchor
 
-Original: Surface baseline depois de Runtime roots.
+Original: Content Anchor baseline depois de Runtime roots.
 
 Revisado:
 
 ```text
-F7 declara Surface sem runtime binding.
-F9 conecta Surface com RuntimeContent.
+F7 declara Content Anchor sem runtime binding.
+F9 conecta Content Anchor com RuntimeContent.
 ```
 
 ## 6. LocalContribution
@@ -780,16 +780,16 @@ ADR files follow the plan order first and the stable ADR id second.
 | F5-02 | ADR-LOCAL-002 | Local contribution discovery and requiredness. |
 | F6-01 | ADR-RELEASE-001 | Content release plan by scope — Accepted in F6A; implementation starts at F6F. |
 | F6-02 | ADR-SCENE-001 | Route scene composition plan/result — Accepted in F6A; implementation starts at F6B. |
-| F7-01 | ADR-SURFACE-001 | Surface as space contract. |
+| F7-01 | ADR-ANCHOR-001 | Content Anchor as placement contract. |
 | F8-01 | ADR-RUNTIME-001 | Runtime ownership and roots. |
 | F8-02 | ADR-RUNTIME-002 | Materialization request/result/handle. |
-| F9-01 | ADR-SURFACE-002 | Surface binding and content placement. |
+| F9-01 | ADR-ANCHOR-002 | Content Anchor binding and runtime placement. |
 | F10-01 | ADR-INPUT-001 | Input ownership. |
-| F10-02 | ADR-PAUSE-001 | Pause as Surface/Input/Activity consumer. |
+| F10-02 | ADR-PAUSE-001 | Pause as Content Anchor/Input/Activity consumer. |
 | F10-03 | ADR-SAVE-001 | Snapshot envelope and schema. |
 | F11-01 | ADR-ACTOR-001 | Actor runtime boundary. |
 | F11-02 | ADR-AUDIO-001 | Audio as lifecycle consumer. |
-| F11-03 | ADR-CAMERA-001 | Camera as Surface consumer. |
+| F11-03 | ADR-CAMERA-001 | Camera as Content Anchor consumer. |
 | F11-04 | ADR-POOL-001 | Pooling package boundary. |
 
 ---
@@ -849,17 +849,17 @@ Escopo fechado:
 Próximo passo autorizado:
 
 ```text
-F7A — Surface ADR/detail audit
+F7A — Content Anchor ADR/detail audit
 ```
 
-F7 deve começar por auditoria/ADR de Surface declaration, sem RuntimeRoot/materialization ou consumers avançados.
+F7 deve começar por auditoria/ADR de Content Anchor declaration, sem RuntimeRoot/materialization ou consumers avançados.
 
 ## Não avançar ainda
 
 ```text
 Expected contribution declarations
 Materialização canônica
-Surface
+Content Anchor
 Runtime roots/materialization
 Input/Camera/Actor/Save/Pooling
 ```

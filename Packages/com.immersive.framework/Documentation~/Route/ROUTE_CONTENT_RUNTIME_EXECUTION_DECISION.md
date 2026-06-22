@@ -81,7 +81,7 @@ F3D não implementa:
 additive scene loading
 RouteContentSet ownership final
 release policy
-Surface
+Content Anchor
 RuntimeMaterialization
 LocalContributionSet
 consumers

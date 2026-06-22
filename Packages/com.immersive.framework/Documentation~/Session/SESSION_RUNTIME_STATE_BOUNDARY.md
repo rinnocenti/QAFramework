@@ -96,7 +96,7 @@ persistent scenes
 startup event/signal novo
 Route baseline
 Activity readiness
-Surface
+Content Anchor
 RuntimeMaterialization
 service locator
 registry global mutável

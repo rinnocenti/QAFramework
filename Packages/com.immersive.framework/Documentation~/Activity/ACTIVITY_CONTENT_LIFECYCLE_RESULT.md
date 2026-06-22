@@ -86,7 +86,7 @@ input
 camera
 reset
 snapshot
-Surface
+Content Anchor
 RuntimeMaterialization
 additive scene loading
 LocalContributionSet

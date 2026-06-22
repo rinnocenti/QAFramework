@@ -1,22 +1,22 @@
-# F7-01 — ADR-SURFACE-001 — Surface as Space Contract
+# F7-01 — ADR-ANCHOR-001 — Content Anchor as Placement Contract
 
 Status: Draft / Deferred  
 Fase: F7  
 Ordem no Plano: F7-01  
-Tipo: Surface  
-Escopo: Surface declaration
+Tipo: Content Anchor  
+Escopo: Content Anchor declaration
 
 ---
 
 ## Contexto
 
-No `NewScripts`, Surface aparece presa a pause/camera/presentation. O framework deve modelar Surface antes dos consumers concretos.
+No `NewScripts`, Content Anchor aparece presa a pause/camera/presentation. O framework deve modelar Content Anchor antes dos consumers concretos.
 
 ## Decisão
 
-Surface é contrato de espaço, não subsistema.
+Content Anchor é contrato de espaço, não subsistema.
 
-Surface pode declarar:
+Content Anchor pode declarar:
 
 - identity;
 - roots;
@@ -25,7 +25,7 @@ Surface pode declarar:
 - scope;
 - requiredness/validation.
 
-Surface não deve declarar:
+Content Anchor não deve declarar:
 
 - pause behavior;
 - camera rig;
@@ -33,7 +33,7 @@ Surface não deve declarar:
 - presentation materialization;
 - input policy.
 
-Consumers consomem `SurfaceSet`.
+Consumers consomem `ContentAnchorSet`.
 
 ## Consequências
 
@@ -41,7 +41,7 @@ Consumers consomem `SurfaceSet`.
 
 - Impede Camera/Pause de capturarem o core.
 - Cria UX authored reutilizável.
-- Prepara RuntimeSurfaceBinding.
+- Prepara RuntimeContentAnchorBinding.
 
 ### Negativas / trade-offs
 
@@ -50,15 +50,15 @@ Consumers consomem `SurfaceSet`.
 
 ## Fora do escopo
 
-- Surface binding com prefab.
+- Content Anchor binding com prefab.
 - Camera/Pause/UI concrete.
 - Runtime materialization.
 
 ## Critérios de validação
 
-- SurfaceEndpoint sem identity falha em validator.
+- ContentAnchorEndpoint sem identity falha em validator.
 - Duplicate slot/anchor/root role falha.
-- SurfaceSet é populado por scope.
+- ContentAnchorSet é populado por scope.
 
 ## Impacto esperado
 
@@ -70,4 +70,4 @@ F7.
 
 ## Notas de implementação
 
-Surface declaration pode existir antes de RuntimeRootRegistry.
+Content Anchor declaration pode existir antes de RuntimeRootRegistry.

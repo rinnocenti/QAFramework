@@ -46,7 +46,7 @@ canonical Activity materialization
 spawn
 load/unload
 release policy
-Surface
+Content Anchor
 RuntimeMaterialization
 LocalContributionSet
 actor/input/camera/reset/snapshot pipeline

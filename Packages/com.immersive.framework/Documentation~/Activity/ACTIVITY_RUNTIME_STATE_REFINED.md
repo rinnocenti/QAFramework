@@ -105,7 +105,7 @@ camera
 reset
 snapshot
 release
-Surface
+Content Anchor
 RuntimeMaterialization
 additive scene loading
 ```

@@ -3,7 +3,7 @@
 Status: Applied in F1B / pending compile-smoke validation  
 Fase: F1  
 Tipo: API Policy / Source metadata  
-Escopo: Runtime public and semi-public surfaces
+Escopo: Runtime public and semi-public API areas
 
 ---
 
@@ -82,7 +82,7 @@ typed identity primitives
 ContentIdentity final
 ValidationMode semantics
 RuntimeMaterialization
-Surface
+Content Anchor
 SessionContentSet
 ```
 

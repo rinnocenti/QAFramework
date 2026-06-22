@@ -90,12 +90,12 @@ F1F não cria:
 SessionContentSet
 ActivityContentSet
 RuntimeContentHandle
-SurfaceContentHandle
+ContentAnchorContentHandle
 LocalContentIdentity
 RuntimeContentIdentity
-SurfaceIdentity
+ContentAnchorIdentity
 RuntimeMaterialization
-Surface
+Content Anchor
 Additive scene execution
 release policy
 consumer integration

@@ -76,7 +76,7 @@ content loading
 persistent scenes
 scene additive ownership
 release policy
-Surface
+Content Anchor
 RuntimeMaterialization
 Audio listener ownership
 Camera rig ownership

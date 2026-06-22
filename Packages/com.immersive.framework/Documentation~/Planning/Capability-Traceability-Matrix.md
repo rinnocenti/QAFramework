@@ -19,7 +19,7 @@ capacidade do NewScripts
 Regras:
 - `Coberto` não significa implementado; significa que existe lugar no roadmap.
 - `Deferred` significa que a capacidade é válida, mas ainda bloqueada por dependências.
-- Consumers não devem entrar antes de owner, identity, content set, release e surface/runtime quando aplicável.
+- Consumers não devem entrar antes de owner, identity, content set, release e Content Anchor/runtime quando aplicável.
 - Paths, nomes de GameObject e strings podem existir como diagnóstico, não como chave funcional.
 
 ---
@@ -52,7 +52,7 @@ Regras:
 | `SessionCompositionContext` | Não criar composition genérico cedo demais. Primeiro Session scope/content sem service locator. |
 | `PersistentScenesPolicy` | Não puxar scene ownership para F2. Reavaliar com Route scene composition/release ou futura Session persistent content. |
 | `CapabilityInventory` | Em F5 apenas descriptor/contribution simples. Runtime refs/inventory vivo só depois de RuntimeHandle/lifetime. |
-| `Surface` | Dividida em declaração (`F7`) e binding/runtime placement (`F9`). |
+| `Content Anchor` | Dividida em declaração (`F7`) e binding/runtime placement (`F9`). |
 | `RuntimeSpawned` | Entra só depois de identity/content/release; consumers não podem criar roots ad hoc. |
 | Campos `—` | Tratados como `Deferred` ou `Requer detalhamento`; não podem ficar sem status no backlog. |
 
@@ -94,8 +94,8 @@ Regras:
 | Route local callback smoke | Validar callbacks reais de Route Content | F3 | F3 | IF-FW-ROAD-3E | Implementado em F3F / Callback-smoke PASS | Coberto | QA / Dev Tooling | RouteContentRuntime ativo | Baixo / controlado | `Run Route Callback Smoke` validado com receivers reais sob `RouteContentBinding`; sem falso positivo com zero receivers. |
 | QA panel simplification | Reduzir ruído do painel QA | F3 | F3 | IF-FW-ROAD-3E support | Aplicado em F3F1 / Standard Smoke PASS | Coberto | QA / Dev Tooling | F3F aplicado | Baixo | Painel default mostra core smokes e callback smoke; controles manuais/edge ficam avançados. |
 | Route validator expansion | Detectar configuração incorreta de Route Content | F3 | F3 | IF-FW-ROAD-3F | Implementado em F3G/F3G1 / Smoke PASS | Coberto | Editor / QA | F3F fechado | Baixo / controlado | Valida `RouteContentBinding` em cenas carregadas via QA: Route ausente, Route de cena errada e receivers ausentes. Inspector fica reduzido a tooltip; F3 fechada. |
-| Route contribution set | Redesenhar como `RouteContributionSet` | F5+ | F5/F7/F10+ | F7 via Surface | Parcial / Ausente | Coberto com ajuste / Deferred | Core | Route baseline + Content identity | Baixo / controlado | Contribution genérico em F5; surfaces em F7; consumers reais depois. |
-| Route surface set | Redesenhar como `RouteSurfaceSet` | F7 | F7 | IF-FW-ROAD-7G | Parcial / Ausente | Coberto, mas com correção | Core | LocalContributionSet para discovery; Runtime binding só na F9 | Baixo / controlado | Correto. |
+| Route contribution set | Redesenhar como `RouteContributionSet` | F5+ | F5/F7/F10+ | F7 via Content Anchor | Parcial / Ausente | Coberto com ajuste / Deferred | Core | Route baseline + Content identity | Baixo / controlado | Contribution genérico em F5; Content Anchor em F7; consumers reais depois. |
+| Route Content Anchor set | Redesenhar como `RouteContentAnchorSet` | F7 | F7 | IF-FW-ROAD-7G | Parcial / Ausente | Coberto, mas com correção | Core | LocalContributionSet para discovery; Runtime binding só na F9 | Baixo / controlado | Correto. |
 | Content release plan | Preservar como `ContentReleasePlan` | F6 | F6 | IF-FW-ROAD-6F | F6 closed / release smoke pass | F6G fechado por Route Release Smoke | Core | Scene composition result + ownership explícito | Baixo / controlado | Release físico limitado a owned additive scene unload; LocalContributionHandle não é release handle. |
 
 ### Activity
@@ -113,7 +113,7 @@ Regras:
 | Activity exit plan | Preservar como `ActivityExitPlan` | F4 | F6/F8 | IF-FW-ROAD-4B | Parcial / Ausente | Coberto, mas com correção | Core | Route handoff + ActivityContentSet | Baixo / controlado | Exit simples em F4; plano de release completo após release/runtime policy. |
 | Activity reset plan | Preservar; entrar depois de LocalContributionSet | F5+ | Futura após F5/F10 | — | Parcial / Ausente | Coberto com ajuste / Deferred | Core | Route handoff + ActivityContentSet | Risco de ficar sem corte rastreável | Depende de LocalContributionSet e snapshot/reset participants. |
 | Participant binding | Preservar boundary; redesenhar ownership | F10–F11 | F10–F11 | IF-FW-ROAD-10B, 11F | Parcial / Ausente | Coberto | Core | Route handoff + ActivityContentSet | Baixo / controlado | Sem ajuste. |
-| Pause content/surface contribution | Redesenhar como Surface consumer | F9–F10 | F9–F10 | IF-FW-ROAD-9D, 10G | Parcial / Ausente | Coberto | Core | LocalContributionSet para discovery; Runtime binding só na F9 | Baixo / controlado | Sem ajuste. |
+| Pause content/Content Anchor contribution | Redesenhar como Content Anchor consumer | F9–F10 | F9–F10 | IF-FW-ROAD-9D, 10G | Parcial / Ausente | Coberto | Core | LocalContributionSet para discovery; Runtime binding só na F9 | Baixo / controlado | Sem ajuste. |
 | Activity snapshot | Preservar contrato; entrar após snapshot model | F10 | F10 | IF-FW-ROAD-10D, 10E | Parcial / Ausente | Coberto | Core | Route handoff + ActivityContentSet | Baixo / controlado | Sem ajuste. |
 | Activity diagnostics/facts | Preservar como `FrameworkFact` | F1 | F1 | IF-FW-ROAD-1C | Parcial / Ausente | Coberto | Core | Route handoff + ActivityContentSet | Baixo / controlado | Sem ajuste. |
 
@@ -131,8 +131,8 @@ Regras:
 | Local snapshot participant | Preservar contrato com typed payload | F10 | F10 | IF-FW-ROAD-10D | Parcial / Ausente | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Sem ajuste. |
 | Local release participant | Preservar contrato | F8 | F8/F10 | IF-FW-ROAD-8G | Parcial / Ausente | Coberto, mas com correção | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Release policy vem F8; participant local específico depois. |
 | Exit freeze | Preservar como parte de `ActivityExitPlan` | F8 | F8/F10 | IF-FW-ROAD-8G | Parcial / Ausente | Coberto, mas com correção | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Só faz sentido quando há runtime references/release participants. |
-| Local slots | Preservar como `LocalSlot` (futuramente `SurfaceSlot`) | F7 | F7 | IF-FW-ROAD-7D | Parcial / Ausente | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Sem ajuste. |
-| Local anchors | Preservar como `LocalAnchor` (futuramente `SurfaceAnchor`) | F7 | F7 | IF-FW-ROAD-7E | Parcial / Ausente | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Sem ajuste. |
+| Local slots | Preservar como `LocalSlot` (futuramente `ContentAnchorSlot`) | F7 | F7 | IF-FW-ROAD-7D | Parcial / Ausente | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Sem ajuste. |
+| Local anchors | Preservar como `LocalAnchor` (futuramente `ContentAnchor`) | F7 | F7 | IF-FW-ROAD-7E | Parcial / Ausente | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Sem ajuste. |
 | Stale/foreign reference check | Preservar como validação de `LocalContributionSet` | F5 | F5 | IF-FW-ROAD-5G/F5H | F5H applied / Pending compile-smoke | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Validator e smoke dedicado validam identity/set sem usar fallback por nome/path. |
 
 ### RuntimeSpawned
@@ -146,25 +146,25 @@ Regras:
 | Runtime release policy | Criar `RuntimeReleasePolicy` por escopo | F8 | F8 | IF-FW-ROAD-8G | Ausente | Coberto | Foundation avançada | Content identity + release semantics + RuntimeRootRegistry | Risco de ownership/lifetime incompleto | Sem ajuste. |
 | Pooled materializer | Redesenhar como `PooledContentMaterializer` | F11 | F11 | IF-FW-ROAD-11H | Ausente | Coberto | Foundation avançada | Content identity + release semantics + RuntimeRootRegistry | Risco de ownership/lifetime incompleto | Sem ajuste. |
 | Runtime spawned contribution | Preservar como `RuntimeSpawnedContribution` | F11 | F11 | IF-FW-ROAD-11F | Ausente | Coberto | Foundation avançada | Content identity + release semantics + RuntimeRootRegistry | Risco de ownership/lifetime incompleto | Sem ajuste. |
-| Spawn origin / slot | Integrar com `LocalAnchor` / `SurfaceSlot` | F9 | F9 | IF-FW-ROAD-9D | Ausente | Coberto | Foundation avançada | Content identity + release semantics + RuntimeRootRegistry | Risco de ownership/lifetime incompleto | Sem ajuste. |
+| Spawn origin / slot | Integrar com `LocalAnchor` / `ContentAnchorSlot` | F9 | F9 | IF-FW-ROAD-9D | Ausente | Coberto | Foundation avançada | Content identity + release semantics + RuntimeRootRegistry | Risco de ownership/lifetime incompleto | Sem ajuste. |
 | Runtime identity | Preservar typed; generalizar para todo spawned | F8 | F8 | IF-FW-ROAD-8D | Ausente | Coberto | Foundation avançada | Content identity + release semantics + RuntimeRootRegistry | Risco de ownership/lifetime incompleto | Sem ajuste. |
 | Pool rent/return cycle | Preservar como infra técnica separada | F11 | F11 | IF-FW-ROAD-11G, 11H | Ausente | Coberto | Foundation avançada | Content identity + release semantics + RuntimeRootRegistry | Risco de ownership/lifetime incompleto | Sem ajuste. |
 | Destroy policy | Centralizar em `RuntimeReleasePolicy` | F8 | F8 | IF-FW-ROAD-8G | Ausente | Coberto | Foundation avançada | Content identity + release semantics + RuntimeRootRegistry | Risco de ownership/lifetime incompleto | Sem ajuste. |
 
-### Surface
+### Content Anchor
 | Capacidade | Decisão | Fase original | Fase revisada | Corte | Status package | Status roadmap | Prioridade | Bloqueadores | Risco | Observação |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Surface identity | Criar `SurfaceIdentity` tipado | F7 | F7 | IF-FW-ROAD-7B | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
-| Surface root | Criar `SurfaceRoot` com role tipado | F7 | F7 | IF-FW-ROAD-7C | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
-| Surface slot | Criar `SurfaceSlot` typed | F7 | F7 | IF-FW-ROAD-7D | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
-| Surface anchor | Criar `SurfaceAnchor` typed | F7 | F7 | IF-FW-ROAD-7E | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
-| Surface endpoint | Criar `SurfaceEndpoint` | F7 | F7 | IF-FW-ROAD-7F | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
-| Surface set por scope | Criar `RouteSurfaceSet`, `ActivitySurfaceSet` | F7 | F7 | IF-FW-ROAD-7G | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
-| Surface binding request/result | Criar `SurfaceBindingRequest/Result` | F9 | F9 | IF-FW-ROAD-9A, 9B | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
-| Surface content handle | Criar `SurfaceContentHandle` | F9 | F9 | IF-FW-ROAD-9C | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
-| Runtime surface binding | Criar `RuntimeSurfaceBinding` | F9 | F9 | IF-FW-ROAD-9D | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
-| Duplicate detection | Preservar em Surface validators | F7 | F7 | IF-FW-ROAD-7H | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
-| Surface lifecycle policy | Preservar policy explícita de release | F9 | F9 | IF-FW-ROAD-9E | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
+| Content Anchor identity | Criar `ContentAnchorIdentity` tipado | F7 | F7 | IF-FW-ROAD-7B | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
+| Content Anchor root | Criar `ContentAnchorRoot` com role tipado | F7 | F7 | IF-FW-ROAD-7C | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
+| Content Anchor slot | Criar `ContentAnchorSlot` typed | F7 | F7 | IF-FW-ROAD-7D | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
+| Content Anchor anchor | Criar `ContentAnchor` typed | F7 | F7 | IF-FW-ROAD-7E | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
+| Content Anchor endpoint | Criar `ContentAnchorEndpoint` | F7 | F7 | IF-FW-ROAD-7F | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
+| Content Anchor set por scope | Criar `RouteContentAnchorSet`, `ActivityContentAnchorSet` | F7 | F7 | IF-FW-ROAD-7G | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
+| Content Anchor binding request/result | Criar `ContentAnchorBindingRequest/Result` | F9 | F9 | IF-FW-ROAD-9A, 9B | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
+| Content Anchor content handle | Criar `ContentAnchorContentHandle` | F9 | F9 | IF-FW-ROAD-9C | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
+| Runtime Content Anchor binding | Criar `RuntimeContentAnchorBinding` | F9 | F9 | IF-FW-ROAD-9D | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
+| Duplicate detection | Preservar em Content Anchor validators | F7 | F7 | IF-FW-ROAD-7H | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
+| Content Anchor lifecycle policy | Preservar policy explícita de release | F9 | F9 | IF-FW-ROAD-9E | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
 | Overlay root separado de content root | Preservar modelagem de roles | F7 | F7 | IF-FW-ROAD-7C | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
 
 ### Input
@@ -187,19 +187,19 @@ Regras:
 ### Pause
 | Capacidade | Decisão | Fase original | Fase revisada | Corte | Status package | Status roadmap | Prioridade | Bloqueadores | Risco | Observação |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Pause surface consumer | Redesenhar como `PauseSurfaceConsumer` | F10 | F10 | IF-FW-ROAD-10F, 10G | Ausente | Coberto | Consumer intermediário | SurfaceSet + Runtime/Binding conforme escopo | Baixo / controlado | Sem ajuste. |
-| Pause state contract | Criar `PauseStateContract` | F10 | F10 | IF-FW-ROAD-10F | Ausente | Coberto | Consumer intermediário | SurfaceSet + Runtime/Binding conforme escopo | Baixo / controlado | Sem ajuste. |
-| Pause content materialization | Usa `RuntimeSurfaceBinding` | F9–F10 | F9–F10 | IF-FW-ROAD-9D, 10G | Ausente | Coberto | Consumer intermediário | SurfaceSet + Runtime/Binding conforme escopo | Baixo / controlado | Sem ajuste. |
-| Pause/unpause lifecycle | Preservar boundary: pause recebe evento, não controla Activity | F10 | F10 | IF-FW-ROAD-10F | Ausente | Coberto | Consumer intermediário | SurfaceSet + Runtime/Binding conforme escopo | Baixo / controlado | Sem ajuste. |
+| Pause content anchor consumer | Redesenhar como `PauseContentAnchorConsumer` | F10 | F10 | IF-FW-ROAD-10F, 10G | Ausente | Coberto | Consumer intermediário | ContentAnchorSet + Runtime/Binding conforme escopo | Baixo / controlado | Sem ajuste. |
+| Pause state contract | Criar `PauseStateContract` | F10 | F10 | IF-FW-ROAD-10F | Ausente | Coberto | Consumer intermediário | ContentAnchorSet + Runtime/Binding conforme escopo | Baixo / controlado | Sem ajuste. |
+| Pause content materialization | Usa `RuntimeContentAnchorBinding` | F9–F10 | F9–F10 | IF-FW-ROAD-9D, 10G | Ausente | Coberto | Consumer intermediário | ContentAnchorSet + Runtime/Binding conforme escopo | Baixo / controlado | Sem ajuste. |
+| Pause/unpause lifecycle | Preservar boundary: pause recebe evento, não controla Activity | F10 | F10 | IF-FW-ROAD-10F | Ausente | Coberto | Consumer intermediário | ContentAnchorSet + Runtime/Binding conforme escopo | Baixo / controlado | Sem ajuste. |
 
 ### Camera
 | Capacidade | Decisão | Fase original | Fase revisada | Corte | Status package | Status roadmap | Prioridade | Bloqueadores | Risco | Observação |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Camera consumer | Redesenhar como `CameraConsumer` | F11 | F11 | IF-FW-ROAD-11A, 11B | Ambíguo / Experimental | Coberto | Consumer avançado | SurfaceSet + Runtime/Binding conforme escopo | Risco de consumer capturar core | Sem ajuste. |
-| Camera anchor binding | Redesenhar com `SurfaceAnchor` typed | F11 | F11 | IF-FW-ROAD-11B | Ambíguo / Experimental | Coberto | Consumer avançado | SurfaceSet + Runtime/Binding conforme escopo | Risco de consumer capturar core | Sem ajuste. |
-| Camera scope (Session/Route/Activity) | Preservar modelo de escopo | F11 | F11 | IF-FW-ROAD-11B | Ambíguo / Experimental | Coberto | Consumer avançado | SurfaceSet + Runtime/Binding conforme escopo | Risco de consumer capturar core | Sem ajuste. |
-| Camera binding result/handle | Criar `CameraBindingResult` com handle | F11 | F11 | IF-FW-ROAD-11B | Ambíguo / Experimental | Coberto | Consumer avançado | SurfaceSet + Runtime/Binding conforme escopo | Risco de consumer capturar core | Sem ajuste. |
-| Virtual camera binding | Redesenhar como consumer de Surface; não no core | F11 | F11 | IF-FW-ROAD-11B | Ambíguo / Experimental | Coberto | Consumer avançado | SurfaceSet + Runtime/Binding conforme escopo | Risco de consumer capturar core | Sem ajuste. |
+| Camera consumer | Redesenhar como `CameraConsumer` | F11 | F11 | IF-FW-ROAD-11A, 11B | Ambíguo / Experimental | Coberto | Consumer avançado | ContentAnchorSet + Runtime/Binding conforme escopo | Risco de consumer capturar core | Sem ajuste. |
+| Camera anchor binding | Redesenhar com `ContentAnchor` typed | F11 | F11 | IF-FW-ROAD-11B | Ambíguo / Experimental | Coberto | Consumer avançado | ContentAnchorSet + Runtime/Binding conforme escopo | Risco de consumer capturar core | Sem ajuste. |
+| Camera scope (Session/Route/Activity) | Preservar modelo de escopo | F11 | F11 | IF-FW-ROAD-11B | Ambíguo / Experimental | Coberto | Consumer avançado | ContentAnchorSet + Runtime/Binding conforme escopo | Risco de consumer capturar core | Sem ajuste. |
+| Camera binding result/handle | Criar `CameraBindingResult` com handle | F11 | F11 | IF-FW-ROAD-11B | Ambíguo / Experimental | Coberto | Consumer avançado | ContentAnchorSet + Runtime/Binding conforme escopo | Risco de consumer capturar core | Sem ajuste. |
+| Virtual camera binding | Redesenhar como consumer de Content Anchor; não no core | F11 | F11 | IF-FW-ROAD-11B | Ambíguo / Experimental | Coberto | Consumer avançado | ContentAnchorSet + Runtime/Binding conforme escopo | Risco de consumer capturar core | Sem ajuste. |
 
 ### Audio
 | Capacidade | Decisão | Fase original | Fase revisada | Corte | Status package | Status roadmap | Prioridade | Bloqueadores | Risco | Observação |
@@ -323,17 +323,17 @@ Regras:
 - Activity — Activity exit plan
 
 ### F7
-- Route — Route surface set
+- Route — Route Content Anchor set
 - Local — Local slots
 - Local — Local anchors
-- Surface — Surface identity
-- Surface — Surface root
-- Surface — Surface slot
-- Surface — Surface anchor
-- Surface — Surface endpoint
-- Surface — Surface set por scope
-- Surface — Duplicate detection
-- Surface — Overlay root separado de content root
+- Content Anchor — Content Anchor identity
+- Content Anchor — Content Anchor root
+- Content Anchor — Content Anchor slot
+- Content Anchor — Content Anchor anchor
+- Content Anchor — Content Anchor endpoint
+- Content Anchor — Content Anchor set por scope
+- Content Anchor — Duplicate detection
+- Content Anchor — Overlay root separado de content root
 
 ### F8
 - RuntimeSpawned — Runtime scope root
@@ -354,13 +354,13 @@ Regras:
 
 ### F9
 - RuntimeSpawned — Spawn origin / slot
-- Surface — Surface binding request/result
-- Surface — Surface content handle
-- Surface — Runtime surface binding
-- Surface — Surface lifecycle policy
+- Content Anchor — Content Anchor binding request/result
+- Content Anchor — Content Anchor content handle
+- Content Anchor — Runtime Content Anchor binding
+- Content Anchor — Content Anchor lifecycle policy
 
 ### F9–F10
-- Activity — Pause content/surface contribution
+- Activity — Pause content/Content Anchor contribution
 - Pause — Pause content materialization
 
 ### F10
@@ -374,7 +374,7 @@ Regras:
 - Save / Snapshot — Snapshot set
 - Save / Snapshot — Save backend port
 - Save / Snapshot — Schema versioning
-- Pause — Pause surface consumer
+- Pause — Pause content anchor consumer
 - Pause — Pause state contract
 - Pause — Pause/unpause lifecycle
 
@@ -435,7 +435,7 @@ Itens que precisam de detalhamento futuro porque estavam como `—`, `Fase+` ou 
 - **Session — Session composition context**: Deferred. Conceito válido, mas perigoso cedo. Primeiro formalizar Session scope/content sem service locator.
 - **Session — Player participation**: F10+/F11. Adiar. Entra com Input/Actor boundary, não no core inicial.
 - **Session — Subsystem composition descriptors**: F11+. Como padrão de consumer/adapters, não Session core.
-- **Route — Route contribution set**: F5/F7/F10+. Contribution genérico em F5; surfaces em F7; consumers reais depois.
+- **Route — Route contribution set**: F5/F7/F10+. Contribution genérico em F5; Content Anchor em F7; consumers reais depois.
 - **Activity — Activity content profile**: Deferred após F4/F6. F4 deve criar ActivityContentSet/readiness mínimo; profile avançado vem depois de scene composition/release.
 - **Activity — Activity content loading**: F6+. Carregamento real de cenas da Activity depende de plan/result/release.
 - **Activity — Activity reset plan**: Futura após F5/F10. Depende de LocalContributionSet e snapshot/reset participants.
@@ -517,8 +517,8 @@ Antes de abrir um corte técnico, responder:
 | Route content profile execution | Executa requiredness e carrega cenas declaradas no profile. | `RouteContentProfileAsset` + plan | Preservar execução; separar de planning | F6E | IF-FW-ROAD-6E |
 | Route → Activity handoff | Passa contexto mínimo para Activity iniciar após rota pronta. | `SessionActivityEntryHandoff` | Preservar boundary; reduzir payload | F3 | IF-FW-ROAD-3C |
 | Route startup activity policy | Decide qual Activity iniciar automaticamente ao entrar na rota. | `OperationalRouteAsset.StartupActivity` | Preservar como policy simples | F3 | IF-FW-ROAD-3C |
-| Route contribution set | Câmera/áudio/input/save da rota expostos como contributions. | Pipeline stages de route | Redesenhar como `RouteContributionSet` | F5+ | F7 via Surface |
-| Route surface set | Surfaces de apresentação da rota (pause surface, overlay). | Pause stages + surface endpoints | Redesenhar como `RouteSurfaceSet` | F7 | IF-FW-ROAD-7G |
+| Route contribution set | Câmera/áudio/input/save da rota expostos como contributions. | Pipeline stages de route | Redesenhar como `RouteContributionSet` | F5+ | F7 via Content Anchor |
+| Route Content Anchor set | Content Anchor de apresentação da rota (pause anchor, overlay). | Pause stages + Content Anchor endpoints | Redesenhar como `RouteContentAnchorSet` | F7 | IF-FW-ROAD-7G |
 | Content release plan | Libera cenas/conteúdo da rota com plano explícito. | `SessionOperationalPipeline` teardown | Preservar como `ContentReleasePlan`/`Result` | F6F/F6G | IF-FW-ROAD-6F |
 
 ---
@@ -538,7 +538,7 @@ Antes de abrir um corte técnico, responder:
 | Activity exit plan | Planeja release, unload e teardown ao sair da Activity. | Pipeline teardown stages | Preservar como `ActivityExitPlan` | F4 | IF-FW-ROAD-4B |
 | Activity reset plan | Reseta estado da Activity sem descarregar conteúdo. | `ActivityObjectResetContracts` | Preservar; entrar depois de LocalContributionSet | F5+ | — |
 | Participant binding | Conecta participação (player slots) a actors e input. | `ActivityEntryParticipantBindingStage` | Preservar boundary; redesenhar ownership | F10–F11 | IF-FW-ROAD-10B, 11F |
-| Pause content/surface contribution | Activity contribui surface de pause para a rota. | `ActivityEntryPauseContentStage`, `ActivityPauseContentRuntimeState` | Redesenhar como Surface consumer | F9–F10 | IF-FW-ROAD-9D, 10G |
+| Pause content/Content Anchor contribution | Activity contribui Content Anchor de pause para a rota. | `ActivityEntryPauseContentStage`, `ActivityPauseContentRuntimeState` | Redesenhar como Content Anchor consumer | F9–F10 | IF-FW-ROAD-9D, 10G |
 | Activity snapshot | Captura estado da Activity para save. | `SessionActivitySnapshot` | Preservar contrato; entrar após snapshot model | F10 | IF-FW-ROAD-10D, 10E |
 | Activity diagnostics/facts | Facts estruturados de lifecycle de Activity. | `SessionActivityFact` | Preservar como `FrameworkFact` | F1 | IF-FW-ROAD-1C |
 
@@ -559,8 +559,8 @@ Antes de abrir um corte técnico, responder:
 | Local snapshot participant | Objeto local captura/restaura próprio estado. | `ActivityObjectSnapshotContracts` | Preservar contrato com typed payload | F10 | IF-FW-ROAD-10D |
 | Local release participant | Objeto local declara release policy. | `ActivityObjectReleaseContracts` | Preservar contrato | F8 | IF-FW-ROAD-8G |
 | Exit freeze | Congela correlação Local → Activity no teardown para evitar stale. | Implícito na pipeline de exit | Preservar como parte de `ActivityExitPlan` | F8 | IF-FW-ROAD-8G |
-| Local slots | Pontos authored tipados para binding físico. | Surface endpoints e transform anchors | Preservar como `LocalSlot` (futuramente `SurfaceSlot`) | F7 | IF-FW-ROAD-7D |
-| Local anchors | Pontos authored de posicionamento tipados. | Transform anchors em cena | Preservar como `LocalAnchor` (futuramente `SurfaceAnchor`) | F7 | IF-FW-ROAD-7E |
+| Local slots | Pontos authored tipados para binding físico. | Content Anchor endpoints e transform anchors | Preservar como `LocalSlot` (futuramente `ContentAnchorSlot`) | F7 | IF-FW-ROAD-7D |
+| Local anchors | Pontos authored de posicionamento tipados. | Transform anchors em cena | Preservar como `LocalAnchor` (futuramente `ContentAnchor`) | F7 | IF-FW-ROAD-7E |
 | Stale/foreign reference check | Detecta referências de lifecycle morto ou de escopo errado. | Implícito em inventory builders | Preservar como validação de `LocalContributionSet` | F5 | IF-FW-ROAD-5F |
 
 ---
@@ -577,29 +577,29 @@ Antes de abrir um corte técnico, responder:
 | Runtime release policy | Limpa instâncias ao sair do escopo (Activity exit, Route exit, Session shutdown). | Teardown stages espalhados | Criar `RuntimeReleasePolicy` por escopo | F8 | IF-FW-ROAD-8G |
 | Pooled materializer | Materializa via pool rent; devolve via pool return no release. | `PoolingService` + actor adapters | Redesenhar como `PooledContentMaterializer` | F11 | IF-FW-ROAD-11H |
 | Runtime spawned contribution | Instância dinâmica pode contribuir capabilities ao `ActivityContributionSet`. | Actor como contributor (implícito) | Preservar como `RuntimeSpawnedContribution` | F11 | IF-FW-ROAD-11F |
-| Spawn origin / slot | Posicionamento authored de onde instâncias aparecem. | Transform anchors em cena | Integrar com `LocalAnchor` / `SurfaceSlot` | F9 | IF-FW-ROAD-9D |
+| Spawn origin / slot | Posicionamento authored de onde instâncias aparecem. | Transform anchors em cena | Integrar com `LocalAnchor` / `ContentAnchorSlot` | F9 | IF-FW-ROAD-9D |
 | Runtime identity | Distingue instâncias individuais sem usar nome de GameObject. | `ActorInstanceRuntimeId` (tipado) | Preservar typed; generalizar para todo spawned | F8 | IF-FW-ROAD-8D |
 | Pool rent/return cycle | Reutiliza objetos: rent antes de usar, return no release. | `PoolingService` | Preservar como infra técnica separada | F11 | IF-FW-ROAD-11G, 11H |
 | Destroy policy | Destroy explícito apenas quando pool return não se aplica. | `Destroy` espalhado (problema) | Centralizar em `RuntimeReleasePolicy` | F8 | IF-FW-ROAD-8G |
 
 ---
 
-## Grupo 6 — Surface
+## Grupo 6 — Content Anchor
 
 | Capacidade | O que faz | Origem NS | Decisão | Fase | Corte |
 |---|---|---|---|---|---|
-| Surface identity | Identidade tipada de surface; distingue pause/camera/overlay/content. | String solta por endpoint (problema) | Criar `SurfaceIdentity` tipado | F7 | IF-FW-ROAD-7B |
-| Surface root | Raiz física (Transform) associada a uma surface com role definido. | Container de pause, overlay root | Criar `SurfaceRoot` com role tipado | F7 | IF-FW-ROAD-7C |
-| Surface slot | Ponto authored de binding físico; não usa `GameObject.Find`. | Surface slots em cena | Criar `SurfaceSlot` typed | F7 | IF-FW-ROAD-7D |
-| Surface anchor | Ponto authored de posicionamento typed. | Anchors de câmera/actor | Criar `SurfaceAnchor` typed | F7 | IF-FW-ROAD-7E |
-| Surface endpoint | Componente que declara surface (roots/slots/anchors) para um scope. | Surface endpoint components | Criar `SurfaceEndpoint` | F7 | IF-FW-ROAD-7F |
-| Surface set por scope | Route e Activity expõem seus `SurfaceSet`; consumers solicitam por identity. | Implícito por scope/stage | Criar `RouteSurfaceSet`, `ActivitySurfaceSet` | F7 | IF-FW-ROAD-7G |
-| Surface binding request/result | Consumer solicita surface por identity; resultado devolve handle. Consumer não controla lifetime. | Direto por adapter (problema) | Criar `SurfaceBindingRequest/Result` | F9 | IF-FW-ROAD-9A, 9B |
-| Surface content handle | Handle de binding com release; consumer libera, não destrói. | Binding sem handle formal (problema) | Criar `SurfaceContentHandle` | F9 | IF-FW-ROAD-9C |
-| Runtime surface binding | Materializa conteúdo (prefab) dentro de slot/root de surface. | `RuntimeSurfaceBinding` (implícito em presentation) | Criar `RuntimeSurfaceBinding` | F9 | IF-FW-ROAD-9D |
-| Duplicate detection | Detecta surface endpoint/slot duplicado na mesma cena/scope. | Implícito em validators | Preservar em Surface validators | F7 | IF-FW-ROAD-7H |
-| Surface lifecycle policy | Consumer libera binding; surface não depende de consumer para cleanup. | Implícito no teardown | Preservar policy explícita de release | F9 | IF-FW-ROAD-9E |
-| Overlay root separado de content root | Roles distintos para UI de pausa vs. conteúdo. | `SurfaceRoot.Role` implícito | Preservar modelagem de roles | F7 | IF-FW-ROAD-7C |
+| Content Anchor identity | Identidade tipada de Content Anchor; distingue pause/camera/overlay/content. | String solta por endpoint (problema) | Criar `ContentAnchorIdentity` tipado | F7 | IF-FW-ROAD-7B |
+| Content Anchor root | Raiz física (Transform) associada a um Content Anchor com role definido. | Container de pause, overlay root | Criar `ContentAnchorRoot` com role tipado | F7 | IF-FW-ROAD-7C |
+| Content Anchor slot | Ponto authored de binding físico; não usa `GameObject.Find`. | Content Anchor slots em cena | Criar `ContentAnchorSlot` typed | F7 | IF-FW-ROAD-7D |
+| Content Anchor anchor | Ponto authored de posicionamento typed. | Anchors de câmera/actor | Criar `ContentAnchor` typed | F7 | IF-FW-ROAD-7E |
+| Content Anchor endpoint | Componente que declara Content Anchor (roots/slots/anchors) para um scope. | Content Anchor endpoint components | Criar `ContentAnchorEndpoint` | F7 | IF-FW-ROAD-7F |
+| Content Anchor set por scope | Route e Activity expõem seus `ContentAnchorSet`; consumers solicitam por identity. | Implícito por scope/stage | Criar `RouteContentAnchorSet`, `ActivityContentAnchorSet` | F7 | IF-FW-ROAD-7G |
+| Content Anchor binding request/result | Consumer solicita Content Anchor por identity; resultado devolve handle. Consumer não controla lifetime. | Direto por adapter (problema) | Criar `ContentAnchorBindingRequest/Result` | F9 | IF-FW-ROAD-9A, 9B |
+| Content Anchor content handle | Handle de binding com release; consumer libera, não destrói. | Binding sem handle formal (problema) | Criar `ContentAnchorContentHandle` | F9 | IF-FW-ROAD-9C |
+| Runtime Content Anchor binding | Materializa conteúdo (prefab) dentro de slot/root de Content Anchor. | `RuntimeContentAnchorBinding` (implícito em presentation) | Criar `RuntimeContentAnchorBinding` | F9 | IF-FW-ROAD-9D |
+| Duplicate detection | Detecta Content Anchor endpoint/slot duplicado na mesma cena/scope. | Implícito em validators | Preservar em Content Anchor validators | F7 | IF-FW-ROAD-7H |
+| Content Anchor lifecycle policy | Consumer libera binding; Content Anchor não depende de consumer para cleanup. | Implícito no teardown | Preservar policy explícita de release | F9 | IF-FW-ROAD-9E |
+| Overlay root separado de content root | Roles distintos para UI de pausa vs. conteúdo. | `ContentAnchorRoot.Role` implícito | Preservar modelagem de roles | F7 | IF-FW-ROAD-7C |
 
 ---
 
@@ -630,9 +630,9 @@ Antes de abrir um corte técnico, responder:
 
 | Capacidade | O que faz | Origem NS | Decisão | Fase | Corte |
 |---|---|---|---|---|---|
-| Pause surface consumer | Pause usa surface de Route/Activity; não cria sua própria. | `ActivityEntryPauseContentStage`, pause surface stages | Redesenhar como `PauseSurfaceConsumer` | F10 | IF-FW-ROAD-10F, 10G |
+| Pause content anchor consumer | Pause usa Content Anchor de Route/Activity; não cria sua própria. | `ActivityEntryPauseContentStage`, pause Content Anchor stages | Redesenhar como `PauseContentAnchorConsumer` | F10 | IF-FW-ROAD-10F, 10G |
 | Pause state contract | Estado de pause tipado; Route/Activity não sabem de Pause como subsistema. | `SessionActivityPipeline` pause handling | Criar `PauseStateContract` | F10 | IF-FW-ROAD-10F |
-| Pause content materialization | Materializa UI/overlay de pause em surface slot. | Pause stages + surface binding | Usa `RuntimeSurfaceBinding` | F9–F10 | IF-FW-ROAD-9D, 10G |
+| Pause content materialization | Materializa UI/overlay de pause em Content Anchor slot. | Pause stages + Content Anchor binding | Usa `RuntimeContentAnchorBinding` | F9–F10 | IF-FW-ROAD-9D, 10G |
 | Pause/unpause lifecycle | Pause é consumer de Activity state; não possui lifecycle. | Implícito na pipeline | Preservar boundary: pause recebe evento, não controla Activity | F10 | IF-FW-ROAD-10F |
 
 ---
@@ -641,11 +641,11 @@ Antes de abrir um corte técnico, responder:
 
 | Capacidade | O que faz | Origem NS | Decisão | Fase | Corte |
 |---|---|---|---|---|---|
-| Camera consumer | Resolve câmera virtual ativa via SurfaceSet; sem authority global estático. | `OperationalCameraRuntimeComposition`, `FrameworkCameraAuthority` (problema) | Redesenhar como `CameraConsumer` | F11 | IF-FW-ROAD-11A, 11B |
-| Camera anchor binding | Câmera física posicionada via `SurfaceAnchor`; não por nome de GameObject. | Camera anchor stages (string-based, problema) | Redesenhar com `SurfaceAnchor` typed | F11 | IF-FW-ROAD-11B |
+| Camera consumer | Resolve câmera virtual ativa via ContentAnchorSet; sem authority global estático. | `OperationalCameraRuntimeComposition`, `FrameworkCameraAuthority` (problema) | Redesenhar como `CameraConsumer` | F11 | IF-FW-ROAD-11A, 11B |
+| Camera anchor binding | Câmera física posicionada via `ContentAnchor`; não por nome de GameObject. | Camera anchor stages (string-based, problema) | Redesenhar com `ContentAnchor` typed | F11 | IF-FW-ROAD-11B |
 | Camera scope (Session/Route/Activity) | Câmera muda conforme scope ativo; Route câmera ≠ Activity câmera. | Implícito em stages | Preservar modelo de escopo | F11 | IF-FW-ROAD-11B |
 | Camera binding result/handle | Handle de câmera ativa com release ao sair do scope. | Sem handle formal (problema) | Criar `CameraBindingResult` com handle | F11 | IF-FW-ROAD-11B |
-| Virtual camera binding | Liga virtual camera Cinemachine a surface/anchor typed. | `FrameworkCinemachineCameraBinding` (package) | Redesenhar como consumer de Surface; não no core | F11 | IF-FW-ROAD-11B |
+| Virtual camera binding | Liga virtual camera Cinemachine a Content Anchor/anchor typed. | `FrameworkCinemachineCameraBinding` (package) | Redesenhar como consumer de Content Anchor; não no core | F11 | IF-FW-ROAD-11B |
 
 ---
 
@@ -718,10 +718,10 @@ Antes de abrir um corte técnico, responder:
 | **F4** | Activity asset, Activity content profile, Activity runtime state, Activity entry context, Activity content set, Activity content lifecycle result, Readiness gate, Activity exit plan |
 | **F5** | Local content identity, explicit local ids on existing bindings, scoped loaded discovery, LocalContributionSet, Requiredness metadata, LocalContributionValidator, Local Contribution Smoke |
 | **F6** | CLOSED: F6A ADR completion; F6B RouteSceneCompositionPlan; F6C RouteSceneCompositionResult; F6D Additive scene primitive; F6E Route content profile execution; F6F ContentReleasePlan/Result; F6G owned additive scene release execution |
-| **F7** | Surface identity, Surface root, Surface slot, Surface anchor, Surface endpoint, Surface set por scope, Duplicate detection, Overlay root vs content root, Local slots/anchors |
+| **F7** | Content Anchor identity, Content Anchor root, Content Anchor slot, Content Anchor anchor, Content Anchor endpoint, Content Anchor set por scope, Duplicate detection, Overlay root vs content root, Local slots/anchors |
 | **F8** | Runtime scope root, Runtime root registry, Materialization request/result, Runtime content handle, Prefab materializer, Runtime release policy, Destroy policy, Runtime identity, Local release participant, Exit freeze |
-| **F9** | Surface binding request/result, Surface content handle, Runtime surface binding, Spawn origin/slot, Surface lifecycle policy, Pause content materialization |
-| **F10** | Input mode contract, Activity input consumer, Input mode owner, Player slot/command binding, Snapshot envelope, Snapshot participant, Snapshot set, Save backend port, Schema versioning, Pause surface consumer, Pause state contract, Pause lifecycle, Activity snapshot, Local snapshot participant |
+| **F9** | Content Anchor binding request/result, Content Anchor content handle, Runtime Content Anchor binding, Spawn origin/slot, Content Anchor lifecycle policy, Pause content materialization |
+| **F10** | Input mode contract, Activity input consumer, Input mode owner, Player slot/command binding, Snapshot envelope, Snapshot participant, Snapshot set, Save backend port, Schema versioning, Pause content anchor consumer, Pause state contract, Pause lifecycle, Activity snapshot, Local snapshot participant |
 | **F11** | Camera consumer, Camera anchor binding, Camera scope, Camera binding result, Virtual camera binding, BGM lifecycle consumer, SFX dispatch, Actor materialization, Actor contribution, Actor runtime identity, Actor reset/release, Player actor binding, Pooling rent/return, Pool ownership, Pooled materializer, Runtime spawned contribution |
 | **F12** | Projectile as RuntimeSpawned, Impact handling, Damage as capability, Attributes as snapshot-capable |
 
@@ -735,7 +735,7 @@ Antes de abrir um corte técnico, responder:
 | Session content ownership | F2C | CLOSED / COMPILE-SMOKE PASS | `Runtime/SessionLifecycle/SessionContentOwnership.cs` | `Registered`, `Owned` and `DiagnosticOnly` semantics created. |
 | Session smoke | F2D | CLOSED / DOCUMENTATION ONLY | `Documentation~/COMPLETENESS_TRACKER.md` | F2B/F2C smokes close the technical Session phase. |
 
-F2 intentionally does not implement persistent scenes, Route baseline, Surface or RuntimeMaterialization.
+F2 intentionally does not implement persistent scenes, Route baseline, Content Anchor or RuntimeMaterialization.
 
 
 ## F4 closure note

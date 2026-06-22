@@ -81,7 +81,7 @@ gates assíncronos
 profile loading
 release/unload
 snapshot/reset
-Surface
+Content Anchor
 RuntimeMaterialization
 LocalContributionSet
 ```

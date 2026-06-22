@@ -6,7 +6,7 @@ Status: `APPLIED / PENDING COMPILE-SMOKE`
 
 F1E introduces the minimum primitives required by `ADR-ID-001 — Typed Identity Policy`.
 
-The goal is not to migrate every existing `string` field immediately. The goal is to stop creating new functional identity surfaces as loose strings and to provide a small canonical vocabulary for future domain-specific identifiers.
+The goal is not to migrate every existing `string` field immediately. The goal is to stop creating new functional identity API areas as loose strings and to provide a small canonical vocabulary for future domain-specific identifiers.
 
 ## Added primitives
 
@@ -21,7 +21,7 @@ Runtime/Identity/IFrameworkIdentity.cs
 
 | Primitive | Role |
 |---|---|
-| `FrameworkIdentityDomain` | Coarse domain of a framework identity, such as Route, Activity, Content or Surface. |
+| `FrameworkIdentityDomain` | Coarse domain of a framework identity, such as Route, Activity, Content or Content Anchor. |
 | `FrameworkIdentityValue` | Validated immutable identity payload. Rejects null, empty and whitespace values. |
 | `FrameworkIdentityKey` | Domain-qualified key composed from `FrameworkIdentityDomain` + `FrameworkIdentityValue`. |
 | `IFrameworkIdentity` | Minimal contract for future domain-specific typed identity wrappers. |
@@ -52,7 +52,7 @@ RouteId
 ActivityId
 ContentIdentity final model
 Session identity model
-Surface identity model
+Content Anchor identity model
 migration of existing serialized string fields
 asset GUID policy
 validator enforcement

@@ -121,8 +121,8 @@ namespace Immersive.Framework.ContentFlow
                     return FrameworkIdentityDomain.Route;
                 case FrameworkContentScope.Activity:
                     return FrameworkIdentityDomain.Activity;
-                case FrameworkContentScope.Surface:
-                    return FrameworkIdentityDomain.Surface;
+                case FrameworkContentScope.ContentAnchor:
+                    return FrameworkIdentityDomain.ContentAnchor;
                 case FrameworkContentScope.RuntimeSpawned:
                     return FrameworkIdentityDomain.Runtime;
                 default:

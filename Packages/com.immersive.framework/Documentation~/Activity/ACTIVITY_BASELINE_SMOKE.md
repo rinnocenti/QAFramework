@@ -78,7 +78,7 @@ camera readiness
 async gates
 release/unload
 snapshot/reset
-Surface
+Content Anchor
 RuntimeMaterialization
 LocalContributionSet
 ```

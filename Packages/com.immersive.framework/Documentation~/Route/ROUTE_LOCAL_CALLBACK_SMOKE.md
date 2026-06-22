@@ -81,7 +81,7 @@ F3F não cria nem modifica assets de cena. Se a cena QA não tiver `RouteContent
 additive scene loading
 release policy
 RouteContentProfile execution
-Surface
+Content Anchor
 RuntimeMaterialization
 LocalContributionSet
 consumers

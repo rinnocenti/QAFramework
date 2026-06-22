@@ -82,7 +82,7 @@ F3E não implementa:
 release policy
 additive scene loading
 RouteContentProfile execution
-Surface
+Content Anchor
 RuntimeMaterialization
 LocalContributionSet
 consumers

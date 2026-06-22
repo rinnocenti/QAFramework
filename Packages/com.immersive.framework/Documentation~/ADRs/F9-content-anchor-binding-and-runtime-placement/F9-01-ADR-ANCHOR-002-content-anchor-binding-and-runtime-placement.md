@@ -1,29 +1,29 @@
-# F9-01 — ADR-SURFACE-002 — Surface Binding and Content Placement
+# F9-01 — ADR-ANCHOR-002 — Content Anchor Binding and Runtime Placement
 
 Status: Draft / Deferred  
 Fase: F9  
 Ordem no Plano: F9-01  
-Tipo: Surface / Runtime  
-Escopo: SurfaceBinding
+Tipo: Content Anchor / Runtime  
+Escopo: ContentAnchorBinding
 
 ---
 
 ## Contexto
 
-Depois de Surface declaration e Runtime materialization, o framework precisa vincular conteúdo a roots/slots/anchors sem criar pause/camera específicos.
+Depois de Content Anchor declaration e Runtime materialization, o framework precisa vincular conteúdo a roots/slots/anchors sem criar pause/camera específicos.
 
 ## Decisão
 
 Definir:
 
 ```text
-SurfaceBindingRequest
-SurfaceBindingResult
-SurfaceContentHandle
-RuntimeSurfaceBinding
+ContentAnchorBindingRequest
+ContentAnchorBindingResult
+ContentAnchorContentHandle
+RuntimeContentAnchorBinding
 ```
 
-Consumer solicita Surface por identity; runtime resolve root/slot/anchor e materializa ou vincula conteúdo. Consumer não destrói diretamente; libera handle.
+Consumer solicita Content Anchor por identity; runtime resolve root/slot/anchor e materializa ou vincula conteúdo. Consumer não destrói diretamente; libera handle.
 
 ## Consequências
 
@@ -48,7 +48,7 @@ Consumer solicita Surface por identity; runtime resolve root/slot/anchor e mater
 ## Critérios de validação
 
 - Prefab em slot materializa e libera no exit.
-- Binding falha se surface/slot required ausente.
+- Binding falha se content anchor/slot required ausente.
 - Release de binding ocorre antes do release do owner scope.
 
 ## Impacto esperado
@@ -61,4 +61,4 @@ F9.
 
 ## Notas de implementação
 
-Não deve introduzir `SurfaceManager` global.
+Não deve introduzir `ContentAnchorManager` global.

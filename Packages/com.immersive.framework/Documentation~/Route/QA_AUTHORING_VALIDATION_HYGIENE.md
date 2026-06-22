@@ -10,7 +10,7 @@ Reduce authoring UI noise introduced during F3G before closing the validator cut
 
 ```text
 - RouteContentBinding Inspector returns to a minimal Route field with tooltip.
-- Verbose RouteContentBinding validation is removed from the Inspector surface.
+- Verbose RouteContentBinding validation is removed from the Inspector interface.
 - Project Settings no longer exposes Validate Authoring as the primary validation button.
 - Framework QA Canvas adds Validate Loaded Route Content.
 ```
@@ -30,7 +30,7 @@ The button does not open scenes and does not mutate scenes.
 ## Non-goals
 
 ```text
-Surface
+Content Anchor
 RuntimeMaterialization
 additive scene loading
 release policy

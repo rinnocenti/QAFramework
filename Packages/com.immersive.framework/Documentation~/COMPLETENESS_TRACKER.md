@@ -39,7 +39,7 @@ Keep these docs as the durable record for implementation details:
 
 | Next authorized step | Reason |
 |---|---|
-| `F7A — Surface ADR/detail audit` | F6 closed the Route scene composition/release baseline. Next work may define Surface declaration only; do not start RuntimeRoot/materialization or gameplay consumers yet. |
+| `F7A — Content Anchor ADR/detail audit` | F6 closed the Route scene composition/release baseline. Next work may define Content Anchor declaration only; do not start RuntimeRoot/materialization or gameplay consumers yet. |
 
 ## F5 closure audit
 
@@ -75,7 +75,7 @@ Confirmed removals and exclusions:
 - `IFrameworkContentContribution` removed;
 - no `LocalContributionMarker` parallel component;
 - no `GameObject.name`, scene name, scene path or hierarchy path as functional identity;
-- no canonical materialization, Surface, Actors, Input, Camera, Reset, Snapshot, Save, Pooling, runtime references, release/unload policy or expected contribution asset in F5.
+- no canonical materialization, Content Anchor, Actors, Input, Camera, Reset, Snapshot, Save, Pooling, runtime references, release/unload policy or expected contribution asset in F5.
 
 ## F6 closure audit
 
@@ -150,7 +150,7 @@ F6 does not authorize:
 ```text
 Activity canonical materialization
 Activity release execution
-Surface
+Content Anchor
 RuntimeRootRegistry
 Prefab materialization
 Runtime spawned content

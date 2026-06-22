@@ -45,14 +45,14 @@ Framework QA Canvas > Route Content Callback Smoke > Validate Loaded Route Conte
 
 It checks loaded scenes only. It does not open or mutate scenes, does not create GameObjects, and does not auto-fix references.
 
-The editor validator remains available internally for editor tooling, but Project Settings is not the main authoring-validation surface for this cut.
+The editor validator remains available internally for editor tooling, but Project Settings is not the main authoring-validation entry point for this cut.
 
 ## Non-goals
 
 F3G does not implement:
 
 ```text
-Surface
+Content Anchor
 RuntimeMaterialization
 additive scene loading
 RouteContentProfile execution

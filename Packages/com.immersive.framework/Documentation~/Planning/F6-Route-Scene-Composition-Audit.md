@@ -15,7 +15,7 @@ A fase permitiu que uma Route declare additional scenes via `RouteContentProfile
 F6 não pula para:
 
 ```text
-Surface
+Content Anchor
 RuntimeRootRegistry
 Prefab materialization
 Runtime spawned content
@@ -39,7 +39,7 @@ LocalContributionValidator
 Local Contribution Smoke dedicado
 ```
 
-F5 não entregava release handle, runtime reference, materialização, Surface ou loading canônico de Activity.
+F5 não entregava release handle, runtime reference, materialização, Content Anchor ou loading canônico de Activity.
 
 ---
 
@@ -221,7 +221,7 @@ F6 não autoriza:
 
 ```text
 Release de Activity
-Surface
+Content Anchor
 RuntimeRootRegistry
 Prefab materializer
 Runtime spawned content
@@ -237,7 +237,7 @@ Addressables backend
 Próximo passo recomendado:
 
 ```text
-F7A — Surface ADR/detail audit
+F7A — Content Anchor ADR/detail audit
 ```
 
-F7 deve começar por declaração de Surface, roots/slots/anchors e duplicate detection. Não deve começar por RuntimeRoot/materialization ou consumidores avançados.
+F7 deve começar por declaração de Content Anchor, roots/slots/anchors e duplicate detection. Não deve começar por RuntimeRoot/materialization ou consumidores avançados.

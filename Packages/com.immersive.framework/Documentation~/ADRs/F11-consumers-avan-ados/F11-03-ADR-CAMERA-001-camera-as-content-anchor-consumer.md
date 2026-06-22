@@ -1,4 +1,4 @@
-# F11-03 — ADR-CAMERA-001 — Camera as Surface Consumer
+# F11-03 — ADR-CAMERA-001 — Camera as Content Anchor Consumer
 
 Status: Draft / Deferred  
 Fase: F11  
@@ -10,13 +10,13 @@ Escopo: Camera
 
 ## Contexto
 
-`CameraFlow` atual está ambíguo. O `NewScripts` mostra que camera deve consumir Surface/Anchor, não ser core lifecycle.
+`CameraFlow` atual está ambíguo. O `NewScripts` mostra que camera deve consumir Content Anchor/Anchor, não ser core lifecycle.
 
 ## Decisão
 
-Camera deve ser consumer de Surface/Anchor.
+Camera deve ser consumer de Content Anchor/Anchor.
 
-- Camera request usa SurfaceSet/Anchor.
+- Camera request usa ContentAnchorSet/Anchor.
 - Binding produz handle.
 - Release segue scope.
 - Cinemachine fica em adapter/package opcional, não core obrigatório se possível.
@@ -32,7 +32,7 @@ Camera deve ser consumer de Surface/Anchor.
 
 ### Negativas / trade-offs
 
-- Requer Surface baseline.
+- Requer Content Anchor baseline.
 - Pode exigir reorganização do código existente.
 
 ## Fora do escopo
@@ -43,7 +43,7 @@ Camera deve ser consumer de Surface/Anchor.
 
 ## Critérios de validação
 
-- Camera ativa muda por Route/Activity via Surface.
+- Camera ativa muda por Route/Activity via Content Anchor.
 - Sem static global como única autoridade.
 - Release do scope desfaz binding.
 

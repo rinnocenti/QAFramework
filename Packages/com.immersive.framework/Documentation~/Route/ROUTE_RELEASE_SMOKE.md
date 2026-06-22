@@ -83,4 +83,4 @@ routeContentHandles='2'
 
 ## Fronteira
 
-Este smoke valida apenas unload de cena additive owned no escopo de Route. Ele não valida Activity release, runtime object destroy, pool return, Surface, RuntimeRoot, Actor, Input, Camera, Save ou Pooling.
+Este smoke valida apenas unload de cena additive owned no escopo de Route. Ele não valida Activity release, runtime object destroy, pool return, Content Anchor, RuntimeRoot, Actor, Input, Camera, Save ou Pooling.

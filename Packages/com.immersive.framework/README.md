@@ -54,6 +54,6 @@ Documentation~/ADRs/
 
 ## Current hard boundary
 
-The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release for scene content. It is not yet a Surface, RuntimeSpawned, Actor, Camera, Input, Save, Reset or Pooling framework.
+The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release for scene content. It is not yet a Content Anchor, RuntimeSpawned, Actor, Camera, Input, Save, Reset or Pooling framework.
 
-Do not skip from F6 directly to runtime materialization or gameplay consumers. The next architectural phase is F7 Surface declaration.
+Do not skip from F6 directly to runtime materialization or gameplay consumers. The next architectural phase is F7 Content Anchor declaration.

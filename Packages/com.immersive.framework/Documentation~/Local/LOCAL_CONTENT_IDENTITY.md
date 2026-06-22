@@ -202,7 +202,7 @@ LocalContentIdentity duplicada no mesmo escopo/owner/local id = issue estruturad
 GameObject.name/scene/path/hierarchy = diagnostics only
 ```
 
-O F5D também muda a QA surface: a validação autoral local deve ser rodada pelo `Framework QA Canvas`, botão `Validate Loaded Local Contributions`. O log esperado em sucesso usa:
+O F5D também muda a QA interface: a validação autoral local deve ser rodada pelo `Framework QA Canvas`, botão `Validate Loaded Local Contributions`. O log esperado em sucesso usa:
 
 ```text
 QA Authoring Validation completed. scope='Loaded Local Contributions' ... issues='0'
@@ -256,7 +256,7 @@ Required/Optional policy
 Runtime scanner por capability
 ActivityContentSet integration funcional
 RouteContentSet integration funcional
-Surface
+Content Anchor
 Actors
 Input
 Camera
@@ -329,7 +329,7 @@ Escopo ainda diferido após F5F:
 Required ausente bloquear lifecycle
 Optional ausente gerar skip estruturado
 Integração funcional com RouteContentSet/ActivityContentSet
-Surface
+Content Anchor
 Actors
 Input
 Camera
@@ -385,7 +385,7 @@ Declarar expected contributions em assets
 Fazer required ausente bloquear lifecycle real
 Fazer optional ausente aparecer como skip em smoke dedicado
 Integração funcional com RouteContentSet/ActivityContentSet
-Surface
+Content Anchor
 Actors
 Input
 Camera
@@ -446,7 +446,7 @@ Declarar expected contributions em assets
 Fazer required ausente bloquear lifecycle real
 Fazer optional ausente aparecer como skip alimentado por authoring declarativo
 Integração funcional com RouteContentSet/ActivityContentSet
-Surface
+Content Anchor
 Actors
 Input
 Camera

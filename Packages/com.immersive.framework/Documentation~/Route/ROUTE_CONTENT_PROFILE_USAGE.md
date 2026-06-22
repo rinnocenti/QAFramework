@@ -18,7 +18,7 @@ Owned additional Route Scene on Route exit -> ContentReleasePlan -> UnloadScene
 
 ## What it does not do
 
-`RouteContentProfileAsset` still does not materialize runtime prefabs, spawn actors, bind surfaces, configure input/camera/save, return objects to pools, or load Activity-owned content.
+`RouteContentProfileAsset` still does not materialize runtime prefabs, spawn actors, bind Content Anchors, configure input/camera/save, return objects to pools, or load Activity-owned content.
 
 Those concerns remain deferred to later phases.
 

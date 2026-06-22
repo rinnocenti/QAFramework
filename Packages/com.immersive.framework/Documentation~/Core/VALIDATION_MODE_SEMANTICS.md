@@ -89,7 +89,7 @@ telemetry
 identity primitives
 ContentIdentity
 RouteContentRuntime
-Surface
+Content Anchor
 RuntimeMaterialization
 ```
 
