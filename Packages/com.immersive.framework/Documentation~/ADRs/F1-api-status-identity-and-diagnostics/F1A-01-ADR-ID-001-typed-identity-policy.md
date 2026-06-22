@@ -10,7 +10,7 @@ Escopo: Framework-wide
 
 ## Contexto
 
-O framework precisa crescer para `ContentSet`, `LocalContribution`, `Surface`, `RuntimeContentHandle`, Snapshot e consumers sem repetir o problema do sistema anterior: muitas chaves textuais, concatenações e caminhos sendo usados como identidade funcional.
+O framework precisa crescer para `ContentSet`, `LocalContribution`, `Content Anchor`, `RuntimeContentHandle`, Snapshot e consumers sem repetir o problema do sistema anterior: muitas chaves textuais, concatenações e caminhos sendo usados como identidade funcional.
 
 No baseline atual ainda existem identificadores simples baseados em asset, cena, path ou texto. Isso é aceitável como etapa inicial, mas não pode virar contrato público para APIs novas. Path, nome de cena, nome de GameObject, transform path e labels são úteis para diagnóstico, mas são frágeis como chave funcional.
 
@@ -30,13 +30,13 @@ String crua não deve ser a API pública de identidade funcional nova.
 Domínios diferentes não são intercambiáveis:
 
 ```text
-SessionId ≠ RouteId ≠ ActivityId ≠ ContentId ≠ LocalContentIdentity ≠ SurfaceIdentity ≠ RuntimeContentId
+SessionId ≠ RouteId ≠ ActivityId ≠ ContentId ≠ LocalContentIdentity ≠ ContentAnchorIdentity ≠ RuntimeContentId
 ```
 
 Novos modelos de identidade devem seguir estas regras:
 
 1. **Domínio no tipo**  
-   O nome/tipo deve comunicar o domínio: `RouteId`, `ActivityId`, `ContentId`, `SurfaceIdentity`, etc.
+   O nome/tipo deve comunicar o domínio: `RouteId`, `ActivityId`, `ContentId`, `ContentAnchorIdentity`, etc.
 
 2. **Valor validável**  
    O tipo deve conseguir distinguir valor ausente/inválido de valor válido.
@@ -51,7 +51,7 @@ Novos modelos de identidade devem seguir estas regras:
    Referências de asset, scene path e GUID Unity podem ser fonte para construir identity, mas o contrato público do framework deve expor o domínio do framework, não o detalhe cru.
 
 6. **Comparação entre domínios proibida por shape**  
-   APIs novas devem dificultar ou impedir comparar `ActivityId` com `RouteId`, `ContentId` com `SurfaceIdentity`, etc.
+   APIs novas devem dificultar ou impedir comparar `ActivityId` com `RouteId`, `ContentId` com `ContentAnchorIdentity`, etc.
 
 ## Política de migração
 
@@ -73,7 +73,7 @@ Aplicação imediata:
 
 - Reduz colisões e stale matches.
 - Impede comparação acidental entre domínios.
-- Prepara `ContentIdentity`, `LocalContentIdentity`, `SurfaceIdentity`, `RuntimeContentHandle` e Snapshot.
+- Prepara `ContentIdentity`, `LocalContentIdentity`, `ContentAnchorIdentity`, `RuntimeContentHandle` e Snapshot.
 - Dá regra objetiva para revisar APIs existentes.
 
 ### Negativas / trade-offs
@@ -92,7 +92,7 @@ Aplicação imediata:
 
 ## Critérios de validação
 
-- ADRs posteriores de Content, Local, Surface e Runtime referenciam esta política.
+- ADRs posteriores de Content, Local, Content Anchor e Runtime referenciam esta política.
 - APIs novas não usam `string` crua como identidade funcional.
 - Diagnóstico pode continuar textual, mas não vira chave funcional.
 - Identidades required sem valor válido não recebem fallback silencioso.
@@ -104,7 +104,7 @@ Este ADR é pré-requisito para:
 - `Content Identity Domain`;
 - `FrameworkContentHandle` revisado;
 - `LocalContentIdentity`;
-- `SurfaceIdentity`;
+- `ContentAnchorIdentity`;
 - `RuntimeContentHandle`;
 - Snapshot identities;
 - policies de stale/foreign references.

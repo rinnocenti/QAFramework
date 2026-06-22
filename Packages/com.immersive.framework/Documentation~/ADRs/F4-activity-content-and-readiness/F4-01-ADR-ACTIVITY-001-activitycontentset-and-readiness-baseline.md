@@ -24,7 +24,7 @@ Readiness inicial:
 Ready = Activity request succeeded + content bindings applied + no required baseline validation failed.
 ```
 
-Futuras phases podem ampliar readiness com contributions, surfaces, runtime content e consumers.
+Futuras phases podem ampliar readiness com contributions, Content Anchor, runtime content e consumers.
 
 ## Consequências
 

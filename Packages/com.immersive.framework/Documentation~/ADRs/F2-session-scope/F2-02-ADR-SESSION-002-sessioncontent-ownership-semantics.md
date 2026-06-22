@@ -11,7 +11,7 @@ Escopo: SessionContentSet
 
 ## Contexto
 
-F1F estabilizou a identidade funcional de `FrameworkContentHandle` como composição de owner identity, scope, kind e content id. F2 pode então definir um `SessionContentSet` mínimo sem depender de Route, Activity, Surface ou RuntimeMaterialization.
+F1F estabilizou a identidade funcional de `FrameworkContentHandle` como composição de owner identity, scope, kind e content id. F2 pode então definir um `SessionContentSet` mínimo sem depender de Route, Activity, Content Anchor ou RuntimeMaterialization.
 
 Antes de conteúdo persistente, runtime roots ou consumers, o framework precisa distinguir registro diagnóstico de ownership real. Sem essa distinção, `SessionContentSet` vira um manager global ou passa a liberar objetos que não possui.
 
@@ -57,7 +57,7 @@ Essa enumeração pode ser implementada com nome equivalente, desde que preserve
 ```text
 Route primary scene handles
 Activity local content
-Surface bindings
+Content Anchor bindings
 Runtime materialized prefabs
 Camera rigs
 Audio listener ownership
@@ -93,7 +93,7 @@ Route primary scene continua sendo Route content. Activity binding continua send
 - Persistent scenes.
 - Additive scene loading.
 - Prefab materialization.
-- Surface placement.
+- Content Anchor placement.
 - Consumer ownership.
 - Release policy completa.
 

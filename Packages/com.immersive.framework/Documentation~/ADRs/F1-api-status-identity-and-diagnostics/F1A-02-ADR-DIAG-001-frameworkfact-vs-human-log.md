@@ -30,7 +30,7 @@ Adicionar o conceito de `FrameworkFact` como diagnóstico estruturado mínimo, s
 | Campo | Papel |
 |---|---|
 | `code` | Código estável do fato/resultado. |
-| `scope` | Escopo: Application, Session, Route, Activity, Content, Local, Surface, Runtime, Validation, QA. |
+| `scope` | Escopo: Application, Session, Route, Activity, Content, Local, Content Anchor, Runtime, Validation, QA. |
 | `severity` | Info, Warning, Error, Fatal ou equivalente. |
 | `source` | Origem técnica ou autoral do fato. |
 | `subject` | Identidade ou referência do sujeito observado. |

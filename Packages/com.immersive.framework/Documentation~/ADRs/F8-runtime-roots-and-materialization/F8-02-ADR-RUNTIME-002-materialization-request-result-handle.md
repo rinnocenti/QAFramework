@@ -31,7 +31,7 @@ O handle possui identity, owner scope, release action, state e diagnostics. Mate
 
 - Cria API testável.
 - Desacopla prefab spawn de consumers.
-- Base para SurfaceBinding e Pooling.
+- Base para ContentAnchorBinding e Pooling.
 
 ### Negativas / trade-offs
 
@@ -52,7 +52,7 @@ O handle possui identity, owner scope, release action, state e diagnostics. Mate
 
 ## Impacto esperado
 
-Pré-requisito de Surface runtime placement e consumers avançados.
+Pré-requisito de Content Anchor runtime placement e consumers avançados.
 
 ## Relação com roadmap
 

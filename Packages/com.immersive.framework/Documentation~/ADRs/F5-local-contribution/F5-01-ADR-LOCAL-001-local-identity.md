@@ -34,7 +34,7 @@ Portanto F5 precisa começar por identidade local própria antes de marker, disc
 
 Definir `LocalContentIdentity` como identidade funcional própria para contribuições locais scene-authored dentro de um escopo conhecido.
 
-`LocalContentIdentity` identifica uma contribuição local. Ela não identifica qualquer objeto do jogo de forma universal e não substitui identidades de Route, Activity, Session, RuntimeContent, Surface ou Actor.
+`LocalContentIdentity` identifica uma contribuição local. Ela não identifica qualquer objeto do jogo de forma universal e não substitui identidades de Route, Activity, Session, RuntimeContent, Content Anchor ou Actor.
 
 Composição conceitual:
 
@@ -168,7 +168,7 @@ Eles não definem, por si só, contribuição local, capability, requiredness ou
 - Remove pressão para ressuscitar `targetId` como cola universal.
 - Impede fallback invisível por rename de GameObject.
 - Permite validators determinísticos.
-- Cria base segura para `ActivityLocalVisibilityAdapter` / `RouteContentBinding`, `LocalContributionSet`, requiredness e Surface.
+- Cria base segura para `ActivityLocalVisibilityAdapter` / `RouteContentBinding`, `LocalContributionSet`, requiredness e Content Anchor.
 - Mantém labels e paths úteis como diagnostics sem virarem contrato.
 
 ### Negativas / trade-offs
@@ -196,7 +196,7 @@ Canonical Activity materialization
 Additive Activity loading
 Release/unload policy
 RuntimeMaterialization
-Surface
+Content Anchor
 Actors
 Input
 Camera

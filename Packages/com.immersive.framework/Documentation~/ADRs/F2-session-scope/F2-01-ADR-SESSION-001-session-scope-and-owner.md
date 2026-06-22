@@ -11,7 +11,7 @@ Escopo: Session runtime
 
 ## Contexto
 
-F0 fechou o baseline do package e F1 fechou as regras mínimas de API status, diagnostics, typed identity e content identity. A próxima dependência do roadmap é F2: formalizar Session como scope antes de Route baseline, Activity content set, Surface, RuntimeMaterialization ou consumers.
+F0 fechou o baseline do package e F1 fechou as regras mínimas de API status, diagnostics, typed identity e content identity. A próxima dependência do roadmap é F2: formalizar Session como scope antes de Route baseline, Activity content set, Content Anchor, RuntimeMaterialization ou consumers.
 
 O package já possui `FrameworkRuntimeHost` e `FrameworkRuntimeState`, mas a Session ainda não está declarada como boundary arquitetural explícito. Sem isso, `SessionContentSet`, startup route, diagnostics e futuros conteúdos persistentes podem cair em um manager global ou em service locator.
 
@@ -93,7 +93,7 @@ fallback silencioso para configuração obrigatória ausente
 - Player participation.
 - Runtime roots.
 - Persistent scenes.
-- Surface.
+- Content Anchor.
 - Runtime materialization.
 - Route baseline.
 - Activity content/readiness.

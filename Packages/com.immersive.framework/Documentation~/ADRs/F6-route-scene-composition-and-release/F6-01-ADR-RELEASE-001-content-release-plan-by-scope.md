@@ -19,7 +19,7 @@ Até F5, o package tem ownership vocabularies e content sets mínimos, mas não 
 - `RouteContentRuntime.Exit` executa callbacks de saída de Route, mas não libera conteúdo;
 - `LoadSceneMode.Single` ainda é o principal mecanismo físico de descarte de cena.
 
-Isso é suficiente para F3-F5, mas não é suficiente para additive scenes, runtime spawned content, Surface, Actor, Pooling ou Save. F6 precisa definir release por escopo antes de introduzir loading additive real e antes de RuntimeRoot/materialization.
+Isso é suficiente para F3-F5, mas não é suficiente para additive scenes, runtime spawned content, Content Anchor, Actor, Pooling ou Save. F6 precisa definir release por escopo antes de introduzir loading additive real e antes de RuntimeRoot/materialization.
 
 ---
 
@@ -223,7 +223,7 @@ Pooling
 Runtime spawned content completo
 RuntimeRootRegistry
 Prefab materializer
-Surface binding
+Content Anchor binding
 Actor reset/release
 Snapshot/restore
 Save backend
@@ -240,7 +240,7 @@ Esses itens dependem de F8-F11.
 - Evita órfãos quando additive scenes forem introduzidas.
 - Evita destruir conteúdo apenas observado por discovery.
 - Torna cleanup testável via plan/result.
-- Prepara RuntimeSpawned, Surface e Pooling sem antecipá-los.
+- Prepara RuntimeSpawned, Content Anchor e Pooling sem antecipá-los.
 - Separa callback lifecycle de ownership físico.
 
 ---
@@ -280,7 +280,7 @@ F6F — ContentReleasePlan / ContentReleaseResult [model/planning, no physical u
 F6G — Scene/release smoke [physical unload execution + QA]
 ```
 
-Ele não autoriza F8 runtime materialization, F9 Surface binding ou F11 Pooling/Actor release.
+Ele não autoriza F8 runtime materialization, F9 Content Anchor binding ou F11 Pooling/Actor release.
 
 ---
 
@@ -369,7 +369,7 @@ Limites preservados:
 Primary Scene ativa não recebe unload manual.
 Somente ContentReleaseAction.UnloadScene é executável em F6G.
 DestroyRuntimeObject, ReturnToPool e CustomParticipantRelease continuam fora de escopo.
-Activity release, Surface, RuntimeRootRegistry, prefab materialization, Actor/Input/Camera/Save/Pooling continuam fora de escopo.
+Activity release, Content Anchor, RuntimeRootRegistry, prefab materialization, Actor/Input/Camera/Save/Pooling continuam fora de escopo.
 ```
 
 Diagnóstico validado em request que sai de uma Route com uma additional scene owned:
@@ -418,4 +418,4 @@ Released 1 -> owned additive Route scene unloaded.
 Skipped 1  -> active Primary Scene skipped; controlled by LoadSceneMode.Single.
 ```
 
-No Activity release, runtime object destroy, pool return, Surface, RuntimeRootRegistry or materialization behavior is authorized by this closure.
+No Activity release, runtime object destroy, pool return, Content Anchor, RuntimeRootRegistry or materialization behavior is authorized by this closure.

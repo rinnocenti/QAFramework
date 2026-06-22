@@ -10,7 +10,7 @@ Escopo: Content identity
 
 ## Contexto
 
-`FrameworkContentHandle` e os futuros `SessionContentSet`, `RouteContentSet`, `ActivityContentSet`, `RuntimeContentHandle` e `SurfaceContentHandle` precisam de identidade estável.
+`FrameworkContentHandle` e os futuros `SessionContentSet`, `RouteContentSet`, `ActivityContentSet`, `RuntimeContentHandle` e `ContentAnchorContentHandle` precisam de identidade estável.
 
 No baseline atual, parte da identidade de conteúdo ainda pode derivar de path, scene name, resource label ou composição textual. Isso é aceitável como diagnóstico e etapa inicial, mas não deve virar contrato funcional público.
 
@@ -24,9 +24,9 @@ Modelo conceitual:
 
 | Parte | Papel |
 |---|---|
-| `ContentOwnerId` | Quem possui o conteúdo: Session, Route, Activity, Local, Runtime ou Surface owner. |
+| `ContentOwnerId` | Quem possui o conteúdo: Session, Route, Activity, Local, Runtime ou Content Anchor owner. |
 | `ContentScope` | Escopo de lifetime: Session, Route, Activity, Local, Runtime ou Transient. |
-| `ContentKind` | Tipo de conteúdo: Scene, GameObject, Prefab, RuntimeObject, SurfaceBinding, DiagnosticOnly. |
+| `ContentKind` | Tipo de conteúdo: Scene, GameObject, Prefab, RuntimeObject, ContentAnchorBinding, DiagnosticOnly. |
 | `ContentId` | Identidade funcional do conteúdo dentro do domínio. |
 
 A identidade deve ser criada por fonte estável:
@@ -68,7 +68,7 @@ Aplicação por fase:
 | F3 | Aplicar a Route content e RouteContentSet. |
 | F4 | Aplicar a ActivityContentSet. |
 | F5 | Integrar LocalContentIdentity. |
-| F8/F9 | Integrar RuntimeContentHandle e SurfaceContentHandle. |
+| F8/F9 | Integrar RuntimeContentHandle e ContentAnchorContentHandle. |
 
 ## Consequências
 
@@ -77,7 +77,7 @@ Aplicação por fase:
 - Base consistente para ContentSet e release.
 - Reduz órfãos e duplicidade de handles.
 - Evita que path/name virem chave funcional universal.
-- Prepara runtime materialization e surface binding.
+- Prepara runtime materialization e Content Anchor binding.
 
 ### Negativas / trade-offs
 
@@ -90,7 +90,7 @@ Aplicação por fase:
 - Resolver Addressables agora.
 - Criar GUID global custom para todos os conteúdos.
 - Implementar RuntimeMaterialization.
-- Implementar SurfaceBinding.
+- Implementar ContentAnchorBinding.
 - Implementar release completo.
 - Conectar `RouteContentProfileAsset` como execução real.
 
@@ -107,7 +107,7 @@ Afeta F1, F2, F3, F4, F5, F6, F8 e F9.
 
 ## Relação com roadmap
 
-F1. Condiciona ContentFlow, RouteContentSet, ActivityContentSet, LocalContribution, RuntimeContentHandle e SurfaceContentHandle.
+F1. Condiciona ContentFlow, RouteContentSet, ActivityContentSet, LocalContribution, RuntimeContentHandle e ContentAnchorContentHandle.
 
 ## Notas de implementação
 

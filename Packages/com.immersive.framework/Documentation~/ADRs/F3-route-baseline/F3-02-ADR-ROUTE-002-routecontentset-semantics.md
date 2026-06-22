@@ -45,7 +45,7 @@ A F3 aceita as seguintes decisões:
 
 - Additive scenes.
 - RuntimeSpawned content.
-- Surface content.
+- Content Anchor content.
 - Release policy final.
 - LocalContributionSet final.
 - Content materialization.
@@ -79,4 +79,4 @@ ADR-SESSION-002 — SessionContent Ownership Semantics
 
 ## Notas de implementação
 
-A implementação deve criar apenas a semântica mínima necessária para a F3. Não implementar release, additive loading ou Surface.
+A implementação deve criar apenas a semântica mínima necessária para a F3. Não implementar release, additive loading ou Content Anchor.

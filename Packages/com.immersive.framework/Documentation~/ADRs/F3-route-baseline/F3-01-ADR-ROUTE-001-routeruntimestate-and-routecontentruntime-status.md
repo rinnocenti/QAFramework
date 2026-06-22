@@ -12,7 +12,7 @@ Escopo: Route lifecycle
 
 O package já possui `RouteLifecycleRuntime`, `RouteContentRuntime`, `RouteContentBinding`, route events e `RouteContentSet` mínimo. A ambiguidade antes da F3 era que parte desse vocabulário existia, mas `RouteContentRuntime` estava congelado/deferred e não havia estado de Route tipado separado do resultado de startup.
 
-O roadmap da F3 exige estabilizar Route antes de additive composition, Surface, RuntimeMaterialization ou consumers.
+O roadmap da F3 exige estabilizar Route antes de additive composition, Content Anchor, RuntimeMaterialization ou consumers.
 
 ## Decisão
 
@@ -21,7 +21,7 @@ A F3 aceita as seguintes decisões:
 1. Route deve ter `RouteRuntimeState` explícito como snapshot tipado da Route ativa.
 2. `RouteRuntimeState` deve representar a Route ativa, seu estado de entrada, seu conteúdo conhecido e a última saída relevante sem transformar `RouteLifecycleRuntime` em service locator.
 3. `RouteContentRuntime` deixa de ser ambíguo na F3: ele será **Active**, com escopo limitado a callbacks locais de conteúdo authored de Route na Primary Scene carregada.
-4. A ativação de `RouteContentRuntime` não autoriza additive scene loading, runtime materialization, Surface, Camera, Actor, Input, Save, Pooling ou consumers.
+4. A ativação de `RouteContentRuntime` não autoriza additive scene loading, runtime materialization, Content Anchor, Camera, Actor, Input, Save, Pooling ou consumers.
 5. A ordem canônica será:
    - exit de Route Content da Route anterior antes do carregamento `Single` da próxima Primary Scene;
    - load/ativação da Primary Scene da próxima Route;
@@ -48,7 +48,7 @@ A F3 aceita as seguintes decisões:
 
 - Additive scene loading.
 - Route scene composition avançada.
-- Surface.
+- Content Anchor.
 - RuntimeMaterialization.
 - Camera consumer.
 - Actor lifecycle.
@@ -65,7 +65,7 @@ A F3 aceita as seguintes decisões:
 
 ## Impacto esperado
 
-Crítico antes de Route scene composition, release e Surface.
+Crítico antes de Route scene composition, release e Content Anchor.
 
 ## Relação com roadmap
 

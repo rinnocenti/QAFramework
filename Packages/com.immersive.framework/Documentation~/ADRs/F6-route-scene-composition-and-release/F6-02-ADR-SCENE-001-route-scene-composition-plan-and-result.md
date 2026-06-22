@@ -67,9 +67,9 @@ Até F5, o package tem uma base estável para lifecycle, conteúdo local e contr
 - `RouteContentSet` registra a Primary Scene como conteúdo Route-owned;
 - `RouteContentProfileAsset` e `RouteContentSceneEntry` existem, mas ainda são planning-only;
 - `LocalContributionDiscovery`, `LocalContributionSet` e `LocalContributionValidator` validam contribuições locais carregadas;
-- não existe materialização canônica, Surface, RuntimeRoot, runtime spawned content ou release/unload policy completo.
+- não existe materialização canônica, Content Anchor, RuntimeRoot, runtime spawned content ou release/unload policy completo.
 
-O próximo problema de F6 é transformar declarações de cenas da Route em um plano explícito antes de executar qualquer side effect. Additive scene support não deve entrar como materialização genérica, nem como extensão de Surface ou RuntimeRoot. Ele pertence ao domínio de composição de cenas da Route.
+O próximo problema de F6 é transformar declarações de cenas da Route em um plano explícito antes de executar qualquer side effect. Additive scene support não deve entrar como materialização genérica, nem como extensão de Content Anchor ou RuntimeRoot. Ele pertence ao domínio de composição de cenas da Route.
 
 A composição de cenas também precisa corrigir uma dívida de F3: hoje a Primary Scene é conhecida pelo `RouteContentSet`, mas a ordem completa de planejamento, load, callbacks, state update e futura liberação ainda não é modelada como uma operação única com plan/result.
 
@@ -257,8 +257,8 @@ F6 Scene Composition não implementa:
 Prefab materialization
 RuntimeRootRegistry
 RuntimeContentHandle avançado
-Surface
-Surface binding
+Content Anchor
+Content Anchor binding
 Runtime spawned content
 Actors
 Input
@@ -281,7 +281,7 @@ Addressables pode ser considerado futuramente como backend de loading, mas F6 in
 - RouteContentProfile deixa de ser dado morto quando o corte de execução chegar.
 - Required/Optional passa a ter semântica clara para scene loading.
 - `RouteContentSet` ganha origem mais confiável.
-- F6 prepara release sem acoplar Surface/RuntimeRoot cedo demais.
+- F6 prepara release sem acoplar Content Anchor/RuntimeRoot cedo demais.
 
 ---
 
@@ -326,7 +326,7 @@ F6F — ContentReleasePlan / ContentReleaseResult [CLOSED / PASS]
 F6G — Scene release execution [CLOSED / RELEASE SMOKE PASS]
 ```
 
-Não autoriza F7 Surface, F8 runtime roots/materialization ou F9 runtime placement.
+Não autoriza F7 Content Anchor, F8 runtime roots/materialization ou F9 runtime placement.
 
 ---
 
@@ -347,7 +347,7 @@ Relaciona-se com:
 F6-01 — Content Release Plan by Scope
 F8-01 — Runtime ownership and roots
 F8-02 — Materialization request/result/handle
-F9-01 — Surface binding and content placement
+F9-01 — Content Anchor binding and content placement
 ```
 
 ---
@@ -378,7 +378,7 @@ Loaded additional scenes are Route-owned content handles.
 No unload/release is executed in F6E. Release planning is introduced in F6F and owned additive scene unload execution is introduced in F6G.
 ```
 
-F6E does not authorize Surface, RuntimeRootRegistry, prefab materialization, Activity canonical materialization, Actor, Input, Camera, Save or Pooling work.
+F6E does not authorize Content Anchor, RuntimeRootRegistry, prefab materialization, Activity canonical materialization, Actor, Input, Camera, Save or Pooling work.
 
 
 ---
@@ -428,4 +428,4 @@ routeReleaseFailed='0'
 routeReleaseBlockingIssues='0'
 ```
 
-The next authorized phase is F7 Surface declaration. RuntimeRootRegistry, prefab materialization, Activity canonical materialization, Actor, Input, Camera, Save and Pooling remain outside F6.
+The next authorized phase is F7 Content Anchor declaration. RuntimeRootRegistry, prefab materialization, Activity canonical materialization, Actor, Input, Camera, Save and Pooling remain outside F6.

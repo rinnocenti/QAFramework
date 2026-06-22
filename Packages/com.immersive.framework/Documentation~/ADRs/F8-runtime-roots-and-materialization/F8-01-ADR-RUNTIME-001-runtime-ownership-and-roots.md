@@ -44,7 +44,7 @@ Cada root tem owner, lifetime e cleanup policy.
 
 - Pooling.
 - Actor materialization.
-- Surface binding.
+- Content Anchor binding.
 
 ## Critérios de validação
 

@@ -71,7 +71,7 @@ Regras propostas:
 - Discovery deixa de ser varredura global oportunista.
 - `LocalContributionSet` vira snapshot determinístico do ciclo local.
 - Required/Optional fica validável antes de consumers reais.
-- Surface, Snapshot, Reset e Actors podem consumir uma base comum depois, sem capturar o core.
+- Content Anchor, Snapshot, Reset e Actors podem consumir uma base comum depois, sem capturar o core.
 
 ### Negativas / trade-offs
 
@@ -87,7 +87,7 @@ Regras propostas:
 ```text
 Reset/snapshot/release execution
 Actors
-Surface
+Content Anchor
 RuntimeMaterialization
 Runtime capability references
 Pooling
@@ -140,7 +140,7 @@ Binding/adapter presente sem `Local Content Id` continua sendo erro de authoring
 Pré-requisito para:
 
 ```text
-Surface declaration
+Content Anchor declaration
 Snapshot participants
 Reset participants
 Capability descriptors
@@ -224,4 +224,4 @@ QA Smoke completed. name='Local Contribution Smoke'
 
 ## F5 closure
 
-F5 fecha como Local Contribution foundation. Discovery, set, requiredness metadata, validator policy e local smoke dedicado estão aplicados e validados por QA smoke. Expected contribution declarations, lifecycle blocking por required ausente, canonical materialization, Surface e release/unload policy permanecem fora da F5 e devem ser tratados por fases posteriores.
+F5 fecha como Local Contribution foundation. Discovery, set, requiredness metadata, validator policy e local smoke dedicado estão aplicados e validados por QA smoke. Expected contribution declarations, lifecycle blocking por required ausente, canonical materialization, Content Anchor e release/unload policy permanecem fora da F5 e devem ser tratados por fases posteriores.
