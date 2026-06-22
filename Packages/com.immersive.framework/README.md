@@ -22,6 +22,7 @@ F3 — CLOSED / PASS
 F4 — CLOSED / ACTIVITY BASELINE PASS
 F5 — CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS
 F6 — CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS
+F7 — OPEN / CONTENT ANCHOR DECLARATION
 ```
 
 F6 closes the first Route scene composition and release baseline:
@@ -39,6 +40,7 @@ Documentation~/COMPLETENESS_TRACKER.md
 Documentation~/Planning/Immersive-Framework-Roadmap-Revisado.md
 Documentation~/Planning/Capability-Traceability-Matrix.md
 Documentation~/Planning/F6-Route-Scene-Composition-Audit.md
+Documentation~/Planning/F7-Content-Anchor-Declaration-Audit.md
 Documentation~/Route/ROUTE_CONTENT_PROFILE_USAGE.md
 Documentation~/Route/ROUTE_SCENE_COMPOSITION_SMOKE.md
 Documentation~/Route/ROUTE_RELEASE_SMOKE.md
@@ -56,4 +58,10 @@ Documentation~/ADRs/
 
 The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release for scene content. It is not yet a Content Anchor, RuntimeSpawned, Actor, Camera, Input, Save, Reset or Pooling framework.
 
-Do not skip from F6 directly to runtime materialization or gameplay consumers. The next architectural phase is F7 Content Anchor declaration.
+Do not skip from F7 directly to runtime materialization or gameplay consumers. F7 is currently limited to Content Anchor declaration. The next authorized cut is `F7B — ContentAnchor identity primitives`.
+
+## F7 Content Anchor boundary
+
+`Content Anchor` is the canonical name for authored placement/reference points inside loaded content.
+
+F7 may define passive identity, declaration, authoring, discovery, diagnostics and validation for anchors. F7 must not create prefab materialization, runtime binding, Camera, Pause, UI, Actor, Save, Input or Pooling consumers.

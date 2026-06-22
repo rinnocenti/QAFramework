@@ -53,6 +53,7 @@ Regras:
 | `PersistentScenesPolicy` | Não puxar scene ownership para F2. Reavaliar com Route scene composition/release ou futura Session persistent content. |
 | `CapabilityInventory` | Em F5 apenas descriptor/contribution simples. Runtime refs/inventory vivo só depois de RuntimeHandle/lifetime. |
 | `Content Anchor` | Dividida em declaração (`F7`) e binding/runtime placement (`F9`). |
+| `Content Anchor` naming | F7A accepted `Content Anchor`; rejected hook-style names and duplicated anchor naming; use `ContentAnchorPoint` for a specific point. |
 | `RuntimeSpawned` | Entra só depois de identity/content/release; consumers não podem criar roots ad hoc. |
 | Campos `—` | Tratados como `Deferred` ou `Requer detalhamento`; não podem ficar sem status no backlog. |
 
@@ -132,7 +133,7 @@ Regras:
 | Local release participant | Preservar contrato | F8 | F8/F10 | IF-FW-ROAD-8G | Parcial / Ausente | Coberto, mas com correção | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Release policy vem F8; participant local específico depois. |
 | Exit freeze | Preservar como parte de `ActivityExitPlan` | F8 | F8/F10 | IF-FW-ROAD-8G | Parcial / Ausente | Coberto, mas com correção | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Só faz sentido quando há runtime references/release participants. |
 | Local slots | Preservar como `LocalSlot` (futuramente `ContentAnchorSlot`) | F7 | F7 | IF-FW-ROAD-7D | Parcial / Ausente | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Sem ajuste. |
-| Local anchors | Preservar como `LocalAnchor` (futuramente `ContentAnchor`) | F7 | F7 | IF-FW-ROAD-7E | Parcial / Ausente | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Sem ajuste. |
+| Local anchors | Preservar como `LocalAnchor` (futuramente `ContentAnchorPoint`) | F7 | F7 | IF-FW-ROAD-7E | Parcial / Ausente | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Sem ajuste. |
 | Stale/foreign reference check | Preservar como validação de `LocalContributionSet` | F5 | F5 | IF-FW-ROAD-5G/F5H | F5H applied / Pending compile-smoke | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Validator e smoke dedicado validam identity/set sem usar fallback por nome/path. |
 
 ### RuntimeSpawned
@@ -157,8 +158,8 @@ Regras:
 | Content Anchor identity | Criar `ContentAnchorIdentity` tipado | F7 | F7 | IF-FW-ROAD-7B | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
 | Content Anchor root | Criar `ContentAnchorRoot` com role tipado | F7 | F7 | IF-FW-ROAD-7C | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
 | Content Anchor slot | Criar `ContentAnchorSlot` typed | F7 | F7 | IF-FW-ROAD-7D | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
-| Content Anchor anchor | Criar `ContentAnchor` typed | F7 | F7 | IF-FW-ROAD-7E | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
-| Content Anchor endpoint | Criar `ContentAnchorEndpoint` | F7 | F7 | IF-FW-ROAD-7F | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
+| Content Anchor point | Criar `ContentAnchorPoint` typed | F7 | F7 | IF-FW-ROAD-7E | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Ponto semântico não implica montagem. |
+| Route Content Anchor authoring | Criar `RouteContentAnchor` como primeiro componente público | F7 | F7 | IF-FW-ROAD-7F | Ausente | Coberto | Foundation avançada | RouteContentSet + loaded scene discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Preferir componente público por escopo em vez de endpoint genérico se isso melhorar UX de Inspector. |
 | Content Anchor set por scope | Criar `RouteContentAnchorSet`, `ActivityContentAnchorSet` | F7 | F7 | IF-FW-ROAD-7G | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
 | Content Anchor binding request/result | Criar `ContentAnchorBindingRequest/Result` | F9 | F9 | IF-FW-ROAD-9A, 9B | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
 | Content Anchor content handle | Criar `ContentAnchorContentHandle` | F9 | F9 | IF-FW-ROAD-9C | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
@@ -329,8 +330,8 @@ Regras:
 - Content Anchor — Content Anchor identity
 - Content Anchor — Content Anchor root
 - Content Anchor — Content Anchor slot
-- Content Anchor — Content Anchor anchor
-- Content Anchor — Content Anchor endpoint
+- Content Anchor — Content Anchor point
+- Content Anchor — Route Content Anchor authoring
 - Content Anchor — Content Anchor set por scope
 - Content Anchor — Duplicate detection
 - Content Anchor — Overlay root separado de content root
@@ -518,7 +519,7 @@ Antes de abrir um corte técnico, responder:
 | Route → Activity handoff | Passa contexto mínimo para Activity iniciar após rota pronta. | `SessionActivityEntryHandoff` | Preservar boundary; reduzir payload | F3 | IF-FW-ROAD-3C |
 | Route startup activity policy | Decide qual Activity iniciar automaticamente ao entrar na rota. | `OperationalRouteAsset.StartupActivity` | Preservar como policy simples | F3 | IF-FW-ROAD-3C |
 | Route contribution set | Câmera/áudio/input/save da rota expostos como contributions. | Pipeline stages de route | Redesenhar como `RouteContributionSet` | F5+ | F7 via Content Anchor |
-| Route Content Anchor set | Content Anchor de apresentação da rota (pause anchor, overlay). | Pause stages + Content Anchor endpoints | Redesenhar como `RouteContentAnchorSet` | F7 | IF-FW-ROAD-7G |
+| Route Content Anchor set | Content Anchor de apresentação da rota (pause anchor, overlay). | Pause stages + Content Anchor authoring components | Redesenhar como `RouteContentAnchorSet` | F7 | IF-FW-ROAD-7G |
 | Content release plan | Libera cenas/conteúdo da rota com plano explícito. | `SessionOperationalPipeline` teardown | Preservar como `ContentReleasePlan`/`Result` | F6F/F6G | IF-FW-ROAD-6F |
 
 ---
@@ -559,7 +560,7 @@ Antes de abrir um corte técnico, responder:
 | Local snapshot participant | Objeto local captura/restaura próprio estado. | `ActivityObjectSnapshotContracts` | Preservar contrato com typed payload | F10 | IF-FW-ROAD-10D |
 | Local release participant | Objeto local declara release policy. | `ActivityObjectReleaseContracts` | Preservar contrato | F8 | IF-FW-ROAD-8G |
 | Exit freeze | Congela correlação Local → Activity no teardown para evitar stale. | Implícito na pipeline de exit | Preservar como parte de `ActivityExitPlan` | F8 | IF-FW-ROAD-8G |
-| Local slots | Pontos authored tipados para binding físico. | Content Anchor endpoints e transform anchors | Preservar como `LocalSlot` (futuramente `ContentAnchorSlot`) | F7 | IF-FW-ROAD-7D |
+| Local slots | Pontos authored tipados para binding físico. | Content Anchor authoring components e transform anchors | Preservar como `LocalSlot` (futuramente `ContentAnchorSlot`) | F7 | IF-FW-ROAD-7D |
 | Local anchors | Pontos authored de posicionamento tipados. | Transform anchors em cena | Preservar como `LocalAnchor` (futuramente `ContentAnchor`) | F7 | IF-FW-ROAD-7E |
 | Stale/foreign reference check | Detecta referências de lifecycle morto ou de escopo errado. | Implícito em inventory builders | Preservar como validação de `LocalContributionSet` | F5 | IF-FW-ROAD-5F |
 
@@ -591,13 +592,13 @@ Antes de abrir um corte técnico, responder:
 | Content Anchor identity | Identidade tipada de Content Anchor; distingue pause/camera/overlay/content. | String solta por endpoint (problema) | Criar `ContentAnchorIdentity` tipado | F7 | IF-FW-ROAD-7B |
 | Content Anchor root | Raiz física (Transform) associada a um Content Anchor com role definido. | Container de pause, overlay root | Criar `ContentAnchorRoot` com role tipado | F7 | IF-FW-ROAD-7C |
 | Content Anchor slot | Ponto authored de binding físico; não usa `GameObject.Find`. | Content Anchor slots em cena | Criar `ContentAnchorSlot` typed | F7 | IF-FW-ROAD-7D |
-| Content Anchor anchor | Ponto authored de posicionamento typed. | Anchors de câmera/actor | Criar `ContentAnchor` typed | F7 | IF-FW-ROAD-7E |
-| Content Anchor endpoint | Componente que declara Content Anchor (roots/slots/anchors) para um scope. | Content Anchor endpoint components | Criar `ContentAnchorEndpoint` | F7 | IF-FW-ROAD-7F |
+| Content Anchor point | Ponto authored de posicionamento/reference typed. | Anchors de câmera/actor | Criar `ContentAnchorPoint` typed | F7 | IF-FW-ROAD-7E |
+| Route Content Anchor authoring | Primeiro componente público que declara anchors de Route. | Content Anchor authoring components | Criar `RouteContentAnchor` | F7 | IF-FW-ROAD-7F |
 | Content Anchor set por scope | Route e Activity expõem seus `ContentAnchorSet`; consumers solicitam por identity. | Implícito por scope/stage | Criar `RouteContentAnchorSet`, `ActivityContentAnchorSet` | F7 | IF-FW-ROAD-7G |
 | Content Anchor binding request/result | Consumer solicita Content Anchor por identity; resultado devolve handle. Consumer não controla lifetime. | Direto por adapter (problema) | Criar `ContentAnchorBindingRequest/Result` | F9 | IF-FW-ROAD-9A, 9B |
 | Content Anchor content handle | Handle de binding com release; consumer libera, não destrói. | Binding sem handle formal (problema) | Criar `ContentAnchorContentHandle` | F9 | IF-FW-ROAD-9C |
 | Runtime Content Anchor binding | Materializa conteúdo (prefab) dentro de slot/root de Content Anchor. | `RuntimeContentAnchorBinding` (implícito em presentation) | Criar `RuntimeContentAnchorBinding` | F9 | IF-FW-ROAD-9D |
-| Duplicate detection | Detecta Content Anchor endpoint/slot duplicado na mesma cena/scope. | Implícito em validators | Preservar em Content Anchor validators | F7 | IF-FW-ROAD-7H |
+| Duplicate detection | Detecta Content Anchor authoring/slot duplicado na mesma cena/scope. | Implícito em validators | Preservar em Content Anchor validators | F7 | IF-FW-ROAD-7H |
 | Content Anchor lifecycle policy | Consumer libera binding; Content Anchor não depende de consumer para cleanup. | Implícito no teardown | Preservar policy explícita de release | F9 | IF-FW-ROAD-9E |
 | Overlay root separado de content root | Roles distintos para UI de pausa vs. conteúdo. | `ContentAnchorRoot.Role` implícito | Preservar modelagem de roles | F7 | IF-FW-ROAD-7C |
 
@@ -718,7 +719,7 @@ Antes de abrir um corte técnico, responder:
 | **F4** | Activity asset, Activity content profile, Activity runtime state, Activity entry context, Activity content set, Activity content lifecycle result, Readiness gate, Activity exit plan |
 | **F5** | Local content identity, explicit local ids on existing bindings, scoped loaded discovery, LocalContributionSet, Requiredness metadata, LocalContributionValidator, Local Contribution Smoke |
 | **F6** | CLOSED: F6A ADR completion; F6B RouteSceneCompositionPlan; F6C RouteSceneCompositionResult; F6D Additive scene primitive; F6E Route content profile execution; F6F ContentReleasePlan/Result; F6G owned additive scene release execution |
-| **F7** | Content Anchor identity, Content Anchor root, Content Anchor slot, Content Anchor anchor, Content Anchor endpoint, Content Anchor set por scope, Duplicate detection, Overlay root vs content root, Local slots/anchors |
+| **F7** | Content Anchor identity, Content Anchor root, Content Anchor slot, Content Anchor point, Route Content Anchor authoring, Content Anchor set por scope, Duplicate detection, Overlay root vs content root, Local slots/anchors |
 | **F8** | Runtime scope root, Runtime root registry, Materialization request/result, Runtime content handle, Prefab materializer, Runtime release policy, Destroy policy, Runtime identity, Local release participant, Exit freeze |
 | **F9** | Content Anchor binding request/result, Content Anchor content handle, Runtime Content Anchor binding, Spawn origin/slot, Content Anchor lifecycle policy, Pause content materialization |
 | **F10** | Input mode contract, Activity input consumer, Input mode owner, Player slot/command binding, Snapshot envelope, Snapshot participant, Snapshot set, Save backend port, Schema versioning, Pause content anchor consumer, Pause state contract, Pause lifecycle, Activity snapshot, Local snapshot participant |

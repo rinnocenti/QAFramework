@@ -72,8 +72,8 @@ Content Anchor é primeiro um contrato authored/local:
 ContentAnchorIdentity
 ContentAnchorRoot
 ContentAnchorSlot
-ContentAnchorAnchor
-ContentAnchorEndpoint
+ContentAnchorPoint
+RouteContentAnchor
 ContentAnchorSet
 ```
 
@@ -461,13 +461,13 @@ Objetivo: criar Content Anchor como contrato authored/local, sem camera/pause/UI
 
 | ID | Entrega | Detalhes |
 |---|---|---|
-| IF-FW-ROAD-7A | ADR: Content Anchor como contrato de espaço | Content Anchor não é camera, pause, UI ou presentation. |
-| IF-FW-ROAD-7B | `ContentAnchorIdentity` | Identity tipada. |
+| IF-FW-ROAD-7A | ADR/detail audit: Content Anchor como contrato de espaço | `CLOSED / DOCS`: Content Anchor não é camera, pause, UI ou presentation; nome ruim de anchor duplicado rejeitado. |
+| IF-FW-ROAD-7B | `ContentAnchor` identity primitives | `ContentAnchorId`, `ContentAnchorScope`, `ContentAnchorKind`, `ContentAnchorRequiredness`. |
 | IF-FW-ROAD-7C | `ContentAnchorRoot` | Root com role, sem materialização ainda. |
 | IF-FW-ROAD-7D | `ContentAnchorSlot` | Slot authored tipado. |
-| IF-FW-ROAD-7E | `ContentAnchorAnchor` | Anchor authored tipado. |
-| IF-FW-ROAD-7F | `ContentAnchorEndpoint` | Componente authored que declara roots/slots/anchors. |
-| IF-FW-ROAD-7G | `ContentAnchorSet` por scope | Route/Activity/Local podem expor content anchors descobertas. |
+| IF-FW-ROAD-7E | `ContentAnchorPoint` | Point authored tipado; substitui o nome ruim de anchor duplicado. |
+| IF-FW-ROAD-7F | `RouteContentAnchor` authoring | Primeiro componente público de authoring por escopo; declara anchors de Route sem materialização. |
+| IF-FW-ROAD-7G | `ContentAnchorSet` por scope | Route primeiro; Activity/Local só depois se a semântica continuar estável. |
 | IF-FW-ROAD-7H | Content Anchor validators | Sem identity, duplicate slot/anchor/root role. |
 | IF-FW-ROAD-7I | Content Anchor smoke | Scene com endpoint → discovery scoped → ContentAnchorSet populado. |
 
@@ -486,6 +486,16 @@ Objetivo: criar Content Anchor como contrato authored/local, sem camera/pause/UI
 Content Anchor existe como dado e contrato.
 Nenhum consumer concreto ainda capturou o modelo.
 ```
+
+### F7A status
+
+```text
+F7A — CLOSED / DOCS
+Next — F7B / ContentAnchor identity primitives
+```
+
+Naming guardrail: do not reintroduce the rejected previous placement-point vocabulary or `duplicated anchor naming` as canonical concept names.
+
 
 ---
 

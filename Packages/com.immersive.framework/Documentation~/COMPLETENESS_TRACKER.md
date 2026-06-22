@@ -15,6 +15,7 @@ Este arquivo substitui os antigos documentos de fechamento e aceite de fase. Os 
 | F4 | `CLOSED / ACTIVITY BASELINE PASS` | Activity baseline closed | `Activity/ACTIVITY_RUNTIME_STATE_REFINED.md`, `Activity/ACTIVITY_CONTENT_SET_MINIMAL.md`, `Activity/ACTIVITY_CONTENT_LIFECYCLE_RESULT.md`, `Activity/ACTIVITY_READINESS_STATE_MINIMAL.md`, `Activity/ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md`, `Activity/ACTIVITY_BASELINE_SMOKE.md` |
 | F5 | `CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS` | F5H local smoke passed; F5 closure audit completed | `Local/LOCAL_CONTENT_IDENTITY.md` |
 | F6 | `CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS` | F6G release smoke passed; F6 closed | `Planning/F6-Route-Scene-Composition-Audit.md`, `Route/ROUTE_CONTENT_PROFILE_USAGE.md`, `Route/ROUTE_SCENE_COMPOSITION_SMOKE.md`, `Route/ROUTE_RELEASE_SMOKE.md`, `ADRs/F6-route-scene-composition-and-release/` |
+| F7 | `OPEN / CONTENT ANCHOR DECLARATION` | F7A ADR/detail audit applied; next gate is identity primitives | `Planning/F7-Content-Anchor-Declaration-Audit.md`, `ADRs/F7-content-anchor-declaration/` |
 
 ## Consolidation rule
 
@@ -39,7 +40,7 @@ Keep these docs as the durable record for implementation details:
 
 | Next authorized step | Reason |
 |---|---|
-| `F7A — Content Anchor ADR/detail audit` | F6 closed the Route scene composition/release baseline. Next work may define Content Anchor declaration only; do not start RuntimeRoot/materialization or gameplay consumers yet. |
+| `F7B — ContentAnchor identity primitives` | F7A accepted the Content Anchor ADR/detail audit. Next work may add passive identity primitives only; do not start authoring components, discovery, RuntimeRoot/materialization or gameplay consumers yet. |
 
 ## F5 closure audit
 
@@ -156,4 +157,52 @@ Prefab materialization
 Runtime spawned content
 Actor/Input/Camera/Reset/Save/Pooling
 Addressables backend
+```
+
+
+## F7 opening audit
+
+Status: `OPEN / CONTENT ANCHOR DECLARATION`.
+
+F7A applied the Content Anchor ADR/detail audit. It is documentation-only and does not change runtime behavior.
+
+Accepted naming decision:
+
+```text
+Content Anchor
+ContentAnchorId
+ContentAnchorScope
+ContentAnchorKind
+ContentAnchorRoot
+ContentAnchorSlot
+ContentAnchorPoint
+ContentAnchorSet
+```
+
+Rejected for the canonical concept:
+
+```text
+Hook
+Content Hook
+Hook Content
+```
+
+F7A defines Content Anchor as a passive authored placement/reference contract inside loaded Route/Activity/Local content. It is not a scene loader, materializer, spawn system, camera rig, pause behavior, UI behavior, input policy, save system, pooling system or service locator.
+
+F7A does not authorize:
+
+```text
+RuntimeRootRegistry
+Prefab materialization
+RuntimeContentAnchorBinding
+ContentAnchorBindingRequest/Result
+Camera/Pause/UI/Actor/Audio consumers
+Session/global anchors
+Addressables backend
+```
+
+Next authorized cut:
+
+```text
+F7B — ContentAnchor identity primitives
 ```

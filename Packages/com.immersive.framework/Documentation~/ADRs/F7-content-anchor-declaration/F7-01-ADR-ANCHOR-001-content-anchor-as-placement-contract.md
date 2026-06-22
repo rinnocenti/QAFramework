@@ -1,73 +1,225 @@
 # F7-01 — ADR-ANCHOR-001 — Content Anchor as Placement Contract
 
-Status: Draft / Deferred  
+Status: Accepted / F7A  
 Fase: F7  
 Ordem no Plano: F7-01  
 Tipo: Content Anchor  
-Escopo: Content Anchor declaration
+Escopo: Content Anchor declaration baseline
 
 ---
 
 ## Contexto
 
-No `NewScripts`, Content Anchor aparece presa a pause/camera/presentation. O framework deve modelar Content Anchor antes dos consumers concretos.
+F6 fechou o baseline de composição e release de cenas de Route. Uma Route agora pode carregar Primary Scene, carregar additional scenes owned por `RouteContentProfileAsset`, registrar os handles carregados em `RouteContentSet` e liberar additional scenes owned na saída da Route.
+
+Ainda falta um contrato autoral para responder onde, dentro do conteúdo carregado, sistemas futuros podem localizar, montar ou associar conteúdo runtime sem usar `Find`, nomes mágicos de GameObject, singletons, referências hardcoded ou ownership implícito.
+
+O vocabulário anterior planejado foi descartado porque era ambíguo em Unity e em português. O nome canônico passa a ser `Content Anchor`.
+
+---
 
 ## Decisão
 
-Content Anchor é contrato de espaço, não subsistema.
+`Content Anchor` é um contrato autoral, passivo, nomeado e escopado dentro de conteúdo carregado.
 
-Content Anchor pode declarar:
+Ele identifica pontos confiáveis para consumidores futuros, mas não executa esses consumidores.
 
-- identity;
-- roots;
-- slots;
-- anchors;
-- scope;
-- requiredness/validation.
+Uma Content Anchor pode representar:
 
-Content Anchor não deve declarar:
+- um root de conteúdo;
+- um slot de montagem;
+- um ponto semântico de referência;
+- metadados mínimos de escopo, identidade e requiredness.
 
-- pause behavior;
+Uma Content Anchor não é:
+
+- scene loader;
+- runtime materializer;
+- prefab binding;
+- spawn system;
 - camera rig;
+- pause behavior;
 - UI behavior;
-- presentation materialization;
-- input policy.
+- input policy;
+- save/snapshot system;
+- service locator.
 
-Consumers consomem `ContentAnchorSet`.
+Consumers futuros consomem um `ContentAnchorSet` já resolvido pelo lifecycle. Eles não devem procurar GameObjects arbitrários nem definir o modelo de Content Anchor.
 
-## Consequências
+---
 
-### Positivas
+## Linguagem canônica
 
-- Impede Camera/Pause de capturarem o core.
-- Cria UX authored reutilizável.
-- Prepara RuntimeContentAnchorBinding.
+Use `Content Anchor` para o conceito.
 
-### Negativas / trade-offs
+Use `Anchor` em UX curta quando o contexto já estiver claro, por exemplo em Inspector dentro de uma seção `Content Anchor`.
 
-- Mais uma camada conceitual antes de recursos visíveis.
-- Requer linguagem amigável de Inspector depois.
+Não usar:
 
-## Fora do escopo
+- o vocabulário antigo de ponto de espaço;
+- `Hook`;
+- `Content Hook`;
+- `Hook Content`;
+- qualquer nome duplicado no estilo “anchor anchor”.
 
-- Content Anchor binding com prefab.
-- Camera/Pause/UI concrete.
-- Runtime materialization.
+Nomes duplicados no estilo “anchor anchor” são proibidos por redundância e baixa legibilidade. Quando for necessário nomear um ponto específico, usar `ContentAnchorPoint`.
 
-## Critérios de validação
+---
 
-- ContentAnchorEndpoint sem identity falha em validator.
-- Duplicate slot/anchor/root role falha.
-- ContentAnchorSet é populado por scope.
+## Modelo conceitual aprovado
 
-## Impacto esperado
+| Conceito | Papel |
+|---|---|
+| `ContentAnchorId` | Identidade estável, curta e explícita do anchor. |
+| `ContentAnchorScope` | Escopo autoral/lifecycle onde o anchor vive: Route, Activity ou Local. |
+| `ContentAnchorKind` | Tipo da declaração: Root, Slot ou Point. |
+| `ContentAnchorRequiredness` | Required ou Optional para validação autoral. |
+| `ContentAnchorRoot` | Container/raiz semântica de um conjunto de conteúdo. |
+| `ContentAnchorSlot` | Ponto de montagem planejado para conteúdo runtime futuro. |
+| `ContentAnchorPoint` | Ponto semântico/posição/referência; não implica montagem. |
+| `ContentAnchorSet` | Resultado escopado com anchors descobertos e validados. |
 
-Pré-requisito de Pause, Camera e Presentation consumers.
+A primeira API pública de authoring deve preferir componentes legíveis por escopo, por exemplo:
 
-## Relação com roadmap
+```text
+Route Content Anchor
+Activity Content Anchor
+```
 
-F7.
+A implementação pode compartilhar contrato interno, mas a UX pública não deve começar por um componente genérico ambíguo se isso dificultar entendimento no Inspector.
 
-## Notas de implementação
+---
 
-Content Anchor declaration pode existir antes de RuntimeRootRegistry.
+## Regras de identidade
+
+A identidade de Content Anchor deve ser explícita e estável.
+
+Permitido como diagnóstico, mas não como identidade funcional:
+
+- `GameObject.name`;
+- hierarchy path;
+- scene name;
+- scene path;
+- instance id;
+- componente encontrado por busca global.
+
+Formato recomendado para ids authored:
+
+```text
+gameplay.world
+player.spawn.primary
+camera.default-target
+ui.hud-root
+pause.overlay-root
+```
+
+Os ids devem ser únicos dentro do escopo que o validator definir. A política inicial recomendada é unicidade por:
+
+```text
+scope owner + anchor id + kind
+```
+
+---
+
+## Escopo
+
+Content Anchor deve nascer escopado ao conteúdo carregado, não global.
+
+Escopos autorizados para F7:
+
+| Escopo | Uso |
+|---|---|
+| Route | Anchor presente em cenas owned/loaded da Route. |
+| Activity | Anchor presente em conteúdo authored/ativo da Activity. |
+| Local | Anchor declarado por contribuição local, quando aplicável. |
+
+F7 não deve introduzir Session/global anchors ainda. Se esse caso aparecer, deve virar ADR próprio.
+
+---
+
+## Relação com F6
+
+F6 responde:
+
+```text
+Quais cenas pertencem à Route?
+Como elas carregam?
+Como elas são liberadas?
+```
+
+F7 responde:
+
+```text
+Quais pontos confiáveis existem dentro do conteúdo carregado?
+Como esses pontos são identificados e validados?
+```
+
+F7 consome o resultado de F6 como boundary de conteúdo carregado, mas não altera composition/release de cenas.
+
+---
+
+## Relação com F8/F9/F10/F11
+
+F7 declara anchors.
+
+F8/F9 podem usar anchors para materialização/binding runtime.
+
+F10/F11 podem consumir anchors para Pause, Camera, UI, Actor, Audio ou outros consumers.
+
+Consumers não podem capturar F7. Se um consumer precisar de campo específico, o campo pertence ao consumer ou a um binding posterior, não ao Content Anchor core.
+
+---
+
+## Fora do escopo de F7
+
+- Materializar prefab.
+- Criar runtime spawned content.
+- Criar `RuntimeContentAnchorBinding`.
+- Criar `ContentAnchorBindingRequest`/`ContentAnchorBindingResult`.
+- Criar Camera/Pause/UI/Actor/Audio consumer.
+- Criar lifecycle próprio de anchors.
+- Criar service locator/registry global.
+- Criar Addressables backend.
+
+---
+
+## Critérios de validação da fase
+
+F7 só pode fechar quando houver:
+
+- identidade tipada de Content Anchor;
+- modelo Root/Slot/Point definido;
+- componente público de authoring inicial;
+- discovery escopado para conteúdo carregado;
+- `ContentAnchorSet` com diagnostics mínimos;
+- validator para missing id e duplicidade;
+- smoke manual demonstrando cena carregada com anchors descobertos.
+
+---
+
+## Consequências positivas
+
+- Evita que Camera, Pause ou UI definam o modelo de ancoragem.
+- Evita `Find` e nomes mágicos como contrato funcional.
+- Cria linguagem mais clara para designer e programação.
+- Mantém materialização/runtime binding em fase posterior.
+- Dá um ponto de integração estável para consumers sem transformar o framework em service locator.
+
+## Trade-offs
+
+- Introduz uma camada conceitual antes de recursos visíveis.
+- Requer UX cuidadosa no Inspector.
+- Exige validators para evitar ids duplicados e anchors órfãos.
+- Pode parecer abstrato se não for documentado com exemplos de Route/Activity.
+
+---
+
+## Corte atual
+
+F7A aceita este ADR e define o detalhe do modelo. F7A não cria runtime, componente, validator ou smoke novo.
+
+Próximo corte autorizado:
+
+```text
+F7B — ContentAnchor identity primitives
+```
