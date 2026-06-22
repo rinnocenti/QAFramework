@@ -1,6 +1,6 @@
 # F7-01 — ADR-ANCHOR-001 — Content Anchor as Placement Contract
 
-Status: Accepted / F7B identity primitives applied  
+Status: Accepted / F7D Route Content Anchor authoring applied  
 Fase: F7  
 Ordem no Plano: F7-01  
 Tipo: Content Anchor  
@@ -229,8 +229,27 @@ ContentAnchorRequiredness
 
 F7B não cria componente de authoring, discovery, validator, set/registry, materialization, binding runtime ou smoke novo.
 
+F7C introduziu somente o modelo passivo de declaração:
+
+```text
+ContentAnchorDeclaration
+ContentAnchorRoot
+ContentAnchorSlot
+ContentAnchorPoint
+```
+
+F7C não cria componente de authoring, discovery, validator, set/registry, materialization, binding runtime ou smoke novo.
+
+F7D introduced the first passive Route-scoped authoring component:
+
+```text
+RouteContentAnchor
+```
+
+It declares Route owner, Anchor Id, Kind, Requiredness, Display Name and Description, and can produce a local `ContentAnchorDeclaration`. F7D does not add discovery, `ContentAnchorSet`, validators, smoke, RuntimeRoot/materialization or gameplay consumers.
+
 Próximo corte autorizado:
 
 ```text
-F7C — ContentAnchor declaration model
+F7E — ContentAnchorSet
 ```

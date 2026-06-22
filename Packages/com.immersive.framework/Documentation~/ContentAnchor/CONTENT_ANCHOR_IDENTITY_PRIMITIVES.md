@@ -1,6 +1,6 @@
 # Content Anchor Identity Primitives
 
-Status: F7B applied / pending compile-smoke  
+Status: F7B closed / PASS  
 Package: `com.immersive.framework`  
 Scope: Passive identity primitives only
 
@@ -74,7 +74,7 @@ The kind is descriptive only:
 | `Slot` | Future placement or mount slot. |
 | `Point` | Semantic reference/pose point that does not imply mounting. |
 
-F7B does not create `ContentAnchorRoot`, `ContentAnchorSlot` or `ContentAnchorPoint` declaration models yet. Those belong to F7C.
+F7B does not create `ContentAnchorRoot`, `ContentAnchorSlot` or `ContentAnchorPoint` declaration models. Those were introduced later by F7C.
 
 ---
 
@@ -109,8 +109,10 @@ Camera/Pause/UI/Actor consumers
 
 ---
 
-## Next cut
+## Follow-up
+
+F7C introduced the passive declaration model. F7D introduced `RouteContentAnchor` authoring. The next authorized implementation step after F7D is:
 
 ```text
-F7C — ContentAnchor declaration model
+F7E — ContentAnchorSet
 ```

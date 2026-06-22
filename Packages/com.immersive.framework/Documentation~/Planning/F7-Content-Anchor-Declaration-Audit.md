@@ -1,6 +1,6 @@
 # F7 — Content Anchor Declaration Audit
 
-Status: F7B applied / pending compile-smoke  
+Status: F7D applied / pending compile-smoke  
 Package: `com.immersive.framework`  
 Scope: Content Anchor declaration baseline  
 Runtime changes in F7A: none
@@ -167,9 +167,9 @@ scope owner + anchor id + kind
 | Cut | Name | Scope |
 |---|---|---|
 | F7A | Content Anchor ADR/detail audit | Accepted docs only. |
-| F7B | ContentAnchor identity primitives | Applied: `ContentAnchorId`, `ContentAnchorScope`, `ContentAnchorKind`, `ContentAnchorRequiredness`. |
-| F7C | ContentAnchor declaration model | Root/Slot/Point passive model. |
-| F7D | Route Content Anchor authoring | First public authoring component for Route scope. |
+| F7B | ContentAnchor identity primitives | Closed/pass: `ContentAnchorId`, `ContentAnchorScope`, `ContentAnchorKind`, `ContentAnchorRequiredness`. |
+| F7C | ContentAnchor declaration model | Closed/pass: `ContentAnchorDeclaration`, `ContentAnchorRoot`, `ContentAnchorSlot`, `ContentAnchorPoint`. |
+| F7D | Route Content Anchor authoring | Applied: first passive public authoring component for Route scope. |
 | F7E | ContentAnchorSet | Scoped result model and diagnostics. |
 | F7F | Loaded Route Content Anchor discovery | Discover anchors from loaded Route content only. |
 | F7G | Content Anchor validators | Missing id, duplicate ids, invalid authoring. |
@@ -224,7 +224,7 @@ F7A — APPLIED / DOC REVIEW ACCEPTED
 
 ## 12. F7B — ContentAnchor identity primitives
 
-Status: Applied / pending compile-smoke
+Status: Closed / PASS
 
 F7B adds only passive runtime primitives:
 
@@ -253,8 +253,83 @@ runtime binding
 consumer systems
 ```
 
+F7B smoke validation passed without regression.
+
+---
+
+## 13. F7C — ContentAnchor declaration model
+
+Status: Applied / pending compile-smoke
+
+F7C adds passive declaration models only:
+
+| Type | Purpose |
+|---|---|
+| `ContentAnchorDeclaration` | Canonical passive authored anchor record. |
+| `ContentAnchorRoot` | Typed wrapper for `Root` declarations. |
+| `ContentAnchorSlot` | Typed wrapper for `Slot` declarations. |
+| `ContentAnchorPoint` | Typed wrapper for `Point` declarations. |
+
+F7C intentionally does not add:
+
+```text
+RouteContentAnchor
+ActivityContentAnchor
+ContentAnchorSet
+Content Anchor discovery
+Content Anchor validators
+smoke buttons
+runtime binding
+consumer systems
+```
+
 Next authorized cut:
 
 ```text
-F7C — ContentAnchor declaration model
+F7D — Route Content Anchor authoring
+```
+
+---
+
+## 14. F7D — Route Content Anchor authoring
+
+Status: Applied / pending compile-smoke
+
+F7D adds the first public authoring component for Content Anchor declaration:
+
+```text
+RouteContentAnchor
+```
+
+The component is scene-authored and Route-scoped. It exposes:
+
+```text
+Route
+Anchor Id
+Kind
+Requiredness
+Display Name
+Description
+```
+
+It can produce a local `ContentAnchorDeclaration` from its explicit owner and id, but it does not participate in lifecycle yet.
+
+F7D intentionally does not add:
+
+```text
+ContentAnchorSet
+ContentAnchorRegistry
+Loaded scene discovery
+FrameworkAuthoringValidator rules
+QA smoke
+Runtime binding
+RuntimeRootRegistry
+Prefab materialization
+Camera/Pause/UI/Actor consumers
+```
+
+Next authorized cut:
+
+```text
+F7E — ContentAnchorSet
 ```

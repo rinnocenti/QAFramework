@@ -491,8 +491,10 @@ Nenhum consumer concreto ainda capturou o modelo.
 
 ```text
 F7A — CLOSED / DOCS
-F7B — Applied / pending compile-smoke
-Next — F7C / ContentAnchor declaration model
+F7B — CLOSED / PASS
+F7C — CLOSED / PASS
+F7D — Applied / pending compile-smoke
+Next — F7E / ContentAnchorSet
 ```
 
 Naming guardrail: do not reintroduce the rejected previous placement-point vocabulary or `duplicated anchor naming` as canonical concept names.
@@ -876,3 +878,12 @@ Input/Camera/Actor/Save/Pooling
 ```
 
 Esses cortes dependem da identidade local tipada e das fases intermediárias do roadmap.
+
+
+## F7D — Route Content Anchor authoring
+
+Status: `APPLIED / PENDING COMPILE-SMOKE`.
+
+F7D adds `RouteContentAnchor` as the first passive Route-scoped public authoring component. It records explicit Route owner, Anchor Id, Kind, Requiredness, Display Name and Description and can produce a local `ContentAnchorDeclaration`. It does not add discovery, ContentAnchorSet, validators, smoke, RuntimeRoot/materialization or consumers.
+
+Next: `F7E — ContentAnchorSet`.
