@@ -431,8 +431,8 @@ Objetivo: separar scene composition de runtime spawned/materialization.
 | ID | Entrega | Detalhes |
 |---|---|---|
 | IF-FW-ROAD-6A | ADR: Route Scene Composition | Plan/result, primary/additive, active scene, ownership. |
-| IF-FW-ROAD-6B | `RouteSceneCompositionPlan` | APPLIED / PENDING COMPILE-SMOKE. Plano inerte antes de load/unload; sem additive execution, sem result e sem release. |
-| IF-FW-ROAD-6C | `RouteSceneCompositionResult` | Resultado depois de load/unload. |
+| IF-FW-ROAD-6B | `RouteSceneCompositionPlan` | CLOSED / PASS. Plano inerte antes de load/unload; sem additive execution e sem release. |
+| IF-FW-ROAD-6C | `RouteSceneCompositionResult` | APPLIED / PENDING COMPILE-SMOKE. Resultado inerte para evidência pós-composição; sem additive execution e sem release. |
 | IF-FW-ROAD-6D | Additive scene support | Agora sim, baseado em plan/result e content ownership. |
 | IF-FW-ROAD-6E | `RouteContentProfileAsset` execution | Executar somente se deixou de ser planning-only. Requiredness passa a bloquear. |
 | IF-FW-ROAD-6F | `ContentReleasePlan` mínimo | Release explícito de route/activity content, sem depender só de `LoadSceneMode.Single`. |
@@ -808,6 +808,8 @@ F5A — CLOSED / ADR ACCEPTED
 F5B — CLOSED / STANDARD COMPILE-SMOKE PASS
 F5  — CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS
 F6A — CLOSED / ADR ACCEPTED / DOCS ONLY
+F6B — CLOSED / ROUTE SCENE COMPOSITION PLAN PASS
+F6C — APPLIED / ROUTE SCENE COMPOSITION RESULT PENDING SMOKE
 ```
 
 ADR status relevante para a fronteira atual:
@@ -816,34 +818,33 @@ ADR status relevante para a fronteira atual:
 F5-01 — ADR-LOCAL-001 — Local Identity — Accepted
 F5-02 — ADR-LOCAL-002 — Local Contribution Discovery and Requiredness — Applied through F5H / Expected Declarations Deferred
 F6-01 — ADR-RELEASE-001 — Content Release Plan by Scope — Accepted / implementation not started
-F6-02 — ADR-SCENE-001 — Route Scene Composition Plan and Result — Accepted / implementation not started
+F6-02 — ADR-SCENE-001 — Route Scene Composition Plan and Result — Accepted / F6C result applied / execution not started
 ```
 
 ## Ação imediata
 
-O corte documental atual é:
+O corte atual é:
 
 ```text
-F6A — ADR completion and audit
+F6C — RouteSceneCompositionResult
 ```
 
 Escopo aplicado:
 
 ```text
-- aceitar e completar F6-01 — ADR-RELEASE-001;
-- aceitar e completar F6-02 — ADR-SCENE-001;
-- registrar auditoria F6 em Planning/F6-Route-Scene-Composition-Audit.md;
-- manter F6 implementation not started;
-- não criar runtime, editor, asmdef ou scene execution.
+- manter F6B fechado por smoke;
+- adicionar resultado inerte de Route scene composition;
+- registrar status agregado e status por entry;
+- manter additive execution, release e RouteContentProfileAsset execution fora do corte.
 ```
 
-Próximo passo autorizado:
+Próximo passo autorizado após compile/smoke:
 
 ```text
-F6B — RouteSceneCompositionPlan
+F6D — SceneLifecycle additive primitive
 ```
 
-F6B deve ser inerte/puro: cria o plano, mas não carrega additive scenes, não libera conteúdo e não altera lifecycle runtime além do necessário para representar dados de plano.
+F6C deve ser inerte/puro: cria o resultado, mas não carrega additive scenes, não libera conteúdo e não altera lifecycle runtime.
 
 ## Não avançar ainda
 

@@ -1,6 +1,6 @@
 # F6 — Route Scene Composition and Release Audit
 
-Status: `F6B ROUTE SCENE COMPOSITION PLAN APPLIED / PENDING COMPILE-SMOKE`  
+Status: `F6C ROUTE SCENE COMPOSITION RESULT APPLIED / PENDING COMPILE-SMOKE`  
 Tipo: planejamento/auditoria documental  
 Escopo: Route scene composition, additive scene loading e release por escopo
 
@@ -54,7 +54,18 @@ RouteSceneActiveScenePolicy
 RouteContentSceneEntry.ExplicitContentId
 ```
 
-F6B é inerte: cria dados de planejamento side-effect free para Primary Scene e additional scenes declaradas em RouteContentProfileAsset. Ele registra role, load mode esperado, requiredness, ownership, execution order, active scene policy e diagnóstico de explicit content id. Não carrega additive scenes e não produz result.
+F6B é inerte: cria dados de planejamento side-effect free para Primary Scene e additional scenes declaradas em RouteContentProfileAsset. Ele registra role, load mode esperado, requiredness, ownership, execution order, active scene policy e diagnóstico de explicit content id. Não carrega additive scenes. F6B foi validado por Standard Smoke, Activity Baseline Smoke, Local Contribution Smoke, Route Callback Smoke e Authoring Validation sem issues.
+
+### Aplicado em F6C
+
+```text
+RouteSceneCompositionResult
+RouteSceneCompositionResultEntry
+RouteSceneCompositionStatus
+RouteSceneCompositionEntryStatus
+```
+
+F6C é inerte: cria dados de resultado para registrar evidência de composição depois da execução, mas ainda não executa additive loading, não altera SceneLifecycleRuntime e não cria release. O resultado diferencia loaded, already loaded, skipped, failed e not executed, preservando contagem de issues e blocking issues para o executor futuro.
 
 ### Presente
 
@@ -74,10 +85,9 @@ RouteExitResult mínimo
 ### Ausente
 
 ```text
-RouteSceneCompositionPlan
-RouteSceneCompositionResult
 Additive scene execution
-Active scene policy explícita
+SceneLifecycle additive primitive
+RouteContentProfileAsset execution
 ContentReleasePlan
 ContentReleaseResult
 Additive scene unload/release
@@ -149,7 +159,7 @@ Exit callbacks da Route anterior devem rodar antes do release da Route anterior.
 | ADR | Status | Decisão central |
 |---|---|---|
 | `F6-01 — ADR-RELEASE-001` | `Accepted / implementation not started` | Release será por `ContentReleasePlan`/`ContentReleaseResult`, guiado por ownership explícito. |
-| `F6-02 — ADR-SCENE-001` | `Accepted / implementation not started` | Route scene composition será por `RouteSceneCompositionPlan`/`RouteSceneCompositionResult`, antes de additive execution. |
+| `F6-02 — ADR-SCENE-001` | `Accepted / F6C result applied / execution not started` | Route scene composition usa `RouteSceneCompositionPlan`/`RouteSceneCompositionResult`, antes de additive execution. |
 
 ---
 
@@ -157,8 +167,8 @@ Exit callbacks da Route anterior devem rodar antes do release da Route anterior.
 
 ```text
 F6A — ADR completion and audit                  [docs-only]
-F6B — RouteSceneCompositionPlan                 [runtime inert/pure] [APPLIED / PENDING COMPILE-SMOKE]
-F6C — RouteSceneCompositionResult               [runtime inert/result]
+F6B — RouteSceneCompositionPlan                 [runtime inert/pure] [CLOSED / PASS]
+F6C — RouteSceneCompositionResult               [runtime inert/result] [APPLIED / PENDING COMPILE-SMOKE]
 F6D — SceneLifecycle additive primitive         [runtime execution primitive]
 F6E — RouteContentProfileAsset execution        [route profile → composition]
 F6F — ContentReleasePlan / ContentReleaseResult [release planning/execution]
@@ -167,16 +177,16 @@ F6G — Scene/release smoke                       [QA]
 
 ---
 
-## Critério para fechar F6B
+## Critério para fechar F6C
 
-F6B pode ser fechado quando o package compilar no Unity e o smoke baseline continuar sem regressão. O corte deve permanecer limitado ao plan inerte. Não deve carregar additive scenes ainda.
+F6C pode ser fechado quando o package compilar no Unity e o smoke baseline continuar sem regressão. O corte deve permanecer limitado ao result inerte. Não deve carregar additive scenes, descarregar cenas ou criar release ainda.
 
 ---
 
-## Não autorizado pela F6A
+## Não autorizado pela F6C
 
 ```text
-Additive execution antes de RouteSceneCompositionResult
+Additive execution antes de F6D
 Release físico antes de ContentReleasePlan
 Surface
 RuntimeRootRegistry

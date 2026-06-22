@@ -1,6 +1,6 @@
 # F6-02 — ADR-SCENE-001 — Route Scene Composition Plan and Result
 
-Status: Accepted / F6B RouteSceneCompositionPlan applied / Result and execution not started  
+Status: Accepted / F6C RouteSceneCompositionResult applied / execution not started  
 Fase: F6  
 Ordem no Plano: F6-02  
 Tipo: Scene / Route / Content composition  
@@ -8,6 +8,24 @@ Escopo: Route scene composition
 
 ---
 
+
+
+## Aplicação F6C
+
+F6C adiciona o modelo inerte de resultado:
+
+```text
+RouteSceneCompositionResult
+RouteSceneCompositionResultEntry
+RouteSceneCompositionStatus
+RouteSceneCompositionEntryStatus
+```
+
+O resultado registra evidência por entry depois de uma tentativa de composição: loaded, already loaded, skipped, failed e not executed. Ele também agrega status, contagens de loaded/failed/skipped/not executed, active scene policy, active scene diagnóstica, issues e blocking issues.
+
+O corte não carrega additive scenes, não descarrega cenas, não altera `SceneLifecycleRuntime`, não cria `ContentReleasePlan`, não cria `ContentReleaseResult` e não registra handles adicionais no `RouteContentSet`.
+
+---
 
 ## Aplicação F6B
 
@@ -23,7 +41,7 @@ RouteSceneActiveScenePolicy
 
 Também separa `ExplicitContentId` em `RouteContentSceneEntry` para que additional scenes possam ser diagnosticadas sem usar o fallback legado de `ContentId` como identidade funcional de execução.
 
-O corte não carrega additive scenes, não produz `RouteSceneCompositionResult`, não altera `SceneLifecycleRuntime` e não cria release.
+O corte não carrega additive scenes, não altera `SceneLifecycleRuntime` e não cria release.
 
 ## Contexto
 
