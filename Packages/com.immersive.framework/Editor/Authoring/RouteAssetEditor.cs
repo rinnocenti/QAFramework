@@ -1,9 +1,8 @@
 using Immersive.Framework.Authoring;
-using Immersive.Framework.Editor.Settings;
+using Immersive.Framework.Editor.Editor.Settings;
 using UnityEditor;
 using UnityEngine;
-
-namespace Immersive.Framework.Editor.Authoring
+namespace Immersive.Framework.Editor.Editor.Authoring
 {
     [CustomEditor(typeof(RouteAsset))]
     internal sealed class RouteAssetEditor : UnityEditor.Editor

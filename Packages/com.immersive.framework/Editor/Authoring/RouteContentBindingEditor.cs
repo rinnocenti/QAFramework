@@ -1,8 +1,7 @@
 using Immersive.Framework.RouteLifecycle;
 using UnityEditor;
 using UnityEngine;
-
-namespace Immersive.Framework.Editor.Authoring
+namespace Immersive.Framework.Editor.Editor.Authoring
 {
     [CustomEditor(typeof(RouteContentBinding))]
     [CanEditMultipleObjects]

@@ -84,11 +84,11 @@ Regras:
 | Route runtime state | Preservar como `RouteRuntimeState` | F3 | F3 | IF-FW-ROAD-3A | Implementado em F3B / Smoke PASS | Coberto | Core | RuntimeContentHandle + ContributionSet + release policy | Baixo / controlado | Fechado. |
 | Route exit plan | Preservar como `RouteExitResult` | F3 | F3 | IF-FW-ROAD-3B | Implementado em F3C / Smoke PASS | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Resultado mínimo explícito; sem release execution. |
 | Route content set semantics | Separar registro de ownership explícito | F3 | F3 | IF-FW-ROAD-3D | Implementado em F3E / Smoke PASS | Coberto | Core | Route baseline + Content identity | Baixo / controlado | `RouteContentEntry` + `RouteContentOwnership`; Primary Scene baseline é Owned; smoke PASS. |
-| Scene composition plan/result | Preservar plan/result explícitos | F6 | F6 | IF-FW-ROAD-6A, 6B, 6C | Parcial / Ausente | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Sem ajuste. |
+| Scene composition plan/result | Preservar plan/result explícitos | F6 | F6 | IF-FW-ROAD-6A, 6B, 6C | ADR aceito / implementação ausente | F6A fechado; F6B/F6C próximos | Core | Route baseline + F5 LocalContribution + F6 ADRs | Baixo / controlado | Iniciar por plan/result inertes; sem additive execution em F6B. |
 | Primary scene loading | Preservar; já existe no package | F3 | F3 | IF-FW-ROAD-3C | Presente / Integrado em F3D / Smoke PASS | Coberto | Core | Route baseline + Content identity | Baixo / controlado | RouteContentRuntime entra após load da Primary Scene e antes da Startup Activity. |
-| Additive scene loading | Preservar com plan/result | F6 | F6 | IF-FW-ROAD-6D | Parcial / Ausente | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Sem ajuste. |
-| Active scene policy | Preservar como parte do plan | F6 | F6 | IF-FW-ROAD-6A | Parcial / Ausente | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Sem ajuste. |
-| Route content profile execution | Preservar execução; separar de planning | F6 | F6 | IF-FW-ROAD-6E | Parcial / Ambíguo | Coberto | Core | Route baseline + Content identity | Risco de entrar cedo demais | Sem ajuste. |
+| Additive scene loading | Preservar com plan/result | F6 | F6 | IF-FW-ROAD-6D | Ausente | Coberto após F6B/F6C | Core | RouteSceneCompositionPlan/Result aceitos | Baixo / controlado | Só entra em F6D; não antecipar no plan. |
+| Active scene policy | Preservar como parte do plan | F6 | F6 | IF-FW-ROAD-6A | ADR aceito / implementação ausente | F6A fechado; F6B próximo | Core | RouteSceneCompositionPlan | Baixo / controlado | Política inicial: PrimarySceneActive. |
+| Route content profile execution | Preservar execução; separar de planning | F6 | F6 | IF-FW-ROAD-6E | Planning-only | Coberto após F6B/F6C/F6D | Core | Plan/result + additive primitive | Risco de entrar cedo demais | RouteContentProfileAsset só executa em F6E; F6B apenas lê/planeja. |
 | Route → Activity handoff | Preservar boundary; reduzir payload | F3 | F3 | IF-FW-ROAD-3C | Integrado em F3D / Smoke PASS | Coberto | Core | Route baseline + Content identity | Baixo / controlado | RouteContentRuntime roda antes da Startup Activity. |
 | Route startup activity policy | Preservar como policy simples | F3 | F3 | IF-FW-ROAD-3C | Preservado em F3D / Smoke PASS | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Startup Activity continua depois do enter local da Route. |
 | Route local callback smoke | Validar callbacks reais de Route Content | F3 | F3 | IF-FW-ROAD-3E | Implementado em F3F / Callback-smoke PASS | Coberto | QA / Dev Tooling | RouteContentRuntime ativo | Baixo / controlado | `Run Route Callback Smoke` validado com receivers reais sob `RouteContentBinding`; sem falso positivo com zero receivers. |
@@ -96,7 +96,7 @@ Regras:
 | Route validator expansion | Detectar configuração incorreta de Route Content | F3 | F3 | IF-FW-ROAD-3F | Implementado em F3G/F3G1 / Smoke PASS | Coberto | Editor / QA | F3F fechado | Baixo / controlado | Valida `RouteContentBinding` em cenas carregadas via QA: Route ausente, Route de cena errada e receivers ausentes. Inspector fica reduzido a tooltip; F3 fechada. |
 | Route contribution set | Redesenhar como `RouteContributionSet` | F5+ | F5/F7/F10+ | F7 via Surface | Parcial / Ausente | Coberto com ajuste / Deferred | Core | Route baseline + Content identity | Baixo / controlado | Contribution genérico em F5; surfaces em F7; consumers reais depois. |
 | Route surface set | Redesenhar como `RouteSurfaceSet` | F7 | F7 | IF-FW-ROAD-7G | Parcial / Ausente | Coberto, mas com correção | Core | LocalContributionSet para discovery; Runtime binding só na F9 | Baixo / controlado | Correto. |
-| Content release plan | Preservar como `ContentReleasePlan` | F6 | F6 | IF-FW-ROAD-6F | Parcial / Ausente | Coberto | Core | Route baseline + Content identity | Baixo / controlado | Sem ajuste. |
+| Content release plan | Preservar como `ContentReleasePlan` | F6 | F6 | IF-FW-ROAD-6F | ADR aceito / implementação ausente | F6A fechado; F6F futuro | Core | Scene composition result + ownership explícito | Baixo / controlado | Release físico só depois de composition/result; LocalContributionHandle não é release handle. |
 
 ### Activity
 | Capacidade | Decisão | Fase original | Fase revisada | Corte | Status package | Status roadmap | Prioridade | Bloqueadores | Risco | Observação |
@@ -120,11 +120,11 @@ Regras:
 ### Local
 | Capacidade | Decisão | Fase original | Fase revisada | Corte | Status package | Status roadmap | Prioridade | Bloqueadores | Risco | Observação |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Contributor marker | Preservar como `ActivityLocalVisibilityAdapter` / `RouteContentBinding` | F5 | F5 | IF-FW-ROAD-5C | Parcial / Ausente | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Não manter marker experimental paralelo; F5C usa `RouteContentBinding` e `ActivityLocalVisibilityAdapter` com `Local Content Id` explícito. |
+| Scene-authored local binding | Preservar como `ActivityLocalVisibilityAdapter` / `RouteContentBinding` | F5 | F5 | IF-FW-ROAD-5C | Implementado em F5C / Smoke PASS | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Baixo / controlado | Não há marker paralelo; F5C usa os bindings/adapters reais com `Local Content Id` explícito. |
 | Local content identity | Redesenhar como `LocalContentIdentity` | F5 | F5 | IF-FW-ROAD-5A, 5B | CLOSED / Standard compile-smoke pass | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | F5B cria `LocalContentIdentity`, `LocalContentId` e `LocalContentScopeKind`; sem marker/discovery. |
 | Scoped contribution discovery | Preservar discovery scoped; remover scan global | F5 | F5 | IF-FW-ROAD-5D | Discovery carregado fechado / QA compile-smoke pass | Coberto parcial | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | F5D produz LocalContributionDiscovery/Set/Handle a partir dos bindings/adapters carregados com LocalContentId explícito; integração formal por ContentSet fica para corte posterior. |
-| Contribution set | Criar `LocalContributionSet` | F5 | F5 | IF-FW-ROAD-5D/5E | F5E aplicado / Pending compile-smoke | Coberto parcial | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | F5E consolida LocalContributionSet como snapshot consultável por scope/source/identity; sem materialização e sem requiredness. |
-| Requiredness policy | Centralizar em policy | F5 | F5 | IF-FW-ROAD-5F | F5F aplicado / Pending compile-smoke | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | F5F registra Required/Optional nos bindings/adapters reais e propaga para LocalContributionHandle; ausência de required ainda diferida. |
+| Contribution set | Criar `LocalContributionSet` | F5 | F5 | IF-FW-ROAD-5D/5E | F5E closed / QA compile-smoke pass | Coberto parcial | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | F5E consolida LocalContributionSet como snapshot consultável por scope/source/identity; F5H valida o set por smoke dedicado. |
+| Requiredness policy | Centralizar em policy | F5 | F5 | IF-FW-ROAD-5F/F5G/F5H | F5H applied / Pending compile-smoke | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de expected declarations ausentes | F5F registra Required/Optional nos handles; F5G adiciona validator policy para expected required/optional sem criar authoring declarativo; F5H adiciona smoke dedicado sem materialização. |
 | Capability inventory | Preservar como `LocalCapabilityDescriptor` | F5 | F5 parcial / Runtime refs depois | Pós-F5E | Parcial / Ausente | Coberto, mas com correção | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de entrar cedo demais | F5E não cria capability descriptor; inventory vivo/runtime reference fica depois de RuntimeHandle. |
 | Runtime capability reference | Preservar com validade por lifecycle | F8+ | F8+ | após RuntimeHandle | Parcial / Ausente | Coberto com ajuste / Deferred | Core | RuntimeContentHandle + ContributionSet + release policy | Risco de identity/discovery frágil | Correto: depende de RuntimeContentHandle/lifetime validity. |
 | Local reset participant | Preservar contrato | F8+ | F10+ | após LocalContributionSet | Parcial / Ausente | Coberto com ajuste / Deferred | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Depende de LocalContributionSet e capability participant model. |
@@ -133,7 +133,7 @@ Regras:
 | Exit freeze | Preservar como parte de `ActivityExitPlan` | F8 | F8/F10 | IF-FW-ROAD-8G | Parcial / Ausente | Coberto, mas com correção | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Só faz sentido quando há runtime references/release participants. |
 | Local slots | Preservar como `LocalSlot` (futuramente `SurfaceSlot`) | F7 | F7 | IF-FW-ROAD-7D | Parcial / Ausente | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Sem ajuste. |
 | Local anchors | Preservar como `LocalAnchor` (futuramente `SurfaceAnchor`) | F7 | F7 | IF-FW-ROAD-7E | Parcial / Ausente | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Sem ajuste. |
-| Stale/foreign reference check | Preservar como validação de `LocalContributionSet` | F5 | F5 | IF-FW-ROAD-5F | Parcial / Ausente | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Sem ajuste. |
+| Stale/foreign reference check | Preservar como validação de `LocalContributionSet` | F5 | F5 | IF-FW-ROAD-5G/F5H | F5H applied / Pending compile-smoke | Coberto | Core | ActivityContentSet/RouteContentSet + typed identity | Risco de identity/discovery frágil | Validator e smoke dedicado validam identity/set sem usar fallback por nome/path. |
 
 ### RuntimeSpawned
 | Capacidade | Decisão | Fase original | Fase revisada | Corte | Status package | Status roadmap | Prioridade | Bloqueadores | Risco | Observação |
@@ -239,7 +239,7 @@ Regras:
 | Authoring validator | Expandir por fase | Todas | Todas | Por fase | Presente / Parcial | Coberto | Core | Baseline reconciliado | Baixo / controlado | Sem ajuste. |
 | QA Canvas / smoke buttons | Preservar como dev tooling; não no runtime assembly de produto | F0B | F0B | IF-FW-ROAD-0B5 | Presente / Parcial | Coberto | Core | Baseline reconciliado | Baixo / controlado | Sem ajuste. |
 | Boot fail-fast | Preservar | F1 | F1 | IF-FW-ROAD-1D | Parcial | Coberto | Core | Baseline reconciliado | Baixo / controlado | Sem ajuste. |
-| Required/optional policy | Centralizar em policy por scope | F5 | F5 | IF-FW-ROAD-5F | F5F aplicado / Pending compile-smoke | Coberto | Core | Baseline reconciliado | Baixo / controlado | Requiredness metadata aplicada; absence policy ainda diferida. |
+| Required/optional policy | Centralizar em policy por scope | F5 | F5 | IF-FW-ROAD-5F/F5G | F5H closed / QA compile-smoke pass | Coberto | Core | Baseline reconciliado | Baixo / controlado | Requiredness metadata aplicada; validator policy implementada para listas expected futuras; smoke dedicado local fechado em F5H. |
 | Smoke doc (BASELINE_SMOKE) | Criar/manter `BASELINE_SMOKE.md` | F0B | F0B | IF-FW-ROAD-0B7 | Presente / Parcial | Coberto | Core | Baseline reconciliado | Baixo / controlado | Sem ajuste. |
 
 ---
@@ -289,7 +289,7 @@ Regras:
 - Activity — Readiness gate
 
 ### F5
-- Local — Contributor marker
+- Local — Scene-authored local binding
 - Local — Local content identity
 - Local — Scoped contribution discovery
 - Local — Contribution set
@@ -510,16 +510,16 @@ Antes de abrir um corte técnico, responder:
 | Route identity tipada | Identifica rota/operação/transição sem string concatenada. | `RouteIdentity`, `RouteOperationId`, `TransitionId` | Redesenhar como typed ID | F1 | IF-FW-ROAD-1B |
 | Route runtime state | Guarda estado da rota ativa para que a próxima saiba o que liberar. | `SessionOperationalRuntimeState` | Preservar como `RouteRuntimeState` | F3 | IF-FW-ROAD-3A |
 | Route exit plan | Fecha a rota anterior antes de entrar na nova. | `SessionOperationalPipeline` (implícito) | Preservar como `RouteExitResult` | F3 | IF-FW-ROAD-3B |
-| Scene composition plan/result | Cria plano de load/unload antes de executar side effects. | `SessionOperationalPipeline` scene stages | Preservar plan/result explícitos | F6 | IF-FW-ROAD-6A, 6B, 6C |
+| Scene composition plan/result | Cria plano antes de executar side effects. | `SessionOperationalPipeline` scene stages / package F6 ADR | Preservar plan/result explícitos; começar por plan inerte | F6B/F6C | IF-FW-ROAD-6A, 6B, 6C |
 | Primary scene loading | Carrega cena principal da rota. | `SceneLifecycleRuntime` (package) | Preservar; já existe no package | F3 | IF-FW-ROAD-3C |
-| Additive scene loading | Carrega cenas adicionais da rota em modo additive. | `SessionOperationalPipeline` scene stages | Preservar com plan/result | F6 | IF-FW-ROAD-6D |
-| Active scene policy | Define qual cena é a ativa após composição. | Pipeline de composição de cenas | Preservar como parte do plan | F6 | IF-FW-ROAD-6A |
-| Route content profile execution | Executa requiredness e carrega cenas declaradas no profile. | `RouteContentProfileAsset` + plan | Preservar execução; separar de planning | F6 | IF-FW-ROAD-6E |
+| Additive scene loading | Carrega cenas adicionais da rota em modo additive. | `SessionOperationalPipeline` scene stages / package SceneLifecycle | Preservar com plan/result; só após result | F6D | IF-FW-ROAD-6D |
+| Active scene policy | Define qual cena é a ativa após composição. | Pipeline de composição de cenas | Política inicial PrimarySceneActive | F6B | IF-FW-ROAD-6A |
+| Route content profile execution | Executa requiredness e carrega cenas declaradas no profile. | `RouteContentProfileAsset` + plan | Preservar execução; separar de planning | F6E | IF-FW-ROAD-6E |
 | Route → Activity handoff | Passa contexto mínimo para Activity iniciar após rota pronta. | `SessionActivityEntryHandoff` | Preservar boundary; reduzir payload | F3 | IF-FW-ROAD-3C |
 | Route startup activity policy | Decide qual Activity iniciar automaticamente ao entrar na rota. | `OperationalRouteAsset.StartupActivity` | Preservar como policy simples | F3 | IF-FW-ROAD-3C |
 | Route contribution set | Câmera/áudio/input/save da rota expostos como contributions. | Pipeline stages de route | Redesenhar como `RouteContributionSet` | F5+ | F7 via Surface |
 | Route surface set | Surfaces de apresentação da rota (pause surface, overlay). | Pause stages + surface endpoints | Redesenhar como `RouteSurfaceSet` | F7 | IF-FW-ROAD-7G |
-| Content release plan | Libera cenas/conteúdo da rota com plano explícito. | `SessionOperationalPipeline` teardown | Preservar como `ContentReleasePlan` | F6 | IF-FW-ROAD-6F |
+| Content release plan | Libera cenas/conteúdo da rota com plano explícito. | `SessionOperationalPipeline` teardown | Preservar como `ContentReleasePlan`/`Result` | F6F | IF-FW-ROAD-6F |
 
 ---
 
@@ -548,11 +548,11 @@ Antes de abrir um corte técnico, responder:
 
 | Capacidade | O que faz | Origem NS | Decisão | Fase | Corte |
 |---|---|---|---|---|---|
-| Contributor marker | Objeto authored marca-se como contribuidor relevante para Activity/Route. | `ActivityObjectContributor` | Preservar como `ActivityLocalVisibilityAdapter` / `RouteContentBinding` | F5 | IF-FW-ROAD-5C |
+| Scene-authored local binding | Objeto authored expõe contribuição local relevante para Activity/Route. | `ActivityObjectContributor` / package bindings reais | Preservar como `ActivityLocalVisibilityAdapter` / `RouteContentBinding`; sem marker paralelo | F5 | IF-FW-ROAD-5C |
 | Local content identity | Identidade tipada de objeto local; substitui `targetId` string. | `ActivityObjectContributor.targetId` (frágil) | Redesenhar como `LocalContentIdentity` | F5 | IF-FW-ROAD-5A, 5B |
 | Scoped contribution discovery | Descobre contributors dentro do conteúdo carregado do escopo. | `ActivityEntryObjectContributorDiscoveryStage` | Preservar discovery scoped; remover scan global | F5 | IF-FW-ROAD-5D |
 | Contribution set | Conjunto tipado de contributions por escopo (Activity ou Route). | `ActivityObjectContributor` → inventory | Criar `LocalContributionSet` | F5 | IF-FW-ROAD-5E |
-| Requiredness policy | Required ausente falha com fact estruturado; optional gera skip. | Distribuída na pipeline | Centralizar em policy | F5 | IF-FW-ROAD-5F |
+| Requiredness policy | Required expected ausente falha; optional expected ausente gera skip. | Distribuída na pipeline | Centralizar em validator/policy | F5 | IF-FW-ROAD-5F/F5G |
 | Capability inventory | Lista endpoints/providers vivos com validade por lifecycle. | `ActivityObjectCapabilityScanner`, `ActivitySetupInventoryBuilder` | Preservar como `LocalCapabilityDescriptor` | F5 | IF-FW-ROAD-5E |
 | Runtime capability reference | Referência runtime a capability com validade por lifecycle. | `ActivityObjectCapabilityScanner` — runtime refs | Preservar com validade por lifecycle | F8+ | após RuntimeHandle |
 | Local reset participant | Objeto local participa de reset de Activity. | `ActivityObjectResetContracts`, reset endpoint providers | Preservar contrato | F8+ | após LocalContributionSet |
@@ -716,8 +716,8 @@ Antes de abrir um corte técnico, responder:
 | **F2** | Session runtime state, Session composition context, Persistent scenes, Session content set, Settings source policy, Startup route signal, Audio listener (Session) |
 | **F3** | Route asset, Route runtime state, Route exit result, Route primary scene, Route → Activity handoff, Route startup activity policy |
 | **F4** | Activity asset, Activity content profile, Activity runtime state, Activity entry context, Activity content set, Activity content lifecycle result, Readiness gate, Activity exit plan |
-| **F5** | Contributor marker, Local content identity, Scoped discovery, Contribution set, Requiredness policy, Capability inventory (descriptor), Stale/foreign check |
-| **F6** | Scene composition plan/result, Additive scene loading, Active scene policy, Route content profile execution, Content release plan |
+| **F5** | Local content identity, explicit local ids on existing bindings, scoped loaded discovery, LocalContributionSet, Requiredness metadata, LocalContributionValidator, Local Contribution Smoke |
+| **F6** | F6A ADR completion accepted; F6B RouteSceneCompositionPlan; F6C RouteSceneCompositionResult; F6D Additive scene loading; F6E Route content profile execution; F6F ContentReleasePlan; F6G Scene/release smoke |
 | **F7** | Surface identity, Surface root, Surface slot, Surface anchor, Surface endpoint, Surface set por scope, Duplicate detection, Overlay root vs content root, Local slots/anchors |
 | **F8** | Runtime scope root, Runtime root registry, Materialization request/result, Runtime content handle, Prefab materializer, Runtime release policy, Destroy policy, Runtime identity, Local release participant, Exit freeze |
 | **F9** | Surface binding request/result, Surface content handle, Runtime surface binding, Spawn origin/slot, Surface lifecycle policy, Pause content materialization |

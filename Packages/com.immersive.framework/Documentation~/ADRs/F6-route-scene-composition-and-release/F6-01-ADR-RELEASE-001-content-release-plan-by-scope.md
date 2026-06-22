@@ -1,60 +1,304 @@
 # F6-01 — ADR-RELEASE-001 — Content Release Plan by Scope
 
-Status: Draft / Deferred  
+Status: Accepted / F6 implementation not started  
 Fase: F6  
 Ordem no Plano: F6-01  
-Tipo: Release / Ownership  
+Tipo: Release / Ownership / Lifecycle cleanup  
 Escopo: Session/Route/Activity content
 
 ---
 
 ## Contexto
 
-O package ainda depende muito do efeito de `LoadSceneMode.Single` para descarte físico. O framework precisa de release explícito por escopo.
+Até F5, o package tem ownership vocabularies e content sets mínimos, mas não tem release físico explícito:
+
+- `SessionContentSet` existe como baseline de Session scope;
+- `RouteContentSet` registra a Primary Scene como Route-owned;
+- `ActivityContentSet` registra conteúdo local scene-authored mínimo;
+- `LocalContributionSet` registra contribuições locais carregadas;
+- `RouteContentRuntime.Exit` executa callbacks de saída de Route, mas não libera conteúdo;
+- `LoadSceneMode.Single` ainda é o principal mecanismo físico de descarte de cena.
+
+Isso é suficiente para F3-F5, mas não é suficiente para additive scenes, runtime spawned content, Surface, Actor, Pooling ou Save. F6 precisa definir release por escopo antes de introduzir loading additive real e antes de RuntimeRoot/materialization.
+
+---
 
 ## Decisão
 
-Definir `ContentReleasePlan` por escopo:
+O framework terá release explícito por escopo, representado por:
 
-- Activity exit libera Activity-owned content.
-- Route exit libera Route-owned content e activities associadas.
-- Session shutdown libera Session-owned content.
-- Diagnostic-only content não é liberado.
-- Release deve produzir result/facts.
+```text
+ContentReleasePlan
+ContentReleaseResult
+```
 
-## Consequências
+O release não será implícito, global, nem baseado em `FindObjectsByType` como verdade funcional. Ele parte de conteúdo conhecido por estados/sets do framework.
 
-### Positivas
+Escopos aceitos:
 
-- Evita órfãos.
-- Prepara RuntimeSpawned.
-- Torna cleanup testável.
+```text
+Session
+Route
+Activity
+```
 
-### Negativas / trade-offs
+Semântica por escopo:
 
-- Exige state mais claro.
-- Pode duplicar cleanup de scenes se não for cuidadoso.
+```text
+Activity exit      → libera Activity-owned content.
+Route exit         → libera Route-owned content e Activity-owned content associado à Route anterior.
+Session shutdown   → libera Session-owned content depois de Route/Activity.
+```
+
+Conteúdo `DiagnosticOnly` nunca é liberado pelo framework. Conteúdo `Registered` só pode ser liberado se um corte posterior promover ownership explicitamente; por padrão, não é destruído/descarregado.
+
+---
+
+## Ordem de release aceita
+
+### Troca de Route
+
+Ordem final desejada:
+
+```text
+1. Construir/validar plan da próxima Route.
+2. Executar callbacks de saída da Route anterior enquanto o conteúdo ainda existe.
+3. Executar callbacks/clear da Activity anterior quando aplicável.
+4. Executar ContentReleasePlan da Activity anterior.
+5. Executar ContentReleasePlan da Route anterior.
+6. Compor/carregar cenas da próxima Route.
+7. Registrar RouteContentSet da próxima Route.
+8. Executar callbacks de entrada da próxima Route.
+9. Iniciar Startup Activity da próxima Route.
+```
+
+Enquanto F6 não tiver Activity canonical materialization, o release Activity-owned fica limitado ao que o framework realmente possui. O release não deve destruir objetos scene-authored que apenas foram observados ou diagnosticados.
+
+### Clear Activity
+
+```text
+1. Executar Activity content exit callbacks se existirem.
+2. Criar ContentReleasePlan para Activity-owned content.
+3. Executar release somente do que for Activity-owned.
+4. Atualizar ActivityRuntimeState para None.
+```
+
+### Session shutdown
+
+```text
+1. Encerrar Activity ativa.
+2. Encerrar Route ativa.
+3. Liberar Session-owned content.
+4. Emitir ContentReleaseResult final.
+```
+
+Session shutdown completo pode ficar para fase posterior, mas a ordem acima é a política arquitetural aceita.
+
+---
+
+## Modelo aceito
+
+### `ContentReleasePlan`
+
+O plano deve ser imutável e produzido antes de executar side effects.
+
+Campos conceituais mínimos:
+
+```text
+scope
+owner identity
+source content set / runtime state
+release entries
+source
+reason
+```
+
+Cada release entry deve conter:
+
+```text
+content identity
+content kind
+ownership
+release action
+requiredness, quando aplicável
+resource/display diagnostics
+```
+
+Ações conceituais iniciais:
+
+```text
+None
+UnloadScene
+DestroyRuntimeObject
+ReturnToPool
+CustomParticipantRelease
+```
+
+F6 inicial só deve implementar `UnloadScene` quando o framework realmente possuir cenas additive carregadas. `DestroyRuntimeObject`, `ReturnToPool` e custom participants são vocabulário futuro para F8/F11, não implementação de F6 inicial.
+
+### `ContentReleaseResult`
+
+O resultado deve ser estruturado e emitir facts/logs suficientes para QA.
+
+Campos conceituais mínimos:
+
+```text
+completed
+scope
+owner identity
+planned count
+released count
+skipped count
+failed count
+entries
+issues/facts
+```
+
+Release parcial deve ser visível. Falha silenciosa não é permitida.
+
+---
+
+## Ownership
+
+A política de release segue ownership, não localização na Hierarchy.
+
+```text
+Owned          → o framework pode liberar conforme scope e action.
+Registered     → conhecido, mas não liberável por padrão.
+DiagnosticOnly → nunca liberável pelo framework.
+```
+
+Um objeto/cena só pode ser liberado por um scope se:
+
+```text
+1. foi registrado como Owned por aquele scope;
+2. tem release action suportada;
+3. ainda não foi liberado;
+4. o resultado anterior não marcou o handle como failed/stale.
+```
+
+Double release deve ser idempotente ou produzir issue explícita não fatal, dependendo da action. Para cenas Unity, unload de cena já descarregada deve ser tratado como skipped/stale, não como sucesso falso.
+
+---
+
+## Relação com scenes
+
+`LoadSceneMode.Single` pode continuar removendo fisicamente a cena anterior no baseline, mas isso não conta como release plan completo.
+
+Quando F6 introduzir additive scene loading:
+
+```text
+Additional scene carregada como Owned pela Route deve gerar release entry UnloadScene no Route exit.
+Required additive scene que falhou no load não gera release entry loaded.
+Optional additive scene skipped não gera release entry loaded.
+Primary Scene carregada por LoadSceneMode.Single não deve ser descarregada manualmente antes da próxima Primary Scene assumir.
+```
+
+Primary Scene release explícito pode continuar representado como diagnóstico/transition result enquanto a operação real for controlada pelo próximo `LoadSceneMode.Single`.
+
+---
+
+## Relação com local contributions
+
+Local contributions de F5 são discovery/validation de authored local content. Elas não são release handles.
+
+Portanto:
+
+```text
+LocalContributionHandle não autoriza Destroy, Unload ou ReturnToPool.
+LocalContributionSet não é release inventory.
+GameObject local scene-authored observado por F5 não é framework-owned por causa do discovery.
+```
+
+Se uma contribuição local futura precisar participar de release, ela deve ser promovida por um contrato específico de release participant ou por runtime materialization em fase posterior.
+
+---
 
 ## Fora do escopo
 
-- Pooling.
-- RuntimeContentHandle avançado.
-- Snapshot/restore.
+F6 release não implementa:
+
+```text
+Pooling
+Runtime spawned content completo
+RuntimeRootRegistry
+Prefab materializer
+Surface binding
+Actor reset/release
+Snapshot/restore
+Save backend
+Addressables release
+Object pooling return policy
+```
+
+Esses itens dependem de F8-F11.
+
+---
+
+## Consequências positivas
+
+- Evita órfãos quando additive scenes forem introduzidas.
+- Evita destruir conteúdo apenas observado por discovery.
+- Torna cleanup testável via plan/result.
+- Prepara RuntimeSpawned, Surface e Pooling sem antecipá-los.
+- Separa callback lifecycle de ownership físico.
+
+---
+
+## Trade-offs
+
+- Exige distinguir content set, local contribution set e release inventory.
+- Exige state explícito para loaded/released/skipped/failed.
+- Requer ordem de transição mais rígida.
+- Pode expor dívidas do uso atual de `LoadSceneMode.Single` como cleanup implícito.
+
+---
 
 ## Critérios de validação
 
-- Route/Activity exit geram release result.
-- Zero orphan em smoke de content simples.
-- Release duplo é idempotente ou rejeitado com fact.
+F6 release só pode ser considerado pronto quando houver smoke comprovando:
 
-## Impacto esperado
+```text
+Route exit gera ContentReleasePlan.
+Route exit gera ContentReleaseResult.
+Owned additive scene carregada é descarregada no Route exit.
+DiagnosticOnly content não é descarregado.
+Registered content não é descarregado por padrão.
+Double release não causa exceção nem sucesso falso.
+Falha de release aparece em result/facts.
+Standard Smoke e Route Callback Smoke continuam passando.
+```
 
-Pré-requisito de Runtime materialization e Surface binding.
+---
 
-## Relação com roadmap
+## Impacto esperado no roadmap
 
-F6/F8.
+Este ADR autoriza os cortes F6 relacionados a release:
 
-## Notas de implementação
+```text
+F6F — ContentReleasePlan / ContentReleaseResult
+F6G — Scene/release smoke
+```
 
-Release deve ser não destrutivo quando o owner não possui o objeto.
+Ele não autoriza F8 runtime materialization, F9 Surface binding ou F11 Pooling/Actor release.
+
+---
+
+## Relação com ADRs
+
+Depende de:
+
+```text
+F3-02 — RouteContentSet semantics
+F4-01 — ActivityContentSet and Readiness baseline
+F5-02 — Local contribution discovery and requiredness
+F6-02 — Route Scene Composition Plan and Result
+```
+
+Relaciona-se com:
+
+```text
+F8-01 — Runtime ownership and roots
+F8-02 — Materialization request/result/handle
+F11-04 — Pooling package boundary
+```

@@ -1,10 +1,16 @@
 # F5 — Local Content Identity and scene-authored local ids
 
-Status: F5F APPLIED / PENDING COMPILE-SMOKE  
+Status: F5 CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS  
 Fase: F5 — Local Contribution baseline  
 Documento técnico vivo: identidade local e authoring local mínimo
 
 ---
+
+## Fechamento F5
+
+F5 está fechado como foundation de Local Contribution. O smoke dedicado passou nos três passos planejados (`loaded`, `secondary`, `primary`) e os smokes de regressão `Standard Smoke` e `Route Callback Smoke` continuaram passando.
+
+O fechamento não autoriza materialização canônica nem F6 direto; a próxima fase deve começar por auditoria/plano de Route Scene Composition e release.
 
 ## Objetivo
 
@@ -334,3 +340,121 @@ Pooling
 Materialization
 Release/unload policy
 ```
+
+
+---
+
+## F5G — Local validators
+
+F5G adiciona uma camada explícita de validação local sobre o resultado de discovery.
+
+O corte não muda a cena, não materializa conteúdo e não cria lifecycle visual. Ele separa três conceitos que antes estavam misturados no QA:
+
+```text
+LocalContributionDiscovery   -> encontra bindings/adapters carregados
+LocalContributionSet         -> snapshot das contribuições válidas encontradas
+LocalContributionValidator   -> aplica regras de authoring/policy sobre o snapshot
+```
+
+Tipos adicionados:
+
+```text
+LocalContributionRequirement
+LocalContributionValidator
+LocalContributionValidationResult
+LocalContributionValidationIssue
+LocalContributionValidationIssueKind
+```
+
+Regras validadas ou preparadas em F5G:
+
+```text
+- Discovery issue vira validation issue bloqueante.
+- Expected contribution inválida vira erro bloqueante.
+- Required expected contribution ausente vira erro bloqueante.
+- Optional expected contribution ausente vira skip/diagnóstico não bloqueante.
+- O QA de Loaded Local Contributions passa a consumir LocalContributionValidator.
+```
+
+Observação importante: o QA atual ainda não possui uma lista declarativa de expected contributions por Route/Activity. Portanto, no cenário carregado atual, F5G valida discovery + set + metadata já existente. A política de ausência required está implementada no validator para consumidores futuros, mas ainda não é alimentada por authoring declarativo.
+
+Escopo ainda diferido após F5G:
+
+```text
+Declarar expected contributions em assets
+Fazer required ausente bloquear lifecycle real
+Fazer optional ausente aparecer como skip em smoke dedicado
+Integração funcional com RouteContentSet/ActivityContentSet
+Surface
+Actors
+Input
+Camera
+Reset
+Snapshot
+Save
+Pooling
+Materialization
+Release/unload policy
+```
+
+---
+
+## F5H — Local smoke dedicado
+
+F5H adiciona um smoke específico para validar o trilho de Local Contribution sem misturar com Standard Smoke ou Route Callback Smoke.
+
+O botão novo no QA Canvas é:
+
+```text
+Run Local Contribution Smoke
+```
+
+O smoke executa somente validação autoral/runtime leve:
+
+```text
+- valida o conjunto carregado inicial;
+- solicita a Secondary Activity;
+- valida novamente o conjunto carregado;
+- restaura a Primary Activity;
+- valida novamente o conjunto carregado.
+```
+
+Em cada passo, o smoke exige:
+
+```text
+- pelo menos um RouteContentBinding carregado;
+- pelo menos um ActivityLocalVisibilityAdapter carregado;
+- LocalContributionValidator sem blocking issues;
+- LocalContributionSet com handles válidos;
+- contagem de handles compatível com os componentes authored carregados;
+- required + optional igual ao total de contribuições.
+```
+
+Logs esperados em sucesso:
+
+```text
+QA Local Contribution Smoke step completed. step='loaded'
+QA Local Contribution Smoke step completed. step='secondary'
+QA Local Contribution Smoke step completed. step='primary'
+QA Smoke completed. name='Local Contribution Smoke'
+```
+
+Escopo ainda diferido após F5H:
+
+```text
+Declarar expected contributions em assets
+Fazer required ausente bloquear lifecycle real
+Fazer optional ausente aparecer como skip alimentado por authoring declarativo
+Integração funcional com RouteContentSet/ActivityContentSet
+Surface
+Actors
+Input
+Camera
+Reset
+Snapshot
+Save
+Pooling
+Materialization
+Release/unload policy
+```
+

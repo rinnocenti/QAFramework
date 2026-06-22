@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using Immersive.Framework.Authoring;
 using UnityEngine;
-
-namespace Immersive.Framework.Editor.Validation
+namespace Immersive.Framework.Editor.Editor.Validation
 {
     internal sealed class FrameworkAuthoringValidationReport
     {

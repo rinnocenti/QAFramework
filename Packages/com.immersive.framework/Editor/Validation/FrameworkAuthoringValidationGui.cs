@@ -2,8 +2,7 @@ using System.Collections.Generic;
 using Immersive.Framework.Diagnostics;
 using UnityEditor;
 using UnityEngine;
-
-namespace Immersive.Framework.Editor.Validation
+namespace Immersive.Framework.Editor.Editor.Validation
 {
     internal static class FrameworkAuthoringValidationGui
     {

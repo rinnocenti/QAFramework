@@ -367,7 +367,7 @@ Status atual:
 ```text
 F5A — CLOSED / ADR ACCEPTED
 F5B — CLOSED / STANDARD COMPILE-SMOKE PASS
-F5  — OPEN / F5F APPLIED / PENDING COMPILE-SMOKE
+F5  — CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS
 ```
 
 Sequência obrigatória:
@@ -379,6 +379,8 @@ ActivityContentSet / RouteContentSet como fronteira de busca
 → Scoped discovery
 → LocalContributionSet
 → Required/Optional policy
+→ Local validators
+→ Local smoke dedicado
 ```
 
 | ID | Entrega | Detalhes |
@@ -387,10 +389,10 @@ ActivityContentSet / RouteContentSet como fronteira de busca
 | IF-FW-ROAD-5B | `LocalContentIdentity` | CLOSED / STANDARD COMPILE-SMOKE PASS. Tipo pequeno, imutável, validável, ordinal e sem fallback silencioso. Não cria marker/discovery. |
 | IF-FW-ROAD-5C | `ActivityLocalVisibilityAdapter` / `RouteContentBinding` | CLOSED / QA COMPILE-SMOKE PASS. Bindings/adapters scene-authored recebem `Local Content Id` explícito; sem capability runtime ainda. |
 | IF-FW-ROAD-5D | `LocalContributionDiscovery` loaded | CLOSED / QA COMPILE-SMOKE PASS. Descobre bindings/adapters carregados com Local Content Id explícito e reporta issues estruturadas. Integração formal por ContentSet fica diferida. |
-| IF-FW-ROAD-5E | `LocalContributionSet` | APPLIED / PENDING COMPILE-SMOKE. Set tipado e consultável por scope/source/identity, com resumo diagnóstico por escopo. |
-| IF-FW-ROAD-5F | Required/Optional policy | Required ausente falha com `FrameworkFact`; optional ausente gera skip diagnosticado. |
-| IF-FW-ROAD-5G | Local validators | Duplicidade, identity vazia, binding/adapter sem id e required ausente. |
-| IF-FW-ROAD-5H | Local smoke | Activity enter → contribution set populado → required policy validada. |
+| IF-FW-ROAD-5E | `LocalContributionSet` | CLOSED / QA COMPILE-SMOKE PASS. Set tipado e consultável por scope/source/identity, com resumo diagnóstico por escopo. |
+| IF-FW-ROAD-5F | Required/Optional policy | CLOSED / QA COMPILE-SMOKE PASS. Requiredness passa a viajar no handle e no set; absence policy fica para validator/expected contribution. |
+| IF-FW-ROAD-5G | Local validators | CLOSED / QA COMPILE-SMOKE PASS. Validação explícita sobre discovery/set; required expected ausente vira erro quando houver lista expected; optional expected ausente vira skip diagnóstico. |
+| IF-FW-ROAD-5H | Local smoke | CLOSED / QA COMPILE-SMOKE PASS. Smoke dedicado valida loaded/secondary/primary local contribution snapshot sem materialização canônica. |
 
 ### Não entra
 
@@ -776,8 +778,8 @@ ADR files follow the plan order first and the stable ADR id second.
 | F4-01 | ADR-ACTIVITY-001 | ActivityContentSet and Readiness baseline. |
 | F5-01 | ADR-LOCAL-001 | Local identity. |
 | F5-02 | ADR-LOCAL-002 | Local contribution discovery and requiredness. |
-| F6-01 | ADR-RELEASE-001 | Content release plan by scope. |
-| F6-02 | ADR-SCENE-001 | Route scene composition plan/result. |
+| F6-01 | ADR-RELEASE-001 | Content release plan by scope — Accepted in F6A; implementation starts at F6F. |
+| F6-02 | ADR-SCENE-001 | Route scene composition plan/result — Accepted in F6A; implementation starts at F6B. |
 | F7-01 | ADR-SURFACE-001 | Surface as space contract. |
 | F8-01 | ADR-RUNTIME-001 | Runtime ownership and roots. |
 | F8-02 | ADR-RUNTIME-002 | Materialization request/result/handle. |
@@ -804,47 +806,52 @@ F3 — CLOSED / PASS
 F4 — CLOSED / ACTIVITY BASELINE PASS
 F5A — CLOSED / ADR ACCEPTED
 F5B — CLOSED / STANDARD COMPILE-SMOKE PASS
-F5  — OPEN / F5F APPLIED / PENDING COMPILE-SMOKE
+F5  — CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS
+F6A — CLOSED / ADR ACCEPTED / DOCS ONLY
 ```
 
-F5A aceitou o ADR necessário para iniciar a execução técnica de Local Contribution:
+ADR status relevante para a fronteira atual:
 
 ```text
 F5-01 — ADR-LOCAL-001 — Local Identity — Accepted
-F5-02 — ADR-LOCAL-002 — Local Contribution Discovery and Requiredness — Partially Accepted / Discovery, Set Consolidation and Requiredness Metadata Applied / Absence Policy Deferred
+F5-02 — ADR-LOCAL-002 — Local Contribution Discovery and Requiredness — Applied through F5H / Expected Declarations Deferred
+F6-01 — ADR-RELEASE-001 — Content Release Plan by Scope — Accepted / implementation not started
+F6-02 — ADR-SCENE-001 — Route Scene Composition Plan and Result — Accepted / implementation not started
 ```
 
 ## Ação imediata
 
-O corte aplicado atual é:
+O corte documental atual é:
 
 ```text
-F5E — IF-FW-ROAD-5E — local contribution set consolidation
-F5F — IF-FW-ROAD-5F — requiredness metadata on local contributions
+F6A — ADR completion and audit
 ```
 
 Escopo aplicado:
 
 ```text
-- consolidar LocalContributionSet como snapshot consultável;
-- expor contagens por Session/Route/Activity;
-- expor contagens por RouteContentBinding/ActivityLocalVisibilityAdapter;
-- permitir consulta por LocalContentIdentity;
-- permitir filtros por scope/source;
-- manter GameObject.name, scene e component como diagnostics only;
-- não criar requiredness policy;
-- não criar materialização;
-- não alterar ActivityContentRuntime;
-- não criar capability inventory vivo.
+- aceitar e completar F6-01 — ADR-RELEASE-001;
+- aceitar e completar F6-02 — ADR-SCENE-001;
+- registrar auditoria F6 em Planning/F6-Route-Scene-Composition-Audit.md;
+- manter F6 implementation not started;
+- não criar runtime, editor, asmdef ou scene execution.
 ```
 
-Depois do compile-smoke, o próximo corte autorizado será F5G — expected contribution/absence policy ou integração limitada ao content set ativo, sem materialização se o smoke pedir ajuste prévio.
+Próximo passo autorizado:
+
+```text
+F6B — RouteSceneCompositionPlan
+```
+
+F6B deve ser inerte/puro: cria o plano, mas não carrega additive scenes, não libera conteúdo e não altera lifecycle runtime além do necessário para representar dados de plano.
 
 ## Não avançar ainda
 
 ```text
-Requiredness policy
-Local validators avançados
+Expected contribution declarations
+Materialização canônica
+Additive execution antes de F6D
+Release físico antes de F6F
 Surface
 Runtime roots/materialization
 Input/Camera/Actor/Save/Pooling

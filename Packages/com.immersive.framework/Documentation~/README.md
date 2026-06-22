@@ -20,7 +20,8 @@ Leitura recomendada:
 4. [`Governance/ADR_NAMING_CONVENTION.md`](Governance/ADR_NAMING_CONVENTION.md)
 5. [`Governance/ADR-TEMPLATE.md`](Governance/ADR-TEMPLATE.md)
 6. [`ADRs/`](ADRs/)
-7. [`Architecture/ADR/`](Architecture/ADR/)
+7. [`Planning/F6-Route-Scene-Composition-Audit.md`](Planning/F6-Route-Scene-Composition-Audit.md)
+8. [`Architecture/ADR/`](Architecture/ADR/)
 
 Docs técnicos:
 
@@ -47,5 +48,6 @@ Docs técnicos:
 - [`Activity/ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md`](Activity/ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md)
 - [`Activity/ACTIVITY_BASELINE_SMOKE.md`](Activity/ACTIVITY_BASELINE_SMOKE.md)
 - [`Local/LOCAL_CONTENT_IDENTITY.md`](Local/LOCAL_CONTENT_IDENTITY.md)
+- [`Planning/F6-Route-Scene-Composition-Audit.md`](Planning/F6-Route-Scene-Composition-Audit.md)
 
 `COMPLETENESS_TRACKER.md` consolida o estado que antes estava espalhado por arquivos de fechamento e aceite.

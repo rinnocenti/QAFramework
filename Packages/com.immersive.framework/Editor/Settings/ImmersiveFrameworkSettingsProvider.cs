@@ -2,7 +2,7 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.Bootstrap;
 using UnityEditor;
 using UnityEngine;
-namespace Immersive.Framework.Editor.Settings
+namespace Immersive.Framework.Editor.Editor.Settings
 {
     internal static class ImmersiveFrameworkSettingsProvider
     {

@@ -1,9 +1,8 @@
 using Immersive.Framework.Authoring;
-using Immersive.Framework.Editor.Validation;
+using Immersive.Framework.Editor.Editor.Validation;
 using UnityEditor;
 using UnityEngine;
-
-namespace Immersive.Framework.Editor.Authoring
+namespace Immersive.Framework.Editor.Editor.Authoring
 {
     [CustomEditor(typeof(ActivityAsset))]
     internal sealed class ActivityAssetEditor : UnityEditor.Editor

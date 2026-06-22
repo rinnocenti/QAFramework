@@ -245,6 +245,11 @@ namespace Immersive.Framework.Diagnostics
                     ValidateLoadedLocalContributionsAuthoring();
                 }
 
+                if (GUILayout.Button("Run Local Contribution Smoke"))
+                {
+                    RunLocalContributionSmoke();
+                }
+
                 if (GUILayout.Button("Run Route Callback Smoke"))
                 {
                     RunRouteCallbackSmoke();
@@ -778,6 +783,110 @@ namespace Immersive.Framework.Diagnostics
             });
         }
 
+        private async void RunLocalContributionSmoke()
+        {
+            string missingTargets = string.Empty;
+            AppendMissingQaAsset(ref missingTargets, secondaryActivity == null, "Secondary Activity");
+            AppendMissingQaAsset(ref missingTargets, primaryActivity == null, "Primary Activity");
+            if (!TryValidateSmokeTargets("Local Contribution Smoke", missingTargets))
+            {
+                return;
+            }
+
+            await RunSmokeAsync("Local Contribution Smoke", async runtimeHost =>
+            {
+                if (!ValidateLocalContributionSmokeStep("loaded"))
+                {
+                    return false;
+                }
+
+                var secondaryResult = await RequestActivityWithResultCoreAsync(
+                    runtimeHost,
+                    secondaryActivity,
+                    ResolveReason(activityReason, GetAssetName(secondaryActivity, "QA Secondary Content Activity")));
+                if (!secondaryResult.Succeeded)
+                {
+                    _logger.Warning($"QA Local Contribution Smoke step failed. step='secondary' reason='Activity request did not succeed' status='{FormatValue(secondaryResult.Kind.ToString())}'.");
+                    return false;
+                }
+
+                await Task.Yield();
+                if (!ValidateLocalContributionSmokeStep("secondary"))
+                {
+                    return false;
+                }
+
+                var primaryResult = await RequestActivityWithResultCoreAsync(
+                    runtimeHost,
+                    primaryActivity,
+                    ResolveReason(activityReason, GetAssetName(primaryActivity, "QA Primary Content Activity")));
+                if (!primaryResult.Succeeded)
+                {
+                    _logger.Warning($"QA Local Contribution Smoke step failed. step='primary' reason='Activity restore request did not succeed' status='{FormatValue(primaryResult.Kind.ToString())}'.");
+                    return false;
+                }
+
+                await Task.Yield();
+                return ValidateLocalContributionSmokeStep("primary");
+            });
+        }
+
+        private bool ValidateLocalContributionSmokeStep(string stepName)
+        {
+            EnsureLogger();
+
+            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            RouteContentBinding[] routeBindings = FindObjectsByType<RouteContentBinding>(
+                FindObjectsInactive.Include);
+            ActivityLocalVisibilityAdapter[] activityAdapters = FindObjectsByType<ActivityLocalVisibilityAdapter>(
+                FindObjectsInactive.Include);
+
+            int routeBindingCount = routeBindings != null ? routeBindings.Length : 0;
+            int activityAdapterCount = activityAdapters != null ? activityAdapters.Length : 0;
+            if (routeBindingCount == 0)
+            {
+                _logger.Warning($"QA Local Contribution Smoke step failed. step='{FormatValue(normalizedStepName)}' reason='No RouteContentBinding found in loaded scenes' routeBindings='0' activityAdapters='{activityAdapterCount}'.");
+                return false;
+            }
+
+            if (activityAdapterCount == 0)
+            {
+                _logger.Warning($"QA Local Contribution Smoke step failed. step='{FormatValue(normalizedStepName)}' reason='No ActivityLocalVisibilityAdapter found in loaded scenes' routeBindings='{routeBindingCount}' activityAdapters='0'.");
+                return false;
+            }
+
+            var validationResult = LocalContributionValidator.ValidateLoadedSceneAuthored();
+            var contributionSet = validationResult.ContributionSet;
+
+            if (!validationResult.Succeeded)
+            {
+                _logger.Warning($"QA Local Contribution Smoke step failed. step='{FormatValue(normalizedStepName)}' reason='Local contribution validation has blocking issues'. {validationResult.ToDiagnosticString()}");
+                return false;
+            }
+
+            if (contributionSet.Count == 0)
+            {
+                _logger.Warning($"QA Local Contribution Smoke step failed. step='{FormatValue(normalizedStepName)}' reason='No valid local contribution handles were discovered'. routeBindings='{routeBindingCount}' activityAdapters='{activityAdapterCount}' {validationResult.ToDiagnosticString()}");
+                return false;
+            }
+
+            if (contributionSet.RouteContentBindingCount != routeBindingCount
+                || contributionSet.ActivityLocalVisibilityAdapterCount != activityAdapterCount)
+            {
+                _logger.Warning($"QA Local Contribution Smoke step failed. step='{FormatValue(normalizedStepName)}' reason='Discovered contribution count does not match loaded authoring component count'. routeBindings='{routeBindingCount}' activityAdapters='{activityAdapterCount}' {validationResult.ToDiagnosticString()}");
+                return false;
+            }
+
+            if (contributionSet.RequiredCount + contributionSet.OptionalCount != contributionSet.Count)
+            {
+                _logger.Warning($"QA Local Contribution Smoke step failed. step='{FormatValue(normalizedStepName)}' reason='Requiredness count does not match contribution count'. {validationResult.ToDiagnosticString()}");
+                return false;
+            }
+
+            _logger.Info($"QA Local Contribution Smoke step completed. step='{FormatValue(normalizedStepName)}' routeBindings='{routeBindingCount}' activityAdapters='{activityAdapterCount}' {validationResult.ToDiagnosticString()}");
+            return true;
+        }
+
         private async void RunRouteCallbackSmoke()
         {
             string missingTargets = string.Empty;
@@ -1107,35 +1216,45 @@ namespace Immersive.Framework.Diagnostics
                 }
             }
 
-            var discoveryResult = LocalContributionDiscovery.DiscoverLoadedSceneAuthored();
-            AddLocalContributionDiscoveryIssues(discoveryResult, ref issueCount, ref errorCount);
+            var validationResult = LocalContributionValidator.ValidateLoadedSceneAuthored();
+            AddLocalContributionValidationIssues(validationResult, ref issueCount, ref errorCount, ref warningCount);
 
             if (issueCount == 0)
             {
-                _logger.Info($"QA Authoring Validation completed. scope='Loaded Local Contributions' routeBindings='{routeBindingCount}' activityAdapters='{activityAdapterCount}' localContributions='{discoveryResult.ContributionCount}' issues='0'. {discoveryResult.ContributionSet.ToDiagnosticString()}");
+                _logger.Info($"QA Authoring Validation completed. scope='Loaded Local Contributions' routeBindings='{routeBindingCount}' activityAdapters='{activityAdapterCount}' issues='0'. {validationResult.ToDiagnosticString()}");
                 return;
             }
 
-            _logger.Warning($"QA Authoring Validation completed. scope='Loaded Local Contributions' routeBindings='{routeBindingCount}' activityAdapters='{activityAdapterCount}' localContributions='{discoveryResult.ContributionCount}' issues='{issueCount}' errors='{errorCount}' warnings='{warningCount}'.");
+            _logger.Warning($"QA Authoring Validation completed. scope='Loaded Local Contributions' routeBindings='{routeBindingCount}' activityAdapters='{activityAdapterCount}' issues='{issueCount}' errors='{errorCount}' warnings='{warningCount}'. {validationResult.ToDiagnosticString()}");
         }
 
-        private void AddLocalContributionDiscoveryIssues(
-            LocalContributionDiscoveryResult discoveryResult,
+        private void AddLocalContributionValidationIssues(
+            LocalContributionValidationResult validationResult,
             ref int issueCount,
-            ref int errorCount)
+            ref int errorCount,
+            ref int warningCount)
         {
-            if (!discoveryResult.HasIssues)
+            if (!validationResult.HasIssues)
             {
                 return;
             }
 
-            var issues = discoveryResult.Issues;
+            var issues = validationResult.Issues;
             for (int i = 0; i < issues.Count; i++)
             {
-                AddQaAuthoringIssue(
+                if (issues[i].Blocking)
+                {
+                    AddQaAuthoringIssue(
+                        ref issueCount,
+                        ref errorCount,
+                        $"LocalContributionValidation {issues[i].ToDiagnosticString()}.");
+                    continue;
+                }
+
+                AddQaAuthoringWarning(
                     ref issueCount,
-                    ref errorCount,
-                    $"LocalContributionDiscovery {issues[i].ToDiagnosticString()}.");
+                    ref warningCount,
+                    $"LocalContributionValidation {issues[i].ToDiagnosticString()}.");
             }
         }
 

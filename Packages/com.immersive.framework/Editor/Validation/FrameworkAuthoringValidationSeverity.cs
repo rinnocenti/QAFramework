@@ -1,4 +1,4 @@
-namespace Immersive.Framework.Editor.Validation
+namespace Immersive.Framework.Editor.Editor.Validation
 {
     internal enum FrameworkAuthoringValidationSeverity
     {

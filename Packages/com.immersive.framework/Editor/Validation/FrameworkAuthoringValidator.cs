@@ -3,8 +3,7 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.RouteLifecycle;
 using UnityEditor;
 using UnityEngine;
-
-namespace Immersive.Framework.Editor.Validation
+namespace Immersive.Framework.Editor.Editor.Validation
 {
     internal static class FrameworkAuthoringValidator
     {

@@ -1,7 +1,6 @@
 using Immersive.Logging.Formatting;
 using Immersive.Logging.Loggers;
 using Immersive.Logging.Policies;
-using Immersive.Logging.Records;
 using Immersive.Logging.Unity;
 using Immersive.Framework.ApiStatus;
 
@@ -23,36 +22,23 @@ namespace Immersive.Framework.Diagnostics
         {
             return new FrameworkLogger(
                 new Logger(
-                    new UnityConsoleLogSink(new FrameworkMessageFormatter()),
+                    new UnityConsoleLogSink(new PlainTextLogFormatter()),
                     new AllowAllLogPolicy()));
         }
 
         internal void Info(string message)
         {
-            _logger.Info(Format(message));
+            _logger.Info(message, Prefix);
         }
 
         internal void Warning(string message)
         {
-            _logger.Warning(Format(message));
+            _logger.Warning(message, Prefix);
         }
 
         internal void Error(string message)
         {
-            _logger.Error(Format(message));
-        }
-
-        private static string Format(string message)
-        {
-            return $"{Prefix} {message}";
-        }
-
-        private sealed class FrameworkMessageFormatter : ILogFormatter
-        {
-            public string Format(LogRecord record)
-            {
-                return record.Message;
-            }
+            _logger.Error(message, Prefix);
         }
     }
 }
