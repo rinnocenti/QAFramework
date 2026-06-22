@@ -3,9 +3,11 @@ using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Diagnostics;
 using Immersive.Framework.GameFlow;
+using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.SessionLifecycle;
 using UnityEngine;
 using Immersive.Framework.ApiStatus;
+using Immersive.Logging.Records;
 
 namespace Immersive.Framework.ApplicationLifecycle
 {
@@ -111,7 +113,7 @@ namespace Immersive.Framework.ApplicationLifecycle
         {
             _gameApplication = application;
             _gameFlowRuntime = new GameFlowRuntime();
-            _logger = FrameworkLogger.Create();
+            _logger = FrameworkLogger.Create<FrameworkRuntimeHost>();
             _state = FrameworkRuntimeState.Empty(application);
         }
 
@@ -119,7 +121,8 @@ namespace Immersive.Framework.ApplicationLifecycle
         {
             if (result.Succeeded)
             {
-                _logger.Info(result.Message);
+                _logger.Info("Route Request completed.", BuildRouteRequestFields(result));
+                _logger.Debug("Route Request diagnostics. " + result.Message);
                 LogActivityContentObservability(result.RouteLifecycleResult.ActivityFlowResult.ActivityContentResult);
                 return;
             }
@@ -138,7 +141,8 @@ namespace Immersive.Framework.ApplicationLifecycle
         {
             if (result.Succeeded)
             {
-                _logger.Info(result.Message);
+                _logger.Info("Activity Request completed.", BuildActivityRequestFields(result));
+                _logger.Debug("Activity Request diagnostics. " + result.Message);
                 LogActivityContentObservability(result.ActivityFlowResult.ActivityContentResult);
                 return;
             }
@@ -154,17 +158,81 @@ namespace Immersive.Framework.ApplicationLifecycle
             _logger.Error(result.Message);
         }
 
+        private static LogField[] BuildRouteRequestFields(FrameworkRouteRequestResult result)
+        {
+            RouteLifecycleStartResult routeLifecycle = result.RouteLifecycleResult;
+            ActivityFlowStartResult activityFlow = routeLifecycle.ActivityFlowResult;
+            ActivityContentApplyResult activityContent = activityFlow.ActivityContentResult;
+
+            return LogFields.Of(
+                LogFields.Field("kind", result.Kind),
+                LogFields.Field("source", result.Source),
+                LogFields.Field("reason", result.Reason),
+                LogFields.Field("previousRoute", GetRouteName(routeLifecycle.PreviousRoute)),
+                LogFields.Field("targetRoute", GetRouteName(result.TargetRoute)),
+                LogFields.Field("scene", routeLifecycle.SceneLifecycleResult.SceneName),
+                LogFields.Field("alreadyLoaded", routeLifecycle.SceneLifecycleResult.AlreadyLoaded),
+                LogFields.Field("loadMode", routeLifecycle.SceneLifecycleResult.LoadMode),
+                LogFields.Field("routeExit", routeLifecycle.RouteExitResult.DiagnosticStatus),
+                LogFields.Field("routeContentHandles", routeLifecycle.RouteContentSet.Count),
+                LogFields.Field("routeContentEnterReceivers", routeLifecycle.RouteContentEnterResult.ReceiverCount),
+                LogFields.Field("routeContentExitReceivers", routeLifecycle.RouteContentExitResult.ReceiverCount),
+                LogFields.Field("activity", FormatDiagnosticValue(activityFlow.ActivityState.ActivityName)),
+                LogFields.Field("activityState", activityFlow.ActivityState.DiagnosticStatus),
+                LogFields.Field("activityReadiness", activityFlow.ActivityReadinessState.DiagnosticStatus),
+                LogFields.Field("activityContentHandles", activityContent.ActivityContentCount));
+        }
+
+        private static LogField[] BuildActivityRequestFields(FrameworkActivityRequestResult result)
+        {
+            ActivityFlowStartResult activityFlow = result.ActivityFlowResult;
+            ActivityContentApplyResult activityContent = activityFlow.ActivityContentResult;
+            ActivityContentLifecycleResult lifecycle = activityContent.LifecycleResult;
+
+            return LogFields.Of(
+                LogFields.Field("kind", result.Kind),
+                LogFields.Field("source", result.Source),
+                LogFields.Field("reason", result.Reason),
+                LogFields.Field("targetActivity", GetActivityName(result.TargetActivity)),
+                LogFields.Field("previousActivity", GetActivityName(activityFlow.PreviousActivity)),
+                LogFields.Field("activity", FormatDiagnosticValue(activityFlow.ActivityState.ActivityName)),
+                LogFields.Field("activityState", activityFlow.ActivityState.DiagnosticStatus),
+                LogFields.Field("activityReadiness", activityFlow.ActivityReadinessState.DiagnosticStatus),
+                LogFields.Field("activityReadinessReason", activityFlow.ActivityReadinessState.DiagnosticReason),
+                LogFields.Field("activityReadinessIssues", activityFlow.ActivityReadinessState.BlockingIssueCount),
+                LogFields.Field("activityContentBindings", activityContent.BindingCount),
+                LogFields.Field("activityContentHandles", activityContent.ActivityContentCount),
+                LogFields.Field("activityContentLifecycle", lifecycle.DiagnosticStatus),
+                LogFields.Field("activityContentEnterFailed", lifecycle.EnterFailedReceiverCount),
+                LogFields.Field("activityContentExitFailed", lifecycle.ExitFailedReceiverCount));
+        }
+
         private void LogActivityContentObservability(ActivityContentApplyResult activityContentResult)
         {
             if (activityContentResult.HasDetailMessage)
             {
-                _logger.Info(activityContentResult.DetailMessage);
+                _logger.Debug(activityContentResult.DetailMessage);
             }
 
             if (activityContentResult.HasWarningMessage)
             {
                 _logger.Warning(activityContentResult.WarningMessage);
             }
+        }
+
+        private static string GetRouteName(RouteAsset route)
+        {
+            return route != null ? FormatDiagnosticValue(route.RouteName) : "<none>";
+        }
+
+        private static string GetActivityName(ActivityAsset activity)
+        {
+            return activity != null ? FormatDiagnosticValue(activity.ActivityName) : "<none>";
+        }
+
+        private static string FormatDiagnosticValue(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? "<none>" : value.Trim();
         }
 
         private void OnDestroy()

@@ -1,5 +1,6 @@
 using System.IO;
 using Immersive.Framework.Authoring;
+using Immersive.Logging.Unity;
 using UnityEditor;
 using UnityEngine;
 namespace Immersive.Framework.Editor.Editor.Settings
@@ -11,6 +12,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
         internal const string StartupRouteDefaultPath = "Assets/ImmersiveFramework/Routes/StartupRoute.asset";
         internal const string StartupActivityDefaultPath = "Assets/ImmersiveFramework/Activities/StartupActivity.asset";
         internal const string RouteContentProfileDefaultPath = "Assets/ImmersiveFramework/Routes/RouteContentProfile.asset";
+        internal const string LoggingConfigDefaultPath = "Assets/ImmersiveFramework/Logging/LoggingConfig.asset";
         internal const string UsageGuidePath = "Packages/com.immersive.framework/Documentation~/Guides/Usage/index.html";
 
         internal static ImmersiveFrameworkSettingsAsset LoadOrCreateSettingsAsset()
@@ -83,6 +85,19 @@ namespace Immersive.Framework.Editor.Editor.Settings
             return profile;
         }
 
+        internal static LoggingConfigAsset CreateLoggingConfigAsset()
+        {
+            EnsureDirectory("Assets/ImmersiveFramework/Logging");
+
+            var path = AssetDatabase.GenerateUniqueAssetPath(LoggingConfigDefaultPath);
+            var loggingConfig = ScriptableObject.CreateInstance<LoggingConfigAsset>();
+            AssetDatabase.CreateAsset(loggingConfig, path);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            return loggingConfig;
+        }
+
         internal static GameApplicationAsset GetActiveGameApplication()
         {
             var settings = LoadOrCreateSettingsAsset();
@@ -111,6 +126,29 @@ namespace Immersive.Framework.Editor.Editor.Settings
 
             var serializedSettings = new SerializedObject(settings);
             serializedSettings.FindProperty("activeGameApplication").objectReferenceValue = gameApplication;
+            serializedSettings.ApplyModifiedProperties();
+
+            EditorUtility.SetDirty(settings);
+            AssetDatabase.SaveAssets();
+        }
+
+        internal static void AssignLoggingConfig(LoggingConfigAsset loggingConfig)
+        {
+            if (loggingConfig == null)
+            {
+                return;
+            }
+
+            var settings = LoadOrCreateSettingsAsset();
+            if (settings == null)
+            {
+                return;
+            }
+
+            Undo.RecordObject(settings, "Set Logging Config");
+
+            var serializedSettings = new SerializedObject(settings);
+            serializedSettings.FindProperty("loggingConfig").objectReferenceValue = loggingConfig;
             serializedSettings.ApplyModifiedProperties();
 
             EditorUtility.SetDirty(settings);

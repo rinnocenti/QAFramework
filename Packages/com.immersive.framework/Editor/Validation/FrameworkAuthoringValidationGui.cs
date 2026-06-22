@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Immersive.Framework.Diagnostics;
+using Immersive.Logging.Records;
 using UnityEditor;
 using UnityEngine;
 namespace Immersive.Framework.Editor.Editor.Validation
@@ -64,20 +65,26 @@ namespace Immersive.Framework.Editor.Editor.Validation
                 return;
             }
 
-            var logger = FrameworkLogger.Create();
-            string summary = $"Authoring Validation completed. scope='{title}' mode='{report.ValidationMode}' errors='{report.ErrorCount}' warnings='{report.WarningCount}' info='{report.InfoCount}'.";
+            var logger = FrameworkLogger.Create(typeof(FrameworkAuthoringValidationGui));
+            string summary = "Authoring Validation completed.";
+            LogField[] summaryFields = LogFields.Of(
+                LogFields.Field("scope", title),
+                LogFields.Field("mode", report.ValidationMode),
+                LogFields.Field("errors", report.ErrorCount),
+                LogFields.Field("warnings", report.WarningCount),
+                LogFields.Field("info", report.InfoCount));
 
             if (report.ErrorCount > 0)
             {
-                logger.Error(summary);
+                logger.Error(summary, summaryFields);
             }
             else if (report.WarningCount > 0)
             {
-                logger.Warning(summary);
+                logger.Warning(summary, summaryFields);
             }
             else
             {
-                logger.Info(summary);
+                logger.Info(summary, summaryFields);
             }
 
             IReadOnlyList<FrameworkAuthoringValidationIssue> issues = report.Issues;

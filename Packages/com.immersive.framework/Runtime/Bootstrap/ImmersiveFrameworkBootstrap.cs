@@ -3,8 +3,11 @@ using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Diagnostics;
+using Immersive.Framework.GameFlow;
+using Immersive.Framework.RouteLifecycle;
 using UnityEngine;
 using Immersive.Framework.ApiStatus;
+using Immersive.Logging.Records;
 
 namespace Immersive.Framework.Bootstrap
 {
@@ -19,7 +22,7 @@ namespace Immersive.Framework.Bootstrap
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static async void BootAfterSceneLoad()
         {
-            var logger = FrameworkLogger.Create();
+            var logger = FrameworkLogger.Create(typeof(ImmersiveFrameworkBootstrap));
 
             try
             {
@@ -28,7 +31,7 @@ namespace Immersive.Framework.Bootstrap
 #if UNITY_EDITOR
                 if (ShouldSkipFrameworkStartupInEditor(settings))
                 {
-                    logger.Info("Boot skipped. Editor Play Mode Startup is set to Current Scene Only.");
+                    logger.Info("Boot skipped.", LogFields.Field("editorPlayModeStartup", "CurrentSceneOnly"));
                     return;
                 }
 #endif
@@ -37,7 +40,7 @@ namespace Immersive.Framework.Bootstrap
 
                 if (!result.Succeeded)
                 {
-                    logger.Error($"Boot failed. {result.Message}");
+                    logger.Error("Boot failed.", LogFields.Field("reason", result.Message));
                     return;
                 }
 
@@ -45,16 +48,19 @@ namespace Immersive.Framework.Bootstrap
                 var gameFlowResult = await runtimeHost.StartAsync();
                 if (!gameFlowResult.Started)
                 {
-                    logger.Error($"Game Flow failed. {gameFlowResult.Message}");
+                    logger.Error("Game Flow failed.", LogFields.Field("reason", gameFlowResult.Message));
                     return;
                 }
 
-                logger.Info($"Boot succeeded. Application Runtime started. {result.Message} {gameFlowResult.Message} Validation Mode: {result.ValidationMode}.");
+                logger.Info(
+                    "Boot succeeded. Application Runtime started.",
+                    BuildBootFields(result, gameFlowResult));
+                logger.Debug("Boot diagnostics. " + gameFlowResult.Message);
                 LogActivityContentObservability(logger, gameFlowResult.RouteLifecycleResult.ActivityFlowResult.ActivityContentResult);
             }
             catch (Exception exception)
             {
-                logger.Error($"Boot failed. {exception.GetType().Name}: {exception.Message}");
+                logger.Error("Boot failed.", exception);
             }
         }
 
@@ -63,11 +69,39 @@ namespace Immersive.Framework.Bootstrap
             return FrameworkBootValidator.Validate(LoadSettings());
         }
 
+        private static LogField[] BuildBootFields(
+            FrameworkBootResult result,
+            FrameworkGameFlowStartResult gameFlowResult)
+        {
+            RouteLifecycleStartResult routeLifecycleResult = gameFlowResult.RouteLifecycleResult;
+            ActivityFlowStartResult activityFlowResult = routeLifecycleResult.ActivityFlowResult;
+            ActivityContentApplyResult activityContentResult = activityFlowResult.ActivityContentResult;
+
+            return LogFields.Of(
+                LogFields.Field("gameApplication", result.GameApplication != null ? result.GameApplication.ApplicationName : null),
+                LogFields.Field("startupRoute", result.StartupRoute != null ? result.StartupRoute.RouteName : null),
+                LogFields.Field("primaryScene", result.StartupRoute != null ? result.StartupRoute.PrimarySceneName : null),
+                LogFields.Field("validationMode", result.ValidationMode),
+                LogFields.Field("alreadyLoaded", routeLifecycleResult.SceneLifecycleResult.AlreadyLoaded),
+                LogFields.Field("loadMode", routeLifecycleResult.SceneLifecycleResult.LoadMode),
+                LogFields.Field("routeContentHandles", routeLifecycleResult.RouteContentSet.Count),
+                LogFields.Field("routeContentEnterReceivers", routeLifecycleResult.RouteContentEnterResult.ReceiverCount),
+                LogFields.Field("activity", FormatDiagnosticValue(activityFlowResult.ActivityState.ActivityName)),
+                LogFields.Field("activityState", activityFlowResult.ActivityState.DiagnosticStatus),
+                LogFields.Field("activityReadiness", activityFlowResult.ActivityReadinessState.DiagnosticStatus),
+                LogFields.Field("activityContentHandles", activityContentResult.ActivityContentCount));
+        }
+
+        private static string FormatDiagnosticValue(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? "<none>" : value.Trim();
+        }
+
         private static void LogActivityContentObservability(FrameworkLogger logger, ActivityContentApplyResult activityContentResult)
         {
             if (activityContentResult.HasDetailMessage)
             {
-                logger.Info(activityContentResult.DetailMessage);
+                logger.Debug(activityContentResult.DetailMessage);
             }
 
             if (activityContentResult.HasWarningMessage)

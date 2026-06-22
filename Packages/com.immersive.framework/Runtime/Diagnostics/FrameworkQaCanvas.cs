@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 using Immersive.Framework.ApiStatus;
+using Immersive.Logging.Records;
 
 namespace Immersive.Framework.Diagnostics
 {
@@ -71,7 +72,7 @@ namespace Immersive.Framework.Diagnostics
 
         private void Awake()
         {
-            _logger = FrameworkLogger.Create();
+            _logger = FrameworkLogger.Create<FrameworkQaCanvas>();
             EnsureWindowId();
 
             if (!persistAcrossSceneLoads)
@@ -883,7 +884,24 @@ namespace Immersive.Framework.Diagnostics
                 return false;
             }
 
-            _logger.Info($"QA Local Contribution Smoke step completed. step='{FormatValue(normalizedStepName)}' routeBindings='{routeBindingCount}' activityAdapters='{activityAdapterCount}' {validationResult.ToDiagnosticString()}");
+            _logger.Info(
+                "QA Local Contribution Smoke step completed.",
+                LogFields.Of(
+                    LogFields.Field("step", normalizedStepName),
+                    LogFields.Field("routeBindings", routeBindingCount),
+                    LogFields.Field("activityAdapters", activityAdapterCount),
+                    LogFields.Field("localContributions", validationResult.ContributionCount),
+                    LogFields.Field("validationIssues", validationResult.IssueCount),
+                    LogFields.Field("blockingIssues", validationResult.BlockingIssueCount),
+                    LogFields.Field("optionalSkips", validationResult.OptionalSkipCount),
+                    LogFields.Field("handles", contributionSet.Count),
+                    LogFields.Field("route", contributionSet.RouteCount),
+                    LogFields.Field("activity", contributionSet.ActivityCount),
+                    LogFields.Field("required", contributionSet.RequiredCount),
+                    LogFields.Field("optional", contributionSet.OptionalCount)));
+            _logger.Debug(
+                "QA Local Contribution Smoke diagnostics.",
+                LogFields.Field("details", validationResult.ToDiagnosticString()));
             return true;
         }
 
@@ -1221,11 +1239,35 @@ namespace Immersive.Framework.Diagnostics
 
             if (issueCount == 0)
             {
-                _logger.Info($"QA Authoring Validation completed. scope='Loaded Local Contributions' routeBindings='{routeBindingCount}' activityAdapters='{activityAdapterCount}' issues='0'. {validationResult.ToDiagnosticString()}");
+                _logger.Info(
+                    "QA Authoring Validation completed.",
+                    LogFields.Of(
+                        LogFields.Field("scope", "Loaded Local Contributions"),
+                        LogFields.Field("routeBindings", routeBindingCount),
+                        LogFields.Field("activityAdapters", activityAdapterCount),
+                        LogFields.Field("issues", 0),
+                        LogFields.Field("localContributions", validationResult.ContributionCount),
+                        LogFields.Field("blockingIssues", validationResult.BlockingIssueCount),
+                        LogFields.Field("optionalSkips", validationResult.OptionalSkipCount)));
+                _logger.Debug(
+                    "QA Authoring Validation diagnostics.",
+                    LogFields.Field("details", validationResult.ToDiagnosticString()));
                 return;
             }
 
-            _logger.Warning($"QA Authoring Validation completed. scope='Loaded Local Contributions' routeBindings='{routeBindingCount}' activityAdapters='{activityAdapterCount}' issues='{issueCount}' errors='{errorCount}' warnings='{warningCount}'. {validationResult.ToDiagnosticString()}");
+            _logger.Warning(
+                "QA Authoring Validation completed with issues.",
+                LogFields.Of(
+                    LogFields.Field("scope", "Loaded Local Contributions"),
+                    LogFields.Field("routeBindings", routeBindingCount),
+                    LogFields.Field("activityAdapters", activityAdapterCount),
+                    LogFields.Field("issues", issueCount),
+                    LogFields.Field("errors", errorCount),
+                    LogFields.Field("warnings", warningCount),
+                    LogFields.Field("localContributions", validationResult.ContributionCount),
+                    LogFields.Field("blockingIssues", validationResult.BlockingIssueCount),
+                    LogFields.Field("optionalSkips", validationResult.OptionalSkipCount),
+                    LogFields.Field("details", validationResult.ToDiagnosticString())));
         }
 
         private void AddLocalContributionValidationIssues(
@@ -1453,7 +1495,7 @@ namespace Immersive.Framework.Diagnostics
 
         private void EnsureLogger()
         {
-            _logger ??= FrameworkLogger.Create();
+            _logger ??= FrameworkLogger.Create<FrameworkQaCanvas>();
         }
 
         private bool TryValidateSmokeTargets(string smokeName, string missingTargets)

@@ -1,6 +1,7 @@
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.RouteLifecycle;
+using Immersive.Logging.Records;
 using UnityEngine;
 
 namespace Immersive.Framework.Diagnostics
@@ -61,22 +62,30 @@ namespace Immersive.Framework.Diagnostics
             string sceneName = context.Binding != null ? context.Binding.SceneName : "<no-scene>";
             string objectName = context.Binding != null ? context.Binding.ObjectName : "<missing>";
 
-            _logger.Info($"Route Content Smoke Probe callback. phase='{FormatValue(phase)}' probe='{FormatValue(ProbeName)}' route='{FormatValue(routeName)}' scene='{FormatValue(sceneName)}' object='{FormatValue(objectName)}' localCount='{localCount}'.");
+            _logger.Debug(
+                "Route Content Smoke Probe callback.",
+                LogFields.Of(
+                    LogFields.Field("phase", FormatValue(phase)),
+                    LogFields.Field("probe", FormatValue(ProbeName)),
+                    LogFields.Field("route", FormatValue(routeName)),
+                    LogFields.Field("scene", FormatValue(sceneName)),
+                    LogFields.Field("object", FormatValue(objectName)),
+                    LogFields.Field("localCount", localCount)));
         }
 
         private void EnsureLogger()
         {
             if (_logger == null)
             {
-                _logger = FrameworkLogger.Create();
+                _logger = FrameworkLogger.Create<RouteContentLifecycleSmokeProbe>();
             }
         }
 
         private static string FormatValue(string value)
         {
             return string.IsNullOrWhiteSpace(value)
-                ? "<empty>"
-                : value.Replace("'", "\'");
+                ? "<none>"
+                : value.Trim();
         }
     }
 }

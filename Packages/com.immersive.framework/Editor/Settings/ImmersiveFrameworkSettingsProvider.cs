@@ -23,7 +23,12 @@ namespace Immersive.Framework.Editor.Editor.Settings
                     "Usage Guide",
                     "Boot Status",
                     "Editor Play Mode",
-                    "Current Scene Only"
+                    "Current Scene Only",
+                    "Logging",
+                    "Logging Config",
+                    "Namespace",
+                    "Verbose",
+                    "Minimum Level"
                 }
             };
         }
@@ -47,6 +52,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
             var serializedSettings = new SerializedObject(settings);
             var activeGameApplication = serializedSettings.FindProperty("activeGameApplication");
             var editorPlayModeStartup = serializedSettings.FindProperty("editorPlayModeStartup");
+            var loggingConfig = serializedSettings.FindProperty("loggingConfig");
 
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Editor Play Mode", EditorStyles.boldLabel);
@@ -80,16 +86,53 @@ namespace Immersive.Framework.Editor.Editor.Settings
                 }
             }
 
+            EditorGUILayout.Space(6);
+            DrawLoggingSettings(loggingConfig);
+
             serializedSettings.ApplyModifiedProperties();
 
             EditorGUILayout.Space(8);
             DrawBootStatus(settings);
 
             EditorGUILayout.Space(8);
-            DrawConfigurationFiles();
+            DrawConfigurationFiles(loggingConfig.objectReferenceValue);
 
             EditorGUILayout.Space(8);
             DrawCurrentScope();
+        }
+
+        private static void DrawLoggingSettings(SerializedProperty loggingConfig)
+        {
+            EditorGUILayout.LabelField("Logging", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                "Optional configuration for framework logs. Leave empty to use the built-in default: Info and above, single-line console output, and no stack trace for regular Log entries.",
+                MessageType.None);
+            EditorGUILayout.PropertyField(loggingConfig, new GUIContent("Logging Config"));
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Create and Assign Logging Config"))
+                {
+                    var created = ImmersiveFrameworkEditorSettingsUtility.CreateLoggingConfigAsset();
+                    if (created != null)
+                    {
+                        loggingConfig.objectReferenceValue = created;
+                        Selection.activeObject = created;
+                    }
+                }
+
+                using (new EditorGUI.DisabledScope(loggingConfig.objectReferenceValue == null))
+                {
+                    if (GUILayout.Button("Select Logging Config"))
+                    {
+                        Selection.activeObject = loggingConfig.objectReferenceValue;
+                    }
+                }
+            }
+
+            EditorGUILayout.HelpBox(
+                "Logging Config rules are evaluated by owner type first, then namespace/category prefix, then the default minimum level. Use namespace rules to hide verbose framework areas without changing code.",
+                MessageType.None);
         }
 
         private static void DrawBootStatus(ImmersiveFrameworkSettingsAsset settings)
@@ -120,13 +163,17 @@ namespace Immersive.Framework.Editor.Editor.Settings
         }
 
 
-        private static void DrawConfigurationFiles()
+        private static void DrawConfigurationFiles(Object loggingConfig)
         {
             EditorGUILayout.LabelField("Configuration Files", EditorStyles.boldLabel);
 
             using (new EditorGUI.DisabledScope(true))
             {
                 EditorGUILayout.TextField("Settings Asset", ImmersiveFrameworkEditorSettingsUtility.SettingsPath);
+                string loggingConfigPath = loggingConfig != null
+                    ? AssetDatabase.GetAssetPath(loggingConfig)
+                    : "Not assigned";
+                EditorGUILayout.TextField("Logging Config", loggingConfigPath);
             }
 
             using (new EditorGUILayout.HorizontalScope())
@@ -147,7 +194,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
         {
             EditorGUILayout.LabelField("Current Scope", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "This settings page currently assigns the active Game Application, controls Editor Play Mode startup, and previews boot validation. Activity, Actor, Input, Camera, Save, and Pooling are intentionally not configured here yet.",
+                "This settings page currently assigns the active Game Application, controls Editor Play Mode startup, configures framework logging, and previews boot validation. Activity, Actor, Input, Camera, Save, and Pooling are intentionally not configured here yet.",
                 MessageType.None);
         }
     }

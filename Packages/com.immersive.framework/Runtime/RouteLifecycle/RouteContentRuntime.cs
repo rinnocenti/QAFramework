@@ -14,7 +14,7 @@ namespace Immersive.Framework.RouteLifecycle
     [FrameworkApiStatus(FrameworkApiStatus.Internal, "Runtime implementation detail activated by F3D for Route-local content callbacks.")]
     internal sealed class RouteContentRuntime
     {
-        private readonly FrameworkLogger _logger = FrameworkLogger.Create();
+        private readonly FrameworkLogger _logger = FrameworkLogger.Create<RouteContentRuntime>();
 
         internal RouteContentLifecycleDispatchResult ExitRouteContent(RouteAsset route, RouteAsset nextRoute, string source, string reason)
         {

@@ -18,7 +18,7 @@ namespace Immersive.Framework.ActivityFlow
     {
         private const int MaxObservedBindingsInMessage = 8;
 
-        private readonly FrameworkLogger _logger = FrameworkLogger.Create();
+        private readonly FrameworkLogger _logger = FrameworkLogger.Create<ActivityContentRuntime>();
 
         private ActivityContentApplyResult _lastApplyResult;
         private bool _hasLastApplyResult;

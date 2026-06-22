@@ -13,7 +13,7 @@
       "source": "embedded",
       "dependencies": {
         "com.immersive.foundation": "https://github.com/ImmersiveGames/com.immersive.foundation.git",
-        "com.immersive.logging": "https://github.com/ImmersiveGames/com.immersive.logging.git"
+        "com.immersive.logging": "https://github.com/ImmersiveGames/com.immersive.logging.git#main"
       }
     },
     "com.immersive.logging": {
@@ -21,7 +21,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "1fa88443baebfb9ce2a611fdae7c0d99f77b01f5"
+      "hash": "dd8fc203c8704cf627ea060952e5c0dba9648408"
     },
     "com.unity.addressables": {
       "version": "3.1.0",

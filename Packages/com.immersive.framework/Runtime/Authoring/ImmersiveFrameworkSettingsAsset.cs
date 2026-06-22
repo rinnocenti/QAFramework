@@ -1,5 +1,6 @@
-using UnityEngine;
 using Immersive.Framework.ApiStatus;
+using Immersive.Logging.Unity;
+using UnityEngine;
 
 namespace Immersive.Framework.Authoring
 {
@@ -18,8 +19,13 @@ namespace Immersive.Framework.Authoring
         [SerializeField]
         private FrameworkEditorPlayModeStartup editorPlayModeStartup = FrameworkEditorPlayModeStartup.FrameworkStartup;
 
+        [SerializeField]
+        private LoggingConfigAsset loggingConfig;
+
         public GameApplicationAsset ActiveGameApplication => activeGameApplication;
 
         public FrameworkEditorPlayModeStartup EditorPlayModeStartup => editorPlayModeStartup;
+
+        public LoggingConfigAsset LoggingConfig => loggingConfig;
     }
 }

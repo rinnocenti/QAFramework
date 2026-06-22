@@ -67,7 +67,7 @@ namespace Immersive.Framework.GameFlow
 
         private void Awake()
         {
-            _logger = FrameworkLogger.Create();
+            _logger = FrameworkLogger.Create<ActivityRequestTrigger>();
         }
 
         public async void RequestActivity()
@@ -153,7 +153,7 @@ namespace Immersive.Framework.GameFlow
         {
             if (_logger == null)
             {
-                _logger = FrameworkLogger.Create();
+                _logger = FrameworkLogger.Create<ActivityRequestTrigger>();
             }
         }
 
