@@ -76,6 +76,40 @@ namespace Immersive.Framework.ContentFlow
                 message);
         }
 
+        public static ContentReleaseResultEntry ReleasedEntry(
+            ContentReleasePlanEntry planEntry,
+            string message)
+        {
+            return new ContentReleaseResultEntry(
+                planEntry,
+                ContentReleaseEntryStatus.Released,
+                false,
+                message);
+        }
+
+        public static ContentReleaseResultEntry SkippedEntry(
+            ContentReleasePlanEntry planEntry,
+            string message)
+        {
+            return new ContentReleaseResultEntry(
+                planEntry,
+                ContentReleaseEntryStatus.Skipped,
+                false,
+                message);
+        }
+
+        public static ContentReleaseResultEntry FailedEntry(
+            ContentReleasePlanEntry planEntry,
+            bool blockingIssue,
+            string message)
+        {
+            return new ContentReleaseResultEntry(
+                planEntry,
+                ContentReleaseEntryStatus.Failed,
+                blockingIssue,
+                message);
+        }
+
         private static string Normalize(string value)
         {
             return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();

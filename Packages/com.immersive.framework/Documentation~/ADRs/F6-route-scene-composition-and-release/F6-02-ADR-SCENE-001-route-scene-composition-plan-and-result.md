@@ -106,7 +106,7 @@ Fluxo conceitual de troca de Route:
 ```text
 previous Route state
 → previous RouteContentRuntime Exit callbacks
-→ previous ContentReleasePlan execution, quando o executor físico existir pós-F6F
+→ previous ContentReleasePlan execution, executado em F6G para cenas additive owned
 → next RouteSceneCompositionPlan
 → next RouteSceneCompositionResult
 → next RouteContentSet
@@ -114,7 +114,7 @@ previous Route state
 → next Startup Activity policy
 ```
 
-Com F6F, `ContentReleasePlan`/`ContentReleaseResult` existem como modelo e planejamento. A liberação física ainda continua limitada ao comportamento atual de `LoadSceneMode.Single` para Primary Scene. F6 não deve fingir que additive release está resolvido antes do corte executor de release físico.
+Com F6F, `ContentReleasePlan`/`ContentReleaseResult` existem como modelo e planejamento. Com F6G, additional Route scenes owned podem ser descarregadas explicitamente antes da composição da próxima Route. A Primary Scene ativa continua controlada por `LoadSceneMode.Single`.
 
 ---
 
@@ -321,7 +321,9 @@ Este ADR autoriza os próximos cortes F6 de scene composition:
 F6B — RouteSceneCompositionPlan
 F6C — RouteSceneCompositionResult
 F6D — Additive route scene loading primitive
-F6E — RouteContentProfileAsset execution [APPLIED / PENDING SMOKE]
+F6E — RouteContentProfileAsset execution [CLOSED / PROFILE SMOKE PASS]
+F6F — ContentReleasePlan / ContentReleaseResult [CLOSED / PASS]
+F6G — Scene release execution [APPLIED / PENDING SMOKE]
 ```
 
 Não autoriza F7 Surface, F8 runtime roots/materialization ou F9 runtime placement.
@@ -373,7 +375,27 @@ Primary Scene remains Single and active.
 Required additional scene invalid/load failure blocks Route composition.
 Optional additional scene invalid/load failure records a non-blocking issue.
 Loaded additional scenes are Route-owned content handles.
-No unload/release is executed in F6E.
+No unload/release is executed in F6E. Release planning is introduced in F6F and owned additive scene unload execution is introduced in F6G.
 ```
 
 F6E does not authorize Surface, RuntimeRootRegistry, prefab materialization, Activity canonical materialization, Actor, Input, Camera, Save or Pooling work.
+
+
+---
+
+## Implementation note — F6G
+
+F6G keeps the Route scene composition contract and adds explicit release of owned additive scenes from the previous Route before composing the next Route.
+
+Runtime order:
+
+```text
+previous RouteContentRuntime.Exit
+previous RouteContentSet.CreateReleasePlan
+ContentReleaseRuntime.ExecuteAsync
+next RouteSceneCompositionRuntime.ExecuteAsync
+next RouteContentRuntime.Enter
+next Startup Activity
+```
+
+The release executor only runs `ContentReleaseAction.UnloadScene` for owned, non-active scene handles. Primary Scene handles remain skipped because the active primary scene is controlled by `LoadSceneMode.Single`.

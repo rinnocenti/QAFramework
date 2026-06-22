@@ -121,6 +121,63 @@ namespace Immersive.Framework.SceneLifecycle
                 AdditiveLoadMode);
         }
 
+
+        internal async Task<SceneLifecycleUnloadResult> UnloadSceneAsync(string sceneName, string scenePath)
+        {
+            sceneName = Normalize(sceneName);
+            scenePath = Normalize(scenePath);
+            if (string.IsNullOrWhiteSpace(sceneName) && string.IsNullOrWhiteSpace(scenePath))
+            {
+                return SceneLifecycleUnloadResult.Failed("Scene Lifecycle cannot unload Scene because scene name and path are empty.");
+            }
+
+            var loadedScene = FindLoadedScene(scenePath, sceneName);
+            if (!loadedScene.IsValid() || !loadedScene.isLoaded)
+            {
+                return SceneLifecycleUnloadResult.SkippedScene(
+                    sceneName,
+                    scenePath,
+                    $"Scene Lifecycle skipped unload for Scene '{ResolveSceneLabel(scenePath, sceneName)}' because it is not loaded.");
+            }
+
+            if (IsSceneMatch(SceneManager.GetActiveScene(), scenePath, sceneName))
+            {
+                return SceneLifecycleUnloadResult.Failed(
+                    $"Scene Lifecycle cannot unload active Scene '{ResolveSceneLabel(scenePath, sceneName)}'. Active Primary Scene is controlled by Single load.");
+            }
+
+            try
+            {
+                var operation = SceneManager.UnloadSceneAsync(loadedScene);
+                if (operation == null)
+                {
+                    return SceneLifecycleUnloadResult.Failed(
+                        $"Scene Lifecycle failed to start unloading Scene '{ResolveSceneLabel(scenePath, sceneName)}'.");
+                }
+
+                while (!operation.isDone)
+                {
+                    await Task.Yield();
+                }
+
+                var remainingScene = FindLoadedScene(scenePath, sceneName);
+                if (remainingScene.IsValid() && remainingScene.isLoaded)
+                {
+                    return SceneLifecycleUnloadResult.Failed(
+                        $"Scene Lifecycle could not confirm Scene '{ResolveSceneLabel(scenePath, sceneName)}' was unloaded.");
+                }
+
+                return SceneLifecycleUnloadResult.UnloadedScene(
+                    GetSceneNameForDiagnostics(loadedScene, sceneName),
+                    GetScenePathForDiagnostics(loadedScene, scenePath));
+            }
+            catch (Exception exception)
+            {
+                return SceneLifecycleUnloadResult.Failed(
+                    $"Scene Lifecycle failed to unload Scene '{ResolveSceneLabel(scenePath, sceneName)}'. {exception.GetType().Name}: {exception.Message}");
+            }
+        }
+
         private static Task<SceneLifecycleLoadResult> TryLoadSceneSingleAsync(string scenePath, string sceneName)
         {
             return TryLoadSceneAsync(

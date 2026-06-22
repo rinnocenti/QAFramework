@@ -1,6 +1,6 @@
 # F6-01 — ADR-RELEASE-001 — Content Release Plan by Scope
 
-Status: Accepted / F6F release plan-result model applied / physical unload pending  
+Status: Accepted / F6G route scene release execution applied / pending smoke  
 Fase: F6  
 Ordem no Plano: F6-01  
 Tipo: Release / Ownership / Lifecycle cleanup  
@@ -334,3 +334,50 @@ DiagnosticOnly content -> action None.
 ```
 
 `ContentReleaseResult.NotExecutedResult` existe para preservar evidência estruturada antes da execução. F6F não chama `SceneManager.UnloadSceneAsync`, não destrói GameObjects, não retorna objetos a pool e não altera a ordem de troca de Route.
+
+
+---
+
+## Implementação F6G
+
+F6G executa o primeiro release físico autorizado por este ADR: unload de cenas additive owned no escopo de Route.
+
+Entraram no runtime:
+
+```text
+SceneLifecycleRuntime.UnloadSceneAsync
+SceneLifecycleUnloadResult
+ContentReleaseRuntime
+RouteLifecycleStartResult.ContentReleaseResult
+Route Release Smoke no FrameworkQaCanvas
+```
+
+Ordem runtime aplicada na troca de Route:
+
+```text
+1. Dispatch de exit callbacks da Route anterior.
+2. Criação do ContentReleasePlan a partir do RouteContentSet anterior.
+3. Execução do ContentReleasePlan para ações UnloadScene owned.
+4. Composição da próxima Route.
+5. Dispatch de enter callbacks da próxima Route.
+6. Startup Activity da próxima Route.
+```
+
+Limites preservados:
+
+```text
+Primary Scene ativa não recebe unload manual.
+Somente ContentReleaseAction.UnloadScene é executável em F6G.
+DestroyRuntimeObject, ReturnToPool e CustomParticipantRelease continuam fora de escopo.
+Activity release, Surface, RuntimeRootRegistry, prefab materialization, Actor/Input/Camera/Save/Pooling continuam fora de escopo.
+```
+
+Diagnóstico esperado em request que sai de uma Route com uma additional scene owned:
+
+```text
+routeRelease='Succeeded'
+routeReleaseReleased='1'
+routeReleaseSkipped='1'
+routeReleaseFailed='0'
+routeReleaseBlockingIssues='0'
+```

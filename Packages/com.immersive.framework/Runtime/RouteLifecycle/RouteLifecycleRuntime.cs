@@ -4,6 +4,7 @@ using Immersive.Foundation.Events;
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.SceneLifecycle;
+using Immersive.Framework.ContentFlow;
 using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.RouteLifecycle
@@ -19,6 +20,7 @@ namespace Immersive.Framework.RouteLifecycle
         private readonly ActivityFlowRuntime _activityFlowRuntime = new ActivityFlowRuntime();
         private readonly RouteContentRuntime _routeContentRuntime = new RouteContentRuntime();
         private readonly RouteSceneCompositionRuntime _routeSceneCompositionRuntime;
+        private readonly ContentReleaseRuntime _contentReleaseRuntime;
         private readonly EventBus<RouteEnteredEvent> _routeEnteredEvents = new EventBus<RouteEnteredEvent>();
         private readonly EventBus<RouteExitedEvent> _routeExitedEvents = new EventBus<RouteExitedEvent>();
         private RouteRuntimeState _currentRouteState;
@@ -26,6 +28,7 @@ namespace Immersive.Framework.RouteLifecycle
         internal RouteLifecycleRuntime()
         {
             _routeSceneCompositionRuntime = new RouteSceneCompositionRuntime(_sceneLifecycleRuntime);
+            _contentReleaseRuntime = new ContentReleaseRuntime(_sceneLifecycleRuntime);
         }
 
         internal RouteRuntimeState CurrentRouteState => _currentRouteState;
@@ -78,6 +81,21 @@ namespace Immersive.Framework.RouteLifecycle
             var previousRouteState = _currentRouteState;
             var previousRoute = previousRouteState.Route;
             var routeContentExitResult = _routeContentRuntime.ExitRouteContent(previousRoute, route, source, reason);
+            var releasePlan = previousRouteState.HasRouteContent
+                ? previousRouteState.RouteContentSet.CreateReleasePlan(source, reason)
+                : ContentReleasePlan.Empty(
+                    FrameworkContentScope.Route,
+                    string.Empty,
+                    previousRoute != null ? previousRoute.RouteName : string.Empty,
+                    source,
+                    reason,
+                    "No previous Route content is active; release plan is empty.");
+            var releaseResult = await _contentReleaseRuntime.ExecuteAsync(releasePlan);
+            if (releaseResult.Failed || releaseResult.HasBlockingIssues)
+            {
+                return RouteLifecycleStartResult.Failed(releaseResult.ToDiagnosticString());
+            }
+
             var routeContentPlan = RouteContentMaterializationPlan.FromRoute(route);
             var routeSceneCompositionPlan = RouteSceneCompositionPlan.FromRoute(route, source, reason);
             var routeSceneCompositionResult = await _routeSceneCompositionRuntime.ExecuteAsync(routeSceneCompositionPlan);
@@ -110,6 +128,7 @@ namespace Immersive.Framework.RouteLifecycle
                 routeContentSet,
                 routeContentEnterResult,
                 routeContentExitResult,
+                releaseResult,
                 activityFlowResult,
                 source,
                 reason);

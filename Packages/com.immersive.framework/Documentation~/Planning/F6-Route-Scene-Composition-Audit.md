@@ -1,6 +1,6 @@
 # F6 — Route Scene Composition and Release Audit
 
-Status: `F6F CONTENT RELEASE PLAN/RESULT APPLIED / PENDING COMPILE-SMOKE`  
+Status: `F6G SCENE RELEASE EXECUTION APPLIED / PENDING RELEASE SMOKE`  
 Tipo: planejamento/auditoria documental  
 Escopo: Route scene composition, additive scene loading e release por escopo
 
@@ -103,6 +103,18 @@ RouteContentSet.CreateReleasePlan
 
 F6F introduz o modelo estruturado de release por escopo e o primeiro builder de plano a partir do `RouteContentSet`. O corte é side-effect free: cria intenção de release e resultado `NotExecuted`, mas não descarrega cenas, não destrói objetos e não altera a ordem runtime de troca de Route. A política aplicada ao plano é: Primary Scene ativa continua controlada por `LoadSceneMode.Single` e não recebe unload manual; additional Route scene carregada como `Owned` recebe ação planejada `UnloadScene`; conteúdo `Registered` e `DiagnosticOnly` não recebe release action.
 
+### Aplicado em F6G
+
+```text
+SceneLifecycleRuntime.UnloadSceneAsync
+SceneLifecycleUnloadResult
+ContentReleaseRuntime
+RouteLifecycleRuntime release execution before next Route composition
+FrameworkQaCanvas Route Release Smoke
+```
+
+F6G executa fisicamente apenas ações `UnloadScene` planejadas para cenas de Route `Owned` e não ativas. A ordem aplicada é: callbacks de saída da Route anterior, execução do `ContentReleasePlan` da Route anterior, composição da próxima Route. A Primary Scene ativa continua sem unload manual e segue controlada por `LoadSceneMode.Single`. O resultado de release entra em `RouteLifecycleStartResult` e nos diagnostics de boot/request como `routeRelease`, `routeReleaseReleased`, `routeReleaseSkipped`, `routeReleaseFailed` e `routeReleaseBlockingIssues`.
+
 ### Presente
 
 ```text
@@ -121,7 +133,6 @@ RouteExitResult mínimo
 ### Ausente
 
 ```text
-Additive scene unload/release físico
 Expected contribution asset
 RuntimeContentHandle avançado
 RuntimeRootRegistry
@@ -138,7 +149,7 @@ O asset agora declara additional scenes consumidas por Route scene composition, 
 Decisão de F6:
 
 ```text
-RouteContentProfileAsset execution carrega additional scenes; F6F cria ContentReleasePlan/Result e o release físico fica para o corte executor seguinte.
+RouteContentProfileAsset execution carrega additional scenes; F6F cria ContentReleasePlan/Result e F6G executa unload físico somente para cenas additive owned planejadas.
 ```
 
 ### 2. Fallback de content id em RouteContentSceneEntry
@@ -189,7 +200,7 @@ Exit callbacks da Route anterior devem rodar antes do release da Route anterior.
 
 | ADR | Status | Decisão central |
 |---|---|---|
-| `F6-01 — ADR-RELEASE-001` | `Accepted / F6F model applied / physical unload pending` | Release é planejado por `ContentReleasePlan`/`ContentReleaseResult`, guiado por ownership explícito. |
+| `F6-01 — ADR-RELEASE-001` | `Accepted / F6G execution applied / pending smoke` | Release é planejado por `ContentReleasePlan`/`ContentReleaseResult`, guiado por ownership explícito. |
 | `F6-02 — ADR-SCENE-001` | `Accepted / F6E profile smoke pass` | Route scene composition usa `RouteSceneCompositionPlan`/`RouteSceneCompositionResult`; Route profile execution carrega additional scenes via additive primitive. |
 
 ---
@@ -202,22 +213,22 @@ F6B — RouteSceneCompositionPlan                 [runtime inert/pure] [CLOSED /
 F6C — RouteSceneCompositionResult               [runtime inert/result] [CLOSED / PASS]
 F6D — SceneLifecycle additive primitive         [runtime execution primitive] [CLOSED / PASS]
 F6E — RouteContentProfileAsset execution        [route profile → composition] [CLOSED / PROFILE SMOKE PASS]
-F6F — ContentReleasePlan / ContentReleaseResult [release planning/result model] [APPLIED / PENDING SMOKE]
-F6G — Scene release execution                   [physical unload + QA]
+F6F — ContentReleasePlan / ContentReleaseResult [release planning/result model] [CLOSED / PASS]
+F6G — Scene release execution                   [physical unload + QA] [APPLIED / PENDING SMOKE]
 ```
 
 ---
 
-## Critério para fechar F6F
+## Critério para fechar F6G
 
-F6F pode ser fechado quando o package compilar no Unity e os smokes baseline continuarem sem regressão. Como F6F é modelo/planejamento side-effect free, não deve adicionar unload físico. Evidência esperada: Standard Smoke, Activity Baseline Smoke, Local Contribution Smoke, Route Callback Smoke e Route Scene Composition Smoke continuam passando.
+F6G pode ser fechado quando o package compilar no Unity, os smokes baseline continuarem sem regressão e o `Route Release Smoke` confirmar unload de additional scene owned ao sair da Route com profile. Evidência esperada: `routeRelease='Succeeded'`, `routeReleaseReleased='1'`, `routeReleaseFailed='0'`, `routeReleaseBlockingIssues='0'`, seguido de restore da Route com `routeSceneLoaded='2'`.
 
 ---
 
-## Não autorizado pela F6F
+## Não autorizado pela F6G
 
 ```text
-Release físico/unload antes do corte executor pós-F6F
+Release de Activity
 Surface
 RuntimeRootRegistry
 Prefab materializer

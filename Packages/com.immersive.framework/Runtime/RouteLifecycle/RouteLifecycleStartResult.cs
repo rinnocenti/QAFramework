@@ -1,6 +1,7 @@
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.SceneLifecycle;
+using Immersive.Framework.ContentFlow;
 using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.RouteLifecycle
@@ -24,6 +25,7 @@ namespace Immersive.Framework.RouteLifecycle
             RouteContentSet routeContentSet,
             RouteContentLifecycleDispatchResult routeContentEnterResult,
             RouteContentLifecycleDispatchResult routeContentExitResult,
+            ContentReleaseResult contentReleaseResult,
             ActivityFlowStartResult activityFlowResult)
         {
             Started = started;
@@ -37,6 +39,7 @@ namespace Immersive.Framework.RouteLifecycle
             RouteContentSet = routeContentSet;
             RouteContentEnterResult = routeContentEnterResult;
             RouteContentExitResult = routeContentExitResult;
+            ContentReleaseResult = contentReleaseResult;
             ActivityFlowResult = activityFlowResult;
         }
 
@@ -66,11 +69,13 @@ namespace Immersive.Framework.RouteLifecycle
 
         public RouteContentLifecycleDispatchResult RouteContentExitResult { get; }
 
+        public ContentReleaseResult ContentReleaseResult { get; }
+
         public ActivityFlowStartResult ActivityFlowResult { get; }
 
         public static RouteLifecycleStartResult Failed(string message)
         {
-            return new RouteLifecycleStartResult(false, message, null, null, default, default, default, default, default, default, default, default);
+            return new RouteLifecycleStartResult(false, message, null, null, default, default, default, default, default, default, default, default, default);
         }
 
         public static RouteLifecycleStartResult StartedWith(
@@ -81,6 +86,7 @@ namespace Immersive.Framework.RouteLifecycle
             RouteContentSet routeContentSet,
             RouteContentLifecycleDispatchResult routeContentEnterResult,
             RouteContentLifecycleDispatchResult routeContentExitResult,
+            ContentReleaseResult contentReleaseResult,
             ActivityFlowStartResult activityFlowResult,
             string source,
             string reason)
@@ -100,6 +106,9 @@ namespace Immersive.Framework.RouteLifecycle
             var routeContentExitMessage = routeContentExitResult.Executed
                 ? $" routeContentExit='{routeContentExitResult.DiagnosticStatus}' routeContentExitBindings='{routeContentExitResult.BindingCount}' routeContentExitReceivers='{routeContentExitResult.ReceiverCount}' routeContentExitFailed='{routeContentExitResult.FailedReceiverCount}'."
                 : string.Empty;
+            var releaseMessage = contentReleaseResult.Completed || contentReleaseResult.NotExecuted
+                ? $" routeRelease='{contentReleaseResult.Status}' routeReleaseReleased='{contentReleaseResult.ReleasedCount}' routeReleaseSkipped='{contentReleaseResult.SkippedCount}' routeReleaseFailed='{contentReleaseResult.FailedCount}' routeReleaseBlockingIssues='{contentReleaseResult.BlockingIssueCount}'."
+                : string.Empty;
             var routeContentMessage = routeContentSet.HasContent ? $" {routeContentSet.DiagnosticMessage}" : string.Empty;
             var compositionMessage = !string.IsNullOrWhiteSpace(routeSceneCompositionResult.Message) ? $" {routeSceneCompositionResult.Message}" : string.Empty;
             var routeContentEnterMessage = routeContentEnterResult.Executed
@@ -107,8 +116,8 @@ namespace Immersive.Framework.RouteLifecycle
                 : string.Empty;
             var activityMessage = !string.IsNullOrWhiteSpace(activityFlowResult.Message) ? $" {activityFlowResult.Message}" : string.Empty;
             var message = previousRoute != null
-                ? $"Route Lifecycle switched from Route '{previousRoute.RouteName}' to Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{routeContentEnterMessage}{activityMessage}"
-                : $"Route Lifecycle started Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{routeContentEnterMessage}{activityMessage}";
+                ? $"Route Lifecycle switched from Route '{previousRoute.RouteName}' to Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage}{releaseMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{routeContentEnterMessage}{activityMessage}"
+                : $"Route Lifecycle started Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage}{releaseMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{routeContentEnterMessage}{activityMessage}";
 
             return new RouteLifecycleStartResult(
                 true,
@@ -122,6 +131,7 @@ namespace Immersive.Framework.RouteLifecycle
                 routeContentSet,
                 routeContentEnterResult,
                 routeContentExitResult,
+                contentReleaseResult,
                 activityFlowResult);
         }
     }

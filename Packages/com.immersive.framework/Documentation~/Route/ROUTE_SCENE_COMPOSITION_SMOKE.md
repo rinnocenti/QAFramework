@@ -54,4 +54,4 @@ For more than one additional scene, increase the expected counts accordingly.
 ## Current boundary
 
 This smoke validates additive loading and Route-owned handle registration only.
-It does not validate unload/release because physical release starts later with `ContentReleasePlan` / `ContentReleaseResult`.
+It does not validate unload/release. Use `ROUTE_RELEASE_SMOKE.md` for F6G release execution validation.

@@ -58,6 +58,9 @@ namespace Immersive.Framework.Diagnostics
         [SerializeField] private int expectedRouteSceneLoadedCount = 2;
         [SerializeField] private int expectedRouteSceneOwnedLoadedCount = 2;
 
+        [Header("Route Release Smoke")]
+        [SerializeField] private int expectedRouteReleaseReleasedCount = 1;
+
         [Header("Smoke Scenario Activities")]
         [FormerlySerializedAs("activity01")]
         [SerializeField] private ActivityAsset primaryActivity;
@@ -191,6 +194,7 @@ namespace Immersive.Framework.Diagnostics
             GUILayout.Label($"Alternate Route: {GetAssetName(alternateRoute, "<missing>")}");
             GUILayout.Label($"Composition Route: {GetAssetName(routeSceneCompositionRoute, "<missing>")}");
             GUILayout.Label($"Expected Route Scenes: {Math.Max(1, expectedRouteSceneLoadedCount)} loaded / {Math.Max(1, expectedRouteSceneOwnedLoadedCount)} owned");
+            GUILayout.Label($"Expected Route Release: {Math.Max(0, expectedRouteReleaseReleasedCount)} released");
             GUILayout.Label($"Primary Activity: {GetAssetName(primaryActivity, "<missing>")}");
             GUILayout.Label($"Secondary Activity: {GetAssetName(secondaryActivity, "<missing>")}");
             GUILayout.Label(GetCoreQaAssetsStatus());
@@ -266,6 +270,11 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Route Scene Composition Smoke"))
                 {
                     RunRouteSceneCompositionSmoke();
+                }
+
+                if (GUILayout.Button("Run Route Release Smoke"))
+                {
+                    RunRouteReleaseSmoke();
                 }
             }
         }
@@ -1002,6 +1011,70 @@ namespace Immersive.Framework.Diagnostics
             });
         }
 
+        private async void RunRouteReleaseSmoke()
+        {
+            string missingTargets = string.Empty;
+            AppendMissingQaAsset(ref missingTargets, routeSceneCompositionRoute == null, "Route Scene Composition Route");
+            AppendMissingQaAsset(ref missingTargets, alternateRoute == null, "Alternate Route / Release Target Route");
+
+            if (routeSceneCompositionRoute != null)
+            {
+                AppendMissingQaAsset(ref missingTargets, !routeSceneCompositionRoute.HasRouteContentProfile, "Route Content Profile on Composition Route");
+                if (routeSceneCompositionRoute.HasRouteContentProfile)
+                {
+                    AppendMissingQaAsset(
+                        ref missingTargets,
+                        !routeSceneCompositionRoute.RouteContentProfile.HasAdditionalScenes,
+                        "Additional Scene in Route Content Profile");
+                }
+            }
+
+            if (!TryValidateSmokeTargets("Route Release Smoke", missingTargets))
+            {
+                return;
+            }
+
+            await RunSmokeAsync("Route Release Smoke", async runtimeHost =>
+            {
+                if (!ReferenceEquals(runtimeHost.State.CurrentRoute, routeSceneCompositionRoute))
+                {
+                    var prepareCompositionResult = await RequestRouteWithResultCoreAsync(
+                        runtimeHost,
+                        routeSceneCompositionRoute,
+                        ResolveReason(routeReason, GetAssetName(routeSceneCompositionRoute, "qa.route.release.prepare")));
+                    if (!ValidateRouteSceneCompositionSmokeStep(prepareCompositionResult, "prepare-composition"))
+                    {
+                        return false;
+                    }
+
+                    await Task.Yield();
+                }
+
+                if (ReferenceEquals(alternateRoute, routeSceneCompositionRoute))
+                {
+                    _logger.Warning("QA Route Release Smoke step failed. step='release' reason='Alternate Route points to the same Route as the release source'.");
+                    return false;
+                }
+
+                var releaseResult = await RequestRouteWithResultCoreAsync(
+                    runtimeHost,
+                    alternateRoute,
+                    ResolveReason(routeReason, GetAssetName(alternateRoute, "qa.route.release")));
+                if (!ValidateRouteReleaseSmokeStep(releaseResult, "release"))
+                {
+                    return false;
+                }
+
+                await Task.Yield();
+
+                var restoreCompositionResult = await RequestRouteWithResultCoreAsync(
+                    runtimeHost,
+                    routeSceneCompositionRoute,
+                    ResolveReason(routeReason, GetAssetName(routeSceneCompositionRoute, "qa.route.release.restore")));
+                return ValidateRouteSceneCompositionSmokeStep(restoreCompositionResult, "restore-composition");
+            });
+        }
+
         private async void RunClearActivitySmoke()
         {
             string missingTargets = string.Empty;
@@ -1324,6 +1397,59 @@ namespace Immersive.Framework.Diagnostics
             _logger.Debug(
                 "QA Route Scene Composition Smoke diagnostics.",
                 LogFields.Field("details", composition.ToDiagnosticString()));
+            return true;
+        }
+
+        private bool ValidateRouteReleaseSmokeStep(FrameworkRouteRequestResult result, string stepName)
+        {
+            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string routeName = result.TargetRoute != null ? GetAssetName(result.TargetRoute, "<unnamed>") : "<missing>";
+
+            if (!result.Succeeded)
+            {
+                _logger.Warning($"QA Route Release Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Route request did not succeed' status='{FormatValue(result.Kind.ToString())}'.");
+                return false;
+            }
+
+            var lifecycleResult = result.RouteLifecycleResult;
+            if (!lifecycleResult.Started)
+            {
+                _logger.Warning($"QA Route Release Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Route lifecycle did not start'.");
+                return false;
+            }
+
+            var release = lifecycleResult.ContentReleaseResult;
+            if (release.Failed || release.HasBlockingIssues)
+            {
+                _logger.Warning($"QA Route Release Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Route content release failed' status='{FormatValue(release.Status.ToString())}' released='{release.ReleasedCount}' skipped='{release.SkippedCount}' failed='{release.FailedCount}' blockingIssues='{release.BlockingIssueCount}'.");
+                return false;
+            }
+
+            int expectedReleased = Math.Max(0, expectedRouteReleaseReleasedCount);
+            if (release.ReleasedCount < expectedReleased)
+            {
+                _logger.Warning($"QA Route Release Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Released count below expectation' expectedReleased='{expectedReleased}' actualReleased='{release.ReleasedCount}' skipped='{release.SkippedCount}' failed='{release.FailedCount}'.");
+                return false;
+            }
+
+            _logger.Info(
+                "QA Route Release Smoke step completed.",
+                LogFields.Of(
+                    LogFields.Field("step", normalizedStepName),
+                    LogFields.Field("route", routeName),
+                    LogFields.Field("routeRelease", release.Status.ToString()),
+                    LogFields.Field("routeReleasePlanned", release.PlannedCount),
+                    LogFields.Field("routeReleaseReleased", release.ReleasedCount),
+                    LogFields.Field("routeReleaseSkipped", release.SkippedCount),
+                    LogFields.Field("routeReleaseFailed", release.FailedCount),
+                    LogFields.Field("routeReleaseIssues", release.IssueCount),
+                    LogFields.Field("routeReleaseBlockingIssues", release.BlockingIssueCount),
+                    LogFields.Field("routeSceneComposition", lifecycleResult.RouteSceneCompositionResult.Status.ToString()),
+                    LogFields.Field("routeSceneLoaded", lifecycleResult.RouteSceneCompositionResult.LoadedCount),
+                    LogFields.Field("routeContentHandles", lifecycleResult.RouteContentSet.Count)));
+            _logger.Debug(
+                "QA Route Release Smoke diagnostics.",
+                LogFields.Field("details", release.ToDiagnosticString()));
             return true;
         }
 
