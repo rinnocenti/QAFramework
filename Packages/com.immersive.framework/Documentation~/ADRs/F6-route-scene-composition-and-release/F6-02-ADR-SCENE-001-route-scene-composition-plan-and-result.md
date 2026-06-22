@@ -1,6 +1,6 @@
 # F6-02 — ADR-SCENE-001 — Route Scene Composition Plan and Result
 
-Status: Accepted / F6D additive primitive applied / route execution not started  
+Status: Accepted / F6 scene composition and release baseline pass  
 Fase: F6  
 Ordem no Plano: F6-02  
 Tipo: Scene / Route / Content composition  
@@ -323,7 +323,7 @@ F6C — RouteSceneCompositionResult
 F6D — Additive route scene loading primitive
 F6E — RouteContentProfileAsset execution [CLOSED / PROFILE SMOKE PASS]
 F6F — ContentReleasePlan / ContentReleaseResult [CLOSED / PASS]
-F6G — Scene release execution [APPLIED / PENDING SMOKE]
+F6G — Scene release execution [CLOSED / RELEASE SMOKE PASS]
 ```
 
 Não autoriza F7 Surface, F8 runtime roots/materialization ou F9 runtime placement.
@@ -399,3 +399,33 @@ next Startup Activity
 ```
 
 The release executor only runs `ContentReleaseAction.UnloadScene` for owned, non-active scene handles. Primary Scene handles remain skipped because the active primary scene is controlled by `LoadSceneMode.Single`.
+
+
+---
+
+## Closure note — F6H
+
+F6H closes the F6 scene composition baseline after F6G release smoke passed.
+
+Validated evidence:
+
+```text
+routeSceneComposition='Succeeded'
+routeSceneLoaded='2'
+routeSceneOwnedLoaded='2'
+routeSceneFailed='0'
+routeSceneBlockingIssues='0'
+routeContentHandles='2'
+```
+
+Release evidence from the paired release smoke:
+
+```text
+routeRelease='Succeeded'
+routeReleaseReleased='1'
+routeReleaseSkipped='1'
+routeReleaseFailed='0'
+routeReleaseBlockingIssues='0'
+```
+
+The next authorized phase is F7 Surface declaration. RuntimeRootRegistry, prefab materialization, Activity canonical materialization, Actor, Input, Camera, Save and Pooling remain outside F6.

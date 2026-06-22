@@ -1,6 +1,6 @@
 # Route Release Smoke
 
-Status: `F6G APPLIED / PENDING SMOKE`
+Status: `F6 CLOSED / PASS`
 
 ## Objetivo
 
@@ -37,9 +37,11 @@ No step `release`:
 ```text
 QA Route Release Smoke step completed.
 routeRelease='Succeeded'
+routeReleasePlanned='2'
 routeReleaseReleased='1'
 routeReleaseSkipped='1'
 routeReleaseFailed='0'
+routeReleaseIssues='0'
 routeReleaseBlockingIssues='0'
 ```
 
@@ -51,6 +53,32 @@ routeSceneLoaded='2'
 routeSceneOwnedLoaded='2'
 routeSceneFailed='0'
 routeSceneBlockingIssues='0'
+```
+
+## PASS evidence F6G
+
+F6G was closed with the release smoke confirming:
+
+```text
+routeRelease='Succeeded'
+routeReleasePlanned='2'
+routeReleaseReleased='1'
+routeReleaseSkipped='1'
+routeReleaseFailed='0'
+routeReleaseIssues='0'
+routeReleaseBlockingIssues='0'
+```
+
+The restore composition then confirmed:
+
+```text
+routeSceneComposition='Succeeded'
+routeSceneEntries='2'
+routeSceneLoaded='2'
+routeSceneOwnedLoaded='2'
+routeSceneFailed='0'
+routeSceneBlockingIssues='0'
+routeContentHandles='2'
 ```
 
 ## Fronteira

@@ -1,21 +1,22 @@
 # Route Scene Composition Smoke
 
-Status: `F6E QA helper`
+Status: `F6 CLOSED / PASS`
 
 Use this smoke to validate that a `RouteContentProfileAsset` declared on a Route is consumed by Route scene composition and that valid additional scenes are loaded additively.
 
 ## Authoring setup
 
-1. Select the Route that will own the additional scene. Prefer the canonical QA route while validating F6E.
+1. Select the Route that will own the additional scene. Prefer the canonical QA route while validating F6.
 2. In the Route Inspector, assign or create a `Content Profile`.
 3. Select the `Route Content Profile` asset.
 4. In `Additional Route Scenes`, click `Add Scene`.
 5. Fill `Content Id` with a stable explicit id, for example `qa-additive-route-content`.
 6. Assign a valid Unity scene in `Scene`.
-7. Set `Requiredness`:
+7. Ensure the additional scene is available to Unity scene loading through the active Build Profile or Shared Scene List.
+8. Set `Requiredness`:
    - `Required` when the Route must fail if this additional scene cannot load.
    - `Optional` when the Route may continue and report a non-blocking issue.
-8. Ensure the additional scene is available to Unity scene loading, using the same scene availability rules as the project's normal scene setup.
+9. Keep the additional scene `Owned` when the framework should unload it on Route exit.
 
 Do not put another framework bootstrap object in the additional scene.
 Do not configure the additional scene as a separate boot route.
@@ -46,12 +47,21 @@ For one Primary Scene plus one additional scene, both expected counts should be 
 Expected completion log:
 
 ```text
-QA Route Scene Composition Smoke step completed. step='composition' route='<route>' routeSceneComposition='Succeeded' routeSceneLoaded='2' routeSceneOwnedLoaded='2' routeSceneFailed='0' routeSceneBlockingIssues='0' routeContentHandles='2'
+QA Route Scene Composition Smoke step completed. step='composition' route='<route>' routeSceneComposition='Succeeded' routeSceneEntries='2' routeSceneLoaded='2' routeSceneOwnedLoaded='2' routeSceneFailed='0' routeSceneIssues='0' routeSceneBlockingIssues='0' routeContentHandles='2' routeContentOwned='2' routeContentDiagnosticOnly='0'
+```
+
+F6 closure evidence used this shape with:
+
+```text
+routeSceneLoaded='2'
+routeSceneOwnedLoaded='2'
+routeSceneFailed='0'
+routeSceneBlockingIssues='0'
+routeContentHandles='2'
 ```
 
 For more than one additional scene, increase the expected counts accordingly.
 
 ## Current boundary
 
-This smoke validates additive loading and Route-owned handle registration only.
-It does not validate unload/release. Use `ROUTE_RELEASE_SMOKE.md` for F6G release execution validation.
+This smoke validates additive loading and Route-owned handle registration. Use `ROUTE_RELEASE_SMOKE.md` to validate unload/release of owned additive scenes.

@@ -436,7 +436,7 @@ Objetivo: separar scene composition de runtime spawned/materialization.
 | IF-FW-ROAD-6D | Additive scene support | CLOSED / PASS. Primitivo interno `LoadAdditiveSceneAsync`. |
 | IF-FW-ROAD-6E | `RouteContentProfileAsset` execution | CLOSED / PROFILE SMOKE PASS. Profile executado no fluxo de Route. |
 | IF-FW-ROAD-6F | `ContentReleasePlan` mínimo | CLOSED / PASS. Modelo/planejamento de release por escopo. |
-| IF-FW-ROAD-6G | Scene/release smoke | APPLIED / PENDING SMOKE. Unload físico de additional scene owned + QA smoke. |
+| IF-FW-ROAD-6G | Scene/release smoke | CLOSED / RELEASE SMOKE PASS. Unload físico de additional scene owned validado por QA smoke. |
 
 ### Não entra
 
@@ -811,6 +811,10 @@ F6A — CLOSED / ADR ACCEPTED / DOCS ONLY
 F6B — CLOSED / ROUTE SCENE COMPOSITION PLAN PASS
 F6C — CLOSED / ROUTE SCENE COMPOSITION RESULT PASS
 F6D — CLOSED / SCENE LIFECYCLE ADDITIVE PRIMITIVE PASS
+F6E — CLOSED / ROUTE CONTENT PROFILE EXECUTION PASS
+F6F — CLOSED / CONTENT RELEASE PLAN/RESULT PASS
+F6G — CLOSED / SCENE RELEASE EXECUTION PASS
+F6  — CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS
 ```
 
 ADR status relevante para a fronteira atual:
@@ -818,37 +822,37 @@ ADR status relevante para a fronteira atual:
 ```text
 F5-01 — ADR-LOCAL-001 — Local Identity — Accepted
 F5-02 — ADR-LOCAL-002 — Local Contribution Discovery and Requiredness — Applied through F5H / Expected Declarations Deferred
-F6-01 — ADR-RELEASE-001 — Content Release Plan by Scope — Accepted / F6G route scene release execution applied / pending smoke
-F6-02 — ADR-SCENE-001 — Route Scene Composition Plan and Result — Accepted / F6E route profile execution closed by profile smoke
+F6-01 — ADR-RELEASE-001 — Content Release Plan by Scope — Accepted / F6G release smoke pass
+F6-02 — ADR-SCENE-001 — Route Scene Composition Plan and Result — Accepted / F6 scene composition and release baseline pass
 ```
 
 ## Ação imediata
 
-O corte atual é:
+F6 está fechado:
 
 ```text
+F6E — RouteContentProfileAsset execution [CLOSED / PROFILE SMOKE PASS]
 F6F — ContentReleasePlan / ContentReleaseResult [CLOSED / PASS]
-F6G — Scene release execution / release smoke [APPLIED / PENDING SMOKE]
+F6G — Scene release execution / release smoke [CLOSED / RELEASE SMOKE PASS]
 ```
 
-Escopo aplicado:
+Escopo fechado:
 
 ```text
-- manter F6B, F6C, F6D, F6E e F6F fechados por smoke;
-- executar ContentReleasePlan para cenas additive owned;
-- adicionar SceneLifecycleRuntime.UnloadSceneAsync e SceneLifecycleUnloadResult;
-- registrar ContentReleaseResult no RouteLifecycleStartResult e nos diagnostics;
-- adicionar Route Release Smoke;
-- manter Primary Scene ativa sem unload manual.
+- RouteContentProfileAsset executa additional scenes via RouteSceneCompositionPlan/Result;
+- ContentReleasePlan/Result representa release por escopo;
+- ContentReleaseRuntime descarrega cenas additive owned;
+- Primary Scene continua controlada por LoadSceneMode.Single;
+- Route Release Smoke valida routeReleaseReleased='1' e restore com routeSceneLoaded='2'.
 ```
 
-Próximo passo autorizado após compile/smoke:
+Próximo passo autorizado:
 
 ```text
-F6G closeout — validate release smoke and decide F6 closure
+F7A — Surface ADR/detail audit
 ```
 
-F6G deve ser fechado apenas após Route Release Smoke confirmar `routeReleaseReleased=1`, `routeReleaseFailed=0` e restore da Route com composition carregando 2 cenas.
+F7 deve começar por auditoria/ADR de Surface declaration, sem RuntimeRoot/materialization ou consumers avançados.
 
 ## Não avançar ainda
 

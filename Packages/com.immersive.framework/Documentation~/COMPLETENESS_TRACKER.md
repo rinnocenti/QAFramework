@@ -14,7 +14,7 @@ Este arquivo substitui os antigos documentos de fechamento e aceite de fase. Os 
 | F3 | `CLOSED / PASS` | Route baseline closed | `Route/ROUTE_RUNTIME_STATE_TYPED.md`, `Route/ROUTE_EXIT_RESULT_MINIMAL.md`, `Route/ROUTE_CONTENT_RUNTIME_EXECUTION_DECISION.md`, `Route/ROUTE_CONTENT_SET_SEMANTICS.md`, `Route/ROUTE_LOCAL_CALLBACK_SMOKE.md`, `Route/ROUTE_VALIDATOR_EXPANSION.md`, `Route/QA_PANEL_SIMPLIFICATION.md`, `Route/QA_AUTHORING_VALIDATION_HYGIENE.md` |
 | F4 | `CLOSED / ACTIVITY BASELINE PASS` | Activity baseline closed | `Activity/ACTIVITY_RUNTIME_STATE_REFINED.md`, `Activity/ACTIVITY_CONTENT_SET_MINIMAL.md`, `Activity/ACTIVITY_CONTENT_LIFECYCLE_RESULT.md`, `Activity/ACTIVITY_READINESS_STATE_MINIMAL.md`, `Activity/ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md`, `Activity/ACTIVITY_BASELINE_SMOKE.md` |
 | F5 | `CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS` | F5H local smoke passed; F5 closure audit completed | `Local/LOCAL_CONTENT_IDENTITY.md` |
-| F6 | `OPEN / F6G APPLIED / PENDING RELEASE SMOKE` | F6F passed; F6G executes ContentReleasePlan for owned additive Route scenes and adds Route Release Smoke | `Planning/F6-Route-Scene-Composition-Audit.md`, `ADRs/F6-route-scene-composition-and-release/` |
+| F6 | `CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS` | F6G release smoke passed; F6 closed | `Planning/F6-Route-Scene-Composition-Audit.md`, `Route/ROUTE_CONTENT_PROFILE_USAGE.md`, `Route/ROUTE_SCENE_COMPOSITION_SMOKE.md`, `Route/ROUTE_RELEASE_SMOKE.md`, `ADRs/F6-route-scene-composition-and-release/` |
 
 ## Consolidation rule
 
@@ -39,7 +39,7 @@ Keep these docs as the durable record for implementation details:
 
 | Next authorized step | Reason |
 |---|---|
-| `F6G — Scene release execution / release smoke` | Release execution added for owned additive Route scenes. Validate compile, baseline smokes, Route Scene Composition Smoke and Route Release Smoke. |
+| `F7A — Surface ADR/detail audit` | F6 closed the Route scene composition/release baseline. Next work may define Surface declaration only; do not start RuntimeRoot/materialization or gameplay consumers yet. |
 
 ## F5 closure audit
 
@@ -77,26 +77,83 @@ Confirmed removals and exclusions:
 - no `GameObject.name`, scene name, scene path or hierarchy path as functional identity;
 - no canonical materialization, Surface, Actors, Input, Camera, Reset, Snapshot, Save, Pooling, runtime references, release/unload policy or expected contribution asset in F5.
 
+## F6 closure audit
 
-## F6 ADR gate
+Status: `CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS`.
 
-Status: `OPEN / F6G APPLIED / PENDING RELEASE SMOKE`.
+Implemented cuts:
 
-F6A completed the route scene composition and release ADR gate. F6B added runtime planning types for Route scene composition and passed baseline smoke. F6C added runtime result types for Route scene composition and passed baseline smoke. F6D added an internal SceneLifecycle additive load primitive and passed baseline smoke. F6E connected RouteContentProfileAsset execution through RouteSceneCompositionPlan/Result and was validated with a profile/additional-scene smoke: routeSceneLoaded='2', routeSceneOwnedLoaded='2', routeSceneFailed='0', routeSceneBlockingIssues='0', routeContentHandles='2'. F6F adds ContentReleasePlan/ContentReleaseResult models and RouteContentSet release planning, and passed baseline/profile smokes. F6G executes the Route release plan for owned additive scenes through SceneLifecycle unload, records ContentReleaseResult in RouteLifecycleStartResult diagnostics and adds Route Release Smoke. Surface, RuntimeRoot and prefab materialization remain out of scope.
+```text
+F6A — ADR completion and audit                  [CLOSED / DOCS]
+F6B — RouteSceneCompositionPlan                 [CLOSED / PASS]
+F6C — RouteSceneCompositionResult               [CLOSED / PASS]
+F6D — SceneLifecycle additive primitive         [CLOSED / PASS]
+F6E — RouteContentProfileAsset execution        [CLOSED / PROFILE SMOKE PASS]
+F6F — ContentReleasePlan / ContentReleaseResult [CLOSED / PASS]
+F6G — Scene release execution                   [CLOSED / RELEASE SMOKE PASS]
+```
+
+F6 closed the first real Route scene composition and release loop:
+
+- `RouteSceneCompositionPlan` and `RouteSceneCompositionResult` exist and are consumed by Route lifecycle.
+- `RouteContentProfileAsset` additional scenes are loaded additively when valid.
+- Required additional scene load failure blocks Route composition.
+- Optional additional scene load failure remains non-blocking.
+- Loaded scene handles are registered in `RouteContentSet`.
+- `ContentReleasePlan` and `ContentReleaseResult` exist.
+- Owned additive Route scenes are unloaded on Route exit.
+- Active Primary Scene is skipped by manual release and remains controlled by `LoadSceneMode.Single`.
+
+F6G PASS evidence:
+
+```text
+routeRelease='Succeeded'
+routeReleasePlanned='2'
+routeReleaseReleased='1'
+routeReleaseSkipped='1'
+routeReleaseFailed='0'
+routeReleaseIssues='0'
+routeReleaseBlockingIssues='0'
+```
+
+Restore composition evidence:
+
+```text
+routeSceneComposition='Succeeded'
+routeSceneEntries='2'
+routeSceneLoaded='2'
+routeSceneOwnedLoaded='2'
+routeSceneFailed='0'
+routeSceneBlockingIssues='0'
+routeContentHandles='2'
+```
+
+Smokes covered:
+
+```text
+Standard Smoke PASS
+Activity Baseline Smoke PASS
+Route Scene Composition Smoke PASS
+Route Release Smoke PASS
+Route Callback Smoke PASS
+Local Contribution Smoke PASS
+Loaded Local Contributions authoring validation PASS
+```
 
 Accepted ADRs:
 
 - `ADRs/F6-route-scene-composition-and-release/F6-01-ADR-RELEASE-001-content-release-plan-by-scope.md`;
 - `ADRs/F6-route-scene-composition-and-release/F6-02-ADR-SCENE-001-route-scene-composition-plan-and-result.md`.
 
-Audit doc:
-
-- `Planning/F6-Route-Scene-Composition-Audit.md`.
-
-Current validation gate:
+F6 does not authorize:
 
 ```text
-F6G — Scene release execution / release smoke
+Activity canonical materialization
+Activity release execution
+Surface
+RuntimeRootRegistry
+Prefab materialization
+Runtime spawned content
+Actor/Input/Camera/Reset/Save/Pooling
+Addressables backend
 ```
-
-F6B, F6C, F6D, F6E and F6F are closed by smoke evidence. F6E wires additional scenes into Route lifecycle through scene composition execution. F6F introduces release planning/result vocabulary and builds a Route release plan from RouteContentSet: active Primary Scene receives no manual unload action; owned additive Route scenes receive UnloadScene intent; Registered and DiagnosticOnly content receive no release action. F6G executes only `UnloadScene` actions for owned additive Route scenes before the next Route composition. It does not destroy objects, return pool entries, create Surface, create RuntimeRootRegistry, create prefab materialization or touch Actor/Input/Camera/Reset/Save/Pooling.

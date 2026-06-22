@@ -21,18 +21,16 @@ F2 — CLOSED / PASS
 F3 — CLOSED / PASS
 F4 — CLOSED / ACTIVITY BASELINE PASS
 F5 — CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS
-F6 — OPEN / ADR ACCEPTED
+F6 — CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS
 ```
 
-F6 has completed the ADR/audit gate only. Runtime implementation has not started.
+F6 closes the first Route scene composition and release baseline:
 
-Next authorized implementation step:
-
-```text
-F6B — RouteSceneCompositionPlan
-```
-
-F6B must be inert planning data. It must not execute additive scene loading, release scenes, create Surface, create RuntimeRootRegistry, create prefab materialization, or touch Actor/Input/Camera/Reset/Save/Pooling.
+- `RouteContentProfileAsset` can declare additional Route scenes.
+- Primary Scene still loads through `LoadSceneMode.Single` and remains the active scene.
+- Owned additional Route scenes load additively.
+- Owned additional Route scenes are explicitly released on Route exit.
+- Release is represented by `ContentReleasePlan` and `ContentReleaseResult`.
 
 ## Documentation entry points
 
@@ -41,6 +39,9 @@ Documentation~/COMPLETENESS_TRACKER.md
 Documentation~/Planning/Immersive-Framework-Roadmap-Revisado.md
 Documentation~/Planning/Capability-Traceability-Matrix.md
 Documentation~/Planning/F6-Route-Scene-Composition-Audit.md
+Documentation~/Route/ROUTE_CONTENT_PROFILE_USAGE.md
+Documentation~/Route/ROUTE_SCENE_COMPOSITION_SMOKE.md
+Documentation~/Route/ROUTE_RELEASE_SMOKE.md
 Documentation~/ADRs/
 ```
 
@@ -48,11 +49,11 @@ Documentation~/ADRs/
 
 | ADR | Decision |
 |---|---|
-| `F6-01 — ADR-RELEASE-001` | Release is planned/executed through `ContentReleasePlan`/`ContentReleaseResult`, guided by explicit ownership. |
-| `F6-02 — ADR-SCENE-001` | Route scene composition is planned/executed through `RouteSceneCompositionPlan`/`RouteSceneCompositionResult`; additive loading comes only after plan/result. |
+| `F6-01 — ADR-RELEASE-001` | Release is planned/executed through `ContentReleasePlan`/`ContentReleaseResult`, guided by explicit ownership. F6 execution is limited to owned additive Route scene unload. |
+| `F6-02 — ADR-SCENE-001` | Route scene composition is planned/executed through `RouteSceneCompositionPlan`/`RouteSceneCompositionResult`; additional Route scenes are loaded additively from `RouteContentProfileAsset`. |
 
 ## Current hard boundary
 
-The framework currently has lifecycle/content/contribution foundations. It is not yet a Surface, RuntimeSpawned, Actor, Camera, Input, Save, Reset or Pooling framework.
+The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release for scene content. It is not yet a Surface, RuntimeSpawned, Actor, Camera, Input, Save, Reset or Pooling framework.
 
-Do not skip from F6 ADRs directly to F7/F8/F9/F10+ consumers.
+Do not skip from F6 directly to runtime materialization or gameplay consumers. The next architectural phase is F7 Surface declaration.

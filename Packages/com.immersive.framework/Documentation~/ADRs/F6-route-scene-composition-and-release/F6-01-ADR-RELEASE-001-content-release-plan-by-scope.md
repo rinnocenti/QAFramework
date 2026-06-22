@@ -1,6 +1,6 @@
 # F6-01 — ADR-RELEASE-001 — Content Release Plan by Scope
 
-Status: Accepted / F6G route scene release execution applied / pending smoke  
+Status: Accepted / F6G release smoke pass  
 Fase: F6  
 Ordem no Plano: F6-01  
 Tipo: Release / Ownership / Lifecycle cleanup  
@@ -372,12 +372,50 @@ DestroyRuntimeObject, ReturnToPool e CustomParticipantRelease continuam fora de 
 Activity release, Surface, RuntimeRootRegistry, prefab materialization, Actor/Input/Camera/Save/Pooling continuam fora de escopo.
 ```
 
-Diagnóstico esperado em request que sai de uma Route com uma additional scene owned:
+Diagnóstico validado em request que sai de uma Route com uma additional scene owned:
 
 ```text
 routeRelease='Succeeded'
+routeReleasePlanned='2'
 routeReleaseReleased='1'
 routeReleaseSkipped='1'
 routeReleaseFailed='0'
+routeReleaseIssues='0'
 routeReleaseBlockingIssues='0'
 ```
+
+F6G foi fechado com `Route Release Smoke` confirmando unload físico da additional scene owned e restore posterior da Route canônica com duas scene handles carregadas.
+
+
+---
+
+## Closure note — F6H
+
+F6H closes the release baseline authorized by this ADR.
+
+F6G validated the first physical release action:
+
+```text
+ContentReleaseAction.UnloadScene
+```
+
+Validated behavior:
+
+```text
+routeRelease='Succeeded'
+routeReleasePlanned='2'
+routeReleaseReleased='1'
+routeReleaseSkipped='1'
+routeReleaseFailed='0'
+routeReleaseIssues='0'
+routeReleaseBlockingIssues='0'
+```
+
+Interpretation:
+
+```text
+Released 1 -> owned additive Route scene unloaded.
+Skipped 1  -> active Primary Scene skipped; controlled by LoadSceneMode.Single.
+```
+
+No Activity release, runtime object destroy, pool return, Surface, RuntimeRootRegistry or materialization behavior is authorized by this closure.
