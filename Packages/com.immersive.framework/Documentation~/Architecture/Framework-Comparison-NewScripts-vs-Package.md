@@ -129,7 +129,7 @@ O package deve evoluir para a gramática do NewScripts, mas não para o shape do
 | Item | Problema |
 |---|---|
 | `CameraFlow` | Existe no runtime package e adiciona dependência Cinemachine antes de Surface/RuntimeSpawned/ContentFlow estarem maduros. |
-| `IFrameworkContentMaterializer` | Interface pública existe sem materializer concreto e sem ownership/release model. |
+| `IFrameworkContentMaterializer` | Marker legado de ContentFlow; após F8I, a boundary canônica é `RuntimeContent.IRuntimeMaterializationAdapter`. |
 | `IFrameworkContentContribution` / `FrameworkContentContributionMarker` | Contribution existe como vocabulário, mas sem discovery/inventory real. |
 | `RouteContentRuntime` | Implementado, mas não conectado ao fluxo real; isso cria superfície pública ambígua. |
 | `RouteContentProfileAsset` | Planejamento existe, mas requiredness e cenas adicionais não executam ainda. |
@@ -456,7 +456,7 @@ O package já criou um módulo `ContentFlow` com:
 - `FrameworkContentRequiredness`;
 - `FrameworkContentHandle`;
 - `FrameworkContentSet`;
-- `IFrameworkContentMaterializer`;
+- `IFrameworkContentMaterializer` legacy marker;
 - `IFrameworkContentContribution`;
 - `FrameworkContentContributionMarker`.
 

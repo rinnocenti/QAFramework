@@ -109,5 +109,5 @@ F8H does not add:
 ## Next authorized cut
 
 ```text
-F8I — Materialization adapter boundary
+F8J — Runtime release policy / logical release execution
 ```

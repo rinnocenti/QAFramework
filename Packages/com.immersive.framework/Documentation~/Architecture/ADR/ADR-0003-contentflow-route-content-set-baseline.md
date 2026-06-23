@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted / Superseded for materialization boundary by F8I
 
 ## Contexto
 
@@ -22,7 +22,7 @@ FrameworkContentKind
 FrameworkContentRequiredness
 FrameworkContentHandle
 FrameworkContentSet
-IFrameworkContentMaterializer
+IFrameworkContentMaterializer (legacy marker; not canonical after F8I)
 IFrameworkContentContribution
 FrameworkContentContributionMarker
 ```
@@ -73,7 +73,7 @@ Benefícios:
 
 - Route passa a ter um `ContentSet` rastreável;
 - logs deixam claro que a Primary Scene é conteúdo de Route;
-- futuros materializers podem produzir handles homogêneos;
+- futuros adapters devem usar `RuntimeContent.IRuntimeMaterializationAdapter`;
 - subsistemas futuros poderão consumir contributions em vez de depender de GameObjects ativados por efeito colateral.
 
 Custos aceitos:
@@ -116,3 +116,13 @@ A decisão é respeitada se:
 - o log de Route lifecycle mostra ao menos um handle Route/Scene/Required;
 - nenhuma Activity materialization nova é introduzida neste corte;
 - nenhum subsistema estrutural volta a depender de `SetActive` como materialização canônica.
+
+## Nota F8I
+
+`IFrameworkContentMaterializer` foi um marker inicial de ContentFlow. Ele não é mais o contrato canônico de materialização runtime. A boundary canônica após F8I é:
+
+```text
+RuntimeContent.IRuntimeMaterializationAdapter
+```
+
+ContentFlow continua válido para content identity/set/release de cenas, mas materialização física nova não deve usar o marker antigo.

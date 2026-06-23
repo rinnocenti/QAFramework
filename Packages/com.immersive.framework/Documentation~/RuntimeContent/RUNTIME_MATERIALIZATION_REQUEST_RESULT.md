@@ -1,10 +1,10 @@
 # Runtime Materialization Request / Result
 
-Status: `F8H UPDATED / CONTRACTS + SCOPED TOKEN`
+Status: `F8I UPDATED / CONTRACTS + SCOPED TOKEN + ADAPTER BOUNDARY`
 
-This document records the F8G runtime materialization contracts introduced after runtime ownership primitives, passive handles, logical roots, `RuntimeContentRuntime`, `RuntimeScopeContext` and lifecycle root integration. F8H extends the request with a scoped cancellation token.
+This document records the F8G runtime materialization contracts introduced after runtime ownership primitives, passive handles, logical roots, `RuntimeContentRuntime`, `RuntimeScopeContext` and lifecycle root integration. F8H extends the request with a scoped cancellation token. F8I adds the adapter boundary.
 
-F8G does not materialize anything by itself. It defines the request/result language that a later adapter físico must use.
+These contracts do not materialize anything by themselves. They define the request/result language and the `IRuntimeMaterializationAdapter` boundary that a physical adapter outside the RuntimeContent core may implement.
 
 ---
 
@@ -16,6 +16,7 @@ F8G does not materialize anything by itself. It defines the request/result langu
 | `RuntimeMaterializationRequest` | Explicit request to create runtime content in a known `RuntimeScopeContext`, now carrying `RuntimeScopeCancellationToken`. |
 | `RuntimeMaterializationResult` | Immutable result of one materialization attempt. |
 | `RuntimeMaterializationStatus` | Result status vocabulary. |
+| `IRuntimeMaterializationAdapter` | Public experimental boundary implemented by physical adapters outside the RuntimeContent core. |
 
 ---
 
@@ -96,20 +97,22 @@ RuntimeContentRuntime
               -> RuntimeMaterializationRequest
 ```
 
-Future external adapter chain after F8I:
+Adapter chain after F8I:
 
 ```text
 RuntimeMaterializationRequest
-  -> external physical adapter (prefab, scene, Addressables, pool, etc.)
+  -> IRuntimeMaterializationAdapter.Materialize
       -> RuntimeMaterializationResult
           -> RuntimeContentHandle
 ```
+
+`IRuntimeMaterializationAdapter` is only a boundary. The framework core still does not ship a prefab, scene, Addressables or pool implementation.
 
 ---
 
 ## Non-goals in F8G
 
-F8G does not add:
+F8G/F8I do not add:
 
 - implementação de adapter físico;
 - hierarchy root real;
@@ -128,5 +131,5 @@ F8G does not add:
 ## Next cut
 
 ```text
-F8I — Materialization adapter boundary
+F8J — Runtime release policy / logical release execution
 ```

@@ -1823,7 +1823,7 @@ Risco atual:
 6. Definir `RuntimeContentHandle`.
 7. Definir `RuntimeReleasePolicy`.
 8. Definir `RuntimeCleanupPlan`.
-9. Definir prefab materializer básico.
+9. Histórico NewScripts: havia sugestão de prefab materializer básico; no framework novo, F8I define apenas boundary e adapters físicos ficam fora do core.
 10. Definir pooled materializer básico.
 11. Integrar pool definition/service como dependência, não como owner macro.
 12. Definir `RuntimeSpawnOriginMetadata`.

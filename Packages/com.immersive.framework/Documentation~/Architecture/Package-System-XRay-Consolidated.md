@@ -60,7 +60,7 @@ Principais achados:
 |---|---|---|
 | High | `RouteContentRuntime` existe, mas não está conectado ao fluxo real de Route. | `RouteContentRuntime` tem `EnterRouteContent/ExitRouteContent`; `RouteLifecycleRuntime` não instancia nem chama esse runtime. |
 | High | `CameraFlow` está ativo no package apesar de documentação/ADR congelarem CameraFlow fora do baseline atual. | `Runtime/CameraFlow/*`, dependency `com.unity.cinemachine`; README e ADR-0005 dizem que CameraFlow fica fora do trilho atual. |
-| Medium | `ContentFlow` expõe contratos públicos antes de consumidores reais suficientes. | `IFrameworkContentMaterializer`, `IFrameworkContentContribution`, `FrameworkContentContributionMarker` existem, mas não há materializer ativo nem discovery/consumer real. |
+| Medium | `ContentFlow` expõe contratos públicos antes de consumidores reais suficientes. | `IFrameworkContentMaterializer` é marker legado; após F8I, a boundary canônica é `RuntimeContent.IRuntimeMaterializationAdapter`. Contributions seguem sem consumer real. |
 | Medium | `ActivityContentBinding` é funcional, mas continua sendo Local/visibility adapter, não materialização canônica. | ADR-0002 e runtime confirmam `GameObject.SetActive`. |
 | Medium | Runtime assembly é único e Unity-bound; não há runtime puro com `noEngineReferences: true`. | `Immersive.Framework.Runtime.asmdef` usa `noEngineReferences: false` e referencia `Unity.Cinemachine`. |
 | Low/Medium | Editor validation cobre o baseline inicial, mas não cobre Route Content Binding, CameraFlow, Route Content Profile adicional nem ContentFlow contributions. | `FrameworkAuthoringValidator` valida settings, app, route, activity e `ActivityContentBinding`. |
@@ -251,7 +251,7 @@ Conceitos existentes:
 - `FrameworkContentRequiredness`: required/optional.
 - `FrameworkContentHandle`: identidade imutável de conteúdo.
 - `FrameworkContentSet`: coleção imutável.
-- `IFrameworkContentMaterializer`: contrato público.
+- `IFrameworkContentMaterializer`: marker legado de ContentFlow; não é boundary canônica após F8I.
 - `IFrameworkContentContribution`: contrato público.
 - `FrameworkContentContributionMarker`: marker authored.
 
@@ -282,7 +282,7 @@ Evidência de ausência:
 
 - Não há arquivos/classes com `Surface`, `Slot`, `Anchor`, `RuntimeSpawned`, `Spawn`, `Prefab`, `Pool`, `InstanceIdentity`.
 - `com.immersive.pooling` não está em `package.json`.
-- `IFrameworkContentMaterializer` existe, mas nenhum materializer concreto.
+- `IFrameworkContentMaterializer` existe apenas como marker legado; adapter canônico novo é `RuntimeContent.IRuntimeMaterializationAdapter`.
 - `FrameworkContentContributionMarker` parece precursor de contribution/discovery, não de spawn.
 
 Risco:
@@ -330,7 +330,7 @@ Riscos:
 | `RouteRequestTrigger` / `ActivityRequestTrigger` | `GameFlow` | Request authored | UI/scene objects | Estável mínimo | Evento local ao trigger. |
 | Request UnityEvent bridges | `GameFlow` | Inspector callback | Scene authoring | Estável mínimo | Sem payload. |
 | `FrameworkContent*` | `ContentFlow` | Linguagem materialization | Framework/modules futuros | Experimental | Public API prematura. |
-| `IFrameworkContentMaterializer` | `ContentFlow` | Materialization contract | Futuro | Experimental | Sem consumer/concrete impl. |
+| `IFrameworkContentMaterializer` | `ContentFlow` | Legacy materialization marker | Histórico | Deferred | Superseded by `RuntimeContent.IRuntimeMaterializationAdapter` in F8I. |
 | `FrameworkCameraAuthority` | `CameraFlow` | Camera request resolution | Camera bindings/code | Ambíguo | Static global e contradiz freeze. |
 | `FrameworkQaCanvas` | `Diagnostics` | QA manual runtime | Dev/QA | Experimental | Public runtime surface. |
 | `FrameworkBootResult` | `Bootstrap` | Resultado de validação | Runtime/editor | Parcial | Público, mas boot real é interno. |
@@ -349,7 +349,7 @@ Riscos:
 | Medium | dependency | `com.unity.cinemachine` no runtime asmdef. | Todo framework passa a depender de Cinemachine por CameraFlow. | Confirmar se CameraFlow é baseline ativo; se não, remover dependency. |
 | Low/Medium | naming | Editor namespace `Immersive.Framework.Editor.Editor.*`. | Ruído público/interno e organização torta. | Corrigir em corte próprio se não quebrar asmdef/editor scripts. |
 | Low | logging | `FrameworkLogger.Create()` em vários runtimes. | Sem policy central; repetição de sink/policy. | Só revisar quando diagnostics/settings de logging forem escopo. |
-| Low | overengineering | Interfaces `IFrameworkContentMaterializer`/`Contribution` sem consumer. | Contrato público pode cristalizar cedo. | Marcar experimental ou internalizar até uso real. |
+| Low | overengineering | `IFrameworkContentMaterializer` era marker sem consumer. | Contrato público poderia cristalizar cedo. | F8I define `RuntimeContent.IRuntimeMaterializationAdapter`; marker antigo fica deferred/legacy. |
 
 ## 14. Matriz por Escopo
 

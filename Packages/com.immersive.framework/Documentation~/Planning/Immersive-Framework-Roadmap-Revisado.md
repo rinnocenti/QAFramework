@@ -522,8 +522,8 @@ Objetivo: criar materialização runtime genérica, sem actor/projectile/pool.
 | IF-FW-ROAD-8F | Lifecycle integration for runtime roots | `APPLIED`: Session/Route/Activity criam/removem roots lógicos e contextos explicitamente no lifecycle, sem executar materialização física. |
 | IF-FW-ROAD-8G | `RuntimeMaterializationRequest` / `Result` | `APPLIED`: Request/result/resource/status explícitos depois do owner/context/lifecycle roots; sem adapter físico. |
 | IF-FW-ROAD-8H | Transition guard + scoped cancellation | `APPLIED`: Guardas para transição e cancelamento por escopo antes de qualquer adapter físico. |
-| IF-FW-ROAD-8I | Materialization adapter boundary | `NEXT`: Boundary explícita para adapters físicos externos ao core; sem Instantiate/Destroy no framework core. |
-| IF-FW-ROAD-8J | `RuntimeReleasePolicy` / release execution | Activity exit futuro, Route exit e Session shutdown. |
+| IF-FW-ROAD-8I | Materialization adapter boundary | `APPLIED / PENDING COMPILE-SMOKE`: `IRuntimeMaterializationAdapter` boundary para adapters físicos externos ao core; sem Instantiate/Destroy no framework core. |
+| IF-FW-ROAD-8J | `RuntimeReleasePolicy` / release execution | `NEXT`: release lógico por handle/scope; cleanup físico continua em adapters externos. |
 | IF-FW-ROAD-8K | Runtime request/guard/release-policy smoke / F8 closure | request → guard → handle/release state → no stale scope/no fallback. |
 
 ### Não entra
@@ -1007,18 +1007,18 @@ F7 — CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS
 F8 — OPEN / RUNTIME ROOTS AND MATERIALIZATION
 ```
 
-No package enviado para esta consolidação, os documentos registram F8H como aplicado e F8I como o gate seguinte. Se houver implementação local de F8I fora deste zip, ela deve ser validada por smoke/compile e registrada em corte separado antes de marcar F8I como closed.
+No package enviado para esta consolidação, F8I passa a existir como boundary de adapter (`IRuntimeMaterializationAdapter`) sem implementação física. Validar por compile/import smoke antes de marcar como closed.
 
 ## Ação imediata
 
 ```text
-Consolidar documentação F9+ e ADRs novos antes de prosseguir além de F8I.
+Validar F8I por compile/import smoke e então prosseguir para F8J.
 ```
 
 Depois da consolidação documental, o próximo corte técnico continua dentro de F8:
 
 ```text
-F8I/F8J — materialization adapter boundary / runtime release policy
+F8J — runtime release policy / logical release execution
 ```
 
 A implementação de F9+ não deve começar até F8 fechar request/guard/release-policy smoke.

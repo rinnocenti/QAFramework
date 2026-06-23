@@ -1,6 +1,6 @@
 # RuntimeScopeRoot and RuntimeRootRegistry
 
-Status: `F8F UPDATED`
+Status: `F8I UPDATED`
 
 F8D introduces the first internal root registry boundary for runtime-created content.
 
@@ -67,16 +67,15 @@ F8D does not add:
 - `GameObject.Find`;
 - `Instantiate`;
 - `Destroy`;
-- materialization request/result;
 - implementação de adapter físico;
 - runtime release execution;
 - Content Anchor binding;
 - Actor, Pause, Camera, UI, Input, Save or Pooling consumers.
 
-F8E introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeScopeContext` boundary. F8F now integrates logical runtime root/context creation and removal into Session, Route and Activity lifecycles.
+F8E introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeScopeContext` boundary. F8F integrates logical runtime root/context creation and removal into Session, Route and Activity lifecycles. F8G/F8H add request/result and scoped cancellation. F8I adds `IRuntimeMaterializationAdapter` as the adapter boundary; physical adapters remain outside the core.
 
 Next authorized cut:
 
 ```text
-F8I — Materialization adapter boundary
+F8J — Runtime release policy / logical release execution
 ```

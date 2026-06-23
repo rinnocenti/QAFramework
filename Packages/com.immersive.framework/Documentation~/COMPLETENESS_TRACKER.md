@@ -48,7 +48,7 @@ Keep these docs as the durable record for implementation details:
 
 | Next authorized step | Reason |
 |---|---|
-| `F8I — Materialization adapter boundary` | F8H adds transition/cancellation guardrails. Next step defines the adapter boundary and removes the interpretation that the framework core owns physical prefab instantiation. |
+| `F8J — Runtime release policy / logical release execution` | F8I defines the adapter boundary. Next step defines logical release by handle/scope without physical prefab, scene, Addressables or pool cleanup in the core. |
 
 ## F5 closure audit
 
@@ -247,7 +247,7 @@ F7 is closed. F8 is the active phase; current next authorized cut is tracked in 
 
 ## F8 opening audit
 
-F8A accepted the runtime roots/materialization boundary as documentation-only. F8B added passive runtime ownership primitives. F8C added passive runtime content handles and release-state transition diagnostics. F8D added logical runtime scope roots and an internal minimal registry. F8E added the internal RuntimeContentRuntime owner and explicit RuntimeScopeContext. F8F integrated logical runtime root/context creation and removal into Session, Route and Activity lifecycles. F8G added `RuntimeMaterializationRequest`, `RuntimeMaterializationResult`, `RuntimeMaterializationResource` and `RuntimeMaterializationStatus` as explicit contracts. F8H added scoped transition guardrails and `RuntimeScopeCancellationToken` so materialization requests can be rejected when their owner scope is cancelling, removed or stale. Runtime behavior still does not instantiate, destroy, create hierarchy root GameObjects or bind anchors.
+F8A accepted the runtime roots/materialization boundary as documentation-only. F8B added passive runtime ownership primitives. F8C added passive runtime content handles and release-state transition diagnostics. F8D added logical runtime scope roots and an internal minimal registry. F8E added the internal RuntimeContentRuntime owner and explicit RuntimeScopeContext. F8F integrated logical runtime root/context creation and removal into Session, Route and Activity lifecycles. F8G added `RuntimeMaterializationRequest`, `RuntimeMaterializationResult`, `RuntimeMaterializationResource` and `RuntimeMaterializationStatus` as explicit contracts. F8H added scoped transition guardrails and `RuntimeScopeCancellationToken` so materialization requests can be rejected when their owner scope is cancelling, removed or stale. F8I added `IRuntimeMaterializationAdapter` as the boundary for physical adapters outside the RuntimeContent core. Runtime behavior still does not instantiate, destroy, create hierarchy root GameObjects or bind anchors.
 
 F8 has implemented:
 
@@ -257,12 +257,13 @@ F8 has implemented:
 - internal runtime content owner and explicit scope context (`RuntimeContentRuntime`, `RuntimeScopeContext`);
 - lifecycle-driven logical root/context diagnostics (`RuntimeScopeLifecycleResult`);
 - materialization request/result contracts (`RuntimeMaterializationRequest`, `RuntimeMaterializationResult`, `RuntimeMaterializationResource`, `RuntimeMaterializationStatus`);
-- transition guard/scoped cancellation (`RuntimeScopeTransitionState`, `RuntimeScopeCancellationToken`, internal transition guard/result/status).
+- transition guard/scoped cancellation (`RuntimeScopeTransitionState`, `RuntimeScopeCancellationToken`, internal transition guard/result/status);
+- materialization adapter boundary (`IRuntimeMaterializationAdapter`).
 
 F8 is still allowed to define and implement:
 
-- materialization adapter boundary only, without physical implementation in core;
-- runtime release policy and smoke.
+- runtime release policy/execution lógico;
+- F8 closure smoke.
 
 F8 does not authorize:
 
@@ -281,5 +282,5 @@ F9+ was realigned after this point. The realignment is documented in `Planning/F
 Next authorized cut:
 
 ```text
-F8I/F8J — materialization adapter boundary / runtime release policy
+F8J — runtime release policy / logical release execution
 ```

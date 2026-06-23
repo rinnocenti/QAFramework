@@ -1,6 +1,6 @@
 # F8D1 — F8 Plan Realignment
 
-Status: `APPLIED / DOCS ONLY`
+Status: `F8I APPLIED / MATERIALIZATION BOUNDARY`
 
 Este documento registra o realinhamento oficial da Fase 8 após a implementação de `F8D`.
 
@@ -47,12 +47,12 @@ Já está aplicado:
 F8D permanece deliberadamente passivo:
 
 ```text
-sem GameObject root
+sem hierarchy root físico
 sem Transform parent
 sem Instantiate
 sem Destroy
 sem request/result
-sem materializer
+sem materializer físico
 sem release execution
 sem Content Anchor binding
 ```
@@ -115,7 +115,7 @@ RuntimeContentRuntime
 
 Activity e Route devem integrar-se por owner/scope, não por uma coleção paralela.
 
-### 4. Roots precisam entrar no lifecycle real antes do prefab materializer
+### 4. Roots precisam entrar no lifecycle real antes de qualquer adapter físico
 
 O próximo bloco técnico depois do owner runtime deve conectar roots aos escopos reais:
 
@@ -192,7 +192,7 @@ Esses temas são válidos, mas não pertencem ao corte atual.
 F8 deve primeiro provar:
 
 ```text
-request -> adapter boundary -> handle/release state -> release on scope exit -> zero orphan
+request -> IRuntimeMaterializationAdapter boundary -> handle/release state -> release on scope exit -> zero orphan
 ```
 
 Addressables deve entrar depois como provider/adapter opcional, não como dependência do core F8.
@@ -208,12 +208,12 @@ Addressables deve entrar depois como provider/adapter opcional, não como depend
 | `F8C` | `CLOSED` | `RuntimeContentHandle` passivo. |
 | `F8D` | `CLOSED` | `RuntimeScopeRoot` lógico + `RuntimeRootRegistry` interno. |
 | `F8D1` | `APPLIED / DOCS ONLY` | Realinhamento do plano F8 e registro de decisões. |
-| `F8E` | `NEXT` | `RuntimeContentRuntime` + `RuntimeScopeContext`. |
-| `F8F` | `PLANNED` | Lifecycle root integration: Route/Activity criam e encerram roots. |
-| `F8G` | `PLANNED` | `RuntimeMaterializationRequest` / `RuntimeMaterializationResult`. |
-| `F8H` | `PLANNED` | Transition guard + scoped cancellation model. |
-| `F8I` | `PLANNED` | Materialization adapter boundary; adapters físicos ficam fora do core. |
-| `F8J` | `PLANNED` | Runtime release execution por handle/scope. |
+| `F8E` | `CLOSED / PASS` | `RuntimeContentRuntime` + `RuntimeScopeContext`. |
+| `F8F` | `CLOSED / PASS` | Lifecycle root integration: Route/Activity criam e encerram roots lógicos. |
+| `F8G` | `CLOSED / PASS` | `RuntimeMaterializationRequest` / `RuntimeMaterializationResult`. |
+| `F8H` | `CLOSED / PASS` | Transition guard + scoped cancellation model. |
+| `F8I` | `APPLIED / PENDING COMPILE-SMOKE` | `IRuntimeMaterializationAdapter` boundary; adapters físicos ficam fora do core. |
+| `F8J` | `NEXT` | Runtime release execution lógico por handle/scope. |
 | `F8K` | `PLANNED` | Runtime materialization/release smoke e fechamento de F8. |
 
 ---
@@ -278,4 +278,4 @@ F8 não depende de Addressables.
 F8E — RuntimeContentRuntime + RuntimeScopeContext
 ```
 
-Não avançar para `RuntimeMaterializationRequest` antes de existir o owner runtime interno e a semântica de contexto por escopo.
+`RuntimeMaterializationRequest` só deve existir depois do owner runtime interno e da semântica de contexto por escopo. Isso já foi aplicado em F8G; o próximo gate é release lógico, não materialização física no core.

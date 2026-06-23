@@ -1,6 +1,6 @@
 # Runtime Ownership Primitives
 
-Status: `F8F UPDATED`
+Status: `F8I UPDATED`
 
 F8B introduced passive primitives for runtime-created content ownership. F8C added a passive `RuntimeContentHandle` that records lifecycle/release state transitions without executing materialization or release. F8D added logical scope roots and an internal minimal registry for explicit root/handle registration. F8F connects those roots to Session, Route and Activity lifecycle context creation/removal.
 
@@ -20,6 +20,7 @@ F8B introduced passive primitives for runtime-created content ownership. F8C add
 | `RuntimeRootRegistry` | Internal scoped registry for runtime roots and handle registration. |
 | `RuntimeRootRegistryOperationStatus` | Internal status vocabulary for root registry operations. |
 | `RuntimeRootRegistryOperationResult` | Internal diagnostic result for root registry operations. |
+| `IRuntimeMaterializationAdapter` | Public experimental boundary for physical adapters outside the RuntimeContent core. |
 
 ## Scope to owner domain
 
@@ -56,16 +57,15 @@ F8D keeps runtime roots logical/passive. `RuntimeRootRegistry` can create a root
 F8D does not add:
 
 - runtime scope root GameObjects;
-- materialization request/result;
 - implementação de adapter físico;
 - release execution;
 - Content Anchor binding;
 - Actor, Pause, Camera, UI, Input, Save or Pooling consumers.
 
-F8E introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeScopeContext` boundary. F8F now integrates logical runtime root/context creation and removal into Session, Route and Activity lifecycles.
+F8E introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeScopeContext` boundary. F8F integrates logical runtime root/context creation and removal into Session, Route and Activity lifecycles. F8G/F8H add request/result and scoped cancellation. F8I adds `IRuntimeMaterializationAdapter` as the adapter boundary; physical adapters remain outside the core.
 
 Next authorized cut:
 
 ```text
-F8I — Materialization adapter boundary
+F8J — Runtime release policy / logical release execution
 ```

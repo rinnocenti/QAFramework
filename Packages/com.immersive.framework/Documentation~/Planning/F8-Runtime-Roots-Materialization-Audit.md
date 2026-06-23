@@ -1,6 +1,6 @@
 # F8 — Runtime Roots and Materialization Audit
 
-Status: `F8H APPLIED / TRANSITION GUARD`
+Status: `F8I APPLIED / MATERIALIZATION ADAPTER BOUNDARY`
 
 F8 começa depois de F7 fechar o baseline de Content Anchor. F7 entregou identidade, declaração, authoring, discovery, diagnostics smoke e authoring validation para `RouteContentAnchor`, mas não criou runtime placement nem materialização.
 
@@ -28,7 +28,7 @@ Já existe após F8B:
 - `RuntimeContentOwner`;
 - `RuntimeContentIdentity`.
 
-Já existe após F8C–F8H:
+Já existe após F8C–F8I:
 
 - `RuntimeContentHandle`;
 - `RuntimeScopeRoot`;
@@ -42,15 +42,13 @@ Já existe após F8C–F8H:
 - `RuntimeMaterializationStatus`;
 - `RuntimeScopeTransitionState`;
 - `RuntimeScopeCancellationToken`;
-- internal transition guard/result/status.
+- internal transition guard/result/status;
+- `IRuntimeMaterializationAdapter` como boundary de adapter físico externo ao core.
 
 Ainda não existe:
 
-- runtime root por escopo;
-- runtime content handle;
-- materialization request/result;
 - implementação de adapter físico;
-- runtime content release policy;
+- runtime content release policy/execution;
 - binding entre Content Anchor e runtime content;
 - Activity Content Anchor;
 - Actor/Pause/Camera/UI/Pool consumers.
@@ -79,7 +77,7 @@ F8 deve separar três conceitos:
 | Conceito | Papel |
 |---|---|
 | `Content Anchor` | Ponto autoral/passivo dentro de cena carregada. Não cria objetos. |
-| `Runtime Root` | Container runtime por escopo/lifecycle. Recebe objetos criados em runtime. |
+| `Runtime Root` | Fronteira lógica de ownership por escopo/lifecycle. Não é hierarchy root físico em F8. |
 | `Runtime Content Handle` | Referência canônica e liberável para uma instância criada em runtime. |
 
 Essa separação evita que `ContentAnchor` vire root global, service locator ou spawn system.
@@ -112,7 +110,9 @@ Semântica inicial:
 
 ## Runtime Root
 
-`Runtime Root` é um GameObject/container criado ou registrado pelo framework para um escopo.
+Em F8, `Runtime Root` é um registro lógico de ownership por escopo, representado por `RuntimeScopeRoot` e controlado por `RuntimeContentRuntime`.
+
+Ele não é `GameObject`, `Transform`, parent de hierarchy ou container físico. Hierarchy root físico, prefab instance, scene object, pool instance ou Addressables handle pertencem a adapters/consumers futuros.
 
 Regras:
 
@@ -123,7 +123,7 @@ Regras:
 - não assumir Content Anchor;
 - não criar Actor/Pause/Camera/UI por conta própria.
 
-O root deve carregar identidade, owner scope e estado suficiente para diagnostics.
+O root lógico carrega owner scope e handles suficientes para diagnostics e release lógico.
 
 ---
 
@@ -160,7 +160,7 @@ Materialização deve ser explícita:
 
 ```text
 RuntimeMaterializationRequest
-→ materializer
+→ IRuntimeMaterializationAdapter.Materialize
 → RuntimeMaterializationResult
 → RuntimeContentHandle
 ```
@@ -231,15 +231,15 @@ Criar/posicionar conteúdo runtime usando ContentAnchorRoot/Slot/Point.
 | `F8F` | Integração do runtime owner/context aos lifecycles de Session/Route/Activity. `APPLIED` |
 | `F8G` | `RuntimeMaterializationRequest` / `RuntimeMaterializationResult`. `APPLIED` |
 | `F8H` | Transition guard + scoped cancellation. `APPLIED` |
-| `F8I` | Materialization adapter boundary. `NEXT` |
-| `F8J` | Runtime release execution por scope. |
+| `F8I` | `IRuntimeMaterializationAdapter` boundary. `APPLIED / PENDING COMPILE-SMOKE` |
+| `F8J` | Runtime release execution lógico por scope. `NEXT` |
 | `F8K` | Runtime materialization/release smoke e fechamento F8. |
 
 F8 foi realinhada após F8D para inserir `RuntimeContentRuntime` e `RuntimeScopeContext` antes de request/result de materialização. A ordem nova evita criar request pública sem owner interno explícito para roots e handles. Nenhum consumer deve entrar antes de handle/root/context/release mínimos.
 
 F8F aplica a primeira integração real com lifecycle: `FrameworkRuntimeHost` cria o root lógico de Session; `RouteLifecycleRuntime` cria/remove roots lógicos de Route; `ActivityFlowRuntime` cria/remove roots lógicos de Activity. A integração produz diagnostics via `RuntimeScopeLifecycleResult`, mas ainda não executa materialização física, não cria hierarchy root e não executa release físico.
 
-F8G aplica o contrato explícito de materialização: `RuntimeMaterializationRequest`, `RuntimeMaterializationResult`, `RuntimeMaterializationResource` e `RuntimeMaterializationStatus`. O request usa `RuntimeScopeContext + RuntimeContentId + RuntimeMaterializationResource`; o result reporta status/handle/mensagem. F8H adiciona transition guard e `RuntimeScopeCancellationToken`, impedindo request novo quando o owner scope está cancelando/removido e permitindo validar token stale antes de qualquer adapter externo. Ainda não há adapter físico no core, `Instantiate`, `Destroy` ou Content Anchor binding.
+F8G aplica o contrato explícito de materialização: `RuntimeMaterializationRequest`, `RuntimeMaterializationResult`, `RuntimeMaterializationResource` e `RuntimeMaterializationStatus`. O request usa `RuntimeScopeContext + RuntimeContentId + RuntimeMaterializationResource`; o result reporta status/handle/mensagem. F8H adiciona transition guard e `RuntimeScopeCancellationToken`, impedindo request novo quando o owner scope está cancelando/removido e permitindo validar token stale antes de qualquer adapter externo. F8I adiciona `IRuntimeMaterializationAdapter` como boundary; ainda não há adapter físico no core, `Instantiate`, `Destroy` ou Content Anchor binding.
 
 ---
 

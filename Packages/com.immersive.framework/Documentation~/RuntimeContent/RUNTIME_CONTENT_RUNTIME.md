@@ -1,8 +1,8 @@
 # RuntimeContentRuntime and RuntimeScopeContext
 
-Status: `F8F UPDATED`
+Status: `F8I UPDATED`
 
-F8E introduced the internal runtime owner for runtime-created content state and the explicit scope context used by future materialization cuts. F8F connects that owner to Session, Route and Activity lifecycle root/context creation.
+F8E introduced the internal runtime owner for runtime-created content state and the explicit scope context used by future materialization cuts. F8F connects that owner to Session, Route and Activity lifecycle root/context creation. F8G/F8H add request/result and scoped cancellation. F8I adds the adapter boundary without physical implementation in core.
 
 This cut is still not materialization. It creates the coordination boundary that sits above the F8D registry, but it does not create hierarchy GameObjects, instantiate prefabs, destroy objects, execute release, bind Content Anchors or serve gameplay consumers.
 
@@ -57,8 +57,6 @@ The only way to operate on handles through `RuntimeContentRuntime` is by passing
 
 F8E does not add:
 
-- `RuntimeMaterializationRequest`;
-- `RuntimeMaterializationResult`;
 - implementação de adapter físico;
 - runtime root GameObjects;
 - `Transform` parent assignment;
@@ -73,5 +71,5 @@ F8E does not add:
 Next authorized cut:
 
 ```text
-F8I — Materialization adapter boundary
+F8J — Runtime release policy / logical release execution
 ```

@@ -1,12 +1,14 @@
+using System;
 using Immersive.Framework.ApiStatus;
+
 namespace Immersive.Framework.ContentFlow
 {
     /// <summary>
-    /// API status: Experimental. Do not treat this as a stable materialization or contribution contract before F1/F5/F8.
-    /// Marker contract for objects that materialize content handles for a specific scope and kind.
-    /// Concrete materializers define their own command/result types.
+    /// API status: Deferred. Early ContentFlow marker kept only for historical compatibility during F8.
+    /// Runtime materialization adapters must use Immersive.Framework.RuntimeContent.IRuntimeMaterializationAdapter.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
+    [Obsolete("Use Immersive.Framework.RuntimeContent.IRuntimeMaterializationAdapter for F8 runtime materialization boundaries. This marker is not the canonical materialization contract.", false)]
+    [FrameworkApiStatus(FrameworkApiStatus.Deferred, "Superseded by RuntimeContent.IRuntimeMaterializationAdapter in F8I; do not use for new materialization code.")]
     public interface IFrameworkContentMaterializer
     {
         FrameworkContentScope Scope { get; }

@@ -1,6 +1,6 @@
 # F8-02 — ADR-RUNTIME-002 — Materialization Request Result Handle
 
-Status: Accepted in F8A / Request-result contracts applied in F8G / Materializer-release pending  
+Status: Accepted in F8A / Request-result contracts applied in F8G / Adapter boundary applied in F8I / Release pending  
 Fase: F8  
 Ordem no Plano: F8-02  
 Tipo: RuntimeSpawned / Content  
@@ -20,12 +20,12 @@ Materialização runtime deve seguir um fluxo explícito:
 
 ```text
 RuntimeMaterializationRequest
-→ IFrameworkContentMaterializer.Materialize
+→ IRuntimeMaterializationAdapter.Materialize
 → RuntimeMaterializationResult
 → RuntimeContentHandle
 ```
 
-O adapter físico inicial deve viver fora do core do framework; o core define apenas request/result/handle/guard.
+`IRuntimeMaterializationAdapter` é a boundary canônica. Implementações físicas de prefab, cena, Addressables, pool ou gameplay vivem fora do RuntimeContent core; o core define apenas request/result/handle/guard/release lógico.
 
 `RuntimeContentHandle` é a referência canônica da instância criada. Ele deve carregar:
 
@@ -34,7 +34,7 @@ identity
 owner scope
 state
 resource name/path diagnostic only
-release action/policy
+release state
 release result/diagnostics
 ```
 
@@ -43,10 +43,11 @@ release result/diagnostics
 O handle deve distinguir pelo menos:
 
 ```text
-Active
+Declared
+Materialized
+ReleaseRequested
 Released
 ReleaseFailed
-Invalid
 ```
 
 Double-release deve ser seguro e diagnosticado. Ele não deve destruir duas vezes.
@@ -87,15 +88,15 @@ Portanto, F8 não deve criar `RuntimeContentAnchorBinding`.
 
 - Adapter físico externo produz resultado/handle sem capturar ownership do core.
 - Handle tem identity e owner scope estáveis.
-- Release muda estado e limpa o objeto criado.
+- Release muda estado no core; cleanup físico pertence a adapter explícito ou consumer fora do core.
 - Double-release é seguro/diagnosticado.
 - Route/Activity scope release não deixa orphan.
 - Materializer não usa `GameObject.Find`.
 
 ## Relação com roadmap
 
-F8A aceita a decisão. F8B-F8F applied ownership, handle, logical root, runtime owner/context and lifecycle root integration. F8G applies request/result/resource/status contracts. Concrete materializer and release execution remain pending.
+F8A aceita a decisão. F8B-F8F applied ownership, handle, logical root, runtime owner/context and lifecycle root integration. F8G applies request/result/resource/status contracts. F8H applies transition guard/scoped cancellation. F8I applies `IRuntimeMaterializationAdapter` as boundary. Concrete physical adapters and release execution remain pending.
 
 ## Notas de implementação
 
-A primeira implementação deve ser menor que o modelo final. Prefira um materializer local, explícito e diagnosticável antes de integrar Content Anchors ou consumers.
+A primeira implementação física deve ficar fora do core. No core, mantenha somente a boundary explícita e diagnosticável antes de integrar Content Anchors ou consumers.

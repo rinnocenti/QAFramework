@@ -77,5 +77,5 @@ F8F does not add:
 ## Next cut
 
 ```text
-F8I — Materialization adapter boundary
+F8J — Runtime release policy / logical release execution
 ```

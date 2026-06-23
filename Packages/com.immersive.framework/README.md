@@ -65,9 +65,9 @@ Documentation~/ADRs/
 
 ## Current hard boundary
 
-The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release, Content Anchor declaration and RuntimeContent contracts/guardrails through F8H in the uploaded package.
+The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release, Content Anchor declaration and RuntimeContent contracts/guardrails through F8I in the uploaded package.
 
-F8 remains the active gate before F9+ code starts. F8 may continue only with materialization adapter boundary, runtime release policy and F8 closure smoke. F8 must not create Content Anchor binding, Activity anchors, Actor, Pause, Camera, UI, Save, Input or Pooling consumers.
+F8 remains the active gate before F9+ code starts. F8 may continue only with runtime release policy and F8 closure smoke. F8 must not create Content Anchor binding, Activity anchors, Actor, Pause, Camera, UI, Save, Input or Pooling consumers.
 
 F9+ has been realigned as documentation so that missing `NewScripts` capabilities are tracked without creating side paths:
 
@@ -92,6 +92,6 @@ Documentation~/Planning/Foundation-Hardening-Backlog.md
 Next technical work remains inside F8 until F8 closes:
 
 ```text
-F8I/F8J — materialization adapter boundary / runtime release policy
+F8J — runtime release policy / logical release execution
 ```
 
