@@ -17,6 +17,13 @@ Este arquivo substitui os antigos documentos de fechamento e aceite de fase. Os 
 | F6 | `CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS` | F6G release smoke passed; F6 closed | `Planning/F6-Route-Scene-Composition-Audit.md`, `Route/ROUTE_CONTENT_PROFILE_USAGE.md`, `Route/ROUTE_SCENE_COMPOSITION_SMOKE.md`, `Route/ROUTE_RELEASE_SMOKE.md`, `ADRs/F6-route-scene-composition-and-release/` |
 | F7 | `CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS` | F7I closure completed after F7H smoke pass | `Planning/F7-Content-Anchor-Declaration-Audit.md`, `ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md`, `ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md`, `ContentAnchor/CONTENT_ANCHOR_SET.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md`, `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md`, `ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md`, `ADRs/F7-content-anchor-declaration/` |
 | F8 | `OPEN / RUNTIME ROOTS AND MATERIALIZATION` | F8H transition guard/scoped cancellation applied; materializer/release pending | `Planning/F8-Runtime-Roots-Materialization-Audit.md`, `RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md`, `RuntimeContent/RUNTIME_CONTENT_HANDLE.md`, `RuntimeContent/RUNTIME_SCOPE_ROOT_REGISTRY.md`, `RuntimeContent/RUNTIME_CONTENT_RUNTIME.md`, `RuntimeContent/RUNTIME_ROOT_LIFECYCLE_INTEGRATION.md`, `RuntimeContent/RUNTIME_MATERIALIZATION_REQUEST_RESULT.md`, `RuntimeContent/RUNTIME_TRANSITION_GUARD_SCOPED_CANCELLATION.md`, `ADRs/F8-runtime-roots-and-materialization/` |
+| F9 | `PLANNED / CONTENT ANCHOR BINDING` | F9+ roadmap realigned; wait for F8 closure | `Planning/F9Plus-Roadmap-Realignment.md`, `ADRs/F9-content-anchor-binding-and-runtime-placement/` |
+| F10 | `PLANNED / TRANSITION + ACTIVITY CONTENT` | New phase from NewScripts gap analysis | `ADRs/F10-transition-loading-and-activity-content/` |
+| F11 | `PLANNED / PARTICIPATION + CAPABILITY RUNTIME` | New phase before intermediate consumers | `ADRs/F11-participation-and-capability-runtime/` |
+| F12 | `PLANNED / INPUT SAVE PAUSE` | Former F10 renumbered and expanded | `ADRs/F12-intermediate-consumers/` |
+| F13 | `PLANNED / ADVANCED CONSUMERS` | Former F11 renumbered | `ADRs/F13-advanced-consumers/` |
+| F14 | `PLANNED / GAMEPLAY CAPABILITIES` | Former F12 renumbered | `Planning/Immersive-Framework-Roadmap-Revisado.md` |
+| F15/FX | `PLANNED / PRODUCTIZATION HARDENING` | New hardening backlog | `Planning/Foundation-Hardening-Backlog.md` |
 
 ## Consolidation rule
 
@@ -260,6 +267,8 @@ F8 is still allowed to define and implement:
 F8 does not authorize:
 
 - Content Anchor runtime binding;
+- Transition/loading implementation;
+- ActivityContentProfile execution;
 - Activity Content Anchor;
 - Actor/Pause/Camera/UI/Input/Save/Pooling consumers;
 - pooled materialization;
@@ -267,8 +276,10 @@ F8 does not authorize:
 - `GameObject.Find` root lookup;
 - fallback root creation when a required root is absent.
 
+F9+ was realigned after this point. The realignment is documented in `Planning/F9Plus-Roadmap-Realignment.md` and does not mark any F9+ runtime implementation as applied.
+
 Next authorized cut:
 
 ```text
-F8I — Materialization adapter boundary
+F8I/F8J — materialization adapter boundary / runtime release policy
 ```

@@ -20,7 +20,7 @@ F8D logical RuntimeScopeRoot + RuntimeRootRegistry
   -> F8F lifecycle root integration
   -> F8G RuntimeMaterializationRequest / RuntimeMaterializationResult
   -> F8H transition guard + scoped cancellation model
-  -> F8I PrefabContentMaterializer
+  -> F8I Materialization adapter boundary
   -> F8J runtime release execution
   -> F8K materialization/release smoke and closure
 ```
@@ -192,10 +192,10 @@ Esses temas são válidos, mas não pertencem ao corte atual.
 F8 deve primeiro provar:
 
 ```text
-prefab local -> handle -> release on scope exit -> zero orphan
+request -> adapter boundary -> handle/release state -> release on scope exit -> zero orphan
 ```
 
-Addressables deve entrar depois como provider/adapter opcional, não como dependência do materializer local inicial.
+Addressables deve entrar depois como provider/adapter opcional, não como dependência do core F8.
 
 ---
 
@@ -212,7 +212,7 @@ Addressables deve entrar depois como provider/adapter opcional, não como depend
 | `F8F` | `PLANNED` | Lifecycle root integration: Route/Activity criam e encerram roots. |
 | `F8G` | `PLANNED` | `RuntimeMaterializationRequest` / `RuntimeMaterializationResult`. |
 | `F8H` | `PLANNED` | Transition guard + scoped cancellation model. |
-| `F8I` | `PLANNED` | `PrefabContentMaterializer` simples/local. |
+| `F8I` | `PLANNED` | Materialization adapter boundary; adapters físicos ficam fora do core. |
 | `F8J` | `PLANNED` | Runtime release execution por handle/scope. |
 | `F8K` | `PLANNED` | Runtime materialization/release smoke e fechamento de F8. |
 
@@ -266,7 +266,7 @@ CameraFlow é histórico/removido/deferred. Não influencia F8.
 
 Status: `BACKLOG / AFTER LOCAL PREFAB MATERIALIZER`
 
-Depois que `PrefabContentMaterializer` local funcionar, criar porta opcional para provider de asset.
+Depois que a boundary de adapter e a release policy estiverem fechadas, criar porta opcional para provider de asset.
 
 F8 não depende de Addressables.
 

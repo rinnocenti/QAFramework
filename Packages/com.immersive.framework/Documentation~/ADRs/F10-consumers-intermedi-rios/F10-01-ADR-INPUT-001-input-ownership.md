@@ -1,59 +1,11 @@
-# F10-01 — ADR-INPUT-001 — Input Ownership
+# Superseded ADR Placeholder
 
-Status: Draft / Deferred  
-Fase: F10  
-Ordem no Plano: F10-01  
-Tipo: Consumer / Input  
-Escopo: Input
+Status: Superseded / Renumbered
 
----
+This ADR was renumbered during `IF-FW-F9PLUS-REALIGNMENT`.
 
-## Contexto
+Use `F12-01` instead:
 
-Input é consumer de Route/Activity/Participation. Não deve ditar lifecycle core nem usar string solta como action map identity.
-
-## Decisão
-
-Input mode deve ser declarado por contrato e aplicado por consumer.
-
-- Owner atual do input mode é explícito.
-- Activity/Route declaram requirement.
-- Consumer aplica e libera.
-- Action map string pode ser implementation detail, não chave funcional pública.
-
-## Consequências
-
-### Positivas
-
-- Evita global input service como locator.
-- Permite pause e activity mode sem acoplamento.
-- Prepara actor command depois.
-
-### Negativas / trade-offs
-
-- Precisa adapter Unity Input System depois.
-- Requer mapping authoring cuidadoso.
-
-## Fora do escopo
-
-- PlayerInput concreto.
-- Actor commands.
-- Multiplayer participation.
-
-## Critérios de validação
-
-- Activity enter muda input mode.
-- Activity exit restaura/libera.
-- Sem global discovery de PlayerInput no core.
-
-## Impacto esperado
-
-Primeiro consumer intermediário.
-
-## Relação com roadmap
-
-F10.
-
-## Notas de implementação
-
-Pode começar com contrato sem Unity Input System adapter.
+```text
+Documentation~/ADRs/F12-intermediate-consumers/F12-01-ADR-INPUT-001-input-ownership.md
+```

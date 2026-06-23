@@ -59,6 +59,14 @@ Regras:
 | Campos `—` | Tratados como `Deferred` ou `Requer detalhamento`; não podem ficar sem status no backlog. |
 | `Overlay root separado de content root` | Removido de F7. É consumer/layout/runtime-placement concern e deve ser reavaliado em F9/F10 depois de RuntimeRoot/materialization e binding. |
 | `Local slots` / `Local anchors` | Não criar tipos paralelos. O vocabulário canônico é `ContentAnchorSlot` e `ContentAnchorPoint`; F7C cobre os wrappers tipados. |
+| `IF-FW-F9PLUS-REALIGNMENT` | Realinha F9+ após análise de lacunas do NewScripts: Transition/loading, ActivityContentProfile execution, Activity reset, Participation, Live Capability Inventory, Local Lifecycle Participants, Save progression/migration e productization backlog. |
+| `Transition / Loading` | Deixa de ser tratado como presentation pura. F6 permanece scene composition/release técnico; F10 passa a cobrir transition policy, loading progress e input lock; F13 pode adicionar presentation adapters. |
+| `ActivityContentProfile execution` | Sai de deferred genérico e ganha F10 como fase concreta depois de RuntimeContent/Content Anchor foundations. |
+| `Participation / Capability runtime` | Sai de itens espalhados e entra em F11 antes de Input/Save/Pause/Actor/Camera consumirem participação ou capability references. |
+| `Input / Snapshot / Pause` | Fase antiga F10 foi renumerada para F12 e passa a depender de F10/F11. |
+| `Camera / Audio / Actor / Pooling` | Fase antiga F11 foi renumerada para F13. |
+| `Gameplay capabilities` | Fase antiga F12 foi renumerada para F14. |
+| `Productization / Tooling` | Novo F15/FX rastreia Settings Source, assembly/build/stripping, versioning/migration, pre-build validation, editor visualizer, Asset Provider/Addressables/DLC e domain reload resilience. |
 
 ---
 ## 4. Matriz consolidada por grupo
@@ -253,6 +261,8 @@ Regras:
 ---
 ## 5. Índice por fase revisado
 
+Este índice substitui o mapeamento antigo de F10/F11/F12. Linhas históricas do catálogo original que ainda mencionem F10/F11/F12 devem ser lidas por esta tabela autoritativa.
+
 ### F0B
 - Session — Boot global antes da cena
 - Diagnostics / QA — QA Canvas / smoke buttons
@@ -274,9 +284,6 @@ Regras:
 - Session — Settings source policy
 - Session — Startup route signal
 
-### Futura F2/F3
-- Session — Pipeline de composição em fases
-
 ### F3
 - Route — Route asset declarativo
 - Route — Route runtime state
@@ -284,9 +291,6 @@ Regras:
 - Route — Primary scene loading
 - Route — Route → Activity handoff
 - Route — Route startup activity policy
-
-### Deferred após F4/F6
-- Activity — Activity content profile
 
 ### F4
 - Activity — Activity asset declarativo
@@ -305,30 +309,12 @@ Regras:
 - Local — Stale/foreign reference check
 - Diagnostics / QA — Required/optional policy
 
-### F5 parcial / Runtime refs depois
-- Local — Capability inventory
-
-### F5/F7/F10+
-- Route — Route contribution set
-
-### Futura após F5/F10
-- Activity — Activity reset plan
-
 ### F6
 - Route — Scene composition plan/result
 - Route — Additive scene loading
 - Route — Active scene policy
 - Route — Route content profile execution
 - Route — Content release plan
-
-### F6 ou futura Session Persistent Content
-- Session — Persistent scenes policy
-
-### F6+
-- Activity — Activity content loading
-
-### F6/F8
-- Activity — Activity exit plan
 
 ### F7
 - Route — Route Content Anchor set
@@ -340,65 +326,62 @@ Regras:
 - Content Anchor — Route Content Anchor authoring
 - Content Anchor — Content Anchor set por scope
 - Content Anchor — Duplicate detection
-- Content Anchor — Overlay root separado de content root (deferred para F9/F10)
 
 ### F8
 - RuntimeSpawned — Runtime scope root
 - RuntimeSpawned — Runtime root registry
+- RuntimeSpawned — RuntimeContentRuntime / RuntimeScopeContext
 - RuntimeSpawned — Materialization request/result
-- RuntimeSpawned — Runtime content handle
+- RuntimeSpawned — Transition guard/scoped cancellation
 - RuntimeSpawned — Materialization adapter boundary
 - RuntimeSpawned — Runtime release policy
 - RuntimeSpawned — Runtime identity
-- RuntimeSpawned — Destroy policy
-
-### F8+
-- Local — Runtime capability reference
-
-### F8/F10
-- Local — Local release participant
-- Local — Exit freeze
+- RuntimeSpawned — Destroy/release policy
+- Local — Exit freeze baseline for runtime scopes
 
 ### F9
-- RuntimeSpawned — Spawn origin / slot
+- RuntimeSpawned — Spawn origin / slot via Content Anchor
 - Content Anchor — Content Anchor binding request/result
 - Content Anchor — Content Anchor content handle
 - Content Anchor — Runtime Content Anchor binding
-- Content Anchor — Content Anchor lifecycle policy
-
-### F9–F10
-- Activity — Pause content/Content Anchor contribution
-- Pause — Pause content materialization
+- Content Anchor — Content Anchor lifecycle/release policy
 
 ### F10
-- Activity — Activity snapshot
-- Local — Local snapshot participant
+- Transition — Transition request/policy/result
+- Transition — Loading progress contract
+- Transition — Input lock policy during transition/readiness
+- Activity — ActivityContentProfile execution
+- Activity — Activity-owned content scenes/prefabs
+- Activity — Activity reset plan baseline
+
+### F11
+- Session/Activity — Participation boundary
+- Session/Activity — PlayerSlot / ParticipantId / ParticipationScope contracts
+- Local — Live Capability Inventory
+- Local — Runtime capability reference
+- Local — Local release participant
+- Local — Local reset participant
+- Local — Local snapshot participant boundary
+- Local — Exit freeze and stale/foreign rejection
+- Consumers — Consumer descriptor pattern
+
+### F12
 - Input — Input mode contract
-- Input — Activity input consumer
+- Input — Activity/Route/Pause input consumer
 - Input — Input mode owner
+- Input — Player slot / command binding
 - Save / Snapshot — Snapshot envelope
 - Save / Snapshot — Snapshot participant contract
 - Save / Snapshot — Snapshot set
 - Save / Snapshot — Save backend port
 - Save / Snapshot — Schema versioning
+- Save / Progression — SaveSlot, manifest, current save pointer, checkpoint/auto/manual policy, migration
 - Pause — Pause content anchor consumer
 - Pause — Pause state contract
-- Pause — Pause/unpause lifecycle
+- Pause — Pause lifecycle
+- Activity — Activity snapshot
 
-### F10+
-- Local — Local reset participant
-
-### F10+/F11
-- Session — Player participation
-
-### F10–F11
-- Activity — Participant binding
-- Input — Player slot / command binding
-
-### F11
-- RuntimeSpawned — Pooled materializer
-- RuntimeSpawned — Runtime spawned contribution
-- RuntimeSpawned — Pool rent/return cycle
+### F13
 - Camera — Camera consumer
 - Camera — Camera anchor binding
 - Camera — Camera scope (Session/Route/Activity)
@@ -406,6 +389,7 @@ Regras:
 - Camera — Virtual camera binding
 - Audio — BGM lifecycle consumer
 - Audio — SFX dispatch
+- Audio — Audio listener as Session persistent content future
 - Actor — Actor materialization request/result
 - Actor — Actor contribution
 - Actor — Actor runtime identity
@@ -414,24 +398,38 @@ Regras:
 - Pooling — Pool rent
 - Pooling — Pool return
 - Pooling — Pool ownership
+- RuntimeSpawned — Pooled materializer
+- RuntimeSpawned — Runtime spawned contribution
+- Transition — Fade/loading screen/curtain presentation adapters
 
-### F11 ou SessionContent futuro
-- Audio — Audio listener
-
-### F11+
-- Session — Subsystem composition descriptors
-
-### F12
+### F14
 - Projectile / Damage / Attributes — Projectile as RuntimeSpawned
 - Projectile / Damage / Attributes — Impact/collision handling
 - Projectile / Damage / Attributes — Damage as actor capability
 - Projectile / Damage / Attributes — Attributes as snapshot-capable
+- Cinematics — Cutscene/cinematic as Activity/Transition consumer
 
-### Deferred
+### F15/FX
+- Productization — Settings Source Hardening
+- Productization — Assembly / Build / Stripping Boundary Audit
+- Productization — Documentation Hygiene
+- Productization — Framework Versioning & Migration
+- Productization — Pre-build Content Validation Pipeline
+- Productization — Scoped Messaging Policy
+- Productization — Editor Simulation / Visualizer
+- Productization — Asset Provider / Addressables / DLC Boundary
+- Productization — Domain Reload / Hot Reload Resilience
+- Productization — Telemetry / Analytics Hooks
+
+### Deferred / Future consumers
 - Session — Session composition context
-
-### Todas
-- Diagnostics / QA — Authoring validator
+- Session — Session persistent scenes/content
+- Networking / Multiplayer boundary
+- Localization
+- Achievements/progression completo
+- Replay system
+- Accessibility layer
+- Remote config/experimentation
 
 ---
 ## 6. Gaps de rastreabilidade
@@ -440,14 +438,14 @@ Itens que precisam de detalhamento futuro porque estavam como `—`, `Fase+` ou 
 
 - **Session — Pipeline de composição em fases**: Futura F2/F3. Não obrigatório como corte imediato. Preservar o padrão, mas evitar composition genérico cedo demais.
 - **Session — Session composition context**: Deferred. Conceito válido, mas perigoso cedo. Primeiro formalizar Session scope/content sem service locator.
-- **Session — Player participation**: F10+/F11. Adiar. Entra com Input/Actor boundary, não no core inicial.
-- **Session — Subsystem composition descriptors**: F11+. Como padrão de consumer/adapters, não Session core.
+- **Session — Player participation**: realinhado para F11 como Participation Boundary antes de Input/Actor/Camera/Save.
+- **Session — Subsystem composition descriptors**: realinhado para F11 como Consumer Descriptor Pattern; consumers concretos entram em F12/F13.
 - **Route — Route contribution set**: F5/F7/F10+. Contribution genérico em F5; Content Anchor em F7; consumers reais depois.
-- **Activity — Activity content profile**: Deferred após F4/F6. F4 deve criar ActivityContentSet/readiness mínimo; profile avançado vem depois de scene composition/release.
-- **Activity — Activity content loading**: F6+. Carregamento real de cenas da Activity depende de plan/result/release.
-- **Activity — Activity reset plan**: Futura após F5/F10. Depende de LocalContributionSet e snapshot/reset participants.
-- **Local — Runtime capability reference**: F8+. Correto: depende de RuntimeContentHandle/lifetime validity.
-- **Local — Local reset participant**: F10+. Depende de LocalContributionSet e capability participant model.
+- **Activity — Activity content profile**: realinhado para F10 como ActivityContentProfile execution, depois de RuntimeContent/Content Anchor foundations.
+- **Activity — Activity content loading**: realinhado para F10, com plan/result/release e readiness próprios de Activity.
+- **Activity — Activity reset plan**: F10 define baseline; F11 adiciona participants; F12 adiciona snapshot-backed behavior quando aplicável.
+- **Local — Runtime capability reference**: realinhado para F11, após RuntimeContentHandle/lifetime validity de F8.
+- **Local — Local reset participant**: realinhado para F11 junto de Local release/snapshot participants e capability runtime.
 
 ---
 ## 7. Checklist de uso por sprint
@@ -716,23 +714,26 @@ Antes de abrir um corte técnico, responder:
 
 ## Índice por fase-alvo
 
-> Use este índice para checar quais capacidades pertencem a cada fase antes de planejar um sprint.
+> Índice autoritativo após `IF-FW-F9PLUS-REALIGNMENT`. A tabela antiga F10/F11/F12 foi renumerada.
 
 | Fase | Capacidades cobertas |
 |---|---|
 | **F0B** | Boot global, QA Canvas boundary, Smoke doc |
-| **F1** | Config de runtime, Runtime policy, Session diagnostics/facts, FrameworkFact, Typed identity policy, Content identity, Boot fail-fast |
-| **F2** | Session runtime state, Session composition context, Persistent scenes, Session content set, Settings source policy, Startup route signal, Audio listener (Session) |
+| **F1** | Config de runtime, Runtime policy, diagnostics/facts, FrameworkFact, Typed identity policy, Content identity, Boot fail-fast |
+| **F2** | Session runtime state, Session content set, Settings source policy, Startup route signal |
 | **F3** | Route asset, Route runtime state, Route exit result, Route primary scene, Route → Activity handoff, Route startup activity policy |
-| **F4** | Activity asset, Activity content profile, Activity runtime state, Activity entry context, Activity content set, Activity content lifecycle result, Readiness gate, Activity exit plan |
-| **F5** | Local content identity, explicit local ids on existing bindings, scoped loaded discovery, LocalContributionSet, Requiredness metadata, LocalContributionValidator, Local Contribution Smoke |
-| **F6** | CLOSED: F6A ADR completion; F6B RouteSceneCompositionPlan; F6C RouteSceneCompositionResult; F6D Additive scene primitive; F6E Route content profile execution; F6F ContentReleasePlan/Result; F6G owned additive scene release execution |
-| **F7** | CLOSED: Content Anchor identity primitives, declaration wrappers (`Root`/`Slot`/`Point`), Route Content Anchor authoring, ContentAnchorSet, Route discovery, diagnostics smoke, authoring validation e duplicate detection |
-| **F8** | F8A runtime roots/materialization audit; Runtime ownership primitives, RuntimeContentHandle, RuntimeScopeRoot/internal registry, RuntimeContentRuntime/RuntimeScopeContext, lifecycle integration for runtime roots, materialization request/result, transition guard/scoped cancellation, materialization adapter boundary, runtime release policy, runtime identity |
-| **F9** | Content Anchor binding request/result, Content Anchor content handle, Runtime Content Anchor binding, Spawn origin/slot, Content Anchor lifecycle policy, overlay/content root placement model, Pause content materialization |
-| **F10** | Input mode contract, Activity input consumer, Input mode owner, Player slot/command binding, Snapshot envelope, Snapshot participant, Snapshot set, Save backend port, Schema versioning, Pause content anchor consumer, Pause state contract, Pause lifecycle, Activity snapshot, Local snapshot participant |
-| **F11** | Camera consumer, Camera anchor binding, Camera scope, Camera binding result, Virtual camera binding, BGM lifecycle consumer, SFX dispatch, Actor materialization, Actor contribution, Actor runtime identity, Actor reset/release, Player actor binding, Pooling rent/return, Pool ownership, Pooled materializer, Runtime spawned contribution |
-| **F12** | Projectile as RuntimeSpawned, Impact handling, Damage as capability, Attributes as snapshot-capable |
+| **F4** | Activity asset, Activity runtime state, Activity entry context, Activity content set, Activity content lifecycle result, Readiness gate |
+| **F5** | Local content identity, explicit local ids, scoped loaded discovery, LocalContributionSet, Requiredness metadata, LocalContributionValidator, Local Contribution Smoke |
+| **F6** | RouteSceneCompositionPlan/Result, additive scene primitive, Route content profile execution, ContentReleasePlan/Result, owned additive scene release execution |
+| **F7** | Content Anchor identity primitives, Root/Slot/Point declarations, Route Content Anchor authoring, ContentAnchorSet, Route discovery, diagnostics smoke, validation and duplicate detection |
+| **F8** | Runtime ownership primitives, RuntimeContentHandle, RuntimeScopeRoot/internal registry, RuntimeContentRuntime/RuntimeScopeContext, lifecycle integration, materialization request/result, transition guard/scoped cancellation, adapter boundary, runtime release policy |
+| **F9** | Content Anchor binding request/result, Content Anchor content handle, Runtime Content Anchor binding, spawn origin/slot, Content Anchor lifecycle policy |
+| **F10** | Transition request/policy/result, loading progress, input lock policy, ActivityContentProfile execution, Activity-owned content, Activity reset baseline |
+| **F11** | Participation boundary, PlayerSlot/ParticipantId, Live Capability Inventory, RuntimeCapabilityReference, Local reset/release/snapshot participants, exit freeze, Consumer Descriptor Pattern |
+| **F12** | Input mode, input owner, Snapshot envelope/participants/set, Save backend port, SaveSlot/progression/migration, Pause content anchor consumer, Pause state/lifecycle |
+| **F13** | Camera, Audio, Actor, Pooling, Transition presentation adapters |
+| **F14** | Projectile, Impact, Damage, Attributes, Cinematics/Cutscene consumers |
+| **F15/FX** | Settings source, assembly/build/stripping, versioning/migration, pre-build validation, scoped messaging, editor simulation/visualizer, Asset Provider/Addressables/DLC, domain reload, telemetry |
 
 
 ### F2 closure — Session scope

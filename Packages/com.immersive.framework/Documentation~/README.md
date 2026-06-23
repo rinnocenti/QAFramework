@@ -23,7 +23,9 @@ Leitura recomendada:
 7. [`Planning/F6-Route-Scene-Composition-Audit.md`](Planning/F6-Route-Scene-Composition-Audit.md)
 8. [`Planning/F7-Content-Anchor-Declaration-Audit.md`](Planning/F7-Content-Anchor-Declaration-Audit.md)
 9. [`Planning/F8-Runtime-Roots-Materialization-Audit.md`](Planning/F8-Runtime-Roots-Materialization-Audit.md)
-10. [`Architecture/ADR/`](Architecture/ADR/)
+10. [`Planning/F9Plus-Roadmap-Realignment.md`](Planning/F9Plus-Roadmap-Realignment.md)
+11. [`Planning/Foundation-Hardening-Backlog.md`](Planning/Foundation-Hardening-Backlog.md)
+12. [`Architecture/ADR/`](Architecture/ADR/)
 
 Docs técnicos:
 
@@ -56,6 +58,8 @@ Docs técnicos:
 - [`Planning/F6-Route-Scene-Composition-Audit.md`](Planning/F6-Route-Scene-Composition-Audit.md)
 - [`Planning/F7-Content-Anchor-Declaration-Audit.md`](Planning/F7-Content-Anchor-Declaration-Audit.md)
 - [`Planning/F8-Runtime-Roots-Materialization-Audit.md`](Planning/F8-Runtime-Roots-Materialization-Audit.md)
+- [`Planning/F9Plus-Roadmap-Realignment.md`](Planning/F9Plus-Roadmap-Realignment.md)
+- [`Planning/Foundation-Hardening-Backlog.md`](Planning/Foundation-Hardening-Backlog.md)
 - [`RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md`](RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md)
 - [`RuntimeContent/RUNTIME_CONTENT_HANDLE.md`](RuntimeContent/RUNTIME_CONTENT_HANDLE.md)
 - [`RuntimeContent/RUNTIME_SCOPE_ROOT_REGISTRY.md`](RuntimeContent/RUNTIME_SCOPE_ROOT_REGISTRY.md)
@@ -85,3 +89,22 @@ Docs técnicos:
 - `RuntimeContent/RUNTIME_ROOT_LIFECYCLE_INTEGRATION.md` — F8F lifecycle integration for logical Session/Route/Activity runtime roots.
 - `RuntimeContent/RUNTIME_MATERIALIZATION_REQUEST_RESULT.md` — F8G RuntimeMaterializationRequest/Result contracts.
 - `RuntimeContent/RUNTIME_TRANSITION_GUARD_SCOPED_CANCELLATION.md` — F8H transition guard and scoped cancellation tokens.
+
+
+## F9+ realignment
+
+`Planning/F9Plus-Roadmap-Realignment.md` is now the entry point for the restructured plan from F9 onward.
+
+Current F9+ sequence:
+
+```text
+F9   Content Anchor binding/runtime placement
+F10  Transition, loading and Activity content execution
+F11  Participation, live capability inventory and local lifecycle participants
+F12  Input, Snapshot/Save and Pause
+F13  Advanced consumers
+F14  Gameplay capabilities
+F15/FX Productization, tooling and hardening
+```
+
+`Planning/Foundation-Hardening-Backlog.md` tracks productization concerns such as settings source, assembly/build boundaries, versioning/migration, editor tooling, Addressables/DLC boundary and domain reload resilience. These items do not block F8/F9.
