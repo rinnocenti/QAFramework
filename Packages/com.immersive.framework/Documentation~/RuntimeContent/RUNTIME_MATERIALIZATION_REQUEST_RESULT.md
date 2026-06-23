@@ -1,8 +1,8 @@
 # Runtime Materialization Request / Result
 
-Status: `F8I UPDATED / CONTRACTS + SCOPED TOKEN + ADAPTER BOUNDARY`
+Status: `F8J UPDATED / CONTRACTS + SCOPED TOKEN + ADAPTER + RELEASE BOUNDARY`
 
-This document records the F8G runtime materialization contracts introduced after runtime ownership primitives, passive handles, logical roots, `RuntimeContentRuntime`, `RuntimeScopeContext` and lifecycle root integration. F8H extends the request with a scoped cancellation token. F8I adds the adapter boundary.
+This document records the F8G runtime materialization contracts introduced after runtime ownership primitives, passive handles, logical roots, `RuntimeContentRuntime`, `RuntimeScopeContext` and lifecycle root integration. F8H extends the request with a scoped cancellation token. F8I adds the materialization adapter boundary. F8J adds the separate release request/result/policy boundary.
 
 These contracts do not materialize anything by themselves. They define the request/result language and the `IRuntimeMaterializationAdapter` boundary that a physical adapter outside the RuntimeContent core may implement.
 
@@ -121,7 +121,7 @@ F8G/F8I do not add:
 - `Instantiate`;
 - `Destroy`;
 - `GameObject.Find`;
-- release execution;
+- physical release execution;
 - Content Anchor binding;
 - Activity anchors;
 - Actor/Pause/Camera/UI/Input/Save/Pooling consumers.
@@ -131,5 +131,6 @@ F8G/F8I do not add:
 ## Next cut
 
 ```text
-F8J — Runtime release policy / logical release execution
+F8J — Runtime release policy / logical release execution [APPLIED / PENDING COMPILE-SMOKE]
+F8K — Runtime request/guard/release-policy smoke and F8 closure
 ```

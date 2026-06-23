@@ -16,7 +16,7 @@ Este arquivo substitui os antigos documentos de fechamento e aceite de fase. Os 
 | F5 | `CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS` | F5H local smoke passed; F5 closure audit completed | `Local/LOCAL_CONTENT_IDENTITY.md` |
 | F6 | `CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS` | F6G release smoke passed; F6 closed | `Planning/F6-Route-Scene-Composition-Audit.md`, `Route/ROUTE_CONTENT_PROFILE_USAGE.md`, `Route/ROUTE_SCENE_COMPOSITION_SMOKE.md`, `Route/ROUTE_RELEASE_SMOKE.md`, `ADRs/F6-route-scene-composition-and-release/` |
 | F7 | `CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS` | F7I closure completed after F7H smoke pass | `Planning/F7-Content-Anchor-Declaration-Audit.md`, `ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md`, `ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md`, `ContentAnchor/CONTENT_ANCHOR_SET.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md`, `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md`, `ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md`, `ADRs/F7-content-anchor-declaration/` |
-| F8 | `OPEN / RUNTIME ROOTS AND MATERIALIZATION` | F8H transition guard/scoped cancellation applied; materializer/release pending | `Planning/F8-Runtime-Roots-Materialization-Audit.md`, `RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md`, `RuntimeContent/RUNTIME_CONTENT_HANDLE.md`, `RuntimeContent/RUNTIME_SCOPE_ROOT_REGISTRY.md`, `RuntimeContent/RUNTIME_CONTENT_RUNTIME.md`, `RuntimeContent/RUNTIME_ROOT_LIFECYCLE_INTEGRATION.md`, `RuntimeContent/RUNTIME_MATERIALIZATION_REQUEST_RESULT.md`, `RuntimeContent/RUNTIME_TRANSITION_GUARD_SCOPED_CANCELLATION.md`, `ADRs/F8-runtime-roots-and-materialization/` |
+| F8 | `OPEN / RUNTIME ROOTS AND MATERIALIZATION` | F8J logical release applied; F8 closure smoke pending | `Planning/F8-Runtime-Roots-Materialization-Audit.md`, `RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md`, `RuntimeContent/RUNTIME_CONTENT_HANDLE.md`, `RuntimeContent/RUNTIME_SCOPE_ROOT_REGISTRY.md`, `RuntimeContent/RUNTIME_CONTENT_RUNTIME.md`, `RuntimeContent/RUNTIME_ROOT_LIFECYCLE_INTEGRATION.md`, `RuntimeContent/RUNTIME_MATERIALIZATION_REQUEST_RESULT.md`, `RuntimeContent/RUNTIME_TRANSITION_GUARD_SCOPED_CANCELLATION.md`, `RuntimeContent/RUNTIME_RELEASE_POLICY_LOGICAL_EXECUTION.md`, `ADRs/F8-runtime-roots-and-materialization/` |
 | F9 | `PLANNED / CONTENT ANCHOR BINDING` | F9+ roadmap realigned; wait for F8 closure | `Planning/F9Plus-Roadmap-Realignment.md`, `ADRs/F9-content-anchor-binding-and-runtime-placement/` |
 | F10 | `PLANNED / TRANSITION + ACTIVITY CONTENT` | New phase from NewScripts gap analysis | `ADRs/F10-transition-loading-and-activity-content/` |
 | F11 | `PLANNED / PARTICIPATION + CAPABILITY RUNTIME` | New phase before intermediate consumers | `ADRs/F11-participation-and-capability-runtime/` |
@@ -48,7 +48,7 @@ Keep these docs as the durable record for implementation details:
 
 | Next authorized step | Reason |
 |---|---|
-| `F8J — Runtime release policy / logical release execution` | F8I defines the adapter boundary. Next step defines logical release by handle/scope without physical prefab, scene, Addressables or pool cleanup in the core. |
+| `F8J — Runtime release policy / logical release execution` | APPLIED / PENDING COMPILE-SMOKE. Defines logical release request/result/policy, release adapter boundary and handle/scope release helpers without physical cleanup in the core. |
 
 ## F5 closure audit
 
@@ -247,7 +247,7 @@ F7 is closed. F8 is the active phase; current next authorized cut is tracked in 
 
 ## F8 opening audit
 
-F8A accepted the runtime roots/materialization boundary as documentation-only. F8B added passive runtime ownership primitives. F8C added passive runtime content handles and release-state transition diagnostics. F8D added logical runtime scope roots and an internal minimal registry. F8E added the internal RuntimeContentRuntime owner and explicit RuntimeScopeContext. F8F integrated logical runtime root/context creation and removal into Session, Route and Activity lifecycles. F8G added `RuntimeMaterializationRequest`, `RuntimeMaterializationResult`, `RuntimeMaterializationResource` and `RuntimeMaterializationStatus` as explicit contracts. F8H added scoped transition guardrails and `RuntimeScopeCancellationToken` so materialization requests can be rejected when their owner scope is cancelling, removed or stale. F8I added `IRuntimeMaterializationAdapter` as the boundary for physical adapters outside the RuntimeContent core. Runtime behavior still does not instantiate, destroy, create hierarchy root GameObjects or bind anchors.
+F8A accepted the runtime roots/materialization boundary as documentation-only. F8B added passive runtime ownership primitives. F8C added passive runtime content handles and release-state transition diagnostics. F8D added logical runtime scope roots and an internal minimal registry. F8E added the internal RuntimeContentRuntime owner and explicit RuntimeScopeContext. F8F integrated logical runtime root/context creation and removal into Session, Route and Activity lifecycles. F8G added `RuntimeMaterializationRequest`, `RuntimeMaterializationResult`, `RuntimeMaterializationResource` and `RuntimeMaterializationStatus` as explicit contracts. F8H added scoped transition guardrails and `RuntimeScopeCancellationToken` so materialization requests can be rejected when their owner scope is cancelling, removed or stale. F8I added `IRuntimeMaterializationAdapter` as the boundary for physical adapters outside the RuntimeContent core. F8J added `RuntimeReleaseRequest`, `RuntimeReleaseResult`, `RuntimeReleasePolicy`, `RuntimeReleaseStatus`, `IRuntimeReleaseAdapter` and logical release helpers by handle/scope. Runtime behavior still does not instantiate, destroy, create hierarchy root GameObjects, unload scenes, return pools, release Addressables handles or bind anchors.
 
 F8 has implemented:
 
@@ -262,7 +262,7 @@ F8 has implemented:
 
 F8 is still allowed to define and implement:
 
-- runtime release policy/execution lógico;
+- F8 closure smoke;
 - F8 closure smoke.
 
 F8 does not authorize:
@@ -282,5 +282,6 @@ F9+ was realigned after this point. The realignment is documented in `Planning/F
 Next authorized cut:
 
 ```text
-F8J — runtime release policy / logical release execution
+F8J — runtime release policy / logical release execution [APPLIED / PENDING COMPILE-SMOKE]
+F8K — runtime request/guard/release-policy smoke and F8 closure
 ```

@@ -1,6 +1,6 @@
 # F8D1 — F8 Plan Realignment
 
-Status: `F8I APPLIED / MATERIALIZATION BOUNDARY`
+Status: `F8J APPLIED / LOGICAL RELEASE`
 
 Este documento registra o realinhamento oficial da Fase 8 após a implementação de `F8D`.
 
@@ -212,9 +212,9 @@ Addressables deve entrar depois como provider/adapter opcional, não como depend
 | `F8F` | `CLOSED / PASS` | Lifecycle root integration: Route/Activity criam e encerram roots lógicos. |
 | `F8G` | `CLOSED / PASS` | `RuntimeMaterializationRequest` / `RuntimeMaterializationResult`. |
 | `F8H` | `CLOSED / PASS` | Transition guard + scoped cancellation model. |
-| `F8I` | `APPLIED / PENDING COMPILE-SMOKE` | `IRuntimeMaterializationAdapter` boundary; adapters físicos ficam fora do core. |
-| `F8J` | `NEXT` | Runtime release execution lógico por handle/scope. |
-| `F8K` | `PLANNED` | Runtime materialization/release smoke e fechamento de F8. |
+| `F8I` | `CLOSED / COMPILE-SMOKE PASS` | `IRuntimeMaterializationAdapter` boundary; adapters físicos ficam fora do core. |
+| `F8J` | `APPLIED / PENDING COMPILE-SMOKE` | Runtime release request/result/policy, release adapter boundary and logical release by handle/scope. |
+| `F8K` | `NEXT` | Runtime request/guard/release-policy smoke e fechamento de F8. |
 
 ---
 
@@ -266,7 +266,7 @@ CameraFlow é histórico/removido/deferred. Não influencia F8.
 
 Status: `BACKLOG / AFTER LOCAL PREFAB MATERIALIZER`
 
-Depois que a boundary de adapter e a release policy estiverem fechadas, criar porta opcional para provider de asset.
+Depois que F8K fechar o smoke de request/guard/release-policy, criar porta opcional para provider de asset em fase própria.
 
 F8 não depende de Addressables.
 
@@ -278,4 +278,4 @@ F8 não depende de Addressables.
 F8E — RuntimeContentRuntime + RuntimeScopeContext
 ```
 
-`RuntimeMaterializationRequest` só deve existir depois do owner runtime interno e da semântica de contexto por escopo. Isso já foi aplicado em F8G; o próximo gate é release lógico, não materialização física no core.
+`RuntimeMaterializationRequest` só deve existir depois do owner runtime interno e da semântica de contexto por escopo. Isso já foi aplicado em F8G. F8J aplica release lógico; o próximo gate é smoke de fechamento, não materialização física no core.

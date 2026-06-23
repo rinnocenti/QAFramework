@@ -88,6 +88,7 @@ Docs técnicos:
 - `RuntimeContent/RUNTIME_CONTENT_RUNTIME.md` — F8E internal RuntimeContentRuntime owner and explicit RuntimeScopeContext semantics.
 - `RuntimeContent/RUNTIME_ROOT_LIFECYCLE_INTEGRATION.md` — F8F lifecycle integration for logical Session/Route/Activity runtime roots.
 - `RuntimeContent/RUNTIME_MATERIALIZATION_REQUEST_RESULT.md` — F8G/F8I RuntimeMaterializationRequest/Result contracts and adapter boundary.
+- `RuntimeContent/RUNTIME_RELEASE_POLICY_LOGICAL_EXECUTION.md` — F8J logical release request/result/policy and adapter boundary.
 - `RuntimeContent/RUNTIME_TRANSITION_GUARD_SCOPED_CANCELLATION.md` — F8H transition guard and scoped cancellation tokens.
 
 

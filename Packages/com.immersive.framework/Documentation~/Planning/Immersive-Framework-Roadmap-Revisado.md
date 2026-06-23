@@ -523,8 +523,8 @@ Objetivo: criar materialização runtime genérica, sem actor/projectile/pool.
 | IF-FW-ROAD-8G | `RuntimeMaterializationRequest` / `Result` | `APPLIED`: Request/result/resource/status explícitos depois do owner/context/lifecycle roots; sem adapter físico. |
 | IF-FW-ROAD-8H | Transition guard + scoped cancellation | `APPLIED`: Guardas para transição e cancelamento por escopo antes de qualquer adapter físico. |
 | IF-FW-ROAD-8I | Materialization adapter boundary | `APPLIED / PENDING COMPILE-SMOKE`: `IRuntimeMaterializationAdapter` boundary para adapters físicos externos ao core; sem Instantiate/Destroy no framework core. |
-| IF-FW-ROAD-8J | `RuntimeReleasePolicy` / release execution | `NEXT`: release lógico por handle/scope; cleanup físico continua em adapters externos. |
-| IF-FW-ROAD-8K | Runtime request/guard/release-policy smoke / F8 closure | request → guard → handle/release state → no stale scope/no fallback. |
+| IF-FW-ROAD-8J | `RuntimeReleasePolicy` / release execution | `APPLIED / PENDING COMPILE-SMOKE`: release lógico por handle/scope; cleanup físico continua em adapters externos. |
+| IF-FW-ROAD-8K | Runtime request/guard/release-policy smoke / F8 closure | NEXT: request → guard → handle/release state → no stale scope/no fallback. |
 
 ### Não entra
 
@@ -1007,18 +1007,19 @@ F7 — CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS
 F8 — OPEN / RUNTIME ROOTS AND MATERIALIZATION
 ```
 
-No package enviado para esta consolidação, F8I passa a existir como boundary de adapter (`IRuntimeMaterializationAdapter`) sem implementação física. Validar por compile/import smoke antes de marcar como closed.
+No package atual, F8I existe como boundary de adapter (`IRuntimeMaterializationAdapter`) sem implementação física. F8J adiciona release lógico (`RuntimeReleaseRequest/Result/Policy/Status`) e `IRuntimeReleaseAdapter`, também sem implementação física.
 
 ## Ação imediata
 
 ```text
-Validar F8I por compile/import smoke e então prosseguir para F8J.
+Validar F8J por compile/import smoke e então prosseguir para F8K.
 ```
 
 Depois da consolidação documental, o próximo corte técnico continua dentro de F8:
 
 ```text
-F8J — runtime release policy / logical release execution
+F8J — runtime release policy / logical release execution [APPLIED / PENDING COMPILE-SMOKE]
+F8K — runtime request/guard/release-policy smoke and F8 closure
 ```
 
 A implementação de F9+ não deve começar até F8 fechar request/guard/release-policy smoke.

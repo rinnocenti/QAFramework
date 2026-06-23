@@ -43,7 +43,7 @@ F8C allows a handle to record these passive transitions:
 |---|---|---|---|
 | `MarkMaterialized` | `Declared` | `Materialized` | Used later by materializers after a concrete instance exists. |
 | `RequestRelease` | `Declared`, `Materialized`, `ReleaseFailed` | `ReleaseRequested` | Records intent only. No object is destroyed or returned to a pool. |
-| `MarkReleased` | `ReleaseRequested` | `Released` | Used later by release execution after successful side effect. |
+| `MarkReleased` | `ReleaseRequested` | `Released` | Used by F8J logical release after adapter success or pure logical release. |
 | `MarkReleaseFailed` | `ReleaseRequested` | `ReleaseFailed` | Records failed release evidence only. |
 
 Repeated requests that are already in the target state produce `IgnoredAlreadyInState`. Invalid lifecycle jumps produce `RejectedInvalidTransition`.
@@ -58,7 +58,7 @@ F8D does not add:
 
 - runtime scope root GameObjects;
 - implementação de adapter físico;
-- release execution;
+- physical release execution;
 - Content Anchor binding;
 - Actor, Pause, Camera, UI, Input, Save or Pooling consumers.
 
@@ -67,5 +67,6 @@ F8E introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeS
 Next authorized cut:
 
 ```text
-F8J — Runtime release policy / logical release execution
+F8J — Runtime release policy / logical release execution [APPLIED / PENDING COMPILE-SMOKE]
+F8K — Runtime request/guard/release-policy smoke and F8 closure
 ```

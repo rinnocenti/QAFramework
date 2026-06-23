@@ -7,7 +7,7 @@ namespace Immersive.Framework.RuntimeContent
     /// API status: Experimental. Internal owner for runtime-created content state in the current framework runtime.
     /// It coordinates explicit scope roots, scope contexts, transition guards, scoped cancellation, passive handles and materialization request creation without becoming a service locator or materializer.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8H internal RuntimeContentRuntime owner; adds transition guard/scoped cancellation before concrete materializer execution.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8J internal RuntimeContentRuntime owner; adds logical release request/result execution without physical cleanup.")]
     internal sealed class RuntimeContentRuntime
     {
         private readonly RuntimeRootRegistry registry;
@@ -326,9 +326,273 @@ namespace Immersive.Framework.RuntimeContent
             return guardResult.Allowed;
         }
 
+        public RuntimeReleaseRequest CreateReleaseRequest(
+            RuntimeScopeContext context,
+            RuntimeContentIdentity identity,
+            RuntimeReleasePolicy policy,
+            string source,
+            string reason)
+        {
+            ValidateContext(context);
+            ValidateIdentity(identity);
+            ValidateReleasePolicy(policy);
+
+            if (identity.Owner != context.Owner)
+            {
+                throw new ArgumentException("Runtime release request identity owner must match the request context owner.", nameof(identity));
+            }
+
+            return new RuntimeReleaseRequest(context, identity, policy, source, reason);
+        }
+
+        public RuntimeReleaseRequest CreateReleaseRequest(
+            RuntimeScopeContext context,
+            RuntimeContentId contentId,
+            RuntimeReleasePolicy policy,
+            string source,
+            string reason)
+        {
+            if (!contentId.IsValid)
+            {
+                throw new ArgumentException("Runtime content id must be valid.", nameof(contentId));
+            }
+
+            return CreateReleaseRequest(
+                context,
+                context.CreateIdentity(contentId),
+                policy,
+                source,
+                reason);
+        }
+
+        public RuntimeReleaseRequest CreateReleaseRequest(
+            RuntimeScopeContext context,
+            string contentId,
+            RuntimeReleasePolicy policy,
+            string source,
+            string reason)
+        {
+            return CreateReleaseRequest(
+                context,
+                RuntimeContentId.From(contentId),
+                policy,
+                source,
+                reason);
+        }
+
+        public RuntimeReleaseResult ReleaseHandleLogically(
+            RuntimeReleaseRequest request,
+            string source,
+            string reason)
+        {
+            ValidateReleaseRequest(request);
+
+            if (!registry.TryGetRoot(request.Owner, out _))
+            {
+                return RuntimeReleaseResult.Failure(
+                    request,
+                    RuntimeReleaseStatus.FailedMissingRoot,
+                    null,
+                    RuntimeContentState.Unknown,
+                    RuntimeContentState.Unknown,
+                    source,
+                    reason,
+                    "Runtime release failed because the owner root is missing.");
+            }
+
+            if (!registry.TryGetHandle(request.Identity, out var handle))
+            {
+                return RuntimeReleaseResult.Failure(
+                    request,
+                    RuntimeReleaseStatus.FailedMissingHandle,
+                    null,
+                    RuntimeContentState.Unknown,
+                    RuntimeContentState.Unknown,
+                    source,
+                    reason,
+                    "Runtime release failed because the handle is not registered in the owner root.");
+            }
+
+            return ApplyLogicalRelease(request, handle, source, reason);
+        }
+
+        public RuntimeReleaseResult ReleaseHandleLogically(
+            RuntimeScopeContext context,
+            RuntimeContentIdentity identity,
+            RuntimeReleasePolicy policy,
+            string source,
+            string reason)
+        {
+            var request = CreateReleaseRequest(context, identity, policy, source, reason);
+            return ReleaseHandleLogically(request, source, reason);
+        }
+
+        public RuntimeReleaseResult ReleaseHandleLogically(
+            RuntimeScopeContext context,
+            RuntimeContentId contentId,
+            RuntimeReleasePolicy policy,
+            string source,
+            string reason)
+        {
+            var request = CreateReleaseRequest(context, contentId, policy, source, reason);
+            return ReleaseHandleLogically(request, source, reason);
+        }
+
+        public RuntimeReleaseResult[] ReleaseScopeLogically(
+            RuntimeScopeContext context,
+            RuntimeReleasePolicy policy,
+            string source,
+            string reason)
+        {
+            ValidateContext(context);
+            ValidateReleasePolicy(policy);
+
+            if (!registry.TryGetRoot(context.Owner, out var root))
+            {
+                throw new InvalidOperationException("Runtime scope root must exist before scope release can execute.");
+            }
+
+            var handles = root.SnapshotHandles();
+            var results = new RuntimeReleaseResult[handles.Length];
+            for (var i = 0; i < handles.Length; i++)
+            {
+                var request = CreateReleaseRequest(context, handles[i].Identity, policy, source, reason);
+                results[i] = ReleaseHandleLogically(request, source, reason);
+            }
+
+            return results;
+        }
+
+        public RuntimeReleaseResult ApplyReleaseResult(
+            RuntimeReleaseResult releaseResult,
+            string source,
+            string reason)
+        {
+            ValidateReleaseResult(releaseResult);
+
+            if (releaseResult.Failed)
+            {
+                return releaseResult;
+            }
+
+            return ReleaseHandleLogically(releaseResult.Request, source, reason);
+        }
+
         public string ToDiagnosticString()
         {
             return registry.ToDiagnosticString();
+        }
+
+        private RuntimeReleaseResult ApplyLogicalRelease(
+            RuntimeReleaseRequest request,
+            RuntimeContentHandle handle,
+            string source,
+            string reason)
+        {
+            if (handle == null)
+            {
+                throw new ArgumentNullException(nameof(handle));
+            }
+
+            var previousState = handle.State;
+            if (handle.IsReleased)
+            {
+                var alreadyReleasedUnregistered = UnregisterHandleIfRequired(request, source, reason, out var alreadyReleasedUnregisterFailure);
+                if (alreadyReleasedUnregisterFailure.HasValue)
+                {
+                    return alreadyReleasedUnregisterFailure.Value;
+                }
+
+                return RuntimeReleaseResult.AlreadyReleased(
+                    request,
+                    handle,
+                    alreadyReleasedUnregistered,
+                    source,
+                    reason,
+                    alreadyReleasedUnregistered
+                        ? "Runtime content was already released and was unregistered from the logical scope root."
+                        : "Runtime content was already released.");
+            }
+
+            var releaseRequestResult = handle.RequestRelease(source, reason);
+            if (releaseRequestResult.Rejected)
+            {
+                return RuntimeReleaseResult.Failure(
+                    request,
+                    RuntimeReleaseStatus.RejectedInvalidTransition,
+                    handle,
+                    previousState,
+                    handle.State,
+                    source,
+                    reason,
+                    releaseRequestResult.Message);
+            }
+
+            var markReleasedResult = handle.MarkReleased(source, reason);
+            if (markReleasedResult.Rejected)
+            {
+                return RuntimeReleaseResult.Failure(
+                    request,
+                    RuntimeReleaseStatus.RejectedInvalidTransition,
+                    handle,
+                    previousState,
+                    handle.State,
+                    source,
+                    reason,
+                    markReleasedResult.Message);
+            }
+
+            var unregistered = UnregisterHandleIfRequired(request, source, reason, out var unregisterFailure);
+            if (unregisterFailure.HasValue)
+            {
+                return unregisterFailure.Value;
+            }
+
+            return RuntimeReleaseResult.Success(
+                request,
+                handle,
+                previousState,
+                handle.State,
+                unregistered,
+                source,
+                reason,
+                unregistered
+                    ? "Runtime content released logically and unregistered from the logical scope root."
+                    : "Runtime content released logically and kept registered in the logical scope root.");
+        }
+
+        private bool UnregisterHandleIfRequired(
+            RuntimeReleaseRequest request,
+            string source,
+            string reason,
+            out RuntimeReleaseResult? failure)
+        {
+            failure = null;
+            if (!request.ShouldUnregister)
+            {
+                return false;
+            }
+
+            var unregisterResult = registry.UnregisterHandle(request.Identity, source, reason);
+            if (unregisterResult.Applied || unregisterResult.Status == RuntimeRootRegistryOperationStatus.HandleMissing)
+            {
+                return true;
+            }
+
+            RuntimeContentHandle handle = null;
+            registry.TryGetHandle(request.Identity, out handle);
+            failure = RuntimeReleaseResult.Failure(
+                request,
+                unregisterResult.Status == RuntimeRootRegistryOperationStatus.RejectedMissingRoot
+                    ? RuntimeReleaseStatus.FailedMissingRoot
+                    : RuntimeReleaseStatus.FailedUnregister,
+                handle,
+                handle != null ? handle.State : RuntimeContentState.Unknown,
+                handle != null ? handle.State : RuntimeContentState.Unknown,
+                source,
+                reason,
+                unregisterResult.Message);
+            return false;
         }
 
         private static void ValidateOwner(RuntimeContentOwner owner)
@@ -360,6 +624,31 @@ namespace Immersive.Framework.RuntimeContent
             if (!request.IsValid)
             {
                 throw new ArgumentException("Runtime materialization request must be valid.", nameof(request));
+            }
+        }
+
+
+        private static void ValidateReleasePolicy(RuntimeReleasePolicy policy)
+        {
+            if (!Enum.IsDefined(typeof(RuntimeReleasePolicy), policy) || policy == RuntimeReleasePolicy.Unknown)
+            {
+                throw new ArgumentOutOfRangeException(nameof(policy), policy, "Runtime release policy must be explicit.");
+            }
+        }
+
+        private static void ValidateReleaseRequest(RuntimeReleaseRequest request)
+        {
+            if (!request.IsValid)
+            {
+                throw new ArgumentException("Runtime release request must be valid.", nameof(request));
+            }
+        }
+
+        private static void ValidateReleaseResult(RuntimeReleaseResult result)
+        {
+            if (!result.Request.IsValid || result.Status == RuntimeReleaseStatus.Unknown)
+            {
+                throw new ArgumentException("Runtime release result must be valid.", nameof(result));
             }
         }
     }

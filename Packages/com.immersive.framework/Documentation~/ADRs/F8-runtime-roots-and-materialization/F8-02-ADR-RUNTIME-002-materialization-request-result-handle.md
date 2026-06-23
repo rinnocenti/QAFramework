@@ -1,6 +1,6 @@
 # F8-02 — ADR-RUNTIME-002 — Materialization Request Result Handle
 
-Status: Accepted in F8A / Request-result contracts applied in F8G / Adapter boundary applied in F8I / Release pending  
+Status: Accepted in F8A / Request-result contracts applied in F8G / Adapter boundary applied in F8I / Logical release applied in F8J  
 Fase: F8  
 Ordem no Plano: F8-02  
 Tipo: RuntimeSpawned / Content  
@@ -23,6 +23,16 @@ RuntimeMaterializationRequest
 → IRuntimeMaterializationAdapter.Materialize
 → RuntimeMaterializationResult
 → RuntimeContentHandle
+```
+
+Runtime release follows a separate chain:
+
+```text
+RuntimeReleaseRequest
+→ optional IRuntimeReleaseAdapter.Release
+→ RuntimeReleaseResult
+→ RuntimeContentRuntime.ApplyReleaseResult
+→ RuntimeContentHandle release state
 ```
 
 `IRuntimeMaterializationAdapter` é a boundary canônica. Implementações físicas de prefab, cena, Addressables, pool ou gameplay vivem fora do RuntimeContent core; o core define apenas request/result/handle/guard/release lógico.
@@ -95,7 +105,7 @@ Portanto, F8 não deve criar `RuntimeContentAnchorBinding`.
 
 ## Relação com roadmap
 
-F8A aceita a decisão. F8B-F8F applied ownership, handle, logical root, runtime owner/context and lifecycle root integration. F8G applies request/result/resource/status contracts. F8H applies transition guard/scoped cancellation. F8I applies `IRuntimeMaterializationAdapter` as boundary. Concrete physical adapters and release execution remain pending.
+F8A aceita a decisão. F8B-F8F applied ownership, handle, logical root, runtime owner/context and lifecycle root integration. F8G applies request/result/resource/status contracts. F8H applies transition guard/scoped cancellation. F8I applies `IRuntimeMaterializationAdapter` as boundary. F8J applies `RuntimeReleaseRequest`, `RuntimeReleaseResult`, `RuntimeReleasePolicy`, `RuntimeReleaseStatus`, `IRuntimeReleaseAdapter` and logical release execution. Concrete physical adapters remain pending outside the core.
 
 ## Notas de implementação
 

@@ -68,7 +68,7 @@ F8D does not add:
 - `Instantiate`;
 - `Destroy`;
 - implementação de adapter físico;
-- runtime release execution;
+- physical runtime release execution;
 - Content Anchor binding;
 - Actor, Pause, Camera, UI, Input, Save or Pooling consumers.
 
@@ -77,5 +77,6 @@ F8E introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeS
 Next authorized cut:
 
 ```text
-F8J — Runtime release policy / logical release execution
+F8J — Runtime release policy / logical release execution [APPLIED / PENDING COMPILE-SMOKE]
+F8K — Runtime request/guard/release-policy smoke and F8 closure
 ```

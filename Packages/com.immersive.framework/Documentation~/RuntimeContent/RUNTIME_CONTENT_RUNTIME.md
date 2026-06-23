@@ -1,10 +1,10 @@
 # RuntimeContentRuntime and RuntimeScopeContext
 
-Status: `F8I UPDATED`
+Status: `F8J UPDATED / LOGICAL RELEASE`
 
-F8E introduced the internal runtime owner for runtime-created content state and the explicit scope context used by future materialization cuts. F8F connects that owner to Session, Route and Activity lifecycle root/context creation. F8G/F8H add request/result and scoped cancellation. F8I adds the adapter boundary without physical implementation in core.
+F8E introduced the internal runtime owner for runtime-created content state and the explicit scope context used by future materialization cuts. F8F connects that owner to Session, Route and Activity lifecycle root/context creation. F8G/F8H add request/result and scoped cancellation. F8I adds the materialization adapter boundary without physical implementation in core. F8J adds release request/result/policy and logical release helpers.
 
-This cut is still not materialization. It creates the coordination boundary that sits above the F8D registry, but it does not create hierarchy GameObjects, instantiate prefabs, destroy objects, execute release, bind Content Anchors or serve gameplay consumers.
+This cut is still not materialization. It creates the coordination boundary that sits above the F8D registry, but it does not create hierarchy GameObjects, instantiate prefabs, destroy objects, unload scenes, return pools, release Addressables handles, bind Content Anchors or serve gameplay consumers.
 
 ## Added runtime types
 
@@ -63,7 +63,7 @@ F8E does not add:
 - `GameObject.Find`;
 - `Instantiate`;
 - `Destroy`;
-- release execution;
+- physical release execution;
 - Content Anchor binding;
 - Activity Content Anchor;
 - Actor, Pause, Camera, UI, Input, Save or Pooling consumers.
@@ -71,5 +71,10 @@ F8E does not add:
 Next authorized cut:
 
 ```text
-F8J — Runtime release policy / logical release execution
+F8J — Runtime release policy / logical release execution [APPLIED / PENDING COMPILE-SMOKE]
+F8K — Runtime request/guard/release-policy smoke and F8 closure
 ```
+
+## F8J logical release
+
+`RuntimeContentRuntime` now creates `RuntimeReleaseRequest` and applies logical release by handle/scope through `ReleaseHandleLogically`, `ReleaseScopeLogically` and `ApplyReleaseResult`. These methods change `RuntimeContentHandle` state and optionally unregister handles from the logical root only. Physical cleanup remains outside RuntimeContent core.

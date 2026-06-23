@@ -1,6 +1,6 @@
 # RuntimeContentHandle
 
-Status: `F8I UPDATED`
+Status: `F8J UPDATED / LOGICAL RELEASE`
 
 `RuntimeContentHandle` is the passive canonical handle for one runtime-created content identity.
 
@@ -49,14 +49,15 @@ F8D does not add:
 - runtime root GameObjects;
 - GameObject references inside the handle;
 - implementação de adapter físico;
-- release execution;
+- physical release execution;
 - Content Anchor binding;
 - Actor, Pause, Camera, UI, Input, Save or Pooling consumers.
 
-F8E introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeScopeContext` boundary. F8F integrates logical runtime root/context creation and removal into Session, Route and Activity lifecycles. F8G/F8H add request/result and scoped cancellation. F8I adds `IRuntimeMaterializationAdapter` as the adapter boundary; physical adapters remain outside the core.
+F8E introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeScopeContext` boundary. F8F integrates logical runtime root/context creation and removal into Session, Route and Activity lifecycles. F8G/F8H add request/result and scoped cancellation. F8I adds `IRuntimeMaterializationAdapter` as the materialization adapter boundary; physical adapters remain outside the core. F8J adds release request/result/policy and logical release execution by handle/scope.
 
 Next authorized cut:
 
 ```text
-F8J — Runtime release policy / logical release execution
+F8J — Runtime release policy / logical release execution [APPLIED / PENDING COMPILE-SMOKE]
+F8K — Runtime request/guard/release-policy smoke and F8 closure
 ```

@@ -55,7 +55,7 @@ runtimeRootCount
 
 `RuntimeRootRegistry` now supports logical root removal.
 
-A root can be removed only when it has no registered handles. If handles exist, removal is rejected with a diagnostic result. F8F does not release those handles because runtime release execution belongs to a later F8 cut.
+A root can be removed only when it has no registered handles. If handles exist, removal is rejected with a diagnostic result. After F8J, callers can explicitly release handles through logical release before removing the root; root removal itself still does not auto-release handles or run physical cleanup.
 
 ## Non-goals
 
@@ -77,5 +77,6 @@ F8F does not add:
 ## Next cut
 
 ```text
-F8J — Runtime release policy / logical release execution
+F8J — Runtime release policy / logical release execution [APPLIED / PENDING COMPILE-SMOKE]
+F8K — Runtime request/guard/release-policy smoke and F8 closure
 ```
