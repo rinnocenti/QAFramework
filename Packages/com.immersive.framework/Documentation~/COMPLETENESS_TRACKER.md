@@ -244,15 +244,15 @@ F7I — F7 closure
 
 ## F8 opening audit
 
-F8A accepted the runtime roots/materialization boundary as documentation-only. F8B added passive runtime ownership primitives and still does not change runtime behavior.
+F8A accepted the runtime roots/materialization boundary as documentation-only. F8B added passive runtime ownership primitives. F8C added passive runtime content handles and release-state transition diagnostics. Runtime behavior still does not instantiate, destroy, register roots or bind anchors.
 
 F8 has implemented:
 
-- runtime ownership/scope/state primitives (`RuntimeContentScope`, `RuntimeContentState`, `RuntimeContentId`, `RuntimeContentOwner`, `RuntimeContentIdentity`).
+- runtime ownership/scope/state primitives (`RuntimeContentScope`, `RuntimeContentState`, `RuntimeContentId`, `RuntimeContentOwner`, `RuntimeContentIdentity`);
+- passive runtime content handle and transition diagnostics (`RuntimeContentHandle`, `RuntimeContentHandleTransitionStatus`, `RuntimeContentHandleTransitionResult`).
 
 F8 is still allowed to define and implement:
 
-- runtime content handles;
 - runtime scope roots;
 - internal runtime root registry;
 - materialization request/result;
@@ -272,5 +272,5 @@ F8 does not authorize:
 Next authorized cut:
 
 ```text
-F8C — RuntimeContentHandle passive and release state
+F8D — RuntimeScopeRoot + internal minimal registry
 ```

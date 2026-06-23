@@ -1,8 +1,8 @@
 # Runtime Ownership Primitives
 
-Status: `F8B APPLIED`
+Status: `F8C APPLIED`
 
-F8B introduces passive primitives for runtime-created content ownership. These primitives define identity, owner scope and state vocabulary only.
+F8B introduced passive primitives for runtime-created content ownership. F8C adds a passive `RuntimeContentHandle` that records lifecycle/release state transitions without executing materialization or release.
 
 ## Added runtime primitives
 
@@ -13,6 +13,9 @@ F8B introduces passive primitives for runtime-created content ownership. These p
 | `RuntimeContentId` | Typed id for one runtime-created content record. It is not a GameObject name or prefab path. |
 | `RuntimeContentOwner` | Couples a runtime content scope with a typed owner identity. |
 | `RuntimeContentIdentity` | Combines owner and content id into a stable runtime content identity. |
+| `RuntimeContentHandle` | Passive canonical handle for one runtime-created content identity. |
+| `RuntimeContentHandleTransitionStatus` | Result vocabulary for passive handle state transitions. |
+| `RuntimeContentHandleTransitionResult` | Immutable diagnostic result for one handle transition. |
 
 ## Scope to owner domain
 
@@ -27,13 +30,25 @@ F8B keeps ownership strict:
 
 A mismatched owner domain throws at construction time. This prevents silent fallback roots and avoids using GameObject names as ownership identity.
 
+## RuntimeContentHandle state transitions
+
+F8C allows a handle to record these passive transitions:
+
+| Operation | Allowed source state | Target state | Notes |
+|---|---|---|---|
+| `MarkMaterialized` | `Declared` | `Materialized` | Used later by materializers after a concrete instance exists. |
+| `RequestRelease` | `Declared`, `Materialized`, `ReleaseFailed` | `ReleaseRequested` | Records intent only. No object is destroyed or returned to a pool. |
+| `MarkReleased` | `ReleaseRequested` | `Released` | Used later by release execution after successful side effect. |
+| `MarkReleaseFailed` | `ReleaseRequested` | `ReleaseFailed` | Records failed release evidence only. |
+
+Repeated requests that are already in the target state produce `IgnoredAlreadyInState`. Invalid lifecycle jumps produce `RejectedInvalidTransition`.
+
 ## Explicit non-goals
 
-F8B does not add:
+F8C does not add:
 
 - runtime scope root GameObjects;
 - root registry;
-- `RuntimeContentHandle`;
 - materialization request/result;
 - prefab materializer;
 - release execution;
@@ -43,5 +58,5 @@ F8B does not add:
 Next authorized cut:
 
 ```text
-F8C — RuntimeContentHandle passive and release state
+F8D — RuntimeScopeRoot + internal minimal registry
 ```

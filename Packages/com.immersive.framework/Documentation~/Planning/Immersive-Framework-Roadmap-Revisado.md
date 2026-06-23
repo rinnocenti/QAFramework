@@ -500,7 +500,7 @@ F7G — CLOSED / PASS
 F7H — CLOSED / PASS
 F7I — CLOSED / DOCS
 F7J — CLOSED / DOCS
-Next — F8A / Runtime roots and materialization audit
+Next — F8D / RuntimeScopeRoot + internal registry
 ```
 
 Naming guardrail: do not reintroduce the rejected previous placement-point vocabulary or `duplicated anchor naming` as canonical concept names.
@@ -516,8 +516,8 @@ Objetivo: criar materialização runtime genérica, sem actor/projectile/pool.
 |---|---|---|
 | IF-FW-ROAD-8A | ADR/detail audit: Runtime roots/materialization | Aceitar fronteira: Runtime Root ≠ Content Anchor; F8 não cria consumers. |
 | IF-FW-ROAD-8B | Runtime ownership primitives | `APPLIED`: Scope, owner, state e identity baseline para runtime-created content. |
-| IF-FW-ROAD-8C | `RuntimeContentHandle` | Identity, owner scope, state, release diagnostics. |
-| IF-FW-ROAD-8D | `RuntimeScopeRoot` + internal registry | Root por escopo, registry interno, sem `GameObject.Find`. |
+| IF-FW-ROAD-8C | `RuntimeContentHandle` | `APPLIED`: Identity, owner scope, state and passive release diagnostics. |
+| IF-FW-ROAD-8D | `RuntimeScopeRoot` + internal registry | `NEXT`: Root por escopo, registry interno, sem `GameObject.Find`. |
 | IF-FW-ROAD-8E | `RuntimeMaterializationRequest` / `Result` | Request/result explícitos. |
 | IF-FW-ROAD-8F | `PrefabContentMaterializer` | Primeiro materializer concreto e local. |
 | IF-FW-ROAD-8G | `RuntimeReleasePolicy` / release execution | Activity exit futuro, Route exit e Session shutdown. |

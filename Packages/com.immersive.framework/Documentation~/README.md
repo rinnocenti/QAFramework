@@ -57,6 +57,7 @@ Docs técnicos:
 - [`Planning/F7-Content-Anchor-Declaration-Audit.md`](Planning/F7-Content-Anchor-Declaration-Audit.md)
 - [`Planning/F8-Runtime-Roots-Materialization-Audit.md`](Planning/F8-Runtime-Roots-Materialization-Audit.md)
 - [`RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md`](RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md)
+- [`RuntimeContent/RUNTIME_CONTENT_HANDLE.md`](RuntimeContent/RUNTIME_CONTENT_HANDLE.md)
 - [`ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md`](ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md)
 - [`ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md`](ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md)
 - [`ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md`](ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md)
@@ -73,4 +74,5 @@ Docs técnicos:
 - `ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md` — loaded authoring validation for Route Content Anchors.
 
 - `Planning/F8-Runtime-Roots-Materialization-Audit.md` — F8 boundary for runtime roots, materialization, handles and release.
-- `RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md` — F8B passive runtime ownership primitives.
+- `RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md` — F8B/F8C passive runtime ownership primitives and handle state.
+- `RuntimeContent/RUNTIME_CONTENT_HANDLE.md` — F8C passive RuntimeContentHandle state transitions.

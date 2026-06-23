@@ -43,6 +43,7 @@ Documentation~/Planning/Capability-Traceability-Matrix.md
 Documentation~/Planning/F6-Route-Scene-Composition-Audit.md
 Documentation~/Planning/F7-Content-Anchor-Declaration-Audit.md
 Documentation~/Planning/F8-Runtime-Roots-Materialization-Audit.md
+Documentation~/RuntimeContent/RUNTIME_CONTENT_HANDLE.md
 Documentation~/Route/ROUTE_CONTENT_PROFILE_USAGE.md
 Documentation~/Route/ROUTE_SCENE_COMPOSITION_SMOKE.md
 Documentation~/Route/ROUTE_RELEASE_SMOKE.md
@@ -62,7 +63,7 @@ Documentation~/ADRs/
 
 The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release for scene content. It is not yet a Content Anchor, RuntimeSpawned, Actor, Camera, Input, Save, Reset or Pooling framework.
 
-F7 is closed as the Content Anchor declaration baseline. F8 is now allowed only as Runtime Roots and Materialization groundwork: ownership primitives, scoped runtime roots, runtime content handles, request/result models, prefab materialization and runtime release. F8 must not create Content Anchor binding, Activity anchors, Actor, Pause, Camera, UI, Save, Input or Pooling consumers. F8B now adds only passive runtime ownership primitives: scope, owner, typed content id, identity and state vocabulary.
+F7 is closed as the Content Anchor declaration baseline. F8 is now allowed only as Runtime Roots and Materialization groundwork: ownership primitives, scoped runtime roots, runtime content handles, request/result models, prefab materialization and runtime release. F8 must not create Content Anchor binding, Activity anchors, Actor, Pause, Camera, UI, Save, Input or Pooling consumers. F8B adds passive runtime ownership primitives: scope, owner, typed content id, identity and state vocabulary. F8C adds a passive `RuntimeContentHandle` surface for state transitions and release diagnostics without executing materialization or release.
 
 ## F7 Content Anchor boundary
 
@@ -87,14 +88,15 @@ F8 separates three concepts:
 
 F8 does not connect materialization to Content Anchors. That belongs to F9.
 
-Applied cut:
+Applied cuts:
 
 ```text
 F8B — Runtime ownership primitives
+F8C — RuntimeContentHandle passive and release state
 ```
 
 Next authorized cut:
 
 ```text
-F8C — RuntimeContentHandle passive and release state
+F8D — RuntimeScopeRoot + internal minimal registry
 ```
