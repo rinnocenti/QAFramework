@@ -42,16 +42,6 @@ All operations return `RuntimeContentHandleTransitionResult`.
 
 `RuntimeContentHandle` remains passive. `RuntimeRootRegistry` can store handles by owner root and identity, but it does not alter handle state, create objects or release objects.
 
-## F8D1 plan realignment
-
-F8D1 changes the next gate after this document. The next authorized technical cut is not materialization request/result. The next gate is:
-
-```text
-F8E — RuntimeContentRuntime + RuntimeScopeContext
-```
-
-Request/result, prefab materialization and release execution remain in F8, but only after the internal runtime content owner, scope context and lifecycle root integration exist.
-
 ## Explicit non-goals
 
 F8D does not add:
@@ -64,8 +54,10 @@ F8D does not add:
 - Content Anchor binding;
 - Actor, Pause, Camera, UI, Input, Save or Pooling consumers.
 
+F8E has now introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeScopeContext` boundary.
+
 Next authorized cut:
 
 ```text
-F8E — RuntimeContentRuntime + RuntimeScopeContext
+F8F — lifecycle integration for RuntimeContentRuntime roots
 ```
