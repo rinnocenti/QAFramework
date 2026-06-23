@@ -1,5 +1,18 @@
 # Raio X — Package `com.immersive.framework`
 
+## Supersession note — F8D1
+
+This architecture document is preserved as historical audit evidence. Findings about active `CameraFlow`, mandatory Cinemachine dependency or `FrameworkCameraAuthority` describe an older package state and are not active blockers for F8.
+
+Current live planning status is maintained in:
+
+- `Documentation~/COMPLETENESS_TRACKER.md`;
+- `Documentation~/Planning/F8D1-F8-Plan-Realignment.md`;
+- `Documentation~/Planning/F8-Runtime-Roots-Materialization-Audit.md`.
+
+The live decision is: CameraFlow/Cinemachine/FrameworkCameraAuthority are not part of the active F8 package surface and do not influence runtime roots/materialization planning.
+
+
 > Documento consolidado da auditoria isolada do package atual.
 > Esta versão não compara com `NewScripts`; a comparação fica para a próxima etapa.
 

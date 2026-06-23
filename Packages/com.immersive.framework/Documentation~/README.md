@@ -22,8 +22,9 @@ Leitura recomendada:
 6. [`ADRs/`](ADRs/)
 7. [`Planning/F6-Route-Scene-Composition-Audit.md`](Planning/F6-Route-Scene-Composition-Audit.md)
 8. [`Planning/F7-Content-Anchor-Declaration-Audit.md`](Planning/F7-Content-Anchor-Declaration-Audit.md)
-9. [`Planning/F8-Runtime-Roots-Materialization-Audit.md`](Planning/F8-Runtime-Roots-Materialization-Audit.md)
-10. [`Architecture/ADR/`](Architecture/ADR/)
+9. [`Planning/F8D1-F8-Plan-Realignment.md`](Planning/F8D1-F8-Plan-Realignment.md)
+10. [`Planning/F8-Runtime-Roots-Materialization-Audit.md`](Planning/F8-Runtime-Roots-Materialization-Audit.md)
+11. [`Architecture/ADR/`](Architecture/ADR/)
 
 Docs técnicos:
 
@@ -55,6 +56,7 @@ Docs técnicos:
 - [`Local/LOCAL_CONTENT_IDENTITY.md`](Local/LOCAL_CONTENT_IDENTITY.md)
 - [`Planning/F6-Route-Scene-Composition-Audit.md`](Planning/F6-Route-Scene-Composition-Audit.md)
 - [`Planning/F7-Content-Anchor-Declaration-Audit.md`](Planning/F7-Content-Anchor-Declaration-Audit.md)
+- [`Planning/F8D1-F8-Plan-Realignment.md`](Planning/F8D1-F8-Plan-Realignment.md)
 - [`Planning/F8-Runtime-Roots-Materialization-Audit.md`](Planning/F8-Runtime-Roots-Materialization-Audit.md)
 - [`RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md`](RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md)
 - [`RuntimeContent/RUNTIME_CONTENT_HANDLE.md`](RuntimeContent/RUNTIME_CONTENT_HANDLE.md)
@@ -74,6 +76,7 @@ Docs técnicos:
 - `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md` — dedicated QA smoke for Route Content Anchor diagnostics.
 - `ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md` — loaded authoring validation for Route Content Anchors.
 
+- `Planning/F8D1-F8-Plan-Realignment.md` — official F8 realignment after F8D; next gate is RuntimeContentRuntime + RuntimeScopeContext.
 - `Planning/F8-Runtime-Roots-Materialization-Audit.md` — F8 boundary for runtime roots, materialization, handles and release.
 - `RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md` — F8B/F8C passive runtime ownership primitives and handle state.
 - `RuntimeContent/RUNTIME_CONTENT_HANDLE.md` — F8C passive RuntimeContentHandle state transitions.

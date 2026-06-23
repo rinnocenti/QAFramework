@@ -51,6 +51,16 @@ Repeated requests that are already in the target state produce `IgnoredAlreadyIn
 
 F8D keeps runtime roots logical/passive. `RuntimeRootRegistry` can create a root explicitly and can register handles only when the owner root already exists. Registering a handle without a root returns `RejectedMissingRoot`; it does not create a fallback root.
 
+## F8D1 plan realignment
+
+F8D1 changes the next gate after this document. The next authorized technical cut is not materialization request/result. The next gate is:
+
+```text
+F8E — RuntimeContentRuntime + RuntimeScopeContext
+```
+
+Request/result, prefab materialization and release execution remain in F8, but only after the internal runtime content owner, scope context and lifecycle root integration exist.
+
 ## Explicit non-goals
 
 F8D does not add:
@@ -65,5 +75,5 @@ F8D does not add:
 Next authorized cut:
 
 ```text
-F8E — RuntimeMaterializationRequest / RuntimeMaterializationResult
+F8E — RuntimeContentRuntime + RuntimeScopeContext
 ```

@@ -1,6 +1,6 @@
 # F8-01 — ADR-RUNTIME-001 — Runtime Ownership and Roots
 
-Status: Accepted in F8A / Implementation pending  
+Status: Accepted in F8A / Applied through F8D / Realigned in F8D1  
 Fase: F8  
 Ordem no Plano: F8-01  
 Tipo: RuntimeSpawned  
@@ -84,9 +84,33 @@ Materializers não devem:
 - Nenhum `GameObject.Find` para resolver roots.
 - Nenhum conteúdo authored de cena é destruído por runtime root release.
 
+## F8D1 realignment
+
+F8B-F8D applied the passive ownership/root baseline:
+
+- `RuntimeContentScope`, `RuntimeContentState`, `RuntimeContentId`, `RuntimeContentOwner`, `RuntimeContentIdentity`;
+- `RuntimeContentHandle` and transition diagnostics;
+- logical `RuntimeScopeRoot` and internal `RuntimeRootRegistry`.
+
+F8D1 clarifies that the next gate is not request/result yet. The registry first needs an internal runtime owner and explicit scope context.
+
+Accepted next sequence:
+
+```text
+F8E RuntimeContentRuntime + RuntimeScopeContext
+F8F Lifecycle root integration
+F8G RuntimeMaterializationRequest / RuntimeMaterializationResult
+F8H Transition guard + scoped cancellation model
+F8I PrefabContentMaterializer
+F8J Runtime release execution
+F8K Runtime materialization/release smoke
+```
+
+F8 must not introduce a public/global `IRuntimeContextProvider`, service locator roots, a separate Activity handle registry, `FrameworkUpdateDispatcher`/`ITickable`, Addressables backend or assembly split.
+
 ## Relação com roadmap
 
-F8A aceita a decisão e mantém implementação para cortes F8B+.
+F8A accepted the decision. F8B-F8D applied the passive baseline. F8D1 realigns the remaining sequence.
 
 ## Notas de implementação
 

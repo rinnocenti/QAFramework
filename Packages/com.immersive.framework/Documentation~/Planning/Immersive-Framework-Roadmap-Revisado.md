@@ -500,7 +500,7 @@ F7G — CLOSED / PASS
 F7H — CLOSED / PASS
 F7I — CLOSED / DOCS
 F7J — CLOSED / DOCS
-Next — F8E / RuntimeMaterializationRequest + RuntimeMaterializationResult
+Next — F8E / RuntimeContentRuntime + RuntimeScopeContext
 ```
 
 Naming guardrail: do not reintroduce the rejected previous placement-point vocabulary or `duplicated anchor naming` as canonical concept names.
@@ -514,14 +514,18 @@ Objetivo: criar materialização runtime genérica, sem actor/projectile/pool.
 
 | ID | Entrega | Detalhes |
 |---|---|---|
-| IF-FW-ROAD-8A | ADR/detail audit: Runtime roots/materialization | Aceitar fronteira: Runtime Root ≠ Content Anchor; F8 não cria consumers. |
-| IF-FW-ROAD-8B | Runtime ownership primitives | `APPLIED`: Scope, owner, state e identity baseline para runtime-created content. |
-| IF-FW-ROAD-8C | `RuntimeContentHandle` | `APPLIED`: Identity, owner scope, state and passive release diagnostics. |
-| IF-FW-ROAD-8D | `RuntimeScopeRoot` + internal registry | `APPLIED`: Root lógico por escopo/owner, registry interno, sem `GameObject.Find`, sem hierarchy root real ainda. |
-| IF-FW-ROAD-8E | `RuntimeMaterializationRequest` / `Result` | `NEXT`: Request/result explícitos. |
-| IF-FW-ROAD-8F | `PrefabContentMaterializer` | Primeiro materializer concreto e local. |
-| IF-FW-ROAD-8G | `RuntimeReleasePolicy` / release execution | Activity exit futuro, Route exit e Session shutdown. |
-| IF-FW-ROAD-8H | Runtime materialization smoke / F8 closure | Prefab → handle → release on exit → zero orphan. |
+| IF-FW-ROAD-8A | ADR/detail audit: Runtime roots/materialization | `CLOSED`: aceitar fronteira Runtime Root ≠ Content Anchor; F8 não cria consumers. |
+| IF-FW-ROAD-8B | Runtime ownership primitives | `CLOSED`: Scope, owner, state e identity baseline para runtime-created content. |
+| IF-FW-ROAD-8C | `RuntimeContentHandle` | `CLOSED`: Identity, owner scope, state and passive release diagnostics. |
+| IF-FW-ROAD-8D | `RuntimeScopeRoot` + internal registry | `CLOSED`: Root lógico por escopo/owner, registry interno, sem `GameObject.Find`, sem hierarchy root real ainda. |
+| IF-FW-ROAD-8D1 | F8 plan realignment | `APPLIED / DOCS ONLY`: request/result deixa de ser o próximo corte direto; F8E passa a ser RuntimeContentRuntime + RuntimeScopeContext. |
+| IF-FW-ROAD-8E | `RuntimeContentRuntime` + `RuntimeScopeContext` | `NEXT`: owner interno do RuntimeRootRegistry e contexto explícito por escopo, sem provider global. |
+| IF-FW-ROAD-8F | Lifecycle root integration | Route/Activity criam e encerram roots runtime; Route exit libera Activity root antes de Route root. |
+| IF-FW-ROAD-8G | `RuntimeMaterializationRequest` / `Result` | Request/result explícitos depois de owner/context/root integration. |
+| IF-FW-ROAD-8H | Transition guard + scoped cancellation model | Rejeitar mutações em root ausente/releasing/released; operação cancelada não registra handle ativo. |
+| IF-FW-ROAD-8I | `PrefabContentMaterializer` | Primeiro materializer concreto/local; sem Addressables, Pool, Content Anchor ou consumers. |
+| IF-FW-ROAD-8J | Runtime release execution | Release por handle/scope; primeira policy pode destruir GameObject instanciado. |
+| IF-FW-ROAD-8K | Runtime materialization smoke / F8 closure | Prefab → handle → release on exit → zero orphan. |
 
 ### Não entra
 
@@ -537,6 +541,16 @@ Objetivo: criar materialização runtime genérica, sem actor/projectile/pool.
 ```text
 Runtime-spawned genérico existe sem feature gameplay.
 Materialização não depende de subsistema específico.
+Runtime roots têm owner interno, contexto explícito, integração lifecycle, release determinístico e smoke sem orphan.
+```
+
+### Backlog fora de F8
+
+```text
+FX1 — Settings Source Hardening após F9/F10.
+FX2 — Assembly Boundary Audit após estabilizar F8/F9.
+FX3 — Historical CameraFlow Documentation Hygiene como docs-only.
+Future — Asset provider / Addressables adapter após materializer local.
 ```
 
 ---
@@ -888,7 +902,7 @@ Esses cortes dependem da identidade local tipada e das fases intermediárias do 
 
 ## F7D–F7H — Route Content Anchor declaration/discovery/validation
 
-Status: `F7H APPLIED / PENDING COMPILE-SMOKE`.
+Status: `F7 CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS`.
 
 F7D added `RouteContentAnchor` as the first passive Route-scoped public authoring component.
 
@@ -900,4 +914,4 @@ F7G added the dedicated Content Anchor diagnostics smoke and trimmed QA Canvas t
 
 F7H adds authoring validation for loaded `RouteContentAnchor` components: missing Route, missing Anchor Id, `Kind = Unknown`, invalid Requiredness, scene/Route declaration mismatch and duplicate Content Anchor identity/id. It does not enforce Required anchors in lifecycle and does not add Activity anchors, runtime binding, placement, RuntimeRoot/materialization or consumers.
 
-Next: `F7I — F7 closure`.
+Next: `F8E — RuntimeContentRuntime + RuntimeScopeContext`.

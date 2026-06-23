@@ -16,7 +16,7 @@ Este arquivo substitui os antigos documentos de fechamento e aceite de fase. Os 
 | F5 | `CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS` | F5H local smoke passed; F5 closure audit completed | `Local/LOCAL_CONTENT_IDENTITY.md` |
 | F6 | `CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS` | F6G release smoke passed; F6 closed | `Planning/F6-Route-Scene-Composition-Audit.md`, `Route/ROUTE_CONTENT_PROFILE_USAGE.md`, `Route/ROUTE_SCENE_COMPOSITION_SMOKE.md`, `Route/ROUTE_RELEASE_SMOKE.md`, `ADRs/F6-route-scene-composition-and-release/` |
 | F7 | `CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS` | F7I closure completed after F7H smoke pass | `Planning/F7-Content-Anchor-Declaration-Audit.md`, `ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md`, `ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md`, `ContentAnchor/CONTENT_ANCHOR_SET.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md`, `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md`, `ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md`, `ADRs/F7-content-anchor-declaration/` |
-| F8 | `OPEN / RUNTIME ROOTS AND MATERIALIZATION` | F8B runtime ownership primitives applied; handles/roots/materialization pending | `Planning/F8-Runtime-Roots-Materialization-Audit.md`, `RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md`, `ADRs/F8-runtime-roots-and-materialization/` |
+| F8 | `OPEN / RUNTIME ROOTS AND MATERIALIZATION` | F8D1 plan realigned; next gate is RuntimeContentRuntime + RuntimeScopeContext | `Planning/F8D1-F8-Plan-Realignment.md`, `Planning/F8-Runtime-Roots-Materialization-Audit.md`, `RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md`, `RuntimeContent/RUNTIME_CONTENT_HANDLE.md`, `RuntimeContent/RUNTIME_SCOPE_ROOT_REGISTRY.md`, `ADRs/F8-runtime-roots-and-materialization/` |
 
 ## Consolidation rule
 
@@ -41,7 +41,7 @@ Keep these docs as the durable record for implementation details:
 
 | Next authorized step | Reason |
 |---|---|
-| `F7I — F7 closure` | F7H adds loaded Route Content Anchor authoring validation. After compile/smoke, close F7 with docs/guardrails only; do not start runtime binding, RuntimeRoot/materialization or gameplay consumers yet. |
+| `F8E — RuntimeContentRuntime + RuntimeScopeContext` | F8D1 realigns F8 after the logical root registry. Do not start materialization request/result before the internal runtime content owner and scope context exist. |
 
 ## F5 closure audit
 
@@ -235,11 +235,7 @@ F7G adds `Run Content Anchor Diagnostics Smoke` and trims the visible QA Canvas 
 
 F7H adds loaded Route Content Anchor authoring validation to Project Settings validation, the Route Content Anchor Inspector and the QA Canvas `Validate Loaded Authoring` path. It detects missing Route, missing Anchor Id, `Kind = Unknown`, invalid requiredness, scene/Route declaration mismatch, duplicate identity and duplicate owner/scope/Anchor Id. It does not block Route lifecycle, enforce required anchors, add Activity anchors, bind placement or serve consumers.
 
-Next authorized cut after F7H smoke:
-
-```text
-F7I — F7 closure
-```
+F7 closure is complete. F7I/F7J closed the Content Anchor declaration baseline and authorized F8 opening.
 
 
 ## F8 opening audit
@@ -252,11 +248,18 @@ F8 has implemented:
 - passive runtime content handle and transition diagnostics (`RuntimeContentHandle`, `RuntimeContentHandleTransitionStatus`, `RuntimeContentHandleTransitionResult`);
 - logical runtime scope root and internal registry (`RuntimeScopeRoot`, `RuntimeRootRegistry`, `RuntimeRootRegistryOperationStatus`, `RuntimeRootRegistryOperationResult`).
 
+F8D1 realignment is applied as documentation-only. The official sequence changed: request/result no longer come immediately after F8D. The registry first needs an internal runtime owner and scope context, then lifecycle integration.
+
 F8 is still allowed to define and implement:
 
-- materialization request/result;
+- `RuntimeContentRuntime` as the internal owner of `RuntimeRootRegistry`;
+- `RuntimeScopeContext` so context is passed explicitly instead of queried globally;
+- Route/Activity lifecycle root integration;
+- materialization request/result after owner/context integration;
+- transition guard and scoped cancellation model;
 - a simple prefab materializer;
-- runtime release policy and smoke.
+- runtime release execution by handle/scope;
+- runtime materialization/release smoke.
 
 F8 does not authorize:
 
@@ -264,12 +267,26 @@ F8 does not authorize:
 - Activity Content Anchor;
 - Actor/Pause/Camera/UI/Input/Save/Pooling consumers;
 - pooled materialization;
-- service locator roots;
+- service locator roots or global `IRuntimeContextProvider`;
+- separate Activity runtime handle registry parallel to `RuntimeRootRegistry`;
+- `FrameworkUpdateDispatcher` / `ITickable`;
+- Addressables backend;
+- DOTS/ECS/Subscenes adapter;
+- assembly split or settings source migration;
 - `GameObject.Find` root lookup;
 - fallback root creation when a required root is absent.
+
+Registered backlog outside F8:
+
+```text
+FX1 — Settings Source Hardening, after F9 or F10.
+FX2 — Assembly Boundary Audit, after F8/F9 stabilization.
+FX3 — Historical CameraFlow Documentation Hygiene, docs-only.
+Future — Asset provider / Addressables adapter, after local prefab materializer.
+```
 
 Next authorized cut:
 
 ```text
-F8E — RuntimeMaterializationRequest / RuntimeMaterializationResult
+F8E — RuntimeContentRuntime + RuntimeScopeContext
 ```

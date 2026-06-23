@@ -58,6 +58,16 @@ This keeps root creation explicit and avoids silent fallback behavior.
 | Root does not exist | `RejectedMissingRoot` |
 | Unregister missing handle | `HandleMissing` |
 
+## F8D1 plan realignment
+
+F8D1 changes the next gate after this document. The next authorized technical cut is not materialization request/result. The next gate is:
+
+```text
+F8E — RuntimeContentRuntime + RuntimeScopeContext
+```
+
+Request/result, prefab materialization and release execution remain in F8, but only after the internal runtime content owner, scope context and lifecycle root integration exist.
+
 ## Explicit non-goals
 
 F8D does not add:
@@ -76,5 +86,5 @@ F8D does not add:
 Next authorized cut:
 
 ```text
-F8E — RuntimeMaterializationRequest / RuntimeMaterializationResult
+F8E — RuntimeContentRuntime + RuntimeScopeContext
 ```

@@ -1,6 +1,6 @@
 # F8-02 — ADR-RUNTIME-002 — Materialization Request Result Handle
 
-Status: Accepted in F8A / Implementation pending  
+Status: Accepted in F8A / Partially applied through F8C / Realigned in F8D1  
 Fase: F8  
 Ordem no Plano: F8-02  
 Tipo: RuntimeSpawned / Content  
@@ -20,7 +20,7 @@ Materialização runtime deve seguir um fluxo explícito:
 
 ```text
 RuntimeMaterializationRequest
-→ IFrameworkContentMaterializer.Materialize
+→ materializer
 → RuntimeMaterializationResult
 → RuntimeContentHandle
 ```
@@ -92,9 +92,35 @@ Portanto, F8 não deve criar `RuntimeContentAnchorBinding`.
 - Route/Activity scope release não deixa orphan.
 - Materializer não usa `GameObject.Find`.
 
+## F8D1 realignment
+
+This ADR remains accepted, but F8D1 changes the order of implementation.
+
+`RuntimeMaterializationRequest` and `RuntimeMaterializationResult` are no longer the immediate next cut after `RuntimeScopeRoot` and `RuntimeRootRegistry`.
+
+Required blockers before request/result:
+
+```text
+F8E RuntimeContentRuntime + RuntimeScopeContext
+F8F Lifecycle root integration
+```
+
+Reason:
+
+```text
+Request/result must receive owner/scope/source/reason from explicit lifecycle context. Materializer must not query global state to discover the active Route or Activity.
+```
+
+Rejected shapes:
+
+- public/global `IRuntimeContextProvider` for materializers;
+- separate `ActivityRuntimeContentRegistry` or `IActivityHandleRegistry` parallel to `RuntimeRootRegistry`;
+- `FrameworkUpdateDispatcher` / `ITickable` as F8 prerequisite;
+- Addressables dependency in the first materializer.
+
 ## Relação com roadmap
 
-F8A aceita a decisão e mantém implementação para cortes F8B+.
+F8A accepted the decision. F8C applied the passive handle part. F8D1 moves request/result to F8G, after owner/context and lifecycle root integration.
 
 ## Notas de implementação
 
