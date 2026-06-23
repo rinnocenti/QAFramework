@@ -210,8 +210,8 @@ Criar/posicionar conteúdo runtime usando ContentAnchorRoot/Slot/Point.
 | `F8A` | ADR/detail audit de runtime roots/materialization. |
 | `F8B` | Primitivas de runtime ownership/scope/state. `APPLIED` |
 | `F8C` | `RuntimeContentHandle` passivo e release state. `APPLIED` |
-| `F8D` | `RuntimeScopeRoot` + registry interno mínimo. `NEXT` |
-| `F8E` | `RuntimeMaterializationRequest` / `RuntimeMaterializationResult`. |
+| `F8D` | `RuntimeScopeRoot` + registry interno mínimo. `APPLIED` |
+| `F8E` | `RuntimeMaterializationRequest` / `RuntimeMaterializationResult`. `NEXT` |
 | `F8F` | `PrefabContentMaterializer` simples. |
 | `F8G` | Runtime release execution por scope. |
 | `F8H` | Runtime materialization/release smoke e fechamento F8. |

@@ -1,8 +1,8 @@
 # Runtime Ownership Primitives
 
-Status: `F8C APPLIED`
+Status: `F8D APPLIED`
 
-F8B introduced passive primitives for runtime-created content ownership. F8C adds a passive `RuntimeContentHandle` that records lifecycle/release state transitions without executing materialization or release.
+F8B introduced passive primitives for runtime-created content ownership. F8C added a passive `RuntimeContentHandle` that records lifecycle/release state transitions without executing materialization or release. F8D adds logical scope roots and an internal minimal registry for explicit root/handle registration.
 
 ## Added runtime primitives
 
@@ -16,6 +16,10 @@ F8B introduced passive primitives for runtime-created content ownership. F8C add
 | `RuntimeContentHandle` | Passive canonical handle for one runtime-created content identity. |
 | `RuntimeContentHandleTransitionStatus` | Result vocabulary for passive handle state transitions. |
 | `RuntimeContentHandleTransitionResult` | Immutable diagnostic result for one handle transition. |
+| `RuntimeScopeRoot` | Internal logical root for one runtime content owner. |
+| `RuntimeRootRegistry` | Internal scoped registry for runtime roots and handle registration. |
+| `RuntimeRootRegistryOperationStatus` | Internal status vocabulary for root registry operations. |
+| `RuntimeRootRegistryOperationResult` | Internal diagnostic result for root registry operations. |
 
 ## Scope to owner domain
 
@@ -43,12 +47,15 @@ F8C allows a handle to record these passive transitions:
 
 Repeated requests that are already in the target state produce `IgnoredAlreadyInState`. Invalid lifecycle jumps produce `RejectedInvalidTransition`.
 
+## Root registry baseline
+
+F8D keeps runtime roots logical/passive. `RuntimeRootRegistry` can create a root explicitly and can register handles only when the owner root already exists. Registering a handle without a root returns `RejectedMissingRoot`; it does not create a fallback root.
+
 ## Explicit non-goals
 
-F8C does not add:
+F8D does not add:
 
 - runtime scope root GameObjects;
-- root registry;
 - materialization request/result;
 - prefab materializer;
 - release execution;
@@ -58,5 +65,5 @@ F8C does not add:
 Next authorized cut:
 
 ```text
-F8D — RuntimeScopeRoot + internal minimal registry
+F8E — RuntimeMaterializationRequest / RuntimeMaterializationResult
 ```

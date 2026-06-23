@@ -244,17 +244,16 @@ F7I — F7 closure
 
 ## F8 opening audit
 
-F8A accepted the runtime roots/materialization boundary as documentation-only. F8B added passive runtime ownership primitives. F8C added passive runtime content handles and release-state transition diagnostics. Runtime behavior still does not instantiate, destroy, register roots or bind anchors.
+F8A accepted the runtime roots/materialization boundary as documentation-only. F8B added passive runtime ownership primitives. F8C added passive runtime content handles and release-state transition diagnostics. F8D added logical runtime scope roots and an internal minimal registry. Runtime behavior still does not instantiate, destroy, create hierarchy root GameObjects or bind anchors.
 
 F8 has implemented:
 
 - runtime ownership/scope/state primitives (`RuntimeContentScope`, `RuntimeContentState`, `RuntimeContentId`, `RuntimeContentOwner`, `RuntimeContentIdentity`);
-- passive runtime content handle and transition diagnostics (`RuntimeContentHandle`, `RuntimeContentHandleTransitionStatus`, `RuntimeContentHandleTransitionResult`).
+- passive runtime content handle and transition diagnostics (`RuntimeContentHandle`, `RuntimeContentHandleTransitionStatus`, `RuntimeContentHandleTransitionResult`);
+- logical runtime scope root and internal registry (`RuntimeScopeRoot`, `RuntimeRootRegistry`, `RuntimeRootRegistryOperationStatus`, `RuntimeRootRegistryOperationResult`).
 
 F8 is still allowed to define and implement:
 
-- runtime scope roots;
-- internal runtime root registry;
 - materialization request/result;
 - a simple prefab materializer;
 - runtime release policy and smoke.
@@ -272,5 +271,5 @@ F8 does not authorize:
 Next authorized cut:
 
 ```text
-F8D — RuntimeScopeRoot + internal minimal registry
+F8E — RuntimeMaterializationRequest / RuntimeMaterializationResult
 ```

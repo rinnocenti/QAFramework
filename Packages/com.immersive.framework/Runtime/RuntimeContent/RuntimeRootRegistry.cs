@@ -1,0 +1,167 @@
+using System;
+using System.Collections.Generic;
+using Immersive.Framework.ApiStatus;
+
+namespace Immersive.Framework.RuntimeContent
+{
+    /// <summary>
+    /// API status: Experimental. Internal scoped registry for logical runtime roots in the current framework runtime.
+    /// It is not a service locator and does not create hierarchy objects, materialize prefabs, destroy objects or bind Content Anchors.
+    /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8D internal minimal runtime root registry; explicit roots only, no GameObject.Find or fallback creation.")]
+    internal sealed class RuntimeRootRegistry
+    {
+        private readonly Dictionary<RuntimeContentOwner, RuntimeScopeRoot> roots = new Dictionary<RuntimeContentOwner, RuntimeScopeRoot>();
+
+        public int RootCount => roots.Count;
+
+        public bool HasRoots => roots.Count > 0;
+
+        public RuntimeScopeRoot[] SnapshotRoots()
+        {
+            var snapshot = new RuntimeScopeRoot[roots.Count];
+            roots.Values.CopyTo(snapshot, 0);
+            return snapshot;
+        }
+
+        public RuntimeRootRegistryOperationResult CreateRoot(
+            RuntimeContentOwner owner,
+            string source,
+            string reason)
+        {
+            ValidateOwner(owner);
+
+            if (roots.TryGetValue(owner, out var existingRoot))
+            {
+                return RuntimeRootRegistryOperationResult.RootAlreadyExists(
+                    owner,
+                    existingRoot,
+                    source,
+                    reason);
+            }
+
+            var root = new RuntimeScopeRoot(owner, source, reason);
+            roots.Add(owner, root);
+
+            return RuntimeRootRegistryOperationResult.RootCreated(
+                owner,
+                root,
+                source,
+                reason);
+        }
+
+        public bool TryGetRoot(RuntimeContentOwner owner, out RuntimeScopeRoot root)
+        {
+            ValidateOwner(owner);
+            return roots.TryGetValue(owner, out root);
+        }
+
+        public RuntimeRootRegistryOperationResult RegisterHandle(
+            RuntimeContentHandle handle,
+            string source,
+            string reason)
+        {
+            if (handle == null)
+            {
+                throw new ArgumentNullException(nameof(handle));
+            }
+
+            if (!roots.TryGetValue(handle.Owner, out var root))
+            {
+                return RuntimeRootRegistryOperationResult.RejectedMissingRoot(
+                    handle.Owner,
+                    handle.Identity,
+                    true,
+                    source,
+                    reason);
+            }
+
+            return root.RegisterHandle(handle, source, reason);
+        }
+
+        public RuntimeRootRegistryOperationResult UnregisterHandle(
+            RuntimeContentIdentity identity,
+            string source,
+            string reason)
+        {
+            ValidateIdentity(identity);
+
+            if (!roots.TryGetValue(identity.Owner, out var root))
+            {
+                return RuntimeRootRegistryOperationResult.RejectedMissingRoot(
+                    identity.Owner,
+                    identity,
+                    true,
+                    source,
+                    reason);
+            }
+
+            return root.UnregisterHandle(identity, source, reason);
+        }
+
+        public bool TryGetHandle(RuntimeContentIdentity identity, out RuntimeContentHandle handle)
+        {
+            ValidateIdentity(identity);
+
+            if (!roots.TryGetValue(identity.Owner, out var root))
+            {
+                handle = null;
+                return false;
+            }
+
+            return root.TryGetHandle(identity, out handle);
+        }
+
+        public RuntimeContentHandle[] SnapshotHandles(RuntimeContentOwner owner)
+        {
+            ValidateOwner(owner);
+
+            if (!roots.TryGetValue(owner, out var root))
+            {
+                return new RuntimeContentHandle[0];
+            }
+
+            return root.SnapshotHandles();
+        }
+
+        public RuntimeScopeRoot[] SnapshotRoots(RuntimeContentScope scope)
+        {
+            if (!Enum.IsDefined(typeof(RuntimeContentScope), scope) || scope == RuntimeContentScope.Unknown)
+            {
+                throw new ArgumentOutOfRangeException(nameof(scope), scope, "Runtime content scope must be explicit.");
+            }
+
+            var scopedRoots = new List<RuntimeScopeRoot>();
+            foreach (var root in roots.Values)
+            {
+                if (root.Scope == scope)
+                {
+                    scopedRoots.Add(root);
+                }
+            }
+
+            return scopedRoots.ToArray();
+        }
+
+        public string ToDiagnosticString()
+        {
+            return $"rootCount='{RootCount}'";
+        }
+
+        private static void ValidateOwner(RuntimeContentOwner owner)
+        {
+            if (!owner.IsValid)
+            {
+                throw new ArgumentException("Runtime content owner must be valid.", nameof(owner));
+            }
+        }
+
+        private static void ValidateIdentity(RuntimeContentIdentity identity)
+        {
+            if (!identity.IsValid)
+            {
+                throw new ArgumentException("Runtime content identity must be valid.", nameof(identity));
+            }
+        }
+    }
+}

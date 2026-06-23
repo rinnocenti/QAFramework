@@ -1,10 +1,10 @@
 # RuntimeContentHandle
 
-Status: `F8C APPLIED`
+Status: `F8D APPLIED`
 
 `RuntimeContentHandle` is the passive canonical handle for one runtime-created content identity.
 
-It exists to carry ownership and lifecycle/release state before F8 introduces roots, registry, materialization requests, prefab materialization and release execution.
+It exists to carry ownership and lifecycle/release state. F8D can register handles inside a logical runtime scope root, but materialization requests, prefab materialization and release execution still come later.
 
 ## Responsibilities
 
@@ -38,12 +38,15 @@ All operations return `RuntimeContentHandleTransitionResult`.
 | `IgnoredAlreadyInState` | The requested transition was already true or terminal. |
 | `RejectedInvalidTransition` | The transition would violate the handle lifecycle. |
 
+## F8D registry relation
+
+`RuntimeContentHandle` remains passive. `RuntimeRootRegistry` can store handles by owner root and identity, but it does not alter handle state, create objects or release objects.
+
 ## Explicit non-goals
 
-F8C does not add:
+F8D does not add:
 
 - runtime root GameObjects;
-- root registry;
 - GameObject references inside the handle;
 - materialization request/result;
 - prefab materializer;
@@ -54,5 +57,5 @@ F8C does not add:
 Next authorized cut:
 
 ```text
-F8D — RuntimeScopeRoot + internal minimal registry
+F8E — RuntimeMaterializationRequest / RuntimeMaterializationResult
 ```
