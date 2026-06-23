@@ -1,0 +1,129 @@
+using System;
+using Immersive.Framework.ApiStatus;
+
+namespace Immersive.Framework.RuntimeContent
+{
+    /// <summary>
+    /// API status: Experimental. Explicit request to materialize runtime-created content inside one runtime scope context.
+    /// It declares identity, owner context and resource descriptor only; it does not instantiate, destroy, register roots or bind anchors.
+    /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8G explicit runtime materialization request; no materializer implementation or UnityEngine reference.")]
+    public readonly struct RuntimeMaterializationRequest : IEquatable<RuntimeMaterializationRequest>
+    {
+        public RuntimeMaterializationRequest(
+            RuntimeScopeContext context,
+            RuntimeContentId contentId,
+            RuntimeMaterializationResource resource,
+            string source,
+            string reason)
+        {
+            if (!context.IsValid)
+            {
+                throw new ArgumentException("Runtime materialization request context must be valid.", nameof(context));
+            }
+
+            if (!contentId.IsValid)
+            {
+                throw new ArgumentException("Runtime materialization request content id must be valid.", nameof(contentId));
+            }
+
+            if (!resource.IsValid)
+            {
+                throw new ArgumentException("Runtime materialization request resource must be valid.", nameof(resource));
+            }
+
+            Context = context;
+            ContentId = contentId;
+            Resource = resource;
+            Source = Normalize(source);
+            Reason = Normalize(reason);
+        }
+
+        public RuntimeScopeContext Context { get; }
+
+        public RuntimeContentOwner Owner => Context.Owner;
+
+        public RuntimeContentScope Scope => Context.Scope;
+
+        public RuntimeContentId ContentId { get; }
+
+        public RuntimeContentIdentity Identity => Context.CreateIdentity(ContentId);
+
+        public RuntimeMaterializationResource Resource { get; }
+
+        public string Source { get; }
+
+        public string Reason { get; }
+
+        public bool IsValid => Context.IsValid && ContentId.IsValid && Resource.IsValid;
+
+        public bool Equals(RuntimeMaterializationRequest other)
+        {
+            return Context.Equals(other.Context)
+                && ContentId.Equals(other.ContentId)
+                && Resource.Equals(other.Resource)
+                && string.Equals(Source, other.Source, StringComparison.Ordinal)
+                && string.Equals(Reason, other.Reason, StringComparison.Ordinal);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is RuntimeMaterializationRequest other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = Context.GetHashCode();
+                hashCode = (hashCode * 397) ^ ContentId.GetHashCode();
+                hashCode = (hashCode * 397) ^ Resource.GetHashCode();
+                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                return hashCode;
+            }
+        }
+
+        public override string ToString()
+        {
+            return ToDiagnosticString();
+        }
+
+        public string ToDiagnosticString()
+        {
+            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
+            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
+            return $"identity='{Identity.StableText}' owner='{Owner.StableText}' scope='{Scope}' contentId='{ContentId.StableText}' {Resource.ToDiagnosticString()} source='{sourceText}' reason='{reasonText}'";
+        }
+
+        public static RuntimeMaterializationRequest From(
+            RuntimeScopeContext context,
+            string contentId,
+            RuntimeMaterializationResource resource,
+            string source,
+            string reason)
+        {
+            return new RuntimeMaterializationRequest(
+                context,
+                RuntimeContentId.From(contentId),
+                resource,
+                source,
+                reason);
+        }
+
+        public static bool operator ==(RuntimeMaterializationRequest left, RuntimeMaterializationRequest right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(RuntimeMaterializationRequest left, RuntimeMaterializationRequest right)
+        {
+            return !left.Equals(right);
+        }
+
+        private static string Normalize(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+        }
+    }
+}
