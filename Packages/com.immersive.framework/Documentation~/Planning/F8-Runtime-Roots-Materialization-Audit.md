@@ -1,6 +1,6 @@
 # F8 — Runtime Roots and Materialization Audit
 
-Status: `F8B APPLIED / PRIMITIVES`
+Status: `F8H APPLIED / TRANSITION GUARD`
 
 F8 começa depois de F7 fechar o baseline de Content Anchor. F7 entregou identidade, declaração, authoring, discovery, diagnostics smoke e authoring validation para `RouteContentAnchor`, mas não criou runtime placement nem materialização.
 
@@ -27,6 +27,22 @@ Já existe após F8B:
 - `RuntimeContentId`;
 - `RuntimeContentOwner`;
 - `RuntimeContentIdentity`.
+
+Já existe após F8C–F8H:
+
+- `RuntimeContentHandle`;
+- `RuntimeScopeRoot`;
+- `RuntimeRootRegistry`;
+- `RuntimeContentRuntime`;
+- `RuntimeScopeContext`;
+- `RuntimeScopeLifecycleResult`;
+- `RuntimeMaterializationResource`;
+- `RuntimeMaterializationRequest`;
+- `RuntimeMaterializationResult`;
+- `RuntimeMaterializationStatus`;
+- `RuntimeScopeTransitionState`;
+- `RuntimeScopeCancellationToken`;
+- internal transition guard/result/status.
 
 Ainda não existe:
 
@@ -213,15 +229,17 @@ Criar/posicionar conteúdo runtime usando ContentAnchorRoot/Slot/Point.
 | `F8D` | `RuntimeScopeRoot` + registry interno mínimo. `APPLIED` |
 | `F8E` | `RuntimeContentRuntime` + `RuntimeScopeContext`. `APPLIED` |
 | `F8F` | Integração do runtime owner/context aos lifecycles de Session/Route/Activity. `APPLIED` |
-| `F8G` | `RuntimeMaterializationRequest` / `RuntimeMaterializationResult`. `NEXT` |
-| `F8H` | Transition guard + scoped cancellation. |
-| `F8I` | `PrefabContentMaterializer` simples. |
+| `F8G` | `RuntimeMaterializationRequest` / `RuntimeMaterializationResult`. `APPLIED` |
+| `F8H` | Transition guard + scoped cancellation. `APPLIED` |
+| `F8I` | `PrefabContentMaterializer` simples. `NEXT` |
 | `F8J` | Runtime release execution por scope. |
 | `F8K` | Runtime materialization/release smoke e fechamento F8. |
 
 F8 foi realinhada após F8D para inserir `RuntimeContentRuntime` e `RuntimeScopeContext` antes de request/result de materialização. A ordem nova evita criar request pública sem owner interno explícito para roots e handles. Nenhum consumer deve entrar antes de handle/root/context/release mínimos.
 
 F8F aplica a primeira integração real com lifecycle: `FrameworkRuntimeHost` cria o root lógico de Session; `RouteLifecycleRuntime` cria/remove roots lógicos de Route; `ActivityFlowRuntime` cria/remove roots lógicos de Activity. A integração produz diagnostics via `RuntimeScopeLifecycleResult`, mas ainda não materializa prefab, não cria hierarchy root e não executa release físico.
+
+F8G aplica o contrato explícito de materialização: `RuntimeMaterializationRequest`, `RuntimeMaterializationResult`, `RuntimeMaterializationResource` e `RuntimeMaterializationStatus`. O request usa `RuntimeScopeContext + RuntimeContentId + RuntimeMaterializationResource`; o result reporta status/handle/mensagem. F8H adiciona transition guard e `RuntimeScopeCancellationToken`, impedindo request novo quando o owner scope está cancelando/removido e permitindo validar token stale antes/depois de materializers futuros. Ainda não há materializer concreto, `Instantiate`, `Destroy` ou Content Anchor binding.
 
 ---
 

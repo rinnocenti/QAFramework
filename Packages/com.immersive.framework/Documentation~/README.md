@@ -60,6 +60,8 @@ Docs técnicos:
 - [`RuntimeContent/RUNTIME_CONTENT_HANDLE.md`](RuntimeContent/RUNTIME_CONTENT_HANDLE.md)
 - [`RuntimeContent/RUNTIME_SCOPE_ROOT_REGISTRY.md`](RuntimeContent/RUNTIME_SCOPE_ROOT_REGISTRY.md)
 - [`RuntimeContent/RUNTIME_CONTENT_RUNTIME.md`](RuntimeContent/RUNTIME_CONTENT_RUNTIME.md)
+- [`RuntimeContent/RUNTIME_ROOT_LIFECYCLE_INTEGRATION.md`](RuntimeContent/RUNTIME_ROOT_LIFECYCLE_INTEGRATION.md)
+- [`RuntimeContent/RUNTIME_MATERIALIZATION_REQUEST_RESULT.md`](RuntimeContent/RUNTIME_MATERIALIZATION_REQUEST_RESULT.md)
 - [`ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md`](ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md)
 - [`ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md`](ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md)
 - [`ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md`](ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md)
@@ -81,3 +83,5 @@ Docs técnicos:
 - `RuntimeContent/RUNTIME_SCOPE_ROOT_REGISTRY.md` — F8D logical RuntimeScopeRoot and internal registry semantics.
 - `RuntimeContent/RUNTIME_CONTENT_RUNTIME.md` — F8E internal RuntimeContentRuntime owner and explicit RuntimeScopeContext semantics.
 - `RuntimeContent/RUNTIME_ROOT_LIFECYCLE_INTEGRATION.md` — F8F lifecycle integration for logical Session/Route/Activity runtime roots.
+- `RuntimeContent/RUNTIME_MATERIALIZATION_REQUEST_RESULT.md` — F8G RuntimeMaterializationRequest/Result contracts.
+- `RuntimeContent/RUNTIME_TRANSITION_GUARD_SCOPED_CANCELLATION.md` — F8H transition guard and scoped cancellation tokens.

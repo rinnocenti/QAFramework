@@ -46,6 +46,8 @@ Documentation~/Planning/F8-Runtime-Roots-Materialization-Audit.md
 Documentation~/RuntimeContent/RUNTIME_CONTENT_HANDLE.md
 Documentation~/RuntimeContent/RUNTIME_SCOPE_ROOT_REGISTRY.md
 Documentation~/RuntimeContent/RUNTIME_CONTENT_RUNTIME.md
+Documentation~/RuntimeContent/RUNTIME_ROOT_LIFECYCLE_INTEGRATION.md
+Documentation~/RuntimeContent/RUNTIME_MATERIALIZATION_REQUEST_RESULT.md
 Documentation~/Route/ROUTE_CONTENT_PROFILE_USAGE.md
 Documentation~/Route/ROUTE_SCENE_COMPOSITION_SMOKE.md
 Documentation~/Route/ROUTE_RELEASE_SMOKE.md
@@ -65,7 +67,7 @@ Documentation~/ADRs/
 
 The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release for scene content. It is not yet a Content Anchor, RuntimeSpawned, Actor, Camera, Input, Save, Reset or Pooling framework.
 
-F7 is closed as the Content Anchor declaration baseline. F8 is now allowed only as Runtime Roots and Materialization groundwork: ownership primitives, scoped runtime roots, runtime content handles, request/result models, prefab materialization and runtime release. F8 must not create Content Anchor binding, Activity anchors, Actor, Pause, Camera, UI, Save, Input or Pooling consumers. F8B adds passive runtime ownership primitives: scope, owner, typed content id, identity and state vocabulary. F8C adds a passive `RuntimeContentHandle` surface for state transitions and release diagnostics without executing materialization or release. F8D adds a logical `RuntimeScopeRoot` and internal `RuntimeRootRegistry` for explicit root/handle registration without creating hierarchy GameObjects. F8E adds the internal `RuntimeContentRuntime` owner and explicit `RuntimeScopeContext` for scoped handle operations before any materialization request/result model. F8F connects Session, Route and Activity lifecycles to logical runtime root/context creation and removal without materializing or releasing objects physically.
+F7 is closed as the Content Anchor declaration baseline. F8 is now allowed only as Runtime Roots and Materialization groundwork: ownership primitives, scoped runtime roots, runtime content handles, request/result models, prefab materialization and runtime release. F8 must not create Content Anchor binding, Activity anchors, Actor, Pause, Camera, UI, Save, Input or Pooling consumers. F8B adds passive runtime ownership primitives: scope, owner, typed content id, identity and state vocabulary. F8C adds a passive `RuntimeContentHandle` surface for state transitions and release diagnostics without executing materialization or release. F8D adds a logical `RuntimeScopeRoot` and internal `RuntimeRootRegistry` for explicit root/handle registration without creating hierarchy GameObjects. F8E adds the internal `RuntimeContentRuntime` owner and explicit `RuntimeScopeContext` for scoped handle operations before any materialization request/result model. F8F connects Session, Route and Activity lifecycles to logical runtime root/context creation and removal without materializing or releasing objects physically. F8G adds `RuntimeMaterializationRequest`, `RuntimeMaterializationResult`, `RuntimeMaterializationResource` and `RuntimeMaterializationStatus` as explicit contracts before any concrete materializer. F8H adds transition guard and scoped cancellation tokens so requests cannot cross stale Route/Activity/Session scope transitions.
 
 ## F7 Content Anchor boundary
 
@@ -100,10 +102,12 @@ F8C — RuntimeContentHandle passive and release state
 F8D — RuntimeScopeRoot + internal minimal registry
 F8E — RuntimeContentRuntime + RuntimeScopeContext
 F8F — lifecycle integration for RuntimeContentRuntime roots
+F8G — RuntimeMaterializationRequest / RuntimeMaterializationResult
+F8H — transition guard + scoped cancellation
 ```
 
 Next authorized cut:
 
 ```text
-F8G — RuntimeMaterializationRequest / RuntimeMaterializationResult
+F8I — PrefabContentMaterializer
 ```

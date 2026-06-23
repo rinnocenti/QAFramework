@@ -67,5 +67,5 @@ F8E introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeS
 Next authorized cut:
 
 ```text
-F8G — RuntimeMaterializationRequest / RuntimeMaterializationResult
+F8I — PrefabContentMaterializer
 ```

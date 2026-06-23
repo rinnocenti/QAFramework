@@ -73,5 +73,5 @@ F8E does not add:
 Next authorized cut:
 
 ```text
-F8G — RuntimeMaterializationRequest / RuntimeMaterializationResult
+F8I — PrefabContentMaterializer
 ```

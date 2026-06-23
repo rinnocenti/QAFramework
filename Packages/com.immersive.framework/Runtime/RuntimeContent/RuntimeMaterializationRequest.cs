@@ -5,15 +5,16 @@ namespace Immersive.Framework.RuntimeContent
 {
     /// <summary>
     /// API status: Experimental. Explicit request to materialize runtime-created content inside one runtime scope context.
-    /// It declares identity, owner context and resource descriptor only; it does not instantiate, destroy, register roots or bind anchors.
+    /// It declares identity, owner context, resource descriptor and scoped cancellation token only; it does not instantiate, destroy, register roots or bind anchors.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8G explicit runtime materialization request; no materializer implementation or UnityEngine reference.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8H explicit runtime materialization request with scoped cancellation token; no materializer implementation or UnityEngine reference.")]
     public readonly struct RuntimeMaterializationRequest : IEquatable<RuntimeMaterializationRequest>
     {
         public RuntimeMaterializationRequest(
             RuntimeScopeContext context,
             RuntimeContentId contentId,
             RuntimeMaterializationResource resource,
+            RuntimeScopeCancellationToken cancellationToken,
             string source,
             string reason)
         {
@@ -32,9 +33,20 @@ namespace Immersive.Framework.RuntimeContent
                 throw new ArgumentException("Runtime materialization request resource must be valid.", nameof(resource));
             }
 
+            if (!cancellationToken.IsValid)
+            {
+                throw new ArgumentException("Runtime materialization request cancellation token must be valid.", nameof(cancellationToken));
+            }
+
+            if (cancellationToken.Owner != context.Owner)
+            {
+                throw new ArgumentException("Runtime materialization request cancellation token owner must match the request context owner.", nameof(cancellationToken));
+            }
+
             Context = context;
             ContentId = contentId;
             Resource = resource;
+            CancellationToken = cancellationToken;
             Source = Normalize(source);
             Reason = Normalize(reason);
         }
@@ -51,17 +63,24 @@ namespace Immersive.Framework.RuntimeContent
 
         public RuntimeMaterializationResource Resource { get; }
 
+        public RuntimeScopeCancellationToken CancellationToken { get; }
+
         public string Source { get; }
 
         public string Reason { get; }
 
-        public bool IsValid => Context.IsValid && ContentId.IsValid && Resource.IsValid;
+        public bool IsValid => Context.IsValid
+            && ContentId.IsValid
+            && Resource.IsValid
+            && CancellationToken.IsValid
+            && CancellationToken.Owner == Owner;
 
         public bool Equals(RuntimeMaterializationRequest other)
         {
             return Context.Equals(other.Context)
                 && ContentId.Equals(other.ContentId)
                 && Resource.Equals(other.Resource)
+                && CancellationToken.Equals(other.CancellationToken)
                 && string.Equals(Source, other.Source, StringComparison.Ordinal)
                 && string.Equals(Reason, other.Reason, StringComparison.Ordinal);
         }
@@ -78,6 +97,7 @@ namespace Immersive.Framework.RuntimeContent
                 var hashCode = Context.GetHashCode();
                 hashCode = (hashCode * 397) ^ ContentId.GetHashCode();
                 hashCode = (hashCode * 397) ^ Resource.GetHashCode();
+                hashCode = (hashCode * 397) ^ CancellationToken.GetHashCode();
                 hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
                 hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 return hashCode;
@@ -93,13 +113,14 @@ namespace Immersive.Framework.RuntimeContent
         {
             var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
             var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            return $"identity='{Identity.StableText}' owner='{Owner.StableText}' scope='{Scope}' contentId='{ContentId.StableText}' {Resource.ToDiagnosticString()} source='{sourceText}' reason='{reasonText}'";
+            return $"identity='{Identity.StableText}' owner='{Owner.StableText}' scope='{Scope}' contentId='{ContentId.StableText}' {Resource.ToDiagnosticString()} token={CancellationToken.ToDiagnosticString()} source='{sourceText}' reason='{reasonText}'";
         }
 
         public static RuntimeMaterializationRequest From(
             RuntimeScopeContext context,
             string contentId,
             RuntimeMaterializationResource resource,
+            RuntimeScopeCancellationToken cancellationToken,
             string source,
             string reason)
         {
@@ -107,6 +128,7 @@ namespace Immersive.Framework.RuntimeContent
                 context,
                 RuntimeContentId.From(contentId),
                 resource,
+                cancellationToken,
                 source,
                 reason);
         }

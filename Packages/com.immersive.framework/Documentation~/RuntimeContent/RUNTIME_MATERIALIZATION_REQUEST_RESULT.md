@@ -1,8 +1,8 @@
 # Runtime Materialization Request / Result
 
-Status: `F8G APPLIED / CONTRACTS`
+Status: `F8H UPDATED / CONTRACTS + SCOPED TOKEN`
 
-This document records the F8G runtime materialization contracts introduced after runtime ownership primitives, passive handles, logical roots, `RuntimeContentRuntime`, `RuntimeScopeContext` and lifecycle root integration.
+This document records the F8G runtime materialization contracts introduced after runtime ownership primitives, passive handles, logical roots, `RuntimeContentRuntime`, `RuntimeScopeContext` and lifecycle root integration. F8H extends the request with a scoped cancellation token.
 
 F8G does not materialize anything by itself. It defines the request/result language that a later concrete materializer must use.
 
@@ -13,7 +13,7 @@ F8G does not materialize anything by itself. It defines the request/result langu
 | Type | Role |
 |---|---|
 | `RuntimeMaterializationResource` | Explicit materializer-facing resource descriptor. |
-| `RuntimeMaterializationRequest` | Explicit request to create runtime content in a known `RuntimeScopeContext`. |
+| `RuntimeMaterializationRequest` | Explicit request to create runtime content in a known `RuntimeScopeContext`, now carrying `RuntimeScopeCancellationToken`. |
 | `RuntimeMaterializationResult` | Immutable result of one materialization attempt. |
 | `RuntimeMaterializationStatus` | Result status vocabulary. |
 
@@ -119,8 +119,6 @@ F8G does not add:
 
 - concrete materializer;
 - `PrefabContentMaterializer`;
-- transition guard;
-- scoped cancellation;
 - hierarchy root real;
 - `GameObject`;
 - `Transform`;
@@ -137,5 +135,5 @@ F8G does not add:
 ## Next cut
 
 ```text
-F8H — transition guard + scoped cancellation
+F8I — PrefabContentMaterializer
 ```

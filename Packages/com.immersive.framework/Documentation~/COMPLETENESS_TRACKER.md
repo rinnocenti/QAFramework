@@ -16,7 +16,7 @@ Este arquivo substitui os antigos documentos de fechamento e aceite de fase. Os 
 | F5 | `CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS` | F5H local smoke passed; F5 closure audit completed | `Local/LOCAL_CONTENT_IDENTITY.md` |
 | F6 | `CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS` | F6G release smoke passed; F6 closed | `Planning/F6-Route-Scene-Composition-Audit.md`, `Route/ROUTE_CONTENT_PROFILE_USAGE.md`, `Route/ROUTE_SCENE_COMPOSITION_SMOKE.md`, `Route/ROUTE_RELEASE_SMOKE.md`, `ADRs/F6-route-scene-composition-and-release/` |
 | F7 | `CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS` | F7I closure completed after F7H smoke pass | `Planning/F7-Content-Anchor-Declaration-Audit.md`, `ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md`, `ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md`, `ContentAnchor/CONTENT_ANCHOR_SET.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md`, `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md`, `ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md`, `ADRs/F7-content-anchor-declaration/` |
-| F8 | `OPEN / RUNTIME ROOTS AND MATERIALIZATION` | F8B runtime ownership primitives applied; handles/roots/materialization pending | `Planning/F8-Runtime-Roots-Materialization-Audit.md`, `RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md`, `ADRs/F8-runtime-roots-and-materialization/` |
+| F8 | `OPEN / RUNTIME ROOTS AND MATERIALIZATION` | F8H transition guard/scoped cancellation applied; materializer/release pending | `Planning/F8-Runtime-Roots-Materialization-Audit.md`, `RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md`, `RuntimeContent/RUNTIME_CONTENT_HANDLE.md`, `RuntimeContent/RUNTIME_SCOPE_ROOT_REGISTRY.md`, `RuntimeContent/RUNTIME_CONTENT_RUNTIME.md`, `RuntimeContent/RUNTIME_ROOT_LIFECYCLE_INTEGRATION.md`, `RuntimeContent/RUNTIME_MATERIALIZATION_REQUEST_RESULT.md`, `RuntimeContent/RUNTIME_TRANSITION_GUARD_SCOPED_CANCELLATION.md`, `ADRs/F8-runtime-roots-and-materialization/` |
 
 ## Consolidation rule
 
@@ -41,7 +41,7 @@ Keep these docs as the durable record for implementation details:
 
 | Next authorized step | Reason |
 |---|---|
-| `F8G — RuntimeMaterializationRequest / RuntimeMaterializationResult` | F8F integrates logical runtime roots with Session/Route/Activity lifecycle. Next step can define request/result contracts before any materializer or physical release. |
+| `F8I — PrefabContentMaterializer` | F8H adds transition/cancellation guardrails. Next step may add the first concrete prefab materializer. |
 
 ## F5 closure audit
 
@@ -240,7 +240,7 @@ F7 is closed. F8 is the active phase; current next authorized cut is tracked in 
 
 ## F8 opening audit
 
-F8A accepted the runtime roots/materialization boundary as documentation-only. F8B added passive runtime ownership primitives. F8C added passive runtime content handles and release-state transition diagnostics. F8D added logical runtime scope roots and an internal minimal registry. F8E added the internal RuntimeContentRuntime owner and explicit RuntimeScopeContext. F8F integrated logical runtime root/context creation and removal into Session, Route and Activity lifecycles. Runtime behavior still does not instantiate, destroy, create hierarchy root GameObjects or bind anchors.
+F8A accepted the runtime roots/materialization boundary as documentation-only. F8B added passive runtime ownership primitives. F8C added passive runtime content handles and release-state transition diagnostics. F8D added logical runtime scope roots and an internal minimal registry. F8E added the internal RuntimeContentRuntime owner and explicit RuntimeScopeContext. F8F integrated logical runtime root/context creation and removal into Session, Route and Activity lifecycles. F8G added `RuntimeMaterializationRequest`, `RuntimeMaterializationResult`, `RuntimeMaterializationResource` and `RuntimeMaterializationStatus` as explicit contracts. F8H added scoped transition guardrails and `RuntimeScopeCancellationToken` so materialization requests can be rejected when their owner scope is cancelling, removed or stale. Runtime behavior still does not instantiate, destroy, create hierarchy root GameObjects or bind anchors.
 
 F8 has implemented:
 
@@ -248,12 +248,12 @@ F8 has implemented:
 - passive runtime content handle and transition diagnostics (`RuntimeContentHandle`, `RuntimeContentHandleTransitionStatus`, `RuntimeContentHandleTransitionResult`);
 - logical runtime scope root and internal registry (`RuntimeScopeRoot`, `RuntimeRootRegistry`, `RuntimeRootRegistryOperationStatus`, `RuntimeRootRegistryOperationResult`);
 - internal runtime content owner and explicit scope context (`RuntimeContentRuntime`, `RuntimeScopeContext`);
-- lifecycle-driven logical root/context diagnostics (`RuntimeScopeLifecycleResult`).
+- lifecycle-driven logical root/context diagnostics (`RuntimeScopeLifecycleResult`);
+- materialization request/result contracts (`RuntimeMaterializationRequest`, `RuntimeMaterializationResult`, `RuntimeMaterializationResource`, `RuntimeMaterializationStatus`);
+- transition guard/scoped cancellation (`RuntimeScopeTransitionState`, `RuntimeScopeCancellationToken`, internal transition guard/result/status).
 
 F8 is still allowed to define and implement:
 
-- materialization request/result;
-- transition guard and scoped cancellation;
 - a simple prefab materializer;
 - runtime release policy and smoke.
 
@@ -270,5 +270,5 @@ F8 does not authorize:
 Next authorized cut:
 
 ```text
-F8G — RuntimeMaterializationRequest / RuntimeMaterializationResult
+F8I — PrefabContentMaterializer
 ```
