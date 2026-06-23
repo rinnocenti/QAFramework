@@ -1,8 +1,8 @@
 # Runtime Materialization Request / Result
 
-Status: `F8J UPDATED / CONTRACTS + SCOPED TOKEN + ADAPTER + RELEASE BOUNDARY`
+Status: `F8K UPDATED / APPLY HANDOFF + SMOKE`
 
-This document records the F8G runtime materialization contracts introduced after runtime ownership primitives, passive handles, logical roots, `RuntimeContentRuntime`, `RuntimeScopeContext` and lifecycle root integration. F8H extends the request with a scoped cancellation token. F8I adds the materialization adapter boundary. F8J adds the separate release request/result/policy boundary.
+This document records the F8G runtime materialization contracts introduced after runtime ownership primitives, passive handles, logical roots, `RuntimeContentRuntime`, `RuntimeScopeContext` and lifecycle root integration. F8H extends the request with a scoped cancellation token. F8I adds the materialization adapter boundary. F8J adds the separate release request/result/policy boundary. F8K adds the explicit `ApplyMaterializationResult` handoff from adapter result back into the RuntimeContent registry.
 
 These contracts do not materialize anything by themselves. They define the request/result language and the `IRuntimeMaterializationAdapter` boundary that a physical adapter outside the RuntimeContent core may implement.
 
@@ -97,16 +97,18 @@ RuntimeContentRuntime
               -> RuntimeMaterializationRequest
 ```
 
-Adapter chain after F8I:
+Adapter chain after F8K:
 
 ```text
 RuntimeMaterializationRequest
   -> IRuntimeMaterializationAdapter.Materialize
       -> RuntimeMaterializationResult
-          -> RuntimeContentHandle
+          -> RuntimeContentRuntime.ApplyMaterializationResult
+              -> RuntimeContentHandle
+              -> RuntimeScopeRoot registration
 ```
 
-`IRuntimeMaterializationAdapter` is only a boundary. The framework core still does not ship a prefab, scene, Addressables or pool implementation.
+`IRuntimeMaterializationAdapter` is only a boundary. `ApplyMaterializationResult` is the core handoff that validates the scoped guard, normalizes declared handles to `Materialized` and registers the handle. The framework core still does not ship a prefab, scene, Addressables or pool implementation.
 
 ---
 
@@ -131,6 +133,6 @@ F8G/F8I do not add:
 ## Next cut
 
 ```text
-F8J — Runtime release policy / logical release execution [APPLIED / PENDING COMPILE-SMOKE]
-F8K — Runtime request/guard/release-policy smoke and F8 closure
+F8J — Runtime release policy / logical release execution [APPLIED / COMPILE-SMOKE PASS]
+F8K — Runtime request/guard/release-policy smoke and F8 closure [APPLIED / PENDING COMPILE + SMOKE]
 ```

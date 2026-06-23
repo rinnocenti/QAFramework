@@ -315,6 +315,85 @@ namespace Immersive.Framework.RuntimeContent
                 guardResult.Message);
         }
 
+
+        public RuntimeMaterializationResult ApplyMaterializationResult(
+            RuntimeMaterializationResult materializationResult,
+            string source,
+            string reason)
+        {
+            ValidateMaterializationResult(materializationResult);
+
+            if (materializationResult.Failed)
+            {
+                return materializationResult;
+            }
+
+            var request = materializationResult.Request;
+            var guardResult = transitionGuard.ValidateMaterializationRequest(request, source, reason);
+            if (!guardResult.Allowed)
+            {
+                return RuntimeMaterializationResult.Failure(
+                    request,
+                    guardResult.ToMaterializationStatus(),
+                    source,
+                    reason,
+                    guardResult.Message);
+            }
+
+            var handle = materializationResult.Handle;
+            if (handle == null)
+            {
+                return RuntimeMaterializationResult.Failure(
+                    request,
+                    RuntimeMaterializationStatus.FailedInvalidHandle,
+                    source,
+                    reason,
+                    "Runtime materialization result cannot be applied because it has no handle.");
+            }
+
+            if (handle.Identity != request.Identity)
+            {
+                return RuntimeMaterializationResult.Failure(
+                    request,
+                    RuntimeMaterializationStatus.RejectedMismatchedIdentity,
+                    source,
+                    reason,
+                    "Runtime materialization result handle identity does not match the request identity.");
+            }
+
+            if (handle.IsDeclared)
+            {
+                var materializedResult = handle.MarkMaterialized(source, reason);
+                if (materializedResult.Rejected)
+                {
+                    return RuntimeMaterializationResult.Failure(
+                        request,
+                        RuntimeMaterializationStatus.FailedInvalidHandle,
+                        source,
+                        reason,
+                        materializedResult.Message);
+                }
+            }
+
+            if (!handle.IsMaterialized)
+            {
+                return RuntimeMaterializationResult.Failure(
+                    request,
+                    RuntimeMaterializationStatus.FailedInvalidHandle,
+                    source,
+                    reason,
+                    $"Runtime materialization result handle must be materialized before registration. Current state: '{handle.State}'.");
+            }
+
+            var registryResult = RegisterHandle(request.Context, handle, source, reason);
+            return RuntimeMaterializationResult.FromRegistryResult(
+                request,
+                handle,
+                registryResult,
+                source,
+                reason);
+        }
+
         public bool IsMaterializationRequestCurrent(
             RuntimeMaterializationRequest request,
             string source,
@@ -627,6 +706,14 @@ namespace Immersive.Framework.RuntimeContent
             }
         }
 
+
+        private static void ValidateMaterializationResult(RuntimeMaterializationResult result)
+        {
+            if (!result.Request.IsValid || result.Status == RuntimeMaterializationStatus.Unknown)
+            {
+                throw new ArgumentException("Runtime materialization result must be valid.", nameof(result));
+            }
+        }
 
         private static void ValidateReleasePolicy(RuntimeReleasePolicy policy)
         {

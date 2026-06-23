@@ -522,9 +522,9 @@ Objetivo: criar materialização runtime genérica, sem actor/projectile/pool.
 | IF-FW-ROAD-8F | Lifecycle integration for runtime roots | `APPLIED`: Session/Route/Activity criam/removem roots lógicos e contextos explicitamente no lifecycle, sem executar materialização física. |
 | IF-FW-ROAD-8G | `RuntimeMaterializationRequest` / `Result` | `APPLIED`: Request/result/resource/status explícitos depois do owner/context/lifecycle roots; sem adapter físico. |
 | IF-FW-ROAD-8H | Transition guard + scoped cancellation | `APPLIED`: Guardas para transição e cancelamento por escopo antes de qualquer adapter físico. |
-| IF-FW-ROAD-8I | Materialization adapter boundary | `APPLIED / PENDING COMPILE-SMOKE`: `IRuntimeMaterializationAdapter` boundary para adapters físicos externos ao core; sem Instantiate/Destroy no framework core. |
-| IF-FW-ROAD-8J | `RuntimeReleasePolicy` / release execution | `APPLIED / PENDING COMPILE-SMOKE`: release lógico por handle/scope; cleanup físico continua em adapters externos. |
-| IF-FW-ROAD-8K | Runtime request/guard/release-policy smoke / F8 closure | NEXT: request → guard → handle/release state → no stale scope/no fallback. |
+| IF-FW-ROAD-8I | Materialization adapter boundary | `APPLIED / COMPILE-SMOKE PASS`: `IRuntimeMaterializationAdapter` boundary para adapters físicos externos ao core; sem Instantiate/Destroy no framework core. |
+| IF-FW-ROAD-8J | `RuntimeReleasePolicy` / release execution | `APPLIED / COMPILE-SMOKE PASS`: release lógico por handle/scope; cleanup físico continua em adapters externos. |
+| IF-FW-ROAD-8K | Runtime request/guard/release-policy smoke / F8 closure | `APPLIED / PENDING COMPILE + SMOKE`: request → guard → `ApplyMaterializationResult` → logical release/unregister → root removal → stale request rejection. |
 
 ### Não entra
 
@@ -1007,22 +1007,22 @@ F7 — CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS
 F8 — OPEN / RUNTIME ROOTS AND MATERIALIZATION
 ```
 
-No package atual, F8I existe como boundary de adapter (`IRuntimeMaterializationAdapter`) sem implementação física. F8J adiciona release lógico (`RuntimeReleaseRequest/Result/Policy/Status`) e `IRuntimeReleaseAdapter`, também sem implementação física.
+No package atual, F8I existe como boundary de adapter (`IRuntimeMaterializationAdapter`) sem implementação física. F8J adiciona release lógico (`RuntimeReleaseRequest/Result/Policy/Status`) e `IRuntimeReleaseAdapter`, também sem implementação física. F8K adiciona o handoff explícito `ApplyMaterializationResult` e o Runtime Content Smoke.
 
 ## Ação imediata
 
 ```text
-Validar F8J por compile/import smoke e então prosseguir para F8K.
+Validar F8K por compile/import smoke e pelo botão `Run Runtime Content Smoke` no QA Canvas.
 ```
 
-Depois da consolidação documental, o próximo corte técnico continua dentro de F8:
+Depois de F8K, não há novo corte técnico autorizado dentro de F8 salvo correção de defeito encontrado no smoke. O próximo gate é validação:
 
 ```text
-F8J — runtime release policy / logical release execution [APPLIED / PENDING COMPILE-SMOKE]
-F8K — runtime request/guard/release-policy smoke and F8 closure
+Compile/import smoke
+Run Runtime Content Smoke
 ```
 
-A implementação de F9+ não deve começar até F8 fechar request/guard/release-policy smoke.
+A implementação de F9+ não deve começar até F8K passar no Runtime Content Smoke.
 
 ## Não avançar ainda
 

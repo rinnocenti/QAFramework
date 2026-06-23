@@ -1,6 +1,6 @@
 # F8-02 — ADR-RUNTIME-002 — Materialization Request Result Handle
 
-Status: Accepted in F8A / Request-result contracts applied in F8G / Adapter boundary applied in F8I / Logical release applied in F8J  
+Status: Accepted in F8A / Request-result contracts applied in F8G / Adapter boundary applied in F8I / Logical release applied in F8J / Closure smoke applied in F8K  
 Fase: F8  
 Ordem no Plano: F8-02  
 Tipo: RuntimeSpawned / Content  
@@ -22,7 +22,8 @@ Materialização runtime deve seguir um fluxo explícito:
 RuntimeMaterializationRequest
 → IRuntimeMaterializationAdapter.Materialize
 → RuntimeMaterializationResult
-→ RuntimeContentHandle
+→ RuntimeContentRuntime.ApplyMaterializationResult
+→ RuntimeContentHandle registered in RuntimeScopeRoot
 ```
 
 Runtime release follows a separate chain:
@@ -35,7 +36,7 @@ RuntimeReleaseRequest
 → RuntimeContentHandle release state
 ```
 
-`IRuntimeMaterializationAdapter` é a boundary canônica. Implementações físicas de prefab, cena, Addressables, pool ou gameplay vivem fora do RuntimeContent core; o core define apenas request/result/handle/guard/release lógico.
+`IRuntimeMaterializationAdapter` é a boundary canônica. Implementações físicas de prefab, cena, Addressables, pool ou gameplay vivem fora do RuntimeContent core. `RuntimeContentRuntime.ApplyMaterializationResult` é o handoff canônico de volta para o core: valida o token/guard, normaliza handle declarado para `Materialized` quando necessário e registra o handle no `RuntimeScopeRoot`.
 
 `RuntimeContentHandle` é a referência canônica da instância criada. Ele deve carregar:
 
@@ -102,10 +103,11 @@ Portanto, F8 não deve criar `RuntimeContentAnchorBinding`.
 - Double-release é seguro/diagnosticado.
 - Route/Activity scope release não deixa orphan.
 - Materializer não usa `GameObject.Find`.
+- Runtime Content Smoke cobre request, guard ativo, apply result, release lógico, unregister, root removal e rejeição de request stale.
 
 ## Relação com roadmap
 
-F8A aceita a decisão. F8B-F8F applied ownership, handle, logical root, runtime owner/context and lifecycle root integration. F8G applies request/result/resource/status contracts. F8H applies transition guard/scoped cancellation. F8I applies `IRuntimeMaterializationAdapter` as boundary. F8J applies `RuntimeReleaseRequest`, `RuntimeReleaseResult`, `RuntimeReleasePolicy`, `RuntimeReleaseStatus`, `IRuntimeReleaseAdapter` and logical release execution. Concrete physical adapters remain pending outside the core.
+F8A aceita a decisão. F8B-F8F applied ownership, handle, logical root, runtime owner/context and lifecycle root integration. F8G applies request/result/resource/status contracts. F8H applies transition guard/scoped cancellation. F8I applies `IRuntimeMaterializationAdapter` as boundary. F8J applies `RuntimeReleaseRequest`, `RuntimeReleaseResult`, `RuntimeReleasePolicy`, `RuntimeReleaseStatus`, `IRuntimeReleaseAdapter` and logical release execution. F8K applies `ApplyMaterializationResult` and QA closure smoke. Concrete physical adapters remain pending outside the core.
 
 ## Notas de implementação
 

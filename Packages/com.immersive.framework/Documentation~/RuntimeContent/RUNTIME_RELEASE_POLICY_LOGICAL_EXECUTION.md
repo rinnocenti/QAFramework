@@ -1,8 +1,8 @@
 # Runtime Release Policy / Logical Execution
 
-Status: `F8J APPLIED / PENDING COMPILE-SMOKE`
+Status: `F8K UPDATED / CLOSURE SMOKE`
 
-F8J adds the logical release side of RuntimeContent. It does not add physical cleanup.
+F8J adds the logical release side of RuntimeContent. F8K validates the request/apply/release loop through QA smoke. Neither cut adds physical cleanup.
 
 The core now has:
 
@@ -108,4 +108,4 @@ physical release execution
 
 ## Next
 
-F8K should validate the runtime request/guard/release-policy loop and close F8 without introducing physical materialization inside the core.
+F8K adds `Run Runtime Content Smoke` to the QA Canvas. The smoke creates a transient logical root, creates a materialization request, applies a synthetic materialization result through `ApplyMaterializationResult`, releases/unregisters the handle, removes the root and validates stale request rejection. It still does not introduce physical materialization inside the core.

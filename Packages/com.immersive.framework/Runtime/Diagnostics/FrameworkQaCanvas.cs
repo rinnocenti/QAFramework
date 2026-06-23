@@ -9,6 +9,7 @@ using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.LocalContribution;
 using Immersive.Framework.ContentAnchor;
+using Immersive.Framework.RuntimeContent;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
@@ -235,6 +236,11 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Local Contribution Smoke"))
                 {
                     RunLocalContributionSmoke();
+                }
+
+                if (GUILayout.Button("Run Runtime Content Smoke"))
+                {
+                    RunRuntimeContentSmoke();
                 }
 
                 if (GUILayout.Button("Validate Loaded Authoring"))
@@ -918,6 +924,135 @@ namespace Immersive.Framework.Diagnostics
             _logger.Debug(
                 "QA Local Contribution Smoke diagnostics.",
                 LogFields.Field("details", validationResult.ToDiagnosticString()));
+            return true;
+        }
+
+        private async void RunRuntimeContentSmoke()
+        {
+            await RunSmokeAsync("Runtime Content Smoke", runtimeHost =>
+                Task.FromResult(RunRuntimeContentSmokeCore(runtimeHost)));
+        }
+
+        private bool RunRuntimeContentSmokeCore(FrameworkRuntimeHost runtimeHost)
+        {
+            var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+            if (runtimeContentRuntime == null)
+            {
+                _logger.Warning("QA Runtime Content Smoke failed. reason='RuntimeContentRuntime unavailable'.");
+                return false;
+            }
+
+            string ownerId = "qa.runtime-content.smoke." + Guid.NewGuid().ToString("N");
+            var owner = RuntimeContentOwner.Transient(ownerId, "QA Runtime Content Smoke");
+            var rootCreateResult = runtimeContentRuntime.CreateScopeRoot(owner, QaSource, "qa.runtime-content.root.create");
+            if (!rootCreateResult.Applied && rootCreateResult.Status != RuntimeRootRegistryOperationStatus.RootAlreadyExists)
+            {
+                _logger.Warning($"QA Runtime Content Smoke failed. step='root-create' status='{rootCreateResult.Status}' message='{FormatValue(rootCreateResult.Message)}'.");
+                return false;
+            }
+
+            if (!runtimeContentRuntime.TryCreateScopeContext(owner, QaSource, "qa.runtime-content.context", out var context))
+            {
+                _logger.Warning("QA Runtime Content Smoke failed. step='context' reason='Runtime scope context was not created'.");
+                runtimeContentRuntime.RemoveScopeRoot(owner, QaSource, "qa.runtime-content.cleanup.missing-context");
+                return false;
+            }
+
+            var resource = RuntimeMaterializationResource.From(
+                "QA",
+                "qa.runtime-content.resource",
+                "QA Runtime Content Smoke Resource",
+                string.Empty);
+
+            if (!runtimeContentRuntime.TryCreateMaterializationRequest(
+                    context,
+                    "qa.runtime-content.handle",
+                    resource,
+                    QaSource,
+                    "qa.runtime-content.materialization.request",
+                    out var request,
+                    out var requestGuardResult))
+            {
+                _logger.Warning($"QA Runtime Content Smoke failed. step='materialization-request' guard='{requestGuardResult.Status}' message='{FormatValue(requestGuardResult.Message)}'.");
+                runtimeContentRuntime.RemoveScopeRoot(owner, QaSource, "qa.runtime-content.cleanup.request-failed");
+                return false;
+            }
+
+            var handle = RuntimeContentHandle.Declared(
+                request.Identity,
+                QaSource,
+                "qa.runtime-content.handle.declared");
+            var materializationResult = RuntimeMaterializationResult.Success(
+                request,
+                handle,
+                QaSource,
+                "qa.runtime-content.materialization.synthetic-result",
+                "Synthetic runtime content smoke materialization result.");
+            var appliedMaterializationResult = runtimeContentRuntime.ApplyMaterializationResult(
+                materializationResult,
+                QaSource,
+                "qa.runtime-content.materialization.apply");
+
+            if (!appliedMaterializationResult.Succeeded)
+            {
+                _logger.Warning($"QA Runtime Content Smoke failed. step='materialization-apply' status='{appliedMaterializationResult.Status}' message='{FormatValue(appliedMaterializationResult.Message)}'.");
+                runtimeContentRuntime.RemoveScopeRoot(owner, QaSource, "qa.runtime-content.cleanup.materialization-failed");
+                return false;
+            }
+
+            if (!runtimeContentRuntime.TryGetHandle(context, request.Identity, out var registeredHandle) || registeredHandle == null || !registeredHandle.IsMaterialized)
+            {
+                _logger.Warning("QA Runtime Content Smoke failed. step='registered-handle' reason='Materialized handle was not registered in the runtime scope root'.");
+                runtimeContentRuntime.ReleaseScopeLogically(context, RuntimeReleasePolicy.MarkReleasedAndUnregister, QaSource, "qa.runtime-content.cleanup.unregistered-handle");
+                runtimeContentRuntime.RemoveScopeRoot(owner, QaSource, "qa.runtime-content.cleanup.unregistered-handle");
+                return false;
+            }
+
+            if (!runtimeContentRuntime.IsMaterializationRequestCurrent(
+                    request,
+                    QaSource,
+                    "qa.runtime-content.guard.active-check",
+                    out var activeGuardResult))
+            {
+                _logger.Warning($"QA Runtime Content Smoke failed. step='guard-active' guard='{activeGuardResult.Status}' message='{FormatValue(activeGuardResult.Message)}'.");
+                runtimeContentRuntime.ReleaseScopeLogically(context, RuntimeReleasePolicy.MarkReleasedAndUnregister, QaSource, "qa.runtime-content.cleanup.guard-active-failed");
+                runtimeContentRuntime.RemoveScopeRoot(owner, QaSource, "qa.runtime-content.cleanup.guard-active-failed");
+                return false;
+            }
+
+            var releaseResult = runtimeContentRuntime.ReleaseHandleLogically(
+                context,
+                request.Identity,
+                RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                QaSource,
+                "qa.runtime-content.release.logical");
+            if (!releaseResult.Succeeded || !releaseResult.HandleUnregistered)
+            {
+                _logger.Warning($"QA Runtime Content Smoke failed. step='release' status='{releaseResult.Status}' unregistered='{releaseResult.HandleUnregistered}' message='{FormatValue(releaseResult.Message)}'.");
+                runtimeContentRuntime.ReleaseScopeLogically(context, RuntimeReleasePolicy.MarkReleasedAndUnregister, QaSource, "qa.runtime-content.cleanup.release-failed");
+                runtimeContentRuntime.RemoveScopeRoot(owner, QaSource, "qa.runtime-content.cleanup.release-failed");
+                return false;
+            }
+
+            var rootRemoveResult = runtimeContentRuntime.RemoveScopeRoot(owner, QaSource, "qa.runtime-content.root.remove");
+            if (!rootRemoveResult.Applied && rootRemoveResult.Status != RuntimeRootRegistryOperationStatus.RootMissing)
+            {
+                _logger.Warning($"QA Runtime Content Smoke failed. step='root-remove' status='{rootRemoveResult.Status}' message='{FormatValue(rootRemoveResult.Message)}'.");
+                return false;
+            }
+
+            bool staleRequestAllowed = runtimeContentRuntime.IsMaterializationRequestCurrent(
+                request,
+                QaSource,
+                "qa.runtime-content.guard.stale-check",
+                out var staleGuardResult);
+            if (staleRequestAllowed || !staleGuardResult.Rejected)
+            {
+                _logger.Warning($"QA Runtime Content Smoke failed. step='guard-stale' allowed='{staleRequestAllowed}' guard='{staleGuardResult.Status}' message='{FormatValue(staleGuardResult.Message)}'.");
+                return false;
+            }
+
+            _logger.Info($"QA Runtime Content Smoke step completed. rootCreate='{rootCreateResult.Status}' materialization='{appliedMaterializationResult.Status}' release='{releaseResult.Status}' releaseUnregistered='{releaseResult.HandleUnregistered}' rootRemove='{rootRemoveResult.Status}' staleGuard='{staleGuardResult.Status}' runtimeRootCount='{runtimeContentRuntime.RootCount}'.");
             return true;
         }
 

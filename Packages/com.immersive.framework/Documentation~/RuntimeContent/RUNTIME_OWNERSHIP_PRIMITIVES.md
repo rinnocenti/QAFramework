@@ -1,6 +1,6 @@
 # Runtime Ownership Primitives
 
-Status: `F8I UPDATED`
+Status: `F8K UPDATED`
 
 F8B introduced passive primitives for runtime-created content ownership. F8C added a passive `RuntimeContentHandle` that records lifecycle/release state transitions without executing materialization or release. F8D added logical scope roots and an internal minimal registry for explicit root/handle registration. F8F connects those roots to Session, Route and Activity lifecycle context creation/removal.
 
@@ -67,6 +67,6 @@ F8E introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeS
 Next authorized cut:
 
 ```text
-F8J — Runtime release policy / logical release execution [APPLIED / PENDING COMPILE-SMOKE]
-F8K — Runtime request/guard/release-policy smoke and F8 closure
+F8J — Runtime release policy / logical release execution [APPLIED / COMPILE-SMOKE PASS]
+F8K — Runtime request/guard/release-policy smoke and F8 closure [APPLIED / PENDING COMPILE + SMOKE]
 ```

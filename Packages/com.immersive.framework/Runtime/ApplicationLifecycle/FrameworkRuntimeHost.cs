@@ -34,6 +34,9 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         public SessionRuntimeState SessionState => _state.SessionState;
 
+        internal RuntimeContentRuntime RuntimeContentRuntime => _runtimeContentRuntime;
+
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStaticState()
         {

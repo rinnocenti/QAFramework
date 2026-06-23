@@ -1,6 +1,6 @@
 # F8 — Runtime Roots and Materialization Audit
 
-Status: `F8J APPLIED / LOGICAL RELEASE`
+Status: `F8K APPLIED / PENDING COMPILE + SMOKE`
 
 F8 começa depois de F7 fechar o baseline de Content Anchor. F7 entregou identidade, declaração, authoring, discovery, diagnostics smoke e authoring validation para `RouteContentAnchor`, mas não criou runtime placement nem materialização.
 
@@ -28,7 +28,7 @@ Já existe após F8B:
 - `RuntimeContentOwner`;
 - `RuntimeContentIdentity`.
 
-Já existe após F8C–F8J:
+Já existe após F8C–F8K:
 
 - `RuntimeContentHandle`;
 - `RuntimeScopeRoot`;
@@ -232,14 +232,14 @@ Criar/posicionar conteúdo runtime usando ContentAnchorRoot/Slot/Point.
 | `F8G` | `RuntimeMaterializationRequest` / `RuntimeMaterializationResult`. `APPLIED` |
 | `F8H` | Transition guard + scoped cancellation. `APPLIED` |
 | `F8I` | `IRuntimeMaterializationAdapter` boundary. `CLOSED / COMPILE-SMOKE PASS` |
-| `F8J` | Runtime release request/result/policy, release adapter boundary and logical release by handle/scope. `APPLIED / PENDING COMPILE-SMOKE` |
-| `F8K` | Runtime request/guard/release-policy smoke e fechamento F8. `NEXT` |
+| `F8J` | Runtime release request/result/policy, release adapter boundary and logical release by handle/scope. `CLOSED / COMPILE-SMOKE PASS` |
+| `F8K` | Runtime Content Smoke, `ApplyMaterializationResult` registry handoff and F8 closure gate. `APPLIED / PENDING COMPILE + SMOKE` |
 
 F8 foi realinhada após F8D para inserir `RuntimeContentRuntime` e `RuntimeScopeContext` antes de request/result de materialização. A ordem nova evita criar request pública sem owner interno explícito para roots e handles. Nenhum consumer deve entrar antes de handle/root/context/release mínimos.
 
 F8F aplica a primeira integração real com lifecycle: `FrameworkRuntimeHost` cria o root lógico de Session; `RouteLifecycleRuntime` cria/remove roots lógicos de Route; `ActivityFlowRuntime` cria/remove roots lógicos de Activity. A integração produz diagnostics via `RuntimeScopeLifecycleResult`, mas ainda não executa materialização física, não cria hierarchy root e não executa release físico.
 
-F8G aplica o contrato explícito de materialização: `RuntimeMaterializationRequest`, `RuntimeMaterializationResult`, `RuntimeMaterializationResource` e `RuntimeMaterializationStatus`. O request usa `RuntimeScopeContext + RuntimeContentId + RuntimeMaterializationResource`; o result reporta status/handle/mensagem. F8H adiciona transition guard e `RuntimeScopeCancellationToken`, impedindo request novo quando o owner scope está cancelando/removido e permitindo validar token stale antes de qualquer adapter externo. F8I adiciona `IRuntimeMaterializationAdapter` como boundary. F8J adiciona `RuntimeReleaseRequest`, `RuntimeReleaseResult`, `RuntimeReleasePolicy`, `RuntimeReleaseStatus`, `IRuntimeReleaseAdapter` e release lógico por handle/scope; ainda não há adapter físico no core, `Instantiate`, `Destroy`, scene unload, pool return, Addressables release ou Content Anchor binding.
+F8G aplica o contrato explícito de materialização: `RuntimeMaterializationRequest`, `RuntimeMaterializationResult`, `RuntimeMaterializationResource` e `RuntimeMaterializationStatus`. O request usa `RuntimeScopeContext + RuntimeContentId + RuntimeMaterializationResource`; o result reporta status/handle/mensagem. F8H adiciona transition guard e `RuntimeScopeCancellationToken`, impedindo request novo quando o owner scope está cancelando/removido e permitindo validar token stale antes de qualquer adapter externo. F8I adiciona `IRuntimeMaterializationAdapter` como boundary. F8J adiciona `RuntimeReleaseRequest`, `RuntimeReleaseResult`, `RuntimeReleasePolicy`, `RuntimeReleaseStatus`, `IRuntimeReleaseAdapter` e release lógico por handle/scope. F8K adiciona `RuntimeContentRuntime.ApplyMaterializationResult` e o Runtime Content Smoke para validar request/guard/apply/release/unregister/root removal; ainda não há adapter físico no core, `Instantiate`, `Destroy`, scene unload, pool return, Addressables release ou Content Anchor binding.
 
 ---
 
@@ -249,8 +249,10 @@ F8 só fecha quando houver smoke demonstrando:
 
 ```text
 request criado com owner/context corretos
-guard rejeita escopo stale/cancelado
-handle muda estado de release sem fallback; scope release não cria root ausente
+`ApplyMaterializationResult` valida guard e registra handle materializado
+guard aceita escopo ativo e rejeita escopo stale/cancelado
+release lógico marca handle como Released e unregister quando solicitado
+root lógico pode ser removido depois do unregister
 root de owner correto
 sem GameObject.Find
 sem Instantiate/Destroy no core

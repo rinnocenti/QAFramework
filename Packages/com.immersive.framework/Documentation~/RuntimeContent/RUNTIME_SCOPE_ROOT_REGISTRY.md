@@ -1,6 +1,6 @@
 # RuntimeScopeRoot and RuntimeRootRegistry
 
-Status: `F8I UPDATED`
+Status: `F8K UPDATED`
 
 F8D introduces the first internal root registry boundary for runtime-created content.
 
@@ -77,6 +77,6 @@ F8E introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeS
 Next authorized cut:
 
 ```text
-F8J — Runtime release policy / logical release execution [APPLIED / PENDING COMPILE-SMOKE]
-F8K — Runtime request/guard/release-policy smoke and F8 closure
+F8J — Runtime release policy / logical release execution [APPLIED / COMPILE-SMOKE PASS]
+F8K — Runtime request/guard/release-policy smoke and F8 closure [APPLIED / PENDING COMPILE + SMOKE]
 ```
