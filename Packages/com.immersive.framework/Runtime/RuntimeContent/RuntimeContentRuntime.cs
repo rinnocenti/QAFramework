@@ -7,7 +7,7 @@ namespace Immersive.Framework.RuntimeContent
     /// API status: Experimental. Internal owner for runtime-created content state in the current framework runtime.
     /// It coordinates explicit scope roots, scope contexts and passive handles without becoming a service locator or materializer.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8E internal RuntimeContentRuntime owner; coordinates registry/context/handles, no materialization or release execution.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8F internal RuntimeContentRuntime owner; coordinates lifecycle-created roots/context/handles, no materialization or release execution.")]
     internal sealed class RuntimeContentRuntime
     {
         private readonly RuntimeRootRegistry registry;
@@ -27,6 +27,14 @@ namespace Immersive.Framework.RuntimeContent
             string reason)
         {
             return registry.CreateRoot(owner, source, reason);
+        }
+
+        public RuntimeRootRegistryOperationResult RemoveScopeRoot(
+            RuntimeContentOwner owner,
+            string source,
+            string reason)
+        {
+            return registry.RemoveRoot(owner, source, reason);
         }
 
         public bool TryCreateScopeContext(

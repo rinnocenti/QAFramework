@@ -8,7 +8,7 @@ namespace Immersive.Framework.RuntimeContent
     /// API status: Experimental. Internal scoped registry for logical runtime roots in the current framework runtime.
     /// It is not a service locator and does not create hierarchy objects, materialize prefabs, destroy objects or bind Content Anchors.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8D internal minimal runtime root registry; explicit roots only, no GameObject.Find or fallback creation.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8F internal minimal runtime root registry; explicit root lifecycle only, no GameObject.Find or fallback creation.")]
     internal sealed class RuntimeRootRegistry
     {
         private readonly Dictionary<RuntimeContentOwner, RuntimeScopeRoot> roots = new Dictionary<RuntimeContentOwner, RuntimeScopeRoot>();
@@ -55,6 +55,27 @@ namespace Immersive.Framework.RuntimeContent
             ValidateOwner(owner);
             return roots.TryGetValue(owner, out root);
         }
+        public RuntimeRootRegistryOperationResult RemoveRoot(
+            RuntimeContentOwner owner,
+            string source,
+            string reason)
+        {
+            ValidateOwner(owner);
+
+            if (!roots.TryGetValue(owner, out var root))
+            {
+                return RuntimeRootRegistryOperationResult.RootMissing(owner, source, reason);
+            }
+
+            if (root.HasHandles)
+            {
+                return RuntimeRootRegistryOperationResult.RejectedRootHasHandles(root, source, reason);
+            }
+
+            roots.Remove(owner);
+            return RuntimeRootRegistryOperationResult.RootRemoved(owner, root, source, reason);
+        }
+
 
         public RuntimeRootRegistryOperationResult RegisterHandle(
             RuntimeContentHandle handle,

@@ -7,7 +7,7 @@ namespace Immersive.Framework.RuntimeContent
     /// API status: Experimental. Internal immutable diagnostic result for runtime scope root registry operations.
     /// It records what happened without exposing a global registry or executing materialization/release side effects.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8D internal runtime root registry operation result; no materialization or release execution.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8F internal runtime root registry operation result; includes logical root lifecycle diagnostics, no materialization or release execution.")]
     internal sealed class RuntimeRootRegistryOperationResult
     {
         private RuntimeRootRegistryOperationResult(
@@ -71,16 +71,19 @@ namespace Immersive.Framework.RuntimeContent
         public string Message { get; }
 
         public bool Applied => Status == RuntimeRootRegistryOperationStatus.RootCreated
+            || Status == RuntimeRootRegistryOperationStatus.RootRemoved
             || Status == RuntimeRootRegistryOperationStatus.HandleRegistered
             || Status == RuntimeRootRegistryOperationStatus.HandleUnregistered;
 
         public bool Ignored => Status == RuntimeRootRegistryOperationStatus.RootAlreadyExists
+            || Status == RuntimeRootRegistryOperationStatus.RootMissing
             || Status == RuntimeRootRegistryOperationStatus.HandleAlreadyRegistered
             || Status == RuntimeRootRegistryOperationStatus.HandleMissing;
 
         public bool Rejected => Status == RuntimeRootRegistryOperationStatus.RejectedMissingRoot
             || Status == RuntimeRootRegistryOperationStatus.RejectedMismatchedOwner
-            || Status == RuntimeRootRegistryOperationStatus.RejectedDuplicateHandle;
+            || Status == RuntimeRootRegistryOperationStatus.RejectedDuplicateHandle
+            || Status == RuntimeRootRegistryOperationStatus.RejectedRootHasHandles;
 
         public string ToDiagnosticString()
         {
@@ -127,6 +130,64 @@ namespace Immersive.Framework.RuntimeContent
                 source,
                 reason,
                 "Runtime scope root already exists.");
+        }
+
+
+        public static RuntimeRootRegistryOperationResult RootRemoved(
+            RuntimeContentOwner owner,
+            RuntimeScopeRoot root,
+            string source,
+            string reason)
+        {
+            return new RuntimeRootRegistryOperationResult(
+                owner,
+                default(RuntimeContentIdentity),
+                false,
+                root,
+                null,
+                RuntimeRootRegistryOperationStatus.RootRemoved,
+                source,
+                reason,
+                "Runtime scope root removed.");
+        }
+
+        public static RuntimeRootRegistryOperationResult RootMissing(
+            RuntimeContentOwner owner,
+            string source,
+            string reason)
+        {
+            return new RuntimeRootRegistryOperationResult(
+                owner,
+                default(RuntimeContentIdentity),
+                false,
+                null,
+                null,
+                RuntimeRootRegistryOperationStatus.RootMissing,
+                source,
+                reason,
+                "Runtime scope root was already absent.");
+        }
+
+        public static RuntimeRootRegistryOperationResult RejectedRootHasHandles(
+            RuntimeScopeRoot root,
+            string source,
+            string reason)
+        {
+            if (root == null)
+            {
+                throw new ArgumentNullException(nameof(root));
+            }
+
+            return new RuntimeRootRegistryOperationResult(
+                root.Owner,
+                default(RuntimeContentIdentity),
+                false,
+                root,
+                null,
+                RuntimeRootRegistryOperationStatus.RejectedRootHasHandles,
+                source,
+                reason,
+                "Runtime scope root still has registered handles. Release or unregister handles before removing the root.");
         }
 
         public static RuntimeRootRegistryOperationResult HandleRegistered(

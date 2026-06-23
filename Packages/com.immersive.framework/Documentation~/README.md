@@ -80,3 +80,4 @@ Docs técnicos:
 - `RuntimeContent/RUNTIME_CONTENT_HANDLE.md` — F8C passive RuntimeContentHandle state transitions.
 - `RuntimeContent/RUNTIME_SCOPE_ROOT_REGISTRY.md` — F8D logical RuntimeScopeRoot and internal registry semantics.
 - `RuntimeContent/RUNTIME_CONTENT_RUNTIME.md` — F8E internal RuntimeContentRuntime owner and explicit RuntimeScopeContext semantics.
+- `RuntimeContent/RUNTIME_ROOT_LIFECYCLE_INTEGRATION.md` — F8F lifecycle integration for logical Session/Route/Activity runtime roots.

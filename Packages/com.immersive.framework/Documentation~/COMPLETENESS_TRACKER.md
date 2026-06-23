@@ -41,7 +41,7 @@ Keep these docs as the durable record for implementation details:
 
 | Next authorized step | Reason |
 |---|---|
-| `F7I — F7 closure` | F7H adds loaded Route Content Anchor authoring validation. After compile/smoke, close F7 with docs/guardrails only; do not start runtime binding, RuntimeRoot/materialization or gameplay consumers yet. |
+| `F8G — RuntimeMaterializationRequest / RuntimeMaterializationResult` | F8F integrates logical runtime roots with Session/Route/Activity lifecycle. Next step can define request/result contracts before any materializer or physical release. |
 
 ## F5 closure audit
 
@@ -235,27 +235,23 @@ F7G adds `Run Content Anchor Diagnostics Smoke` and trims the visible QA Canvas 
 
 F7H adds loaded Route Content Anchor authoring validation to Project Settings validation, the Route Content Anchor Inspector and the QA Canvas `Validate Loaded Authoring` path. It detects missing Route, missing Anchor Id, `Kind = Unknown`, invalid requiredness, scene/Route declaration mismatch, duplicate identity and duplicate owner/scope/Anchor Id. It does not block Route lifecycle, enforce required anchors, add Activity anchors, bind placement or serve consumers.
 
-Next authorized cut after F7H smoke:
-
-```text
-F7I — F7 closure
-```
+F7 is closed. F8 is the active phase; current next authorized cut is tracked in the F8 section below.
 
 
 ## F8 opening audit
 
-F8A accepted the runtime roots/materialization boundary as documentation-only. F8B added passive runtime ownership primitives. F8C added passive runtime content handles and release-state transition diagnostics. F8D added logical runtime scope roots and an internal minimal registry. F8E added the internal RuntimeContentRuntime owner and explicit RuntimeScopeContext. Runtime behavior still does not instantiate, destroy, create hierarchy root GameObjects or bind anchors.
+F8A accepted the runtime roots/materialization boundary as documentation-only. F8B added passive runtime ownership primitives. F8C added passive runtime content handles and release-state transition diagnostics. F8D added logical runtime scope roots and an internal minimal registry. F8E added the internal RuntimeContentRuntime owner and explicit RuntimeScopeContext. F8F integrated logical runtime root/context creation and removal into Session, Route and Activity lifecycles. Runtime behavior still does not instantiate, destroy, create hierarchy root GameObjects or bind anchors.
 
 F8 has implemented:
 
 - runtime ownership/scope/state primitives (`RuntimeContentScope`, `RuntimeContentState`, `RuntimeContentId`, `RuntimeContentOwner`, `RuntimeContentIdentity`);
 - passive runtime content handle and transition diagnostics (`RuntimeContentHandle`, `RuntimeContentHandleTransitionStatus`, `RuntimeContentHandleTransitionResult`);
 - logical runtime scope root and internal registry (`RuntimeScopeRoot`, `RuntimeRootRegistry`, `RuntimeRootRegistryOperationStatus`, `RuntimeRootRegistryOperationResult`);
-- internal runtime content owner and explicit scope context (`RuntimeContentRuntime`, `RuntimeScopeContext`).
+- internal runtime content owner and explicit scope context (`RuntimeContentRuntime`, `RuntimeScopeContext`);
+- lifecycle-driven logical root/context diagnostics (`RuntimeScopeLifecycleResult`).
 
 F8 is still allowed to define and implement:
 
-- lifecycle integration for runtime roots/context creation;
 - materialization request/result;
 - transition guard and scoped cancellation;
 - a simple prefab materializer;
@@ -274,5 +270,5 @@ F8 does not authorize:
 Next authorized cut:
 
 ```text
-F8F — lifecycle integration for RuntimeContentRuntime roots
+F8G — RuntimeMaterializationRequest / RuntimeMaterializationResult
 ```

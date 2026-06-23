@@ -212,14 +212,16 @@ Criar/posicionar conteúdo runtime usando ContentAnchorRoot/Slot/Point.
 | `F8C` | `RuntimeContentHandle` passivo e release state. `APPLIED` |
 | `F8D` | `RuntimeScopeRoot` + registry interno mínimo. `APPLIED` |
 | `F8E` | `RuntimeContentRuntime` + `RuntimeScopeContext`. `APPLIED` |
-| `F8F` | Integração do runtime owner/context aos lifecycles de Route/Activity. `NEXT` |
-| `F8G` | `RuntimeMaterializationRequest` / `RuntimeMaterializationResult`. |
+| `F8F` | Integração do runtime owner/context aos lifecycles de Session/Route/Activity. `APPLIED` |
+| `F8G` | `RuntimeMaterializationRequest` / `RuntimeMaterializationResult`. `NEXT` |
 | `F8H` | Transition guard + scoped cancellation. |
 | `F8I` | `PrefabContentMaterializer` simples. |
 | `F8J` | Runtime release execution por scope. |
 | `F8K` | Runtime materialization/release smoke e fechamento F8. |
 
 F8 foi realinhada após F8D para inserir `RuntimeContentRuntime` e `RuntimeScopeContext` antes de request/result de materialização. A ordem nova evita criar request pública sem owner interno explícito para roots e handles. Nenhum consumer deve entrar antes de handle/root/context/release mínimos.
+
+F8F aplica a primeira integração real com lifecycle: `FrameworkRuntimeHost` cria o root lógico de Session; `RouteLifecycleRuntime` cria/remove roots lógicos de Route; `ActivityFlowRuntime` cria/remove roots lógicos de Activity. A integração produz diagnostics via `RuntimeScopeLifecycleResult`, mas ainda não materializa prefab, não cria hierarchy root e não executa release físico.
 
 ---
 

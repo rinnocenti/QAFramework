@@ -500,7 +500,7 @@ F7G — CLOSED / PASS
 F7H — CLOSED / PASS
 F7I — CLOSED / DOCS
 F7J — CLOSED / DOCS
-Next — F8F / lifecycle integration for RuntimeContentRuntime roots
+Next — F8G / RuntimeMaterializationRequest + RuntimeMaterializationResult
 ```
 
 Naming guardrail: do not reintroduce the rejected previous placement-point vocabulary or `duplicated anchor naming` as canonical concept names.
@@ -519,8 +519,8 @@ Objetivo: criar materialização runtime genérica, sem actor/projectile/pool.
 | IF-FW-ROAD-8C | `RuntimeContentHandle` | `APPLIED`: Identity, owner scope, state and passive release diagnostics. |
 | IF-FW-ROAD-8D | `RuntimeScopeRoot` + internal registry | `APPLIED`: Root lógico por escopo/owner, registry interno, sem `GameObject.Find`, sem hierarchy root real ainda. |
 | IF-FW-ROAD-8E | `RuntimeContentRuntime` + `RuntimeScopeContext` | `APPLIED`: Owner interno do registry/context/handles e contexto explícito por owner, sem materialization request/result ainda. |
-| IF-FW-ROAD-8F | Lifecycle integration for runtime roots | `NEXT`: Route/Activity criam roots/contextos explicitamente no lifecycle, sem materializar prefabs. |
-| IF-FW-ROAD-8G | `RuntimeMaterializationRequest` / `Result` | Request/result explícitos depois do owner/context. |
+| IF-FW-ROAD-8F | Lifecycle integration for runtime roots | `APPLIED`: Session/Route/Activity criam/removem roots lógicos e contextos explicitamente no lifecycle, sem materializar prefabs. |
+| IF-FW-ROAD-8G | `RuntimeMaterializationRequest` / `Result` | `NEXT`: Request/result explícitos depois do owner/context/lifecycle roots. |
 | IF-FW-ROAD-8H | Transition guard + scoped cancellation | Guardas para transição e cancelamento por escopo antes do materializer concreto. |
 | IF-FW-ROAD-8I | `PrefabContentMaterializer` | Primeiro materializer concreto e local. |
 | IF-FW-ROAD-8J | `RuntimeReleasePolicy` / release execution | Activity exit futuro, Route exit e Session shutdown. |

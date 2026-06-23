@@ -1,8 +1,8 @@
 # RuntimeContentRuntime and RuntimeScopeContext
 
-Status: `F8E APPLIED`
+Status: `F8F UPDATED`
 
-F8E introduces the internal runtime owner for runtime-created content state and the explicit scope context used by future materialization cuts.
+F8E introduced the internal runtime owner for runtime-created content state and the explicit scope context used by future materialization cuts. F8F connects that owner to Session, Route and Activity lifecycle root/context creation.
 
 This cut is still not materialization. It creates the coordination boundary that sits above the F8D registry, but it does not create hierarchy GameObjects, instantiate prefabs, destroy objects, execute release, bind Content Anchors or serve gameplay consumers.
 
@@ -73,5 +73,5 @@ F8E does not add:
 Next authorized cut:
 
 ```text
-F8F — lifecycle integration for RuntimeContentRuntime roots
+F8G — RuntimeMaterializationRequest / RuntimeMaterializationResult
 ```

@@ -6,7 +6,7 @@ namespace Immersive.Framework.RuntimeContent
     /// API status: Experimental. Internal result vocabulary for runtime root registry operations.
     /// This is diagnostic state only; it does not materialize, destroy or release runtime content.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8D internal runtime root registry operation status; no materialization or release execution.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8F internal runtime root registry operation status; adds logical root lifecycle results, no materialization or release execution.")]
     internal enum RuntimeRootRegistryOperationStatus
     {
         /// <summary>
@@ -23,6 +23,16 @@ namespace Immersive.Framework.RuntimeContent
         /// A logical runtime scope root for the requested owner already existed.
         /// </summary>
         RootAlreadyExists = 20,
+
+        /// <summary>
+        /// A logical runtime scope root was removed from the registry.
+        /// </summary>
+        RootRemoved = 25,
+
+        /// <summary>
+        /// A logical runtime scope root was already absent from the registry.
+        /// </summary>
+        RootMissing = 26,
 
         /// <summary>
         /// A runtime content handle was registered in its owner root.
@@ -57,6 +67,11 @@ namespace Immersive.Framework.RuntimeContent
         /// <summary>
         /// Another handle with the same runtime content identity is already registered.
         /// </summary>
-        RejectedDuplicateHandle = 120
+        RejectedDuplicateHandle = 120,
+
+        /// <summary>
+        /// A logical runtime scope root cannot be removed while it still has registered handles.
+        /// </summary>
+        RejectedRootHasHandles = 130
     }
 }

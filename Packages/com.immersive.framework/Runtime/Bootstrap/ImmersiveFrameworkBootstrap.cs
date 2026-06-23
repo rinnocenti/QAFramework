@@ -93,6 +93,11 @@ namespace Immersive.Framework.Bootstrap
                 LogFields.Field("routeReleaseSkipped", routeLifecycleResult.ContentReleaseResult.SkippedCount),
                 LogFields.Field("routeReleaseFailed", routeLifecycleResult.ContentReleaseResult.FailedCount),
                 LogFields.Field("routeReleaseBlockingIssues", routeLifecycleResult.ContentReleaseResult.BlockingIssueCount),
+                LogFields.Field("runtimeRouteScope", routeLifecycleResult.RuntimeRouteScopeResult.DiagnosticStatus),
+                LogFields.Field("runtimeRouteRootEnter", routeLifecycleResult.RuntimeRouteScopeResult.EnterStatus),
+                LogFields.Field("runtimeRouteRootExit", routeLifecycleResult.RuntimeRouteScopeResult.ExitStatus),
+                LogFields.Field("runtimeRouteContext", routeLifecycleResult.RuntimeRouteScopeResult.ContextStatus),
+                LogFields.Field("runtimeRootCount", routeLifecycleResult.RuntimeRouteScopeResult.RootCount),
                 LogFields.Field("routeContentHandles", routeLifecycleResult.RouteContentSet.Count),
                 LogFields.Field("contentAnchors", routeLifecycleResult.ContentAnchorDiscoveryResult.AnchorCount),
                 LogFields.Field("contentAnchorCandidates", routeLifecycleResult.ContentAnchorDiscoveryResult.CandidateCount),
@@ -103,6 +108,10 @@ namespace Immersive.Framework.Bootstrap
                 LogFields.Field("activity", FormatDiagnosticValue(activityFlowResult.ActivityState.ActivityName)),
                 LogFields.Field("activityState", activityFlowResult.ActivityState.DiagnosticStatus),
                 LogFields.Field("activityReadiness", activityFlowResult.ActivityReadinessState.DiagnosticStatus),
+                LogFields.Field("runtimeActivityScope", activityFlowResult.RuntimeActivityScopeResult.DiagnosticStatus),
+                LogFields.Field("runtimeActivityRootEnter", activityFlowResult.RuntimeActivityScopeResult.EnterStatus),
+                LogFields.Field("runtimeActivityRootExit", activityFlowResult.RuntimeActivityScopeResult.ExitStatus),
+                LogFields.Field("runtimeActivityContext", activityFlowResult.RuntimeActivityScopeResult.ContextStatus),
                 LogFields.Field("activityContentHandles", activityContentResult.ActivityContentCount));
         }
 

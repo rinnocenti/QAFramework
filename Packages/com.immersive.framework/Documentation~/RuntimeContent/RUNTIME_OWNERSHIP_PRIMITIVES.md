@@ -1,8 +1,8 @@
 # Runtime Ownership Primitives
 
-Status: `F8D APPLIED`
+Status: `F8F UPDATED`
 
-F8B introduced passive primitives for runtime-created content ownership. F8C added a passive `RuntimeContentHandle` that records lifecycle/release state transitions without executing materialization or release. F8D adds logical scope roots and an internal minimal registry for explicit root/handle registration.
+F8B introduced passive primitives for runtime-created content ownership. F8C added a passive `RuntimeContentHandle` that records lifecycle/release state transitions without executing materialization or release. F8D added logical scope roots and an internal minimal registry for explicit root/handle registration. F8F connects those roots to Session, Route and Activity lifecycle context creation/removal.
 
 ## Added runtime primitives
 
@@ -62,10 +62,10 @@ F8D does not add:
 - Content Anchor binding;
 - Actor, Pause, Camera, UI, Input, Save or Pooling consumers.
 
-F8E has now introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeScopeContext` boundary.
+F8E introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeScopeContext` boundary. F8F now integrates logical runtime root/context creation and removal into Session, Route and Activity lifecycles.
 
 Next authorized cut:
 
 ```text
-F8F — lifecycle integration for RuntimeContentRuntime roots
+F8G — RuntimeMaterializationRequest / RuntimeMaterializationResult
 ```

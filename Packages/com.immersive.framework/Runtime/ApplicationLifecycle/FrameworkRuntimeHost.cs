@@ -5,6 +5,7 @@ using Immersive.Framework.Diagnostics;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.SessionLifecycle;
+using Immersive.Framework.RuntimeContent;
 using UnityEngine;
 using Immersive.Framework.ApiStatus;
 using Immersive.Logging.Records;
@@ -24,6 +25,8 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         private GameApplicationAsset _gameApplication;
         private GameFlowRuntime _gameFlowRuntime;
+        private RuntimeContentRuntime _runtimeContentRuntime;
+        private RuntimeScopeLifecycleResult _runtimeSessionScopeResult;
         private FrameworkRuntimeState _state;
         private FrameworkLogger _logger;
 
@@ -112,9 +115,29 @@ namespace Immersive.Framework.ApplicationLifecycle
         private void Initialize(GameApplicationAsset application)
         {
             _gameApplication = application;
-            _gameFlowRuntime = new GameFlowRuntime();
+            _runtimeContentRuntime = new RuntimeContentRuntime();
+            _runtimeSessionScopeResult = CreateSessionScopeRoot(application, "FrameworkRuntimeHost", "session-start");
+            _gameFlowRuntime = new GameFlowRuntime(_runtimeContentRuntime);
             _logger = FrameworkLogger.Create<FrameworkRuntimeHost>();
             _state = FrameworkRuntimeState.Empty(application);
+        }
+
+
+        private RuntimeScopeLifecycleResult CreateSessionScopeRoot(GameApplicationAsset application, string source, string reason)
+        {
+            var owner = RuntimeContentOwner.Session(application.ApplicationName, application.ApplicationName);
+            var enterResult = _runtimeContentRuntime.CreateScopeRoot(owner, source, reason);
+            _runtimeContentRuntime.TryCreateScopeContext(owner, source, reason, out var context);
+
+            return new RuntimeScopeLifecycleResult(
+                RuntimeContentScope.Session,
+                owner,
+                enterResult,
+                null,
+                context,
+                _runtimeContentRuntime.RootCount,
+                source,
+                reason);
         }
 
         private void LogRouteRequestResult(FrameworkRouteRequestResult result)
@@ -183,6 +206,11 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("routeReleaseFailed", routeLifecycle.ContentReleaseResult.FailedCount),
                 LogFields.Field("routeReleaseBlockingIssues", routeLifecycle.ContentReleaseResult.BlockingIssueCount),
                 LogFields.Field("routeExit", routeLifecycle.RouteExitResult.DiagnosticStatus),
+                LogFields.Field("runtimeRouteScope", routeLifecycle.RuntimeRouteScopeResult.DiagnosticStatus),
+                LogFields.Field("runtimeRouteRootEnter", routeLifecycle.RuntimeRouteScopeResult.EnterStatus),
+                LogFields.Field("runtimeRouteRootExit", routeLifecycle.RuntimeRouteScopeResult.ExitStatus),
+                LogFields.Field("runtimeRouteContext", routeLifecycle.RuntimeRouteScopeResult.ContextStatus),
+                LogFields.Field("runtimeRootCount", routeLifecycle.RuntimeRouteScopeResult.RootCount),
                 LogFields.Field("routeContentHandles", routeLifecycle.RouteContentSet.Count),
                 LogFields.Field("contentAnchors", routeLifecycle.ContentAnchorDiscoveryResult.AnchorCount),
                 LogFields.Field("contentAnchorCandidates", routeLifecycle.ContentAnchorDiscoveryResult.CandidateCount),
@@ -194,6 +222,10 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("activity", FormatDiagnosticValue(activityFlow.ActivityState.ActivityName)),
                 LogFields.Field("activityState", activityFlow.ActivityState.DiagnosticStatus),
                 LogFields.Field("activityReadiness", activityFlow.ActivityReadinessState.DiagnosticStatus),
+                LogFields.Field("runtimeActivityScope", activityFlow.RuntimeActivityScopeResult.DiagnosticStatus),
+                LogFields.Field("runtimeActivityRootEnter", activityFlow.RuntimeActivityScopeResult.EnterStatus),
+                LogFields.Field("runtimeActivityRootExit", activityFlow.RuntimeActivityScopeResult.ExitStatus),
+                LogFields.Field("runtimeActivityContext", activityFlow.RuntimeActivityScopeResult.ContextStatus),
                 LogFields.Field("activityContentHandles", activityContent.ActivityContentCount));
         }
 
@@ -213,6 +245,11 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("activityState", activityFlow.ActivityState.DiagnosticStatus),
                 LogFields.Field("activityReadiness", activityFlow.ActivityReadinessState.DiagnosticStatus),
                 LogFields.Field("activityReadinessReason", activityFlow.ActivityReadinessState.DiagnosticReason),
+                LogFields.Field("runtimeActivityScope", activityFlow.RuntimeActivityScopeResult.DiagnosticStatus),
+                LogFields.Field("runtimeActivityRootEnter", activityFlow.RuntimeActivityScopeResult.EnterStatus),
+                LogFields.Field("runtimeActivityRootExit", activityFlow.RuntimeActivityScopeResult.ExitStatus),
+                LogFields.Field("runtimeActivityContext", activityFlow.RuntimeActivityScopeResult.ContextStatus),
+                LogFields.Field("runtimeRootCount", activityFlow.RuntimeActivityScopeResult.RootCount),
                 LogFields.Field("activityReadinessIssues", activityFlow.ActivityReadinessState.BlockingIssueCount),
                 LogFields.Field("activityContentBindings", activityContent.BindingCount),
                 LogFields.Field("activityContentHandles", activityContent.ActivityContentCount),

@@ -1,7 +1,9 @@
 using System.Threading.Tasks;
 using Immersive.Framework.Authoring;
+using System;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.RuntimeContent;
 
 namespace Immersive.Framework.GameFlow
 {
@@ -12,9 +14,14 @@ namespace Immersive.Framework.GameFlow
     [FrameworkApiStatus(FrameworkApiStatus.Internal, "Runtime implementation detail; not game-facing API.")]
     internal sealed class GameFlowRuntime
     {
-        private readonly RouteLifecycleRuntime _routeLifecycleRuntime = new RouteLifecycleRuntime();
+        private readonly RouteLifecycleRuntime _routeLifecycleRuntime;
         private bool _routeRequestInFlight;
         private bool _activityRequestInFlight;
+
+        internal GameFlowRuntime(RuntimeContentRuntime runtimeContentRuntime)
+        {
+            _routeLifecycleRuntime = new RouteLifecycleRuntime(runtimeContentRuntime ?? throw new ArgumentNullException(nameof(runtimeContentRuntime)));
+        }
 
         internal async Task<FrameworkGameFlowStartResult> StartAsync(GameApplicationAsset gameApplication)
         {

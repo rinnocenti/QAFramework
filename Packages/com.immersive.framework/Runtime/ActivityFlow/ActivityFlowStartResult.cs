@@ -1,5 +1,6 @@
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.RuntimeContent;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -19,7 +20,8 @@ namespace Immersive.Framework.ActivityFlow
             ActivityRuntimeState activityState,
             ActivityAsset previousActivity,
             ActivityContentApplyResult activityContentResult,
-            ActivityReadinessState activityReadinessState)
+            ActivityReadinessState activityReadinessState,
+            RuntimeScopeLifecycleResult runtimeActivityScopeResult = default(RuntimeScopeLifecycleResult))
         {
             Started = started;
             Skipped = skipped;
@@ -30,6 +32,7 @@ namespace Immersive.Framework.ActivityFlow
             PreviousActivity = previousActivity;
             ActivityContentResult = activityContentResult;
             ActivityReadinessState = activityReadinessState;
+            RuntimeActivityScopeResult = runtimeActivityScopeResult;
         }
 
         public bool Started { get; }
@@ -56,6 +59,10 @@ namespace Immersive.Framework.ActivityFlow
 
         public ActivityReadinessState ActivityReadinessState { get; }
 
+        public RuntimeScopeLifecycleResult RuntimeActivityScopeResult { get; }
+
+        public bool HasRuntimeActivityScope => RuntimeActivityScopeResult.Executed;
+
         public bool HasActivityContent => ActivityContentSet.HasContent;
 
         public bool HasActivityContentLifecycle => ActivityContentLifecycleResult.Executed;
@@ -80,9 +87,11 @@ namespace Immersive.Framework.ActivityFlow
         public static ActivityFlowStartResult SkippedNoStartupActivity(
             ActivityRuntimeState activityState,
             ActivityAsset previousActivity,
-            ActivityContentApplyResult activityContentResult)
+            ActivityContentApplyResult activityContentResult,
+            RuntimeScopeLifecycleResult runtimeActivityScopeResult = default(RuntimeScopeLifecycleResult))
         {
             var readinessState = BuildReadinessState(activityState, activityContentResult);
+            var runtimeScopeMessage = RuntimeScopeMessage(runtimeActivityScopeResult);
             if (previousActivity == null)
             {
                 return new ActivityFlowStartResult(
@@ -90,11 +99,12 @@ namespace Immersive.Framework.ActivityFlow
                     true,
                     false,
                     false,
-                    AppendContentMessage(CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState), activityContentResult),
+                    AppendContentMessage(CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState) + runtimeScopeMessage, activityContentResult),
                     activityState,
                     null,
                     activityContentResult,
-                    readinessState);
+                    readinessState,
+                    runtimeActivityScopeResult);
             }
 
             return new ActivityFlowStartResult(
@@ -102,17 +112,19 @@ namespace Immersive.Framework.ActivityFlow
                 false,
                 false,
                 true,
-                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' because Route has no Startup Activity. {CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState)}", activityContentResult),
+                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' because Route has no Startup Activity. {CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState)}{runtimeScopeMessage}", activityContentResult),
                 activityState,
                 previousActivity,
                 activityContentResult,
-                readinessState);
+                readinessState,
+                runtimeActivityScopeResult);
         }
 
         public static ActivityFlowStartResult ClearedByRequest(
             ActivityRuntimeState activityState,
             ActivityAsset previousActivity,
-            ActivityContentApplyResult activityContentResult)
+            ActivityContentApplyResult activityContentResult,
+            RuntimeScopeLifecycleResult runtimeActivityScopeResult = default(RuntimeScopeLifecycleResult))
         {
             if (previousActivity == null)
             {
@@ -120,16 +132,18 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var readinessState = BuildReadinessState(activityState, activityContentResult);
+            var runtimeScopeMessage = RuntimeScopeMessage(runtimeActivityScopeResult);
             return new ActivityFlowStartResult(
                 false,
                 false,
                 false,
                 true,
-                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' by request. {CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState)}", activityContentResult),
+                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' by request. {CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState)}{runtimeScopeMessage}", activityContentResult),
                 activityState,
                 previousActivity,
                 activityContentResult,
-                readinessState);
+                readinessState,
+                runtimeActivityScopeResult);
         }
 
         public static ActivityFlowStartResult KeptCurrentActivity(ActivityRuntimeState activityState)
@@ -151,14 +165,16 @@ namespace Immersive.Framework.ActivityFlow
         public static ActivityFlowStartResult StartedWith(
             ActivityRuntimeState activityState,
             ActivityAsset previousActivity,
-            ActivityContentApplyResult activityContentResult)
+            ActivityContentApplyResult activityContentResult,
+            RuntimeScopeLifecycleResult runtimeActivityScopeResult = default(RuntimeScopeLifecycleResult))
         {
             var activity = activityState.Activity;
             var readinessState = BuildReadinessState(activityState, activityContentResult);
             string stateMessage = CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState);
+            string runtimeScopeMessage = RuntimeScopeMessage(runtimeActivityScopeResult);
             string message = previousActivity != null && !ReferenceEquals(previousActivity, activity)
-                ? $"Activity Flow switched from Activity '{previousActivity.ActivityName}' to Activity '{activity.ActivityName}'. {stateMessage}"
-                : $"Activity Flow started Activity '{activity.ActivityName}'. {stateMessage}";
+                ? $"Activity Flow switched from Activity '{previousActivity.ActivityName}' to Activity '{activity.ActivityName}'. {stateMessage}{runtimeScopeMessage}"
+                : $"Activity Flow started Activity '{activity.ActivityName}'. {stateMessage}{runtimeScopeMessage}";
 
             return new ActivityFlowStartResult(
                 true,
@@ -169,7 +185,8 @@ namespace Immersive.Framework.ActivityFlow
                 activityState,
                 previousActivity,
                 activityContentResult,
-                readinessState);
+                readinessState,
+                runtimeActivityScopeResult);
         }
 
         private static ActivityReadinessState BuildReadinessState(ActivityRuntimeState activityState, ActivityContentApplyResult activityContentResult)
@@ -214,6 +231,16 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             return $"{stateMessage} {ActivityReadinessMessage(readinessState)}";
+        }
+
+        private static string RuntimeScopeMessage(RuntimeScopeLifecycleResult runtimeActivityScopeResult)
+        {
+            if (!runtimeActivityScopeResult.Executed)
+            {
+                return string.Empty;
+            }
+
+            return $" runtimeActivityScope='{runtimeActivityScopeResult.DiagnosticStatus}' runtimeActivityRootEnter='{runtimeActivityScopeResult.EnterStatus}' runtimeActivityRootExit='{runtimeActivityScopeResult.ExitStatus}' runtimeActivityContext='{runtimeActivityScopeResult.ContextStatus}' runtimeRootCount='{runtimeActivityScopeResult.RootCount}'.";
         }
 
         private static string AppendContentMessage(string message, ActivityContentApplyResult activityContentResult)

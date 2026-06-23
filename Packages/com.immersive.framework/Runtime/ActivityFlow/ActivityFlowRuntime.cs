@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Immersive.Foundation.Events;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.RuntimeContent;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -14,6 +15,7 @@ namespace Immersive.Framework.ActivityFlow
     internal sealed class ActivityFlowRuntime
     {
         private readonly ActivityContentRuntime _activityContentRuntime = new ActivityContentRuntime();
+        private readonly RuntimeContentRuntime _runtimeContentRuntime;
         private readonly EventBus<ActivityEnteredEvent> _activityEnteredEvents = new EventBus<ActivityEnteredEvent>();
         private readonly EventBus<ActivityExitedEvent> _activityExitedEvents = new EventBus<ActivityExitedEvent>();
         private readonly IEventBinding _activityContentEnteredBinding;
@@ -21,8 +23,9 @@ namespace Immersive.Framework.ActivityFlow
         private RouteAsset _currentRoute;
         private ActivityRuntimeState _currentActivityState;
 
-        internal ActivityFlowRuntime()
+        internal ActivityFlowRuntime(RuntimeContentRuntime runtimeContentRuntime)
         {
+            _runtimeContentRuntime = runtimeContentRuntime ?? throw new ArgumentNullException(nameof(runtimeContentRuntime));
             _currentActivityState = ActivityRuntimeState.Empty();
             _activityContentEnteredBinding = _activityEnteredEvents.Subscribe(_activityContentRuntime.HandleActivityEntered);
             _activityContentExitedBinding = _activityExitedEvents.Subscribe(_activityContentRuntime.HandleActivityExited);
@@ -65,7 +68,12 @@ namespace Immersive.Framework.ActivityFlow
             {
                 _currentActivityState = ActivityRuntimeState.None(previousActivity, resolvedSource, resolvedReason);
                 var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, null, resolvedSource, resolvedReason);
-                return Task.FromResult(ActivityFlowStartResult.SkippedNoStartupActivity(_currentActivityState, previousActivity, contentResult));
+                var runtimeScopeResult = RemovePreviousActivityScopeRoot(previousActivity, null, resolvedSource, resolvedReason);
+                return Task.FromResult(ActivityFlowStartResult.SkippedNoStartupActivity(
+                    _currentActivityState,
+                    previousActivity,
+                    contentResult,
+                    runtimeScopeResult));
             }
 
             return StartActivityCoreAsync(route.StartupActivity, previousActivity, resolvedSource, resolvedReason);
@@ -117,7 +125,12 @@ namespace Immersive.Framework.ActivityFlow
 
             _currentActivityState = ActivityRuntimeState.None(previousActivity, resolvedSource, resolvedReason);
             var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, null, resolvedSource, resolvedReason);
-            return Task.FromResult(ActivityFlowStartResult.ClearedByRequest(_currentActivityState, previousActivity, contentResult));
+            var runtimeScopeResult = RemovePreviousActivityScopeRoot(previousActivity, null, resolvedSource, resolvedReason);
+            return Task.FromResult(ActivityFlowStartResult.ClearedByRequest(
+                _currentActivityState,
+                previousActivity,
+                contentResult,
+                runtimeScopeResult));
         }
 
         private Task<ActivityFlowStartResult> StartActivityCoreAsync(ActivityAsset nextActivity, ActivityAsset previousActivity, string source, string reason)
@@ -140,9 +153,17 @@ namespace Immersive.Framework.ActivityFlow
                 return Task.FromResult(ActivityFlowStartResult.KeptCurrentActivity(_currentActivityState));
             }
 
+            var runtimeEnterResult = CreateActivityScopeRoot(nextActivity, resolvedSource, resolvedReason);
             _currentActivityState = ActivityRuntimeState.ActiveWith(nextActivity, previousActivity, resolvedSource, resolvedReason);
             var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, nextActivity, resolvedSource, resolvedReason);
-            return Task.FromResult(ActivityFlowStartResult.StartedWith(_currentActivityState, previousActivity, contentResult));
+            var runtimeExitResult = RemovePreviousActivityScopeRoot(previousActivity, nextActivity, resolvedSource, resolvedReason);
+            var runtimeScopeResult = MergeActivityScopeResults(runtimeEnterResult, runtimeExitResult, nextActivity, previousActivity, resolvedSource, resolvedReason);
+
+            return Task.FromResult(ActivityFlowStartResult.StartedWith(
+                _currentActivityState,
+                previousActivity,
+                contentResult,
+                runtimeScopeResult));
         }
 
         private ActivityContentApplyResult ApplyActivityContentThroughLifecycleEvents(ActivityAsset previousActivity, ActivityAsset nextActivity, string source, string reason)
@@ -175,6 +196,87 @@ namespace Immersive.Framework.ActivityFlow
             {
                 _activityEnteredEvents.Publish(new ActivityEnteredEvent(nextActivity, previousActivity, source, reason));
             }
+        }
+
+        private RuntimeScopeLifecycleResult CreateActivityScopeRoot(ActivityAsset activity, string source, string reason)
+        {
+            if (activity == null)
+            {
+                return RuntimeScopeLifecycleResult.None(RuntimeContentScope.Activity, source, reason);
+            }
+
+            var owner = CreateActivityOwner(activity);
+            var enterResult = _runtimeContentRuntime.CreateScopeRoot(owner, source, reason);
+            _runtimeContentRuntime.TryCreateScopeContext(owner, source, reason, out var context);
+
+            return new RuntimeScopeLifecycleResult(
+                RuntimeContentScope.Activity,
+                owner,
+                enterResult,
+                null,
+                context,
+                _runtimeContentRuntime.RootCount,
+                source,
+                reason);
+        }
+
+        private RuntimeScopeLifecycleResult RemovePreviousActivityScopeRoot(ActivityAsset previousActivity, ActivityAsset nextActivity, string source, string reason)
+        {
+            if (previousActivity == null || ReferenceEquals(previousActivity, nextActivity))
+            {
+                return RuntimeScopeLifecycleResult.None(RuntimeContentScope.Activity, source, reason);
+            }
+
+            var owner = CreateActivityOwner(previousActivity);
+            if (nextActivity != null && owner == CreateActivityOwner(nextActivity))
+            {
+                return RuntimeScopeLifecycleResult.None(RuntimeContentScope.Activity, source, reason);
+            }
+
+            var exitResult = _runtimeContentRuntime.RemoveScopeRoot(owner, source, reason);
+
+            return new RuntimeScopeLifecycleResult(
+                RuntimeContentScope.Activity,
+                owner,
+                null,
+                exitResult,
+                default(RuntimeScopeContext),
+                _runtimeContentRuntime.RootCount,
+                source,
+                reason);
+        }
+
+        private RuntimeScopeLifecycleResult MergeActivityScopeResults(
+            RuntimeScopeLifecycleResult enterResult,
+            RuntimeScopeLifecycleResult exitResult,
+            ActivityAsset nextActivity,
+            ActivityAsset previousActivity,
+            string source,
+            string reason)
+        {
+            var owner = nextActivity != null
+                ? CreateActivityOwner(nextActivity)
+                : previousActivity != null ? CreateActivityOwner(previousActivity) : default(RuntimeContentOwner);
+
+            return new RuntimeScopeLifecycleResult(
+                RuntimeContentScope.Activity,
+                owner,
+                enterResult.EnterRootResult,
+                exitResult.ExitRootResult,
+                enterResult.Context,
+                _runtimeContentRuntime.RootCount,
+                source,
+                reason);
+        }
+
+        private static RuntimeContentOwner CreateActivityOwner(ActivityAsset activity)
+        {
+            if (activity == null)
+            {
+                throw new ArgumentNullException(nameof(activity));
+            }
+
+            return RuntimeContentOwner.Activity(activity.ActivityName, activity.ActivityName);
         }
 
         private static string NormalizeSource(string source)

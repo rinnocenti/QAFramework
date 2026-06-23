@@ -7,6 +7,7 @@ using Immersive.Framework.SceneLifecycle;
 using Immersive.Framework.ContentFlow;
 using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.RuntimeContent;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -18,17 +19,20 @@ namespace Immersive.Framework.RouteLifecycle
     internal sealed class RouteLifecycleRuntime
     {
         private readonly SceneLifecycleRuntime _sceneLifecycleRuntime = new SceneLifecycleRuntime();
-        private readonly ActivityFlowRuntime _activityFlowRuntime = new ActivityFlowRuntime();
+        private readonly ActivityFlowRuntime _activityFlowRuntime;
         private readonly RouteContentRuntime _routeContentRuntime = new RouteContentRuntime();
         private readonly RouteSceneCompositionRuntime _routeSceneCompositionRuntime;
         private readonly ContentReleaseRuntime _contentReleaseRuntime;
         private readonly ContentAnchorDiscoveryRuntime _contentAnchorDiscoveryRuntime = new ContentAnchorDiscoveryRuntime();
+        private readonly RuntimeContentRuntime _runtimeContentRuntime;
         private readonly EventBus<RouteEnteredEvent> _routeEnteredEvents = new EventBus<RouteEnteredEvent>();
         private readonly EventBus<RouteExitedEvent> _routeExitedEvents = new EventBus<RouteExitedEvent>();
         private RouteRuntimeState _currentRouteState;
 
-        internal RouteLifecycleRuntime()
+        internal RouteLifecycleRuntime(RuntimeContentRuntime runtimeContentRuntime)
         {
+            _runtimeContentRuntime = runtimeContentRuntime ?? throw new ArgumentNullException(nameof(runtimeContentRuntime));
+            _activityFlowRuntime = new ActivityFlowRuntime(_runtimeContentRuntime);
             _routeSceneCompositionRuntime = new RouteSceneCompositionRuntime(_sceneLifecycleRuntime);
             _contentReleaseRuntime = new ContentReleaseRuntime(_sceneLifecycleRuntime);
         }
@@ -106,6 +110,7 @@ namespace Immersive.Framework.RouteLifecycle
                 return RouteLifecycleStartResult.Failed(routeSceneCompositionResult.ToDiagnosticString());
             }
 
+            var runtimeRouteEnterResult = CreateRouteScopeRoot(route, source, reason);
             var sceneLifecycleResult = routeSceneCompositionResult.PrimarySceneLoadResult;
             var routeContentSet = RouteContentSet.FromSceneCompositionResult(
                 route,
@@ -127,6 +132,15 @@ namespace Immersive.Framework.RouteLifecycle
                 return RouteLifecycleStartResult.Failed(activityFlowResult.Message);
             }
 
+            var runtimeRouteExitResult = RemovePreviousRouteScopeRoot(previousRoute, route, source, reason);
+            var runtimeRouteScopeResult = MergeRouteScopeResults(
+                runtimeRouteEnterResult,
+                runtimeRouteExitResult,
+                route,
+                previousRoute,
+                source,
+                reason);
+
             var result = RouteLifecycleStartResult.StartedWith(
                 route,
                 previousRouteState,
@@ -139,7 +153,8 @@ namespace Immersive.Framework.RouteLifecycle
                 releaseResult,
                 activityFlowResult,
                 source,
-                reason);
+                reason,
+                runtimeRouteScopeResult);
             _currentRouteState = result.RouteState;
             PublishRouteTransition(previousRoute, route, source, reason);
             return result;
@@ -183,6 +198,87 @@ namespace Immersive.Framework.RouteLifecycle
             }
 
             return _activityFlowRuntime.ClearActivityAsync(CurrentRoute, source, reason);
+        }
+
+        private RuntimeScopeLifecycleResult CreateRouteScopeRoot(RouteAsset route, string source, string reason)
+        {
+            if (route == null)
+            {
+                return RuntimeScopeLifecycleResult.None(RuntimeContentScope.Route, source, reason);
+            }
+
+            var owner = CreateRouteOwner(route);
+            var enterResult = _runtimeContentRuntime.CreateScopeRoot(owner, source, reason);
+            _runtimeContentRuntime.TryCreateScopeContext(owner, source, reason, out var context);
+
+            return new RuntimeScopeLifecycleResult(
+                RuntimeContentScope.Route,
+                owner,
+                enterResult,
+                null,
+                context,
+                _runtimeContentRuntime.RootCount,
+                source,
+                reason);
+        }
+
+        private RuntimeScopeLifecycleResult RemovePreviousRouteScopeRoot(RouteAsset previousRoute, RouteAsset nextRoute, string source, string reason)
+        {
+            if (previousRoute == null || ReferenceEquals(previousRoute, nextRoute))
+            {
+                return RuntimeScopeLifecycleResult.None(RuntimeContentScope.Route, source, reason);
+            }
+
+            var owner = CreateRouteOwner(previousRoute);
+            if (nextRoute != null && owner == CreateRouteOwner(nextRoute))
+            {
+                return RuntimeScopeLifecycleResult.None(RuntimeContentScope.Route, source, reason);
+            }
+
+            var exitResult = _runtimeContentRuntime.RemoveScopeRoot(owner, source, reason);
+
+            return new RuntimeScopeLifecycleResult(
+                RuntimeContentScope.Route,
+                owner,
+                null,
+                exitResult,
+                default(RuntimeScopeContext),
+                _runtimeContentRuntime.RootCount,
+                source,
+                reason);
+        }
+
+        private RuntimeScopeLifecycleResult MergeRouteScopeResults(
+            RuntimeScopeLifecycleResult enterResult,
+            RuntimeScopeLifecycleResult exitResult,
+            RouteAsset nextRoute,
+            RouteAsset previousRoute,
+            string source,
+            string reason)
+        {
+            var owner = nextRoute != null
+                ? CreateRouteOwner(nextRoute)
+                : previousRoute != null ? CreateRouteOwner(previousRoute) : default(RuntimeContentOwner);
+
+            return new RuntimeScopeLifecycleResult(
+                RuntimeContentScope.Route,
+                owner,
+                enterResult.EnterRootResult,
+                exitResult.ExitRootResult,
+                enterResult.Context,
+                _runtimeContentRuntime.RootCount,
+                source,
+                reason);
+        }
+
+        private static RuntimeContentOwner CreateRouteOwner(RouteAsset route)
+        {
+            if (route == null)
+            {
+                throw new ArgumentNullException(nameof(route));
+            }
+
+            return RuntimeContentOwner.Route(route.PrimaryScenePath, route.RouteName);
         }
     }
 }

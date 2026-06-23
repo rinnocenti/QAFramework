@@ -1,10 +1,10 @@
 # RuntimeScopeRoot and RuntimeRootRegistry
 
-Status: `F8D APPLIED`
+Status: `F8F UPDATED`
 
 F8D introduces the first internal root registry boundary for runtime-created content.
 
-This cut is deliberately logical/passive. It creates root ownership records and handle registration rules, but it does not create hierarchy GameObjects, instantiate prefabs, destroy objects, release scopes or bind Content Anchors.
+This boundary remains logical/passive. It creates root ownership records, handle registration rules and F8F logical root removal rules, but it does not create hierarchy GameObjects, instantiate prefabs, destroy objects, release scopes physically or bind Content Anchors.
 
 ## Added runtime internals
 
@@ -73,10 +73,10 @@ F8D does not add:
 - Content Anchor binding;
 - Actor, Pause, Camera, UI, Input, Save or Pooling consumers.
 
-F8E has now introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeScopeContext` boundary.
+F8E introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeScopeContext` boundary. F8F now integrates logical runtime root/context creation and removal into Session, Route and Activity lifecycles.
 
 Next authorized cut:
 
 ```text
-F8F — lifecycle integration for RuntimeContentRuntime roots
+F8G — RuntimeMaterializationRequest / RuntimeMaterializationResult
 ```

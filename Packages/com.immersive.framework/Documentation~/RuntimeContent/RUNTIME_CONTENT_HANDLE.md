@@ -1,10 +1,10 @@
 # RuntimeContentHandle
 
-Status: `F8D APPLIED`
+Status: `F8F UPDATED`
 
 `RuntimeContentHandle` is the passive canonical handle for one runtime-created content identity.
 
-It exists to carry ownership and lifecycle/release state. F8D can register handles inside a logical runtime scope root, but materialization requests, prefab materialization and release execution still come later.
+It exists to carry ownership and lifecycle/release state. F8D can register handles inside a logical runtime scope root. F8F connects those roots to lifecycle-owned contexts, but materialization requests, prefab materialization and release execution still come later.
 
 ## Responsibilities
 
@@ -54,10 +54,10 @@ F8D does not add:
 - Content Anchor binding;
 - Actor, Pause, Camera, UI, Input, Save or Pooling consumers.
 
-F8E has now introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeScopeContext` boundary.
+F8E introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeScopeContext` boundary. F8F now integrates logical runtime root/context creation and removal into Session, Route and Activity lifecycles.
 
 Next authorized cut:
 
 ```text
-F8F — lifecycle integration for RuntimeContentRuntime roots
+F8G — RuntimeMaterializationRequest / RuntimeMaterializationResult
 ```
