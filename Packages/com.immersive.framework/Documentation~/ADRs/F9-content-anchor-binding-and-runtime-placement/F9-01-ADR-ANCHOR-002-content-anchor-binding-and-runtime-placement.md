@@ -1,6 +1,6 @@
 # F9-01 — ADR-ANCHOR-002 — Content Anchor Binding and Runtime Placement
 
-Status: Accepted / F9A contracts applied
+Status: Accepted / F9B logical binding runtime applied
 Fase: F9
 Ordem no Plano: F9-01
 Tipo: Content Anchor / Runtime
@@ -24,7 +24,7 @@ Definir em etapas:
 F9A ContentAnchorBindingRequest
 F9A ContentAnchorBindingResult
 F9A ContentAnchorContentHandle
-F9B RuntimeContentAnchorBinding
+F9B RuntimeContentAnchorBinding [applied as logical runtime]
 F9C Binding release order
 F9D Binding smoke
 ```
@@ -49,6 +49,12 @@ ContentAnchorContentHandle
 Esses tipos correlacionam `ContentAnchorDeclaration`, `RuntimeScopeContext`, `RuntimeContentId`, `RuntimeMaterializationResource` e `RuntimeContentHandle` sem executar placement físico.
 
 F9A não adiciona `Transform`, `GameObject`, `Instantiate`, `Destroy`, scene adapter, prefab adapter, Addressables, Pooling, Pause, Camera ou Actor.
+
+## Implementação F9B
+
+F9B adiciona `RuntimeContentAnchorBinding` como runtime lógico interno. Ele resolve um `ContentAnchorBindingRequest` contra um `ContentAnchorSet` fornecido e um `RuntimeContentHandle` já registrado em `RuntimeContentRuntime`.
+
+F9B não adiciona placement físico, prefab adapter, scene adapter, `Transform`, `GameObject`, `Instantiate`, `Destroy` ou consumer final.
 
 ## Regras
 

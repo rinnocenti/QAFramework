@@ -119,12 +119,13 @@ F15/FX Productization, tooling and hardening
 
 ## Não objetivos deste corte
 
-O realinhamento original foi documental. A implementação começou em F9A com contratos de binding.
+O realinhamento original foi documental. A implementação começou em F9A com contratos de binding e avançou em F9B com `RuntimeContentAnchorBinding` lógico.
 
-F9A ainda não implementa:
+F9B ainda não implementa:
 
 ```text
-RuntimeContentAnchorBinding
+physical placement
+binding smoke dedicado
 TransitionRuntime
 ActivityContentProfile execution
 Participation runtime

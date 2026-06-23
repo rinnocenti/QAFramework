@@ -1,6 +1,6 @@
 # Content Anchor Binding Contracts
 
-Status: `F9A APPLIED / PENDING COMPILE-SMOKE`
+Status: `F9B APPLIED / PENDING COMPILE-SMOKE`
 Corte: `IF-FW-F9A-content-anchor-binding-contracts`
 Escopo: Content Anchor binding / RuntimeContent bridge
 
@@ -14,7 +14,7 @@ A fronteira agora é:
 
 ```text
 ContentAnchorBindingRequest
-  -> futuro RuntimeContentAnchorBinding
+  -> RuntimeContentAnchorBinding
       -> ContentAnchorBindingResult
           -> ContentAnchorContentHandle
 ContentAnchorSet.TryGetByBindingRequest(...)
@@ -115,22 +115,28 @@ F9A define:
 como um request de Content Anchor se correlaciona com um RuntimeContentHandle
 ```
 
-F9A ainda não define:
+F9B define:
 
 ```text
-RuntimeContentAnchorBinding runtime
-binding registry
-release order execution
-binding smoke
+RuntimeContentAnchorBinding runtime lógico
+binding registry lógico local
+idempotência SucceededAlreadyBound
+remoção lógica local de bindings
 ```
 
-Esses pontos entram nos próximos cortes de F9.
+F9B ainda não define:
+
+```text
+placement físico
+binding release order execution integrado ao lifecycle
+binding smoke dedicado
+```
 
 ---
 
 ## Smoke esperado
 
-Para F9A, o smoke suficiente é:
+Para F9A/F9B, o smoke suficiente é:
 
 ```text
 compile/import smoke

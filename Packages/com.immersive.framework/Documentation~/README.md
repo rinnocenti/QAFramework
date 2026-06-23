@@ -91,11 +91,12 @@ Docs técnicos:
 - `RuntimeContent/RUNTIME_RELEASE_POLICY_LOGICAL_EXECUTION.md` — F8J logical release request/result/policy and adapter boundary.
 - `RuntimeContent/RUNTIME_TRANSITION_GUARD_SCOPED_CANCELLATION.md` — F8H transition guard and scoped cancellation tokens.
 - `ContentAnchor/CONTENT_ANCHOR_BINDING_CONTRACTS.md` — F9A Content Anchor binding request/result/handle contracts.
+- `ContentAnchor/CONTENT_ANCHOR_BINDING_RUNTIME.md` — F9B logical RuntimeContentAnchorBinding runtime.
 
 
 ## F9+ realignment
 
-`Planning/F9Plus-Roadmap-Realignment.md` is the entry point for the restructured plan from F9 onward. F9 started with `ContentAnchor/CONTENT_ANCHOR_BINDING_CONTRACTS.md`.
+`Planning/F9Plus-Roadmap-Realignment.md` is the entry point for the restructured plan from F9 onward. F9 started with `ContentAnchor/CONTENT_ANCHOR_BINDING_CONTRACTS.md` and now has the logical runtime in `ContentAnchor/CONTENT_ANCHOR_BINDING_RUNTIME.md`.
 
 Current F9+ sequence:
 
