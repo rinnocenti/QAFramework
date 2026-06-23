@@ -1,6 +1,6 @@
 # Route Content Anchor Discovery
 
-Status: `F7F — APPLIED / PENDING COMPILE-SMOKE`
+Status: `F7F — CLOSED / PASS`
 
 `RouteContentAnchor` is now discovered after Route scene composition has loaded the Route scenes.
 

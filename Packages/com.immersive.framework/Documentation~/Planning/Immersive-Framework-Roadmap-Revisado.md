@@ -468,8 +468,8 @@ Objetivo: criar Content Anchor como contrato authored/local, sem camera/pause/UI
 | IF-FW-ROAD-7E | `ContentAnchorPoint` | Point authored tipado; substitui o nome ruim de anchor duplicado. |
 | IF-FW-ROAD-7F | `RouteContentAnchor` authoring | Primeiro componente público de authoring por escopo; declara anchors de Route sem materialização. |
 | IF-FW-ROAD-7G | `ContentAnchorSet` por scope | Route primeiro; Activity/Local só depois se a semântica continuar estável. |
-| IF-FW-ROAD-7H | Content Anchor validators | Sem identity, duplicate slot/anchor/root role. |
-| IF-FW-ROAD-7I | Content Anchor smoke | Scene com endpoint → discovery scoped → ContentAnchorSet populado. |
+| IF-FW-ROAD-7H | Content Anchor authoring validation | Missing Route/id, invalid kind, scene/Route mismatch and duplicate anchor identity/id. |
+| IF-FW-ROAD-7I | F7 closure | Fechar docs e guardrails depois dos smokes. |
 
 ### Não entra
 
@@ -493,9 +493,12 @@ Nenhum consumer concreto ainda capturou o modelo.
 F7A — CLOSED / DOCS
 F7B — CLOSED / PASS
 F7C — CLOSED / PASS
-F7D — Closed / PASS
-F7E — Applied / pending compile-smoke
-Next — F7F / Route Content Anchor discovery
+F7D — CLOSED / PASS
+F7E — CLOSED / PASS
+F7F — CLOSED / PASS
+F7G — CLOSED / PASS
+F7H — APPLIED / PENDING COMPILE-SMOKE
+Next — F7I / F7 closure
 ```
 
 Naming guardrail: do not reintroduce the rejected previous placement-point vocabulary or `duplicated anchor naming` as canonical concept names.
@@ -881,12 +884,18 @@ Input/Camera/Actor/Save/Pooling
 Esses cortes dependem da identidade local tipada e das fases intermediárias do roadmap.
 
 
-## F7D — Route Content Anchor authoring
+## F7D–F7H — Route Content Anchor declaration/discovery/validation
 
-Status: `APPLIED / PENDING COMPILE-SMOKE`.
+Status: `F7H APPLIED / PENDING COMPILE-SMOKE`.
 
-F7D adds `RouteContentAnchor` as the first passive Route-scoped public authoring component. It records explicit Route owner, Anchor Id, Kind, Requiredness, Display Name and Description and can produce a local `ContentAnchorDeclaration`. It does not add discovery, validators, smoke, RuntimeRoot/materialization or consumers.
+F7D added `RouteContentAnchor` as the first passive Route-scoped public authoring component.
 
-F7E adds `ContentAnchorSet` as a passive scoped collection for unique declarations and local issues. It does not add loaded scene discovery, lifecycle integration, validators, smoke, RuntimeRoot/materialization or consumers.
+F7E added `ContentAnchorSet` as a passive scoped collection for unique declarations and local issues.
 
-Next: `F7F — Route Content Anchor discovery`.
+F7F added loaded Route Content Anchor discovery into a diagnostic route-local `ContentAnchorSet`.
+
+F7G added the dedicated Content Anchor diagnostics smoke and trimmed QA Canvas to the current validation path.
+
+F7H adds authoring validation for loaded `RouteContentAnchor` components: missing Route, missing Anchor Id, `Kind = Unknown`, invalid Requiredness, scene/Route declaration mismatch and duplicate Content Anchor identity/id. It does not enforce Required anchors in lifecycle and does not add Activity anchors, runtime binding, placement, RuntimeRoot/materialization or consumers.
+
+Next: `F7I — F7 closure`.

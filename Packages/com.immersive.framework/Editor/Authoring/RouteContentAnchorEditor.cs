@@ -1,5 +1,6 @@
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentAnchor;
+using Immersive.Framework.Editor.Editor.Validation;
 using UnityEditor;
 using UnityEngine;
 
@@ -32,7 +33,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
             EditorGUILayout.LabelField("Route Content Anchor", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "Declares a passive Route-scoped Content Anchor. F7D only records authoring identity and intent; it does not discover, validate, register, materialize, bind or instantiate runtime content.",
+                "Declares a passive Route-scoped Content Anchor. F7F discovery and F7H authoring validation can inspect it; it does not register, materialize, bind or instantiate runtime content.",
                 MessageType.Info);
 
             EditorGUILayout.Space(6);
@@ -41,7 +42,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
                 _route,
                 new GUIContent(
                     "Route",
-                    "Route asset that owns this Content Anchor. This owner is explicit; GameObject scene or hierarchy is diagnostic only."));
+                    "Route asset that owns this Content Anchor. This owner is explicit; GameObject scene and hierarchy are diagnostic only."));
 
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Content Anchor", EditorStyles.boldLabel);
@@ -59,7 +60,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
                 _requiredness,
                 new GUIContent(
                     "Requiredness",
-                    "Authoring validation policy. Required anchors can block future validators; Optional anchors can be skipped with diagnostics."));
+                    "Authoring validation policy. F7H reports invalid authoring, but Required anchors do not block Route lifecycle yet."));
 
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Diagnostics", EditorStyles.boldLabel);
@@ -75,6 +76,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
                     "Optional authoring note. It has no runtime behavior."));
 
             DrawAuthoringStatus();
+            DrawValidationReport();
 
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Current Scope", EditorStyles.boldLabel);
@@ -102,7 +104,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             if (_route.objectReferenceValue == null)
             {
                 EditorGUILayout.HelpBox(
-                    "Route is missing. F7D does not discover anchors yet, but future Route-scoped discovery will require an explicit owner.",
+                    "Route is missing. Route-scoped discovery and authoring validation require an explicit owner.",
                     MessageType.Error);
                 return;
             }
@@ -136,6 +138,26 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             }
         }
 
+        private void DrawValidationReport()
+        {
+            if (serializedObject.isEditingMultipleObjects)
+            {
+                return;
+            }
+
+            var anchor = target as RouteContentAnchor;
+            if (anchor == null)
+            {
+                return;
+            }
+
+            EditorGUILayout.Space(6);
+            EditorGUILayout.LabelField("Authoring Validation", EditorStyles.boldLabel);
+            var report = FrameworkAuthoringValidator.ValidateRouteContentAnchor(anchor);
+            FrameworkAuthoringValidationGui.DrawSummary(report);
+            FrameworkAuthoringValidationGui.DrawIssues(report, false);
+        }
+
         private void DrawMultiObjectStatus()
         {
             if (_route != null && _route.hasMultipleDifferentValues)
@@ -155,7 +177,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             }
 
             EditorGUILayout.HelpBox(
-                "Multiple Route Content Anchors selected. F7D does not run duplicate validation yet.",
+                "Multiple Route Content Anchors selected. Use Project Settings validation or QA Authoring Validation to check duplicates across loaded scenes.",
                 MessageType.Info);
         }
     }

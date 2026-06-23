@@ -1,6 +1,6 @@
 # Content Anchor Declaration Model
 
-Status: F7C closed / PASS; F7D closed / PASS; F7E applied / pending compile-smoke  
+Status: F7C closed / PASS; F7D closed / PASS; F7E closed / PASS  
 Package: `com.immersive.framework`  
 Scope: Passive declaration model only
 

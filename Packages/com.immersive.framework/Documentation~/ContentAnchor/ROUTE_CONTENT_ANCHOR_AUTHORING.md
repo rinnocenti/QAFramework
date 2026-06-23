@@ -1,6 +1,6 @@
 # Route Content Anchor Authoring
 
-Status: F7D closed / PASS; F7E applied / pending compile-smoke  
+Status: F7D closed / PASS; F7H authoring validation applied / pending compile-smoke  
 Package: `com.immersive.framework`
 
 ---
@@ -9,7 +9,7 @@ Package: `com.immersive.framework`
 
 `RouteContentAnchor` is the first public authoring component for Route-scoped Content Anchors.
 
-It declares a passive named point inside loaded Route content. It does not discover, validate, register, materialize, bind, move or instantiate runtime content.
+It declares a passive named point inside loaded Route content. F7F discovery and F7H authoring validation can inspect it; the component itself does not register, materialize, bind, move or instantiate runtime content.
 
 ---
 
@@ -62,40 +62,28 @@ The stable identity is based on explicit Route owner and Anchor Id, not on scene
 
 ---
 
-## Not in F7D
-
-F7D intentionally does not add:
-
-```text
-ContentAnchorSet
-ContentAnchorRegistry
-Loaded scene discovery
-FrameworkAuthoringValidator rules
-QA smoke
-Runtime binding
-RuntimeRootRegistry
-Prefab materialization
-Camera/Pause/UI/Actor consumers
-```
-
----
-
 ## Validation
 
-For F7D, validation is compile and regression smoke only:
+F7H adds authoring validation for loaded `RouteContentAnchor` components. It reports:
 
 ```text
-Unity compile
-Standard Smoke
-Route Scene Composition Smoke
-Route Release Smoke
-Local Contribution Smoke
-Authoring Validation
+missing Route
+missing Anchor Id
+Kind = Unknown
+invalid Requiredness
+scene not declared by assigned Route
+duplicate Content Anchor identity
+duplicate owner + scope + Anchor Id
 ```
 
-A dedicated Content Anchor smoke starts only after `ContentAnchorSet` and loaded Route discovery exist.
+Run validation from the QA Canvas with:
 
+```text
+Validate Loaded Authoring
+```
 
-## F7F — Route Content Anchor discovery
+F7H does not enforce Required anchors in Route lifecycle and does not add runtime binding, placement or consumers.
 
-F7F discovers valid `RouteContentAnchor` components from loaded Route scenes into a local diagnostic `ContentAnchorSet`. It is discovery-only and does not create validators, required-anchor blocking, runtime binding, placement or consumers.
+## F7F/F7G
+
+F7F discovers valid `RouteContentAnchor` components from loaded Route scenes into a local diagnostic `ContentAnchorSet`. F7G adds the dedicated Content Anchor diagnostics smoke.

@@ -1,6 +1,6 @@
 # Content Anchor Set
 
-Status: F7E applied / pending compile-smoke  
+Status: F7E closed / PASS  
 Package: `com.immersive.framework`
 
 ---
@@ -101,7 +101,7 @@ Camera/Pause/UI/Actor consumers
 
 ## Validation
 
-For F7E, validation is compile and regression smoke only:
+F7E closed by compile/regression smoke:
 
 ```text
 Unity compile

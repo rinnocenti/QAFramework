@@ -1,5 +1,6 @@
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Authoring;
@@ -236,7 +237,7 @@ namespace Immersive.Framework.Diagnostics
                     RunLocalContributionSmoke();
                 }
 
-                if (GUILayout.Button("Validate Loaded Local Contributions"))
+                if (GUILayout.Button("Validate Loaded Authoring"))
                 {
                     ValidateLoadedLocalContributionsAuthoring();
                 }
@@ -1632,19 +1633,23 @@ namespace Immersive.Framework.Diagnostics
                 FindObjectsInactive.Include);
             ActivityLocalVisibilityAdapter[] activityAdapters = FindObjectsByType<ActivityLocalVisibilityAdapter>(
                 FindObjectsInactive.Include);
+            RouteContentAnchor[] routeContentAnchors = FindObjectsByType<RouteContentAnchor>(
+                FindObjectsInactive.Include);
 
             int routeBindingCount = routeBindings != null ? routeBindings.Length : 0;
             int activityAdapterCount = activityAdapters != null ? activityAdapters.Length : 0;
+            int routeContentAnchorCount = routeContentAnchors != null ? routeContentAnchors.Length : 0;
 
-            if (routeBindingCount == 0 && activityAdapterCount == 0)
+            if (routeBindingCount == 0 && activityAdapterCount == 0 && routeContentAnchorCount == 0)
             {
-                _logger.Warning("QA Authoring Validation completed. scope='Loaded Local Contributions' routeBindings='0' activityAdapters='0' localContributions='0' issues='1' reason='No local contribution authoring components found in loaded scenes'.");
+                _logger.Warning("QA Authoring Validation completed. scope='Loaded Authoring' routeBindings='0' activityAdapters='0' routeContentAnchors='0' localContributions='0' contentAnchors='0' issues='1' reason='No local contribution or Content Anchor authoring components found in loaded scenes'.");
                 return;
             }
 
             int issueCount = 0;
             int errorCount = 0;
             int warningCount = 0;
+            var contentAnchorDeclarations = new List<ContentAnchorDeclaration>(Math.Max(0, routeContentAnchorCount));
 
             if (routeBindings != null)
             {
@@ -1654,6 +1659,22 @@ namespace Immersive.Framework.Diagnostics
                 }
             }
 
+            if (routeContentAnchors != null)
+            {
+                for (int i = 0; i < routeContentAnchors.Length; i++)
+                {
+                    ValidateLoadedRouteContentAnchor(
+                        routeContentAnchors[i],
+                        contentAnchorDeclarations,
+                        ref issueCount,
+                        ref errorCount,
+                        ref warningCount);
+                }
+            }
+
+            var contentAnchorSet = ContentAnchorSet.FromDeclarations(contentAnchorDeclarations);
+            AddLoadedRouteContentAnchorSetIssues(contentAnchorSet, ref issueCount, ref errorCount, ref warningCount);
+
             var validationResult = LocalContributionValidator.ValidateLoadedSceneAuthored();
             AddLocalContributionValidationIssues(validationResult, ref issueCount, ref errorCount, ref warningCount);
 
@@ -1662,32 +1683,45 @@ namespace Immersive.Framework.Diagnostics
                 _logger.Info(
                     "QA Authoring Validation completed.",
                     LogFields.Of(
-                        LogFields.Field("scope", "Loaded Local Contributions"),
+                        LogFields.Field("scope", "Loaded Authoring"),
                         LogFields.Field("routeBindings", routeBindingCount),
                         LogFields.Field("activityAdapters", activityAdapterCount),
+                        LogFields.Field("routeContentAnchors", routeContentAnchorCount),
                         LogFields.Field("issues", 0),
                         LogFields.Field("localContributions", validationResult.ContributionCount),
                         LogFields.Field("blockingIssues", validationResult.BlockingIssueCount),
-                        LogFields.Field("optionalSkips", validationResult.OptionalSkipCount)));
+                        LogFields.Field("optionalSkips", validationResult.OptionalSkipCount),
+                        LogFields.Field("contentAnchors", contentAnchorSet.Count),
+                        LogFields.Field("contentAnchorIssues", contentAnchorSet.IssueCount),
+                        LogFields.Field("contentAnchorDuplicateIdentity", contentAnchorSet.DuplicateIdentityIssueCount),
+                        LogFields.Field("contentAnchorDuplicateId", contentAnchorSet.DuplicateAnchorIdIssueCount)));
                 _logger.Debug(
                     "QA Authoring Validation diagnostics.",
-                    LogFields.Field("details", validationResult.ToDiagnosticString()));
+                    LogFields.Of(
+                        LogFields.Field("localContributions", validationResult.ToDiagnosticString()),
+                        LogFields.Field("contentAnchors", contentAnchorSet.ToDiagnosticString())));
                 return;
             }
 
             _logger.Warning(
                 "QA Authoring Validation completed with issues.",
                 LogFields.Of(
-                    LogFields.Field("scope", "Loaded Local Contributions"),
+                    LogFields.Field("scope", "Loaded Authoring"),
                     LogFields.Field("routeBindings", routeBindingCount),
                     LogFields.Field("activityAdapters", activityAdapterCount),
+                    LogFields.Field("routeContentAnchors", routeContentAnchorCount),
                     LogFields.Field("issues", issueCount),
                     LogFields.Field("errors", errorCount),
                     LogFields.Field("warnings", warningCount),
                     LogFields.Field("localContributions", validationResult.ContributionCount),
                     LogFields.Field("blockingIssues", validationResult.BlockingIssueCount),
                     LogFields.Field("optionalSkips", validationResult.OptionalSkipCount),
-                    LogFields.Field("details", validationResult.ToDiagnosticString())));
+                    LogFields.Field("contentAnchors", contentAnchorSet.Count),
+                    LogFields.Field("contentAnchorIssues", contentAnchorSet.IssueCount),
+                    LogFields.Field("contentAnchorDuplicateIdentity", contentAnchorSet.DuplicateIdentityIssueCount),
+                    LogFields.Field("contentAnchorDuplicateId", contentAnchorSet.DuplicateAnchorIdIssueCount),
+                    LogFields.Field("localContributionDetails", validationResult.ToDiagnosticString()),
+                    LogFields.Field("contentAnchorDetails", contentAnchorSet.ToDiagnosticString())));
         }
 
         private void AddLocalContributionValidationIssues(
@@ -1717,6 +1751,128 @@ namespace Immersive.Framework.Diagnostics
                     ref issueCount,
                     ref warningCount,
                     $"LocalContributionValidation {issues[i].ToDiagnosticString()}.");
+            }
+        }
+
+        private void ValidateLoadedRouteContentAnchor(
+            RouteContentAnchor anchor,
+            List<ContentAnchorDeclaration> declarations,
+            ref int issueCount,
+            ref int errorCount,
+            ref int warningCount)
+        {
+            if (anchor == null)
+            {
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    "RouteContentAnchor is missing.");
+                return;
+            }
+
+            string objectName = anchor.gameObject != null ? anchor.gameObject.name : "<missing>";
+            string sceneName = anchor.gameObject != null && anchor.gameObject.scene.IsValid()
+                ? anchor.gameObject.scene.name
+                : "<no-scene>";
+            bool hasBlockingAuthoringIssue = false;
+
+            if (anchor.Route == null)
+            {
+                hasBlockingAuthoringIssue = true;
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    $"RouteContentAnchor object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Missing Route'.");
+            }
+
+            if (!anchor.HasExplicitAnchorId)
+            {
+                hasBlockingAuthoringIssue = true;
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    $"RouteContentAnchor object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Missing Anchor Id'.");
+            }
+
+            if (!anchor.HasExplicitKind)
+            {
+                hasBlockingAuthoringIssue = true;
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    $"RouteContentAnchor object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Unknown Kind'.");
+            }
+
+            if (!Enum.IsDefined(typeof(ContentAnchorRequiredness), anchor.Requiredness))
+            {
+                hasBlockingAuthoringIssue = true;
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    $"RouteContentAnchor object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Invalid Requiredness'.");
+            }
+
+            if (anchor.Route != null && !DoesAnchorSceneMatchRoute(anchor))
+            {
+                AddQaAuthoringWarning(
+                    ref issueCount,
+                    ref warningCount,
+                    $"RouteContentAnchor object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' route='{FormatValue(GetAssetName(anchor.Route, "<unnamed>"))}' issue='Route does not declare this scene'.");
+            }
+
+            if (hasBlockingAuthoringIssue)
+            {
+                return;
+            }
+
+            try
+            {
+                if (anchor.TryCreateDeclaration(out var declaration))
+                {
+                    declarations.Add(declaration);
+                }
+            }
+            catch (Exception exception)
+            {
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    $"RouteContentAnchor object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Declaration creation failed' message='{FormatValue(exception.Message)}'.");
+            }
+        }
+
+        private void AddLoadedRouteContentAnchorSetIssues(
+            ContentAnchorSet contentAnchorSet,
+            ref int issueCount,
+            ref int errorCount,
+            ref int warningCount)
+        {
+            if (!contentAnchorSet.HasIssues)
+            {
+                return;
+            }
+
+            var issues = contentAnchorSet.Issues;
+            for (int i = 0; i < issues.Count; i++)
+            {
+                var issue = issues[i];
+                switch (issue.Kind)
+                {
+                    case ContentAnchorSetIssueKind.DuplicateIdentity:
+                    case ContentAnchorSetIssueKind.DuplicateAnchorId:
+                    case ContentAnchorSetIssueKind.InvalidDeclaration:
+                        AddQaAuthoringIssue(
+                            ref issueCount,
+                            ref errorCount,
+                            $"ContentAnchorSet {issue.ToDiagnosticString()}.");
+                        break;
+                    default:
+                        AddQaAuthoringWarning(
+                            ref issueCount,
+                            ref warningCount,
+                            $"ContentAnchorSet {issue.ToDiagnosticString()}.");
+                        break;
+                }
             }
         }
 
@@ -1785,6 +1941,66 @@ namespace Immersive.Framework.Diagnostics
             issueCount++;
             warningCount++;
             _logger.Warning($"QA Authoring Validation issue. severity='Warning' {message}");
+        }
+
+        private static bool DoesAnchorSceneMatchRoute(RouteContentAnchor anchor)
+        {
+            if (anchor == null || anchor.Route == null || anchor.gameObject == null)
+            {
+                return false;
+            }
+
+            var scene = anchor.gameObject.scene;
+            if (!scene.IsValid() || !scene.isLoaded)
+            {
+                return true;
+            }
+
+            return DoesRouteDeclareScene(anchor.Route, scene.path, scene.name);
+        }
+
+        private static bool DoesRouteDeclareScene(RouteAsset route, string scenePath, string sceneName)
+        {
+            if (route == null)
+            {
+                return false;
+            }
+
+            if (MatchesScene(route.PrimaryScenePath, route.PrimarySceneName, scenePath, sceneName))
+            {
+                return true;
+            }
+
+            var profile = route.RouteContentProfile;
+            if (profile == null || profile.AdditionalScenes == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < profile.AdditionalScenes.Count; i++)
+            {
+                var entry = profile.AdditionalScenes[i];
+                if (entry != null && MatchesScene(entry.ScenePath, entry.SceneName, scenePath, sceneName))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool MatchesScene(string declaredPath, string declaredName, string scenePath, string sceneName)
+        {
+            if (!string.IsNullOrWhiteSpace(declaredPath)
+                && !string.IsNullOrWhiteSpace(scenePath)
+                && string.Equals(declaredPath.Trim(), scenePath.Trim(), StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return !string.IsNullOrWhiteSpace(declaredName)
+                && !string.IsNullOrWhiteSpace(sceneName)
+                && string.Equals(declaredName.Trim(), sceneName.Trim(), StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool DoesBindingSceneMatchRoute(RouteContentBinding binding)

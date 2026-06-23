@@ -1,8 +1,12 @@
+using System;
+using System.Collections.Generic;
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.RouteLifecycle;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 namespace Immersive.Framework.Editor.Editor.Validation
 {
     internal static class FrameworkAuthoringValidator
@@ -46,6 +50,7 @@ namespace Immersive.Framework.Editor.Editor.Validation
             {
                 ValidateOpenSceneActivityLocalVisibilityAdapters(report, validationMode);
                 ValidateOpenSceneRouteContentBindings(report, validationMode);
+                ValidateOpenSceneRouteContentAnchors(report, validationMode);
             }
 
             if (!report.HasIssues)
@@ -81,6 +86,11 @@ namespace Immersive.Framework.Editor.Editor.Validation
         internal static FrameworkAuthoringValidationReport ValidateRouteContentBinding(RouteContentBinding binding)
         {
             return ValidateRouteContentBinding(binding, FrameworkValidationMode.Standard);
+        }
+
+        internal static FrameworkAuthoringValidationReport ValidateRouteContentAnchor(RouteContentAnchor anchor)
+        {
+            return ValidateRouteContentAnchor(anchor, FrameworkValidationMode.Standard);
         }
 
         private static FrameworkAuthoringValidationReport ValidateGameApplication(
@@ -374,6 +384,123 @@ namespace Immersive.Framework.Editor.Editor.Validation
             }
         }
 
+        private static FrameworkAuthoringValidationReport ValidateRouteContentAnchor(
+            RouteContentAnchor anchor,
+            FrameworkValidationMode validationMode)
+        {
+            var report = new FrameworkAuthoringValidationReport(validationMode);
+
+            if (anchor == null)
+            {
+                report.AddError("Route Content Anchor is missing.", null);
+                return report;
+            }
+
+            string objectName = anchor.gameObject != null ? anchor.gameObject.name : "<missing>";
+
+            if (anchor.Route == null)
+            {
+                report.AddError(
+                    $"Route Content Anchor on GameObject '{objectName}' has no Route assigned.",
+                    anchor);
+            }
+            else
+            {
+                ValidateRouteContentAnchorSceneRoute(report, anchor, objectName);
+            }
+
+            if (!anchor.HasExplicitAnchorId)
+            {
+                report.AddError(
+                    $"Route Content Anchor on GameObject '{objectName}' has no Anchor Id. Content Anchor identity must be explicit; GameObject names and hierarchy paths are diagnostics only.",
+                    anchor);
+            }
+
+            if (!anchor.HasExplicitKind)
+            {
+                report.AddError(
+                    $"Route Content Anchor on GameObject '{objectName}' has Kind set to Unknown. Choose Root, Slot or Point.",
+                    anchor);
+            }
+
+            if (!Enum.IsDefined(typeof(ContentAnchorRequiredness), anchor.Requiredness))
+            {
+                report.AddError(
+                    $"Route Content Anchor on GameObject '{objectName}' has an invalid Requiredness value.",
+                    anchor);
+            }
+
+            if (anchor.HasValidAuthoring)
+            {
+                try
+                {
+                    if (anchor.TryCreateDeclaration(out var declaration))
+                    {
+                        report.AddInfo(
+                            $"Route Content Anchor on GameObject '{objectName}' declares '{declaration.AnchorId.StableText}' as {declaration.Kind}/{declaration.Requiredness}.",
+                            anchor);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    report.AddError(
+                        $"Route Content Anchor on GameObject '{objectName}' could not create a ContentAnchorDeclaration. {exception.Message}",
+                        anchor);
+                }
+            }
+
+            if (!report.HasIssues)
+            {
+                report.AddInfo(
+                    $"Route Content Anchor on GameObject '{objectName}' is valid for the current F7 authoring-validation scope.",
+                    anchor);
+            }
+
+            return report;
+        }
+
+        private static void ValidateRouteContentAnchorSceneRoute(
+            FrameworkAuthoringValidationReport report,
+            RouteContentAnchor anchor,
+            string objectName)
+        {
+            var route = anchor.Route;
+            var scene = anchor.gameObject != null ? anchor.gameObject.scene : default;
+
+            if (!scene.IsValid())
+            {
+                report.AddInfo(
+                    $"Route Content Anchor on GameObject '{objectName}' is not in a valid scene. Scene-route validation is skipped for prefabs or disconnected objects.",
+                    anchor);
+                return;
+            }
+
+            if (!scene.isLoaded)
+            {
+                report.AddInfo(
+                    $"Route Content Anchor on GameObject '{objectName}' is in scene '{scene.name}', but the scene is not loaded. Scene-route validation only checks loaded scenes.",
+                    anchor);
+                return;
+            }
+
+            string scenePath = scene.path;
+            string sceneName = scene.name;
+            if (string.IsNullOrWhiteSpace(scenePath) && string.IsNullOrWhiteSpace(sceneName))
+            {
+                report.AddWarning(
+                    $"Route Content Anchor on GameObject '{objectName}' is in an unidentified scene. Save the scene so it can be compared against Route scene composition.",
+                    anchor);
+                return;
+            }
+
+            if (!DoesRouteDeclareScene(route, scenePath, sceneName))
+            {
+                report.AddWarning(
+                    $"Route Content Anchor on GameObject '{objectName}' points to Route '{GetRouteLabel(route)}', but it is authored in scene '{GetSceneLabel(scenePath, sceneName)}'. That scene is not declared as the Route primary scene or an additional Route Content Profile scene.",
+                    anchor);
+            }
+        }
+
         private static void ValidatePrimarySceneReference(FrameworkAuthoringValidationReport report, RouteAsset route)
         {
             string scenePath = route.PrimaryScenePath;
@@ -478,6 +605,108 @@ namespace Immersive.Framework.Editor.Editor.Validation
             if (sceneBindingCount == 0)
             {
                 report.AddInfo("No scene-authored Route Content Binding components were found in loaded scenes.", null);
+            }
+        }
+
+        private static void ValidateOpenSceneRouteContentAnchors(
+            FrameworkAuthoringValidationReport report,
+            FrameworkValidationMode validationMode)
+        {
+            RouteContentAnchor[] anchors = Object.FindObjectsByType<RouteContentAnchor>(FindObjectsInactive.Include);
+            if (anchors == null || anchors.Length == 0)
+            {
+                report.AddInfo("No Route Content Anchor components were found in open scenes.", null);
+                return;
+            }
+
+            int sceneAnchorCount = 0;
+            var declarations = new List<ContentAnchorDeclaration>(anchors.Length);
+
+            for (int i = 0; i < anchors.Length; i++)
+            {
+                var anchor = anchors[i];
+                if (anchor == null || anchor.gameObject == null || !anchor.gameObject.scene.IsValid())
+                {
+                    continue;
+                }
+
+                if (!anchor.gameObject.scene.isLoaded)
+                {
+                    continue;
+                }
+
+                sceneAnchorCount++;
+                report.AddRange(ValidateRouteContentAnchor(anchor, validationMode));
+                TryCollectContentAnchorDeclaration(anchor, declarations, report);
+            }
+
+            if (sceneAnchorCount == 0)
+            {
+                report.AddInfo("No scene-authored Route Content Anchor components were found in loaded scenes.", null);
+                return;
+            }
+
+            ValidateContentAnchorSetIssues(report, declarations);
+        }
+
+        private static void TryCollectContentAnchorDeclaration(
+            RouteContentAnchor anchor,
+            List<ContentAnchorDeclaration> declarations,
+            FrameworkAuthoringValidationReport report)
+        {
+            if (anchor == null || !anchor.HasValidAuthoring)
+            {
+                return;
+            }
+
+            try
+            {
+                if (anchor.TryCreateDeclaration(out var declaration))
+                {
+                    declarations.Add(declaration);
+                }
+            }
+            catch (Exception exception)
+            {
+                report.AddError(
+                    $"Route Content Anchor on GameObject '{anchor.ObjectName}' could not be collected for duplicate validation. {exception.Message}",
+                    anchor);
+            }
+        }
+
+        private static void ValidateContentAnchorSetIssues(
+            FrameworkAuthoringValidationReport report,
+            IReadOnlyList<ContentAnchorDeclaration> declarations)
+        {
+            if (declarations == null || declarations.Count == 0)
+            {
+                return;
+            }
+
+            var set = ContentAnchorSet.FromDeclarations(declarations);
+            if (!set.HasIssues)
+            {
+                report.AddInfo(
+                    $"Route Content Anchor duplicate validation passed. anchors='{set.Count}' required='{set.RequiredCount}' optional='{set.OptionalCount}'.",
+                    null);
+                return;
+            }
+
+            var issues = set.Issues;
+            for (int i = 0; i < issues.Count; i++)
+            {
+                var issue = issues[i];
+                switch (issue.Kind)
+                {
+                    case ContentAnchorSetIssueKind.DuplicateIdentity:
+                    case ContentAnchorSetIssueKind.DuplicateAnchorId:
+                    case ContentAnchorSetIssueKind.InvalidDeclaration:
+                        report.AddError($"Route Content Anchor duplicate validation issue: {issue.ToDiagnosticString()}.", null);
+                        break;
+                    default:
+                        report.AddWarning($"Route Content Anchor validation issue: {issue.ToDiagnosticString()}.", null);
+                        break;
+                }
             }
         }
 
@@ -587,6 +816,60 @@ namespace Immersive.Framework.Editor.Editor.Validation
             return string.IsNullOrWhiteSpace(route.RouteName)
                 ? route.name
                 : route.RouteName;
+        }
+
+        private static bool DoesRouteDeclareScene(RouteAsset route, string scenePath, string sceneName)
+        {
+            if (route == null)
+            {
+                return false;
+            }
+
+            if (MatchesScene(route.PrimaryScenePath, route.PrimarySceneName, scenePath, sceneName))
+            {
+                return true;
+            }
+
+            var profile = route.RouteContentProfile;
+            if (profile == null || profile.AdditionalScenes == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < profile.AdditionalScenes.Count; i++)
+            {
+                var entry = profile.AdditionalScenes[i];
+                if (entry != null && MatchesScene(entry.ScenePath, entry.SceneName, scenePath, sceneName))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool MatchesScene(string declaredPath, string declaredName, string scenePath, string sceneName)
+        {
+            if (!string.IsNullOrWhiteSpace(declaredPath)
+                && !string.IsNullOrWhiteSpace(scenePath)
+                && string.Equals(declaredPath.Trim(), scenePath.Trim(), StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return !string.IsNullOrWhiteSpace(declaredName)
+                && !string.IsNullOrWhiteSpace(sceneName)
+                && string.Equals(declaredName.Trim(), sceneName.Trim(), StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string GetSceneLabel(string scenePath, string sceneName)
+        {
+            if (!string.IsNullOrWhiteSpace(scenePath))
+            {
+                return scenePath.Trim();
+            }
+
+            return string.IsNullOrWhiteSpace(sceneName) ? "<none>" : sceneName.Trim();
         }
     }
 }

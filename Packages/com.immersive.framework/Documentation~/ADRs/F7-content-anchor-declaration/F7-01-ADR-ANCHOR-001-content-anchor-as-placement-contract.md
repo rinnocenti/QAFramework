@@ -1,6 +1,6 @@
 # F7-01 — ADR-ANCHOR-001 — Content Anchor as Placement Contract
 
-Status: Accepted / F7E ContentAnchorSet applied  
+Status: Accepted / F7H authoring validation applied  
 Fase: F7  
 Ordem no Plano: F7-01  
 Tipo: Content Anchor  
@@ -258,8 +258,14 @@ ContentAnchorSetIssueKind
 
 `ContentAnchorSet` stores unique `ContentAnchorDeclaration` entries and records local diagnostic issues for invalid declarations, duplicate full identity and duplicate owner/scope/anchor id. It does not discover scene objects, integrate with Route lifecycle, validate authoring globally, emit logs, bind runtime content or serve gameplay consumers.
 
-Próximo corte autorizado:
+F7F introduced diagnostic discovery of scene-authored `RouteContentAnchor` components from loaded Route scenes into a local `ContentAnchorSet`.
+
+F7G introduced the dedicated Content Anchor diagnostics smoke and simplified the visible QA Canvas buttons to the current validation path.
+
+F7H introduces authoring validation for loaded `RouteContentAnchor` components. It reports missing Route, missing Anchor Id, `Kind = Unknown`, invalid Requiredness, scene/Route declaration mismatch and duplicate Content Anchor identity/id. It does not enforce Required anchors in Route lifecycle and does not add runtime binding, placement, Activity anchors or consumers.
+
+Próximo corte autorizado depois do smoke:
 
 ```text
-F7F — Route Content Anchor discovery
+F7I — F7 closure
 ```

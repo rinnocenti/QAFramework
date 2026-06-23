@@ -7,8 +7,8 @@ namespace Immersive.Framework.ContentAnchor
 {
     /// <summary>
     /// API status: Experimental. Scene-authored, passive Route-scoped Content Anchor declaration.
-    /// This component only declares an authored anchor; it does not discover, validate, register,
-    /// materialize, bind, move or instantiate runtime content.
+    /// This component declares an authored anchor. Route-scoped discovery and authoring validation can inspect it,
+    /// but it does not register, materialize, bind, move or instantiate runtime content.
     /// </summary>
     [DisallowMultipleComponent]
     [AddComponentMenu("Immersive Framework/Route Content Anchor")]
@@ -16,7 +16,7 @@ namespace Immersive.Framework.ContentAnchor
     public sealed class RouteContentAnchor : MonoBehaviour
     {
         [SerializeField]
-        [Tooltip("Route asset that owns this Content Anchor. Discovery and validation are introduced in later F7 cuts; F7D only records this explicit owner.")]
+        [Tooltip("Route asset that owns this Content Anchor. The owner is explicit; scene, GameObject name and hierarchy path are diagnostics only.")]
         private RouteAsset route;
 
         [SerializeField]
@@ -28,7 +28,7 @@ namespace Immersive.Framework.ContentAnchor
         private ContentAnchorKind kind = ContentAnchorKind.Slot;
 
         [SerializeField]
-        [Tooltip("Authoring validation policy for this anchor. Required anchors can block future validators; Optional anchors can be skipped with diagnostics.")]
+        [Tooltip("Authoring validation policy for this anchor. F7H reports invalid authoring, but required anchors do not block Route lifecycle yet.")]
         private ContentAnchorRequiredness requiredness = ContentAnchorRequiredness.Optional;
 
         [SerializeField]

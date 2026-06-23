@@ -45,6 +45,7 @@ Documentation~/Route/ROUTE_CONTENT_PROFILE_USAGE.md
 Documentation~/Route/ROUTE_SCENE_COMPOSITION_SMOKE.md
 Documentation~/Route/ROUTE_RELEASE_SMOKE.md
 Documentation~/ContentAnchor/CONTENT_ANCHOR_SET.md
+Documentation~/ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md
 Documentation~/ADRs/
 ```
 
@@ -59,7 +60,7 @@ Documentation~/ADRs/
 
 The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release for scene content. It is not yet a Content Anchor, RuntimeSpawned, Actor, Camera, Input, Save, Reset or Pooling framework.
 
-Do not skip from F7 directly to runtime materialization or gameplay consumers. F7 is currently limited to Content Anchor declaration, discovery and diagnostics. `F7B — ContentAnchor identity primitives` and `F7C — ContentAnchor declaration model` are closed/pass; `F7D — Route Content Anchor authoring` is closed/pass. `F7E — ContentAnchorSet` is applied and pending compile-smoke. The next authorized cut after validation is `F7F — Route Content Anchor discovery`.
+Do not skip from F7 directly to runtime materialization or gameplay consumers. F7 is currently limited to Content Anchor declaration, discovery, diagnostics and authoring validation. F7B through F7G are closed/pass by smoke evidence; F7H adds Route Content Anchor authoring validation and is pending compile-smoke. The next authorized cut after validation is `F7I — F7 closure`.
 
 ## F7 Content Anchor boundary
 
@@ -68,3 +69,5 @@ Do not skip from F7 directly to runtime materialization or gameplay consumers. F
 F7 may define passive identity, declaration, authoring, discovery, diagnostics and validation for anchors. F7 must not create prefab materialization, runtime binding, Camera, Pause, UI, Actor, Save, Input or Pooling consumers.
 
 - `Documentation~/ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md` — F7F diagnostic discovery of Route Content Anchors into a local ContentAnchorSet.
+- `Documentation~/ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md` — F7G QA smoke for Content Anchor diagnostics.
+- `Documentation~/ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md` — F7H authoring validation for loaded Route Content Anchors.

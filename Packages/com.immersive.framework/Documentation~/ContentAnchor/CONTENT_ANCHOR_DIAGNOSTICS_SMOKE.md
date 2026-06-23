@@ -1,6 +1,6 @@
 # Content Anchor Diagnostics Smoke
 
-Status: `F7G — APPLIED / PENDING COMPILE-SMOKE`.
+Status: `F7G — CLOSED / PASS`.
 
 This smoke validates the diagnostic-only Content Anchor discovery path introduced by F7F. It does not add validator rules, required-anchor blocking, Activity anchors, runtime binding, placement, RuntimeRoot materialization or gameplay consumers.
 
@@ -57,7 +57,7 @@ F7G trims the visible QA buttons to the current validation path:
 Run Standard Smoke
 Run Activity Baseline Smoke
 Run Local Contribution Smoke
-Validate Loaded Local Contributions
+Validate Loaded Authoring
 Reset QA Scenario
 Run Route Scene Composition Smoke
 Run Route Release Smoke

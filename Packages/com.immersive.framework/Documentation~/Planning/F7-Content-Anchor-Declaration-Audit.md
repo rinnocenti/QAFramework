@@ -1,6 +1,6 @@
 # F7 — Content Anchor Declaration Audit
 
-Status: F7D closed / PASS; F7E applied / pending compile-smoke  
+Status: F7G closed / PASS; F7H applied / pending compile-smoke  
 Package: `com.immersive.framework`  
 Scope: Content Anchor declaration baseline  
 Runtime changes in F7A: none
@@ -172,8 +172,8 @@ scope owner + anchor id + kind
 | F7D | Route Content Anchor authoring | Applied: first passive public authoring component for Route scope. |
 | F7E | ContentAnchorSet | Scoped result model and diagnostics. |
 | F7F | Loaded Route Content Anchor discovery | Discover anchors from loaded Route content only. |
-| F7G | Content Anchor validators | Missing id, duplicate ids, invalid authoring. |
-| F7H | Content Anchor smoke | Manual QA smoke for Route-scoped anchors. |
+| F7G | Content Anchor diagnostics smoke | Manual QA smoke for discovered Route-scoped anchors. Closed/pass. |
+| F7H | Content Anchor authoring validation | Missing Route/id, invalid kind, route-scene mismatch and duplicate ids. Applied/pending smoke. |
 | F7I | F7 closure | Docs and guardrails. |
 
 Activity-scoped authoring may enter F7 only if Route-scoped authoring and set semantics remain stable. Otherwise, defer Activity anchors to a follow-up cut.
@@ -369,11 +369,7 @@ Prefab materialization
 Camera/Pause/UI/Actor consumers
 ```
 
-Next authorized cut:
-
-```text
-F7F — Route Content Anchor discovery
-```
+F7F followed this cut.
 
 ---
 
@@ -393,7 +389,7 @@ Smoke validation confirmed `contentAnchors='1'`, `contentAnchorCandidates='1'`, 
 
 ## 17. F7G — Content Anchor diagnostics smoke + QA Canvas cleanup
 
-Status: Applied / pending compile-smoke
+Status: Closed / PASS
 
 F7G adds a dedicated QA smoke for Content Anchor diagnostics and reduces the visible QA Canvas buttons to the current validation path.
 
@@ -405,15 +401,29 @@ Visible QA buttons after this cut:
 Run Standard Smoke
 Run Activity Baseline Smoke
 Run Local Contribution Smoke
-Validate Loaded Local Contributions
+Validate Loaded Authoring
 Reset QA Scenario
 Run Route Scene Composition Smoke
 Run Route Release Smoke
 Run Content Anchor Diagnostics Smoke
 ```
 
-Next authorized cut:
+## 18. F7H — Content Anchor authoring validation
+
+Status: Applied / pending compile-smoke
+
+F7H adds authoring-validation coverage for loaded `RouteContentAnchor` components. Validation reports missing Route, missing Anchor Id, `Kind = Unknown`, invalid Requiredness, scene/Route declaration mismatch and duplicate Content Anchor identities/ids.
+
+The QA Canvas validation button is now:
 
 ```text
-F7H — Content Anchor authoring validation
+Validate Loaded Authoring
+```
+
+This cut does not enforce Required anchors in lifecycle and does not introduce Activity anchors, runtime binding/placement, RuntimeRootRegistry, prefab materialization or gameplay consumers.
+
+Next authorized cut after smoke:
+
+```text
+F7I — F7 closure
 ```
