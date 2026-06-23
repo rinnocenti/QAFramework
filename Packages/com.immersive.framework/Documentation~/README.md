@@ -22,7 +22,8 @@ Leitura recomendada:
 6. [`ADRs/`](ADRs/)
 7. [`Planning/F6-Route-Scene-Composition-Audit.md`](Planning/F6-Route-Scene-Composition-Audit.md)
 8. [`Planning/F7-Content-Anchor-Declaration-Audit.md`](Planning/F7-Content-Anchor-Declaration-Audit.md)
-9. [`Architecture/ADR/`](Architecture/ADR/)
+9. [`Planning/F8-Runtime-Roots-Materialization-Audit.md`](Planning/F8-Runtime-Roots-Materialization-Audit.md)
+10. [`Architecture/ADR/`](Architecture/ADR/)
 
 Docs técnicos:
 
@@ -54,6 +55,7 @@ Docs técnicos:
 - [`Local/LOCAL_CONTENT_IDENTITY.md`](Local/LOCAL_CONTENT_IDENTITY.md)
 - [`Planning/F6-Route-Scene-Composition-Audit.md`](Planning/F6-Route-Scene-Composition-Audit.md)
 - [`Planning/F7-Content-Anchor-Declaration-Audit.md`](Planning/F7-Content-Anchor-Declaration-Audit.md)
+- [`Planning/F8-Runtime-Roots-Materialization-Audit.md`](Planning/F8-Runtime-Roots-Materialization-Audit.md)
 - [`ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md`](ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md)
 - [`ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md`](ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md)
 - [`ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md`](ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md)
@@ -67,4 +69,6 @@ Docs técnicos:
 - `Documentation~/ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md` — F7F diagnostic discovery of Route Content Anchors into a local ContentAnchorSet.
 
 - `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md` — dedicated QA smoke for Route Content Anchor diagnostics.
-- `ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md` — loaded authoring validation for Route Content Anchors. F7 is closed as Content Anchor declaration baseline.
+- `ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md` — loaded authoring validation for Route Content Anchors.
+
+- `Planning/F8-Runtime-Roots-Materialization-Audit.md` — F8A boundary for runtime roots, materialization, handles and release.

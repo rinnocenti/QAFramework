@@ -468,8 +468,8 @@ Objetivo: criar Content Anchor como contrato authored/local, sem camera/pause/UI
 | IF-FW-ROAD-7E | `ContentAnchorPoint` | Point authored tipado; substitui o nome ruim de anchor duplicado. |
 | IF-FW-ROAD-7F | `RouteContentAnchor` authoring | Primeiro componente público de authoring por escopo; declara anchors de Route sem materialização. |
 | IF-FW-ROAD-7G | `ContentAnchorSet` por scope | Route primeiro; Activity/Local só depois se a semântica continuar estável. |
-| IF-FW-ROAD-7H | Content Anchor authoring validation | `CLOSED / PASS`: Missing Route/id, invalid kind, scene/Route mismatch and duplicate anchor identity/id covered by loaded authoring validation. |
-| IF-FW-ROAD-7I | F7 closure | `CLOSED / DOCS`: F7 declaration baseline closed; next phase is F8 ADR/detail audit. |
+| IF-FW-ROAD-7H | Content Anchor authoring validation | Missing Route/id, invalid kind, scene/Route mismatch and duplicate anchor identity/id. |
+| IF-FW-ROAD-7I | F7 closure | Fechar docs e guardrails depois dos smokes. |
 
 ### Não entra
 
@@ -483,7 +483,7 @@ Objetivo: criar Content Anchor como contrato authored/local, sem camera/pause/UI
 ### Done
 
 ```text
-Content Anchor existe como dado, authoring, discovery diagnóstico e validação autoral carregada.
+Content Anchor existe como dado e contrato.
 Nenhum consumer concreto ainda capturou o modelo.
 ```
 
@@ -499,7 +499,8 @@ F7F — CLOSED / PASS
 F7G — CLOSED / PASS
 F7H — CLOSED / PASS
 F7I — CLOSED / DOCS
-Next — F8A / Runtime roots/materialization ADR-detail audit
+F7J — CLOSED / DOCS
+Next — F8A / Runtime roots and materialization audit
 ```
 
 Naming guardrail: do not reintroduce the rejected previous placement-point vocabulary or `duplicated anchor naming` as canonical concept names.
@@ -513,14 +514,14 @@ Objetivo: criar materialização runtime genérica, sem actor/projectile/pool.
 
 | ID | Entrega | Detalhes |
 |---|---|---|
-| IF-FW-ROAD-8A | ADR: Runtime ownership | Session/Route/Activity/Transient. |
-| IF-FW-ROAD-8B | `RuntimeScopeRoot` | Root por escopo. |
-| IF-FW-ROAD-8C | `RuntimeRootRegistry` | Registry scope → root, sem `GameObject.Find`. |
-| IF-FW-ROAD-8D | `RuntimeContentHandle` | Identity, owner scope, state, release. |
+| IF-FW-ROAD-8A | ADR/detail audit: Runtime roots/materialization | Aceitar fronteira: Runtime Root ≠ Content Anchor; F8 não cria consumers. |
+| IF-FW-ROAD-8B | Runtime ownership primitives | Scope, owner, state e identity baseline para runtime-created content. |
+| IF-FW-ROAD-8C | `RuntimeContentHandle` | Identity, owner scope, state, release diagnostics. |
+| IF-FW-ROAD-8D | `RuntimeScopeRoot` + internal registry | Root por escopo, registry interno, sem `GameObject.Find`. |
 | IF-FW-ROAD-8E | `RuntimeMaterializationRequest` / `Result` | Request/result explícitos. |
-| IF-FW-ROAD-8F | `PrefabContentMaterializer` | Primeiro materializer concreto. |
-| IF-FW-ROAD-8G | `RuntimeReleasePolicy` | Activity exit, Route exit e Session shutdown. |
-| IF-FW-ROAD-8H | Runtime materialization smoke | Prefab → handle → release on exit → zero orphan. |
+| IF-FW-ROAD-8F | `PrefabContentMaterializer` | Primeiro materializer concreto e local. |
+| IF-FW-ROAD-8G | `RuntimeReleasePolicy` / release execution | Activity exit futuro, Route exit e Session shutdown. |
+| IF-FW-ROAD-8H | Runtime materialization smoke / F8 closure | Prefab → handle → release on exit → zero orphan. |
 
 ### Não entra
 
@@ -867,17 +868,17 @@ Escopo fechado:
 Próximo passo autorizado:
 
 ```text
-F8A — Runtime roots/materialization ADR-detail audit
+F7A — Content Anchor ADR/detail audit
 ```
 
-F8 deve começar por auditoria/ADR de Runtime roots/materialization, sem binding real de Content Anchor, prefab materialization ou consumers avançados no primeiro corte.
+F7 deve começar por auditoria/ADR de Content Anchor declaration, sem RuntimeRoot/materialization ou consumers avançados.
 
 ## Não avançar ainda
 
 ```text
 Expected contribution declarations
 Materialização canônica
-ActivityContentAnchor
+Content Anchor
 Runtime roots/materialization
 Input/Camera/Actor/Save/Pooling
 ```
@@ -885,9 +886,9 @@ Input/Camera/Actor/Save/Pooling
 Esses cortes dependem da identidade local tipada e das fases intermediárias do roadmap.
 
 
-## F7D–F7I — Route Content Anchor declaration/discovery/validation
+## F7D–F7H — Route Content Anchor declaration/discovery/validation
 
-Status: `F7 CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS`.
+Status: `F7H APPLIED / PENDING COMPILE-SMOKE`.
 
 F7D added `RouteContentAnchor` as the first passive Route-scoped public authoring component.
 
@@ -897,6 +898,6 @@ F7F added loaded Route Content Anchor discovery into a diagnostic route-local `C
 
 F7G added the dedicated Content Anchor diagnostics smoke and trimmed QA Canvas to the current validation path.
 
-F7H adds authoring validation for loaded `RouteContentAnchor` components: missing Route, missing Anchor Id, `Kind = Unknown`, invalid Requiredness, scene/Route declaration mismatch and duplicate Content Anchor identity/id. It does not enforce Required anchors in lifecycle and does not add Activity anchors, runtime binding, placement, RuntimeRoot/materialization or consumers. F7H closed/pass by smoke.
+F7H adds authoring validation for loaded `RouteContentAnchor` components: missing Route, missing Anchor Id, `Kind = Unknown`, invalid Requiredness, scene/Route declaration mismatch and duplicate Content Anchor identity/id. It does not enforce Required anchors in lifecycle and does not add Activity anchors, runtime binding, placement, RuntimeRoot/materialization or consumers.
 
-F7I closes F7 as the Content Anchor declaration baseline. Next: `F8A — Runtime roots/materialization ADR-detail audit`.
+Next: `F7I — F7 closure`.
