@@ -2,6 +2,7 @@ using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.SceneLifecycle;
 using Immersive.Framework.ContentFlow;
+using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.RouteLifecycle
@@ -23,6 +24,7 @@ namespace Immersive.Framework.RouteLifecycle
             SceneLifecycleLoadResult sceneLifecycleResult,
             RouteSceneCompositionResult routeSceneCompositionResult,
             RouteContentSet routeContentSet,
+            ContentAnchorDiscoveryResult contentAnchorDiscoveryResult,
             RouteContentLifecycleDispatchResult routeContentEnterResult,
             RouteContentLifecycleDispatchResult routeContentExitResult,
             ContentReleaseResult contentReleaseResult,
@@ -37,6 +39,7 @@ namespace Immersive.Framework.RouteLifecycle
             SceneLifecycleResult = sceneLifecycleResult;
             RouteSceneCompositionResult = routeSceneCompositionResult;
             RouteContentSet = routeContentSet;
+            ContentAnchorDiscoveryResult = contentAnchorDiscoveryResult;
             RouteContentEnterResult = routeContentEnterResult;
             RouteContentExitResult = routeContentExitResult;
             ContentReleaseResult = contentReleaseResult;
@@ -65,6 +68,10 @@ namespace Immersive.Framework.RouteLifecycle
 
         public RouteContentSet RouteContentSet { get; }
 
+        public ContentAnchorDiscoveryResult ContentAnchorDiscoveryResult { get; }
+
+        public ContentAnchorSet ContentAnchorSet => ContentAnchorDiscoveryResult.AnchorSet;
+
         public RouteContentLifecycleDispatchResult RouteContentEnterResult { get; }
 
         public RouteContentLifecycleDispatchResult RouteContentExitResult { get; }
@@ -75,7 +82,7 @@ namespace Immersive.Framework.RouteLifecycle
 
         public static RouteLifecycleStartResult Failed(string message)
         {
-            return new RouteLifecycleStartResult(false, message, null, null, default, default, default, default, default, default, default, default, default);
+            return new RouteLifecycleStartResult(false, message, null, null, default, default, default, default, default, default, default, default, default, default);
         }
 
         public static RouteLifecycleStartResult StartedWith(
@@ -84,6 +91,7 @@ namespace Immersive.Framework.RouteLifecycle
             SceneLifecycleLoadResult sceneLifecycleResult,
             RouteSceneCompositionResult routeSceneCompositionResult,
             RouteContentSet routeContentSet,
+            ContentAnchorDiscoveryResult contentAnchorDiscoveryResult,
             RouteContentLifecycleDispatchResult routeContentEnterResult,
             RouteContentLifecycleDispatchResult routeContentExitResult,
             ContentReleaseResult contentReleaseResult,
@@ -98,6 +106,7 @@ namespace Immersive.Framework.RouteLifecycle
                 sceneLifecycleResult,
                 routeSceneCompositionResult,
                 routeContentSet,
+                contentAnchorDiscoveryResult,
                 activityFlowResult,
                 source,
                 reason);
@@ -110,14 +119,17 @@ namespace Immersive.Framework.RouteLifecycle
                 ? $" routeRelease='{contentReleaseResult.Status}' routeReleaseReleased='{contentReleaseResult.ReleasedCount}' routeReleaseSkipped='{contentReleaseResult.SkippedCount}' routeReleaseFailed='{contentReleaseResult.FailedCount}' routeReleaseBlockingIssues='{contentReleaseResult.BlockingIssueCount}'."
                 : string.Empty;
             var routeContentMessage = routeContentSet.HasContent ? $" {routeContentSet.DiagnosticMessage}" : string.Empty;
+            var contentAnchorMessage = !string.IsNullOrWhiteSpace(contentAnchorDiscoveryResult.Message)
+                ? $" {contentAnchorDiscoveryResult.DiagnosticMessage}"
+                : string.Empty;
             var compositionMessage = !string.IsNullOrWhiteSpace(routeSceneCompositionResult.Message) ? $" {routeSceneCompositionResult.Message}" : string.Empty;
             var routeContentEnterMessage = routeContentEnterResult.Executed
                 ? $" routeContentEnter='{routeContentEnterResult.DiagnosticStatus}' routeContentEnterBindings='{routeContentEnterResult.BindingCount}' routeContentEnterReceivers='{routeContentEnterResult.ReceiverCount}' routeContentEnterFailed='{routeContentEnterResult.FailedReceiverCount}'."
                 : string.Empty;
             var activityMessage = !string.IsNullOrWhiteSpace(activityFlowResult.Message) ? $" {activityFlowResult.Message}" : string.Empty;
             var message = previousRoute != null
-                ? $"Route Lifecycle switched from Route '{previousRoute.RouteName}' to Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage}{releaseMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{routeContentEnterMessage}{activityMessage}"
-                : $"Route Lifecycle started Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage}{releaseMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{routeContentEnterMessage}{activityMessage}";
+                ? $"Route Lifecycle switched from Route '{previousRoute.RouteName}' to Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage}{releaseMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{contentAnchorMessage}{routeContentEnterMessage}{activityMessage}"
+                : $"Route Lifecycle started Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage}{releaseMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{contentAnchorMessage}{routeContentEnterMessage}{activityMessage}";
 
             return new RouteLifecycleStartResult(
                 true,
@@ -129,6 +141,7 @@ namespace Immersive.Framework.RouteLifecycle
                 sceneLifecycleResult,
                 routeSceneCompositionResult,
                 routeContentSet,
+                contentAnchorDiscoveryResult,
                 routeContentEnterResult,
                 routeContentExitResult,
                 contentReleaseResult,

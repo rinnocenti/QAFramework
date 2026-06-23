@@ -7,6 +7,7 @@ using Immersive.Framework.GameFlow;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.LocalContribution;
+using Immersive.Framework.ContentAnchor;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
@@ -60,6 +61,18 @@ namespace Immersive.Framework.Diagnostics
 
         [Header("Route Release Smoke")]
         [SerializeField] private int expectedRouteReleaseReleasedCount = 1;
+
+        [Header("Content Anchor Diagnostics Smoke")]
+        [SerializeField] private int expectedContentAnchorCount = 1;
+        [SerializeField] private int expectedContentAnchorCandidateCount = 1;
+        [SerializeField] private int expectedContentAnchorIssueCount = 0;
+        [SerializeField] private int expectedContentAnchorInvalidCount = 0;
+        [SerializeField] private int expectedContentAnchorRouteMismatchCount = 0;
+        [SerializeField] private int expectedContentAnchorRequiredCount = -1;
+        [SerializeField] private int expectedContentAnchorOptionalCount = -1;
+        [SerializeField] private int expectedContentAnchorRootCount = -1;
+        [SerializeField] private int expectedContentAnchorSlotCount = -1;
+        [SerializeField] private int expectedContentAnchorPointCount = -1;
 
         [Header("Smoke Scenario Activities")]
         [FormerlySerializedAs("activity01")]
@@ -149,7 +162,6 @@ namespace Immersive.Framework.Diagnostics
                 DrawQaScenarioSummary();
                 DrawCoreSmokeControls();
                 DrawRouteContentSmokeControls();
-                DrawAdvancedControls();
                 GUILayout.EndScrollView();
             }
 
@@ -195,6 +207,7 @@ namespace Immersive.Framework.Diagnostics
             GUILayout.Label($"Composition Route: {GetAssetName(routeSceneCompositionRoute, "<missing>")}");
             GUILayout.Label($"Expected Route Scenes: {Math.Max(1, expectedRouteSceneLoadedCount)} loaded / {Math.Max(1, expectedRouteSceneOwnedLoadedCount)} owned");
             GUILayout.Label($"Expected Route Release: {Math.Max(0, expectedRouteReleaseReleasedCount)} released");
+            GUILayout.Label($"Expected Content Anchors: {Math.Max(0, expectedContentAnchorCount)} anchors / {Math.Max(0, expectedContentAnchorCandidateCount)} candidates");
             GUILayout.Label($"Primary Activity: {GetAssetName(primaryActivity, "<missing>")}");
             GUILayout.Label($"Secondary Activity: {GetAssetName(secondaryActivity, "<missing>")}");
             GUILayout.Label(GetCoreQaAssetsStatus());
@@ -218,22 +231,14 @@ namespace Immersive.Framework.Diagnostics
                     RunActivityBaselineSmoke();
                 }
 
-                using (new GUILayout.HorizontalScope())
+                if (GUILayout.Button("Run Local Contribution Smoke"))
                 {
-                    if (GUILayout.Button("Route"))
-                    {
-                        RunRouteSmoke();
-                    }
+                    RunLocalContributionSmoke();
+                }
 
-                    if (GUILayout.Button("Activity"))
-                    {
-                        RunActivitySmoke();
-                    }
-
-                    if (GUILayout.Button("Clear Activity"))
-                    {
-                        RunClearActivitySmoke();
-                    }
+                if (GUILayout.Button("Validate Loaded Local Contributions"))
+                {
+                    ValidateLoadedLocalContributionsAuthoring();
                 }
 
                 if (GUILayout.Button("Reset QA Scenario"))
@@ -246,27 +251,11 @@ namespace Immersive.Framework.Diagnostics
         private void DrawRouteContentSmokeControls()
         {
             GUILayout.Space(8f);
-            GUILayout.Label("Route Content Callback Smoke", GUI.skin.box);
-            GUILayout.Label("Requires RouteContentBinding + RouteContentLifecycleSmokeProbe in both QA scenes.");
-            GUILayout.Label("Use only after the canonical and alternate scenes have callback probes.");
+            GUILayout.Label("Route Content Smokes", GUI.skin.box);
+            GUILayout.Label("Current route-content validation path: composition, release and Content Anchor diagnostics.");
 
             using (new EditorDisabledScope(_requestInFlight))
             {
-                if (GUILayout.Button("Validate Loaded Local Contributions"))
-                {
-                    ValidateLoadedLocalContributionsAuthoring();
-                }
-
-                if (GUILayout.Button("Run Local Contribution Smoke"))
-                {
-                    RunLocalContributionSmoke();
-                }
-
-                if (GUILayout.Button("Run Route Callback Smoke"))
-                {
-                    RunRouteCallbackSmoke();
-                }
-
                 if (GUILayout.Button("Run Route Scene Composition Smoke"))
                 {
                     RunRouteSceneCompositionSmoke();
@@ -275,6 +264,11 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Route Release Smoke"))
                 {
                     RunRouteReleaseSmoke();
+                }
+
+                if (GUILayout.Button("Run Content Anchor Diagnostics Smoke"))
+                {
+                    RunContentAnchorDiagnosticsSmoke();
                 }
             }
         }
@@ -1075,6 +1069,48 @@ namespace Immersive.Framework.Diagnostics
             });
         }
 
+        private async void RunContentAnchorDiagnosticsSmoke()
+        {
+            string missingTargets = string.Empty;
+            AppendMissingQaAsset(ref missingTargets, routeSceneCompositionRoute == null, "Content Anchor Route");
+            AppendMissingQaAsset(ref missingTargets, alternateRoute == null, "Alternate Route / Preparation Route");
+
+            if (!TryValidateSmokeTargets("Content Anchor Diagnostics Smoke", missingTargets))
+            {
+                return;
+            }
+
+            await RunSmokeAsync("Content Anchor Diagnostics Smoke", async runtimeHost =>
+            {
+                if (ReferenceEquals(runtimeHost.State.CurrentRoute, routeSceneCompositionRoute))
+                {
+                    if (ReferenceEquals(alternateRoute, routeSceneCompositionRoute))
+                    {
+                        _logger.Warning("QA Content Anchor Diagnostics Smoke step failed. step='prepare' reason='Content Anchor Route is already active and Alternate Route points to the same Route'.");
+                        return false;
+                    }
+
+                    var prepareResult = await RequestRouteWithResultCoreAsync(
+                        runtimeHost,
+                        alternateRoute,
+                        ResolveReason(routeReason, GetAssetName(alternateRoute, "qa.content-anchor.prepare")));
+                    if (!prepareResult.Succeeded)
+                    {
+                        _logger.Warning($"QA Content Anchor Diagnostics Smoke step failed. step='prepare' reason='Preparation Route request did not succeed' status='{FormatValue(prepareResult.Kind.ToString())}'.");
+                        return false;
+                    }
+
+                    await Task.Yield();
+                }
+
+                var anchorResult = await RequestRouteWithResultCoreAsync(
+                    runtimeHost,
+                    routeSceneCompositionRoute,
+                    ResolveReason(routeReason, GetAssetName(routeSceneCompositionRoute, "qa.content-anchor.diagnostics")));
+                return ValidateContentAnchorDiagnosticsSmokeStep(anchorResult, "anchors");
+            });
+        }
+
         private async void RunClearActivitySmoke()
         {
             string missingTargets = string.Empty;
@@ -1451,6 +1487,130 @@ namespace Immersive.Framework.Diagnostics
                 "QA Route Release Smoke diagnostics.",
                 LogFields.Field("details", release.ToDiagnosticString()));
             return true;
+        }
+
+        private bool ValidateContentAnchorDiagnosticsSmokeStep(FrameworkRouteRequestResult result, string stepName)
+        {
+            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string routeName = result.TargetRoute != null ? GetAssetName(result.TargetRoute, "<unnamed>") : "<missing>";
+
+            if (!result.Succeeded)
+            {
+                _logger.Warning($"QA Content Anchor Diagnostics Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Route request did not succeed' status='{FormatValue(result.Kind.ToString())}'.");
+                return false;
+            }
+
+            var lifecycleResult = result.RouteLifecycleResult;
+            if (!lifecycleResult.Started)
+            {
+                _logger.Warning($"QA Content Anchor Diagnostics Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Route lifecycle did not start'.");
+                return false;
+            }
+
+            var discovery = lifecycleResult.ContentAnchorDiscoveryResult;
+            var anchorSet = lifecycleResult.ContentAnchorSet;
+            if (!ValidateMinimum("contentAnchors", Math.Max(0, expectedContentAnchorCount), discovery.AnchorCount, normalizedStepName, routeName))
+            {
+                return false;
+            }
+
+            if (!ValidateMinimum("contentAnchorCandidates", Math.Max(0, expectedContentAnchorCandidateCount), discovery.CandidateCount, normalizedStepName, routeName))
+            {
+                return false;
+            }
+
+            if (!ValidateExact("contentAnchorIssues", Math.Max(0, expectedContentAnchorIssueCount), discovery.IssueCount, normalizedStepName, routeName))
+            {
+                return false;
+            }
+
+            if (!ValidateExact("contentAnchorInvalid", Math.Max(0, expectedContentAnchorInvalidCount), discovery.InvalidAuthoringCount, normalizedStepName, routeName))
+            {
+                return false;
+            }
+
+            if (!ValidateExact("contentAnchorRouteMismatch", Math.Max(0, expectedContentAnchorRouteMismatchCount), discovery.SkippedRouteMismatchCount, normalizedStepName, routeName))
+            {
+                return false;
+            }
+
+            if (!ValidateOptionalExact("contentAnchorRequired", expectedContentAnchorRequiredCount, anchorSet.RequiredCount, normalizedStepName, routeName))
+            {
+                return false;
+            }
+
+            if (!ValidateOptionalExact("contentAnchorOptional", expectedContentAnchorOptionalCount, anchorSet.OptionalCount, normalizedStepName, routeName))
+            {
+                return false;
+            }
+
+            if (!ValidateOptionalExact("contentAnchorRoot", expectedContentAnchorRootCount, anchorSet.RootCount, normalizedStepName, routeName))
+            {
+                return false;
+            }
+
+            if (!ValidateOptionalExact("contentAnchorSlot", expectedContentAnchorSlotCount, anchorSet.SlotCount, normalizedStepName, routeName))
+            {
+                return false;
+            }
+
+            if (!ValidateOptionalExact("contentAnchorPoint", expectedContentAnchorPointCount, anchorSet.PointCount, normalizedStepName, routeName))
+            {
+                return false;
+            }
+
+            _logger.Info(
+                "QA Content Anchor Diagnostics Smoke step completed.",
+                LogFields.Of(
+                    LogFields.Field("step", normalizedStepName),
+                    LogFields.Field("route", routeName),
+                    LogFields.Field("contentAnchors", discovery.AnchorCount),
+                    LogFields.Field("contentAnchorCandidates", discovery.CandidateCount),
+                    LogFields.Field("contentAnchorAccepted", discovery.AcceptedCount),
+                    LogFields.Field("contentAnchorRoute", anchorSet.RouteCount),
+                    LogFields.Field("contentAnchorActivity", anchorSet.ActivityCount),
+                    LogFields.Field("contentAnchorLocal", anchorSet.LocalCount),
+                    LogFields.Field("contentAnchorRequired", anchorSet.RequiredCount),
+                    LogFields.Field("contentAnchorOptional", anchorSet.OptionalCount),
+                    LogFields.Field("contentAnchorRoot", anchorSet.RootCount),
+                    LogFields.Field("contentAnchorSlot", anchorSet.SlotCount),
+                    LogFields.Field("contentAnchorPoint", anchorSet.PointCount),
+                    LogFields.Field("contentAnchorIssues", discovery.IssueCount),
+                    LogFields.Field("contentAnchorInvalid", discovery.InvalidAuthoringCount),
+                    LogFields.Field("contentAnchorRouteMismatch", discovery.SkippedRouteMismatchCount),
+                    LogFields.Field("contentAnchorDuplicateIdentity", anchorSet.DuplicateIdentityIssueCount),
+                    LogFields.Field("contentAnchorDuplicateId", anchorSet.DuplicateAnchorIdIssueCount)));
+            _logger.Debug(
+                "QA Content Anchor Diagnostics Smoke diagnostics.",
+                LogFields.Field("details", discovery.ToDiagnosticString()));
+            return true;
+        }
+
+        private bool ValidateMinimum(string metricName, int expectedMinimum, int actual, string stepName, string routeName)
+        {
+            if (actual >= expectedMinimum)
+            {
+                return true;
+            }
+
+            _logger.Warning($"QA Content Anchor Diagnostics Smoke step failed. step='{FormatValue(stepName)}' route='{FormatValue(routeName)}' metric='{FormatValue(metricName)}' reason='Metric below expectation' expectedMinimum='{expectedMinimum}' actual='{actual}'.");
+            return false;
+        }
+
+        private bool ValidateExact(string metricName, int expected, int actual, string stepName, string routeName)
+        {
+            if (actual == expected)
+            {
+                return true;
+            }
+
+            _logger.Warning($"QA Content Anchor Diagnostics Smoke step failed. step='{FormatValue(stepName)}' route='{FormatValue(routeName)}' metric='{FormatValue(metricName)}' reason='Metric did not match expectation' expected='{expected}' actual='{actual}'.");
+            return false;
+        }
+
+        private bool ValidateOptionalExact(string metricName, int expected, int actual, string stepName, string routeName)
+        {
+            return expected < 0 || ValidateExact(metricName, expected, actual, stepName, routeName);
         }
 
         private static bool IsValidRouteCallbackDispatch(RouteContentLifecycleDispatchResult result)

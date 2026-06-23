@@ -45,6 +45,18 @@ namespace Immersive.Framework.SceneLifecycle
             return components;
         }
 
+        public static IReadOnlyList<T> GetComponentsInLoadedScene<T>(string scenePath, string sceneName)
+            where T : Component
+        {
+            var scene = FindLoadedScene(scenePath, sceneName);
+            if (!scene.IsValid() || !scene.isLoaded)
+            {
+                return Array.Empty<T>();
+            }
+
+            return GetComponentsInScene<T>(scene);
+        }
+
         public static bool TryGetLoadedPrimaryScene(RouteAsset route, out Scene scene)
         {
             scene = default;
@@ -71,6 +83,26 @@ namespace Immersive.Framework.SceneLifecycle
             }
 
             return false;
+        }
+
+        private static Scene FindLoadedScene(string scenePath, string sceneName)
+        {
+            int sceneCount = SceneManager.sceneCount;
+            for (int i = 0; i < sceneCount; i++)
+            {
+                var candidate = SceneManager.GetSceneAt(i);
+                if (!candidate.IsValid() || !candidate.isLoaded)
+                {
+                    continue;
+                }
+
+                if (MatchesScene(candidate, scenePath, sceneName))
+                {
+                    return candidate;
+                }
+            }
+
+            return default;
         }
 
         private static IReadOnlyList<T> GetComponentsInScene<T>(Scene scene)
@@ -131,14 +163,24 @@ namespace Immersive.Framework.SceneLifecycle
                 return false;
             }
 
-            if (!string.IsNullOrWhiteSpace(route.PrimaryScenePath)
-                && string.Equals(scene.path, route.PrimaryScenePath, StringComparison.OrdinalIgnoreCase))
+            return MatchesScene(scene, route.PrimaryScenePath, route.PrimarySceneName);
+        }
+
+        private static bool MatchesScene(Scene scene, string scenePath, string sceneName)
+        {
+            if (!scene.IsValid())
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(scenePath)
+                && string.Equals(scene.path, scenePath, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
 
-            return !string.IsNullOrWhiteSpace(route.PrimarySceneName)
-                && string.Equals(scene.name, route.PrimarySceneName, StringComparison.OrdinalIgnoreCase);
+            return !string.IsNullOrWhiteSpace(sceneName)
+                && string.Equals(scene.name, sceneName, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

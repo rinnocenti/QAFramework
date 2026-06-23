@@ -113,3 +113,8 @@ Authoring Validation
 ```
 
 Dedicated Content Anchor smoke starts after loaded Route discovery exists.
+
+
+## F7F — Route Content Anchor discovery
+
+F7F discovers valid `RouteContentAnchor` components from loaded Route scenes into a local diagnostic `ContentAnchorSet`. It is discovery-only and does not create validators, required-anchor blocking, runtime binding, placement or consumers.

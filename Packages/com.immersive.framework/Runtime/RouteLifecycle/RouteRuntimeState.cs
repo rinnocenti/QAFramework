@@ -1,6 +1,7 @@
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.Identity;
 using Immersive.Framework.SceneLifecycle;
 
@@ -19,6 +20,7 @@ namespace Immersive.Framework.RouteLifecycle
             SceneLifecycleLoadResult sceneLifecycleResult,
             RouteSceneCompositionResult routeSceneCompositionResult,
             RouteContentSet routeContentSet,
+            ContentAnchorDiscoveryResult contentAnchorDiscoveryResult,
             ActivityFlowStartResult activityFlowResult,
             string source,
             string reason,
@@ -29,6 +31,7 @@ namespace Immersive.Framework.RouteLifecycle
             SceneLifecycleResult = sceneLifecycleResult;
             RouteSceneCompositionResult = routeSceneCompositionResult;
             RouteContentSet = routeContentSet;
+            ContentAnchorDiscoveryResult = contentAnchorDiscoveryResult;
             ActivityFlowResult = activityFlowResult;
             Source = source ?? string.Empty;
             Reason = reason ?? string.Empty;
@@ -44,6 +47,10 @@ namespace Immersive.Framework.RouteLifecycle
         public RouteSceneCompositionResult RouteSceneCompositionResult { get; }
 
         public RouteContentSet RouteContentSet { get; }
+
+        public ContentAnchorDiscoveryResult ContentAnchorDiscoveryResult { get; }
+
+        public ContentAnchorSet ContentAnchorSet => ContentAnchorDiscoveryResult.AnchorSet;
 
         public ActivityFlowStartResult ActivityFlowResult { get; }
 
@@ -68,6 +75,10 @@ namespace Immersive.Framework.RouteLifecycle
         public bool HasIdentity => RouteIdentity.IsValid;
 
         public bool HasRouteContent => RouteContentSet.HasContent;
+
+        public bool HasContentAnchors => ContentAnchorSet.HasAnchors;
+
+        public bool HasContentAnchorIssues => ContentAnchorDiscoveryResult.HasIssues;
 
         public bool HasActiveActivity => ActivityState.IsActive;
 
@@ -103,6 +114,7 @@ namespace Immersive.Framework.RouteLifecycle
             SceneLifecycleLoadResult sceneLifecycleResult,
             RouteSceneCompositionResult routeSceneCompositionResult,
             RouteContentSet routeContentSet,
+            ContentAnchorDiscoveryResult contentAnchorDiscoveryResult,
             ActivityFlowStartResult activityFlowResult,
             string source,
             string reason)
@@ -113,6 +125,7 @@ namespace Immersive.Framework.RouteLifecycle
                 sceneLifecycleResult,
                 routeSceneCompositionResult,
                 routeContentSet,
+                contentAnchorDiscoveryResult,
                 activityFlowResult,
                 source,
                 reason,

@@ -60,3 +60,7 @@ Docs técnicos:
 - [`ContentAnchor/CONTENT_ANCHOR_SET.md`](ContentAnchor/CONTENT_ANCHOR_SET.md)
 
 `COMPLETENESS_TRACKER.md` consolida o estado que antes estava espalhado por arquivos de fechamento e aceite.
+
+- `Documentation~/ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md` — F7F diagnostic discovery of Route Content Anchors into a local ContentAnchorSet.
+
+- `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md` — dedicated QA smoke for Route Content Anchor diagnostics.

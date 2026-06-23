@@ -384,6 +384,7 @@ GameObject:
   - component: {fileID: 854131035}
   - component: {fileID: 854131034}
   - component: {fileID: 854131033}
+  - component: {fileID: 854131036}
   m_Layer: 0
   m_Name: QA_RouteContent_Canonical
   m_TagString: Untagged
@@ -434,6 +435,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &854131036
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 854131032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 134cb78cce964751b2812795bb0ef959, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ContentAnchor.RouteContentAnchor
+  route: {fileID: 11400000, guid: c782be7cec6147dfa0cbc5006f8e36dc, type: 2}
+  anchorId: anchor.route.first
+  kind: 10
+  requiredness: 10
+  displayName: Teste Anchor
+  description: Opaa
 --- !u!1 &1580731781
 GameObject:
   m_ObjectHideFlags: 0
@@ -594,6 +613,7 @@ MonoBehaviour:
   routeSceneCompositionRoute: {fileID: 11400000, guid: c782be7cec6147dfa0cbc5006f8e36dc, type: 2}
   expectedRouteSceneLoadedCount: 2
   expectedRouteSceneOwnedLoadedCount: 2
+  expectedRouteReleaseReleasedCount: 1
   primaryActivity: {fileID: 11400000, guid: a9fb61714d4d4cdd95b7ddb0835a7a29, type: 2}
   secondaryActivity: {fileID: 11400000, guid: 4f86e4e9c7dd4ef19428ee7863c8bcd6, type: 2}
   noContentActivity: {fileID: 11400000, guid: d7594dc5aefa4a84ad13ec90641f936f, type: 2}

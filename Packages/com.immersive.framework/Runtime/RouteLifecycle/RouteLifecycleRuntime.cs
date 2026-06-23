@@ -5,6 +5,7 @@ using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.SceneLifecycle;
 using Immersive.Framework.ContentFlow;
+using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.ApiStatus;
 
 namespace Immersive.Framework.RouteLifecycle
@@ -21,6 +22,7 @@ namespace Immersive.Framework.RouteLifecycle
         private readonly RouteContentRuntime _routeContentRuntime = new RouteContentRuntime();
         private readonly RouteSceneCompositionRuntime _routeSceneCompositionRuntime;
         private readonly ContentReleaseRuntime _contentReleaseRuntime;
+        private readonly ContentAnchorDiscoveryRuntime _contentAnchorDiscoveryRuntime = new ContentAnchorDiscoveryRuntime();
         private readonly EventBus<RouteEnteredEvent> _routeEnteredEvents = new EventBus<RouteEnteredEvent>();
         private readonly EventBus<RouteExitedEvent> _routeExitedEvents = new EventBus<RouteExitedEvent>();
         private RouteRuntimeState _currentRouteState;
@@ -111,6 +113,11 @@ namespace Immersive.Framework.RouteLifecycle
                 routeSceneCompositionResult,
                 source,
                 reason);
+            var contentAnchorDiscoveryResult = _contentAnchorDiscoveryRuntime.DiscoverRouteAnchors(
+                route,
+                routeSceneCompositionResult,
+                source,
+                reason);
 
             var routeContentEnterResult = _routeContentRuntime.EnterRouteContent(route, previousRoute, source, reason);
 
@@ -126,6 +133,7 @@ namespace Immersive.Framework.RouteLifecycle
                 sceneLifecycleResult,
                 routeSceneCompositionResult,
                 routeContentSet,
+                contentAnchorDiscoveryResult,
                 routeContentEnterResult,
                 routeContentExitResult,
                 releaseResult,

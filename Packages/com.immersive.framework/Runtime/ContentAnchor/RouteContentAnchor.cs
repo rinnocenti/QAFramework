@@ -66,6 +66,11 @@ namespace Immersive.Framework.ContentAnchor
 
         public bool IsOptional => requiredness == ContentAnchorRequiredness.Optional;
 
+        internal bool MatchesRoute(RouteAsset candidateRoute)
+        {
+            return candidateRoute != null && route != null && ReferenceEquals(route, candidateRoute);
+        }
+
         public bool IsSceneAuthored => gameObject.scene.IsValid() && gameObject.scene.isLoaded;
 
         public string ObjectName => gameObject != null ? gameObject.name : "<missing>";

@@ -334,7 +334,7 @@ F7E followed this cut.
 
 ## 15. F7E — ContentAnchorSet
 
-Status: Applied / pending compile-smoke
+Status: Closed / pass
 
 F7E adds the passive scoped set model:
 
@@ -373,4 +373,47 @@ Next authorized cut:
 
 ```text
 F7F — Route Content Anchor discovery
+```
+
+---
+
+## 16. F7F — Route Content Anchor discovery
+
+Status: Closed / PASS
+
+F7F discovers authored `RouteContentAnchor` components from the scenes loaded by `RouteSceneCompositionResult`, converts valid anchors into `ContentAnchorDeclaration`, and builds a local diagnostic `ContentAnchorSet` for the active Route.
+
+Discovery is attached to `RouteLifecycleStartResult` and `RouteRuntimeState` for diagnostics only. Boot and route request logs now include `contentAnchors`, `contentAnchorCandidates`, `contentAnchorIssues`, `contentAnchorInvalid` and `contentAnchorRouteMismatch`.
+
+F7F intentionally does not add validators, required-anchor blocking, Activity anchors, runtime binding/placement, RuntimeRootRegistry, prefab materialization or gameplay consumers.
+
+Smoke validation confirmed `contentAnchors='1'`, `contentAnchorCandidates='1'`, `contentAnchorIssues='0'`, `contentAnchorInvalid='0'` and `contentAnchorRouteMismatch='0'` for the QA Canonical Route.
+
+---
+
+## 17. F7G — Content Anchor diagnostics smoke + QA Canvas cleanup
+
+Status: Applied / pending compile-smoke
+
+F7G adds a dedicated QA smoke for Content Anchor diagnostics and reduces the visible QA Canvas buttons to the current validation path.
+
+The new smoke validates the active Route's `ContentAnchorDiscoveryResult` and `ContentAnchorSet` counts. It is still diagnostic-only: no validator rules, required-anchor blocking, Activity anchors, runtime binding/placement, RuntimeRootRegistry, prefab materialization or gameplay consumers are introduced.
+
+Visible QA buttons after this cut:
+
+```text
+Run Standard Smoke
+Run Activity Baseline Smoke
+Run Local Contribution Smoke
+Validate Loaded Local Contributions
+Reset QA Scenario
+Run Route Scene Composition Smoke
+Run Route Release Smoke
+Run Content Anchor Diagnostics Smoke
+```
+
+Next authorized cut:
+
+```text
+F7H — Content Anchor authoring validation
 ```

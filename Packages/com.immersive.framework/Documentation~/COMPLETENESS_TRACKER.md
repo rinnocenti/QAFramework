@@ -15,7 +15,7 @@ Este arquivo substitui os antigos documentos de fechamento e aceite de fase. Os 
 | F4 | `CLOSED / ACTIVITY BASELINE PASS` | Activity baseline closed | `Activity/ACTIVITY_RUNTIME_STATE_REFINED.md`, `Activity/ACTIVITY_CONTENT_SET_MINIMAL.md`, `Activity/ACTIVITY_CONTENT_LIFECYCLE_RESULT.md`, `Activity/ACTIVITY_READINESS_STATE_MINIMAL.md`, `Activity/ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md`, `Activity/ACTIVITY_BASELINE_SMOKE.md` |
 | F5 | `CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS` | F5H local smoke passed; F5 closure audit completed | `Local/LOCAL_CONTENT_IDENTITY.md` |
 | F6 | `CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS` | F6G release smoke passed; F6 closed | `Planning/F6-Route-Scene-Composition-Audit.md`, `Route/ROUTE_CONTENT_PROFILE_USAGE.md`, `Route/ROUTE_SCENE_COMPOSITION_SMOKE.md`, `Route/ROUTE_RELEASE_SMOKE.md`, `ADRs/F6-route-scene-composition-and-release/` |
-| F7 | `OPEN / CONTENT ANCHOR DECLARATION` | F7D Route Content Anchor authoring closed/pass; F7E ContentAnchorSet applied and pending compile-smoke | `Planning/F7-Content-Anchor-Declaration-Audit.md`, `ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md`, `ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md`, `ContentAnchor/CONTENT_ANCHOR_SET.md`, `ADRs/F7-content-anchor-declaration/` |
+| F7 | `OPEN / CONTENT ANCHOR DECLARATION` | F7F discovery closed/pass; F7G diagnostics smoke + QA Canvas cleanup applied and pending compile-smoke | `Planning/F7-Content-Anchor-Declaration-Audit.md`, `ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md`, `ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md`, `ContentAnchor/CONTENT_ANCHOR_SET.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md`, `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md`, `ADRs/F7-content-anchor-declaration/` |
 
 ## Consolidation rule
 
@@ -40,7 +40,7 @@ Keep these docs as the durable record for implementation details:
 
 | Next authorized step | Reason |
 |---|---|
-| `F7F — Route Content Anchor discovery` | F7E introduces the passive scoped set model. Next work may discover authored Route anchors into a set only; do not start validators, lifecycle binding, RuntimeRoot/materialization or gameplay consumers yet. |
+| `F7H — Content Anchor authoring validation` | F7G adds the dedicated diagnostics smoke and trims QA buttons to the current validation path. Next work may add validator rules/guardrails only; do not start runtime binding, RuntimeRoot/materialization or gameplay consumers yet. |
 
 ## F5 closure audit
 
@@ -226,10 +226,14 @@ F7C did not add authoring components, discovery, validators, registry/set, smoke
 
 F7D introduced `RouteContentAnchor` as the first passive Route-scoped authoring component. It does not add discovery, validators, registry/set, smoke buttons, runtime binding or consumers.
 
-F7E introduced the passive `ContentAnchorSet` model. It records unique `ContentAnchorDeclaration` items and local duplicate/invalid issues. It does not discover scene objects, integrate with Route lifecycle, validate authoring globally, emit logs, bind runtime content or serve gameplay consumers.
+F7E introduced the passive `ContentAnchorSet` model. It records unique `ContentAnchorDeclaration` items and local duplicate/invalid issues. It does not discover scene objects, integrate with Route lifecycle, validate authoring globally, emit logs, bind runtime content or serve gameplay consumers. F7E closed/pass by smoke.
+
+F7F discovers scene-authored `RouteContentAnchor` components from loaded Route scenes into a local diagnostic `ContentAnchorSet`. It emits Content Anchor counts in boot/route request diagnostics. It does not validate required anchors, expose a registry, bind runtime content or serve gameplay consumers. F7F closed/pass by smoke with one valid anchor and zero issues.
+
+F7G adds `Run Content Anchor Diagnostics Smoke` and trims the visible QA Canvas buttons to the current validation path. It does not add validators, required-anchor blocking, Activity anchors, runtime binding/placement, RuntimeRootRegistry, prefab materialization or gameplay consumers.
 
 Next authorized cut:
 
 ```text
-F7F — Route Content Anchor discovery
+F7H — Content Anchor authoring validation
 ```
