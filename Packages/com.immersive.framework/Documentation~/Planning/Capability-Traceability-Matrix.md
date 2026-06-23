@@ -728,7 +728,7 @@ Antes de abrir um corte técnico, responder:
 | **F6** | RouteSceneCompositionPlan/Result, additive scene primitive, Route content profile execution, ContentReleasePlan/Result, owned additive scene release execution |
 | **F7** | Content Anchor identity primitives, Root/Slot/Point declarations, Route Content Anchor authoring, ContentAnchorSet, Route discovery, diagnostics smoke, validation and duplicate detection |
 | **F8** | Runtime ownership primitives, RuntimeContentHandle, RuntimeScopeRoot/internal registry, RuntimeContentRuntime/RuntimeScopeContext, lifecycle integration, materialization request/result, transition guard/scoped cancellation, adapter boundary, runtime release policy, runtime content closure smoke |
-| **F9** | Content Anchor binding request/result, Content Anchor content handle, Runtime Content Anchor binding, spawn origin/slot, Content Anchor lifecycle policy |
+| **F9** | Content Anchor binding request/result/content handle [F9A applied], Runtime Content Anchor binding, spawn origin/slot, Content Anchor lifecycle policy |
 | **F10** | Transition request/policy/result, loading progress, input lock policy, ActivityContentProfile execution, Activity-owned content, Activity reset baseline |
 | **F11** | Participation boundary, PlayerSlot/ParticipantId, Live Capability Inventory, RuntimeCapabilityReference, Local reset/release/snapshot participants, exit freeze, Consumer Descriptor Pattern |
 | **F12** | Input mode, input owner, Snapshot envelope/participants/set, Save backend port, SaveSlot/progression/migration, Pause content anchor consumer, Pause state/lifecycle |

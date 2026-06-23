@@ -553,9 +553,9 @@ F9 continua sendo a ponte técnica entre espaço authored e runtime content. Ela
 | ID | Entrega | Detalhes |
 |---|---|---|
 | IF-FW-ROAD-9A | ADR: Content Anchor binding and runtime placement | Reafirmar que binding resolve espaço e ownership; não cria feature concreta. |
-| IF-FW-ROAD-9B | `ContentAnchorBindingRequest` | Solicita root/slot/point por identity explícita e owner scope. |
-| IF-FW-ROAD-9C | `ContentAnchorBindingResult` | Resultado tipado com diagnostics, status e eventual handle. |
-| IF-FW-ROAD-9D | `ContentAnchorContentHandle` | Handle que correlaciona Content Anchor, runtime content e release order. |
+| IF-FW-ROAD-9B | `ContentAnchorBindingRequest` | APPLIED F9A — solicita root/slot/point por identity explícita e runtime scope context. |
+| IF-FW-ROAD-9C | `ContentAnchorBindingResult` | APPLIED F9A — resultado tipado com diagnostics, status e eventual handle. |
+| IF-FW-ROAD-9D | `ContentAnchorContentHandle` | APPLIED F9A — handle passivo que correlaciona Content Anchor e runtime content; release order fica para corte posterior. |
 | IF-FW-ROAD-9E | `RuntimeContentAnchorBinding` | Usa RuntimeContent contracts; não possui lifecycle próprio. |
 | IF-FW-ROAD-9F | Binding release order | Binding libera antes do release do content owner/root. |
 | IF-FW-ROAD-9G | Content Anchor binding smoke | Anchor/slot resolved -> binding created -> release order validado -> zero orphan. |
@@ -1004,30 +1004,28 @@ F4 — CLOSED / ACTIVITY BASELINE PASS
 F5 — CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS
 F6 — CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS
 F7 — CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS
-F8 — OPEN / RUNTIME ROOTS AND MATERIALIZATION
+F8 — CLOSED / RUNTIME CONTENT SMOKE PASS
+F9 — OPEN / F9A CONTENT ANCHOR BINDING CONTRACTS
 ```
 
-No package atual, F8I existe como boundary de adapter (`IRuntimeMaterializationAdapter`) sem implementação física. F8J adiciona release lógico (`RuntimeReleaseRequest/Result/Policy/Status`) e `IRuntimeReleaseAdapter`, também sem implementação física. F8K adiciona o handoff explícito `ApplyMaterializationResult` e o Runtime Content Smoke.
+No package atual, F8I existe como boundary de adapter (`IRuntimeMaterializationAdapter`) sem implementação física. F8J adiciona release lógico (`RuntimeReleaseRequest/Result/Policy/Status`) e `IRuntimeReleaseAdapter`, também sem implementação física. F8K adiciona o handoff explícito `ApplyMaterializationResult` e o Runtime Content Smoke. F9A adiciona `ContentAnchorBindingRequest`, `ContentAnchorBindingResult`, `ContentAnchorBindingStatus` e `ContentAnchorContentHandle`.
 
 ## Ação imediata
 
 ```text
-Validar F8K por compile/import smoke e pelo botão `Run Runtime Content Smoke` no QA Canvas.
+Validar F9A por compile/import smoke. Não há Play Mode behavior novo neste corte.
 ```
 
-Depois de F8K, não há novo corte técnico autorizado dentro de F8 salvo correção de defeito encontrado no smoke. O próximo gate é validação:
+Depois de F9A compilar limpo, o próximo corte autorizado é o runtime lógico de binding, ainda sem placement físico:
 
 ```text
-Compile/import smoke
-Run Runtime Content Smoke
+F9B — RuntimeContentAnchorBinding logical runtime
 ```
-
-A implementação de F9+ não deve começar até F8K passar no Runtime Content Smoke.
 
 ## Não avançar ainda
 
 ```text
-Content Anchor binding runtime
+Physical Content Anchor placement
 Transition/loading runtime
 ActivityContentProfile execution
 Participation boundary

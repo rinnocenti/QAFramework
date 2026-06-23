@@ -124,6 +124,11 @@ namespace Immersive.Framework.ContentAnchor
             return TryGetByAnchorId(scope, ownerStableText, anchorId, out _);
         }
 
+        public bool Contains(ContentAnchorBindingRequest request)
+        {
+            return TryGetByBindingRequest(request, out _);
+        }
+
         public bool TryGetByIdentity(string stableText, out ContentAnchorDeclaration declaration)
         {
             var normalized = Normalize(stableText);
@@ -176,6 +181,34 @@ namespace Immersive.Framework.ContentAnchor
 
             declaration = default;
             return false;
+        }
+
+        public bool TryGetByBindingRequest(
+            ContentAnchorBindingRequest request,
+            out ContentAnchorDeclaration declaration)
+        {
+            if (!request.IsValid || !HasAnchors)
+            {
+                declaration = default;
+                return false;
+            }
+
+            if (!TryGetByAnchorId(
+                    request.AnchorScope,
+                    request.AnchorOwner.StableText,
+                    request.AnchorId.StableText,
+                    out declaration))
+            {
+                return false;
+            }
+
+            if (declaration.Kind != request.AnchorKind)
+            {
+                declaration = default;
+                return false;
+            }
+
+            return true;
         }
 
         public IReadOnlyList<ContentAnchorDeclaration> GetByScope(ContentAnchorScope scope)

@@ -47,9 +47,18 @@ GetByScope
 GetByKind
 GetByRequiredness
 Contains
+TryGetByBindingRequest
 ```
 
 ---
+
+
+
+## F9A binding lookup helper
+
+F9A adds `TryGetByBindingRequest(...)` and `Contains(ContentAnchorBindingRequest)`.
+
+These helpers are still passive set queries. They only resolve a `ContentAnchorBindingRequest` against declarations already present in the set. They do not create anchors, discover scenes, materialize runtime content, move transforms or bind consumers.
 
 ## Duplicate semantics
 

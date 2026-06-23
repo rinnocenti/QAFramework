@@ -23,7 +23,8 @@ F4 — CLOSED / ACTIVITY BASELINE PASS
 F5 — CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS
 F6 — CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS
 F7 — CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS
-F8 — OPEN / RUNTIME ROOTS AND MATERIALIZATION
+F8 — CLOSED / RUNTIME CONTENT SMOKE PASS
+F9 — OPEN / CONTENT ANCHOR BINDING CONTRACTS
 ```
 
 F6 closes the first Route scene composition and release baseline:
@@ -48,6 +49,8 @@ Documentation~/RuntimeContent/RUNTIME_SCOPE_ROOT_REGISTRY.md
 Documentation~/RuntimeContent/RUNTIME_CONTENT_RUNTIME.md
 Documentation~/RuntimeContent/RUNTIME_ROOT_LIFECYCLE_INTEGRATION.md
 Documentation~/RuntimeContent/RUNTIME_MATERIALIZATION_REQUEST_RESULT.md
+Documentation~/RuntimeContent/RUNTIME_RELEASE_POLICY_LOGICAL_EXECUTION.md
+Documentation~/ContentAnchor/CONTENT_ANCHOR_BINDING_CONTRACTS.md
 Documentation~/Route/ROUTE_CONTENT_PROFILE_USAGE.md
 Documentation~/Route/ROUTE_SCENE_COMPOSITION_SMOKE.md
 Documentation~/Route/ROUTE_RELEASE_SMOKE.md
@@ -65,9 +68,9 @@ Documentation~/ADRs/
 
 ## Current hard boundary
 
-The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release, Content Anchor declaration and RuntimeContent contracts/guardrails and logical release through F8K in the uploaded package.
+The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release, Content Anchor declaration, RuntimeContent contracts/guardrails/logical release through F8K, and F9A Content Anchor binding contracts.
 
-F8 remains the active gate before F9+ code starts. F8 may continue only with F8 closure smoke. F8 must not create Content Anchor binding, Activity anchors, Actor, Pause, Camera, UI, Save, Input or Pooling consumers.
+F8 is closed. F9 is now the active gate. F9 may connect Content Anchor declarations to RuntimeContent contracts, but it must not create Activity anchors, Actor, Pause, Camera, UI, Save, Input, Pooling, scene adapter, prefab adapter or physical placement consumers.
 
 F9+ has been realigned as documentation so that missing `NewScripts` capabilities are tracked without creating side paths:
 
@@ -89,10 +92,10 @@ Documentation~/Planning/F9Plus-Roadmap-Realignment.md
 Documentation~/Planning/Foundation-Hardening-Backlog.md
 ```
 
-Next technical work remains inside F8 until F8 closes:
+Current F9 technical work:
 
 ```text
-F8J — runtime release policy / logical release execution [APPLIED / COMPILE-SMOKE PASS]
-F8K — runtime request/guard/release-policy smoke and F8 closure [APPLIED / PENDING COMPILE + SMOKE]
+F9A — Content Anchor binding request/result/content handle [APPLIED / PENDING COMPILE-SMOKE]
+F9B — RuntimeContentAnchorBinding logical runtime [NEXT]
 ```
 

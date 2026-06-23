@@ -50,21 +50,9 @@ O erro de planejamento foi tratar transition/loading como presentation pura. A p
 
 ## O que não muda
 
-F8 continua sendo a fronteira atual antes de F9+.
+F8 foi fechado após o Runtime Content Smoke de F8K. F9+ pode iniciar porque request, guard e release-policy já provaram o caminho lógico sem stale scope ou orphan.
 
-F8 ainda deve fechar:
-
-```text
-Runtime ownership
-Runtime scope context
-Materialization request/result
-Transition guard/scoped cancellation
-Adapter boundary
-Runtime release policy
-F8 closure smoke
-```
-
-F9+ não deve começar enquanto F8 não provar que request/guard/release-policy não deixam stale scope ou orphan.
+A primeira implementação de F9 deve permanecer contratual: binding request/result/handle, sem placement físico e sem consumer final.
 
 ---
 
@@ -131,12 +119,12 @@ F15/FX Productization, tooling and hardening
 
 ## Não objetivos deste corte
 
-Este corte não altera runtime/editor code.
+O realinhamento original foi documental. A implementação começou em F9A com contratos de binding.
 
-Não implementa:
+F9A ainda não implementa:
 
 ```text
-ContentAnchorBinding
+RuntimeContentAnchorBinding
 TransitionRuntime
 ActivityContentProfile execution
 Participation runtime
