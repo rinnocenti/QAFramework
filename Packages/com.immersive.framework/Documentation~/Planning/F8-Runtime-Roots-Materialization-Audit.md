@@ -49,7 +49,7 @@ Ainda não existe:
 - runtime root por escopo;
 - runtime content handle;
 - materialization request/result;
-- prefab materializer;
+- implementação de adapter físico;
 - runtime content release policy;
 - binding entre Content Anchor e runtime content;
 - Activity Content Anchor;
@@ -165,7 +165,7 @@ RuntimeMaterializationRequest
 → RuntimeContentHandle
 ```
 
-O materializer concreto inicial deve ser simples e local, provavelmente `PrefabContentMaterializer`.
+O framework core não deve introduzir um materializer físico inicial. O core deve parar em contratos, ownership, guardas e release lógico; prefab, cena, Addressables ou pooling devem ser adapters explícitos fora do core.
 
 F8 não deve materializar Actor, Pause, Camera, UI ou pooled objects.
 
@@ -182,7 +182,7 @@ Diferença:
 | F6 scene release | `ContentReleasePlan` descarrega additional Route scenes owned. |
 | F8 runtime release | `RuntimeContentHandle` libera instâncias criadas em runtime. |
 
-O primeiro release real de F8 pode destruir GameObject instanciado por prefab materializer. Pool return fica fora da F8.
+F8J deve definir release lógico por handle/escopo dentro do core. Destruir GameObject, devolver ao pool, descarregar Addressables ou liberar cenas são responsabilidades de adapters explícitos fora do core ou de trilhos já existentes, como F6 para cenas.
 
 ---
 
@@ -231,15 +231,15 @@ Criar/posicionar conteúdo runtime usando ContentAnchorRoot/Slot/Point.
 | `F8F` | Integração do runtime owner/context aos lifecycles de Session/Route/Activity. `APPLIED` |
 | `F8G` | `RuntimeMaterializationRequest` / `RuntimeMaterializationResult`. `APPLIED` |
 | `F8H` | Transition guard + scoped cancellation. `APPLIED` |
-| `F8I` | `PrefabContentMaterializer` simples. `NEXT` |
+| `F8I` | Materialization adapter boundary. `NEXT` |
 | `F8J` | Runtime release execution por scope. |
 | `F8K` | Runtime materialization/release smoke e fechamento F8. |
 
 F8 foi realinhada após F8D para inserir `RuntimeContentRuntime` e `RuntimeScopeContext` antes de request/result de materialização. A ordem nova evita criar request pública sem owner interno explícito para roots e handles. Nenhum consumer deve entrar antes de handle/root/context/release mínimos.
 
-F8F aplica a primeira integração real com lifecycle: `FrameworkRuntimeHost` cria o root lógico de Session; `RouteLifecycleRuntime` cria/remove roots lógicos de Route; `ActivityFlowRuntime` cria/remove roots lógicos de Activity. A integração produz diagnostics via `RuntimeScopeLifecycleResult`, mas ainda não materializa prefab, não cria hierarchy root e não executa release físico.
+F8F aplica a primeira integração real com lifecycle: `FrameworkRuntimeHost` cria o root lógico de Session; `RouteLifecycleRuntime` cria/remove roots lógicos de Route; `ActivityFlowRuntime` cria/remove roots lógicos de Activity. A integração produz diagnostics via `RuntimeScopeLifecycleResult`, mas ainda não executa materialização física, não cria hierarchy root e não executa release físico.
 
-F8G aplica o contrato explícito de materialização: `RuntimeMaterializationRequest`, `RuntimeMaterializationResult`, `RuntimeMaterializationResource` e `RuntimeMaterializationStatus`. O request usa `RuntimeScopeContext + RuntimeContentId + RuntimeMaterializationResource`; o result reporta status/handle/mensagem. F8H adiciona transition guard e `RuntimeScopeCancellationToken`, impedindo request novo quando o owner scope está cancelando/removido e permitindo validar token stale antes/depois de materializers futuros. Ainda não há materializer concreto, `Instantiate`, `Destroy` ou Content Anchor binding.
+F8G aplica o contrato explícito de materialização: `RuntimeMaterializationRequest`, `RuntimeMaterializationResult`, `RuntimeMaterializationResource` e `RuntimeMaterializationStatus`. O request usa `RuntimeScopeContext + RuntimeContentId + RuntimeMaterializationResource`; o result reporta status/handle/mensagem. F8H adiciona transition guard e `RuntimeScopeCancellationToken`, impedindo request novo quando o owner scope está cancelando/removido e permitindo validar token stale antes de qualquer adapter externo. Ainda não há adapter físico no core, `Instantiate`, `Destroy` ou Content Anchor binding.
 
 ---
 
@@ -248,11 +248,11 @@ F8G aplica o contrato explícito de materialização: `RuntimeMaterializationReq
 F8 só fecha quando houver smoke demonstrando:
 
 ```text
-Prefab materializado
-handle retornado
+request criado com owner/context corretos
+guard rejeita escopo stale/cancelado
+handle muda estado de release sem fallback
 root de owner correto
-release executado no scope correto
-zero orphan após release
 sem GameObject.Find
+sem Instantiate/Destroy no core
 sem fallback silencioso
 ```

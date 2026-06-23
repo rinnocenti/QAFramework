@@ -54,7 +54,7 @@ No roadmap original, additive scene support aparece dentro de “Runtime roots e
 ```text
 Scene composition
 ≠ Runtime spawned roots
-≠ Prefab materialization
+≠ Materialização física runtime
 ```
 
 Correção:
@@ -440,7 +440,7 @@ Objetivo: separar scene composition de runtime spawned/materialization.
 
 ### Não entra
 
-- Prefab materializer.
+- Materialization adapter boundary.
 - Runtime spawned.
 - Pool.
 - Content Anchor consumers.
@@ -500,7 +500,7 @@ F7G — CLOSED / PASS
 F7H — CLOSED / PASS
 F7I — CLOSED / DOCS
 F7J — CLOSED / DOCS
-Next — F8I / PrefabContentMaterializer
+Next — F8I / Materialization adapter boundary
 ```
 
 Naming guardrail: do not reintroduce the rejected previous placement-point vocabulary or `duplicated anchor naming` as canonical concept names.
@@ -519,12 +519,12 @@ Objetivo: criar materialização runtime genérica, sem actor/projectile/pool.
 | IF-FW-ROAD-8C | `RuntimeContentHandle` | `APPLIED`: Identity, owner scope, state and passive release diagnostics. |
 | IF-FW-ROAD-8D | `RuntimeScopeRoot` + internal registry | `APPLIED`: Root lógico por escopo/owner, registry interno, sem `GameObject.Find`, sem hierarchy root real ainda. |
 | IF-FW-ROAD-8E | `RuntimeContentRuntime` + `RuntimeScopeContext` | `APPLIED`: Owner interno do registry/context/handles e contexto explícito por owner, sem materialization request/result ainda. |
-| IF-FW-ROAD-8F | Lifecycle integration for runtime roots | `APPLIED`: Session/Route/Activity criam/removem roots lógicos e contextos explicitamente no lifecycle, sem materializar prefabs. |
-| IF-FW-ROAD-8G | `RuntimeMaterializationRequest` / `Result` | `APPLIED`: Request/result/resource/status explícitos depois do owner/context/lifecycle roots; sem materializer concreto. |
-| IF-FW-ROAD-8H | Transition guard + scoped cancellation | `APPLIED`: Guardas para transição e cancelamento por escopo antes do materializer concreto. |
-| IF-FW-ROAD-8I | `PrefabContentMaterializer` | `NEXT`: Primeiro materializer concreto e local. |
+| IF-FW-ROAD-8F | Lifecycle integration for runtime roots | `APPLIED`: Session/Route/Activity criam/removem roots lógicos e contextos explicitamente no lifecycle, sem executar materialização física. |
+| IF-FW-ROAD-8G | `RuntimeMaterializationRequest` / `Result` | `APPLIED`: Request/result/resource/status explícitos depois do owner/context/lifecycle roots; sem adapter físico. |
+| IF-FW-ROAD-8H | Transition guard + scoped cancellation | `APPLIED`: Guardas para transição e cancelamento por escopo antes de qualquer adapter físico. |
+| IF-FW-ROAD-8I | Materialization adapter boundary | `NEXT`: Boundary explícita para adapters físicos externos ao core; sem Instantiate/Destroy no framework core. |
 | IF-FW-ROAD-8J | `RuntimeReleasePolicy` / release execution | Activity exit futuro, Route exit e Session shutdown. |
-| IF-FW-ROAD-8K | Runtime materialization smoke / F8 closure | Prefab → handle → release on exit → zero orphan. |
+| IF-FW-ROAD-8K | Runtime request/guard/release-policy smoke / F8 closure | request → guard → handle/release state → no stale scope/no fallback. |
 
 ### Não entra
 
@@ -742,7 +742,7 @@ Revisado:
 F1 primeiro define identity/status.
 F2 define SessionContent.
 F3/F4 estabilizam Route/Activity content.
-F8 só então cria materializer concreto.
+F8 cria contratos de materialização, guarda de transição e política de ownership; adapters físicos concretos ficam fora do core ou em cortes/pacotes próprios.
 ```
 
 ## 4. Additive scene support

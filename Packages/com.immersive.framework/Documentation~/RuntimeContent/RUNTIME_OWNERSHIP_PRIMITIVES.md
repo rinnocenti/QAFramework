@@ -57,7 +57,7 @@ F8D does not add:
 
 - runtime scope root GameObjects;
 - materialization request/result;
-- prefab materializer;
+- implementação de adapter físico;
 - release execution;
 - Content Anchor binding;
 - Actor, Pause, Camera, UI, Input, Save or Pooling consumers.
@@ -67,5 +67,5 @@ F8E introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeS
 Next authorized cut:
 
 ```text
-F8I — PrefabContentMaterializer
+F8I — Materialization adapter boundary
 ```

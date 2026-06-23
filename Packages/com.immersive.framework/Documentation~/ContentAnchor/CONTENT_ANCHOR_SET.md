@@ -93,7 +93,7 @@ ContentAnchorRegistry
 Content Anchor smoke
 Runtime binding
 RuntimeRootRegistry
-Prefab materialization
+Materialização física runtime
 Camera/Pause/UI/Actor consumers
 ```
 

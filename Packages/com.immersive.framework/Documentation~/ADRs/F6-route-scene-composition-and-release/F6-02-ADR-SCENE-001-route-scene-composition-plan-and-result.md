@@ -254,7 +254,7 @@ Observações:
 F6 Scene Composition não implementa:
 
 ```text
-Prefab materialization
+Materialização física runtime
 RuntimeRootRegistry
 RuntimeContentHandle avançado
 Content Anchor
@@ -378,7 +378,7 @@ Loaded additional scenes are Route-owned content handles.
 No unload/release is executed in F6E. Release planning is introduced in F6F and owned additive scene unload execution is introduced in F6G.
 ```
 
-F6E does not authorize Content Anchor, RuntimeRootRegistry, prefab materialization, Activity canonical materialization, Actor, Input, Camera, Save or Pooling work.
+F6E does not authorize Content Anchor, RuntimeRootRegistry, materialização física runtime, Activity canonical materialization, Actor, Input, Camera, Save or Pooling work.
 
 
 ---
@@ -428,4 +428,4 @@ routeReleaseFailed='0'
 routeReleaseBlockingIssues='0'
 ```
 
-The next authorized phase is F7 Content Anchor declaration. RuntimeRootRegistry, prefab materialization, Activity canonical materialization, Actor, Input, Camera, Save and Pooling remain outside F6.
+The next authorized phase is F7 Content Anchor declaration. RuntimeRootRegistry, materialização física runtime, Activity canonical materialization, Actor, Input, Camera, Save and Pooling remain outside F6.

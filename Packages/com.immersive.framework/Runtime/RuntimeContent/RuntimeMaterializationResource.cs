@@ -10,8 +10,6 @@ namespace Immersive.Framework.RuntimeContent
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8G resource descriptor for RuntimeMaterializationRequest; no asset loading or UnityEngine reference.")]
     public readonly struct RuntimeMaterializationResource : IEquatable<RuntimeMaterializationResource>
     {
-        public const string PrefabResourceType = "Prefab";
-
         public RuntimeMaterializationResource(
             string resourceType,
             string resourceKey,
@@ -96,18 +94,6 @@ namespace Immersive.Framework.RuntimeContent
         {
             return new RuntimeMaterializationResource(
                 resourceType,
-                resourceKey,
-                resourceName,
-                resourcePath);
-        }
-
-        public static RuntimeMaterializationResource Prefab(
-            string resourceKey,
-            string resourceName,
-            string resourcePath)
-        {
-            return new RuntimeMaterializationResource(
-                PrefabResourceType,
                 resourceKey,
                 resourceName,
                 resourcePath);

@@ -1,6 +1,6 @@
 # F8-02 — ADR-RUNTIME-002 — Materialization Request Result Handle
 
-Status: Accepted in F8A / Partially applied through F8C / Realigned in F8D1  
+Status: Accepted in F8A / Request-result contracts applied in F8G / Materializer-release pending  
 Fase: F8  
 Ordem no Plano: F8-02  
 Tipo: RuntimeSpawned / Content  
@@ -20,12 +20,12 @@ Materialização runtime deve seguir um fluxo explícito:
 
 ```text
 RuntimeMaterializationRequest
-→ materializer
+→ IFrameworkContentMaterializer.Materialize
 → RuntimeMaterializationResult
 → RuntimeContentHandle
 ```
 
-O materializer concreto inicial deve ser simples e local, como `PrefabContentMaterializer`.
+O adapter físico inicial deve viver fora do core do framework; o core define apenas request/result/handle/guard.
 
 `RuntimeContentHandle` é a referência canônica da instância criada. Ele deve carregar:
 
@@ -64,7 +64,7 @@ Portanto, F8 não deve criar `RuntimeContentAnchorBinding`.
 ### Positivas
 
 - Cria API testável.
-- Desacopla prefab spawn de consumers.
+- Desacopla materialização física de consumers.
 - Permite release por scope sem código específico de Actor/Pause/Camera.
 - Prepara Content Anchor binding em F9 sem capturar F8.
 
@@ -85,42 +85,16 @@ Portanto, F8 não deve criar `RuntimeContentAnchorBinding`.
 
 ## Critérios de validação futuros
 
-- Prefab materializa e retorna `RuntimeContentHandle`.
+- Adapter físico externo produz resultado/handle sem capturar ownership do core.
 - Handle tem identity e owner scope estáveis.
 - Release muda estado e limpa o objeto criado.
 - Double-release é seguro/diagnosticado.
 - Route/Activity scope release não deixa orphan.
 - Materializer não usa `GameObject.Find`.
 
-## F8D1 realignment
-
-This ADR remains accepted, but F8D1 changes the order of implementation.
-
-`RuntimeMaterializationRequest` and `RuntimeMaterializationResult` are no longer the immediate next cut after `RuntimeScopeRoot` and `RuntimeRootRegistry`.
-
-Required blockers before request/result:
-
-```text
-F8E RuntimeContentRuntime + RuntimeScopeContext
-F8F Lifecycle root integration
-```
-
-Reason:
-
-```text
-Request/result must receive owner/scope/source/reason from explicit lifecycle context. Materializer must not query global state to discover the active Route or Activity.
-```
-
-Rejected shapes:
-
-- public/global `IRuntimeContextProvider` for materializers;
-- separate `ActivityRuntimeContentRegistry` or `IActivityHandleRegistry` parallel to `RuntimeRootRegistry`;
-- `FrameworkUpdateDispatcher` / `ITickable` as F8 prerequisite;
-- Addressables dependency in the first materializer.
-
 ## Relação com roadmap
 
-F8A accepted the decision. F8C applied the passive handle part. F8D1 moves request/result to F8G, after owner/context and lifecycle root integration.
+F8A aceita a decisão. F8B-F8F applied ownership, handle, logical root, runtime owner/context and lifecycle root integration. F8G applies request/result/resource/status contracts. Concrete materializer and release execution remain pending.
 
 ## Notas de implementação
 

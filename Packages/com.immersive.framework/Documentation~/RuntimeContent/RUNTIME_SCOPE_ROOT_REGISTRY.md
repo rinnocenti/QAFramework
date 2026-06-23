@@ -68,7 +68,7 @@ F8D does not add:
 - `Instantiate`;
 - `Destroy`;
 - materialization request/result;
-- prefab materializer;
+- implementação de adapter físico;
 - runtime release execution;
 - Content Anchor binding;
 - Actor, Pause, Camera, UI, Input, Save or Pooling consumers.
@@ -78,5 +78,5 @@ F8E introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeS
 Next authorized cut:
 
 ```text
-F8I — PrefabContentMaterializer
+F8I — Materialization adapter boundary
 ```

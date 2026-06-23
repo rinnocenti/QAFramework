@@ -1,6 +1,6 @@
 # F8-01 — ADR-RUNTIME-001 — Runtime Ownership and Roots
 
-Status: Accepted in F8A / Applied through F8D / Realigned in F8D1  
+Status: Accepted in F8A / Implementation pending  
 Fase: F8  
 Ordem no Plano: F8-01  
 Tipo: RuntimeSpawned  
@@ -12,11 +12,11 @@ Escopo: Runtime roots
 
 F6 resolveu composição/release de cenas de Route. F7 resolveu declaração, discovery e validação de `ContentAnchor`. O framework ainda não possui ownership formal para GameObjects criados em runtime.
 
-Sem essa fronteira, materializers futuros tenderiam a criar roots ad hoc, depender de nomes de GameObject, usar `GameObject.Find` ou misturar ownership de Route/Activity/Session.
+Sem essa fronteira, adapters físicos futuros tenderiam a criar roots ad hoc, depender de nomes de GameObject, usar `GameObject.Find` ou misturar ownership de Route/Activity/Session.
 
 ## Decisão
 
-F8 deve criar ownership runtime por escopo antes de qualquer materializer concreto avançado.
+F8 deve criar ownership runtime por escopo antes de qualquer adapter físico avançado.
 
 Scopes autorizados:
 
@@ -84,33 +84,9 @@ Materializers não devem:
 - Nenhum `GameObject.Find` para resolver roots.
 - Nenhum conteúdo authored de cena é destruído por runtime root release.
 
-## F8D1 realignment
-
-F8B-F8D applied the passive ownership/root baseline:
-
-- `RuntimeContentScope`, `RuntimeContentState`, `RuntimeContentId`, `RuntimeContentOwner`, `RuntimeContentIdentity`;
-- `RuntimeContentHandle` and transition diagnostics;
-- logical `RuntimeScopeRoot` and internal `RuntimeRootRegistry`.
-
-F8D1 clarifies that the next gate is not request/result yet. The registry first needs an internal runtime owner and explicit scope context.
-
-Accepted next sequence:
-
-```text
-F8E RuntimeContentRuntime + RuntimeScopeContext
-F8F Lifecycle root integration
-F8G RuntimeMaterializationRequest / RuntimeMaterializationResult
-F8H Transition guard + scoped cancellation model
-F8I PrefabContentMaterializer
-F8J Runtime release execution
-F8K Runtime materialization/release smoke
-```
-
-F8 must not introduce a public/global `IRuntimeContextProvider`, service locator roots, a separate Activity handle registry, `FrameworkUpdateDispatcher`/`ITickable`, Addressables backend or assembly split.
-
 ## Relação com roadmap
 
-F8A accepted the decision. F8B-F8D applied the passive baseline. F8D1 realigns the remaining sequence.
+F8A aceita a decisão e mantém implementação para cortes F8B+.
 
 ## Notas de implementação
 

@@ -8,7 +8,7 @@ Accepted
 
 O framework chegou a um limite ao tentar avançar subsistemas como câmera sobre o modelo atual de conteúdo. `ActivityContentBinding` usa `SetActive` em GameObjects de cena e isso mistura identificação, ativação visual, lifecycle e contribuição para subsistemas.
 
-A auditoria do `NewScripts` mostrou que não existia uma única forma de materialização. Havia pelo menos estes padrões: runtime persistente de sessão, composição de cenas de rota, content profiles de Activity, discovery de contributors scene-authored, prefab materialization em slots, surface/slot contribution e runtime spawn/pool.
+A auditoria do `NewScripts` mostrou que não existia uma única forma de materialização. Havia pelo menos estes padrões: runtime persistente de sessão, composição de cenas de rota, content profiles de Activity, discovery de contributors scene-authored, materialização física runtime em slots, surface/slot contribution e runtime spawn/pool.
 
 A melhoria desejada não é copiar a pipeline antiga, mas centralizar a linguagem de materialização para que Route, Activity e subsistemas usem handles, scopes e contribution sets explícitos.
 

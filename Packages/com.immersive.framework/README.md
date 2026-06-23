@@ -67,13 +67,13 @@ Documentation~/ADRs/
 
 The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release for scene content. It is not yet a Content Anchor, RuntimeSpawned, Actor, Camera, Input, Save, Reset or Pooling framework.
 
-F7 is closed as the Content Anchor declaration baseline. F8 is now allowed only as Runtime Roots and Materialization groundwork: ownership primitives, scoped runtime roots, runtime content handles, request/result models, prefab materialization and runtime release. F8 must not create Content Anchor binding, Activity anchors, Actor, Pause, Camera, UI, Save, Input or Pooling consumers. F8B adds passive runtime ownership primitives: scope, owner, typed content id, identity and state vocabulary. F8C adds a passive `RuntimeContentHandle` surface for state transitions and release diagnostics without executing materialization or release. F8D adds a logical `RuntimeScopeRoot` and internal `RuntimeRootRegistry` for explicit root/handle registration without creating hierarchy GameObjects. F8E adds the internal `RuntimeContentRuntime` owner and explicit `RuntimeScopeContext` for scoped handle operations before any materialization request/result model. F8F connects Session, Route and Activity lifecycles to logical runtime root/context creation and removal without materializing or releasing objects physically. F8G adds `RuntimeMaterializationRequest`, `RuntimeMaterializationResult`, `RuntimeMaterializationResource` and `RuntimeMaterializationStatus` as explicit contracts before any concrete materializer. F8H adds transition guard and scoped cancellation tokens so requests cannot cross stale Route/Activity/Session scope transitions.
+F7 is closed as the Content Anchor declaration baseline. F8 is now allowed only as Runtime Roots and Materialization groundwork: ownership primitives, scoped runtime roots, runtime content handles, request/result models, materialization contracts, adapter boundaries and runtime release policy. F8 must not create Content Anchor binding, Activity anchors, Actor, Pause, Camera, UI, Save, Input or Pooling consumers. F8B adds passive runtime ownership primitives: scope, owner, typed content id, identity and state vocabulary. F8C adds a passive `RuntimeContentHandle` surface for state transitions and release diagnostics without executing materialization or release. F8D adds a logical `RuntimeScopeRoot` and internal `RuntimeRootRegistry` for explicit root/handle registration without creating hierarchy GameObjects. F8E adds the internal `RuntimeContentRuntime` owner and explicit `RuntimeScopeContext` for scoped handle operations before any materialization request/result model. F8F connects Session, Route and Activity lifecycles to logical runtime root/context creation and removal without physical materialization or physical release. F8G adds `RuntimeMaterializationRequest`, `RuntimeMaterializationResult`, `RuntimeMaterializationResource` and `RuntimeMaterializationStatus` as explicit contracts before any adapter físico. F8H adds transition guard and scoped cancellation tokens so requests cannot cross stale Route/Activity/Session scope transitions.
 
 ## F7 Content Anchor boundary
 
 `Content Anchor` is the canonical name for authored placement/reference points inside loaded content.
 
-F7 may define passive identity, declaration, authoring, discovery, diagnostics and validation for anchors. F7 must not create prefab materialization, runtime binding, Camera, Pause, UI, Actor, Save, Input or Pooling consumers.
+F7 may define passive identity, declaration, authoring, discovery, diagnostics and validation for anchors. F7 must not create materialização física runtime, runtime binding, Camera, Pause, UI, Actor, Save, Input or Pooling consumers.
 
 - `Documentation~/ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md` — F7F diagnostic discovery of Route Content Anchors into a local ContentAnchorSet.
 - `Documentation~/ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md` — F7G QA smoke for Content Anchor diagnostics.
@@ -109,5 +109,5 @@ F8H — transition guard + scoped cancellation
 Next authorized cut:
 
 ```text
-F8I — PrefabContentMaterializer
+F8I — Materialization adapter boundary
 ```

@@ -279,4 +279,4 @@ F8A — Runtime roots/materialization ADR-detail audit
 
 F7 closed after authoring validation smoke passed. The accepted baseline includes passive identity primitives, declaration models, `RouteContentAnchor` authoring, `ContentAnchorSet`, Route-scoped discovery, dedicated diagnostics smoke and loaded authoring validation.
 
-F7 intentionally does not add Activity anchors, required-anchor lifecycle blocking, runtime placement/binding, RuntimeRootRegistry, prefab materialization or gameplay consumers. Those belong to later phases, starting with F8 ADR/detail audit.
+F7 intentionally does not add Activity anchors, required-anchor lifecycle blocking, runtime placement/binding, RuntimeRootRegistry, materialização física runtime or gameplay consumers. Those belong to later phases, starting with F8 ADR/detail audit.

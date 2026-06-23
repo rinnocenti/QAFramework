@@ -77,7 +77,7 @@ required anchor blocking
 ContentAnchorRegistry
 runtime placement/binding
 RuntimeRootRegistry
-prefab materialization
+materialização física runtime
 Camera/Pause/UI/Actor consumers
 ```
 

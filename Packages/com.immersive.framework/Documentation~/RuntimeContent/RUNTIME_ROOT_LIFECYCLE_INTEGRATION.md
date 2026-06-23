@@ -64,7 +64,7 @@ F8F does not add:
 - `RuntimeMaterializationRequest`;
 - `RuntimeMaterializationResult`;
 - transition guard or scoped cancellation;
-- prefab materializer;
+- implementação de adapter físico;
 - physical release execution;
 - hierarchy root GameObjects;
 - `GameObject.Find`;
@@ -77,5 +77,5 @@ F8F does not add:
 ## Next cut
 
 ```text
-F8I — PrefabContentMaterializer
+F8I — Materialization adapter boundary
 ```

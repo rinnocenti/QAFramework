@@ -4,7 +4,7 @@ Status: `F8F UPDATED`
 
 `RuntimeContentHandle` is the passive canonical handle for one runtime-created content identity.
 
-It exists to carry ownership and lifecycle/release state. F8D can register handles inside a logical runtime scope root. F8F connects those roots to lifecycle-owned contexts, but materialization requests, prefab materialization and release execution still come later.
+It exists to carry ownership and lifecycle/release state. F8D can register handles inside a logical runtime scope root. F8F connects those roots to lifecycle-owned contexts. F8G/F8H add request/result and transition guard contracts, but physical materialization adapters stay outside the core.
 
 ## Responsibilities
 
@@ -49,7 +49,7 @@ F8D does not add:
 - runtime root GameObjects;
 - GameObject references inside the handle;
 - materialization request/result;
-- prefab materializer;
+- implementação de adapter físico;
 - release execution;
 - Content Anchor binding;
 - Actor, Pause, Camera, UI, Input, Save or Pooling consumers.
@@ -59,5 +59,5 @@ F8E introduced the internal `RuntimeContentRuntime` owner and explicit `RuntimeS
 Next authorized cut:
 
 ```text
-F8I — PrefabContentMaterializer
+F8I — Materialization adapter boundary
 ```

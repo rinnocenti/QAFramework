@@ -58,7 +58,7 @@ Essa enumeração pode ser implementada com nome equivalente, desde que preserve
 Route primary scene handles
 Activity local content
 Content Anchor bindings
-Runtime materialized prefabs
+Materialização física runtime
 Camera rigs
 Audio listener ownership
 Input maps
@@ -92,7 +92,7 @@ Route primary scene continua sendo Route content. Activity binding continua send
 - Runtime roots.
 - Persistent scenes.
 - Additive scene loading.
-- Prefab materialization.
+- Materialização física runtime.
 - Content Anchor placement.
 - Consumer ownership.
 - Release policy completa.

@@ -4,7 +4,7 @@ Status: `F8H UPDATED / CONTRACTS + SCOPED TOKEN`
 
 This document records the F8G runtime materialization contracts introduced after runtime ownership primitives, passive handles, logical roots, `RuntimeContentRuntime`, `RuntimeScopeContext` and lifecycle root integration. F8H extends the request with a scoped cancellation token.
 
-F8G does not materialize anything by itself. It defines the request/result language that a later concrete materializer must use.
+F8G does not materialize anything by itself. It defines the request/result language that a later adapter físico must use.
 
 ---
 
@@ -44,7 +44,7 @@ RuntimeScopeContext.Owner + RuntimeContentId
 
 ## Resource descriptor
 
-`RuntimeMaterializationResource` carries the input that a concrete materializer can interpret later:
+`RuntimeMaterializationResource` carries the input that a adapter físico can interpret later:
 
 ```text
 resourceType
@@ -57,13 +57,7 @@ resourcePath
 
 `resourceName` and `resourcePath` are diagnostics. They are not functional ownership keys.
 
-F8G includes a convenience descriptor for future prefab materialization:
-
-```text
-RuntimeMaterializationResource.Prefab(...)
-```
-
-It does not reference `UnityEngine.GameObject`.
+F8G intentionally keeps `RuntimeMaterializationResource` generic. It has `resourceType`, `resourceKey`, `resourceName` and `resourcePath`, but no canonical prefab/cena/addressable factory. External adapters may interpret `resourceType` explicitly outside the core.
 
 ---
 
@@ -102,11 +96,11 @@ RuntimeContentRuntime
               -> RuntimeMaterializationRequest
 ```
 
-Future chain after F8I:
+Future external adapter chain after F8I:
 
 ```text
 RuntimeMaterializationRequest
-  -> PrefabContentMaterializer
+  -> external physical adapter (prefab, scene, Addressables, pool, etc.)
       -> RuntimeMaterializationResult
           -> RuntimeContentHandle
 ```
@@ -117,8 +111,7 @@ RuntimeMaterializationRequest
 
 F8G does not add:
 
-- concrete materializer;
-- `PrefabContentMaterializer`;
+- implementação de adapter físico;
 - hierarchy root real;
 - `GameObject`;
 - `Transform`;
@@ -135,5 +128,5 @@ F8G does not add:
 ## Next cut
 
 ```text
-F8I — PrefabContentMaterializer
+F8I — Materialization adapter boundary
 ```

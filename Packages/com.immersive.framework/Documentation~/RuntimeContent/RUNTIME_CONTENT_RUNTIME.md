@@ -59,7 +59,7 @@ F8E does not add:
 
 - `RuntimeMaterializationRequest`;
 - `RuntimeMaterializationResult`;
-- prefab materializer;
+- implementação de adapter físico;
 - runtime root GameObjects;
 - `Transform` parent assignment;
 - `GameObject.Find`;
@@ -73,5 +73,5 @@ F8E does not add:
 Next authorized cut:
 
 ```text
-F8I — PrefabContentMaterializer
+F8I — Materialization adapter boundary
 ```

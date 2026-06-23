@@ -1760,7 +1760,7 @@ Risco atual:
 - Runtime identity.
 - Runtime handle.
 - Runtime root.
-- Prefab materialization.
+- Materialização física runtime.
 - Destroy release.
 - Scope enum.
 - Required/optional prefab.

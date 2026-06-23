@@ -4,7 +4,7 @@ Status: `F8H APPLIED / GUARDRAILS`
 
 This document records the F8H transition guard added after runtime ownership primitives, passive handles, logical roots, `RuntimeContentRuntime`, lifecycle root integration and materialization request/result contracts.
 
-F8H does not materialize anything by itself. It adds the guardrails required before a concrete materializer can safely instantiate runtime content.
+F8H does not materialize anything by itself. It adds the guardrails required before a adapter físico can safely instantiate runtime content.
 
 ---
 
@@ -69,7 +69,7 @@ source/reason
 
 `RuntimeContentRuntime.CreateMaterializationRequest(...)` now asks the guard whether materialization is allowed before creating the request.
 
-If the scope is cancelling, removed or missing, request creation is rejected before any concrete materializer can run.
+If the scope is cancelling, removed or missing, request creation is rejected before any adapter físico can run.
 
 F8H also adds `RuntimeContentRuntime.IsMaterializationRequestCurrent(...)` so a future materializer can validate the request again before and after side effects.
 
@@ -91,8 +91,8 @@ F8H also adds `RuntimeContentRuntime.IsMaterializationRequestCurrent(...)` so a 
 
 F8H does not add:
 
-- concrete materializer;
-- prefab materialization;
+- adapter físico;
+- materialização física runtime;
 - hierarchy root `GameObject`;
 - `Transform` parenting;
 - `Instantiate`;
@@ -109,5 +109,5 @@ F8H does not add:
 ## Next authorized cut
 
 ```text
-F8I — PrefabContentMaterializer
+F8I — Materialization adapter boundary
 ```

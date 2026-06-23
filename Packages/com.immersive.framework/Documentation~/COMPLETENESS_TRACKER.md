@@ -41,7 +41,7 @@ Keep these docs as the durable record for implementation details:
 
 | Next authorized step | Reason |
 |---|---|
-| `F8I — PrefabContentMaterializer` | F8H adds transition/cancellation guardrails. Next step may add the first concrete prefab materializer. |
+| `F8I — Materialization adapter boundary` | F8H adds transition/cancellation guardrails. Next step defines the adapter boundary and removes the interpretation that the framework core owns physical prefab instantiation. |
 
 ## F5 closure audit
 
@@ -154,7 +154,7 @@ Activity canonical materialization
 Activity release execution
 Content Anchor
 RuntimeRootRegistry
-Prefab materialization
+Materialização física runtime
 Runtime spawned content
 Actor/Input/Camera/Reset/Save/Pooling
 Addressables backend
@@ -205,7 +205,7 @@ F7A does not authorize:
 
 ```text
 RuntimeRootRegistry
-Prefab materialization
+Materialização física runtime
 RuntimeContentAnchorBinding
 ContentAnchorBindingRequest/Result
 Camera/Pause/UI/Actor/Audio consumers
@@ -231,7 +231,7 @@ F7E introduced the passive `ContentAnchorSet` model. It records unique `ContentA
 
 F7F discovers scene-authored `RouteContentAnchor` components from loaded Route scenes into a local diagnostic `ContentAnchorSet`. It emits Content Anchor counts in boot/route request diagnostics. It does not validate required anchors, expose a registry, bind runtime content or serve gameplay consumers. F7F closed/pass by smoke with one valid anchor and zero issues.
 
-F7G adds `Run Content Anchor Diagnostics Smoke` and trims the visible QA Canvas buttons to the current validation path. It does not add validators, required-anchor blocking, Activity anchors, runtime binding/placement, RuntimeRootRegistry, prefab materialization or gameplay consumers. F7G closed/pass by smoke.
+F7G adds `Run Content Anchor Diagnostics Smoke` and trims the visible QA Canvas buttons to the current validation path. It does not add validators, required-anchor blocking, Activity anchors, runtime binding/placement, RuntimeRootRegistry, materialização física runtime or gameplay consumers. F7G closed/pass by smoke.
 
 F7H adds loaded Route Content Anchor authoring validation to Project Settings validation, the Route Content Anchor Inspector and the QA Canvas `Validate Loaded Authoring` path. It detects missing Route, missing Anchor Id, `Kind = Unknown`, invalid requiredness, scene/Route declaration mismatch, duplicate identity and duplicate owner/scope/Anchor Id. It does not block Route lifecycle, enforce required anchors, add Activity anchors, bind placement or serve consumers.
 
@@ -254,7 +254,7 @@ F8 has implemented:
 
 F8 is still allowed to define and implement:
 
-- a simple prefab materializer;
+- materialization adapter boundary only, without physical implementation in core;
 - runtime release policy and smoke.
 
 F8 does not authorize:
@@ -270,5 +270,5 @@ F8 does not authorize:
 Next authorized cut:
 
 ```text
-F8I — PrefabContentMaterializer
+F8I — Materialization adapter boundary
 ```

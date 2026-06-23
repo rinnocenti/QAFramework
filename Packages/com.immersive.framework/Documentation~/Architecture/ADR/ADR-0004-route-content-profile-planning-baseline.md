@@ -33,7 +33,7 @@ The Route Lifecycle still materializes only the Primary Scene through the existi
 - Additive Route scene composition is intentionally deferred to the next cut.
 - Activity content remains unchanged.
 - `ActivityContentBinding` remains a local visibility adapter, not canonical content materialization.
-- No camera, audio, actor, pause, presentation, Addressables, or prefab materialization is introduced.
+- No camera, audio, actor, pause, presentation, Addressables, or materialização física runtime is introduced.
 
 ## Non-goals
 

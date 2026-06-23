@@ -222,7 +222,7 @@ F6 release não implementa:
 Pooling
 Runtime spawned content completo
 RuntimeRootRegistry
-Prefab materializer
+Physical materializer adapter
 Content Anchor binding
 Actor reset/release
 Snapshot/restore
@@ -369,7 +369,7 @@ Limites preservados:
 Primary Scene ativa não recebe unload manual.
 Somente ContentReleaseAction.UnloadScene é executável em F6G.
 DestroyRuntimeObject, ReturnToPool e CustomParticipantRelease continuam fora de escopo.
-Activity release, Content Anchor, RuntimeRootRegistry, prefab materialization, Actor/Input/Camera/Save/Pooling continuam fora de escopo.
+Activity release, Content Anchor, RuntimeRootRegistry, materialização física runtime, Actor/Input/Camera/Save/Pooling continuam fora de escopo.
 ```
 
 Diagnóstico validado em request que sai de uma Route com uma additional scene owned:

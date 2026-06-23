@@ -80,7 +80,7 @@ Content Anchor discovery
 Content Anchor validators
 smoke buttons
 RuntimeRootRegistry
-Prefab materialization
+Materialização física runtime
 Runtime binding
 Camera/Pause/UI/Actor consumers
 ```
