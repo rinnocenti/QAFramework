@@ -515,7 +515,7 @@ Objetivo: criar materialização runtime genérica, sem actor/projectile/pool.
 | ID | Entrega | Detalhes |
 |---|---|---|
 | IF-FW-ROAD-8A | ADR/detail audit: Runtime roots/materialization | Aceitar fronteira: Runtime Root ≠ Content Anchor; F8 não cria consumers. |
-| IF-FW-ROAD-8B | Runtime ownership primitives | Scope, owner, state e identity baseline para runtime-created content. |
+| IF-FW-ROAD-8B | Runtime ownership primitives | `APPLIED`: Scope, owner, state e identity baseline para runtime-created content. |
 | IF-FW-ROAD-8C | `RuntimeContentHandle` | Identity, owner scope, state, release diagnostics. |
 | IF-FW-ROAD-8D | `RuntimeScopeRoot` + internal registry | Root por escopo, registry interno, sem `GameObject.Find`. |
 | IF-FW-ROAD-8E | `RuntimeMaterializationRequest` / `Result` | Request/result explícitos. |

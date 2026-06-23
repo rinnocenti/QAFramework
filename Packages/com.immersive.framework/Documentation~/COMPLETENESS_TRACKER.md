@@ -16,7 +16,7 @@ Este arquivo substitui os antigos documentos de fechamento e aceite de fase. Os 
 | F5 | `CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS` | F5H local smoke passed; F5 closure audit completed | `Local/LOCAL_CONTENT_IDENTITY.md` |
 | F6 | `CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS` | F6G release smoke passed; F6 closed | `Planning/F6-Route-Scene-Composition-Audit.md`, `Route/ROUTE_CONTENT_PROFILE_USAGE.md`, `Route/ROUTE_SCENE_COMPOSITION_SMOKE.md`, `Route/ROUTE_RELEASE_SMOKE.md`, `ADRs/F6-route-scene-composition-and-release/` |
 | F7 | `CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS` | F7I closure completed after F7H smoke pass | `Planning/F7-Content-Anchor-Declaration-Audit.md`, `ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md`, `ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md`, `ContentAnchor/CONTENT_ANCHOR_SET.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md`, `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md`, `ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md`, `ADRs/F7-content-anchor-declaration/` |
-| F8 | `OPEN / RUNTIME ROOTS AND MATERIALIZATION AUDIT` | F8A docs applied; implementation pending | `Planning/F8-Runtime-Roots-Materialization-Audit.md`, `ADRs/F8-runtime-roots-and-materialization/` |
+| F8 | `OPEN / RUNTIME ROOTS AND MATERIALIZATION` | F8B runtime ownership primitives applied; handles/roots/materialization pending | `Planning/F8-Runtime-Roots-Materialization-Audit.md`, `RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md`, `ADRs/F8-runtime-roots-and-materialization/` |
 
 ## Consolidation rule
 
@@ -244,14 +244,17 @@ F7I — F7 closure
 
 ## F8 opening audit
 
-F8A accepted the runtime roots/materialization boundary as documentation-only. It does not change runtime behavior.
+F8A accepted the runtime roots/materialization boundary as documentation-only. F8B added passive runtime ownership primitives and still does not change runtime behavior.
 
-F8 is allowed to define and implement:
+F8 has implemented:
 
-- runtime ownership/scope/state primitives;
+- runtime ownership/scope/state primitives (`RuntimeContentScope`, `RuntimeContentState`, `RuntimeContentId`, `RuntimeContentOwner`, `RuntimeContentIdentity`).
+
+F8 is still allowed to define and implement:
+
+- runtime content handles;
 - runtime scope roots;
 - internal runtime root registry;
-- runtime content handles;
 - materialization request/result;
 - a simple prefab materializer;
 - runtime release policy and smoke.
@@ -269,5 +272,5 @@ F8 does not authorize:
 Next authorized cut:
 
 ```text
-F8B — Runtime ownership primitives
+F8C — RuntimeContentHandle passive and release state
 ```

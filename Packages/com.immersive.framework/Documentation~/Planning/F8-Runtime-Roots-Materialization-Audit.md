@@ -1,6 +1,6 @@
 # F8 — Runtime Roots and Materialization Audit
 
-Status: `F8A APPLIED / DOCS`
+Status: `F8B APPLIED / PRIMITIVES`
 
 F8 começa depois de F7 fechar o baseline de Content Anchor. F7 entregou identidade, declaração, authoring, discovery, diagnostics smoke e authoring validation para `RouteContentAnchor`, mas não criou runtime placement nem materialização.
 
@@ -19,6 +19,14 @@ Já existe:
 - unload físico de additional scenes owned;
 - `ContentAnchorId`, `ContentAnchorDeclaration`, `RouteContentAnchor`, `ContentAnchorSet`;
 - discovery e validation de `RouteContentAnchor` nas cenas carregadas.
+
+Já existe após F8B:
+
+- `RuntimeContentScope`;
+- `RuntimeContentState`;
+- `RuntimeContentId`;
+- `RuntimeContentOwner`;
+- `RuntimeContentIdentity`.
 
 Ainda não existe:
 
@@ -200,8 +208,8 @@ Criar/posicionar conteúdo runtime usando ContentAnchorRoot/Slot/Point.
 | Corte | Objetivo |
 |---|---|
 | `F8A` | ADR/detail audit de runtime roots/materialization. |
-| `F8B` | Primitivas de runtime ownership/scope/state. |
-| `F8C` | `RuntimeContentHandle` passivo e release state. |
+| `F8B` | Primitivas de runtime ownership/scope/state. `APPLIED` |
+| `F8C` | `RuntimeContentHandle` passivo e release state. `NEXT` |
 | `F8D` | `RuntimeScopeRoot` + registry interno mínimo. |
 | `F8E` | `RuntimeMaterializationRequest` / `RuntimeMaterializationResult`. |
 | `F8F` | `PrefabContentMaterializer` simples. |
