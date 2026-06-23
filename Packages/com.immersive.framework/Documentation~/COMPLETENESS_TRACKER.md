@@ -15,7 +15,7 @@ Este arquivo substitui os antigos documentos de fechamento e aceite de fase. Os 
 | F4 | `CLOSED / ACTIVITY BASELINE PASS` | Activity baseline closed | `Activity/ACTIVITY_RUNTIME_STATE_REFINED.md`, `Activity/ACTIVITY_CONTENT_SET_MINIMAL.md`, `Activity/ACTIVITY_CONTENT_LIFECYCLE_RESULT.md`, `Activity/ACTIVITY_READINESS_STATE_MINIMAL.md`, `Activity/ACTIVITY_LOCAL_VISIBILITY_ADAPTER.md`, `Activity/ACTIVITY_BASELINE_SMOKE.md` |
 | F5 | `CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS` | F5H local smoke passed; F5 closure audit completed | `Local/LOCAL_CONTENT_IDENTITY.md` |
 | F6 | `CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS` | F6G release smoke passed; F6 closed | `Planning/F6-Route-Scene-Composition-Audit.md`, `Route/ROUTE_CONTENT_PROFILE_USAGE.md`, `Route/ROUTE_SCENE_COMPOSITION_SMOKE.md`, `Route/ROUTE_RELEASE_SMOKE.md`, `ADRs/F6-route-scene-composition-and-release/` |
-| F7 | `OPEN / CONTENT ANCHOR DECLARATION` | F7G diagnostics smoke closed/pass; F7H authoring validation applied and pending compile-smoke | `Planning/F7-Content-Anchor-Declaration-Audit.md`, `ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md`, `ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md`, `ContentAnchor/CONTENT_ANCHOR_SET.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md`, `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md`, `ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md`, `ADRs/F7-content-anchor-declaration/` |
+| F7 | `CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS` | F7H loaded authoring validation smoke passed; F7 closed | `Planning/F7-Content-Anchor-Declaration-Audit.md`, `ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md`, `ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md`, `ContentAnchor/CONTENT_ANCHOR_SET.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md`, `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md`, `ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md`, `ADRs/F7-content-anchor-declaration/` |
 
 ## Consolidation rule
 
@@ -40,7 +40,7 @@ Keep these docs as the durable record for implementation details:
 
 | Next authorized step | Reason |
 |---|---|
-| `F7I — F7 closure` | F7H adds loaded Route Content Anchor authoring validation. After compile/smoke, close F7 with docs/guardrails only; do not start runtime binding, RuntimeRoot/materialization or gameplay consumers yet. |
+| `F8A — Runtime roots/materialization ADR-detail audit` | F7 is closed as Content Anchor declaration baseline. Start F8 with audit/ADR only; do not jump directly into materialization runtime, placement binding or gameplay consumers. |
 
 ## F5 closure audit
 
@@ -160,9 +160,9 @@ Addressables backend
 ```
 
 
-## F7 opening audit
+## F7 closure audit
 
-Status: `OPEN / CONTENT ANCHOR DECLARATION`.
+Status: `CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS`.
 
 F7A applied the Content Anchor ADR/detail audit. It is documentation-only and does not change runtime behavior.
 
@@ -232,10 +232,51 @@ F7F discovers scene-authored `RouteContentAnchor` components from loaded Route s
 
 F7G adds `Run Content Anchor Diagnostics Smoke` and trims the visible QA Canvas buttons to the current validation path. It does not add validators, required-anchor blocking, Activity anchors, runtime binding/placement, RuntimeRootRegistry, prefab materialization or gameplay consumers. F7G closed/pass by smoke.
 
-F7H adds loaded Route Content Anchor authoring validation to Project Settings validation, the Route Content Anchor Inspector and the QA Canvas `Validate Loaded Authoring` path. It detects missing Route, missing Anchor Id, `Kind = Unknown`, invalid requiredness, scene/Route declaration mismatch, duplicate identity and duplicate owner/scope/Anchor Id. It does not block Route lifecycle, enforce required anchors, add Activity anchors, bind placement or serve consumers.
+F7H adds loaded Route Content Anchor authoring validation to Project Settings validation, the Route Content Anchor Inspector and the QA Canvas `Validate Loaded Authoring` path. It detects missing Route, missing Anchor Id, `Kind = Unknown`, invalid requiredness, scene/Route declaration mismatch, duplicate identity and duplicate owner/scope/Anchor Id. It does not block Route lifecycle, enforce required anchors, add Activity anchors, bind placement or serve consumers. F7H closed/pass by smoke.
 
-Next authorized cut after F7H smoke:
+F7H PASS evidence:
 
 ```text
-F7I — F7 closure
+QA Authoring Validation completed. scope='Loaded Authoring' routeContentAnchors='1' issues='0' contentAnchors='1' contentAnchorIssues='0' contentAnchorDuplicateIdentity='0' contentAnchorDuplicateId='0'
+QA Smoke completed. name='Content Anchor Diagnostics Smoke'
+contentAnchors='1'
+contentAnchorAccepted='1'
+contentAnchorRequired='1'
+contentAnchorRoot='1'
+contentAnchorIssues='0'
+contentAnchorDuplicateIdentity='0'
+contentAnchorDuplicateId='0'
+```
+
+F7 implemented baseline:
+
+```text
+ContentAnchorId / Scope / Kind / Requiredness
+ContentAnchorDeclaration
+ContentAnchorRoot / Slot / Point
+RouteContentAnchor
+ContentAnchorSet
+Route Content Anchor discovery
+Content Anchor Diagnostics Smoke
+Loaded Authoring validation for Route Content Anchors
+```
+
+F7 does not authorize:
+
+```text
+ActivityContentAnchor
+required-anchor lifecycle blocking
+ContentAnchorRegistry as global service
+runtime placement/binding
+RuntimeRootRegistry
+prefab materialization
+Camera/Pause/UI/Actor/Audio consumers
+Input/Save/Pooling integration
+Addressables backend
+```
+
+Next authorized step:
+
+```text
+F8A — Runtime roots/materialization ADR-detail audit
 ```

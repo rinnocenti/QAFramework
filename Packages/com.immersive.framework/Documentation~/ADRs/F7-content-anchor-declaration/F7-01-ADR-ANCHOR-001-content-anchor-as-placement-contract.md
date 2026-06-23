@@ -1,6 +1,6 @@
 # F7-01 — ADR-ANCHOR-001 — Content Anchor as Placement Contract
 
-Status: Accepted / F7H authoring validation applied  
+Status: Accepted / F7 closed  
 Fase: F7  
 Ordem no Plano: F7-01  
 Tipo: Content Anchor  
@@ -262,10 +262,21 @@ F7F introduced diagnostic discovery of scene-authored `RouteContentAnchor` compo
 
 F7G introduced the dedicated Content Anchor diagnostics smoke and simplified the visible QA Canvas buttons to the current validation path.
 
-F7H introduces authoring validation for loaded `RouteContentAnchor` components. It reports missing Route, missing Anchor Id, `Kind = Unknown`, invalid Requiredness, scene/Route declaration mismatch and duplicate Content Anchor identity/id. It does not enforce Required anchors in Route lifecycle and does not add runtime binding, placement, Activity anchors or consumers.
+F7H introduced authoring validation for loaded `RouteContentAnchor` components. It reports missing Route, missing Anchor Id, `Kind = Unknown`, invalid Requiredness, scene/Route declaration mismatch and duplicate Content Anchor identity/id. It does not enforce Required anchors in Route lifecycle and does not add runtime binding, placement, Activity anchors or consumers.
 
-Próximo corte autorizado depois do smoke:
+F7I closed this phase as the Content Anchor declaration baseline.
+
+Next authorized phase:
 
 ```text
-F7I — F7 closure
+F8A — Runtime roots/materialization ADR-detail audit
 ```
+
+
+---
+
+## F7 closure note
+
+F7 closed after authoring validation smoke passed. The accepted baseline includes passive identity primitives, declaration models, `RouteContentAnchor` authoring, `ContentAnchorSet`, Route-scoped discovery, dedicated diagnostics smoke and loaded authoring validation.
+
+F7 intentionally does not add Activity anchors, required-anchor lifecycle blocking, runtime placement/binding, RuntimeRootRegistry, prefab materialization or gameplay consumers. Those belong to later phases, starting with F8 ADR/detail audit.

@@ -468,8 +468,8 @@ Objetivo: criar Content Anchor como contrato authored/local, sem camera/pause/UI
 | IF-FW-ROAD-7E | `ContentAnchorPoint` | Point authored tipado; substitui o nome ruim de anchor duplicado. |
 | IF-FW-ROAD-7F | `RouteContentAnchor` authoring | Primeiro componente público de authoring por escopo; declara anchors de Route sem materialização. |
 | IF-FW-ROAD-7G | `ContentAnchorSet` por scope | Route primeiro; Activity/Local só depois se a semântica continuar estável. |
-| IF-FW-ROAD-7H | Content Anchor authoring validation | Missing Route/id, invalid kind, scene/Route mismatch and duplicate anchor identity/id. |
-| IF-FW-ROAD-7I | F7 closure | Fechar docs e guardrails depois dos smokes. |
+| IF-FW-ROAD-7H | Content Anchor authoring validation | `CLOSED / PASS`: Missing Route/id, invalid kind, scene/Route mismatch and duplicate anchor identity/id covered by loaded authoring validation. |
+| IF-FW-ROAD-7I | F7 closure | `CLOSED / DOCS`: F7 declaration baseline closed; next phase is F8 ADR/detail audit. |
 
 ### Não entra
 
@@ -483,7 +483,7 @@ Objetivo: criar Content Anchor como contrato authored/local, sem camera/pause/UI
 ### Done
 
 ```text
-Content Anchor existe como dado e contrato.
+Content Anchor existe como dado, authoring, discovery diagnóstico e validação autoral carregada.
 Nenhum consumer concreto ainda capturou o modelo.
 ```
 
@@ -497,8 +497,9 @@ F7D — CLOSED / PASS
 F7E — CLOSED / PASS
 F7F — CLOSED / PASS
 F7G — CLOSED / PASS
-F7H — APPLIED / PENDING COMPILE-SMOKE
-Next — F7I / F7 closure
+F7H — CLOSED / PASS
+F7I — CLOSED / DOCS
+Next — F8A / Runtime roots/materialization ADR-detail audit
 ```
 
 Naming guardrail: do not reintroduce the rejected previous placement-point vocabulary or `duplicated anchor naming` as canonical concept names.
@@ -866,17 +867,17 @@ Escopo fechado:
 Próximo passo autorizado:
 
 ```text
-F7A — Content Anchor ADR/detail audit
+F8A — Runtime roots/materialization ADR-detail audit
 ```
 
-F7 deve começar por auditoria/ADR de Content Anchor declaration, sem RuntimeRoot/materialization ou consumers avançados.
+F8 deve começar por auditoria/ADR de Runtime roots/materialization, sem binding real de Content Anchor, prefab materialization ou consumers avançados no primeiro corte.
 
 ## Não avançar ainda
 
 ```text
 Expected contribution declarations
 Materialização canônica
-Content Anchor
+ActivityContentAnchor
 Runtime roots/materialization
 Input/Camera/Actor/Save/Pooling
 ```
@@ -884,9 +885,9 @@ Input/Camera/Actor/Save/Pooling
 Esses cortes dependem da identidade local tipada e das fases intermediárias do roadmap.
 
 
-## F7D–F7H — Route Content Anchor declaration/discovery/validation
+## F7D–F7I — Route Content Anchor declaration/discovery/validation
 
-Status: `F7H APPLIED / PENDING COMPILE-SMOKE`.
+Status: `F7 CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS`.
 
 F7D added `RouteContentAnchor` as the first passive Route-scoped public authoring component.
 
@@ -896,6 +897,6 @@ F7F added loaded Route Content Anchor discovery into a diagnostic route-local `C
 
 F7G added the dedicated Content Anchor diagnostics smoke and trimmed QA Canvas to the current validation path.
 
-F7H adds authoring validation for loaded `RouteContentAnchor` components: missing Route, missing Anchor Id, `Kind = Unknown`, invalid Requiredness, scene/Route declaration mismatch and duplicate Content Anchor identity/id. It does not enforce Required anchors in lifecycle and does not add Activity anchors, runtime binding, placement, RuntimeRoot/materialization or consumers.
+F7H adds authoring validation for loaded `RouteContentAnchor` components: missing Route, missing Anchor Id, `Kind = Unknown`, invalid Requiredness, scene/Route declaration mismatch and duplicate Content Anchor identity/id. It does not enforce Required anchors in lifecycle and does not add Activity anchors, runtime binding, placement, RuntimeRoot/materialization or consumers. F7H closed/pass by smoke.
 
-Next: `F7I — F7 closure`.
+F7I closes F7 as the Content Anchor declaration baseline. Next: `F8A — Runtime roots/materialization ADR-detail audit`.

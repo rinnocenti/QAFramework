@@ -67,4 +67,4 @@ Docs técnicos:
 - `Documentation~/ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md` — F7F diagnostic discovery of Route Content Anchors into a local ContentAnchorSet.
 
 - `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md` — dedicated QA smoke for Route Content Anchor diagnostics.
-- `ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md` — loaded authoring validation for Route Content Anchors.
+- `ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md` — loaded authoring validation for Route Content Anchors. F7 is closed as Content Anchor declaration baseline.

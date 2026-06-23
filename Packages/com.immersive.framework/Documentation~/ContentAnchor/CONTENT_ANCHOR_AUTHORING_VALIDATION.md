@@ -1,6 +1,6 @@
 # Content Anchor Authoring Validation
 
-Status: `F7H — APPLIED / PENDING COMPILE-SMOKE`
+Status: `F7H — CLOSED / PASS`
 
 F7H adds authoring-validation coverage for `RouteContentAnchor` without adding runtime binding, placement, required-anchor enforcement, Activity anchors or gameplay consumers.
 
@@ -69,4 +69,4 @@ prefab materialization
 Camera/Pause/UI/Actor consumers
 ```
 
-F7H is authoring-validation only.
+F7H is authoring-validation only and closed/pass by smoke. It does not alter Route lifecycle behavior.

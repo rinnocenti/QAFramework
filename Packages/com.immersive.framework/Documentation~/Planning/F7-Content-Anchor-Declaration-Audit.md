@@ -1,6 +1,6 @@
 # F7 — Content Anchor Declaration Audit
 
-Status: F7G closed / PASS; F7H applied / pending compile-smoke  
+Status: F7 closed / CONTENT ANCHOR DECLARATION BASELINE PASS  
 Package: `com.immersive.framework`  
 Scope: Content Anchor declaration baseline  
 Runtime changes in F7A: none
@@ -173,8 +173,8 @@ scope owner + anchor id + kind
 | F7E | ContentAnchorSet | Scoped result model and diagnostics. |
 | F7F | Loaded Route Content Anchor discovery | Discover anchors from loaded Route content only. |
 | F7G | Content Anchor diagnostics smoke | Manual QA smoke for discovered Route-scoped anchors. Closed/pass. |
-| F7H | Content Anchor authoring validation | Missing Route/id, invalid kind, route-scene mismatch and duplicate ids. Applied/pending smoke. |
-| F7I | F7 closure | Docs and guardrails. |
+| F7H | Content Anchor authoring validation | Closed/pass: missing Route/id, invalid kind, route-scene mismatch and duplicate ids are covered by loaded authoring validation. |
+| F7I | F7 closure | Closed/pass: docs and guardrails only. |
 
 Activity-scoped authoring may enter F7 only if Route-scoped authoring and set semantics remain stable. Otherwise, defer Activity anchors to a follow-up cut.
 
@@ -410,7 +410,7 @@ Run Content Anchor Diagnostics Smoke
 
 ## 18. F7H — Content Anchor authoring validation
 
-Status: Applied / pending compile-smoke
+Status: Closed / PASS
 
 F7H adds authoring-validation coverage for loaded `RouteContentAnchor` components. Validation reports missing Route, missing Anchor Id, `Kind = Unknown`, invalid Requiredness, scene/Route declaration mismatch and duplicate Content Anchor identities/ids.
 
@@ -422,8 +422,61 @@ Validate Loaded Authoring
 
 This cut does not enforce Required anchors in lifecycle and does not introduce Activity anchors, runtime binding/placement, RuntimeRootRegistry, prefab materialization or gameplay consumers.
 
-Next authorized cut after smoke:
+F7H smoke validation passed with loaded authoring validation reporting one valid Route Content Anchor and zero issues.
 
 ```text
-F7I — F7 closure
+QA Authoring Validation completed. scope='Loaded Authoring' routeContentAnchors='1' issues='0' contentAnchors='1' contentAnchorIssues='0' contentAnchorDuplicateIdentity='0' contentAnchorDuplicateId='0'
+```
+
+---
+
+## 19. F7I — F7 closure
+
+Status: Closed / PASS
+
+F7 is closed as the Content Anchor declaration baseline. It provides enough authored/diagnostic structure for later phases to consume anchors without inventing search conventions or hardcoded GameObject references.
+
+Closed baseline:
+
+```text
+F7A — Content Anchor ADR/detail audit                  CLOSED / DOCS
+F7B — ContentAnchor identity primitives                CLOSED / PASS
+F7C — ContentAnchor declaration model                  CLOSED / PASS
+F7D — Route Content Anchor authoring                   CLOSED / PASS
+F7E — ContentAnchorSet                                 CLOSED / PASS
+F7F — Route Content Anchor discovery                   CLOSED / PASS
+F7G — Content Anchor diagnostics smoke + QA cleanup    CLOSED / PASS
+F7H — Content Anchor authoring validation              CLOSED / PASS
+F7I — F7 closure                                       CLOSED / DOCS
+```
+
+Validated evidence:
+
+```text
+Boot succeeded with contentAnchors='1' and contentAnchorIssues='0'
+Validate Loaded Authoring PASS with routeContentAnchors='1' and issues='0'
+Content Anchor Diagnostics Smoke PASS
+Route Scene Composition Smoke PASS
+Route Release Smoke PASS
+Local Contribution Smoke PASS
+```
+
+F7 explicitly defers:
+
+```text
+ActivityContentAnchor
+required-anchor lifecycle blocking
+ContentAnchorRegistry as a global/service-like API
+runtime placement/binding
+RuntimeRootRegistry
+prefab materialization
+Camera/Pause/UI/Actor/Audio consumers
+Input/Save/Pooling integration
+Addressables backend
+```
+
+Next authorized phase:
+
+```text
+F8A — Runtime roots/materialization ADR-detail audit
 ```
