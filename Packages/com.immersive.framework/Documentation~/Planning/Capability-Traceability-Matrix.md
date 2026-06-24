@@ -179,9 +179,9 @@ Regras:
 | Content Anchor set por scope | Criar `ContentAnchorSet` passivo; discovery por scope em cortes separados | F7 | F7 | IF-FW-ROAD-7G | Fechado em F7E/F7F / PASS | Coberto | Foundation avançada | Runtime binding só na F9 | Baixo / controlado | Set único passivo; Route discovery implementado em F7F. Activity discovery permanece futuro. |
 | Content Anchor binding request/result | Criar `ContentAnchorBindingRequest/Result` | F9 | F9 | IF-FW-ROAD-9A, 9B | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
 | Content Anchor content handle | Criar `ContentAnchorContentHandle` | F9 | F9 | IF-FW-ROAD-9C | Ausente | Coberto | Foundation avançada | LocalContributionSet para discovery; Runtime binding só na F9 | Risco de ownership/lifetime incompleto | Sem ajuste. |
-| Runtime Content Anchor binding | Criar `RuntimeContentAnchorBinding` e smoke dedicado | F9 | F9 | IF-FW-ROAD-9D/9E/9G | F9F applied / cleanup smoke pending | Coberto | Foundation avançada | Binding lógico resolve ContentAnchorSet + RuntimeContentHandle; F9C/F9D validam bind idempotente, unbind e release lógico; F9E torna o binding runtime owned pelo FrameworkRuntimeHost; placement físico ainda futuro | Risco controlado; cleanup automático lógico aplicado; placement físico ainda futuro | Próximo: validar compile, reexecutar Content Anchor Binding Smoke e rodar Content Anchor Binding Cleanup Smoke. |
+| Runtime Content Anchor binding | Criar `RuntimeContentAnchorBinding` e smoke dedicado | F9 | F9 | IF-FW-ROAD-9D/9E/9G | F9J CLOSED / logical binding pass | Coberto | Foundation avançada | Binding lógico resolve ContentAnchorSet + RuntimeContentHandle; F9C/F9D/F9E/F9F/F9I validam bind idempotente, unbind, release lógico, host ownership, Route/Activity cleanup e Activity anchor binding; placement físico ainda futuro | Risco controlado; cleanup automático lógico validado; placement físico ainda futuro | Fechado em F9J; regressão opcional se binding/lifecycle mudar. |
 | Duplicate detection | Preservar em Content Anchor validators | F7 | F7 | IF-FW-ROAD-7H | Fechado em F7H / PASS | Coberto | Foundation avançada | ContentAnchorSet + Route discovery | Baixo / controlado | Validado por Loaded Authoring e Content Anchor Diagnostics Smoke: duplicidade de identity/id zerada. |
-| Content Anchor lifecycle policy | Preservar policy explícita de cleanup/release lógico | F9 | F9 | IF-FW-ROAD-9H | F9F applied / cleanup smoke pending | Coberto | Foundation avançada | RuntimeContentAnchorBinding + RuntimeContentHandle + release lógico + FrameworkRuntimeHost ownership | Risco controlado; cleanup automático ainda futuro | F9D adiciona cleanup/snapshots; F9E expõe owner/scope cleanup por API interna do host; F9F executa cleanup lógico automático em Route/Activity exit; sem placement físico. |
+| Content Anchor lifecycle policy | Preservar policy explícita de cleanup/release lógico | F9 | F9 | IF-FW-ROAD-9H | F9J CLOSED / logical binding pass | Coberto | Foundation avançada | RuntimeContentAnchorBinding + RuntimeContentHandle + release lógico + FrameworkRuntimeHost ownership | Risco controlado; cleanup automático validado | F9D adiciona cleanup/snapshots; F9E expõe owner/scope cleanup por API interna do host; F9F executa e valida cleanup lógico automático em Route/Activity exit; F9J fecha o bloco lógico; sem placement físico. |
 | Overlay root separado de content root | Reposicionar para consumers/layout após binding | F7 | F9/F10 | Deferred | Ausente / Deferred | Coberto com ajuste / Deferred | Consumer intermediário | RuntimeRoot/materialization + Content Anchor binding + Pause/UI consumer | Risco de entrar cedo demais | Não é baseline de declaração F7; depende de runtime placement e consumers de UI/Pause. |
 
 ### Input
@@ -604,9 +604,9 @@ Antes de abrir um corte técnico, responder:
 | Content Anchor set por scope | Route e Activity expõem seus `ContentAnchorSet`; consumers solicitam por identity. | Implícito por scope/stage | Criar `ContentAnchorSet` passivo; discovery por scope em cortes separados | F7 | IF-FW-ROAD-7G |
 | Content Anchor binding request/result | Consumer solicita Content Anchor por identity; resultado devolve handle. Consumer não controla lifetime. | Direto por adapter (problema) | Criar `ContentAnchorBindingRequest/Result` | F9 | IF-FW-ROAD-9A, 9B |
 | Content Anchor content handle | Handle de binding com release; consumer libera, não destrói. | Binding sem handle formal (problema) | Criar `ContentAnchorContentHandle` | F9 | IF-FW-ROAD-9C |
-| Runtime Content Anchor binding | Vincula logicamente RuntimeContentHandle a root/slot/point de Content Anchor; materialização física fica fora do core. | `RuntimeContentAnchorBinding` lógico + Content Anchor Binding Smoke | F9F applied / cleanup smoke pending; placement físico futuro | F9 | IF-FW-ROAD-9D/9E/9G |
+| Runtime Content Anchor binding | Vincula logicamente RuntimeContentHandle a root/slot/point de Content Anchor; materialização física fica fora do core. | `RuntimeContentAnchorBinding` lógico + Content Anchor Binding Smoke | F9J CLOSED / logical binding pass; placement físico futuro | F9 | IF-FW-ROAD-9D/9E/9G |
 | Duplicate detection | Detecta Content Anchor authoring/slot duplicado na mesma cena/scope. | Implícito em validators | Fechado em F7H por `ContentAnchorSet` + authoring validation | F7 | IF-FW-ROAD-7H |
-| Content Anchor lifecycle policy | Consumer/runtime libera binding antes de release lógico do runtime content. | `RuntimeContentAnchorBinding` cleanup/snapshots | F9F applied; cleanup automático lógico pendente de smoke | F9 | IF-FW-ROAD-9H |
+| Content Anchor lifecycle policy | Consumer/runtime libera binding antes de release lógico do runtime content. | `RuntimeContentAnchorBinding` cleanup/snapshots | F9F PASS; F9J closed logical cleanup coverage | F9 | IF-FW-ROAD-9H |
 | Overlay root separado de content root | Roles distintos para UI de pausa vs. conteúdo. | `ContentAnchorRoot.Role` implícito | Deferred para F9/F10; depende de runtime placement e consumers de UI/Pause | F9/F10 | Deferred |
 
 ---
@@ -728,7 +728,7 @@ Antes de abrir um corte técnico, responder:
 | **F6** | RouteSceneCompositionPlan/Result, additive scene primitive, Route content profile execution, ContentReleasePlan/Result, owned additive scene release execution |
 | **F7** | Content Anchor identity primitives, Root/Slot/Point declarations, Route Content Anchor authoring, ContentAnchorSet, Route discovery, diagnostics smoke, validation and duplicate detection |
 | **F8** | Runtime ownership primitives, RuntimeContentHandle, RuntimeScopeRoot/internal registry, RuntimeContentRuntime/RuntimeScopeContext, lifecycle integration, materialization request/result, transition guard/scoped cancellation, adapter boundary, runtime release policy, runtime content closure smoke |
-| **F9** | Content Anchor binding request/result/content handle [F9A applied], RuntimeContentAnchorBinding lógico [F9B applied], Content Anchor Binding Smoke [F9C PASS/F9D regression PASS], lifecycle cleanup/snapshots [F9D PASS], host-owned binding runtime [F9E PASS], automatic logical cleanup [F9F applied], spawn origin/slot e placement adapters ainda futuros |
+| **F9** | CLOSED logical Content Anchor binding: request/result/content handle [F9A], RuntimeContentAnchorBinding lógico [F9B], Route binding smoke [F9C PASS], lifecycle cleanup/snapshots [F9D PASS], host-owned binding runtime [F9E PASS], automatic logical cleanup [F9F PASS], Activity Content Anchor discovery/positive/binding [F9G/F9H/F9I PASS], placement adapters ainda futuros |
 | **F10** | Transition request/policy/result, loading progress, input lock policy, ActivityContentProfile execution, Activity-owned content, Activity reset baseline |
 | **F11** | Participation boundary, PlayerSlot/ParticipantId, Live Capability Inventory, RuntimeCapabilityReference, Local reset/release/snapshot participants, exit freeze, Consumer Descriptor Pattern |
 | **F12** | Input mode, input owner, Snapshot envelope/participants/set, Save backend port, SaveSlot/progression/migration, Pause content anchor consumer, Pause state/lifecycle |
@@ -768,6 +768,12 @@ Adds QA positive-path coverage for one valid Activity Content Anchor accepted by
 
 ### F9I — Activity Content Anchor binding smoke
 
-Status: `APPLIED / PENDING SMOKE`
+Status: `PASS`
 
-Adds QA Activity-scoped binding coverage for one valid Activity Content Anchor, including idempotent binding and Activity exit cleanup. Does not introduce placement, materialization adapters or gameplay consumers.
+Adds and validates QA Activity-scoped binding coverage for one valid Activity Content Anchor, including idempotent binding and Activity exit cleanup. Does not introduce placement, materialization adapters or gameplay consumers.
+
+### F9J — Content Anchor logical binding closure
+
+Status: `CLOSED`
+
+Closes F9 as the logical Content Anchor binding layer. Physical placement, prefab/scene/Addressables/pooling adapters, physical release and gameplay consumers remain future work.

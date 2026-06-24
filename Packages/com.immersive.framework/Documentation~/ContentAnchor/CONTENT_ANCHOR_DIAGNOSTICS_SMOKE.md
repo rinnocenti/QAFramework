@@ -1,6 +1,6 @@
 # Content Anchor Diagnostics Smoke
 
-Status: `F9I — ACTIVITY BINDING SMOKE APPLIED / PENDING SMOKE`.
+Status: `F9J — CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS`.
 
 This smoke validates the diagnostic-only Content Anchor discovery path introduced by F7F. It does not add validator rules, required-anchor blocking, runtime binding, placement, RuntimeRoot materialization or gameplay consumers.
 

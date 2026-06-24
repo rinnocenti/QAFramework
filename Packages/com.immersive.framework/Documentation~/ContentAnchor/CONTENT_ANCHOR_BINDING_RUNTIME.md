@@ -1,6 +1,6 @@
 # RuntimeContentAnchorBinding Logical Runtime
 
-Status: `F9I APPLIED / ACTIVITY ANCHOR BINDING SMOKE PENDING`
+Status: `F9J CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS`
 Corte base: `IF-FW-F9B-runtime-content-anchor-binding-logical-runtime`
 Corte validado: `IF-FW-F9C-content-anchor-binding-smoke-diagnostics` — PASS
 Corte anterior: `IF-FW-F9D-content-anchor-binding-lifecycle-policy` — PASS por regressão de smoke
@@ -216,7 +216,7 @@ F9F injeta o `RuntimeContentAnchorBinding` owned pelo `FrameworkRuntimeHost` nos
 
 ## F9I Activity-scoped binding smoke
 
-F9I adds `Run Activity Content Anchor Binding Smoke` to validate the Activity path:
+F9I adds and validates `Run Activity Content Anchor Binding Smoke` to validate the Activity path:
 
 ```text
 ActivityContentAnchor accepted by discovery
@@ -229,4 +229,30 @@ ActivityContentAnchor accepted by discovery
   -> Activity exit cleanup removes the remaining binding
 ```
 
-The smoke still does not create Transform placement, GameObject runtime roots, prefab/scene/Addressables/pooling adapters, physical release or gameplay consumers.
+The smoke passed and still does not create Transform placement, GameObject runtime roots, prefab/scene/Addressables/pooling adapters, physical release or gameplay consumers.
+
+
+## F9J closure
+
+F9J closes the logical binding layer after the Route binding, Route cleanup, Activity anchor diagnostics, Activity anchor positive path and Activity anchor binding smokes passed.
+
+Closed scope:
+
+```text
+host-owned logical binding runtime
+Route and Activity anchor binding paths
+idempotent binding
+manual unbind
+automatic logical cleanup on Route/Activity exit
+zero binding leak after smoke paths
+```
+
+Deferred scope:
+
+```text
+Transform placement
+physical GameObject runtime roots
+prefab/scene/Addressables/pooling adapters
+physical release
+gameplay consumers
+```

@@ -1,6 +1,6 @@
 # F9-01 — ADR-ANCHOR-002 — Content Anchor Binding and Runtime Placement
 
-Status: Accepted / F9F automatic logical binding cleanup applied
+Status: Accepted / F9J logical binding closure passed
 Fase: F9
 Ordem no Plano: F9-01
 Tipo: Content Anchor / Runtime
@@ -12,7 +12,7 @@ Escopo: ContentAnchorBinding
 
 F7 declarou Content Anchor como contrato authored/passivo de espaço. F8 cria RuntimeContent ownership, request/result, guardas e release policy. F9 é a ponte entre esses dois mundos.
 
-F9 não é Pause, Camera, Actor, UI ou loading screen. Ele resolve placement e release order para que esses consumers possam existir depois.
+F9 não é Pause, Camera, Actor, UI ou loading screen. Nesta versão, F9 fecha o binding lógico e a boundary de placement; physical placement/adapters ficam fora do core e são trabalho futuro de adapters/consumers.
 
 ---
 
@@ -28,7 +28,11 @@ F9B RuntimeContentAnchorBinding [applied as logical runtime]
 F9C Binding smoke and lifecycle diagnostics [PASS]
 F9D Binding lifecycle cleanup/snapshot policy [PASS]
 F9E FrameworkRuntimeHost ownership for binding runtime [PASS]
-F9F automatic logical binding cleanup on Route/Activity exit [applied]
+F9F automatic logical binding cleanup on Route/Activity exit [PASS]
+F9G ActivityContentAnchor authoring/discovery [PASS]
+F9H ActivityContentAnchor positive-path smoke [PASS]
+F9I ActivityContentAnchor binding smoke [PASS]
+F9J logical binding closure [CLOSED]
 ```
 
 Consumer solicita Content Anchor por identity. O runtime resolve root/slot/point, cria ou associa runtime content quando permitido, devolve handle e registra release order. Consumer não destrói o Content Anchor nem o runtime content diretamente.
@@ -70,7 +74,9 @@ F9D adiciona operações explícitas de cleanup/snapshot por runtime content, ru
 
 F9E torna o `FrameworkRuntimeHost` o owner canônico do `RuntimeContentAnchorBinding` e expõe métodos internos controlados para bind/unbind/snapshot. O smoke deixa de criar binding runtime local e passa a validar o runtime owned pelo host.
 
-F9F injeta esse runtime owned pelo host nos lifecycles de Route/Activity e executa cleanup lógico por `RuntimeContentOwner` no exit do owner antigo, antes da remoção do root lógico antigo. F9F não adiciona placement físico, prefab adapter, scene adapter, `Transform`, `GameObject`, `Instantiate` ou `Destroy`.
+F9F injeta esse runtime owned pelo host nos lifecycles de Route/Activity e executa cleanup lógico por `RuntimeContentOwner` no exit do owner antigo, antes da remoção do root lógico antigo. F9G/F9H adicionam e validam `ActivityContentAnchor` authoring/discovery. F9I valida binding lógico Activity-scoped com idempotência e cleanup por Activity exit. F9J fecha F9 como camada lógica.
+
+F9 não adiciona placement físico, prefab adapter, scene adapter, Addressables adapter, pooling adapter, `Transform`, `GameObject`, `Instantiate` ou `Destroy` no core.
 
 ## Regras
 
@@ -100,11 +106,16 @@ F9F injeta esse runtime owned pelo host nos lifecycles de Route/Activity e execu
 
 ## Critérios de validação
 
-- Binding falha se Content Anchor required ausente.
+Critérios fechados em F9J:
+
+- Route Content Anchor binding smoke passa com bind, idempotent rebind, unbind, logical release/unregister e zero binding leak.
+- Route exit cleanup smoke passa removendo binding lógico antes da remoção do owner/root antigo.
+- Activity Content Anchor diagnostics smoke passa mesmo com zero Activity anchors authored.
+- Activity Content Anchor positive smoke passa com um anchor temporário aceito.
+- Activity Content Anchor binding smoke passa com bind, idempotent rebind, logical release/unregister, Activity exit cleanup e zero binding leak.
 - Binding não cria root/anchor por fallback.
 - ContentAnchorContentHandle correlaciona anchor, runtime content e owner scope.
-- Release de binding ocorre antes do release do content/root owner.
-- Smoke confirma zero orphan.
+- Release físico, placement físico e adapters concretos continuam fora do core.
 
 ---
 

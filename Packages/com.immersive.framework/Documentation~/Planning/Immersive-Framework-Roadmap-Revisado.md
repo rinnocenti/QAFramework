@@ -1006,18 +1006,18 @@ F5 — CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS
 F6 — CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS
 F7 — CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS
 F8 — CLOSED / RUNTIME CONTENT SMOKE PASS
-F9 — OPEN / F9F AUTOMATIC LOGICAL BINDING CLEANUP PENDING SMOKE
+F9 — CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS
 ```
 
-No package atual, F8I existe como boundary de adapter (`IRuntimeMaterializationAdapter`) sem implementação física. F8J adiciona release lógico (`RuntimeReleaseRequest/Result/Policy/Status`) e `IRuntimeReleaseAdapter`, também sem implementação física. F8K adiciona o handoff explícito `ApplyMaterializationResult` e o Runtime Content Smoke. F9A adiciona `ContentAnchorBindingRequest`, `ContentAnchorBindingResult`, `ContentAnchorBindingStatus` e `ContentAnchorContentHandle`. F9B adiciona `RuntimeContentAnchorBinding` lógico. F9C adiciona e valida o smoke dedicado `Content Anchor Binding Smoke` no QA Canvas. F9D adiciona cleanup/snapshots de lifecycle local para bindings. F9E torna o `FrameworkRuntimeHost` owner do binding runtime por métodos internos controlados. F9F adiciona cleanup lógico automático de bindings por Route/Activity owner antes da remoção do root lógico antigo.
+No package atual, F8I existe como boundary de adapter (`IRuntimeMaterializationAdapter`) sem implementação física. F8J adiciona release lógico (`RuntimeReleaseRequest/Result/Policy/Status`) e `IRuntimeReleaseAdapter`, também sem implementação física. F8K adiciona o handoff explícito `ApplyMaterializationResult` e o Runtime Content Smoke. F9A adiciona `ContentAnchorBindingRequest`, `ContentAnchorBindingResult`, `ContentAnchorBindingStatus` e `ContentAnchorContentHandle`. F9B adiciona `RuntimeContentAnchorBinding` lógico. F9C adiciona e valida o smoke dedicado `Content Anchor Binding Smoke` no QA Canvas. F9D adiciona cleanup/snapshots de lifecycle local para bindings. F9E torna o `FrameworkRuntimeHost` owner do binding runtime por métodos internos controlados. F9F adiciona e valida cleanup lógico automático de bindings por Route/Activity owner antes da remoção do root lógico antigo. F9G/F9H/F9I adicionam e validam Activity Content Anchor authoring/discovery, positive-path smoke e Activity-scoped binding smoke. F9J fecha a camada lógica.
 
 ## Ação imediata
 
 ```text
-Validar F9F por compile/import smoke, reexecutar `Run Content Anchor Binding Smoke` como regressão e rodar `Run Content Anchor Binding Cleanup Smoke` para confirmar cleanup automático em Route exit. Não há placement físico novo.
+F9J registra PASS para os smokes lógicos: Content Anchor Binding, Content Anchor Binding Cleanup, Activity Content Anchor Diagnostics, Activity Content Anchor Positive e Activity Content Anchor Binding. Não há placement físico novo.
 ```
 
-Depois de F9F compilar e o smoke de cleanup passar, o próximo corte autorizado deve auditar a fronteira de placement adapter ou fechar o sub-bloco lógico de F9, ainda sem placement físico obrigatório no core.
+Depois de F9J, F9 está fechado como sub-bloco lógico. O próximo corte autorizado deve iniciar F10 por auditoria/planejamento de transition, loading e Activity content execution. Placement físico/adapters continuam fora do core até um corte específico.
 
 ## Não avançar ainda
 
@@ -1067,6 +1067,12 @@ Adds QA-only positive-path coverage for one valid Activity Content Anchor accept
 
 ### F9I — Activity Content Anchor binding smoke
 
-Status: `APPLIED / PENDING SMOKE`
+Status: `PASS`
 
-Adds QA-only Activity-scoped binding coverage using an accepted Activity Content Anchor, synthetic RuntimeContentHandle, idempotent binding and Activity exit cleanup. Does not introduce placement, materialization adapters or gameplay consumers.
+Adds and validates QA-only Activity-scoped binding coverage using an accepted Activity Content Anchor, synthetic RuntimeContentHandle, idempotent binding and Activity exit cleanup. Does not introduce placement, materialization adapters or gameplay consumers.
+
+### F9J — Content Anchor logical binding closure
+
+Status: `CLOSED`
+
+Closes F9 as the logical Content Anchor binding layer after Route binding, Route cleanup, Activity diagnostics, Activity positive path and Activity binding smokes passed. Does not introduce placement, materialization adapters or gameplay consumers.

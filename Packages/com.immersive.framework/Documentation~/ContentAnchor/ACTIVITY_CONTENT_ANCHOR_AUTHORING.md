@@ -1,6 +1,6 @@
 # Activity Content Anchor Authoring
 
-Status: `F9G — APPLIED / PENDING SMOKE`
+Status: `F9G/F9H/F9I — PASS; F9J CLOSED`
 Package: `com.immersive.framework`
 
 ---

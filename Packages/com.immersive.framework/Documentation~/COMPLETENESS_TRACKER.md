@@ -17,7 +17,7 @@ Este arquivo substitui os antigos documentos de fechamento e aceite de fase. Os 
 | F6 | `CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS` | F6G release smoke passed; F6 closed | `Planning/F6-Route-Scene-Composition-Audit.md`, `Route/ROUTE_CONTENT_PROFILE_USAGE.md`, `Route/ROUTE_SCENE_COMPOSITION_SMOKE.md`, `Route/ROUTE_RELEASE_SMOKE.md`, `ADRs/F6-route-scene-composition-and-release/` |
 | F7 | `CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS` | F7I closure completed after F7H smoke pass | `Planning/F7-Content-Anchor-Declaration-Audit.md`, `ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md`, `ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md`, `ContentAnchor/CONTENT_ANCHOR_SET.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md`, `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md`, `ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md`, `ADRs/F7-content-anchor-declaration/` |
 | F8 | `CLOSED / RUNTIME CONTENT SMOKE PASS` | F8K Runtime Content Smoke passed; F8 closed | `Planning/F8-Runtime-Roots-Materialization-Audit.md`, `RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md`, `RuntimeContent/RUNTIME_CONTENT_HANDLE.md`, `RuntimeContent/RUNTIME_SCOPE_ROOT_REGISTRY.md`, `RuntimeContent/RUNTIME_CONTENT_RUNTIME.md`, `RuntimeContent/RUNTIME_ROOT_LIFECYCLE_INTEGRATION.md`, `RuntimeContent/RUNTIME_MATERIALIZATION_REQUEST_RESULT.md`, `RuntimeContent/RUNTIME_TRANSITION_GUARD_SCOPED_CANCELLATION.md`, `RuntimeContent/RUNTIME_RELEASE_POLICY_LOGICAL_EXECUTION.md`, `ADRs/F8-runtime-roots-and-materialization/` |
-| F9 | `OPEN / F9I APPLIED / ACTIVITY CONTENT ANCHOR BINDING SMOKE PENDING` | F9H positive smoke passed; F9I adds an Activity-scoped Content Anchor binding smoke using Activity exit cleanup; compile/import and F9I smoke pending | `Planning/F9Plus-Roadmap-Realignment.md`, `ContentAnchor/CONTENT_ANCHOR_BINDING_CONTRACTS.md`, `ContentAnchor/CONTENT_ANCHOR_BINDING_RUNTIME.md`, `ContentAnchor/ACTIVITY_CONTENT_ANCHOR_AUTHORING.md`, `ContentAnchor/ACTIVITY_CONTENT_ANCHOR_DISCOVERY.md`, `ADRs/F9-content-anchor-binding-and-runtime-placement/` |
+| F9 | `CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS` | F9J closes the logical binding layer after Route and Activity anchor binding smokes passed; physical placement/adapters remain future work outside the core | `Planning/F9Plus-Roadmap-Realignment.md`, `ContentAnchor/CONTENT_ANCHOR_BINDING_CONTRACTS.md`, `ContentAnchor/CONTENT_ANCHOR_BINDING_RUNTIME.md`, `ContentAnchor/ACTIVITY_CONTENT_ANCHOR_AUTHORING.md`, `ContentAnchor/ACTIVITY_CONTENT_ANCHOR_DISCOVERY.md`, `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md`, `ADRs/F9-content-anchor-binding-and-runtime-placement/` |
 | F10 | `PLANNED / TRANSITION + ACTIVITY CONTENT` | New phase from NewScripts gap analysis | `ADRs/F10-transition-loading-and-activity-content/` |
 | F11 | `PLANNED / PARTICIPATION + CAPABILITY RUNTIME` | New phase before intermediate consumers | `ADRs/F11-participation-and-capability-runtime/` |
 | F12 | `PLANNED / INPUT SAVE PAUSE` | Former F10 renumbered and expanded | `ADRs/F12-intermediate-consumers/` |
@@ -48,12 +48,9 @@ Keep these docs as the durable record for implementation details:
 
 | Next validation step | Reason |
 |---|---|
-| Compile/import smoke | Confirms F9I Activity Content Anchor binding smoke compiles in Unity. |
-| Re-run: Content Anchor Binding Smoke | Regression check for host-owned logical anchor binding. |
-| Re-run: Content Anchor Binding Cleanup Smoke | Regression check for automatic logical binding cleanup on Route exit. |
-| Run: Activity Content Anchor Diagnostics Smoke | Regression check for Activity-scoped anchor discovery diagnostics; baseline can pass with zero Activity anchors. |
-| Run: Activity Content Anchor Positive Smoke | Regression check for one valid ActivityContentAnchor discovered/accepted on the positive path. |
-| Run: Activity Content Anchor Binding Smoke | Validates Activity-scoped binding, idempotency and Activity exit cleanup. |
+| F10 planning/audit | F9 logical binding is closed. The next implementation phase must start with an audit for Transition, loading and Activity content execution. |
+| Optional regression: Content Anchor Binding Smoke | Re-run only if anchor binding or lifecycle cleanup changes later. |
+| Optional regression: Activity Content Anchor Binding Smoke | Re-run only if Activity anchor discovery, Activity lifecycle or binding ownership changes later. |
 
 ## F5 closure audit
 
@@ -279,14 +276,9 @@ F8 does not authorize:
 - `GameObject.Find` root lookup;
 - fallback root creation when a required root is absent.
 
-F9+ was realigned after this point. F9A/F9B apply the first Content Anchor binding contracts and logical runtime without physical placement; F9C adds and passes QA smoke diagnostics for the logical binding loop; F9D adds lifecycle cleanup/snapshot policy on the binding runtime; F9E makes FrameworkRuntimeHost the owner of the logical binding runtime; F9F adds and validates automatic logical cleanup on Route/Activity owner exit before root removal; F9G adds Activity Content Anchor authoring/discovery diagnostics; F9H adds a positive-path Activity Content Anchor smoke fixture and passed; F9I adds Activity-scoped binding smoke coverage.
+F9+ was realigned after this point. F9A/F9B applied the first Content Anchor binding contracts and logical runtime without physical placement; F9C passed QA smoke diagnostics for the logical binding loop; F9D added lifecycle cleanup/snapshot policy; F9E made FrameworkRuntimeHost the owner of the logical binding runtime; F9F passed automatic logical cleanup on Route/Activity owner exit before root removal; F9G passed Activity Content Anchor authoring/discovery diagnostics; F9H passed the positive Activity Content Anchor smoke; F9I passed Activity-scoped binding smoke coverage; F9J closes the logical binding layer.
 
-Next validation gate:
-
-```text
-Compile/import smoke
-Run Activity Content Anchor Diagnostics Smoke
-```
+F9 logical closure excludes physical placement. No F9 follow-up should introduce `Transform`, `GameObject` runtime roots, `Instantiate`, `Destroy`, prefab/scene/Addressables/pooling adapters or gameplay consumers inside the core.
 
 
 ## F9G — Activity Content Anchor authoring/discovery
@@ -303,6 +295,12 @@ F9H adds a QA-only positive-path fixture/smoke that creates one temporary `Activ
 
 ## F9I — Activity Content Anchor binding smoke
 
-Status: `APPLIED / PENDING SMOKE`
+Status: `PASS`
 
-F9I adds a QA-only Activity-scoped binding smoke: it creates one temporary `ActivityContentAnchor`, re-enters the configured Activity, creates a synthetic Activity-scoped `RuntimeContentHandle`, binds it to the Activity anchor through the host-owned `RuntimeContentAnchorBinding`, validates idempotency, releases/unregisters the handle logically, and confirms Activity exit cleanup removes the remaining binding. It still does not add Transform placement, physical runtime roots, prefab/scene/Addressables/pooling adapters, physical release or gameplay consumers.
+F9I adds and validates a QA-only Activity-scoped binding smoke: it creates one temporary `ActivityContentAnchor`, re-enters the configured Activity, creates a synthetic Activity-scoped `RuntimeContentHandle`, binds it to the Activity anchor through the host-owned `RuntimeContentAnchorBinding`, validates idempotency, releases/unregisters the handle logically, and confirms Activity exit cleanup removes the remaining binding. It still does not add Transform placement, physical runtime roots, prefab/scene/Addressables/pooling adapters, physical release or gameplay consumers.
+
+## F9J — Content Anchor logical binding closure
+
+Status: `CLOSED`
+
+F9J is documentation/status closure. It records F9A-F9I as the completed logical Content Anchor binding layer and explicitly defers physical placement/adapters to later phases/consumers. F9J does not add runtime code.
