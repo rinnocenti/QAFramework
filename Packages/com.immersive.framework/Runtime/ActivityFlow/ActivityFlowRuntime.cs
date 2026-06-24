@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Immersive.Foundation.Events;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.RuntimeContent;
 
 namespace Immersive.Framework.ActivityFlow
@@ -16,6 +17,7 @@ namespace Immersive.Framework.ActivityFlow
     {
         private readonly ActivityContentRuntime _activityContentRuntime = new ActivityContentRuntime();
         private readonly RuntimeContentRuntime _runtimeContentRuntime;
+        private readonly RuntimeContentAnchorBinding _contentAnchorBindingRuntime;
         private readonly EventBus<ActivityEnteredEvent> _activityEnteredEvents = new EventBus<ActivityEnteredEvent>();
         private readonly EventBus<ActivityExitedEvent> _activityExitedEvents = new EventBus<ActivityExitedEvent>();
         private readonly IEventBinding _activityContentEnteredBinding;
@@ -23,9 +25,12 @@ namespace Immersive.Framework.ActivityFlow
         private RouteAsset _currentRoute;
         private ActivityRuntimeState _currentActivityState;
 
-        internal ActivityFlowRuntime(RuntimeContentRuntime runtimeContentRuntime)
+        internal ActivityFlowRuntime(
+            RuntimeContentRuntime runtimeContentRuntime,
+            RuntimeContentAnchorBinding contentAnchorBindingRuntime)
         {
             _runtimeContentRuntime = runtimeContentRuntime ?? throw new ArgumentNullException(nameof(runtimeContentRuntime));
+            _contentAnchorBindingRuntime = contentAnchorBindingRuntime ?? throw new ArgumentNullException(nameof(contentAnchorBindingRuntime));
             _currentActivityState = ActivityRuntimeState.Empty();
             _activityContentEnteredBinding = _activityEnteredEvents.Subscribe(_activityContentRuntime.HandleActivityEntered);
             _activityContentExitedBinding = _activityExitedEvents.Subscribe(_activityContentRuntime.HandleActivityExited);
@@ -68,12 +73,14 @@ namespace Immersive.Framework.ActivityFlow
             {
                 _currentActivityState = ActivityRuntimeState.None(previousActivity, resolvedSource, resolvedReason);
                 var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, null, resolvedSource, resolvedReason);
+                var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, null, resolvedSource, resolvedReason);
                 var runtimeScopeResult = RemovePreviousActivityScopeRoot(previousActivity, null, resolvedSource, resolvedReason);
                 return Task.FromResult(ActivityFlowStartResult.SkippedNoStartupActivity(
                     _currentActivityState,
                     previousActivity,
                     contentResult,
-                    runtimeScopeResult));
+                    runtimeScopeResult,
+                    bindingCleanupResult));
             }
 
             return StartActivityCoreAsync(route.StartupActivity, previousActivity, resolvedSource, resolvedReason);
@@ -125,12 +132,14 @@ namespace Immersive.Framework.ActivityFlow
 
             _currentActivityState = ActivityRuntimeState.None(previousActivity, resolvedSource, resolvedReason);
             var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, null, resolvedSource, resolvedReason);
+            var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, null, resolvedSource, resolvedReason);
             var runtimeScopeResult = RemovePreviousActivityScopeRoot(previousActivity, null, resolvedSource, resolvedReason);
             return Task.FromResult(ActivityFlowStartResult.ClearedByRequest(
                 _currentActivityState,
                 previousActivity,
                 contentResult,
-                runtimeScopeResult));
+                runtimeScopeResult,
+                bindingCleanupResult));
         }
 
         private Task<ActivityFlowStartResult> StartActivityCoreAsync(ActivityAsset nextActivity, ActivityAsset previousActivity, string source, string reason)
@@ -156,6 +165,7 @@ namespace Immersive.Framework.ActivityFlow
             var runtimeEnterResult = CreateActivityScopeRoot(nextActivity, resolvedSource, resolvedReason);
             _currentActivityState = ActivityRuntimeState.ActiveWith(nextActivity, previousActivity, resolvedSource, resolvedReason);
             var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, nextActivity, resolvedSource, resolvedReason);
+            var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, nextActivity, resolvedSource, resolvedReason);
             var runtimeExitResult = RemovePreviousActivityScopeRoot(previousActivity, nextActivity, resolvedSource, resolvedReason);
             var runtimeScopeResult = MergeActivityScopeResults(runtimeEnterResult, runtimeExitResult, nextActivity, previousActivity, resolvedSource, resolvedReason);
 
@@ -163,7 +173,8 @@ namespace Immersive.Framework.ActivityFlow
                 _currentActivityState,
                 previousActivity,
                 contentResult,
-                runtimeScopeResult));
+                runtimeScopeResult,
+                bindingCleanupResult));
         }
 
         private ActivityContentApplyResult ApplyActivityContentThroughLifecycleEvents(ActivityAsset previousActivity, ActivityAsset nextActivity, string source, string reason)
@@ -218,6 +229,22 @@ namespace Immersive.Framework.ActivityFlow
                 _runtimeContentRuntime.RootCount,
                 source,
                 reason);
+        }
+
+        private ContentAnchorBindingLifecycleResult CleanupPreviousActivityContentAnchorBindings(ActivityAsset previousActivity, ActivityAsset nextActivity, string source, string reason)
+        {
+            if (previousActivity == null || ReferenceEquals(previousActivity, nextActivity))
+            {
+                return default(ContentAnchorBindingLifecycleResult);
+            }
+
+            var owner = CreateActivityOwner(previousActivity);
+            if (nextActivity != null && owner == CreateActivityOwner(nextActivity))
+            {
+                return default(ContentAnchorBindingLifecycleResult);
+            }
+
+            return _contentAnchorBindingRuntime.UnbindRuntimeOwner(owner, source, reason);
         }
 
         private RuntimeScopeLifecycleResult RemovePreviousActivityScopeRoot(ActivityAsset previousActivity, ActivityAsset nextActivity, string source, string reason)

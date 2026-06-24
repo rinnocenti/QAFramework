@@ -126,7 +126,7 @@ namespace Immersive.Framework.ApplicationLifecycle
             _runtimeContentRuntime = new RuntimeContentRuntime();
             _contentAnchorBindingRuntime = new RuntimeContentAnchorBinding();
             _runtimeSessionScopeResult = CreateSessionScopeRoot(application, "FrameworkRuntimeHost", "session-start");
-            _gameFlowRuntime = new GameFlowRuntime(_runtimeContentRuntime);
+            _gameFlowRuntime = new GameFlowRuntime(_runtimeContentRuntime, _contentAnchorBindingRuntime);
             _logger = FrameworkLogger.Create<FrameworkRuntimeHost>();
             _state = FrameworkRuntimeState.Empty(application);
         }
@@ -351,6 +351,10 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("contentAnchorInvalid", routeLifecycle.ContentAnchorDiscoveryResult.InvalidAuthoringCount),
                 LogFields.Field("contentAnchorRouteMismatch", routeLifecycle.ContentAnchorDiscoveryResult.SkippedRouteMismatchCount),
                 LogFields.Field("contentAnchorBindings", ContentAnchorBindingCount),
+                LogFields.Field("routeContentAnchorBindingCleanup", routeLifecycle.RouteContentAnchorBindingCleanupResult.DiagnosticStatus),
+                LogFields.Field("routeContentAnchorBindingCleanupRemoved", routeLifecycle.RouteContentAnchorBindingCleanupResult.RemovedCount),
+                LogFields.Field("activityContentAnchorBindingCleanup", activityFlow.ActivityContentAnchorBindingCleanupResult.DiagnosticStatus),
+                LogFields.Field("activityContentAnchorBindingCleanupRemoved", activityFlow.ActivityContentAnchorBindingCleanupResult.RemovedCount),
                 LogFields.Field("routeContentEnterReceivers", routeLifecycle.RouteContentEnterResult.ReceiverCount),
                 LogFields.Field("routeContentExitReceivers", routeLifecycle.RouteContentExitResult.ReceiverCount),
                 LogFields.Field("activity", FormatDiagnosticValue(activityFlow.ActivityState.ActivityName)),
@@ -387,6 +391,8 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("activityReadinessIssues", activityFlow.ActivityReadinessState.BlockingIssueCount),
                 LogFields.Field("activityContentBindings", activityContent.BindingCount),
                 LogFields.Field("contentAnchorBindings", ContentAnchorBindingCount),
+                LogFields.Field("activityContentAnchorBindingCleanup", activityFlow.ActivityContentAnchorBindingCleanupResult.DiagnosticStatus),
+                LogFields.Field("activityContentAnchorBindingCleanupRemoved", activityFlow.ActivityContentAnchorBindingCleanupResult.RemovedCount),
                 LogFields.Field("activityContentHandles", activityContent.ActivityContentCount),
                 LogFields.Field("activityContentLifecycle", lifecycle.DiagnosticStatus),
                 LogFields.Field("activityContentEnterFailed", lifecycle.EnterFailedReceiverCount),

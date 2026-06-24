@@ -78,5 +78,5 @@ F8F does not add:
 
 ```text
 F8J — Runtime release policy / logical release execution [APPLIED / COMPILE-SMOKE PASS]
-F8K — Runtime request/guard/release-policy smoke and F8 closure [APPLIED / PENDING COMPILE + SMOKE]
+F8K — Runtime request/guard/release-policy smoke and F8 closure [PASS / F8 CLOSED]
 ```

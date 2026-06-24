@@ -91,7 +91,7 @@ Docs técnicos:
 - `RuntimeContent/RUNTIME_RELEASE_POLICY_LOGICAL_EXECUTION.md` — F8J logical release request/result/policy and adapter boundary.
 - `RuntimeContent/RUNTIME_TRANSITION_GUARD_SCOPED_CANCELLATION.md` — F8H transition guard and scoped cancellation tokens.
 - `ContentAnchor/CONTENT_ANCHOR_BINDING_CONTRACTS.md` — F9A Content Anchor binding request/result/handle contracts.
-- `ContentAnchor/CONTENT_ANCHOR_BINDING_RUNTIME.md` — F9B-F9E logical RuntimeContentAnchorBinding runtime, QA smoke diagnostics, lifecycle cleanup policy and host ownership.
+- `ContentAnchor/CONTENT_ANCHOR_BINDING_RUNTIME.md` — F9B-F9F logical RuntimeContentAnchorBinding runtime, QA smoke diagnostics, lifecycle cleanup policy, host ownership and automatic logical cleanup.
 
 
 ## F9+ realignment

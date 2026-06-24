@@ -1,10 +1,11 @@
 # RuntimeContentAnchorBinding Logical Runtime
 
-Status: `F9E APPLIED / HOST OWNERSHIP PENDING COMPILE`
+Status: `F9F APPLIED / AUTOMATIC LOGICAL CLEANUP PENDING SMOKE`
 Corte base: `IF-FW-F9B-runtime-content-anchor-binding-logical-runtime`
 Corte validado: `IF-FW-F9C-content-anchor-binding-smoke-diagnostics` — PASS
 Corte anterior: `IF-FW-F9D-content-anchor-binding-lifecycle-policy` — PASS por regressão de smoke
-Corte atual: `IF-FW-F9E-binding-runtime-host-ownership`
+Corte validado: `IF-FW-F9E-binding-runtime-host-ownership` — PASS por smoke regressivo
+Corte atual: `IF-FW-F9F-content-anchor-binding-automatic-cleanup`
 Escopo: Content Anchor binding / RuntimeContent bridge
 
 ---
@@ -13,7 +14,7 @@ Escopo: Content Anchor binding / RuntimeContent bridge
 
 F9B adicionou o runtime lógico que executa o binding entre um `ContentAnchorBindingRequest`, um `ContentAnchorSet` já descoberto e um `RuntimeContentHandle` já registrado pelo `RuntimeContentRuntime`.
 
-F9E define onde esse runtime vive no runtime real do framework:
+F9E define onde esse runtime vive no runtime real do framework. F9F conecta essa instância ao lifecycle lógico de Route/Activity exit:
 
 ```text
 FrameworkRuntimeHost
@@ -33,7 +34,7 @@ ContentAnchorBindingRequest
               -> ContentAnchorContentHandle
 ```
 
-Este corte ainda não executa placement físico.
+Este corte ainda não executa placement físico. O cleanup automático remove apenas bindings lógicos antes da remoção do root lógico antigo.
 
 ---
 
@@ -130,9 +131,9 @@ SnapshotBindingsForAnchorOwner(scope, owner)
 SnapshotBindingsForAnchorScope(scope)
 ```
 
-F9E expõe a parte necessária no host para runtime owner/scope. Cleanup por anchor continua disponível no `RuntimeContentAnchorBinding`, mas não foi promovido como fluxo canônico de lifecycle ainda.
+F9E expõe a parte necessária no host para runtime owner/scope. F9F promove o cleanup por runtime owner para o fluxo canônico de lifecycle em Route/Activity exit. Cleanup por anchor continua disponível no `RuntimeContentAnchorBinding`, mas não é o caminho automático de lifecycle.
 
-Ordem recomendada futura para saída de escopo:
+Ordem canônica para saída de escopo:
 
 ```text
 unbind bindings do owner/scope
@@ -140,25 +141,29 @@ unbind bindings do owner/scope
 -> remover RuntimeScopeRoot
 ```
 
-F9E ainda não executa essa ordem automaticamente no lifecycle. Esse cleanup automático deve ser um corte separado.
+F9F executa automaticamente o primeiro passo dessa ordem para o owner que está saindo: `unbind bindings do owner/scope`. Release físico, placement físico e adapters continuam fora deste corte.
 
 ---
 
 ## Diagnóstico
 
-F9E adiciona contagem de bindings ao runtime status do QA Canvas e ao boot log e aos logs de Route/Activity request:
+F9F mantém a contagem de bindings no runtime status do QA Canvas e adiciona diagnósticos de cleanup aos logs de Route/Activity request:
 
 ```text
 contentAnchorBindings
+routeContentAnchorBindingCleanup
+routeContentAnchorBindingCleanupRemoved
+activityContentAnchorBindingCleanup
+activityContentAnchorBindingCleanupRemoved
 ```
 
-O smoke `Run Content Anchor Binding Smoke` agora usa o binding runtime owned pelo `FrameworkRuntimeHost` e valida que o binding count volta ao valor inicial após unbind/release.
+O smoke `Run Content Anchor Binding Smoke` usa o binding runtime owned pelo `FrameworkRuntimeHost` e valida regressão de bind/unbind/release. O smoke `Run Content Anchor Binding Cleanup Smoke` cria um binding lógico persistente, libera o handle sintético e valida que a troca de Route remove o binding automaticamente no exit do owner.
 
 ---
 
-## O que F9B-F9E não fazem
+## O que F9B-F9F não fazem
 
-F9B-F9E não adicionam:
+F9B-F9F não adicionam:
 
 ```text
 Transform
@@ -171,7 +176,6 @@ Addressables adapter
 Pooling adapter
 physical placement
 physical release
-automatic Route/Activity binding cleanup
 Content Anchor authoring novo
 Activity anchors
 Pause
@@ -190,6 +194,7 @@ Regressão principal:
 
 ```text
 Run Content Anchor Binding Smoke
+Run Content Anchor Binding Cleanup Smoke
 ```
 
 Resultado esperado:
@@ -203,3 +208,7 @@ releaseUnregistered='True'
 bindingCountBefore='<valor inicial>'
 bindingCount='<mesmo valor inicial>'
 ```
+
+## F9F automatic logical cleanup
+
+F9F injeta o `RuntimeContentAnchorBinding` owned pelo `FrameworkRuntimeHost` nos runtimes de Route/Activity e executa cleanup lógico por `RuntimeContentOwner` antes de remover o root lógico antigo. O cleanup não executa release físico, `Transform`, `GameObject`, `Instantiate`, `Destroy`, scene adapter, prefab adapter ou pool adapter.

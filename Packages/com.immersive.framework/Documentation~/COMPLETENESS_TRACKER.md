@@ -17,7 +17,7 @@ Este arquivo substitui os antigos documentos de fechamento e aceite de fase. Os 
 | F6 | `CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS` | F6G release smoke passed; F6 closed | `Planning/F6-Route-Scene-Composition-Audit.md`, `Route/ROUTE_CONTENT_PROFILE_USAGE.md`, `Route/ROUTE_SCENE_COMPOSITION_SMOKE.md`, `Route/ROUTE_RELEASE_SMOKE.md`, `ADRs/F6-route-scene-composition-and-release/` |
 | F7 | `CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS` | F7I closure completed after F7H smoke pass | `Planning/F7-Content-Anchor-Declaration-Audit.md`, `ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md`, `ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md`, `ContentAnchor/CONTENT_ANCHOR_SET.md`, `ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md`, `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md`, `ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md`, `ADRs/F7-content-anchor-declaration/` |
 | F8 | `CLOSED / RUNTIME CONTENT SMOKE PASS` | F8K Runtime Content Smoke passed; F8 closed | `Planning/F8-Runtime-Roots-Materialization-Audit.md`, `RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md`, `RuntimeContent/RUNTIME_CONTENT_HANDLE.md`, `RuntimeContent/RUNTIME_SCOPE_ROOT_REGISTRY.md`, `RuntimeContent/RUNTIME_CONTENT_RUNTIME.md`, `RuntimeContent/RUNTIME_ROOT_LIFECYCLE_INTEGRATION.md`, `RuntimeContent/RUNTIME_MATERIALIZATION_REQUEST_RESULT.md`, `RuntimeContent/RUNTIME_TRANSITION_GUARD_SCOPED_CANCELLATION.md`, `RuntimeContent/RUNTIME_RELEASE_POLICY_LOGICAL_EXECUTION.md`, `ADRs/F8-runtime-roots-and-materialization/` |
-| F9 | `OPEN / F9E APPLIED / HOST OWNERSHIP PENDING COMPILE` | F9D smoke regression passed; F9E makes FrameworkRuntimeHost own the logical binding runtime through controlled internal methods; compile/import pending | `Planning/F9Plus-Roadmap-Realignment.md`, `ContentAnchor/CONTENT_ANCHOR_BINDING_CONTRACTS.md`, `ContentAnchor/CONTENT_ANCHOR_BINDING_RUNTIME.md`, `ADRs/F9-content-anchor-binding-and-runtime-placement/` |
+| F9 | `OPEN / F9F APPLIED / AUTOMATIC LOGICAL BINDING CLEANUP PENDING SMOKE` | F9E smoke passed; F9F cleans logical Content Anchor bindings automatically on Route/Activity owner exit before runtime root removal; compile/import and cleanup smoke pending | `Planning/F9Plus-Roadmap-Realignment.md`, `ContentAnchor/CONTENT_ANCHOR_BINDING_CONTRACTS.md`, `ContentAnchor/CONTENT_ANCHOR_BINDING_RUNTIME.md`, `ADRs/F9-content-anchor-binding-and-runtime-placement/` |
 | F10 | `PLANNED / TRANSITION + ACTIVITY CONTENT` | New phase from NewScripts gap analysis | `ADRs/F10-transition-loading-and-activity-content/` |
 | F11 | `PLANNED / PARTICIPATION + CAPABILITY RUNTIME` | New phase before intermediate consumers | `ADRs/F11-participation-and-capability-runtime/` |
 | F12 | `PLANNED / INPUT SAVE PAUSE` | Former F10 renumbered and expanded | `ADRs/F12-intermediate-consumers/` |
@@ -48,8 +48,9 @@ Keep these docs as the durable record for implementation details:
 
 | Next validation step | Reason |
 |---|---|
-| Compile/import smoke | Confirms F9E host-owned binding runtime integration compiles in Unity. |
+| Compile/import smoke | Confirms F9F lifecycle cleanup integration compiles in Unity. |
 | Re-run: Content Anchor Binding Smoke | Regression check for host-owned logical anchor binding, idempotent rebind, unbind, logical release and unregister without physical placement. |
+| Run: Content Anchor Binding Cleanup Smoke | Validates automatic logical binding cleanup during Route owner exit without physical placement or adapter execution. |
 
 ## F5 closure audit
 
@@ -275,7 +276,7 @@ F8 does not authorize:
 - `GameObject.Find` root lookup;
 - fallback root creation when a required root is absent.
 
-F9+ was realigned after this point. F9A/F9B apply the first Content Anchor binding contracts and logical runtime without physical placement; F9C adds and passes QA smoke diagnostics for the logical binding loop; F9D adds lifecycle cleanup/snapshot policy on the binding runtime; F9E makes FrameworkRuntimeHost the owner of the logical binding runtime without adding physical placement or automatic cleanup.
+F9+ was realigned after this point. F9A/F9B apply the first Content Anchor binding contracts and logical runtime without physical placement; F9C adds and passes QA smoke diagnostics for the logical binding loop; F9D adds lifecycle cleanup/snapshot policy on the binding runtime; F9E makes FrameworkRuntimeHost the owner of the logical binding runtime. F9F adds automatic logical cleanup on Route/Activity owner exit before root removal, without physical placement or adapter execution.
 
 Next validation gate:
 

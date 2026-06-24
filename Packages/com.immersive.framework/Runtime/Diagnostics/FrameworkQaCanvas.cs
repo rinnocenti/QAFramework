@@ -283,6 +283,11 @@ namespace Immersive.Framework.Diagnostics
                 {
                     RunContentAnchorBindingSmoke();
                 }
+
+                if (GUILayout.Button("Run Content Anchor Binding Cleanup Smoke"))
+                {
+                    RunContentAnchorBindingCleanupSmoke();
+                }
             }
         }
 
@@ -1295,6 +1300,121 @@ namespace Immersive.Framework.Diagnostics
             });
         }
 
+        private async void RunContentAnchorBindingCleanupSmoke()
+        {
+            string missingTargets = string.Empty;
+            AppendMissingQaAsset(ref missingTargets, routeSceneCompositionRoute == null, "Content Anchor Binding Route");
+            AppendMissingQaAsset(ref missingTargets, alternateRoute == null, "Alternate Route / Cleanup Exit Route");
+
+            if (!TryValidateSmokeTargets("Content Anchor Binding Cleanup Smoke", missingTargets))
+            {
+                return;
+            }
+
+            await RunSmokeAsync("Content Anchor Binding Cleanup Smoke", async runtimeHost =>
+            {
+                if (ReferenceEquals(runtimeHost.State.CurrentRoute, routeSceneCompositionRoute))
+                {
+                    if (ReferenceEquals(alternateRoute, routeSceneCompositionRoute))
+                    {
+                        _logger.Warning("QA Content Anchor Binding Cleanup Smoke step failed. step='prepare' reason='Content Anchor Binding Route is already active and Alternate Route points to the same Route'.");
+                        return false;
+                    }
+
+                    var prepareResult = await RequestRouteWithResultCoreAsync(
+                        runtimeHost,
+                        alternateRoute,
+                        ResolveReason(routeReason, GetAssetName(alternateRoute, "qa.content-anchor-binding-cleanup.prepare")));
+                    if (!prepareResult.Succeeded)
+                    {
+                        _logger.Warning($"QA Content Anchor Binding Cleanup Smoke step failed. step='prepare' reason='Preparation Route request did not succeed' status='{FormatValue(prepareResult.Kind.ToString())}'.");
+                        return false;
+                    }
+
+                    await Task.Yield();
+                }
+
+                var anchorResult = await RequestRouteWithResultCoreAsync(
+                    runtimeHost,
+                    routeSceneCompositionRoute,
+                    ResolveReason(routeReason, GetAssetName(routeSceneCompositionRoute, "qa.content-anchor-binding-cleanup.bind")));
+
+                if (!TryCreatePersistentContentAnchorBindingForCleanupSmoke(
+                        anchorResult,
+                        runtimeHost,
+                        out var context,
+                        out var materializationIdentity,
+                        out var bindingResult,
+                        out var bindingCountBefore))
+                {
+                    return false;
+                }
+
+                var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+                var releaseResult = runtimeContentRuntime.ReleaseHandleLogically(
+                    context,
+                    materializationIdentity,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    QaSource,
+                    "qa.content-anchor-binding-cleanup.release-before-route-exit");
+                if (!releaseResult.Succeeded || !releaseResult.HandleUnregistered)
+                {
+                    runtimeHost.UnbindContentAnchor(bindingResult.Request);
+                    _logger.Warning($"QA Content Anchor Binding Cleanup Smoke step failed. step='release' reason='Runtime handle release before route exit failed' release='{releaseResult.Status}' releaseUnregistered='{releaseResult.HandleUnregistered}' message='{FormatValue(releaseResult.Message)}'.");
+                    return false;
+                }
+
+                var boundCount = runtimeHost.ContentAnchorBindingCount;
+                if (boundCount <= bindingCountBefore)
+                {
+                    runtimeHost.UnbindContentAnchor(bindingResult.Request);
+                    _logger.Warning($"QA Content Anchor Binding Cleanup Smoke step failed. step='bound' reason='Binding count did not increase before Route exit' bindingCountBefore='{bindingCountBefore}' bindingCount='{boundCount}'.");
+                    return false;
+                }
+
+                var exitResult = await RequestRouteWithResultCoreAsync(
+                    runtimeHost,
+                    alternateRoute,
+                    ResolveReason(routeReason, GetAssetName(alternateRoute, "qa.content-anchor-binding-cleanup.exit")));
+                if (!exitResult.Succeeded)
+                {
+                    runtimeHost.UnbindContentAnchor(bindingResult.Request);
+                    _logger.Warning($"QA Content Anchor Binding Cleanup Smoke step failed. step='route-exit' reason='Exit Route request did not succeed' status='{FormatValue(exitResult.Kind.ToString())}'.");
+                    return false;
+                }
+
+                var cleanupResult = exitResult.RouteLifecycleResult.RouteContentAnchorBindingCleanupResult;
+                if (!cleanupResult.Executed || !cleanupResult.Succeeded || cleanupResult.RemovedCount < 1)
+                {
+                    runtimeHost.UnbindContentAnchor(bindingResult.Request);
+                    _logger.Warning($"QA Content Anchor Binding Cleanup Smoke step failed. step='cleanup' reason='Route binding cleanup did not remove the test binding' cleanup='{cleanupResult.DiagnosticStatus}' removed='{cleanupResult.RemovedCount}' before='{cleanupResult.BindingCountBefore}' after='{cleanupResult.BindingCountAfter}'.");
+                    return false;
+                }
+
+                if (runtimeHost.ContentAnchorBindingCount != bindingCountBefore)
+                {
+                    _logger.Warning($"QA Content Anchor Binding Cleanup Smoke step failed. step='cleanup' reason='Binding count did not return to baseline after Route exit' bindingCountBefore='{bindingCountBefore}' bindingCount='{runtimeHost.ContentAnchorBindingCount}'.");
+                    return false;
+                }
+
+                _logger.Info(
+                    "QA Content Anchor Binding Cleanup Smoke step completed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "route-exit-cleanup"),
+                        LogFields.Field("binding", bindingResult.Status.ToString()),
+                        LogFields.Field("release", releaseResult.Status.ToString()),
+                        LogFields.Field("releaseUnregistered", releaseResult.HandleUnregistered),
+                        LogFields.Field("routeCleanup", cleanupResult.DiagnosticStatus),
+                        LogFields.Field("routeCleanupRemoved", cleanupResult.RemovedCount),
+                        LogFields.Field("routeCleanupBefore", cleanupResult.BindingCountBefore),
+                        LogFields.Field("routeCleanupAfter", cleanupResult.BindingCountAfter),
+                        LogFields.Field("bindingCountBefore", bindingCountBefore),
+                        LogFields.Field("bindingCountBound", boundCount),
+                        LogFields.Field("bindingCount", runtimeHost.ContentAnchorBindingCount)));
+                return true;
+            });
+        }
+
         private async void RunClearActivitySmoke()
         {
             string missingTargets = string.Empty;
@@ -1670,6 +1790,121 @@ namespace Immersive.Framework.Diagnostics
             _logger.Debug(
                 "QA Route Release Smoke diagnostics.",
                 LogFields.Field("details", release.ToDiagnosticString()));
+            return true;
+        }
+
+        private bool TryCreatePersistentContentAnchorBindingForCleanupSmoke(
+            FrameworkRouteRequestResult result,
+            FrameworkRuntimeHost runtimeHost,
+            out RuntimeScopeContext context,
+            out RuntimeContentIdentity materializationIdentity,
+            out ContentAnchorBindingResult bindingResult,
+            out int bindingCountBefore)
+        {
+            context = default(RuntimeScopeContext);
+            materializationIdentity = default(RuntimeContentIdentity);
+            bindingResult = default(ContentAnchorBindingResult);
+            bindingCountBefore = 0;
+
+            string routeName = result.TargetRoute != null ? GetAssetName(result.TargetRoute, "<unnamed>") : "<missing>";
+
+            if (!result.Succeeded)
+            {
+                _logger.Warning($"QA Content Anchor Binding Cleanup Smoke step failed. step='bind' route='{FormatValue(routeName)}' reason='Route request did not succeed' status='{FormatValue(result.Kind.ToString())}'.");
+                return false;
+            }
+
+            if (!result.RouteLifecycleResult.Started)
+            {
+                _logger.Warning($"QA Content Anchor Binding Cleanup Smoke step failed. step='bind' route='{FormatValue(routeName)}' reason='Route lifecycle did not start'.");
+                return false;
+            }
+
+            var anchorSet = result.RouteLifecycleResult.ContentAnchorSet;
+            if (!anchorSet.HasAnchors)
+            {
+                _logger.Warning($"QA Content Anchor Binding Cleanup Smoke step failed. step='bind' route='{FormatValue(routeName)}' reason='Content Anchor Set has no anchors'.");
+                return false;
+            }
+
+            var runtimeScopeResult = result.RouteLifecycleResult.RuntimeRouteScopeResult;
+            if (!runtimeScopeResult.HasContext)
+            {
+                _logger.Warning($"QA Content Anchor Binding Cleanup Smoke step failed. step='bind' route='{FormatValue(routeName)}' reason='Route runtime scope context unavailable' runtimeRouteScope='{FormatValue(runtimeScopeResult.DiagnosticStatus)}' runtimeRouteContext='{FormatValue(runtimeScopeResult.ContextStatus)}'.");
+                return false;
+            }
+
+            var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+            context = runtimeScopeResult.Context;
+            var anchor = anchorSet.Declarations[0];
+            var contentId = RuntimeContentId.From("qa.content-anchor.binding-cleanup." + Guid.NewGuid().ToString("N"));
+            var resource = RuntimeMaterializationResource.From(
+                "QA.ContentAnchorBindingCleanup",
+                "qa.content-anchor.binding-cleanup.resource",
+                "QA Content Anchor Binding Cleanup Smoke Resource",
+                string.Empty);
+
+            if (!runtimeContentRuntime.TryCreateMaterializationRequest(
+                    context,
+                    contentId,
+                    resource,
+                    QaSource,
+                    "qa.content-anchor-binding-cleanup.materialization.request",
+                    out var materializationRequest,
+                    out var materializationGuardResult))
+            {
+                _logger.Warning($"QA Content Anchor Binding Cleanup Smoke step failed. step='bind' route='{FormatValue(routeName)}' reason='Materialization request rejected' guard='{materializationGuardResult.Status}' message='{FormatValue(materializationGuardResult.Message)}'.");
+                return false;
+            }
+
+            var runtimeHandle = RuntimeContentHandle.Declared(
+                materializationRequest.Identity,
+                QaSource,
+                "qa.content-anchor-binding-cleanup.handle.declared");
+            var materializationResult = RuntimeMaterializationResult.Success(
+                materializationRequest,
+                runtimeHandle,
+                QaSource,
+                "qa.content-anchor-binding-cleanup.materialization.synthetic-result",
+                "Synthetic Content Anchor binding cleanup smoke materialization result.");
+            var appliedMaterializationResult = runtimeContentRuntime.ApplyMaterializationResult(
+                materializationResult,
+                QaSource,
+                "qa.content-anchor-binding-cleanup.materialization.apply");
+
+            if (!appliedMaterializationResult.Succeeded)
+            {
+                _logger.Warning($"QA Content Anchor Binding Cleanup Smoke step failed. step='bind' route='{FormatValue(routeName)}' reason='Materialization result was not applied' materialization='{appliedMaterializationResult.Status}' message='{FormatValue(appliedMaterializationResult.Message)}'.");
+                return false;
+            }
+
+            var bindingRequest = ContentAnchorBindingRequest.FromDeclaration(
+                context,
+                anchor,
+                contentId,
+                resource,
+                QaSource,
+                "qa.content-anchor-binding-cleanup.request");
+            bindingCountBefore = runtimeHost.ContentAnchorBindingCount;
+            bindingResult = runtimeHost.BindContentAnchor(
+                anchorSet,
+                bindingRequest,
+                QaSource,
+                "qa.content-anchor-binding-cleanup.bind");
+
+            if (!bindingResult.Succeeded)
+            {
+                runtimeContentRuntime.ReleaseHandleLogically(
+                    context,
+                    materializationRequest.Identity,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    QaSource,
+                    "qa.content-anchor-binding-cleanup.cleanup.binding-failed");
+                _logger.Warning($"QA Content Anchor Binding Cleanup Smoke step failed. step='bind' route='{FormatValue(routeName)}' reason='Logical binding failed' binding='{bindingResult.Status}' message='{FormatValue(bindingResult.Message)}'.");
+                return false;
+            }
+
+            materializationIdentity = materializationRequest.Identity;
             return true;
         }
 

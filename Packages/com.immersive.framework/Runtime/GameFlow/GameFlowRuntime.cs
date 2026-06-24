@@ -3,6 +3,7 @@ using Immersive.Framework.Authoring;
 using System;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.RuntimeContent;
 
 namespace Immersive.Framework.GameFlow
@@ -18,9 +19,13 @@ namespace Immersive.Framework.GameFlow
         private bool _routeRequestInFlight;
         private bool _activityRequestInFlight;
 
-        internal GameFlowRuntime(RuntimeContentRuntime runtimeContentRuntime)
+        internal GameFlowRuntime(
+            RuntimeContentRuntime runtimeContentRuntime,
+            RuntimeContentAnchorBinding contentAnchorBindingRuntime)
         {
-            _routeLifecycleRuntime = new RouteLifecycleRuntime(runtimeContentRuntime ?? throw new ArgumentNullException(nameof(runtimeContentRuntime)));
+            _routeLifecycleRuntime = new RouteLifecycleRuntime(
+                runtimeContentRuntime ?? throw new ArgumentNullException(nameof(runtimeContentRuntime)),
+                contentAnchorBindingRuntime ?? throw new ArgumentNullException(nameof(contentAnchorBindingRuntime)));
         }
 
         internal async Task<FrameworkGameFlowStartResult> StartAsync(GameApplicationAsset gameApplication)

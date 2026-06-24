@@ -30,7 +30,8 @@ namespace Immersive.Framework.RouteLifecycle
             RouteContentLifecycleDispatchResult routeContentExitResult,
             ContentReleaseResult contentReleaseResult,
             ActivityFlowStartResult activityFlowResult,
-            RuntimeScopeLifecycleResult runtimeRouteScopeResult = default(RuntimeScopeLifecycleResult))
+            RuntimeScopeLifecycleResult runtimeRouteScopeResult = default(RuntimeScopeLifecycleResult),
+            ContentAnchorBindingLifecycleResult routeContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult))
         {
             Started = started;
             Message = message ?? string.Empty;
@@ -47,6 +48,7 @@ namespace Immersive.Framework.RouteLifecycle
             ContentReleaseResult = contentReleaseResult;
             ActivityFlowResult = activityFlowResult;
             RuntimeRouteScopeResult = runtimeRouteScopeResult;
+            RouteContentAnchorBindingCleanupResult = routeContentAnchorBindingCleanupResult;
         }
 
         public bool Started { get; }
@@ -85,6 +87,8 @@ namespace Immersive.Framework.RouteLifecycle
 
         public RuntimeScopeLifecycleResult RuntimeRouteScopeResult { get; }
 
+        public ContentAnchorBindingLifecycleResult RouteContentAnchorBindingCleanupResult { get; }
+
         public bool HasRuntimeRouteScope => RuntimeRouteScopeResult.Executed;
 
         public static RouteLifecycleStartResult Failed(string message)
@@ -105,7 +109,8 @@ namespace Immersive.Framework.RouteLifecycle
             ActivityFlowStartResult activityFlowResult,
             string source,
             string reason,
-            RuntimeScopeLifecycleResult runtimeRouteScopeResult = default(RuntimeScopeLifecycleResult))
+            RuntimeScopeLifecycleResult runtimeRouteScopeResult = default(RuntimeScopeLifecycleResult),
+            ContentAnchorBindingLifecycleResult routeContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult))
         {
             var previousRoute = previousRouteState.Route;
             var routeExitResult = RouteExitResult.Exited(previousRouteState, route, source, reason);
@@ -137,10 +142,11 @@ namespace Immersive.Framework.RouteLifecycle
             var runtimeRouteMessage = runtimeRouteScopeResult.Executed
                 ? $" runtimeRouteScope='{runtimeRouteScopeResult.DiagnosticStatus}' runtimeRouteRootEnter='{runtimeRouteScopeResult.EnterStatus}' runtimeRouteRootExit='{runtimeRouteScopeResult.ExitStatus}' runtimeRouteContext='{runtimeRouteScopeResult.ContextStatus}' runtimeRootCount='{runtimeRouteScopeResult.RootCount}'."
                 : string.Empty;
+            var routeBindingCleanupMessage = BindingCleanupMessage("routeContentAnchorBindingCleanup", routeContentAnchorBindingCleanupResult);
             var activityMessage = !string.IsNullOrWhiteSpace(activityFlowResult.Message) ? $" {activityFlowResult.Message}" : string.Empty;
             var message = previousRoute != null
-                ? $"Route Lifecycle switched from Route '{previousRoute.RouteName}' to Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage}{releaseMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{contentAnchorMessage}{routeContentEnterMessage}{runtimeRouteMessage}{activityMessage}"
-                : $"Route Lifecycle started Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage}{releaseMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{contentAnchorMessage}{routeContentEnterMessage}{runtimeRouteMessage}{activityMessage}";
+                ? $"Route Lifecycle switched from Route '{previousRoute.RouteName}' to Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage}{releaseMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{contentAnchorMessage}{routeContentEnterMessage}{routeBindingCleanupMessage}{runtimeRouteMessage}{activityMessage}"
+                : $"Route Lifecycle started Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage}{releaseMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{contentAnchorMessage}{routeContentEnterMessage}{routeBindingCleanupMessage}{runtimeRouteMessage}{activityMessage}";
 
             return new RouteLifecycleStartResult(
                 true,
@@ -157,7 +163,18 @@ namespace Immersive.Framework.RouteLifecycle
                 routeContentExitResult,
                 contentReleaseResult,
                 activityFlowResult,
-                runtimeRouteScopeResult);
+                runtimeRouteScopeResult,
+                routeContentAnchorBindingCleanupResult);
+        }
+
+        private static string BindingCleanupMessage(string fieldPrefix, ContentAnchorBindingLifecycleResult result)
+        {
+            if (!result.Executed)
+            {
+                return string.Empty;
+            }
+
+            return $" {fieldPrefix}='{result.DiagnosticStatus}' {fieldPrefix}Removed='{result.RemovedCount}' {fieldPrefix}Before='{result.BindingCountBefore}' {fieldPrefix}After='{result.BindingCountAfter}'.";
         }
     }
 }

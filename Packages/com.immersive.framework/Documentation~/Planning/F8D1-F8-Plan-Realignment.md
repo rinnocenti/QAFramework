@@ -1,6 +1,6 @@
 # F8D1 — F8 Plan Realignment
 
-Status: `F8K APPLIED / PENDING COMPILE + SMOKE`
+Status: `F8K PASS / F8 CLOSED`
 
 Este documento registra o realinhamento oficial da Fase 8 após a implementação de `F8D`.
 
@@ -214,7 +214,7 @@ Addressables deve entrar depois como provider/adapter opcional, não como depend
 | `F8H` | `CLOSED / PASS` | Transition guard + scoped cancellation model. |
 | `F8I` | `CLOSED / COMPILE-SMOKE PASS` | `IRuntimeMaterializationAdapter` boundary; adapters físicos ficam fora do core. |
 | `F8J` | `CLOSED / COMPILE-SMOKE PASS` | Runtime release request/result/policy, release adapter boundary and logical release by handle/scope. |
-| `F8K` | `APPLIED / PENDING COMPILE + SMOKE` | Runtime Content Smoke, `ApplyMaterializationResult` registry handoff and F8 closure gate. |
+| `F8K` | `PASS / F8 CLOSED` | Runtime Content Smoke, `ApplyMaterializationResult` registry handoff and F8 closure gate. |
 
 ---
 

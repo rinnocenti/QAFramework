@@ -1,6 +1,6 @@
 # F9-01 — ADR-ANCHOR-002 — Content Anchor Binding and Runtime Placement
 
-Status: Accepted / F9E host-owned logical binding runtime applied
+Status: Accepted / F9F automatic logical binding cleanup applied
 Fase: F9
 Ordem no Plano: F9-01
 Tipo: Content Anchor / Runtime
@@ -27,7 +27,8 @@ F9A ContentAnchorContentHandle
 F9B RuntimeContentAnchorBinding [applied as logical runtime]
 F9C Binding smoke and lifecycle diagnostics [PASS]
 F9D Binding lifecycle cleanup/snapshot policy [PASS]
-F9E FrameworkRuntimeHost ownership for binding runtime [applied]
+F9E FrameworkRuntimeHost ownership for binding runtime [PASS]
+F9F automatic logical binding cleanup on Route/Activity exit [applied]
 ```
 
 Consumer solicita Content Anchor por identity. O runtime resolve root/slot/point, cria ou associa runtime content quando permitido, devolve handle e registra release order. Consumer não destrói o Content Anchor nem o runtime content diretamente.
@@ -69,7 +70,7 @@ F9D adiciona operações explícitas de cleanup/snapshot por runtime content, ru
 
 F9E torna o `FrameworkRuntimeHost` o owner canônico do `RuntimeContentAnchorBinding` e expõe métodos internos controlados para bind/unbind/snapshot. O smoke deixa de criar binding runtime local e passa a validar o runtime owned pelo host.
 
-F9E não adiciona cleanup automático em Route/Activity exit, placement físico, prefab adapter, scene adapter, `Transform`, `GameObject`, `Instantiate` ou `Destroy`.
+F9F injeta esse runtime owned pelo host nos lifecycles de Route/Activity e executa cleanup lógico por `RuntimeContentOwner` no exit do owner antigo, antes da remoção do root lógico antigo. F9F não adiciona placement físico, prefab adapter, scene adapter, `Transform`, `GameObject`, `Instantiate` ou `Destroy`.
 
 ## Regras
 

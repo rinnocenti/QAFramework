@@ -1,6 +1,6 @@
 # F8 — Runtime Roots and Materialization Audit
 
-Status: `F8K APPLIED / PENDING COMPILE + SMOKE`
+Status: `F8K PASS / F8 CLOSED`
 
 F8 começa depois de F7 fechar o baseline de Content Anchor. F7 entregou identidade, declaração, authoring, discovery, diagnostics smoke e authoring validation para `RouteContentAnchor`, mas não criou runtime placement nem materialização.
 
@@ -233,7 +233,7 @@ Criar/posicionar conteúdo runtime usando ContentAnchorRoot/Slot/Point.
 | `F8H` | Transition guard + scoped cancellation. `APPLIED` |
 | `F8I` | `IRuntimeMaterializationAdapter` boundary. `CLOSED / COMPILE-SMOKE PASS` |
 | `F8J` | Runtime release request/result/policy, release adapter boundary and logical release by handle/scope. `CLOSED / COMPILE-SMOKE PASS` |
-| `F8K` | Runtime Content Smoke, `ApplyMaterializationResult` registry handoff and F8 closure gate. `APPLIED / PENDING COMPILE + SMOKE` |
+| `F8K` | Runtime Content Smoke, `ApplyMaterializationResult` registry handoff and F8 closure gate. `PASS / F8 CLOSED` |
 
 F8 foi realinhada após F8D para inserir `RuntimeContentRuntime` e `RuntimeScopeContext` antes de request/result de materialização. A ordem nova evita criar request pública sem owner interno explícito para roots e handles. Nenhum consumer deve entrar antes de handle/root/context/release mínimos.
 

@@ -91,6 +91,10 @@ namespace Immersive.Framework.ContentAnchor
 
         public string Message { get; }
 
+        public bool Executed => Status != ContentAnchorBindingLifecycleStatus.Unknown;
+
+        public string DiagnosticStatus => Executed ? Status.ToString() : "None";
+
         public bool Succeeded => Status == ContentAnchorBindingLifecycleStatus.Succeeded
             || Status == ContentAnchorBindingLifecycleStatus.SucceededNoBindings;
 
