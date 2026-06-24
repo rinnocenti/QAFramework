@@ -1,6 +1,6 @@
 # Activity Content Execution Lifecycle Integration
 
-Status: APPLIED / LIFECYCLE DIAGNOSTIC INTEGRATION / PENDING SMOKE  
+Status: APPLIED / LIFECYCLE DIAGNOSTIC INTEGRATION / REGRESSION PASS BEFORE F10J  
 Fase: F10I  
 Escopo: Framework Core
 
@@ -119,3 +119,14 @@ Actor/Player/Camera/Pause/Input/Save consumers
 F10I deve passar por compile/import smoke e regressao dos smokes existentes.
 
 O sinal novo deve aparecer nos logs de boot, route request e activity request como diagnostics de Activity Content Execution com zero participants.
+
+
+---
+
+## F10J follow-up
+
+F10J adiciona um smoke especifico para validar clear/restore de Activity contra estes diagnostics. Ver:
+
+```text
+Documentation~/Activity/ACTIVITY_CONTENT_EXECUTION_LIFECYCLE_TRANSITION_SMOKE.md
+```

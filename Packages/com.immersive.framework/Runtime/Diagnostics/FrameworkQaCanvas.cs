@@ -313,6 +313,11 @@ namespace Immersive.Framework.Diagnostics
                     RunActivityContentExecutionRuntimeSmoke();
                 }
 
+                if (GUILayout.Button("Run Activity Content Execution Lifecycle Transition Smoke"))
+                {
+                    RunActivityContentExecutionLifecycleTransitionSmoke();
+                }
+
                 if (GUILayout.Button("Run Content Anchor Binding Smoke"))
                 {
                     RunContentAnchorBindingSmoke();
@@ -1581,6 +1586,118 @@ namespace Immersive.Framework.Diagnostics
                         LogFields.Field("collection", participants.ToDiagnosticString()),
                         LogFields.Field("enter", enterResult.ToDiagnosticString()),
                         LogFields.Field("exit", exitResult.ToDiagnosticString())));
+
+                return true;
+            });
+        }
+
+        private async void RunActivityContentExecutionLifecycleTransitionSmoke()
+        {
+            string missingTargets = string.Empty;
+            AppendMissingQaAsset(ref missingTargets, primaryActivity == null, "Primary Activity");
+
+            if (!TryValidateSmokeTargets("Activity Content Execution Lifecycle Transition Smoke", missingTargets))
+            {
+                return;
+            }
+
+            await RunSmokeAsync("Activity Content Execution Lifecycle Transition Smoke", async runtimeHost =>
+            {
+                if (!ReferenceEquals(runtimeHost.State.CurrentActivity, primaryActivity))
+                {
+                    if (!await RequestActivityCoreAsync(
+                            runtimeHost,
+                            primaryActivity,
+                            ResolveReason(activityReason, GetAssetName(primaryActivity, "qa.activity-content-execution-lifecycle.prepare")),
+                            allowAlreadyActive: true))
+                    {
+                        return false;
+                    }
+
+                    await Task.Yield();
+                }
+
+                if (!ReferenceEquals(runtimeHost.State.CurrentActivity, primaryActivity))
+                {
+                    _logger.Warning("QA Activity Content Execution Lifecycle Transition Smoke step failed. step='prepare' reason='Primary Activity is not active before clear'.");
+                    return false;
+                }
+
+                var clearResult = await ClearActivityWithResultCoreAsync(
+                    runtimeHost,
+                    ResolveReason(clearActivityReason, "qa.activity-content-execution-lifecycle.clear"));
+                if (!clearResult.Succeeded)
+                {
+                    _logger.Warning($"QA Activity Content Execution Lifecycle Transition Smoke step failed. step='clear' reason='Activity clear did not succeed' status='{FormatValue(clearResult.Kind.ToString())}'.");
+                    return false;
+                }
+
+                var clearExecution = clearResult.ActivityFlowResult.ActivityContentExecutionResult;
+                if (!clearExecution.Executed
+                    || !clearExecution.Succeeded
+                    || clearExecution.Status != ActivityContentExecutionLifecycleStatus.SucceededNoContent
+                    || clearExecution.ExitResult.Status != ActivityContentExecutionAggregateStatus.SkippedNoContent
+                    || clearExecution.ExitRequestCount != 0
+                    || clearExecution.ExitResultCount != 0
+                    || clearExecution.BlocksReadiness)
+                {
+                    _logger.Warning(
+                        $"QA Activity Content Execution Lifecycle Transition Smoke step failed. step='clear-execution' reason='Activity clear execution diagnostics did not match empty exit expectation' execution='{FormatValue(clearExecution.DiagnosticStatus)}' exit='{FormatValue(clearExecution.ExitResult.Status.ToString())}' exitRequests='{clearExecution.ExitRequestCount}' exitResults='{clearExecution.ExitResultCount}' blocksReadiness='{clearExecution.BlocksReadiness}' details='{FormatValue(clearExecution.ToDiagnosticString())}'.");
+                    return false;
+                }
+
+                await Task.Yield();
+
+                var restoreResult = await RequestActivityWithResultCoreAsync(
+                    runtimeHost,
+                    primaryActivity,
+                    ResolveReason(activityReason, GetAssetName(primaryActivity, "qa.activity-content-execution-lifecycle.restore")));
+                if (!restoreResult.Succeeded)
+                {
+                    _logger.Warning($"QA Activity Content Execution Lifecycle Transition Smoke step failed. step='restore' reason='Primary Activity restore did not succeed' status='{FormatValue(restoreResult.Kind.ToString())}'.");
+                    return false;
+                }
+
+                var restoreExecution = restoreResult.ActivityFlowResult.ActivityContentExecutionResult;
+                if (!restoreExecution.Executed
+                    || !restoreExecution.Succeeded
+                    || restoreExecution.Status != ActivityContentExecutionLifecycleStatus.SucceededNoContent
+                    || restoreExecution.EnterResult.Status != ActivityContentExecutionAggregateStatus.SkippedNoContent
+                    || restoreExecution.EnterRequestCount != 0
+                    || restoreExecution.EnterResultCount != 0
+                    || restoreExecution.BlocksReadiness)
+                {
+                    _logger.Warning(
+                        $"QA Activity Content Execution Lifecycle Transition Smoke step failed. step='restore-execution' reason='Activity restore execution diagnostics did not match empty enter expectation' execution='{FormatValue(restoreExecution.DiagnosticStatus)}' enter='{FormatValue(restoreExecution.EnterResult.Status.ToString())}' enterRequests='{restoreExecution.EnterRequestCount}' enterResults='{restoreExecution.EnterResultCount}' blocksReadiness='{restoreExecution.BlocksReadiness}' details='{FormatValue(restoreExecution.ToDiagnosticString())}'.");
+                    return false;
+                }
+
+                _logger.Info(
+                    "QA Activity Content Execution Lifecycle Transition Smoke step completed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "activity-clear-restore"),
+                        LogFields.Field("activity", GetAssetName(primaryActivity, "<none>")),
+                        LogFields.Field("clearExecution", clearExecution.Status.ToString()),
+                        LogFields.Field("clearEnter", clearExecution.EnterResult.Status.ToString()),
+                        LogFields.Field("clearEnterRequests", clearExecution.EnterRequestCount),
+                        LogFields.Field("clearExit", clearExecution.ExitResult.Status.ToString()),
+                        LogFields.Field("clearExitRequests", clearExecution.ExitRequestCount),
+                        LogFields.Field("clearExitResults", clearExecution.ExitResultCount),
+                        LogFields.Field("clearBlocksReadiness", clearExecution.BlocksReadiness),
+                        LogFields.Field("restoreExecution", restoreExecution.Status.ToString()),
+                        LogFields.Field("restoreEnter", restoreExecution.EnterResult.Status.ToString()),
+                        LogFields.Field("restoreEnterRequests", restoreExecution.EnterRequestCount),
+                        LogFields.Field("restoreEnterResults", restoreExecution.EnterResultCount),
+                        LogFields.Field("restoreExit", restoreExecution.ExitResult.Status.ToString()),
+                        LogFields.Field("restoreExitRequests", restoreExecution.ExitRequestCount),
+                        LogFields.Field("restoreBlocksReadiness", restoreExecution.BlocksReadiness),
+                        LogFields.Field("runtimeRootCount", runtimeHost.RuntimeContentRuntime.RootCount)));
+
+                _logger.Debug(
+                    "QA Activity Content Execution Lifecycle Transition Smoke diagnostics.",
+                    LogFields.Of(
+                        LogFields.Field("clearExecution", clearExecution.ToDiagnosticString()),
+                        LogFields.Field("restoreExecution", restoreExecution.ToDiagnosticString())));
 
                 return true;
             });
