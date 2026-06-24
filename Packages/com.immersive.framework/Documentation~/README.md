@@ -17,7 +17,7 @@ Ponto de entrada do pacote `Documentation~`.
 
 - `Planning/Immersive-Framework-Roadmap-Revisado.md` e a fonte unica para roadmap, boundaries e sequencia F10+.
 - `COMPLETENESS_TRACKER.md` registra somente estado fechado/atual.
-- `ADRs/` preserva decisoes aceitas de F0-F10 classificadas por fase; F10 ja possui contratos passivos, resultado agregado, contrato de participant, collection/ordering model, request factory/phase plan e runtime executor para phase plans fornecidos, sem discovery ou integracao no ActivityFlow. Nao manter bucket `Unassigned`.
+- `ADRs/` preserva decisoes aceitas de F0-F10 classificadas por fase; F10 ja possui contratos passivos, resultado agregado, contrato de participant, collection/ordering model, request factory/phase plan e runtime executor para phase plans fornecidos e smoke diagnostico sintetico, sem discovery ou integracao no ActivityFlow. Nao manter bucket `Unassigned`.
 - `Architecture/ADR/` preserva historico arquitetural.
 - `Governance/` contem convencao e template de ADR.
 - `Guides/` contem conteudo navegavel.

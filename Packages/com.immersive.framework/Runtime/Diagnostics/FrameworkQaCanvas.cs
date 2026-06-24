@@ -308,6 +308,11 @@ namespace Immersive.Framework.Diagnostics
                     RunActivityContentAnchorBindingSmoke();
                 }
 
+                if (GUILayout.Button("Run Activity Content Execution Runtime Smoke"))
+                {
+                    RunActivityContentExecutionRuntimeSmoke();
+                }
+
                 if (GUILayout.Button("Run Content Anchor Binding Smoke"))
                 {
                     RunContentAnchorBindingSmoke();
@@ -1414,6 +1419,170 @@ namespace Immersive.Framework.Diagnostics
 #endif
                     }
                 }
+            });
+        }
+
+
+        private async void RunActivityContentExecutionRuntimeSmoke()
+        {
+            string missingTargets = string.Empty;
+            AppendMissingQaAsset(ref missingTargets, primaryActivity == null, "Primary Activity");
+            if (!TryValidateSmokeTargets("Activity Content Execution Runtime Smoke", missingTargets))
+            {
+                return;
+            }
+
+            await RunSmokeAsync("Activity Content Execution Runtime Smoke", async runtimeHost =>
+            {
+                if (!ReferenceEquals(runtimeHost.State.CurrentActivity, primaryActivity))
+                {
+                    if (!await RequestActivityCoreAsync(
+                        runtimeHost,
+                        primaryActivity,
+                        ResolveReason(activityReason, GetAssetName(primaryActivity, "QA Primary Content Activity")),
+                        allowAlreadyActive: true))
+                    {
+                        return false;
+                    }
+
+                    await Task.Yield();
+                }
+
+                var activityFlow = runtimeHost.State.ActivityFlowResult;
+                var activity = runtimeHost.State.CurrentActivity;
+                if (activity == null)
+                {
+                    _logger.Warning("QA Activity Content Execution Runtime Smoke step failed. step='activity' reason='No active Activity is available'.");
+                    return false;
+                }
+
+                var runtimeScope = activityFlow.RuntimeActivityScopeResult;
+                if (!runtimeScope.HasContext)
+                {
+                    _logger.Warning($"QA Activity Content Execution Runtime Smoke step failed. step='context' reason='Activity runtime scope context unavailable' runtimeActivityScope='{FormatValue(runtimeScope.DiagnosticStatus)}' runtimeActivityContext='{FormatValue(runtimeScope.ContextStatus)}'.");
+                    return false;
+                }
+
+                var enterRequiredParticipant = new SyntheticActivityContentExecutionParticipant(
+                    ActivityContentExecutionParticipantDescriptor.Required(
+                        RuntimeContentId.From("qa.activity.execution.required"),
+                        supportsEnter: true,
+                        supportsExit: true,
+                        order: 10,
+                        displayName: "QA Required Execution Participant",
+                        source: QaSource,
+                        reason: "qa.activity-content-execution.required"),
+                    SyntheticActivityContentExecutionParticipantMode.Success);
+
+                var enterOptionalParticipant = new SyntheticActivityContentExecutionParticipant(
+                    ActivityContentExecutionParticipantDescriptor.Optional(
+                        RuntimeContentId.From("qa.activity.execution.optional.enter"),
+                        supportsEnter: true,
+                        supportsExit: false,
+                        order: 20,
+                        displayName: "QA Optional Enter Execution Participant",
+                        source: QaSource,
+                        reason: "qa.activity-content-execution.optional-enter"),
+                    SyntheticActivityContentExecutionParticipantMode.NoOp);
+
+                var participants = ActivityContentExecutionParticipantCollection.FromParticipants(
+                    new IActivityContentExecutionParticipant[]
+                    {
+                        enterRequiredParticipant,
+                        enterOptionalParticipant
+                    });
+
+                if (participants.HasIssues || participants.Count != 2 || participants.EnterCount != 2 || participants.ExitCount != 1)
+                {
+                    _logger.Warning($"QA Activity Content Execution Runtime Smoke step failed. step='collection' count='{participants.Count}' enter='{participants.EnterCount}' exit='{participants.ExitCount}' issues='{participants.IssueCount}' details='{FormatValue(participants.ToDiagnosticString())}'.");
+                    return false;
+                }
+
+                var runtime = new ActivityContentExecutionRuntime();
+                var enterPlan = ActivityContentExecutionRequestFactory.CreateEnterPlan(
+                    activity,
+                    activityFlow.PreviousActivity,
+                    runtimeScope.Context,
+                    participants,
+                    QaSource,
+                    "qa.activity-content-execution.enter");
+
+                if (!enterPlan.Planned || enterPlan.RequestCount != 2 || enterPlan.RequiredCount != 1 || enterPlan.OptionalCount != 1)
+                {
+                    _logger.Warning($"QA Activity Content Execution Runtime Smoke step failed. step='enter-plan' status='{enterPlan.Status}' requests='{enterPlan.RequestCount}' required='{enterPlan.RequiredCount}' optional='{enterPlan.OptionalCount}' message='{FormatValue(enterPlan.Message)}'.");
+                    return false;
+                }
+
+                var enterResult = runtime.ExecutePhasePlan(
+                    enterPlan,
+                    QaSource,
+                    "qa.activity-content-execution.enter");
+
+                if (!enterResult.Succeeded || enterResult.Status != ActivityContentExecutionAggregateStatus.Succeeded || enterResult.ResultCount != 2 || enterResult.BlocksReadiness || enterResult.BlockingIssueCount != 0)
+                {
+                    _logger.Warning($"QA Activity Content Execution Runtime Smoke step failed. step='enter-execute' status='{enterResult.Status}' results='{enterResult.ResultCount}' blockingIssues='{enterResult.BlockingIssueCount}' nonBlockingIssues='{enterResult.NonBlockingIssueCount}' blocksReadiness='{enterResult.BlocksReadiness}' details='{FormatValue(enterResult.ToDiagnosticString())}'.");
+                    return false;
+                }
+
+                var exitPlan = ActivityContentExecutionRequestFactory.CreateExitPlan(
+                    activity,
+                    null,
+                    runtimeScope.Context,
+                    participants,
+                    QaSource,
+                    "qa.activity-content-execution.exit");
+
+                if (!exitPlan.Planned || exitPlan.RequestCount != 1 || exitPlan.RequiredCount != 1 || exitPlan.OptionalCount != 0)
+                {
+                    _logger.Warning($"QA Activity Content Execution Runtime Smoke step failed. step='exit-plan' status='{exitPlan.Status}' requests='{exitPlan.RequestCount}' required='{exitPlan.RequiredCount}' optional='{exitPlan.OptionalCount}' message='{FormatValue(exitPlan.Message)}'.");
+                    return false;
+                }
+
+                var exitResult = runtime.ExecutePhasePlan(
+                    exitPlan,
+                    QaSource,
+                    "qa.activity-content-execution.exit");
+
+                if (!exitResult.Succeeded || exitResult.Status != ActivityContentExecutionAggregateStatus.Succeeded || exitResult.ResultCount != 1 || exitResult.BlocksReadiness || exitResult.BlockingIssueCount != 0)
+                {
+                    _logger.Warning($"QA Activity Content Execution Runtime Smoke step failed. step='exit-execute' status='{exitResult.Status}' results='{exitResult.ResultCount}' blockingIssues='{exitResult.BlockingIssueCount}' nonBlockingIssues='{exitResult.NonBlockingIssueCount}' blocksReadiness='{exitResult.BlocksReadiness}' details='{FormatValue(exitResult.ToDiagnosticString())}'.");
+                    return false;
+                }
+
+                _logger.Info(
+                    "QA Activity Content Execution Runtime Smoke step completed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "synthetic-execution"),
+                        LogFields.Field("activity", GetAssetName(activity, "<none>")),
+                        LogFields.Field("participants", participants.Count),
+                        LogFields.Field("collectionIssues", participants.IssueCount),
+                        LogFields.Field("enterPlan", enterPlan.Status.ToString()),
+                        LogFields.Field("enterRequests", enterPlan.RequestCount),
+                        LogFields.Field("enterStatus", enterResult.Status.ToString()),
+                        LogFields.Field("enterResults", enterResult.ResultCount),
+                        LogFields.Field("enterRequired", enterResult.RequiredCount),
+                        LogFields.Field("enterOptional", enterResult.OptionalCount),
+                        LogFields.Field("enterBlockingIssues", enterResult.BlockingIssueCount),
+                        LogFields.Field("enterNonBlockingIssues", enterResult.NonBlockingIssueCount),
+                        LogFields.Field("enterBlocksReadiness", enterResult.BlocksReadiness),
+                        LogFields.Field("exitPlan", exitPlan.Status.ToString()),
+                        LogFields.Field("exitRequests", exitPlan.RequestCount),
+                        LogFields.Field("exitStatus", exitResult.Status.ToString()),
+                        LogFields.Field("exitResults", exitResult.ResultCount),
+                        LogFields.Field("exitRequired", exitResult.RequiredCount),
+                        LogFields.Field("exitOptional", exitResult.OptionalCount),
+                        LogFields.Field("exitBlockingIssues", exitResult.BlockingIssueCount),
+                        LogFields.Field("exitNonBlockingIssues", exitResult.NonBlockingIssueCount),
+                        LogFields.Field("exitBlocksReadiness", exitResult.BlocksReadiness)));
+
+                _logger.Debug(
+                    "QA Activity Content Execution Runtime Smoke diagnostics.",
+                    LogFields.Of(
+                        LogFields.Field("collection", participants.ToDiagnosticString()),
+                        LogFields.Field("enter", enterResult.ToDiagnosticString()),
+                        LogFields.Field("exit", exitResult.ToDiagnosticString())));
+
+                return true;
             });
         }
 
@@ -3637,6 +3806,74 @@ namespace Immersive.Framework.Diagnostics
             if (_current == this)
             {
                 _current = null;
+            }
+        }
+
+
+        private enum SyntheticActivityContentExecutionParticipantMode
+        {
+            Success,
+            NoOp
+        }
+
+        private sealed class SyntheticActivityContentExecutionParticipant : IActivityContentExecutionParticipant
+        {
+            private readonly ActivityContentExecutionParticipantDescriptor descriptor;
+            private readonly SyntheticActivityContentExecutionParticipantMode mode;
+
+            public SyntheticActivityContentExecutionParticipant(
+                ActivityContentExecutionParticipantDescriptor descriptor,
+                SyntheticActivityContentExecutionParticipantMode mode)
+            {
+                this.descriptor = descriptor;
+                this.mode = mode;
+            }
+
+            public ActivityContentExecutionParticipantDescriptor GetActivityContentExecutionDescriptor()
+            {
+                return descriptor;
+            }
+
+            public ActivityContentExecutionResult ExecuteActivityContent(ActivityContentExecutionRequest request)
+            {
+                if (!request.ContentId.Equals(descriptor.ContentId))
+                {
+                    return request.IsRequired
+                        ? ActivityContentExecutionResult.BlockingFailure(
+                            request,
+                            1,
+                            QaSource,
+                            "qa.activity-content-execution.synthetic",
+                            "Synthetic Activity content execution participant received a request for a different content id.")
+                        : ActivityContentExecutionResult.NonBlockingFailure(
+                            request,
+                            1,
+                            QaSource,
+                            "qa.activity-content-execution.synthetic",
+                            "Synthetic Activity content execution participant received a request for a different content id.");
+                }
+
+                if (!descriptor.SupportsPhase(request.Phase))
+                {
+                    return ActivityContentExecutionResult.SkippedResult(
+                        request,
+                        ActivityContentExecutionStatus.SkippedNotApplicable,
+                        QaSource,
+                        "qa.activity-content-execution.synthetic",
+                        "Synthetic Activity content execution participant does not support the requested phase.");
+                }
+
+                return mode == SyntheticActivityContentExecutionParticipantMode.NoOp
+                    ? ActivityContentExecutionResult.SucceededNoOp(
+                        request,
+                        QaSource,
+                        "qa.activity-content-execution.synthetic",
+                        "Synthetic Activity content execution participant completed with no operation.")
+                    : ActivityContentExecutionResult.Success(
+                        request,
+                        QaSource,
+                        "qa.activity-content-execution.synthetic",
+                        "Synthetic Activity content execution participant succeeded.");
             }
         }
 
