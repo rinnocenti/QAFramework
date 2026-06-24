@@ -1,6 +1,6 @@
 # F9-01 — ADR-ANCHOR-002 — Content Anchor Binding and Runtime Placement
 
-Status: Accepted / F9C logical binding smoke applied
+Status: Accepted / F9E host-owned logical binding runtime applied
 Fase: F9
 Ordem no Plano: F9-01
 Tipo: Content Anchor / Runtime
@@ -25,8 +25,9 @@ F9A ContentAnchorBindingRequest
 F9A ContentAnchorBindingResult
 F9A ContentAnchorContentHandle
 F9B RuntimeContentAnchorBinding [applied as logical runtime]
-F9C Binding smoke and lifecycle diagnostics [applied]
-F9D Binding smoke
+F9C Binding smoke and lifecycle diagnostics [PASS]
+F9D Binding lifecycle cleanup/snapshot policy [PASS]
+F9E FrameworkRuntimeHost ownership for binding runtime [applied]
 ```
 
 Consumer solicita Content Anchor por identity. O runtime resolve root/slot/point, cria ou associa runtime content quando permitido, devolve handle e registra release order. Consumer não destrói o Content Anchor nem o runtime content diretamente.
@@ -62,10 +63,18 @@ F9C adiciona `Run Content Anchor Binding Smoke` ao QA Canvas. O smoke usa um `Co
 
 F9C permanece diagnóstico: não move `Transform`, não instancia prefab, não carrega cena, não chama `Destroy`, não cria adapter físico e não cria consumer final.
 
+## Implementação F9D/F9E
+
+F9D adiciona operações explícitas de cleanup/snapshot por runtime content, runtime owner/scope, anchor e anchor owner/scope.
+
+F9E torna o `FrameworkRuntimeHost` o owner canônico do `RuntimeContentAnchorBinding` e expõe métodos internos controlados para bind/unbind/snapshot. O smoke deixa de criar binding runtime local e passa a validar o runtime owned pelo host.
+
+F9E não adiciona cleanup automático em Route/Activity exit, placement físico, prefab adapter, scene adapter, `Transform`, `GameObject`, `Instantiate` ou `Destroy`.
+
 ## Regras
 
 - Binding depende de F7 ContentAnchorSet e F8 RuntimeContent.
-- Binding não cria `ContentAnchorManager` global.
+- Binding não cria `ContentAnchorManager` global; o owner canônico é o `FrameworkRuntimeHost`, sem service locator gameplay-facing.
 - Binding não cria fallback quando anchor required está ausente.
 - Binding release ocorre antes do release do owner scope/root.
 - Binding não implementa fade/loading, Pause overlay, Camera rig, Actor presentation ou Pooling.

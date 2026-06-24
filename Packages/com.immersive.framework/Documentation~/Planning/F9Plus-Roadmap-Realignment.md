@@ -119,11 +119,12 @@ F15/FX Productization, tooling and hardening
 
 ## Não objetivos deste corte
 
-O realinhamento original foi documental. A implementação começou em F9A com contratos de binding, avançou em F9B com `RuntimeContentAnchorBinding` lógico e em F9C adicionou o smoke dedicado de binding no QA Canvas.
+O realinhamento original foi documental. A implementação começou em F9A com contratos de binding, avançou em F9B com `RuntimeContentAnchorBinding` lógico, F9C adicionou e validou o smoke dedicado de binding no QA Canvas, F9D adicionou lifecycle cleanup/snapshots locais para bindings, e F9E torna o binding runtime owned pelo `FrameworkRuntimeHost` por API interna controlada.
 
-Depois de F9C, ainda não existe:
+Depois de F9E, ainda não existe:
 
 ```text
+automatic Route/Activity binding cleanup integration
 physical placement
 TransitionRuntime
 ActivityContentProfile execution

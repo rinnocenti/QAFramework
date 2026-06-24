@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Identity;
 using Immersive.Framework.RuntimeContent;
 
 namespace Immersive.Framework.ContentAnchor
@@ -10,8 +11,9 @@ namespace Immersive.Framework.ContentAnchor
     /// API status: Experimental. Internal logical runtime for Content Anchor binding correlation.
     /// It resolves explicit binding requests against a passive ContentAnchorSet and registered RuntimeContent handles;
     /// it does not move transforms, instantiate prefabs, unload scenes, perform physical release or create fallback anchors.
+    /// F9E makes this runtime owned by FrameworkRuntimeHost through controlled internal methods; automatic Route/Activity cleanup remains deferred.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F9B RuntimeContentAnchorBinding logical runtime; resolves anchor/runtime handle correlation without physical placement.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F9E host-owned RuntimeContentAnchorBinding logical runtime; no physical placement or automatic lifecycle cleanup.")]
     internal sealed class RuntimeContentAnchorBinding
     {
         private readonly Dictionary<string, ContentAnchorContentHandle> bindings;
@@ -159,6 +161,187 @@ namespace Immersive.Framework.ContentAnchor
             return bindings.Remove(CreateBindingKey(handle.Request));
         }
 
+        public ContentAnchorBindingLifecycleResult UnbindRuntimeContent(
+            RuntimeContentIdentity identity,
+            string source,
+            string reason)
+        {
+            ValidateIdentity(identity);
+
+            var before = BindingCount;
+            RemoveBindingsWhere(handle => handle.Request.RuntimeIdentity == identity);
+            return ContentAnchorBindingLifecycleResult.FromCounts(
+                before,
+                BindingCount,
+                identity.Owner,
+                identity,
+                ContentAnchorScope.Unknown,
+                default(FrameworkIdentityKey),
+                ContentAnchorKind.Unknown,
+                default(ContentAnchorId),
+                "runtime-content",
+                source,
+                reason,
+                "Content Anchor bindings were cleaned up for one runtime content identity.");
+        }
+
+        public ContentAnchorBindingLifecycleResult UnbindRuntimeOwner(
+            RuntimeContentOwner owner,
+            string source,
+            string reason)
+        {
+            ValidateOwner(owner);
+
+            var before = BindingCount;
+            RemoveBindingsWhere(handle => handle.Request.RuntimeOwner == owner);
+            return ContentAnchorBindingLifecycleResult.FromCounts(
+                before,
+                BindingCount,
+                owner,
+                default(RuntimeContentIdentity),
+                ContentAnchorScope.Unknown,
+                default(FrameworkIdentityKey),
+                ContentAnchorKind.Unknown,
+                default(ContentAnchorId),
+                "runtime-owner",
+                source,
+                reason,
+                "Content Anchor bindings were cleaned up for one runtime owner.");
+        }
+
+        public ContentAnchorBindingLifecycleResult UnbindRuntimeScope(
+            RuntimeContentScope scope,
+            string source,
+            string reason)
+        {
+            ValidateRuntimeScope(scope);
+
+            var before = BindingCount;
+            RemoveBindingsWhere(handle => handle.Request.RuntimeScope == scope);
+            return ContentAnchorBindingLifecycleResult.FromCounts(
+                before,
+                BindingCount,
+                default(RuntimeContentOwner),
+                default(RuntimeContentIdentity),
+                ContentAnchorScope.Unknown,
+                default(FrameworkIdentityKey),
+                ContentAnchorKind.Unknown,
+                default(ContentAnchorId),
+                "runtime-scope",
+                source,
+                reason,
+                "Content Anchor bindings were cleaned up for one runtime scope.");
+        }
+
+        public ContentAnchorBindingLifecycleResult UnbindAnchor(
+            ContentAnchorDeclaration anchor,
+            string source,
+            string reason)
+        {
+            ValidateAnchor(anchor);
+
+            var before = BindingCount;
+            RemoveBindingsWhere(handle => handle.Request.Matches(anchor));
+            return ContentAnchorBindingLifecycleResult.FromCounts(
+                before,
+                BindingCount,
+                default(RuntimeContentOwner),
+                default(RuntimeContentIdentity),
+                anchor.Scope,
+                anchor.Owner,
+                anchor.Kind,
+                anchor.AnchorId,
+                "anchor",
+                source,
+                reason,
+                "Content Anchor bindings were cleaned up for one anchor.");
+        }
+
+        public ContentAnchorBindingLifecycleResult UnbindAnchorOwner(
+            ContentAnchorScope scope,
+            FrameworkIdentityKey owner,
+            string source,
+            string reason)
+        {
+            ValidateAnchorOwner(scope, owner);
+
+            var before = BindingCount;
+            RemoveBindingsWhere(handle => handle.Request.AnchorScope == scope && handle.Request.AnchorOwner == owner);
+            return ContentAnchorBindingLifecycleResult.FromCounts(
+                before,
+                BindingCount,
+                default(RuntimeContentOwner),
+                default(RuntimeContentIdentity),
+                scope,
+                owner,
+                ContentAnchorKind.Unknown,
+                default(ContentAnchorId),
+                "anchor-owner",
+                source,
+                reason,
+                "Content Anchor bindings were cleaned up for one anchor owner.");
+        }
+
+        public ContentAnchorBindingLifecycleResult UnbindAnchorScope(
+            ContentAnchorScope scope,
+            string source,
+            string reason)
+        {
+            ValidateAnchorScope(scope);
+
+            var before = BindingCount;
+            RemoveBindingsWhere(handle => handle.Request.AnchorScope == scope);
+            return ContentAnchorBindingLifecycleResult.FromCounts(
+                before,
+                BindingCount,
+                default(RuntimeContentOwner),
+                default(RuntimeContentIdentity),
+                scope,
+                default(FrameworkIdentityKey),
+                ContentAnchorKind.Unknown,
+                default(ContentAnchorId),
+                "anchor-scope",
+                source,
+                reason,
+                "Content Anchor bindings were cleaned up for one anchor scope.");
+        }
+
+        public ContentAnchorContentHandle[] SnapshotBindingsForRuntimeContent(RuntimeContentIdentity identity)
+        {
+            ValidateIdentity(identity);
+            return SnapshotWhere(handle => handle.Request.RuntimeIdentity == identity);
+        }
+
+        public ContentAnchorContentHandle[] SnapshotBindingsForRuntimeOwner(RuntimeContentOwner owner)
+        {
+            ValidateOwner(owner);
+            return SnapshotWhere(handle => handle.Request.RuntimeOwner == owner);
+        }
+
+        public ContentAnchorContentHandle[] SnapshotBindingsForRuntimeScope(RuntimeContentScope scope)
+        {
+            ValidateRuntimeScope(scope);
+            return SnapshotWhere(handle => handle.Request.RuntimeScope == scope);
+        }
+
+        public ContentAnchorContentHandle[] SnapshotBindingsForAnchor(ContentAnchorDeclaration anchor)
+        {
+            ValidateAnchor(anchor);
+            return SnapshotWhere(handle => handle.Request.Matches(anchor));
+        }
+
+        public ContentAnchorContentHandle[] SnapshotBindingsForAnchorOwner(ContentAnchorScope scope, FrameworkIdentityKey owner)
+        {
+            ValidateAnchorOwner(scope, owner);
+            return SnapshotWhere(handle => handle.Request.AnchorScope == scope && handle.Request.AnchorOwner == owner);
+        }
+
+        public ContentAnchorContentHandle[] SnapshotBindingsForAnchorScope(ContentAnchorScope scope)
+        {
+            ValidateAnchorScope(scope);
+            return SnapshotWhere(handle => handle.Request.AnchorScope == scope);
+        }
+
         public int RemoveBindingsForRuntimeContent(RuntimeContentIdentity identity)
         {
             ValidateIdentity(identity);
@@ -284,6 +467,54 @@ namespace Immersive.Framework.ContentAnchor
                 "Content Anchor binding already exists and remains valid.");
         }
 
+        private int RemoveBindingsWhere(Func<ContentAnchorContentHandle, bool> predicate)
+        {
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
+            if (bindings.Count == 0)
+            {
+                return 0;
+            }
+
+            var keys = new List<string>();
+            foreach (var pair in bindings)
+            {
+                if (predicate(pair.Value))
+                {
+                    keys.Add(pair.Key);
+                }
+            }
+
+            return RemoveKeys(keys);
+        }
+
+        private ContentAnchorContentHandle[] SnapshotWhere(Func<ContentAnchorContentHandle, bool> predicate)
+        {
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
+            if (bindings.Count == 0)
+            {
+                return Array.Empty<ContentAnchorContentHandle>();
+            }
+
+            var results = new List<ContentAnchorContentHandle>();
+            foreach (var binding in bindings.Values)
+            {
+                if (predicate(binding))
+                {
+                    results.Add(binding);
+                }
+            }
+
+            return results.Count == 0 ? Array.Empty<ContentAnchorContentHandle>() : results.ToArray();
+        }
+
         private int RemoveKeys(List<string> keys)
         {
             var removed = 0;
@@ -324,6 +555,40 @@ namespace Immersive.Framework.ContentAnchor
             if (!owner.IsValid)
             {
                 throw new ArgumentException("Runtime content owner must be valid.", nameof(owner));
+            }
+        }
+
+        private static void ValidateRuntimeScope(RuntimeContentScope scope)
+        {
+            if (!Enum.IsDefined(typeof(RuntimeContentScope), scope) || scope == RuntimeContentScope.Unknown)
+            {
+                throw new ArgumentOutOfRangeException(nameof(scope), scope, "Runtime content scope must be explicit.");
+            }
+        }
+
+        private static void ValidateAnchor(ContentAnchorDeclaration anchor)
+        {
+            if (!anchor.IsValid)
+            {
+                throw new ArgumentException("Content Anchor declaration must be valid.", nameof(anchor));
+            }
+        }
+
+        private static void ValidateAnchorOwner(ContentAnchorScope scope, FrameworkIdentityKey owner)
+        {
+            ValidateAnchorScope(scope);
+
+            if (!owner.IsValid)
+            {
+                throw new ArgumentException("Content Anchor owner must be valid.", nameof(owner));
+            }
+        }
+
+        private static void ValidateAnchorScope(ContentAnchorScope scope)
+        {
+            if (!Enum.IsDefined(typeof(ContentAnchorScope), scope) || scope == ContentAnchorScope.Unknown)
+            {
+                throw new ArgumentOutOfRangeException(nameof(scope), scope, "Content Anchor scope must be explicit.");
             }
         }
     }

@@ -54,7 +54,7 @@ namespace Immersive.Framework.Bootstrap
 
                 logger.Info(
                     "Boot succeeded. Application Runtime started.",
-                    BuildBootFields(result, gameFlowResult));
+                    BuildBootFields(result, gameFlowResult, runtimeHost));
                 logger.Debug("Boot diagnostics. " + gameFlowResult.Message);
                 LogActivityContentObservability(logger, gameFlowResult.RouteLifecycleResult.ActivityFlowResult.ActivityContentResult);
             }
@@ -71,7 +71,8 @@ namespace Immersive.Framework.Bootstrap
 
         private static LogField[] BuildBootFields(
             FrameworkBootResult result,
-            FrameworkGameFlowStartResult gameFlowResult)
+            FrameworkGameFlowStartResult gameFlowResult,
+            FrameworkRuntimeHost runtimeHost)
         {
             RouteLifecycleStartResult routeLifecycleResult = gameFlowResult.RouteLifecycleResult;
             ActivityFlowStartResult activityFlowResult = routeLifecycleResult.ActivityFlowResult;
@@ -104,6 +105,7 @@ namespace Immersive.Framework.Bootstrap
                 LogFields.Field("contentAnchorIssues", routeLifecycleResult.ContentAnchorDiscoveryResult.IssueCount),
                 LogFields.Field("contentAnchorInvalid", routeLifecycleResult.ContentAnchorDiscoveryResult.InvalidAuthoringCount),
                 LogFields.Field("contentAnchorRouteMismatch", routeLifecycleResult.ContentAnchorDiscoveryResult.SkippedRouteMismatchCount),
+                LogFields.Field("contentAnchorBindings", runtimeHost != null ? runtimeHost.ContentAnchorBindingCount : 0),
                 LogFields.Field("routeContentEnterReceivers", routeLifecycleResult.RouteContentEnterResult.ReceiverCount),
                 LogFields.Field("activity", FormatDiagnosticValue(activityFlowResult.ActivityState.ActivityName)),
                 LogFields.Field("activityState", activityFlowResult.ActivityState.DiagnosticStatus),

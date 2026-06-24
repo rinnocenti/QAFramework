@@ -1,5 +1,7 @@
+using System;
 using System.Threading.Tasks;
 using Immersive.Framework.ActivityFlow;
+using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Diagnostics;
 using Immersive.Framework.GameFlow;
@@ -26,6 +28,7 @@ namespace Immersive.Framework.ApplicationLifecycle
         private GameApplicationAsset _gameApplication;
         private GameFlowRuntime _gameFlowRuntime;
         private RuntimeContentRuntime _runtimeContentRuntime;
+        private RuntimeContentAnchorBinding _contentAnchorBindingRuntime;
         private RuntimeScopeLifecycleResult _runtimeSessionScopeResult;
         private FrameworkRuntimeState _state;
         private FrameworkLogger _logger;
@@ -35,6 +38,8 @@ namespace Immersive.Framework.ApplicationLifecycle
         public SessionRuntimeState SessionState => _state.SessionState;
 
         internal RuntimeContentRuntime RuntimeContentRuntime => _runtimeContentRuntime;
+
+        internal int ContentAnchorBindingCount => _contentAnchorBindingRuntime != null ? _contentAnchorBindingRuntime.BindingCount : 0;
 
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -119,10 +124,135 @@ namespace Immersive.Framework.ApplicationLifecycle
         {
             _gameApplication = application;
             _runtimeContentRuntime = new RuntimeContentRuntime();
+            _contentAnchorBindingRuntime = new RuntimeContentAnchorBinding();
             _runtimeSessionScopeResult = CreateSessionScopeRoot(application, "FrameworkRuntimeHost", "session-start");
             _gameFlowRuntime = new GameFlowRuntime(_runtimeContentRuntime);
             _logger = FrameworkLogger.Create<FrameworkRuntimeHost>();
             _state = FrameworkRuntimeState.Empty(application);
+        }
+
+
+        internal ContentAnchorBindingResult BindContentAnchor(
+            ContentAnchorSet anchorSet,
+            ContentAnchorBindingRequest request,
+            string source,
+            string reason)
+        {
+            if (_contentAnchorBindingRuntime == null)
+            {
+                throw new InvalidOperationException("Content Anchor binding runtime is not initialized.");
+            }
+
+            if (_runtimeContentRuntime == null)
+            {
+                throw new InvalidOperationException("Runtime content runtime is not initialized.");
+            }
+
+            return _contentAnchorBindingRuntime.Bind(
+                anchorSet,
+                _runtimeContentRuntime,
+                request,
+                source,
+                reason);
+        }
+
+        internal bool UnbindContentAnchor(ContentAnchorBindingRequest request)
+        {
+            if (_contentAnchorBindingRuntime == null)
+            {
+                throw new InvalidOperationException("Content Anchor binding runtime is not initialized.");
+            }
+
+            return _contentAnchorBindingRuntime.Unbind(request);
+        }
+
+        internal bool UnbindContentAnchor(ContentAnchorContentHandle handle)
+        {
+            if (_contentAnchorBindingRuntime == null)
+            {
+                throw new InvalidOperationException("Content Anchor binding runtime is not initialized.");
+            }
+
+            return _contentAnchorBindingRuntime.Unbind(handle);
+        }
+
+        internal ContentAnchorBindingLifecycleResult UnbindContentAnchorRuntimeContent(
+            RuntimeContentIdentity identity,
+            string source,
+            string reason)
+        {
+            if (_contentAnchorBindingRuntime == null)
+            {
+                throw new InvalidOperationException("Content Anchor binding runtime is not initialized.");
+            }
+
+            return _contentAnchorBindingRuntime.UnbindRuntimeContent(identity, source, reason);
+        }
+
+        internal ContentAnchorBindingLifecycleResult UnbindContentAnchorRuntimeOwner(
+            RuntimeContentOwner owner,
+            string source,
+            string reason)
+        {
+            if (_contentAnchorBindingRuntime == null)
+            {
+                throw new InvalidOperationException("Content Anchor binding runtime is not initialized.");
+            }
+
+            return _contentAnchorBindingRuntime.UnbindRuntimeOwner(owner, source, reason);
+        }
+
+        internal ContentAnchorBindingLifecycleResult UnbindContentAnchorRuntimeScope(
+            RuntimeContentScope scope,
+            string source,
+            string reason)
+        {
+            if (_contentAnchorBindingRuntime == null)
+            {
+                throw new InvalidOperationException("Content Anchor binding runtime is not initialized.");
+            }
+
+            return _contentAnchorBindingRuntime.UnbindRuntimeScope(scope, source, reason);
+        }
+
+        internal ContentAnchorContentHandle[] SnapshotContentAnchorBindings()
+        {
+            if (_contentAnchorBindingRuntime == null)
+            {
+                return Array.Empty<ContentAnchorContentHandle>();
+            }
+
+            return _contentAnchorBindingRuntime.SnapshotBindings();
+        }
+
+        internal ContentAnchorContentHandle[] SnapshotContentAnchorBindingsForRuntimeContent(RuntimeContentIdentity identity)
+        {
+            if (_contentAnchorBindingRuntime == null)
+            {
+                return Array.Empty<ContentAnchorContentHandle>();
+            }
+
+            return _contentAnchorBindingRuntime.SnapshotBindingsForRuntimeContent(identity);
+        }
+
+        internal ContentAnchorContentHandle[] SnapshotContentAnchorBindingsForRuntimeOwner(RuntimeContentOwner owner)
+        {
+            if (_contentAnchorBindingRuntime == null)
+            {
+                return Array.Empty<ContentAnchorContentHandle>();
+            }
+
+            return _contentAnchorBindingRuntime.SnapshotBindingsForRuntimeOwner(owner);
+        }
+
+        internal ContentAnchorContentHandle[] SnapshotContentAnchorBindingsForRuntimeScope(RuntimeContentScope scope)
+        {
+            if (_contentAnchorBindingRuntime == null)
+            {
+                return Array.Empty<ContentAnchorContentHandle>();
+            }
+
+            return _contentAnchorBindingRuntime.SnapshotBindingsForRuntimeScope(scope);
         }
 
 
@@ -184,7 +314,7 @@ namespace Immersive.Framework.ApplicationLifecycle
             _logger.Error(result.Message);
         }
 
-        private static LogField[] BuildRouteRequestFields(FrameworkRouteRequestResult result)
+        private LogField[] BuildRouteRequestFields(FrameworkRouteRequestResult result)
         {
             RouteLifecycleStartResult routeLifecycle = result.RouteLifecycleResult;
             ActivityFlowStartResult activityFlow = routeLifecycle.ActivityFlowResult;
@@ -220,6 +350,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("contentAnchorIssues", routeLifecycle.ContentAnchorDiscoveryResult.IssueCount),
                 LogFields.Field("contentAnchorInvalid", routeLifecycle.ContentAnchorDiscoveryResult.InvalidAuthoringCount),
                 LogFields.Field("contentAnchorRouteMismatch", routeLifecycle.ContentAnchorDiscoveryResult.SkippedRouteMismatchCount),
+                LogFields.Field("contentAnchorBindings", ContentAnchorBindingCount),
                 LogFields.Field("routeContentEnterReceivers", routeLifecycle.RouteContentEnterResult.ReceiverCount),
                 LogFields.Field("routeContentExitReceivers", routeLifecycle.RouteContentExitResult.ReceiverCount),
                 LogFields.Field("activity", FormatDiagnosticValue(activityFlow.ActivityState.ActivityName)),
@@ -232,7 +363,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("activityContentHandles", activityContent.ActivityContentCount));
         }
 
-        private static LogField[] BuildActivityRequestFields(FrameworkActivityRequestResult result)
+        private LogField[] BuildActivityRequestFields(FrameworkActivityRequestResult result)
         {
             ActivityFlowStartResult activityFlow = result.ActivityFlowResult;
             ActivityContentApplyResult activityContent = activityFlow.ActivityContentResult;
@@ -255,6 +386,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("runtimeRootCount", activityFlow.RuntimeActivityScopeResult.RootCount),
                 LogFields.Field("activityReadinessIssues", activityFlow.ActivityReadinessState.BlockingIssueCount),
                 LogFields.Field("activityContentBindings", activityContent.BindingCount),
+                LogFields.Field("contentAnchorBindings", ContentAnchorBindingCount),
                 LogFields.Field("activityContentHandles", activityContent.ActivityContentCount),
                 LogFields.Field("activityContentLifecycle", lifecycle.DiagnosticStatus),
                 LogFields.Field("activityContentEnterFailed", lifecycle.EnterFailedReceiverCount),

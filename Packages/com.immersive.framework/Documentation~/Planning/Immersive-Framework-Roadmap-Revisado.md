@@ -556,9 +556,10 @@ F9 continua sendo a ponte técnica entre espaço authored e runtime content. Ela
 | IF-FW-ROAD-9B | `ContentAnchorBindingRequest` | APPLIED F9A — solicita root/slot/point por identity explícita e runtime scope context. |
 | IF-FW-ROAD-9C | `ContentAnchorBindingResult` | APPLIED F9A — resultado tipado com diagnostics, status e eventual handle. |
 | IF-FW-ROAD-9D | `ContentAnchorContentHandle` | APPLIED F9A — handle passivo que correlaciona Content Anchor e runtime content; release order fica para corte posterior. |
-| IF-FW-ROAD-9E | `RuntimeContentAnchorBinding` | APPLIED F9B — runtime lógico interno que resolve ContentAnchorSet + RuntimeContentHandle; sem placement físico e sem lifecycle próprio. |
+| IF-FW-ROAD-9E | `RuntimeContentAnchorBinding` | APPLIED F9B/F9E — runtime lógico que resolve ContentAnchorSet + RuntimeContentHandle; owned pelo FrameworkRuntimeHost em F9E; sem placement físico. |
 | IF-FW-ROAD-9F | Binding release order | Binding libera antes do release do content owner/root. |
-| IF-FW-ROAD-9G | Content Anchor binding smoke | APPLIED F9C — anchor resolved -> runtime handle synthesized -> binding created -> idempotent rebind -> unbind -> logical release/unregister; zero physical placement. |
+| IF-FW-ROAD-9G | Content Anchor binding smoke | PASS F9C — anchor resolved -> runtime handle synthesized -> binding created -> idempotent rebind -> unbind -> logical release/unregister; zero physical placement. |
+| IF-FW-ROAD-9H | Content Anchor binding lifecycle policy | PASS F9D — unbind/snapshot by runtime content, runtime owner/scope, anchor, anchor owner/scope; host ownership aplicado em F9E. |
 
 ### Não entra
 
@@ -1005,18 +1006,18 @@ F5 — CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS
 F6 — CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS
 F7 — CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS
 F8 — CLOSED / RUNTIME CONTENT SMOKE PASS
-F9 — OPEN / F9C CONTENT ANCHOR BINDING SMOKE PENDING
+F9 — OPEN / F9E HOST-OWNED CONTENT ANCHOR BINDING RUNTIME PENDING COMPILE
 ```
 
-No package atual, F8I existe como boundary de adapter (`IRuntimeMaterializationAdapter`) sem implementação física. F8J adiciona release lógico (`RuntimeReleaseRequest/Result/Policy/Status`) e `IRuntimeReleaseAdapter`, também sem implementação física. F8K adiciona o handoff explícito `ApplyMaterializationResult` e o Runtime Content Smoke. F9A adiciona `ContentAnchorBindingRequest`, `ContentAnchorBindingResult`, `ContentAnchorBindingStatus` e `ContentAnchorContentHandle`. F9B adiciona `RuntimeContentAnchorBinding` lógico. F9C adiciona o smoke dedicado `Content Anchor Binding Smoke` ao QA Canvas.
+No package atual, F8I existe como boundary de adapter (`IRuntimeMaterializationAdapter`) sem implementação física. F8J adiciona release lógico (`RuntimeReleaseRequest/Result/Policy/Status`) e `IRuntimeReleaseAdapter`, também sem implementação física. F8K adiciona o handoff explícito `ApplyMaterializationResult` e o Runtime Content Smoke. F9A adiciona `ContentAnchorBindingRequest`, `ContentAnchorBindingResult`, `ContentAnchorBindingStatus` e `ContentAnchorContentHandle`. F9B adiciona `RuntimeContentAnchorBinding` lógico. F9C adiciona e valida o smoke dedicado `Content Anchor Binding Smoke` no QA Canvas. F9D adiciona cleanup/snapshots de lifecycle local para bindings. F9E torna o `FrameworkRuntimeHost` owner do binding runtime por métodos internos controlados.
 
 ## Ação imediata
 
 ```text
-Validar F9C por compile/import smoke e pelo botão `Run Content Anchor Binding Smoke`. Não há Play Mode behavior físico novo além de diagnóstico sintético/local.
+Validar F9E por compile/import smoke e reexecutar `Run Content Anchor Binding Smoke` como regressão. Não há Play Mode behavior físico novo além de diagnóstico sintético/local owned pelo host.
 ```
 
-Depois de F9C passar, o próximo corte autorizado deve tratar a próxima fronteira de F9 sem placement físico obrigatório: política/diagnóstico de lifecycle do binding ou preparação para placement adapters, conforme auditoria do estado do package.
+Depois de F9E compilar e o smoke regressivo passar, o próximo corte autorizado deve tratar cleanup lógico automático em Route/Activity exit ou preparar placement adapter boundary, ainda sem placement físico obrigatório no core.
 
 ## Não avançar ainda
 

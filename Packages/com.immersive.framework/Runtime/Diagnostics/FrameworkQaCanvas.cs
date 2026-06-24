@@ -198,6 +198,7 @@ namespace Immersive.Framework.Diagnostics
             GUILayout.Label($"Game Application: {GetName(state.GameApplication != null ? state.GameApplication.ApplicationName : string.Empty, "<none>")}");
             GUILayout.Label($"Active Route: {GetName(state.CurrentRouteName, "<none>")}");
             GUILayout.Label($"Active Activity: {GetName(state.CurrentActivityName, "<none>")}");
+            GUILayout.Label($"Content Anchor Bindings: {runtimeHost.ContentAnchorBindingCount}");
         }
 
         private void DrawQaScenarioSummary()
@@ -1764,10 +1765,9 @@ namespace Immersive.Framework.Diagnostics
                 resource,
                 QaSource,
                 "qa.content-anchor-binding.request");
-            var bindingRuntime = new RuntimeContentAnchorBinding();
-            var bindingResult = bindingRuntime.Bind(
+            var bindingCountBefore = runtimeHost.ContentAnchorBindingCount;
+            var bindingResult = runtimeHost.BindContentAnchor(
                 anchorSet,
-                runtimeContentRuntime,
                 bindingRequest,
                 QaSource,
                 "qa.content-anchor-binding.bind");
@@ -1784,9 +1784,8 @@ namespace Immersive.Framework.Diagnostics
                 return false;
             }
 
-            var idempotentBindingResult = bindingRuntime.Bind(
+            var idempotentBindingResult = runtimeHost.BindContentAnchor(
                 anchorSet,
-                runtimeContentRuntime,
                 bindingRequest,
                 QaSource,
                 "qa.content-anchor-binding.bind.idempotent");
@@ -1794,7 +1793,7 @@ namespace Immersive.Framework.Diagnostics
             if (idempotentBindingResult.Status != ContentAnchorBindingStatus.SucceededAlreadyBound)
             {
                 _logger.Warning($"QA Content Anchor Binding Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Idempotent binding did not return already-bound' binding='{idempotentBindingResult.Status}' message='{FormatValue(idempotentBindingResult.Message)}'.");
-                bindingRuntime.Unbind(bindingRequest);
+                runtimeHost.UnbindContentAnchor(bindingRequest);
                 runtimeContentRuntime.ReleaseHandleLogically(
                     context,
                     materializationRequest.Identity,
@@ -1804,10 +1803,10 @@ namespace Immersive.Framework.Diagnostics
                 return false;
             }
 
-            bool unbound = bindingRuntime.Unbind(bindingRequest);
-            if (!unbound || bindingRuntime.BindingCount != 0)
+            bool unbound = runtimeHost.UnbindContentAnchor(bindingRequest);
+            if (!unbound || runtimeHost.ContentAnchorBindingCount != bindingCountBefore)
             {
-                _logger.Warning($"QA Content Anchor Binding Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Logical binding was not removed' unbound='{unbound}' bindingCount='{bindingRuntime.BindingCount}'.");
+                _logger.Warning($"QA Content Anchor Binding Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Logical binding was not removed from host runtime' unbound='{unbound}' bindingCountBefore='{bindingCountBefore}' bindingCount='{runtimeHost.ContentAnchorBindingCount}'.");
                 runtimeContentRuntime.ReleaseHandleLogically(
                     context,
                     materializationRequest.Identity,
@@ -1848,7 +1847,8 @@ namespace Immersive.Framework.Diagnostics
                     LogFields.Field("release", releaseResult.Status.ToString()),
                     LogFields.Field("releaseUnregistered", releaseResult.HandleUnregistered),
                     LogFields.Field("runtimeRootCount", runtimeContentRuntime.RootCount),
-                    LogFields.Field("bindingCount", bindingRuntime.BindingCount)));
+                    LogFields.Field("bindingCountBefore", bindingCountBefore),
+                    LogFields.Field("bindingCount", runtimeHost.ContentAnchorBindingCount)));
             _logger.Debug(
                 "QA Content Anchor Binding Smoke diagnostics.",
                 LogFields.Field("details", bindingResult.ToDiagnosticString()));
