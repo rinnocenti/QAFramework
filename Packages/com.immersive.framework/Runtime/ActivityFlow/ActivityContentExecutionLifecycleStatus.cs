@@ -17,5 +17,6 @@ namespace Immersive.Framework.ActivityFlow
         FailedBlocking = 40,
         FailedNonBlocking = 50,
         RejectedInvalidContext = 60,
+        RejectedParticipantSource = 70,
     }
 }

@@ -107,6 +107,8 @@ namespace Immersive.Framework.Bootstrap
                 LogFields.Field("contentAnchorRouteMismatch", routeLifecycleResult.ContentAnchorDiscoveryResult.SkippedRouteMismatchCount),
                 LogFields.Field("contentAnchorBindings", runtimeHost != null ? runtimeHost.ContentAnchorBindingCount : 0),
                 LogFields.Field("activityContentExecution", activityFlowResult.ActivityContentExecutionResult.DiagnosticStatus),
+                LogFields.Field("activityContentExecutionParticipantSource", activityFlowResult.ActivityContentExecutionResult.ParticipantSourceStatus),
+                LogFields.Field("activityContentExecutionParticipantSourceIssues", activityFlowResult.ActivityContentExecutionResult.ParticipantSourceIssueCount),
                 LogFields.Field("activityContentExecutionParticipants", activityFlowResult.ActivityContentExecutionResult.ParticipantCount),
                 LogFields.Field("activityContentExecutionEnter", activityFlowResult.ActivityContentExecutionResult.EnterResult.Status),
                 LogFields.Field("activityContentExecutionEnterRequests", activityFlowResult.ActivityContentExecutionResult.EnterRequestCount),

@@ -82,3 +82,10 @@ Actor/Player/Camera/Pause/Input/Save consumers
 Smoke esperado: compile/import.
 
 Nao ha Play Mode behavior novo integrado em F10E-F10G.
+
+
+---
+
+## F10K participant source boundary
+
+F10K adiciona `IActivityContentExecutionParticipantSource` como fronteira explicita para fornecer participants conhecidos ao lifecycle. O source padrao permanece vazio e nao faz discovery fisico, busca global, placement ou gameplay mutation.

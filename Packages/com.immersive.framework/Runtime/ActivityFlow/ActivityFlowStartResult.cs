@@ -296,7 +296,7 @@ namespace Immersive.Framework.ActivityFlow
                 return string.Empty;
             }
 
-            return $" activityContentExecution='{result.DiagnosticStatus}' activityContentExecutionParticipants='{result.ParticipantCount}' activityContentExecutionEnter='{result.EnterResult.Status}' activityContentExecutionEnterRequests='{result.EnterRequestCount}' activityContentExecutionExit='{result.ExitResult.Status}' activityContentExecutionExitRequests='{result.ExitRequestCount}' activityContentExecutionBlockingIssues='{result.BlockingIssueCount}' activityContentExecutionBlocksReadiness='{result.BlocksReadiness}'.";
+            return $" activityContentExecution='{result.DiagnosticStatus}' activityContentExecutionParticipantSource='{result.ParticipantSourceStatus}' activityContentExecutionParticipantSourceIssues='{result.ParticipantSourceIssueCount}' activityContentExecutionParticipants='{result.ParticipantCount}' activityContentExecutionEnter='{result.EnterResult.Status}' activityContentExecutionEnterRequests='{result.EnterRequestCount}' activityContentExecutionExit='{result.ExitResult.Status}' activityContentExecutionExitRequests='{result.ExitRequestCount}' activityContentExecutionBlockingIssues='{result.BlockingIssueCount}' activityContentExecutionBlocksReadiness='{result.BlocksReadiness}'.";
         }
 
         private static string BindingCleanupMessage(ContentAnchorBindingLifecycleResult result)

@@ -7,7 +7,7 @@ namespace Immersive.Framework.ActivityFlow
 {
     /// <summary>
     /// API status: Experimental. Passive lifecycle-level diagnostic result for Activity Content Execution.
-    /// It groups enter/exit plans and aggregate results for ActivityFlow integration only; it does not discover participants, mutate Unity objects, materialize content or execute gameplay systems by itself.
+    /// It groups participant source resolution, enter/exit plans and aggregate results for ActivityFlow integration only; it does not discover scene objects globally, mutate Unity objects, materialize content or execute gameplay systems by itself.
     /// </summary>
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F10I Activity Content Execution lifecycle integration result; diagnostics only and empty by default until participant discovery exists.")]
     public readonly struct ActivityContentExecutionLifecycleResult : IEquatable<ActivityContentExecutionLifecycleResult>
@@ -16,6 +16,7 @@ namespace Immersive.Framework.ActivityFlow
             ActivityAsset activity,
             ActivityAsset previousActivity,
             ActivityAsset nextActivity,
+            ActivityContentExecutionParticipantSourceResult participantSourceResult,
             ActivityContentExecutionParticipantCollection participants,
             ActivityContentExecutionPhasePlan enterPlan,
             ActivityContentExecutionAggregateResult enterResult,
@@ -35,6 +36,7 @@ namespace Immersive.Framework.ActivityFlow
             Activity = activity;
             PreviousActivity = previousActivity;
             NextActivity = nextActivity;
+            ParticipantSourceResult = participantSourceResult;
             Participants = participants;
             EnterPlan = enterPlan;
             EnterResult = enterResult;
@@ -51,6 +53,8 @@ namespace Immersive.Framework.ActivityFlow
         public ActivityAsset PreviousActivity { get; }
 
         public ActivityAsset NextActivity { get; }
+
+        public ActivityContentExecutionParticipantSourceResult ParticipantSourceResult { get; }
 
         public ActivityContentExecutionParticipantCollection Participants { get; }
 
@@ -79,7 +83,8 @@ namespace Immersive.Framework.ActivityFlow
 
         public bool Failed => Status == ActivityContentExecutionLifecycleStatus.FailedBlocking
             || Status == ActivityContentExecutionLifecycleStatus.FailedNonBlocking
-            || Status == ActivityContentExecutionLifecycleStatus.RejectedInvalidContext;
+            || Status == ActivityContentExecutionLifecycleStatus.RejectedInvalidContext
+            || Status == ActivityContentExecutionLifecycleStatus.RejectedParticipantSource;
 
         public bool HasEnterPlan => EnterPlan.Status != ActivityContentExecutionPhasePlanStatus.Unknown;
 
@@ -91,11 +96,11 @@ namespace Immersive.Framework.ActivityFlow
 
         public bool HasParticipants => Participants.HasParticipants;
 
-        public bool HasParticipantIssues => Participants.HasIssues;
+        public bool HasParticipantIssues => Participants.HasIssues || ParticipantSourceResult.HasIssues;
 
         public bool HasIssues => BlockingIssueCount > 0 || NonBlockingIssueCount > 0 || HasParticipantIssues;
 
-        public bool BlocksReadiness => EnterBlocksReadiness || ExitBlocksReadiness || Status == ActivityContentExecutionLifecycleStatus.FailedBlocking;
+        public bool BlocksReadiness => EnterBlocksReadiness || ExitBlocksReadiness || Status == ActivityContentExecutionLifecycleStatus.FailedBlocking || Status == ActivityContentExecutionLifecycleStatus.RejectedParticipantSource;
 
         public bool EnterBlocksReadiness => HasEnterResult && EnterResult.BlocksReadiness;
 
@@ -104,6 +109,10 @@ namespace Immersive.Framework.ActivityFlow
         public int ParticipantCount => Participants.Count;
 
         public int ParticipantIssueCount => Participants.IssueCount;
+
+        public int ParticipantSourceIssueCount => ParticipantSourceResult.IssueCount;
+
+        public string ParticipantSourceStatus => ParticipantSourceResult.DiagnosticStatus;
 
         public int EnterRequestCount => HasEnterPlan ? EnterPlan.RequestCount : 0;
 
@@ -134,6 +143,7 @@ namespace Immersive.Framework.ActivityFlow
             return ReferenceEquals(Activity, other.Activity)
                 && ReferenceEquals(PreviousActivity, other.PreviousActivity)
                 && ReferenceEquals(NextActivity, other.NextActivity)
+                && ParticipantSourceResult.Equals(other.ParticipantSourceResult)
                 && Participants.Count == other.Participants.Count
                 && Participants.IssueCount == other.Participants.IssueCount
                 && EnterPlan.Equals(other.EnterPlan)
@@ -158,6 +168,7 @@ namespace Immersive.Framework.ActivityFlow
                 var hashCode = Activity != null ? Activity.GetHashCode() : 0;
                 hashCode = (hashCode * 397) ^ (PreviousActivity != null ? PreviousActivity.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (NextActivity != null ? NextActivity.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ ParticipantSourceResult.GetHashCode();
                 hashCode = (hashCode * 397) ^ Participants.Count;
                 hashCode = (hashCode * 397) ^ Participants.IssueCount;
                 hashCode = (hashCode * 397) ^ EnterPlan.GetHashCode();
@@ -186,7 +197,7 @@ namespace Immersive.Framework.ActivityFlow
             var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
             var messageText = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
             var builder = new StringBuilder();
-            builder.Append($"Activity Content Execution Lifecycle status='{Status}' activity='{activityText}' previousActivity='{previousText}' nextActivity='{nextText}' participants='{ParticipantCount}' participantIssues='{ParticipantIssueCount}' enterPlan='{EnterPlan.Status}' enterRequests='{EnterRequestCount}' enterStatus='{EnterResult.Status}' enterResults='{EnterResultCount}' exitPlan='{ExitPlan.Status}' exitRequests='{ExitRequestCount}' exitStatus='{ExitResult.Status}' exitResults='{ExitResultCount}' blockingIssues='{BlockingIssueCount}' nonBlockingIssues='{NonBlockingIssueCount}' blocksReadiness='{BlocksReadiness}' source='{sourceText}' reason='{reasonText}' message='{messageText}'");
+            builder.Append($"Activity Content Execution Lifecycle status='{Status}' activity='{activityText}' previousActivity='{previousText}' nextActivity='{nextText}' participantSource='{ParticipantSourceStatus}' participantSourceIssues='{ParticipantSourceIssueCount}' participants='{ParticipantCount}' participantIssues='{ParticipantIssueCount}' enterPlan='{EnterPlan.Status}' enterRequests='{EnterRequestCount}' enterStatus='{EnterResult.Status}' enterResults='{EnterResultCount}' exitPlan='{ExitPlan.Status}' exitRequests='{ExitRequestCount}' exitStatus='{ExitResult.Status}' exitResults='{ExitResultCount}' blockingIssues='{BlockingIssueCount}' nonBlockingIssues='{NonBlockingIssueCount}' blocksReadiness='{BlocksReadiness}' source='{sourceText}' reason='{reasonText}' message='{messageText}'");
             return builder.ToString();
         }
 
@@ -196,6 +207,7 @@ namespace Immersive.Framework.ActivityFlow
                 null,
                 null,
                 null,
+                ActivityContentExecutionParticipantSourceResult.None(source, reason, message),
                 ActivityContentExecutionParticipantCollection.Empty(),
                 default,
                 default,
@@ -211,6 +223,7 @@ namespace Immersive.Framework.ActivityFlow
             ActivityAsset activity,
             ActivityAsset previousActivity,
             ActivityAsset nextActivity,
+            ActivityContentExecutionParticipantSourceResult participantSourceResult,
             ActivityContentExecutionParticipantCollection participants,
             ActivityContentExecutionPhasePlan enterPlan,
             ActivityContentExecutionAggregateResult enterResult,
@@ -220,11 +233,12 @@ namespace Immersive.Framework.ActivityFlow
             string reason,
             string message)
         {
-            var status = ResolveStatus(participants, enterResult, exitResult);
+            var status = ResolveStatus(participantSourceResult, participants, enterResult, exitResult);
             return new ActivityContentExecutionLifecycleResult(
                 activity,
                 previousActivity,
                 nextActivity,
+                participantSourceResult,
                 participants,
                 enterPlan,
                 enterResult,
@@ -237,10 +251,16 @@ namespace Immersive.Framework.ActivityFlow
         }
 
         private static ActivityContentExecutionLifecycleStatus ResolveStatus(
+            ActivityContentExecutionParticipantSourceResult participantSourceResult,
             ActivityContentExecutionParticipantCollection participants,
             ActivityContentExecutionAggregateResult enterResult,
             ActivityContentExecutionAggregateResult exitResult)
         {
+            if (participantSourceResult.Failed)
+            {
+                return ActivityContentExecutionLifecycleStatus.RejectedParticipantSource;
+            }
+
             var hasEnter = enterResult.Status != ActivityContentExecutionAggregateStatus.Unknown;
             var hasExit = exitResult.Status != ActivityContentExecutionAggregateStatus.Unknown;
             if (!hasEnter && !hasExit)
@@ -264,7 +284,7 @@ namespace Immersive.Framework.ActivityFlow
                 return ActivityContentExecutionLifecycleStatus.FailedNonBlocking;
             }
 
-            if ((hasEnter && enterResult.HasNonBlockingIssues) || (hasExit && exitResult.HasNonBlockingIssues) || participants.HasIssues)
+            if ((hasEnter && enterResult.HasNonBlockingIssues) || (hasExit && exitResult.HasNonBlockingIssues) || participants.HasIssues || participantSourceResult.HasIssues)
             {
                 return ActivityContentExecutionLifecycleStatus.SucceededWithNonBlockingIssues;
             }

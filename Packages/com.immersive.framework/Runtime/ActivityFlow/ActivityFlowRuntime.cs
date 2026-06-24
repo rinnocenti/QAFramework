@@ -18,6 +18,7 @@ namespace Immersive.Framework.ActivityFlow
         private readonly ActivityContentRuntime _activityContentRuntime = new ActivityContentRuntime();
         private readonly ContentAnchorDiscoveryRuntime _contentAnchorDiscoveryRuntime = new ContentAnchorDiscoveryRuntime();
         private readonly ActivityContentExecutionRuntime _activityContentExecutionRuntime = new ActivityContentExecutionRuntime();
+        private readonly IActivityContentExecutionParticipantSource _activityContentExecutionParticipantSource;
         private readonly RuntimeContentRuntime _runtimeContentRuntime;
         private readonly RuntimeContentAnchorBinding _contentAnchorBindingRuntime;
         private readonly EventBus<ActivityEnteredEvent> _activityEnteredEvents = new EventBus<ActivityEnteredEvent>();
@@ -30,9 +31,18 @@ namespace Immersive.Framework.ActivityFlow
         internal ActivityFlowRuntime(
             RuntimeContentRuntime runtimeContentRuntime,
             RuntimeContentAnchorBinding contentAnchorBindingRuntime)
+            : this(runtimeContentRuntime, contentAnchorBindingRuntime, EmptyActivityContentExecutionParticipantSource.Instance)
+        {
+        }
+
+        internal ActivityFlowRuntime(
+            RuntimeContentRuntime runtimeContentRuntime,
+            RuntimeContentAnchorBinding contentAnchorBindingRuntime,
+            IActivityContentExecutionParticipantSource activityContentExecutionParticipantSource)
         {
             _runtimeContentRuntime = runtimeContentRuntime ?? throw new ArgumentNullException(nameof(runtimeContentRuntime));
             _contentAnchorBindingRuntime = contentAnchorBindingRuntime ?? throw new ArgumentNullException(nameof(contentAnchorBindingRuntime));
+            _activityContentExecutionParticipantSource = activityContentExecutionParticipantSource ?? EmptyActivityContentExecutionParticipantSource.Instance;
             _currentActivityState = ActivityRuntimeState.Empty();
             _activityContentEnteredBinding = _activityEnteredEvents.Subscribe(_activityContentRuntime.HandleActivityEntered);
             _activityContentExitedBinding = _activityExitedEvents.Subscribe(_activityContentRuntime.HandleActivityExited);
@@ -210,7 +220,14 @@ namespace Immersive.Framework.ActivityFlow
                     "Activity content execution lifecycle skipped because there is no previous or next Activity.");
             }
 
-            var participants = ResolveActivityContentExecutionParticipants(previousActivity, nextActivity, resolvedSource, resolvedReason);
+            var participantSourceRequest = new ActivityContentExecutionParticipantSourceRequest(
+                _currentRoute,
+                previousActivity,
+                nextActivity,
+                resolvedSource,
+                resolvedReason);
+            var participantSourceResult = ResolveActivityContentExecutionParticipants(participantSourceRequest);
+            var participants = participantSourceResult.Collection;
             var enterPlan = default(ActivityContentExecutionPhasePlan);
             var enterResult = default(ActivityContentExecutionAggregateResult);
             var exitPlan = default(ActivityContentExecutionPhasePlan);
@@ -273,6 +290,7 @@ namespace Immersive.Framework.ActivityFlow
                 activity,
                 previousActivity,
                 nextActivity,
+                participantSourceResult,
                 participants,
                 enterPlan,
                 enterResult,
@@ -283,15 +301,40 @@ namespace Immersive.Framework.ActivityFlow
                 "Activity content execution lifecycle integrated with ActivityFlow using the currently resolved participant collection.");
         }
 
-        private ActivityContentExecutionParticipantCollection ResolveActivityContentExecutionParticipants(
-            ActivityAsset previousActivity,
-            ActivityAsset nextActivity,
-            string source,
-            string reason)
+        private ActivityContentExecutionParticipantSourceResult ResolveActivityContentExecutionParticipants(
+            ActivityContentExecutionParticipantSourceRequest request)
         {
-            // F10I intentionally does not discover participants yet. Discovery/authoring is a later F10 cut.
-            // Returning an empty collection lets ActivityFlow exercise the execution lifecycle boundary without invoking gameplay or Unity adapters.
-            return ActivityContentExecutionParticipantCollection.Empty();
+            if (!request.IsValid)
+            {
+                return ActivityContentExecutionParticipantSourceResult.RejectedInvalidRequest(
+                    request,
+                    request.Source,
+                    request.Reason,
+                    "Activity content execution participant source request rejected because no Activity transition is available.");
+            }
+
+            try
+            {
+                var result = _activityContentExecutionParticipantSource.ResolveActivityContentExecutionParticipants(request);
+                if (!result.Executed)
+                {
+                    return ActivityContentExecutionParticipantSourceResult.FailedResult(
+                        request,
+                        request.Source,
+                        request.Reason,
+                        "Activity content execution participant source returned a non-executed result for an executable lifecycle request.");
+                }
+
+                return result;
+            }
+            catch (Exception exception)
+            {
+                return ActivityContentExecutionParticipantSourceResult.FailedException(
+                    request,
+                    exception,
+                    request.Source,
+                    request.Reason);
+            }
         }
 
         private bool TryCreateActivityScopeContext(

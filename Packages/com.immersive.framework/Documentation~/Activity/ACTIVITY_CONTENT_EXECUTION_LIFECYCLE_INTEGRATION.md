@@ -130,3 +130,10 @@ F10J adiciona um smoke especifico para validar clear/restore de Activity contra 
 ```text
 Documentation~/Activity/ACTIVITY_CONTENT_EXECUTION_LIFECYCLE_TRANSITION_SMOKE.md
 ```
+
+
+---
+
+## F10K participant source boundary
+
+F10K adiciona `IActivityContentExecutionParticipantSource` como fronteira explicita para fornecer participants conhecidos ao lifecycle. O source padrao permanece vazio e nao faz discovery fisico, busca global, placement ou gameplay mutation.

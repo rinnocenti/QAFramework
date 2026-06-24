@@ -17,7 +17,7 @@ Short status:
 ```text
 F0-F8 CLOSED
 F9    CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS
-F10   OPEN / LIFECYCLE TRANSITION SMOKE APPLIED / PENDING SMOKE / IMPLEMENTATION IN PROGRESS
+F10   OPEN / PARTICIPANT SOURCE BOUNDARY APPLIED / PENDING COMPILE / IMPLEMENTATION IN PROGRESS
 F11+  PROPOSED / PENDING HUMAN APPROVAL
 ```
 
@@ -53,12 +53,13 @@ Documentation~/Activity/ACTIVITY_CONTENT_EXECUTION_RUNTIME.md
 Documentation~/Activity/ACTIVITY_CONTENT_EXECUTION_RUNTIME_SMOKE.md
 Documentation~/Activity/ACTIVITY_CONTENT_EXECUTION_LIFECYCLE_INTEGRATION.md
 Documentation~/Activity/ACTIVITY_CONTENT_EXECUTION_LIFECYCLE_TRANSITION_SMOKE.md
+Documentation~/Activity/ACTIVITY_CONTENT_EXECUTION_PARTICIPANT_SOURCE.md
 Documentation~/ADRs/
 ```
 
 ## Current hard boundary
 
-F9 is closed as a logical binding layer. F10 has started with Activity Content Execution passive contracts, aggregate result contracts, participant contract, collection/ordering model, request factory/phase plan, runtime executor for supplied phase plans, a synthetic diagnostics smoke, lifecycle diagnostic integration with an empty participant collection by default and a lifecycle transition smoke for clear/restore diagnostics; no participant discovery, adapters, placement or gameplay consumers have been added.
+F9 is closed as a logical binding layer. F10 has started with Activity Content Execution passive contracts, aggregate result contracts, participant contract, collection/ordering model, request factory/phase plan, runtime executor for supplied phase plans, a synthetic diagnostics smoke, lifecycle diagnostic integration, lifecycle transition smoke for clear/restore diagnostics and an explicit participant source boundary with an empty source by default; no participant authoring/discovery, adapters, placement or gameplay consumers have been added.
 
 Framework Core may define lifecycle, identity, ownership, request/result, policy, readiness, diagnostics, logical binding/release and future Activity entry/exit/reset/participation contracts.
 

@@ -93,3 +93,10 @@ issues diagnosticas
 ```
 
 Ela nao descobre nada. O objetivo e alimentar phase plans e o executor F10G com ordering deterministico e diagnostico de entradas invalidas.
+
+
+---
+
+## F10K participant source boundary
+
+F10K adiciona `IActivityContentExecutionParticipantSource` como fronteira explicita para fornecer participants conhecidos ao lifecycle. O source padrao permanece vazio e nao faz discovery fisico, busca global, placement ou gameplay mutation.
