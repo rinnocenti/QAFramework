@@ -10,40 +10,25 @@ com.immersive.framework
 
 ## Current status
 
-Use `Documentation~/COMPLETENESS_TRACKER.md` as the authoritative status file.
+Use `Documentation~/Planning/Immersive-Framework-Roadmap-Revisado.md` as the single authoritative plan.
 
-Current consolidated position:
+Short status:
 
 ```text
-F0 — CLOSED / PASS
-F1 — CLOSED / PASS
-F2 — CLOSED / PASS
-F3 — CLOSED / PASS
-F4 — CLOSED / ACTIVITY BASELINE PASS
-F5 — CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS
-F6 — CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS
-F7 — CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS
-F8 — CLOSED / RUNTIME CONTENT SMOKE PASS
-F9 — CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS
+F0-F8 CLOSED
+F9    CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS
+F10   NOT STARTED
+F10+  PROPOSED / PENDING HUMAN APPROVAL
 ```
 
-F6 closes the first Route scene composition and release baseline:
-
-- `RouteContentProfileAsset` can declare additional Route scenes.
-- Primary Scene still loads through `LoadSceneMode.Single` and remains the active scene.
-- Owned additional Route scenes load additively.
-- Owned additional Route scenes are explicitly released on Route exit.
-- Release is represented by `ContentReleasePlan` and `ContentReleaseResult`.
+`Documentation~/COMPLETENESS_TRACKER.md` is intentionally short and only mirrors phase state.
 
 ## Documentation entry points
 
 ```text
-Documentation~/COMPLETENESS_TRACKER.md
 Documentation~/Planning/Immersive-Framework-Roadmap-Revisado.md
-Documentation~/Planning/Capability-Traceability-Matrix.md
-Documentation~/Planning/F6-Route-Scene-Composition-Audit.md
-Documentation~/Planning/F7-Content-Anchor-Declaration-Audit.md
-Documentation~/Planning/F8-Runtime-Roots-Materialization-Audit.md
+Documentation~/COMPLETENESS_TRACKER.md
+Documentation~/Planning/Foundation-Hardening-Backlog.md
 Documentation~/RuntimeContent/RUNTIME_CONTENT_HANDLE.md
 Documentation~/RuntimeContent/RUNTIME_SCOPE_ROOT_REGISTRY.md
 Documentation~/RuntimeContent/RUNTIME_CONTENT_RUNTIME.md
@@ -62,51 +47,12 @@ Documentation~/ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md
 Documentation~/ADRs/
 ```
 
-## Accepted F6 ADRs
-
-| ADR | Decision |
-|---|---|
-| `F6-01 — ADR-RELEASE-001` | Release is planned/executed through `ContentReleasePlan`/`ContentReleaseResult`, guided by explicit ownership. F6 execution is limited to owned additive Route scene unload. |
-| `F6-02 — ADR-SCENE-001` | Route scene composition is planned/executed through `RouteSceneCompositionPlan`/`RouteSceneCompositionResult`; additional Route scenes are loaded additively from `RouteContentProfileAsset`. |
-
 ## Current hard boundary
 
-The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release, Content Anchor declaration, RuntimeContent contracts/guardrails/logical release through F8K, and F9 logical Content Anchor binding closed through F9J.
+F9 is closed as a logical binding layer. F10 is not started.
 
-F8 is closed. F9 is closed as a logical binding layer. F9 connects Content Anchor declarations to RuntimeContent contracts and includes Route/Activity anchor authoring/discovery, binding runtime ownership, lifecycle cleanup and QA smoke coverage. It still does not create Actor, Pause, Camera, UI, Save, Input, Pooling, scene adapter, prefab adapter or physical Transform placement consumers.
+Framework Core may define lifecycle, identity, ownership, request/result, policy, readiness, diagnostics, logical binding/release and future Activity entry/exit/reset/participation contracts.
 
-F9+ has been realigned as documentation so that missing `NewScripts` capabilities are tracked without creating side paths:
+Framework Core must not execute `Instantiate`, `Destroy`, `Addressables.Load`, `Addressables.Release`, pool rent/return, `Animator` reset, camera blend, UI concrete show/hide, player/actor mutation or gameplay state mutation.
 
-```text
-F9   Content Anchor logical binding / runtime placement boundary
-F10  Transition, loading and Activity content execution
-F11  Participation, live capability inventory and local lifecycle participants
-F12  Input, Snapshot/Save and Pause
-F13  Advanced consumers: Camera, Audio, Actor, Pooling, transition presentation adapters
-F14  Gameplay capabilities
-F15/FX Productization, tooling and hardening
-```
-
-Authoritative roadmap files:
-
-```text
-Documentation~/Planning/Immersive-Framework-Roadmap-Revisado.md
-Documentation~/Planning/F9Plus-Roadmap-Realignment.md
-Documentation~/Planning/Foundation-Hardening-Backlog.md
-```
-
-Closed F9 technical work:
-
-```text
-F9A — Content Anchor binding request/result/content handle [CLOSED]
-F9B — RuntimeContentAnchorBinding logical runtime [CLOSED]
-F9C — Content Anchor binding smoke / lifecycle diagnostics [PASS]
-F9D — Content Anchor binding lifecycle policy [PASS]
-F9E — Binding runtime host ownership [PASS]
-F9F — Automatic logical binding cleanup on Route/Activity exit [PASS]
-F9G — Activity Content Anchor authoring/discovery [PASS DIAGNOSTIC SMOKE]
-F9H — Activity Content Anchor positive-path smoke [PASS]
-F9I — Activity Content Anchor binding smoke [PASS]
-F9J — Content Anchor logical binding closure [CLOSED]
-```
-
+Future Unity adapters own concrete scene, prefab, Addressables, Transform placement, hierarchy and physical release operations. Future gameplay consumers own Presentation, Actor, Player, NPC, Camera, Pause, Input, Save, Audio and gameplay Pooling behavior.

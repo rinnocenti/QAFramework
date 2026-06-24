@@ -2,32 +2,27 @@
 
 Ponto de entrada do pacote `Documentation~`.
 
-Estrutura atual:
+## Leitura recomendada
 
-- `COMPLETENESS_TRACKER.md` para status consolidado.
-- `Planning/` para roadmap e rastreabilidade.
-- `ADRs/` para decisões propostas e aceitas.
-- `Architecture/ADR/` para histórico arquitetural.
-- `Governance/` para convenção de ADR e template.
-- `Guides/` para conteúdo navegável.
-- `Core/`, `Session/`, `Route/`, `Activity/`, `Local/`, `ContentAnchor/`, `RuntimeContent/` para documentos técnicos por domínio.
+1. [`Planning/Immersive-Framework-Roadmap-Revisado.md`](Planning/Immersive-Framework-Roadmap-Revisado.md) - plano unico e autoritativo.
+2. [`COMPLETENESS_TRACKER.md`](COMPLETENESS_TRACKER.md) - estado resumido de fases.
+3. [`Governance/ADR_NAMING_CONVENTION.md`](Governance/ADR_NAMING_CONVENTION.md)
+4. [`Governance/ADR-TEMPLATE.md`](Governance/ADR-TEMPLATE.md)
+5. [`ADRs/`](ADRs/)
+6. [`Planning/Foundation-Hardening-Backlog.md`](Planning/Foundation-Hardening-Backlog.md)
+7. [`Architecture/ADR/`](Architecture/ADR/)
 
-Leitura recomendada:
+## Estrutura atual
 
-1. [`COMPLETENESS_TRACKER.md`](COMPLETENESS_TRACKER.md)
-2. [`Planning/Immersive-Framework-Roadmap-Revisado.md`](Planning/Immersive-Framework-Roadmap-Revisado.md)
-3. [`Planning/Capability-Traceability-Matrix.md`](Planning/Capability-Traceability-Matrix.md)
-4. [`Governance/ADR_NAMING_CONVENTION.md`](Governance/ADR_NAMING_CONVENTION.md)
-5. [`Governance/ADR-TEMPLATE.md`](Governance/ADR-TEMPLATE.md)
-6. [`ADRs/`](ADRs/)
-7. [`Planning/F6-Route-Scene-Composition-Audit.md`](Planning/F6-Route-Scene-Composition-Audit.md)
-8. [`Planning/F7-Content-Anchor-Declaration-Audit.md`](Planning/F7-Content-Anchor-Declaration-Audit.md)
-9. [`Planning/F8-Runtime-Roots-Materialization-Audit.md`](Planning/F8-Runtime-Roots-Materialization-Audit.md)
-10. [`Planning/F9Plus-Roadmap-Realignment.md`](Planning/F9Plus-Roadmap-Realignment.md)
-11. [`Planning/Foundation-Hardening-Backlog.md`](Planning/Foundation-Hardening-Backlog.md)
-12. [`Architecture/ADR/`](Architecture/ADR/)
+- `Planning/Immersive-Framework-Roadmap-Revisado.md` e a fonte unica para roadmap, boundaries e sequencia F10+.
+- `COMPLETENESS_TRACKER.md` registra somente estado fechado/atual.
+- `ADRs/` preserva decisoes aceitas de F0-F9 classificadas por fase; nao manter bucket `Unassigned`.
+- `Architecture/ADR/` preserva historico arquitetural.
+- `Governance/` contem convencao e template de ADR.
+- `Guides/` contem conteudo navegavel.
+- `Core/`, `Session/`, `Route/`, `Activity/`, `Local/`, `ContentAnchor/`, `RuntimeContent/` contem documentos tecnicos por dominio.
 
-Docs técnicos:
+## Docs tecnicos
 
 - [`Core/BASELINE_SMOKE.md`](Core/BASELINE_SMOKE.md)
 - [`Core/API_STATUS_CONVENTION.md`](Core/API_STATUS_CONVENTION.md)
@@ -58,7 +53,6 @@ Docs técnicos:
 - [`Planning/F6-Route-Scene-Composition-Audit.md`](Planning/F6-Route-Scene-Composition-Audit.md)
 - [`Planning/F7-Content-Anchor-Declaration-Audit.md`](Planning/F7-Content-Anchor-Declaration-Audit.md)
 - [`Planning/F8-Runtime-Roots-Materialization-Audit.md`](Planning/F8-Runtime-Roots-Materialization-Audit.md)
-- [`Planning/F9Plus-Roadmap-Realignment.md`](Planning/F9Plus-Roadmap-Realignment.md)
 - [`Planning/Foundation-Hardening-Backlog.md`](Planning/Foundation-Hardening-Backlog.md)
 - [`RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md`](RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md)
 - [`RuntimeContent/RUNTIME_CONTENT_HANDLE.md`](RuntimeContent/RUNTIME_CONTENT_HANDLE.md)
@@ -66,6 +60,8 @@ Docs técnicos:
 - [`RuntimeContent/RUNTIME_CONTENT_RUNTIME.md`](RuntimeContent/RUNTIME_CONTENT_RUNTIME.md)
 - [`RuntimeContent/RUNTIME_ROOT_LIFECYCLE_INTEGRATION.md`](RuntimeContent/RUNTIME_ROOT_LIFECYCLE_INTEGRATION.md)
 - [`RuntimeContent/RUNTIME_MATERIALIZATION_REQUEST_RESULT.md`](RuntimeContent/RUNTIME_MATERIALIZATION_REQUEST_RESULT.md)
+- [`RuntimeContent/RUNTIME_RELEASE_POLICY_LOGICAL_EXECUTION.md`](RuntimeContent/RUNTIME_RELEASE_POLICY_LOGICAL_EXECUTION.md)
+- [`RuntimeContent/RUNTIME_TRANSITION_GUARD_SCOPED_CANCELLATION.md`](RuntimeContent/RUNTIME_TRANSITION_GUARD_SCOPED_CANCELLATION.md)
 - [`ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md`](ContentAnchor/CONTENT_ANCHOR_IDENTITY_PRIMITIVES.md)
 - [`ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md`](ContentAnchor/CONTENT_ANCHOR_DECLARATION_MODEL.md)
 - [`ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md`](ContentAnchor/ROUTE_CONTENT_ANCHOR_AUTHORING.md)
@@ -73,45 +69,7 @@ Docs técnicos:
 - [`ContentAnchor/CONTENT_ANCHOR_SET.md`](ContentAnchor/CONTENT_ANCHOR_SET.md)
 - [`ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md`](ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md)
 - [`ContentAnchor/ACTIVITY_CONTENT_ANCHOR_DISCOVERY.md`](ContentAnchor/ACTIVITY_CONTENT_ANCHOR_DISCOVERY.md)
+- [`ContentAnchor/CONTENT_ANCHOR_BINDING_CONTRACTS.md`](ContentAnchor/CONTENT_ANCHOR_BINDING_CONTRACTS.md)
+- [`ContentAnchor/CONTENT_ANCHOR_BINDING_RUNTIME.md`](ContentAnchor/CONTENT_ANCHOR_BINDING_RUNTIME.md)
 - [`ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md`](ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md)
 - [`ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md`](ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md)
-
-`COMPLETENESS_TRACKER.md` consolida o estado que antes estava espalhado por arquivos de fechamento e aceite.
-
-- `Documentation~/ContentAnchor/ROUTE_CONTENT_ANCHOR_DISCOVERY.md` — F7F diagnostic discovery of Route Content Anchors into a local ContentAnchorSet.
-
-- `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md` — dedicated QA smoke for Route Content Anchor diagnostics.
-- `ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md` — loaded authoring validation for Route Content Anchors.
-
-- `Planning/F8-Runtime-Roots-Materialization-Audit.md` — F8 boundary for runtime roots, materialization, handles and release.
-- `RuntimeContent/RUNTIME_OWNERSHIP_PRIMITIVES.md` — F8B/F8C passive runtime ownership primitives and handle state.
-- `RuntimeContent/RUNTIME_CONTENT_HANDLE.md` — F8C passive RuntimeContentHandle state transitions.
-- `RuntimeContent/RUNTIME_SCOPE_ROOT_REGISTRY.md` — F8D logical RuntimeScopeRoot and internal registry semantics.
-- `RuntimeContent/RUNTIME_CONTENT_RUNTIME.md` — F8E internal RuntimeContentRuntime owner and explicit RuntimeScopeContext semantics.
-- `RuntimeContent/RUNTIME_ROOT_LIFECYCLE_INTEGRATION.md` — F8F lifecycle integration for logical Session/Route/Activity runtime roots.
-- `RuntimeContent/RUNTIME_MATERIALIZATION_REQUEST_RESULT.md` — F8G/F8I RuntimeMaterializationRequest/Result contracts and adapter boundary.
-- `RuntimeContent/RUNTIME_RELEASE_POLICY_LOGICAL_EXECUTION.md` — F8J logical release request/result/policy and adapter boundary.
-- `RuntimeContent/RUNTIME_TRANSITION_GUARD_SCOPED_CANCELLATION.md` — F8H transition guard and scoped cancellation tokens.
-- `ContentAnchor/CONTENT_ANCHOR_BINDING_CONTRACTS.md` — F9A Content Anchor binding request/result/handle contracts.
-- `ContentAnchor/CONTENT_ANCHOR_BINDING_RUNTIME.md` — F9B-F9F logical RuntimeContentAnchorBinding runtime, QA smoke diagnostics, lifecycle cleanup policy, host ownership and automatic logical cleanup.
-- `ContentAnchor/ACTIVITY_CONTENT_ANCHOR_DISCOVERY.md` — F9G/F9H/F9I Activity Content Anchor discovery, diagnostics, positive-path QA fixture smoke and Activity-scoped binding smoke.
-- `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md` — Route anchor, Activity anchor diagnostic and Activity anchor positive-path QA smokes.
-
-
-## F9+ realignment
-
-`Planning/F9Plus-Roadmap-Realignment.md` is the entry point for the restructured plan from F9 onward. F9 started with `ContentAnchor/CONTENT_ANCHOR_BINDING_CONTRACTS.md` and now has the logical runtime in `ContentAnchor/CONTENT_ANCHOR_BINDING_RUNTIME.md`.
-
-Current F9+ sequence:
-
-```text
-F9   Content Anchor binding/runtime placement
-F10  Transition, loading and Activity content execution
-F11  Participation, live capability inventory and local lifecycle participants
-F12  Input, Snapshot/Save and Pause
-F13  Advanced consumers
-F14  Gameplay capabilities
-F15/FX Productization, tooling and hardening
-```
-
-`Planning/Foundation-Hardening-Backlog.md` tracks productization concerns such as settings source, assembly/build boundaries, versioning/migration, editor tooling, Addressables/DLC boundary and domain reload resilience. These items do not block F8/F9.

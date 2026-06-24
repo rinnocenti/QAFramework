@@ -36,7 +36,6 @@ Runtime/ApplicationLifecycle/FrameworkRuntimeState.cs
 README.md
 Documentation~/README.md
 Documentation~/Planning/Immersive-Framework-Roadmap-Revisado.md
-Documentation~/Planning/Capability-Traceability-Matrix.md
 ```
 
 ---
