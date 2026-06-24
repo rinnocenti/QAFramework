@@ -18,7 +18,7 @@ namespace Immersive.Framework.ActivityFlow
         private readonly ActivityContentRuntime _activityContentRuntime = new ActivityContentRuntime();
         private readonly ContentAnchorDiscoveryRuntime _contentAnchorDiscoveryRuntime = new ContentAnchorDiscoveryRuntime();
         private readonly ActivityContentExecutionRuntime _activityContentExecutionRuntime = new ActivityContentExecutionRuntime();
-        private readonly IActivityContentExecutionParticipantSource _activityContentExecutionParticipantSource;
+        private IActivityContentExecutionParticipantSource _activityContentExecutionParticipantSource;
         private readonly RuntimeContentRuntime _runtimeContentRuntime;
         private readonly RuntimeContentAnchorBinding _contentAnchorBindingRuntime;
         private readonly EventBus<ActivityEnteredEvent> _activityEnteredEvents = new EventBus<ActivityEnteredEvent>();
@@ -57,6 +57,11 @@ namespace Immersive.Framework.ActivityFlow
         internal bool IsActivityActive(ActivityAsset activity)
         {
             return activity != null && ReferenceEquals(_currentActivityState.Activity, activity);
+        }
+
+        internal void SetActivityContentExecutionParticipantSource(IActivityContentExecutionParticipantSource participantSource)
+        {
+            _activityContentExecutionParticipantSource = participantSource ?? EmptyActivityContentExecutionParticipantSource.Instance;
         }
 
         internal IEventBinding SubscribeActivityEntered(Action<ActivityEnteredEvent> handler)

@@ -73,6 +73,11 @@ namespace Immersive.Framework.RouteLifecycle
             return _activityFlowRuntime.IsActivityActive(activity);
         }
 
+        internal void SetActivityContentExecutionParticipantSource(IActivityContentExecutionParticipantSource participantSource)
+        {
+            _activityFlowRuntime.SetActivityContentExecutionParticipantSource(participantSource);
+        }
+
         internal async Task<RouteLifecycleStartResult> StartRouteAsync(
             RouteAsset route,
             string source,

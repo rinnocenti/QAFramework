@@ -10,7 +10,7 @@ Este documento substitui os roadmaps paralelos, a matriz separada de rastreabili
 |---|---|---|
 | F0-F8 | `CLOSED` | Baselines tecnicas e documentacao historica permanecem como evidencia. |
 | F9 | `CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS` | Fechou binding logico de Content Anchor. Nao fechou placement fisico nem adapters concretos. |
-| F10 | `OPEN / PARTICIPANT SOURCE BOUNDARY APPLIED / PENDING COMPILE / IMPLEMENTATION IN PROGRESS` | F10B-F10K aplicaram contratos passivos, resultado agregado, contrato de participant, collection/ordering model, request factory/phase plan, executor runtime para phase plans fornecidos, smoke diagnostico sintetico, integracao diagnostica no ActivityFlow com collection vazia por padrao e smoke de transicao clear/restore e source boundary explicita com source vazia por padrao. Nenhum authoring/discovery de participants, adapter fisico ou gameplay consumer iniciado. |
+| F10 | `OPEN / EXPLICIT PARTICIPANT SOURCE SMOKE APPLIED / PENDING COMPILE / IMPLEMENTATION IN PROGRESS` | F10B-F10L aplicaram contratos passivos, resultado agregado, contrato de participant, collection/ordering model, request factory/phase plan, executor runtime para phase plans fornecidos, smoke diagnostico sintetico, integracao diagnostica no ActivityFlow com collection vazia por padrao e smoke de transicao clear/restore e source boundary explicita com source vazia por padrao e smoke de source sintetica explicita. Nenhum authoring/discovery de participants, adapter fisico ou gameplay consumer iniciado. |
 | F11+ | `PROPOSED / PENDING HUMAN APPROVAL` | Sequencia abaixo permanece proposta para fases futuras. |
 
 ## Regra de autoridade
@@ -46,7 +46,7 @@ F9 encerra apenas o binding logico entre declaracoes de Content Anchor e contrat
 
 | Phase | Layer | Nome | Estado |
 |---|---|---|---|
-| F10 | Framework Core | Activity Entry/Exit Content Execution | `OPEN / PARTICIPANT SOURCE BOUNDARY APPLIED / PENDING COMPILE / IMPLEMENTATION IN PROGRESS` |
+| F10 | Framework Core | Activity Entry/Exit Content Execution | `OPEN / EXPLICIT PARTICIPANT SOURCE SMOKE APPLIED / PENDING COMPILE / IMPLEMENTATION IN PROGRESS` |
 | F11 | Framework Core | Reset Foundation | `PROPOSED / PENDING HUMAN APPROVAL` |
 | F12 | Framework Core | Transition / Loading Orchestration | `PROPOSED / PENDING HUMAN APPROVAL` |
 | F13 | Framework Core | Participation / Capability Contracts | `PROPOSED / PENDING HUMAN APPROVAL` |
@@ -165,6 +165,12 @@ F10J adiciona `Run Activity Content Execution Lifecycle Transition Smoke` para v
 
 F10K adiciona a fronteira explicita `IActivityContentExecutionParticipantSource` para que o lifecycle receba participants conhecidos sem busca global, sem `GameObject.Find` e sem gameplay consumer. O source padrao continua vazio, retornando `SucceededNoParticipants`; por isso o comportamento de F10I/F10J permanece `SucceededNoContent` ate existir authoring/discovery futuro.
 
+### F10L explicit participant source smoke applied
+
+F10L adiciona `Run Activity Content Execution Participant Source Smoke`, que injeta temporariamente uma source sintetica explicita no lifecycle. O smoke valida que `Clear Activity` executa Exit com participant sourced e que `Restore Activity` executa Enter com participants sourced, depois restaura a source vazia padrao.
+
+F10L ainda nao adiciona authoring/discovery real de participants, scene scan, gameplay consumers, adapters fisicos ou placement.
+
 
 ## Framework Core boundary
 
@@ -234,7 +240,7 @@ Gameplay consumers consomem contratos do core e adapters, mas nao redefinem iden
 | Content Anchor declaration | Framework Core | `CLOSED F7` |
 | RuntimeContent logical roots/handles | Framework Core | `CLOSED F8` |
 | Content Anchor logical binding | Framework Core | `CLOSED F9` |
-| Activity entry/exit content execution contracts | Framework Core | `F10B-F10K CONTRACTS + AGGREGATE + PARTICIPANT CONTRACT + COLLECTION + PHASE PLAN + RUNTIME EXECUTOR + LIFECYCLE DIAGNOSTIC INTEGRATION + TRANSITION SMOKE + SOURCE BOUNDARY APPLIED / PENDING COMPILE` |
+| Activity entry/exit content execution contracts | Framework Core | `F10B-F10L CONTRACTS + AGGREGATE + PARTICIPANT CONTRACT + COLLECTION + PHASE PLAN + RUNTIME EXECUTOR + LIFECYCLE DIAGNOSTIC INTEGRATION + TRANSITION SMOKE + SOURCE BOUNDARY + EXPLICIT SOURCE SMOKE APPLIED / PENDING COMPILE` |
 | Reset request/result/policy foundation | Framework Core | `PROPOSED F11` |
 | Transition/loading orchestration contracts | Framework Core | `PROPOSED F12` |
 | Participation/capability contracts | Framework Core | `PROPOSED F13` |
@@ -291,4 +297,4 @@ Antes de fechar F10, implementar e validar os cortes runtime/editor minimos:
 - diagnostics e QA smoke minimo;
 - confirmacao de que nenhuma execucao Unity concreta entrara no core.
 
-F10 permanece `OPEN / PARTICIPANT SOURCE BOUNDARY APPLIED / PENDING COMPILE / IMPLEMENTATION IN PROGRESS`; F10B-F10K foram aplicados, mas authoring/discovery de participants e readiness aggregation nova no lifecycle ainda nao existem.
+F10 permanece `OPEN / EXPLICIT PARTICIPANT SOURCE SMOKE APPLIED / PENDING COMPILE / IMPLEMENTATION IN PROGRESS`; F10B-F10L foram aplicados, mas authoring/discovery de participants e readiness aggregation nova no lifecycle ainda nao existem.

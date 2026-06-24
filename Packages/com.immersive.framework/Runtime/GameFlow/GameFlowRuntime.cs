@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.ActivityFlow;
 using System;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.ApiStatus;
@@ -26,6 +27,11 @@ namespace Immersive.Framework.GameFlow
             _routeLifecycleRuntime = new RouteLifecycleRuntime(
                 runtimeContentRuntime ?? throw new ArgumentNullException(nameof(runtimeContentRuntime)),
                 contentAnchorBindingRuntime ?? throw new ArgumentNullException(nameof(contentAnchorBindingRuntime)));
+        }
+
+        internal void SetActivityContentExecutionParticipantSource(IActivityContentExecutionParticipantSource participantSource)
+        {
+            _routeLifecycleRuntime.SetActivityContentExecutionParticipantSource(participantSource);
         }
 
         internal async Task<FrameworkGameFlowStartResult> StartAsync(GameApplicationAsset gameApplication)

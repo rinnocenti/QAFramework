@@ -39,6 +39,11 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         internal RuntimeContentRuntime RuntimeContentRuntime => _runtimeContentRuntime;
 
+        internal void SetActivityContentExecutionParticipantSource(IActivityContentExecutionParticipantSource participantSource)
+        {
+            _gameFlowRuntime?.SetActivityContentExecutionParticipantSource(participantSource);
+        }
+
         internal int ContentAnchorBindingCount => _contentAnchorBindingRuntime != null ? _contentAnchorBindingRuntime.BindingCount : 0;
 
 

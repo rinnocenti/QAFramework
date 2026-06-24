@@ -318,6 +318,11 @@ namespace Immersive.Framework.Diagnostics
                     RunActivityContentExecutionLifecycleTransitionSmoke();
                 }
 
+                if (GUILayout.Button("Run Activity Content Execution Participant Source Smoke"))
+                {
+                    RunActivityContentExecutionParticipantSourceSmoke();
+                }
+
                 if (GUILayout.Button("Run Content Anchor Binding Smoke"))
                 {
                     RunContentAnchorBindingSmoke();
@@ -1700,6 +1705,187 @@ namespace Immersive.Framework.Diagnostics
                         LogFields.Field("restoreExecution", restoreExecution.ToDiagnosticString())));
 
                 return true;
+            });
+        }
+
+        private async void RunActivityContentExecutionParticipantSourceSmoke()
+        {
+            string missingTargets = string.Empty;
+            AppendMissingQaAsset(ref missingTargets, primaryActivity == null, "Primary Activity");
+
+            if (!TryValidateSmokeTargets("Activity Content Execution Participant Source Smoke", missingTargets))
+            {
+                return;
+            }
+
+            await RunSmokeAsync("Activity Content Execution Participant Source Smoke", async runtimeHost =>
+            {
+                if (!ReferenceEquals(runtimeHost.State.CurrentActivity, primaryActivity))
+                {
+                    if (!await RequestActivityCoreAsync(
+                            runtimeHost,
+                            primaryActivity,
+                            ResolveReason(activityReason, GetAssetName(primaryActivity, "qa.activity-content-execution-source.prepare")),
+                            allowAlreadyActive: true))
+                    {
+                        return false;
+                    }
+
+                    await Task.Yield();
+                }
+
+                if (!ReferenceEquals(runtimeHost.State.CurrentActivity, primaryActivity))
+                {
+                    _logger.Warning("QA Activity Content Execution Participant Source Smoke step failed. step='prepare' reason='Primary Activity is not active before source injection'.");
+                    return false;
+                }
+
+                var source = new SyntheticActivityContentExecutionParticipantSource(
+                    new IActivityContentExecutionParticipant[]
+                    {
+                        new SyntheticActivityContentExecutionParticipant(
+                            ActivityContentExecutionParticipantDescriptor.Required(
+                                RuntimeContentId.From("qa.activity.execution.source.required"),
+                                supportsEnter: true,
+                                supportsExit: true,
+                                order: 10,
+                                displayName: "QA Source Required Execution Participant",
+                                source: QaSource,
+                                reason: "qa.activity-content-execution-source.required"),
+                            SyntheticActivityContentExecutionParticipantMode.Success),
+                        new SyntheticActivityContentExecutionParticipant(
+                            ActivityContentExecutionParticipantDescriptor.Optional(
+                                RuntimeContentId.From("qa.activity.execution.source.optional.enter"),
+                                supportsEnter: true,
+                                supportsExit: false,
+                                order: 20,
+                                displayName: "QA Source Optional Enter Execution Participant",
+                                source: QaSource,
+                                reason: "qa.activity-content-execution-source.optional-enter"),
+                            SyntheticActivityContentExecutionParticipantMode.NoOp)
+                    });
+
+                FrameworkActivityRequestResult clearResult = default;
+                FrameworkActivityRequestResult restoreResult = default;
+                bool shouldRestore = false;
+
+                runtimeHost.SetActivityContentExecutionParticipantSource(source);
+                try
+                {
+                    clearResult = await ClearActivityWithResultCoreAsync(
+                        runtimeHost,
+                        ResolveReason(clearActivityReason, "qa.activity-content-execution-source.clear"));
+                    if (!clearResult.Succeeded)
+                    {
+                        _logger.Warning($"QA Activity Content Execution Participant Source Smoke step failed. step='clear' reason='Activity clear did not succeed' status='{FormatValue(clearResult.Kind.ToString())}'.");
+                        return false;
+                    }
+
+                    shouldRestore = true;
+                    var clearExecution = clearResult.ActivityFlowResult.ActivityContentExecutionResult;
+                    bool clearValid = clearExecution.Executed
+                        && clearExecution.Succeeded
+                        && clearExecution.Status == ActivityContentExecutionLifecycleStatus.Succeeded
+                        && clearExecution.ParticipantSourceStatus == ActivityContentExecutionParticipantSourceStatus.Succeeded.ToString()
+                        && clearExecution.ParticipantCount == 2
+                        && clearExecution.ExitResult.Status == ActivityContentExecutionAggregateStatus.Succeeded
+                        && clearExecution.ExitRequestCount == 1
+                        && clearExecution.ExitResultCount == 1
+                        && clearExecution.ExitResult.RequiredCount == 1
+                        && clearExecution.ExitResult.OptionalCount == 0
+                        && clearExecution.ExitResult.BlockingIssueCount == 0
+                        && !clearExecution.BlocksReadiness;
+
+                    if (!clearValid)
+                    {
+                        _logger.Warning(
+                            $"QA Activity Content Execution Participant Source Smoke step failed. step='clear-execution' reason='Activity clear did not execute sourced exit participant as expected' execution='{FormatValue(clearExecution.DiagnosticStatus)}' source='{FormatValue(clearExecution.ParticipantSourceStatus)}' participants='{clearExecution.ParticipantCount}' exit='{FormatValue(clearExecution.ExitResult.Status.ToString())}' exitRequests='{clearExecution.ExitRequestCount}' exitResults='{clearExecution.ExitResultCount}' blockingIssues='{clearExecution.ExitResult.BlockingIssueCount}' blocksReadiness='{clearExecution.BlocksReadiness}' details='{FormatValue(clearExecution.ToDiagnosticString())}'.");
+                    }
+
+                    await Task.Yield();
+
+                    restoreResult = await RequestActivityWithResultCoreAsync(
+                        runtimeHost,
+                        primaryActivity,
+                        ResolveReason(activityReason, GetAssetName(primaryActivity, "qa.activity-content-execution-source.restore")));
+                    shouldRestore = false;
+                    if (!restoreResult.Succeeded)
+                    {
+                        _logger.Warning($"QA Activity Content Execution Participant Source Smoke step failed. step='restore' reason='Primary Activity restore did not succeed' status='{FormatValue(restoreResult.Kind.ToString())}'.");
+                        return false;
+                    }
+
+                    var restoreExecution = restoreResult.ActivityFlowResult.ActivityContentExecutionResult;
+                    bool restoreValid = restoreExecution.Executed
+                        && restoreExecution.Succeeded
+                        && restoreExecution.Status == ActivityContentExecutionLifecycleStatus.Succeeded
+                        && restoreExecution.ParticipantSourceStatus == ActivityContentExecutionParticipantSourceStatus.Succeeded.ToString()
+                        && restoreExecution.ParticipantCount == 2
+                        && restoreExecution.EnterResult.Status == ActivityContentExecutionAggregateStatus.Succeeded
+                        && restoreExecution.EnterRequestCount == 2
+                        && restoreExecution.EnterResultCount == 2
+                        && restoreExecution.EnterResult.RequiredCount == 1
+                        && restoreExecution.EnterResult.OptionalCount == 1
+                        && restoreExecution.EnterResult.BlockingIssueCount == 0
+                        && !restoreExecution.BlocksReadiness;
+
+                    if (!restoreValid)
+                    {
+                        _logger.Warning(
+                            $"QA Activity Content Execution Participant Source Smoke step failed. step='restore-execution' reason='Activity restore did not execute sourced enter participants as expected' execution='{FormatValue(restoreExecution.DiagnosticStatus)}' source='{FormatValue(restoreExecution.ParticipantSourceStatus)}' participants='{restoreExecution.ParticipantCount}' enter='{FormatValue(restoreExecution.EnterResult.Status.ToString())}' enterRequests='{restoreExecution.EnterRequestCount}' enterResults='{restoreExecution.EnterResultCount}' blockingIssues='{restoreExecution.EnterResult.BlockingIssueCount}' blocksReadiness='{restoreExecution.BlocksReadiness}' details='{FormatValue(restoreExecution.ToDiagnosticString())}'.");
+                    }
+
+                    if (!clearValid || !restoreValid)
+                    {
+                        return false;
+                    }
+
+                    _logger.Info(
+                        "QA Activity Content Execution Participant Source Smoke step completed.",
+                        LogFields.Of(
+                            LogFields.Field("step", "explicit-source-lifecycle"),
+                            LogFields.Field("activity", GetAssetName(primaryActivity, "<none>")),
+                            LogFields.Field("sourceResolutions", source.ResolveCount),
+                            LogFields.Field("clearExecution", clearExecution.Status.ToString()),
+                            LogFields.Field("clearSource", clearExecution.ParticipantSourceStatus),
+                            LogFields.Field("clearParticipants", clearExecution.ParticipantCount),
+                            LogFields.Field("clearExit", clearExecution.ExitResult.Status.ToString()),
+                            LogFields.Field("clearExitRequests", clearExecution.ExitRequestCount),
+                            LogFields.Field("clearExitResults", clearExecution.ExitResultCount),
+                            LogFields.Field("clearExitRequired", clearExecution.ExitResult.RequiredCount),
+                            LogFields.Field("clearBlockingIssues", clearExecution.ExitResult.BlockingIssueCount),
+                            LogFields.Field("clearBlocksReadiness", clearExecution.BlocksReadiness),
+                            LogFields.Field("restoreExecution", restoreExecution.Status.ToString()),
+                            LogFields.Field("restoreSource", restoreExecution.ParticipantSourceStatus),
+                            LogFields.Field("restoreParticipants", restoreExecution.ParticipantCount),
+                            LogFields.Field("restoreEnter", restoreExecution.EnterResult.Status.ToString()),
+                            LogFields.Field("restoreEnterRequests", restoreExecution.EnterRequestCount),
+                            LogFields.Field("restoreEnterResults", restoreExecution.EnterResultCount),
+                            LogFields.Field("restoreEnterRequired", restoreExecution.EnterResult.RequiredCount),
+                            LogFields.Field("restoreEnterOptional", restoreExecution.EnterResult.OptionalCount),
+                            LogFields.Field("restoreBlockingIssues", restoreExecution.EnterResult.BlockingIssueCount),
+                            LogFields.Field("restoreBlocksReadiness", restoreExecution.BlocksReadiness),
+                            LogFields.Field("runtimeRootCount", runtimeHost.RuntimeContentRuntime.RootCount)));
+
+                    _logger.Debug(
+                        "QA Activity Content Execution Participant Source Smoke diagnostics.",
+                        LogFields.Of(
+                            LogFields.Field("clearExecution", clearExecution.ToDiagnosticString()),
+                            LogFields.Field("restoreExecution", restoreExecution.ToDiagnosticString())));
+
+                    return true;
+                }
+                finally
+                {
+                    runtimeHost.SetActivityContentExecutionParticipantSource(EmptyActivityContentExecutionParticipantSource.Instance);
+                    if (shouldRestore && !ReferenceEquals(runtimeHost.State.CurrentActivity, primaryActivity))
+                    {
+                        await RequestActivityWithResultCoreAsync(
+                            runtimeHost,
+                            primaryActivity,
+                            ResolveReason(activityReason, GetAssetName(primaryActivity, "qa.activity-content-execution-source.restore-after-failure")));
+                    }
+                }
             });
         }
 
@@ -3931,6 +4117,38 @@ namespace Immersive.Framework.Diagnostics
         {
             Success,
             NoOp
+        }
+
+        private sealed class SyntheticActivityContentExecutionParticipantSource : IActivityContentExecutionParticipantSource
+        {
+            private readonly ActivityContentExecutionParticipantCollection collection;
+
+            public SyntheticActivityContentExecutionParticipantSource(IReadOnlyList<IActivityContentExecutionParticipant> participants)
+            {
+                collection = ActivityContentExecutionParticipantCollection.FromParticipants(participants);
+            }
+
+            public int ResolveCount { get; private set; }
+
+            public ActivityContentExecutionParticipantSourceResult ResolveActivityContentExecutionParticipants(ActivityContentExecutionParticipantSourceRequest request)
+            {
+                ResolveCount++;
+                if (!request.IsValid)
+                {
+                    return ActivityContentExecutionParticipantSourceResult.RejectedInvalidRequest(
+                        request,
+                        QaSource,
+                        "qa.activity-content-execution-source.synthetic",
+                        "Synthetic Activity content execution participant source rejected an invalid request.");
+                }
+
+                return ActivityContentExecutionParticipantSourceResult.FromCollection(
+                    request,
+                    collection,
+                    QaSource,
+                    "qa.activity-content-execution-source.synthetic",
+                    "Synthetic Activity content execution participant source returned explicit QA participants.");
+            }
         }
 
         private sealed class SyntheticActivityContentExecutionParticipant : IActivityContentExecutionParticipant

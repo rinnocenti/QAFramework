@@ -1,6 +1,6 @@
 # Activity Content Execution Participant Source
 
-Status: APPLIED / PARTICIPANT SOURCE BOUNDARY / PENDING COMPILE  
+Status: APPLIED / PARTICIPANT SOURCE BOUNDARY / F10L SMOKE PENDING  
 Fase: F10K  
 Escopo: Framework Core
 
@@ -116,6 +116,10 @@ Actor/Player/Camera/Pause/Input/Save consumers
 
 ---
 
+## Smoke relacionado
+
+F10L adiciona `Run Activity Content Execution Participant Source Smoke`, validando uma source sintetica explicita injetada temporariamente no lifecycle.
+
 ## Proximo passo
 
-O proximo corte pode definir como uma source concreta sera alimentada, ainda sem gameplay consumer e sem busca global.
+Depois do PASS, o proximo corte pode definir como uma source real/controlada sera alimentada, ainda sem gameplay consumer e sem busca global.
