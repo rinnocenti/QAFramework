@@ -1055,6 +1055,12 @@ O backlog FX não bloqueia F8/F9, mas passa a ser rastreado como parte da maturi
 
 ### F9G — Activity Content Anchor authoring/discovery
 
-Status: `APPLIED / PENDING SMOKE`
+Status: `PASS DIAGNOSTIC SMOKE`
 
 Adds Activity-scoped Content Anchor authoring, discovery diagnostics and QA smoke. No physical placement, prefab/scene adapter, Addressables, pooling or gameplay consumers.
+
+### F9H — Activity Content Anchor positive-path smoke
+
+Status: `APPLIED / PENDING SMOKE`
+
+Adds QA-only positive-path coverage for one valid Activity Content Anchor accepted by discovery. The fixture is temporary diagnostics data, not a placement root or materialized content.

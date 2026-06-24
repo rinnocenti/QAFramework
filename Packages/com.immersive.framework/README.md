@@ -24,7 +24,7 @@ F5 — CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS
 F6 — CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS
 F7 — CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS
 F8 — CLOSED / RUNTIME CONTENT SMOKE PASS
-F9 — OPEN / F9G ACTIVITY CONTENT ANCHOR AUTHORING + DISCOVERY APPLIED
+F9 — OPEN / F9H ACTIVITY CONTENT ANCHOR POSITIVE SMOKE APPLIED
 ```
 
 F6 closes the first Route scene composition and release baseline:
@@ -71,7 +71,7 @@ Documentation~/ADRs/
 
 ## Current hard boundary
 
-The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release, Content Anchor declaration, RuntimeContent contracts/guardrails/logical release through F8K, and F9F automatic logical Content Anchor binding cleanup on Route/Activity exit, and F9G Activity Content Anchor authoring/discovery diagnostics.
+The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release, Content Anchor declaration, RuntimeContent contracts/guardrails/logical release through F8K, and F9F automatic logical Content Anchor binding cleanup on Route/Activity exit, F9G Activity Content Anchor authoring/discovery diagnostics, and F9H positive-path Activity Content Anchor smoke coverage.
 
 F8 is closed. F9 is now the active gate. F9 connects Content Anchor declarations to RuntimeContent contracts and now includes Route/Activity anchor authoring/discovery. It must still not create Actor, Pause, Camera, UI, Save, Input, Pooling, scene adapter, prefab adapter or physical placement consumers.
 
@@ -104,6 +104,7 @@ F9C — Content Anchor binding smoke / lifecycle diagnostics [PASS]
 F9D — Content Anchor binding lifecycle policy [PASS]
 F9E — Binding runtime host ownership [PASS]
 F9F — Automatic logical binding cleanup on Route/Activity exit [PASS]
-F9G — Activity Content Anchor authoring/discovery [APPLIED / PENDING SMOKE]
+F9G — Activity Content Anchor authoring/discovery [PASS DIAGNOSTIC SMOKE]
+F9H — Activity Content Anchor positive-path smoke [APPLIED / PENDING SMOKE]
 ```
 

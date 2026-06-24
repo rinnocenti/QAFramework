@@ -70,6 +70,26 @@ namespace Immersive.Framework.ContentAnchor
             return candidateActivity != null && activity != null && ReferenceEquals(activity, candidateActivity);
         }
 
+        /// <summary>
+        /// Internal diagnostics hook used by QA smokes to create temporary positive-path fixtures.
+        /// This is not gameplay authoring API and does not materialize, bind or place runtime content.
+        /// </summary>
+        internal void ConfigureForDiagnostics(
+            ActivityAsset ownerActivity,
+            string explicitAnchorId,
+            ContentAnchorKind anchorKind,
+            ContentAnchorRequiredness anchorRequiredness,
+            string diagnosticDisplayName,
+            string diagnosticDescription)
+        {
+            activity = ownerActivity;
+            anchorId = Normalize(explicitAnchorId);
+            kind = anchorKind;
+            requiredness = anchorRequiredness;
+            displayName = Normalize(diagnosticDisplayName);
+            description = Normalize(diagnosticDescription);
+        }
+
         public bool IsSceneAuthored => gameObject.scene.IsValid() && gameObject.scene.isLoaded;
 
         public string ObjectName => gameObject != null ? gameObject.name : "<missing>";

@@ -11,6 +11,7 @@ using Immersive.Framework.LocalContribution;
 using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.RuntimeContent;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 using Immersive.Framework.ApiStatus;
@@ -82,6 +83,11 @@ namespace Immersive.Framework.Diagnostics
         [SerializeField] private int expectedActivityContentAnchorIssueCount = 0;
         [SerializeField] private int expectedActivityContentAnchorInvalidCount = 0;
         [SerializeField] private int expectedActivityContentAnchorActivityMismatchCount = 0;
+
+        [Header("Activity Content Anchor Positive Smoke")]
+        [SerializeField] private string positiveActivityContentAnchorId = "qa.activity.anchor.positive";
+        [SerializeField] private ContentAnchorKind positiveActivityContentAnchorKind = ContentAnchorKind.Slot;
+        [SerializeField] private ContentAnchorRequiredness positiveActivityContentAnchorRequiredness = ContentAnchorRequiredness.Optional;
 
         [Header("Smoke Scenario Activities")]
         [FormerlySerializedAs("activity01")]
@@ -290,6 +296,11 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Activity Content Anchor Diagnostics Smoke"))
                 {
                     RunActivityContentAnchorDiagnosticsSmoke();
+                }
+
+                if (GUILayout.Button("Run Activity Content Anchor Positive Smoke"))
+                {
+                    RunActivityContentAnchorPositiveSmoke();
                 }
 
                 if (GUILayout.Button("Run Content Anchor Binding Smoke"))
@@ -1313,6 +1324,94 @@ namespace Immersive.Framework.Diagnostics
             });
         }
 
+        private async void RunActivityContentAnchorPositiveSmoke()
+        {
+            string missingTargets = string.Empty;
+            AppendMissingQaAsset(ref missingTargets, routeSceneCompositionRoute == null, "Activity Content Anchor Positive Route");
+            AppendMissingQaAsset(ref missingTargets, alternateRoute == null, "Alternate Route / Preparation Route");
+            AppendMissingQaAsset(ref missingTargets, primaryActivity == null, "Primary Activity / Positive Activity Anchor Owner");
+
+            if (!TryValidateSmokeTargets("Activity Content Anchor Positive Smoke", missingTargets))
+            {
+                return;
+            }
+
+            await RunSmokeAsync("Activity Content Anchor Positive Smoke", async runtimeHost =>
+            {
+                if (ReferenceEquals(runtimeHost.State.CurrentRoute, routeSceneCompositionRoute))
+                {
+                    if (ReferenceEquals(alternateRoute, routeSceneCompositionRoute))
+                    {
+                        _logger.Warning("QA Activity Content Anchor Positive Smoke step failed. step='prepare' reason='Positive Activity Anchor Route is already active and Alternate Route points to the same Route'.");
+                        return false;
+                    }
+
+                    var prepareResult = await RequestRouteWithResultCoreAsync(
+                        runtimeHost,
+                        alternateRoute,
+                        ResolveReason(routeReason, GetAssetName(alternateRoute, "qa.activity-content-anchor-positive.prepare")));
+                    if (!prepareResult.Succeeded)
+                    {
+                        _logger.Warning($"QA Activity Content Anchor Positive Smoke step failed. step='prepare' reason='Preparation Route request did not succeed' status='{FormatValue(prepareResult.Kind.ToString())}'.");
+                        return false;
+                    }
+
+                    await Task.Yield();
+                }
+
+                var routeResult = await RequestRouteWithResultCoreAsync(
+                    runtimeHost,
+                    routeSceneCompositionRoute,
+                    ResolveReason(routeReason, GetAssetName(routeSceneCompositionRoute, "qa.activity-content-anchor-positive.route")));
+                if (!routeResult.Succeeded)
+                {
+                    _logger.Warning($"QA Activity Content Anchor Positive Smoke step failed. step='route' reason='Route request did not succeed' status='{FormatValue(routeResult.Kind.ToString())}'.");
+                    return false;
+                }
+
+                GameObject fixtureObject = null;
+                try
+                {
+                    if (!TryCreatePositiveActivityContentAnchorFixture(primaryActivity, out fixtureObject, out var fixtureAnchor))
+                    {
+                        return false;
+                    }
+
+                    var clearResult = await ClearActivityWithResultCoreAsync(
+                        runtimeHost,
+                        ResolveReason(clearActivityReason, "qa.activity-content-anchor-positive.clear"));
+                    if (!clearResult.Succeeded)
+                    {
+                        _logger.Warning($"QA Activity Content Anchor Positive Smoke step failed. step='clear' reason='Activity clear did not succeed before positive rediscovery' status='{FormatValue(clearResult.Kind.ToString())}'.");
+                        return false;
+                    }
+
+                    await Task.Yield();
+
+                    var activityResult = await RequestActivityWithResultCoreAsync(
+                        runtimeHost,
+                        primaryActivity,
+                        ResolveReason(activityReason, GetAssetName(primaryActivity, "qa.activity-content-anchor-positive.activity")));
+                    return ValidateActivityContentAnchorPositiveSmokeStep(
+                        activityResult,
+                        "activity-anchor-positive",
+                        fixtureAnchor);
+                }
+                finally
+                {
+                    if (fixtureObject != null)
+                    {
+#if UNITY_EDITOR
+                        DestroyImmediate(fixtureObject);
+#else
+                        fixtureObject.SetActive(false);
+                        Destroy(fixtureObject);
+#endif
+                    }
+                }
+            });
+        }
+
         private async void RunContentAnchorBindingSmoke()
         {
             string missingTargets = string.Empty;
@@ -2142,6 +2241,118 @@ namespace Immersive.Framework.Diagnostics
             _logger.Debug(
                 "QA Content Anchor Binding Smoke diagnostics.",
                 LogFields.Field("details", bindingResult.ToDiagnosticString()));
+            return true;
+        }
+
+        private bool TryCreatePositiveActivityContentAnchorFixture(
+            ActivityAsset activity,
+            out GameObject fixtureObject,
+            out ActivityContentAnchor fixtureAnchor)
+        {
+            fixtureObject = null;
+            fixtureAnchor = null;
+
+            if (activity == null)
+            {
+                _logger.Warning("QA Activity Content Anchor Positive Smoke step failed. step='fixture' reason='Primary Activity is missing'.");
+                return false;
+            }
+
+            var activeScene = SceneManager.GetActiveScene();
+            if (!activeScene.IsValid() || !activeScene.isLoaded)
+            {
+                _logger.Warning("QA Activity Content Anchor Positive Smoke step failed. step='fixture' reason='Active Scene is invalid or not loaded'.");
+                return false;
+            }
+
+            var anchorId = ResolveReason(positiveActivityContentAnchorId, "qa.activity.anchor.positive");
+            var anchorKind = positiveActivityContentAnchorKind == ContentAnchorKind.Unknown
+                ? ContentAnchorKind.Slot
+                : positiveActivityContentAnchorKind;
+            var requiredness = Enum.IsDefined(typeof(ContentAnchorRequiredness), positiveActivityContentAnchorRequiredness)
+                ? positiveActivityContentAnchorRequiredness
+                : ContentAnchorRequiredness.Optional;
+
+            fixtureObject = new GameObject("QA Activity Content Anchor Positive Fixture");
+            SceneManager.MoveGameObjectToScene(fixtureObject, activeScene);
+            fixtureAnchor = fixtureObject.AddComponent<ActivityContentAnchor>();
+            fixtureAnchor.ConfigureForDiagnostics(
+                activity,
+                anchorId,
+                anchorKind,
+                requiredness,
+                "QA Activity Content Anchor Positive Fixture",
+                "Temporary QA fixture created by FrameworkQaCanvas for F9H positive-path discovery smoke.");
+            return true;
+        }
+
+        private bool ValidateActivityContentAnchorPositiveSmokeStep(
+            FrameworkActivityRequestResult result,
+            string stepName,
+            ActivityContentAnchor fixtureAnchor)
+        {
+            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string activityName = result.TargetActivity != null ? GetAssetName(result.TargetActivity, "<unnamed>") : "<missing>";
+
+            if (!result.Succeeded)
+            {
+                _logger.Warning($"QA Activity Content Anchor Positive Smoke step failed. step='{FormatValue(normalizedStepName)}' activity='{FormatValue(activityName)}' reason='Activity request did not succeed' status='{FormatValue(result.Kind.ToString())}'.");
+                return false;
+            }
+
+            var activityFlow = result.ActivityFlowResult;
+            if (!activityFlow.Completed)
+            {
+                _logger.Warning($"QA Activity Content Anchor Positive Smoke step failed. step='{FormatValue(normalizedStepName)}' activity='{FormatValue(activityName)}' reason='Activity flow did not complete'.");
+                return false;
+            }
+
+            if (fixtureAnchor == null || !fixtureAnchor.TryCreateDeclaration(out var declaration))
+            {
+                _logger.Warning($"QA Activity Content Anchor Positive Smoke step failed. step='{FormatValue(normalizedStepName)}' activity='{FormatValue(activityName)}' reason='Positive fixture declaration is invalid'.");
+                return false;
+            }
+
+            var discovery = activityFlow.ActivityContentAnchorDiscoveryResult;
+            var anchorSet = activityFlow.ActivityContentAnchorSet;
+            if (discovery.AnchorCount < 1 || discovery.CandidateCount < 1 || discovery.AcceptedCount < 1)
+            {
+                _logger.Warning($"QA Activity Content Anchor Positive Smoke step failed. step='{FormatValue(normalizedStepName)}' activity='{FormatValue(activityName)}' reason='Positive Activity Content Anchor was not discovered' anchors='{discovery.AnchorCount}' candidates='{discovery.CandidateCount}' accepted='{discovery.AcceptedCount}'.");
+                return false;
+            }
+
+            if (!anchorSet.Contains(declaration))
+            {
+                _logger.Warning($"QA Activity Content Anchor Positive Smoke step failed. step='{FormatValue(normalizedStepName)}' activity='{FormatValue(activityName)}' reason='Discovered Activity Content Anchor Set does not contain the positive fixture declaration' anchor='{FormatValue(declaration.StableText)}'.");
+                return false;
+            }
+
+            if (discovery.IssueCount != 0 || discovery.InvalidAuthoringCount != 0 || discovery.SkippedActivityMismatchCount != 0)
+            {
+                _logger.Warning($"QA Activity Content Anchor Positive Smoke step failed. step='{FormatValue(normalizedStepName)}' activity='{FormatValue(activityName)}' reason='Positive discovery produced issues' issues='{discovery.IssueCount}' invalid='{discovery.InvalidAuthoringCount}' mismatch='{discovery.SkippedActivityMismatchCount}'.");
+                return false;
+            }
+
+            _logger.Info(
+                "QA Activity Content Anchor Positive Smoke step completed.",
+                LogFields.Of(
+                    LogFields.Field("step", normalizedStepName),
+                    LogFields.Field("activity", activityName),
+                    LogFields.Field("anchor", declaration.StableText),
+                    LogFields.Field("activityContentAnchors", discovery.AnchorCount),
+                    LogFields.Field("activityContentAnchorCandidates", discovery.CandidateCount),
+                    LogFields.Field("activityContentAnchorAccepted", discovery.AcceptedCount),
+                    LogFields.Field("activityContentAnchorRequired", anchorSet.RequiredCount),
+                    LogFields.Field("activityContentAnchorOptional", anchorSet.OptionalCount),
+                    LogFields.Field("activityContentAnchorRoot", anchorSet.RootCount),
+                    LogFields.Field("activityContentAnchorSlot", anchorSet.SlotCount),
+                    LogFields.Field("activityContentAnchorPoint", anchorSet.PointCount),
+                    LogFields.Field("activityContentAnchorIssues", discovery.IssueCount),
+                    LogFields.Field("activityContentAnchorInvalid", discovery.InvalidAuthoringCount),
+                    LogFields.Field("activityContentAnchorActivityMismatch", discovery.SkippedActivityMismatchCount)));
+            _logger.Debug(
+                "QA Activity Content Anchor Positive Smoke diagnostics.",
+                LogFields.Field("details", discovery.ToDiagnosticString()));
             return true;
         }
 

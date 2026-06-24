@@ -1,6 +1,6 @@
 # Activity Content Anchor Discovery
 
-Status: `F9G — APPLIED / PENDING SMOKE`
+Status: `F9H — POSITIVE SMOKE APPLIED / PENDING SMOKE`
 
 `ActivityContentAnchor` is discovered during Activity startup after the Activity content lifecycle has applied the active Activity state.
 
@@ -74,15 +74,21 @@ F9G adds:
 Run Activity Content Anchor Diagnostics Smoke
 ```
 
-The smoke requests the configured Route, lets the startup Activity run and validates the `ActivityContentAnchorDiscoveryResult` plus the Activity-local `ContentAnchorSet` counts.
+The diagnostics smoke requests the configured Route, lets the startup Activity run and validates the `ActivityContentAnchorDiscoveryResult` plus the Activity-local `ContentAnchorSet` counts.
 
-This smoke can pass with zero Activity anchors. To validate a positive path, add one valid `ActivityContentAnchor` for the startup Activity and set the expected count/candidate fields accordingly.
+This diagnostics smoke can pass with zero Activity anchors. F9H adds the positive-path smoke:
+
+```text
+Run Activity Content Anchor Positive Smoke
+```
+
+The positive smoke creates a temporary QA-only `ActivityContentAnchor` in the active Route primary scene, clears/re-enters the configured Activity and validates that discovery accepts at least one valid Activity anchor with no issues. The fixture is not a placement root and is removed by the QA smoke.
 
 ---
 
 ## What this cut does not do
 
-F9G does not add:
+F9G/F9H do not add:
 
 ```text
 Transform placement

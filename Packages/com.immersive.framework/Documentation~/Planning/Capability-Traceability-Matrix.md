@@ -756,6 +756,12 @@ F4 fecha o baseline mínimo de Activity. `ActivityContentSet` permanece snapshot
 
 ### F9G — Activity Content Anchor authoring/discovery
 
-Status: `APPLIED / PENDING SMOKE`
+Status: `PASS DIAGNOSTIC SMOKE`
 
 Adds Activity-scoped Content Anchor authoring, discovery diagnostics and QA smoke. No physical placement, prefab/scene adapter, Addressables, pooling or gameplay consumers.
+
+### F9H — Activity Content Anchor positive-path smoke
+
+Status: `APPLIED / PENDING SMOKE`
+
+Adds QA positive-path coverage for one valid Activity Content Anchor accepted by discovery. Does not introduce placement, materialization adapters or gameplay consumers.
