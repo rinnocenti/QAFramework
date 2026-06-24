@@ -1,6 +1,6 @@
 # F9-01 — ADR-ANCHOR-002 — Content Anchor Binding and Runtime Placement
 
-Status: Accepted / F9B logical binding runtime applied
+Status: Accepted / F9C logical binding smoke applied
 Fase: F9
 Ordem no Plano: F9-01
 Tipo: Content Anchor / Runtime
@@ -25,7 +25,7 @@ F9A ContentAnchorBindingRequest
 F9A ContentAnchorBindingResult
 F9A ContentAnchorContentHandle
 F9B RuntimeContentAnchorBinding [applied as logical runtime]
-F9C Binding release order
+F9C Binding smoke and lifecycle diagnostics [applied]
 F9D Binding smoke
 ```
 
@@ -55,6 +55,12 @@ F9A não adiciona `Transform`, `GameObject`, `Instantiate`, `Destroy`, scene ada
 F9B adiciona `RuntimeContentAnchorBinding` como runtime lógico interno. Ele resolve um `ContentAnchorBindingRequest` contra um `ContentAnchorSet` fornecido e um `RuntimeContentHandle` já registrado em `RuntimeContentRuntime`.
 
 F9B não adiciona placement físico, prefab adapter, scene adapter, `Transform`, `GameObject`, `Instantiate`, `Destroy` ou consumer final.
+
+## Implementação F9C
+
+F9C adiciona `Run Content Anchor Binding Smoke` ao QA Canvas. O smoke usa um `ContentAnchorSet` de Route já descoberto, cria um `RuntimeContentHandle` sintético no `RuntimeScopeContext` da Route, executa `RuntimeContentAnchorBinding.Bind(...)`, valida idempotência com `SucceededAlreadyBound`, remove o binding lógico e libera/unregistra o handle via `RuntimeReleasePolicy.MarkReleasedAndUnregister`.
+
+F9C permanece diagnóstico: não move `Transform`, não instancia prefab, não carrega cena, não chama `Destroy`, não cria adapter físico e não cria consumer final.
 
 ## Regras
 

@@ -1,7 +1,8 @@
 # RuntimeContentAnchorBinding Logical Runtime
 
-Status: `F9B APPLIED / PENDING COMPILE-SMOKE`
-Corte: `IF-FW-F9B-runtime-content-anchor-binding-logical-runtime`
+Status: `F9C APPLIED / BINDING SMOKE PENDING`
+Corte base: `IF-FW-F9B-runtime-content-anchor-binding-logical-runtime`
+Corte atual: `IF-FW-F9C-content-anchor-binding-smoke-diagnostics`
 Escopo: Content Anchor binding / RuntimeContent bridge
 
 ---
@@ -116,10 +117,28 @@ Save
 
 ## Smoke esperado
 
-Para F9B, o smoke suficiente é:
+F9C adiciona o botão dedicado no QA Canvas:
+
+```text
+Run Content Anchor Binding Smoke
+```
+
+O smoke valida:
+
+```text
+Route Content Anchor descoberto
+-> RuntimeScopeContext da Route disponível
+-> RuntimeMaterializationRequest sintético criado
+-> RuntimeContentHandle sintético registrado/materializado
+-> RuntimeContentAnchorBinding.Bind(...) retorna Succeeded
+-> segundo Bind retorna SucceededAlreadyBound
+-> Unbind remove o binding lógico
+-> release lógico remove/unregistra o RuntimeContentHandle
+```
+
+Validação esperada:
 
 ```text
 compile/import smoke
+QA Smoke completed. name='Content Anchor Binding Smoke'
 ```
-
-Ainda não há Play Mode behavior novo obrigatório. O smoke de binding runtime entra quando houver integração diagnóstica/QA dedicada.

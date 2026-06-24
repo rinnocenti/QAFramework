@@ -24,7 +24,7 @@ F5 — CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS
 F6 — CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS
 F7 — CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS
 F8 — CLOSED / RUNTIME CONTENT SMOKE PASS
-F9 — OPEN / LOGICAL CONTENT ANCHOR BINDING
+F9 — OPEN / CONTENT ANCHOR BINDING SMOKE PENDING
 ```
 
 F6 closes the first Route scene composition and release baseline:
@@ -69,7 +69,7 @@ Documentation~/ADRs/
 
 ## Current hard boundary
 
-The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release, Content Anchor declaration, RuntimeContent contracts/guardrails/logical release through F8K, and F9B logical Content Anchor binding.
+The framework currently has lifecycle/content/contribution foundations plus Route scene composition/release, Content Anchor declaration, RuntimeContent contracts/guardrails/logical release through F8K, and F9C logical Content Anchor binding smoke diagnostics.
 
 F8 is closed. F9 is now the active gate. F9 may connect Content Anchor declarations to RuntimeContent contracts, but it must not create Activity anchors, Actor, Pause, Camera, UI, Save, Input, Pooling, scene adapter, prefab adapter or physical placement consumers.
 
@@ -97,7 +97,7 @@ Current F9 technical work:
 
 ```text
 F9A — Content Anchor binding request/result/content handle [APPLIED]
-F9B — RuntimeContentAnchorBinding logical runtime [APPLIED / PENDING COMPILE-SMOKE]
-F9C — Content Anchor binding smoke / lifecycle diagnostics [NEXT]
+F9B — RuntimeContentAnchorBinding logical runtime [APPLIED]
+F9C — Content Anchor binding smoke / lifecycle diagnostics [APPLIED / PENDING SMOKE]
 ```
 

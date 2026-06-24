@@ -277,6 +277,11 @@ namespace Immersive.Framework.Diagnostics
                 {
                     RunContentAnchorDiagnosticsSmoke();
                 }
+
+                if (GUILayout.Button("Run Content Anchor Binding Smoke"))
+                {
+                    RunContentAnchorBindingSmoke();
+                }
             }
         }
 
@@ -1247,6 +1252,48 @@ namespace Immersive.Framework.Diagnostics
             });
         }
 
+        private async void RunContentAnchorBindingSmoke()
+        {
+            string missingTargets = string.Empty;
+            AppendMissingQaAsset(ref missingTargets, routeSceneCompositionRoute == null, "Content Anchor Binding Route");
+            AppendMissingQaAsset(ref missingTargets, alternateRoute == null, "Alternate Route / Preparation Route");
+
+            if (!TryValidateSmokeTargets("Content Anchor Binding Smoke", missingTargets))
+            {
+                return;
+            }
+
+            await RunSmokeAsync("Content Anchor Binding Smoke", async runtimeHost =>
+            {
+                if (ReferenceEquals(runtimeHost.State.CurrentRoute, routeSceneCompositionRoute))
+                {
+                    if (ReferenceEquals(alternateRoute, routeSceneCompositionRoute))
+                    {
+                        _logger.Warning("QA Content Anchor Binding Smoke step failed. step='prepare' reason='Content Anchor Binding Route is already active and Alternate Route points to the same Route'.");
+                        return false;
+                    }
+
+                    var prepareResult = await RequestRouteWithResultCoreAsync(
+                        runtimeHost,
+                        alternateRoute,
+                        ResolveReason(routeReason, GetAssetName(alternateRoute, "qa.content-anchor-binding.prepare")));
+                    if (!prepareResult.Succeeded)
+                    {
+                        _logger.Warning($"QA Content Anchor Binding Smoke step failed. step='prepare' reason='Preparation Route request did not succeed' status='{FormatValue(prepareResult.Kind.ToString())}'.");
+                        return false;
+                    }
+
+                    await Task.Yield();
+                }
+
+                var anchorResult = await RequestRouteWithResultCoreAsync(
+                    runtimeHost,
+                    routeSceneCompositionRoute,
+                    ResolveReason(routeReason, GetAssetName(routeSceneCompositionRoute, "qa.content-anchor-binding")));
+                return ValidateContentAnchorBindingSmokeStep(anchorResult, "binding", runtimeHost);
+            });
+        }
+
         private async void RunClearActivitySmoke()
         {
             string missingTargets = string.Empty;
@@ -1622,6 +1669,189 @@ namespace Immersive.Framework.Diagnostics
             _logger.Debug(
                 "QA Route Release Smoke diagnostics.",
                 LogFields.Field("details", release.ToDiagnosticString()));
+            return true;
+        }
+
+        private bool ValidateContentAnchorBindingSmokeStep(
+            FrameworkRouteRequestResult result,
+            string stepName,
+            FrameworkRuntimeHost runtimeHost)
+        {
+            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string routeName = result.TargetRoute != null ? GetAssetName(result.TargetRoute, "<unnamed>") : "<missing>";
+
+            if (runtimeHost == null || runtimeHost.RuntimeContentRuntime == null)
+            {
+                _logger.Warning($"QA Content Anchor Binding Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='RuntimeContentRuntime unavailable'.");
+                return false;
+            }
+
+            if (!result.Succeeded)
+            {
+                _logger.Warning($"QA Content Anchor Binding Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Route request did not succeed' status='{FormatValue(result.Kind.ToString())}'.");
+                return false;
+            }
+
+            var lifecycleResult = result.RouteLifecycleResult;
+            if (!lifecycleResult.Started)
+            {
+                _logger.Warning($"QA Content Anchor Binding Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Route lifecycle did not start'.");
+                return false;
+            }
+
+            var anchorSet = lifecycleResult.ContentAnchorSet;
+            if (!anchorSet.HasAnchors || anchorSet.Declarations.Count == 0)
+            {
+                _logger.Warning($"QA Content Anchor Binding Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Content Anchor Set has no anchors'.");
+                return false;
+            }
+
+            var runtimeScopeResult = lifecycleResult.RuntimeRouteScopeResult;
+            if (!runtimeScopeResult.HasContext)
+            {
+                _logger.Warning($"QA Content Anchor Binding Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Route runtime scope context unavailable' runtimeRouteScope='{FormatValue(runtimeScopeResult.DiagnosticStatus)}' runtimeRouteContext='{FormatValue(runtimeScopeResult.ContextStatus)}'.");
+                return false;
+            }
+
+            var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+            var context = runtimeScopeResult.Context;
+            var anchor = anchorSet.Declarations[0];
+            var contentId = RuntimeContentId.From("qa.content-anchor.binding." + Guid.NewGuid().ToString("N"));
+            var resource = RuntimeMaterializationResource.From(
+                "QA.ContentAnchorBinding",
+                "qa.content-anchor.binding.resource",
+                "QA Content Anchor Binding Smoke Resource",
+                string.Empty);
+
+            if (!runtimeContentRuntime.TryCreateMaterializationRequest(
+                    context,
+                    contentId,
+                    resource,
+                    QaSource,
+                    "qa.content-anchor-binding.materialization.request",
+                    out var materializationRequest,
+                    out var materializationGuardResult))
+            {
+                _logger.Warning($"QA Content Anchor Binding Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Materialization request rejected' guard='{materializationGuardResult.Status}' message='{FormatValue(materializationGuardResult.Message)}'.");
+                return false;
+            }
+
+            var runtimeHandle = RuntimeContentHandle.Declared(
+                materializationRequest.Identity,
+                QaSource,
+                "qa.content-anchor-binding.handle.declared");
+            var materializationResult = RuntimeMaterializationResult.Success(
+                materializationRequest,
+                runtimeHandle,
+                QaSource,
+                "qa.content-anchor-binding.materialization.synthetic-result",
+                "Synthetic Content Anchor binding smoke materialization result.");
+            var appliedMaterializationResult = runtimeContentRuntime.ApplyMaterializationResult(
+                materializationResult,
+                QaSource,
+                "qa.content-anchor-binding.materialization.apply");
+
+            if (!appliedMaterializationResult.Succeeded)
+            {
+                _logger.Warning($"QA Content Anchor Binding Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Materialization result was not applied' materialization='{appliedMaterializationResult.Status}' message='{FormatValue(appliedMaterializationResult.Message)}'.");
+                return false;
+            }
+
+            var bindingRequest = ContentAnchorBindingRequest.FromDeclaration(
+                context,
+                anchor,
+                contentId,
+                resource,
+                QaSource,
+                "qa.content-anchor-binding.request");
+            var bindingRuntime = new RuntimeContentAnchorBinding();
+            var bindingResult = bindingRuntime.Bind(
+                anchorSet,
+                runtimeContentRuntime,
+                bindingRequest,
+                QaSource,
+                "qa.content-anchor-binding.bind");
+
+            if (!bindingResult.Succeeded)
+            {
+                _logger.Warning($"QA Content Anchor Binding Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Logical binding failed' binding='{bindingResult.Status}' message='{FormatValue(bindingResult.Message)}'.");
+                runtimeContentRuntime.ReleaseHandleLogically(
+                    context,
+                    materializationRequest.Identity,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    QaSource,
+                    "qa.content-anchor-binding.cleanup.binding-failed");
+                return false;
+            }
+
+            var idempotentBindingResult = bindingRuntime.Bind(
+                anchorSet,
+                runtimeContentRuntime,
+                bindingRequest,
+                QaSource,
+                "qa.content-anchor-binding.bind.idempotent");
+
+            if (idempotentBindingResult.Status != ContentAnchorBindingStatus.SucceededAlreadyBound)
+            {
+                _logger.Warning($"QA Content Anchor Binding Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Idempotent binding did not return already-bound' binding='{idempotentBindingResult.Status}' message='{FormatValue(idempotentBindingResult.Message)}'.");
+                bindingRuntime.Unbind(bindingRequest);
+                runtimeContentRuntime.ReleaseHandleLogically(
+                    context,
+                    materializationRequest.Identity,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    QaSource,
+                    "qa.content-anchor-binding.cleanup.idempotent-failed");
+                return false;
+            }
+
+            bool unbound = bindingRuntime.Unbind(bindingRequest);
+            if (!unbound || bindingRuntime.BindingCount != 0)
+            {
+                _logger.Warning($"QA Content Anchor Binding Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Logical binding was not removed' unbound='{unbound}' bindingCount='{bindingRuntime.BindingCount}'.");
+                runtimeContentRuntime.ReleaseHandleLogically(
+                    context,
+                    materializationRequest.Identity,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    QaSource,
+                    "qa.content-anchor-binding.cleanup.unbind-failed");
+                return false;
+            }
+
+            var releaseResult = runtimeContentRuntime.ReleaseHandleLogically(
+                context,
+                materializationRequest.Identity,
+                RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                QaSource,
+                "qa.content-anchor-binding.release.logical");
+
+            if (!releaseResult.Succeeded || !releaseResult.HandleUnregistered)
+            {
+                _logger.Warning($"QA Content Anchor Binding Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Runtime handle release failed' release='{releaseResult.Status}' releaseUnregistered='{releaseResult.HandleUnregistered}' message='{FormatValue(releaseResult.Message)}'.");
+                return false;
+            }
+
+            if (runtimeContentRuntime.TryGetHandle(context, materializationRequest.Identity, out _))
+            {
+                _logger.Warning($"QA Content Anchor Binding Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Runtime handle still registered after release/unregister'.");
+                return false;
+            }
+
+            _logger.Info(
+                "QA Content Anchor Binding Smoke step completed.",
+                LogFields.Of(
+                    LogFields.Field("step", normalizedStepName),
+                    LogFields.Field("route", routeName),
+                    LogFields.Field("anchor", anchor.StableText),
+                    LogFields.Field("binding", bindingResult.Status.ToString()),
+                    LogFields.Field("idempotentBinding", idempotentBindingResult.Status.ToString()),
+                    LogFields.Field("unbound", unbound),
+                    LogFields.Field("release", releaseResult.Status.ToString()),
+                    LogFields.Field("releaseUnregistered", releaseResult.HandleUnregistered),
+                    LogFields.Field("runtimeRootCount", runtimeContentRuntime.RootCount),
+                    LogFields.Field("bindingCount", bindingRuntime.BindingCount)));
+            _logger.Debug(
+                "QA Content Anchor Binding Smoke diagnostics.",
+                LogFields.Field("details", bindingResult.ToDiagnosticString()));
             return true;
         }
 

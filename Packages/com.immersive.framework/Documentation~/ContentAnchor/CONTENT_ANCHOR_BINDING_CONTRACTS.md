@@ -1,6 +1,6 @@
 # Content Anchor Binding Contracts
 
-Status: `F9B APPLIED / PENDING COMPILE-SMOKE`
+Status: `F9C APPLIED / BINDING SMOKE PENDING`
 Corte: `IF-FW-F9A-content-anchor-binding-contracts`
 Escopo: Content Anchor binding / RuntimeContent bridge
 
@@ -129,17 +129,18 @@ F9B ainda não define:
 ```text
 placement físico
 binding release order execution integrado ao lifecycle
-binding smoke dedicado
+binding smoke dedicado aplicado em F9C
 ```
 
 ---
 
 ## Smoke esperado
 
-Para F9A/F9B, o smoke suficiente é:
+Para F9C, o smoke esperado é:
 
 ```text
 compile/import smoke
+Run Content Anchor Binding Smoke
 ```
 
 Não há Play Mode behavior novo neste corte.

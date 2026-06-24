@@ -558,7 +558,7 @@ F9 continua sendo a ponte técnica entre espaço authored e runtime content. Ela
 | IF-FW-ROAD-9D | `ContentAnchorContentHandle` | APPLIED F9A — handle passivo que correlaciona Content Anchor e runtime content; release order fica para corte posterior. |
 | IF-FW-ROAD-9E | `RuntimeContentAnchorBinding` | APPLIED F9B — runtime lógico interno que resolve ContentAnchorSet + RuntimeContentHandle; sem placement físico e sem lifecycle próprio. |
 | IF-FW-ROAD-9F | Binding release order | Binding libera antes do release do content owner/root. |
-| IF-FW-ROAD-9G | Content Anchor binding smoke | Anchor/slot resolved -> binding created -> release order validado -> zero orphan. |
+| IF-FW-ROAD-9G | Content Anchor binding smoke | APPLIED F9C — anchor resolved -> runtime handle synthesized -> binding created -> idempotent rebind -> unbind -> logical release/unregister; zero physical placement. |
 
 ### Não entra
 
@@ -1005,22 +1005,18 @@ F5 — CLOSED / LOCAL CONTRIBUTION FOUNDATION PASS
 F6 — CLOSED / ROUTE SCENE COMPOSITION + RELEASE BASELINE PASS
 F7 — CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS
 F8 — CLOSED / RUNTIME CONTENT SMOKE PASS
-F9 — OPEN / F9B LOGICAL CONTENT ANCHOR BINDING
+F9 — OPEN / F9C CONTENT ANCHOR BINDING SMOKE PENDING
 ```
 
-No package atual, F8I existe como boundary de adapter (`IRuntimeMaterializationAdapter`) sem implementação física. F8J adiciona release lógico (`RuntimeReleaseRequest/Result/Policy/Status`) e `IRuntimeReleaseAdapter`, também sem implementação física. F8K adiciona o handoff explícito `ApplyMaterializationResult` e o Runtime Content Smoke. F9A adiciona `ContentAnchorBindingRequest`, `ContentAnchorBindingResult`, `ContentAnchorBindingStatus` e `ContentAnchorContentHandle`. F9B adiciona `RuntimeContentAnchorBinding` lógico.
+No package atual, F8I existe como boundary de adapter (`IRuntimeMaterializationAdapter`) sem implementação física. F8J adiciona release lógico (`RuntimeReleaseRequest/Result/Policy/Status`) e `IRuntimeReleaseAdapter`, também sem implementação física. F8K adiciona o handoff explícito `ApplyMaterializationResult` e o Runtime Content Smoke. F9A adiciona `ContentAnchorBindingRequest`, `ContentAnchorBindingResult`, `ContentAnchorBindingStatus` e `ContentAnchorContentHandle`. F9B adiciona `RuntimeContentAnchorBinding` lógico. F9C adiciona o smoke dedicado `Content Anchor Binding Smoke` ao QA Canvas.
 
 ## Ação imediata
 
 ```text
-Validar F9B por compile/import smoke. Não há Play Mode behavior físico novo neste corte.
+Validar F9C por compile/import smoke e pelo botão `Run Content Anchor Binding Smoke`. Não há Play Mode behavior físico novo além de diagnóstico sintético/local.
 ```
 
-Depois de F9B compilar limpo, o próximo corte autorizado é o smoke/diagnóstico de binding lógico, ainda sem placement físico:
-
-```text
-F9C — Content Anchor binding smoke / lifecycle diagnostics
-```
+Depois de F9C passar, o próximo corte autorizado deve tratar a próxima fronteira de F9 sem placement físico obrigatório: política/diagnóstico de lifecycle do binding ou preparação para placement adapters, conforme auditoria do estado do package.
 
 ## Não avançar ainda
 
