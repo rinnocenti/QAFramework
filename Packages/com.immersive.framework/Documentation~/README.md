@@ -9,14 +9,15 @@ Ponto de entrada do pacote `Documentation~`.
 3. [`Governance/ADR_NAMING_CONVENTION.md`](Governance/ADR_NAMING_CONVENTION.md)
 4. [`Governance/ADR-TEMPLATE.md`](Governance/ADR-TEMPLATE.md)
 5. [`ADRs/`](ADRs/)
-6. [`Planning/Foundation-Hardening-Backlog.md`](Planning/Foundation-Hardening-Backlog.md)
-7. [`Architecture/ADR/`](Architecture/ADR/)
+6. [`ADRs/F10-activity-content-execution-core/`](ADRs/F10-activity-content-execution-core/)
+7. [`Planning/Foundation-Hardening-Backlog.md`](Planning/Foundation-Hardening-Backlog.md)
+8. [`Architecture/ADR/`](Architecture/ADR/)
 
 ## Estrutura atual
 
 - `Planning/Immersive-Framework-Roadmap-Revisado.md` e a fonte unica para roadmap, boundaries e sequencia F10+.
 - `COMPLETENESS_TRACKER.md` registra somente estado fechado/atual.
-- `ADRs/` preserva decisoes aceitas de F0-F9 classificadas por fase; nao manter bucket `Unassigned`.
+- `ADRs/` preserva decisoes aceitas de F0-F10 classificadas por fase; F10 esta aceito apenas como planning/ADR, sem implementacao. Nao manter bucket `Unassigned`.
 - `Architecture/ADR/` preserva historico arquitetural.
 - `Governance/` contem convencao e template de ADR.
 - `Guides/` contem conteudo navegavel.

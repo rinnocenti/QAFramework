@@ -17,8 +17,8 @@ Short status:
 ```text
 F0-F8 CLOSED
 F9    CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS
-F10   NOT STARTED
-F10+  PROPOSED / PENDING HUMAN APPROVAL
+F10   OPEN / ADR ACCEPTED / IMPLEMENTATION NOT STARTED
+F11+  PROPOSED / PENDING HUMAN APPROVAL
 ```
 
 `Documentation~/COMPLETENESS_TRACKER.md` is intentionally short and only mirrors phase state.
@@ -44,12 +44,13 @@ Documentation~/Route/ROUTE_SCENE_COMPOSITION_SMOKE.md
 Documentation~/Route/ROUTE_RELEASE_SMOKE.md
 Documentation~/ContentAnchor/CONTENT_ANCHOR_SET.md
 Documentation~/ContentAnchor/CONTENT_ANCHOR_AUTHORING_VALIDATION.md
+Documentation~/ADRs/F10-activity-content-execution-core/
 Documentation~/ADRs/
 ```
 
 ## Current hard boundary
 
-F9 is closed as a logical binding layer. F10 is not started.
+F9 is closed as a logical binding layer. F10 is open for ADR-approved planning; implementation is not started.
 
 Framework Core may define lifecycle, identity, ownership, request/result, policy, readiness, diagnostics, logical binding/release and future Activity entry/exit/reset/participation contracts.
 

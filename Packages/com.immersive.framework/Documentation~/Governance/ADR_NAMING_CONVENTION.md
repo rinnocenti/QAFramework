@@ -60,3 +60,7 @@ F1A-03-ADR-CONTENT-001-content-identity-domain.md
 | `ADRs/F8-runtime-roots-and-materialization/01-ADR-RUNTIME-001-runtime-ownership-and-roots.md` | `ADRs/F8-runtime-roots-and-materialization/F8-01-ADR-RUNTIME-001-runtime-ownership-and-roots.md` |
 | `ADRs/F8-runtime-roots-and-materialization/02-ADR-RUNTIME-002-materialization-request-result-handle.md` | `ADRs/F8-runtime-roots-and-materialization/F8-02-ADR-RUNTIME-002-materialization-request-result-handle.md` |
 | `ADRs/F9-content-anchor-binding-and-runtime-placement/01-ADR-ANCHOR-002-content-anchor-binding-and-runtime-placement.md` | `ADRs/F9-content-anchor-binding-and-runtime-placement/F9-01-ADR-ANCHOR-002-content-anchor-binding-and-runtime-placement.md` |
+
+| — | `ADRs/F10-activity-content-execution-core/F10-01-ADR-ACTIVITY-003-activity-entry-exit-content-execution-core.md` |
+| — | `ADRs/F10-activity-content-execution-core/F10-02-ADR-ACTIVITY-004-activity-content-execution-ordering-and-lifecycle.md` |
+| — | `ADRs/F10-activity-content-execution-core/F10-03-ADR-ACTIVITY-005-activity-content-execution-readiness-failure-diagnostics.md` |
