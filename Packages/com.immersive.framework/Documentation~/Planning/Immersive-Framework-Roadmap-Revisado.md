@@ -10,7 +10,7 @@ Este documento substitui os roadmaps paralelos, a matriz separada de rastreabili
 |---|---|---|
 | F0-F8 | `CLOSED` | Baselines tecnicas e documentacao historica permanecem como evidencia. |
 | F9 | `CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS` | Fechou binding logico de Content Anchor. Nao fechou placement fisico nem adapters concretos. |
-| F10 | `OPEN / PHASE PLAN APPLIED / IMPLEMENTATION IN PROGRESS` | F10B-F10F aplicaram contratos passivos, resultado agregado, contrato de participant, collection/ordering model e request factory/phase plan de Activity Content Execution. Nenhum discovery/runtime de execucao, adapter fisico ou gameplay consumer iniciado. |
+| F10 | `OPEN / RUNTIME EXECUTOR APPLIED / IMPLEMENTATION IN PROGRESS` | F10B-F10G aplicaram contratos passivos, resultado agregado, contrato de participant, collection/ordering model, request factory/phase plan e executor runtime para phase plans fornecidos. Nenhum discovery, ActivityFlow integration, adapter fisico ou gameplay consumer iniciado. |
 | F11+ | `PROPOSED / PENDING HUMAN APPROVAL` | Sequencia abaixo permanece proposta para fases futuras. |
 
 ## Regra de autoridade
@@ -46,7 +46,7 @@ F9 encerra apenas o binding logico entre declaracoes de Content Anchor e contrat
 
 | Phase | Layer | Nome | Estado |
 |---|---|---|---|
-| F10 | Framework Core | Activity Entry/Exit Content Execution | `OPEN / PHASE PLAN APPLIED / IMPLEMENTATION IN PROGRESS` |
+| F10 | Framework Core | Activity Entry/Exit Content Execution | `OPEN / RUNTIME EXECUTOR APPLIED / IMPLEMENTATION IN PROGRESS` |
 | F11 | Framework Core | Reset Foundation | `PROPOSED / PENDING HUMAN APPROVAL` |
 | F12 | Framework Core | Transition / Loading Orchestration | `PROPOSED / PENDING HUMAN APPROVAL` |
 | F13 | Framework Core | Participation / Capability Contracts | `PROPOSED / PENDING HUMAN APPROVAL` |
@@ -60,7 +60,7 @@ F9 encerra apenas o binding logico entre declaracoes de Content Anchor e contrat
 
 ### F10 ADRs accepted
 
-F10 abriu primeiro como decisao arquitetural aceita e agora iniciou implementacao minima com contratos passivos, aggregate result, participant contract e collection/ordering model. Discovery/runtime de execucao ainda nao existem.
+F10 abriu primeiro como decisao arquitetural aceita e agora iniciou implementacao incremental com contratos passivos, aggregate result, participant contract, collection/ordering model, request factory/phase plan e runtime executor para phase plans fornecidos. Discovery e ActivityFlow integration ainda nao existem.
 
 - `Documentation~/ADRs/F10-activity-content-execution-core/F10-01-ADR-ACTIVITY-003-activity-entry-exit-content-execution-core.md`
 - `Documentation~/ADRs/F10-activity-content-execution-core/F10-02-ADR-ACTIVITY-004-activity-content-execution-ordering-and-lifecycle.md`
@@ -129,7 +129,22 @@ ActivityContentExecutionParticipantCollection
           -> ActivityContentExecutionRequest[]
 ```
 
-F10F ainda nao adiciona discovery, executor runtime, integracao no ActivityFlow, smoke, adapters fisicos ou gameplay consumers.
+F10F ainda nao adiciona discovery, integracao no ActivityFlow, smoke, adapters fisicos ou gameplay consumers.
+
+### F10G runtime executor applied
+
+F10G adiciona o executor runtime para um phase plan ja conhecido:
+
+```text
+ActivityContentExecutionPhasePlan
+  -> ActivityContentExecutionRuntime.ExecutePhasePlan(...)
+      -> IActivityContentExecutionParticipant.ExecuteActivityContent(...)
+      -> ActivityContentExecutionAggregateResult
+```
+
+O executor valida o phase plan, executa participants explicitamente fornecidos, captura exceptions como failures diagnosticas, converte falha de required em blocking failure, converte falha de optional em non-blocking failure e agrega os resultados.
+
+F10G ainda nao adiciona participant discovery, integracao no ActivityFlow, readiness aggregation no lifecycle, smoke, adapters fisicos ou gameplay consumers.
 
 ## Framework Core boundary
 
@@ -199,7 +214,7 @@ Gameplay consumers consomem contratos do core e adapters, mas nao redefinem iden
 | Content Anchor declaration | Framework Core | `CLOSED F7` |
 | RuntimeContent logical roots/handles | Framework Core | `CLOSED F8` |
 | Content Anchor logical binding | Framework Core | `CLOSED F9` |
-| Activity entry/exit content execution contracts | Framework Core | `F10B-F10F CONTRACTS + AGGREGATE + PARTICIPANT CONTRACT + COLLECTION + PHASE PLAN APPLIED` |
+| Activity entry/exit content execution contracts | Framework Core | `F10B-F10G CONTRACTS + AGGREGATE + PARTICIPANT CONTRACT + COLLECTION + PHASE PLAN + RUNTIME EXECUTOR APPLIED` |
 | Reset request/result/policy foundation | Framework Core | `PROPOSED F11` |
 | Transition/loading orchestration contracts | Framework Core | `PROPOSED F12` |
 | Participation/capability contracts | Framework Core | `PROPOSED F13` |
@@ -218,7 +233,7 @@ Gameplay consumers consomem contratos do core e adapters, mas nao redefinem iden
 - Nao tratar Runtime Root como `GameObject` ou `Transform`.
 - Nao tratar physical reset como core atual.
 - Nao misturar Reset, Activity Entry/Exit Content Execution e Transition/Loading na mesma fase.
-- Nao marcar F10 como fechado antes de discovery/runtime de execucao, readiness diagnostics e smoke especificos.
+- Nao marcar F10 como fechado antes de discovery, ActivityFlow integration, readiness diagnostics e smoke especificos.
 
 ## ADR policy
 
@@ -256,4 +271,4 @@ Antes de fechar F10, implementar e validar os cortes runtime/editor minimos:
 - diagnostics e QA smoke minimo;
 - confirmacao de que nenhuma execucao Unity concreta entrara no core.
 
-F10 permanece `OPEN / PHASE PLAN APPLIED / IMPLEMENTATION IN PROGRESS`; F10B-F10F foram aplicados, mas discovery/runtime de execucao ainda nao existe.
+F10 permanece `OPEN / RUNTIME EXECUTOR APPLIED / IMPLEMENTATION IN PROGRESS`; F10B-F10G foram aplicados, mas discovery, ActivityFlow integration e smoke especifico ainda nao existem.

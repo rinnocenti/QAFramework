@@ -10,7 +10,7 @@ Escopo: Framework Core
 
 F10E adicionou a collection passiva e ordenavel de participants. F10F adiciona a etapa seguinte: transformar uma collection ja conhecida em um plano de fase com requests individuais.
 
-Ainda nao existe discovery, executor runtime ou integracao no lifecycle.
+F10G adiciona o executor runtime depois deste phase plan. Ainda nao existe discovery ou integracao no lifecycle.
 
 ## Contratos adicionados
 
@@ -45,7 +45,7 @@ E produz:
 ActivityContentExecutionPhasePlan
 ```
 
-Ela nao descobre participants, nao executa requests, nao agrega resultados e nao toca lifecycle.
+Ela nao descobre participants, nao agrega resultados por conta propria e nao toca lifecycle. F10G executa phase plans ja fornecidos.
 
 ## Phase plan
 
@@ -94,7 +94,6 @@ F10F nao adiciona:
 
 ```text
 participant discovery
-execution runtime
 ActivityFlow integration
 readiness aggregation integrada ao lifecycle
 smoke

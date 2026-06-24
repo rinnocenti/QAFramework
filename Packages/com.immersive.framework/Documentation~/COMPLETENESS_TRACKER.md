@@ -24,12 +24,12 @@ Este tracker registra somente estado. Ele nao duplica roadmap, matriz de capabil
 | F7 | `CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS` | Content Anchor declaration fechado. |
 | F8 | `CLOSED / RUNTIME CONTENT SMOKE PASS` | RuntimeContent logical roots/handles/release baseline fechado. |
 | F9 | `CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS` | Logical Content Anchor binding fechado. Physical placement permanece futuro. |
-| F10 | `OPEN / PHASE PLAN APPLIED / IMPLEMENTATION IN PROGRESS` | F10B-F10F adicionaram contratos passivos, resultado agregado, contrato de participant, collection/ordering model e request factory/phase plan de Activity Content Execution; sem discovery/runtime de execucao, adapters ou gameplay. |
+| F10 | `OPEN / RUNTIME EXECUTOR APPLIED / IMPLEMENTATION IN PROGRESS` | F10B-F10G adicionaram contratos passivos, resultado agregado, contrato de participant, collection/ordering model, request factory/phase plan e executor runtime para planos fornecidos; sem discovery, ActivityFlow integration, adapters ou gameplay. |
 | F11+ | `PROPOSED / PENDING HUMAN APPROVAL` | Sequencia futura vive apenas no roadmap revisado. |
 
 ## Current state
 
-F9 esta fechado como camada logica. F10 iniciou implementacao apenas com contratos passivos, resultado agregado, contrato de participant, collection/ordering model e request factory/phase plan de Activity Content Execution. Ainda nao existe discovery de participants, runtime de execucao, readiness aggregation integrada ao lifecycle, adapters fisicos, gameplay consumers ou execucao Unity concreta no Framework Core.
+F9 esta fechado como camada logica. F10 iniciou implementacao com contratos passivos, resultado agregado, contrato de participant, collection/ordering model, request factory/phase plan e runtime executor para planos fornecidos de Activity Content Execution. Ainda nao existe discovery de participants, integracao no ActivityFlow, readiness aggregation integrada ao lifecycle, adapters fisicos, gameplay consumers ou execucao Unity concreta no Framework Core.
 
 Para ordem de proximas fases, boundaries, capability ownership e ADR policy, usar somente:
 

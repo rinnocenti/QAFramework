@@ -8,7 +8,7 @@ Escopo: Framework Core
 
 ## Contexto
 
-F10D adicionou o contrato passivo de participant. F10E adiciona a colecao passiva e ordenavel desses participants. F10F usa essa collection para criar um phase plan passivo, ainda sem discovery, sem executor runtime e sem integracao no lifecycle.
+F10D adicionou o contrato passivo de participant. F10E adiciona a colecao passiva e ordenavel desses participants. F10F usa essa collection para criar um phase plan passivo. F10G executa phase plans ja fornecidos. Ainda nao existe discovery ou integracao no lifecycle.
 
 ## Contratos adicionados
 
@@ -44,7 +44,7 @@ lookup por RuntimeContentId
 snapshots por phase Enter/Exit
 ```
 
-A collection remove participants invalidos ou duplicados da lista aceita e registra issues diagnosticas. Ela nao executa participant, nao descobre componentes, nao cria requests, nao agrega resultados e nao toca lifecycle.
+A collection remove participants invalidos ou duplicados da lista aceita e registra issues diagnosticas. Ela nao executa participant, nao descobre componentes, nao agrega resultados e nao toca lifecycle.
 
 ## Issues
 
@@ -60,11 +60,10 @@ Duplicates usam `RuntimeContentId.StableText` como chave canonica. O primeiro pa
 
 ## Fronteiras
 
-F10E/F10F nao adicionam:
+F10E-F10G nao adicionam:
 
 ```text
 participant discovery
-execution runtime
 ActivityFlow integration
 readiness aggregation integrada ao lifecycle
 smoke
@@ -82,4 +81,4 @@ Actor/Player/Camera/Pause/Input/Save consumers
 
 Smoke esperado: compile/import.
 
-Nao ha Play Mode behavior novo em F10E/F10F.
+Nao ha Play Mode behavior novo integrado em F10E-F10G.

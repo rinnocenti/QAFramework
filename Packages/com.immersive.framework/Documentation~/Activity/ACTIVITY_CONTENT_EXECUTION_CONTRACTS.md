@@ -1,8 +1,8 @@
 # Activity Content Execution Contracts
 
-Status: APPLIED / CONTRACTS + AGGREGATE + PARTICIPANT CONTRACT + COLLECTION ONLY  
+Status: APPLIED / CONTRACTS + AGGREGATE + PARTICIPANT CONTRACT + COLLECTION + PHASE PLAN + RUNTIME EXECUTOR  
 Fase: F10  
-Cortes: F10B, F10C, F10D, F10E, F10F  
+Cortes: F10B, F10C, F10D, F10E, F10F, F10G  
 Escopo: Framework Core
 
 ---
@@ -11,7 +11,7 @@ Escopo: Framework Core
 
 F10 reintroduz entrada/saida de conteudo de Activity como conceito de framework core, sem capturar `Presentation`, gameplay, prefab, scene adapter ou placement fisico.
 
-F10B adiciona contratos passivos para um item de execucao logica de conteudo de Activity. F10C adiciona o resultado agregado passivo para uma fase de execucao. F10D adiciona o contrato passivo de participante. F10E adiciona a colecao passiva e ordenavel de participants. F10F adiciona request factory e phase plan passivos, sem discovery ou executor runtime.
+F10B adiciona contratos passivos para um item de execucao logica de conteudo de Activity. F10C adiciona o resultado agregado passivo para uma fase de execucao. F10D adiciona o contrato passivo de participante. F10E adiciona a colecao passiva e ordenavel de participants. F10F adiciona request factory e phase plan passivos. F10G adiciona o executor runtime para phase plans ja fornecidos, sem discovery ou integracao no ActivityFlow.
 
 ## Contratos adicionados
 
@@ -29,6 +29,10 @@ ActivityContentExecutionParticipantEntry
 ActivityContentExecutionParticipantCollection
 ActivityContentExecutionParticipantCollectionIssue
 ActivityContentExecutionParticipantCollectionIssueKind
+ActivityContentExecutionPhasePlanStatus
+ActivityContentExecutionPhasePlan
+ActivityContentExecutionRequestFactory
+ActivityContentExecutionRuntime
 ```
 
 ## O que o request carrega
@@ -123,7 +127,36 @@ lookup por RuntimeContentId
 snapshots por phase Enter/Exit
 ```
 
-Ela rejeita participants nulos, descriptors invalidos e duplicidade de `RuntimeContentId`. Ela ainda nao descobre participants, nao executa requests, nao cria runtime executor e nao integra readiness ao lifecycle.
+Ela rejeita participants nulos, descriptors invalidos e duplicidade de `RuntimeContentId`. Ela ainda nao descobre participants e nao integra readiness ao lifecycle.
+
+## O que o phase plan carrega
+
+`ActivityContentExecutionPhasePlan` descreve uma fase planejada:
+
+```text
+phase: Enter | Exit
+activity / previousActivity / nextActivity
+RuntimeScopeContext Activity-scoped
+entries ordenadas
+requests gerados
+collection issues
+status / source / reason / message
+```
+
+`ActivityContentExecutionRequestFactory` cria planos Enter/Exit a partir de uma collection ja conhecida.
+
+## O que o runtime executor faz
+
+`ActivityContentExecutionRuntime` executa um phase plan ja fornecido:
+
+```text
+ActivityContentExecutionPhasePlan
+  -> ExecutePhasePlan(...)
+      -> participant.ExecuteActivityContent(request)
+      -> ActivityContentExecutionAggregateResult
+```
+
+Ele captura exception de participant como failure diagnostica e agrega os resultados. Ele nao descobre participants, nao integra lifecycle e nao executa side effects Unity por conta propria.
 
 ## Fronteiras
 
@@ -131,7 +164,6 @@ Este corte nao adiciona:
 
 ```text
 participant discovery
-execution runtime
 ActivityFlow integration
 readiness aggregation integrada ao lifecycle
 smoke
@@ -149,4 +181,4 @@ Actor/Player/Camera/Pause/Input/Save consumers
 
 Smoke esperado: compile/import.
 
-Nao ha Play Mode behavior novo em F10B-F10F.
+Nao ha Play Mode behavior novo integrado em F10B-F10G. O runtime executor existe, mas ainda nao e chamado pelo ActivityFlow.

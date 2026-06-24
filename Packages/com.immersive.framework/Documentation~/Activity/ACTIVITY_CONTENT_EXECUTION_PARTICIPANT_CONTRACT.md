@@ -1,14 +1,14 @@
 # Activity Content Execution Participant Contract
 
-Status: APPLIED / PARTICIPANT CONTRACT + COLLECTION MODEL  
-Fase: F10D-F10F  
+Status: APPLIED / PARTICIPANT CONTRACT + COLLECTION MODEL + PHASE PLAN + RUNTIME EXECUTOR  
+Fase: F10D-F10G  
 Escopo: Framework Core
 
 ---
 
 ## Contexto
 
-F10B/F10C definiram request/result e aggregate result para Activity Content Execution. F10D adiciona a fronteira passiva para um participante de execucao. F10E adiciona a colecao passiva/ordenavel desses participants. F10F adiciona request factory e phase plan, ainda sem discovery, sem executor runtime e sem integracao no lifecycle.
+F10B/F10C definiram request/result e aggregate result para Activity Content Execution. F10D adiciona a fronteira passiva para um participante de execucao. F10E adiciona a colecao passiva/ordenavel desses participants. F10F adiciona request factory e phase plan. F10G adiciona runtime executor para phase plans ja fornecidos, ainda sem discovery ou integracao no lifecycle.
 
 ## Contratos adicionados
 
@@ -55,11 +55,10 @@ participant/adapters/consumers futuros executam comportamento local
 
 ## Fronteiras
 
-F10D-F10F nao adicionam:
+F10D-F10G nao adicionam:
 
 ```text
 participant discovery
-execution runtime
 ActivityFlow integration
 readiness aggregation integrada ao lifecycle
 smoke
@@ -77,7 +76,7 @@ Actor/Player/Camera/Pause/Input/Save consumers
 
 Smoke esperado: compile/import.
 
-Nao ha Play Mode behavior novo em F10D-F10F.
+Nao ha Play Mode behavior novo integrado em F10D-F10G.
 
 
 ## Collection
@@ -93,4 +92,4 @@ supportsEnter / supportsExit
 issues diagnosticas
 ```
 
-Ela nao executa nada. O objetivo e preparar o executor futuro com ordering deterministico e diagnostico de entradas invalidas.
+Ela nao descobre nada. O objetivo e alimentar phase plans e o executor F10G com ordering deterministico e diagnostico de entradas invalidas.

@@ -17,7 +17,7 @@ Short status:
 ```text
 F0-F8 CLOSED
 F9    CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS
-F10   OPEN / PHASE PLAN APPLIED / IMPLEMENTATION IN PROGRESS
+F10   OPEN / RUNTIME EXECUTOR APPLIED / IMPLEMENTATION IN PROGRESS
 F11+  PROPOSED / PENDING HUMAN APPROVAL
 ```
 
@@ -49,12 +49,13 @@ Documentation~/Activity/ACTIVITY_CONTENT_EXECUTION_CONTRACTS.md
 Documentation~/Activity/ACTIVITY_CONTENT_EXECUTION_PARTICIPANT_CONTRACT.md
 Documentation~/Activity/ACTIVITY_CONTENT_EXECUTION_PARTICIPANT_COLLECTION.md
 Documentation~/Activity/ACTIVITY_CONTENT_EXECUTION_PHASE_PLAN.md
+Documentation~/Activity/ACTIVITY_CONTENT_EXECUTION_RUNTIME.md
 Documentation~/ADRs/
 ```
 
 ## Current hard boundary
 
-F9 is closed as a logical binding layer. F10 has started with Activity Content Execution passive contracts, aggregate result contracts, participant contract, collection/ordering model and request factory/phase plan only; no discovery runtime, execution runtime, adapters, placement or gameplay consumers have been added.
+F9 is closed as a logical binding layer. F10 has started with Activity Content Execution passive contracts, aggregate result contracts, participant contract, collection/ordering model, request factory/phase plan and a runtime executor for supplied phase plans only; no participant discovery, ActivityFlow integration, adapters, placement or gameplay consumers have been added.
 
 Framework Core may define lifecycle, identity, ownership, request/result, policy, readiness, diagnostics, logical binding/release and future Activity entry/exit/reset/participation contracts.
 
