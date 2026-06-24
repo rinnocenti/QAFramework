@@ -24,12 +24,12 @@ Este tracker registra somente estado. Ele nao duplica roadmap, matriz de capabil
 | F7 | `CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS` | Content Anchor declaration fechado. |
 | F8 | `CLOSED / RUNTIME CONTENT SMOKE PASS` | RuntimeContent logical roots/handles/release baseline fechado. |
 | F9 | `CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS` | Logical Content Anchor binding fechado. Physical placement permanece futuro. |
-| F10 | `OPEN / ADR ACCEPTED / IMPLEMENTATION NOT STARTED` | Activity Content Execution Core aceito em ADRs F10-01..F10-03; sem runtime/editor. |
+| F10 | `OPEN / CONTRACTS APPLIED / IMPLEMENTATION IN PROGRESS` | F10B adicionou contratos passivos de Activity Content Execution; sem runtime de execucao, adapters ou gameplay. |
 | F11+ | `PROPOSED / PENDING HUMAN APPROVAL` | Sequencia futura vive apenas no roadmap revisado. |
 
 ## Current state
 
-F9 esta fechado como camada logica. F10 esta aberto apenas como planejamento/ADR aceito para Activity Content Execution Core. Implementacao F10 ainda nao iniciou e nao deve introduzir adapters fisicos, gameplay consumers ou execucao Unity concreta no Framework Core.
+F9 esta fechado como camada logica. F10 iniciou implementacao apenas com contratos passivos de Activity Content Execution. Ainda nao existe runtime de execucao, discovery de participants, readiness aggregation nova, adapters fisicos, gameplay consumers ou execucao Unity concreta no Framework Core.
 
 Para ordem de proximas fases, boundaries, capability ownership e ADR policy, usar somente:
 

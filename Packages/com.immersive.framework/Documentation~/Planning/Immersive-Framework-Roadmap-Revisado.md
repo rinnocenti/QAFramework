@@ -10,7 +10,7 @@ Este documento substitui os roadmaps paralelos, a matriz separada de rastreabili
 |---|---|---|
 | F0-F8 | `CLOSED` | Baselines tecnicas e documentacao historica permanecem como evidencia. |
 | F9 | `CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS` | Fechou binding logico de Content Anchor. Nao fechou placement fisico nem adapters concretos. |
-| F10 | `OPEN / ADR ACCEPTED / IMPLEMENTATION NOT STARTED` | Activity Entry/Exit Content Execution Core aceito em ADRs F10-01..F10-03. Nenhum runtime/editor iniciado. |
+| F10 | `OPEN / CONTRACTS APPLIED / IMPLEMENTATION IN PROGRESS` | F10B aplicou contratos passivos de Activity Content Execution. Nenhum runtime de execucao, adapter fisico ou gameplay consumer iniciado. |
 | F11+ | `PROPOSED / PENDING HUMAN APPROVAL` | Sequencia abaixo permanece proposta para fases futuras. |
 
 ## Regra de autoridade
@@ -21,7 +21,7 @@ Este arquivo e a unica fonte para:
 - ownership por camada;
 - fronteiras entre Framework Core, Unity Adapter e Gameplay Consumer;
 - guardrails de linguagem para proximos ADRs;
-- estado de F10 como planning/ADR aceito e implementacao nao iniciada.
+- estado de F10 como contratos passivos aplicados e implementacao ainda incompleta.
 
 Nao recriar documentos paralelos de roadmap. Novos ADRs devem ser pequenos, alinhados a uma fase aprovada e nao devem redefinir a sequencia geral.
 
@@ -46,7 +46,7 @@ F9 encerra apenas o binding logico entre declaracoes de Content Anchor e contrat
 
 | Phase | Layer | Nome | Estado |
 |---|---|---|---|
-| F10 | Framework Core | Activity Entry/Exit Content Execution | `OPEN / ADR ACCEPTED / IMPLEMENTATION NOT STARTED` |
+| F10 | Framework Core | Activity Entry/Exit Content Execution | `OPEN / CONTRACTS APPLIED / IMPLEMENTATION IN PROGRESS` |
 | F11 | Framework Core | Reset Foundation | `PROPOSED / PENDING HUMAN APPROVAL` |
 | F12 | Framework Core | Transition / Loading Orchestration | `PROPOSED / PENDING HUMAN APPROVAL` |
 | F13 | Framework Core | Participation / Capability Contracts | `PROPOSED / PENDING HUMAN APPROVAL` |
@@ -60,11 +60,25 @@ F9 encerra apenas o binding logico entre declaracoes de Content Anchor e contrat
 
 ### F10 ADRs accepted
 
-F10 abre somente como decisao arquitetural aceita. A implementacao continua nao iniciada.
+F10 abriu primeiro como decisao arquitetural aceita e agora iniciou implementacao minima com contratos passivos. O runtime de execucao ainda nao existe.
 
 - `Documentation~/ADRs/F10-activity-content-execution-core/F10-01-ADR-ACTIVITY-003-activity-entry-exit-content-execution-core.md`
 - `Documentation~/ADRs/F10-activity-content-execution-core/F10-02-ADR-ACTIVITY-004-activity-content-execution-ordering-and-lifecycle.md`
 - `Documentation~/ADRs/F10-activity-content-execution-core/F10-03-ADR-ACTIVITY-005-activity-content-execution-readiness-failure-diagnostics.md`
+
+### F10B contracts applied
+
+F10B adiciona somente contratos passivos:
+
+```text
+ActivityContentExecutionPhase
+ActivityContentExecutionRequiredness
+ActivityContentExecutionStatus
+ActivityContentExecutionRequest
+ActivityContentExecutionResult
+```
+
+Esses contratos descrevem fase, Activity, RuntimeScopeContext Activity-scoped, RuntimeContentId, requiredness, status e contribuicao diagnostica de readiness. Eles nao descobrem participants, nao executam conteudo, nao agregam readiness nova, nao fazem binding, nao criam materializacao fisica e nao acionam Unity adapters.
 
 ## Framework Core boundary
 
@@ -134,7 +148,7 @@ Gameplay consumers consomem contratos do core e adapters, mas nao redefinem iden
 | Content Anchor declaration | Framework Core | `CLOSED F7` |
 | RuntimeContent logical roots/handles | Framework Core | `CLOSED F8` |
 | Content Anchor logical binding | Framework Core | `CLOSED F9` |
-| Activity entry/exit content execution contracts | Framework Core | `F10 ADR ACCEPTED / IMPLEMENTATION NOT STARTED` |
+| Activity entry/exit content execution contracts | Framework Core | `F10B CONTRACTS APPLIED` |
 | Reset request/result/policy foundation | Framework Core | `PROPOSED F11` |
 | Transition/loading orchestration contracts | Framework Core | `PROPOSED F12` |
 | Participation/capability contracts | Framework Core | `PROPOSED F13` |
@@ -153,7 +167,7 @@ Gameplay consumers consomem contratos do core e adapters, mas nao redefinem iden
 - Nao tratar Runtime Root como `GameObject` ou `Transform`.
 - Nao tratar physical reset como core atual.
 - Nao misturar Reset, Activity Entry/Exit Content Execution e Transition/Loading na mesma fase.
-- Nao marcar F10 como implementado antes de cortes runtime/editor especificos.
+- Nao marcar F10 como fechado antes de runtime de execucao, ordering, readiness diagnostics e smoke especificos.
 
 ## ADR policy
 
@@ -183,7 +197,7 @@ Estao superseded e nao autorizam trabalho futuro:
 
 ## Proxima decisao humana
 
-Antes de implementar F10, revisar os ADRs aceitos e definir os cortes runtime/editor minimos:
+Antes de fechar F10, implementar e validar os cortes runtime/editor minimos:
 
 - contratos publicos/internos de Activity content execution;
 - result/status/readiness aggregation;
@@ -191,4 +205,4 @@ Antes de implementar F10, revisar os ADRs aceitos e definir os cortes runtime/ed
 - diagnostics e QA smoke minimo;
 - confirmacao de que nenhuma execucao Unity concreta entrara no core.
 
-Enquanto isso, F10 permanece `OPEN / ADR ACCEPTED / IMPLEMENTATION NOT STARTED`.
+F10 permanece `OPEN / CONTRACTS APPLIED / IMPLEMENTATION IN PROGRESS`; somente F10B foi aplicado.
