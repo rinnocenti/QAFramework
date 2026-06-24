@@ -1,20 +1,24 @@
 # Activity Content Execution Participant Contract
 
-Status: APPLIED / PARTICIPANT CONTRACT ONLY  
-Fase: F10D  
+Status: APPLIED / PARTICIPANT CONTRACT + COLLECTION MODEL  
+Fase: F10D-F10E  
 Escopo: Framework Core
 
 ---
 
 ## Contexto
 
-F10B/F10C definiram request/result e aggregate result para Activity Content Execution. F10D adiciona a fronteira passiva para um participante de execucao, ainda sem discovery, sem executor runtime e sem integracao no lifecycle.
+F10B/F10C definiram request/result e aggregate result para Activity Content Execution. F10D adiciona a fronteira passiva para um participante de execucao. F10E adiciona a colecao passiva/ordenavel desses participants, ainda sem discovery, sem executor runtime e sem integracao no lifecycle.
 
 ## Contratos adicionados
 
 ```text
 ActivityContentExecutionParticipantDescriptor
 IActivityContentExecutionParticipant
+ActivityContentExecutionParticipantEntry
+ActivityContentExecutionParticipantCollection
+ActivityContentExecutionParticipantCollectionIssue
+ActivityContentExecutionParticipantCollectionIssueKind
 ```
 
 ## Descriptor
@@ -51,12 +55,11 @@ participant/adapters/consumers futuros executam comportamento local
 
 ## Fronteiras
 
-F10D nao adiciona:
+F10D/F10E nao adicionam:
 
 ```text
 participant discovery
 execution runtime
-ordering runtime
 ActivityFlow integration
 readiness aggregation integrada ao lifecycle
 smoke
@@ -75,3 +78,19 @@ Actor/Player/Camera/Pause/Input/Save consumers
 Smoke esperado: compile/import.
 
 Nao ha Play Mode behavior novo em F10D.
+
+
+## Collection
+
+`ActivityContentExecutionParticipantCollection` recebe participants ja conhecidos pelo caller/futuro discovery e cria uma snapshot ordenada:
+
+```text
+order
+sourceIndex
+RuntimeContentId
+requiredness
+supportsEnter / supportsExit
+issues diagnosticas
+```
+
+Ela nao executa nada. O objetivo e preparar o executor futuro com ordering deterministico e diagnostico de entradas invalidas.
