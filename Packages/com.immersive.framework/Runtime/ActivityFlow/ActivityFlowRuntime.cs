@@ -17,6 +17,7 @@ namespace Immersive.Framework.ActivityFlow
     {
         private readonly ActivityContentRuntime _activityContentRuntime = new ActivityContentRuntime();
         private readonly ContentAnchorDiscoveryRuntime _contentAnchorDiscoveryRuntime = new ContentAnchorDiscoveryRuntime();
+        private readonly ActivityContentExecutionRuntime _activityContentExecutionRuntime = new ActivityContentExecutionRuntime();
         private readonly RuntimeContentRuntime _runtimeContentRuntime;
         private readonly RuntimeContentAnchorBinding _contentAnchorBindingRuntime;
         private readonly EventBus<ActivityEnteredEvent> _activityEnteredEvents = new EventBus<ActivityEnteredEvent>();
@@ -74,6 +75,7 @@ namespace Immersive.Framework.ActivityFlow
             {
                 _currentActivityState = ActivityRuntimeState.None(previousActivity, resolvedSource, resolvedReason);
                 var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, null, resolvedSource, resolvedReason);
+                var executionResult = ExecuteActivityContentLifecycle(previousActivity, null, resolvedSource, resolvedReason);
                 var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, null, resolvedSource, resolvedReason);
                 var runtimeScopeResult = RemovePreviousActivityScopeRoot(previousActivity, null, resolvedSource, resolvedReason);
                 return Task.FromResult(ActivityFlowStartResult.SkippedNoStartupActivity(
@@ -82,7 +84,8 @@ namespace Immersive.Framework.ActivityFlow
                     contentResult,
                     runtimeScopeResult,
                     bindingCleanupResult,
-                    ActivityContentAnchorDiscoveryResult.Empty(null, resolvedSource, resolvedReason, "No startup Activity is active; Activity Content Anchor discovery was skipped.")));
+                    ActivityContentAnchorDiscoveryResult.Empty(null, resolvedSource, resolvedReason, "No startup Activity is active; Activity Content Anchor discovery was skipped."),
+                    executionResult));
             }
 
             return StartActivityCoreAsync(route.StartupActivity, previousActivity, resolvedSource, resolvedReason);
@@ -134,6 +137,7 @@ namespace Immersive.Framework.ActivityFlow
 
             _currentActivityState = ActivityRuntimeState.None(previousActivity, resolvedSource, resolvedReason);
             var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, null, resolvedSource, resolvedReason);
+            var executionResult = ExecuteActivityContentLifecycle(previousActivity, null, resolvedSource, resolvedReason);
             var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, null, resolvedSource, resolvedReason);
             var runtimeScopeResult = RemovePreviousActivityScopeRoot(previousActivity, null, resolvedSource, resolvedReason);
             return Task.FromResult(ActivityFlowStartResult.ClearedByRequest(
@@ -142,7 +146,8 @@ namespace Immersive.Framework.ActivityFlow
                 contentResult,
                 runtimeScopeResult,
                 bindingCleanupResult,
-                ActivityContentAnchorDiscoveryResult.Empty(null, resolvedSource, resolvedReason, "Activity was cleared; Activity Content Anchor discovery was skipped.")));
+                ActivityContentAnchorDiscoveryResult.Empty(null, resolvedSource, resolvedReason, "Activity was cleared; Activity Content Anchor discovery was skipped."),
+                executionResult));
         }
 
         private Task<ActivityFlowStartResult> StartActivityCoreAsync(ActivityAsset nextActivity, ActivityAsset previousActivity, string source, string reason)
@@ -173,6 +178,7 @@ namespace Immersive.Framework.ActivityFlow
                 _currentRoute,
                 resolvedSource,
                 resolvedReason);
+            var executionResult = ExecuteActivityContentLifecycle(previousActivity, nextActivity, resolvedSource, resolvedReason);
             var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, nextActivity, resolvedSource, resolvedReason);
             var runtimeExitResult = RemovePreviousActivityScopeRoot(previousActivity, nextActivity, resolvedSource, resolvedReason);
             var runtimeScopeResult = MergeActivityScopeResults(runtimeEnterResult, runtimeExitResult, nextActivity, previousActivity, resolvedSource, resolvedReason);
@@ -183,7 +189,124 @@ namespace Immersive.Framework.ActivityFlow
                 contentResult,
                 runtimeScopeResult,
                 bindingCleanupResult,
-                activityContentAnchorDiscoveryResult));
+                activityContentAnchorDiscoveryResult,
+                executionResult));
+        }
+
+        private ActivityContentExecutionLifecycleResult ExecuteActivityContentLifecycle(
+            ActivityAsset previousActivity,
+            ActivityAsset nextActivity,
+            string source,
+            string reason)
+        {
+            string resolvedSource = NormalizeSource(source);
+            string resolvedReason = NormalizeReason(reason);
+
+            if (previousActivity == null && nextActivity == null)
+            {
+                return ActivityContentExecutionLifecycleResult.None(
+                    resolvedSource,
+                    resolvedReason,
+                    "Activity content execution lifecycle skipped because there is no previous or next Activity.");
+            }
+
+            var participants = ResolveActivityContentExecutionParticipants(previousActivity, nextActivity, resolvedSource, resolvedReason);
+            var enterPlan = default(ActivityContentExecutionPhasePlan);
+            var enterResult = default(ActivityContentExecutionAggregateResult);
+            var exitPlan = default(ActivityContentExecutionPhasePlan);
+            var exitResult = default(ActivityContentExecutionAggregateResult);
+
+            if (previousActivity != null && !ReferenceEquals(previousActivity, nextActivity))
+            {
+                if (TryCreateActivityScopeContext(previousActivity, resolvedSource, resolvedReason, out var exitContext))
+                {
+                    exitPlan = ActivityContentExecutionRequestFactory.CreateExitPlan(
+                        previousActivity,
+                        nextActivity,
+                        exitContext,
+                        participants,
+                        resolvedSource,
+                        resolvedReason);
+                    exitResult = _activityContentExecutionRuntime.ExecutePhasePlan(exitPlan, resolvedSource, resolvedReason);
+                }
+                else
+                {
+                    exitResult = ActivityContentExecutionAggregateResult.RejectedInvalidResults(
+                        ActivityContentExecutionPhase.Exit,
+                        previousActivity,
+                        previousActivity,
+                        nextActivity,
+                        resolvedSource,
+                        resolvedReason,
+                        "Activity content execution exit phase rejected because previous Activity runtime scope context is not available.");
+                }
+            }
+
+            if (nextActivity != null && !ReferenceEquals(previousActivity, nextActivity))
+            {
+                if (TryCreateActivityScopeContext(nextActivity, resolvedSource, resolvedReason, out var enterContext))
+                {
+                    enterPlan = ActivityContentExecutionRequestFactory.CreateEnterPlan(
+                        nextActivity,
+                        previousActivity,
+                        enterContext,
+                        participants,
+                        resolvedSource,
+                        resolvedReason);
+                    enterResult = _activityContentExecutionRuntime.ExecutePhasePlan(enterPlan, resolvedSource, resolvedReason);
+                }
+                else
+                {
+                    enterResult = ActivityContentExecutionAggregateResult.RejectedInvalidResults(
+                        ActivityContentExecutionPhase.Enter,
+                        nextActivity,
+                        previousActivity,
+                        nextActivity,
+                        resolvedSource,
+                        resolvedReason,
+                        "Activity content execution enter phase rejected because next Activity runtime scope context is not available.");
+                }
+            }
+
+            var activity = nextActivity != null ? nextActivity : previousActivity;
+            return ActivityContentExecutionLifecycleResult.FromResults(
+                activity,
+                previousActivity,
+                nextActivity,
+                participants,
+                enterPlan,
+                enterResult,
+                exitPlan,
+                exitResult,
+                resolvedSource,
+                resolvedReason,
+                "Activity content execution lifecycle integrated with ActivityFlow using the currently resolved participant collection.");
+        }
+
+        private ActivityContentExecutionParticipantCollection ResolveActivityContentExecutionParticipants(
+            ActivityAsset previousActivity,
+            ActivityAsset nextActivity,
+            string source,
+            string reason)
+        {
+            // F10I intentionally does not discover participants yet. Discovery/authoring is a later F10 cut.
+            // Returning an empty collection lets ActivityFlow exercise the execution lifecycle boundary without invoking gameplay or Unity adapters.
+            return ActivityContentExecutionParticipantCollection.Empty();
+        }
+
+        private bool TryCreateActivityScopeContext(
+            ActivityAsset activity,
+            string source,
+            string reason,
+            out RuntimeScopeContext context)
+        {
+            if (activity == null)
+            {
+                context = default(RuntimeScopeContext);
+                return false;
+            }
+
+            return _runtimeContentRuntime.TryCreateScopeContext(CreateActivityOwner(activity), source, reason, out context);
         }
 
         private ActivityContentApplyResult ApplyActivityContentThroughLifecycleEvents(ActivityAsset previousActivity, ActivityAsset nextActivity, string source, string reason)

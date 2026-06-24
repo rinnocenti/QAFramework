@@ -17,7 +17,7 @@ Ponto de entrada do pacote `Documentation~`.
 
 - `Planning/Immersive-Framework-Roadmap-Revisado.md` e a fonte unica para roadmap, boundaries e sequencia F10+.
 - `COMPLETENESS_TRACKER.md` registra somente estado fechado/atual.
-- `ADRs/` preserva decisoes aceitas de F0-F10 classificadas por fase; F10 ja possui contratos passivos, resultado agregado, contrato de participant, collection/ordering model, request factory/phase plan e runtime executor para phase plans fornecidos e smoke diagnostico sintetico, sem discovery ou integracao no ActivityFlow. Nao manter bucket `Unassigned`.
+- `ADRs/` preserva decisoes aceitas de F0-F10 classificadas por fase; F10 ja possui contratos passivos, resultado agregado, contrato de participant, collection/ordering model, request factory/phase plan, runtime executor para phase plans fornecidos, smoke diagnostico sintetico e integracao diagnostica no ActivityFlow com collection vazia por padrao; sem discovery de participants, adapters ou gameplay. Nao manter bucket `Unassigned`.
 - `Architecture/ADR/` preserva historico arquitetural.
 - `Governance/` contem convencao e template de ADR.
 - `Guides/` contem conteudo navegavel.
@@ -55,6 +55,8 @@ Ponto de entrada do pacote `Documentation~`.
 - [`Activity/ACTIVITY_CONTENT_EXECUTION_PARTICIPANT_COLLECTION.md`](Activity/ACTIVITY_CONTENT_EXECUTION_PARTICIPANT_COLLECTION.md)
 - [`Activity/ACTIVITY_CONTENT_EXECUTION_PHASE_PLAN.md`](Activity/ACTIVITY_CONTENT_EXECUTION_PHASE_PLAN.md)
 - [`Activity/ACTIVITY_CONTENT_EXECUTION_RUNTIME.md`](Activity/ACTIVITY_CONTENT_EXECUTION_RUNTIME.md)
+- [`Activity/ACTIVITY_CONTENT_EXECUTION_RUNTIME_SMOKE.md`](Activity/ACTIVITY_CONTENT_EXECUTION_RUNTIME_SMOKE.md)
+- [`Activity/ACTIVITY_CONTENT_EXECUTION_LIFECYCLE_INTEGRATION.md`](Activity/ACTIVITY_CONTENT_EXECUTION_LIFECYCLE_INTEGRATION.md)
 - [`Local/LOCAL_CONTENT_IDENTITY.md`](Local/LOCAL_CONTENT_IDENTITY.md)
 - [`Planning/F6-Route-Scene-Composition-Audit.md`](Planning/F6-Route-Scene-Composition-Audit.md)
 - [`Planning/F7-Content-Anchor-Declaration-Audit.md`](Planning/F7-Content-Anchor-Declaration-Audit.md)

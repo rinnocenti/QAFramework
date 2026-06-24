@@ -1,6 +1,6 @@
 # Activity Content Execution Runtime
 
-Status: APPLIED / RUNTIME EXECUTOR + DIAGNOSTIC SMOKE PENDING  
+Status: APPLIED / RUNTIME EXECUTOR + DIAGNOSTIC SMOKE PASS / LIFECYCLE INTEGRATION FOLLOWS  
 Fase: F10G  
 Escopo: Framework Core
 
@@ -89,3 +89,10 @@ Run Activity Content Execution Runtime Smoke
 ```
 
 Esse smoke valida collection, enter plan, exit plan e aggregate result usando participants sinteticos. Ele nao descobre participants e nao integra o executor ao `ActivityFlowRuntime`.
+
+
+---
+
+## F10I lifecycle integration
+
+F10I connects the executor to `ActivityFlowRuntime` diagnostically with an empty participant collection by default. See `ACTIVITY_CONTENT_EXECUTION_LIFECYCLE_INTEGRATION.md`.
