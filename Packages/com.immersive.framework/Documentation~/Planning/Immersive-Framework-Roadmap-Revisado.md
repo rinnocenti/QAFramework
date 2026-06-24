@@ -10,7 +10,7 @@ Este documento substitui os roadmaps paralelos, a matriz separada de rastreabili
 |---|---|---|
 | F0-F8 | `CLOSED` | Baselines tecnicas e documentacao historica permanecem como evidencia. |
 | F9 | `CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS` | Fechou binding logico de Content Anchor. Nao fechou placement fisico nem adapters concretos. |
-| F10 | `OPEN / CONTRACTS APPLIED / IMPLEMENTATION IN PROGRESS` | F10B aplicou contratos passivos de Activity Content Execution. Nenhum runtime de execucao, adapter fisico ou gameplay consumer iniciado. |
+| F10 | `OPEN / PARTICIPANT CONTRACT APPLIED / IMPLEMENTATION IN PROGRESS` | F10B/F10C/F10D aplicaram contratos passivos, resultado agregado e contrato de participant de Activity Content Execution. Nenhum discovery/runtime de execucao, adapter fisico ou gameplay consumer iniciado. |
 | F11+ | `PROPOSED / PENDING HUMAN APPROVAL` | Sequencia abaixo permanece proposta para fases futuras. |
 
 ## Regra de autoridade
@@ -21,7 +21,7 @@ Este arquivo e a unica fonte para:
 - ownership por camada;
 - fronteiras entre Framework Core, Unity Adapter e Gameplay Consumer;
 - guardrails de linguagem para proximos ADRs;
-- estado de F10 como contratos passivos aplicados e implementacao ainda incompleta.
+- estado de F10 como contratos passivos, aggregate e participant contract aplicados, com implementacao ainda incompleta.
 
 Nao recriar documentos paralelos de roadmap. Novos ADRs devem ser pequenos, alinhados a uma fase aprovada e nao devem redefinir a sequencia geral.
 
@@ -46,7 +46,7 @@ F9 encerra apenas o binding logico entre declaracoes de Content Anchor e contrat
 
 | Phase | Layer | Nome | Estado |
 |---|---|---|---|
-| F10 | Framework Core | Activity Entry/Exit Content Execution | `OPEN / CONTRACTS APPLIED / IMPLEMENTATION IN PROGRESS` |
+| F10 | Framework Core | Activity Entry/Exit Content Execution | `OPEN / PARTICIPANT CONTRACT APPLIED / IMPLEMENTATION IN PROGRESS` |
 | F11 | Framework Core | Reset Foundation | `PROPOSED / PENDING HUMAN APPROVAL` |
 | F12 | Framework Core | Transition / Loading Orchestration | `PROPOSED / PENDING HUMAN APPROVAL` |
 | F13 | Framework Core | Participation / Capability Contracts | `PROPOSED / PENDING HUMAN APPROVAL` |
@@ -60,7 +60,7 @@ F9 encerra apenas o binding logico entre declaracoes de Content Anchor e contrat
 
 ### F10 ADRs accepted
 
-F10 abriu primeiro como decisao arquitetural aceita e agora iniciou implementacao minima com contratos passivos. O runtime de execucao ainda nao existe.
+F10 abriu primeiro como decisao arquitetural aceita e agora iniciou implementacao minima com contratos passivos, aggregate result e participant contract. Discovery/runtime de execucao ainda nao existem.
 
 - `Documentation~/ADRs/F10-activity-content-execution-core/F10-01-ADR-ACTIVITY-003-activity-entry-exit-content-execution-core.md`
 - `Documentation~/ADRs/F10-activity-content-execution-core/F10-02-ADR-ACTIVITY-004-activity-content-execution-ordering-and-lifecycle.md`
@@ -68,7 +68,7 @@ F10 abriu primeiro como decisao arquitetural aceita e agora iniciou implementaca
 
 ### F10B contracts applied
 
-F10B adiciona somente contratos passivos:
+F10B adiciona contratos passivos por item de execucao:
 
 ```text
 ActivityContentExecutionPhase
@@ -78,7 +78,30 @@ ActivityContentExecutionRequest
 ActivityContentExecutionResult
 ```
 
-Esses contratos descrevem fase, Activity, RuntimeScopeContext Activity-scoped, RuntimeContentId, requiredness, status e contribuicao diagnostica de readiness. Eles nao descobrem participants, nao executam conteudo, nao agregam readiness nova, nao fazem binding, nao criam materializacao fisica e nao acionam Unity adapters.
+Esses contratos descrevem fase, Activity, RuntimeScopeContext Activity-scoped, RuntimeContentId, requiredness, status e contribuicao diagnostica de readiness. Eles nao descobrem participants, nao executam conteudo, nao fazem binding, nao criam materializacao fisica e nao acionam Unity adapters.
+
+### F10C aggregate contracts applied
+
+F10C adiciona resultado agregado passivo para multiples resultados por fase:
+
+```text
+ActivityContentExecutionAggregateStatus
+ActivityContentExecutionAggregateResult
+```
+
+O aggregate resume resultados de Enter/Exit, contagem de required/optional, succeeded/skipped/failed, blocking/non-blocking issues e `blocksReadiness`. Ele ainda nao e integrado ao lifecycle e nao executa participants.
+
+
+### F10D participant contract applied
+
+F10D adiciona a fronteira passiva para participants futuros de Activity Content Execution:
+
+```text
+ActivityContentExecutionParticipantDescriptor
+IActivityContentExecutionParticipant
+```
+
+O descriptor define `RuntimeContentId`, requiredness, suporte a Enter/Exit, order e diagnostics. A interface define `GetActivityContentExecutionDescriptor()` e `ExecuteActivityContent(request)`. Este corte nao descobre participants, nao ordena execucao, nao integra readiness ao lifecycle e nao executa side effects Unity.
 
 ## Framework Core boundary
 
@@ -148,7 +171,7 @@ Gameplay consumers consomem contratos do core e adapters, mas nao redefinem iden
 | Content Anchor declaration | Framework Core | `CLOSED F7` |
 | RuntimeContent logical roots/handles | Framework Core | `CLOSED F8` |
 | Content Anchor logical binding | Framework Core | `CLOSED F9` |
-| Activity entry/exit content execution contracts | Framework Core | `F10B CONTRACTS APPLIED` |
+| Activity entry/exit content execution contracts | Framework Core | `F10B/F10C/F10D CONTRACTS + AGGREGATE + PARTICIPANT CONTRACT APPLIED` |
 | Reset request/result/policy foundation | Framework Core | `PROPOSED F11` |
 | Transition/loading orchestration contracts | Framework Core | `PROPOSED F12` |
 | Participation/capability contracts | Framework Core | `PROPOSED F13` |
@@ -205,4 +228,4 @@ Antes de fechar F10, implementar e validar os cortes runtime/editor minimos:
 - diagnostics e QA smoke minimo;
 - confirmacao de que nenhuma execucao Unity concreta entrara no core.
 
-F10 permanece `OPEN / CONTRACTS APPLIED / IMPLEMENTATION IN PROGRESS`; somente F10B foi aplicado.
+F10 permanece `OPEN / AGGREGATE CONTRACTS APPLIED / IMPLEMENTATION IN PROGRESS`; F10B/F10C foram aplicados, mas runtime de execucao ainda nao existe.

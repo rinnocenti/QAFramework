@@ -1,8 +1,8 @@
 # Activity Content Execution Contracts
 
-Status: APPLIED / CONTRACTS ONLY  
+Status: APPLIED / CONTRACTS + AGGREGATE + PARTICIPANT CONTRACT ONLY  
 Fase: F10  
-Corte: F10B  
+Cortes: F10B, F10C, F10D  
 Escopo: Framework Core
 
 ---
@@ -11,7 +11,7 @@ Escopo: Framework Core
 
 F10 reintroduz entrada/saida de conteudo de Activity como conceito de framework core, sem capturar `Presentation`, gameplay, prefab, scene adapter ou placement fisico.
 
-Este corte adiciona apenas contratos passivos para descrever uma execucao logica de conteudo de Activity.
+F10B adiciona contratos passivos para um item de execucao logica de conteudo de Activity. F10C adiciona o resultado agregado passivo para uma fase de execucao. F10D adiciona o contrato passivo de participante, sem discovery ou executor runtime.
 
 ## Contratos adicionados
 
@@ -21,6 +21,10 @@ ActivityContentExecutionRequiredness
 ActivityContentExecutionStatus
 ActivityContentExecutionRequest
 ActivityContentExecutionResult
+ActivityContentExecutionAggregateStatus
+ActivityContentExecutionAggregateResult
+ActivityContentExecutionParticipantDescriptor
+IActivityContentExecutionParticipant
 ```
 
 ## O que o request carrega
@@ -61,6 +65,47 @@ failed
 blocksReadiness
 ```
 
+
+## O que o aggregate carrega
+
+`ActivityContentExecutionAggregateResult` descreve um conjunto de resultados de uma mesma fase:
+
+```text
+phase: Enter | Exit
+activity / previousActivity / nextActivity
+status agregado
+resultCount
+requiredCount / optionalCount
+succeededCount / skippedCount / failedCount
+blockingIssueCount / nonBlockingIssueCount
+blocksReadiness
+source/reason/message
+```
+
+Ele existe para preparar a futura agregacao de readiness sem executar participants, sem integrar no lifecycle e sem criar side effects Unity.
+
+## O que o participant contract carrega
+
+`ActivityContentExecutionParticipantDescriptor` descreve um participante futuro:
+
+```text
+RuntimeContentId
+requiredness
+supportsEnter / supportsExit
+order
+displayName
+source/reason
+```
+
+`IActivityContentExecutionParticipant` define uma fronteira minima:
+
+```text
+GetActivityContentExecutionDescriptor()
+ExecuteActivityContent(ActivityContentExecutionRequest request) -> ActivityContentExecutionResult
+```
+
+Essa fronteira ainda nao descobre participantes, nao ordena execucao, nao agrega readiness no lifecycle e nao executa side effects do framework.
+
 ## Fronteiras
 
 Este corte nao adiciona:
@@ -68,8 +113,11 @@ Este corte nao adiciona:
 ```text
 execution runtime
 participant discovery
+execution runtime
+ordering runtime
 ActivityFlow integration
-readiness aggregation
+readiness aggregation integrada ao lifecycle
+execution runtime
 smoke
 Transform placement
 GameObject hierarchy root
@@ -85,4 +133,4 @@ Actor/Player/Camera/Pause/Input/Save consumers
 
 Smoke esperado: compile/import.
 
-Nao ha Play Mode behavior novo neste corte.
+Nao ha Play Mode behavior novo em F10B/F10C.
