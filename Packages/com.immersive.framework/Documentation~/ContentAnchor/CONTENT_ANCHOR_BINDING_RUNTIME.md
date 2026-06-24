@@ -1,11 +1,11 @@
 # RuntimeContentAnchorBinding Logical Runtime
 
-Status: `F9F APPLIED / AUTOMATIC LOGICAL CLEANUP PENDING SMOKE`
+Status: `F9I APPLIED / ACTIVITY ANCHOR BINDING SMOKE PENDING`
 Corte base: `IF-FW-F9B-runtime-content-anchor-binding-logical-runtime`
 Corte validado: `IF-FW-F9C-content-anchor-binding-smoke-diagnostics` — PASS
 Corte anterior: `IF-FW-F9D-content-anchor-binding-lifecycle-policy` — PASS por regressão de smoke
 Corte validado: `IF-FW-F9E-binding-runtime-host-ownership` — PASS por smoke regressivo
-Corte atual: `IF-FW-F9F-content-anchor-binding-automatic-cleanup`
+Corte atual: `IF-FW-F9I-activity-content-anchor-binding-smoke`
 Escopo: Content Anchor binding / RuntimeContent bridge
 
 ---
@@ -141,7 +141,7 @@ unbind bindings do owner/scope
 -> remover RuntimeScopeRoot
 ```
 
-F9F executa automaticamente o primeiro passo dessa ordem para o owner que está saindo: `unbind bindings do owner/scope`. Release físico, placement físico e adapters continuam fora deste corte.
+F9F executa automaticamente o primeiro passo dessa ordem para o owner que está saindo: `unbind bindings do owner/scope`. F9I valida o mesmo caminho usando um `ActivityContentAnchor` aceito e um `RuntimeContentHandle` sintético Activity-scoped. Release físico, placement físico e adapters continuam fora deste corte.
 
 ---
 
@@ -212,3 +212,21 @@ bindingCount='<mesmo valor inicial>'
 ## F9F automatic logical cleanup
 
 F9F injeta o `RuntimeContentAnchorBinding` owned pelo `FrameworkRuntimeHost` nos runtimes de Route/Activity e executa cleanup lógico por `RuntimeContentOwner` antes de remover o root lógico antigo. O cleanup não executa release físico, `Transform`, `GameObject`, `Instantiate`, `Destroy`, scene adapter, prefab adapter ou pool adapter.
+
+
+## F9I Activity-scoped binding smoke
+
+F9I adds `Run Activity Content Anchor Binding Smoke` to validate the Activity path:
+
+```text
+ActivityContentAnchor accepted by discovery
+  -> Activity RuntimeScopeContext
+  -> synthetic RuntimeMaterializationRequest/Result
+  -> RuntimeContentHandle registered in Activity root
+  -> FrameworkRuntimeHost.BindContentAnchor(...)
+  -> SucceededAlreadyBound on second bind
+  -> logical release/unregister of the synthetic handle
+  -> Activity exit cleanup removes the remaining binding
+```
+
+The smoke still does not create Transform placement, GameObject runtime roots, prefab/scene/Addressables/pooling adapters, physical release or gameplay consumers.

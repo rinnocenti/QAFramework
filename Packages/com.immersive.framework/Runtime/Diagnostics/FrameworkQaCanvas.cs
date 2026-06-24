@@ -303,6 +303,11 @@ namespace Immersive.Framework.Diagnostics
                     RunActivityContentAnchorPositiveSmoke();
                 }
 
+                if (GUILayout.Button("Run Activity Content Anchor Binding Smoke"))
+                {
+                    RunActivityContentAnchorBindingSmoke();
+                }
+
                 if (GUILayout.Button("Run Content Anchor Binding Smoke"))
                 {
                     RunContentAnchorBindingSmoke();
@@ -1412,6 +1417,191 @@ namespace Immersive.Framework.Diagnostics
             });
         }
 
+        private async void RunActivityContentAnchorBindingSmoke()
+        {
+            string missingTargets = string.Empty;
+            AppendMissingQaAsset(ref missingTargets, routeSceneCompositionRoute == null, "Activity Content Anchor Binding Route");
+            AppendMissingQaAsset(ref missingTargets, alternateRoute == null, "Alternate Route / Preparation Route");
+            AppendMissingQaAsset(ref missingTargets, primaryActivity == null, "Primary Activity / Activity Anchor Binding Owner");
+
+            if (!TryValidateSmokeTargets("Activity Content Anchor Binding Smoke", missingTargets))
+            {
+                return;
+            }
+
+            await RunSmokeAsync("Activity Content Anchor Binding Smoke", async runtimeHost =>
+            {
+                if (ReferenceEquals(runtimeHost.State.CurrentRoute, routeSceneCompositionRoute))
+                {
+                    if (ReferenceEquals(alternateRoute, routeSceneCompositionRoute))
+                    {
+                        _logger.Warning("QA Activity Content Anchor Binding Smoke step failed. step='prepare' reason='Activity Anchor Binding Route is already active and Alternate Route points to the same Route'.");
+                        return false;
+                    }
+
+                    var prepareResult = await RequestRouteWithResultCoreAsync(
+                        runtimeHost,
+                        alternateRoute,
+                        ResolveReason(routeReason, GetAssetName(alternateRoute, "qa.activity-content-anchor-binding.prepare")));
+                    if (!prepareResult.Succeeded)
+                    {
+                        _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='prepare' reason='Preparation Route request did not succeed' status='{FormatValue(prepareResult.Kind.ToString())}'.");
+                        return false;
+                    }
+
+                    await Task.Yield();
+                }
+
+                var routeResult = await RequestRouteWithResultCoreAsync(
+                    runtimeHost,
+                    routeSceneCompositionRoute,
+                    ResolveReason(routeReason, GetAssetName(routeSceneCompositionRoute, "qa.activity-content-anchor-binding.route")));
+                if (!routeResult.Succeeded)
+                {
+                    _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='route' reason='Route request did not succeed' status='{FormatValue(routeResult.Kind.ToString())}'.");
+                    return false;
+                }
+
+                GameObject fixtureObject = null;
+                try
+                {
+                    if (!TryCreatePositiveActivityContentAnchorFixture(primaryActivity, out fixtureObject, out _))
+                    {
+                        return false;
+                    }
+
+                    var clearResult = await ClearActivityWithResultCoreAsync(
+                        runtimeHost,
+                        ResolveReason(clearActivityReason, "qa.activity-content-anchor-binding.clear-before-discovery"));
+                    if (!clearResult.Succeeded)
+                    {
+                        _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='clear-before-discovery' reason='Activity clear did not succeed before binding discovery' status='{FormatValue(clearResult.Kind.ToString())}'.");
+                        return false;
+                    }
+
+                    await Task.Yield();
+
+                    var activityResult = await RequestActivityWithResultCoreAsync(
+                        runtimeHost,
+                        primaryActivity,
+                        ResolveReason(activityReason, GetAssetName(primaryActivity, "qa.activity-content-anchor-binding.activity")));
+
+                    if (!TryCreateActivityContentAnchorBindingForCleanupSmoke(
+                            activityResult,
+                            runtimeHost,
+                            out var context,
+                            out var materializationIdentity,
+                            out var bindingResult,
+                            out var idempotentBindingResult,
+                            out var bindingCountBefore))
+                    {
+                        return false;
+                    }
+
+                    var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+                    var releaseResult = runtimeContentRuntime.ReleaseHandleLogically(
+                        context,
+                        materializationIdentity,
+                        RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                        QaSource,
+                        "qa.activity-content-anchor-binding.release-before-activity-exit");
+                    if (!releaseResult.Succeeded || !releaseResult.HandleUnregistered)
+                    {
+                        runtimeHost.UnbindContentAnchor(bindingResult.Request);
+                        _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='release' reason='Runtime handle release before Activity exit failed' release='{releaseResult.Status}' releaseUnregistered='{releaseResult.HandleUnregistered}' message='{FormatValue(releaseResult.Message)}'.");
+                        return false;
+                    }
+
+                    var boundCount = runtimeHost.ContentAnchorBindingCount;
+                    if (boundCount <= bindingCountBefore)
+                    {
+                        runtimeHost.UnbindContentAnchor(bindingResult.Request);
+                        _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='bound' reason='Binding count did not increase before Activity exit' bindingCountBefore='{bindingCountBefore}' bindingCount='{boundCount}'.");
+                        return false;
+                    }
+
+                    var exitResult = await ClearActivityWithResultCoreAsync(
+                        runtimeHost,
+                        ResolveReason(clearActivityReason, "qa.activity-content-anchor-binding.exit"));
+                    if (!exitResult.Succeeded)
+                    {
+                        runtimeHost.UnbindContentAnchor(bindingResult.Request);
+                        _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='activity-exit' reason='Activity clear did not succeed' status='{FormatValue(exitResult.Kind.ToString())}'.");
+                        return false;
+                    }
+
+                    var cleanupResult = exitResult.ActivityFlowResult.ActivityContentAnchorBindingCleanupResult;
+                    if (!cleanupResult.Executed || !cleanupResult.Succeeded || cleanupResult.RemovedCount < 1)
+                    {
+                        runtimeHost.UnbindContentAnchor(bindingResult.Request);
+                        _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='cleanup' reason='Activity binding cleanup did not remove the test binding' cleanup='{cleanupResult.DiagnosticStatus}' removed='{cleanupResult.RemovedCount}' before='{cleanupResult.BindingCountBefore}' after='{cleanupResult.BindingCountAfter}'.");
+                        return false;
+                    }
+
+                    if (runtimeHost.ContentAnchorBindingCount != bindingCountBefore)
+                    {
+                        _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='cleanup' reason='Binding count did not return to baseline after Activity exit' bindingCountBefore='{bindingCountBefore}' bindingCount='{runtimeHost.ContentAnchorBindingCount}'.");
+                        return false;
+                    }
+
+                    if (fixtureObject != null)
+                    {
+#if UNITY_EDITOR
+                        DestroyImmediate(fixtureObject);
+#else
+                        fixtureObject.SetActive(false);
+                        Destroy(fixtureObject);
+#endif
+                        fixtureObject = null;
+                    }
+
+                    var restoreResult = await RequestActivityWithResultCoreAsync(
+                        runtimeHost,
+                        primaryActivity,
+                        ResolveReason(activityReason, GetAssetName(primaryActivity, "qa.activity-content-anchor-binding.restore")));
+                    if (!restoreResult.Succeeded)
+                    {
+                        _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='restore' reason='Primary Activity restore did not succeed' status='{FormatValue(restoreResult.Kind.ToString())}'.");
+                        return false;
+                    }
+
+                    _logger.Info(
+                        "QA Activity Content Anchor Binding Smoke step completed.",
+                        LogFields.Of(
+                            LogFields.Field("step", "activity-anchor-binding"),
+                            LogFields.Field("activity", GetAssetName(primaryActivity, "<unnamed>")),
+                            LogFields.Field("anchor", bindingResult.Anchor.StableText),
+                            LogFields.Field("binding", bindingResult.Status.ToString()),
+                            LogFields.Field("idempotentBinding", idempotentBindingResult.Status.ToString()),
+                            LogFields.Field("release", releaseResult.Status.ToString()),
+                            LogFields.Field("releaseUnregistered", releaseResult.HandleUnregistered),
+                            LogFields.Field("activityCleanup", cleanupResult.DiagnosticStatus),
+                            LogFields.Field("activityCleanupRemoved", cleanupResult.RemovedCount),
+                            LogFields.Field("activityCleanupBefore", cleanupResult.BindingCountBefore),
+                            LogFields.Field("activityCleanupAfter", cleanupResult.BindingCountAfter),
+                            LogFields.Field("bindingCountBefore", bindingCountBefore),
+                            LogFields.Field("bindingCountBound", boundCount),
+                            LogFields.Field("bindingCount", runtimeHost.ContentAnchorBindingCount)));
+                    _logger.Debug(
+                        "QA Activity Content Anchor Binding Smoke diagnostics.",
+                        LogFields.Field("details", bindingResult.ToDiagnosticString()));
+                    return true;
+                }
+                finally
+                {
+                    if (fixtureObject != null)
+                    {
+#if UNITY_EDITOR
+                        DestroyImmediate(fixtureObject);
+#else
+                        fixtureObject.SetActive(false);
+                        Destroy(fixtureObject);
+#endif
+                    }
+                }
+            });
+        }
+
         private async void RunContentAnchorBindingSmoke()
         {
             string missingTargets = string.Empty;
@@ -2241,6 +2431,156 @@ namespace Immersive.Framework.Diagnostics
             _logger.Debug(
                 "QA Content Anchor Binding Smoke diagnostics.",
                 LogFields.Field("details", bindingResult.ToDiagnosticString()));
+            return true;
+        }
+
+        private bool TryCreateActivityContentAnchorBindingForCleanupSmoke(
+            FrameworkActivityRequestResult result,
+            FrameworkRuntimeHost runtimeHost,
+            out RuntimeScopeContext context,
+            out RuntimeContentIdentity materializationIdentity,
+            out ContentAnchorBindingResult bindingResult,
+            out ContentAnchorBindingResult idempotentBindingResult,
+            out int bindingCountBefore)
+        {
+            context = default(RuntimeScopeContext);
+            materializationIdentity = default(RuntimeContentIdentity);
+            bindingResult = default(ContentAnchorBindingResult);
+            idempotentBindingResult = default(ContentAnchorBindingResult);
+            bindingCountBefore = 0;
+
+            string activityName = result.TargetActivity != null ? GetAssetName(result.TargetActivity, "<unnamed>") : "<missing>";
+
+            if (runtimeHost == null || runtimeHost.RuntimeContentRuntime == null)
+            {
+                _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='bind' activity='{FormatValue(activityName)}' reason='RuntimeContentRuntime unavailable'.");
+                return false;
+            }
+
+            if (!result.Succeeded)
+            {
+                _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='bind' activity='{FormatValue(activityName)}' reason='Activity request did not succeed' status='{FormatValue(result.Kind.ToString())}'.");
+                return false;
+            }
+
+            var activityFlow = result.ActivityFlowResult;
+            if (!activityFlow.Completed)
+            {
+                _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='bind' activity='{FormatValue(activityName)}' reason='Activity flow did not complete'.");
+                return false;
+            }
+
+            var anchorSet = activityFlow.ActivityContentAnchorSet;
+            if (!anchorSet.HasAnchors || anchorSet.Declarations.Count == 0)
+            {
+                _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='bind' activity='{FormatValue(activityName)}' reason='Activity Content Anchor Set has no anchors'.");
+                return false;
+            }
+
+            var runtimeScopeResult = activityFlow.RuntimeActivityScopeResult;
+            if (!runtimeScopeResult.HasContext)
+            {
+                _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='bind' activity='{FormatValue(activityName)}' reason='Activity runtime scope context unavailable' runtimeActivityScope='{FormatValue(runtimeScopeResult.DiagnosticStatus)}' runtimeActivityContext='{FormatValue(runtimeScopeResult.ContextStatus)}'.");
+                return false;
+            }
+
+            var discovery = activityFlow.ActivityContentAnchorDiscoveryResult;
+            if (discovery.IssueCount != 0 || discovery.InvalidAuthoringCount != 0 || discovery.SkippedActivityMismatchCount != 0)
+            {
+                _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='bind' activity='{FormatValue(activityName)}' reason='Activity Content Anchor discovery produced issues' issues='{discovery.IssueCount}' invalid='{discovery.InvalidAuthoringCount}' mismatch='{discovery.SkippedActivityMismatchCount}'.");
+                return false;
+            }
+
+            var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+            context = runtimeScopeResult.Context;
+            var anchor = anchorSet.Declarations[0];
+            var contentId = RuntimeContentId.From("qa.activity-content-anchor.binding." + Guid.NewGuid().ToString("N"));
+            var resource = RuntimeMaterializationResource.From(
+                "QA.ActivityContentAnchorBinding",
+                "qa.activity-content-anchor.binding.resource",
+                "QA Activity Content Anchor Binding Smoke Resource",
+                string.Empty);
+
+            if (!runtimeContentRuntime.TryCreateMaterializationRequest(
+                    context,
+                    contentId,
+                    resource,
+                    QaSource,
+                    "qa.activity-content-anchor-binding.materialization.request",
+                    out var materializationRequest,
+                    out var materializationGuardResult))
+            {
+                _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='bind' activity='{FormatValue(activityName)}' reason='Materialization request rejected' guard='{materializationGuardResult.Status}' message='{FormatValue(materializationGuardResult.Message)}'.");
+                return false;
+            }
+
+            var runtimeHandle = RuntimeContentHandle.Declared(
+                materializationRequest.Identity,
+                QaSource,
+                "qa.activity-content-anchor-binding.handle.declared");
+            var materializationResult = RuntimeMaterializationResult.Success(
+                materializationRequest,
+                runtimeHandle,
+                QaSource,
+                "qa.activity-content-anchor-binding.materialization.synthetic-result",
+                "Synthetic Activity Content Anchor binding smoke materialization result.");
+            var appliedMaterializationResult = runtimeContentRuntime.ApplyMaterializationResult(
+                materializationResult,
+                QaSource,
+                "qa.activity-content-anchor-binding.materialization.apply");
+
+            if (!appliedMaterializationResult.Succeeded)
+            {
+                _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='bind' activity='{FormatValue(activityName)}' reason='Materialization result was not applied' materialization='{appliedMaterializationResult.Status}' message='{FormatValue(appliedMaterializationResult.Message)}'.");
+                return false;
+            }
+
+            var bindingRequest = ContentAnchorBindingRequest.FromDeclaration(
+                context,
+                anchor,
+                contentId,
+                resource,
+                QaSource,
+                "qa.activity-content-anchor-binding.request");
+            bindingCountBefore = runtimeHost.ContentAnchorBindingCount;
+            bindingResult = runtimeHost.BindContentAnchor(
+                anchorSet,
+                bindingRequest,
+                QaSource,
+                "qa.activity-content-anchor-binding.bind");
+
+            if (!bindingResult.Succeeded)
+            {
+                runtimeContentRuntime.ReleaseHandleLogically(
+                    context,
+                    materializationRequest.Identity,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    QaSource,
+                    "qa.activity-content-anchor-binding.cleanup.binding-failed");
+                _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='bind' activity='{FormatValue(activityName)}' reason='Logical binding failed' binding='{bindingResult.Status}' message='{FormatValue(bindingResult.Message)}'.");
+                return false;
+            }
+
+            idempotentBindingResult = runtimeHost.BindContentAnchor(
+                anchorSet,
+                bindingRequest,
+                QaSource,
+                "qa.activity-content-anchor-binding.bind.idempotent");
+
+            if (idempotentBindingResult.Status != ContentAnchorBindingStatus.SucceededAlreadyBound)
+            {
+                runtimeHost.UnbindContentAnchor(bindingRequest);
+                runtimeContentRuntime.ReleaseHandleLogically(
+                    context,
+                    materializationRequest.Identity,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    QaSource,
+                    "qa.activity-content-anchor-binding.cleanup.idempotent-failed");
+                _logger.Warning($"QA Activity Content Anchor Binding Smoke step failed. step='bind' activity='{FormatValue(activityName)}' reason='Idempotent binding did not return already-bound' binding='{idempotentBindingResult.Status}' message='{FormatValue(idempotentBindingResult.Message)}'.");
+                return false;
+            }
+
+            materializationIdentity = materializationRequest.Identity;
             return true;
         }
 

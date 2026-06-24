@@ -1061,6 +1061,12 @@ Adds Activity-scoped Content Anchor authoring, discovery diagnostics and QA smok
 
 ### F9H — Activity Content Anchor positive-path smoke
 
-Status: `APPLIED / PENDING SMOKE`
+Status: `PASS`
 
 Adds QA-only positive-path coverage for one valid Activity Content Anchor accepted by discovery. The fixture is temporary diagnostics data, not a placement root or materialized content.
+
+### F9I — Activity Content Anchor binding smoke
+
+Status: `APPLIED / PENDING SMOKE`
+
+Adds QA-only Activity-scoped binding coverage using an accepted Activity Content Anchor, synthetic RuntimeContentHandle, idempotent binding and Activity exit cleanup. Does not introduce placement, materialization adapters or gameplay consumers.

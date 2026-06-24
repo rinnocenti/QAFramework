@@ -119,9 +119,9 @@ F15/FX Productization, tooling and hardening
 
 ## Não objetivos deste corte
 
-O realinhamento original foi documental. A implementação começou em F9A com contratos de binding, avançou em F9B com `RuntimeContentAnchorBinding` lógico, F9C adicionou e validou o smoke dedicado de binding no QA Canvas, F9D adicionou lifecycle cleanup/snapshots locais para bindings, e F9E torna o binding runtime owned pelo `FrameworkRuntimeHost` por API interna controlada. F9F adiciona cleanup lógico automático de bindings no exit de Route/Activity owner, antes da remoção do root lógico antigo. F9G adiciona `ActivityContentAnchor` authoring/discovery/diagnostics para criar simetria com `RouteContentAnchor`, ainda sem placement físico. F9H adiciona smoke positivo com fixture temporário de QA para validar um Activity Content Anchor aceito sem depender de scene asset novo.
+O realinhamento original foi documental. A implementação começou em F9A com contratos de binding, avançou em F9B com `RuntimeContentAnchorBinding` lógico, F9C adicionou e validou o smoke dedicado de binding no QA Canvas, F9D adicionou lifecycle cleanup/snapshots locais para bindings, e F9E torna o binding runtime owned pelo `FrameworkRuntimeHost` por API interna controlada. F9F adiciona cleanup lógico automático de bindings no exit de Route/Activity owner, antes da remoção do root lógico antigo. F9G adiciona `ActivityContentAnchor` authoring/discovery/diagnostics para criar simetria com `RouteContentAnchor`, ainda sem placement físico. F9H adiciona smoke positivo com fixture temporário de QA para validar um Activity Content Anchor aceito sem depender de scene asset novo. F9I adiciona smoke de binding lógico usando ActivityContentAnchor aceito, RuntimeContentHandle sintético Activity-scoped, idempotência e cleanup em Activity exit.
 
-Depois de F9H, ainda não existe:
+Depois de F9I, ainda não existe:
 
 ```text
 physical placement

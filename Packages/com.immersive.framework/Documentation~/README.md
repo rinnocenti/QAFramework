@@ -94,7 +94,7 @@ Docs técnicos:
 - `RuntimeContent/RUNTIME_TRANSITION_GUARD_SCOPED_CANCELLATION.md` — F8H transition guard and scoped cancellation tokens.
 - `ContentAnchor/CONTENT_ANCHOR_BINDING_CONTRACTS.md` — F9A Content Anchor binding request/result/handle contracts.
 - `ContentAnchor/CONTENT_ANCHOR_BINDING_RUNTIME.md` — F9B-F9F logical RuntimeContentAnchorBinding runtime, QA smoke diagnostics, lifecycle cleanup policy, host ownership and automatic logical cleanup.
-- `ContentAnchor/ACTIVITY_CONTENT_ANCHOR_DISCOVERY.md` — F9G/F9H Activity Content Anchor discovery, diagnostics and positive-path QA fixture smoke.
+- `ContentAnchor/ACTIVITY_CONTENT_ANCHOR_DISCOVERY.md` — F9G/F9H/F9I Activity Content Anchor discovery, diagnostics, positive-path QA fixture smoke and Activity-scoped binding smoke.
 - `ContentAnchor/CONTENT_ANCHOR_DIAGNOSTICS_SMOKE.md` — Route anchor, Activity anchor diagnostic and Activity anchor positive-path QA smokes.
 
 
