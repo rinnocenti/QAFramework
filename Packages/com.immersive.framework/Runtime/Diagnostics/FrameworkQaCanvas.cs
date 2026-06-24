@@ -76,6 +76,13 @@ namespace Immersive.Framework.Diagnostics
         [SerializeField] private int expectedContentAnchorSlotCount = -1;
         [SerializeField] private int expectedContentAnchorPointCount = -1;
 
+        [Header("Activity Content Anchor Diagnostics Smoke")]
+        [SerializeField] private int expectedActivityContentAnchorCount = 0;
+        [SerializeField] private int expectedActivityContentAnchorCandidateCount = 0;
+        [SerializeField] private int expectedActivityContentAnchorIssueCount = 0;
+        [SerializeField] private int expectedActivityContentAnchorInvalidCount = 0;
+        [SerializeField] private int expectedActivityContentAnchorActivityMismatchCount = 0;
+
         [Header("Smoke Scenario Activities")]
         [FormerlySerializedAs("activity01")]
         [SerializeField] private ActivityAsset primaryActivity;
@@ -211,6 +218,7 @@ namespace Immersive.Framework.Diagnostics
             GUILayout.Label($"Expected Route Scenes: {Math.Max(1, expectedRouteSceneLoadedCount)} loaded / {Math.Max(1, expectedRouteSceneOwnedLoadedCount)} owned");
             GUILayout.Label($"Expected Route Release: {Math.Max(0, expectedRouteReleaseReleasedCount)} released");
             GUILayout.Label($"Expected Content Anchors: {Math.Max(0, expectedContentAnchorCount)} anchors / {Math.Max(0, expectedContentAnchorCandidateCount)} candidates");
+            GUILayout.Label($"Expected Activity Content Anchors: {Math.Max(0, expectedActivityContentAnchorCount)} anchors / {Math.Max(0, expectedActivityContentAnchorCandidateCount)} candidates");
             GUILayout.Label($"Primary Activity: {GetAssetName(primaryActivity, "<missing>")}");
             GUILayout.Label($"Secondary Activity: {GetAssetName(secondaryActivity, "<missing>")}");
             GUILayout.Label(GetCoreQaAssetsStatus());
@@ -277,6 +285,11 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Content Anchor Diagnostics Smoke"))
                 {
                     RunContentAnchorDiagnosticsSmoke();
+                }
+
+                if (GUILayout.Button("Run Activity Content Anchor Diagnostics Smoke"))
+                {
+                    RunActivityContentAnchorDiagnosticsSmoke();
                 }
 
                 if (GUILayout.Button("Run Content Anchor Binding Smoke"))
@@ -1258,6 +1271,48 @@ namespace Immersive.Framework.Diagnostics
             });
         }
 
+        private async void RunActivityContentAnchorDiagnosticsSmoke()
+        {
+            string missingTargets = string.Empty;
+            AppendMissingQaAsset(ref missingTargets, routeSceneCompositionRoute == null, "Activity Content Anchor Route");
+            AppendMissingQaAsset(ref missingTargets, alternateRoute == null, "Alternate Route / Preparation Route");
+
+            if (!TryValidateSmokeTargets("Activity Content Anchor Diagnostics Smoke", missingTargets))
+            {
+                return;
+            }
+
+            await RunSmokeAsync("Activity Content Anchor Diagnostics Smoke", async runtimeHost =>
+            {
+                if (ReferenceEquals(runtimeHost.State.CurrentRoute, routeSceneCompositionRoute))
+                {
+                    if (ReferenceEquals(alternateRoute, routeSceneCompositionRoute))
+                    {
+                        _logger.Warning("QA Activity Content Anchor Diagnostics Smoke step failed. step='prepare' reason='Activity Content Anchor Route is already active and Alternate Route points to the same Route'.");
+                        return false;
+                    }
+
+                    var prepareResult = await RequestRouteWithResultCoreAsync(
+                        runtimeHost,
+                        alternateRoute,
+                        ResolveReason(routeReason, GetAssetName(alternateRoute, "qa.activity-content-anchor.prepare")));
+                    if (!prepareResult.Succeeded)
+                    {
+                        _logger.Warning($"QA Activity Content Anchor Diagnostics Smoke step failed. step='prepare' reason='Preparation Route request did not succeed' status='{FormatValue(prepareResult.Kind.ToString())}'.");
+                        return false;
+                    }
+
+                    await Task.Yield();
+                }
+
+                var anchorResult = await RequestRouteWithResultCoreAsync(
+                    runtimeHost,
+                    routeSceneCompositionRoute,
+                    ResolveReason(routeReason, GetAssetName(routeSceneCompositionRoute, "qa.activity-content-anchor.diagnostics")));
+                return ValidateActivityContentAnchorDiagnosticsSmokeStep(anchorResult, "activity-anchors");
+            });
+        }
+
         private async void RunContentAnchorBindingSmoke()
         {
             string missingTargets = string.Empty;
@@ -2090,6 +2145,76 @@ namespace Immersive.Framework.Diagnostics
             return true;
         }
 
+        private bool ValidateActivityContentAnchorDiagnosticsSmokeStep(FrameworkRouteRequestResult result, string stepName)
+        {
+            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string routeName = result.TargetRoute != null ? GetAssetName(result.TargetRoute, "<unnamed>") : "<missing>";
+
+            if (!result.Succeeded)
+            {
+                _logger.Warning($"QA Activity Content Anchor Diagnostics Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Route request did not succeed' status='{FormatValue(result.Kind.ToString())}'.");
+                return false;
+            }
+
+            var activityFlow = result.RouteLifecycleResult.ActivityFlowResult;
+            if (!activityFlow.Completed)
+            {
+                _logger.Warning($"QA Activity Content Anchor Diagnostics Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Activity flow did not complete'.");
+                return false;
+            }
+
+            var discovery = activityFlow.ActivityContentAnchorDiscoveryResult;
+            var anchorSet = activityFlow.ActivityContentAnchorSet;
+            if (!ValidateMinimum("activityContentAnchors", Math.Max(0, expectedActivityContentAnchorCount), discovery.AnchorCount, normalizedStepName, routeName))
+            {
+                return false;
+            }
+
+            if (!ValidateMinimum("activityContentAnchorCandidates", Math.Max(0, expectedActivityContentAnchorCandidateCount), discovery.CandidateCount, normalizedStepName, routeName))
+            {
+                return false;
+            }
+
+            if (!ValidateExact("activityContentAnchorIssues", Math.Max(0, expectedActivityContentAnchorIssueCount), discovery.IssueCount, normalizedStepName, routeName))
+            {
+                return false;
+            }
+
+            if (!ValidateExact("activityContentAnchorInvalid", Math.Max(0, expectedActivityContentAnchorInvalidCount), discovery.InvalidAuthoringCount, normalizedStepName, routeName))
+            {
+                return false;
+            }
+
+            if (!ValidateExact("activityContentAnchorActivityMismatch", Math.Max(0, expectedActivityContentAnchorActivityMismatchCount), discovery.SkippedActivityMismatchCount, normalizedStepName, routeName))
+            {
+                return false;
+            }
+
+            _logger.Info(
+                "QA Activity Content Anchor Diagnostics Smoke step completed.",
+                LogFields.Of(
+                    LogFields.Field("step", normalizedStepName),
+                    LogFields.Field("route", routeName),
+                    LogFields.Field("activity", GetAssetName(activityFlow.Activity, "<none>")),
+                    LogFields.Field("activityContentAnchors", discovery.AnchorCount),
+                    LogFields.Field("activityContentAnchorCandidates", discovery.CandidateCount),
+                    LogFields.Field("activityContentAnchorAccepted", discovery.AcceptedCount),
+                    LogFields.Field("activityContentAnchorRequired", anchorSet.RequiredCount),
+                    LogFields.Field("activityContentAnchorOptional", anchorSet.OptionalCount),
+                    LogFields.Field("activityContentAnchorRoot", anchorSet.RootCount),
+                    LogFields.Field("activityContentAnchorSlot", anchorSet.SlotCount),
+                    LogFields.Field("activityContentAnchorPoint", anchorSet.PointCount),
+                    LogFields.Field("activityContentAnchorIssues", discovery.IssueCount),
+                    LogFields.Field("activityContentAnchorInvalid", discovery.InvalidAuthoringCount),
+                    LogFields.Field("activityContentAnchorActivityMismatch", discovery.SkippedActivityMismatchCount),
+                    LogFields.Field("activityContentAnchorDuplicateIdentity", anchorSet.DuplicateIdentityIssueCount),
+                    LogFields.Field("activityContentAnchorDuplicateId", anchorSet.DuplicateAnchorIdIssueCount)));
+            _logger.Debug(
+                "QA Activity Content Anchor Diagnostics Smoke diagnostics.",
+                LogFields.Field("details", discovery.ToDiagnosticString()));
+            return true;
+        }
+
         private bool ValidateContentAnchorDiagnosticsSmokeStep(FrameworkRouteRequestResult result, string stepName)
         {
             string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
@@ -2235,21 +2360,24 @@ namespace Immersive.Framework.Diagnostics
                 FindObjectsInactive.Include);
             RouteContentAnchor[] routeContentAnchors = FindObjectsByType<RouteContentAnchor>(
                 FindObjectsInactive.Include);
+            ActivityContentAnchor[] activityContentAnchors = FindObjectsByType<ActivityContentAnchor>(
+                FindObjectsInactive.Include);
 
             int routeBindingCount = routeBindings != null ? routeBindings.Length : 0;
             int activityAdapterCount = activityAdapters != null ? activityAdapters.Length : 0;
             int routeContentAnchorCount = routeContentAnchors != null ? routeContentAnchors.Length : 0;
+            int activityContentAnchorCount = activityContentAnchors != null ? activityContentAnchors.Length : 0;
 
-            if (routeBindingCount == 0 && activityAdapterCount == 0 && routeContentAnchorCount == 0)
+            if (routeBindingCount == 0 && activityAdapterCount == 0 && routeContentAnchorCount == 0 && activityContentAnchorCount == 0)
             {
-                _logger.Warning("QA Authoring Validation completed. scope='Loaded Authoring' routeBindings='0' activityAdapters='0' routeContentAnchors='0' localContributions='0' contentAnchors='0' issues='1' reason='No local contribution or Content Anchor authoring components found in loaded scenes'.");
+                _logger.Warning("QA Authoring Validation completed. scope='Loaded Authoring' routeBindings='0' activityAdapters='0' routeContentAnchors='0' activityContentAnchors='0' localContributions='0' contentAnchors='0' issues='1' reason='No local contribution or Content Anchor authoring components found in loaded scenes'.");
                 return;
             }
 
             int issueCount = 0;
             int errorCount = 0;
             int warningCount = 0;
-            var contentAnchorDeclarations = new List<ContentAnchorDeclaration>(Math.Max(0, routeContentAnchorCount));
+            var contentAnchorDeclarations = new List<ContentAnchorDeclaration>(Math.Max(0, routeContentAnchorCount + activityContentAnchorCount));
 
             if (routeBindings != null)
             {
@@ -2272,6 +2400,19 @@ namespace Immersive.Framework.Diagnostics
                 }
             }
 
+            if (activityContentAnchors != null)
+            {
+                for (int i = 0; i < activityContentAnchors.Length; i++)
+                {
+                    ValidateLoadedActivityContentAnchor(
+                        activityContentAnchors[i],
+                        contentAnchorDeclarations,
+                        ref issueCount,
+                        ref errorCount,
+                        ref warningCount);
+                }
+            }
+
             var contentAnchorSet = ContentAnchorSet.FromDeclarations(contentAnchorDeclarations);
             AddLoadedRouteContentAnchorSetIssues(contentAnchorSet, ref issueCount, ref errorCount, ref warningCount);
 
@@ -2287,6 +2428,7 @@ namespace Immersive.Framework.Diagnostics
                         LogFields.Field("routeBindings", routeBindingCount),
                         LogFields.Field("activityAdapters", activityAdapterCount),
                         LogFields.Field("routeContentAnchors", routeContentAnchorCount),
+                        LogFields.Field("activityContentAnchors", activityContentAnchorCount),
                         LogFields.Field("issues", 0),
                         LogFields.Field("localContributions", validationResult.ContributionCount),
                         LogFields.Field("blockingIssues", validationResult.BlockingIssueCount),
@@ -2310,6 +2452,7 @@ namespace Immersive.Framework.Diagnostics
                     LogFields.Field("routeBindings", routeBindingCount),
                     LogFields.Field("activityAdapters", activityAdapterCount),
                     LogFields.Field("routeContentAnchors", routeContentAnchorCount),
+                    LogFields.Field("activityContentAnchors", activityContentAnchorCount),
                     LogFields.Field("issues", issueCount),
                     LogFields.Field("errors", errorCount),
                     LogFields.Field("warnings", warningCount),
@@ -2438,6 +2581,85 @@ namespace Immersive.Framework.Diagnostics
                     ref issueCount,
                     ref errorCount,
                     $"RouteContentAnchor object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Declaration creation failed' message='{FormatValue(exception.Message)}'.");
+            }
+        }
+
+        private void ValidateLoadedActivityContentAnchor(
+            ActivityContentAnchor anchor,
+            List<ContentAnchorDeclaration> declarations,
+            ref int issueCount,
+            ref int errorCount,
+            ref int warningCount)
+        {
+            if (anchor == null)
+            {
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    "ActivityContentAnchor is missing.");
+                return;
+            }
+
+            string objectName = anchor.gameObject != null ? anchor.gameObject.name : "<missing>";
+            string sceneName = anchor.gameObject != null && anchor.gameObject.scene.IsValid()
+                ? anchor.gameObject.scene.name
+                : "<no-scene>";
+            bool hasBlockingAuthoringIssue = false;
+
+            if (anchor.Activity == null)
+            {
+                hasBlockingAuthoringIssue = true;
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    $"ActivityContentAnchor object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Missing Activity'.");
+            }
+
+            if (!anchor.HasExplicitAnchorId)
+            {
+                hasBlockingAuthoringIssue = true;
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    $"ActivityContentAnchor object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Missing Anchor Id'.");
+            }
+
+            if (!anchor.HasExplicitKind)
+            {
+                hasBlockingAuthoringIssue = true;
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    $"ActivityContentAnchor object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Unknown Kind'.");
+            }
+
+            if (!Enum.IsDefined(typeof(ContentAnchorRequiredness), anchor.Requiredness))
+            {
+                hasBlockingAuthoringIssue = true;
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    $"ActivityContentAnchor object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Invalid Requiredness'.");
+            }
+
+            if (hasBlockingAuthoringIssue)
+            {
+                return;
+            }
+
+            try
+            {
+                if (anchor.TryCreateDeclaration(out var declaration))
+                {
+                    declarations.Add(declaration);
+                }
+            }
+            catch (Exception exception)
+            {
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    $"ActivityContentAnchor object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Declaration creation failed' message='{FormatValue(exception.Message)}'.");
             }
         }
 

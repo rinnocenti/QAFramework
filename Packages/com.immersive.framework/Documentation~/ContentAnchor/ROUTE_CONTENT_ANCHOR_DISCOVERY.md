@@ -71,7 +71,7 @@ contentAnchorRouteMismatch='0'
 F7F does not add:
 
 ```text
-ActivityContentAnchor
+Activity-scoped discovery in this Route-only path
 FrameworkAuthoringValidator rules
 required anchor blocking
 ContentAnchorRegistry
@@ -85,4 +85,4 @@ Requiredness is recorded in the set but is not enforced by this cut.
 
 ## F7G diagnostics smoke
 
-F7G adds `Run Content Anchor Diagnostics Smoke` to validate the discovery result and route-local `ContentAnchorSet` counts without adding validator rules or runtime binding.
+F7G adds `Run Content Anchor Diagnostics Smoke` to validate the discovery result and route-local `ContentAnchorSet` counts without adding runtime binding. F9G adds a separate Activity Content Anchor discovery path and smoke; it does not change this Route-only discovery contract.

@@ -51,6 +51,7 @@ namespace Immersive.Framework.Editor.Editor.Validation
                 ValidateOpenSceneActivityLocalVisibilityAdapters(report, validationMode);
                 ValidateOpenSceneRouteContentBindings(report, validationMode);
                 ValidateOpenSceneRouteContentAnchors(report, validationMode);
+                ValidateOpenSceneActivityContentAnchors(report, validationMode);
             }
 
             if (!report.HasIssues)
@@ -91,6 +92,11 @@ namespace Immersive.Framework.Editor.Editor.Validation
         internal static FrameworkAuthoringValidationReport ValidateRouteContentAnchor(RouteContentAnchor anchor)
         {
             return ValidateRouteContentAnchor(anchor, FrameworkValidationMode.Standard);
+        }
+
+        internal static FrameworkAuthoringValidationReport ValidateActivityContentAnchor(ActivityContentAnchor anchor)
+        {
+            return ValidateActivityContentAnchor(anchor, FrameworkValidationMode.Standard);
         }
 
         private static FrameworkAuthoringValidationReport ValidateGameApplication(
@@ -459,6 +465,77 @@ namespace Immersive.Framework.Editor.Editor.Validation
             return report;
         }
 
+        private static FrameworkAuthoringValidationReport ValidateActivityContentAnchor(
+            ActivityContentAnchor anchor,
+            FrameworkValidationMode validationMode)
+        {
+            var report = new FrameworkAuthoringValidationReport(validationMode);
+
+            if (anchor == null)
+            {
+                report.AddError("Activity Content Anchor is missing.", null);
+                return report;
+            }
+
+            string objectName = anchor.gameObject != null ? anchor.gameObject.name : "<missing>";
+
+            if (anchor.Activity == null)
+            {
+                report.AddError(
+                    $"Activity Content Anchor on GameObject '{objectName}' has no Activity assigned.",
+                    anchor);
+            }
+
+            if (!anchor.HasExplicitAnchorId)
+            {
+                report.AddError(
+                    $"Activity Content Anchor on GameObject '{objectName}' has no Anchor Id. Content Anchor identity must be explicit; GameObject names and hierarchy paths are diagnostics only.",
+                    anchor);
+            }
+
+            if (!anchor.HasExplicitKind)
+            {
+                report.AddError(
+                    $"Activity Content Anchor on GameObject '{objectName}' has Kind set to Unknown. Choose Root, Slot or Point.",
+                    anchor);
+            }
+
+            if (!Enum.IsDefined(typeof(ContentAnchorRequiredness), anchor.Requiredness))
+            {
+                report.AddError(
+                    $"Activity Content Anchor on GameObject '{objectName}' has an invalid Requiredness value.",
+                    anchor);
+            }
+
+            if (anchor.HasValidAuthoring)
+            {
+                try
+                {
+                    if (anchor.TryCreateDeclaration(out var declaration))
+                    {
+                        report.AddInfo(
+                            $"Activity Content Anchor on GameObject '{objectName}' declares '{declaration.AnchorId.StableText}' as {declaration.Kind}/{declaration.Requiredness}.",
+                            anchor);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    report.AddError(
+                        $"Activity Content Anchor on GameObject '{objectName}' could not create a ContentAnchorDeclaration. {exception.Message}",
+                        anchor);
+                }
+            }
+
+            if (!report.HasIssues)
+            {
+                report.AddInfo(
+                    $"Activity Content Anchor on GameObject '{objectName}' is valid for the current F9G authoring-validation scope.",
+                    anchor);
+            }
+
+            return report;
+        }
+
         private static void ValidateRouteContentAnchorSceneRoute(
             FrameworkAuthoringValidationReport report,
             RouteContentAnchor anchor,
@@ -649,6 +726,47 @@ namespace Immersive.Framework.Editor.Editor.Validation
             ValidateContentAnchorSetIssues(report, declarations);
         }
 
+        private static void ValidateOpenSceneActivityContentAnchors(
+            FrameworkAuthoringValidationReport report,
+            FrameworkValidationMode validationMode)
+        {
+            ActivityContentAnchor[] anchors = Object.FindObjectsByType<ActivityContentAnchor>(FindObjectsInactive.Include);
+            if (anchors == null || anchors.Length == 0)
+            {
+                report.AddInfo("No Activity Content Anchor components were found in open scenes.", null);
+                return;
+            }
+
+            int sceneAnchorCount = 0;
+            var declarations = new List<ContentAnchorDeclaration>(anchors.Length);
+
+            for (int i = 0; i < anchors.Length; i++)
+            {
+                var anchor = anchors[i];
+                if (anchor == null || anchor.gameObject == null || !anchor.gameObject.scene.IsValid())
+                {
+                    continue;
+                }
+
+                if (!anchor.gameObject.scene.isLoaded)
+                {
+                    continue;
+                }
+
+                sceneAnchorCount++;
+                report.AddRange(ValidateActivityContentAnchor(anchor, validationMode));
+                TryCollectContentAnchorDeclaration(anchor, declarations, report);
+            }
+
+            if (sceneAnchorCount == 0)
+            {
+                report.AddInfo("No scene-authored Activity Content Anchor components were found in loaded scenes.", null);
+                return;
+            }
+
+            ValidateContentAnchorSetIssues(report, declarations, "Activity Content Anchor");
+        }
+
         private static void TryCollectContentAnchorDeclaration(
             RouteContentAnchor anchor,
             List<ContentAnchorDeclaration> declarations,
@@ -674,9 +792,35 @@ namespace Immersive.Framework.Editor.Editor.Validation
             }
         }
 
+        private static void TryCollectContentAnchorDeclaration(
+            ActivityContentAnchor anchor,
+            List<ContentAnchorDeclaration> declarations,
+            FrameworkAuthoringValidationReport report)
+        {
+            if (anchor == null || !anchor.HasValidAuthoring)
+            {
+                return;
+            }
+
+            try
+            {
+                if (anchor.TryCreateDeclaration(out var declaration))
+                {
+                    declarations.Add(declaration);
+                }
+            }
+            catch (Exception exception)
+            {
+                report.AddError(
+                    $"Activity Content Anchor on GameObject '{anchor.ObjectName}' could not be collected for duplicate validation. {exception.Message}",
+                    anchor);
+            }
+        }
+
         private static void ValidateContentAnchorSetIssues(
             FrameworkAuthoringValidationReport report,
-            IReadOnlyList<ContentAnchorDeclaration> declarations)
+            IReadOnlyList<ContentAnchorDeclaration> declarations,
+            string label = "Route Content Anchor")
         {
             if (declarations == null || declarations.Count == 0)
             {
@@ -687,7 +831,7 @@ namespace Immersive.Framework.Editor.Editor.Validation
             if (!set.HasIssues)
             {
                 report.AddInfo(
-                    $"Route Content Anchor duplicate validation passed. anchors='{set.Count}' required='{set.RequiredCount}' optional='{set.OptionalCount}'.",
+                    $"{label} duplicate validation passed. anchors='{set.Count}' required='{set.RequiredCount}' optional='{set.OptionalCount}'.",
                     null);
                 return;
             }
@@ -701,10 +845,10 @@ namespace Immersive.Framework.Editor.Editor.Validation
                     case ContentAnchorSetIssueKind.DuplicateIdentity:
                     case ContentAnchorSetIssueKind.DuplicateAnchorId:
                     case ContentAnchorSetIssueKind.InvalidDeclaration:
-                        report.AddError($"Route Content Anchor duplicate validation issue: {issue.ToDiagnosticString()}.", null);
+                        report.AddError($"{label} duplicate validation issue: {issue.ToDiagnosticString()}.", null);
                         break;
                     default:
-                        report.AddWarning($"Route Content Anchor validation issue: {issue.ToDiagnosticString()}.", null);
+                        report.AddWarning($"{label} validation issue: {issue.ToDiagnosticString()}.", null);
                         break;
                 }
             }

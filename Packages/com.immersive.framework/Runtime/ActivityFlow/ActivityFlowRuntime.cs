@@ -16,6 +16,7 @@ namespace Immersive.Framework.ActivityFlow
     internal sealed class ActivityFlowRuntime
     {
         private readonly ActivityContentRuntime _activityContentRuntime = new ActivityContentRuntime();
+        private readonly ContentAnchorDiscoveryRuntime _contentAnchorDiscoveryRuntime = new ContentAnchorDiscoveryRuntime();
         private readonly RuntimeContentRuntime _runtimeContentRuntime;
         private readonly RuntimeContentAnchorBinding _contentAnchorBindingRuntime;
         private readonly EventBus<ActivityEnteredEvent> _activityEnteredEvents = new EventBus<ActivityEnteredEvent>();
@@ -80,7 +81,8 @@ namespace Immersive.Framework.ActivityFlow
                     previousActivity,
                     contentResult,
                     runtimeScopeResult,
-                    bindingCleanupResult));
+                    bindingCleanupResult,
+                    ActivityContentAnchorDiscoveryResult.Empty(null, resolvedSource, resolvedReason, "No startup Activity is active; Activity Content Anchor discovery was skipped.")));
             }
 
             return StartActivityCoreAsync(route.StartupActivity, previousActivity, resolvedSource, resolvedReason);
@@ -139,7 +141,8 @@ namespace Immersive.Framework.ActivityFlow
                 previousActivity,
                 contentResult,
                 runtimeScopeResult,
-                bindingCleanupResult));
+                bindingCleanupResult,
+                ActivityContentAnchorDiscoveryResult.Empty(null, resolvedSource, resolvedReason, "Activity was cleared; Activity Content Anchor discovery was skipped.")));
         }
 
         private Task<ActivityFlowStartResult> StartActivityCoreAsync(ActivityAsset nextActivity, ActivityAsset previousActivity, string source, string reason)
@@ -165,6 +168,11 @@ namespace Immersive.Framework.ActivityFlow
             var runtimeEnterResult = CreateActivityScopeRoot(nextActivity, resolvedSource, resolvedReason);
             _currentActivityState = ActivityRuntimeState.ActiveWith(nextActivity, previousActivity, resolvedSource, resolvedReason);
             var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, nextActivity, resolvedSource, resolvedReason);
+            var activityContentAnchorDiscoveryResult = _contentAnchorDiscoveryRuntime.DiscoverActivityAnchors(
+                nextActivity,
+                _currentRoute,
+                resolvedSource,
+                resolvedReason);
             var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, nextActivity, resolvedSource, resolvedReason);
             var runtimeExitResult = RemovePreviousActivityScopeRoot(previousActivity, nextActivity, resolvedSource, resolvedReason);
             var runtimeScopeResult = MergeActivityScopeResults(runtimeEnterResult, runtimeExitResult, nextActivity, previousActivity, resolvedSource, resolvedReason);
@@ -174,7 +182,8 @@ namespace Immersive.Framework.ActivityFlow
                 previousActivity,
                 contentResult,
                 runtimeScopeResult,
-                bindingCleanupResult));
+                bindingCleanupResult,
+                activityContentAnchorDiscoveryResult));
         }
 
         private ActivityContentApplyResult ApplyActivityContentThroughLifecycleEvents(ActivityAsset previousActivity, ActivityAsset nextActivity, string source, string reason)

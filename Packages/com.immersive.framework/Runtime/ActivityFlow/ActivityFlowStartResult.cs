@@ -23,7 +23,8 @@ namespace Immersive.Framework.ActivityFlow
             ActivityContentApplyResult activityContentResult,
             ActivityReadinessState activityReadinessState,
             RuntimeScopeLifecycleResult runtimeActivityScopeResult = default(RuntimeScopeLifecycleResult),
-            ContentAnchorBindingLifecycleResult activityContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult))
+            ContentAnchorBindingLifecycleResult activityContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult),
+            ActivityContentAnchorDiscoveryResult activityContentAnchorDiscoveryResult = default(ActivityContentAnchorDiscoveryResult))
         {
             Started = started;
             Skipped = skipped;
@@ -36,6 +37,7 @@ namespace Immersive.Framework.ActivityFlow
             ActivityReadinessState = activityReadinessState;
             RuntimeActivityScopeResult = runtimeActivityScopeResult;
             ActivityContentAnchorBindingCleanupResult = activityContentAnchorBindingCleanupResult;
+            ActivityContentAnchorDiscoveryResult = activityContentAnchorDiscoveryResult;
         }
 
         public bool Started { get; }
@@ -66,6 +68,12 @@ namespace Immersive.Framework.ActivityFlow
 
         public ContentAnchorBindingLifecycleResult ActivityContentAnchorBindingCleanupResult { get; }
 
+        public ActivityContentAnchorDiscoveryResult ActivityContentAnchorDiscoveryResult { get; }
+
+        public ContentAnchorSet ActivityContentAnchorSet => ActivityContentAnchorDiscoveryResult.AnchorSet;
+
+        public bool HasActivityContentAnchors => ActivityContentAnchorDiscoveryResult.HasAnchors;
+
         public bool HasRuntimeActivityScope => RuntimeActivityScopeResult.Executed;
 
         public bool HasActivityContent => ActivityContentSet.HasContent;
@@ -94,7 +102,8 @@ namespace Immersive.Framework.ActivityFlow
             ActivityAsset previousActivity,
             ActivityContentApplyResult activityContentResult,
             RuntimeScopeLifecycleResult runtimeActivityScopeResult = default(RuntimeScopeLifecycleResult),
-            ContentAnchorBindingLifecycleResult activityContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult))
+            ContentAnchorBindingLifecycleResult activityContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult),
+            ActivityContentAnchorDiscoveryResult activityContentAnchorDiscoveryResult = default(ActivityContentAnchorDiscoveryResult))
         {
             var readinessState = BuildReadinessState(activityState, activityContentResult);
             var runtimeScopeMessage = RuntimeScopeMessage(runtimeActivityScopeResult);
@@ -112,7 +121,8 @@ namespace Immersive.Framework.ActivityFlow
                     activityContentResult,
                     readinessState,
                     runtimeActivityScopeResult,
-                    activityContentAnchorBindingCleanupResult);
+                    activityContentAnchorBindingCleanupResult,
+                    activityContentAnchorDiscoveryResult);
             }
 
             return new ActivityFlowStartResult(
@@ -126,7 +136,8 @@ namespace Immersive.Framework.ActivityFlow
                 activityContentResult,
                 readinessState,
                 runtimeActivityScopeResult,
-                activityContentAnchorBindingCleanupResult);
+                activityContentAnchorBindingCleanupResult,
+                activityContentAnchorDiscoveryResult);
         }
 
         public static ActivityFlowStartResult ClearedByRequest(
@@ -134,7 +145,8 @@ namespace Immersive.Framework.ActivityFlow
             ActivityAsset previousActivity,
             ActivityContentApplyResult activityContentResult,
             RuntimeScopeLifecycleResult runtimeActivityScopeResult = default(RuntimeScopeLifecycleResult),
-            ContentAnchorBindingLifecycleResult activityContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult))
+            ContentAnchorBindingLifecycleResult activityContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult),
+            ActivityContentAnchorDiscoveryResult activityContentAnchorDiscoveryResult = default(ActivityContentAnchorDiscoveryResult))
         {
             if (previousActivity == null)
             {
@@ -155,7 +167,8 @@ namespace Immersive.Framework.ActivityFlow
                 activityContentResult,
                 readinessState,
                 runtimeActivityScopeResult,
-                activityContentAnchorBindingCleanupResult);
+                activityContentAnchorBindingCleanupResult,
+                activityContentAnchorDiscoveryResult);
         }
 
         public static ActivityFlowStartResult KeptCurrentActivity(ActivityRuntimeState activityState)
@@ -179,7 +192,8 @@ namespace Immersive.Framework.ActivityFlow
             ActivityAsset previousActivity,
             ActivityContentApplyResult activityContentResult,
             RuntimeScopeLifecycleResult runtimeActivityScopeResult = default(RuntimeScopeLifecycleResult),
-            ContentAnchorBindingLifecycleResult activityContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult))
+            ContentAnchorBindingLifecycleResult activityContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult),
+            ActivityContentAnchorDiscoveryResult activityContentAnchorDiscoveryResult = default(ActivityContentAnchorDiscoveryResult))
         {
             var activity = activityState.Activity;
             var readinessState = BuildReadinessState(activityState, activityContentResult);
@@ -201,7 +215,8 @@ namespace Immersive.Framework.ActivityFlow
                 activityContentResult,
                 readinessState,
                 runtimeActivityScopeResult,
-                activityContentAnchorBindingCleanupResult);
+                activityContentAnchorBindingCleanupResult,
+                activityContentAnchorDiscoveryResult);
         }
 
         private static ActivityReadinessState BuildReadinessState(ActivityRuntimeState activityState, ActivityContentApplyResult activityContentResult)

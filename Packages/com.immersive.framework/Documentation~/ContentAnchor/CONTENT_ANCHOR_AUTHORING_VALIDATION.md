@@ -1,8 +1,8 @@
 # Content Anchor Authoring Validation
 
-Status: `F7H — CLOSED / PASS`
+Status: `F7H — Route closed / PASS`; `F9G — Activity anchors applied / pending smoke`
 
-F7H adds authoring-validation coverage for `RouteContentAnchor` without adding runtime binding, placement, required-anchor enforcement, Activity anchors or gameplay consumers.
+F7H added authoring-validation coverage for `RouteContentAnchor`. F9G extends the same loaded-authoring validation path to `ActivityContentAnchor`. Neither path adds runtime placement, required-anchor enforcement or gameplay consumers.
 
 ## What is validated
 
@@ -14,6 +14,17 @@ missing Anchor Id
 Kind = Unknown
 invalid Requiredness
 authored scene not declared by the assigned Route
+duplicate Content Anchor identity
+duplicate owner + scope + Anchor Id
+```
+
+Loaded scene-authored `ActivityContentAnchor` components are checked for:
+
+```text
+missing Activity
+missing Anchor Id
+Kind = Unknown
+invalid Requiredness
 duplicate Content Anchor identity
 duplicate owner + scope + Anchor Id
 ```
@@ -45,6 +56,7 @@ It validates the loaded authoring surface currently used by the framework:
 RouteContentBinding
 ActivityLocalVisibilityAdapter
 RouteContentAnchor
+ActivityContentAnchor
 LocalContributionSet
 ContentAnchorSet duplicate diagnostics
 ```
@@ -52,7 +64,7 @@ ContentAnchorSet duplicate diagnostics
 Expected healthy log for the F7 baseline:
 
 ```text
-QA Authoring Validation completed. scope='Loaded Authoring' routeBindings='1' activityAdapters='1' routeContentAnchors='1' issues='0' contentAnchors='1' contentAnchorIssues='0' contentAnchorDuplicateIdentity='0' contentAnchorDuplicateId='0'
+QA Authoring Validation completed. scope='Loaded Authoring' routeBindings='1' activityAdapters='1' routeContentAnchors='1' activityContentAnchors='0' issues='0' contentAnchors='1' contentAnchorIssues='0' contentAnchorDuplicateIdentity='0' contentAnchorDuplicateId='0'
 ```
 
 ## What F7H does not do
@@ -61,7 +73,6 @@ F7H does not add:
 
 ```text
 required-anchor lifecycle blocking
-ActivityContentAnchor
 ContentAnchorRegistry
 runtime placement/binding
 RuntimeRootRegistry

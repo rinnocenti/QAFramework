@@ -1051,3 +1051,10 @@ O backlog FX não bloqueia F8/F9, mas passa a ser rastreado como parte da maturi
 | FX8 | Asset Provider / Addressables / DLC Boundary | Após adapter boundary e release policy estarem fechados. |
 | FX9 | Domain Reload / Hot Reload Resilience | Após F8, quando runtime handles/roots existirem. |
 | FX10 | Telemetry / Analytics Hooks | Após transition/activity lifecycle ficarem estáveis. |
+
+
+### F9G — Activity Content Anchor authoring/discovery
+
+Status: `APPLIED / PENDING SMOKE`
+
+Adds Activity-scoped Content Anchor authoring, discovery diagnostics and QA smoke. No physical placement, prefab/scene adapter, Addressables, pooling or gameplay consumers.

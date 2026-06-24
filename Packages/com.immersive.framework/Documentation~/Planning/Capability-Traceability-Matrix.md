@@ -752,3 +752,10 @@ F2 intentionally does not implement persistent scenes, Route baseline, Content A
 ## F4 closure note
 
 F4 fecha o baseline mínimo de Activity. `ActivityContentSet` permanece snapshot local/diagnóstico de adapters de visibilidade. F5 deve iniciar por identidade local própria, sem reutilizar nome/path de cena ou GameObject como chave funcional canônica.
+
+
+### F9G — Activity Content Anchor authoring/discovery
+
+Status: `APPLIED / PENDING SMOKE`
+
+Adds Activity-scoped Content Anchor authoring, discovery diagnostics and QA smoke. No physical placement, prefab/scene adapter, Addressables, pooling or gameplay consumers.
