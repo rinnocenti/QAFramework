@@ -1,14 +1,14 @@
 # Activity Content Execution Participant Contract
 
 Status: APPLIED / PARTICIPANT CONTRACT + COLLECTION MODEL  
-Fase: F10D-F10E  
+Fase: F10D-F10F  
 Escopo: Framework Core
 
 ---
 
 ## Contexto
 
-F10B/F10C definiram request/result e aggregate result para Activity Content Execution. F10D adiciona a fronteira passiva para um participante de execucao. F10E adiciona a colecao passiva/ordenavel desses participants, ainda sem discovery, sem executor runtime e sem integracao no lifecycle.
+F10B/F10C definiram request/result e aggregate result para Activity Content Execution. F10D adiciona a fronteira passiva para um participante de execucao. F10E adiciona a colecao passiva/ordenavel desses participants. F10F adiciona request factory e phase plan, ainda sem discovery, sem executor runtime e sem integracao no lifecycle.
 
 ## Contratos adicionados
 
@@ -55,7 +55,7 @@ participant/adapters/consumers futuros executam comportamento local
 
 ## Fronteiras
 
-F10D/F10E nao adicionam:
+F10D-F10F nao adicionam:
 
 ```text
 participant discovery
@@ -77,7 +77,7 @@ Actor/Player/Camera/Pause/Input/Save consumers
 
 Smoke esperado: compile/import.
 
-Nao ha Play Mode behavior novo em F10D.
+Nao ha Play Mode behavior novo em F10D-F10F.
 
 
 ## Collection

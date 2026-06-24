@@ -8,7 +8,7 @@ Escopo: Framework Core
 
 ## Contexto
 
-F10D adicionou o contrato passivo de participant. F10E adiciona a colecao passiva e ordenavel desses participants, ainda sem discovery, sem executor runtime e sem integracao no lifecycle.
+F10D adicionou o contrato passivo de participant. F10E adiciona a colecao passiva e ordenavel desses participants. F10F usa essa collection para criar um phase plan passivo, ainda sem discovery, sem executor runtime e sem integracao no lifecycle.
 
 ## Contratos adicionados
 
@@ -60,7 +60,7 @@ Duplicates usam `RuntimeContentId.StableText` como chave canonica. O primeiro pa
 
 ## Fronteiras
 
-F10E nao adiciona:
+F10E/F10F nao adicionam:
 
 ```text
 participant discovery
@@ -82,4 +82,4 @@ Actor/Player/Camera/Pause/Input/Save consumers
 
 Smoke esperado: compile/import.
 
-Nao ha Play Mode behavior novo em F10E.
+Nao ha Play Mode behavior novo em F10E/F10F.

@@ -10,7 +10,7 @@ Este documento substitui os roadmaps paralelos, a matriz separada de rastreabili
 |---|---|---|
 | F0-F8 | `CLOSED` | Baselines tecnicas e documentacao historica permanecem como evidencia. |
 | F9 | `CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS` | Fechou binding logico de Content Anchor. Nao fechou placement fisico nem adapters concretos. |
-| F10 | `OPEN / PARTICIPANT COLLECTION APPLIED / IMPLEMENTATION IN PROGRESS` | F10B/F10C/F10D/F10E aplicaram contratos passivos, resultado agregado, contrato de participant e collection/ordering model de Activity Content Execution. Nenhum discovery/runtime de execucao, adapter fisico ou gameplay consumer iniciado. |
+| F10 | `OPEN / PHASE PLAN APPLIED / IMPLEMENTATION IN PROGRESS` | F10B-F10F aplicaram contratos passivos, resultado agregado, contrato de participant, collection/ordering model e request factory/phase plan de Activity Content Execution. Nenhum discovery/runtime de execucao, adapter fisico ou gameplay consumer iniciado. |
 | F11+ | `PROPOSED / PENDING HUMAN APPROVAL` | Sequencia abaixo permanece proposta para fases futuras. |
 
 ## Regra de autoridade
@@ -46,7 +46,7 @@ F9 encerra apenas o binding logico entre declaracoes de Content Anchor e contrat
 
 | Phase | Layer | Nome | Estado |
 |---|---|---|---|
-| F10 | Framework Core | Activity Entry/Exit Content Execution | `OPEN / PARTICIPANT COLLECTION APPLIED / IMPLEMENTATION IN PROGRESS` |
+| F10 | Framework Core | Activity Entry/Exit Content Execution | `OPEN / PHASE PLAN APPLIED / IMPLEMENTATION IN PROGRESS` |
 | F11 | Framework Core | Reset Foundation | `PROPOSED / PENDING HUMAN APPROVAL` |
 | F12 | Framework Core | Transition / Loading Orchestration | `PROPOSED / PENDING HUMAN APPROVAL` |
 | F13 | Framework Core | Participation / Capability Contracts | `PROPOSED / PENDING HUMAN APPROVAL` |
@@ -117,6 +117,20 @@ ActivityContentExecutionParticipantCollectionIssueKind
 
 A collection valida participants fornecidos, rejeita nulos/descriptors invalidos/duplicidade de `RuntimeContentId`, preserva ordering deterministico por `order + sourceIndex` e gera snapshots por fase Enter/Exit. Ela ainda nao descobre participants, nao executa requests, nao integra readiness ao lifecycle e nao produz side effects Unity.
 
+
+### F10F request factory / phase plan applied
+
+F10F adiciona o modelo passivo que transforma uma collection ja conhecida em um plano de fase:
+
+```text
+ActivityContentExecutionParticipantCollection
+  -> ActivityContentExecutionRequestFactory
+      -> ActivityContentExecutionPhasePlan
+          -> ActivityContentExecutionRequest[]
+```
+
+F10F ainda nao adiciona discovery, executor runtime, integracao no ActivityFlow, smoke, adapters fisicos ou gameplay consumers.
+
 ## Framework Core boundary
 
 Framework Core pode definir:
@@ -185,7 +199,7 @@ Gameplay consumers consomem contratos do core e adapters, mas nao redefinem iden
 | Content Anchor declaration | Framework Core | `CLOSED F7` |
 | RuntimeContent logical roots/handles | Framework Core | `CLOSED F8` |
 | Content Anchor logical binding | Framework Core | `CLOSED F9` |
-| Activity entry/exit content execution contracts | Framework Core | `F10B/F10C/F10D/F10E CONTRACTS + AGGREGATE + PARTICIPANT CONTRACT + COLLECTION APPLIED` |
+| Activity entry/exit content execution contracts | Framework Core | `F10B-F10F CONTRACTS + AGGREGATE + PARTICIPANT CONTRACT + COLLECTION + PHASE PLAN APPLIED` |
 | Reset request/result/policy foundation | Framework Core | `PROPOSED F11` |
 | Transition/loading orchestration contracts | Framework Core | `PROPOSED F12` |
 | Participation/capability contracts | Framework Core | `PROPOSED F13` |
@@ -242,4 +256,4 @@ Antes de fechar F10, implementar e validar os cortes runtime/editor minimos:
 - diagnostics e QA smoke minimo;
 - confirmacao de que nenhuma execucao Unity concreta entrara no core.
 
-F10 permanece `OPEN / PARTICIPANT COLLECTION APPLIED / IMPLEMENTATION IN PROGRESS`; F10B-F10E foram aplicados, mas discovery/runtime de execucao ainda nao existe.
+F10 permanece `OPEN / PHASE PLAN APPLIED / IMPLEMENTATION IN PROGRESS`; F10B-F10F foram aplicados, mas discovery/runtime de execucao ainda nao existe.

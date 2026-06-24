@@ -17,7 +17,7 @@ Ponto de entrada do pacote `Documentation~`.
 
 - `Planning/Immersive-Framework-Roadmap-Revisado.md` e a fonte unica para roadmap, boundaries e sequencia F10+.
 - `COMPLETENESS_TRACKER.md` registra somente estado fechado/atual.
-- `ADRs/` preserva decisoes aceitas de F0-F10 classificadas por fase; F10 ja possui contratos passivos, resultado agregado, contrato de participant e collection/ordering model de Activity Content Execution, sem discovery/runtime de execucao. Nao manter bucket `Unassigned`.
+- `ADRs/` preserva decisoes aceitas de F0-F10 classificadas por fase; F10 ja possui contratos passivos, resultado agregado, contrato de participant, collection/ordering model e request factory/phase plan de Activity Content Execution, sem discovery/runtime de execucao. Nao manter bucket `Unassigned`.
 - `Architecture/ADR/` preserva historico arquitetural.
 - `Governance/` contem convencao e template de ADR.
 - `Guides/` contem conteudo navegavel.
@@ -53,6 +53,7 @@ Ponto de entrada do pacote `Documentation~`.
 - [`Activity/ACTIVITY_CONTENT_EXECUTION_CONTRACTS.md`](Activity/ACTIVITY_CONTENT_EXECUTION_CONTRACTS.md)
 - [`Activity/ACTIVITY_CONTENT_EXECUTION_PARTICIPANT_CONTRACT.md`](Activity/ACTIVITY_CONTENT_EXECUTION_PARTICIPANT_CONTRACT.md)
 - [`Activity/ACTIVITY_CONTENT_EXECUTION_PARTICIPANT_COLLECTION.md`](Activity/ACTIVITY_CONTENT_EXECUTION_PARTICIPANT_COLLECTION.md)
+- [`Activity/ACTIVITY_CONTENT_EXECUTION_PHASE_PLAN.md`](Activity/ACTIVITY_CONTENT_EXECUTION_PHASE_PLAN.md)
 - [`Local/LOCAL_CONTENT_IDENTITY.md`](Local/LOCAL_CONTENT_IDENTITY.md)
 - [`Planning/F6-Route-Scene-Composition-Audit.md`](Planning/F6-Route-Scene-Composition-Audit.md)
 - [`Planning/F7-Content-Anchor-Declaration-Audit.md`](Planning/F7-Content-Anchor-Declaration-Audit.md)

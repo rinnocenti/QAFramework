@@ -2,7 +2,7 @@
 
 Status: APPLIED / CONTRACTS + AGGREGATE + PARTICIPANT CONTRACT + COLLECTION ONLY  
 Fase: F10  
-Cortes: F10B, F10C, F10D, F10E  
+Cortes: F10B, F10C, F10D, F10E, F10F  
 Escopo: Framework Core
 
 ---
@@ -11,7 +11,7 @@ Escopo: Framework Core
 
 F10 reintroduz entrada/saida de conteudo de Activity como conceito de framework core, sem capturar `Presentation`, gameplay, prefab, scene adapter ou placement fisico.
 
-F10B adiciona contratos passivos para um item de execucao logica de conteudo de Activity. F10C adiciona o resultado agregado passivo para uma fase de execucao. F10D adiciona o contrato passivo de participante. F10E adiciona a colecao passiva e ordenavel de participants, sem discovery ou executor runtime.
+F10B adiciona contratos passivos para um item de execucao logica de conteudo de Activity. F10C adiciona o resultado agregado passivo para uma fase de execucao. F10D adiciona o contrato passivo de participante. F10E adiciona a colecao passiva e ordenavel de participants. F10F adiciona request factory e phase plan passivos, sem discovery ou executor runtime.
 
 ## Contratos adicionados
 
@@ -149,4 +149,4 @@ Actor/Player/Camera/Pause/Input/Save consumers
 
 Smoke esperado: compile/import.
 
-Nao ha Play Mode behavior novo em F10B/F10C/F10D/F10E.
+Nao ha Play Mode behavior novo em F10B-F10F.
