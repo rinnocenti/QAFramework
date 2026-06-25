@@ -8,7 +8,7 @@ Documentation~/Planning/Immersive-Framework-Roadmap-Revisado.md
 
 ADRs record accepted architectural decisions. They do not replace the operational roadmap and must not redefine phase order.
 
-F11 is now closed as `Cycle Reset Foundation`. F12 is the next planned phase.
+F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integration & Authoring UX`. F13 is the next planned phase.
 
 ## Accepted ADRs
 
@@ -31,7 +31,7 @@ F11 is now closed as `Cycle Reset Foundation`. F12 is the next planned phase.
 | F10 | [Snapshot Model](F10-ADR-SNAPSHOT-001-Snapshot-Model.md) | Accepted |
 | F10 | [Pause as Consumer](F10-ADR-PAUSE-001-Pause-as-Consumer.md) | Accepted |
 | F11 | [Cycle Reset Foundation](F11-ADR-RESET-001-Cycle-Reset-Foundation.md) | Applied through F11G |
-| F12 | [Cycle Reset Integration and Authoring UX](F12-ADR-RESET-002-Cycle-Reset-Integration-Authoring-UX.md) | Accepted / Planned |
+| F12 | [Cycle Reset Integration and Authoring UX](F12-ADR-RESET-002-Cycle-Reset-Integration-Authoring-UX.md) | Applied through F12E |
 | F13 | [Object Entry Foundation](F13-ADR-OBJECT-001-Object-Entry-Foundation.md) | Accepted / Planned |
 | F14 | [Local Object Reset Foundation](F14-ADR-RESET-003-Local-Object-Reset-Foundation.md) | Accepted / Planned |
 | F15 | [Unity Reset Adapters](F15-ADR-RESET-004-Unity-Reset-Adapters.md) | Accepted / Planned |
@@ -42,3 +42,5 @@ F11 is now closed as `Cycle Reset Foundation`. F12 is the next planned phase.
 ## Rule
 
 Past ADRs record accepted/applied decisions. Future ADRs guide implementation and should be improved before each phase starts.
+
+F12 decision note: Cycle Reset Unity Event Bridges are optional. The trigger is the primary component; bridges only expose result callbacks in the Inspector.

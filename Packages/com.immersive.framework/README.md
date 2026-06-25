@@ -14,4 +14,4 @@ Accepted architectural decisions are indexed at:
 Documentation~/ADRs/ADR-INDEX.md
 ```
 
-F0-F11 are closed/applied. F12 is the next planned phase: `Cycle Reset Integration & Authoring UX`.
+F0-F12 are closed/applied. F13 is the next planned phase: `Object Entry Foundation`.
