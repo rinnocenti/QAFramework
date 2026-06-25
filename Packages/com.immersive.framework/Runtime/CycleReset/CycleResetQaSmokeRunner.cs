@@ -22,6 +22,8 @@ namespace Immersive.Framework.CycleReset
 
         internal const string TriggerSmokeName = "Cycle Reset Trigger Smoke";
 
+        internal const string BridgeSmokeName = "Cycle Reset Bridge Smoke";
+
         internal static async Task<bool> RunRuntimeHostSmokeAsync(
             FrameworkRuntimeHost runtimeHost,
             FrameworkLogger logger,
@@ -163,6 +165,73 @@ namespace Immersive.Framework.CycleReset
                 else
                 {
                     logger.Warning($"QA Smoke aborted. name='{TriggerSmokeName}'. reason='Step failed'.");
+                }
+            }
+
+            return completed;
+        }
+
+        internal static async Task<bool> RunBridgeSmokeAsync(
+            FrameworkRuntimeHost runtimeHost,
+            FrameworkLogger logger,
+            string source,
+            bool runRouteCycleReset = true,
+            bool runActivityCycleReset = true,
+            bool emitSmokeEnvelope = false)
+        {
+            if (logger == null)
+            {
+                return false;
+            }
+
+            source = string.IsNullOrWhiteSpace(source) ? nameof(CycleResetQaSmokeRunner) : source;
+
+            if (emitSmokeEnvelope)
+            {
+                logger.Info($"QA Smoke started. name='{BridgeSmokeName}'.");
+            }
+
+            if (runtimeHost == null)
+            {
+                logger.Warning($"QA Smoke aborted. name='{BridgeSmokeName}'. reason='Framework Runtime Host is missing'.");
+                return false;
+            }
+
+            if (runtimeHost.State.CurrentRoute == null)
+            {
+                logger.Warning($"QA Smoke aborted. name='{BridgeSmokeName}'. reason='Active Route is missing'.");
+                return false;
+            }
+
+            var completed = true;
+
+            if (runRouteCycleReset)
+            {
+                completed &= await RunRouteBridgeStep(logger, source);
+            }
+
+            if (runActivityCycleReset)
+            {
+                if (runtimeHost.State.CurrentActivity == null)
+                {
+                    logger.Warning("QA Cycle Reset Bridge Smoke step failed. step='activity-bridge' reason='Activity Cycle Reset requires an active Activity'.");
+                    completed = false;
+                }
+                else
+                {
+                    completed &= await RunActivityBridgeStep(logger, source);
+                }
+            }
+
+            if (emitSmokeEnvelope)
+            {
+                if (completed)
+                {
+                    logger.Info($"QA Smoke completed. name='{BridgeSmokeName}'.");
+                }
+                else
+                {
+                    logger.Warning($"QA Smoke aborted. name='{BridgeSmokeName}'. reason='Step failed'.");
                 }
             }
 
@@ -399,6 +468,193 @@ namespace Immersive.Framework.CycleReset
                     LogFields.Field("resultSummary", resultSummary)));
         }
 
+
+        private static async Task<bool> RunRouteBridgeStep(FrameworkLogger logger, string source)
+        {
+            GameObject gameObject = null;
+            try
+            {
+                gameObject = new GameObject("QA_CycleReset_RouteBridge_Smoke");
+                var trigger = gameObject.AddComponent<RouteCycleResetTrigger>();
+                var bridge = gameObject.AddComponent<RouteCycleResetTriggerUnityEventBridge>();
+                var counters = new BridgeEventCounters();
+                AttachBridgeCounters(bridge, counters);
+
+                trigger.RequestRouteCycleReset();
+
+                if (!await WaitForTriggerCompletion(trigger))
+                {
+                    logger.Warning("QA Cycle Reset Bridge Smoke step failed. step='route-bridge' reason='Route trigger did not complete in the expected editor frame window'.");
+                    return false;
+                }
+
+                return ValidateRouteBridgeResult(logger, trigger, counters, source);
+            }
+            finally
+            {
+                if (gameObject != null)
+                {
+                    UnityEngine.Object.Destroy(gameObject);
+                }
+            }
+        }
+
+        private static async Task<bool> RunActivityBridgeStep(FrameworkLogger logger, string source)
+        {
+            GameObject gameObject = null;
+            try
+            {
+                gameObject = new GameObject("QA_CycleReset_ActivityBridge_Smoke");
+                var trigger = gameObject.AddComponent<ActivityCycleResetTrigger>();
+                var bridge = gameObject.AddComponent<ActivityCycleResetTriggerUnityEventBridge>();
+                var counters = new BridgeEventCounters();
+                AttachBridgeCounters(bridge, counters);
+
+                trigger.RequestActivityCycleReset();
+
+                if (!await WaitForTriggerCompletion(trigger))
+                {
+                    logger.Warning("QA Cycle Reset Bridge Smoke step failed. step='activity-bridge' reason='Activity trigger did not complete in the expected editor frame window'.");
+                    return false;
+                }
+
+                return ValidateActivityBridgeResult(logger, trigger, counters, source);
+            }
+            finally
+            {
+                if (gameObject != null)
+                {
+                    UnityEngine.Object.Destroy(gameObject);
+                }
+            }
+        }
+
+        private static void AttachBridgeCounters(RouteCycleResetTriggerUnityEventBridge bridge, BridgeEventCounters counters)
+        {
+            bridge.RequestSubmitted.AddListener(() => counters.Submitted++);
+            bridge.RequestSucceeded.AddListener(() => counters.Succeeded++);
+            bridge.RequestSucceededWithParticipants.AddListener(() => counters.SucceededWithParticipants++);
+            bridge.RequestSucceededNoParticipants.AddListener(() => counters.SucceededNoParticipants++);
+            bridge.RequestCompletedWithWarnings.AddListener(() => counters.CompletedWithWarnings++);
+            bridge.RequestIgnored.AddListener(() => counters.Ignored++);
+            bridge.RequestFailed.AddListener(() => counters.Failed++);
+            bridge.RequestCompleted.AddListener(() => counters.Completed++);
+        }
+
+        private static void AttachBridgeCounters(ActivityCycleResetTriggerUnityEventBridge bridge, BridgeEventCounters counters)
+        {
+            bridge.RequestSubmitted.AddListener(() => counters.Submitted++);
+            bridge.RequestSucceeded.AddListener(() => counters.Succeeded++);
+            bridge.RequestSucceededWithParticipants.AddListener(() => counters.SucceededWithParticipants++);
+            bridge.RequestSucceededNoParticipants.AddListener(() => counters.SucceededNoParticipants++);
+            bridge.RequestCompletedWithWarnings.AddListener(() => counters.CompletedWithWarnings++);
+            bridge.RequestIgnored.AddListener(() => counters.Ignored++);
+            bridge.RequestFailed.AddListener(() => counters.Failed++);
+            bridge.RequestCompleted.AddListener(() => counters.Completed++);
+        }
+
+        private static bool ValidateRouteBridgeResult(FrameworkLogger logger, RouteCycleResetTrigger trigger, BridgeEventCounters counters, string source)
+        {
+            if (!ValidateBridgeTriggerResult(logger, "route-bridge", trigger.LastRequestFailed, trigger.HasLastResult, trigger.LastResult, trigger.LastResultSummary))
+            {
+                return false;
+            }
+
+            return ValidateBridgeCounters(logger, "route-bridge", CycleResetScope.Route, nameof(RouteCycleResetTriggerUnityEventBridge), source, trigger.LastResult, trigger.LastResultSummary, counters);
+        }
+
+        private static bool ValidateActivityBridgeResult(FrameworkLogger logger, ActivityCycleResetTrigger trigger, BridgeEventCounters counters, string source)
+        {
+            if (!ValidateBridgeTriggerResult(logger, "activity-bridge", trigger.LastRequestFailed, trigger.HasLastResult, trigger.LastResult, trigger.LastResultSummary))
+            {
+                return false;
+            }
+
+            return ValidateBridgeCounters(logger, "activity-bridge", CycleResetScope.Activity, nameof(ActivityCycleResetTriggerUnityEventBridge), source, trigger.LastResult, trigger.LastResultSummary, counters);
+        }
+
+        private static bool ValidateBridgeTriggerResult(
+            FrameworkLogger logger,
+            string step,
+            bool requestFailed,
+            bool hasLastResult,
+            CycleResetResult result,
+            string resultSummary)
+        {
+            if (requestFailed || !hasLastResult || !result.Succeeded)
+            {
+                logger.Warning($"QA Cycle Reset Bridge Smoke step failed. step='{step}' reason='Trigger request failed'. {resultSummary}");
+                return false;
+            }
+
+            if (result.BlockingIssueCount > 0)
+            {
+                logger.Warning($"QA Cycle Reset Bridge Smoke step failed. step='{step}' reason='Trigger result has blocking issues'. {resultSummary}");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool ValidateBridgeCounters(
+            FrameworkLogger logger,
+            string step,
+            CycleResetScope scope,
+            string bridge,
+            string source,
+            CycleResetResult result,
+            string resultSummary,
+            BridgeEventCounters counters)
+        {
+            if (counters.Submitted != 1 || counters.Succeeded != 1 || counters.Completed != 1)
+            {
+                logger.Warning($"QA Cycle Reset Bridge Smoke step failed. step='{step}' reason='Bridge did not receive required UnityEvent callbacks' submitted='{counters.Submitted}' succeeded='{counters.Succeeded}' completed='{counters.Completed}'. {resultSummary}");
+                return false;
+            }
+
+            var expectedSucceededNoParticipants = result.Status == CycleResetStatus.SucceededNoParticipants ? 1 : 0;
+            var expectedSucceededWithParticipants = result.Status == CycleResetStatus.Succeeded ? 1 : 0;
+            var expectedCompletedWithWarnings = result.CompletedWithWarnings ? 1 : 0;
+
+            if (counters.SucceededNoParticipants != expectedSucceededNoParticipants ||
+                counters.SucceededWithParticipants != expectedSucceededWithParticipants ||
+                counters.CompletedWithWarnings != expectedCompletedWithWarnings ||
+                counters.Ignored != 0 ||
+                counters.Failed != 0)
+            {
+                logger.Warning(
+                    $"QA Cycle Reset Bridge Smoke step failed. step='{step}' reason='Bridge UnityEvent callback routing is inconsistent' " +
+                    $"succeededNoParticipants='{counters.SucceededNoParticipants}' expectedSucceededNoParticipants='{expectedSucceededNoParticipants}' " +
+                    $"succeededWithParticipants='{counters.SucceededWithParticipants}' expectedSucceededWithParticipants='{expectedSucceededWithParticipants}' " +
+                    $"completedWithWarnings='{counters.CompletedWithWarnings}' expectedCompletedWithWarnings='{expectedCompletedWithWarnings}' " +
+                    $"ignored='{counters.Ignored}' failed='{counters.Failed}'. {resultSummary}");
+                return false;
+            }
+
+            logger.Info(
+                "QA Cycle Reset Bridge Smoke step completed.",
+                LogFields.Of(
+                    LogFields.Field("step", step),
+                    LogFields.Field("scope", scope.ToString()),
+                    LogFields.Field("bridge", bridge),
+                    LogFields.Field("source", source),
+                    LogFields.Field("resultStatus", result.Status.ToString()),
+                    LogFields.Field("participants", result.ParticipantCount),
+                    LogFields.Field("submittedEvents", counters.Submitted),
+                    LogFields.Field("succeededEvents", counters.Succeeded),
+                    LogFields.Field("succeededWithParticipantsEvents", counters.SucceededWithParticipants),
+                    LogFields.Field("succeededNoParticipantsEvents", counters.SucceededNoParticipants),
+                    LogFields.Field("completedWithWarningsEvents", counters.CompletedWithWarnings),
+                    LogFields.Field("ignoredEvents", counters.Ignored),
+                    LogFields.Field("failedEvents", counters.Failed),
+                    LogFields.Field("completedEvents", counters.Completed),
+                    LogFields.Field("blockingIssues", result.BlockingIssueCount),
+                    LogFields.Field("nonBlockingIssues", result.NonBlockingIssueCount),
+                    LogFields.Field("resultSummary", resultSummary)));
+
+            return true;
+        }
+
         private static int ExpectedParticipantCountFor(CycleResetRequest request)
         {
             if (!request.IsValid)
@@ -473,6 +729,18 @@ namespace Immersive.Framework.CycleReset
                         source: source,
                         reason: "qa.cycle-reset.activity.optional"))
             };
+        }
+
+        private sealed class BridgeEventCounters
+        {
+            public int Submitted;
+            public int Succeeded;
+            public int SucceededWithParticipants;
+            public int SucceededNoParticipants;
+            public int CompletedWithWarnings;
+            public int Ignored;
+            public int Failed;
+            public int Completed;
         }
 
         private sealed class SyntheticCycleResetParticipantSource : ICycleResetParticipantSource

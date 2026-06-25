@@ -20,14 +20,14 @@ namespace Immersive.Framework.CycleReset
         private IEventBinding _binding;
 
         [Header("Events")]
-        [SerializeField] private UnityEvent requestSubmitted;
-        [SerializeField] private UnityEvent requestSucceeded;
-        [SerializeField] private UnityEvent requestSucceededWithParticipants;
-        [SerializeField] private UnityEvent requestSucceededNoParticipants;
-        [SerializeField] private UnityEvent requestCompletedWithWarnings;
-        [SerializeField] private UnityEvent requestIgnored;
-        [SerializeField] private UnityEvent requestFailed;
-        [SerializeField] private UnityEvent requestCompleted;
+        [SerializeField] private UnityEvent requestSubmitted = new UnityEvent();
+        [SerializeField] private UnityEvent requestSucceeded = new UnityEvent();
+        [SerializeField] private UnityEvent requestSucceededWithParticipants = new UnityEvent();
+        [SerializeField] private UnityEvent requestSucceededNoParticipants = new UnityEvent();
+        [SerializeField] private UnityEvent requestCompletedWithWarnings = new UnityEvent();
+        [SerializeField] private UnityEvent requestIgnored = new UnityEvent();
+        [SerializeField] private UnityEvent requestFailed = new UnityEvent();
+        [SerializeField] private UnityEvent requestCompleted = new UnityEvent();
 
         public UnityEvent RequestSubmitted => requestSubmitted;
 

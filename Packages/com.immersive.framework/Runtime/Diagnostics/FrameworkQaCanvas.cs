@@ -269,6 +269,11 @@ namespace Immersive.Framework.Diagnostics
                     RunCycleResetTriggerSmoke();
                 }
 
+                if (GUILayout.Button("Run Cycle Reset Bridge Smoke"))
+                {
+                    RunCycleResetBridgeSmoke();
+                }
+
                 if (GUILayout.Button("Validate Loaded Authoring"))
                 {
                     ValidateLoadedLocalContributionsAuthoring();
@@ -721,6 +726,18 @@ namespace Immersive.Framework.Diagnostics
         {
             await RunSmokeAsync(CycleResetQaSmokeRunner.TriggerSmokeName, runtimeHost =>
                 CycleResetQaSmokeRunner.RunTriggerSmokeAsync(
+                    runtimeHost,
+                    _logger,
+                    QaSource,
+                    runRouteCycleReset: true,
+                    runActivityCycleReset: true,
+                    emitSmokeEnvelope: false));
+        }
+
+        private async void RunCycleResetBridgeSmoke()
+        {
+            await RunSmokeAsync(CycleResetQaSmokeRunner.BridgeSmokeName, runtimeHost =>
+                CycleResetQaSmokeRunner.RunBridgeSmokeAsync(
                     runtimeHost,
                     _logger,
                     QaSource,
