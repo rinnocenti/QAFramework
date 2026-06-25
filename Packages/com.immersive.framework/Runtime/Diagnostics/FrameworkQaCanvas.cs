@@ -11,6 +11,7 @@ using Immersive.Framework.LocalContribution;
 using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.RuntimeContent;
 using Immersive.Framework.CycleReset;
+using Immersive.Framework.ObjectEntry;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
@@ -272,6 +273,11 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Cycle Reset Bridge Smoke"))
                 {
                     RunCycleResetBridgeSmoke();
+                }
+
+                if (GUILayout.Button("Run Object Entry Synthetic Set Smoke"))
+                {
+                    RunObjectEntrySyntheticSetSmoke();
                 }
 
                 if (GUILayout.Button("Validate Loaded Authoring"))
@@ -744,6 +750,12 @@ namespace Immersive.Framework.Diagnostics
                     runRouteCycleReset: true,
                     runActivityCycleReset: true,
                     emitSmokeEnvelope: false));
+        }
+
+        private async void RunObjectEntrySyntheticSetSmoke()
+        {
+            await RunSmokeAsync(ObjectEntryQaSmokeRunner.SyntheticSetSmokeName, runtimeHost =>
+                ObjectEntryQaSmokeRunner.RunSyntheticSetSmokeAsync(_logger, QaSource));
         }
 
         private async void RunStandardSmoke()
@@ -3438,15 +3450,30 @@ namespace Immersive.Framework.Diagnostics
                 FindObjectsInactive.Include);
             ActivityContentAnchor[] activityContentAnchors = FindObjectsByType<ActivityContentAnchor>(
                 FindObjectsInactive.Include);
+            RouteCycleResetTrigger[] routeCycleResetTriggers = FindObjectsByType<RouteCycleResetTrigger>(
+                FindObjectsInactive.Include);
+            ActivityCycleResetTrigger[] activityCycleResetTriggers = FindObjectsByType<ActivityCycleResetTrigger>(
+                FindObjectsInactive.Include);
+            ObjectEntryDeclaration[] objectEntryDeclarations = FindObjectsByType<ObjectEntryDeclaration>(
+                FindObjectsInactive.Include);
 
             int routeBindingCount = routeBindings != null ? routeBindings.Length : 0;
             int activityAdapterCount = activityAdapters != null ? activityAdapters.Length : 0;
             int routeContentAnchorCount = routeContentAnchors != null ? routeContentAnchors.Length : 0;
             int activityContentAnchorCount = activityContentAnchors != null ? activityContentAnchors.Length : 0;
+            int routeCycleResetTriggerCount = routeCycleResetTriggers != null ? routeCycleResetTriggers.Length : 0;
+            int activityCycleResetTriggerCount = activityCycleResetTriggers != null ? activityCycleResetTriggers.Length : 0;
+            int objectEntryDeclarationCount = objectEntryDeclarations != null ? objectEntryDeclarations.Length : 0;
 
-            if (routeBindingCount == 0 && activityAdapterCount == 0 && routeContentAnchorCount == 0 && activityContentAnchorCount == 0)
+            if (routeBindingCount == 0
+                && activityAdapterCount == 0
+                && routeContentAnchorCount == 0
+                && activityContentAnchorCount == 0
+                && routeCycleResetTriggerCount == 0
+                && activityCycleResetTriggerCount == 0
+                && objectEntryDeclarationCount == 0)
             {
-                _logger.Warning("QA Authoring Validation completed. scope='Loaded Authoring' routeBindings='0' activityAdapters='0' routeContentAnchors='0' activityContentAnchors='0' localContributions='0' contentAnchors='0' issues='1' reason='No local contribution or Content Anchor authoring components found in loaded scenes'.");
+                _logger.Warning("QA Authoring Validation completed. scope='Loaded Authoring' routeBindings='0' activityAdapters='0' routeContentAnchors='0' activityContentAnchors='0' routeCycleResetTriggers='0' activityCycleResetTriggers='0' objectEntryDeclarations='0' localContributions='0' contentAnchors='0' objectEntries='0' issues='1' reason='No framework authoring components found in loaded scenes'.");
                 return;
             }
 
@@ -3454,6 +3481,7 @@ namespace Immersive.Framework.Diagnostics
             int errorCount = 0;
             int warningCount = 0;
             var contentAnchorDeclarations = new List<ContentAnchorDeclaration>(Math.Max(0, routeContentAnchorCount + activityContentAnchorCount));
+            var objectEntryDescriptors = new List<ObjectEntryDescriptor>(Math.Max(0, objectEntryDeclarationCount));
 
             if (routeBindings != null)
             {
@@ -3489,6 +3517,31 @@ namespace Immersive.Framework.Diagnostics
                 }
             }
 
+            ValidateLoadedCycleResetTriggers(
+                routeCycleResetTriggers,
+                activityCycleResetTriggers,
+                ref issueCount,
+                ref errorCount,
+                ref warningCount);
+
+            if (objectEntryDeclarations != null)
+            {
+                for (int i = 0; i < objectEntryDeclarations.Length; i++)
+                {
+                    ValidateLoadedObjectEntryDeclaration(
+                        objectEntryDeclarations[i],
+                        objectEntryDescriptors,
+                        ref issueCount,
+                        ref errorCount,
+                        ref warningCount);
+                }
+            }
+
+            var objectEntrySet = CreateLoadedObjectEntrySet(
+                objectEntryDescriptors,
+                ref issueCount,
+                ref errorCount);
+
             var contentAnchorSet = ContentAnchorSet.FromDeclarations(contentAnchorDeclarations);
             AddLoadedRouteContentAnchorSetIssues(contentAnchorSet, ref issueCount, ref errorCount, ref warningCount);
 
@@ -3505,6 +3558,9 @@ namespace Immersive.Framework.Diagnostics
                         LogFields.Field("activityAdapters", activityAdapterCount),
                         LogFields.Field("routeContentAnchors", routeContentAnchorCount),
                         LogFields.Field("activityContentAnchors", activityContentAnchorCount),
+                        LogFields.Field("routeCycleResetTriggers", routeCycleResetTriggerCount),
+                        LogFields.Field("activityCycleResetTriggers", activityCycleResetTriggerCount),
+                        LogFields.Field("objectEntryDeclarations", objectEntryDeclarationCount),
                         LogFields.Field("issues", 0),
                         LogFields.Field("localContributions", validationResult.ContributionCount),
                         LogFields.Field("blockingIssues", validationResult.BlockingIssueCount),
@@ -3512,12 +3568,19 @@ namespace Immersive.Framework.Diagnostics
                         LogFields.Field("contentAnchors", contentAnchorSet.Count),
                         LogFields.Field("contentAnchorIssues", contentAnchorSet.IssueCount),
                         LogFields.Field("contentAnchorDuplicateIdentity", contentAnchorSet.DuplicateIdentityIssueCount),
-                        LogFields.Field("contentAnchorDuplicateId", contentAnchorSet.DuplicateAnchorIdIssueCount)));
+                        LogFields.Field("contentAnchorDuplicateId", contentAnchorSet.DuplicateAnchorIdIssueCount),
+                        LogFields.Field("objectEntries", objectEntrySet.Count),
+                        LogFields.Field("objectEntryRequired", objectEntrySet.RequiredCount),
+                        LogFields.Field("objectEntryOptional", objectEntrySet.OptionalCount),
+                        LogFields.Field("objectEntryRoute", CountObjectEntriesByScope(objectEntrySet, ObjectEntryScope.Route)),
+                        LogFields.Field("objectEntryActivity", CountObjectEntriesByScope(objectEntrySet, ObjectEntryScope.Activity)),
+                        LogFields.Field("objectEntrySession", CountObjectEntriesByScope(objectEntrySet, ObjectEntryScope.Session))));
                 _logger.Debug(
                     "QA Authoring Validation diagnostics.",
                     LogFields.Of(
                         LogFields.Field("localContributions", validationResult.ToDiagnosticString()),
-                        LogFields.Field("contentAnchors", contentAnchorSet.ToDiagnosticString())));
+                        LogFields.Field("contentAnchors", contentAnchorSet.ToDiagnosticString()),
+                        LogFields.Field("objectEntries", BuildObjectEntryDiagnostics(objectEntrySet))));
                 return;
             }
 
@@ -3529,6 +3592,9 @@ namespace Immersive.Framework.Diagnostics
                     LogFields.Field("activityAdapters", activityAdapterCount),
                     LogFields.Field("routeContentAnchors", routeContentAnchorCount),
                     LogFields.Field("activityContentAnchors", activityContentAnchorCount),
+                    LogFields.Field("routeCycleResetTriggers", routeCycleResetTriggerCount),
+                    LogFields.Field("activityCycleResetTriggers", activityCycleResetTriggerCount),
+                    LogFields.Field("objectEntryDeclarations", objectEntryDeclarationCount),
                     LogFields.Field("issues", issueCount),
                     LogFields.Field("errors", errorCount),
                     LogFields.Field("warnings", warningCount),
@@ -3539,8 +3605,231 @@ namespace Immersive.Framework.Diagnostics
                     LogFields.Field("contentAnchorIssues", contentAnchorSet.IssueCount),
                     LogFields.Field("contentAnchorDuplicateIdentity", contentAnchorSet.DuplicateIdentityIssueCount),
                     LogFields.Field("contentAnchorDuplicateId", contentAnchorSet.DuplicateAnchorIdIssueCount),
+                    LogFields.Field("objectEntries", objectEntrySet.Count),
+                    LogFields.Field("objectEntryRequired", objectEntrySet.RequiredCount),
+                    LogFields.Field("objectEntryOptional", objectEntrySet.OptionalCount),
+                    LogFields.Field("objectEntryRoute", CountObjectEntriesByScope(objectEntrySet, ObjectEntryScope.Route)),
+                    LogFields.Field("objectEntryActivity", CountObjectEntriesByScope(objectEntrySet, ObjectEntryScope.Activity)),
+                    LogFields.Field("objectEntrySession", CountObjectEntriesByScope(objectEntrySet, ObjectEntryScope.Session)),
                     LogFields.Field("localContributionDetails", validationResult.ToDiagnosticString()),
-                    LogFields.Field("contentAnchorDetails", contentAnchorSet.ToDiagnosticString())));
+                    LogFields.Field("contentAnchorDetails", contentAnchorSet.ToDiagnosticString()),
+                    LogFields.Field("objectEntryDetails", BuildObjectEntryDiagnostics(objectEntrySet))));
+        }
+
+        private void ValidateLoadedCycleResetTriggers(
+            RouteCycleResetTrigger[] routeTriggers,
+            ActivityCycleResetTrigger[] activityTriggers,
+            ref int issueCount,
+            ref int errorCount,
+            ref int warningCount)
+        {
+            var sharedObjects = new HashSet<GameObject>();
+
+            if (routeTriggers != null)
+            {
+                for (int i = 0; i < routeTriggers.Length; i++)
+                {
+                    ValidateLoadedCycleResetTriggerCommon(routeTriggers[i], nameof(RouteCycleResetTrigger), ref issueCount, ref warningCount);
+
+                    var trigger = routeTriggers[i];
+                    if (trigger != null && trigger.gameObject != null && trigger.GetComponent<ActivityCycleResetTrigger>() != null)
+                    {
+                        if (sharedObjects.Add(trigger.gameObject))
+                        {
+                            string objectName = trigger.gameObject.name;
+                            string sceneName = trigger.gameObject.scene.IsValid() ? trigger.gameObject.scene.name : "<no-scene>";
+                            AddQaAuthoringWarning(
+                                ref issueCount,
+                                ref warningCount,
+                                $"CycleResetTrigger object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Route and Activity Cycle Reset Triggers share the same GameObject'.");
+                        }
+                    }
+                }
+            }
+
+            if (activityTriggers != null)
+            {
+                for (int i = 0; i < activityTriggers.Length; i++)
+                {
+                    ValidateLoadedCycleResetTriggerCommon(activityTriggers[i], nameof(ActivityCycleResetTrigger), ref issueCount, ref warningCount);
+                }
+            }
+        }
+
+        private void ValidateLoadedCycleResetTriggerCommon(
+            MonoBehaviour trigger,
+            string triggerType,
+            ref int issueCount,
+            ref int warningCount)
+        {
+            if (trigger == null)
+            {
+                AddQaAuthoringWarning(ref issueCount, ref warningCount, $"{triggerType} is missing.");
+                return;
+            }
+
+            string objectName = trigger.gameObject != null ? trigger.gameObject.name : "<missing>";
+            string sceneName = trigger.gameObject != null && trigger.gameObject.scene.IsValid()
+                ? trigger.gameObject.scene.name
+                : "<no-scene>";
+
+            if (trigger.gameObject != null && !trigger.gameObject.activeInHierarchy)
+            {
+                AddQaAuthoringWarning(
+                    ref issueCount,
+                    ref warningCount,
+                    $"{triggerType} object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Trigger GameObject is inactive in hierarchy'.");
+            }
+
+            string reason = string.Empty;
+            if (trigger is RouteCycleResetTrigger routeTrigger && routeTrigger.HasCustomReason)
+            {
+                reason = routeTrigger.AuthoringReason;
+            }
+            else if (trigger is ActivityCycleResetTrigger activityTrigger && activityTrigger.HasCustomReason)
+            {
+                reason = activityTrigger.AuthoringReason;
+            }
+
+            if (!string.IsNullOrWhiteSpace(reason) && ContainsFutureResetVocabulary(reason))
+            {
+                AddQaAuthoringWarning(
+                    ref issueCount,
+                    ref warningCount,
+                    $"{triggerType} object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' reason='{FormatValue(reason)}' issue='Reason uses object/component/player/actor/pool/save/reload vocabulary reserved for later reset phases'.");
+            }
+        }
+
+        private void ValidateLoadedObjectEntryDeclaration(
+            ObjectEntryDeclaration declaration,
+            List<ObjectEntryDescriptor> descriptors,
+            ref int issueCount,
+            ref int errorCount,
+            ref int warningCount)
+        {
+            if (declaration == null)
+            {
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    "ObjectEntryDeclaration is missing.");
+                return;
+            }
+
+            string objectName = declaration.gameObject != null ? declaration.gameObject.name : "<missing>";
+            string sceneName = declaration.gameObject != null && declaration.gameObject.scene.IsValid()
+                ? declaration.gameObject.scene.name
+                : "<no-scene>";
+
+            if (declaration.gameObject != null && !declaration.gameObject.activeInHierarchy)
+            {
+                AddQaAuthoringWarning(
+                    ref issueCount,
+                    ref warningCount,
+                    $"ObjectEntryDeclaration object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Declaration GameObject is inactive in hierarchy'.");
+            }
+
+            if (!declaration.TryCreateDescriptor(out var descriptor, out var issue))
+            {
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    $"ObjectEntryDeclaration object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='{FormatValue(issue)}'.");
+                return;
+            }
+
+            descriptors.Add(descriptor);
+        }
+
+        private ObjectEntrySet CreateLoadedObjectEntrySet(
+            List<ObjectEntryDescriptor> descriptors,
+            ref int issueCount,
+            ref int errorCount)
+        {
+            try
+            {
+                return new ObjectEntrySet(descriptors);
+            }
+            catch (ArgumentException exception)
+            {
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    $"ObjectEntrySet issue='Duplicate Object Entry Id' message='{FormatValue(exception.Message)}'.");
+                return ObjectEntrySet.Empty();
+            }
+        }
+
+        private static int CountObjectEntriesByScope(ObjectEntrySet set, ObjectEntryScope scope)
+        {
+            if (set == null || set.IsEmpty)
+            {
+                return 0;
+            }
+
+            var entries = set.Entries;
+            int count = 0;
+            for (int i = 0; i < entries.Count; i++)
+            {
+                if (entries[i].Scope == scope)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private static string BuildObjectEntryDiagnostics(ObjectEntrySet set)
+        {
+            if (set == null || set.IsEmpty)
+            {
+                return "objectEntries='0'";
+            }
+
+            var entries = set.Entries;
+            var details = new List<string>(entries.Count);
+            for (int i = 0; i < entries.Count; i++)
+            {
+                var entry = entries[i];
+                details.Add($"id='{entry.Id.StableText}' scope='{entry.Scope}' sourceKind='{entry.SourceKind}' requiredness='{entry.Requiredness}' displayName='{entry.DisplayName}'");
+            }
+
+            return $"{set.Summary} details=[{string.Join(" | ", details)}]";
+        }
+
+        private static bool ContainsFutureResetVocabulary(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            string[] reservedTerms =
+            {
+                "object",
+                "component",
+                "player",
+                "actor",
+                "transform",
+                "rigidbody",
+                "animator",
+                "pool",
+                "snapshot",
+                "save",
+                "reload",
+                "checkpoint"
+            };
+
+            for (int i = 0; i < reservedTerms.Length; i++)
+            {
+                if (value.IndexOf(reservedTerms[i], StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void AddLocalContributionValidationIssues(

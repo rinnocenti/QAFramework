@@ -24,6 +24,7 @@ namespace Immersive.Framework.Identity
         Runtime = 80,
         Diagnostics = 90,
         QA = 100,
-        CycleReset = 110
+        CycleReset = 110,
+        ObjectEntry = 120
     }
 }
