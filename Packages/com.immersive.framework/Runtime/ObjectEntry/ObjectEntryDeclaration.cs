@@ -79,6 +79,20 @@ namespace Immersive.Framework.ObjectEntry
             throw new InvalidOperationException(issue);
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        internal void ConfigureForQa(
+            string qaObjectEntryId,
+            ObjectEntryScope qaScope,
+            ObjectEntryRequiredness qaRequiredness,
+            string qaDisplayName)
+        {
+            objectEntryId = qaObjectEntryId;
+            scope = qaScope;
+            requiredness = qaRequiredness;
+            displayName = qaDisplayName;
+        }
+#endif
+
         private string ResolveDisplayName()
         {
             if (!string.IsNullOrWhiteSpace(displayName))
