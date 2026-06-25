@@ -1,0 +1,86 @@
+using Immersive.Foundation.Events;
+using Immersive.Framework.ApiStatus;
+using Immersive.Framework.GameFlow;
+using UnityEngine;
+using UnityEngine.Events;
+
+namespace Immersive.Framework.CycleReset
+{
+    /// <summary>
+    /// Optional Inspector bridge for RouteCycleResetTrigger Foundation events.
+    /// The trigger remains the typed event publisher; this component only adapts those events to UnityEvent callbacks.
+    /// </summary>
+    [DisallowMultipleComponent]
+    [RequireComponent(typeof(RouteCycleResetTrigger))]
+    [AddComponentMenu("Immersive Framework/Cycle Reset/Route Cycle Reset Trigger Unity Event Bridge")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F11F optional UnityEvent bridge for Route Cycle Reset authored triggers.")]
+    public sealed class RouteCycleResetTriggerUnityEventBridge : MonoBehaviour
+    {
+        private RouteCycleResetTrigger _trigger;
+        private IEventBinding _binding;
+
+        [Header("Events")]
+        [SerializeField] private UnityEvent requestSubmitted;
+        [SerializeField] private UnityEvent requestSucceeded;
+        [SerializeField] private UnityEvent requestIgnored;
+        [SerializeField] private UnityEvent requestFailed;
+        [SerializeField] private UnityEvent requestCompleted;
+
+        public UnityEvent RequestSubmitted => requestSubmitted;
+
+        public UnityEvent RequestSucceeded => requestSucceeded;
+
+        public UnityEvent RequestIgnored => requestIgnored;
+
+        public UnityEvent RequestFailed => requestFailed;
+
+        public UnityEvent RequestCompleted => requestCompleted;
+
+        private void OnEnable()
+        {
+            _trigger = GetComponent<RouteCycleResetTrigger>();
+            _binding = _trigger.SubscribeRequestEvents(OnCycleResetRequestEvent);
+        }
+
+        private void OnDisable()
+        {
+            _binding?.Dispose();
+            _binding = null;
+            _trigger = null;
+        }
+
+        private void OnCycleResetRequestEvent(CycleResetTriggerEvent requestEvent)
+        {
+            if (requestEvent == null)
+            {
+                return;
+            }
+
+            if (requestEvent.IsSubmitted)
+            {
+                requestSubmitted?.Invoke();
+                return;
+            }
+
+            if (!requestEvent.IsCompleted)
+            {
+                return;
+            }
+
+            if (requestEvent.Succeeded)
+            {
+                requestSucceeded?.Invoke();
+            }
+            else if (requestEvent.Ignored)
+            {
+                requestIgnored?.Invoke();
+            }
+            else if (requestEvent.Failed)
+            {
+                requestFailed?.Invoke();
+            }
+
+            requestCompleted?.Invoke();
+        }
+    }
+}
