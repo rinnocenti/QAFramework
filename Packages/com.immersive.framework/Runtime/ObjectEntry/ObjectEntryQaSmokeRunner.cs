@@ -21,6 +21,8 @@ namespace Immersive.Framework.ObjectEntry
 
         internal const string DeclarationSourceSmokeName = "Object Entry Declaration Source Smoke";
 
+        internal const string RuntimeIntegrationSmokeName = "Object Entry Runtime Integration Smoke";
+
         internal static Task<bool> RunSyntheticSetSmokeAsync(
             FrameworkLogger logger,
             string source)
@@ -224,6 +226,93 @@ namespace Immersive.Framework.ObjectEntry
             }
         }
 
+
+
+        internal static Task<bool> RunRuntimeIntegrationSmokeAsync(
+            FrameworkLogger logger,
+            string source)
+        {
+            if (logger == null)
+            {
+                return Task.FromResult(false);
+            }
+
+            source = string.IsNullOrWhiteSpace(source) ? nameof(ObjectEntryQaSmokeRunner) : source;
+
+            const string routeEntryId = "qa.object-entry.runtime.route";
+            const string inactiveActivityEntryId = "qa.object-entry.runtime.activity.inactive";
+
+            GameObject routeObject = null;
+            GameObject inactiveActivityObject = null;
+
+            try
+            {
+                routeObject = new GameObject("QA_ObjectEntryRuntimeIntegration_Route");
+                inactiveActivityObject = new GameObject("QA_ObjectEntryRuntimeIntegration_InactiveActivity");
+
+                var routeDeclaration = routeObject.AddComponent<ObjectEntryDeclaration>();
+                routeDeclaration.ConfigureForQa(
+                    routeEntryId,
+                    ObjectEntryScope.Route,
+                    ObjectEntryRequiredness.Required,
+                    "QA Runtime Integration Route Entry");
+
+                var inactiveActivityDeclaration = inactiveActivityObject.AddComponent<ObjectEntryDeclaration>();
+                inactiveActivityDeclaration.ConfigureForQa(
+                    inactiveActivityEntryId,
+                    ObjectEntryScope.Activity,
+                    ObjectEntryRequiredness.Optional,
+                    "QA Runtime Integration Inactive Activity Entry");
+                inactiveActivityObject.SetActive(false);
+
+                var declarationSource = new ObjectEntryDeclarationSource(includeInactiveDeclarations: true);
+                var result = declarationSource.CollectLoadedSceneDeclarations();
+
+                if (!ValidateRuntimeIntegrationResult(logger, result, routeEntryId, inactiveActivityEntryId))
+                {
+                    return Task.FromResult(false);
+                }
+
+                logger.Info(
+                    "QA Object Entry Runtime Integration Smoke step completed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "loaded-scene-declarations"),
+                        LogFields.Field("source", source),
+                        LogFields.Field("resultStatus", result.Status.ToString()),
+                        LogFields.Field("declarations", result.DeclarationCount),
+                        LogFields.Field("candidateDescriptors", result.CandidateDescriptorCount),
+                        LogFields.Field("acceptedDeclarations", result.AcceptedDeclarationCount),
+                        LogFields.Field("rejectedDeclarations", result.RejectedDeclarationCount),
+                        LogFields.Field("objectEntries", result.ObjectEntries.Count),
+                        LogFields.Field("required", result.ObjectEntries.RequiredCount),
+                        LogFields.Field("optional", result.ObjectEntries.OptionalCount),
+                        LogFields.Field("route", result.ObjectEntries.GetByScope(ObjectEntryScope.Route).Count),
+                        LogFields.Field("activity", result.ObjectEntries.GetByScope(ObjectEntryScope.Activity).Count),
+                        LogFields.Field("session", result.ObjectEntries.GetByScope(ObjectEntryScope.Session).Count),
+                        LogFields.Field("qaRouteFound", true),
+                        LogFields.Field("qaInactiveActivityFound", true),
+                        LogFields.Field("blockingIssues", result.BlockingIssueCount),
+                        LogFields.Field("nonBlockingIssues", result.NonBlockingIssueCount),
+                        LogFields.Field("summary", result.Summary)));
+
+                return Task.FromResult(true);
+            }
+            catch (Exception exception)
+            {
+                logger.Warning(
+                    "QA Object Entry Runtime Integration Smoke step failed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "loaded-scene-declarations"),
+                        LogFields.Field("reason", exception.Message)));
+                return Task.FromResult(false);
+            }
+            finally
+            {
+                DestroyQaObject(routeObject);
+                DestroyQaObject(inactiveActivityObject);
+            }
+        }
+
         private static bool ValidateSet(
             FrameworkLogger logger,
             ObjectEntrySet set,
@@ -337,6 +426,49 @@ namespace Immersive.Framework.ObjectEntry
             if (result.DeclarationCount != 2 || result.CandidateDescriptorCount != 2 || result.AcceptedDeclarationCount != 0 || result.RejectedDeclarationCount != 2 || result.ObjectEntries.Count != 0)
             {
                 logger.Warning($"QA Object Entry Declaration Source Smoke step failed. step='declaration-source-duplicate-identity' reason='Duplicate rejection diagnostics were inconsistent'. {result.ToDiagnosticString()}");
+                return false;
+            }
+
+            return true;
+        }
+
+
+
+        private static bool ValidateRuntimeIntegrationResult(
+            FrameworkLogger logger,
+            ObjectEntryDeclarationSourceResult result,
+            string routeEntryId,
+            string inactiveActivityEntryId)
+        {
+            if (result == null || result.Failed || result.BlockingIssueCount != 0)
+            {
+                logger.Warning($"QA Object Entry Runtime Integration Smoke step failed. step='loaded-scene-declarations' reason='Loaded scene declaration collection failed'. summary='{result?.ToDiagnosticString() ?? "<missing>"}'");
+                return false;
+            }
+
+            if (result.DeclarationCount < 2 || result.CandidateDescriptorCount < 2 || result.ObjectEntries.Count < 2)
+            {
+                logger.Warning($"QA Object Entry Runtime Integration Smoke step failed. step='loaded-scene-declarations' reason='Loaded scene declaration counts were too low'. {result.Summary}");
+                return false;
+            }
+
+            var routeId = ObjectEntryId.From(routeEntryId);
+            if (!result.ObjectEntries.TryGet(routeId, out var routeDescriptor)
+                || routeDescriptor.Scope != ObjectEntryScope.Route
+                || routeDescriptor.Requiredness != ObjectEntryRequiredness.Required
+                || routeDescriptor.SourceKind != ObjectEntrySourceKind.SceneAuthored)
+            {
+                logger.Warning($"QA Object Entry Runtime Integration Smoke step failed. step='loaded-scene-declarations' reason='QA Route declaration was not collected as expected'. {result.Summary}");
+                return false;
+            }
+
+            var inactiveActivityId = ObjectEntryId.From(inactiveActivityEntryId);
+            if (!result.ObjectEntries.TryGet(inactiveActivityId, out var inactiveActivityDescriptor)
+                || inactiveActivityDescriptor.Scope != ObjectEntryScope.Activity
+                || inactiveActivityDescriptor.Requiredness != ObjectEntryRequiredness.Optional
+                || inactiveActivityDescriptor.SourceKind != ObjectEntrySourceKind.SceneAuthored)
+            {
+                logger.Warning($"QA Object Entry Runtime Integration Smoke step failed. step='loaded-scene-declarations' reason='QA inactive Activity declaration was not collected as expected'. {result.Summary}");
                 return false;
             }
 

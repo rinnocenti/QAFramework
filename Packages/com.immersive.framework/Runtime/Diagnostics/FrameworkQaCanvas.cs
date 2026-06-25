@@ -285,6 +285,11 @@ namespace Immersive.Framework.Diagnostics
                     RunObjectEntryDeclarationSourceSmoke();
                 }
 
+                if (GUILayout.Button("Run Object Entry Runtime Integration Smoke"))
+                {
+                    RunObjectEntryRuntimeIntegrationSmoke();
+                }
+
                 if (GUILayout.Button("Validate Loaded Authoring"))
                 {
                     ValidateLoadedLocalContributionsAuthoring();
@@ -767,6 +772,12 @@ namespace Immersive.Framework.Diagnostics
         {
             await RunSmokeAsync(ObjectEntryQaSmokeRunner.DeclarationSourceSmokeName, runtimeHost =>
                 ObjectEntryQaSmokeRunner.RunDeclarationSourceSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunObjectEntryRuntimeIntegrationSmoke()
+        {
+            await RunSmokeAsync(ObjectEntryQaSmokeRunner.RuntimeIntegrationSmokeName, runtimeHost =>
+                ObjectEntryQaSmokeRunner.RunRuntimeIntegrationSmokeAsync(_logger, QaSource));
         }
 
         private async void RunStandardSmoke()
