@@ -16,8 +16,8 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 
 | Faixa | Status | Leitura oficial |
 |---|---|---|
-| F0-F10 | `CLOSED / APPLIED` | Historico real resumido neste documento. |
-| F11-F18 | `PLANNED / REVISED ORDER` | Nova ordem pos-F10 descrita abaixo. |
+| F0-F11 | `CLOSED / APPLIED` | Historico real resumido neste documento. |
+| F12-F18 | `PLANNED / REVISED ORDER` | Nova ordem pos-F11 descrita abaixo. |
 
 ## Historico real F0-F10
 
@@ -34,6 +34,7 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 | F8 | `CLOSED / APPLIED` | Runtime roots, handles, materialization request/result, release logico e boundaries para adapters. |
 | F9 | `CLOSED / APPLIED` | Logical Content Anchor Binding; fechou binding logico, nao placement fisico. |
 | F10 | `CLOSED / APPLIED` | Activity Content Execution Core e decisoes de consumer intermediario para Input, Snapshot e Pause sem mover ownership para gameplay. |
+| F11 | `CLOSED / APPLIED` | Cycle Reset Foundation: contratos, executor, runtime request path, QA Canvas smoke e triggers publicos de Route/Activity Cycle Reset, sem reset fisico. |
 
 F10 encerrou a execucao logica de Activity content no core. Ele nao adicionou authoring real de participants, scene scan, placement fisico, prefab/Addressables execution, pooling gameplay use, audio, camera, actor/player mutation ou reset fisico.
 
@@ -91,7 +92,7 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Camera, Audio,
 
 | Fase | Nome | Owner | Objetivo |
 |---|---|---|---|
-| F11 | Cycle Reset Foundation | Framework Core | Definir contratos centrais de reset de ciclo, request/result, policy, diagnostics e ordering minimo, sem reset fisico. |
+| F11 | Cycle Reset Foundation | Framework Core | `CLOSED / APPLIED`: contratos centrais de reset de ciclo, request/result, policy, diagnostics, executor minimo, smoke runtime-host e triggers publicos, sem reset fisico. |
 | F12 | Cycle Reset Integration & Authoring UX | Framework Core + Editor/Authoring | Integrar reset de ciclo aos lifecycles existentes e revisar linguagem de authoring/Inspector antes de expor superficies novas. |
 | F13 | Object Entry Foundation | Framework Core | Definir entrada logica de objetos, identidade/ownership de object entry e readiness minima para objetos, sem adapters Unity concretos. |
 | F14 | Local/Object Reset Foundation | Framework Core | Definir reset local/de objeto depois de Object Entry existir; nao misturar com reset de ciclo. |
@@ -99,6 +100,50 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Camera, Audio,
 | F16 | Player/Participant Entry Baseline | Framework Core + Authoring | Definir baseline de entrada de player/participant sobre Object Entry, sem Actor/Camera/Audio/Pooling. |
 | F17 | Advanced Consumers | Gameplay Consumer | Abrir consumers avancados somente depois de core reset/object entry estar estavel. Inclui Camera, Audio, Actor e gameplay Pooling quando aprovados. |
 | F18 | Gameplay Capabilities | Gameplay Consumer | Abrir capacidades finais de gameplay como Projectile, Damage, Attributes e Powerups. |
+
+## Fechamento real F11 — Cycle Reset Foundation
+
+F11 fechou o primeiro momento do reset: o reset canonico de ciclo. O objetivo era criar o formato do core antes de reset local, player, actor ou gameplay.
+
+| Corte | Status | Resultado |
+|---|---|---|
+| F11A | `CLOSED / COMPILE PASS` | Contratos centrais e executor isolado de Cycle Reset. |
+| F11B | `CLOSED / SYNTHETIC SMOKE EVOLVED` | Smoke sintetico/probe consolidado no runner de QA. |
+| F11C | `CLOSED / RUNTIME PATH PASS` | Request canonico interno: `FrameworkRuntimeHost -> GameFlowRuntime -> RouteLifecycleRuntime -> CycleResetRuntime`. |
+| F11D/F11E | `CLOSED / QA CANVAS SMOKE PASS` | Botao `Run Cycle Reset Runtime Host Smoke` valida Route e Activity reset com participantes sinteticos. |
+| F11F | `CLOSED / TRIGGER PASS` | `RouteCycleResetTrigger` e `ActivityCycleResetTrigger` solicitam reset de ciclo via UI/objetos de cena. |
+| F11G | `CLOSED / DOCS` | Fechamento documental da fase e fronteira para F12. |
+
+Evidencia aceita de F11E:
+
+```text
+QA Smoke completed. name='Cycle Reset Runtime Host Smoke'.
+Route step: status='Succeeded', participants='3', blockingIssues='0'.
+Activity step: status='Succeeded', participants='2', blockingIssues='0'.
+```
+
+Evidencia aceita de F11F:
+
+```text
+Cycle Reset Request completed. scope='Route' source='RouteCycleResetTrigger' status='SucceededNoParticipants' blockingIssues='0'.
+Cycle Reset Request completed. scope='Activity' source='ActivityCycleResetTrigger' status='SucceededNoParticipants' blockingIssues='0'.
+```
+
+`SucceededNoParticipants` e resultado valido para triggers reais em F11 porque ainda nao existe discovery real nem participantes fisicos. Participantes sinteticos existem apenas no smoke de QA.
+
+F11 nao implementa:
+
+- Object Reset;
+- Component Reset;
+- Player Reset;
+- Actor Reset;
+- Transform/Rigidbody/Animator reset;
+- pool return;
+- scene reload;
+- snapshot restore;
+- gameplay mutation.
+
+A fronteira de F11 e: o core ja sabe receber, planejar, executar e diagnosticar reset de Route/Activity. O comportamento concreto de objetos fica para F14/F15+ depois de Object Entry.
 
 ## Guardrails pos-F10
 
@@ -124,7 +169,7 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Camera, Audio,
 ## Proxima fase
 
 ```text
-F11 — Cycle Reset Foundation
+F12 — Cycle Reset Integration & Authoring UX
 ```
 
-Entrada esperada de F11: contratos de reset de ciclo no Framework Core, com falhas explicitas, ownership claro e sem execucao Unity concreta.
+Entrada esperada de F12: refinamento de integracao/authoring do Cycle Reset, validação de UX, linguagem de Inspector/QA e guardrails para impedir confusao com Object Reset ou reset fisico.

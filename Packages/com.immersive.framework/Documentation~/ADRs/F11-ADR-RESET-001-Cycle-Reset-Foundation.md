@@ -1,6 +1,6 @@
 # F11-ADR-RESET-001 — Cycle Reset Foundation
 
-Status: Accepted  
+Status: Applied through F11G  
 Fase: F11 — Cycle Reset Foundation  
 Tipo: Core / Lifecycle / Reset  
 Última atualização: 2026-06-25
@@ -378,3 +378,49 @@ Gameplay reset policies
 Pooling reset behavior
 Projectile reset behavior
 ```
+
+
+---
+
+## 15. Fechamento aplicado em F11G
+
+F11 foi aplicada como `Cycle Reset Foundation`.
+
+Cortes aceitos:
+
+| Corte | Status | Evidencia |
+|---|---|---|
+| F11A | `CLOSED / COMPILE PASS` | Contratos e executor isolado compilaram. |
+| F11B | `CLOSED / SYNTHETIC SMOKE EVOLVED` | Probe sintetico consolidado no runner de QA. |
+| F11C | `CLOSED / RUNTIME PATH PASS` | Caminho canonico interno criado. |
+| F11D/F11E | `CLOSED / QA CANVAS SMOKE PASS` | `Run Cycle Reset Runtime Host Smoke` validou Route e Activity reset com participantes sinteticos. |
+| F11F | `CLOSED / TRIGGER PASS` | `RouteCycleResetTrigger` e `ActivityCycleResetTrigger` solicitaram reset via runtime host. |
+| F11G | `CLOSED / DOCS` | Plano e ADR atualizados para fronteira F12. |
+
+Caminho runtime validado:
+
+```text
+FrameworkRuntimeHost
+  -> GameFlowRuntime
+      -> RouteLifecycleRuntime
+          -> CycleResetRuntime
+```
+
+Smoke de QA aceito:
+
+```text
+QA Smoke completed. name='Cycle Reset Runtime Host Smoke'.
+Route Cycle Reset: status='Succeeded', participants='3', blockingIssues='0'.
+Activity Cycle Reset: status='Succeeded', participants='2', blockingIssues='0'.
+```
+
+Trigger smoke aceito:
+
+```text
+RouteCycleResetTrigger -> status='SucceededNoParticipants', blockingIssues='0'.
+ActivityCycleResetTrigger -> status='SucceededNoParticipants', blockingIssues='0'.
+```
+
+`SucceededNoParticipants` e permitido em trigger real na F11 porque discovery real e participantes fisicos ainda nao existem. Required participants reais pertencem a fases posteriores.
+
+F11 permanece limitada a reset de ciclo. Object Reset, Component Reset, Player Reset, Actor Reset, adapters fisicos e gameplay mutation seguem bloqueados ate F14/F15/F16+.

@@ -12,4 +12,4 @@ Accepted architectural decisions:
 ADRs/ADR-INDEX.md
 ```
 
-F0-F10 are closed/applied. F11 now starts as `Cycle Reset Foundation`.
+F0-F11 are closed/applied. F12 is the next planned phase: `Cycle Reset Integration & Authoring UX`.
