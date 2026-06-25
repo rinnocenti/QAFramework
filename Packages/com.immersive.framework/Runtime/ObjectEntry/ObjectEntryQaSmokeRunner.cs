@@ -165,7 +165,9 @@ namespace Immersive.Framework.ObjectEntry
                     LogFields.Of(
                         LogFields.Field("step", "declaration-source-set"),
                         LogFields.Field("source", source),
+                        LogFields.Field("resultStatus", result.Status.ToString()),
                         LogFields.Field("declarations", result.DeclarationCount),
+                        LogFields.Field("candidateDescriptors", result.CandidateDescriptorCount),
                         LogFields.Field("acceptedDeclarations", result.AcceptedDeclarationCount),
                         LogFields.Field("rejectedDeclarations", result.RejectedDeclarationCount),
                         LogFields.Field("objectEntries", result.ObjectEntries.Count),
@@ -193,6 +195,12 @@ namespace Immersive.Framework.ObjectEntry
                         LogFields.Field("step", "declaration-source-duplicate-identity"),
                         LogFields.Field("source", source),
                         LogFields.Field("duplicateRejected", true),
+                        LogFields.Field("resultStatus", duplicateResult.Status.ToString()),
+                        LogFields.Field("declarations", duplicateResult.DeclarationCount),
+                        LogFields.Field("candidateDescriptors", duplicateResult.CandidateDescriptorCount),
+                        LogFields.Field("acceptedDeclarations", duplicateResult.AcceptedDeclarationCount),
+                        LogFields.Field("rejectedDeclarations", duplicateResult.RejectedDeclarationCount),
+                        LogFields.Field("objectEntries", duplicateResult.ObjectEntries.Count),
                         LogFields.Field("blockingIssues", duplicateResult.BlockingIssueCount),
                         LogFields.Field("nonBlockingIssues", duplicateResult.NonBlockingIssueCount),
                         LogFields.Field("summary", duplicateResult.Summary)));
@@ -273,7 +281,7 @@ namespace Immersive.Framework.ObjectEntry
                 return false;
             }
 
-            if (result.DeclarationCount != 2 || result.AcceptedDeclarationCount != 2 || result.RejectedDeclarationCount != 0)
+            if (result.Status != ObjectEntryResultStatus.Accepted || result.DeclarationCount != 2 || result.CandidateDescriptorCount != 2 || result.AcceptedDeclarationCount != 2 || result.RejectedDeclarationCount != 0)
             {
                 logger.Warning($"QA Object Entry Declaration Source Smoke step failed. step='declaration-source-set' reason='Unexpected declaration counts'. {result.Summary}");
                 return false;
@@ -320,9 +328,15 @@ namespace Immersive.Framework.ObjectEntry
             }
 
             bool hasDuplicateIssue = result.Issues.Any(issue => issue.Kind == ObjectEntryIssueKind.DuplicateIdentity && issue.IsBlocking);
-            if (!result.Failed || result.BlockingIssueCount == 0 || !hasDuplicateIssue)
+            if (!result.Failed || result.Status != ObjectEntryResultStatus.Rejected || result.BlockingIssueCount == 0 || !hasDuplicateIssue)
             {
                 logger.Warning($"QA Object Entry Declaration Source Smoke step failed. step='declaration-source-duplicate-identity' reason='Duplicate object entry identity was accepted'. {result.ToDiagnosticString()}");
+                return false;
+            }
+
+            if (result.DeclarationCount != 2 || result.CandidateDescriptorCount != 2 || result.AcceptedDeclarationCount != 0 || result.RejectedDeclarationCount != 2 || result.ObjectEntries.Count != 0)
+            {
+                logger.Warning($"QA Object Entry Declaration Source Smoke step failed. step='declaration-source-duplicate-identity' reason='Duplicate rejection diagnostics were inconsistent'. {result.ToDiagnosticString()}");
                 return false;
             }
 

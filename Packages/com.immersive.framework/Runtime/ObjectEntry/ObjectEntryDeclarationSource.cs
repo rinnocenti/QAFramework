@@ -10,7 +10,7 @@ namespace Immersive.Framework.ObjectEntry
     /// API status: Experimental. Passive source that converts scene-authored ObjectEntryDeclaration components into an ObjectEntrySet.
     /// It does not bind GameObjects, materialize prefabs, spawn actors, register services, perform reset or create lifecycle authority.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Passive Object Entry declaration source introduced by F13D.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Passive Object Entry declaration source introduced by F13D; diagnostics clarified by F13E.")]
     public sealed class ObjectEntryDeclarationSource
     {
         public ObjectEntryDeclarationSource(bool includeInactiveDeclarations = true)
@@ -37,14 +37,11 @@ namespace Immersive.Framework.ObjectEntry
 
             var descriptors = new List<ObjectEntryDescriptor>(materializedDeclarations.Length);
             var issues = new List<ObjectEntryIssue>();
-            int rejected = 0;
-
             for (int i = 0; i < materializedDeclarations.Length; i++)
             {
                 var declaration = materializedDeclarations[i];
                 if (!declaration.TryCreateDescriptor(out var descriptor, out var issue))
                 {
-                    rejected++;
                     issues.Add(ObjectEntryIssue.Error(
                         ObjectEntryIssueKind.InvalidRequest,
                         FormatDeclarationIssue(declaration, issue)));
@@ -55,24 +52,46 @@ namespace Immersive.Framework.ObjectEntry
             }
 
             ObjectEntrySet set;
+            bool aggregateRejected = false;
             try
             {
                 set = new ObjectEntrySet(descriptors);
             }
             catch (ArgumentException exception)
             {
+                aggregateRejected = true;
                 set = ObjectEntrySet.Empty();
                 issues.Add(ObjectEntryIssue.Error(
                     ObjectEntryIssueKind.DuplicateIdentity,
                     $"Object Entry declaration source '{ResolveSource(source)}' rejected duplicate identity. {exception.Message}"));
             }
 
+            var status = ResolveStatus(issues);
+            int acceptedDeclarations = aggregateRejected || status == ObjectEntryResultStatus.Rejected
+                ? 0
+                : set.Count;
+            int rejectedDeclarations = materializedDeclarations.Length - acceptedDeclarations;
+
             return new ObjectEntryDeclarationSourceResult(
                 set,
+                status,
                 materializedDeclarations.Length,
                 descriptors.Count,
-                rejected,
+                acceptedDeclarations,
+                rejectedDeclarations,
                 issues);
+        }
+
+        private static ObjectEntryResultStatus ResolveStatus(IReadOnlyCollection<ObjectEntryIssue> issues)
+        {
+            if (issues.Any(issue => issue.IsBlocking))
+            {
+                return ObjectEntryResultStatus.Rejected;
+            }
+
+            return issues.Count == 0
+                ? ObjectEntryResultStatus.Accepted
+                : ObjectEntryResultStatus.AcceptedWithWarnings;
         }
 
         private static string FormatDeclarationIssue(ObjectEntryDeclaration declaration, string issue)
