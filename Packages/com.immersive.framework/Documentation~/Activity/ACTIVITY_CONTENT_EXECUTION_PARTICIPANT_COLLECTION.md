@@ -1,14 +1,14 @@
 # Activity Content Execution Participant Collection
 
-Status: APPLIED / PARTICIPANT COLLECTION + ORDERING MODEL ONLY  
-Fase: F10E  
+Status: CLOSED / COVERED BY F10 ACTIVITY CONTENT EXECUTION CORE PASS  
+Fase: F10E-F10M  
 Escopo: Framework Core
 
 ---
 
 ## Contexto
 
-F10D adicionou o contrato passivo de participant. F10E adiciona a colecao passiva e ordenavel desses participants. F10F usa essa collection para criar um phase plan passivo. F10G executa phase plans ja fornecidos. Ainda nao existe discovery ou integracao no lifecycle.
+F10D adicionou o contrato passivo de participant. F10E adiciona a colecao passiva e ordenavel desses participants. F10F usa essa collection para criar phase plans. F10G executa phase plans ja fornecidos. F10I-F10L validam lifecycle integration e explicit participant source sem discovery fisico.
 
 ## Contratos adicionados
 

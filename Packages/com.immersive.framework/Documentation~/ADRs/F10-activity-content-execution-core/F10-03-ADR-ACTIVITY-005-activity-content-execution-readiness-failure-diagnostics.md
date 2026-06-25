@@ -1,6 +1,6 @@
 # F10-03 — ADR-ACTIVITY-005 — Activity Content Execution Readiness Failure Diagnostics
 
-Status: Accepted / F10 planning only / implementation not started  
+Status: Accepted / Implemented by F10B-F10L / F10 closed  
 Fase: F10  
 Ordem no Plano: F10-03  
 Tipo: Activity / Readiness / Diagnostics  
@@ -100,11 +100,11 @@ Transition/Loading nao pertence a F10. F10 pode produzir status de readiness que
 
 ## Validacao esperada de F10
 
-Quando implementado, F10 deve validar:
+F10B-F10L validaram a base diagnostica:
 
-- required content enter failure bloqueia readiness conforme policy;
-- optional content enter failure nao bloqueia readiness por padrao;
-- skipped content aparece como skipped e nao como sucesso silencioso;
+- required/optional sao representados nos descriptors, requests e aggregate result;
+- blocking/non-blocking issue counts sao agregados;
+- skipped/no-content aparece como `SkippedNoContent` e nao como sucesso silencioso;
 - diagnostics agregam counts e status sem vazar detalhes de gameplay;
-- exit failures sao diagnosticadas;
+- exit results sao agregados e diagnosticados;
 - nenhum GameObject/Transform/Animator/Addressables/Pooling e acionado pelo core.

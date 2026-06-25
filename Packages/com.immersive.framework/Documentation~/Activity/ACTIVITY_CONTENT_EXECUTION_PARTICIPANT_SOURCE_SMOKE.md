@@ -1,6 +1,6 @@
 # Activity Content Execution Participant Source Smoke
 
-Status: APPLIED / EXPLICIT SOURCE LIFECYCLE SMOKE / PENDING COMPILE  
+Status: PASS / COVERED BY F10 ACTIVITY CONTENT EXECUTION CORE PASS  
 Fase: F10L  
 Escopo: Framework Core / QA diagnostics
 

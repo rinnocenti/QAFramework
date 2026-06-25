@@ -1,7 +1,7 @@
 # Activity Content Execution Runtime
 
 Status: APPLIED / RUNTIME EXECUTOR + DIAGNOSTIC SMOKE PASS / LIFECYCLE INTEGRATION FOLLOWS  
-Fase: F10G  
+Fase: F10G-F10M  
 Escopo: Framework Core
 
 ---

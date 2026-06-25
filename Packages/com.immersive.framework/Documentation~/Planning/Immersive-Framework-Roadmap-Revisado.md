@@ -2,7 +2,7 @@
 
 Plano unico e autoritativo para o pacote `com.immersive.framework`.
 
-Este documento substitui os roadmaps paralelos, a matriz separada de rastreabilidade e o audit post-F9 como fonte de decisao para proximas fases. `COMPLETENESS_TRACKER.md` registra apenas estado resumido e aponta para este plano.
+Este documento substitui roadmaps paralelos, matrizes separadas de rastreabilidade e auditorias avulsas como fonte de decisao para proximas fases. `Documentation~/COMPLETENESS_TRACKER.md` registra apenas estado resumido e aponta para este plano.
 
 ## Estado atual
 
@@ -10,22 +10,22 @@ Este documento substitui os roadmaps paralelos, a matriz separada de rastreabili
 |---|---|---|
 | F0-F8 | `CLOSED` | Baselines tecnicas e documentacao historica permanecem como evidencia. |
 | F9 | `CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS` | Fechou binding logico de Content Anchor. Nao fechou placement fisico nem adapters concretos. |
-| F10 | `OPEN / EXPLICIT PARTICIPANT SOURCE SMOKE APPLIED / PENDING COMPILE / IMPLEMENTATION IN PROGRESS` | F10B-F10L aplicaram contratos passivos, resultado agregado, contrato de participant, collection/ordering model, request factory/phase plan, executor runtime para phase plans fornecidos, smoke diagnostico sintetico, integracao diagnostica no ActivityFlow com collection vazia por padrao e smoke de transicao clear/restore e source boundary explicita com source vazia por padrao e smoke de source sintetica explicita. Nenhum authoring/discovery de participants, adapter fisico ou gameplay consumer iniciado. |
+| F10 | `CLOSED / ACTIVITY CONTENT EXECUTION CORE PASS` | Fechou contratos, aggregate result, participant contract, collection/ordering model, phase plan/request factory, runtime executor, lifecycle diagnostic integration, participant source boundary e smokes com empty source e explicit synthetic source. |
 | F11+ | `PROPOSED / PENDING HUMAN APPROVAL` | Sequencia abaixo permanece proposta para fases futuras. |
 
 ## Regra de autoridade
 
 Este arquivo e a unica fonte para:
 
-- ordem de fases F10+;
+- ordem de fases F11+;
 - ownership por camada;
 - fronteiras entre Framework Core, Unity Adapter e Gameplay Consumer;
 - guardrails de linguagem para proximos ADRs;
-- estado de F10 como contratos passivos, aggregate, participant contract e collection model aplicados, com implementacao ainda incompleta.
+- estado consolidado de F10 como fase fechada de Activity Content Execution Core.
 
 Nao recriar documentos paralelos de roadmap. Novos ADRs devem ser pequenos, alinhados a uma fase aprovada e nao devem redefinir a sequencia geral.
 
-## Resumo F0-F9
+## Resumo F0-F10
 
 | Phase | Status | Owner atual | Evidencia principal |
 |---|---|---|---|
@@ -39,14 +39,72 @@ Nao recriar documentos paralelos de roadmap. Novos ADRs devem ser pequenos, alin
 | F7 | `CLOSED / CONTENT ANCHOR DECLARATION BASELINE PASS` | Framework Core | `Planning/F7-Content-Anchor-Declaration-Audit.md` |
 | F8 | `CLOSED / RUNTIME CONTENT SMOKE PASS` | Framework Core | `Planning/F8-Runtime-Roots-Materialization-Audit.md` |
 | F9 | `CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS` | Framework Core | `ContentAnchor/CONTENT_ANCHOR_BINDING_RUNTIME.md` |
+| F10 | `CLOSED / ACTIVITY CONTENT EXECUTION CORE PASS` | Framework Core | `Activity/ACTIVITY_CONTENT_EXECUTION_CORE_CLOSURE.md` |
 
-F9 encerra apenas o binding logico entre declaracoes de Content Anchor e contratos de RuntimeContent. Transform placement, prefab/Addressables materialization, physical release, UI concrete show/hide, camera blend, actor/player mutation, pooling gameplay use e audio gameplay use continuam fora do core atual.
+F9 encerra apenas o binding logico entre declaracoes de Content Anchor e contratos de RuntimeContent. F10 encerra apenas a execucao logica de conteudo de Activity por contracts/sources/participants fornecidos. Transform placement, prefab/Addressables materialization, physical release, UI concrete show/hide, camera blend, actor/player mutation, pooling gameplay use e audio gameplay use continuam fora do core atual.
 
-## Sequencia proposta F10+
+## F10 closure
+
+F10 implementou a tubulacao core de Activity Content Execution:
+
+```text
+ActivityFlowRuntime
+  -> IActivityContentExecutionParticipantSource
+      -> ActivityContentExecutionParticipantCollection
+          -> ActivityContentExecutionRequestFactory
+              -> ActivityContentExecutionPhasePlan
+                  -> ActivityContentExecutionRuntime
+                      -> ActivityContentExecutionAggregateResult
+```
+
+F10 fechou estes cortes:
+
+| Corte | Entrega | Status |
+|---|---|---|
+| F10A | ADRs aceitos para Activity Content Execution Core. | `CLOSED` |
+| F10B | Contracts por item de execucao. | `CLOSED` |
+| F10C | Aggregate result por fase. | `CLOSED` |
+| F10D | Participant contract. | `CLOSED` |
+| F10E | Participant collection e ordering model. | `CLOSED` |
+| F10F | Request factory e phase plan. | `CLOSED` |
+| F10G | Runtime executor para phase plans fornecidos. | `CLOSED` |
+| F10H | Runtime smoke com participants sinteticos. | `PASS` |
+| F10I | Lifecycle integration com empty source/default no ActivityFlow. | `PASS` |
+| F10J | Lifecycle transition smoke para clear/restore. | `PASS` |
+| F10K | Participant source boundary explicita. | `PASS` |
+| F10L | Explicit participant source smoke pelo lifecycle real. | `PASS` |
+| F10M | Documentacao de closure. | `APPLIED` |
+
+Smokes de F10 validados:
+
+```text
+Run Activity Content Execution Runtime Smoke
+Run Activity Content Execution Lifecycle Transition Smoke
+Run Activity Content Execution Participant Source Smoke
+```
+
+F10 nao adiciona:
+
+```text
+authoring real de participants
+scene scan
+GameObject.Find
+FindObjectsOfType
+Transform placement
+Instantiate
+Destroy
+Addressables
+Pooling
+Presentation
+Actor/Player/Camera/Pause/Input/Save consumers
+physical reset
+Transition/Loading
+```
+
+## Sequencia proposta F11+
 
 | Phase | Layer | Nome | Estado |
 |---|---|---|---|
-| F10 | Framework Core | Activity Entry/Exit Content Execution | `OPEN / EXPLICIT PARTICIPANT SOURCE SMOKE APPLIED / PENDING COMPILE / IMPLEMENTATION IN PROGRESS` |
 | F11 | Framework Core | Reset Foundation | `PROPOSED / PENDING HUMAN APPROVAL` |
 | F12 | Framework Core | Transition / Loading Orchestration | `PROPOSED / PENDING HUMAN APPROVAL` |
 | F13 | Framework Core | Participation / Capability Contracts | `PROPOSED / PENDING HUMAN APPROVAL` |
@@ -57,120 +115,6 @@ F9 encerra apenas o binding logico entre declaracoes de Content Anchor e contrat
 | F18 | Gameplay Consumer | Input / Pause / Camera / Save | `PROPOSED / PENDING HUMAN APPROVAL` |
 | F19 | Gameplay Consumer | Actor / Player / Audio / Pooling | `PROPOSED / PENDING HUMAN APPROVAL` |
 | F20+ | Productization | Snapshot / Restore / Versioning / Migration / Productization | `PROPOSED / PENDING HUMAN APPROVAL` |
-
-### F10 ADRs accepted
-
-F10 abriu primeiro como decisao arquitetural aceita e agora iniciou implementacao incremental com contratos passivos, aggregate result, participant contract, collection/ordering model, request factory/phase plan, runtime executor para phase plans fornecidos, smoke diagnostico sintetico, integracao diagnostica no ActivityFlow com collection vazia por padrao e smoke de transicao clear/restore. Authoring/discovery de participants ainda nao existe; F10K apenas define a source boundary explicita e mantem uma source vazia por padrao.
-
-- `Documentation~/ADRs/F10-activity-content-execution-core/F10-01-ADR-ACTIVITY-003-activity-entry-exit-content-execution-core.md`
-- `Documentation~/ADRs/F10-activity-content-execution-core/F10-02-ADR-ACTIVITY-004-activity-content-execution-ordering-and-lifecycle.md`
-- `Documentation~/ADRs/F10-activity-content-execution-core/F10-03-ADR-ACTIVITY-005-activity-content-execution-readiness-failure-diagnostics.md`
-
-### F10B contracts applied
-
-F10B adiciona contratos passivos por item de execucao:
-
-```text
-ActivityContentExecutionPhase
-ActivityContentExecutionRequiredness
-ActivityContentExecutionStatus
-ActivityContentExecutionRequest
-ActivityContentExecutionResult
-```
-
-Esses contratos descrevem fase, Activity, RuntimeScopeContext Activity-scoped, RuntimeContentId, requiredness, status e contribuicao diagnostica de readiness. Eles nao descobrem participants, nao executam conteudo, nao fazem binding, nao criam materializacao fisica e nao acionam Unity adapters.
-
-### F10C aggregate contracts applied
-
-F10C adiciona resultado agregado passivo para multiples resultados por fase:
-
-```text
-ActivityContentExecutionAggregateStatus
-ActivityContentExecutionAggregateResult
-```
-
-O aggregate resume resultados de Enter/Exit, contagem de required/optional, succeeded/skipped/failed, blocking/non-blocking issues e `blocksReadiness`. Ele ainda nao e integrado ao lifecycle e nao executa participants.
-
-
-### F10D participant contract applied
-
-F10D adiciona a fronteira passiva para participants futuros de Activity Content Execution:
-
-```text
-ActivityContentExecutionParticipantDescriptor
-IActivityContentExecutionParticipant
-```
-
-O descriptor define `RuntimeContentId`, requiredness, suporte a Enter/Exit, order e diagnostics. A interface define `GetActivityContentExecutionDescriptor()` e `ExecuteActivityContent(request)`. Este corte nao descobre participants, nao integra readiness ao lifecycle e nao executa side effects Unity.
-
-
-### F10E participant collection applied
-
-F10E adiciona a colecao passiva e ordenavel de participants:
-
-```text
-ActivityContentExecutionParticipantEntry
-ActivityContentExecutionParticipantCollection
-ActivityContentExecutionParticipantCollectionIssue
-ActivityContentExecutionParticipantCollectionIssueKind
-```
-
-A collection valida participants fornecidos, rejeita nulos/descriptors invalidos/duplicidade de `RuntimeContentId`, preserva ordering deterministico por `order + sourceIndex` e gera snapshots por fase Enter/Exit. Ela ainda nao descobre participants, nao executa requests, nao integra readiness ao lifecycle e nao produz side effects Unity.
-
-
-### F10F request factory / phase plan applied
-
-F10F adiciona o modelo passivo que transforma uma collection ja conhecida em um plano de fase:
-
-```text
-ActivityContentExecutionParticipantCollection
-  -> ActivityContentExecutionRequestFactory
-      -> ActivityContentExecutionPhasePlan
-          -> ActivityContentExecutionRequest[]
-```
-
-F10F ainda nao adiciona discovery, integracao no ActivityFlow, smoke, adapters fisicos ou gameplay consumers.
-
-### F10G runtime executor applied
-
-F10G adiciona o executor runtime para um phase plan ja conhecido:
-
-```text
-ActivityContentExecutionPhasePlan
-  -> ActivityContentExecutionRuntime.ExecutePhasePlan(...)
-      -> IActivityContentExecutionParticipant.ExecuteActivityContent(...)
-      -> ActivityContentExecutionAggregateResult
-```
-
-O executor valida o phase plan, executa participants explicitamente fornecidos, captura exceptions como failures diagnosticas, converte falha de required em blocking failure, converte falha de optional em non-blocking failure e agrega os resultados.
-
-F10G ainda nao adiciona participant discovery, integracao no ActivityFlow, readiness aggregation no lifecycle, adapters fisicos ou gameplay consumers.
-### F10H runtime executor smoke applied
-
-F10H adiciona smoke diagnostico para o executor runtime sem discovery e sem integracao no `ActivityFlowRuntime`:
-
-```text
-Run Activity Content Execution Runtime Smoke
-```
-
-O smoke usa participants sinteticos para validar collection, enter plan, exit plan, `ActivityContentExecutionRuntime.ExecutePhasePlan(...)` e `ActivityContentExecutionAggregateResult`.
-
-F10H ainda nao adiciona participant discovery, ActivityFlow integration, readiness aggregation no lifecycle, adapters fisicos ou gameplay consumers.
-
-### F10J lifecycle transition smoke applied
-
-F10J adiciona `Run Activity Content Execution Lifecycle Transition Smoke` para validar clear/restore com execution lifecycle vazio por padrao.
-
-### F10K participant source boundary applied
-
-F10K adiciona a fronteira explicita `IActivityContentExecutionParticipantSource` para que o lifecycle receba participants conhecidos sem busca global, sem `GameObject.Find` e sem gameplay consumer. O source padrao continua vazio, retornando `SucceededNoParticipants`; por isso o comportamento de F10I/F10J permanece `SucceededNoContent` ate existir authoring/discovery futuro.
-
-### F10L explicit participant source smoke applied
-
-F10L adiciona `Run Activity Content Execution Participant Source Smoke`, que injeta temporariamente uma source sintetica explicita no lifecycle. O smoke valida que `Clear Activity` executa Exit com participant sourced e que `Restore Activity` executa Enter com participants sourced, depois restaura a source vazia padrao.
-
-F10L ainda nao adiciona authoring/discovery real de participants, scene scan, gameplay consumers, adapters fisicos ou placement.
-
 
 ## Framework Core boundary
 
@@ -240,7 +184,7 @@ Gameplay consumers consomem contratos do core e adapters, mas nao redefinem iden
 | Content Anchor declaration | Framework Core | `CLOSED F7` |
 | RuntimeContent logical roots/handles | Framework Core | `CLOSED F8` |
 | Content Anchor logical binding | Framework Core | `CLOSED F9` |
-| Activity entry/exit content execution contracts | Framework Core | `F10B-F10L CONTRACTS + AGGREGATE + PARTICIPANT CONTRACT + COLLECTION + PHASE PLAN + RUNTIME EXECUTOR + LIFECYCLE DIAGNOSTIC INTEGRATION + TRANSITION SMOKE + SOURCE BOUNDARY + EXPLICIT SOURCE SMOKE APPLIED / PENDING COMPILE` |
+| Activity entry/exit content execution core | Framework Core | `CLOSED F10` |
 | Reset request/result/policy foundation | Framework Core | `PROPOSED F11` |
 | Transition/loading orchestration contracts | Framework Core | `PROPOSED F12` |
 | Participation/capability contracts | Framework Core | `PROPOSED F13` |
@@ -259,11 +203,11 @@ Gameplay consumers consomem contratos do core e adapters, mas nao redefinem iden
 - Nao tratar Runtime Root como `GameObject` ou `Transform`.
 - Nao tratar physical reset como core atual.
 - Nao misturar Reset, Activity Entry/Exit Content Execution e Transition/Loading na mesma fase.
-- Nao marcar F10 como fechado antes de discovery de participants, readiness diagnostics, lifecycle integration smoke e smokes especificos passarem.
+- Nao reabrir F10 para authoring/discovery real de participants; isso deve pertencer a fase/adapters futuros, se aprovado.
 
 ## ADR policy
 
-ADRs aceitos de F0-F9 continuam preservados como historico porque descrevem decisoes ja aplicadas e evidencias dos cortes fechados.
+ADRs aceitos de F0-F10 continuam preservados como historico porque descrevem decisoes ja aplicadas e evidencias dos cortes fechados.
 
 ADRs antigos F10-F13 em `HOLD`, ou baseados na sequencia mista anterior, foram removidos porque competiam com este plano e misturavam core, adapter e consumer antes de a nova fronteira ser aprovada.
 
@@ -289,12 +233,10 @@ Estao superseded e nao autorizam trabalho futuro:
 
 ## Proxima decisao humana
 
-Antes de fechar F10, implementar e validar os cortes runtime/editor minimos:
+F10 esta fechado. A proxima decisao humana e aprovar ou ajustar a abertura de F11:
 
-- contratos publicos/internos de Activity content execution;
-- result/status/readiness aggregation;
-- ordering no Activity lifecycle;
-- diagnostics e QA smoke minimo;
-- confirmacao de que nenhuma execucao Unity concreta entrara no core.
+```text
+F11 — Framework Core — Reset Foundation
+```
 
-F10 permanece `OPEN / EXPLICIT PARTICIPANT SOURCE SMOKE APPLIED / PENDING COMPILE / IMPLEMENTATION IN PROGRESS`; F10B-F10L foram aplicados, mas authoring/discovery de participants e readiness aggregation nova no lifecycle ainda nao existem.
+F11 deve comecar por ADRs novos e limpos, sem implementar physical reset, prefab reset, pool reset, snapshot restore real ou gameplay mutation.

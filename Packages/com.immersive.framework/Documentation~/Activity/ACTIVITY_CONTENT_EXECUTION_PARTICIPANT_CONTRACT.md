@@ -1,14 +1,14 @@
 # Activity Content Execution Participant Contract
 
-Status: APPLIED / PARTICIPANT CONTRACT + COLLECTION MODEL + PHASE PLAN + RUNTIME EXECUTOR  
-Fase: F10D-F10G  
+Status: CLOSED / COVERED BY F10 ACTIVITY CONTENT EXECUTION CORE PASS  
+Fase: F10D-F10M  
 Escopo: Framework Core
 
 ---
 
 ## Contexto
 
-F10B/F10C definiram request/result e aggregate result para Activity Content Execution. F10D adiciona a fronteira passiva para um participante de execucao. F10E adiciona a colecao passiva/ordenavel desses participants. F10F adiciona request factory e phase plan. F10G adiciona runtime executor para phase plans ja fornecidos, ainda sem discovery ou integracao no lifecycle.
+F10B/F10C definiram request/result e aggregate result para Activity Content Execution. F10D adiciona a fronteira passiva para um participante de execucao. F10E adiciona a colecao passiva/ordenavel desses participants. F10F adiciona request factory e phase plan. F10G-F10L adicionam executor, lifecycle integration, source boundary e smokes diagnosticos.
 
 ## Contratos adicionados
 

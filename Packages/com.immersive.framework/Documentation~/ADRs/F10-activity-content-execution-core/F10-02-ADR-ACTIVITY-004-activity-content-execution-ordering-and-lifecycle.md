@@ -1,6 +1,6 @@
 # F10-02 — ADR-ACTIVITY-004 — Activity Content Execution Ordering and Lifecycle
 
-Status: Accepted / F10 planning only / implementation not started  
+Status: Accepted / Implemented by F10B-F10L / F10 closed  
 Fase: F10  
 Ordem no Plano: F10-02  
 Tipo: Activity / Lifecycle Ordering  
@@ -99,11 +99,11 @@ F9 cleanup policy
 
 ## Validacao esperada de F10
 
-Quando implementado, F10 deve validar:
+F10B-F10L validaram:
 
-- enter execution acontece com Activity context disponivel;
-- exit execution acontece antes do root removal;
+- enter execution ocorre com Activity context disponivel quando source explicita fornece participants;
+- exit execution ocorre durante clear de Activity antes do root removal final;
 - cleanup logico de bindings permanece preservado;
 - root removal nao ocorre com handles vivos nao liberados quando policy exige release/unregister;
-- diagnostics de ordering aparecem em Activity Request ou QA smoke;
+- diagnostics de ordering aparecem em Activity Request e QA smoke;
 - nenhuma operacao fisica Unity e executada pelo core.

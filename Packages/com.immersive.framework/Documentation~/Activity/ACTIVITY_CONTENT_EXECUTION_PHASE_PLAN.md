@@ -1,7 +1,7 @@
 # Activity Content Execution Phase Plan
 
-Status: APPLIED / REQUEST FACTORY + PHASE PLAN ONLY  
-Fase: F10F  
+Status: CLOSED / COVERED BY F10 ACTIVITY CONTENT EXECUTION CORE PASS  
+Fase: F10F-F10M  
 Escopo: Framework Core
 
 ---

@@ -17,7 +17,7 @@ Short status:
 ```text
 F0-F8 CLOSED
 F9    CLOSED / LOGICAL CONTENT ANCHOR BINDING PASS
-F10   OPEN / EXPLICIT PARTICIPANT SOURCE SMOKE APPLIED / PENDING COMPILE / IMPLEMENTATION IN PROGRESS
+F10   CLOSED / ACTIVITY CONTENT EXECUTION CORE PASS
 F11+  PROPOSED / PENDING HUMAN APPROVAL
 ```
 
@@ -55,16 +55,18 @@ Documentation~/Activity/ACTIVITY_CONTENT_EXECUTION_LIFECYCLE_INTEGRATION.md
 Documentation~/Activity/ACTIVITY_CONTENT_EXECUTION_LIFECYCLE_TRANSITION_SMOKE.md
 Documentation~/Activity/ACTIVITY_CONTENT_EXECUTION_PARTICIPANT_SOURCE.md
 Documentation~/Activity/ACTIVITY_CONTENT_EXECUTION_PARTICIPANT_SOURCE_SMOKE.md
+Documentation~/Activity/ACTIVITY_CONTENT_EXECUTION_CORE_CLOSURE.md
 Documentation~/ADRs/
 ```
 
 ## Current hard boundary
 
-F9 is closed as a logical binding layer. F10 has started with Activity Content Execution passive contracts, aggregate result contracts, participant contract, collection/ordering model, request factory/phase plan, runtime executor for supplied phase plans, a synthetic diagnostics smoke, lifecycle diagnostic integration, lifecycle transition smoke for clear/restore diagnostics and an explicit participant source boundary with an empty source by default, and an explicit synthetic participant source smoke through the lifecycle; no participant authoring/discovery, adapters, placement or gameplay consumers have been added.
+F9 is closed as a logical Content Anchor binding layer. F10 is closed as the Framework Core layer for Activity Content Execution: contracts, aggregate result, participant contract, collection/ordering model, phase plan/request factory, runtime executor, lifecycle integration, participant source boundary and diagnostic smokes passed.
+
+F10 does not add participant authoring/discovery, scene scan, physical placement, adapters or gameplay consumers.
 
 Framework Core may define lifecycle, identity, ownership, request/result, policy, readiness, diagnostics, logical binding/release and future Activity entry/exit/reset/participation contracts.
 
 Framework Core must not execute `Instantiate`, `Destroy`, `Addressables.Load`, `Addressables.Release`, pool rent/return, `Animator` reset, camera blend, UI concrete show/hide, player/actor mutation or gameplay state mutation.
 
 Future Unity adapters own concrete scene, prefab, Addressables, Transform placement, hierarchy and physical release operations. Future gameplay consumers own Presentation, Actor, Player, NPC, Camera, Pause, Input, Save, Audio and gameplay Pooling behavior.
-

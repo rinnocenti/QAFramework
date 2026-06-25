@@ -1,7 +1,7 @@
 # Activity Content Execution Participant Source
 
-Status: APPLIED / PARTICIPANT SOURCE BOUNDARY / F10L SMOKE PENDING  
-Fase: F10K  
+Status: PASS / PARTICIPANT SOURCE BOUNDARY / COVERED BY F10 CORE PASS  
+Fase: F10K-F10M  
 Escopo: Framework Core
 
 ---

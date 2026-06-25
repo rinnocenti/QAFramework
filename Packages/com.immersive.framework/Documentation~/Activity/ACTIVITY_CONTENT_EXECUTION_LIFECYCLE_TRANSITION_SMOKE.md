@@ -1,6 +1,6 @@
 # Activity Content Execution Lifecycle Transition Smoke
 
-Status: APPLIED / PENDING SMOKE  
+Status: PASS / COVERED BY F10 ACTIVITY CONTENT EXECUTION CORE PASS  
 Fase: F10J  
 Escopo: Framework Core diagnostics
 

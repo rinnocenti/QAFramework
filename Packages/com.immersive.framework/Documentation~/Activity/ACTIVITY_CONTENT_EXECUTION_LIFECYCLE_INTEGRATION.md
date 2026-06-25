@@ -1,7 +1,7 @@
 # Activity Content Execution Lifecycle Integration
 
-Status: APPLIED / LIFECYCLE DIAGNOSTIC INTEGRATION / REGRESSION PASS BEFORE F10J  
-Fase: F10I  
+Status: PASS / LIFECYCLE DIAGNOSTIC INTEGRATION / COVERED BY F10 CORE PASS  
+Fase: F10I-F10M  
 Escopo: Framework Core
 
 ---

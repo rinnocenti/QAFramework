@@ -1,6 +1,6 @@
 # F10-01 — ADR-ACTIVITY-003 — Activity Entry/Exit Content Execution Core
 
-Status: Accepted / F10 planning only / implementation not started  
+Status: Accepted / Implemented by F10B-F10L / F10 closed  
 Fase: F10  
 Ordem no Plano: F10-01  
 Tipo: Activity / Content Execution  
@@ -84,7 +84,7 @@ gameplay state mutation
 
 ## Validacao esperada de F10
 
-Esta ADR nao implementa API. Quando F10 entrar em implementacao, os criterios minimos serao:
+Esta ADR foi implementada pelos cortes F10B-F10L. Os criterios minimos validados foram:
 
 - Activity content enter/exit possui contratos explicitos.
 - A execucao nao chama `Instantiate`, `Destroy`, `GameObject.Find`, Addressables ou Pooling.
@@ -94,4 +94,4 @@ Esta ADR nao implementa API. Quando F10 entrar em implementacao, os criterios mi
 
 ## Relacao com roadmap
 
-F10 abre como Framework Core planning para `Activity Entry/Exit Content Execution`. Implementacao continua nao iniciada ate corte proprio.
+F10 fechou como Framework Core para `Activity Entry/Exit Content Execution`. A implementacao cobre contratos, aggregate result, participant contract, collection, phase plan, runtime executor, lifecycle integration, participant source boundary e smokes diagnosticos, sem authoring/discovery real, adapters fisicos ou gameplay consumers.

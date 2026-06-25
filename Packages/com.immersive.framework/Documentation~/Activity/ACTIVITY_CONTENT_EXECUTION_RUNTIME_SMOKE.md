@@ -1,6 +1,6 @@
 # Activity Content Execution Runtime Smoke
 
-Status: APPLIED / PENDING SMOKE  
+Status: PASS / COVERED BY F10 ACTIVITY CONTENT EXECUTION CORE PASS  
 Fase: F10H  
 Escopo: Framework Core diagnostics
 
