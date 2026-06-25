@@ -23,6 +23,7 @@ namespace Immersive.Framework.Identity
         ContentAnchor = 70,
         Runtime = 80,
         Diagnostics = 90,
-        QA = 100
+        QA = 100,
+        CycleReset = 110
     }
 }
