@@ -10,6 +10,7 @@ using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.LocalContribution;
 using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.RuntimeContent;
+using Immersive.Framework.CycleReset;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
@@ -256,6 +257,11 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Runtime Content Smoke"))
                 {
                     RunRuntimeContentSmoke();
+                }
+
+                if (GUILayout.Button("Run Cycle Reset Runtime Host Smoke"))
+                {
+                    RunCycleResetRuntimeHostSmoke();
                 }
 
                 if (GUILayout.Button("Validate Loaded Authoring"))
@@ -691,6 +697,19 @@ namespace Immersive.Framework.Diagnostics
             {
                 EndOperation();
             }
+        }
+
+        private async void RunCycleResetRuntimeHostSmoke()
+        {
+            await RunSmokeAsync(CycleResetQaSmokeRunner.SmokeName, runtimeHost =>
+                CycleResetQaSmokeRunner.RunRuntimeHostSmokeAsync(
+                    runtimeHost,
+                    _logger,
+                    QaSource,
+                    runRouteCycleReset: true,
+                    runActivityCycleReset: true,
+                    logParticipantDetails: false,
+                    emitSmokeEnvelope: false));
         }
 
         private async void RunStandardSmoke()

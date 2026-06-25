@@ -277,6 +277,23 @@ namespace Immersive.Framework.CycleReset
                 string.IsNullOrWhiteSpace(message) ? "Cycle Reset executed and aggregated participant results." : message);
         }
 
+        public static CycleResetResult RejectedInvalidRequest(
+            CycleResetRequest request,
+            IReadOnlyList<CycleResetIssue> issues,
+            string source,
+            string reason,
+            string message)
+        {
+            return new CycleResetResult(
+                request,
+                CycleResetStatus.RejectedInvalidRequest,
+                Array.Empty<CycleResetParticipantResult>(),
+                issues ?? Array.Empty<CycleResetIssue>(),
+                source,
+                reason,
+                string.IsNullOrWhiteSpace(message) ? "Cycle Reset rejected invalid request." : message);
+        }
+
         public static CycleResetResult RejectedInvalidPlan(
             CycleResetRequest request,
             IReadOnlyList<CycleResetIssue> issues,

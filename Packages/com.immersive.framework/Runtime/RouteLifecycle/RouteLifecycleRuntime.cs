@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Immersive.Foundation.Events;
 using Immersive.Framework.ActivityFlow;
@@ -8,6 +9,7 @@ using Immersive.Framework.ContentFlow;
 using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.RuntimeContent;
+using Immersive.Framework.CycleReset;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -26,9 +28,11 @@ namespace Immersive.Framework.RouteLifecycle
         private readonly ContentAnchorDiscoveryRuntime _contentAnchorDiscoveryRuntime = new ContentAnchorDiscoveryRuntime();
         private readonly RuntimeContentRuntime _runtimeContentRuntime;
         private readonly RuntimeContentAnchorBinding _contentAnchorBindingRuntime;
+        private readonly CycleResetRuntime _cycleResetRuntime = new CycleResetRuntime();
         private readonly EventBus<RouteEnteredEvent> _routeEnteredEvents = new EventBus<RouteEnteredEvent>();
         private readonly EventBus<RouteExitedEvent> _routeExitedEvents = new EventBus<RouteExitedEvent>();
         private RouteRuntimeState _currentRouteState;
+        private ICycleResetParticipantSource _cycleResetParticipantSource = EmptyCycleResetParticipantSource.Instance;
 
         internal RouteLifecycleRuntime(
             RuntimeContentRuntime runtimeContentRuntime,
@@ -76,6 +80,11 @@ namespace Immersive.Framework.RouteLifecycle
         internal void SetActivityContentExecutionParticipantSource(IActivityContentExecutionParticipantSource participantSource)
         {
             _activityFlowRuntime.SetActivityContentExecutionParticipantSource(participantSource);
+        }
+
+        internal void SetCycleResetParticipantSource(ICycleResetParticipantSource participantSource)
+        {
+            _cycleResetParticipantSource = participantSource ?? EmptyCycleResetParticipantSource.Instance;
         }
 
         internal async Task<RouteLifecycleStartResult> StartRouteAsync(
@@ -186,6 +195,113 @@ namespace Immersive.Framework.RouteLifecycle
             {
                 _routeEnteredEvents.Publish(new RouteEnteredEvent(nextRoute, previousRoute, source, reason));
             }
+        }
+
+        internal Task<CycleResetResult> RequestRouteCycleResetAsync(
+            CycleResetPolicy policy,
+            string source,
+            string reason)
+        {
+            if (CurrentRoute == null)
+            {
+                return Task.FromResult(CreateRejectedCycleResetResult(
+                    CycleResetScope.Route,
+                    "Cycle Reset Request failed. No active Route is available.",
+                    source,
+                    reason));
+            }
+
+            var resolvedPolicy = policy.IsValid ? policy : CycleResetPolicy.RouteDefault();
+            var request = CycleResetRequest.Route(CurrentRoute, CurrentActivity, resolvedPolicy, source, reason);
+            return Task.FromResult(ExecuteCycleResetRequest(request, source, reason));
+        }
+
+        internal Task<CycleResetResult> RequestActivityCycleResetAsync(
+            CycleResetPolicy policy,
+            string source,
+            string reason)
+        {
+            if (CurrentRoute == null)
+            {
+                return Task.FromResult(CreateRejectedCycleResetResult(
+                    CycleResetScope.Activity,
+                    "Cycle Reset Request failed. No active Route is available.",
+                    source,
+                    reason));
+            }
+
+            if (CurrentActivity == null)
+            {
+                return Task.FromResult(CreateRejectedCycleResetResult(
+                    CycleResetScope.Activity,
+                    "Cycle Reset Request failed. No active Activity is available.",
+                    source,
+                    reason));
+            }
+
+            var resolvedPolicy = policy.IsValid ? policy : CycleResetPolicy.ActivityDefault();
+            var request = CycleResetRequest.Activity(CurrentRoute, CurrentActivity, source, reason);
+            if (resolvedPolicy != CycleResetPolicy.ActivityDefault())
+            {
+                request = new CycleResetRequest(
+                    CycleResetScope.Activity,
+                    CurrentRoute,
+                    CurrentActivity,
+                    resolvedPolicy,
+                    source,
+                    reason);
+            }
+
+            return Task.FromResult(ExecuteCycleResetRequest(request, source, reason));
+        }
+
+        private CycleResetResult ExecuteCycleResetRequest(CycleResetRequest request, string source, string reason)
+        {
+            IReadOnlyList<ICycleResetParticipant> participants;
+            try
+            {
+                participants = _cycleResetParticipantSource.ResolveCycleResetParticipants(request);
+            }
+            catch (Exception exception)
+            {
+                return CycleResetResult.RejectedInvalidRequest(
+                    request,
+                    new[]
+                    {
+                        CycleResetIssue.BlockingIssue(
+                            CycleResetIssueKind.ParticipantSourceException,
+                            default,
+                            request.Scope,
+                            $"Cycle Reset participant source threw an exception: {exception.GetType().Name}.")
+                    },
+                    source,
+                    reason,
+                    "Cycle Reset Request failed because the participant source threw an exception.");
+            }
+
+            var plan = _cycleResetRuntime.CreatePlan(request, participants, source, reason);
+            return _cycleResetRuntime.ExecutePlan(plan, source, reason);
+        }
+
+        private static CycleResetResult CreateRejectedCycleResetResult(
+            CycleResetScope requestedScope,
+            string message,
+            string source,
+            string reason)
+        {
+            return CycleResetResult.RejectedInvalidRequest(
+                default,
+                new[]
+                {
+                    CycleResetIssue.BlockingIssue(
+                        CycleResetIssueKind.InvalidRequest,
+                        default,
+                        requestedScope,
+                        message)
+                },
+                source,
+                reason,
+                message);
         }
 
         internal Task<ActivityFlowStartResult> StartActivityAsync(

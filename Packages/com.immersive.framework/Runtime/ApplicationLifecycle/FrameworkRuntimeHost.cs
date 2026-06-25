@@ -8,6 +8,7 @@ using Immersive.Framework.GameFlow;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.SessionLifecycle;
 using Immersive.Framework.RuntimeContent;
+using Immersive.Framework.CycleReset;
 using UnityEngine;
 using Immersive.Framework.ApiStatus;
 using Immersive.Logging.Records;
@@ -42,6 +43,11 @@ namespace Immersive.Framework.ApplicationLifecycle
         internal void SetActivityContentExecutionParticipantSource(IActivityContentExecutionParticipantSource participantSource)
         {
             _gameFlowRuntime?.SetActivityContentExecutionParticipantSource(participantSource);
+        }
+
+        internal void SetCycleResetParticipantSource(ICycleResetParticipantSource participantSource)
+        {
+            _gameFlowRuntime?.SetCycleResetParticipantSource(participantSource);
         }
 
         internal int ContentAnchorBindingCount => _contentAnchorBindingRuntime != null ? _contentAnchorBindingRuntime.BindingCount : 0;
@@ -122,6 +128,20 @@ namespace Immersive.Framework.ApplicationLifecycle
             }
 
             LogActivityRequestResult(result);
+            return result;
+        }
+
+        internal async Task<CycleResetResult> RequestRouteCycleResetAsync(string source, string reason)
+        {
+            var result = await _gameFlowRuntime.RequestRouteCycleResetAsync(source, reason);
+            LogCycleResetResult(result);
+            return result;
+        }
+
+        internal async Task<CycleResetResult> RequestActivityCycleResetAsync(string source, string reason)
+        {
+            var result = await _gameFlowRuntime.RequestActivityCycleResetAsync(source, reason);
+            LogCycleResetResult(result);
             return result;
         }
 
@@ -317,6 +337,41 @@ namespace Immersive.Framework.ApplicationLifecycle
             }
 
             _logger.Error(result.Message);
+        }
+
+        private void LogCycleResetResult(CycleResetResult result)
+        {
+            if (result.Succeeded || result.CompletedWithWarnings)
+            {
+                _logger.Info("Cycle Reset Request completed.", BuildCycleResetFields(result));
+                _logger.Debug("Cycle Reset Request diagnostics. " + result.ToDiagnosticString());
+                return;
+            }
+
+            if (result.Status == CycleResetStatus.SucceededNoParticipants)
+            {
+                _logger.Info("Cycle Reset Request completed with no participants.", BuildCycleResetFields(result));
+                return;
+            }
+
+            _logger.Error("Cycle Reset Request failed. " + result.ToDiagnosticString());
+        }
+
+        private LogField[] BuildCycleResetFields(CycleResetResult result)
+        {
+            return LogFields.Of(
+                LogFields.Field("scope", result.Request.Scope.ToString()),
+                LogFields.Field("source", result.Source),
+                LogFields.Field("reason", result.Reason),
+                LogFields.Field("route", GetRouteName(result.Request.ActiveRoute)),
+                LogFields.Field("activity", GetActivityName(result.Request.ActiveActivity)),
+                LogFields.Field("status", result.Status.ToString()),
+                LogFields.Field("participants", result.ParticipantCount),
+                LogFields.Field("participantSucceeded", result.SucceededCount),
+                LogFields.Field("participantSkipped", result.SkippedCount),
+                LogFields.Field("participantFailed", result.FailedCount),
+                LogFields.Field("blockingIssues", result.BlockingIssueCount),
+                LogFields.Field("nonBlockingIssues", result.NonBlockingIssueCount));
         }
 
         private LogField[] BuildRouteRequestFields(FrameworkRouteRequestResult result)

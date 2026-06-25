@@ -9,6 +9,7 @@ namespace Immersive.Framework.CycleReset
     public enum CycleResetIssueKind
     {
         Unknown = 0,
+        InvalidRequest = 5,
         NullParticipant = 10,
         InvalidDescriptor = 20,
         UnsupportedScope = 30,
@@ -16,6 +17,8 @@ namespace Immersive.Framework.CycleReset
         InvalidParticipantResult = 50,
         ParticipantException = 60,
         RequiredParticipantFailed = 70,
-        OptionalParticipantFailed = 80
+        OptionalParticipantFailed = 80,
+        RequestAlreadyInFlight = 90,
+        ParticipantSourceException = 100
     }
 }
