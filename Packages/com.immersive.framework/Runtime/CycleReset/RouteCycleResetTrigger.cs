@@ -47,6 +47,26 @@ namespace Immersive.Framework.CycleReset
 
         public bool HasLastResult => _hasLastResult;
 
+        public CycleResetStatus LastResultStatus => _hasLastResult ? _lastResult.Status : CycleResetStatus.Unknown;
+
+        public int LastParticipantCount => _hasLastResult ? _lastResult.ParticipantCount : 0;
+
+        public int LastSucceededParticipantCount => _hasLastResult ? _lastResult.SucceededCount : 0;
+
+        public int LastSkippedParticipantCount => _hasLastResult ? _lastResult.SkippedCount : 0;
+
+        public int LastFailedParticipantCount => _hasLastResult ? _lastResult.FailedCount : 0;
+
+        public int LastBlockingIssueCount => _hasLastResult ? _lastResult.BlockingIssueCount : 0;
+
+        public int LastNonBlockingIssueCount => _hasLastResult ? _lastResult.NonBlockingIssueCount : 0;
+
+        public bool LastResultSucceededNoParticipants => _hasLastResult && _lastResult.Status == CycleResetStatus.SucceededNoParticipants;
+
+        public bool LastResultCompletedWithWarnings => _hasLastResult && _lastResult.CompletedWithWarnings;
+
+        public string LastResultSummary => BuildLastResultSummary();
+
         public bool LastRequestSucceeded => _lastOutcome == FlowRequestOutcome.Succeeded;
 
         public bool LastRequestIgnored => _lastOutcome == FlowRequestOutcome.Ignored;
@@ -67,6 +87,7 @@ namespace Immersive.Framework.CycleReset
             _logger = FrameworkLogger.Create<RouteCycleResetTrigger>();
         }
 
+        [ContextMenu("Request Route Cycle Reset")]
         public async void RequestRouteCycleReset()
         {
             EnsureLogger();
@@ -103,6 +124,12 @@ namespace Immersive.Framework.CycleReset
             }
 
             PublishCompleted(MapOutcome(result), resolvedReason, result.Message, result, true);
+        }
+
+        [ContextMenu("Clear Last Cycle Reset Result")]
+        public void ClearLastResult()
+        {
+            SetRequestState(FlowRequestEventPhase.Completed, FlowRequestOutcome.None, string.Empty, string.Empty, default, false);
         }
 
         private void EnsureLogger()
@@ -170,6 +197,16 @@ namespace Immersive.Framework.CycleReset
             _lastMessage = message ?? string.Empty;
             _lastResult = result;
             _hasLastResult = hasResult;
+        }
+
+        private string BuildLastResultSummary()
+        {
+            if (!_hasLastResult)
+            {
+                return string.IsNullOrWhiteSpace(_lastMessage) ? "No Cycle Reset result yet." : _lastMessage;
+            }
+
+            return $"status='{_lastResult.Status}' participants='{_lastResult.ParticipantCount}' participantSucceeded='{_lastResult.SucceededCount}' participantSkipped='{_lastResult.SkippedCount}' participantFailed='{_lastResult.FailedCount}' blockingIssues='{_lastResult.BlockingIssueCount}' nonBlockingIssues='{_lastResult.NonBlockingIssueCount}'";
         }
 
         private static FlowRequestOutcome MapOutcome(CycleResetResult result)

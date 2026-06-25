@@ -37,7 +37,63 @@ namespace Immersive.Framework.Editor.Editor.Authoring
                 "Expected F12 behaviour: with no reset participants discovered yet, a successful trigger request can report SucceededNoParticipants. That is valid until local/object reset participants exist.",
                 MessageType.Info);
 
+            DrawRuntimeResult();
+
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void DrawRuntimeResult()
+        {
+            if (!Application.isPlaying || targets.Length != 1)
+            {
+                return;
+            }
+
+            var trigger = target as RouteCycleResetTrigger;
+            if (trigger == null)
+            {
+                return;
+            }
+
+            EditorGUILayout.Space(6);
+            EditorGUILayout.LabelField("Runtime Result", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("In Flight", trigger.IsRequestInFlight ? "Yes" : "No");
+            EditorGUILayout.LabelField("Last Phase", trigger.LastEventPhase.ToString());
+            EditorGUILayout.LabelField("Last Outcome", trigger.LastOutcome.ToString());
+            EditorGUILayout.LabelField("Last Result Status", trigger.LastResultStatus.ToString());
+
+            if (!string.IsNullOrWhiteSpace(trigger.LastReason))
+            {
+                EditorGUILayout.LabelField("Last Reason", trigger.LastReason);
+            }
+
+            if (!string.IsNullOrWhiteSpace(trigger.LastMessage))
+            {
+                EditorGUILayout.HelpBox(trigger.LastMessage, ResolveRuntimeMessageType(trigger));
+            }
+
+            if (trigger.HasLastResult)
+            {
+                EditorGUILayout.LabelField("Participants", trigger.LastParticipantCount.ToString());
+                EditorGUILayout.LabelField("Succeeded / Skipped / Failed", $"{trigger.LastSucceededParticipantCount} / {trigger.LastSkippedParticipantCount} / {trigger.LastFailedParticipantCount}");
+                EditorGUILayout.LabelField("Blocking / Non-blocking Issues", $"{trigger.LastBlockingIssueCount} / {trigger.LastNonBlockingIssueCount}");
+                EditorGUILayout.HelpBox(trigger.LastResultSummary, MessageType.None);
+            }
+        }
+
+        private static MessageType ResolveRuntimeMessageType(RouteCycleResetTrigger trigger)
+        {
+            if (trigger.LastRequestFailed)
+            {
+                return MessageType.Error;
+            }
+
+            if (trigger.LastRequestIgnored || trigger.LastResultCompletedWithWarnings)
+            {
+                return MessageType.Warning;
+            }
+
+            return MessageType.Info;
         }
 
         private static void DrawReasonGuardrail(SerializedProperty reason)

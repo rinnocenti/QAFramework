@@ -6,6 +6,7 @@ using Immersive.Framework.ApiStatus;
 using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Diagnostics;
 using Immersive.Logging.Records;
+using UnityEngine;
 
 namespace Immersive.Framework.CycleReset
 {
@@ -18,6 +19,8 @@ namespace Immersive.Framework.CycleReset
     internal static class CycleResetQaSmokeRunner
     {
         internal const string SmokeName = "Cycle Reset Runtime Host Smoke";
+
+        internal const string TriggerSmokeName = "Cycle Reset Trigger Smoke";
 
         internal static async Task<bool> RunRuntimeHostSmokeAsync(
             FrameworkRuntimeHost runtimeHost,
@@ -95,6 +98,75 @@ namespace Immersive.Framework.CycleReset
             {
                 runtimeHost.SetCycleResetParticipantSource(null);
             }
+        }
+
+
+
+        internal static async Task<bool> RunTriggerSmokeAsync(
+            FrameworkRuntimeHost runtimeHost,
+            FrameworkLogger logger,
+            string source,
+            bool runRouteCycleReset = true,
+            bool runActivityCycleReset = true,
+            bool emitSmokeEnvelope = false)
+        {
+            if (logger == null)
+            {
+                return false;
+            }
+
+            source = string.IsNullOrWhiteSpace(source) ? nameof(CycleResetQaSmokeRunner) : source;
+
+            if (emitSmokeEnvelope)
+            {
+                logger.Info($"QA Smoke started. name='{TriggerSmokeName}'.");
+            }
+
+            if (runtimeHost == null)
+            {
+                logger.Warning($"QA Smoke aborted. name='{TriggerSmokeName}'. reason='Framework Runtime Host is missing'.");
+                return false;
+            }
+
+            if (runtimeHost.State.CurrentRoute == null)
+            {
+                logger.Warning($"QA Smoke aborted. name='{TriggerSmokeName}'. reason='Active Route is missing'.");
+                return false;
+            }
+
+            var completed = true;
+
+            if (runRouteCycleReset)
+            {
+                completed &= await RunRouteTriggerStep(logger, source);
+            }
+
+            if (runActivityCycleReset)
+            {
+                if (runtimeHost.State.CurrentActivity == null)
+                {
+                    logger.Warning("QA Cycle Reset Trigger Smoke step failed. step='activity-trigger' reason='Activity Cycle Reset requires an active Activity'.");
+                    completed = false;
+                }
+                else
+                {
+                    completed &= await RunActivityTriggerStep(logger, source);
+                }
+            }
+
+            if (emitSmokeEnvelope)
+            {
+                if (completed)
+                {
+                    logger.Info($"QA Smoke completed. name='{TriggerSmokeName}'.");
+                }
+                else
+                {
+                    logger.Warning($"QA Smoke aborted. name='{TriggerSmokeName}'. reason='Step failed'.");
+                }
+            }
+
+            return completed;
         }
 
         private static async Task<bool> RunRouteCycleResetStep(
@@ -179,6 +251,152 @@ namespace Immersive.Framework.CycleReset
             }
 
             return true;
+        }
+
+
+
+        private static async Task<bool> RunRouteTriggerStep(FrameworkLogger logger, string source)
+        {
+            GameObject gameObject = null;
+            try
+            {
+                gameObject = new GameObject("QA_CycleReset_RouteTrigger_Smoke");
+                var trigger = gameObject.AddComponent<RouteCycleResetTrigger>();
+                trigger.RequestRouteCycleReset();
+
+                if (!await WaitForTriggerCompletion(trigger))
+                {
+                    logger.Warning("QA Cycle Reset Trigger Smoke step failed. step='route-trigger' reason='Route trigger did not complete in the expected editor frame window'.");
+                    return false;
+                }
+
+                return ValidateRouteTriggerResult(logger, trigger, source);
+            }
+            finally
+            {
+                if (gameObject != null)
+                {
+                    UnityEngine.Object.Destroy(gameObject);
+                }
+            }
+        }
+
+        private static async Task<bool> RunActivityTriggerStep(FrameworkLogger logger, string source)
+        {
+            GameObject gameObject = null;
+            try
+            {
+                gameObject = new GameObject("QA_CycleReset_ActivityTrigger_Smoke");
+                var trigger = gameObject.AddComponent<ActivityCycleResetTrigger>();
+                trigger.RequestActivityCycleReset();
+
+                if (!await WaitForTriggerCompletion(trigger))
+                {
+                    logger.Warning("QA Cycle Reset Trigger Smoke step failed. step='activity-trigger' reason='Activity trigger did not complete in the expected editor frame window'.");
+                    return false;
+                }
+
+                return ValidateActivityTriggerResult(logger, trigger, source);
+            }
+            finally
+            {
+                if (gameObject != null)
+                {
+                    UnityEngine.Object.Destroy(gameObject);
+                }
+            }
+        }
+
+        private static async Task<bool> WaitForTriggerCompletion(RouteCycleResetTrigger trigger)
+        {
+            const int maxYields = 256;
+            for (var i = 0; i < maxYields; i++)
+            {
+                await Task.Yield();
+                if (trigger != null && !trigger.IsRequestInFlight && trigger.HasLastResult)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static async Task<bool> WaitForTriggerCompletion(ActivityCycleResetTrigger trigger)
+        {
+            const int maxYields = 256;
+            for (var i = 0; i < maxYields; i++)
+            {
+                await Task.Yield();
+                if (trigger != null && !trigger.IsRequestInFlight && trigger.HasLastResult)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool ValidateRouteTriggerResult(FrameworkLogger logger, RouteCycleResetTrigger trigger, string source)
+        {
+            if (trigger.LastRequestFailed || !trigger.HasLastResult || !trigger.LastResult.Succeeded)
+            {
+                logger.Warning($"QA Cycle Reset Trigger Smoke step failed. step='route-trigger' reason='Route trigger request failed'. {trigger.LastResultSummary}");
+                return false;
+            }
+
+            if (trigger.LastBlockingIssueCount > 0)
+            {
+                logger.Warning($"QA Cycle Reset Trigger Smoke step failed. step='route-trigger' reason='Route trigger result has blocking issues'. {trigger.LastResultSummary}");
+                return false;
+            }
+
+            LogTriggerStepCompleted(logger, "route-trigger", CycleResetScope.Route, nameof(RouteCycleResetTrigger), source, trigger.LastResult, trigger.LastResultSummary);
+            return true;
+        }
+
+        private static bool ValidateActivityTriggerResult(FrameworkLogger logger, ActivityCycleResetTrigger trigger, string source)
+        {
+            if (trigger.LastRequestFailed || !trigger.HasLastResult || !trigger.LastResult.Succeeded)
+            {
+                logger.Warning($"QA Cycle Reset Trigger Smoke step failed. step='activity-trigger' reason='Activity trigger request failed'. {trigger.LastResultSummary}");
+                return false;
+            }
+
+            if (trigger.LastBlockingIssueCount > 0)
+            {
+                logger.Warning($"QA Cycle Reset Trigger Smoke step failed. step='activity-trigger' reason='Activity trigger result has blocking issues'. {trigger.LastResultSummary}");
+                return false;
+            }
+
+            LogTriggerStepCompleted(logger, "activity-trigger", CycleResetScope.Activity, nameof(ActivityCycleResetTrigger), source, trigger.LastResult, trigger.LastResultSummary);
+            return true;
+        }
+
+        private static void LogTriggerStepCompleted(
+            FrameworkLogger logger,
+            string step,
+            CycleResetScope scope,
+            string trigger,
+            string source,
+            CycleResetResult result,
+            string resultSummary)
+        {
+            logger.Info(
+                "QA Cycle Reset Trigger Smoke step completed.",
+                LogFields.Of(
+                    LogFields.Field("step", step),
+                    LogFields.Field("scope", scope.ToString()),
+                    LogFields.Field("trigger", trigger),
+                    LogFields.Field("source", source),
+                    LogFields.Field("resultStatus", result.Status.ToString()),
+                    LogFields.Field("participants", result.ParticipantCount),
+                    LogFields.Field("participantSucceeded", result.SucceededCount),
+                    LogFields.Field("participantSkipped", result.SkippedCount),
+                    LogFields.Field("participantFailed", result.FailedCount),
+                    LogFields.Field("blockingIssues", result.BlockingIssueCount),
+                    LogFields.Field("nonBlockingIssues", result.NonBlockingIssueCount),
+                    LogFields.Field("resultSummary", resultSummary)));
         }
 
         private static int ExpectedParticipantCountFor(CycleResetRequest request)

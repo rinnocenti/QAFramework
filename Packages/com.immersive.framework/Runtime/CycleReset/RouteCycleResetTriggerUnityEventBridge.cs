@@ -22,6 +22,9 @@ namespace Immersive.Framework.CycleReset
         [Header("Events")]
         [SerializeField] private UnityEvent requestSubmitted;
         [SerializeField] private UnityEvent requestSucceeded;
+        [SerializeField] private UnityEvent requestSucceededWithParticipants;
+        [SerializeField] private UnityEvent requestSucceededNoParticipants;
+        [SerializeField] private UnityEvent requestCompletedWithWarnings;
         [SerializeField] private UnityEvent requestIgnored;
         [SerializeField] private UnityEvent requestFailed;
         [SerializeField] private UnityEvent requestCompleted;
@@ -29,6 +32,12 @@ namespace Immersive.Framework.CycleReset
         public UnityEvent RequestSubmitted => requestSubmitted;
 
         public UnityEvent RequestSucceeded => requestSucceeded;
+
+        public UnityEvent RequestSucceededWithParticipants => requestSucceededWithParticipants;
+
+        public UnityEvent RequestSucceededNoParticipants => requestSucceededNoParticipants;
+
+        public UnityEvent RequestCompletedWithWarnings => requestCompletedWithWarnings;
 
         public UnityEvent RequestIgnored => requestIgnored;
 
@@ -70,6 +79,19 @@ namespace Immersive.Framework.CycleReset
             if (requestEvent.Succeeded)
             {
                 requestSucceeded?.Invoke();
+
+                if (requestEvent.SucceededNoParticipants)
+                {
+                    requestSucceededNoParticipants?.Invoke();
+                }
+                else if (requestEvent.CompletedWithWarnings)
+                {
+                    requestCompletedWithWarnings?.Invoke();
+                }
+                else if (requestEvent.SucceededWithParticipants)
+                {
+                    requestSucceededWithParticipants?.Invoke();
+                }
             }
             else if (requestEvent.Ignored)
             {

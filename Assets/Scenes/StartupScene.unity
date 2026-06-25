@@ -955,6 +955,7 @@ GameObject:
   - component: {fileID: 1857512943}
   - component: {fileID: 1857512942}
   - component: {fileID: 1857512945}
+  - component: {fileID: 1857512946}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -1059,6 +1060,42 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.CycleReset.ActivityCycleResetTrigger
   reason: qa.trigger.active-cycle-reset
+--- !u!114 &1857512946
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1857512940}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08ba2e184bec4032b90778a3aff7c1b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.CycleReset.ActivityCycleResetTriggerUnityEventBridge
+  requestSubmitted:
+    m_PersistentCalls:
+      m_Calls: []
+  requestSucceeded:
+    m_PersistentCalls:
+      m_Calls: []
+  requestSucceededWithParticipants:
+    m_PersistentCalls:
+      m_Calls: []
+  requestSucceededNoParticipants:
+    m_PersistentCalls:
+      m_Calls: []
+  requestCompletedWithWarnings:
+    m_PersistentCalls:
+      m_Calls: []
+  requestIgnored:
+    m_PersistentCalls:
+      m_Calls: []
+  requestFailed:
+    m_PersistentCalls:
+      m_Calls: []
+  requestCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1943821843
 GameObject:
   m_ObjectHideFlags: 0
@@ -1069,6 +1106,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1943821845}
   - component: {fileID: 1943821844}
+  - component: {fileID: 1943821846}
   m_Layer: 0
   m_Name: Teste Reset
   m_TagString: Untagged
@@ -1105,6 +1143,42 @@ Transform:
   - {fileID: 1857512941}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1943821846
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1943821843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 318c0e3b8a174b0b8fbaa3c484391fb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.CycleReset.RouteCycleResetTriggerUnityEventBridge
+  requestSubmitted:
+    m_PersistentCalls:
+      m_Calls: []
+  requestSucceeded:
+    m_PersistentCalls:
+      m_Calls: []
+  requestSucceededWithParticipants:
+    m_PersistentCalls:
+      m_Calls: []
+  requestSucceededNoParticipants:
+    m_PersistentCalls:
+      m_Calls: []
+  requestCompletedWithWarnings:
+    m_PersistentCalls:
+      m_Calls: []
+  requestIgnored:
+    m_PersistentCalls:
+      m_Calls: []
+  requestFailed:
+    m_PersistentCalls:
+      m_Calls: []
+  requestCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

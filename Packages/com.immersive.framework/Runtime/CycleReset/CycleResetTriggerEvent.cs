@@ -61,5 +61,27 @@ namespace Immersive.Framework.CycleReset
         public bool Ignored => Outcome == FlowRequestOutcome.Ignored;
 
         public bool Failed => Outcome == FlowRequestOutcome.Failed;
+
+        public CycleResetStatus ResultStatus => HasResult ? Result.Status : CycleResetStatus.Unknown;
+
+        public bool SucceededNoParticipants => HasResult && Result.Status == CycleResetStatus.SucceededNoParticipants;
+
+        public bool CompletedWithWarnings => HasResult && Result.CompletedWithWarnings;
+
+        public bool SucceededWithParticipants => HasResult && Result.Status == CycleResetStatus.Succeeded;
+
+        public int ParticipantCount => HasResult ? Result.ParticipantCount : 0;
+
+        public int SucceededParticipantCount => HasResult ? Result.SucceededCount : 0;
+
+        public int SkippedParticipantCount => HasResult ? Result.SkippedCount : 0;
+
+        public int FailedParticipantCount => HasResult ? Result.FailedCount : 0;
+
+        public int BlockingIssueCount => HasResult ? Result.BlockingIssueCount : 0;
+
+        public int NonBlockingIssueCount => HasResult ? Result.NonBlockingIssueCount : 0;
+
+        public string ResultSummary => HasResult ? Result.ToDiagnosticString() : Message;
     }
 }
