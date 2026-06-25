@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentAnchor;
+using Immersive.Framework.CycleReset;
+using Immersive.Framework.Editor.Editor.Authoring;
 using Immersive.Framework.RouteLifecycle;
 using UnityEditor;
 using UnityEngine;
@@ -52,6 +54,7 @@ namespace Immersive.Framework.Editor.Editor.Validation
                 ValidateOpenSceneRouteContentBindings(report, validationMode);
                 ValidateOpenSceneRouteContentAnchors(report, validationMode);
                 ValidateOpenSceneActivityContentAnchors(report, validationMode);
+                ValidateOpenSceneCycleResetTriggers(report, validationMode);
             }
 
             if (!report.HasIssues)
@@ -98,6 +101,16 @@ namespace Immersive.Framework.Editor.Editor.Validation
         {
             return ValidateActivityContentAnchor(anchor, FrameworkValidationMode.Standard);
         }
+        internal static FrameworkAuthoringValidationReport ValidateRouteCycleResetTrigger(RouteCycleResetTrigger trigger)
+        {
+            return ValidateRouteCycleResetTrigger(trigger, FrameworkValidationMode.Standard);
+        }
+
+        internal static FrameworkAuthoringValidationReport ValidateActivityCycleResetTrigger(ActivityCycleResetTrigger trigger)
+        {
+            return ValidateActivityCycleResetTrigger(trigger, FrameworkValidationMode.Standard);
+        }
+
 
         private static FrameworkAuthoringValidationReport ValidateGameApplication(
             GameApplicationAsset gameApplication,
@@ -536,6 +549,99 @@ namespace Immersive.Framework.Editor.Editor.Validation
             return report;
         }
 
+        private static FrameworkAuthoringValidationReport ValidateRouteCycleResetTrigger(
+            RouteCycleResetTrigger trigger,
+            FrameworkValidationMode validationMode)
+        {
+            var report = new FrameworkAuthoringValidationReport(validationMode);
+
+            if (trigger == null)
+            {
+                report.AddError("Route Cycle Reset Trigger is missing.", null);
+                return report;
+            }
+
+            string objectName = trigger.gameObject != null ? trigger.gameObject.name : "<missing>";
+            ValidateCycleResetTriggerCommon(report, trigger, objectName, "Route Cycle Reset Trigger", trigger.AuthoringReason);
+
+            if (!report.HasIssues)
+            {
+                report.AddInfo(
+                    $"Route Cycle Reset Trigger on GameObject '{objectName}' is valid for the F12 Cycle Reset authoring UX scope.",
+                    trigger);
+            }
+
+            return report;
+        }
+
+        private static FrameworkAuthoringValidationReport ValidateActivityCycleResetTrigger(
+            ActivityCycleResetTrigger trigger,
+            FrameworkValidationMode validationMode)
+        {
+            var report = new FrameworkAuthoringValidationReport(validationMode);
+
+            if (trigger == null)
+            {
+                report.AddError("Activity Cycle Reset Trigger is missing.", null);
+                return report;
+            }
+
+            string objectName = trigger.gameObject != null ? trigger.gameObject.name : "<missing>";
+            ValidateCycleResetTriggerCommon(report, trigger, objectName, "Activity Cycle Reset Trigger", trigger.AuthoringReason);
+
+            if (!report.HasIssues)
+            {
+                report.AddInfo(
+                    $"Activity Cycle Reset Trigger on GameObject '{objectName}' is valid for the F12 Cycle Reset authoring UX scope.",
+                    trigger);
+            }
+
+            return report;
+        }
+
+        private static void ValidateCycleResetTriggerCommon(
+            FrameworkAuthoringValidationReport report,
+            MonoBehaviour trigger,
+            string objectName,
+            string triggerLabel,
+            string reason)
+        {
+            if (trigger == null)
+            {
+                return;
+            }
+
+            if (!trigger.gameObject.scene.IsValid())
+            {
+                report.AddInfo(
+                    $"{triggerLabel} on GameObject '{objectName}' is not in a valid scene. Scene authoring validation is skipped for prefabs or disconnected objects.",
+                    trigger);
+            }
+
+            if (!trigger.gameObject.activeInHierarchy)
+            {
+                report.AddInfo(
+                    $"{triggerLabel} on GameObject '{objectName}' is inactive in hierarchy. It will not submit requests until active.",
+                    trigger);
+            }
+
+            if (CycleResetTriggerAuthoringText.ContainsFutureResetVocabulary(reason))
+            {
+                report.AddWarning(
+                    $"{triggerLabel} on GameObject '{objectName}' uses reason '{reason}'. Cycle Reset is Route/Activity-level only; object/component/player/actor/pool/save/reload wording belongs to later reset phases.",
+                    trigger);
+            }
+
+            bool hasRouteTrigger = trigger.GetComponent<RouteCycleResetTrigger>() != null;
+            bool hasActivityTrigger = trigger.GetComponent<ActivityCycleResetTrigger>() != null;
+            if (hasRouteTrigger && hasActivityTrigger)
+            {
+                report.AddWarning(
+                    $"GameObject '{objectName}' has both Route and Activity Cycle Reset Triggers. This is allowed for tooling, but separate buttons/objects are clearer for authoring.",
+                    trigger);
+            }
+        }
+
         private static void ValidateRouteContentAnchorSceneRoute(
             FrameworkAuthoringValidationReport report,
             RouteContentAnchor anchor,
@@ -765,6 +871,56 @@ namespace Immersive.Framework.Editor.Editor.Validation
             }
 
             ValidateContentAnchorSetIssues(report, declarations, "Activity Content Anchor");
+        }
+
+        private static void ValidateOpenSceneCycleResetTriggers(
+            FrameworkAuthoringValidationReport report,
+            FrameworkValidationMode validationMode)
+        {
+            RouteCycleResetTrigger[] routeTriggers = Object.FindObjectsByType<RouteCycleResetTrigger>(FindObjectsInactive.Include);
+            ActivityCycleResetTrigger[] activityTriggers = Object.FindObjectsByType<ActivityCycleResetTrigger>(FindObjectsInactive.Include);
+
+            int routeTriggerCount = 0;
+            if (routeTriggers != null)
+            {
+                for (int i = 0; i < routeTriggers.Length; i++)
+                {
+                    var trigger = routeTriggers[i];
+                    if (trigger == null || trigger.gameObject == null || !trigger.gameObject.scene.IsValid() || !trigger.gameObject.scene.isLoaded)
+                    {
+                        continue;
+                    }
+
+                    routeTriggerCount++;
+                    report.AddRange(ValidateRouteCycleResetTrigger(trigger, validationMode));
+                }
+            }
+
+            int activityTriggerCount = 0;
+            if (activityTriggers != null)
+            {
+                for (int i = 0; i < activityTriggers.Length; i++)
+                {
+                    var trigger = activityTriggers[i];
+                    if (trigger == null || trigger.gameObject == null || !trigger.gameObject.scene.IsValid() || !trigger.gameObject.scene.isLoaded)
+                    {
+                        continue;
+                    }
+
+                    activityTriggerCount++;
+                    report.AddRange(ValidateActivityCycleResetTrigger(trigger, validationMode));
+                }
+            }
+
+            if (routeTriggerCount == 0 && activityTriggerCount == 0)
+            {
+                report.AddInfo("No scene-authored Cycle Reset Trigger components were found in loaded scenes.", null);
+                return;
+            }
+
+            report.AddInfo(
+                $"Cycle Reset Trigger validation scanned routeTriggers='{routeTriggerCount}' activityTriggers='{activityTriggerCount}'.",
+                null);
         }
 
         private static void TryCollectContentAnchorDeclaration(

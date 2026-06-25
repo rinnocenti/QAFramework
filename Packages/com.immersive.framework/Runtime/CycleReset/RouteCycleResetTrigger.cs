@@ -53,6 +53,10 @@ namespace Immersive.Framework.CycleReset
 
         public bool LastRequestFailed => _lastOutcome == FlowRequestOutcome.Failed;
 
+        public string AuthoringReason => reason;
+
+        public bool HasCustomReason => !string.IsNullOrWhiteSpace(reason);
+
         public IEventBinding SubscribeRequestEvents(Action<CycleResetTriggerEvent> handler)
         {
             return _requestEvents.Subscribe(handler);

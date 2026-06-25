@@ -3404,15 +3404,21 @@ namespace Immersive.Framework.Diagnostics
                 FindObjectsInactive.Include);
             ActivityContentAnchor[] activityContentAnchors = FindObjectsByType<ActivityContentAnchor>(
                 FindObjectsInactive.Include);
+            RouteCycleResetTrigger[] routeCycleResetTriggers = FindObjectsByType<RouteCycleResetTrigger>(
+                FindObjectsInactive.Include);
+            ActivityCycleResetTrigger[] activityCycleResetTriggers = FindObjectsByType<ActivityCycleResetTrigger>(
+                FindObjectsInactive.Include);
 
             int routeBindingCount = routeBindings != null ? routeBindings.Length : 0;
             int activityAdapterCount = activityAdapters != null ? activityAdapters.Length : 0;
             int routeContentAnchorCount = routeContentAnchors != null ? routeContentAnchors.Length : 0;
             int activityContentAnchorCount = activityContentAnchors != null ? activityContentAnchors.Length : 0;
+            int routeCycleResetTriggerCount = routeCycleResetTriggers != null ? routeCycleResetTriggers.Length : 0;
+            int activityCycleResetTriggerCount = activityCycleResetTriggers != null ? activityCycleResetTriggers.Length : 0;
 
-            if (routeBindingCount == 0 && activityAdapterCount == 0 && routeContentAnchorCount == 0 && activityContentAnchorCount == 0)
+            if (routeBindingCount == 0 && activityAdapterCount == 0 && routeContentAnchorCount == 0 && activityContentAnchorCount == 0 && routeCycleResetTriggerCount == 0 && activityCycleResetTriggerCount == 0)
             {
-                _logger.Warning("QA Authoring Validation completed. scope='Loaded Authoring' routeBindings='0' activityAdapters='0' routeContentAnchors='0' activityContentAnchors='0' localContributions='0' contentAnchors='0' issues='1' reason='No local contribution or Content Anchor authoring components found in loaded scenes'.");
+                _logger.Warning("QA Authoring Validation completed. scope='Loaded Authoring' routeBindings='0' activityAdapters='0' routeContentAnchors='0' activityContentAnchors='0' routeCycleResetTriggers='0' activityCycleResetTriggers='0' localContributions='0' contentAnchors='0' issues='1' reason='No local contribution, Content Anchor or Cycle Reset Trigger authoring components found in loaded scenes'.");
                 return;
             }
 
@@ -3460,6 +3466,7 @@ namespace Immersive.Framework.Diagnostics
 
             var validationResult = LocalContributionValidator.ValidateLoadedSceneAuthored();
             AddLocalContributionValidationIssues(validationResult, ref issueCount, ref errorCount, ref warningCount);
+            ValidateLoadedCycleResetTriggers(routeCycleResetTriggers, activityCycleResetTriggers, ref issueCount, ref errorCount, ref warningCount);
 
             if (issueCount == 0)
             {
@@ -3471,6 +3478,8 @@ namespace Immersive.Framework.Diagnostics
                         LogFields.Field("activityAdapters", activityAdapterCount),
                         LogFields.Field("routeContentAnchors", routeContentAnchorCount),
                         LogFields.Field("activityContentAnchors", activityContentAnchorCount),
+                        LogFields.Field("routeCycleResetTriggers", routeCycleResetTriggerCount),
+                        LogFields.Field("activityCycleResetTriggers", activityCycleResetTriggerCount),
                         LogFields.Field("issues", 0),
                         LogFields.Field("localContributions", validationResult.ContributionCount),
                         LogFields.Field("blockingIssues", validationResult.BlockingIssueCount),
@@ -3785,6 +3794,126 @@ namespace Immersive.Framework.Diagnostics
                     ref warningCount,
                     $"RouteContentBinding object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' route='{FormatValue(GetAssetName(binding.Route, "<unnamed>"))}' issue='No IRouteContentLifecycleReceiver under binding'.");
             }
+        }
+
+
+        private void ValidateLoadedCycleResetTriggers(
+            RouteCycleResetTrigger[] routeTriggers,
+            ActivityCycleResetTrigger[] activityTriggers,
+            ref int issueCount,
+            ref int errorCount,
+            ref int warningCount)
+        {
+            if (routeTriggers != null)
+            {
+                for (int i = 0; i < routeTriggers.Length; i++)
+                {
+                    ValidateLoadedRouteCycleResetTrigger(routeTriggers[i], ref issueCount, ref warningCount);
+                }
+            }
+
+            if (activityTriggers != null)
+            {
+                for (int i = 0; i < activityTriggers.Length; i++)
+                {
+                    ValidateLoadedActivityCycleResetTrigger(activityTriggers[i], ref issueCount, ref warningCount);
+                }
+            }
+        }
+
+        private void ValidateLoadedRouteCycleResetTrigger(
+            RouteCycleResetTrigger trigger,
+            ref int issueCount,
+            ref int warningCount)
+        {
+            if (trigger == null)
+            {
+                return;
+            }
+
+            ValidateLoadedCycleResetTriggerCommon(
+                trigger,
+                trigger.AuthoringReason,
+                "RouteCycleResetTrigger",
+                ref issueCount,
+                ref warningCount);
+        }
+
+        private void ValidateLoadedActivityCycleResetTrigger(
+            ActivityCycleResetTrigger trigger,
+            ref int issueCount,
+            ref int warningCount)
+        {
+            if (trigger == null)
+            {
+                return;
+            }
+
+            ValidateLoadedCycleResetTriggerCommon(
+                trigger,
+                trigger.AuthoringReason,
+                "ActivityCycleResetTrigger",
+                ref issueCount,
+                ref warningCount);
+        }
+
+        private void ValidateLoadedCycleResetTriggerCommon(
+            MonoBehaviour trigger,
+            string reason,
+            string triggerLabel,
+            ref int issueCount,
+            ref int warningCount)
+        {
+            string objectName = trigger.gameObject != null ? trigger.gameObject.name : "<missing>";
+            string sceneName = trigger.gameObject != null && trigger.gameObject.scene.IsValid()
+                ? trigger.gameObject.scene.name
+                : "<no-scene>";
+
+            if (trigger.gameObject != null && !trigger.gameObject.activeInHierarchy)
+            {
+                AddQaAuthoringWarning(
+                    ref issueCount,
+                    ref warningCount,
+                    $"{triggerLabel} object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Inactive in hierarchy'.");
+            }
+
+            if (ContainsFutureCycleResetVocabulary(reason))
+            {
+                AddQaAuthoringWarning(
+                    ref issueCount,
+                    ref warningCount,
+                    $"{triggerLabel} object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' reason='{FormatValue(reason)}' issue='Reason uses future local/object reset vocabulary'.");
+            }
+
+            if (trigger.GetComponent<RouteCycleResetTrigger>() != null && trigger.GetComponent<ActivityCycleResetTrigger>() != null)
+            {
+                AddQaAuthoringWarning(
+                    ref issueCount,
+                    ref warningCount,
+                    $"{triggerLabel} object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Route and Activity Cycle Reset Triggers share the same GameObject'.");
+            }
+        }
+
+        private static bool ContainsFutureCycleResetVocabulary(string reason)
+        {
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                return false;
+            }
+
+            string normalized = reason.Trim();
+            return normalized.IndexOf("object", StringComparison.OrdinalIgnoreCase) >= 0
+                   || normalized.IndexOf("component", StringComparison.OrdinalIgnoreCase) >= 0
+                   || normalized.IndexOf("player", StringComparison.OrdinalIgnoreCase) >= 0
+                   || normalized.IndexOf("actor", StringComparison.OrdinalIgnoreCase) >= 0
+                   || normalized.IndexOf("transform", StringComparison.OrdinalIgnoreCase) >= 0
+                   || normalized.IndexOf("rigidbody", StringComparison.OrdinalIgnoreCase) >= 0
+                   || normalized.IndexOf("animator", StringComparison.OrdinalIgnoreCase) >= 0
+                   || normalized.IndexOf("pool", StringComparison.OrdinalIgnoreCase) >= 0
+                   || normalized.IndexOf("snapshot", StringComparison.OrdinalIgnoreCase) >= 0
+                   || normalized.IndexOf("save", StringComparison.OrdinalIgnoreCase) >= 0
+                   || normalized.IndexOf("reload", StringComparison.OrdinalIgnoreCase) >= 0
+                   || normalized.IndexOf("checkpoint", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private void AddQaAuthoringIssue(
