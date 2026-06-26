@@ -104,6 +104,11 @@ namespace Immersive.Framework.ObjectEntry
 
         public string Summary => $"resultStatus='{Status}' declarations='{DeclarationCount}' candidateDescriptors='{CandidateDescriptorCount}' acceptedDeclarations='{AcceptedDeclarationCount}' rejectedDeclarations='{RejectedDeclarationCount}' objectEntries='{ObjectEntries.Count}' required='{ObjectEntries.RequiredCount}' optional='{ObjectEntries.OptionalCount}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' nonBlockingIssues='{NonBlockingIssueCount}'";
 
+        public ObjectEntryRuntimeContextSnapshot ToRuntimeContextSnapshot(string source = null)
+        {
+            return ObjectEntryRuntimeContextSnapshot.From(this, source);
+        }
+
         public string ToDiagnosticString()
         {
             if (Issues.Count == 0)

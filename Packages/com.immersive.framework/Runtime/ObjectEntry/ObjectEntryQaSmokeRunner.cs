@@ -23,6 +23,8 @@ namespace Immersive.Framework.ObjectEntry
 
         internal const string RuntimeIntegrationSmokeName = "Object Entry Runtime Integration Smoke";
 
+        internal const string RuntimeContextSnapshotSmokeName = "Object Entry Runtime Context Snapshot Smoke";
+
         internal static Task<bool> RunSyntheticSetSmokeAsync(
             FrameworkLogger logger,
             string source)
@@ -313,6 +315,93 @@ namespace Immersive.Framework.ObjectEntry
             }
         }
 
+        internal static Task<bool> RunRuntimeContextSnapshotSmokeAsync(
+            FrameworkLogger logger,
+            string source)
+        {
+            if (logger == null)
+            {
+                return Task.FromResult(false);
+            }
+
+            source = string.IsNullOrWhiteSpace(source) ? nameof(ObjectEntryQaSmokeRunner) : source;
+
+            const string routeEntryId = "qa.object-entry.runtime-context.route";
+            const string activityEntryId = "qa.object-entry.runtime-context.activity";
+
+            GameObject routeObject = null;
+            GameObject activityObject = null;
+
+            try
+            {
+                routeObject = new GameObject("QA_ObjectEntryRuntimeContext_Route");
+                activityObject = new GameObject("QA_ObjectEntryRuntimeContext_Activity");
+
+                var routeDeclaration = routeObject.AddComponent<ObjectEntryDeclaration>();
+                routeDeclaration.ConfigureForQa(
+                    routeEntryId,
+                    ObjectEntryScope.Route,
+                    ObjectEntryRequiredness.Required,
+                    "QA Runtime Context Route Entry");
+
+                var activityDeclaration = activityObject.AddComponent<ObjectEntryDeclaration>();
+                activityDeclaration.ConfigureForQa(
+                    activityEntryId,
+                    ObjectEntryScope.Activity,
+                    ObjectEntryRequiredness.Optional,
+                    "QA Runtime Context Activity Entry");
+                activityObject.SetActive(false);
+
+                var declarationSource = new ObjectEntryDeclarationSource(includeInactiveDeclarations: true);
+                var result = declarationSource.CollectLoadedSceneDeclarations();
+                var snapshot = result.ToRuntimeContextSnapshot(source);
+
+                if (!ValidateRuntimeContextSnapshot(logger, snapshot, result, routeEntryId, activityEntryId))
+                {
+                    return Task.FromResult(false);
+                }
+
+                logger.Info(
+                    "QA Object Entry Runtime Context Snapshot Smoke step completed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "runtime-context-snapshot"),
+                        LogFields.Field("source", source),
+                        LogFields.Field("snapshotAvailable", snapshot.IsAvailable),
+                        LogFields.Field("resultStatus", snapshot.Status.ToString()),
+                        LogFields.Field("declarations", snapshot.DeclarationCount),
+                        LogFields.Field("candidateDescriptors", snapshot.CandidateDescriptorCount),
+                        LogFields.Field("acceptedDeclarations", snapshot.AcceptedDeclarationCount),
+                        LogFields.Field("rejectedDeclarations", snapshot.RejectedDeclarationCount),
+                        LogFields.Field("objectEntries", snapshot.Count),
+                        LogFields.Field("required", snapshot.RequiredCount),
+                        LogFields.Field("optional", snapshot.OptionalCount),
+                        LogFields.Field("route", snapshot.GetByScope(ObjectEntryScope.Route).Count),
+                        LogFields.Field("activity", snapshot.GetByScope(ObjectEntryScope.Activity).Count),
+                        LogFields.Field("session", snapshot.GetByScope(ObjectEntryScope.Session).Count),
+                        LogFields.Field("qaRouteFound", true),
+                        LogFields.Field("qaActivityFound", true),
+                        LogFields.Field("blockingIssues", snapshot.BlockingIssueCount),
+                        LogFields.Field("nonBlockingIssues", snapshot.NonBlockingIssueCount),
+                        LogFields.Field("summary", snapshot.Summary)));
+
+                return Task.FromResult(true);
+            }
+            catch (Exception exception)
+            {
+                logger.Warning(
+                    "QA Object Entry Runtime Context Snapshot Smoke step failed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "runtime-context-snapshot"),
+                        LogFields.Field("reason", exception.Message)));
+                return Task.FromResult(false);
+            }
+            finally
+            {
+                DestroyQaObject(routeObject);
+                DestroyQaObject(activityObject);
+            }
+        }
+
         private static bool ValidateSet(
             FrameworkLogger logger,
             ObjectEntrySet set,
@@ -469,6 +558,67 @@ namespace Immersive.Framework.ObjectEntry
                 || inactiveActivityDescriptor.SourceKind != ObjectEntrySourceKind.SceneAuthored)
             {
                 logger.Warning($"QA Object Entry Runtime Integration Smoke step failed. step='loaded-scene-declarations' reason='QA inactive Activity declaration was not collected as expected'. {result.Summary}");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool ValidateRuntimeContextSnapshot(
+            FrameworkLogger logger,
+            ObjectEntryRuntimeContextSnapshot snapshot,
+            ObjectEntryDeclarationSourceResult result,
+            string routeEntryId,
+            string activityEntryId)
+        {
+            if (snapshot == null || result == null)
+            {
+                logger.Warning("QA Object Entry Runtime Context Snapshot Smoke step failed. step='runtime-context-snapshot' reason='Snapshot or source result was missing'.");
+                return false;
+            }
+
+            if (!snapshot.IsAvailable || snapshot.Failed || snapshot.BlockingIssueCount != 0)
+            {
+                logger.Warning($"QA Object Entry Runtime Context Snapshot Smoke step failed. step='runtime-context-snapshot' reason='Snapshot was not available'. {snapshot.Summary}");
+                return false;
+            }
+
+            if (snapshot.Status != result.Status
+                || snapshot.DeclarationCount != result.DeclarationCount
+                || snapshot.CandidateDescriptorCount != result.CandidateDescriptorCount
+                || snapshot.AcceptedDeclarationCount != result.AcceptedDeclarationCount
+                || snapshot.RejectedDeclarationCount != result.RejectedDeclarationCount
+                || snapshot.Count != result.ObjectEntries.Count
+                || snapshot.RequiredCount != result.ObjectEntries.RequiredCount
+                || snapshot.OptionalCount != result.ObjectEntries.OptionalCount)
+            {
+                logger.Warning($"QA Object Entry Runtime Context Snapshot Smoke step failed. step='runtime-context-snapshot' reason='Snapshot did not mirror source result diagnostics'. snapshot='{snapshot.Summary}' result='{result.Summary}'");
+                return false;
+            }
+
+            if (snapshot.Count < 2 || snapshot.DeclarationCount < 2 || snapshot.CandidateDescriptorCount < 2)
+            {
+                logger.Warning($"QA Object Entry Runtime Context Snapshot Smoke step failed. step='runtime-context-snapshot' reason='Snapshot counts were too low'. {snapshot.Summary}");
+                return false;
+            }
+
+            var routeId = ObjectEntryId.From(routeEntryId);
+            if (!snapshot.TryGet(routeId, out var routeDescriptor)
+                || routeDescriptor.Scope != ObjectEntryScope.Route
+                || routeDescriptor.Requiredness != ObjectEntryRequiredness.Required
+                || routeDescriptor.SourceKind != ObjectEntrySourceKind.SceneAuthored)
+            {
+                logger.Warning($"QA Object Entry Runtime Context Snapshot Smoke step failed. step='runtime-context-snapshot' reason='QA Route declaration was not present in snapshot'. {snapshot.Summary}");
+                return false;
+            }
+
+            var activityId = ObjectEntryId.From(activityEntryId);
+            if (!snapshot.TryGet(activityId, out var activityDescriptor)
+                || activityDescriptor.Scope != ObjectEntryScope.Activity
+                || activityDescriptor.Requiredness != ObjectEntryRequiredness.Optional
+                || activityDescriptor.SourceKind != ObjectEntrySourceKind.SceneAuthored)
+            {
+                logger.Warning($"QA Object Entry Runtime Context Snapshot Smoke step failed. step='runtime-context-snapshot' reason='QA Activity declaration was not present in snapshot'. {snapshot.Summary}");
                 return false;
             }
 
