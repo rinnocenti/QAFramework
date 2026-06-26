@@ -29,7 +29,7 @@ Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md
 Closure rule: when a framework phase is closed, add or update its `Usage` guide under `Documentation~/Guides/`.
 
 
-F0-F21 are closed/applied. F17 is Gate Foundation. F18 is Transition Orchestration Foundation. F19 is Transition Effects. F20 is Pause State/Gate. F21 is closed for Save / Snapshot / Preferences / Progression Save Foundation with `Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md`. F22A is applied as the Loading Architecture ADR Plan. F22B is applied for Loading Operation / Step / Weighted Progress Primitives. F22C is applied for Loading Progress Aggregation Smoke. F22D is next/planned for SceneLifecycle / Transition Loading Observation Adapter. Pause Content/Overlay/Input moves to F23. Gameplay Adapter Foundation moves to F24.
+F0-F21 are closed/applied. F17 is Gate Foundation. F18 is Transition Orchestration Foundation. F19 is Transition Effects. F20 is Pause State/Gate. F21 is closed for Save / Snapshot / Preferences / Progression Save Foundation with `Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md`. F22A is applied as the Loading Architecture ADR Plan. F22B is applied for Loading Operation / Step / Weighted Progress Primitives. F22C is applied for Loading Progress Aggregation Smoke. F22D is applied for SceneLifecycle / Transition Loading Observation Adapter. F22E is next/planned for Loading Screen Adapter Boundary. Pause Content/Overlay/Input moves to F23. Gameplay Adapter Foundation moves to F24.
 F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C integrates those primitives with existing request-admission guards; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase and hands off to F18. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes without runtime visual effects. F18D adds a passive Transition-to-Gate blocker relationship and synthetic smoke without registering runtime Gate state. F18E adds passive Route/Activity orchestration observation and smoke without executing requests. F18F closes the phase with `Guides/F18-Transition-Orchestration-Usage.md` and hands off to F19 Transition Effects. F19A accepts the Transition Effects boundary/implementation plan and records that no scene/object/SO setup is required yet. F19B adds passive Transition Effect primitives under `Runtime/TransitionEffects`; F19C adds `Run Transition Effect Diagnostics Smoke`, still without scene/object/SO setup. F19D adds `ITransitionEffectAdapter`, `UnityFadeCurtainEffectAdapter` and `Run Unity Fade Curtain Effect Adapter Smoke`; the smoke uses a transient QA GameObject, while optional manual scene setup is documented in `Guides/F19D-Minimal-Fade-Curtain-Adapter-Setup.md`. F19E adds required/optional effect policy guardrails and `Run Transition Effect Policy Guardrails Smoke`; no ScriptableObject or saved scene setup is required. F19F closes the phase with `Guides/F19-Transition-Effects-Usage.md` and compacts QA Canvas by keeping baseline buttons visible and moving phase diagnostics behind toggles. F20A accepted the Pause State/Gate plan; F20B adds passive Pause primitives under `Runtime/Pause`; F20C adds `Run Pause Diagnostics Smoke`; F20D adds passive Pause-to-Gate blocker policy; F20E adds the minimal runtime Pause request path through `FrameworkRuntimeHost` and `PauseRuntime`, still without scene/object/SO setup, input, overlay or `Time.timeScale`. F20F closes the phase with `Guides/F20-Pause-State-Gate-Usage.md`.
 
 Current reset boundary:
@@ -49,7 +49,7 @@ F18 - Transition Orchestration Foundation / CLOSED
 F19 - Transition Effects / CLOSED
 F20 - Pause State and Pause Gate / CLOSED / F20F QA PASS + USAGE
 F21 - Save / Snapshot / Preferences / Progression Save Foundation / CLOSED / F21H QA PASS + USAGE
-F22 - Loading Operation / Progress / Readiness Boundary / F22C APPLIED / F22D NEXT
+F22 - Loading Operation / Progress / Readiness Boundary / F22D APPLIED / F22E NEXT
 F23 - Pause Content / Overlay / Input Boundary
 F24 - Gameplay Adapter Foundation
 ```
@@ -114,7 +114,7 @@ F20 pause note:
 F20B adds passive Pause primitives under `Runtime/Pause`. F20C adds synthetic Pause diagnostics smoke. F20D adds passive Pause Gate blocker policy. F20E adds minimal in-memory runtime request execution. F20F closes the phase with `Guides/F20-Pause-State-Gate-Usage.md`. No scene, GameObject, Canvas, prefab or ScriptableObject is required for F20.
 F20 is Pause logical core: state, request/result, policy, snapshot/facts and Gate blocker relationship.
 Save/Snapshot/Preferences/Progression Save belongs to F21. Loading Operation/Progress/Readiness belongs to F22. Pause content/overlay/input moves to F23.
-F21H closes the phase with `Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md`. F22A is applied as a documentation-only Loading architecture plan. F22B and F22C are applied. Next cut: F22D - SceneLifecycle / Transition Loading Observation Adapter.
+F21H closes the phase with `Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md`. F22A is applied as a documentation-only Loading architecture plan. F22B, F22C and F22D are applied. Next cut: F22E - Loading Screen Adapter Boundary.
 ```
 
 F21/F22 boundary note:
@@ -139,7 +139,7 @@ Loading Operation/Progress/Readiness is F22. F22A accepts the architecture plan 
 Pause Content/Overlay/Input is F23.
 Gameplay Adapter Foundation is F24.
 No runtime, asmdef, backend, PlayerPrefs, JSON, UI, scene object, prefab or ScriptableObject was added.
-F21H closes the phase with `Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md`. F22A is applied as a documentation-only Loading architecture plan. F22B and F22C are applied. Next cut: F22D - SceneLifecycle / Transition Loading Observation Adapter.
+F21H closes the phase with `Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md`. F22A is applied as a documentation-only Loading architecture plan. F22B, F22C and F22D are applied. Next cut: F22E - Loading Screen Adapter Boundary.
 ```
 
 
@@ -186,12 +186,14 @@ F21E applied note: F21E adds Progression Save port and slot/manifest primitives 
 F21F applied note: F21F adds `JsonProgressionSaveStore` behind `IProgressionSaveStore` and `Run Progression Save JSON Backend Smoke`. The smoke validates missing, write/read, manifest, corrupt slot, delete cleanup and boundary separation. JSON/file paths are adapter details; no Snapshot backend, Preferences usage, PlayerPrefs, autosave/load moments, runtime request path, UI, scene object, prefab, ScriptableObject or asmdef changes are introduced.
 
 
-F21G applied note: F21G adds `ProgressionSaveRuntime`, `ProgressionSaveRequest`, `ProgressionSaveRequestResult`, `ProgressionSaveMoment` and related ids/enums. Runtime requests execute explicit save/load/delete operations against `IProgressionSaveStore`. Autosave moments are passive descriptors only; F21G does not add an autosave scheduler, Route/Activity hook, Snapshot capture orchestration, Preferences/PlayerPrefs usage, UI, scene object, prefab, ScriptableObject or asmdef changes. It adds `Run Progression Save Runtime Request Smoke`. F21H closes the phase with `Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md`. F22A is applied as a documentation-only Loading architecture plan. F22B and F22C are applied. Next cut: F22D - SceneLifecycle / Transition Loading Observation Adapter.
+F21G applied note: F21G adds `ProgressionSaveRuntime`, `ProgressionSaveRequest`, `ProgressionSaveRequestResult`, `ProgressionSaveMoment` and related ids/enums. Runtime requests execute explicit save/load/delete operations against `IProgressionSaveStore`. Autosave moments are passive descriptors only; F21G does not add an autosave scheduler, Route/Activity hook, Snapshot capture orchestration, Preferences/PlayerPrefs usage, UI, scene object, prefab, ScriptableObject or asmdef changes. It adds `Run Progression Save Runtime Request Smoke`. F21H closes the phase with `Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md`. F22A is applied as a documentation-only Loading architecture plan. F22B, F22C and F22D are applied. Next cut: F22E - Loading Screen Adapter Boundary.
 
 
-F22A applied note: F22A is documentation-only. It accepts the Loading architecture plan. Next cut: F22D - SceneLifecycle / Transition Loading Observation Adapter.
+F22A applied note: F22A is documentation-only. It accepts the Loading architecture plan. Next cut: F22E - Loading Screen Adapter Boundary.
 
 
 F22B applied note: F22B adds passive Loading primitives under `Runtime/Loading`: `LoadingOperationId`, `LoadingStepId`, operation/step statuses, normalized `LoadingProgress`, `LoadingStepWeight`, `LoadingWeightedProgress`, `LoadingStep` and `LoadingOperation`. It also adds `FrameworkIdentityDomain.Loading`.
 
-F22C applied note: F22C adds `LoadingProgressAggregationStatus`, `LoadingProgressAggregationResult`, `LoadingProgressAggregator` and `Run Loading Progress Aggregation Smoke` under QA Canvas `Show Loading diagnostics`. It adds no SceneLifecycle/Transition adapter, readiness wait contract, LoadingResult/LoadingFailure record, UI, fade, curtain, loading screen prefab, scene object, prefab, ScriptableObject, backend, PlayerPrefs, JSON or asmdef changes. Next cut: F22D - SceneLifecycle / Transition Loading Observation Adapter.
+F22C applied note: F22C adds `LoadingProgressAggregationStatus`, `LoadingProgressAggregationResult`, `LoadingProgressAggregator` and `Run Loading Progress Aggregation Smoke` under QA Canvas `Show Loading diagnostics`. It adds no SceneLifecycle/Transition adapter, readiness wait contract, LoadingResult/LoadingFailure record, UI, fade, curtain, loading screen prefab, scene object, prefab, ScriptableObject, backend, PlayerPrefs, JSON or asmdef changes.
+
+F22D applied note: F22D adds `LoadingObservationAdapter` and `Run Loading Observation Adapter Smoke`. It observes existing SceneLifecycle and Transition diagnostics as canonical Loading progress records without executing scene lifecycle, replacing Transition, running effects, mutating readiness or creating UI. Next cut: F22E - Loading Screen Adapter Boundary.

@@ -427,13 +427,18 @@ namespace Immersive.Framework.Diagnostics
         {
             GUILayout.Space(4f);
             GUILayout.Label("Loading Diagnostics", GUI.skin.box);
-            GUILayout.Label("F22 diagnostics. Aggregates passive LoadingStep progress only. No SceneLifecycle execution, Transition execution, UI, fade, curtain or readiness mutation.");
+            GUILayout.Label("F22 diagnostics. Aggregates passive LoadingStep progress and observes SceneLifecycle/Transition results. No SceneLifecycle execution, Transition execution, UI, fade, curtain or readiness mutation.");
 
             using (new EditorDisabledScope(_requestInFlight))
             {
                 if (GUILayout.Button("Run Loading Progress Aggregation Smoke"))
                 {
                     RunLoadingProgressAggregationSmoke();
+                }
+
+                if (GUILayout.Button("Run Loading Observation Adapter Smoke"))
+                {
+                    RunLoadingObservationAdapterSmoke();
                 }
             }
         }
@@ -935,6 +940,12 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(LoadingProgressQaSmokeRunner.SmokeName, runtimeHost =>
                 LoadingProgressQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunLoadingObservationAdapterSmoke()
+        {
+            await RunSmokeAsync(LoadingObservationQaSmokeRunner.SmokeName, runtimeHost =>
+                LoadingObservationQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
         }
 
         private async void RunCycleResetRuntimeHostSmoke()

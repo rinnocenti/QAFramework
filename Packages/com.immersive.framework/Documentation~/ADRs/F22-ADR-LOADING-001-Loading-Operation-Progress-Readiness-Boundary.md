@@ -1,6 +1,6 @@
 # F22-ADR-LOADING-001 - Loading Operation Progress Readiness Boundary
 
-Status: Accepted / F22C Applied / F22D Next  
+Status: Accepted / F22D Applied / F22E Next  
 Phase: F22 - Loading Operation / Progress / Readiness Boundary  
 Type: Framework Core + Loading Module Boundary  
 Last updated: 2026-06-26
@@ -104,8 +104,8 @@ F22B must introduce a single canonical namespace for Loading primitives. Any fut
 | F22A | `APPLIED / DOCS ONLY` | Loading Architecture ADR Plan. |
 | F22B | `APPLIED / PRIMITIVES` | Loading Operation / Step / Weighted Progress Primitives. |
 | F22C | `APPLIED / AGGREGATION SMOKE` | Loading Progress Aggregation Smoke. |
-| F22D | `NEXT / PLANNED` | SceneLifecycle / Transition Loading Observation Adapter. |
-| F22E | `PLANNED` | Loading Screen Adapter Boundary. |
+| F22D | `APPLIED / OBSERVATION ADAPTER` | SceneLifecycle / Transition Loading Observation Adapter. |
+| F22E | `NEXT / PLANNED` | Loading Screen Adapter Boundary. |
 | F22F | `PLANNED` | Closure + Usage Guide. |
 
 ---
@@ -205,9 +205,29 @@ Run Loading Progress Aggregation Smoke
 
 The aggregation combines passive `LoadingStep` records using `LoadingStepWeight` and `LoadingProgress`. It validates running, completed-with-skipped, failed and no-step cases. It does not execute SceneLifecycle, Transition, TransitionEffects, readiness mutation or UI.
 
-F22D is responsible for SceneLifecycle / Transition loading observation adapters.
+## 8. F22D result
 
-## 8. Consequences
+F22D adds the first Loading observation adapter:
+
+```text
+Runtime/Loading/LoadingObservationAdapter.cs
+Runtime/Diagnostics/LoadingObservationQaSmokeRunner.cs
+```
+
+The adapter maps existing diagnostics into canonical Loading records:
+
+```text
+SceneLifecycleLoadResult -> LoadingStep
+SceneLifecycleUnloadResult -> LoadingStep
+TransitionResult / TransitionStep -> LoadingStep + LoadingProgressAggregationResult
+LoadingProgressAggregationResult -> LoadingOperation
+```
+
+This is observation-only. F22D does not execute scene loading/unloading, replace `SceneLifecycle`, replace `Transition`, run `TransitionEffects`, mutate readiness, create UI, show fade/curtain, instantiate a loading screen prefab, create scene objects, create ScriptableObjects, use backend/PlayerPrefs/JSON or alter asmdefs.
+
+F22D adds `Run Loading Observation Adapter Smoke` under QA Canvas `Show Loading diagnostics`. The smoke validates SceneLifecycle success/skip/failure mapping, Transition success/failure mapping and the canonical boundary.
+
+## 9. Consequences
 
 Loading can report progress/readiness without becoming a visual effect system.
 
