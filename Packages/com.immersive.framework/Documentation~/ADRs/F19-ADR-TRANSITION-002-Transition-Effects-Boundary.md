@@ -1,6 +1,6 @@
 # F19-ADR-TRANSITION-002 - Transition Effects Boundary
 
-Status: Accepted / F19A Implementation Plan  
+Status: Accepted / F19B Primitives Applied  
 Phase: F19 - Transition Effects / Loading and Fade Adapters  
 Type: Unity Adapter / Optional Effects / Boundary  
 Last updated: 2026-06-26
@@ -174,16 +174,16 @@ No canonical package setup should import paid/Asset Store packages, local absolu
 
 ```text
 F19A - Transition Effects Boundary Implementation Plan
-F19B - Transition Effect Primitives
-F19C - Transition Effect Diagnostics Smoke
+F19B - Transition Effect Primitives - CLOSED / PRIMITIVES APPLIED
+F19C - Transition Effect Diagnostics Smoke - NEXT
 F19D - Minimal Unity Fade/Curtain Adapter Boundary
 F19E - Required/Optional Effect Policy and Authoring Guardrails
 F19F - Closure, Usage Guide and handoff to F20 Pause State/Gate
 ```
 
-F19B should not execute visuals. It should only create the effect contract vocabulary.
+F19B does not execute visuals. It creates the passive effect contract vocabulary under `Runtime/TransitionEffects`: `TransitionEffectId`, `TransitionEffectKind`, `TransitionEffectRequiredness`, `TransitionEffectStatus`, `TransitionEffectRequest`, `TransitionEffectResult`, `TransitionEffectPlan` and `TransitionEffectSnapshot`. It also adds `FrameworkIdentityDomain.TransitionEffect` so effect ids remain typed identities.
 
-F19C should validate the vocabulary through synthetic diagnostics.
+F19C should validate the vocabulary through synthetic diagnostics. It should not create scene objects, ScriptableObjects or visual effect execution.
 
 F19D is the first likely cut where scene objects may be needed.
 
@@ -221,3 +221,23 @@ contextual reset
 - Effects do not own SceneLifecycle loading/unloading.
 - Effects do not decide Pause state.
 - Scene objects and ScriptableObjects enter only when the adapter cut requires them, and must be documented with exact manual setup steps.
+
+
+## 10. F19B Closure Note
+
+F19B adds only passive primitives. It does not create an effect adapter, Unity component, Canvas, scene object, ScriptableObject, loading screen, fade implementation, DOTween integration, runtime effect owner, registry or fallback path.
+
+The new primitives are:
+
+```text
+Runtime/TransitionEffects/TransitionEffectId.cs
+Runtime/TransitionEffects/TransitionEffectKind.cs
+Runtime/TransitionEffects/TransitionEffectRequiredness.cs
+Runtime/TransitionEffects/TransitionEffectStatus.cs
+Runtime/TransitionEffects/TransitionEffectRequest.cs
+Runtime/TransitionEffects/TransitionEffectResult.cs
+Runtime/TransitionEffects/TransitionEffectPlan.cs
+Runtime/TransitionEffects/TransitionEffectSnapshot.cs
+```
+
+F19C is the next cut and should validate these shapes through a synthetic QA smoke only.

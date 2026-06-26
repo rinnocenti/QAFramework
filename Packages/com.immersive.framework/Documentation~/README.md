@@ -25,8 +25,8 @@ Guides/F18-Transition-Orchestration-Usage.md
 Closure rule: when a framework phase is closed, add or update its `Usage` guide under `Documentation~/Guides/`.
 
 
-F0-F18 are closed/applied. F17 is Gate Foundation. F18 is Transition Orchestration Foundation. F19 is in progress through F19A.
-F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C integrates those primitives with existing request-admission guards; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase and hands off to F18. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes without runtime visual effects. F18D adds a passive Transition-to-Gate blocker relationship and synthetic smoke without registering runtime Gate state. F18E adds passive Route/Activity orchestration observation and smoke without executing requests. F18F closes the phase with `Guides/F18-Transition-Orchestration-Usage.md` and hands off to F19 Transition Effects. F19A accepts the Transition Effects boundary/implementation plan and records that no scene/object/SO setup is required yet.
+F0-F18 are closed/applied. F17 is Gate Foundation. F18 is Transition Orchestration Foundation. F19 is in progress through F19B.
+F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C integrates those primitives with existing request-admission guards; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase and hands off to F18. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes without runtime visual effects. F18D adds a passive Transition-to-Gate blocker relationship and synthetic smoke without registering runtime Gate state. F18E adds passive Route/Activity orchestration observation and smoke without executing requests. F18F closes the phase with `Guides/F18-Transition-Orchestration-Usage.md` and hands off to F19 Transition Effects. F19A accepts the Transition Effects boundary/implementation plan and records that no scene/object/SO setup is required yet. F19B adds passive Transition Effect primitives under `Runtime/TransitionEffects`, still without scene/object/SO setup.
 
 Current reset boundary:
 
@@ -93,9 +93,9 @@ Player, Actor, Pooling, Save/Checkpoint and gameplay reset stay outside F15/F16 
 ```
 
 
-F19A authoring note:
+F19 authoring note:
 
 ```text
-No Unity scene object, component setup or ScriptableObject is required in F19A.
+No Unity scene object, component setup or ScriptableObject is required in F19A-F19B.
 F19D+ may require QA scene authoring for a concrete Unity adapter. When that happens, the cut must explain exactly what to create and which smoke/logs validate it.
 ```

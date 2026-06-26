@@ -27,6 +27,7 @@ namespace Immersive.Framework.Identity
         CycleReset = 110,
         ObjectEntry = 120,
         ObjectReset = 130,
-        Transition = 140
+        Transition = 140,
+        TransitionEffect = 150
     }
 }
