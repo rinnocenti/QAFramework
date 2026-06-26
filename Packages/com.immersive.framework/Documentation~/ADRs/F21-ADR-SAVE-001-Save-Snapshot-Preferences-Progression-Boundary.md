@@ -1,6 +1,6 @@
 # F21-ADR-SAVE-001 - Save Snapshot Preferences Progression Boundary
 
-Status: Accepted / F21B Primitives Applied / F21C Next  
+Status: Accepted / F21C Participant Smoke Applied / F21D Next  
 Phase: F21 - Save / Snapshot / Preferences / Progression Save Foundation  
 Type: Framework Core + Save Module Boundary  
 Last updated: 2026-06-26
@@ -120,8 +120,8 @@ Progression Save must not define a concrete backend as the canonical contract. J
 |---|---|---|
 | F21A | `APPLIED / DOCS ONLY` | Save / Snapshot / Preferences / Progression ADR Plan and roadmap realignment. |
 | F21B | `APPLIED / PRIMITIVES` | Snapshot Envelope Primitives. |
-| F21C | `NEXT / PLANNED` | Snapshot Participant Contracts + Diagnostics Smoke. |
-| F21D | `PLANNED` | Preferences Store Contracts + PlayerPrefs Backend. |
+| F21C | `APPLIED / PARTICIPANT CONTRACTS + SYNTHETIC SMOKE` | Snapshot Participant Contracts + Diagnostics Smoke. |
+| F21D | `NEXT / PLANNED` | Preferences Store Contracts + PlayerPrefs Backend. |
 | F21E | `PLANNED` | Progression Save Port + Slot/Manifest Primitives. |
 | F21F | `PLANNED` | JSON Progression Backend + Diagnostics Smoke. |
 | F21G | `PLANNED` | Progression Save Runtime Request Path + Autosave Moment Contracts. |
@@ -161,7 +161,71 @@ F21B does not add participant contracts, capture execution, restore execution, b
 
 ---
 
-## 8. Excluded in F21A
+## 8. F21C Applied Shape
+
+F21C adds backend-agnostic Snapshot participant contracts under `Runtime/Snapshot`:
+
+```text
+SnapshotParticipantId
+SnapshotParticipantRequiredness
+SnapshotParticipantResultStatus
+SnapshotParticipantDescriptor
+SnapshotCaptureContext
+SnapshotRestoreContext
+SnapshotParticipantCaptureResult
+SnapshotParticipantRestoreResult
+ISnapshotParticipant
+```
+
+The contract shape is intentionally local and passive:
+
+```text
+participant exposes descriptor
+participant captures local state into SnapshotEnvelope
+participant restores local state from a provided SnapshotEnvelope
+framework can validate descriptor/result shape
+future orchestration may aggregate participants
+future Progression Save may persist envelopes through a backend port
+```
+
+F21C also adds `Run Snapshot Participant Diagnostics Smoke` under `Show Save / Snapshot diagnostics` in the QA Canvas. The smoke is synthetic and validates:
+
+```text
+descriptor/context owner matching
+required participant capture result
+restore result from matching envelope
+foreign envelope rejection
+optional participant skip behavior
+known diagnostic/runtime snapshot types remain outside canonical Save Snapshot namespace
+```
+
+F21C does not add participant discovery, Snapshot orchestration runtime, backend, PlayerPrefs, JSON, progression slots/manifests, autosave/load moments, UI, scene object, prefab, ScriptableObject or asmdef changes.
+
+---
+
+## 9. Snapshot Orphan / Ghost Boundary Audit
+
+F21C makes `Immersive.Framework.Snapshot` the canonical namespace for Save Snapshot envelope and participant contracts. Earlier or parallel types that use the word `Snapshot` remain outside this canonical Save Snapshot boundary unless explicitly migrated in a future cut.
+
+Known non-save snapshot types after F21C:
+
+```text
+PauseSnapshot
+GateSnapshot
+TransitionSnapshot
+TransitionEffectSnapshot
+ObjectEntryRuntimeContextSnapshot
+CycleResetPlan.SnapshotEntries/SnapshotIssues methods
+CycleResetResult.SnapshotParticipantResults/SnapshotIssues methods
+```
+
+These are diagnostic/runtime state snapshots or immutable copy helpers. They are not persistence envelopes, not participants, not backend records and not Progression Save slots.
+
+The older F10 Snapshot ADR remains as conceptual history only. The operational canonical Save Snapshot trail is F21.
+
+---
+
+## 10. Excluded in F21A
 
 F21A does not implement:
 
@@ -182,7 +246,7 @@ autosave execution
 
 ---
 
-## 9. Consequences
+## 11. Consequences
 
 Save work can evolve without binding Snapshot to JSON, PlayerPrefs or premium storage.
 
@@ -194,8 +258,8 @@ Pause visual/content/input moves to F23. Gameplay Adapter Foundation moves to F2
 
 ---
 
-## 10. Next Cut
+## 12. Next Cut
 
 ```text
-F21C - Snapshot Participant Contracts + Diagnostics Smoke
+F21D - Preferences Store Contracts + PlayerPrefs Backend
 ```

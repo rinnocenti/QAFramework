@@ -28,7 +28,7 @@ Guides/F20-Pause-State-Gate-Usage.md
 Closure rule: when a framework phase is closed, add or update its `Usage` guide under `Documentation~/Guides/`.
 
 
-F0-F20 are closed/applied. F17 is Gate Foundation. F18 is Transition Orchestration Foundation. F19 is Transition Effects. F20 is Pause State/Gate. F21 is open for Save / Snapshot / Preferences / Progression Save Foundation; F21A is applied as a documentation-only ADR plan and F21B Snapshot Envelope Primitives are applied. F21C is next. F22 is planned for Loading Operation / Progress / Readiness Boundary. Pause Content/Overlay/Input moves to F23. Gameplay Adapter Foundation moves to F24.
+F0-F20 are closed/applied. F17 is Gate Foundation. F18 is Transition Orchestration Foundation. F19 is Transition Effects. F20 is Pause State/Gate. F21 is open for Save / Snapshot / Preferences / Progression Save Foundation; F21A is applied as a documentation-only ADR plan, F21B Snapshot Envelope Primitives are applied, and F21C Snapshot Participant Contracts + Diagnostics Smoke is applied. F21D is next. F22 is planned for Loading Operation / Progress / Readiness Boundary. Pause Content/Overlay/Input moves to F23. Gameplay Adapter Foundation moves to F24.
 F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C integrates those primitives with existing request-admission guards; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase and hands off to F18. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes without runtime visual effects. F18D adds a passive Transition-to-Gate blocker relationship and synthetic smoke without registering runtime Gate state. F18E adds passive Route/Activity orchestration observation and smoke without executing requests. F18F closes the phase with `Guides/F18-Transition-Orchestration-Usage.md` and hands off to F19 Transition Effects. F19A accepts the Transition Effects boundary/implementation plan and records that no scene/object/SO setup is required yet. F19B adds passive Transition Effect primitives under `Runtime/TransitionEffects`; F19C adds `Run Transition Effect Diagnostics Smoke`, still without scene/object/SO setup. F19D adds `ITransitionEffectAdapter`, `UnityFadeCurtainEffectAdapter` and `Run Unity Fade Curtain Effect Adapter Smoke`; the smoke uses a transient QA GameObject, while optional manual scene setup is documented in `Guides/F19D-Minimal-Fade-Curtain-Adapter-Setup.md`. F19E adds required/optional effect policy guardrails and `Run Transition Effect Policy Guardrails Smoke`; no ScriptableObject or saved scene setup is required. F19F closes the phase with `Guides/F19-Transition-Effects-Usage.md` and compacts QA Canvas by keeping baseline buttons visible and moving phase diagnostics behind toggles. F20A accepted the Pause State/Gate plan; F20B adds passive Pause primitives under `Runtime/Pause`; F20C adds `Run Pause Diagnostics Smoke`; F20D adds passive Pause-to-Gate blocker policy; F20E adds the minimal runtime Pause request path through `FrameworkRuntimeHost` and `PauseRuntime`, still without scene/object/SO setup, input, overlay or `Time.timeScale`. F20F closes the phase with `Guides/F20-Pause-State-Gate-Usage.md`.
 
 Current reset boundary:
@@ -47,7 +47,7 @@ F17 - Gate Foundation / CLOSED
 F18 - Transition Orchestration Foundation / CLOSED
 F19 - Transition Effects / Loading and Fade Adapters / CLOSED
 F20 - Pause State and Pause Gate / CLOSED / F20F QA PASS + USAGE
-F21 - Save / Snapshot / Preferences / Progression Save Foundation / IN PROGRESS / F21B PRIMITIVES APPLIED / F21C NEXT
+F21 - Save / Snapshot / Preferences / Progression Save Foundation / IN PROGRESS / F21C PARTICIPANT SMOKE APPLIED / F21D NEXT
 F22 - Loading Operation / Progress / Readiness Boundary
 F23 - Pause Content / Overlay / Input Boundary
 F24 - Gameplay Adapter Foundation
@@ -113,7 +113,7 @@ F20 pause note:
 F20B adds passive Pause primitives under `Runtime/Pause`. F20C adds synthetic Pause diagnostics smoke. F20D adds passive Pause Gate blocker policy. F20E adds minimal in-memory runtime request execution. F20F closes the phase with `Guides/F20-Pause-State-Gate-Usage.md`. No scene, GameObject, Canvas, prefab or ScriptableObject is required for F20.
 F20 is Pause logical core: state, request/result, policy, snapshot/facts and Gate blocker relationship.
 Save/Snapshot/Preferences/Progression Save belongs to F21. Loading Operation/Progress/Readiness belongs to F22. Pause content/overlay/input moves to F23.
-Next cut: F21C - Snapshot Participant Contracts + Diagnostics Smoke.
+Next cut: F21D - Preferences Store Contracts + PlayerPrefs Backend.
 ```
 
 F21/F22 boundary note:
@@ -138,7 +138,7 @@ Loading Operation/Progress/Readiness is F22.
 Pause Content/Overlay/Input is F23.
 Gameplay Adapter Foundation is F24.
 No runtime, asmdef, backend, PlayerPrefs, JSON, UI, scene object, prefab or ScriptableObject was added.
-Next cut: F21C - Snapshot Participant Contracts + Diagnostics Smoke.
+Next cut: F21D - Preferences Store Contracts + PlayerPrefs Backend.
 ```
 
 
@@ -148,4 +148,12 @@ F21B adds passive Snapshot envelope primitives under `Runtime/Snapshot`: envelop
 
 The cut does not add backend, PlayerPrefs, JSON, progression slot, manifest, participant interface, capture/restore runtime, UI, scene object, prefab, ScriptableObject or asmdef changes.
 
-Next cut: F21C - Snapshot Participant Contracts + Diagnostics Smoke.
+## F21C Snapshot Participant Contracts + Diagnostics Smoke
+
+F21C adds backend-agnostic Snapshot participant contracts under `Runtime/Snapshot`: participant id, requiredness, descriptor, capture/restore contexts, capture/restore results and `ISnapshotParticipant`.
+
+F21C adds `Run Snapshot Participant Diagnostics Smoke` under `Show Save / Snapshot diagnostics` in the QA Canvas. The smoke validates descriptor/context matching, synthetic capture, synthetic restore, foreign-envelope rejection, optional skip behavior and that known diagnostic/runtime snapshot types remain outside the canonical Save Snapshot namespace.
+
+F21C does not add participant discovery, Snapshot orchestration runtime, backend, PlayerPrefs, JSON, Progression Save slots/manifests, autosave/load moments, UI, scene object, prefab, ScriptableObject or asmdef changes. `PauseSnapshot`, `GateSnapshot`, `TransitionSnapshot`, `TransitionEffectSnapshot` and `ObjectEntryRuntimeContextSnapshot` remain diagnostic/runtime state snapshots, not Save Snapshot contracts.
+
+Next cut: F21D - Preferences Store Contracts + PlayerPrefs Backend.

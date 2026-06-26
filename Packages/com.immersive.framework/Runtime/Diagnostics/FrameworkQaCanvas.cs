@@ -43,6 +43,7 @@ namespace Immersive.Framework.Diagnostics
         private bool _showAdvancedControls;
         private bool _showTransitionEffectDiagnostics;
         private bool _showPauseDiagnostics;
+        private bool _showSnapshotDiagnostics;
         private bool _showRouteContentDiagnostics;
         private bool _showFoundationDiagnostics;
         private bool _showResetObjectDiagnostics;
@@ -291,6 +292,12 @@ namespace Immersive.Framework.Diagnostics
                 DrawPauseDiagnosticSmokeControls();
             }
 
+            _showSnapshotDiagnostics = GUILayout.Toggle(_showSnapshotDiagnostics, "Show Save / Snapshot diagnostics");
+            if (_showSnapshotDiagnostics)
+            {
+                DrawSnapshotDiagnosticSmokeControls();
+            }
+
             _showRouteContentDiagnostics = GUILayout.Toggle(_showRouteContentDiagnostics, "Show Route / Content diagnostics");
             if (_showRouteContentDiagnostics)
             {
@@ -375,6 +382,21 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Pause Runtime Request Smoke"))
                 {
                     RunPauseRuntimeRequestSmoke();
+                }
+            }
+        }
+
+        private void DrawSnapshotDiagnosticSmokeControls()
+        {
+            GUILayout.Space(4f);
+            GUILayout.Label("Save / Snapshot Diagnostics", GUI.skin.box);
+            GUILayout.Label("F21 diagnostics. No backend, PlayerPrefs, JSON, slots, UI or runtime save request path.");
+
+            using (new EditorDisabledScope(_requestInFlight))
+            {
+                if (GUILayout.Button("Run Snapshot Participant Diagnostics Smoke"))
+                {
+                    RunSnapshotParticipantDiagnosticsSmoke();
                 }
             }
         }
@@ -846,6 +868,12 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(PauseRuntimeRequestQaSmokeRunner.SmokeName, runtimeHost =>
                 PauseRuntimeRequestQaSmokeRunner.RunRuntimeRequestSmokeAsync(runtimeHost, _logger, QaSource));
+        }
+
+        private async void RunSnapshotParticipantDiagnosticsSmoke()
+        {
+            await RunSmokeAsync(SnapshotParticipantQaSmokeRunner.SmokeName, runtimeHost =>
+                SnapshotParticipantQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
         }
 
         private async void RunCycleResetRuntimeHostSmoke()
