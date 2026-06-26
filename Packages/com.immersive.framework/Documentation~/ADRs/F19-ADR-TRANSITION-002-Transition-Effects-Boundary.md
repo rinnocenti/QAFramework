@@ -1,6 +1,6 @@
 # F19-ADR-TRANSITION-002 - Transition Effects Boundary
 
-Status: Accepted / F19D Unity Adapter Boundary Applied  
+Status: Accepted / Closed F19F  
 Phase: F19 - Transition Effects / Loading and Fade Adapters  
 Type: Unity Adapter / Optional Effects / Boundary  
 Last updated: 2026-06-26
@@ -178,7 +178,7 @@ F19B - Transition Effect Primitives - CLOSED / PRIMITIVES APPLIED
 F19C - Transition Effect Diagnostics Smoke - CLOSED / DIAGNOSTICS SMOKE APPLIED
 F19D - Minimal Unity Fade/Curtain Adapter Boundary - CLOSED / UNITY ADAPTER BOUNDARY APPLIED
 F19E - Required/Optional Effect Policy and Authoring Guardrails - CLOSED / POLICY GUARDRAILS APPLIED
-F19F - Closure, Usage Guide and handoff to F20 Pause State/Gate
+F19F - Closure, Usage Guide and handoff to F20 Pause State/Gate - CLOSED / QA PASS + USAGE
 ```
 
 F19B does not execute visuals. It creates the passive effect contract vocabulary under `Runtime/TransitionEffects`: `TransitionEffectId`, `TransitionEffectKind`, `TransitionEffectRequiredness`, `TransitionEffectStatus`, `TransitionEffectRequest`, `TransitionEffectResult`, `TransitionEffectPlan` and `TransitionEffectSnapshot`. It also adds `FrameworkIdentityDomain.TransitionEffect` so effect ids remain typed identities.
@@ -188,6 +188,8 @@ F19C validates the vocabulary through synthetic diagnostics. It does not create 
 F19D is the first concrete Unity adapter cut. It adds the adapter contract and a minimal built-in Unity fade/curtain component. The canonical smoke creates a transient QA object, so saved scene setup is optional for validation.
 
 F19E adds required/optional effect policy and authoring guardrails without creating a ScriptableObject, registry or discovery layer. The caller supplies an explicit adapter list to `TransitionEffectAuthoringPolicy.Evaluate`. Required adapter absence blocks. Optional adapter absence produces a warning and remains non-blocking. Duplicate effect ids in one plan block as authoring ambiguity.
+
+F19F closes the phase with a usage guide and QA Canvas cleanup. It adds no new effect runtime, no ScriptableObject, no registry, no discovery, no DOTween integration and no Route/Activity execution integration.
 
 ---
 
@@ -380,3 +382,61 @@ DOTween/tween timing
 Pause/Input/UI gameplay flow
 service locator
 ```
+
+
+## F19F — Closure, Usage Guide and QA Canvas Cleanup
+
+F19F closes Transition Effects as an adapter/effect boundary.
+
+New usage guide:
+
+```text
+Documentation~/Guides/F19-Transition-Effects-Usage.md
+```
+
+The guide explains:
+
+- what F19 adds;
+- what remains outside F19;
+- how to run diagnostics after QA Canvas compaction;
+- optional manual visual setup for `UnityFadeCurtainEffectAdapter`;
+- expected smoke evidence;
+- handoff to F20 Pause State/Gate.
+
+F19F also compacts the QA Canvas. The default visible QA buttons are limited to the baseline path:
+
+```text
+Run Standard Smoke
+Run Activity Baseline Smoke
+Validate Loaded Authoring
+Reset QA Scenario
+```
+
+Phase diagnostics remain available but collapsed behind toggles:
+
+```text
+Gate / Transition / Effect diagnostics
+Route / Content diagnostics
+Foundation diagnostics
+Reset / Object diagnostics
+Advanced/manual controls
+```
+
+This removes the long flat button list without deleting smoke methods or changing their runtime behavior.
+
+F19F does not add:
+
+```text
+ScriptableObject profile
+adapter registry
+scene object discovery
+runtime effect owner
+Transition runtime integration
+Route/Activity request integration
+loading screen canonical UI
+DOTween/tween timing
+Pause/Input/UI gameplay flow
+service locator
+```
+
+The next phase is F20 Pause State and Pause Gate. F20 must start with state/Gate semantics before F21 visual Pause overlay/input/content.

@@ -41,6 +41,10 @@ namespace Immersive.Framework.Diagnostics
         private int _windowId;
         private bool _requestInFlight;
         private bool _showAdvancedControls;
+        private bool _showTransitionEffectDiagnostics;
+        private bool _showRouteContentDiagnostics;
+        private bool _showFoundationDiagnostics;
+        private bool _showResetObjectDiagnostics;
         private Vector2 _scroll;
 
         [Header("Display")]
@@ -179,7 +183,8 @@ namespace Immersive.Framework.Diagnostics
                 DrawRuntimeStatus();
                 DrawQaScenarioSummary();
                 DrawCoreSmokeControls();
-                DrawRouteContentSmokeControls();
+                DrawDiagnosticSmokeControls();
+                DrawAdvancedControls();
                 GUILayout.EndScrollView();
             }
 
@@ -237,7 +242,7 @@ namespace Immersive.Framework.Diagnostics
         {
             GUILayout.Space(8f);
             GUILayout.Label("Core Smokes", GUI.skin.box);
-            GUILayout.Label("Use these buttons for the normal framework validation path.");
+            GUILayout.Label("Default QA path. Phase diagnostics are collapsed below to keep the panel compact.");
 
             using (new EditorDisabledScope(_requestInFlight))
             {
@@ -251,16 +256,56 @@ namespace Immersive.Framework.Diagnostics
                     RunActivityBaselineSmoke();
                 }
 
-                if (GUILayout.Button("Run Local Contribution Smoke"))
+                if (GUILayout.Button("Validate Loaded Authoring"))
                 {
-                    RunLocalContributionSmoke();
+                    ValidateLoadedLocalContributionsAuthoring();
                 }
 
-                if (GUILayout.Button("Run Runtime Content Smoke"))
+                if (GUILayout.Button("Reset QA Scenario"))
                 {
-                    RunRuntimeContentSmoke();
+                    ResetQaScenario();
                 }
+            }
+        }
 
+        private void DrawDiagnosticSmokeControls()
+        {
+            GUILayout.Space(8f);
+            GUILayout.Label("Phase Diagnostics", GUI.skin.box);
+            GUILayout.Label("Open only the diagnostic family needed for the current cut.");
+
+            _showTransitionEffectDiagnostics = GUILayout.Toggle(_showTransitionEffectDiagnostics, "Show Gate / Transition / Effect diagnostics");
+            if (_showTransitionEffectDiagnostics)
+            {
+                DrawTransitionEffectDiagnosticSmokeControls();
+            }
+
+            _showRouteContentDiagnostics = GUILayout.Toggle(_showRouteContentDiagnostics, "Show Route / Content diagnostics");
+            if (_showRouteContentDiagnostics)
+            {
+                DrawRouteContentSmokeControls();
+            }
+
+            _showFoundationDiagnostics = GUILayout.Toggle(_showFoundationDiagnostics, "Show Foundation diagnostics");
+            if (_showFoundationDiagnostics)
+            {
+                DrawFoundationDiagnosticSmokeControls();
+            }
+
+            _showResetObjectDiagnostics = GUILayout.Toggle(_showResetObjectDiagnostics, "Show Reset / Object diagnostics");
+            if (_showResetObjectDiagnostics)
+            {
+                DrawResetObjectDiagnosticSmokeControls();
+            }
+        }
+
+        private void DrawTransitionEffectDiagnosticSmokeControls()
+        {
+            GUILayout.Space(4f);
+            GUILayout.Label("Gate / Transition / Effect Diagnostics", GUI.skin.box);
+
+            using (new EditorDisabledScope(_requestInFlight))
+            {
                 if (GUILayout.Button("Run Gate Admission Diagnostics Smoke"))
                 {
                     RunGateAdmissionDiagnosticsSmoke();
@@ -295,7 +340,35 @@ namespace Immersive.Framework.Diagnostics
                 {
                     RunTransitionEffectPolicyGuardrailsSmoke();
                 }
+            }
+        }
 
+        private void DrawFoundationDiagnosticSmokeControls()
+        {
+            GUILayout.Space(4f);
+            GUILayout.Label("Foundation Diagnostics", GUI.skin.box);
+
+            using (new EditorDisabledScope(_requestInFlight))
+            {
+                if (GUILayout.Button("Run Local Contribution Smoke"))
+                {
+                    RunLocalContributionSmoke();
+                }
+
+                if (GUILayout.Button("Run Runtime Content Smoke"))
+                {
+                    RunRuntimeContentSmoke();
+                }
+            }
+        }
+
+        private void DrawResetObjectDiagnosticSmokeControls()
+        {
+            GUILayout.Space(4f);
+            GUILayout.Label("Reset / Object Diagnostics", GUI.skin.box);
+
+            using (new EditorDisabledScope(_requestInFlight))
+            {
                 if (GUILayout.Button("Run Cycle Reset Runtime Host Smoke"))
                 {
                     RunCycleResetRuntimeHostSmoke();
@@ -329,16 +402,6 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Object Reset GameObject Active Closure Smoke"))
                 {
                     RunObjectResetGameObjectActiveClosureSmoke();
-                }
-
-                if (GUILayout.Button("Validate Loaded Authoring"))
-                {
-                    ValidateLoadedLocalContributionsAuthoring();
-                }
-
-                if (GUILayout.Button("Reset QA Scenario"))
-                {
-                    ResetQaScenario();
                 }
             }
         }
