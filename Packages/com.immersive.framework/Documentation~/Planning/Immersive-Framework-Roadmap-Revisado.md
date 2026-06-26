@@ -18,7 +18,8 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 |---|---|---|
 | F0-F17 | `CLOSED / APPLIED` | Histórico real resumido neste documento. |
 | F17 | `CLOSED / F17E QA PASS` | Gate Foundation fechada. F17A realinhou ADRs/plano; F17B introduziu primitivas passivas; F17C integrou admissão de requests existentes via Gate; F17D adicionou smoke sintético de diagnóstico; F17E fechou a fase e preparou F18. |
-| F18-F21 | `PLANNED / REVISED ORDER` | Transition orchestration, transition effects/loading/fade adapters, Pause state/gate e Pause content/input boundary. |
+| F18 | `IN PROGRESS / F18A DOCS` | Transition Orchestration Foundation iniciada como plano de implementação. Sem fade/loading visual, Pause, Input ou gameplay. |
+| F19-F21 | `PLANNED / REVISED ORDER` | Transition effects/loading/fade adapters, Pause state/gate e Pause content/input boundary. |
 | F22+ | `DEFERRED` | Consumers avançados, gameplay capabilities e contextual reset de Player/Actor/NPC/Timer/Door/Pickup ficam bloqueados até Gate/Transition/Pause e um modelo maduro de gameplay object/actor/player. |
 
 ## Histórico real F0-F17
@@ -131,7 +132,7 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Player, Actor,
 | F15 | Unity Reset Adapters mínimos | Unity Adapter | `CLOSED / APPLIED`: source Unity explícita, Transform Reset Participant com baseline local authored, guardrails required/optional, UX e closure smoke, sem gameplay consumers. |
 | F16 | GameObject Active State Reset Adapter | Unity Adapter | `CLOSED / APPLIED`: reset primitivo de `activeSelf` authored, com source explícita e guardrails. |
 | F17 | Gate Foundation | Framework Core | `CLOSED / F17E QA PASS`: F17A definiu boundary documental; F17B introduziu primitivas de scope/domain/decision/blocker/snapshot; F17C integrou bloqueios already-in-flight de Route/Activity/CycleReset/ObjectReset por Gate; F17D validou diagnóstico de admissão por smoke sintético; F17E fechou o handoff para F18. |
-| F18 | Transition Orchestration Foundation | Framework Core | Orquestrar fluxo consumindo Gate, Scene Lifecycle, release, readiness e callbacks. Não e fade visual. |
+| F18 | Transition Orchestration Foundation | Framework Core | `IN PROGRESS / F18A DOCS`: orquestrar fluxo consumindo Gate, Scene Lifecycle, release, readiness e callbacks. Não é fade visual. |
 | F19 | Transition Effects / Loading and Fade Adapters | Unity Adapter / Optional Effects | Efeitos de fade/loading/curtain como adapters depois do contrato lógico. Sem dependência obrigatória de DOTween/Asset Store e sem fallback silencioso para adapter required ausente. |
 | F20 | Pause State and Pause Gate | Framework Core | Pause como estado + Gate blocker. Não é Activity, menu ou lifecycle de Route/Activity. |
 | F21 | Pause Content / Overlay / Input Boundary | Framework Consumer / Authoring / Input Boundary | Overlay/content de Pause como consumer, usando Content Anchor/binding/runtime placement quando aplicável. Input de Pause separado de input de gameplay. |
@@ -413,6 +414,53 @@ F17 não implementa:
 
 A fronteira de F17 é: o core possui linguagem de admissão, decisão bloqueada/permitida, blockers/facts/snapshot e diagnóstico QA para request admission. F18 pode consumir Gate para Transition Orchestration sem transformar fade/loading em Gate.
 
+
+## Implementação F18A — Transition Orchestration Plan
+
+F18A aceita a fronteira operacional de Transition antes de qualquer runtime visual. A fase deve começar por contrato lógico e diagnóstico, não por fade/loading.
+
+F18A decide que Transition é o relato operacional de uma mudança de fluxo:
+
+```text
+request admitted
+transition opened
+Gate blocker applied
+previous scope exit observed
+content release observed
+scene/content operation observed
+next scope enter observed
+readiness observed
+transition completed/failed
+Gate blocker released
+facts emitted
+```
+
+F18A não cria código C#, não cria adapter visual, não altera Route/Activity flow e não cria lifecycle paralelo.
+
+Sequência planejada de F18:
+
+| Corte | Status | Objetivo |
+|---|---|---|
+| F18A | `CLOSED / ADR IMPLEMENTATION PLAN` | Aceitar ADR operacional e definir sequência segura para F18. |
+| F18B | `NEXT` | Primitivas passivas de Transition: operação, tipo, fase/status, plano/resultado/snapshot. |
+| F18C | `PLANNED` | Smoke/diagnóstico sintético de resultados de Transition sem trocar cenas. |
+| F18D | `PLANNED` | Relação lógica entre operação ativa de Transition e Gate blocker. |
+| F18E | `PLANNED` | Observação mínima de Route/Activity orchestration, se necessária, preservando happy path e result kinds existentes. |
+| F18F | `PLANNED` | Fechamento da fase e handoff para F19 Transition Effects. |
+
+F18 não implementa:
+
+- fade visual;
+- loading screen;
+- curtain;
+- DOTween;
+- Pause state/runtime;
+- input real;
+- gameplay object model;
+- contextual reset;
+- service locator;
+- manager global de Transition.
+
 ## Guardrails pós-F13
 
 - Core lifecycle antes de gameplay.
@@ -435,7 +483,7 @@ A fronteira de F17 é: o core possui linguagem de admissão, decisão bloqueada/
 - Não criar lifecycle novo por causa da consolidação documental.
 - Não criar ADR separado, roadmap paralelo, tracker paralelo, closure por fase ou smoke documental separado.
 - Não mover Camera, Audio, Actor, Pooling, Projectile, Damage, Attributes ou Powerups para F17-F21.
-- Não criar runtime/editor Transition ou Pause antes das fases F18-F21.
+- Não criar visual Transition, Pause, Input ou gameplay antes das fases corretas. F18 pode criar apenas core lógico de Transition.
 - Não tratar Gate como UI, readiness ou input system.
 - Não tratar fade/loading visual como substituto de Gate.
 - Não tratar Pause como Activity, menu ou `Time.timeScale` canônico.
@@ -445,9 +493,9 @@ A fronteira de F17 é: o core possui linguagem de admissão, decisão bloqueada/
 ## Próximo corte
 
 ```text
-F18A - Transition Orchestration Foundation / ADR Implementation Plan
+F18B - Transition Primitives
 ```
 
-Entrada de F18A: planejar e iniciar Transition como orquestração de fluxo consumindo Gate, Scene Lifecycle, release, readiness e callbacks.
+Entrada de F18B: criar primitivas passivas de Transition para operação, tipo, fase/status, plano/resultado e snapshot/diagnóstico, consumíveis por Gate e pelos lifecycles existentes em cortes posteriores.
 
-F18A não deve criar fade/loading visual, Pause menu, input real, gameplay object model, reset contextual de Player/Actor/NPC/Timer/Door/Pickup, lifecycle paralelo ou service locator. Fade/loading/curtain ficam para F19 como adapters/effects depois do contrato lógico.
+F18B não deve integrar visual fade/loading, Pause menu, input real, gameplay object model, reset contextual de Player/Actor/NPC/Timer/Door/Pickup, lifecycle paralelo ou service locator. Fade/loading/curtain ficam para F19 como adapters/effects depois do contrato lógico.
