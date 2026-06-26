@@ -237,7 +237,7 @@ F19 remains the owner of Transition Effects and fade/curtain adapter boundaries.
 
 SceneLifecycle remains the owner of scene lifecycle execution. Loading observes lifecycle/transition progress instead of replacing that owner.
 
-Pause Content / Overlay / Input stays in F23. Gameplay Adapter Foundation stays in F24.
+Pause Content / Overlay / Input stays in F23. F24 is Unity Build Surface / Lifecycle Wiring. Gameplay Adapter Foundation moves to F25.
 
 ## 9. F22E result
 
@@ -263,7 +263,7 @@ F22E adds `Run Loading Screen Adapter Boundary Smoke` under QA Canvas `Show Load
 
 F22E does not create UI, scene objects, prefabs, ScriptableObjects, fade, curtain, TransitionEffect execution, SceneLifecycle execution, Transition execution, readiness mutation, backend, PlayerPrefs, JSON or asmdef changes.
 
-Next cut: F23A - Pause Content / Overlay / Input ADR Plan.
+Next phase: F23 - Pause Content / Overlay / Input Boundary.
 
 
 ## 10. F22F closure result
@@ -318,3 +318,15 @@ LoadingResult
 `LoadingResult` combines a `LoadingProgressAggregationResult`, readiness observations and issues into one passive summary. It does not retry, fallback, execute lifecycle, mutate readiness, own SceneLifecycle, own Transition, run TransitionEffects, create UI or call gameplay adapters.
 
 F22H adds `Run Loading Result and Issue Smoke` under QA Canvas `Show Loading diagnostics`. The smoke validates contracts, successful result, waiting readiness result, failed result with blocking issue and canonical boundary behavior.
+
+
+## 13. F22G/F22H validation accepted
+
+The pre-F23 framework-only debt closure is accepted by QA evidence:
+
+```text
+Run Loading Readiness Observation Smoke: PASS
+Run Loading Result and Issue Smoke: PASS
+```
+
+F22 is closed for operation, progress, readiness observation, result/issue reporting, observation adapters and loading screen adapter boundary. F23 can open without carrying Loading readiness/result debt into Pause.

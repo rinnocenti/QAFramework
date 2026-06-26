@@ -301,6 +301,8 @@ Run these from the QA Canvas under `Show Loading diagnostics`:
 Run Loading Progress Aggregation Smoke
 Run Loading Observation Adapter Smoke
 Run Loading Screen Adapter Boundary Smoke
+Run Loading Readiness Observation Smoke
+Run Loading Result and Issue Smoke
 ```
 
 Expected validated boundaries:
@@ -327,6 +329,21 @@ Loading Screen Adapter Boundary Smoke
 - show-update-hide
 - unsupported-operation
 - adapter-failure
+- canonical-boundary
+
+Loading Readiness Observation Smoke
+- contracts
+- waiting-observation
+- ready-observation
+- blocked-observation
+- failed-observation
+- canonical-boundary
+
+Loading Result and Issue Smoke
+- contracts
+- success-result
+- waiting-readiness-result
+- failure-issue-result
 - canonical-boundary
 ```
 
@@ -369,7 +386,9 @@ Add screenshots manually when building the designer manual:
 [SCREENSHOT PLACEHOLDER: Loading Progress Aggregation Smoke PASS logs]
 [SCREENSHOT PLACEHOLDER: Loading Observation Adapter Smoke PASS logs]
 [SCREENSHOT PLACEHOLDER: Loading Screen Adapter Boundary Smoke PASS logs]
-[SCREENSHOT PLACEHOLDER: future loading screen UI adapter inspector, when F23/F24+ creates one]
+[SCREENSHOT PLACEHOLDER: Loading Readiness Observation Smoke PASS logs]
+[SCREENSHOT PLACEHOLDER: Loading Result and Issue Smoke PASS logs]
+[SCREENSHOT PLACEHOLDER: future loading screen UI adapter inspector, when F24 creates one]
 ```
 
 ---
@@ -379,7 +398,7 @@ Add screenshots manually when building the designer manual:
 Next planned cut:
 
 ```text
-IF-FW-F23A — Pause Content / Overlay / Input ADR Plan
+IF-FW-F23B — Pause Content Anchor Consumer Contracts
 ```
 
 F23 should consume the existing Pause core from F20, the Loading boundary from F22 and the previous Transition/Effect boundaries without turning Pause UI into a lifecycle owner.

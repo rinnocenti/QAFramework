@@ -411,7 +411,7 @@ Preferences can remain a lightweight settings boundary and cannot accidentally c
 
 Progression Save now has an initial JSON adapter while preserving the ability to replace the backend behind the same port.
 
-Pause visual/content/input moves to F23. Gameplay Adapter Foundation moves to F24.
+Pause visual/content/input moves to F23. F24 is Unity Build Surface / Lifecycle Wiring. Gameplay Adapter Foundation moves to F25.
 
 ---
 
