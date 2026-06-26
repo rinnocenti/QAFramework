@@ -38,7 +38,7 @@ F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integra
 | F16 | [GameObject Active State Reset Adapter](F16-ADR-RESET-005-GameObject-Active-State-Reset.md) | Closed / Applied through F16 |
 | Future | [Player Participant Entry Baseline](F16-ADR-PLAYER-001-Player-Participant-Entry-Baseline.md) | Deferred / Future Contextual Reset |
 | F17 | [Gate Boundary](F17-ADR-GATE-001-Gate-Boundary.md) | Accepted / Closed F17E |
-| F18 | [Transition Orchestration](F18-ADR-TRANSITION-001-Transition-Orchestration.md) | Accepted / F18B Primitives Applied |
+| F18 | [Transition Orchestration](F18-ADR-TRANSITION-001-Transition-Orchestration.md) | Accepted / F18C Diagnostics Smoke |
 | F19 | [Transition Effects Boundary](F19-ADR-TRANSITION-002-Transition-Effects-Boundary.md) | Planned |
 | F20 | [Pause State and Gate](F20-ADR-PAUSE-002-Pause-State-and-Gate.md) | Planned |
 | F21 | [Pause Content Overlay Input Boundary](F21-ADR-PAUSE-003-Pause-Content-Overlay-Input-Boundary.md) | Planned |
@@ -63,7 +63,7 @@ F16 closure note: GameObject Active State Reset is a primitive Unity adapter for
 
 F17 closure note: Gate comes before Transition and Pause. Gate is not UI, readiness or input system; it decides admission of request, input, interaction or gameplay in explicit scopes and must produce decision/result/facts. F17B added passive primitives. F17C routes existing in-flight Route/Activity/CycleReset/ObjectReset request admission through Gate decisions without adding a global registry or changing the happy path. F17D added a synthetic QA smoke that validates allowed and blocked `GateEvaluationResult` diagnostics for request-admission scenarios. F17E closes Gate Foundation, documents usage in `Documentation~/Guides/F17-Gate-Foundation-Usage.md`, and hands off to F18 Transition Orchestration.
 
-F18/F19 transition note: Transition is flow orchestration that consumes Gate. F18A accepts the implementation plan. F18B adds passive primitives under `Runtime/Transition`: operation identity, kind, phase/status, step, plan, result and snapshot. Next F18C should add diagnostics smoke for valid/failed transition shapes. Fade/loading/curtain are F19 adapters/effects after the logical contract, not a substitute for Gate.
+F18/F19 transition note: Transition is flow orchestration that consumes Gate. F18A accepts the implementation plan. F18B adds passive primitives under `Runtime/Transition`: operation identity, kind, phase/status, step, plan, result and snapshot. F18C adds `Run Transition Diagnostics Smoke`, validating valid/warning/failed plan/result/snapshot shapes without scene changes. Fade/loading/curtain are F19 adapters/effects after the logical contract, not a substitute for Gate.
 
 F20/F21 pause note: Pause is state plus Gate blocker. Pause is not Activity, does not own Route/Activity lifecycle and does not define `Time.timeScale` as the canonical contract. Pause overlay/content/input are consumers/boundaries after Pause state and Gate.
 

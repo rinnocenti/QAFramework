@@ -1,6 +1,6 @@
 # F18-ADR-TRANSITION-001 - Transition Orchestration
 
-Status: Accepted / F18B Primitives Applied  
+Status: Accepted / F18C Diagnostics Smoke  
 Phase: F18 - Transition Orchestration Foundation  
 Type: Framework Core / Flow Orchestration / Boundary  
 Last updated: 2026-06-26
@@ -140,8 +140,8 @@ F18B also adds `FrameworkIdentityDomain.Transition` so operation identity stays 
 |---|---|---|
 | F18A | ADR implementation plan | Documentation only. Accept boundary and define implementation sequence. |
 | F18B | Transition primitives | CLOSED. Passive types for operation identity, kind, phase/status, plan/result/snapshot. |
-| F18C | Transition diagnostics smoke | NEXT. Synthetic QA runner for valid/failed transition result shapes without scene changes. |
-| F18D | Gate blocker relationship | Logical helper that maps active transition operations to Gate blockers without Pause or visual effects. |
+| F18C | Transition diagnostics smoke | CLOSED. Synthetic QA runner for valid/warning/failed transition plan/result/snapshot shapes without scene changes. |
+| F18D | Gate blocker relationship | NEXT. Logical helper that maps active transition operations to Gate blockers without Pause or visual effects. |
 | F18E | Route/Activity orchestration observation | Minimal integration with existing route/activity request path only if needed, preserving happy-path result kinds. |
 | F18F | Closure / handoff to F19 | Document evidence and hand off to Transition Effects adapters. |
 
@@ -172,7 +172,42 @@ FrameworkIdentityDomain.Transition
 
 F18B does not add runtime ownership, operation registry, route/activity integration, Gate blocker mapping, fade/loading/curtain, visual progress, UI, Pause or input.
 
-## 9. Required Diagnostics
+---
+
+## 9. F18C Implemented Evidence
+
+F18C adds a synthetic QA smoke for the passive Transition primitives:
+
+```text
+Runtime/Diagnostics/TransitionQaSmokeRunner.cs
+Framework QA Canvas -> Run Transition Diagnostics Smoke
+```
+
+The smoke validates:
+
+```text
+TransitionPlan for a RouteSwitch orchestration narrative
+TransitionResult.SucceededResult
+TransitionResult.CompletedWithWarningsResult
+TransitionResult.FailedResult
+TransitionSnapshot.FromPlan
+```
+
+The expected smoke envelope is:
+
+```text
+QA Smoke started. name='Transition Diagnostics Smoke'.
+QA Transition Diagnostics Smoke step completed. step='plan' ...
+QA Transition Diagnostics Smoke step completed. step='succeeded-result' ...
+QA Transition Diagnostics Smoke step completed. step='warnings-result' ...
+QA Transition Diagnostics Smoke step completed. step='failed-result' ...
+QA Transition Diagnostics Smoke step completed. step='snapshot' ...
+QA Smoke completed. name='Transition Diagnostics Smoke'.
+```
+
+F18C does not create scene changes, Route/Activity integration, Transition registry, Gate blocker mapping, fade/loading/curtain, visual progress, UI, Pause or input.
+
+## 10. Required Diagnostics
 
 Transition diagnostics should be able to answer:
 
@@ -190,9 +225,9 @@ Diagnostics must be facts/loggable summaries, not hidden state inside scene obje
 
 ---
 
-## 10. Excluded From F18A/F18B
+## 11. Excluded From F18A-F18C
 
-F18A/F18B do not implement or require:
+F18A-F18C do not implement or require:
 
 ```text
 fade visual
@@ -212,7 +247,7 @@ singleton transition manager
 
 ---
 
-## 11. Guardrails
+## 12. Guardrails
 
 - Transition is orchestration of flow, not a visual effect.
 - Transition consumes Gate for blocking/release.
