@@ -10,13 +10,11 @@ namespace Immersive.Framework.ObjectReset
     {
         Unknown = 0,
         InvalidRequest = 10,
-        InvalidPolicy = 20,
         RequestAlreadyInFlight = 25,
         RuntimeContextUnavailable = 30,
         TargetNotFound = 40,
         TargetScopeMismatch = 50,
         TargetOwnerMissing = 60,
-        TargetOwnerMismatch = 70,
         ForeignOrStaleTarget = 80,
         ParticipantSourceException = 90,
         InvalidParticipant = 100,
@@ -25,6 +23,7 @@ namespace Immersive.Framework.ObjectReset
         ForeignOrStaleParticipant = 130,
         RequiredParticipantFailed = 140,
         OptionalParticipantFailed = 150,
+        // Reserved for a future uncategorized adapter/participant execution failure.
         Exception = 900
     }
 }

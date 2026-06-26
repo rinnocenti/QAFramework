@@ -12,7 +12,7 @@ Accepted architectural decisions:
 ADRs/ADR-INDEX.md
 ```
 
-F0-F14 are closed/applied. F15 `Unity Reset Adapters mínimos` is the next planned phase.
+F0-F14 are closed/applied. F15 `Unity Reset Adapters mínimos` is proposed/planning and has not started implementation.
 
 Current reset boundary:
 

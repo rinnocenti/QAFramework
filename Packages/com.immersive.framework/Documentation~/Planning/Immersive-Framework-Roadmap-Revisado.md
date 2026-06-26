@@ -17,7 +17,7 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 | Faixa | Status | Leitura oficial |
 |---|---|---|
 | F0-F14 | `CLOSED / APPLIED` | Historico real resumido neste documento. |
-| F15 | `NEXT / PLANNED` | Unity Reset Adapters minimos, desbloqueado pelo fechamento da F14. |
+| F15 | `PROPOSED / PLANNING` | Unity Reset Adapters minimos em decisao pre-implementacao; F15 ainda nao comecou. |
 | F16-F18 | `PLANNED / REVISED ORDER` | Ordem futura mantida; gameplay continua bloqueado ate adapters/core aprovados. |
 
 ## Historico real F0-F14
@@ -111,7 +111,7 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Camera, Audio,
 | F12 | Cycle Reset Integration & Authoring UX | Framework Core + Editor/Authoring | `CLOSED / APPLIED`: validar e documentar UX/authoring dos triggers e bridges opcionais, sem reset fisico/local. |
 | F13 | Object Entry Foundation | Framework Core | `CLOSED / APPLIED`: identidade, descriptor, declaration, typed ownership, scoped collection, snapshot invalidation/refresh e closure smoke. Readiness real fica para F16. |
 | F14 | Local/Object Reset Foundation | Framework Core | `CLOSED / APPLIED`: target canonico deriva de Object Entry atual; participant source explicita; plan/runtime executor; Runtime Host; trigger publico; bridge opcional; sem Unity adapters ou gameplay reset. |
-| F15 | Unity Reset Adapters minimos | Unity Adapter | Criar adapters minimos para traducao Unity de reset local/object aprovado pelo core, sem gameplay consumers. |
+| F15 | Unity Reset Adapters minimos | Unity Adapter | `PROPOSED / PLANNING`: reconciliar decisoes de adapter antes de criar traducao Unity de reset local/object aprovado pelo core, sem gameplay consumers. |
 | F16 | Player/Participant Entry Baseline | Framework Core + Authoring | Definir baseline de entrada de player/participant sobre Object Entry, sem Actor/Camera/Audio/Pooling. |
 | F17 | Advanced Consumers | Gameplay Consumer | Abrir consumers avancados somente depois de core reset/object entry estar estavel. Inclui Camera, Audio, Actor e gameplay Pooling quando aprovados. |
 | F18 | Gameplay Capabilities | Gameplay Consumer | Abrir capacidades finais de gameplay como Projectile, Damage, Attributes e Powerups. |

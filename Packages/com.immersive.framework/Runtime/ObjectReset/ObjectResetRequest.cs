@@ -7,7 +7,7 @@ namespace Immersive.Framework.ObjectReset
     /// API status: Experimental. Request to reset one logical ObjectEntry target.
     /// It carries identity/owner context only; it does not reference Unity objects or participants directly.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F14B Object Reset request primitive; target resolution only.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F14H Object Reset request primitive for logical target execution.")]
     public readonly struct ObjectResetRequest : IEquatable<ObjectResetRequest>
     {
         public ObjectResetRequest(

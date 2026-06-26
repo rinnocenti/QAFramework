@@ -5,9 +5,9 @@ namespace Immersive.Framework.ObjectReset
 {
     /// <summary>
     /// API status: Experimental. Policy attached to a logical Object Reset request.
-    /// F14B only validates target resolution; execution policy is extended in later cuts.
+    /// F14H keeps policy limited to current-snapshot targeting and no-participant handling.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F14B Object Reset policy primitive; no participant execution yet.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F14H Object Reset policy primitive for current-snapshot targeting and no-participant handling.")]
     public readonly struct ObjectResetPolicy : IEquatable<ObjectResetPolicy>
     {
         private readonly bool _defined;
@@ -16,7 +16,7 @@ namespace Immersive.Framework.ObjectReset
         {
             if (!requireCurrentSnapshot)
             {
-                throw new ArgumentException("Object Reset policy must require the current Object Entry snapshot in F14B.", nameof(requireCurrentSnapshot));
+                throw new ArgumentException("Object Reset policy must require the current Object Entry snapshot.", nameof(requireCurrentSnapshot));
             }
 
             _defined = true;

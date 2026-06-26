@@ -4,9 +4,9 @@ namespace Immersive.Framework.ObjectReset
 {
     /// <summary>
     /// API status: Experimental. Aggregate status for Object Reset foundation results.
-    /// F14B uses only target-resolution statuses; participant execution is introduced in later cuts.
+    /// F14H covers target resolution, participant execution and no-participant completion.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F14B Object Reset result statuses; target resolution now, participant execution later.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F14H Object Reset result statuses for target resolution and participant execution.")]
     public enum ObjectResetResultStatus
     {
         Unknown = 0,

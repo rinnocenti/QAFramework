@@ -1,6 +1,6 @@
 # F15-ADR-RESET-004 — Unity Reset Adapters mínimos
 
-Status: Proposed  
+Status: Proposed / Planning  
 Fase: F15 — Unity Reset Adapters mínimos  
 Tipo: Unity Adapter / Reset / Authoring  
 Última atualização: 2026-06-25
@@ -27,15 +27,35 @@ Resetar grupo local simples.
 
 ---
 
-## 3. Decisão
+## 3. Proposta
 
-F15 cria adapters Unity mínimos como consumidores de Local/Object Reset.
+F15 propõe criar adapters Unity mínimos como consumidores de Local/Object Reset.
 
 Esses adapters são técnicos, não gameplay.
 
 ---
 
-## 4. Escopo incluído
+## 4. Decisões pendentes antes de implementar
+
+F15 ainda não está aceita como implementação. Antes de criar qualquer adapter real, a fase deve decidir:
+
+```text
+Boundary de assembly para adapters Unity.
+API de registro de IObjectResetParticipantSource.
+Política para adapter obrigatório ausente.
+Se SucceededNoParticipants continua permitido em triggers F15.
+Required vs optional adapters.
+Ordenação de adapters físicos.
+Tratamento de GameObject inactive.
+Proibição de GameObject.name/path como identidade funcional.
+Como evitar lifecycle paralelo.
+```
+
+Esses pontos são perguntas de planejamento, não decisões aplicadas.
+
+---
+
+## 5. Escopo incluído
 
 F15 pode incluir:
 
@@ -53,7 +73,7 @@ A prioridade deve ser Transform, porque ele prova o fluxo de baseline sem amarra
 
 ---
 
-## 5. Escopo excluído
+## 6. Escopo excluído
 
 F15 exclui:
 
@@ -72,7 +92,7 @@ Save/checkpoint restore
 
 ---
 
-## 6. Modelo conceitual
+## 7. Modelo conceitual
 
 Adapters Unity implementam contratos de reset existentes:
 
@@ -88,7 +108,7 @@ O adapter conhece Unity. O core não conhece detalhes de Unity além da fronteir
 
 ---
 
-## 7. Baseline
+## 8. Baseline
 
 F15 deve suportar baseline mínimo de Transform.
 
@@ -109,7 +129,7 @@ Não criar fallback silencioso para posição atual no momento do reset.
 
 ---
 
-## 8. Contratos esperados
+## 9. Contratos esperados
 
 Adapter típico:
 
@@ -127,7 +147,7 @@ O código final deve seguir o estilo do framework, mas a decisão importante é:
 
 ---
 
-## 9. Authoring UX
+## 10. Authoring UX
 
 Inspector deve deixar claro:
 
@@ -151,7 +171,7 @@ Capture On Enter
 
 ---
 
-## 10. Diagnostics e validação
+## 11. Diagnostics e validação
 
 Smokes esperados:
 
@@ -176,7 +196,7 @@ issues
 
 ---
 
-## 11. Consequências
+## 12. Consequências
 
 ### Positivas
 
@@ -191,7 +211,7 @@ issues
 
 ---
 
-## 12. Guardrails
+## 13. Guardrails
 
 - Não colocar lógica de Player nos adapters Unity.
 - Não misturar Transform reset com spawn/materialization.
@@ -199,10 +219,12 @@ issues
 - Não usar Reset como Pool Return.
 - Não usar scene reload para corrigir baseline ausente.
 - Não criar singleton global de reset participants.
+- Não usar GameObject.name, hierarchy path ou scene path como identidade funcional.
+- Não criar lifecycle paralelo para reset.
 
 ---
 
-## 13. Relação com fases futuras
+## 14. Relação com fases futuras
 
 F15 desbloqueia:
 

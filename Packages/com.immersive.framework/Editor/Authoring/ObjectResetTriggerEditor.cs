@@ -46,7 +46,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
                     _objectEntryId,
                     new GUIContent(
                         "Object Entry Id",
-                        "Fallback target id when no Target Declaration is assigned. The id must exist in the current Object Entry snapshot."));
+                        "Manual Object Entry Id when Target Declaration is empty. The id must exist in the current Object Entry snapshot."));
             }
 
             if (hasDeclaration)

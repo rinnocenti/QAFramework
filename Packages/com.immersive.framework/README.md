@@ -14,4 +14,4 @@ Accepted architectural decisions are indexed at:
 Documentation~/ADRs/ADR-INDEX.md
 ```
 
-F0-F13 are closed/applied. F14 `Local/Object Reset Foundation` is active: F14A accepted the architecture and F14B is the next implementation cut.
+F0-F14 are closed/applied. F15 `Unity Reset Adapters mínimos` is proposed/planning and has not started implementation.
