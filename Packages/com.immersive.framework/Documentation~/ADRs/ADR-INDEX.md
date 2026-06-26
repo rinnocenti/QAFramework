@@ -8,7 +8,7 @@ Documentation~/Planning/Immersive-Framework-Roadmap-Revisado.md
 
 ADRs record accepted architectural decisions. They do not replace the operational roadmap and must not redefine phase order.
 
-F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integration & Authoring UX`. F13 is closed as `Object Entry Foundation`. F14 is closed as `Local Object Reset Foundation`. F15 is closed as `Unity Reset Adapters mínimos`. F16 is closed as `GameObject Active State Reset Adapter`.
+F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integration & Authoring UX`. F13 is closed as `Object Entry Foundation`. F14 is closed as `Local Object Reset Foundation`. F15 is closed as `Unity Reset Adapters mínimos`. F16 is closed as `GameObject Active State Reset Adapter`. F17 is closed as `Gate Foundation`.
 
 ## Accepted ADRs
 
@@ -37,7 +37,7 @@ F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integra
 | F15 | [Unity Reset Adapters](F15-ADR-RESET-004-Unity-Reset-Adapters.md) | Closed / Applied through F15F |
 | F16 | [GameObject Active State Reset Adapter](F16-ADR-RESET-005-GameObject-Active-State-Reset.md) | Closed / Applied through F16 |
 | Future | [Player Participant Entry Baseline](F16-ADR-PLAYER-001-Player-Participant-Entry-Baseline.md) | Deferred / Future Contextual Reset |
-| F17 | [Gate Boundary](F17-ADR-GATE-001-Gate-Boundary.md) | Accepted / F17D Diagnostics Smoke |
+| F17 | [Gate Boundary](F17-ADR-GATE-001-Gate-Boundary.md) | Accepted / Closed F17E |
 | F18 | [Transition Orchestration](F18-ADR-TRANSITION-001-Transition-Orchestration.md) | Planned |
 | F19 | [Transition Effects Boundary](F19-ADR-TRANSITION-002-Transition-Effects-Boundary.md) | Planned |
 | F20 | [Pause State and Gate](F20-ADR-PAUSE-002-Pause-State-and-Gate.md) | Planned |
@@ -61,7 +61,7 @@ F15 closure note: Unity Reset Adapters are technical Unity consumers of Object R
 
 F16 closure note: GameObject Active State Reset is a primitive Unity adapter for `activeSelf` only. It is not Player, Actor, NPC, Timer, Pooling or gameplay reset. Contextual reset consumers remain future work.
 
-F17A/F17B/F17C/F17D note: Gate comes before Transition and Pause. Gate is not UI, readiness or input system; it decides admission of request, input, interaction or gameplay in explicit scopes and must produce decision/result/facts. F17B added passive primitives. F17C routes existing in-flight Route/Activity/CycleReset/ObjectReset request admission through Gate decisions without adding a global registry or changing the happy path. F17D adds a synthetic QA smoke that validates allowed and blocked `GateEvaluationResult` diagnostics for request-admission scenarios.
+F17 closure note: Gate comes before Transition and Pause. Gate is not UI, readiness or input system; it decides admission of request, input, interaction or gameplay in explicit scopes and must produce decision/result/facts. F17B added passive primitives. F17C routes existing in-flight Route/Activity/CycleReset/ObjectReset request admission through Gate decisions without adding a global registry or changing the happy path. F17D added a synthetic QA smoke that validates allowed and blocked `GateEvaluationResult` diagnostics for request-admission scenarios. F17E closes Gate Foundation and hands off to F18 Transition Orchestration.
 
 F18/F19 transition note: Transition is flow orchestration that consumes Gate. Fade/loading/curtain are adapters/effects after the lógical contract, not a substitute for Gate.
 

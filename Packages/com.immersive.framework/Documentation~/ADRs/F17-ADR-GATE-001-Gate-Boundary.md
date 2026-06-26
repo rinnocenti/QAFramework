@@ -1,6 +1,6 @@
 # F17-ADR-GATE-001 - Gate Boundary
 
-Status: Accepted / F17D Diagnostics Smoke  
+Status: Accepted / Closed F17E  
 Phase: F17 - Gate Foundation  
 Type: Framework Core / Flow Admission / Boundary  
 Last updated: 2026-06-26
@@ -13,7 +13,7 @@ F0-F16 closed the first framework foundations through Object Entry, Object Reset
 
 The next core axis is Gate. Gate must define whether the framework can admit a request, input, interaction or gameplay action at a given moment.
 
-F17A was documentation/ADR only. F17B introduced passive runtime primitives for Gate decisions, blockers and snapshots. F17C integrates those primitives with existing request-admission guards for Route, Activity, Cycle Reset and Object Reset. F17D adds a synthetic QA smoke for Gate admission diagnostics. It does not add Pause, Transition, Input, UI, gameplay object model or a global Gate registry.
+F17A was documentation/ADR only. F17B introduced passive runtime primitives for Gate decisions, blockers and snapshots. F17C integrated those primitives with existing request-admission guards for Route, Activity, Cycle Reset and Object Reset. F17D added a synthetic QA smoke for Gate admission diagnostics. F17E closed the Gate Foundation phase and handed off to F18 Transition Orchestration. F17 does not add Pause, Transition runtime, Input, UI, gameplay object model or a global Gate registry.
 
 ---
 
@@ -141,7 +141,7 @@ F17C does not create a Gate registry, authoring asset, editor UI, queue, Pause r
 
 ## 8. F17D Gate Admission Diagnostics Smoke
 
-F17D adds a development-only QA smoke for request-admission diagnostics. The smoke validates the same request-admission helper used by F17C without creating real concurrent lifecycle operations.
+F17D added a development-only QA smoke for request-admission diagnostics. The smoke validates the same request-admission helper used by F17C without creating real concurrent lifecycle operations.
 
 The smoke covers:
 
@@ -157,9 +157,38 @@ Each step records `GateEvaluationResult` diagnostics: status, scope, domain, sub
 
 F17D is synthetic by design. It avoids racing real Route/Activity/Reset requests during QA because that would make the smoke scene-order dependent and unstable.
 
-## 9. Excluded Now
+## 9. F17E Closure and Handoff
 
-F17D does not implement:
+F17E closes Gate Foundation. The accepted phase evidence is:
+
+```text
+F17B: passive Gate primitives exist.
+F17C: existing request-admission guards route through GateEvaluationResult.
+F17D: Gate Admission Diagnostics Smoke passes allowed and blocked scenarios.
+```
+
+Accepted F17D smoke evidence:
+
+```text
+step='allowed' passed='True' status='Allowed' expectedBlocker='<none>'.
+step='route-in-flight' passed='True' status='Blocked' expectedBlocker='route-request-in-flight'.
+step='activity-in-flight' passed='True' status='Blocked' expectedBlocker='activity-request-in-flight'.
+step='cycle-reset-in-flight' passed='True' status='Blocked' expectedBlocker='cycle-reset-request-in-flight'.
+step='object-reset-in-flight' passed='True' status='Blocked' expectedBlocker='object-reset-request-in-flight'.
+```
+
+F17 handoff to F18:
+
+```text
+Transition must consume Gate for flow admission/blocking.
+Transition orchestration must not be implemented as fade/loading visual.
+Transition effects remain adapters for F19.
+Pause remains F20/F21 and must consume Gate instead of defining a separate blocker model.
+```
+
+## 10. Excluded Now
+
+F17 does not implement:
 
 ```text
 Gate runtime registry
@@ -178,7 +207,7 @@ gameplay object model
 
 ---
 
-## 10. Guardrails
+## 11. Guardrails
 
 - Gate is not UI.
 - Gate is not readiness.
@@ -191,7 +220,7 @@ gameplay object model
 
 ---
 
-## 11. Consequences
+## 12. Consequences
 
 Positive:
 

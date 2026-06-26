@@ -12,8 +12,8 @@ Accepted architectural decisions:
 ADRs/ADR-INDEX.md
 ```
 
-F0-F16 are closed/applied. F17 is Gate Foundation.
-F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C integrates those primitives with existing request-admission guards; F17D adds a synthetic QA smoke for Gate admission diagnostics.
+F0-F17 are closed/applied. F17 is Gate Foundation.
+F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C integrates those primitives with existing request-admission guards; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase and hands off to F18.
 
 Current reset boundary:
 
@@ -27,7 +27,7 @@ Contextual reset for Player/Actor/NPC/Timer/Door/Pickup is deferred until after 
 Current planning axis:
 
 ```text
-F17 - Gate Foundation / request admission integration / diagnostics smoke
+F17 - Gate Foundation / CLOSED
 F18 - Transition Orchestration Foundation
 F19 - Transition Effects / Loading and Fade Adapters
 F20 - Pause State and Pause Gate

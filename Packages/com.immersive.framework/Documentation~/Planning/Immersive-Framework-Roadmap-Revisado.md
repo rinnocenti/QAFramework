@@ -2,7 +2,7 @@
 
 Plano canônico do package `com.immersive.framework`.
 
-Este é o único arquivo de planejamento do framework. Decisões aceitas, histórico F0-F16 e a ordem futura ficam resumidos aqui para evitar fontes paralelas.
+Este é o único arquivo de planejamento do framework. Decisões aceitas, histórico F0-F17 e a ordem futura ficam resumidos aqui para evitar fontes paralelas.
 
 ADRs aceitos ficam em `Documentation~/ADRs/ADR-INDEX.md`. ADRs registram decisões estáveis e não substituem este roadmap operacional.
 
@@ -16,12 +16,12 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 
 | Faixa | Status | Leitura oficial |
 |---|---|---|
-| F0-F16 | `CLOSED / APPLIED` | Histórico real resumido neste documento. |
-| F17 | `IN PROGRESS / F17D DIAGNOSTICS SMOKE` | Gate Foundation. F17A realinhou ADRs/plano; F17B introduziu primitivas passivas; F17C integra admissão de requests existentes via Gate; F17D adiciona smoke sintético de diagnóstico. |
+| F0-F17 | `CLOSED / APPLIED` | Histórico real resumido neste documento. |
+| F17 | `CLOSED / F17E QA PASS` | Gate Foundation fechada. F17A realinhou ADRs/plano; F17B introduziu primitivas passivas; F17C integrou admissão de requests existentes via Gate; F17D adicionou smoke sintético de diagnóstico; F17E fechou a fase e preparou F18. |
 | F18-F21 | `PLANNED / REVISED ORDER` | Transition orchestration, transition effects/loading/fade adapters, Pause state/gate e Pause content/input boundary. |
 | F22+ | `DEFERRED` | Consumers avançados, gameplay capabilities e contextual reset de Player/Actor/NPC/Timer/Door/Pickup ficam bloqueados até Gate/Transition/Pause e um modelo maduro de gameplay object/actor/player. |
 
-## Histórico real F0-F16
+## Histórico real F0-F17
 
 | Fase | Status | Resultado fechado |
 |---|---|---|
@@ -130,7 +130,7 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Player, Actor,
 | F14 | Local/Object Reset Foundation | Framework Core | `CLOSED / APPLIED`: target canônico deriva de Object Entry atual; participant source explícita; plan/runtime executor; Runtime Host; trigger público; bridge opcional; sem Unity adapters ou gameplay reset. |
 | F15 | Unity Reset Adapters mínimos | Unity Adapter | `CLOSED / APPLIED`: source Unity explícita, Transform Reset Participant com baseline local authored, guardrails required/optional, UX e closure smoke, sem gameplay consumers. |
 | F16 | GameObject Active State Reset Adapter | Unity Adapter | `CLOSED / APPLIED`: reset primitivo de `activeSelf` authored, com source explícita e guardrails. |
-| F17 | Gate Foundation | Framework Core | `IN PROGRESS`: F17A definiu boundary documental; F17B introduziu primitivas de scope/domain/decision/blocker/snapshot; F17C integra bloqueios already-in-flight de Route/Activity/CycleReset/ObjectReset por Gate; F17D valida diagnóstico de admissão por smoke sintético. |
+| F17 | Gate Foundation | Framework Core | `CLOSED / F17E QA PASS`: F17A definiu boundary documental; F17B introduziu primitivas de scope/domain/decision/blocker/snapshot; F17C integrou bloqueios already-in-flight de Route/Activity/CycleReset/ObjectReset por Gate; F17D validou diagnóstico de admissão por smoke sintético; F17E fechou o handoff para F18. |
 | F18 | Transition Orchestration Foundation | Framework Core | Orquestrar fluxo consumindo Gate, Scene Lifecycle, release, readiness e callbacks. Não e fade visual. |
 | F19 | Transition Effects / Loading and Fade Adapters | Unity Adapter / Optional Effects | Efeitos de fade/loading/curtain como adapters depois do contrato lógico. Sem dependência obrigatória de DOTween/Asset Store e sem fallback silencioso para adapter required ausente. |
 | F20 | Pause State and Pause Gate | Framework Core | Pause como estado + Gate blocker. Não é Activity, menu ou lifecycle de Route/Activity. |
@@ -365,6 +365,54 @@ Smoke canônico final:
 Run Object Reset Foundation Closure Smoke
 ```
 
+## Fechamento real F17 — Gate Foundation
+
+F17 fechou a fundação de Gate como linguagem canônica de admissão do framework. A fase não criou um registry global de Gate, não criou authoring asset, não criou Pause, Transition, Input, UI ou gameplay object model.
+
+| Corte | Status | Resultado |
+|---|---|---|
+| F17A | `CLOSED / DOCUMENTATION PASS` | Roadmap e ADRs realinhados: Gate antes de Transition e Pause; contextual reset e consumers avançados movidos para F22+. |
+| F17B | `CLOSED / PRIMITIVES` | Primitivas passivas: `GateScope`, `GateDomain`, `GateDecisionStatus`, `GateDecision`, `GateBlocker`, `GateEvaluationResult` e `GateSnapshot`. |
+| F17C | `CLOSED / REGRESSION SMOKE PASS` | Admissão already-in-flight de Route/Activity/CycleReset/ObjectReset passa por `GateEvaluationResult`, preservando result kinds existentes. |
+| F17D | `CLOSED / QA SMOKE PASS` | `Run Gate Admission Diagnostics Smoke` valida admissões allowed/blocked por diagnóstico sintético estável. |
+| F17E | `CLOSED / DOCS + HANDOFF` | Fechamento da fase e preparação explícita para F18 Transition Orchestration. |
+
+Evidência aceita de F17C:
+
+```text
+Standard Smoke completed.
+Activity Baseline Smoke completed.
+Cycle Reset Bridge Smoke completed.
+Object Reset GameObject Active Closure Smoke completed.
+Object Reset Unity Adapters Closure Smoke completed.
+```
+
+Evidência aceita de F17D:
+
+```text
+QA Smoke completed. name='Gate Admission Diagnostics Smoke'.
+step='allowed' passed='True' status='Allowed'.
+step='route-in-flight' passed='True' status='Blocked' expectedBlocker='route-request-in-flight'.
+step='activity-in-flight' passed='True' status='Blocked' expectedBlocker='activity-request-in-flight'.
+step='cycle-reset-in-flight' passed='True' status='Blocked' expectedBlocker='cycle-reset-request-in-flight'.
+step='object-reset-in-flight' passed='True' status='Blocked' expectedBlocker='object-reset-request-in-flight'.
+```
+
+F17 não implementa:
+
+- Gate registry global;
+- Gate authoring asset;
+- Gate editor tooling;
+- request queue;
+- Pause state/runtime;
+- Transition runtime;
+- Input binding;
+- gameplay interaction gate real;
+- Player/Actor/NPC/Timer/Door/Pickup contextual reset;
+- lifecycle paralelo ou service locator.
+
+A fronteira de F17 é: o core possui linguagem de admissão, decisão bloqueada/permitida, blockers/facts/snapshot e diagnóstico QA para request admission. F18 pode consumir Gate para Transition Orchestration sem transformar fade/loading em Gate.
+
 ## Guardrails pós-F13
 
 - Core lifecycle antes de gameplay.
@@ -387,7 +435,7 @@ Run Object Reset Foundation Closure Smoke
 - Não criar lifecycle novo por causa da consolidação documental.
 - Não criar ADR separado, roadmap paralelo, tracker paralelo, closure por fase ou smoke documental separado.
 - Não mover Camera, Audio, Actor, Pooling, Projectile, Damage, Attributes ou Powerups para F17-F21.
-- Não criar runtime/editor Gate, Transition ou Pause em F17A.
+- Não criar runtime/editor Transition ou Pause antes das fases F18-F21.
 - Não tratar Gate como UI, readiness ou input system.
 - Não tratar fade/loading visual como substituto de Gate.
 - Não tratar Pause como Activity, menu ou `Time.timeScale` canônico.
@@ -397,9 +445,9 @@ Run Object Reset Foundation Closure Smoke
 ## Próximo corte
 
 ```text
-F17E - Gate Foundation Closure / Next Phase Handoff
+F18A - Transition Orchestration Foundation / ADR Implementation Plan
 ```
 
-Entrada de F17E: fechar F17 com validação manual do Gate Admission Diagnostics Smoke e registrar o handoff para F18 Transition Orchestration.
+Entrada de F18A: planejar e iniciar Transition como orquestração de fluxo consumindo Gate, Scene Lifecycle, release, readiness e callbacks.
 
-F17E não deve criar Pause menu, fade/loading visual, input real, gameplay object model, reset contextual de Player/Actor/NPC/Timer/Door/Pickup, lifecycle paralelo ou service locator.
+F18A não deve criar fade/loading visual, Pause menu, input real, gameplay object model, reset contextual de Player/Actor/NPC/Timer/Door/Pickup, lifecycle paralelo ou service locator. Fade/loading/curtain ficam para F19 como adapters/effects depois do contrato lógico.
