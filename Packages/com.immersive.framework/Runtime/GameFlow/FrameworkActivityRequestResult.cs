@@ -1,6 +1,7 @@
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Gate;
 
 namespace Immersive.Framework.GameFlow
 {
@@ -94,6 +95,22 @@ namespace Immersive.Framework.GameFlow
             return new FrameworkActivityRequestResult(
                 FrameworkActivityRequestKind.IgnoredAlreadyInFlight,
                 $"Activity Request ignored. {FormatRequestContext(source, reason)} Another activity or route request is already in flight. targetActivity='{activityName}'.",
+                targetActivity,
+                NormalizeSource(source),
+                NormalizeReason(reason),
+                default);
+        }
+
+        internal static FrameworkActivityRequestResult IgnoredBlockedByGate(
+            ActivityAsset targetActivity,
+            string source,
+            string reason,
+            GateEvaluationResult gateEvaluation)
+        {
+            string activityName = targetActivity != null ? targetActivity.ActivityName : "<none>";
+            return new FrameworkActivityRequestResult(
+                FrameworkActivityRequestKind.IgnoredAlreadyInFlight,
+                $"Activity Request ignored. {FormatRequestContext(source, reason)} targetActivity='{activityName}'. {GateRequestAdmission.FormatBlockedMessage("Activity Request", gateEvaluation)}",
                 targetActivity,
                 NormalizeSource(source),
                 NormalizeReason(reason),

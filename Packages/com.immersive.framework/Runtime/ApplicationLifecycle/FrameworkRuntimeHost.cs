@@ -14,6 +14,7 @@ using Immersive.Framework.ObjectReset;
 using UnityEngine;
 using Immersive.Framework.ApiStatus;
 using Immersive.Logging.Records;
+using Immersive.Framework.Gate;
 
 namespace Immersive.Framework.ApplicationLifecycle
 {
@@ -236,15 +237,19 @@ namespace Immersive.Framework.ApplicationLifecycle
                 _objectResetRuntime = new ObjectResetRuntime();
             }
 
-            if (_objectResetRequestInFlight || (_gameFlowRuntime != null && _gameFlowRuntime.HasLifecycleRequestInFlight))
+            var gateEvaluation = EvaluateObjectResetRequestAdmission(request);
+            if (!gateEvaluation.IsAllowed)
             {
+                var blockedMessage = GateRequestAdmission.FormatBlockedMessage(
+                    "Object Reset Request",
+                    gateEvaluation);
                 var inFlightResult = ObjectResetResult.Rejected(
                     request,
                     ObjectResetResultStatus.RejectedInvalidRequest,
                     ObjectResetIssue.Error(
                         ObjectResetIssueKind.RequestAlreadyInFlight,
-                        "Object Reset Request ignored because another framework lifecycle or Object Reset request is already in flight."),
-                    "Object Reset Request ignored because another framework lifecycle or Object Reset request is already in flight.");
+                        blockedMessage),
+                    blockedMessage);
                 LogObjectResetResult(inFlightResult);
                 return inFlightResult;
             }
@@ -262,6 +267,27 @@ namespace Immersive.Framework.ApplicationLifecycle
             {
                 _objectResetRequestInFlight = false;
             }
+        }
+
+        private GateEvaluationResult EvaluateObjectResetRequestAdmission(ObjectResetRequest request)
+        {
+            if (_gameFlowRuntime != null)
+            {
+                return _gameFlowRuntime.EvaluateExternalLifecycleRequestAdmission(
+                    "ObjectResetRequest",
+                    request.Source,
+                    request.Reason,
+                    _objectResetRequestInFlight);
+            }
+
+            return GateRequestAdmission.EvaluateLifecycleRequest(
+                "ObjectResetRequest",
+                request.Source,
+                request.Reason,
+                routeRequestInFlight: false,
+                activityRequestInFlight: false,
+                cycleResetRequestInFlight: false,
+                objectResetRequestInFlight: _objectResetRequestInFlight);
         }
 
         private void Initialize(GameApplicationAsset application)

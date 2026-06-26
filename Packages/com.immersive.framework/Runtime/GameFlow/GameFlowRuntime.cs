@@ -7,6 +7,7 @@ using Immersive.Framework.ApiStatus;
 using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.RuntimeContent;
 using Immersive.Framework.CycleReset;
+using Immersive.Framework.Gate;
 
 namespace Immersive.Framework.GameFlow
 {
@@ -98,19 +99,14 @@ namespace Immersive.Framework.GameFlow
                     resolvedReason);
             }
 
-            if (_routeRequestInFlight)
+            var gateEvaluation = EvaluateLifecycleRequestAdmission("RouteRequest", resolvedSource, resolvedReason);
+            if (!gateEvaluation.IsAllowed)
             {
-                return FrameworkRouteRequestResult.IgnoredAlreadyInFlight(targetRoute, resolvedSource, resolvedReason);
-            }
-
-            if (_activityRequestInFlight)
-            {
-                return FrameworkRouteRequestResult.IgnoredAlreadyInFlight(targetRoute, resolvedSource, resolvedReason);
-            }
-
-            if (_cycleResetRequestInFlight)
-            {
-                return FrameworkRouteRequestResult.IgnoredAlreadyInFlight(targetRoute, resolvedSource, resolvedReason);
+                return FrameworkRouteRequestResult.IgnoredBlockedByGate(
+                    targetRoute,
+                    resolvedSource,
+                    resolvedReason,
+                    gateEvaluation);
             }
 
             if (_routeLifecycleRuntime.IsRouteActive(targetRoute))
@@ -169,9 +165,14 @@ namespace Immersive.Framework.GameFlow
                     resolvedReason);
             }
 
-            if (_routeRequestInFlight || _activityRequestInFlight || _cycleResetRequestInFlight)
+            var gateEvaluation = EvaluateLifecycleRequestAdmission("ActivityRequest", resolvedSource, resolvedReason);
+            if (!gateEvaluation.IsAllowed)
             {
-                return FrameworkActivityRequestResult.IgnoredAlreadyInFlight(targetActivity, resolvedSource, resolvedReason);
+                return FrameworkActivityRequestResult.IgnoredBlockedByGate(
+                    targetActivity,
+                    resolvedSource,
+                    resolvedReason,
+                    gateEvaluation);
             }
 
             if (_routeLifecycleRuntime.IsActivityActive(targetActivity))
@@ -218,9 +219,14 @@ namespace Immersive.Framework.GameFlow
                     resolvedReason);
             }
 
-            if (_routeRequestInFlight || _activityRequestInFlight || _cycleResetRequestInFlight)
+            var gateEvaluation = EvaluateLifecycleRequestAdmission("ClearActivityRequest", resolvedSource, resolvedReason);
+            if (!gateEvaluation.IsAllowed)
             {
-                return FrameworkActivityRequestResult.IgnoredAlreadyInFlight(null, resolvedSource, resolvedReason);
+                return FrameworkActivityRequestResult.IgnoredBlockedByGate(
+                    null,
+                    resolvedSource,
+                    resolvedReason,
+                    gateEvaluation);
             }
 
             if (!_routeLifecycleRuntime.HasActiveActivity)
@@ -269,8 +275,13 @@ namespace Immersive.Framework.GameFlow
             string source,
             string reason)
         {
-            if (_routeRequestInFlight || _activityRequestInFlight || _cycleResetRequestInFlight)
+            var gateEvaluation = EvaluateLifecycleRequestAdmission("CycleResetRequest", source, reason);
+            if (!gateEvaluation.IsAllowed)
             {
+                var blockedMessage = GateRequestAdmission.FormatBlockedMessage(
+                    "Cycle Reset Request",
+                    gateEvaluation);
+
                 return CycleResetResult.RejectedInvalidRequest(
                     default,
                     new[]
@@ -279,11 +290,11 @@ namespace Immersive.Framework.GameFlow
                             CycleResetIssueKind.RequestAlreadyInFlight,
                             default,
                             scope,
-                            "Cycle Reset Request ignored because another framework lifecycle request is already in flight.")
+                            blockedMessage)
                     },
                     source,
                     reason,
-                    "Cycle Reset Request ignored because another framework lifecycle request is already in flight.");
+                    blockedMessage);
             }
 
             _cycleResetRequestInFlight = true;
@@ -317,6 +328,34 @@ namespace Immersive.Framework.GameFlow
             {
                 _cycleResetRequestInFlight = false;
             }
+        }
+
+        internal GateEvaluationResult EvaluateExternalLifecycleRequestAdmission(
+            string subject,
+            string source,
+            string reason,
+            bool objectResetRequestInFlight)
+        {
+            return GateRequestAdmission.EvaluateLifecycleRequest(
+                subject,
+                source,
+                reason,
+                _routeRequestInFlight,
+                _activityRequestInFlight,
+                _cycleResetRequestInFlight,
+                objectResetRequestInFlight);
+        }
+
+        private GateEvaluationResult EvaluateLifecycleRequestAdmission(
+            string subject,
+            string source,
+            string reason)
+        {
+            return EvaluateExternalLifecycleRequestAdmission(
+                subject,
+                source,
+                reason,
+                objectResetRequestInFlight: false);
         }
 
         private Task<RouteLifecycleStartResult> StartRouteCoreAsync(RouteAsset route, string source, string reason)

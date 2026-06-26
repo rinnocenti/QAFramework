@@ -1,6 +1,7 @@
 using Immersive.Framework.Authoring;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Gate;
 
 namespace Immersive.Framework.GameFlow
 {
@@ -94,6 +95,22 @@ namespace Immersive.Framework.GameFlow
             return new FrameworkRouteRequestResult(
                 FrameworkRouteRequestKind.IgnoredAlreadyInFlight,
                 $"Route Request ignored. {FormatRequestContext(source, reason)} Another route request is already in flight. targetRoute='{routeName}'.",
+                targetRoute,
+                NormalizeSource(source),
+                NormalizeReason(reason),
+                default);
+        }
+
+        internal static FrameworkRouteRequestResult IgnoredBlockedByGate(
+            RouteAsset targetRoute,
+            string source,
+            string reason,
+            GateEvaluationResult gateEvaluation)
+        {
+            string routeName = targetRoute != null ? targetRoute.RouteName : "<missing>";
+            return new FrameworkRouteRequestResult(
+                FrameworkRouteRequestKind.IgnoredAlreadyInFlight,
+                $"Route Request ignored. {FormatRequestContext(source, reason)} targetRoute='{routeName}'. {GateRequestAdmission.FormatBlockedMessage("Route Request", gateEvaluation)}",
                 targetRoute,
                 NormalizeSource(source),
                 NormalizeReason(reason),

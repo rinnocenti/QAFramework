@@ -18,8 +18,8 @@ Status:
 
 ```text
 F0-F16 closed/applied.
-F17 is Gate Foundation; F17B introduces passive Gate primitives.
-F17A realigned the plan/ADRs; F17B introduces passive Gate primitives without flow integration.
+F17 is Gate Foundation; F17C integrates request admission for existing framework request guards.
+F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C routes existing in-flight request admission through Gate without adding Pause, Transition, UI or gameplay.
 ```
 
 F15-F16 reset adapter closure:
@@ -48,7 +48,7 @@ Contextual reset for Player/Actor/NPC/Timer/Door/Pickup is deferred until after 
 Current planning axis:
 
 ```text
-F17 - Gate Foundation / passive primitives
+F17 - Gate Foundation / request admission integration
 F18 - Transition Orchestration Foundation
 F19 - Transition Effects / Loading and Fade Adapters
 F20 - Pause State and Pause Gate

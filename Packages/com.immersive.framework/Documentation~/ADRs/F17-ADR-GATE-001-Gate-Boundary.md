@@ -1,6 +1,6 @@
 # F17-ADR-GATE-001 - Gate Boundary
 
-Status: Accepted / F17B Primitives  
+Status: Accepted / F17C Request Admission  
 Phase: F17 - Gate Foundation  
 Type: Framework Core / Flow Admission / Boundary  
 Last updated: 2026-06-26
@@ -13,7 +13,7 @@ F0-F16 closed the first framework foundations through Object Entry, Object Reset
 
 The next core axis is Gate. Gate must define whether the framework can admit a request, input, interaction or gameplay action at a given moment.
 
-F17A was documentation/ADR only. F17B introduces passive runtime primitives for Gate decisions, blockers and snapshots. It does not integrate Gate with GameFlow, Route, Activity, Input, Pause or Transition yet.
+F17A was documentation/ADR only. F17B introduced passive runtime primitives for Gate decisions, blockers and snapshots. F17C integrates those primitives with existing request-admission guards for Route, Activity, Cycle Reset and Object Reset. It does not add Pause, Transition, Input, UI, gameplay object model or a global Gate registry.
 
 ---
 
@@ -123,15 +123,31 @@ GateSnapshot
 
 These types define admission language and diagnostics. They do not register blockers globally, mutate lifecycle, queue requests, bind input, show UI, run transitions or pause gameplay by themselves.
 
-## 7. Excluded Now
+## 7. F17C Request Admission Integration
 
-F17B does not implement:
+F17C uses the F17B primitives to evaluate existing request-admission guards. The integration is intentionally narrow:
+
+```text
+Route request already-in-flight admission
+Activity request already-in-flight admission
+Clear Activity request already-in-flight admission
+Cycle Reset request already-in-flight admission
+Object Reset request already-in-flight admission
+```
+
+F17C preserves existing result categories such as `IgnoredAlreadyInFlight` and `RejectedInvalidRequest`; the difference is that the blocking decision now comes from a `GateEvaluationResult` with explicit blocker diagnostics.
+
+F17C does not create a Gate registry, authoring asset, editor UI, queue, Pause runtime, Transition runtime or input binding.
+
+## 8. Excluded Now
+
+F17C does not implement:
 
 ```text
 Gate runtime registry
-Gate integration with GameFlow/Route/Activity requests
+Gate authoring asset
 Editor UI
-authoring asset
+request queue
 global singleton
 service locator
 input binding
@@ -144,7 +160,7 @@ gameplay object model
 
 ---
 
-## 8. Guardrails
+## 9. Guardrails
 
 - Gate is not UI.
 - Gate is not readiness.
@@ -157,7 +173,7 @@ gameplay object model
 
 ---
 
-## 9. Consequences
+## 10. Consequences
 
 Positive:
 
