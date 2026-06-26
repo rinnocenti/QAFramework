@@ -61,7 +61,7 @@ Pause as Activity
 service locator
 ```
 
-Pause content, overlay and input belong to F21.
+Pause content, overlay and input belong to F23. F21 closed Save / Snapshot / Preferences / Progression Save, and F22 is Loading Operation / Progress / Readiness.
 
 ---
 
@@ -102,7 +102,7 @@ The intended direction is:
 
 ```text
 F20: logical request/result/state/snapshot/Gate relationship
-F21: input, overlay and content adapters that call into F20
+F23: input, overlay and content adapters that call into F20
 ```
 
 So for now, do not add arbitrary scene buttons or UI scripts that bypass the planned F21 boundary unless the cut explicitly requests that for QA.

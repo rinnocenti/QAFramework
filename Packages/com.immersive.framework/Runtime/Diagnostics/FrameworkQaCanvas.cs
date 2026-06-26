@@ -390,7 +390,7 @@ namespace Immersive.Framework.Diagnostics
         {
             GUILayout.Space(4f);
             GUILayout.Label("Save / Snapshot Diagnostics", GUI.skin.box);
-            GUILayout.Label("F21 diagnostics. Snapshot has no backend. Preferences may use PlayerPrefs only through the Preferences adapter; no JSON, slots, UI or runtime save request path.");
+            GUILayout.Label("F21 diagnostics. Snapshot has no backend. Preferences may use PlayerPrefs only through the Preferences adapter. Progression Save uses an explicit request runtime over IProgressionSaveStore; no UI or autosave scheduler.");
 
             using (new EditorDisabledScope(_requestInFlight))
             {
@@ -402,6 +402,16 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Preferences Store Diagnostics Smoke"))
                 {
                     RunPreferencesStoreDiagnosticsSmoke();
+                }
+
+                if (GUILayout.Button("Run Progression Save JSON Backend Smoke"))
+                {
+                    RunProgressionSaveJsonBackendSmoke();
+                }
+
+                if (GUILayout.Button("Run Progression Save Runtime Request Smoke"))
+                {
+                    RunProgressionSaveRuntimeRequestSmoke();
                 }
             }
         }
@@ -885,6 +895,18 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(PreferencesQaSmokeRunner.SmokeName, runtimeHost =>
                 PreferencesQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunProgressionSaveJsonBackendSmoke()
+        {
+            await RunSmokeAsync(ProgressionSaveQaSmokeRunner.SmokeName, runtimeHost =>
+                ProgressionSaveQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunProgressionSaveRuntimeRequestSmoke()
+        {
+            await RunSmokeAsync(ProgressionSaveRuntimeQaSmokeRunner.SmokeName, runtimeHost =>
+                ProgressionSaveRuntimeQaSmokeRunner.RunRuntimeRequestSmokeAsync(_logger, QaSource));
         }
 
         private async void RunCycleResetRuntimeHostSmoke()

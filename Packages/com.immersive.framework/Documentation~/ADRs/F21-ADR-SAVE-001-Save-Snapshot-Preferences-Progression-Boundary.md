@@ -1,6 +1,6 @@
 # F21-ADR-SAVE-001 - Save Snapshot Preferences Progression Boundary
 
-Status: Accepted / F21E Progression Port Applied / F21F Next  
+Status: Accepted / Closed F21H  
 Phase: F21 - Save / Snapshot / Preferences / Progression Save Foundation  
 Type: Framework Core + Save Module Boundary  
 Last updated: 2026-06-26
@@ -123,9 +123,9 @@ Progression Save must not define a concrete backend as the canonical contract. J
 | F21C | `APPLIED / PARTICIPANT CONTRACTS + SYNTHETIC SMOKE` | Snapshot Participant Contracts + Diagnostics Smoke. |
 | F21D | `APPLIED / PREFERENCES STORE + PLAYERPREFS ADAPTER` | Preferences Store Contracts + PlayerPrefs Backend. |
 | F21E | `APPLIED / PROGRESSION PORT + SLOT/MANIFEST PRIMITIVES` | Progression Save Port + Slot/Manifest Primitives. |
-| F21F | `NEXT / PLANNED` | JSON Progression Backend + Diagnostics Smoke. |
-| F21G | `PLANNED` | Progression Save Runtime Request Path + Autosave Moment Contracts. |
-| F21H | `PLANNED` | Closure + Usage Guide. |
+| F21F | `APPLIED / JSON BACKEND + DIAGNOSTICS SMOKE` | JSON Progression Backend + Diagnostics Smoke. |
+| F21G | `APPLIED / RUNTIME REQUEST PATH + AUTOSAVE MOMENTS` | Progression Save Runtime Request Path + Autosave Moment Contracts. |
+| F21H | `CLOSED / QA PASS + USAGE` | Closure + Usage Guide. |
 
 ---
 
@@ -307,7 +307,82 @@ F21E adds `FrameworkIdentityDomain.ProgressionSave`. It does not add a concrete 
 
 Snapshot remains capture/restore envelope and participant contracts. Preferences remains user/application settings. Progression Save owns slots, manifest metadata and backend port shape.
 
-## 12. Excluded in F21A
+## 12. F21F Applied Shape
+
+F21F adds the initial concrete Progression Save backend adapter under `Runtime/ProgressionSave`:
+
+```text
+JsonProgressionSaveStore
+```
+
+It implements `IProgressionSaveStore` and stores records/manifests as JSON files. This is an adapter detail, not the canonical contract. Physical file paths, manifest file names, slot file names and JSON DTOs are not framework identities and must not be consumed by gameplay/framework request paths.
+
+F21F also adds `Run Progression Save JSON Backend Smoke` under the Save / Snapshot diagnostics group. The smoke validates:
+
+```text
+backend id and adapter boundary
+missing manifest and missing slot status
+slot write/read roundtrip
+manifest entry update
+corrupt slot detection
+delete cleanup
+canonical boundary excludes Snapshot, Preferences, PlayerPrefs, runtime request path and UI
+```
+
+F21F does not add autosave/load moments, runtime save request path, UI, scene object, prefab, ScriptableObject, PlayerPrefs or asmdef changes.
+
+## 13. F21G Applied Shape
+
+F21G adds the Progression Save runtime request path under `Runtime/ProgressionSave`:
+
+```text
+ProgressionSaveRequestId
+ProgressionSaveMomentId
+ProgressionSaveRequestKind
+ProgressionSaveMomentKind
+ProgressionSaveRequestStatus
+ProgressionSaveMoment
+ProgressionSaveRequest
+ProgressionSaveRequestResult
+ProgressionSaveRuntime
+```
+
+`ProgressionSaveRuntime` is explicit and store-backed. It executes `Save`, `Load` and `Delete` requests against an injected `IProgressionSaveStore`. The concrete JSON store remains replaceable behind the port.
+
+`ProgressionSaveMoment` is a passive contract for manual, autosave, checkpoint and lifecycle-boundary save intent. It does not schedule autosave, observe Route/Activity lifecycle, or call a backend by itself.
+
+F21G adds `Run Progression Save Runtime Request Smoke` under the Save / Snapshot diagnostics group. The smoke validates:
+
+```text
+request/moment contracts
+manual save request
+load request
+passive autosave moment contract
+missing load request
+delete cleanup
+canonical boundary separation
+```
+
+F21G does not add Snapshot capture orchestration, Preferences usage, PlayerPrefs usage, autosave scheduler, Route/Activity lifecycle hook, UI, scene object, prefab, ScriptableObject or asmdef changes.
+
+## 14. F21H Closure
+
+F21H closes the phase after the F21G runtime request smoke passed. The closure adds `Documentation~/Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md` and does not add runtime code, backend behavior, UI, scene objects, prefabs, ScriptableObjects or asmdef changes.
+
+Closed F21 evidence:
+
+```text
+Run Snapshot Participant Diagnostics Smoke: PASS
+Run Preferences Store Diagnostics Smoke: PASS
+Run Progression Save JSON Backend Smoke: PASS
+Run Progression Save Runtime Request Smoke: PASS
+```
+
+The next phase is F22 Loading Operation / Progress / Readiness Boundary.
+
+---
+
+## 15. Excluded in F21A
 
 F21A does not implement:
 
@@ -328,20 +403,20 @@ autosave execution
 
 ---
 
-## 13. Consequences
+## 16. Consequences
 
 Save work can evolve without binding Snapshot to JSON, PlayerPrefs or premium storage.
 
 Preferences can remain a lightweight settings boundary and cannot accidentally consume progression slots.
 
-Progression Save can start with JSON later while preserving the ability to replace the backend behind the same port.
+Progression Save now has an initial JSON adapter while preserving the ability to replace the backend behind the same port.
 
 Pause visual/content/input moves to F23. Gameplay Adapter Foundation moves to F24.
 
 ---
 
-## 14. Next Cut
+## 17. Next Cut
 
 ```text
-F21F - JSON Progression Backend + Diagnostics Smoke
+F22A - Loading Architecture ADR Plan
 ```
