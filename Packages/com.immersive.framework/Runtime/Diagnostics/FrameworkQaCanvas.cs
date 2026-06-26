@@ -276,6 +276,11 @@ namespace Immersive.Framework.Diagnostics
                     RunTransitionGateBlockerSmoke();
                 }
 
+                if (GUILayout.Button("Run Transition Orchestration Observation Smoke"))
+                {
+                    RunTransitionOrchestrationObservationSmoke();
+                }
+
                 if (GUILayout.Button("Run Cycle Reset Runtime Host Smoke"))
                 {
                     RunCycleResetRuntimeHostSmoke();
@@ -685,6 +690,12 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(TransitionGateBlockerQaSmokeRunner.SmokeName, runtimeHost =>
                 TransitionGateBlockerQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunTransitionOrchestrationObservationSmoke()
+        {
+            await RunSmokeAsync(TransitionOrchestrationObservationQaSmokeRunner.SmokeName, runtimeHost =>
+                TransitionOrchestrationObservationQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
         }
 
         private async void RunCycleResetRuntimeHostSmoke()
