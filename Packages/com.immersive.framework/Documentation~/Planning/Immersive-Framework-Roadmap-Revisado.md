@@ -2,7 +2,7 @@
 
 Plano canonico do package `com.immersive.framework`.
 
-Este e o unico arquivo de planejamento do framework. Decisoes aceitas, historico F0-F12, progresso real da F13 e a ordem futura ficam resumidos aqui para evitar fontes paralelas.
+Este e o unico arquivo de planejamento do framework. Decisoes aceitas, historico F0-F13 e a ordem futura ficam resumidos aqui para evitar fontes paralelas.
 
 ADRs aceitos ficam em `Documentation~/ADRs/ADR-INDEX.md`. ADRs registram decisoes estaveis e nao substituem este roadmap operacional.
 
@@ -16,11 +16,10 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 
 | Faixa | Status | Leitura oficial |
 |---|---|---|
-| F0-F12 | `CLOSED / APPLIED` | Historico real resumido neste documento. |
-| F13 | `IN PROGRESS THROUGH F13H` | Fundacao passiva implementada; ownership, discovery scoped e snapshot lifecycle ainda impedem fechamento. |
-| F14-F18 | `PLANNED / REVISED ORDER` | Ordem futura mantida, bloqueada pelo fechamento da F13. |
+| F0-F13 | `CLOSED / APPLIED` | Historico real resumido neste documento. |
+| F14-F18 | `PLANNED / REVISED ORDER` | Ordem futura mantida; F14 e a proxima fase. |
 
-## Historico real F0-F12
+## Historico real F0-F13
 
 | Fase | Status | Resultado fechado |
 |---|---|---|
@@ -37,12 +36,15 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 | F10 | `CLOSED / APPLIED` | Activity Content Execution Core e decisoes de consumer intermediario para Input, Snapshot e Pause sem mover ownership para gameplay. |
 | F11 | `CLOSED / APPLIED` | Cycle Reset Foundation: contratos, executor, runtime request path, QA Canvas smoke e triggers publicos de Route/Activity Cycle Reset, sem reset fisico. |
 | F12 | `CLOSED / APPLIED` | Cycle Reset Integration & Authoring UX: guardrails, result UX, trigger smoke e bridge smoke opcional, sem reset local/fisico. |
+| F13 | `CLOSED / APPLIED` | Object Entry Foundation: identidade, declaration, owner tipado, coleta scoped, snapshot lifecycle e closure smoke, sem binding/reset fisico. |
 
 F10 encerrou a execucao logica de Activity content no core. Ele nao adicionou authoring real de participants, scene scan, placement fisico, prefab/Addressables execution, pooling gameplay use, audio, camera, actor/player mutation ou reset fisico.
 
 F11 criou o caminho canonico de reset de ciclo.
 
 F12 tornou esse caminho utilizavel e validavel por authoring/QA sem transformar reset de ciclo em reset de objeto.
+
+F13 criou o catalogo logico owned/scoped de objetos que desbloqueia os contratos de Local/Object Reset da F14.
 
 ## Decisoes arquiteturais aceitas
 
@@ -58,7 +60,7 @@ F12 tornou esse caminho utilizavel e validavel por authoring/QA sem transformar 
 | Activity execution | Activity Content Execution usa participants explicitos, collection/ordering, phase plan e runtime executor logico. |
 | Cycle Reset | Cycle Reset cobre Route/Activity cycle reset; nao e object reset, component reset, reload, release, snapshot restore ou pool return. |
 | Trigger UX | Triggers sao entry points principais; Unity Event Bridges sao opcionais para callbacks de resultado por Inspector. |
-| Object Entry | F13 e catalogo logico passivo. Nao e GameObject binding, registry vivo, reset inventory ou service locator. |
+| Object Entry | F13 fechou catalogo logico passivo, owner tipado, collection scoped e snapshot lifecycle. Nao e GameObject binding, registry vivo, reset inventory ou service locator. |
 | Diagnostics | Falhas de contrato/config obrigatoria devem ser explicitas. Nao ha fallback silencioso. |
 | Authoring UX | Nomes publicos devem expressar intencao de uso, nao detalhes internos de pipeline. |
 
@@ -103,7 +105,7 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Camera, Audio,
 |---|---|---|---|
 | F11 | Cycle Reset Foundation | Framework Core | `CLOSED / APPLIED`: contratos centrais de reset de ciclo, request/result, policy, diagnostics, executor minimo, smoke runtime-host e triggers publicos, sem reset fisico. |
 | F12 | Cycle Reset Integration & Authoring UX | Framework Core + Editor/Authoring | `CLOSED / APPLIED`: validar e documentar UX/authoring dos triggers e bridges opcionais, sem reset fisico/local. |
-| F13 | Object Entry Foundation | Framework Core | `IN PROGRESS`: identidade, descriptor, declaration, set, diagnostics e snapshot passivo existem; falta fechar ownership, discovery scoped e refresh/invalidation. Readiness real fica para F16. |
+| F13 | Object Entry Foundation | Framework Core | `CLOSED / APPLIED`: identidade, descriptor, declaration, typed ownership, scoped collection, snapshot invalidation/refresh e closure smoke. Readiness real fica para F16. |
 | F14 | Local/Object Reset Foundation | Framework Core | Definir reset local/de objeto depois de Object Entry existir; nao misturar com reset de ciclo. |
 | F15 | Unity Reset Adapters minimos | Unity Adapter | Criar adapters minimos para traducao Unity de reset local/object aprovado pelo core, sem gameplay consumers. |
 | F16 | Player/Participant Entry Baseline | Framework Core + Authoring | Definir baseline de entrada de player/participant sobre Object Entry, sem Actor/Camera/Audio/Pooling. |
@@ -232,7 +234,7 @@ F12 nao implementa:
 
 A fronteira de F12 e: Cycle Reset e utilizavel via QA, triggers, Inspector e bridges opcionais. O reset de objetos reais continua bloqueado ate Object Entry e Local/Object Reset.
 
-## Progresso real F13 — Object Entry Foundation
+## Fechamento real F13 — Object Entry Foundation
 
 F13 comecou como fundacao passiva de objetos logicos. Ela nao executa entrada fisica e nao transforma `ObjectEntryDeclaration` em binding para o proprio GameObject.
 
@@ -247,7 +249,10 @@ F13 comecou como fundacao passiva de objetos logicos. Ela nao executa entrada fi
 | F13F | `PASS` | Runtime integration smoke coletou declarations carregadas, inclusive inactive. |
 | F13G | `PASS` | `ObjectEntryRuntimeContextSnapshot` passivo e consultavel. |
 | F13H | `PASS` | Runtime Host guarda/expoe o ultimo snapshot por refresh explicito. |
-| F13I | `DOC/AUDIT` | Reconciliacao entre ADR original, implementacao real e criterios restantes. |
+| F13I | `CLOSED / DOC-AUDIT` | Reconciliacao entre ADR original, implementacao real e criterios restantes. |
+| F13J | `CLOSED / PASS` | Owner tipado por scope, coleta pelas cenas da Route ativa e filtering de foreign owners. |
+| F13K | `CLOSED / PASS` | Invalidation/refresh automatico do snapshot em startup e boundaries de Route/Activity. |
+| F13L | `CLOSED / PASS + DOCS` | Closure smoke, QA panel hygiene e fechamento documental. |
 
 Evidencia aceita de F13H:
 
@@ -264,32 +269,49 @@ qaActivityFound='True'
 blockingIssues='0'
 ```
 
-F13 ainda nao esta fechada. A auditoria apos F13H encontrou tres lacunas:
+As tres lacunas encontradas na auditoria F13I foram resolvidas:
 
 ```text
-OwnerIdentity existe no descriptor, mas declarations coletadas continuam ownerless.
-CollectLoadedSceneDeclarations faz all-loaded scan e nao pode virar autoridade final do lifecycle.
-O snapshot do host so muda por refresh manual e pode ficar stale apos Route/Activity change.
+OwnerIdentity e obrigatoria no snapshot autoritativo e validada por domain/scope.
+O Runtime Host coleta somente cenas da composicao da Route ativa.
+Startup e boundaries de Route/Activity invalidam e reconstroem o snapshot.
 ```
 
-Sequencia proposta, pendente de aprovacao do ADR F13:
+Evidencia final aceita:
 
-| Corte | Objetivo |
-|---|---|
-| F13J | Owner tipado por scope e collection boundary scoped pelo contexto ativo. |
-| F13K | Policy de refresh/invalidation do snapshot em boundaries de Route/Activity. |
-| F13L | Smoke de ownership, foreign/stale filtering e fechamento documental. |
+```text
+QA Smoke completed. name='Object Entry Foundation Closure Smoke'.
+snapshotAvailable='True'
+lifecycleSource='True'
+ownerDomainsValid='True'
+activeOwnersValid='True'
+countInvariant='True'
+revision='1'
+invalidations='1'
+resultStatus='Accepted'
+filteredDeclarations='1'
+blockingIssues='0'
+nonBlockingIssues='0'
+```
+
+Higiene do QA Canvas no fechamento:
+
+```text
+Os sete botoes intermediarios de Object Entry foram removidos do painel.
+Run Object Entry Foundation Closure Smoke e o unico botao canonico da F13.
+Runners intermediarios permanecem internos para regressao/evidencia.
+```
 
 Readiness por objeto nao entra artificialmente na F13. Ela pertence a F16, quando existir Participant Entry executavel.
 
-## Guardrails pos-F12
+## Guardrails pos-F13
 
 - Core lifecycle antes de gameplay.
 - Reset de ciclo antes de reset local.
-- Objeto/player so depois de Object Entry.
+- Local/Object Reset so depois do fechamento de Object Entry.
 - Camera, Audio, Actor e Pooling so depois do core de reset/object entry.
 - Projectile, Damage, Attributes e Powerups ficam no fim.
-- F11 e `Cycle Reset Foundation`; F12 e `Cycle Reset Integration & Authoring UX`.
+- F11 e `Cycle Reset Foundation`; F12 e `Cycle Reset Integration & Authoring UX`; F13 e `Object Entry Foundation`.
 - Reset fisico nao entra no core antes dos contratos logicos e adapters minimos estarem definidos.
 - Adapter Unity nao deve virar gameplay consumer.
 - Gameplay consumer nao deve redefinir lifecycle, identity, ownership, policy ou diagnostics do core.
@@ -299,14 +321,14 @@ Readiness por objeto nao entra artificialmente na F13. Ela pertence a F16, quand
 
 - Nao criar lifecycle novo por causa da consolidacao documental.
 - Nao criar ADR separado, roadmap paralelo, tracker paralelo, closure por fase ou smoke documental separado.
-- Nao mover Camera, Audio, Actor, Pooling, Projectile, Damage, Attributes ou Powerups para F13.
+- Nao mover Camera, Audio, Actor, Pooling, Projectile, Damage, Attributes ou Powerups para F14.
 - Nao copiar arquitetura Base 2.0 para o framework package.
 - Nao usar Cycle Reset como atalho para Object Reset ou Player Reset.
 
-## Fase ativa
+## Proxima fase
 
 ```text
-F13 — Object Entry Foundation (in progress through F13H; reconciliation at F13I)
+F14 — Local/Object Reset Foundation
 ```
 
-Proximo passo: revisar o ADR F13 e aprovar ou corrigir a sequencia F13J-F13L antes de novo patch runtime.
+Entrada esperada de F14: definir contratos logicos de reset local/de objeto usando `ObjectEntryId` e owner/scope fechados na F13, sem executar `Transform`, `Rigidbody`, `Animator`, pool return ou gameplay reset concreto.

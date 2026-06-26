@@ -14,4 +14,4 @@ Accepted architectural decisions are indexed at:
 Documentation~/ADRs/ADR-INDEX.md
 ```
 
-F0-F12 are closed/applied. F13 `Object Entry Foundation` is in progress through F13H and is being reconciled before the remaining ownership/scoped-discovery cuts.
+F0-F13 are closed/applied. The next planned phase is F14: `Local/Object Reset Foundation`.

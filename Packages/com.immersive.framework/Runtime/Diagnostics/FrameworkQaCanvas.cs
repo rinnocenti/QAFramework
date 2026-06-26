@@ -275,41 +275,6 @@ namespace Immersive.Framework.Diagnostics
                     RunCycleResetBridgeSmoke();
                 }
 
-                if (GUILayout.Button("Run Object Entry Synthetic Set Smoke"))
-                {
-                    RunObjectEntrySyntheticSetSmoke();
-                }
-
-                if (GUILayout.Button("Run Object Entry Declaration Source Smoke"))
-                {
-                    RunObjectEntryDeclarationSourceSmoke();
-                }
-
-                if (GUILayout.Button("Run Object Entry Runtime Integration Smoke"))
-                {
-                    RunObjectEntryRuntimeIntegrationSmoke();
-                }
-
-                if (GUILayout.Button("Run Object Entry Runtime Context Snapshot Smoke"))
-                {
-                    RunObjectEntryRuntimeContextSnapshotSmoke();
-                }
-
-                if (GUILayout.Button("Run Object Entry Runtime Host Snapshot Exposure Smoke"))
-                {
-                    RunObjectEntryRuntimeHostSnapshotExposureSmoke();
-                }
-
-                if (GUILayout.Button("Run Object Entry Scoped Ownership Smoke"))
-                {
-                    RunObjectEntryScopedOwnershipSmoke();
-                }
-
-                if (GUILayout.Button("Run Object Entry Snapshot Lifecycle Smoke"))
-                {
-                    RunObjectEntrySnapshotLifecycleSmoke();
-                }
-
                 if (GUILayout.Button("Run Object Entry Foundation Closure Smoke"))
                 {
                     RunObjectEntryFoundationClosureSmoke();
@@ -785,53 +750,6 @@ namespace Immersive.Framework.Diagnostics
                     runRouteCycleReset: true,
                     runActivityCycleReset: true,
                     emitSmokeEnvelope: false));
-        }
-
-        private async void RunObjectEntrySyntheticSetSmoke()
-        {
-            await RunSmokeAsync(ObjectEntryQaSmokeRunner.SyntheticSetSmokeName, runtimeHost =>
-                ObjectEntryQaSmokeRunner.RunSyntheticSetSmokeAsync(_logger, QaSource));
-        }
-
-        private async void RunObjectEntryDeclarationSourceSmoke()
-        {
-            await RunSmokeAsync(ObjectEntryQaSmokeRunner.DeclarationSourceSmokeName, runtimeHost =>
-                ObjectEntryQaSmokeRunner.RunDeclarationSourceSmokeAsync(_logger, QaSource));
-        }
-
-        private async void RunObjectEntryRuntimeIntegrationSmoke()
-        {
-            await RunSmokeAsync(ObjectEntryQaSmokeRunner.RuntimeIntegrationSmokeName, runtimeHost =>
-                ObjectEntryQaSmokeRunner.RunRuntimeIntegrationSmokeAsync(_logger, QaSource));
-        }
-
-        private async void RunObjectEntryRuntimeContextSnapshotSmoke()
-        {
-            await RunSmokeAsync(ObjectEntryQaSmokeRunner.RuntimeContextSnapshotSmokeName, runtimeHost =>
-                ObjectEntryQaSmokeRunner.RunRuntimeContextSnapshotSmokeAsync(_logger, QaSource));
-        }
-
-        private async void RunObjectEntryRuntimeHostSnapshotExposureSmoke()
-        {
-            await RunSmokeAsync(ObjectEntryQaSmokeRunner.RuntimeHostSnapshotExposureSmokeName, runtimeHost =>
-                ObjectEntryQaSmokeRunner.RunRuntimeHostSnapshotExposureSmokeAsync(runtimeHost, _logger, QaSource));
-        }
-
-        private async void RunObjectEntryScopedOwnershipSmoke()
-        {
-            await RunSmokeAsync(ObjectEntryQaSmokeRunner.ScopedOwnershipSmokeName, runtimeHost =>
-                ObjectEntryQaSmokeRunner.RunScopedOwnershipSmokeAsync(runtimeHost, _logger, QaSource));
-        }
-
-        private async void RunObjectEntrySnapshotLifecycleSmoke()
-        {
-            await RunSmokeAsync(ObjectEntryQaSmokeRunner.SnapshotLifecycleSmokeName, runtimeHost =>
-                ObjectEntryQaSmokeRunner.RunSnapshotLifecycleSmokeAsync(
-                    runtimeHost,
-                    _logger,
-                    QaSource,
-                    primaryActivity,
-                    secondaryActivity));
         }
 
         private async void RunObjectEntryFoundationClosureSmoke()

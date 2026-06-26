@@ -534,6 +534,7 @@
       <a href="#activity-lifecycle-events"><span class="icon">📡</span> Activity Lifecycle Events</a>
       <a href="#request-bridges"><span class="icon">🌉</span> Unity Event Bridges</a>
       <a href="#cycle-reset"><span class="icon">🔄</span> Cycle Reset</a>
+      <a href="#object-entry"><span class="icon">🧾</span> Object Entry</a>
       <a href="#participant"><span class="icon">🧪</span> Execution Participants</a>
       <a href="#qa-canvas"><span class="icon">🎛️</span> QA Canvas</a>
     </div>
@@ -552,11 +553,11 @@
          HERO / INTRO
     ══════════════════════════════════════════ -->
     <div class="hero" id="intro">
-      <div class="eyebrow">Manual de Uso · Versão F12</div>
+      <div class="eyebrow">Manual de Uso · Versão F13</div>
       <h1>Immersive Framework<br>para Game Designers</h1>
       <p>Tudo que você precisa para usar o framework no Unity sem precisar escrever código. Configure Routes, Activities e cenas usando apenas o Inspector.</p>
       <div class="badge-row">
-        <span class="badge badge-green">✓ F12 — Fechado</span>
+        <span class="badge badge-green">✓ F13 — Fechado</span>
         <span class="badge badge-blue">Unity Package</span>
         <span class="badge badge-yellow">⚠ API Experimental</span>
       </div>
@@ -1843,6 +1844,80 @@ public sealed class RetryActivityAction : MonoBehaviour
 }</code></pre>
 
     <!-- ─────────────────────────────────────── -->
+    <h2 id="object-entry">Object Entry — Declarar objetos lógicos do lifecycle</h2>
+    <p><strong>Object Entry</strong> permite declarar que um objeto lógico pertence à Session, Route ou Activity. O framework registra identidade, owner, scope e requiredness em um snapshot. Na F13 isso ainda é metadado: o componente não transforma automaticamente o próprio GameObject em um alvo físico.</p>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <div class="callout-body">
+        <div class="callout-title">Declaração lógica, não binding físico</div>
+        <p><code>ObjectEntryDeclaration</code> não reseta Transform, não procura Components, não cria Player/Actor, não faz spawn e não mantém referência pública ao GameObject. Essas operações pertencem às fases seguintes.</p>
+      </div>
+    </div>
+
+    <h3>Início rápido</h3>
+    <ol>
+      <li>Selecione o GameObject que representa o objeto lógico.</li>
+      <li>Adicione <code>Immersive Framework → Object Entry → Object Entry Declaration</code>.</li>
+      <li>Defina um <strong>Object Entry Id</strong> estável, por exemplo <code>gameplay.primary-door</code>.</li>
+      <li>Escolha o <strong>Scope</strong>.</li>
+      <li>Se for Route ou Activity, configure o owner exato solicitado pelo Inspector.</li>
+      <li>Escolha <strong>Required</strong> ou <strong>Optional</strong>.</li>
+    </ol>
+
+    <div class="screenshot-placeholder">
+      <strong>SCREENSHOT PENDENTE</strong><br>
+      Inspector de <code>ObjectEntryDeclaration</code> com Scope = Activity e Activity Owner = QA Primary Content Activity.
+    </div>
+
+    <div class="component-card">
+      <div class="comp-header">
+        <div class="comp-icon">🧾</div>
+        <div class="comp-meta">
+          <div class="comp-name">ObjectEntryDeclaration</div>
+          <h4>Object Entry Declaration</h4>
+          <div class="comp-menu">Add Component → Immersive Framework → Object Entry → Object Entry Declaration</div>
+        </div>
+      </div>
+      <div class="comp-fields">
+        <div class="comp-field"><span class="field-name">Object Entry Id</span><span class="field-desc">Identidade funcional estável. Não use nome ou hierarchy path como chave.</span></div>
+        <div class="comp-field"><span class="field-name">Scope</span><span class="field-desc">Session, Route ou Activity.</span></div>
+        <div class="comp-field"><span class="field-name">Route Owner</span><span class="field-desc">Aparece somente em Scope = Route. Deve apontar para o RouteAsset exato.</span></div>
+        <div class="comp-field"><span class="field-name">Activity Owner</span><span class="field-desc">Aparece somente em Scope = Activity. Deve apontar para o ActivityAsset exato usado pelo runtime.</span></div>
+        <div class="comp-field"><span class="field-name">Requiredness</span><span class="field-desc">Declara se a entry é obrigatória ou opcional para validação e fluxos futuros; não executa reset.</span></div>
+        <div class="comp-field"><span class="field-name">Display Name</span><span class="field-desc">Label humano opcional para diagnóstico; não é identidade.</span></div>
+      </div>
+    </div>
+
+    <h3>Como o owner funciona</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Scope</th><th>Owner</th><th>Comportamento</th></tr></thead>
+        <tbody>
+          <tr><td><code>Session</code></td><td>Resolvido automaticamente</td><td>Usa a Session do Application Runtime.</td></tr>
+          <tr><td><code>Route</code></td><td><code>Route Owner</code></td><td>Só entra no snapshot quando essa Route está ativa e a declaração está numa cena da composição dela.</td></tr>
+          <tr><td><code>Activity</code></td><td><code>Activity Owner</code></td><td>Só entra no snapshot quando exatamente esse asset de Activity está ativo.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">💡</span>
+      <div class="callout-body">
+        <div class="callout-title">Mesmo nome não significa mesmo asset</div>
+        <p>Dois ActivityAssets podem ter o mesmo nome visível. O owner usa a referência do asset exato. Se uma declaração aparece como <code>filtered</code> quando deveria estar ativa, confira a referência no campo Activity Owner.</p>
+      </div>
+    </div>
+
+    <h3>Validação final</h3>
+    <p>Após configurar as declarações, inicie um novo Play e rode <code>Run Object Entry Foundation Closure Smoke</code>. O resultado correto confirma lifecycle source, owners válidos, invariantes de contagem e ausência de entries foreign/stale.</p>
+
+    <div class="screenshot-placeholder">
+      <strong>SCREENSHOT PENDENTE</strong><br>
+      QA Canvas mostrando somente o botão canônico <code>Run Object Entry Foundation Closure Smoke</code> para a F13.
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
     <h2 id="participant">Activity Content Execution Participants — Lógica de Enter/Exit de Activity</h2>
     <p>Esta base foi introduzida na F10. Ela permite que um script declare <strong>"eu quero ser notificado quando uma Activity entra ou sai"</strong> e execute lógica customizada nesse momento, de forma ordenada e com resultado reportado ao framework.</p>
 
@@ -2016,6 +2091,7 @@ public class MeuParticipantSource : MonoBehaviour, IActivityContentExecutionPart
           <tr><td><code>Cycle Reset Runtime Host Smoke</code></td><td>Caminho canônico Route/Activity até o executor de Cycle Reset.</td></tr>
           <tr><td><code>Cycle Reset Trigger Smoke</code></td><td>Entry points públicos dos triggers de Route e Activity.</td></tr>
           <tr><td><code>Cycle Reset Bridge Smoke</code></td><td>Callbacks das bridges opcionais e resultado <code>SucceededNoParticipants</code>.</td></tr>
+          <tr><td><code>Object Entry Foundation Closure Smoke</code></td><td>Snapshot automático, owner/domain, invariantes e ausência de entries foreign/stale.</td></tr>
         </tbody>
       </table>
     </div>
@@ -2032,7 +2108,7 @@ public class MeuParticipantSource : MonoBehaviour, IActivityContentExecutionPart
          LIMITES
     ══════════════════════════════════════════ -->
     <h2 id="limites">O que ainda NÃO existe nesta versão</h2>
-    <p>Esta versão fecha as capacidades aprovadas até F12. As funcionalidades abaixo estão planejadas para fases futuras e <strong>não devem ser esperadas agora</strong>.</p>
+    <p>Esta versão fecha as capacidades aprovadas até F13. As funcionalidades abaixo estão planejadas para fases futuras e <strong>não devem ser esperadas agora</strong>.</p>
 
     <div class="callout stop">
       <span class="callout-icon">🚫</span>
@@ -2046,6 +2122,7 @@ public class MeuParticipantSource : MonoBehaviour, IActivityContentExecutionPart
           <strong>Save/Load</strong> — Sem sistema de persistência de dados.<br><br>
           <strong>Pooling</strong> — Sem sistema de object pooling integrado.<br><br>
           <strong>Reset físico/de objetos</strong> — Cycle Reset existe como request lógico, mas ainda não reposiciona nem limpa objetos de gameplay.<br><br>
+          <strong>Binding físico de Object Entry</strong> — Object Entry registra identidade/owner/scope, mas ainda não expõe GameObject, Transform ou Component como alvo funcional.<br><br>
           <strong>UI/Presentation layer</strong> — Sem gerenciamento de UI automatizado além da visibilidade local.
         </p>
       </div>
@@ -2072,6 +2149,7 @@ public class MeuParticipantSource : MonoBehaviour, IActivityContentExecutionPart
           <tr><td><code>Ownership</code></td><td><code>Owned</code> = o framework é responsável por descarregar ao sair; <code>Registered</code> = só registra, sem release.</td></tr>
           <tr><td><code>Smoke</code></td><td>Teste rápido de regressão do framework (visível no QA Canvas em modo desenvolvimento).</td></tr>
           <tr><td><code>Cycle Reset</code></td><td>Pedido lógico para reiniciar o ciclo da Route ou Activity ativa. Na F12 ainda não executa reset físico de objetos.</td></tr>
+          <tr><td><code>Object Entry</code></td><td>Declaração lógica owned/scoped conhecida pelo lifecycle. Na F13 não é binding físico nem inventário de reset.</td></tr>
           <tr><td><code>Experimental</code></td><td>Status de API: funciona, mas pode mudar em versões futuras do framework.</td></tr>
           <tr><td><code>Bootstrap</code></td><td>Código interno do framework que inicializa tudo automaticamente ao dar Play — você não interage com ele diretamente.</td></tr>
         </tbody>
@@ -2080,8 +2158,8 @@ public class MeuParticipantSource : MonoBehaviour, IActivityContentExecutionPart
 
     <!-- FOOTER -->
     <div style="margin-top:56px; padding-top:24px; border-top:1px solid var(--border-soft); color:var(--text-muted); font-size:13px;">
-      <p><strong style="color:var(--text-soft);">Immersive Framework</strong> — Manual do Game Designer &nbsp;·&nbsp; Versão F12</p>
-      <p style="margin-top:4px;">Este manual cobre as funcionalidades fechadas até F12. A F13 ainda está em desenvolvimento.</p>
+      <p><strong style="color:var(--text-soft);">Immersive Framework</strong> — Manual do Game Designer &nbsp;·&nbsp; Versão F13</p>
+      <p style="margin-top:4px;">Este manual cobre as funcionalidades fechadas até F13. A próxima fase planejada é Local/Object Reset Foundation.</p>
     </div>
 
   </main>
