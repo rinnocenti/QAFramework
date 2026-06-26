@@ -50,7 +50,7 @@ F19 - Transition Effects / CLOSED
 F20 - Pause State and Pause Gate / CLOSED / F20F QA PASS + USAGE
 F21 - Save / Snapshot / Preferences / Progression Save Foundation / CLOSED / F21H QA PASS + USAGE
 F22 - Loading Operation / Progress / Readiness Boundary / CLOSED / F22F QA PASS + USAGE
-F23 - Pause Content / Overlay / Input Boundary / F23C APPLIED / NEXT F23D
+F23 - Pause Content / Overlay / Input Boundary / F23D APPLIED / NEXT F23E
 F24 - Unity Build Surface / Lifecycle Wiring
 F25 - Gameplay Adapter Foundation
 ```
@@ -115,7 +115,7 @@ F20 pause note:
 F20B adds passive Pause primitives under `Runtime/Pause`. F20C adds synthetic Pause diagnostics smoke. F20D adds passive Pause Gate blocker policy. F20E adds minimal in-memory runtime request execution. F20F closes the phase with `Guides/F20-Pause-State-Gate-Usage.md`. No scene, GameObject, Canvas, prefab or ScriptableObject is required for F20.
 F20 is Pause logical core: state, request/result, policy, snapshot/facts and Gate blocker relationship.
 Save/Snapshot/Preferences/Progression Save belongs to F21. Loading Operation/Progress/Readiness belongs to F22. Pause content/overlay/input moves to F23.
-F21H closes the phase with `Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md`. F22 is closed with `Guides/F22-Loading-Operation-Progress-Readiness-Usage.md`. F22A through F22F are applied. Next cut: F23D - Pause Input Boundary Contracts.
+F21H closes the phase with `Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md`. F22 is closed with `Guides/F22-Loading-Operation-Progress-Readiness-Usage.md`. F22A through F22F are applied. Next cut: F23E - Pause Content / Overlay / Input Diagnostics Smoke.
 ```
 
 F21/F22 boundary note:
@@ -141,7 +141,7 @@ Pause Content/Overlay/Input is F23.
 Unity Build Surface / Lifecycle Wiring is F24.
 Gameplay Adapter Foundation is F25.
 No runtime, asmdef, backend, PlayerPrefs, JSON, UI, scene object, prefab or ScriptableObject was added.
-F21H closes the phase with `Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md`. F22 is closed with `Guides/F22-Loading-Operation-Progress-Readiness-Usage.md`. F22A through F22F are applied. Next cut: F23D - Pause Input Boundary Contracts.
+F21H closes the phase with `Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md`. F22 is closed with `Guides/F22-Loading-Operation-Progress-Readiness-Usage.md`. F22A through F22F are applied. Next cut: F23E - Pause Content / Overlay / Input Diagnostics Smoke.
 ```
 
 F24/F25 ordering note:
@@ -198,26 +198,26 @@ F21E applied note: F21E adds Progression Save port and slot/manifest primitives 
 F21F applied note: F21F adds `JsonProgressionSaveStore` behind `IProgressionSaveStore` and `Run Progression Save JSON Backend Smoke`. The smoke validates missing, write/read, manifest, corrupt slot, delete cleanup and boundary separation. JSON/file paths are adapter details; no Snapshot backend, Preferences usage, PlayerPrefs, autosave/load moments, runtime request path, UI, scene object, prefab, ScriptableObject or asmdef changes are introduced.
 
 
-F21G applied note: F21G adds `ProgressionSaveRuntime`, `ProgressionSaveRequest`, `ProgressionSaveRequestResult`, `ProgressionSaveMoment` and related ids/enums. Runtime requests execute explicit save/load/delete operations against `IProgressionSaveStore`. Autosave moments are passive descriptors only; F21G does not add an autosave scheduler, Route/Activity hook, Snapshot capture orchestration, Preferences/PlayerPrefs usage, UI, scene object, prefab, ScriptableObject or asmdef changes. It adds `Run Progression Save Runtime Request Smoke`. F21H closes the phase with `Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md`. F22 is closed with `Guides/F22-Loading-Operation-Progress-Readiness-Usage.md`. F22A through F22F are applied. Next cut: F23D - Pause Input Boundary Contracts.
+F21G applied note: F21G adds `ProgressionSaveRuntime`, `ProgressionSaveRequest`, `ProgressionSaveRequestResult`, `ProgressionSaveMoment` and related ids/enums. Runtime requests execute explicit save/load/delete operations against `IProgressionSaveStore`. Autosave moments are passive descriptors only; F21G does not add an autosave scheduler, Route/Activity hook, Snapshot capture orchestration, Preferences/PlayerPrefs usage, UI, scene object, prefab, ScriptableObject or asmdef changes. It adds `Run Progression Save Runtime Request Smoke`. F21H closes the phase with `Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md`. F22 is closed with `Guides/F22-Loading-Operation-Progress-Readiness-Usage.md`. F22A through F22F are applied. Next cut: F23E - Pause Content / Overlay / Input Diagnostics Smoke.
 
 
-F22A applied note: F22A is documentation-only. It accepts the Loading architecture plan. Next cut: F23D - Pause Input Boundary Contracts.
+F22A applied note: F22A is documentation-only. It accepts the Loading architecture plan. Next cut: F23E - Pause Content / Overlay / Input Diagnostics Smoke.
 
 
 F22B applied note: F22B adds passive Loading primitives under `Runtime/Loading`: `LoadingOperationId`, `LoadingStepId`, operation/step statuses, normalized `LoadingProgress`, `LoadingStepWeight`, `LoadingWeightedProgress`, `LoadingStep` and `LoadingOperation`. It also adds `FrameworkIdentityDomain.Loading`.
 
 F22C applied note: F22C adds `LoadingProgressAggregationStatus`, `LoadingProgressAggregationResult`, `LoadingProgressAggregator` and `Run Loading Progress Aggregation Smoke` under QA Canvas `Show Loading diagnostics`. It adds no SceneLifecycle/Transition adapter, readiness wait contract, LoadingResult/LoadingFailure record, UI, fade, curtain, loading screen prefab, scene object, prefab, ScriptableObject, backend, PlayerPrefs, JSON or asmdef changes.
 
-F22D applied note: F22D adds `LoadingObservationAdapter` and `Run Loading Observation Adapter Smoke`. It observes existing SceneLifecycle and Transition diagnostics as canonical Loading progress records without executing scene lifecycle, replacing Transition, running effects, mutating readiness or creating UI. Next cut: F23D - Pause Input Boundary Contracts.
+F22D applied note: F22D adds `LoadingObservationAdapter` and `Run Loading Observation Adapter Smoke`. It observes existing SceneLifecycle and Transition diagnostics as canonical Loading progress records without executing scene lifecycle, replacing Transition, running effects, mutating readiness or creating UI. Next cut: F23E - Pause Content / Overlay / Input Diagnostics Smoke.
 
-F22E applied note: F22E adds loading screen adapter contracts under `Runtime/Loading`: `ILoadingScreenAdapter`, `LoadingScreenPresentation`, `LoadingScreenAdapterAction`, `LoadingScreenAdapterStatus` and `LoadingScreenAdapterResult`. It also adds `Run Loading Screen Adapter Boundary Smoke`. The boundary consumes canonical `LoadingOperation` data and does not create UI, scene objects, prefabs, ScriptableObjects, fade, curtain, TransitionEffect execution, SceneLifecycle execution, Transition execution, readiness mutation, backend, PlayerPrefs, JSON or asmdef changes. Next cut: F23D - Pause Input Boundary Contracts.
+F22E applied note: F22E adds loading screen adapter contracts under `Runtime/Loading`: `ILoadingScreenAdapter`, `LoadingScreenPresentation`, `LoadingScreenAdapterAction`, `LoadingScreenAdapterStatus` and `LoadingScreenAdapterResult`. It also adds `Run Loading Screen Adapter Boundary Smoke`. The boundary consumes canonical `LoadingOperation` data and does not create UI, scene objects, prefabs, ScriptableObjects, fade, curtain, TransitionEffect execution, SceneLifecycle execution, Transition execution, readiness mutation, backend, PlayerPrefs, JSON or asmdef changes. Next cut: F23E - Pause Content / Overlay / Input Diagnostics Smoke.
 
 
 ## F22 Loading Boundary Closure
 
 F22 is closed with `Guides/F22-Loading-Operation-Progress-Readiness-Usage.md`. The phase defines Loading as operation/progress/readiness reporting and adapter boundaries only. It does not create a concrete loading screen UI, prefab, scene object, ScriptableObject, fade/curtain execution, SceneLifecycle replacement, Transition replacement, readiness mutation, backend, PlayerPrefs, JSON or asmdef change.
 
-Next cut: F23D - Pause Input Boundary Contracts.
+Next cut: F23E - Pause Content / Overlay / Input Diagnostics Smoke.
 
 
 ## F22G pre-F23 debt closure
@@ -236,7 +236,7 @@ F23A accepts `F23-ADR-PAUSE-003-Pause-Content-Overlay-Input-Boundary.md` and ope
 
 F23A is documentation-only. It does not add runtime code, asmdef changes, scene objects, Canvas/prefab setup, ScriptableObjects, input asset binding, `Time.timeScale` policy, Save/Loading execution or gameplay adapters.
 
-Next cut: F23D - Pause Input Boundary Contracts.
+Next cut: F23E - Pause Content / Overlay / Input Diagnostics Smoke.
 
 
 ## F23B Pause Content Anchor Consumer Contracts
@@ -254,3 +254,14 @@ F23C adds visual-facing Pause overlay adapter contracts under `Runtime/Pause`: `
 The overlay boundary presents canonical `PauseSnapshot` data and optional prepared Pause Content Anchor consumer data. It does not create UI, Canvas, prefabs, ScriptableObjects, input binding, `Time.timeScale` policy, TransitionEffect execution, anchor creation, scene object discovery, Route/Activity lifecycle ownership or gameplay adapters.
 
 Validation for F23C is compile/import only. The dedicated Pause Content / Overlay / Input diagnostics smoke remains planned for F23E after F23D adds input contracts.
+
+
+## F23D Pause Input Boundary Contracts
+
+F23D adds device-agnostic Pause input contracts under `Runtime/Pause`: `PauseInputActionId`, `PauseInputCommandKind`, `PauseInputSourceKind`, `PauseInputSignal`, `PauseInputResolutionStatus`, `PauseInputResolutionResult` and `IPauseInputResolver`.
+
+The input boundary normalizes future concrete input into framework-facing Pause intent. Pause state commands can resolve to canonical `PauseRequest` values; menu/navigation commands remain normalized commands for future overlay/menu adapters.
+
+F23D does not create Input System assets, action maps, concrete device bindings, UI navigation, Canvas/prefab setup, `Time.timeScale` policy, gameplay commands, Route/Activity lifecycle ownership or gameplay adapters.
+
+Validation for F23D is compile/import only. The dedicated Pause Content / Overlay / Input diagnostics smoke is planned for F23E.

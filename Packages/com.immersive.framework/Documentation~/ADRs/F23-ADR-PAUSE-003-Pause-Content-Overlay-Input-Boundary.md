@@ -1,6 +1,6 @@
 # F23-ADR-PAUSE-003 - Pause Content Overlay Input Boundary
 
-Status: Accepted / F23C Applied / Overlay Adapter Boundary  
+Status: Accepted / F23D Applied / Pause Input Boundary Contracts  
 Phase: F23 - Pause Content / Overlay / Input Boundary  
 Type: Framework Consumer / Authoring / Input Boundary  
 Last updated: 2026-06-26
@@ -125,9 +125,38 @@ PauseSnapshot
 
 `PauseOverlayPresentation` may carry an optional prepared `PauseContentAnchorConsumerResult` from F23B, but it does not execute Content Anchor binding. The overlay adapter boundary presents state only; it does not request Pause, bind input, change `Time.timeScale`, execute Transition Effects, create anchors, discover scene objects, instantiate prefabs, own Route/Activity lifecycle or become a gameplay adapter.
 
+
 Validation for F23C is compile/import only. The F23 diagnostics smoke is planned for F23E after input contracts exist.
 
-## 6. Pause Content Boundary
+## 6. F23D result — Pause Input Boundary Contracts
+
+F23D introduces these device-agnostic contracts under `Runtime/Pause`:
+
+```text
+PauseInputActionId
+PauseInputCommandKind
+PauseInputSourceKind
+PauseInputSignal
+PauseInputResolutionStatus
+PauseInputResolutionResult
+IPauseInputResolver
+```
+
+The contract flow is:
+
+```text
+future concrete input adapter
+  -> PauseInputSignal
+  -> IPauseInputResolver.Resolve(signal, requestId)
+  -> PauseInputResolutionResult
+  -> optional canonical PauseRequest
+```
+
+Pause state commands can resolve to `PauseRequest`. Menu/navigation/settings commands remain normalized Pause input commands for future overlay/menu adapters. F23D does not poll devices, bind Unity Input System actions, create action maps, create UI navigation, mutate Pause state, execute `PauseRuntime`, change `Time.timeScale`, own Route/Activity lifecycle or add gameplay adapters.
+
+Validation for F23D is compile/import only. The F23 diagnostics smoke is planned for F23E.
+
+## 7. Pause Content Boundary
 
 Pause content is framework consumer content. It may represent:
 
@@ -145,7 +174,7 @@ Pause content must not be authored as an Activity and must not create a parallel
 
 ---
 
-## 7. Overlay Boundary
+## 8. Overlay Boundary
 
 Pause overlay is presentation/content.
 
@@ -175,7 +204,7 @@ A future concrete UI adapter may be UGUI, UI Toolkit or project-specific. F23C d
 
 ---
 
-## 8. Input Boundary
+## 9. Input Boundary
 
 Pause input is separate from gameplay input.
 
@@ -196,7 +225,7 @@ F23 input contracts must avoid assuming a specific Unity Input System asset, act
 
 ---
 
-## 9. Time Scale Boundary
+## 10. Time Scale Boundary
 
 `Time.timeScale` remains a future adapter/policy, not the central Pause contract.
 
@@ -206,7 +235,7 @@ F23C does not add a `Time.timeScale` adapter.
 
 ---
 
-## 10. Relationship to F21 Save / Preferences
+## 11. Relationship to F21 Save / Preferences
 
 F23 may later display settings UI, but the Preferences store remains owned by F21. Pause UI must not create a second preferences backend.
 
@@ -216,7 +245,7 @@ Snapshot remains backend-agnostic and participant-driven. Pause content must not
 
 ---
 
-## 11. Relationship to F22 Loading
+## 12. Relationship to F22 Loading
 
 F22 owns Loading operation/progress/readiness/result vocabulary. Pause overlay can display loading information in the future only by consuming canonical Loading records.
 
@@ -224,7 +253,7 @@ Pause must not create a second loading progress model under Pause UI.
 
 ---
 
-## 12. Relationship to Gameplay Adapter Foundation
+## 13. Relationship to Gameplay Adapter Foundation
 
 Gameplay adapters remain deferred to F25.
 
@@ -248,7 +277,7 @@ F23 must not skip F24 by turning Pause overlay work into a product gameplay adap
 
 ---
 
-## 13. Exclusions
+## 14. Exclusions
 
 F23A and the initial F23 boundary do not implement:
 
@@ -282,16 +311,16 @@ Unity Build Surface / Lifecycle Wiring
 
 ---
 
-## 15. F23A/F23B/F23C result
+## 16. F23A/F23B/F23C/F23D result
 
 F23A accepts this ADR and realigns documentation only.
 
-F23B applies the Pause Content Anchor consumer contracts and keeps the cut asset-free and UI-free. F23C applies the Pause Overlay adapter boundary and keeps the cut asset-free, UI-free and lifecycle-free.
+F23B applies the Pause Content Anchor consumer contracts and keeps the cut asset-free and UI-free. F23C applies the Pause Overlay adapter boundary and keeps the cut asset-free, UI-free and lifecycle-free. F23D applies the Pause Input boundary contracts and keeps the cut free of concrete input assets, action maps, UI navigation, lifecycle ownership and gameplay adapters.
 
 Next cut:
 
 ```text
-IF-FW-F23D — Pause Input Boundary Contracts
+IF-FW-F23E — Pause Content / Overlay / Input Diagnostics Smoke
 ```
 
 After F23 closes, the next framework phase is:

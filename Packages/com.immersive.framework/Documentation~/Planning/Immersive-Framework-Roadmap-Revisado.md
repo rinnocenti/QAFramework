@@ -23,7 +23,7 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 | F20 | `CLOSED / F20F QA PASS + USAGE` | Pause State/Gate fechado como core lógico. F20B adicionou primitivas passivas; F20C adicionou diagnostics smoke; F20D adicionou policy passiva Pause-to-Gate blocker; F20E adicionou request path mínimo em memória via `FrameworkRuntimeHost`/`PauseRuntime`; F20F criou Usage Guide. Sem Gate registry real, overlay, input ou `Time.timeScale`. |
 | F21 | `CLOSED / F21H QA PASS + USAGE` | Save / Snapshot / Preferences / Progression Save Foundation fechada. F21B adicionou Snapshot Envelope primitives. F21C adicionou participant contracts/smoke. F21D adicionou Preferences store/PlayerPrefs adapter. F21E adicionou Progression Save port/slot/manifest. F21F adicionou JSON backend adapter/smoke. F21G adicionou runtime request path e autosave moment contracts. F21H criou Usage Guide e fechou a fase. |
 | F22 | `CLOSED / F22H QA PASS` | Loading Operation / Progress / Readiness Boundary fechada. F22A-F22F fecharam operação/progresso/adapters/guide; F22G fechou readiness observation; F22H fechou result/issues. |
-| F23 | `F23C APPLIED / NEXT F23D` | Pause Content Anchor Consumer e Pause Overlay Adapter Boundary aplicados; próximo corte cria contratos de Pause Input. |
+| F23 | `F23D APPLIED / NEXT F23E` | Pause Content Anchor Consumer, Pause Overlay Adapter Boundary e Pause Input Boundary Contracts aplicados; próximo corte cria o smoke integrado de Pause Content / Overlay / Input. |
 | F24 | `PLANNED AFTER F23` | Unity Build Surface / Lifecycle Wiring prova contratos framework em superfícies Unity reais antes de gameplay adapters. |
 | F25 | `DEFERRED` | Gameplay Adapter Foundation e consumers avançados ficam bloqueados até F24 provar build surface/lifecycle wiring. |
 
@@ -153,7 +153,7 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Player, Actor,
 | F20 | Pause State and Pause Gate | Framework Core | `CLOSED / F20F QA PASS + USAGE`: Pause como estado + Gate blocker. F20B primitives; F20C diagnostics smoke; F20D relação passiva Pause-to-Gate; F20E request path mínimo em memória; F20F Usage Guide. Não é Activity, menu, overlay, input system, `Time.timeScale` contract ou lifecycle de Route/Activity. |
 | F21 | Save / Snapshot / Preferences / Progression Save Foundation | Framework Core + Save Module | `CLOSED / F21H QA PASS + USAGE`: ADR plan aceito, Snapshot Envelope primitives aplicadas, participant contracts/smoke sintetico aplicados, Preferences store/PlayerPrefs adapter aplicado, Progression Save port/slot/manifest primitives aplicadas, JSON backend/smoke aplicados, runtime request path/autosave moment contracts aplicados e Usage Guide criado. |
 | F22 | Loading Operation / Progress / Readiness Boundary | Framework Core + Loading Module | `CLOSED / F22H`: operação, steps, progresso ponderado, observation adapter, loading screen adapter boundary, readiness observation, result/issues e usage guide. Loading não é visual, fade, curtain, prefab, TransitionEffect vocabulary ou substituto de SceneLifecycle. |
-| F23 | Pause Content / Overlay / Input Boundary | Framework Consumer / Authoring / Input Boundary | `F23C APPLIED`: Pause Content Anchor Consumer e Pause Overlay Adapter Boundary adicionados. Próximo: F23D Pause Input Boundary Contracts. |
+| F23 | Pause Content / Overlay / Input Boundary | Framework Consumer / Authoring / Input Boundary | `F23D APPLIED`: Pause Content Anchor Consumer, Pause Overlay Adapter Boundary e Pause Input Boundary Contracts adicionados. Próximo: F23E Pause Content / Overlay / Input Diagnostics Smoke. |
 | F24 | Unity Build Surface / Lifecycle Wiring | Framework Unity Build Surface / Lifecycle Wiring | `PLANNED AFTER F23`: prova contratos framework em Unity real antes de gameplay adapters. Inclui wiring explícito, objetos/prefabs mínimos e smokes reais quando aplicável. Não cria gameplay adapters nem monta o jogo. |
 | F25 | Gameplay Adapter Foundation | Gameplay Adapter / Consumer Boundary | Camera, Audio, Actor, gameplay Pooling, Projectile, Damage, Attributes, Powerups e contextual reset entram somente depois de F24 e do modelo de gameplay object amadurecerem. |
 
@@ -350,7 +350,7 @@ Run Progression Save JSON Backend Smoke: PASS
 Run Progression Save Runtime Request Smoke: PASS
 ```
 
-F22G/F22H debt closure accepted. F23A applied. F23B Pause Content Anchor Consumer Contracts applied. F23C Pause Overlay Adapter Boundary applied. Next cut: F23D — Pause Input Boundary Contracts.
+F22G/F22H debt closure accepted. F23A applied. F23B Pause Content Anchor Consumer Contracts applied. F23C Pause Overlay Adapter Boundary applied. Next cut: F23E — Pause Content / Overlay / Input Diagnostics Smoke.
 
 ## Plano F22 — Loading Operation / Progress / Readiness Boundary
 
@@ -397,8 +397,8 @@ F23 define Pause visual/content/input como consumer boundary sobre o Pause core 
 | F23A | `APPLIED / DOCS ONLY` | Pause Content / Overlay / Input ADR Plan. | Nenhum. Documentação apenas. |
 | F23B | `APPLIED / CONTRACTS` | Pause Content Anchor Consumer Contracts. | Compile/import. Smoke dedicado fica em F23E. |
 | F23C | `APPLIED / CONTRACTS` | Pause Overlay Adapter Boundary. | Sem prefab/UI obrigatória; compile/import only. |
-| F23D | `NEXT / PLANNED` | Pause Input Boundary Contracts. | Sem input asset obrigatório. |
-| F23E | `PLANNED` | Pause Content / Overlay / Input Diagnostics Smoke. | QA Canvas. |
+| F23D | `APPLIED / CONTRACTS` | Pause Input Boundary Contracts. | Sem input asset obrigatório; compile/import only. |
+| F23E | `NEXT / PLANNED` | Pause Content / Overlay / Input Diagnostics Smoke. | QA Canvas. |
 | F23F | `PLANNED` | Closure + Usage Guide. | Guia em `Documentation~/Guides/`. |
 
 Guardrails de F23:
@@ -858,10 +858,13 @@ F22F result: Loading Operation / Progress / Readiness Boundary closed with `Docu
 
 F22G result: Loading Readiness Observation Primitives applied. Added `LoadingReadinessObservationId`, `LoadingReadinessStatus`, `LoadingReadinessObservation` and `Run Loading Readiness Observation Smoke`. This resolves readiness observation as a canonical framework boundary without gameplay adapters, lifecycle execution, readiness mutation, UI, prefab, SceneLifecycle replacement or Transition replacement.
 
-F22H result: Loading Result / Issue Primitive Closure applied. Added `LoadingIssueSeverity`, `LoadingIssue`, `LoadingResultStatus`, `LoadingResult` and `Run Loading Result and Issue Smoke`. This resolves Loading result/reporting as a canonical framework boundary without retry/fallback behavior, lifecycle execution, readiness mutation, UI, prefab, SceneLifecycle replacement, Transition replacement or gameplay adapters. F23B is now applied; next cut: F23D - Pause Input Boundary Contracts.
+F22H result: Loading Result / Issue Primitive Closure applied. Added `LoadingIssueSeverity`, `LoadingIssue`, `LoadingResultStatus`, `LoadingResult` and `Run Loading Result and Issue Smoke`. This resolves Loading result/reporting as a canonical framework boundary without retry/fallback behavior, lifecycle execution, readiness mutation, UI, prefab, SceneLifecycle replacement, Transition replacement or gameplay adapters. F23B is now applied; next cut: F23E - Pause Content / Overlay / Input Diagnostics Smoke.
 
 
-F23B result: Pause Content Anchor Consumer Contracts applied. Added passive request id, purpose, request/result/status records and `IPauseContentAnchorConsumer` under `Runtime/Pause`. The contracts can prepare canonical `ContentAnchorBindingRequest` data for future adapters, but do not create anchors, materialize UI, bind input, mutate Pause state, execute Transition Effects, change `Time.timeScale`, own Route/Activity lifecycle or add gameplay adapters. Next cut: F23D - Pause Input Boundary Contracts.
+F23B result: Pause Content Anchor Consumer Contracts applied. Added passive request id, purpose, request/result/status records and `IPauseContentAnchorConsumer` under `Runtime/Pause`. The contracts can prepare canonical `ContentAnchorBindingRequest` data for future adapters, but do not create anchors, materialize UI, bind input, mutate Pause state, execute Transition Effects, change `Time.timeScale`, own Route/Activity lifecycle or add gameplay adapters. Next cut: F23E - Pause Content / Overlay / Input Diagnostics Smoke.
 
 
-F23C result: Pause Overlay Adapter Boundary applied. Added `IPauseOverlayAdapter`, `PauseOverlayPresentation`, `PauseOverlayAdapterAction`, `PauseOverlayAdapterStatus` and `PauseOverlayAdapterResult` under `Runtime/Pause`. The contracts present canonical `PauseSnapshot` and optional prepared Pause Content Anchor data, but do not create UI, Canvas, prefab, ScriptableObject setup, input binding, `Time.timeScale` policy, TransitionEffect execution, anchor creation, scene object discovery, Route/Activity lifecycle ownership or gameplay adapters. Next cut: F23D - Pause Input Boundary Contracts.
+F23C result: Pause Overlay Adapter Boundary applied. Added `IPauseOverlayAdapter`, `PauseOverlayPresentation`, `PauseOverlayAdapterAction`, `PauseOverlayAdapterStatus` and `PauseOverlayAdapterResult` under `Runtime/Pause`. The contracts present canonical `PauseSnapshot` and optional prepared Pause Content Anchor data, but do not create UI, Canvas, prefab, ScriptableObject setup, input binding, `Time.timeScale` policy, TransitionEffect execution, anchor creation, scene object discovery, Route/Activity lifecycle ownership or gameplay adapters. Next cut: F23E - Pause Content / Overlay / Input Diagnostics Smoke.
+
+
+F23D result: Pause Input Boundary Contracts applied. Added `PauseInputActionId`, `PauseInputCommandKind`, `PauseInputSourceKind`, `PauseInputSignal`, `PauseInputResolutionStatus`, `PauseInputResolutionResult` and `IPauseInputResolver` under `Runtime/Pause`. The contracts normalize future concrete input into framework-facing Pause intent and can resolve Pause state commands into canonical `PauseRequest`, but do not create Input System assets, action maps, device bindings, UI navigation, Canvas/prefab setup, `Time.timeScale` policy, gameplay commands, Route/Activity lifecycle ownership or gameplay adapters. Next cut: F23E - Pause Content / Overlay / Input Diagnostics Smoke.
