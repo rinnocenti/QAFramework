@@ -1,6 +1,6 @@
 # F22-ADR-LOADING-001 - Loading Operation Progress Readiness Boundary
 
-Status: Accepted / F22A Planned  
+Status: Accepted / Created in F21A / F22A Planned  
 Phase: F22 - Loading Operation / Progress / Readiness Boundary  
 Type: Framework Core + Loading Module Boundary  
 Last updated: 2026-06-26
@@ -11,9 +11,9 @@ Last updated: 2026-06-26
 
 F18 closed Transition Orchestration as flow orchestration. F19 closed Transition Effects, including fade/curtain adapter boundaries. F20 closed Pause State/Gate. F21 opens Save before Pause visual/gameplay.
 
-Loading needs a separate boundary because progress/readiness reporting is not the same responsibility as visual transition effects or SceneLifecycle execution.
+Loading needs a separate boundary because operation/progress/readiness reporting is not the same responsibility as visual transition effects or SceneLifecycle execution. Until this boundary exists, loading concerns stay distributed across SceneLifecycle, Route Scene Composition, Transition Orchestration and Transition Effects.
 
-NewScripts is reference-only for concepts. F22 does not copy code, assets, configs or runtime architecture from the old project.
+`NewScripts` is reference-only for concepts. F22 does not copy code, assets, configs, ProjectSettings or runtime architecture from the old project.
 
 ---
 
@@ -25,7 +25,7 @@ F22 is:
 Loading Operation / Progress / Readiness Boundary
 ```
 
-Loading owns operation/progress/readiness contracts.
+Loading owns operation, step, weighted progress and readiness observation contracts.
 
 Loading is not:
 
@@ -34,6 +34,8 @@ fade
 curtain
 loading screen prefab
 SceneLifecycle replacement
+Transition replacement
+UI visual requirement
 ```
 
 Loading visual belongs to a later adapter boundary.
@@ -48,9 +50,11 @@ Loading may define:
 loading operation identity
 loading operation status
 loading step identity
+loading step status
 weighted progress primitives
 progress aggregation result
-readiness observation contracts
+readiness wait/observation contracts
+loading result/failure records
 diagnostic facts
 observation adapter contracts
 ```
@@ -64,7 +68,7 @@ Activity lifecycle execution
 Transition visual effects
 fade/curtain adapters
 loading screen prefab
-UI concrete show/hide
+concrete UI show/hide
 save backend persistence
 gameplay readiness mutation
 ```
@@ -86,9 +90,9 @@ SceneLifecycle / Transition integration in F22 is observation only unless a late
 
 ---
 
-## 5. Excluded Now
+## 5. Excluded in F21A/F22A Planning
 
-F22A does not implement:
+The Loading ADR plan does not implement:
 
 ```text
 runtime code
@@ -97,6 +101,7 @@ curtain
 loading screen prefab
 UI
 scene object
+prefab
 ScriptableObject
 asmdef changes
 SceneLifecycle replacement
@@ -117,4 +122,3 @@ F19 remains the owner of Transition Effects and fade/curtain adapter boundaries.
 SceneLifecycle remains the owner of scene lifecycle execution. Loading observes lifecycle/transition progress instead of replacing that owner.
 
 Pause Content / Overlay / Input stays in F23. Gameplay Adapter Foundation stays in F24.
-

@@ -20,7 +20,7 @@ Current operational planning moved to:
 
 ```text
 F20-ADR-PAUSE-002-Pause-State-and-Gate.md
-F21-ADR-PAUSE-003-Pause-Content-Overlay-Input-Boundary.md
+F23-ADR-PAUSE-003-Pause-Content-Overlay-Input-Boundary.md
 ```
 
 The current plan treats Pause as state + Gate blocker first, then content/overlay/input as consumers.

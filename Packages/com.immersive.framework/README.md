@@ -34,8 +34,8 @@ Documentation~/Guides/F20-Pause-State-Gate-Usage.md
 Status:
 
 ```text
-F0-F20 closed/applied. F21 is next/planned.
-F17 is Gate Foundation and is closed through F17E. F18 is Transition Orchestration Foundation and is closed through F18F. F19 is Transition Effects and is closed through F19F. F20 is Pause State/Gate and is closed through F20F with `Documentation~/Guides/F20-Pause-State-Gate-Usage.md`. F20A accepted the Pause State/Gate implementation plan. F20B introduced passive Pause state primitives under `Runtime/Pause`. F20C added `Run Pause Diagnostics Smoke`. F20D added passive Pause-to-Gate blocker policy. F20E added the minimal runtime Pause request path through `FrameworkRuntimeHost` and `PauseRuntime`. F20F closes the phase and hands off to F21 Save / Snapshot / Preferences / Progression Save Foundation.
+F0-F20 closed/applied. F21 is open. F21A is applied/documental; F21B Snapshot Envelope Primitives are applied; F21C is next/planned.
+F17 is Gate Foundation and is closed through F17E. F18 is Transition Orchestration Foundation and is closed through F18F. F19 is Transition Effects and is closed through F19F. F20 is Pause State/Gate and is closed through F20F with `Documentation~/Guides/F20-Pause-State-Gate-Usage.md`. F20A accepted the Pause State/Gate implementation plan. F20B introduced passive Pause state primitives under `Runtime/Pause`. F20C added `Run Pause Diagnostics Smoke`. F20D added passive Pause-to-Gate blocker policy. F20E added the minimal runtime Pause request path through `FrameworkRuntimeHost` and `PauseRuntime`. F20F closes the phase and hands off to F21 Save / Snapshot / Preferences / Progression Save Foundation. F21A realigns the roadmap and accepts Save/Loading boundaries; F21B adds passive Snapshot envelope primitives under `Runtime/Snapshot`; F21C is the next implementation cut.
 F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C routes existing in-flight request admission through Gate; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase without adding Pause, Transition runtime, UI or gameplay. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes. F18D adds a passive Transition-to-Gate blocker relationship and smoke. F18E adds a passive Route/Activity orchestration observation policy and smoke. F18F closes the phase with a Transition Orchestration usage guide and hands off to F19. F19A accepts the Transition Effects boundary/implementation plan. F19B introduces passive Transition Effect primitives under `Runtime/TransitionEffects`. F19C adds `Run Transition Effect Diagnostics Smoke`. F19D adds the minimal built-in Unity `UnityFadeCurtainEffectAdapter`, adapter contract and `Run Unity Fade Curtain Effect Adapter Smoke`. F19E adds required/optional effect policy guardrails and `Run Transition Effect Policy Guardrails Smoke`, using explicit adapter lists only. F19F closes the phase with `Documentation~/Guides/F19-Transition-Effects-Usage.md`, preserves the asset-free policy boundary, and compacts QA Canvas by hiding phase diagnostics behind foldouts. F20A accepted the Pause State/Gate implementation plan: Pause is state plus Gate blocker relationship, not Activity, menu, overlay, input system or `Time.timeScale` contract. F20B adds passive Pause primitives: `PauseRequestId`, `PauseState`, `PauseRequestKind`, `PauseRequestStatus`, `PauseIssue`, `PauseRequest`, `PauseResult` and `PauseSnapshot`. F20C validates pause/resume/toggle/idempotent/rejected/snapshot shapes through a synthetic QA smoke under the collapsed Pause diagnostics group. F20D validates Pause-to-Gate blockers. F20E adds the minimal request path. F20F closes the phase with the F20 usage guide. Fade/loading/curtain are F19 adapters/effects and are not core Transition.
 ```
 
@@ -69,7 +69,7 @@ F17 - Gate Foundation / CLOSED
 F18 - Transition Orchestration Foundation / CLOSED
 F19 - Transition Effects / Loading and Fade Adapters / CLOSED
 F20 - Pause State and Pause Gate / CLOSED / F20F QA PASS + USAGE
-F21 - Save / Snapshot / Preferences / Progression Save Foundation / NEXT
+F21 - Save / Snapshot / Preferences / Progression Save Foundation / IN PROGRESS / F21B PRIMITIVES APPLIED / F21C NEXT
 F22 - Loading Operation / Progress / Readiness Boundary
 F23 - Pause Content / Overlay / Input Boundary
 F24 - Gameplay Adapter Foundation
@@ -108,10 +108,28 @@ F20E adds `PauseRuntime` and `FrameworkRuntimeHost.RequestPause(...)`. It mutate
 
 F20 is closed as logical Pause core. It provides state, request/result, runtime snapshot and passive Gate blocker relationship. It intentionally does not provide Pause menu, overlay content, input binding, `Time.timeScale` adapter, scene object setup or ScriptableObject authoring.
 
-Use `Documentation~/Guides/F20-Pause-State-Gate-Usage.md` for the current usage boundary and QA smokes. F21 is the next phase for Save / Snapshot / Preferences / Progression Save Foundation.
+Use `Documentation~/Guides/F20-Pause-State-Gate-Usage.md` for the current usage boundary and QA smokes. F21A is the applied documentation cut for Save / Snapshot / Preferences / Progression realignment. F21B adds Snapshot Envelope primitives and keeps the boundary backend-free. F21C is next for Snapshot Participant Contracts + Diagnostics Smoke.
 
 ### F21/F22 roadmap realignment
 
-F21 opens Save before Pause visual/gameplay work. Snapshot is an envelope/participant boundary and does not know persistence backend. Preferences are independent user/application settings and do not use progression slots. Progression Save owns slot/manifest/request contracts and uses a replaceable backend port. A future JSON backend is only the initial adapter, not the canonical contract; a future premium backend must swap behind the same interface.
+F21A opens Save before Pause visual/gameplay work. Snapshot is an envelope/participant boundary and does not know persistence backend. Preferences are independent user/application settings and do not use progression slots. Progression Save owns slot/manifest/request contracts and uses a replaceable backend port. A future JSON backend is only the initial adapter, not the canonical contract; a future premium backend must swap behind the same interface.
 
-F22 defines Loading as operation/progress/readiness reporting. Loading is not fade, curtain, loading screen prefab or a SceneLifecycle replacement. Loading visuals remain a later adapter boundary.
+F22 is now reserved for Loading as operation/progress/readiness reporting. Loading is not fade, curtain, loading screen prefab or a SceneLifecycle replacement. Loading visuals remain a later adapter boundary.
+
+
+### F21A — Save/Loading ADR Plan Result
+
+F21A is documentation-only. It does not add runtime code, asmdefs, PlayerPrefs, JSON, backend, UI, scene object, prefab or ScriptableObject setup. It records that Snapshot, Preferences and Progression Save are separate boundaries, and that Loading Operation/Progress/Readiness is its own F22 boundary before Pause visual work.
+
+F21B adds passive Snapshot primitives under `Runtime/Snapshot`: `SnapshotEnvelopeId`, `SnapshotScope`, `SnapshotSchemaId`, `SnapshotSchemaVersion`, `SnapshotPayloadFormat`, `SnapshotPayload` and `SnapshotEnvelope`. These types do not save files, use PlayerPrefs, choose JSON, bind progression slots, restore gameplay, create runtime objects or define participant contracts.
+
+Next cut: `F21C — Snapshot Participant Contracts + Diagnostics Smoke`.
+
+
+### F21B — Snapshot Envelope Primitives
+
+F21B adds passive Snapshot envelope primitives under `Runtime/Snapshot`. The envelope can identify a captured payload by envelope id, scope, owner identity, schema id, schema version, payload format, captured UTC ticks, source and reason.
+
+F21B intentionally does not add a backend, PlayerPrefs, JSON, progression slot, manifest, autosave moment, participant interface, capture/restore runtime, UI, scene object, prefab, ScriptableObject or asmdef change.
+
+Next cut: `F21C — Snapshot Participant Contracts + Diagnostics Smoke`.

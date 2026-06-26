@@ -8,7 +8,7 @@ Documentation~/Planning/Immersive-Framework-Roadmap-Revisado.md
 
 ADRs record accepted architectural decisions. They do not replace the operational roadmap and must not redefine phase order.
 
-F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integration & Authoring UX`. F13 is closed as `Object Entry Foundation`. F14 is closed as `Local Object Reset Foundation`. F15 is closed as `Unity Reset Adapters minimos`. F16 is closed as `GameObject Active State Reset Adapter`. F17 is closed as `Gate Foundation`. F18 is closed as `Transition Orchestration Foundation`. F19 is closed as `Transition Effects`. F20 is closed as `Pause State and Gate`. F21 is next for Save / Snapshot / Preferences / Progression Save Foundation. F22 is Loading Operation / Progress / Readiness Boundary. Pause Content/Overlay/Input moves to F23. Gameplay Adapter Foundation moves to F24.
+F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integration & Authoring UX`. F13 is closed as `Object Entry Foundation`. F14 is closed as `Local Object Reset Foundation`. F15 is closed as `Unity Reset Adapters minimos`. F16 is closed as `GameObject Active State Reset Adapter`. F17 is closed as `Gate Foundation`. F18 is closed as `Transition Orchestration Foundation`. F19 is closed as `Transition Effects`. F20 is closed as `Pause State and Gate`. F21 is open for Save / Snapshot / Preferences / Progression Save Foundation. F21A is applied as a documentation-only ADR plan; F21B Snapshot Envelope Primitives are applied; F21C is next. F22 is Loading Operation / Progress / Readiness Boundary. Pause Content/Overlay/Input moves to F23. Gameplay Adapter Foundation moves to F24.
 
 ## Accepted ADRs
 
@@ -41,9 +41,9 @@ F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integra
 | F18 | [Transition Orchestration](F18-ADR-TRANSITION-001-Transition-Orchestration.md) | Accepted / Closed F18F |
 | F19 | [Transition Effects Boundary](F19-ADR-TRANSITION-002-Transition-Effects-Boundary.md) | Accepted / Closed F19F |
 | F20 | [Pause State and Gate](F20-ADR-PAUSE-002-Pause-State-and-Gate.md) | Accepted / Closed F20F |
-| F21 | [Save Snapshot Preferences Progression Boundary](F21-ADR-SAVE-001-Save-Snapshot-Preferences-Progression-Boundary.md) | Accepted / Planned F21A |
-| F22 | [Loading Operation Progress Readiness Boundary](F22-ADR-LOADING-001-Loading-Operation-Progress-Readiness-Boundary.md) | Accepted / Planned F22A |
-| F23 | [Pause Content Overlay Input Boundary](F21-ADR-PAUSE-003-Pause-Content-Overlay-Input-Boundary.md) | Deferred / Moved from former F21 plan |
+| F21 | [Save Snapshot Preferences Progression Boundary](F21-ADR-SAVE-001-Save-Snapshot-Preferences-Progression-Boundary.md) | Accepted / F21B Primitives Applied / F21C Next |
+| F22 | [Loading Operation Progress Readiness Boundary](F22-ADR-LOADING-001-Loading-Operation-Progress-Readiness-Boundary.md) | Accepted / Created in F21A / F22A Planned |
+| F23 | [Pause Content Overlay Input Boundary](F23-ADR-PAUSE-003-Pause-Content-Overlay-Input-Boundary.md) | Deferred / Moved from former F21 plan |
 | F24+ | [Advanced Consumers Boundary](F17-ADR-CONSUMERS-001-Advanced-Consumers-Boundary.md) | Deferred / After Gameplay Adapter Foundation |
 | F24 | [Gameplay Capabilities Boundary](F18-ADR-GAMEPLAY-001-Gameplay-Capabilities-Boundary.md) | Deferred / Gameplay Adapter Foundation |
 
@@ -72,8 +72,13 @@ F19 closure note: Transition effects are adapters/consumers of F18 Transition Or
 
 F20/F23 pause note: Pause is state plus Gate blocker. F20A accepted the implementation plan; F20B added passive Pause primitives under `Runtime/Pause`; F20C added `Run Pause Diagnostics Smoke`; F20D added `Run Pause Gate Blocker Smoke`; F20E added `Run Pause Runtime Request Smoke` and the minimal in-memory request path through `FrameworkRuntimeHost`; F20F closed the phase with `Documentation~/Guides/F20-Pause-State-Gate-Usage.md`. F20 remains asset-free: no scene object, Canvas, prefab or ScriptableObject is required. Pause is not Activity, does not own Route/Activity lifecycle and does not define `Time.timeScale` as the canonical contract. Pause overlay/content/input move to F23, after Save and Loading boundaries.
 
-F21 Save note: Save opens before Pause visual/gameplay work. Snapshot owns envelope/participant shape and does not know backend. Preferences owns user/application settings and does not use progression slots. Progression Save owns slots/manifests/request contracts and uses a replaceable backend port. A future JSON backend is the initial adapter only, not the canonical contract; a future premium backend must replace it behind the same interface.
+F21 Save note: F21A opened Save before Pause visual/gameplay work. F21B added passive Snapshot envelope primitives under `Runtime/Snapshot`. Snapshot owns envelope/participant shape and does not know backend. Preferences owns user/application settings and does not use progression slots. Progression Save owns slots/manifests/request contracts and uses a replaceable backend port. A future JSON backend is the initial adapter only, not the canonical contract; a future premium backend must replace it behind the same interface.
 
-F22 Loading note: Loading is operation/progress/readiness reporting. It is not fade, curtain, loading screen prefab or a SceneLifecycle replacement. Loading visual belongs to a later adapter boundary.
+F22 Loading note: F21A reserves F22 for Loading as operation/progress/readiness reporting. It is not fade, curtain, loading screen prefab or a SceneLifecycle replacement. Loading visual belongs to a later adapter boundary.
 
 F24 defer note: Advanced Consumers, Gameplay Adapter Foundation and contextual reset for Player/Actor/NPC/Timer/Door/Pickup are deferred until Save/Loading/Pause boundaries are planned and a mature gameplay object model exists.
+
+F21A applied note: F21A is documentation-only. It realigns roadmap/ADRs, accepts the Save/Snapshot/Preferences/Progression boundary, accepts the Loading Operation/Progress/Readiness boundary for F22, moves Pause Content/Overlay/Input to F23 and moves Gameplay Adapter Foundation to F24. No runtime, asmdef, backend, PlayerPrefs, JSON, UI, scene object, prefab or ScriptableObject is added by F21A. Next cut after F21A: F21B - Snapshot Envelope Primitives.
+
+
+F21B applied note: F21B adds passive Snapshot Envelope primitives only: `SnapshotEnvelopeId`, `SnapshotScope`, `SnapshotSchemaId`, `SnapshotSchemaVersion`, `SnapshotPayloadFormat`, `SnapshotPayload` and `SnapshotEnvelope`. It adds `Snapshot` to `FrameworkIdentityDomain`. It does not add backend, PlayerPrefs, JSON, Progression Save slots/manifests, autosave moments, participant contracts, capture/restore runtime, UI, scene object, prefab, ScriptableObject or asmdef changes. Next cut: F21C - Snapshot Participant Contracts + Diagnostics Smoke.
