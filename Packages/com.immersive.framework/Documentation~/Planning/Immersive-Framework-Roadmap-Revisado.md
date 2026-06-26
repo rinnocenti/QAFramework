@@ -376,7 +376,7 @@ F17 fechou a fundação de Gate como linguagem canônica de admissão do framewo
 | F17B | `CLOSED / PRIMITIVES` | Primitivas passivas: `GateScope`, `GateDomain`, `GateDecisionStatus`, `GateDecision`, `GateBlocker`, `GateEvaluationResult` e `GateSnapshot`. |
 | F17C | `CLOSED / REGRESSION SMOKE PASS` | Admissão already-in-flight de Route/Activity/CycleReset/ObjectReset passa por `GateEvaluationResult`, preservando result kinds existentes. |
 | F17D | `CLOSED / QA SMOKE PASS` | `Run Gate Admission Diagnostics Smoke` valida admissões allowed/blocked por diagnóstico sintético estável. |
-| F17E | `CLOSED / DOCS + HANDOFF` | Fechamento da fase e preparação explícita para F18 Transition Orchestration. |
+| F17E | `CLOSED / DOCS + HANDOFF` | Fechamento da fase, Usage Guide de Gate Foundation e preparação explícita para F18 Transition Orchestration. |
 
 Evidência aceita de F17C:
 
@@ -446,7 +446,7 @@ Sequência planejada de F18:
 | F18C | `PLANNED` | Smoke/diagnóstico sintético de resultados de Transition sem trocar cenas. |
 | F18D | `PLANNED` | Relação lógica entre operação ativa de Transition e Gate blocker. |
 | F18E | `PLANNED` | Observação mínima de Route/Activity orchestration, se necessária, preservando happy path e result kinds existentes. |
-| F18F | `PLANNED` | Fechamento da fase e handoff para F19 Transition Effects. |
+| F18F | `PLANNED` | Fechamento da fase, Usage Guide de Transition Orchestration e handoff para F19 Transition Effects. |
 
 F18 não implementa:
 
@@ -477,6 +477,7 @@ F18 não implementa:
 - Adapter Unity não deve virar gameplay consumer.
 - Gameplay consumer não deve redefinir lifecycle, identity, ownership, policy ou diagnostics do core.
 - Documento obsoleto/substituído não deve permanecer como arquivo separado.
+- Toda fase fechada deve adicionar ou atualizar um `Usage` guide em `Documentation~/Guides/`.
 
 ## O que não mudar agora
 

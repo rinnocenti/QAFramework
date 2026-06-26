@@ -14,6 +14,20 @@ Accepted architectural decisions are indexed at:
 Documentation~/ADRs/ADR-INDEX.md
 ```
 
+
+Usage guides are kept under:
+
+```text
+Documentation~/Guides/
+```
+
+Closed phases must add or update a `Usage` guide there. F17 Gate Foundation usage is documented at:
+
+```text
+Documentation~/Guides/F17-Gate-Foundation-Usage.md
+```
+
+
 Status:
 
 ```text

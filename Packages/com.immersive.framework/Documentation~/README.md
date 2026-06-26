@@ -12,6 +12,18 @@ Accepted architectural decisions:
 ADRs/ADR-INDEX.md
 ```
 
+
+Usage guides:
+
+```text
+Guides/F15-Unity-Object-Reset-Adapters-Usage.md
+Guides/F16-GameObject-Active-Reset-Usage.md
+Guides/F17-Gate-Foundation-Usage.md
+```
+
+Closure rule: when a framework phase is closed, add or update its `Usage` guide under `Documentation~/Guides/`.
+
+
 F0-F17 are closed/applied. F17 is Gate Foundation. F18 is now in progress as Transition Orchestration Foundation.
 F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C integrates those primitives with existing request-admission guards; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase and hands off to F18. F18A accepts the Transition Orchestration implementation plan without runtime visual effects.
 

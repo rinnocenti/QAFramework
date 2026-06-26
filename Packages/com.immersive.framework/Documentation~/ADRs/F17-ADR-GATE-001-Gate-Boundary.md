@@ -186,6 +186,14 @@ Transition effects remain adapters for F19.
 Pause remains F20/F21 and must consume Gate instead of defining a separate blocker model.
 ```
 
+F17 usage guide:
+
+```text
+Documentation~/Guides/F17-Gate-Foundation-Usage.md
+```
+
+The guide documents current usage, QA smoke, expected logs, limitations and the closure rule for future phase usage guides.
+
 ## 10. Excluded Now
 
 F17 does not implement:
