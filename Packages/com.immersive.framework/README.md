@@ -14,4 +14,18 @@ Accepted architectural decisions are indexed at:
 Documentation~/ADRs/ADR-INDEX.md
 ```
 
-F0-F14 are closed/applied. F15 `Unity Reset Adapters mínimos` is proposed/planning and has not started implementation.
+Status:
+
+```text
+F0-F14 closed/applied.
+F15A accepted the Unity Reset Adapters ADR.
+F15B is the next implementation cut.
+```
+
+Current reset boundary:
+
+```text
+Cycle Reset covers Route/Activity cycle reset.
+Object Reset foundation is logical orchestration only.
+F15 starts technical Unity reset adapters, without Player/Actor/Pooling/Gameplay reset.
+```

@@ -12,7 +12,7 @@ Accepted architectural decisions:
 ADRs/ADR-INDEX.md
 ```
 
-F0-F14 are closed/applied. F15 `Unity Reset Adapters mínimos` is proposed/planning and has not started implementation.
+F0-F14 are closed/applied. F15A accepted the `Unity Reset Adapters mínimos` ADR; F15B is the next implementation cut.
 
 Current reset boundary:
 
@@ -42,7 +42,7 @@ Current Object Reset boundary:
 ```text
 F14 closed ObjectResetTarget as ObjectEntryId + owner + scope from the current Object Entry snapshot.
 Object Reset has request/policy/result, target resolver, participant contract/source, deterministic plan/runtime executor, Runtime Host integration, public trigger and optional UnityEvent bridge.
-Transform/Rigidbody/Animator, pooling, Player/Actor and gameplay reset remain outside F14 and start only through explicit future adapters.
+Transform/Rigidbody/Animator, pooling, Player/Actor and gameplay reset remain outside F14. F15 starts only with technical Unity reset adapters, not gameplay reset.
 ```
 
 
@@ -54,4 +54,14 @@ Add Object Reset Trigger and reference that declaration.
 UGUI/Button may call ObjectResetTrigger.RequestObjectReset() directly.
 Object Reset Trigger Unity Event Bridge is optional and only adapts trigger events to Inspector UnityEvents.
 Until F15 adapters exist, a valid authored trigger can complete as SucceededNoParticipants.
+```
+
+
+F15 adapter boundary note:
+
+```text
+Unity Reset Adapters are technical IObjectResetParticipant implementations.
+They must target Object Entry identity, not GameObject.name/path.
+Required adapter/source absence must be explicit and cannot be hidden by SucceededNoParticipants.
+Player, Actor, Pooling, Save/Checkpoint and gameplay reset stay outside F15.
 ```

@@ -17,8 +17,8 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 | Faixa | Status | Leitura oficial |
 |---|---|---|
 | F0-F14 | `CLOSED / APPLIED` | Historico real resumido neste documento. |
-| F15 | `PROPOSED / PLANNING` | Unity Reset Adapters minimos em decisao pre-implementacao; F15 ainda nao comecou. |
-| F16-F18 | `PLANNED / REVISED ORDER` | Ordem futura mantida; gameplay continua bloqueado ate adapters/core aprovados. |
+| F15 | `ACTIVE / ADR ACCEPTED` | Unity Reset Adapters minimos; F15A aceitou boundaries e guardrails, implementacao inicia em F15B. |
+| F16-F18 | `PLANNED / REVISED ORDER` | Ordem futura mantida; gameplay continua bloqueado ate F15 fechar adapters tecnicos minimos. |
 
 ## Historico real F0-F14
 
@@ -50,6 +50,8 @@ F13 criou o catalogo logico owned/scoped de objetos que desbloqueou os contratos
 
 F14 fechou a orquestracao logica de Object Reset sem executar reset fisico Unity.
 
+F15A aceitou a arquitetura dos Unity Reset Adapters: adapters sao consumers tecnicos de Object Reset, usam Object Entry identity, registram-se por participant source do framework e nao podem mascarar adapter required ausente com fallback silencioso.
+
 ## Decisoes arquiteturais aceitas
 
 | Tema | Decisao aceita |
@@ -65,6 +67,8 @@ F14 fechou a orquestracao logica de Object Reset sem executar reset fisico Unity
 | Cycle Reset | Cycle Reset cobre Route/Activity cycle reset; nao e object reset, component reset, reload, release, snapshot restore ou pool return. |
 | Trigger UX | Triggers sao entry points principais; Unity Event Bridges sao opcionais para callbacks de resultado por Inspector. |
 | Object Entry | F13 fechou catalogo logico passivo, owner tipado, collection scoped e snapshot lifecycle. Nao e GameObject binding, registry vivo, reset inventory ou service locator. |
+| Object Reset | F14 fechou target/resolution/plan/runtime/host/trigger/bridge, mas nao executa adapters Unity. |
+| Unity Reset Adapters | F15A aceitou adapters Unity como participants tecnicos de Object Reset, registrados por source do framework, sem GameObject.name/path e sem gameplay reset. |
 | Diagnostics | Falhas de contrato/config obrigatoria devem ser explicitas. Nao ha fallback silencioso. |
 | Authoring UX | Nomes publicos devem expressar intencao de uso, nao detalhes internos de pipeline. |
 
@@ -111,7 +115,7 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Camera, Audio,
 | F12 | Cycle Reset Integration & Authoring UX | Framework Core + Editor/Authoring | `CLOSED / APPLIED`: validar e documentar UX/authoring dos triggers e bridges opcionais, sem reset fisico/local. |
 | F13 | Object Entry Foundation | Framework Core | `CLOSED / APPLIED`: identidade, descriptor, declaration, typed ownership, scoped collection, snapshot invalidation/refresh e closure smoke. Readiness real fica para F16. |
 | F14 | Local/Object Reset Foundation | Framework Core | `CLOSED / APPLIED`: target canonico deriva de Object Entry atual; participant source explicita; plan/runtime executor; Runtime Host; trigger publico; bridge opcional; sem Unity adapters ou gameplay reset. |
-| F15 | Unity Reset Adapters minimos | Unity Adapter | `PROPOSED / PLANNING`: reconciliar decisoes de adapter antes de criar traducao Unity de reset local/object aprovado pelo core, sem gameplay consumers. |
+| F15 | Unity Reset Adapters minimos | Unity Adapter | `ACTIVE / ADR ACCEPTED`: F15A aceitou source/adapter boundary, no-participants policy e guardrails; F15B inicia participant source Unity, sem gameplay consumers. |
 | F16 | Player/Participant Entry Baseline | Framework Core + Authoring | Definir baseline de entrada de player/participant sobre Object Entry, sem Actor/Camera/Audio/Pooling. |
 | F17 | Advanced Consumers | Gameplay Consumer | Abrir consumers avancados somente depois de core reset/object entry estar estavel. Inclui Camera, Audio, Actor e gameplay Pooling quando aprovados. |
 | F18 | Gameplay Capabilities | Gameplay Consumer | Abrir capacidades finais de gameplay como Projectile, Damage, Attributes e Powerups. |
