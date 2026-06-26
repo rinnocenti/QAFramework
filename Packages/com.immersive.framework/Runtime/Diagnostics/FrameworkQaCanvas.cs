@@ -281,6 +281,21 @@ namespace Immersive.Framework.Diagnostics
                     RunTransitionOrchestrationObservationSmoke();
                 }
 
+                if (GUILayout.Button("Run Transition Effect Diagnostics Smoke"))
+                {
+                    RunTransitionEffectDiagnosticsSmoke();
+                }
+
+                if (GUILayout.Button("Run Unity Fade Curtain Effect Adapter Smoke"))
+                {
+                    RunUnityFadeCurtainEffectAdapterSmoke();
+                }
+
+                if (GUILayout.Button("Run Transition Effect Policy Guardrails Smoke"))
+                {
+                    RunTransitionEffectPolicyGuardrailsSmoke();
+                }
+
                 if (GUILayout.Button("Run Cycle Reset Runtime Host Smoke"))
                 {
                     RunCycleResetRuntimeHostSmoke();
@@ -696,6 +711,24 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(TransitionOrchestrationObservationQaSmokeRunner.SmokeName, runtimeHost =>
                 TransitionOrchestrationObservationQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunTransitionEffectDiagnosticsSmoke()
+        {
+            await RunSmokeAsync(TransitionEffectQaSmokeRunner.SmokeName, runtimeHost =>
+                TransitionEffectQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunUnityFadeCurtainEffectAdapterSmoke()
+        {
+            await RunSmokeAsync(TransitionEffectUnityFadeCurtainQaSmokeRunner.SmokeName, runtimeHost =>
+                TransitionEffectUnityFadeCurtainQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunTransitionEffectPolicyGuardrailsSmoke()
+        {
+            await RunSmokeAsync(TransitionEffectPolicyQaSmokeRunner.SmokeName, runtimeHost =>
+                TransitionEffectPolicyQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
         }
 
         private async void RunCycleResetRuntimeHostSmoke()

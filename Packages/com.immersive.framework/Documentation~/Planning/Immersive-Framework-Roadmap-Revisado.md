@@ -19,7 +19,7 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 | F0-F18 | `CLOSED / APPLIED` | Histórico real resumido neste documento. |
 | F17 | `CLOSED / F17E QA PASS` | Gate Foundation fechada. F17A realinhou ADRs/plano; F17B introduziu primitivas passivas; F17C integrou admissão de requests existentes via Gate; F17D adicionou smoke sintético de diagnóstico; F17E fechou a fase e preparou F18. |
 | F18 | `CLOSED / F18F QA PASS + USAGE` | Transition Orchestration Foundation fechada. F18A aceitou o plano; F18B criou primitivas passivas; F18C adicionou diagnostics smoke; F18D definiu relação passiva com Gate blocker; F18E observou Route/Activity orchestration; F18F fechou a fase e criou Usage Guide. Sem fade/loading visual, Pause, Input ou gameplay. |
-| F19 | `IN PROGRESS / F19B PRIMITIVES APPLIED` | Transition effects/loading/fade adapters começaram como boundary/implementation plan e agora têm primitivas passivas. Ainda sem cena, objeto, ScriptableObject, fade visual ou loading screen. |
+| F19 | `IN PROGRESS / F19E POLICY GUARDRAILS` | Transition effects/loading/fade adapters começaram como boundary/implementation plan, têm primitivas passivas, smokes sintéticos, primeiro adapter Unity mínimo para fade/curtain e policy/guardrails required/optional. Ainda sem ScriptableObject, registry, DOTween, loading screen canônico ou integração real com Route/Activity. |
 | F20-F21 | `PLANNED / REVISED ORDER` | Pause state/gate e Pause content/input boundary vêm depois de Transition Effects. |
 | F22+ | `DEFERRED` | Consumers avançados, gameplay capabilities e contextual reset de Player/Actor/NPC/Timer/Door/Pickup ficam bloqueados até Gate/Transition/Pause e um modelo maduro de gameplay object/actor/player. |
 
@@ -134,7 +134,7 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Player, Actor,
 | F16 | GameObject Active State Reset Adapter | Unity Adapter | `CLOSED / APPLIED`: reset primitivo de `activeSelf` authored, com source explícita e guardrails. |
 | F17 | Gate Foundation | Framework Core | `CLOSED / F17E QA PASS`: F17A definiu boundary documental; F17B introduziu primitivas de scope/domain/decision/blocker/snapshot; F17C integrou bloqueios already-in-flight de Route/Activity/CycleReset/ObjectReset por Gate; F17D validou diagnóstico de admissão por smoke sintético; F17E fechou o handoff para F18. |
 | F18 | Transition Orchestration Foundation | Framework Core | `CLOSED / F18F QA PASS + USAGE`: contrato lógico passivo, diagnostics smoke, relação passiva com Gate blocker e observação de Route/Activity orchestration, sem visual effects ou lifecycle paralelo. |
-| F19 | Transition Effects / Loading and Fade Adapters | Unity Adapter / Optional Effects | `IN PROGRESS / F19B PRIMITIVES APPLIED`: efeitos de fade/loading/curtain como adapters depois do contrato lógico. F19B criou primitivas passivas de effect. Sem dependência obrigatória de DOTween/Asset Store e sem fallback silencioso para adapter required ausente. F19A-F19B não criam cena/objeto/SO; setup manual começa somente quando um adapter Unity concreto exigir. |
+| F19 | Transition Effects / Loading and Fade Adapters | Unity Adapter / Optional Effects | `IN PROGRESS / F19E POLICY GUARDRAILS`: efeitos de fade/loading/curtain como adapters depois do contrato lógico. F19B criou primitivas passivas de effect; F19C adicionou smoke sintético; F19D adicionou adapter Unity mínimo para CanvasGroup fade/curtain; F19E adiciona policy/guardrails required/optional. Sem dependência obrigatória de DOTween/Asset Store, sem registry e sem fallback silencioso para adapter required ausente. |
 | F20 | Pause State and Pause Gate | Framework Core | Pause como estado + Gate blocker. Não é Activity, menu ou lifecycle de Route/Activity. |
 | F21 | Pause Content / Overlay / Input Boundary | Framework Consumer / Authoring / Input Boundary | Overlay/content de Pause como consumer, usando Content Anchor/binding/runtime placement quando aplicável. Input de Pause separado de input de gameplay. |
 | F22+ | Advanced Consumers / Gameplay Capabilities | Gameplay Consumer | Camera, Audio, Actor, gameplay Pooling, Projectile, Damage, Attributes, Powerups e contextual reset entram somente depois dos eixos Gate/Transition/Pause e do modelo de gameplay object amadurecerem. |
@@ -147,12 +147,12 @@ F19 implementa effects como adapters depois da orquestração lógica da F18.
 |---|---|---|---|
 | F19A | `CLOSED / ADR PLAN ACCEPTED` | Aceitar boundary/implementation plan para effects. | Nenhum. Sem cena, objeto ou ScriptableObject. |
 | F19B | `CLOSED / PRIMITIVES APPLIED` | Criar primitivas/contratos passivos de effects: id, kind, requiredness, status, request, result, plan e snapshot. | Nenhum. Sem cena, objeto ou ScriptableObject. |
-| F19C | `NEXT` | Smoke sintético de diagnostics de effects. | Nenhum previsto. |
-| F19D | `PLANNED` | Primeiro adapter Unity mínimo para fade/curtain boundary. | Provável GameObject QA em cena, componente adapter/surface e campos no Inspector. Instruções serão dadas no corte. |
-| F19E | `PLANNED` | Required/optional effect policy e guardrails de authoring. | Possível ScriptableObject/profile se a policy precisar de authoring. Instruções serão dadas no corte. |
-| F19F | `PLANNED` | Fechamento, Usage Guide e handoff para F20 Pause State/Gate. | Usage guide obrigatório em `Documentation~/Guides/`. |
+| F19C | `CLOSED / DIAGNOSTICS SMOKE APPLIED` | Smoke sintético de diagnostics de effects: request, plan, succeeded result, optional skipped result, required missing adapter result e snapshot. | Nenhum. Sem cena, objeto ou ScriptableObject. |
+| F19D | `CLOSED / UNITY ADAPTER BOUNDARY APPLIED` | Primeiro adapter Unity mínimo para fade/curtain boundary: `ITransitionEffectAdapter`, `UnityFadeCurtainEffectAdapter` e smoke transitório. | Smoke canônico não exige cena salva. Setup visual manual opcional: GameObject com CanvasGroup + UnityFadeCurtainEffectAdapter; guia em `Documentation~/Guides/F19D-Minimal-Fade-Curtain-Adapter-Setup.md`. |
+| F19E | `CLOSED / POLICY GUARDRAILS APPLIED` | Required/optional effect policy e guardrails de authoring: required missing adapter bloqueia, optional missing adapter não bloqueia, duplicate effect id bloqueia. | Nenhum setup de cena/SO. A policy usa lista explícita de adapters passada pelo caller/smoke; sem registry/discovery. |
+| F19F | `NEXT` | Fechamento, Usage Guide e handoff para F20 Pause State/Gate. | Usage guide obrigatório em `Documentation~/Guides/`. |
 
-F19 não autoriza DOTween, Asset Store, loading screen canônico, Pause menu, input real, gameplay object model ou lifecycle paralelo.
+F19 não autoriza DOTween, Asset Store, loading screen canônico, Pause menu, input real, gameplay object model ou lifecycle paralelo. F19D autoriza apenas o adapter mínimo CanvasGroup fade/curtain, sem tweening e sem integração real com Transition runtime. F19E autoriza apenas policy/guardrails passivos sobre lista explícita de adapters, sem ScriptableObject, registry ou discovery.
 
 ## Fechamento real F11 — Cycle Reset Foundation
 
@@ -524,7 +524,7 @@ F18 não implementa:
 ## Próximo corte
 
 ```text
-F19C - Transition Effect Diagnostics Smoke
+F19D - Minimal Unity Fade/Curtain Adapter Boundary
 ```
 
 F18B fechado: foram criadas primitivas passivas em `Runtime/Transition/` para operação, tipo, fase/status, step, plano, resultado e snapshot/diagnóstico. Também foi adicionado `FrameworkIdentityDomain.Transition` para manter operação como identidade tipada.
@@ -540,3 +540,8 @@ F18F fechado: a fase foi marcada como `CLOSED / DOCS + USAGE + HANDOFF`, o guia 
 F19A fechado: o ADR `F19-ADR-TRANSITION-002-Transition-Effects-Boundary.md` foi atualizado como Implementation Plan. F19A confirmou que Transition Effects são adapters/consumers de Transition Orchestration, não core Transition, não Gate e não SceneLifecycle. Também registrou que F19A não cria cenas, objetos nem ScriptableObjects. Setup manual começa apenas em cortes de adapter Unity concreto, provavelmente F19D+, e deve vir acompanhado de instruções explícitas de cena, GameObject, componente, campos, ScriptableObject se necessário, smoke e logs esperados.
 
 F19B fechado: foram criadas primitivas passivas em `Runtime/TransitionEffects`: `TransitionEffectId`, `TransitionEffectKind`, `TransitionEffectRequiredness`, `TransitionEffectStatus`, `TransitionEffectRequest`, `TransitionEffectResult`, `TransitionEffectPlan` e `TransitionEffectSnapshot`. Também foi adicionado o domínio de identidade `FrameworkIdentityDomain.TransitionEffect`. Ainda sem scene object, ScriptableObject, adapter Unity, fade/loading visual, DOTween, runtime effect execution, Pause, Input ou UI.
+
+
+F19C fechado: adicionado `TransitionEffectQaSmokeRunner` e botão `Run Transition Effect Diagnostics Smoke` no QA Canvas. O smoke valida `TransitionEffectRequest`, `TransitionEffectPlan`, `TransitionEffectResult` nos casos `Succeeded`, `Skipped` opcional e `MissingAdapter` required bloqueante, além de `TransitionEffectSnapshot`. F19C permanece sintético: sem scene object, Canvas, ScriptableObject, adapter Unity, fade/loading visual, DOTween, Pause, Input ou UI.
+
+F19E fechado: adicionada policy de required/optional Transition Effects (`TransitionEffectAuthoringPolicy`), issue/evaluation primitives e smoke `Run Transition Effect Policy Guardrails Smoke`. A policy avalia um `TransitionEffectPlan` contra uma lista explícita de adapters fornecida pelo chamador. Required adapter ausente bloqueia, optional adapter ausente não bloqueia, duplicate effect id bloqueia como ambiguidade de authoring. Ainda sem ScriptableObject, registry, scene discovery, runtime effect owner, loading screen canônico, DOTween ou integração real com Route/Activity.

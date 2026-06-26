@@ -32,9 +32,9 @@ Documentation~/Guides/F18-Transition-Orchestration-Usage.md
 Status:
 
 ```text
-F0-F18 closed/applied. F19 is in progress through F19B.
+F0-F18 closed/applied. F19 is in progress through F19E.
 F17 is Gate Foundation and is closed through F17E. F18 is Transition Orchestration Foundation and is closed through F18F.
-F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C routes existing in-flight request admission through Gate; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase without adding Pause, Transition runtime, UI or gameplay. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes. F18D adds a passive Transition-to-Gate blocker relationship and smoke. F18E adds a passive Route/Activity orchestration observation policy and smoke. F18F closes the phase with a Transition Orchestration usage guide and hands off to F19. F19A accepts the Transition Effects boundary/implementation plan. F19B introduces passive Transition Effect primitives under `Runtime/TransitionEffects`. Fade/loading/curtain are F19 adapters/effects and are not core Transition.
+F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C routes existing in-flight request admission through Gate; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase without adding Pause, Transition runtime, UI or gameplay. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes. F18D adds a passive Transition-to-Gate blocker relationship and smoke. F18E adds a passive Route/Activity orchestration observation policy and smoke. F18F closes the phase with a Transition Orchestration usage guide and hands off to F19. F19A accepts the Transition Effects boundary/implementation plan. F19B introduces passive Transition Effect primitives under `Runtime/TransitionEffects`. F19C adds `Run Transition Effect Diagnostics Smoke` to validate request/plan/result/snapshot shapes synthetically. F19D adds the minimal built-in Unity `UnityFadeCurtainEffectAdapter`, adapter contract and `Run Unity Fade Curtain Effect Adapter Smoke`. F19E adds required/optional effect policy guardrails and `Run Transition Effect Policy Guardrails Smoke`, using explicit adapter lists only. Fade/loading/curtain are F19 adapters/effects and are not core Transition.
 ```
 
 F15-F16 reset adapter closure:
@@ -75,7 +75,7 @@ F22+ - Advanced Consumers / Gameplay Capabilities
 F19 transition effects note:
 
 ```text
-F19A is documentation/plan only. F19B adds passive effect primitives only.
-No scene, GameObject, component setup or ScriptableObject is required yet.
-When a later F19 adapter cut needs Unity authoring, the cut must include exact manual setup steps for the QA scene/object/SO and expected smoke logs.
+F19A is documentation/plan only. F19B adds passive effect primitives only. F19C adds synthetic diagnostics smoke only.
+F19D adds a minimal Unity fade/curtain adapter boundary. The canonical smoke creates a transient QA object, so no project scene asset is required to validate compile/smoke. For manual visual testing, create a scene GameObject with CanvasGroup and UnityFadeCurtainEffectAdapter; see `Documentation~/Guides/F19D-Minimal-Fade-Curtain-Adapter-Setup.md`.
+F19E adds policy/authoring guardrails for required/optional adapters. It does not create a ScriptableObject or registry; the policy evaluates an explicit adapter list supplied by the caller/smoke.
 ```

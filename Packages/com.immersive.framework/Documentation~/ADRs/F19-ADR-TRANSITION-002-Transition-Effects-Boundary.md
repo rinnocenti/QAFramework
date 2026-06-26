@@ -1,6 +1,6 @@
 # F19-ADR-TRANSITION-002 - Transition Effects Boundary
 
-Status: Accepted / F19B Primitives Applied  
+Status: Accepted / F19D Unity Adapter Boundary Applied  
 Phase: F19 - Transition Effects / Loading and Fade Adapters  
 Type: Unity Adapter / Optional Effects / Boundary  
 Last updated: 2026-06-26
@@ -175,17 +175,19 @@ No canonical package setup should import paid/Asset Store packages, local absolu
 ```text
 F19A - Transition Effects Boundary Implementation Plan
 F19B - Transition Effect Primitives - CLOSED / PRIMITIVES APPLIED
-F19C - Transition Effect Diagnostics Smoke - NEXT
-F19D - Minimal Unity Fade/Curtain Adapter Boundary
-F19E - Required/Optional Effect Policy and Authoring Guardrails
+F19C - Transition Effect Diagnostics Smoke - CLOSED / DIAGNOSTICS SMOKE APPLIED
+F19D - Minimal Unity Fade/Curtain Adapter Boundary - CLOSED / UNITY ADAPTER BOUNDARY APPLIED
+F19E - Required/Optional Effect Policy and Authoring Guardrails - CLOSED / POLICY GUARDRAILS APPLIED
 F19F - Closure, Usage Guide and handoff to F20 Pause State/Gate
 ```
 
 F19B does not execute visuals. It creates the passive effect contract vocabulary under `Runtime/TransitionEffects`: `TransitionEffectId`, `TransitionEffectKind`, `TransitionEffectRequiredness`, `TransitionEffectStatus`, `TransitionEffectRequest`, `TransitionEffectResult`, `TransitionEffectPlan` and `TransitionEffectSnapshot`. It also adds `FrameworkIdentityDomain.TransitionEffect` so effect ids remain typed identities.
 
-F19C should validate the vocabulary through synthetic diagnostics. It should not create scene objects, ScriptableObjects or visual effect execution.
+F19C validates the vocabulary through synthetic diagnostics. It does not create scene objects, ScriptableObjects or visual effect execution.
 
-F19D is the first likely cut where scene objects may be needed.
+F19D is the first concrete Unity adapter cut. It adds the adapter contract and a minimal built-in Unity fade/curtain component. The canonical smoke creates a transient QA object, so saved scene setup is optional for validation.
+
+F19E adds required/optional effect policy and authoring guardrails without creating a ScriptableObject, registry or discovery layer. The caller supplies an explicit adapter list to `TransitionEffectAuthoringPolicy.Evaluate`. Required adapter absence blocks. Optional adapter absence produces a warning and remains non-blocking. Duplicate effect ids in one plan block as authoring ambiguity.
 
 ---
 
@@ -240,4 +242,141 @@ Runtime/TransitionEffects/TransitionEffectPlan.cs
 Runtime/TransitionEffects/TransitionEffectSnapshot.cs
 ```
 
-F19C is the next cut and should validate these shapes through a synthetic QA smoke only.
+F19C validates these shapes through a synthetic QA smoke only.
+
+
+## F19C — Transition Effect Diagnostics Smoke
+
+F19C adds a synthetic QA smoke for the passive Transition Effect primitives introduced in F19B.
+
+Validated shapes:
+
+- `TransitionEffectRequest`;
+- `TransitionEffectPlan`;
+- `TransitionEffectResult.SucceededResult`;
+- `TransitionEffectResult.SkippedResult` for optional effects;
+- `TransitionEffectResult.MissingAdapterResult` for required blocking effects;
+- `TransitionEffectSnapshot.FromResults`.
+
+F19C still does not create scene objects, Canvas, ScriptableObjects, Unity adapters, fade visuals, loading screens, DOTween integration, Pause, Input, UI or runtime effect execution.
+
+The QA entry point is `Run Transition Effect Diagnostics Smoke`.
+
+
+## F19D — Minimal Unity Fade/Curtain Adapter Boundary
+
+F19D adds the first concrete Unity adapter boundary for Transition Effects.
+
+New runtime files:
+
+```text
+Runtime/TransitionEffects/ITransitionEffectAdapter.cs
+Runtime/TransitionEffects/UnityFadeCurtainEffectAdapter.cs
+Runtime/Diagnostics/TransitionEffectUnityFadeCurtainQaSmokeRunner.cs
+```
+
+New QA button:
+
+```text
+Run Unity Fade Curtain Effect Adapter Smoke
+```
+
+The adapter executes only one request at a time and returns explicit `TransitionEffectResult` values. It mutates only:
+
+```text
+CanvasGroup.alpha
+CanvasGroup.blocksRaycasts
+CanvasGroup.interactable
+optional surfaceRoot.activeSelf
+```
+
+It does not own or redefine:
+
+```text
+Transition orchestration
+Gate admission/block/release
+SceneLifecycle
+RouteLifecycle
+ActivityFlow
+Pause
+Input
+loading progress
+DOTween/tween timing
+adapter discovery/registry
+service locator
+```
+
+Required missing surface behavior is explicit:
+
+```text
+required fade request + missing CanvasGroup => Failed result + blocking issue
+```
+
+Optional unsupported kind behavior is explicit:
+
+```text
+optional loading screen request sent to fade/curtain adapter => Rejected result + non-blocking issue
+```
+
+F19D does not add ScriptableObject authoring. Required/optional adapter policy and authoring guardrails remain F19E.
+
+Manual visual setup is documented in:
+
+```text
+Documentation~/Guides/F19D-Minimal-Fade-Curtain-Adapter-Setup.md
+```
+
+
+## F19E — Required/Optional Effect Policy and Authoring Guardrails
+
+F19E adds explicit policy evaluation for effect requiredness and basic authoring correctness.
+
+New runtime files:
+
+```text
+Runtime/TransitionEffects/TransitionEffectPolicyIssueSeverity.cs
+Runtime/TransitionEffects/TransitionEffectPolicyIssue.cs
+Runtime/TransitionEffects/TransitionEffectPolicyEvaluation.cs
+Runtime/TransitionEffects/TransitionEffectAuthoringPolicy.cs
+Runtime/Diagnostics/TransitionEffectPolicyQaSmokeRunner.cs
+```
+
+New QA button:
+
+```text
+Run Transition Effect Policy Guardrails Smoke
+```
+
+Policy behavior:
+
+```text
+required effect + no compatible adapter => blocking issue
+optional effect + no compatible adapter => warning / non-blocking issue
+duplicate effect id inside one plan => blocking issue
+compatible adapter present => request is matched and allowed
+```
+
+The policy receives adapters explicitly:
+
+```text
+TransitionEffectAuthoringPolicy.Evaluate(plan, adapters)
+```
+
+It does not perform scene discovery, registry lookup, automatic fallback or adapter execution.
+
+F19E does not require scene setup or ScriptableObject authoring. The smoke creates a transient QA object with `UnityFadeCurtainEffectAdapter` only to provide one explicit fade-compatible adapter to the policy.
+
+Still excluded from F19E:
+
+```text
+ScriptableObject profile
+adapter registry
+scene object discovery
+runtime effect owner
+Transition runtime integration
+Route/Activity request integration
+loading screen canonical UI
+DOTween/tween timing
+Pause/Input/UI gameplay flow
+service locator
+```
