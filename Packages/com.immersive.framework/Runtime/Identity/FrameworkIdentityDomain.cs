@@ -30,6 +30,7 @@ namespace Immersive.Framework.Identity
         Transition = 140,
         TransitionEffect = 150,
         Pause = 160,
-        Snapshot = 170
+        Snapshot = 170,
+        Preferences = 180
     }
 }

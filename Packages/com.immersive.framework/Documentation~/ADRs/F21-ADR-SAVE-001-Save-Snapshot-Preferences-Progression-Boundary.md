@@ -1,6 +1,6 @@
 # F21-ADR-SAVE-001 - Save Snapshot Preferences Progression Boundary
 
-Status: Accepted / F21C Participant Smoke Applied / F21D Next  
+Status: Accepted / F21D Preferences Applied / F21E Next  
 Phase: F21 - Save / Snapshot / Preferences / Progression Save Foundation  
 Type: Framework Core + Save Module Boundary  
 Last updated: 2026-06-26
@@ -79,7 +79,7 @@ Preferences may define:
 preference keys/records
 load/save result contracts
 store port
-PlayerPrefs adapter boundary in a future cut
+PlayerPrefs adapter behind the Preferences store port
 diagnostic facts
 ```
 
@@ -121,8 +121,8 @@ Progression Save must not define a concrete backend as the canonical contract. J
 | F21A | `APPLIED / DOCS ONLY` | Save / Snapshot / Preferences / Progression ADR Plan and roadmap realignment. |
 | F21B | `APPLIED / PRIMITIVES` | Snapshot Envelope Primitives. |
 | F21C | `APPLIED / PARTICIPANT CONTRACTS + SYNTHETIC SMOKE` | Snapshot Participant Contracts + Diagnostics Smoke. |
-| F21D | `NEXT / PLANNED` | Preferences Store Contracts + PlayerPrefs Backend. |
-| F21E | `PLANNED` | Progression Save Port + Slot/Manifest Primitives. |
+| F21D | `APPLIED / PREFERENCES STORE + PLAYERPREFS ADAPTER` | Preferences Store Contracts + PlayerPrefs Backend. |
+| F21E | `NEXT / PLANNED` | Progression Save Port + Slot/Manifest Primitives. |
 | F21F | `PLANNED` | JSON Progression Backend + Diagnostics Smoke. |
 | F21G | `PLANNED` | Progression Save Runtime Request Path + Autosave Moment Contracts. |
 | F21H | `PLANNED` | Closure + Usage Guide. |
@@ -225,7 +225,50 @@ The older F10 Snapshot ADR remains as conceptual history only. The operational c
 
 ---
 
-## 10. Excluded in F21A
+## 10. F21D Applied Shape
+
+F21D adds the Preferences boundary under `Runtime/Preferences`:
+
+```text
+PreferenceKey
+PreferenceValueKind
+PreferenceValue
+PreferenceReadStatus
+PreferenceWriteStatus
+PreferenceReadResult
+PreferenceWriteResult
+IPreferencesStore
+PlayerPrefsPreferencesStore
+```
+
+The contract shape is intentionally separate from Snapshot and Progression Save:
+
+```text
+Preferences stores user/application settings only
+Preferences keys are storage-agnostic identities
+IPreferencesStore is the framework port
+PlayerPrefsPreferencesStore is one adapter behind that port
+PlayerPrefs physical keys are not canonical PreferenceKey values
+PlayerPrefs reads use explicit value-kind markers to prevent silent fallback
+```
+
+F21D also adds `Run Preferences Store Diagnostics Smoke` under `Show Save / Snapshot diagnostics` in the QA Canvas. The smoke writes and deletes namespaced QA PlayerPrefs keys and validates:
+
+```text
+PreferenceKey domain
+typed PreferenceValue primitives
+write/read for string, float and bool
+missing key result
+type mismatch result
+PlayerPrefs type-marker guard for orphaned/unmarked keys
+delete cleanup
+canonical boundary excludes Snapshot, Progression Slot, JSON and UI
+```
+
+F21D does not add Snapshot backend usage, Progression Save slots/manifests, JSON, autosave/load moments, runtime save request path, UI, scene object, prefab, ScriptableObject or asmdef changes.
+
+
+## 11. Excluded in F21A
 
 F21A does not implement:
 
@@ -246,7 +289,7 @@ autosave execution
 
 ---
 
-## 11. Consequences
+## 12. Consequences
 
 Save work can evolve without binding Snapshot to JSON, PlayerPrefs or premium storage.
 
@@ -258,8 +301,8 @@ Pause visual/content/input moves to F23. Gameplay Adapter Foundation moves to F2
 
 ---
 
-## 12. Next Cut
+## 13. Next Cut
 
 ```text
-F21D - Preferences Store Contracts + PlayerPrefs Backend
+F21E - Progression Save Port + Slot/Manifest Primitives
 ```

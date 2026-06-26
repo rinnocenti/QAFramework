@@ -390,13 +390,18 @@ namespace Immersive.Framework.Diagnostics
         {
             GUILayout.Space(4f);
             GUILayout.Label("Save / Snapshot Diagnostics", GUI.skin.box);
-            GUILayout.Label("F21 diagnostics. No backend, PlayerPrefs, JSON, slots, UI or runtime save request path.");
+            GUILayout.Label("F21 diagnostics. Snapshot has no backend. Preferences may use PlayerPrefs only through the Preferences adapter; no JSON, slots, UI or runtime save request path.");
 
             using (new EditorDisabledScope(_requestInFlight))
             {
                 if (GUILayout.Button("Run Snapshot Participant Diagnostics Smoke"))
                 {
                     RunSnapshotParticipantDiagnosticsSmoke();
+                }
+
+                if (GUILayout.Button("Run Preferences Store Diagnostics Smoke"))
+                {
+                    RunPreferencesStoreDiagnosticsSmoke();
                 }
             }
         }
@@ -874,6 +879,12 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(SnapshotParticipantQaSmokeRunner.SmokeName, runtimeHost =>
                 SnapshotParticipantQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunPreferencesStoreDiagnosticsSmoke()
+        {
+            await RunSmokeAsync(PreferencesQaSmokeRunner.SmokeName, runtimeHost =>
+                PreferencesQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
         }
 
         private async void RunCycleResetRuntimeHostSmoke()

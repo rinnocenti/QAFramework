@@ -21,7 +21,7 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 | F18 | `CLOSED / F18F QA PASS + USAGE` | Transition Orchestration Foundation fechada. F18A aceitou o plano; F18B criou primitivas passivas; F18C adicionou diagnostics smoke; F18D definiu relação passiva com Gate blocker; F18E observou Route/Activity orchestration; F18F fechou a fase e criou Usage Guide. Sem fade/loading visual, Pause, Input ou gameplay. |
 | F19 | `CLOSED / F19F QA PASS + USAGE` | Transition Effects fechada. Effects são adapters/consumers de F18: primitivas passivas, diagnostics smoke, adapter Unity mínimo CanvasGroup fade/curtain, policy required/optional e Usage Guide. Sem registry, ScriptableObject obrigatório, DOTween ou fallback silencioso. |
 | F20 | `CLOSED / F20F QA PASS + USAGE` | Pause State/Gate fechado como core lógico. F20B adicionou primitivas passivas; F20C adicionou diagnostics smoke; F20D adicionou policy passiva Pause-to-Gate blocker; F20E adicionou request path mínimo em memória via `FrameworkRuntimeHost`/`PauseRuntime`; F20F criou Usage Guide. Sem Gate registry real, overlay, input ou `Time.timeScale`. |
-| F21 | `IN PROGRESS / F21C PARTICIPANT SMOKE APPLIED` | Save / Snapshot / Preferences / Progression Save Foundation abriu antes de Pause visual/gameplay. F21B adicionou primitivas passivas de Snapshot Envelope. F21C adicionou contratos de participant e smoke sintetico. Proximo corte: F21D Preferences Store Contracts + PlayerPrefs Backend. |
+| F21 | `IN PROGRESS / F21D PREFERENCES APPLIED` | Save / Snapshot / Preferences / Progression Save Foundation abriu antes de Pause visual/gameplay. F21B adicionou primitivas passivas de Snapshot Envelope. F21C adicionou contratos de participant e smoke sintetico. F21D adicionou Preferences store contracts, PlayerPrefs adapter e diagnostics smoke. Proximo corte: F21E Progression Save Port + Slot/Manifest Primitives. |
 | F22 | `PLANNED` | Loading Operation / Progress / Readiness Boundary vem depois de Save e antes de Pause visual. |
 | F23 | `DEFERRED` | Pause Content / Overlay / Input Boundary move para depois de Save e Loading. |
 | F24 | `DEFERRED` | Gameplay Adapter Foundation e consumers avançados ficam bloqueados até Save/Loading/Pause e um modelo maduro de gameplay object/actor/player. |
@@ -147,7 +147,7 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Player, Actor,
 | F18 | Transition Orchestration Foundation | Framework Core | `CLOSED / F18F QA PASS + USAGE`: contrato lógico passivo, diagnostics smoke, relação passiva com Gate blocker e observação de Route/Activity orchestration, sem visual effects ou lifecycle paralelo. |
 | F19 | Transition Effects / Loading and Fade Adapters | Unity Adapter / Optional Effects | `CLOSED / F19F QA PASS + USAGE`: effects fechados como adapters/consumers de F18 Transition Orchestration. F19B criou primitivas passivas; F19C validou diagnostics; F19D adicionou adapter Unity mínimo CanvasGroup fade/curtain; F19E fechou policy/guardrails required/optional; F19F adiciona usage guide e compacta o QA Canvas. Sem dependência obrigatória de DOTween/Asset Store, sem registry, sem ScriptableObject obrigatório e sem fallback silencioso para adapter required ausente. |
 | F20 | Pause State and Pause Gate | Framework Core | `CLOSED / F20F QA PASS + USAGE`: Pause como estado + Gate blocker. F20B primitives; F20C diagnostics smoke; F20D relação passiva Pause-to-Gate; F20E request path mínimo em memória; F20F Usage Guide. Não é Activity, menu, overlay, input system, `Time.timeScale` contract ou lifecycle de Route/Activity. |
-| F21 | Save / Snapshot / Preferences / Progression Save Foundation | Framework Core + Save Module | `IN PROGRESS / F21C PARTICIPANT SMOKE APPLIED`: ADR plan aceito, Snapshot Envelope primitives aplicadas e participant contracts/smoke sintetico aplicados. Proximo: Preferences store e Progression Save port/slot/manifest. |
+| F21 | Save / Snapshot / Preferences / Progression Save Foundation | Framework Core + Save Module | `IN PROGRESS / F21D PREFERENCES APPLIED`: ADR plan aceito, Snapshot Envelope primitives aplicadas, participant contracts/smoke sintetico aplicados e Preferences store/PlayerPrefs adapter aplicado. Proximo: Progression Save port/slot/manifest. |
 | F22 | Loading Operation / Progress / Readiness Boundary | Framework Core + Loading Module | `PLANNED`: contratos de operação, steps, progresso ponderado e readiness observation. Loading não é visual, fade, curtain, prefab ou substituto de SceneLifecycle. |
 | F23 | Pause Content / Overlay / Input Boundary | Framework Consumer / Authoring / Input Boundary | `DEFERRED`: Overlay/content de Pause como consumer, usando Content Anchor/binding/runtime placement quando aplicável. Input de Pause separado de input de gameplay. |
 | F24 | Gameplay Adapter Foundation | Gameplay Adapter / Consumer Boundary | Camera, Audio, Actor, gameplay Pooling, Projectile, Damage, Attributes, Powerups e contextual reset entram somente depois dos eixos Save/Loading/Pause e do modelo de gameplay object amadurecerem. |
@@ -185,7 +185,7 @@ F20B/F20C/F20D/F20E/F20F não autorizam Pause menu, overlay, input real, `Time.t
 ### Próximo corte recomendado
 
 ```text
-F21D - Preferences Store Contracts + PlayerPrefs Backend
+F21E - Progression Save Port + Slot/Manifest Primitives
 ```
 
 ## Plano F21 — Save / Snapshot / Preferences / Progression Save Foundation
@@ -207,13 +207,13 @@ Future premium backend must swap behind the same interface.
 | F21A | `APPLIED / DOCS ONLY` | Aceitou plano ADR de Save/Snapshot/Preferences/Progression e realinhou F22-F24. | Nenhum. Documentacao apenas. |
 | F21B | `APPLIED / PRIMITIVES` | Snapshot Envelope Primitives: id, scope, schema id/version, payload format, payload e envelope. | Nenhum. Sem backend, PlayerPrefs, JSON, participante, UI ou asmdef. |
 | F21C | `APPLIED / PARTICIPANT CONTRACTS + SYNTHETIC SMOKE` | Snapshot Participant Contracts + Diagnostics Smoke. | Nenhum setup salvo. Smoke sintetico via QA Canvas. |
-| F21D | `NEXT / PLANNED` | Preferences Store Contracts + PlayerPrefs Backend. | PlayerPrefs aparece apenas como backend adapter futuro. |
-| F21E | `PLANNED` | Progression Save Port + Slot/Manifest Primitives. | Nenhum backend concreto obrigatorio. |
+| F21D | `APPLIED / PREFERENCES STORE + PLAYERPREFS ADAPTER` | Preferences Store Contracts + PlayerPrefs Backend. | PlayerPrefs existe apenas como adapter de Preferences; não é Snapshot ou Progression Save. |
+| F21E | `NEXT / PLANNED` | Progression Save Port + Slot/Manifest Primitives. | Nenhum backend concreto obrigatorio. |
 | F21F | `PLANNED` | JSON Progression Backend + Diagnostics Smoke. | JSON e adapter inicial futuro, nao contrato canonico. |
 | F21G | `PLANNED` | Progression Save Runtime Request Path + Autosave Moment Contracts. | Sem UI, scene object ou ScriptableObject obrigatorio. |
 | F21H | `PLANNED` | Closure + Usage Guide. | Criar usage guide apenas no fechamento. |
 
-F21A nao implementa codigo, runtime, backend, PlayerPrefs, JSON, UI, scene object, prefab, ScriptableObject ou asmdef. F21B implementa apenas primitivas passivas de Snapshot Envelope em `Runtime/Snapshot`, sem backend, participante, capture/restore runtime ou Progression Save. F21C implementa participant contracts e smoke sintetico, sem discovery, orchestration runtime, backend, PlayerPrefs, JSON, slots, UI ou asmdef. Snapshot segue a decisao F10: Snapshot e diferente de Reset; Reset Baseline nao e Save Snapshot. F10 fica como historico conceitual; o trilho operacional canonico e F21.
+F21A nao implementa codigo, runtime, backend, PlayerPrefs, JSON, UI, scene object, prefab, ScriptableObject ou asmdef. F21B implementa apenas primitivas passivas de Snapshot Envelope em `Runtime/Snapshot`, sem backend, participante, capture/restore runtime ou Progression Save. F21C implementa participant contracts e smoke sintetico, sem discovery, orchestration runtime, backend, PlayerPrefs, JSON, slots, UI ou asmdef. F21D implementa `Runtime/Preferences`, `IPreferencesStore`, `PlayerPrefsPreferencesStore` e `Run Preferences Store Diagnostics Smoke`; PlayerPrefs fica limitado a Preferences, com marcador de tipo por chave para evitar fallback silencioso. Snapshot segue a decisao F10: Snapshot e diferente de Reset; Reset Baseline nao e Save Snapshot. F10 fica como historico conceitual; o trilho operacional canonico e F21.
 
 
 ## F21A result — Save/Loading ADR Plan
@@ -678,7 +678,7 @@ F18 não implementa:
 ## Próximo corte
 
 ```text
-F21D - Preferences Store Contracts + PlayerPrefs Backend
+F21E - Progression Save Port + Slot/Manifest Primitives
 ```
 
 F18B fechado: foram criadas primitivas passivas em `Runtime/Transition/` para operação, tipo, fase/status, step, plano, resultado e snapshot/diagnóstico. Também foi adicionado `FrameworkIdentityDomain.Transition` para manter operação como identidade tipada.
