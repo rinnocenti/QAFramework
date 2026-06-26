@@ -1,6 +1,6 @@
 # F18-ADR-TRANSITION-001 - Transition Orchestration
 
-Status: Accepted / F18A Implementation Plan  
+Status: Accepted / F18B Primitives Applied  
 Phase: F18 - Transition Orchestration Foundation  
 Type: Framework Core / Flow Orchestration / Boundary  
 Last updated: 2026-06-26
@@ -117,7 +117,20 @@ Preferred first runtime cut:
 F18B - Transition primitives only
 ```
 
-F18B must not integrate with Route/Activity flows yet unless the primitive contract proves insufficient without a tiny helper.
+F18B implements the passive runtime shape under `Runtime/Transition/`:
+
+```text
+TransitionOperationId
+TransitionKind
+TransitionPhase
+TransitionStatus
+TransitionStep
+TransitionPlan
+TransitionResult
+TransitionSnapshot
+```
+
+F18B also adds `FrameworkIdentityDomain.Transition` so operation identity stays typed instead of falling back to string/path/name. It does not integrate with Route/Activity flows.
 
 ---
 
@@ -126,8 +139,8 @@ F18B must not integrate with Route/Activity flows yet unless the primitive contr
 | Cut | Target | Boundary |
 |---|---|---|
 | F18A | ADR implementation plan | Documentation only. Accept boundary and define implementation sequence. |
-| F18B | Transition primitives | Passive types for operation identity, kind, phase/status, plan/result/snapshot. |
-| F18C | Transition diagnostics smoke | Synthetic QA runner for valid/failed transition result shapes without scene changes. |
+| F18B | Transition primitives | CLOSED. Passive types for operation identity, kind, phase/status, plan/result/snapshot. |
+| F18C | Transition diagnostics smoke | NEXT. Synthetic QA runner for valid/failed transition result shapes without scene changes. |
 | F18D | Gate blocker relationship | Logical helper that maps active transition operations to Gate blockers without Pause or visual effects. |
 | F18E | Route/Activity orchestration observation | Minimal integration with existing route/activity request path only if needed, preserving happy-path result kinds. |
 | F18F | Closure / handoff to F19 | Document evidence and hand off to Transition Effects adapters. |
@@ -136,7 +149,30 @@ The sequence may be adjusted if implementation shows a smaller safe path, but F1
 
 ---
 
-## 8. Required Diagnostics
+## 8. F18B Implemented Evidence
+
+F18B adds passive primitives only. The implemented boundary is:
+
+```text
+Runtime/Transition/TransitionOperationId.cs
+Runtime/Transition/TransitionKind.cs
+Runtime/Transition/TransitionPhase.cs
+Runtime/Transition/TransitionStatus.cs
+Runtime/Transition/TransitionStep.cs
+Runtime/Transition/TransitionPlan.cs
+Runtime/Transition/TransitionResult.cs
+Runtime/Transition/TransitionSnapshot.cs
+```
+
+The identity domain is extended with:
+
+```text
+FrameworkIdentityDomain.Transition
+```
+
+F18B does not add runtime ownership, operation registry, route/activity integration, Gate blocker mapping, fade/loading/curtain, visual progress, UI, Pause or input.
+
+## 9. Required Diagnostics
 
 Transition diagnostics should be able to answer:
 
@@ -154,7 +190,7 @@ Diagnostics must be facts/loggable summaries, not hidden state inside scene obje
 
 ---
 
-## 9. Excluded From F18A/F18B
+## 10. Excluded From F18A/F18B
 
 F18A/F18B do not implement or require:
 
@@ -176,7 +212,7 @@ singleton transition manager
 
 ---
 
-## 10. Guardrails
+## 11. Guardrails
 
 - Transition is orchestration of flow, not a visual effect.
 - Transition consumes Gate for blocking/release.

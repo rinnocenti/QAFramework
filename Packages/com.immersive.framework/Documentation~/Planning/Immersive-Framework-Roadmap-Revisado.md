@@ -442,8 +442,8 @@ Sequência planejada de F18:
 | Corte | Status | Objetivo |
 |---|---|---|
 | F18A | `CLOSED / ADR IMPLEMENTATION PLAN` | Aceitar ADR operacional e definir sequência segura para F18. |
-| F18B | `NEXT` | Primitivas passivas de Transition: operação, tipo, fase/status, plano/resultado/snapshot. |
-| F18C | `PLANNED` | Smoke/diagnóstico sintético de resultados de Transition sem trocar cenas. |
+| F18B | `CLOSED / PRIMITIVES APPLIED` | Primitivas passivas de Transition: operação, tipo, fase/status, plano/resultado/snapshot. |
+| F18C | `NEXT` | Smoke/diagnóstico sintético de resultados de Transition sem trocar cenas. |
 | F18D | `PLANNED` | Relação lógica entre operação ativa de Transition e Gate blocker. |
 | F18E | `PLANNED` | Observação mínima de Route/Activity orchestration, se necessária, preservando happy path e result kinds existentes. |
 | F18F | `PLANNED` | Fechamento da fase, Usage Guide de Transition Orchestration e handoff para F19 Transition Effects. |
@@ -494,9 +494,11 @@ F18 não implementa:
 ## Próximo corte
 
 ```text
-F18B - Transition Primitives
+F18C - Transition Diagnostics Smoke
 ```
 
-Entrada de F18B: criar primitivas passivas de Transition para operação, tipo, fase/status, plano/resultado e snapshot/diagnóstico, consumíveis por Gate e pelos lifecycles existentes em cortes posteriores.
+F18B fechado: foram criadas primitivas passivas em `Runtime/Transition/` para operação, tipo, fase/status, step, plano, resultado e snapshot/diagnóstico. Também foi adicionado `FrameworkIdentityDomain.Transition` para manter operação como identidade tipada.
 
-F18B não deve integrar visual fade/loading, Pause menu, input real, gameplay object model, reset contextual de Player/Actor/NPC/Timer/Door/Pickup, lifecycle paralelo ou service locator. Fade/loading/curtain ficam para F19 como adapters/effects depois do contrato lógico.
+Entrada de F18C: criar smoke/diagnóstico sintético que valida shapes de `TransitionPlan`, `TransitionResult` e `TransitionSnapshot` sem trocar cenas e sem integrar Route/Activity.
+
+F18C não deve integrar visual fade/loading, Pause menu, input real, gameplay object model, reset contextual de Player/Actor/NPC/Timer/Door/Pickup, lifecycle paralelo ou service locator. Fade/loading/curtain ficam para F19 como adapters/effects depois do contrato lógico.

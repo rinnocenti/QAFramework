@@ -26,6 +26,7 @@ namespace Immersive.Framework.Identity
         QA = 100,
         CycleReset = 110,
         ObjectEntry = 120,
-        ObjectReset = 130
+        ObjectReset = 130,
+        Transition = 140
     }
 }
