@@ -129,15 +129,15 @@ The canonical contract must remain Pause state, Gate effects and explicit facts.
 | F20C | `CLOSED / DIAGNOSTICS SMOKE APPLIED` | Add synthetic Pause diagnostics smoke for request, pause applied, resume applied, toggle target, idempotent/no-change, rejected and snapshot cases. | None. No scene/object/SO/input/Gate/timeScale. |
 | F20D | `CLOSED / PAUSE GATE BLOCKER POLICY APPLIED` | Add passive Pause-to-Gate blocker policy and smoke. | None. No runtime Gate registry. |
 | F20E | `CLOSED / MINIMAL RUNTIME REQUEST PATH APPLIED` | Add `PauseRuntime`, `FrameworkRuntimeHost.RequestPause(...)`, runtime Pause snapshot and derived Pause Gate snapshot diagnostics. | None. No saved scene setup, input, overlay, `Time.timeScale` or Gate registry. |
-| F20F | `PLANNED` | Close F20 with Usage Guide and handoff to F21 Pause Content/Overlay/Input Boundary. | Usage guide only. |
+| F20F | `CLOSED / QA PASS + USAGE` | Close F20 with Usage Guide and handoff to F21 Pause Content/Overlay/Input Boundary. | Usage guide only. |
 
 ---
 
 ## 8. Manual Setup Policy
 
-F20A requires no scene, GameObject, Canvas, prefab or ScriptableObject.
+F20 requires no scene, GameObject, Canvas, prefab or ScriptableObject.
 
-F20 should stay mostly asset-free because it is the logical Pause core. If a later F20 cut unexpectedly needs a scene object or asset, that cut must document:
+F20 stayed asset-free because it is the logical Pause core. If a future Pause cut needs a scene object or asset, that cut must document:
 
 ```text
 which scene to open
@@ -346,5 +346,44 @@ snapshot-running
 
 The smoke intentionally leaves Pause state as `Running` when it completes.
 
-F20F should close the phase with a Usage Guide and handoff to F21 Pause Content/Overlay/Input Boundary.
+F20F closes the phase with `Documentation~/Guides/F20-Pause-State-Gate-Usage.md` and hands off to F21 Pause Content/Overlay/Input Boundary.
+
+---
+
+## 17. F20F Closure
+
+F20 is closed as the logical Pause core:
+
+```text
+PauseRequestId / PauseRequest
+PauseState
+PauseResult
+PauseSnapshot
+PauseGateBlockerPolicy
+PauseRuntime
+FrameworkRuntimeHost.RequestPause(...)
+Pause diagnostics smokes
+```
+
+Closure evidence:
+
+```text
+Run Pause Diagnostics Smoke
+Run Pause Gate Blocker Smoke
+Run Pause Runtime Request Smoke
+```
+
+F20 still does not include:
+
+```text
+Pause input binding
+Pause menu
+Pause overlay content
+Canvas/prefab/ScriptableObject setup
+Time.timeScale adapter
+Gate runtime registry
+Route/Activity lifecycle ownership
+```
+
+F21 owns the next layer: Pause content, overlay and input as consumers of this F20 logical contract.
 
