@@ -261,6 +261,11 @@ namespace Immersive.Framework.Diagnostics
                     RunRuntimeContentSmoke();
                 }
 
+                if (GUILayout.Button("Run Gate Admission Diagnostics Smoke"))
+                {
+                    RunGateAdmissionDiagnosticsSmoke();
+                }
+
                 if (GUILayout.Button("Run Cycle Reset Runtime Host Smoke"))
                 {
                     RunCycleResetRuntimeHostSmoke();
@@ -652,6 +657,12 @@ private void DrawRouteRequests()
             {
                 EndOperation();
             }
+        }
+
+        private async void RunGateAdmissionDiagnosticsSmoke()
+        {
+            await RunSmokeAsync(GateAdmissionQaSmokeRunner.SmokeName, runtimeHost =>
+                GateAdmissionQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
         }
 
         private async void RunCycleResetRuntimeHostSmoke()

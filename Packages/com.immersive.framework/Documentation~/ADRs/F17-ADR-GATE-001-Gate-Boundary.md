@@ -1,6 +1,6 @@
 # F17-ADR-GATE-001 - Gate Boundary
 
-Status: Accepted / F17C Request Admission  
+Status: Accepted / F17D Diagnostics Smoke  
 Phase: F17 - Gate Foundation  
 Type: Framework Core / Flow Admission / Boundary  
 Last updated: 2026-06-26
@@ -13,7 +13,7 @@ F0-F16 closed the first framework foundations through Object Entry, Object Reset
 
 The next core axis is Gate. Gate must define whether the framework can admit a request, input, interaction or gameplay action at a given moment.
 
-F17A was documentation/ADR only. F17B introduced passive runtime primitives for Gate decisions, blockers and snapshots. F17C integrates those primitives with existing request-admission guards for Route, Activity, Cycle Reset and Object Reset. It does not add Pause, Transition, Input, UI, gameplay object model or a global Gate registry.
+F17A was documentation/ADR only. F17B introduced passive runtime primitives for Gate decisions, blockers and snapshots. F17C integrates those primitives with existing request-admission guards for Route, Activity, Cycle Reset and Object Reset. F17D adds a synthetic QA smoke for Gate admission diagnostics. It does not add Pause, Transition, Input, UI, gameplay object model or a global Gate registry.
 
 ---
 
@@ -139,9 +139,27 @@ F17C preserves existing result categories such as `IgnoredAlreadyInFlight` and `
 
 F17C does not create a Gate registry, authoring asset, editor UI, queue, Pause runtime, Transition runtime or input binding.
 
-## 8. Excluded Now
+## 8. F17D Gate Admission Diagnostics Smoke
 
-F17C does not implement:
+F17D adds a development-only QA smoke for request-admission diagnostics. The smoke validates the same request-admission helper used by F17C without creating real concurrent lifecycle operations.
+
+The smoke covers:
+
+```text
+allowed lifecycle request admission
+route-request-in-flight blocker
+activity-request-in-flight blocker
+cycle-reset-request-in-flight blocker
+object-reset-request-in-flight blocker
+```
+
+Each step records `GateEvaluationResult` diagnostics: status, scope, domain, subject, policy source, blocker count and expected blocker id.
+
+F17D is synthetic by design. It avoids racing real Route/Activity/Reset requests during QA because that would make the smoke scene-order dependent and unstable.
+
+## 9. Excluded Now
+
+F17D does not implement:
 
 ```text
 Gate runtime registry
@@ -160,7 +178,7 @@ gameplay object model
 
 ---
 
-## 9. Guardrails
+## 10. Guardrails
 
 - Gate is not UI.
 - Gate is not readiness.
@@ -173,7 +191,7 @@ gameplay object model
 
 ---
 
-## 10. Consequences
+## 11. Consequences
 
 Positive:
 
