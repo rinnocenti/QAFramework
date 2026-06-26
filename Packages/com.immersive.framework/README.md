@@ -32,9 +32,9 @@ Documentation~/Guides/F18-Transition-Orchestration-Usage.md
 Status:
 
 ```text
-F0-F18 closed/applied.
+F0-F18 closed/applied. F19 is in progress through F19A.
 F17 is Gate Foundation and is closed through F17E. F18 is Transition Orchestration Foundation and is closed through F18F.
-F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C routes existing in-flight request admission through Gate; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase without adding Pause, Transition runtime, UI or gameplay. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes. F18D adds a passive Transition-to-Gate blocker relationship and smoke. F18E adds a passive Route/Activity orchestration observation policy and smoke. F18F closes the phase with a Transition Orchestration usage guide and hands off to F19. Fade/loading/curtain remain F19 adapters/effects and are not core Transition.
+F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C routes existing in-flight request admission through Gate; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase without adding Pause, Transition runtime, UI or gameplay. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes. F18D adds a passive Transition-to-Gate blocker relationship and smoke. F18E adds a passive Route/Activity orchestration observation policy and smoke. F18F closes the phase with a Transition Orchestration usage guide and hands off to F19. F19A accepts the Transition Effects boundary/implementation plan. Fade/loading/curtain are F19 adapters/effects and are not core Transition.
 ```
 
 F15-F16 reset adapter closure:
@@ -65,8 +65,17 @@ Current planning axis:
 ```text
 F17 - Gate Foundation / CLOSED
 F18 - Transition Orchestration Foundation / CLOSED
-F19 - Transition Effects / Loading and Fade Adapters / NEXT
+F19 - Transition Effects / Loading and Fade Adapters / IN PROGRESS
 F20 - Pause State and Pause Gate
 F21 - Pause Content / Overlay / Input Boundary
 F22+ - Advanced Consumers / Gameplay Capabilities
+```
+
+
+F19A transition effects note:
+
+```text
+F19A is documentation/plan only.
+No scene, GameObject, component setup or ScriptableObject is required yet.
+When a later F19 adapter cut needs Unity authoring, the cut must include exact manual setup steps for the QA scene/object/SO and expected smoke logs.
 ```
