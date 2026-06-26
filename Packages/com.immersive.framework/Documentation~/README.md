@@ -19,13 +19,14 @@ Usage guides:
 Guides/F15-Unity-Object-Reset-Adapters-Usage.md
 Guides/F16-GameObject-Active-Reset-Usage.md
 Guides/F17-Gate-Foundation-Usage.md
+Guides/F18-Transition-Orchestration-Usage.md
 ```
 
 Closure rule: when a framework phase is closed, add or update its `Usage` guide under `Documentation~/Guides/`.
 
 
-F0-F17 are closed/applied. F17 is Gate Foundation. F18 is now in progress as Transition Orchestration Foundation.
-F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C integrates those primitives with existing request-admission guards; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase and hands off to F18. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes without runtime visual effects. F18D adds a passive Transition-to-Gate blocker relationship and synthetic smoke without registering runtime Gate state. F18E adds passive Route/Activity orchestration observation and smoke without executing requests.
+F0-F18 are closed/applied. F17 is Gate Foundation. F18 is Transition Orchestration Foundation.
+F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C integrates those primitives with existing request-admission guards; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase and hands off to F18. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes without runtime visual effects. F18D adds a passive Transition-to-Gate blocker relationship and synthetic smoke without registering runtime Gate state. F18E adds passive Route/Activity orchestration observation and smoke without executing requests. F18F closes the phase with `Guides/F18-Transition-Orchestration-Usage.md` and hands off to F19 Transition Effects.
 
 Current reset boundary:
 
@@ -40,8 +41,8 @@ Current planning axis:
 
 ```text
 F17 - Gate Foundation / CLOSED
-F18 - Transition Orchestration Foundation / IN PROGRESS - F18E ORCHESTRATION OBSERVATION
-F19 - Transition Effects / Loading and Fade Adapters
+F18 - Transition Orchestration Foundation / CLOSED
+F19 - Transition Effects / Loading and Fade Adapters / NEXT
 F20 - Pause State and Pause Gate
 F21 - Pause Content / Overlay / Input Boundary
 F22+ - Advanced Consumers / Gameplay Capabilities

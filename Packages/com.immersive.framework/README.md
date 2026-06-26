@@ -21,19 +21,20 @@ Usage guides are kept under:
 Documentation~/Guides/
 ```
 
-Closed phases must add or update a `Usage` guide there. F17 Gate Foundation usage is documented at:
+Closed phases must add or update a `Usage` guide there. Current closed usage guides include:
 
 ```text
 Documentation~/Guides/F17-Gate-Foundation-Usage.md
+Documentation~/Guides/F18-Transition-Orchestration-Usage.md
 ```
 
 
 Status:
 
 ```text
-F0-F17 closed/applied.
-F17 is Gate Foundation and is closed through F17E. F18 is now in progress as Transition Orchestration Foundation.
-F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C routes existing in-flight request admission through Gate; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase without adding Pause, Transition runtime, UI or gameplay. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes. F18D adds a passive Transition-to-Gate blocker relationship and smoke. F18E adds a passive Route/Activity orchestration observation policy and smoke, while keeping fade/loading/curtain out of core.
+F0-F18 closed/applied.
+F17 is Gate Foundation and is closed through F17E. F18 is Transition Orchestration Foundation and is closed through F18F.
+F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C routes existing in-flight request admission through Gate; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase without adding Pause, Transition runtime, UI or gameplay. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes. F18D adds a passive Transition-to-Gate blocker relationship and smoke. F18E adds a passive Route/Activity orchestration observation policy and smoke. F18F closes the phase with a Transition Orchestration usage guide and hands off to F19. Fade/loading/curtain remain F19 adapters/effects and are not core Transition.
 ```
 
 F15-F16 reset adapter closure:
@@ -63,8 +64,8 @@ Current planning axis:
 
 ```text
 F17 - Gate Foundation / CLOSED
-F18 - Transition Orchestration Foundation / IN PROGRESS - F18E ORCHESTRATION OBSERVATION
-F19 - Transition Effects / Loading and Fade Adapters
+F18 - Transition Orchestration Foundation / CLOSED
+F19 - Transition Effects / Loading and Fade Adapters / NEXT
 F20 - Pause State and Pause Gate
 F21 - Pause Content / Overlay / Input Boundary
 F22+ - Advanced Consumers / Gameplay Capabilities

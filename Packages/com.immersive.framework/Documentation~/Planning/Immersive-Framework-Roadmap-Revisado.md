@@ -16,10 +16,10 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 
 | Faixa | Status | Leitura oficial |
 |---|---|---|
-| F0-F17 | `CLOSED / APPLIED` | Histórico real resumido neste documento. |
+| F0-F18 | `CLOSED / APPLIED` | Histórico real resumido neste documento. |
 | F17 | `CLOSED / F17E QA PASS` | Gate Foundation fechada. F17A realinhou ADRs/plano; F17B introduziu primitivas passivas; F17C integrou admissão de requests existentes via Gate; F17D adicionou smoke sintético de diagnóstico; F17E fechou a fase e preparou F18. |
-| F18 | `IN PROGRESS / F18E ORCHESTRATION OBSERVATION` | Transition Orchestration Foundation possui plano, primitivas passivas, diagnostics smoke, relação passiva com Gate blocker e observação sintética de Route/Activity orchestration. Sem fade/loading visual, Pause, Input ou gameplay. |
-| F19-F21 | `PLANNED / REVISED ORDER` | Transition effects/loading/fade adapters, Pause state/gate e Pause content/input boundary. |
+| F18 | `CLOSED / F18F QA PASS + USAGE` | Transition Orchestration Foundation fechada. F18A aceitou o plano; F18B criou primitivas passivas; F18C adicionou diagnostics smoke; F18D definiu relação passiva com Gate blocker; F18E observou Route/Activity orchestration; F18F fechou a fase e criou Usage Guide. Sem fade/loading visual, Pause, Input ou gameplay. |
+| F19-F21 | `PLANNED / REVISED ORDER` | Transition effects/loading/fade adapters, Pause state/gate e Pause content/input boundary. F19 é o próximo eixo. |
 | F22+ | `DEFERRED` | Consumers avançados, gameplay capabilities e contextual reset de Player/Actor/NPC/Timer/Door/Pickup ficam bloqueados até Gate/Transition/Pause e um modelo maduro de gameplay object/actor/player. |
 
 ## Histórico real F0-F17
@@ -132,8 +132,8 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Player, Actor,
 | F15 | Unity Reset Adapters mínimos | Unity Adapter | `CLOSED / APPLIED`: source Unity explícita, Transform Reset Participant com baseline local authored, guardrails required/optional, UX e closure smoke, sem gameplay consumers. |
 | F16 | GameObject Active State Reset Adapter | Unity Adapter | `CLOSED / APPLIED`: reset primitivo de `activeSelf` authored, com source explícita e guardrails. |
 | F17 | Gate Foundation | Framework Core | `CLOSED / F17E QA PASS`: F17A definiu boundary documental; F17B introduziu primitivas de scope/domain/decision/blocker/snapshot; F17C integrou bloqueios already-in-flight de Route/Activity/CycleReset/ObjectReset por Gate; F17D validou diagnóstico de admissão por smoke sintético; F17E fechou o handoff para F18. |
-| F18 | Transition Orchestration Foundation | Framework Core | `IN PROGRESS / F18E ORCHESTRATION OBSERVATION`: orquestrar fluxo consumindo Gate, Scene Lifecycle, release, readiness e callbacks. Não é fade visual. |
-| F19 | Transition Effects / Loading and Fade Adapters | Unity Adapter / Optional Effects | Efeitos de fade/loading/curtain como adapters depois do contrato lógico. Sem dependência obrigatória de DOTween/Asset Store e sem fallback silencioso para adapter required ausente. |
+| F18 | Transition Orchestration Foundation | Framework Core | `CLOSED / F18F QA PASS + USAGE`: contrato lógico passivo, diagnostics smoke, relação passiva com Gate blocker e observação de Route/Activity orchestration, sem visual effects ou lifecycle paralelo. |
+| F19 | Transition Effects / Loading and Fade Adapters | Unity Adapter / Optional Effects | `NEXT`: efeitos de fade/loading/curtain como adapters depois do contrato lógico. Sem dependência obrigatória de DOTween/Asset Store e sem fallback silencioso para adapter required ausente. |
 | F20 | Pause State and Pause Gate | Framework Core | Pause como estado + Gate blocker. Não é Activity, menu ou lifecycle de Route/Activity. |
 | F21 | Pause Content / Overlay / Input Boundary | Framework Consumer / Authoring / Input Boundary | Overlay/content de Pause como consumer, usando Content Anchor/binding/runtime placement quando aplicável. Input de Pause separado de input de gameplay. |
 | F22+ | Advanced Consumers / Gameplay Capabilities | Gameplay Consumer | Camera, Audio, Actor, gameplay Pooling, Projectile, Damage, Attributes, Powerups e contextual reset entram somente depois dos eixos Gate/Transition/Pause e do modelo de gameplay object amadurecerem. |
@@ -446,16 +446,16 @@ Sequência planejada de F18:
 | F18C | `CLOSED / DIAGNOSTICS SMOKE APPLIED` | Smoke/diagnóstico sintético de resultados de Transition sem trocar cenas. |
 | F18D | `CLOSED / GATE BLOCKER RELATIONSHIP APPLIED` | Relação lógica entre operação ativa de Transition e Gate blocker, validada por smoke sintético. |
 | F18E | `CLOSED / ORCHESTRATION OBSERVATION APPLIED` | Observação sintética de Route/Activity orchestration por TransitionPlan/TransitionResult/TransitionSnapshot, sem alterar happy path ou result kinds existentes. |
-| F18F | `NEXT` | Fechamento da fase, Usage Guide de Transition Orchestration e handoff para F19 Transition Effects. |
+| F18F | `CLOSED / DOCS + USAGE + HANDOFF` | Fechamento da fase, Usage Guide de Transition Orchestration e handoff para F19 Transition Effects. |
 
-Evidência F18C esperada após aplicação:
+Evidência F18C aceita:
 
 ```text
 QA Smoke completed. name='Transition Diagnostics Smoke'.
 Steps: plan, succeeded-result, warnings-result, failed-result, snapshot.
 ```
 
-Evidência F18D esperada após aplicação:
+Evidência F18D aceita:
 
 ```text
 QA Smoke completed. name='Transition Gate Blocker Relationship Smoke'.
@@ -508,7 +508,7 @@ F18 não implementa:
 ## Próximo corte
 
 ```text
-F18D - Transition Gate Blocker Relationship
+F19A - Transition Effects Boundary Implementation Plan
 ```
 
 F18B fechado: foram criadas primitivas passivas em `Runtime/Transition/` para operação, tipo, fase/status, step, plano, resultado e snapshot/diagnóstico. Também foi adicionado `FrameworkIdentityDomain.Transition` para manter operação como identidade tipada.
@@ -519,4 +519,4 @@ F18D fechado: foi criado `TransitionGateBlockerPolicy`, que descreve uma operaç
 
 F18E fechado: foi criado `TransitionOrchestrationObservationPolicy`, que descreve Route switch, Activity switch e Activity clear como observações passivas de Transition, e `Run Transition Orchestration Observation Smoke`, que valida planos/resultados/snapshot sintéticos sem executar requests reais.
 
-Entrada de F18F: fechar a fase, criar Usage Guide de Transition Orchestration e preparar F19. Ainda sem visual fade/loading, Pause menu, input real, gameplay object model, reset contextual de Player/Actor/NPC/Timer/Door/Pickup, lifecycle paralelo ou service locator. Fade/loading/curtain ficam para F19 como adapters/effects depois do contrato lógico.
+F18F fechado: a fase foi marcada como `CLOSED / DOCS + USAGE + HANDOFF`, o guia `Documentation~/Guides/F18-Transition-Orchestration-Usage.md` foi criado e F19 foi marcado como próximo eixo. Ainda sem visual fade/loading, Pause menu, input real, gameplay object model, reset contextual de Player/Actor/NPC/Timer/Door/Pickup, lifecycle paralelo ou service locator. Fade/loading/curtain ficam para F19 como adapters/effects depois do contrato lógico.

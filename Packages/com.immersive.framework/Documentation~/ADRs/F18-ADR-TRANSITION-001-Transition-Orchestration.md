@@ -1,6 +1,6 @@
 # F18-ADR-TRANSITION-001 - Transition Orchestration
 
-Status: Accepted / F18E Orchestration Observation  
+Status: Accepted / Closed F18F  
 Phase: F18 - Transition Orchestration Foundation  
 Type: Framework Core / Flow Orchestration / Boundary  
 Last updated: 2026-06-26
@@ -143,7 +143,7 @@ F18B also adds `FrameworkIdentityDomain.Transition` so operation identity stays 
 | F18C | Transition diagnostics smoke | CLOSED. Synthetic QA runner for valid/warning/failed transition plan/result/snapshot shapes without scene changes. |
 | F18D | Gate blocker relationship | CLOSED. Passive policy/helper and synthetic smoke that map active transition operations to Gate blockers without applying runtime Gate state. |
 | F18E | Route/Activity orchestration observation | CLOSED. Passive policy/helper and synthetic smoke describe Route switch, Activity switch and Activity clear without executing requests or mutating flow. |
-| F18F | Closure / handoff to F19 | NEXT. Document evidence, add Usage Guide and hand off to Transition Effects adapters. |
+| F18F | Closure / handoff to F19 | CLOSED. Document evidence, add Usage Guide and hand off to Transition Effects adapters. |
 
 The sequence may be adjusted if implementation shows a smaller safe path, but F18 must remain orchestration-only.
 
@@ -309,9 +309,32 @@ Diagnostics must be facts/loggable summaries, not hidden state inside scene obje
 
 ---
 
-## 13. Excluded From F18A-F18E
+## 13. F18F Closure Evidence
 
-F18A-F18E do not implement or require:
+F18F closes Transition Orchestration Foundation. It adds the usage guide:
+
+```text
+Documentation~/Guides/F18-Transition-Orchestration-Usage.md
+```
+
+F18 is now closed with:
+
+```text
+F18A - implementation plan
+F18B - passive primitives
+F18C - diagnostics smoke
+F18D - passive Gate blocker relationship
+F18E - passive Route/Activity orchestration observation
+F18F - usage guide and handoff
+```
+
+F19 is the next phase and may introduce visual effects/loading/fade adapters. F19 must consume the F18 logical contract and must not replace it.
+
+---
+
+## 14. Excluded From F18A-F18F
+
+F18A-F18F do not implement or require:
 
 ```text
 fade visual
@@ -331,11 +354,11 @@ singleton transition manager
 
 ---
 
-## 14. Guardrails
+## 15. Guardrails
 
 - Transition is orchestration of flow, not a visual effect.
 - Transition consumes Gate for blocking/release.
 - Transition must not create lifecycle parallel to Session/Route/Activity/Scene Lifecycle.
 - Missing required callbacks/adapters in future cuts must fail explicitly.
 - Visual effects remain adapters and cannot be the core contract.
-- F18 must not pull F19 visual effects, F20 Pause or F22+ gameplay consumers forward.
+- F18 closed without pulling F19 visual effects, F20 Pause or F22+ gameplay consumers forward.
