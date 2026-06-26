@@ -8,7 +8,7 @@ Documentation~/Planning/Immersive-Framework-Roadmap-Revisado.md
 
 ADRs record accepted architectural decisions. They do not replace the operational roadmap and must not redefine phase order.
 
-F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integration & Authoring UX`. F13 is closed as `Object Entry Foundation`. F14 is closed as `Local Object Reset Foundation`. F15 is closed as `Unity Reset Adapters mínimos`. F16 is closed as `GameObject Active State Reset Adapter`. F17 is closed as `Gate Foundation`. F18 is closed as `Transition Orchestration Foundation`.
+F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integration & Authoring UX`. F13 is closed as `Object Entry Foundation`. F14 is closed as `Local Object Reset Foundation`. F15 is closed as `Unity Reset Adapters mínimos`. F16 is closed as `GameObject Active State Reset Adapter`. F17 is closed as `Gate Foundation`. F18 is closed as `Transition Orchestration Foundation`. F19 is closed as `Transition Effects`. F20 is in progress as `Pause State and Gate`.
 
 ## Accepted ADRs
 
@@ -40,7 +40,7 @@ F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integra
 | F17 | [Gate Boundary](F17-ADR-GATE-001-Gate-Boundary.md) | Accepted / Closed F17E |
 | F18 | [Transition Orchestration](F18-ADR-TRANSITION-001-Transition-Orchestration.md) | Accepted / Closed F18F |
 | F19 | [Transition Effects Boundary](F19-ADR-TRANSITION-002-Transition-Effects-Boundary.md) | Accepted / Closed F19F |
-| F20 | [Pause State and Gate](F20-ADR-PAUSE-002-Pause-State-and-Gate.md) | Planned |
+| F20 | [Pause State and Gate](F20-ADR-PAUSE-002-Pause-State-and-Gate.md) | Accepted / F20A Plan |
 | F21 | [Pause Content Overlay Input Boundary](F21-ADR-PAUSE-003-Pause-Content-Overlay-Input-Boundary.md) | Planned |
 | F22+ | [Advanced Consumers Boundary](F17-ADR-CONSUMERS-001-Advanced-Consumers-Boundary.md) | Deferred / Superseded phase number |
 | F22+ | [Gameplay Capabilities Boundary](F18-ADR-GAMEPLAY-001-Gameplay-Capabilities-Boundary.md) | Deferred / Superseded phase number |
@@ -68,6 +68,6 @@ F18 closure note: Transition is flow orchestration that consumes Gate. F18A acce
 
 F19 closure note: Transition effects are adapters/consumers of F18 Transition Orchestration. F19A accepts the boundary and implementation plan only. F19B adds passive primitives under `Runtime/TransitionEffects`: effect identity, kind, requiredness, status, request, result, plan and snapshot. F19C adds `Run Transition Effect Diagnostics Smoke` for passive request/plan/result/snapshot diagnostics. F19D adds the first concrete Unity adapter boundary: `ITransitionEffectAdapter`, `UnityFadeCurtainEffectAdapter` and `Run Unity Fade Curtain Effect Adapter Smoke`. The adapter mutates only CanvasGroup/surface active state and does not use DOTween, registry, lifecycle ownership, Pause, Input or gameplay. The canonical smoke uses a transient QA object; optional manual visual setup is documented in `Documentation~/Guides/F19D-Minimal-Fade-Curtain-Adapter-Setup.md`. F19E adds `TransitionEffectAuthoringPolicy`, policy issue/evaluation primitives and `Run Transition Effect Policy Guardrails Smoke`; required adapter absence and duplicate effect ids block, optional adapter absence warns without blocking, and no ScriptableObject/registry is introduced. F19F closes the phase with `Documentation~/Guides/F19-Transition-Effects-Usage.md` and compacts QA Canvas by keeping baseline smokes visible and collapsing phase diagnostics behind toggles.
 
-F20/F21 pause note: Pause is state plus Gate blocker. Pause is not Activity, does not own Route/Activity lifecycle and does not define `Time.timeScale` as the canonical contract. Pause overlay/content/input are consumers/boundaries after Pause state and Gate.
+F20/F21 pause note: Pause is state plus Gate blocker. F20A accepts the implementation plan and keeps F20 asset-free at the start: no scene object, Canvas, prefab or ScriptableObject is required. Pause is not Activity, does not own Route/Activity lifecycle and does not define `Time.timeScale` as the canonical contract. Pause overlay/content/input are F21 consumers/boundaries after Pause state and Gate.
 
 F22+ defer note: Advanced Consumers, Gameplay Capabilities and contextual reset for Player/Actor/NPC/Timer/Door/Pickup are deferred until Gate/Transition/Pause are planned and a mature gameplay object model exists.

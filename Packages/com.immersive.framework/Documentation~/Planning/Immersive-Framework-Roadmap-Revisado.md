@@ -2,7 +2,7 @@
 
 Plano canônico do package `com.immersive.framework`.
 
-Este é o único arquivo de planejamento do framework. Decisões aceitas, histórico F0-F18 e a ordem futura ficam resumidos aqui para evitar fontes paralelas.
+Este é o único arquivo de planejamento do framework. Decisões aceitas, histórico F0-F19 e a ordem futura ficam resumidos aqui para evitar fontes paralelas.
 
 ADRs aceitos ficam em `Documentation~/ADRs/ADR-INDEX.md`. ADRs registram decisões estáveis e não substituem este roadmap operacional.
 
@@ -16,11 +16,12 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 
 | Faixa | Status | Leitura oficial |
 |---|---|---|
-| F0-F18 | `CLOSED / APPLIED` | Histórico real resumido neste documento. |
+| F0-F19 | `CLOSED / APPLIED` | Histórico real resumido neste documento. |
 | F17 | `CLOSED / F17E QA PASS` | Gate Foundation fechada. F17A realinhou ADRs/plano; F17B introduziu primitivas passivas; F17C integrou admissão de requests existentes via Gate; F17D adicionou smoke sintético de diagnóstico; F17E fechou a fase e preparou F18. |
 | F18 | `CLOSED / F18F QA PASS + USAGE` | Transition Orchestration Foundation fechada. F18A aceitou o plano; F18B criou primitivas passivas; F18C adicionou diagnostics smoke; F18D definiu relação passiva com Gate blocker; F18E observou Route/Activity orchestration; F18F fechou a fase e criou Usage Guide. Sem fade/loading visual, Pause, Input ou gameplay. |
-| F19 | `IN PROGRESS / F19E POLICY GUARDRAILS` | Transition effects/loading/fade adapters começaram como boundary/implementation plan, têm primitivas passivas, smokes sintéticos, primeiro adapter Unity mínimo para fade/curtain e policy/guardrails required/optional. Ainda sem ScriptableObject, registry, DOTween, loading screen canônico ou integração real com Route/Activity. |
-| F20-F21 | `PLANNED / REVISED ORDER` | Pause state/gate e Pause content/input boundary vêm depois de Transition Effects. |
+| F19 | `CLOSED / F19F QA PASS + USAGE` | Transition Effects fechada. Effects são adapters/consumers de F18: primitivas passivas, diagnostics smoke, adapter Unity mínimo CanvasGroup fade/curtain, policy required/optional e Usage Guide. Sem registry, ScriptableObject obrigatório, DOTween ou fallback silencioso. |
+| F20 | `IN PROGRESS / F20A ADR PLAN ACCEPTED` | Pause State/Gate começou documentalmente. Pause é estado + relação com Gate blocker; não é Activity, menu, overlay, input system ou `Time.timeScale` contract. |
+| F21 | `PLANNED` | Pause content/overlay/input boundary vem depois do Pause core lógico. |
 | F22+ | `DEFERRED` | Consumers avançados, gameplay capabilities e contextual reset de Player/Actor/NPC/Timer/Door/Pickup ficam bloqueados até Gate/Transition/Pause e um modelo maduro de gameplay object/actor/player. |
 
 ## Histórico real F0-F17
@@ -135,7 +136,7 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Player, Actor,
 | F17 | Gate Foundation | Framework Core | `CLOSED / F17E QA PASS`: F17A definiu boundary documental; F17B introduziu primitivas de scope/domain/decision/blocker/snapshot; F17C integrou bloqueios already-in-flight de Route/Activity/CycleReset/ObjectReset por Gate; F17D validou diagnóstico de admissão por smoke sintético; F17E fechou o handoff para F18. |
 | F18 | Transition Orchestration Foundation | Framework Core | `CLOSED / F18F QA PASS + USAGE`: contrato lógico passivo, diagnostics smoke, relação passiva com Gate blocker e observação de Route/Activity orchestration, sem visual effects ou lifecycle paralelo. |
 | F19 | Transition Effects / Loading and Fade Adapters | Unity Adapter / Optional Effects | `CLOSED / F19F QA PASS + USAGE`: effects fechados como adapters/consumers de F18 Transition Orchestration. F19B criou primitivas passivas; F19C validou diagnostics; F19D adicionou adapter Unity mínimo CanvasGroup fade/curtain; F19E fechou policy/guardrails required/optional; F19F adiciona usage guide e compacta o QA Canvas. Sem dependência obrigatória de DOTween/Asset Store, sem registry, sem ScriptableObject obrigatório e sem fallback silencioso para adapter required ausente. |
-| F20 | Pause State and Pause Gate | Framework Core | `NEXT`: Pause como estado + Gate blocker. Não é Activity, menu ou lifecycle de Route/Activity. |
+| F20 | Pause State and Pause Gate | Framework Core | `IN PROGRESS / F20A ADR PLAN ACCEPTED`: Pause como estado + Gate blocker. Não é Activity, menu, overlay, input system, `Time.timeScale` contract ou lifecycle de Route/Activity. |
 | F21 | Pause Content / Overlay / Input Boundary | Framework Consumer / Authoring / Input Boundary | Overlay/content de Pause como consumer, usando Content Anchor/binding/runtime placement quando aplicável. Input de Pause separado de input de gameplay. |
 | F22+ | Advanced Consumers / Gameplay Capabilities | Gameplay Consumer | Camera, Audio, Actor, gameplay Pooling, Projectile, Damage, Attributes, Powerups e contextual reset entram somente depois dos eixos Gate/Transition/Pause e do modelo de gameplay object amadurecerem. |
 
@@ -154,13 +155,26 @@ F19 implementa effects como adapters depois da orquestração lógica da F18.
 
 F19 não autoriza DOTween, Asset Store, loading screen canônico, Pause menu, input real, gameplay object model ou lifecycle paralelo. F19D autoriza apenas o adapter mínimo CanvasGroup fade/curtain, sem tweening e sem integração real com Transition runtime. F19E autoriza apenas policy/guardrails passivos sobre lista explícita de adapters, sem ScriptableObject, registry ou discovery. F19F fecha a fase com usage guide e reduz a superfície padrão do QA Canvas: smokes principais ficam visíveis e diagnósticos de fase ficam colapsados.
 
+## Plano F20 — Pause State and Pause Gate
+
+F20 implementa Pause como estado lógico e relação com Gate. Ele não começa por menu, overlay, input ou `Time.timeScale`.
+
+| Corte | Status | Objetivo | Setup manual esperado |
+|---|---|---|---|
+| F20A | `CLOSED / ADR PLAN ACCEPTED` | Aceitar boundary/implementation plan para Pause State/Gate. | Nenhum. Documentação apenas. |
+| F20B | `NEXT / PLANNED` | Criar primitivas passivas de Pause: state, request, result, reason/source, snapshot e issue/fact shape. | Nenhum. Sem cena, objeto ou ScriptableObject. |
+| F20C | `PLANNED` | Smoke sintético de diagnostics de Pause: pause, resume, reject e idempotência. | Nenhum. |
+| F20D | `PLANNED` | Relação passiva Pause-to-Gate blocker e smoke. | Nenhum. Sem Gate registry/runtime global. |
+| F20E | `PLANNED` | Request path mínimo de Pause, provavelmente via `FrameworkRuntimeHost`, sem overlay/input ownership. | Nenhum setup salvo esperado salvo se o corte declarar o contrário. |
+| F20F | `PLANNED` | Fechamento, Usage Guide e handoff para F21 Pause Content/Overlay/Input. | Usage guide em `Documentation~/Guides/`. |
+
+F20 não autoriza Pause menu, overlay, input real, `Time.timeScale` adapter, loading screen, fade/curtain ownership, Pause como Activity ou lifecycle paralelo. Setup visual/manual deve ficar para F21, exceto se um corte futuro declarar explicitamente o contrário e documentar os passos.
+
 ### Próximo corte recomendado
 
 ```text
-F20A - Pause State and Gate Implementation Plan
+F20B - Pause State Primitives
 ```
-
-F20 deve começar documentalmente, como F19/F18, antes de criar overlay, input ou conteúdo visual de Pause. O primeiro corte deve separar estado lógico de Pause, relação com Gate e o que fica deferido para F21 content/overlay/input.
 
 
 ## Fechamento real F11 — Cycle Reset Foundation
