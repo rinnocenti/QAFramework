@@ -1,265 +1,398 @@
 # F14-ADR-RESET-003 — Local/Object Reset Foundation
 
-Status: Proposed  
+Status: Accepted / Ready for implementation after F14A  
 Fase: F14 — Local/Object Reset Foundation  
-Tipo: Core / Local Lifecycle / Reset  
+Tipo: Core / Object Lifecycle / Reset  
 Última atualização: 2026-06-25
 
 ---
 
 ## 1. Contexto
 
-F11/F12 criam e integram reset de ciclo. F13 cria entrada genérica de objetos reais. F14 conecta essas duas bases para permitir reset local/object sem ainda depender de Player ou Actor específico.
+F11/F12 fecharam Cycle Reset como reset lógico de Route/Activity. F13 fechou Object Entry como catálogo lógico owned/scoped, com identidade tipada, coleta limitada às cenas da Route ativa e snapshot lifecycle.
+
+F14 usa essas duas bases para criar reset direcionado a um Object Entry específico. Ainda não há Transform, Rigidbody, Animator, Player, Actor, pooling ou gameplay reset concreto.
 
 ---
 
-## 2. Dor original
+## 2. Problema
 
-Além de resetar Route/Activity, o usuário quer reiniciar somente um objeto ou conjunto de componentes independentes.
-
-Exemplos futuros:
+Cycle Reset responde:
 
 ```text
-Resetar apenas Player.
-Resetar apenas um puzzle object.
-Resetar um grupo local.
-Resetar apenas participantes de movimento.
+qual ciclo de Route/Activity deve receber uma solicitação de reset?
 ```
 
-F14 cria o contrato para isso, mas ainda pode validar com mocks/probes.
-
----
-
-## 3. Decisão
-
-F14 define **Local/Object Reset** como reset direcionado a um alvo de objeto/contribution conhecido pelo framework.
-
-Local/Object Reset é diferente de Cycle Reset:
+Object Reset responde:
 
 ```text
-Cycle Reset mira Route/Activity.
-Object Reset mira objeto/contribution específica.
-Component Reset mira participante/capability específica.
+qual Object Entry atual deve receber participantes de reset?
 ```
 
-F14 deve criar o shape canônico, não gameplay reset.
-
----
-
-## 4. Escopo incluído
-
-F14 inclui:
+Sem essa separação, o framework tenderia a:
 
 ```text
-ObjectResetRequest
-ObjectResetTarget
-ObjectResetPolicy
-ObjectResetPlan
-ObjectResetResult
-ObjectResetIssue
-IObjectResetParticipant
-ILocalResetParticipant
-ResetBaseline concept mínimo
-Object reset smoke com mocks/probes
+procurar GameObjects durante o request;
+usar nome/path como target;
+misturar reset de objeto com reload de cena;
+acoplar Player/Actor ao core;
+transformar Cycle Reset em dispatcher físico de componentes.
 ```
 
 ---
 
-## 5. Escopo excluído
+## 3. Decisão central
 
-F14 exclui:
-
-```text
-TransformResetParticipant real
-RigidbodyResetParticipant real
-AnimatorResetParticipant real
-PlayerStatsResetParticipant real
-Actor reset real
-Powerup reset real
-Projectile reset
-Pool return
-Save/checkpoint restore
-```
-
----
-
-## 6. Modelo conceitual
-
-Object Reset usa identidade de objeto/contribution já conhecida.
+F14 define **Object Reset** como orquestração lógica direcionada a um `ObjectResetTarget` derivado de um `ObjectEntryDescriptor` atualmente aceito no snapshot do Runtime Host.
 
 ```text
-ObjectResetRequest
+ObjectEntryRuntimeContextSnapshot
   -> resolve ObjectResetTarget
-  -> builds ObjectResetPlan
-  -> dispatches reset participants for that target
-  -> aggregates ObjectResetResult
+  -> resolve participants por source explícito
+  -> build ObjectResetPlan determinístico
+  -> execute participants fornecidos
+  -> aggregate ObjectResetResult
 ```
 
-Object Reset não deve descobrir o mundo por scan global durante o request. Ele deve operar sobre sets/contributions já conhecidos no escopo.
+Object Reset não descobre GameObjects, Components ou participants por scan global.
 
 ---
 
-## 7. Reset Target
+## 4. Target canônico
 
-Target pode ser conceitualmente:
+O target de F14 contém somente identidade lógica já fechada na F13:
 
 ```text
-Object identity
-LocalContentIdentity
-RuntimeContentHandle
-ObjectContributionDescriptor
-Capability identity futura
+ObjectEntryId
+ObjectEntryScope
+OwnerIdentity
 ```
 
-O alvo não pode ser:
+Regras:
 
 ```text
+ObjectEntryId deve existir no snapshot atual.
+Scope deve ser Session, Route ou Activity.
+OwnerIdentity deve existir e usar o domain correspondente ao scope.
+O descriptor resolvido deve continuar pertencendo ao owner ativo.
+Target foreign, filtered, ausente ou stale é rejeitado.
+```
+
+O target não pode ser:
+
+```text
+GameObject
+Transform
+Component
 GameObject.name
 scene path
 hierarchy path
 string livre sem domínio
+LocalContentIdentity ou RuntimeContentHandle usados como union improvisada
+```
+
+`LocalContentIdentity` e `RuntimeContentHandle` podem ganhar adapters explícitos no futuro, mas não fazem parte do target canônico inicial.
+
+---
+
+## 5. Contratos aprovados
+
+F14 pode introduzir:
+
+```text
+ObjectResetTarget
+ObjectResetRequest
+ObjectResetPolicy
+ObjectResetStatus
+ObjectResetIssue / ObjectResetIssueKind
+ObjectResetParticipantId
+ObjectResetParticipantRequiredness
+ObjectResetParticipantDescriptor
+IObjectResetParticipant
+IObjectResetParticipantSource
+ObjectResetContext
+ObjectResetParticipantResult
+ObjectResetParticipantEntry
+ObjectResetPlan / ObjectResetPlanStatus
+ObjectResetResult
+ObjectResetRuntime
+EmptyObjectResetParticipantSource
+```
+
+Não será criada `ILocalResetParticipant` em paralelo.
+
+Decisão:
+
+```text
+IObjectResetParticipant é o único contrato canônico.
+"Local" é uma leitura de scope/owner/target, não outro tipo de participant.
 ```
 
 ---
 
-## 8. Reset Baseline
+## 6. Request e resolução
 
-F14 introduz o conceito de **Reset Baseline**, mas não precisa implementar todos os adapters concretos.
-
-Reset Baseline é diferente de Snapshot:
+`ObjectResetRequest` deve carregar:
 
 ```text
-Reset Baseline = estado base local para reset no ciclo atual.
-Snapshot = payload versionado para save/restore.
+ObjectResetTarget
+ObjectResetPolicy
+Source
+Reason
 ```
 
-Fontes possíveis futuras:
+O Runtime Host deve resolver o target contra o snapshot de Object Entry atual antes de solicitar participants.
+
+Rejeições mínimas:
+
+```text
+snapshot indisponível;
+ObjectEntryId ausente;
+scope diferente;
+owner diferente;
+owner domain inválido;
+request default/inválida;
+```
+
+Não existe fallback para procurar o objeto em cena.
+
+---
+
+## 7. Participant e source
+
+`IObjectResetParticipant` segue o padrão de Cycle Reset:
+
+```text
+GetObjectResetDescriptor()
+ResetObject(ObjectResetContext context)
+```
+
+O descriptor carrega:
+
+```text
+ParticipantId
+ObjectResetTarget
+Requiredness
+Order
+DisplayName diagnóstico
+```
+
+`IObjectResetParticipantSource` recebe o request já resolvido e retorna somente participants conhecidos. Ele não pode:
+
+```text
+usar FindObjectsByType;
+consultar service locator;
+instanciar ou destruir objetos;
+capturar baseline;
+executar reset durante a resolução;
+recarregar cena;
+restaurar save/snapshot;
+fazer pool return.
+```
+
+O core ainda deve rejeitar participant nulo, descriptor inválido, target foreign e ParticipantId duplicado.
+
+---
+
+## 8. Requiredness, ordering e policy
+
+Participants são `Required` ou `Optional`.
+
+Regras iniciais:
+
+```text
+ordenação: Order crescente, depois ParticipantId estável;
+falha Required: blocking issue;
+falha Optional: warning quando policy permitir;
+nenhum participant: SucceededNoParticipants quando policy permitir;
+participant foreign: não executa;
+exception: convertida em result/issue estruturado.
+```
+
+`ObjectResetPolicy` inicial controla somente orquestração:
+
+```text
+AllowNoParticipants
+TreatOptionalFailuresAsWarnings
+```
+
+Não entram flags de Transform, physics, animator, player, save ou pooling.
+
+---
+
+## 9. Plan e execução
+
+`ObjectResetPlan` é imutável e separa planejamento de execução.
+
+Status conceituais:
+
+```text
+Unknown
+Planned
+SkippedNoParticipants
+RejectedInvalidRequest
+RejectedInvalidTarget
+RejectedInvalidParticipants
+```
+
+`ObjectResetRuntime` executa somente entries já aceitas no plan e agrega resultados.
+
+F14 usa uma única chamada lógica de execução por participant. Não cria prematuramente fases públicas `PrepareReset/ApplyReset/PostReset`.
+
+O modelo preserva evolução futura por composição de participants e ordering. Fases adicionais só entram quando um adapter real provar a necessidade.
+
+---
+
+## 10. Reset Baseline
+
+Reset Baseline continua sendo conceito diferente de Save Snapshot:
+
+```text
+Reset Baseline = referência local ao estado base usado por um adapter de reset.
+Save Snapshot = payload versionado e persistível.
+```
+
+F14 não cria payload genérico, dictionary, object blob ou baseline registry.
+
+Decisão:
+
+```text
+O core F14 orquestra target e participants.
+O adapter concreto da F15 define/captura o baseline que sabe aplicar.
+```
+
+Fontes futuras possíveis permanecem:
 
 ```text
 authored baseline
-captured-on-enter baseline
+captured-on-entry baseline
 runtime-materialization baseline
 ```
 
-F14 deve registrar a distinção, não implementar todos os casos.
+---
+
+## 11. Relação com Cycle Reset
+
+Cycle Reset e Object Reset continuam contratos diferentes:
+
+| Aspecto | Cycle Reset | Object Reset |
+|---|---|---|
+| Target | Route/Activity cycle | Object Entry específico |
+| Source atual | `ICycleResetParticipantSource` | `IObjectResetParticipantSource` |
+| Identidade | Cycle scope + Route/Activity | ObjectEntryId + owner + scope |
+| Efeito físico no core | Nenhum | Nenhum |
+
+F14 não altera automaticamente o executor de Cycle Reset para chamar Object Reset.
+
+Integração entre ambos só pode ocorrer por adapter/source explícito depois que participants reais existirem, sem recursão e sem transformar Object Reset em scene reload.
 
 ---
 
-## 9. Contratos esperados
-
-```csharp
-public readonly struct ObjectResetRequest
-{
-    public ObjectResetTarget Target { get; }
-    public string Source { get; }
-    public string Reason { get; }
-}
-```
-
-```csharp
-public interface IObjectResetParticipant
-{
-    ObjectResetParticipantDescriptor Descriptor { get; }
-    ObjectResetParticipantResult Reset(ObjectResetContext context);
-}
-```
-
-```csharp
-public readonly struct ObjectResetResult
-{
-    public ObjectResetStatus Status { get; }
-    public int Participants { get; }
-    public int Succeeded { get; }
-    public int Skipped { get; }
-    public int Failed { get; }
-}
-```
-
----
-
-## 10. Ordem de execução
-
-Object Reset deve preparar evolução para:
-
-```text
-PrepareReset
-ApplyReset
-PostReset
-```
-
-F14 pode executar fase única se necessário, mas o modelo não deve impedir ordering futuro.
-
----
-
-## 11. Diagnostics e validação
-
-Smokes esperados:
-
-```text
-Object Reset mock success
-Object Reset target missing
-Object Reset participant skipped
-Object Reset participant failed, se couber
-```
+## 12. Diagnostics e QA
 
 Diagnostics mínimos:
 
 ```text
-targetIdentity
-scope
+targetObjectEntryId
+targetScope
+targetOwner
 source
 reason
+policy
 participants
+required
+optional
 succeeded
 skipped
 failed
 status
-issues
+blockingIssues
+nonBlockingIssues
+```
+
+Smokes previstos:
+
+```text
+target válido + participants sintéticos ordenados;
+target ausente/foreign rejeitado;
+ParticipantId duplicado rejeitado;
+optional skipped/failed gera warning conforme policy;
+required failed bloqueia;
+no participants produz SucceededNoParticipants;
+Runtime Host resolve target somente pelo snapshot atual.
 ```
 
 ---
 
-## 12. Consequências
+## 13. Escopo excluído
 
-### Positivas
+F14 exclui:
 
-- Reset local ganha contrato sem depender de Player.
-- Componentes futuros terão contexto claro para decidir como resetar.
-- O core mantém separação entre reset de ciclo e reset de objeto.
-
-### Custos
-
-- Ainda não haverá adapters Unity úteis até F15.
-- Object Reset precisa depender de Object Entry/Contribution para não usar descoberta frágil.
-
----
-
-## 13. Guardrails
-
-- Não resolver target por nome/path.
-- Não executar scan global como fonte de verdade do reset.
-- Não misturar Object Reset com Cycle Reset.
-- Não transformar Reset Baseline em Save Snapshot.
-- Não criar Player-specific reset em F14.
-- Não usar pool return como reset.
+```text
+GameObject/Transform/Component target público
+TransformResetParticipant real
+RigidbodyResetParticipant real
+AnimatorResetParticipant real
+Player/Actor/NPC reset
+health/attributes/powerups/projectile reset
+pool return
+scene reload
+save/checkpoint restore
+baseline payload genérico
+authoring de baseline concreto
+public mutable registry
+service locator
+```
 
 ---
 
-## 14. Relação com fases futuras
+## 14. Cortes aprovados
+
+| Corte | Objetivo |
+|---|---|
+| F14A | Reconciliar e aceitar este ADR após o fechamento real da F13. |
+| F14B | Primitivas puras: target, request, policy, status e issues; synthetic target smoke. |
+| F14C | Participant descriptor/interface/source, collection validation e ordering. |
+| F14D | Plan, context, participant result, runtime executor e aggregate result com probes sintéticos. |
+| F14E | Runtime Host resolve target contra snapshot atual e executa source injetada; smoke de target válido/foreign/stale. |
+| F14F | Closure smoke, QA panel hygiene, documentação e fechamento da F14. |
+
+Cada corte deve preservar compile/smoke antes do próximo.
+
+---
+
+## 15. Critério de fechamento
+
+F14 só fecha quando:
+
+```text
+target vier exclusivamente de Object Entry atual;
+foreign/missing/stale target for rejeitado;
+participant source for explícita e sem scan global;
+ordering/requiredness/duplicate validation estiverem provados;
+runtime agregar results/issues sem executar Unity diretamente;
+Cycle Reset permanecer separado;
+nenhum adapter Unity ou gameplay reset entrar na fase;
+QA Canvas manter apenas o smoke canônico de fechamento ao final.
+```
+
+---
+
+## 16. Relação com fases futuras
 
 F14 desbloqueia:
 
 ```text
 F15 — Unity Reset Adapters mínimos
-F16 — Player/Participant Entry Baseline
+F16 — Player/Participant Entry Baseline e readiness real
 ```
 
 F14 mantém bloqueado:
 
 ```text
-Gameplay-specific reset
-Player stats reset definitivo
-Actor reset definitivo
-Projectile reset
-Powerup reset
+Transform/Rigidbody/Animator reset concreto
+Player/Actor reset concreto
+pool return
+Projectile/Damage/Attributes/Powerups
+Save/checkpoint restore
 ```

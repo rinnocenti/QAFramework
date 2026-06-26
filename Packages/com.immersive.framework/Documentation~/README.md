@@ -12,7 +12,7 @@ Accepted architectural decisions:
 ADRs/ADR-INDEX.md
 ```
 
-F0-F13 are closed/applied. The next planned phase is F14: `Local/Object Reset Foundation`.
+F0-F13 are closed/applied. F14 `Local/Object Reset Foundation` is active: F14A accepted the architecture and F14B is the next implementation cut.
 
 Current reset boundary:
 
@@ -34,4 +34,12 @@ Closed Object Entry boundary:
 Object Entry is a passive lifecycle-owned logical catalog/snapshot.
 It is not GameObject binding, Object Reset, a mutable registry or a service locator.
 Route/Activity owners, scoped collection and snapshot lifecycle were closed in F13.
+```
+
+Current Object Reset boundary:
+
+```text
+F14A approved ObjectResetTarget as ObjectEntryId + owner + scope.
+Object Reset uses one IObjectResetParticipant contract and an explicit participant source.
+Transform/Rigidbody/Animator, pooling, Player/Actor and gameplay reset remain outside F14.
 ```

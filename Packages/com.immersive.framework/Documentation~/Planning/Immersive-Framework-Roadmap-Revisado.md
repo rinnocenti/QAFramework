@@ -17,7 +17,8 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 | Faixa | Status | Leitura oficial |
 |---|---|---|
 | F0-F13 | `CLOSED / APPLIED` | Historico real resumido neste documento. |
-| F14-F18 | `PLANNED / REVISED ORDER` | Ordem futura mantida; F14 e a proxima fase. |
+| F14 | `ACTIVE / ADR ACCEPTED` | F14A fechou arquitetura; F14B inicia primitives de Object Reset. |
+| F15-F18 | `PLANNED / REVISED ORDER` | Ordem futura mantida e bloqueada pelo fechamento da F14. |
 
 ## Historico real F0-F13
 
@@ -106,7 +107,7 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Camera, Audio,
 | F11 | Cycle Reset Foundation | Framework Core | `CLOSED / APPLIED`: contratos centrais de reset de ciclo, request/result, policy, diagnostics, executor minimo, smoke runtime-host e triggers publicos, sem reset fisico. |
 | F12 | Cycle Reset Integration & Authoring UX | Framework Core + Editor/Authoring | `CLOSED / APPLIED`: validar e documentar UX/authoring dos triggers e bridges opcionais, sem reset fisico/local. |
 | F13 | Object Entry Foundation | Framework Core | `CLOSED / APPLIED`: identidade, descriptor, declaration, typed ownership, scoped collection, snapshot invalidation/refresh e closure smoke. Readiness real fica para F16. |
-| F14 | Local/Object Reset Foundation | Framework Core | Definir reset local/de objeto depois de Object Entry existir; nao misturar com reset de ciclo. |
+| F14 | Local/Object Reset Foundation | Framework Core | `ACTIVE / ADR ACCEPTED`: target canonico deriva de Object Entry atual; participant source explicita; sem Unity adapters ou gameplay reset. |
 | F15 | Unity Reset Adapters minimos | Unity Adapter | Criar adapters minimos para traducao Unity de reset local/object aprovado pelo core, sem gameplay consumers. |
 | F16 | Player/Participant Entry Baseline | Framework Core + Authoring | Definir baseline de entrada de player/participant sobre Object Entry, sem Actor/Camera/Audio/Pooling. |
 | F17 | Advanced Consumers | Gameplay Consumer | Abrir consumers avancados somente depois de core reset/object entry estar estavel. Inclui Camera, Audio, Actor e gameplay Pooling quando aprovados. |
@@ -304,6 +305,31 @@ Runners intermediarios permanecem internos para regressao/evidencia.
 
 Readiness por objeto nao entra artificialmente na F13. Ela pertence a F16, quando existir Participant Entry executavel.
 
+## Plano ativo F14 — Local/Object Reset Foundation
+
+F14 cria orquestracao logica direcionada a um Object Entry especifico. Ela reutiliza o padrao descriptor/source/plan/result do Cycle Reset, mas mantem target e executor separados.
+
+Decisoes aceitas em F14A:
+
+```text
+ObjectResetTarget = ObjectEntryId + ObjectEntryScope + OwnerIdentity.
+Target deve existir no ObjectEntryRuntimeContextSnapshot atual.
+IObjectResetParticipant e o unico participant contract; nao existe ILocalResetParticipant paralelo.
+IObjectResetParticipantSource fornece participants conhecidos sem scene scan.
+Ordering inicial usa Order + ParticipantId estavel.
+Reset Baseline payload pertence aos adapters concretos da F15.
+Cycle Reset nao chama Object Reset automaticamente.
+```
+
+| Corte | Status | Objetivo |
+|---|---|---|
+| F14A | `CLOSED / ADR` | Reconciliar e aceitar Local/Object Reset apos o fechamento real da F13. |
+| F14B | `NEXT` | Target, request, policy, status, issues e synthetic target smoke. |
+| F14C | `PLANNED` | Participant descriptor/interface/source, validation e ordering. |
+| F14D | `PLANNED` | Plan, context, participant result, executor e aggregate result. |
+| F14E | `PLANNED` | Runtime Host resolve target contra snapshot atual; valid/foreign/stale smoke. |
+| F14F | `PLANNED` | Closure smoke, QA panel hygiene, docs e fechamento. |
+
 ## Guardrails pos-F13
 
 - Core lifecycle antes de gameplay.
@@ -325,10 +351,10 @@ Readiness por objeto nao entra artificialmente na F13. Ela pertence a F16, quand
 - Nao copiar arquitetura Base 2.0 para o framework package.
 - Nao usar Cycle Reset como atalho para Object Reset ou Player Reset.
 
-## Proxima fase
+## Proximo corte
 
 ```text
-F14 — Local/Object Reset Foundation
+F14B — Object Reset primitives and synthetic target smoke
 ```
 
-Entrada esperada de F14: definir contratos logicos de reset local/de objeto usando `ObjectEntryId` e owner/scope fechados na F13, sem executar `Transform`, `Rigidbody`, `Animator`, pool return ou gameplay reset concreto.
+Entrada de F14B: criar somente primitives puras de target/request/policy/status/issues e provar target valido/foreign sem participant, executor, GameObject ou adapter Unity.

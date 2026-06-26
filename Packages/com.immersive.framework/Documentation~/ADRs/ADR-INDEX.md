@@ -8,7 +8,7 @@ Documentation~/Planning/Immersive-Framework-Roadmap-Revisado.md
 
 ADRs record accepted architectural decisions. They do not replace the operational roadmap and must not redefine phase order.
 
-F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integration & Authoring UX`. F13 is closed as `Object Entry Foundation`. F14 is the next planned phase.
+F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integration & Authoring UX`. F13 is closed as `Object Entry Foundation`. F14 is active; its architecture was accepted in F14A and F14B is the next implementation cut.
 
 ## Accepted ADRs
 
@@ -33,7 +33,7 @@ F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integra
 | F11 | [Cycle Reset Foundation](F11-ADR-RESET-001-Cycle-Reset-Foundation.md) | Applied through F11G |
 | F12 | [Cycle Reset Integration and Authoring UX](F12-ADR-RESET-002-Cycle-Reset-Integration-Authoring-UX.md) | Closed / Applied through F12E |
 | F13 | [Object Entry Foundation](F13-ADR-OBJECT-001-Object-Entry-Foundation.md) | Closed / Applied through F13L |
-| F14 | [Local Object Reset Foundation](F14-ADR-RESET-003-Local-Object-Reset-Foundation.md) | Accepted / Planned |
+| F14 | [Local Object Reset Foundation](F14-ADR-RESET-003-Local-Object-Reset-Foundation.md) | Accepted / Ready after F14A |
 | F15 | [Unity Reset Adapters](F15-ADR-RESET-004-Unity-Reset-Adapters.md) | Accepted / Planned |
 | F16 | [Player Participant Entry Baseline](F16-ADR-PLAYER-001-Player-Participant-Entry-Baseline.md) | Accepted / Planned |
 | F17 | [Advanced Consumers Boundary](F17-ADR-CONSUMERS-001-Advanced-Consumers-Boundary.md) | Accepted / Planned |
@@ -46,3 +46,5 @@ Past ADRs record accepted/applied decisions. Future ADRs guide implementation an
 F12 decision note: Cycle Reset Unity Event Bridges are optional. The trigger is the primary component; bridges only expose result callbacks in the Inspector.
 
 F13 decision note: Object Entry is a passive lifecycle-owned logical catalog/snapshot with typed owners, scoped collection and deterministic snapshot invalidation/refresh. It is not a GameObject binding, mutable registry, reset inventory or service locator.
+
+F14 decision note: Object Reset targets only a current `ObjectEntryId + owner + scope`, uses one canonical `IObjectResetParticipant` contract and an explicit participant source, and does not execute Unity adapters or gameplay reset.
