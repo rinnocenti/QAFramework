@@ -1,6 +1,6 @@
 # F22-ADR-LOADING-001 - Loading Operation Progress Readiness Boundary
 
-Status: Accepted / F22D Applied / F22E Next  
+Status: Accepted / Closed F22F  
 Phase: F22 - Loading Operation / Progress / Readiness Boundary  
 Type: Framework Core + Loading Module Boundary  
 Last updated: 2026-06-26
@@ -105,8 +105,8 @@ F22B must introduce a single canonical namespace for Loading primitives. Any fut
 | F22B | `APPLIED / PRIMITIVES` | Loading Operation / Step / Weighted Progress Primitives. |
 | F22C | `APPLIED / AGGREGATION SMOKE` | Loading Progress Aggregation Smoke. |
 | F22D | `APPLIED / OBSERVATION ADAPTER` | SceneLifecycle / Transition Loading Observation Adapter. |
-| F22E | `NEXT / PLANNED` | Loading Screen Adapter Boundary. |
-| F22F | `PLANNED` | Closure + Usage Guide. |
+| F22E | `APPLIED / LOADING SCREEN ADAPTER BOUNDARY` | Loading Screen Adapter Boundary. |
+| F22F | `APPLIED / CLOSED` | Closure + Usage Guide. |
 
 ---
 
@@ -236,3 +236,52 @@ F19 remains the owner of Transition Effects and fade/curtain adapter boundaries.
 SceneLifecycle remains the owner of scene lifecycle execution. Loading observes lifecycle/transition progress instead of replacing that owner.
 
 Pause Content / Overlay / Input stays in F23. Gameplay Adapter Foundation stays in F24.
+
+## 9. F22E result
+
+F22E adds the Loading Screen adapter boundary under the canonical Loading namespace:
+
+```text
+Runtime/Loading/ILoadingScreenAdapter.cs
+Runtime/Loading/LoadingScreenPresentation.cs
+Runtime/Loading/LoadingScreenAdapterAction.cs
+Runtime/Loading/LoadingScreenAdapterStatus.cs
+Runtime/Loading/LoadingScreenAdapterResult.cs
+```
+
+The adapter contract is visual-facing only:
+
+```text
+LoadingOperation -> LoadingScreenPresentation -> ILoadingScreenAdapter -> LoadingScreenAdapterResult
+```
+
+`ILoadingScreenAdapter` may be implemented by a future Unity UI adapter, but F22E does not create that implementation. The boundary exists so visual systems consume canonical Loading data instead of inventing a parallel progress model under UI, TransitionEffects, SceneLifecycle or Pause.
+
+F22E adds `Run Loading Screen Adapter Boundary Smoke` under QA Canvas `Show Loading diagnostics`. The smoke uses a synthetic in-memory adapter to validate show/update/hide, unsupported operation rejection, explicit adapter failure and the canonical boundary.
+
+F22E does not create UI, scene objects, prefabs, ScriptableObjects, fade, curtain, TransitionEffect execution, SceneLifecycle execution, Transition execution, readiness mutation, backend, PlayerPrefs, JSON or asmdef changes.
+
+Next cut: F23A - Pause Content / Overlay / Input ADR Plan.
+
+
+## 10. F22F closure result
+
+F22F closes the Loading Operation / Progress / Readiness Boundary with the usage guide:
+
+```text
+Documentation~/Guides/F22-Loading-Operation-Progress-Readiness-Usage.md
+```
+
+The closed F22 surface is:
+
+```text
+LoadingOperation / LoadingStep primitives
+weighted progress aggregation
+SceneLifecycle / Transition observation adapter
+loading screen adapter boundary
+QA diagnostics smokes
+```
+
+The closure cut is documentation-only. It does not add runtime execution, UI, prefab, scene object, ScriptableObject, fade/curtain execution, SceneLifecycle replacement, Transition replacement, readiness mutation, backend, PlayerPrefs, JSON or asmdef changes.
+
+Next phase: F23 - Pause Content / Overlay / Input Boundary.

@@ -2,7 +2,7 @@
 
 Plano canônico do package `com.immersive.framework`.
 
-Este é o único arquivo de planejamento do framework. Decisões aceitas, histórico F0-F20 e a ordem futura ficam resumidos aqui para evitar fontes paralelas.
+Este é o único arquivo de planejamento do framework. Decisões aceitas, histórico F0-F22 e a ordem futura ficam resumidos aqui para evitar fontes paralelas.
 
 ADRs aceitos ficam em `Documentation~/ADRs/ADR-INDEX.md`. ADRs registram decisões estáveis e não substituem este roadmap operacional.
 
@@ -16,14 +16,14 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 
 | Faixa | Status | Leitura oficial |
 |---|---|---|
-| F0-F20 | `CLOSED / APPLIED` | Histórico real resumido neste documento. |
+| F0-F22 | `CLOSED / APPLIED` | Histórico real resumido neste documento. |
 | F17 | `CLOSED / F17E QA PASS` | Gate Foundation fechada. F17A realinhou ADRs/plano; F17B introduziu primitivas passivas; F17C integrou admissão de requests existentes via Gate; F17D adicionou smoke sintético de diagnóstico; F17E fechou a fase e preparou F18. |
 | F18 | `CLOSED / F18F QA PASS + USAGE` | Transition Orchestration Foundation fechada. F18A aceitou o plano; F18B criou primitivas passivas; F18C adicionou diagnostics smoke; F18D definiu relação passiva com Gate blocker; F18E observou Route/Activity orchestration; F18F fechou a fase e criou Usage Guide. Sem fade/loading visual, Pause, Input ou gameplay. |
 | F19 | `CLOSED / F19F QA PASS + USAGE` | Transition Effects fechada. Effects são adapters/consumers de F18: primitivas passivas, diagnostics smoke, adapter Unity mínimo CanvasGroup fade/curtain, policy required/optional e Usage Guide. Sem registry, ScriptableObject obrigatório, DOTween ou fallback silencioso. |
 | F20 | `CLOSED / F20F QA PASS + USAGE` | Pause State/Gate fechado como core lógico. F20B adicionou primitivas passivas; F20C adicionou diagnostics smoke; F20D adicionou policy passiva Pause-to-Gate blocker; F20E adicionou request path mínimo em memória via `FrameworkRuntimeHost`/`PauseRuntime`; F20F criou Usage Guide. Sem Gate registry real, overlay, input ou `Time.timeScale`. |
 | F21 | `CLOSED / F21H QA PASS + USAGE` | Save / Snapshot / Preferences / Progression Save Foundation fechada. F21B adicionou Snapshot Envelope primitives. F21C adicionou participant contracts/smoke. F21D adicionou Preferences store/PlayerPrefs adapter. F21E adicionou Progression Save port/slot/manifest. F21F adicionou JSON backend adapter/smoke. F21G adicionou runtime request path e autosave moment contracts. F21H criou Usage Guide e fechou a fase. |
-| F22 | `ACTIVE / F22D APPLIED` | Loading primitives, aggregation smoke e observation adapter aplicados. F22E e o proximo corte para Loading Screen Adapter Boundary. |
-| F23 | `DEFERRED` | Pause Content / Overlay / Input Boundary move para depois de Save e Loading. |
+| F22 | `CLOSED / F22F QA PASS + USAGE` | Loading Operation / Progress / Readiness Boundary fechada. F22A aceitou o plano; F22B criou primitivas passivas; F22C adicionou agregação/smoke; F22D adicionou observation adapter; F22E adicionou loading screen adapter boundary; F22F criou Usage Guide e fechou a fase. |
+| F23 | `NEXT / PLANNED` | Pause Content / Overlay / Input Boundary. |
 | F24 | `DEFERRED` | Gameplay Adapter Foundation e consumers avançados ficam bloqueados até Save/Loading/Pause e um modelo maduro de gameplay object/actor/player. |
 
 ## Histórico real F0-F17
@@ -149,7 +149,7 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Player, Actor,
 | F19 | Transition Effects / Loading and Fade Adapters | Unity Adapter / Optional Effects | `CLOSED / F19F QA PASS + USAGE`: effects fechados como adapters/consumers de F18 Transition Orchestration. F19B criou primitivas passivas; F19C validou diagnostics; F19D adicionou adapter Unity mínimo CanvasGroup fade/curtain; F19E fechou policy/guardrails required/optional; F19F adiciona usage guide e compacta o QA Canvas. Sem dependência obrigatória de DOTween/Asset Store, sem registry, sem ScriptableObject obrigatório e sem fallback silencioso para adapter required ausente. |
 | F20 | Pause State and Pause Gate | Framework Core | `CLOSED / F20F QA PASS + USAGE`: Pause como estado + Gate blocker. F20B primitives; F20C diagnostics smoke; F20D relação passiva Pause-to-Gate; F20E request path mínimo em memória; F20F Usage Guide. Não é Activity, menu, overlay, input system, `Time.timeScale` contract ou lifecycle de Route/Activity. |
 | F21 | Save / Snapshot / Preferences / Progression Save Foundation | Framework Core + Save Module | `CLOSED / F21H QA PASS + USAGE`: ADR plan aceito, Snapshot Envelope primitives aplicadas, participant contracts/smoke sintetico aplicados, Preferences store/PlayerPrefs adapter aplicado, Progression Save port/slot/manifest primitives aplicadas, JSON backend/smoke aplicados, runtime request path/autosave moment contracts aplicados e Usage Guide criado. |
-| F22 | Loading Operation / Progress / Readiness Boundary | Framework Core + Loading Module | `F22B APPLIED`: operação, steps e progresso ponderado passivos em `Runtime/Loading`. `F22C APPLIED`: aggregation smoke. `F22D APPLIED`: SceneLifecycle/Transition observation adapter. `F22E NEXT`: Loading Screen Adapter Boundary. Loading não é visual, fade, curtain, prefab, TransitionEffect vocabulary ou substituto de SceneLifecycle. |
+| F22 | Loading Operation / Progress / Readiness Boundary | Framework Core + Loading Module | `CLOSED / F22F`: operação, steps, progresso ponderado, aggregation smoke, observation adapter, loading screen adapter boundary e usage guide. Loading não é visual, fade, curtain, prefab, TransitionEffect vocabulary ou substituto de SceneLifecycle. |
 | F23 | Pause Content / Overlay / Input Boundary | Framework Consumer / Authoring / Input Boundary | `DEFERRED`: Overlay/content de Pause como consumer, usando Content Anchor/binding/runtime placement quando aplicável. Input de Pause separado de input de gameplay. |
 | F24 | Gameplay Adapter Foundation | Gameplay Adapter / Consumer Boundary | Camera, Audio, Actor, gameplay Pooling, Projectile, Damage, Attributes, Powerups e contextual reset entram somente depois dos eixos Save/Loading/Pause e do modelo de gameplay object amadurecerem. |
 
@@ -346,7 +346,7 @@ Run Progression Save JSON Backend Smoke: PASS
 Run Progression Save Runtime Request Smoke: PASS
 ```
 
-F22C applied. Next cut: F22E — Loading Screen Adapter Boundary.
+F22C applied. Next cut: F23A — Pause Content / Overlay / Input ADR Plan.
 
 ## Plano F22 — Loading Operation / Progress / Readiness Boundary
 
@@ -368,8 +368,8 @@ Loading visual belongs to a later adapter.
 | F22B | `APPLIED / PRIMITIVES` | Loading Operation / Step / Weighted Progress Primitives. | Nenhum. Sem UI/backend. |
 | F22C | `APPLIED / AGGREGATION SMOKE` | Loading Progress Aggregation Smoke. | Smoke sintetico em QA Canvas; sem SceneLifecycle/Transition/UI. |
 | F22D | `APPLIED / OBSERVATION ADAPTER` | SceneLifecycle / Transition Loading Observation Adapter. | Adapter de observacao, sem substituir lifecycle. |
-| F22E | `NEXT / PLANNED` | Loading Screen Adapter Boundary. | Visual apenas como adapter posterior. |
-| F22F | `PLANNED` | Closure + Usage Guide. | Criar usage guide apenas no fechamento. |
+| F22E | `APPLIED / LOADING SCREEN ADAPTER BOUNDARY` | Loading Screen Adapter Boundary. | Contratos e smoke sintético; sem UI/prefab concreto. |
+| F22F | `APPLIED / CLOSED` | Closure + Usage Guide. | Usage guide criado em `Documentation~/Guides/F22-Loading-Operation-Progress-Readiness-Usage.md`. |
 
 F22 nao cria fade, curtain, loading screen prefab, UI concreta, scene object ou lifecycle paralelo. F19 continua owner de transition effects/fade/curtain; F22 apenas relata loading operation/progress/readiness.
 
@@ -381,7 +381,7 @@ F22C result: Loading progress aggregation smoke applied. Added `LoadingProgressA
 
 F22D result: SceneLifecycle / Transition Loading observation adapter applied. Added `LoadingObservationAdapter` and `Run Loading Observation Adapter Smoke`. The adapter maps existing SceneLifecycle and Transition diagnostic results into canonical Loading progress records without executing lifecycle, replacing Transition, running effects, mutating readiness, creating UI, adding scene objects/prefabs/ScriptableObjects, using backend/PlayerPrefs/JSON or changing asmdefs.
 
-Next cut: F22E — Loading Screen Adapter Boundary.
+Next cut: F23A — Pause Content / Overlay / Input ADR Plan.
 
 
 
@@ -783,3 +783,7 @@ F19B fechado: foram criadas primitivas passivas em `Runtime/TransitionEffects`: 
 F19C fechado: adicionado `TransitionEffectQaSmokeRunner` e botão `Run Transition Effect Diagnostics Smoke` no QA Canvas. O smoke valida `TransitionEffectRequest`, `TransitionEffectPlan`, `TransitionEffectResult` nos casos `Succeeded`, `Skipped` opcional e `MissingAdapter` required bloqueante, além de `TransitionEffectSnapshot`. F19C permanece sintético: sem scene object, Canvas, ScriptableObject, adapter Unity, fade/loading visual, DOTween, Pause, Input ou UI.
 
 F19E fechado: adicionada policy de required/optional Transition Effects (`TransitionEffectAuthoringPolicy`), issue/evaluation primitives e smoke `Run Transition Effect Policy Guardrails Smoke`. A policy avalia um `TransitionEffectPlan` contra uma lista explícita de adapters fornecida pelo chamador. Required adapter ausente bloqueia, optional adapter ausente não bloqueia, duplicate effect id bloqueia como ambiguidade de authoring. Ainda sem ScriptableObject, registry, scene discovery, runtime effect owner, loading screen canônico, DOTween ou integração real com Route/Activity.
+
+F22E result: Loading Screen Adapter Boundary applied. Added `ILoadingScreenAdapter`, `LoadingScreenPresentation`, `LoadingScreenAdapterAction`, `LoadingScreenAdapterStatus`, `LoadingScreenAdapterResult` and `Run Loading Screen Adapter Boundary Smoke` under QA Canvas `Show Loading diagnostics`. This is a visual adapter boundary only: it consumes canonical `LoadingOperation` data but does not create UI, scene objects, prefabs, ScriptableObjects, fade, curtain, TransitionEffect execution, SceneLifecycle execution, Transition execution, readiness mutation, backend, PlayerPrefs, JSON or asmdef changes.
+
+F22F result: Loading Operation / Progress / Readiness Boundary closed with `Documentation~/Guides/F22-Loading-Operation-Progress-Readiness-Usage.md`. Closure is documentation-only and preserves the same boundaries: no runtime execution, UI, prefab, scene object, ScriptableObject, fade/curtain execution, SceneLifecycle replacement, Transition replacement, readiness mutation, backend, PlayerPrefs, JSON or asmdef changes. Next cut: F23A - Pause Content / Overlay / Input ADR Plan.
