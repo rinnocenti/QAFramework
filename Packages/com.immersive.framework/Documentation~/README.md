@@ -28,7 +28,7 @@ Guides/F20-Pause-State-Gate-Usage.md
 Closure rule: when a framework phase is closed, add or update its `Usage` guide under `Documentation~/Guides/`.
 
 
-F0-F20 are closed/applied. F17 is Gate Foundation. F18 is Transition Orchestration Foundation. F19 is Transition Effects. F20 is Pause State/Gate. F21 is next/planned for Pause Content/Overlay/Input Boundary.
+F0-F20 are closed/applied. F17 is Gate Foundation. F18 is Transition Orchestration Foundation. F19 is Transition Effects. F20 is Pause State/Gate. F21 is next/planned for Save / Snapshot / Preferences / Progression Save Foundation. F22 is planned for Loading Operation / Progress / Readiness Boundary. Pause Content/Overlay/Input moves to F23. Gameplay Adapter Foundation moves to F24.
 F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C integrates those primitives with existing request-admission guards; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase and hands off to F18. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes without runtime visual effects. F18D adds a passive Transition-to-Gate blocker relationship and synthetic smoke without registering runtime Gate state. F18E adds passive Route/Activity orchestration observation and smoke without executing requests. F18F closes the phase with `Guides/F18-Transition-Orchestration-Usage.md` and hands off to F19 Transition Effects. F19A accepts the Transition Effects boundary/implementation plan and records that no scene/object/SO setup is required yet. F19B adds passive Transition Effect primitives under `Runtime/TransitionEffects`; F19C adds `Run Transition Effect Diagnostics Smoke`, still without scene/object/SO setup. F19D adds `ITransitionEffectAdapter`, `UnityFadeCurtainEffectAdapter` and `Run Unity Fade Curtain Effect Adapter Smoke`; the smoke uses a transient QA GameObject, while optional manual scene setup is documented in `Guides/F19D-Minimal-Fade-Curtain-Adapter-Setup.md`. F19E adds required/optional effect policy guardrails and `Run Transition Effect Policy Guardrails Smoke`; no ScriptableObject or saved scene setup is required. F19F closes the phase with `Guides/F19-Transition-Effects-Usage.md` and compacts QA Canvas by keeping baseline buttons visible and moving phase diagnostics behind toggles. F20A accepted the Pause State/Gate plan; F20B adds passive Pause primitives under `Runtime/Pause`; F20C adds `Run Pause Diagnostics Smoke`; F20D adds passive Pause-to-Gate blocker policy; F20E adds the minimal runtime Pause request path through `FrameworkRuntimeHost` and `PauseRuntime`, still without scene/object/SO setup, input, overlay or `Time.timeScale`. F20F closes the phase with `Guides/F20-Pause-State-Gate-Usage.md`.
 
 Current reset boundary:
@@ -47,8 +47,10 @@ F17 - Gate Foundation / CLOSED
 F18 - Transition Orchestration Foundation / CLOSED
 F19 - Transition Effects / Loading and Fade Adapters / CLOSED
 F20 - Pause State and Pause Gate / CLOSED / F20F QA PASS + USAGE
-F21 - Pause Content / Overlay / Input Boundary / NEXT
-F22+ - Advanced Consumers / Gameplay Capabilities
+F21 - Save / Snapshot / Preferences / Progression Save Foundation / NEXT
+F22 - Loading Operation / Progress / Readiness Boundary
+F23 - Pause Content / Overlay / Input Boundary
+F24 - Gameplay Adapter Foundation
 ```
 
 Cycle Reset authoring note:
@@ -110,6 +112,18 @@ F20 pause note:
 ```text
 F20B adds passive Pause primitives under `Runtime/Pause`. F20C adds synthetic Pause diagnostics smoke. F20D adds passive Pause Gate blocker policy. F20E adds minimal in-memory runtime request execution. F20F closes the phase with `Guides/F20-Pause-State-Gate-Usage.md`. No scene, GameObject, Canvas, prefab or ScriptableObject is required for F20.
 F20 is Pause logical core: state, request/result, policy, snapshot/facts and Gate blocker relationship.
-Pause content/overlay/input belongs to F21.
-Next cut: F21A - Pause Content/Overlay/Input Boundary Implementation Plan.
+Save/Snapshot/Preferences/Progression Save belongs to F21. Loading Operation/Progress/Readiness belongs to F22. Pause content/overlay/input moves to F23.
+Next cut: F21A - Save / Snapshot / Preferences / Progression ADR Plan.
+```
+
+F21/F22 boundary note:
+
+```text
+Snapshot does not know backend.
+Preferences does not use progression slots.
+Progression Save uses a replaceable backend port.
+The future JSON backend is the initial adapter, not the canonical contract.
+A future premium backend must swap behind the same interface.
+Loading is operation/progress/readiness reporting, not fade, curtain, loading screen prefab or SceneLifecycle replacement.
+Loading visual belongs to a later adapter.
 ```

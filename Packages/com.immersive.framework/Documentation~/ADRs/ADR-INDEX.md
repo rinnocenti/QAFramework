@@ -8,7 +8,7 @@ Documentation~/Planning/Immersive-Framework-Roadmap-Revisado.md
 
 ADRs record accepted architectural decisions. They do not replace the operational roadmap and must not redefine phase order.
 
-F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integration & Authoring UX`. F13 is closed as `Object Entry Foundation`. F14 is closed as `Local Object Reset Foundation`. F15 is closed as `Unity Reset Adapters mínimos`. F16 is closed as `GameObject Active State Reset Adapter`. F17 is closed as `Gate Foundation`. F18 is closed as `Transition Orchestration Foundation`. F19 is closed as `Transition Effects`. F20 is closed as `Pause State and Gate`. F21 is next for Pause Content/Overlay/Input Boundary.
+F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integration & Authoring UX`. F13 is closed as `Object Entry Foundation`. F14 is closed as `Local Object Reset Foundation`. F15 is closed as `Unity Reset Adapters minimos`. F16 is closed as `GameObject Active State Reset Adapter`. F17 is closed as `Gate Foundation`. F18 is closed as `Transition Orchestration Foundation`. F19 is closed as `Transition Effects`. F20 is closed as `Pause State and Gate`. F21 is next for Save / Snapshot / Preferences / Progression Save Foundation. F22 is Loading Operation / Progress / Readiness Boundary. Pause Content/Overlay/Input moves to F23. Gameplay Adapter Foundation moves to F24.
 
 ## Accepted ADRs
 
@@ -41,9 +41,11 @@ F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integra
 | F18 | [Transition Orchestration](F18-ADR-TRANSITION-001-Transition-Orchestration.md) | Accepted / Closed F18F |
 | F19 | [Transition Effects Boundary](F19-ADR-TRANSITION-002-Transition-Effects-Boundary.md) | Accepted / Closed F19F |
 | F20 | [Pause State and Gate](F20-ADR-PAUSE-002-Pause-State-and-Gate.md) | Accepted / Closed F20F |
-| F21 | [Pause Content Overlay Input Boundary](F21-ADR-PAUSE-003-Pause-Content-Overlay-Input-Boundary.md) | Next / Planned |
-| F22+ | [Advanced Consumers Boundary](F17-ADR-CONSUMERS-001-Advanced-Consumers-Boundary.md) | Deferred / Superseded phase number |
-| F22+ | [Gameplay Capabilities Boundary](F18-ADR-GAMEPLAY-001-Gameplay-Capabilities-Boundary.md) | Deferred / Superseded phase number |
+| F21 | [Save Snapshot Preferences Progression Boundary](F21-ADR-SAVE-001-Save-Snapshot-Preferences-Progression-Boundary.md) | Accepted / Planned F21A |
+| F22 | [Loading Operation Progress Readiness Boundary](F22-ADR-LOADING-001-Loading-Operation-Progress-Readiness-Boundary.md) | Accepted / Planned F22A |
+| F23 | [Pause Content Overlay Input Boundary](F21-ADR-PAUSE-003-Pause-Content-Overlay-Input-Boundary.md) | Deferred / Moved from former F21 plan |
+| F24+ | [Advanced Consumers Boundary](F17-ADR-CONSUMERS-001-Advanced-Consumers-Boundary.md) | Deferred / After Gameplay Adapter Foundation |
+| F24 | [Gameplay Capabilities Boundary](F18-ADR-GAMEPLAY-001-Gameplay-Capabilities-Boundary.md) | Deferred / Gameplay Adapter Foundation |
 
 ## Rule
 
@@ -68,6 +70,10 @@ F18 closure note: Transition is flow orchestration that consumes Gate. F18A acce
 
 F19 closure note: Transition effects are adapters/consumers of F18 Transition Orchestration. F19A accepts the boundary and implementation plan only. F19B adds passive primitives under `Runtime/TransitionEffects`: effect identity, kind, requiredness, status, request, result, plan and snapshot. F19C adds `Run Transition Effect Diagnostics Smoke` for passive request/plan/result/snapshot diagnostics. F19D adds the first concrete Unity adapter boundary: `ITransitionEffectAdapter`, `UnityFadeCurtainEffectAdapter` and `Run Unity Fade Curtain Effect Adapter Smoke`. The adapter mutates only CanvasGroup/surface active state and does not use DOTween, registry, lifecycle ownership, Pause, Input or gameplay. The canonical smoke uses a transient QA object; optional manual visual setup is documented in `Documentation~/Guides/F19D-Minimal-Fade-Curtain-Adapter-Setup.md`. F19E adds `TransitionEffectAuthoringPolicy`, policy issue/evaluation primitives and `Run Transition Effect Policy Guardrails Smoke`; required adapter absence and duplicate effect ids block, optional adapter absence warns without blocking, and no ScriptableObject/registry is introduced. F19F closes the phase with `Documentation~/Guides/F19-Transition-Effects-Usage.md` and compacts QA Canvas by keeping baseline smokes visible and collapsing phase diagnostics behind toggles.
 
-F20/F21 pause note: Pause is state plus Gate blocker. F20A accepted the implementation plan; F20B added passive Pause primitives under `Runtime/Pause`; F20C added `Run Pause Diagnostics Smoke`; F20D added `Run Pause Gate Blocker Smoke`; F20E added `Run Pause Runtime Request Smoke` and the minimal in-memory request path through `FrameworkRuntimeHost`; F20F closed the phase with `Documentation~/Guides/F20-Pause-State-Gate-Usage.md`. F20 remains asset-free: no scene object, Canvas, prefab or ScriptableObject is required. Pause is not Activity, does not own Route/Activity lifecycle and does not define `Time.timeScale` as the canonical contract. Pause overlay/content/input are F21 consumers/boundaries after Pause state and Gate.
+F20/F23 pause note: Pause is state plus Gate blocker. F20A accepted the implementation plan; F20B added passive Pause primitives under `Runtime/Pause`; F20C added `Run Pause Diagnostics Smoke`; F20D added `Run Pause Gate Blocker Smoke`; F20E added `Run Pause Runtime Request Smoke` and the minimal in-memory request path through `FrameworkRuntimeHost`; F20F closed the phase with `Documentation~/Guides/F20-Pause-State-Gate-Usage.md`. F20 remains asset-free: no scene object, Canvas, prefab or ScriptableObject is required. Pause is not Activity, does not own Route/Activity lifecycle and does not define `Time.timeScale` as the canonical contract. Pause overlay/content/input move to F23, after Save and Loading boundaries.
 
-F22+ defer note: Advanced Consumers, Gameplay Capabilities and contextual reset for Player/Actor/NPC/Timer/Door/Pickup are deferred until Gate/Transition/Pause are planned and a mature gameplay object model exists.
+F21 Save note: Save opens before Pause visual/gameplay work. Snapshot owns envelope/participant shape and does not know backend. Preferences owns user/application settings and does not use progression slots. Progression Save owns slots/manifests/request contracts and uses a replaceable backend port. A future JSON backend is the initial adapter only, not the canonical contract; a future premium backend must replace it behind the same interface.
+
+F22 Loading note: Loading is operation/progress/readiness reporting. It is not fade, curtain, loading screen prefab or a SceneLifecycle replacement. Loading visual belongs to a later adapter boundary.
+
+F24 defer note: Advanced Consumers, Gameplay Adapter Foundation and contextual reset for Player/Actor/NPC/Timer/Door/Pickup are deferred until Save/Loading/Pause boundaries are planned and a mature gameplay object model exists.

@@ -21,8 +21,10 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 | F18 | `CLOSED / F18F QA PASS + USAGE` | Transition Orchestration Foundation fechada. F18A aceitou o plano; F18B criou primitivas passivas; F18C adicionou diagnostics smoke; F18D definiu relação passiva com Gate blocker; F18E observou Route/Activity orchestration; F18F fechou a fase e criou Usage Guide. Sem fade/loading visual, Pause, Input ou gameplay. |
 | F19 | `CLOSED / F19F QA PASS + USAGE` | Transition Effects fechada. Effects são adapters/consumers de F18: primitivas passivas, diagnostics smoke, adapter Unity mínimo CanvasGroup fade/curtain, policy required/optional e Usage Guide. Sem registry, ScriptableObject obrigatório, DOTween ou fallback silencioso. |
 | F20 | `CLOSED / F20F QA PASS + USAGE` | Pause State/Gate fechado como core lógico. F20B adicionou primitivas passivas; F20C adicionou diagnostics smoke; F20D adicionou policy passiva Pause-to-Gate blocker; F20E adicionou request path mínimo em memória via `FrameworkRuntimeHost`/`PauseRuntime`; F20F criou Usage Guide. Sem Gate registry real, overlay, input ou `Time.timeScale`. |
-| F21 | `NEXT / PLANNED` | Pause content/overlay/input boundary vem depois do Pause core lógico. |
-| F22+ | `DEFERRED` | Consumers avançados, gameplay capabilities e contextual reset de Player/Actor/NPC/Timer/Door/Pickup ficam bloqueados até Gate/Transition/Pause e um modelo maduro de gameplay object/actor/player. |
+| F21 | `NEXT / PLANNED` | Save / Snapshot / Preferences / Progression Save Foundation abre antes de Pause visual/gameplay. |
+| F22 | `PLANNED` | Loading Operation / Progress / Readiness Boundary vem depois de Save e antes de Pause visual. |
+| F23 | `DEFERRED` | Pause Content / Overlay / Input Boundary move para depois de Save e Loading. |
+| F24 | `DEFERRED` | Gameplay Adapter Foundation e consumers avançados ficam bloqueados até Save/Loading/Pause e um modelo maduro de gameplay object/actor/player. |
 
 ## Histórico real F0-F17
 
@@ -82,6 +84,8 @@ Decisão de realinhamento pós-F16: não avancar agora para contextual reset de 
 | Gate | Gate não é UI, readiness nem input system. Ele decide se request, input, interação ou gameplay pode ser admitido em um escopo explícito naquele momento. |
 | Transition | Transition é orquestração de fluxo. Fade, loading e curtain sao efeitos/adapters e não substituem Gate. |
 | Pause | Pause é estado + Gate blocker. Pause não e Activity, não controla Route/Activity lifecycle e não tem `Time.timeScale` como contrato canônico. |
+| Save | Snapshot não conhece backend. Preferences não usa slot de progressão. Progression Save usa backend port substituível. JSON futuro e adapter inicial, não contrato canônico. Backend premium futuro troca atrás da mesma interface. |
+| Loading | Loading e operação/progresso/readiness. Não e fade, curtain, loading screen prefab nem substituto de SceneLifecycle. Visual de Loading fica para adapter posterior. |
 | Diagnostics | Falhas de contrato/config obrigatória devem ser explícitas. Não há fallback silencioso. |
 | Authoring UX | Nomes públicos devem expressar intencao de uso, não detalhes internos de pipeline. |
 
@@ -104,7 +108,11 @@ Framework Core pode definir:
 - participant/player entry contracts futuros;
 - gate decisions/results/facts;
 - transition orchestration contracts;
-- pause state and pause gate policy.
+- pause state and pause gate policy;
+- snapshot envelope contracts;
+- preferences store contracts;
+- progression save slot/manifest/request contracts;
+- loading operation/progress/readiness contracts.
 
 Framework Core não pode executar:
 
@@ -116,14 +124,16 @@ Framework Core não pode executar:
 - `Animator` reset;
 - camera blend;
 - UI concrete show/hide;
+- save backend persistence details;
+- loading screen visual presentation;
 - player/actor mutation;
 - gameplay state mutation.
 
 Unity adapters futuros traduzem contratos do core para operações Unity concretas: scenes, prefabs, Addressables, `Transform` placement, hierarchy, physical release e resets mínimos de engine. F15/F16 já fecharam dois adapters primitivos: Transform local baseline e GameObject activeSelf baseline.
 
-Gameplay consumers futuros possuem comportamento de produto/jogo. Player, Actor, Timer, NPC, Camera, Audio e gameplay Pooling dependem de decisão contextual antes de virar implementação. Essa decisão contextual fica deferida para F22+.
+Gameplay consumers futuros possuem comportamento de produto/jogo. Player, Actor, Timer, NPC, Camera, Audio e gameplay Pooling dependem de decisão contextual antes de virar implementação. Essa decisão contextual fica deferida para F24+.
 
-## Plano revisado F11-F22+
+## Plano revisado F11-F24
 
 | Fase | Nome | Owner | Objetivo |
 |---|---|---|---|
@@ -137,8 +147,10 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Player, Actor,
 | F18 | Transition Orchestration Foundation | Framework Core | `CLOSED / F18F QA PASS + USAGE`: contrato lógico passivo, diagnostics smoke, relação passiva com Gate blocker e observação de Route/Activity orchestration, sem visual effects ou lifecycle paralelo. |
 | F19 | Transition Effects / Loading and Fade Adapters | Unity Adapter / Optional Effects | `CLOSED / F19F QA PASS + USAGE`: effects fechados como adapters/consumers de F18 Transition Orchestration. F19B criou primitivas passivas; F19C validou diagnostics; F19D adicionou adapter Unity mínimo CanvasGroup fade/curtain; F19E fechou policy/guardrails required/optional; F19F adiciona usage guide e compacta o QA Canvas. Sem dependência obrigatória de DOTween/Asset Store, sem registry, sem ScriptableObject obrigatório e sem fallback silencioso para adapter required ausente. |
 | F20 | Pause State and Pause Gate | Framework Core | `CLOSED / F20F QA PASS + USAGE`: Pause como estado + Gate blocker. F20B primitives; F20C diagnostics smoke; F20D relação passiva Pause-to-Gate; F20E request path mínimo em memória; F20F Usage Guide. Não é Activity, menu, overlay, input system, `Time.timeScale` contract ou lifecycle de Route/Activity. |
-| F21 | Pause Content / Overlay / Input Boundary | Framework Consumer / Authoring / Input Boundary | `NEXT / PLANNED`: Overlay/content de Pause como consumer, usando Content Anchor/binding/runtime placement quando aplicável. Input de Pause separado de input de gameplay. |
-| F22+ | Advanced Consumers / Gameplay Capabilities | Gameplay Consumer | Camera, Audio, Actor, gameplay Pooling, Projectile, Damage, Attributes, Powerups e contextual reset entram somente depois dos eixos Gate/Transition/Pause e do modelo de gameplay object amadurecerem. |
+| F21 | Save / Snapshot / Preferences / Progression Save Foundation | Framework Core + Save Module | `NEXT / PLANNED`: contratos de Snapshot envelope, participant contracts, Preferences store e Progression Save port/slot/manifest. Sem backend concreto neste corte documental. |
+| F22 | Loading Operation / Progress / Readiness Boundary | Framework Core + Loading Module | `PLANNED`: contratos de operação, steps, progresso ponderado e readiness observation. Loading não é visual, fade, curtain, prefab ou substituto de SceneLifecycle. |
+| F23 | Pause Content / Overlay / Input Boundary | Framework Consumer / Authoring / Input Boundary | `DEFERRED`: Overlay/content de Pause como consumer, usando Content Anchor/binding/runtime placement quando aplicável. Input de Pause separado de input de gameplay. |
+| F24 | Gameplay Adapter Foundation | Gameplay Adapter / Consumer Boundary | Camera, Audio, Actor, gameplay Pooling, Projectile, Damage, Attributes, Powerups e contextual reset entram somente depois dos eixos Save/Loading/Pause e do modelo de gameplay object amadurecerem. |
 
 ## Plano F19 — Transition Effects / Loading and Fade Adapters
 
@@ -166,15 +178,67 @@ F20 implementa Pause como estado lógico e relação com Gate. Ele não começa 
 | F20C | `CLOSED / DIAGNOSTICS SMOKE APPLIED` | Smoke sintético de diagnostics de Pause: request, pause applied, resume applied, toggle target, idempotência, rejected result e snapshot. | Nenhum. Sem cena, objeto, Canvas, input, Gate real ou `Time.timeScale`. |
 | F20D | `CLOSED / PAUSE GATE BLOCKER POLICY APPLIED` | Relação passiva Pause-to-Gate blocker e smoke. | Nenhum. Sem Gate registry/runtime global. |
 | F20E | `CLOSED / MINIMAL RUNTIME REQUEST PATH APPLIED` | Request path mínimo de Pause via `FrameworkRuntimeHost`/`PauseRuntime`, com snapshot e GateSnapshot derivados. | Nenhum setup salvo. Sem overlay/input/`Time.timeScale`/Gate registry. |
-| F20F | `CLOSED / QA PASS + USAGE` | Fechamento, Usage Guide e handoff para F21 Pause Content/Overlay/Input. | `Documentation~/Guides/F20-Pause-State-Gate-Usage.md`. |
+| F20F | `CLOSED / QA PASS + USAGE` | Fechamento, Usage Guide e handoff para F21 Save / Snapshot / Preferences / Progression Save Foundation. | `Documentation~/Guides/F20-Pause-State-Gate-Usage.md`. |
 
-F20B/F20C/F20D/F20E/F20F não autorizam Pause menu, overlay, input real, `Time.timeScale` adapter, loading screen, fade/curtain ownership, Pause como Activity ou lifecycle paralelo. F20E adiciona apenas request path mínimo em memória, sem Gate registry real. Setup visual/manual fica para F21.
+F20B/F20C/F20D/F20E/F20F não autorizam Pause menu, overlay, input real, `Time.timeScale` adapter, loading screen, fade/curtain ownership, Pause como Activity ou lifecycle paralelo. F20E adiciona apenas request path mínimo em memória, sem Gate registry real. Setup visual/manual move para F23.
 
 ### Próximo corte recomendado
 
 ```text
-F21A - Pause Content / Overlay / Input Boundary Implementation Plan
+F21A - Save / Snapshot / Preferences / Progression ADR Plan
 ```
+
+## Plano F21 — Save / Snapshot / Preferences / Progression Save Foundation
+
+F21 abre Save antes de Pause visual/gameplay. O objetivo e separar Snapshot, Preferences e Progression Save sem acoplar contrato canonico a um backend.
+
+Decisoes de boundary:
+
+```text
+Snapshot does not know backend.
+Preferences does not use progression slots.
+Progression Save uses a replaceable backend port.
+Future JSON backend is the initial adapter, not the canonical contract.
+Future premium backend must swap behind the same interface.
+```
+
+| Corte | Status | Objetivo | Setup manual esperado |
+|---|---|---|---|
+| F21A | `CURRENT / ADR PLAN` | Aceitar plano ADR de Save/Snapshot/Preferences/Progression. | Nenhum. Documentacao apenas. |
+| F21B | `PLANNED` | Snapshot Envelope Primitives. | Nenhum. Sem runtime/backend. |
+| F21C | `PLANNED` | Snapshot Participant Contracts + Diagnostics Smoke. | Nenhum setup salvo. Smoke futuro sintetico. |
+| F21D | `PLANNED` | Preferences Store Contracts + PlayerPrefs Backend. | PlayerPrefs aparece apenas como backend adapter futuro. |
+| F21E | `PLANNED` | Progression Save Port + Slot/Manifest Primitives. | Nenhum backend concreto obrigatorio. |
+| F21F | `PLANNED` | JSON Progression Backend + Diagnostics Smoke. | JSON e adapter inicial futuro, nao contrato canonico. |
+| F21G | `PLANNED` | Progression Save Runtime Request Path + Autosave Moment Contracts. | Sem UI, scene object ou ScriptableObject obrigatorio. |
+| F21H | `PLANNED` | Closure + Usage Guide. | Criar usage guide apenas no fechamento. |
+
+F21A nao implementa codigo, runtime, backend, PlayerPrefs, JSON, UI, scene object, ScriptableObject ou asmdef. Snapshot segue a decisao F10: Snapshot e diferente de Reset; Reset Baseline nao e Save Snapshot.
+
+## Plano F22 — Loading Operation / Progress / Readiness Boundary
+
+F22 define Loading como contrato de operacao/progresso/readiness. Loading nao substitui SceneLifecycle e nao e visual.
+
+Decisoes de boundary:
+
+```text
+Loading is not fade.
+Loading is not curtain.
+Loading is not a loading screen prefab.
+Loading is not a SceneLifecycle replacement.
+Loading visual belongs to a later adapter.
+```
+
+| Corte | Status | Objetivo | Setup manual esperado |
+|---|---|---|---|
+| F22A | `PLANNED / ADR PLAN` | Loading Architecture ADR Plan. | Nenhum. Documentacao apenas. |
+| F22B | `PLANNED` | Loading Operation / Step / Weighted Progress Primitives. | Nenhum. Sem UI/backend. |
+| F22C | `PLANNED` | Loading Progress Aggregation Smoke. | Smoke futuro sintetico. |
+| F22D | `PLANNED` | SceneLifecycle / Transition Loading Observation Adapter. | Adapter de observacao, sem substituir lifecycle. |
+| F22E | `PLANNED` | Loading Screen Adapter Boundary. | Visual apenas como adapter posterior. |
+| F22F | `PLANNED` | Closure + Usage Guide. | Criar usage guide apenas no fechamento. |
+
+F22 nao cria fade, curtain, loading screen prefab, UI concreta, scene object ou lifecycle paralelo. F19 continua owner de transition effects/fade/curtain; F22 apenas relata loading operation/progress/readiness.
 
 
 ## Fechamento real F11 — Cycle Reset Foundation
@@ -411,7 +475,7 @@ F17 fechou a fundação de Gate como linguagem canônica de admissão do framewo
 
 | Corte | Status | Resultado |
 |---|---|---|
-| F17A | `CLOSED / DOCUMENTATION PASS` | Roadmap e ADRs realinhados: Gate antes de Transition e Pause; contextual reset e consumers avançados movidos para F22+. |
+| F17A | `CLOSED / DOCUMENTATION PASS` | Roadmap e ADRs realinhados: Gate antes de Transition e Pause; contextual reset e consumers avançados foram diferidos novamente e agora ficam em F24+. |
 | F17B | `CLOSED / PRIMITIVES` | Primitivas passivas: `GateScope`, `GateDomain`, `GateDecisionStatus`, `GateDecision`, `GateBlocker`, `GateEvaluationResult` e `GateSnapshot`. |
 | F17C | `CLOSED / REGRESSION SMOKE PASS` | Admissão already-in-flight de Route/Activity/CycleReset/ObjectReset passa por `GateEvaluationResult`, preservando result kinds existentes. |
 | F17D | `CLOSED / QA SMOKE PASS` | `Run Gate Admission Diagnostics Smoke` valida admissões allowed/blocked por diagnóstico sintético estável. |
@@ -522,8 +586,10 @@ F18 não implementa:
 - Gate vem antes de Transition e Pause.
 - Transition e Pause consomem Gate.
 - Transition Effects vem depois de Transition Orchestration.
-- Pause vem depois de Gate e depois de Transition Orchestration.
-- Camera, Audio, Actor e Pooling so depois de Gate/Transition/Pause e do modelo de gameplay object amadurecer.
+- Pause core vem depois de Gate e depois de Transition Orchestration; Pause visual/input fica em F23.
+- Save vem antes de Pause visual/gameplay.
+- Loading operation/progress/readiness vem antes de Pause visual/gameplay.
+- Camera, Audio, Actor e Pooling so depois de Save/Loading/Pause e do modelo de gameplay object amadurecer.
 - Projectile, Damage, Attributes e Powerups ficam no fim.
 - F11 é `Cycle Reset Foundation`; F12 e `Cycle Reset Integration & Authoring UX`; F13 e `Object Entry Foundation`.
 - Reset físico não entra no core antes dos contratos lógicos e adapters mínimos estarem definidos.
@@ -536,8 +602,13 @@ F18 não implementa:
 
 - Não criar lifecycle novo por causa da consolidação documental.
 - Não criar ADR separado, roadmap paralelo, tracker paralelo, closure por fase ou smoke documental separado.
-- Não mover Camera, Audio, Actor, Pooling, Projectile, Damage, Attributes ou Powerups para F17-F21.
-- Não criar visual Transition, Pause, Input ou gameplay antes das fases corretas. F18 pode criar apenas core lógico de Transition.
+- Não mover Camera, Audio, Actor, Pooling, Projectile, Damage, Attributes ou Powerups para F17-F23.
+- Não criar visual Transition, Pause, Input ou gameplay antes das fases corretas.
+- Não criar backend, PlayerPrefs, JSON, UI, scene object, ScriptableObject ou asmdef em F21A.
+- Não tratar Snapshot como backend persistence.
+- Não tratar Preferences como slot de progressão.
+- Não tratar JSON futuro como contrato canônico.
+- Não tratar Loading como fade, curtain, loading screen prefab ou substituto de SceneLifecycle.
 - Não tratar Gate como UI, readiness ou input system.
 - Não tratar fade/loading visual como substituto de Gate.
 - Não tratar Pause como Activity, menu ou `Time.timeScale` canônico.
@@ -547,7 +618,7 @@ F18 não implementa:
 ## Próximo corte
 
 ```text
-F19D - Minimal Unity Fade/Curtain Adapter Boundary
+F21A - Save / Snapshot / Preferences / Progression ADR Plan
 ```
 
 F18B fechado: foram criadas primitivas passivas em `Runtime/Transition/` para operação, tipo, fase/status, step, plano, resultado e snapshot/diagnóstico. Também foi adicionado `FrameworkIdentityDomain.Transition` para manter operação como identidade tipada.
