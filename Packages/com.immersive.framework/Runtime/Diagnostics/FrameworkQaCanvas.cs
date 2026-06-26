@@ -44,6 +44,7 @@ namespace Immersive.Framework.Diagnostics
         private bool _showTransitionEffectDiagnostics;
         private bool _showPauseDiagnostics;
         private bool _showSnapshotDiagnostics;
+        private bool _showLoadingDiagnostics;
         private bool _showRouteContentDiagnostics;
         private bool _showFoundationDiagnostics;
         private bool _showResetObjectDiagnostics;
@@ -298,6 +299,12 @@ namespace Immersive.Framework.Diagnostics
                 DrawSnapshotDiagnosticSmokeControls();
             }
 
+            _showLoadingDiagnostics = GUILayout.Toggle(_showLoadingDiagnostics, "Show Loading diagnostics");
+            if (_showLoadingDiagnostics)
+            {
+                DrawLoadingDiagnosticSmokeControls();
+            }
+
             _showRouteContentDiagnostics = GUILayout.Toggle(_showRouteContentDiagnostics, "Show Route / Content diagnostics");
             if (_showRouteContentDiagnostics)
             {
@@ -412,6 +419,21 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Progression Save Runtime Request Smoke"))
                 {
                     RunProgressionSaveRuntimeRequestSmoke();
+                }
+            }
+        }
+
+        private void DrawLoadingDiagnosticSmokeControls()
+        {
+            GUILayout.Space(4f);
+            GUILayout.Label("Loading Diagnostics", GUI.skin.box);
+            GUILayout.Label("F22 diagnostics. Aggregates passive LoadingStep progress only. No SceneLifecycle execution, Transition execution, UI, fade, curtain or readiness mutation.");
+
+            using (new EditorDisabledScope(_requestInFlight))
+            {
+                if (GUILayout.Button("Run Loading Progress Aggregation Smoke"))
+                {
+                    RunLoadingProgressAggregationSmoke();
                 }
             }
         }
@@ -907,6 +929,12 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(ProgressionSaveRuntimeQaSmokeRunner.SmokeName, runtimeHost =>
                 ProgressionSaveRuntimeQaSmokeRunner.RunRuntimeRequestSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunLoadingProgressAggregationSmoke()
+        {
+            await RunSmokeAsync(LoadingProgressQaSmokeRunner.SmokeName, runtimeHost =>
+                LoadingProgressQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
         }
 
         private async void RunCycleResetRuntimeHostSmoke()

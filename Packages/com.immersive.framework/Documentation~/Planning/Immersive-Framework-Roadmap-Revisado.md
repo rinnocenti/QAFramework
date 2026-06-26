@@ -22,7 +22,7 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 | F19 | `CLOSED / F19F QA PASS + USAGE` | Transition Effects fechada. Effects são adapters/consumers de F18: primitivas passivas, diagnostics smoke, adapter Unity mínimo CanvasGroup fade/curtain, policy required/optional e Usage Guide. Sem registry, ScriptableObject obrigatório, DOTween ou fallback silencioso. |
 | F20 | `CLOSED / F20F QA PASS + USAGE` | Pause State/Gate fechado como core lógico. F20B adicionou primitivas passivas; F20C adicionou diagnostics smoke; F20D adicionou policy passiva Pause-to-Gate blocker; F20E adicionou request path mínimo em memória via `FrameworkRuntimeHost`/`PauseRuntime`; F20F criou Usage Guide. Sem Gate registry real, overlay, input ou `Time.timeScale`. |
 | F21 | `CLOSED / F21H QA PASS + USAGE` | Save / Snapshot / Preferences / Progression Save Foundation fechada. F21B adicionou Snapshot Envelope primitives. F21C adicionou participant contracts/smoke. F21D adicionou Preferences store/PlayerPrefs adapter. F21E adicionou Progression Save port/slot/manifest. F21F adicionou JSON backend adapter/smoke. F21G adicionou runtime request path e autosave moment contracts. F21H criou Usage Guide e fechou a fase. |
-| F22 | `ACTIVE / F22B APPLIED` | Loading primitives aplicados. F22C e o proximo corte para Loading Progress Aggregation Smoke. |
+| F22 | `ACTIVE / F22C APPLIED` | Loading primitives e aggregation smoke aplicados. F22D e o proximo corte para observacao SceneLifecycle/Transition. |
 | F23 | `DEFERRED` | Pause Content / Overlay / Input Boundary move para depois de Save e Loading. |
 | F24 | `DEFERRED` | Gameplay Adapter Foundation e consumers avançados ficam bloqueados até Save/Loading/Pause e um modelo maduro de gameplay object/actor/player. |
 
@@ -149,7 +149,7 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Player, Actor,
 | F19 | Transition Effects / Loading and Fade Adapters | Unity Adapter / Optional Effects | `CLOSED / F19F QA PASS + USAGE`: effects fechados como adapters/consumers de F18 Transition Orchestration. F19B criou primitivas passivas; F19C validou diagnostics; F19D adicionou adapter Unity mínimo CanvasGroup fade/curtain; F19E fechou policy/guardrails required/optional; F19F adiciona usage guide e compacta o QA Canvas. Sem dependência obrigatória de DOTween/Asset Store, sem registry, sem ScriptableObject obrigatório e sem fallback silencioso para adapter required ausente. |
 | F20 | Pause State and Pause Gate | Framework Core | `CLOSED / F20F QA PASS + USAGE`: Pause como estado + Gate blocker. F20B primitives; F20C diagnostics smoke; F20D relação passiva Pause-to-Gate; F20E request path mínimo em memória; F20F Usage Guide. Não é Activity, menu, overlay, input system, `Time.timeScale` contract ou lifecycle de Route/Activity. |
 | F21 | Save / Snapshot / Preferences / Progression Save Foundation | Framework Core + Save Module | `CLOSED / F21H QA PASS + USAGE`: ADR plan aceito, Snapshot Envelope primitives aplicadas, participant contracts/smoke sintetico aplicados, Preferences store/PlayerPrefs adapter aplicado, Progression Save port/slot/manifest primitives aplicadas, JSON backend/smoke aplicados, runtime request path/autosave moment contracts aplicados e Usage Guide criado. |
-| F22 | Loading Operation / Progress / Readiness Boundary | Framework Core + Loading Module | `F22B APPLIED`: operação, steps e progresso ponderado passivos em `Runtime/Loading`. `F22C NEXT`: aggregation smoke. Loading não é visual, fade, curtain, prefab, TransitionEffect vocabulary ou substituto de SceneLifecycle. |
+| F22 | Loading Operation / Progress / Readiness Boundary | Framework Core + Loading Module | `F22B APPLIED`: operação, steps e progresso ponderado passivos em `Runtime/Loading`. `F22C APPLIED`: aggregation smoke. `F22D NEXT`: observation adapter. Loading não é visual, fade, curtain, prefab, TransitionEffect vocabulary ou substituto de SceneLifecycle. |
 | F23 | Pause Content / Overlay / Input Boundary | Framework Consumer / Authoring / Input Boundary | `DEFERRED`: Overlay/content de Pause como consumer, usando Content Anchor/binding/runtime placement quando aplicável. Input de Pause separado de input de gameplay. |
 | F24 | Gameplay Adapter Foundation | Gameplay Adapter / Consumer Boundary | Camera, Audio, Actor, gameplay Pooling, Projectile, Damage, Attributes, Powerups e contextual reset entram somente depois dos eixos Save/Loading/Pause e do modelo de gameplay object amadurecerem. |
 
@@ -186,7 +186,7 @@ F20B/F20C/F20D/F20E/F20F não autorizam Pause menu, overlay, input real, `Time.t
 ### Próximo corte recomendado
 
 ```text
-F22C - Loading Progress Aggregation Smoke
+F22D - SceneLifecycle / Transition Loading Observation Adapter
 ```
 
 ## Plano F21 — Save / Snapshot / Preferences / Progression Save Foundation
@@ -346,7 +346,7 @@ Run Progression Save JSON Backend Smoke: PASS
 Run Progression Save Runtime Request Smoke: PASS
 ```
 
-F22B applied. Next cut: F22C — Loading Progress Aggregation Smoke.
+F22C applied. Next cut: F22D — SceneLifecycle / Transition Loading Observation Adapter.
 
 ## Plano F22 — Loading Operation / Progress / Readiness Boundary
 
@@ -366,8 +366,8 @@ Loading visual belongs to a later adapter.
 |---|---|---|---|
 | F22A | `APPLIED / DOCS ONLY` | Loading Architecture ADR Plan. | Nenhum. Documentacao apenas. |
 | F22B | `APPLIED / PRIMITIVES` | Loading Operation / Step / Weighted Progress Primitives. | Nenhum. Sem UI/backend. |
-| F22C | `NEXT / PLANNED` | Loading Progress Aggregation Smoke. | Smoke futuro sintetico. |
-| F22D | `PLANNED` | SceneLifecycle / Transition Loading Observation Adapter. | Adapter de observacao, sem substituir lifecycle. |
+| F22C | `APPLIED / AGGREGATION SMOKE` | Loading Progress Aggregation Smoke. | Smoke sintetico em QA Canvas; sem SceneLifecycle/Transition/UI. |
+| F22D | `NEXT / PLANNED` | SceneLifecycle / Transition Loading Observation Adapter. | Adapter de observacao, sem substituir lifecycle. |
 | F22E | `PLANNED` | Loading Screen Adapter Boundary. | Visual apenas como adapter posterior. |
 | F22F | `PLANNED` | Closure + Usage Guide. | Criar usage guide apenas no fechamento. |
 
@@ -377,7 +377,9 @@ F22A result: documentation-only architecture plan accepted. F22A reconciles exis
 
 F22B result: primitive-only Loading namespace applied. Added `Runtime/Loading` with operation id, step id, operation/step statuses, normalized progress, step weight, weighted progress, step record and operation record. Added `FrameworkIdentityDomain.Loading`. F22B does not add aggregation runtime, smoke, SceneLifecycle/Transition adapter, readiness wait, LoadingResult/LoadingFailure, visual adapter, UI, fade, curtain, scene object, prefab, ScriptableObject, backend, PlayerPrefs, JSON or asmdef changes.
 
-Next cut: F22C — Loading Progress Aggregation Smoke.
+F22C result: Loading progress aggregation smoke applied. Added `LoadingProgressAggregationStatus`, `LoadingProgressAggregationResult`, `LoadingProgressAggregator` and `Run Loading Progress Aggregation Smoke` under QA Canvas `Show Loading diagnostics`. The smoke validates weighted running progress, completed-with-skipped aggregation, failed aggregation, no-step aggregation and the canonical boundary. F22C does not add SceneLifecycle/Transition observation adapters, readiness wait contracts, LoadingResult/LoadingFailure records, UI, fade, curtain, loading screen prefab, scene object, prefab, ScriptableObject, backend, PlayerPrefs, JSON or asmdef changes.
+
+Next cut: F22D — SceneLifecycle / Transition Loading Observation Adapter.
 
 
 
@@ -758,7 +760,7 @@ F18 não implementa:
 ## Próximo corte
 
 ```text
-F22C - Loading Progress Aggregation Smoke
+F22D - SceneLifecycle / Transition Loading Observation Adapter
 ```
 
 F18B fechado: foram criadas primitivas passivas em `Runtime/Transition/` para operação, tipo, fase/status, step, plano, resultado e snapshot/diagnóstico. Também foi adicionado `FrameworkIdentityDomain.Transition` para manter operação como identidade tipada.

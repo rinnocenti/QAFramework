@@ -1,6 +1,6 @@
 # F22-ADR-LOADING-001 - Loading Operation Progress Readiness Boundary
 
-Status: Accepted / F22B Applied / F22C Next  
+Status: Accepted / F22C Applied / F22D Next  
 Phase: F22 - Loading Operation / Progress / Readiness Boundary  
 Type: Framework Core + Loading Module Boundary  
 Last updated: 2026-06-26
@@ -103,8 +103,8 @@ F22B must introduce a single canonical namespace for Loading primitives. Any fut
 |---|---|---|
 | F22A | `APPLIED / DOCS ONLY` | Loading Architecture ADR Plan. |
 | F22B | `APPLIED / PRIMITIVES` | Loading Operation / Step / Weighted Progress Primitives. |
-| F22C | `NEXT / PLANNED` | Loading Progress Aggregation Smoke. |
-| F22D | `PLANNED` | SceneLifecycle / Transition Loading Observation Adapter. |
+| F22C | `APPLIED / AGGREGATION SMOKE` | Loading Progress Aggregation Smoke. |
+| F22D | `NEXT / PLANNED` | SceneLifecycle / Transition Loading Observation Adapter. |
 | F22E | `PLANNED` | Loading Screen Adapter Boundary. |
 | F22F | `PLANNED` | Closure + Usage Guide. |
 
@@ -192,7 +192,20 @@ JSON
 asmdef changes
 ```
 
-F22C is responsible for a synthetic Loading Progress Aggregation Smoke.
+F22C adds pure Loading progress aggregation and a synthetic QA smoke.
+
+F22C introduces:
+
+```text
+LoadingProgressAggregationStatus
+LoadingProgressAggregationResult
+LoadingProgressAggregator
+Run Loading Progress Aggregation Smoke
+```
+
+The aggregation combines passive `LoadingStep` records using `LoadingStepWeight` and `LoadingProgress`. It validates running, completed-with-skipped, failed and no-step cases. It does not execute SceneLifecycle, Transition, TransitionEffects, readiness mutation or UI.
+
+F22D is responsible for SceneLifecycle / Transition loading observation adapters.
 
 ## 8. Consequences
 
