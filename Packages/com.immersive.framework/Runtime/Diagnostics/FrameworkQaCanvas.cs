@@ -286,6 +286,16 @@ namespace Immersive.Framework.Diagnostics
                     RunObjectResetFoundationClosureSmoke();
                 }
 
+                if (GUILayout.Button("Run Object Reset Unity Adapters Closure Smoke"))
+                {
+                    RunObjectResetUnityAdaptersClosureSmoke();
+                }
+
+                if (GUILayout.Button("Run Object Reset GameObject Active Closure Smoke"))
+                {
+                    RunObjectResetGameObjectActiveClosureSmoke();
+                }
+
                 if (GUILayout.Button("Validate Loaded Authoring"))
                 {
                     ValidateLoadedLocalContributionsAuthoring();
@@ -422,7 +432,7 @@ namespace Immersive.Framework.Diagnostics
             }
         }
 
-        private void DrawRouteRequests()
+private void DrawRouteRequests()
         {
             GUILayout.Space(8f);
             GUILayout.Label("Route Requests", GUI.skin.box);
@@ -693,6 +703,18 @@ namespace Immersive.Framework.Diagnostics
                 ObjectResetQaSmokeRunner.RunFoundationClosureSmokeAsync(runtimeHost, _logger, QaSource));
         }
 
+        private async void RunObjectResetUnityAdaptersClosureSmoke()
+        {
+            await RunSmokeAsync(ObjectResetQaSmokeRunner.UnityAdaptersClosureSmokeName, runtimeHost =>
+                ObjectResetQaSmokeRunner.RunUnityAdaptersClosureSmokeAsync(runtimeHost, _logger, QaSource));
+        }
+
+        private async void RunObjectResetGameObjectActiveClosureSmoke()
+        {
+            await RunSmokeAsync(ObjectResetQaSmokeRunner.GameObjectActiveClosureSmokeName, runtimeHost =>
+                ObjectResetQaSmokeRunner.RunGameObjectActiveClosureSmokeAsync(runtimeHost, _logger, QaSource));
+        }
+
         private async void RunStandardSmoke()
         {
             string missingTargets = string.Empty;
@@ -805,7 +827,7 @@ namespace Immersive.Framework.Diagnostics
             });
         }
 
-        private async void RunLocalContributionSmoke()
+private async void RunLocalContributionSmoke()
         {
             string missingTargets = string.Empty;
             AppendMissingQaAsset(ref missingTargets, secondaryActivity == null, "Secondary Activity");
@@ -1055,7 +1077,7 @@ namespace Immersive.Framework.Diagnostics
             return true;
         }
 
-        private async void RunRouteSceneCompositionSmoke()
+private async void RunRouteSceneCompositionSmoke()
         {
             string missingTargets = string.Empty;
             AppendMissingQaAsset(ref missingTargets, routeSceneCompositionRoute == null, "Route Scene Composition Route");
@@ -2144,7 +2166,7 @@ namespace Immersive.Framework.Diagnostics
             });
         }
 
-        private async void RunNoActivityRouteSmoke()
+private async void RunNoActivityRouteSmoke()
         {
             string missingTargets = string.Empty;
             AppendMissingQaAsset(ref missingTargets, noActivityRoute == null, "No-Activity Route");
@@ -2248,6 +2270,45 @@ namespace Immersive.Framework.Diagnostics
             }
 
             return await runtimeHost.RequestRouteAsync(route, QaSource, reason);
+        }
+
+        private bool ValidateRouteCallbackSmokeStep(FrameworkRouteRequestResult result, string stepName)
+        {
+            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string routeName = result.TargetRoute != null ? GetAssetName(result.TargetRoute, "<unnamed>") : "<missing>";
+
+            if (!result.Succeeded)
+            {
+                _logger.Warning($"QA Route Callback Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Route request did not succeed' status='{FormatValue(result.Kind.ToString())}'.");
+                return false;
+            }
+
+            var lifecycleResult = result.RouteLifecycleResult;
+            if (!lifecycleResult.Started)
+            {
+                _logger.Warning($"QA Route Callback Smoke step failed. step='{FormatValue(normalizedStepName)}' route='{FormatValue(routeName)}' reason='Route lifecycle did not start'.");
+                return false;
+            }
+
+            var enterResult = lifecycleResult.RouteContentEnterResult;
+            var exitResult = lifecycleResult.RouteContentExitResult;
+            string enterRouteName = GetAssetName(enterResult.Route, routeName);
+            string exitRouteName = GetAssetName(exitResult.Route, "<none>");
+
+            if (!IsValidRouteCallbackDispatch(enterResult))
+            {
+                _logger.Warning($"QA Route Callback Smoke step failed. step='{FormatValue(normalizedStepName)}' requestedRoute='{FormatValue(routeName)}' phase='Enter' callbackRoute='{FormatValue(enterRouteName)}' executed='{enterResult.Executed}' bindings='{enterResult.BindingCount}' receivers='{enterResult.ReceiverCount}' failed='{enterResult.FailedReceiverCount}'.");
+                return false;
+            }
+
+            if (!IsValidRouteCallbackDispatch(exitResult))
+            {
+                _logger.Warning($"QA Route Callback Smoke step failed. step='{FormatValue(normalizedStepName)}' requestedRoute='{FormatValue(routeName)}' phase='Exit' callbackRoute='{FormatValue(exitRouteName)}' executed='{exitResult.Executed}' bindings='{exitResult.BindingCount}' receivers='{exitResult.ReceiverCount}' failed='{exitResult.FailedReceiverCount}'.");
+                return false;
+            }
+
+            _logger.Info($"QA Route Callback Smoke step completed. step='{FormatValue(normalizedStepName)}' requestedRoute='{FormatValue(routeName)}' routeContentEnterRoute='{FormatValue(enterRouteName)}' routeContentEnterReceivers='{enterResult.ReceiverCount}' routeContentExitRoute='{FormatValue(exitRouteName)}' routeContentExitReceivers='{exitResult.ReceiverCount}'.");
+            return true;
         }
 
         private bool ValidateActivityBaselineStartedStep(
@@ -3208,6 +3269,12 @@ namespace Immersive.Framework.Diagnostics
         {
             return expected < 0 || ValidateExact(metricName, expected, actual, stepName, routeName);
         }
+
+        private static bool IsValidRouteCallbackDispatch(RouteContentLifecycleDispatchResult result)
+        {
+            return result is { Executed: true, BindingCount: > 0, ReceiverCount: > 0, FailedReceiverCount: 0 };
+        }
+
 
         private void ValidateLoadedRouteContentAuthoring()
         {
@@ -4261,6 +4328,37 @@ namespace Immersive.Framework.Diagnostics
             return string.IsNullOrEmpty(missingCore)
                 ? "Core QA targets configured."
                 : $"Core QA targets missing: {missingCore}";
+        }
+
+        private string GetQaAssetsStatus()
+        {
+            string missingCore = string.Empty;
+            AppendMissingQaAsset(ref missingCore, canonicalRoute == null, "Canonical Route");
+            AppendMissingQaAsset(ref missingCore, alternateRoute == null, "Alternate Route");
+            AppendMissingQaAsset(ref missingCore, primaryActivity == null, "Primary Activity");
+            AppendMissingQaAsset(ref missingCore, secondaryActivity == null, "Secondary Activity");
+
+            string missingOptional = string.Empty;
+            AppendMissingQaAsset(ref missingOptional, noActivityRoute == null, "No-Activity Route");
+            AppendMissingQaAsset(ref missingOptional, noContentActivity == null, "No-Content Activity");
+            AppendMissingQaAsset(ref missingOptional, routeSceneCompositionRoute == null, "Route Scene Composition Route");
+
+            if (string.IsNullOrEmpty(missingCore) && string.IsNullOrEmpty(missingOptional))
+            {
+                return "QA scenario targets configured.";
+            }
+
+            if (string.IsNullOrEmpty(missingCore))
+            {
+                return $"QA core targets configured. Optional targets missing: {missingOptional}";
+            }
+
+            if (string.IsNullOrEmpty(missingOptional))
+            {
+                return $"QA core targets missing: {missingCore}";
+            }
+
+            return $"QA core targets missing: {missingCore}. Optional targets missing: {missingOptional}";
         }
 
         private static void AppendMissingQaAsset(ref string missing, bool isMissing, string label)

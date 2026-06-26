@@ -8,7 +8,7 @@ Documentation~/Planning/Immersive-Framework-Roadmap-Revisado.md
 
 ADRs record accepted architectural decisions. They do not replace the operational roadmap and must not redefine phase order.
 
-F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integration & Authoring UX`. F13 is closed as `Object Entry Foundation`. F14 is closed as `Local Object Reset Foundation`. F15 ADR is accepted; implementation starts in F15B.
+F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integration & Authoring UX`. F13 is closed as `Object Entry Foundation`. F14 is closed as `Local Object Reset Foundation`. F15 is closed as `Unity Reset Adapters mínimos`. F16 is closed as `GameObject Active State Reset Adapter`.
 
 ## Accepted ADRs
 
@@ -34,10 +34,16 @@ F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integra
 | F12 | [Cycle Reset Integration and Authoring UX](F12-ADR-RESET-002-Cycle-Reset-Integration-Authoring-UX.md) | Closed / Applied through F12E |
 | F13 | [Object Entry Foundation](F13-ADR-OBJECT-001-Object-Entry-Foundation.md) | Closed / Applied through F13L |
 | F14 | [Local Object Reset Foundation](F14-ADR-RESET-003-Local-Object-Reset-Foundation.md) | Closed / Applied through F14H |
-| F15 | [Unity Reset Adapters](F15-ADR-RESET-004-Unity-Reset-Adapters.md) | Accepted through F15A / Implementation pending |
-| F16 | [Player Participant Entry Baseline](F16-ADR-PLAYER-001-Player-Participant-Entry-Baseline.md) | Accepted / Planned |
-| F17 | [Advanced Consumers Boundary](F17-ADR-CONSUMERS-001-Advanced-Consumers-Boundary.md) | Accepted / Planned |
-| F18 | [Gameplay Capabilities Boundary](F18-ADR-GAMEPLAY-001-Gameplay-Capabilities-Boundary.md) | Accepted / Planned |
+| F15 | [Unity Reset Adapters](F15-ADR-RESET-004-Unity-Reset-Adapters.md) | Closed / Applied through F15F |
+| F16 | [GameObject Active State Reset Adapter](F16-ADR-RESET-005-GameObject-Active-State-Reset.md) | Closed / Applied through F16 |
+| Future | [Player Participant Entry Baseline](F16-ADR-PLAYER-001-Player-Participant-Entry-Baseline.md) | Deferred / Future Contextual Reset |
+| F17 | [Gate Boundary](F17-ADR-GATE-001-Gate-Boundary.md) | Planned / F17A ADR Only |
+| F18 | [Transition Orchestration](F18-ADR-TRANSITION-001-Transition-Orchestration.md) | Planned |
+| F19 | [Transition Effects Boundary](F19-ADR-TRANSITION-002-Transition-Effects-Boundary.md) | Planned |
+| F20 | [Pause State and Gate](F20-ADR-PAUSE-002-Pause-State-and-Gate.md) | Planned |
+| F21 | [Pause Content Overlay Input Boundary](F21-ADR-PAUSE-003-Pause-Content-Overlay-Input-Boundary.md) | Planned |
+| F22+ | [Advanced Consumers Boundary](F17-ADR-CONSUMERS-001-Advanced-Consumers-Boundary.md) | Deferred / Superseded phase number |
+| F22+ | [Gameplay Capabilities Boundary](F18-ADR-GAMEPLAY-001-Gameplay-Capabilities-Boundary.md) | Deferred / Superseded phase number |
 
 ## Rule
 
@@ -45,9 +51,20 @@ Past ADRs record accepted/applied decisions. Future ADRs guide implementation an
 
 F12 decision note: Cycle Reset Unity Event Bridges are optional. The trigger is the primary component; bridges only expose result callbacks in the Inspector.
 
-F13 decision note: Object Entry is a passive lifecycle-owned logical catalog/snapshot with typed owners, scoped collection and deterministic snapshot invalidation/refresh. It is not a GameObject binding, mutable registry, reset inventory or service locator.
+F13 decision note: Object Entry is a passive lifecycle-owned lógical catalog/snapshot with typed owners, scoped collection and deterministic snapshot invalidation/refresh. It is not a GameObject binding, mutable registry, reset inventory or service locator.
 
 F14 decision note: Object Reset targets only a current `ObjectEntryId + owner + scope`, uses one canonical `IObjectResetParticipant` contract and an explicit participant source, exposes Runtime Host/trigger/optional bridge UX, and does not execute Unity adapters or gameplay reset.
 
 
-F15 decision note: Unity Reset Adapters are technical Unity consumers of Object Reset. They must register through a framework-owned participant source, use Object Entry identity instead of GameObject names/paths, make required adapter absence explicit, and keep Player/Actor/Pooling/Gameplay reset outside F15.
+F15 closure note: Unity Reset Adapters are technical Unity consumers of Object Reset. F15 closed explicit participant source registration, Transform local baseline reset, required adapter/baseline guardrails, authoring UX and closure smoke. Player/Actor/Pooling/Gameplay reset remains outside F15.
+
+
+F16 closure note: GameObject Active State Reset is a primitive Unity adapter for `activeSelf` only. It is not Player, Actor, NPC, Timer, Pooling or gameplay reset. Contextual reset consumers remain future work.
+
+F17A realignment note: Gate comes before Transition and Pause. Gate is not UI, readiness or input system; it decides admission of request, input, interaction or gameplay in explicit scopes and must produce decision/result/facts.
+
+F18/F19 transition note: Transition is flow orchestration that consumes Gate. Fade/loading/curtain are adapters/effects after the lógical contract, not a substitute for Gate.
+
+F20/F21 pause note: Pause is state plus Gate blocker. Pause is not Activity, does not own Route/Activity lifecycle and does not define `Time.timeScale` as the canonical contract. Pause overlay/content/input are consumers/boundaries after Pause state and Gate.
+
+F22+ defer note: Advanced Consumers, Gameplay Capabilities and contextual reset for Player/Actor/NPC/Timer/Door/Pickup are deferred until Gate/Transition/Pause are planned and a mature gameplay object model exists.

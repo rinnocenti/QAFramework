@@ -430,18 +430,6 @@
     .log-sep { color: var(--text-muted); }
     .log-label { color: var(--text-muted); font-size: 10px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .08em; }
 
-    /* ── SCREENSHOT PLACEHOLDER ── */
-    .screenshot-placeholder {
-      border: 1px dashed var(--accent);
-      background: var(--accent-soft);
-      color: var(--text-soft);
-      border-radius: 8px;
-      padding: 18px;
-      margin: 16px 0;
-      font-size: 13px;
-      text-align: center;
-    }
-
     /* ── DIVIDER ── */
     .section-divider {
       height: 1px;
@@ -527,16 +515,23 @@
     </div>
 
     <div class="sidebar-section">
-      <div class="sidebar-section-label">Recursos Avançados</div>
+      <div class="sidebar-section-label">Recursos Avançados (F3–F10)</div>
       <a href="#avancado-intro"><span class="icon">⚡</span> Visão Geral</a>
       <a href="#route-binding"><span class="icon">🔗</span> Route Content Binding</a>
-      <a href="#route-lifecycle-events"><span class="icon">📡</span> Route Lifecycle Events</a>
       <a href="#activity-lifecycle-events"><span class="icon">📡</span> Activity Lifecycle Events</a>
       <a href="#request-bridges"><span class="icon">🌉</span> Unity Event Bridges</a>
-      <a href="#cycle-reset"><span class="icon">🔄</span> Cycle Reset</a>
-      <a href="#object-entry"><span class="icon">🧾</span> Object Entry</a>
       <a href="#participant"><span class="icon">🧪</span> Execution Participants</a>
       <a href="#qa-canvas"><span class="icon">🎛️</span> QA Canvas</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Novidades F11–F15</div>
+      <a href="#f11-intro"><span class="icon">🔄</span> Visão Geral F11–F15</a>
+      <a href="#cycle-reset"><span class="icon">🔁</span> Cycle Reset</a>
+      <a href="#object-entry"><span class="icon">🏷️</span> Object Entry</a>
+      <a href="#object-reset"><span class="icon">🎯</span> Object Reset</a>
+      <a href="#transform-participant"><span class="icon">📐</span> Transform Reset</a>
+      <a href="#f11-bridges"><span class="icon">🌉</span> Bridges F11–F15</a>
     </div>
 
     <div class="sidebar-section">
@@ -553,11 +548,11 @@
          HERO / INTRO
     ══════════════════════════════════════════ -->
     <div class="hero" id="intro">
-      <div class="eyebrow">Manual de Uso · Versão F13</div>
+      <div class="eyebrow">Manual de Uso · Versão F10</div>
       <h1>Immersive Framework<br>para Game Designers</h1>
       <p>Tudo que você precisa para usar o framework no Unity sem precisar escrever código. Configure Routes, Activities e cenas usando apenas o Inspector.</p>
       <div class="badge-row">
-        <span class="badge badge-green">✓ F13 — Fechado</span>
+        <span class="badge badge-green">✓ F10 — Fechado</span>
         <span class="badge badge-blue">Unity Package</span>
         <span class="badge badge-yellow">⚠ API Experimental</span>
       </div>
@@ -1162,7 +1157,7 @@
          GUIA: ACTIVITY
     ══════════════════════════════════════════ -->
     <h2 id="guia-activity">Guia: Criando uma Activity</h2>
-    <p>Activities permitem alternar entre "modos" dentro de uma mesma cena/Route — por exemplo, abrir a tela de Pause enquanto o Gameplay continua carregado.</p>
+    <p>Activities permitem alternar entre estados de conteudo dentro de uma mesma cena/Route, como Gameplay e Inventory. Pause nao deve ser modelado como Activity; o plano atual trata Pause como estado + Gate blocker.</p>
 
     <h3>Exemplo: Route_Gameplay com Activities</h3>
     <div class="flow" style="flex-wrap:wrap; row-gap:10px;">
@@ -1170,14 +1165,14 @@
       <span class="flow-arrow">▶</span>
       <div class="flow-box green" style="min-width:130px;">Activity_Gameplay<br><small style="opacity:.6">(startup activity)</small></div>
       <span class="flow-arrow">↔</span>
-      <div class="flow-box purple" style="min-width:130px;">Activity_Pause</div>
+      <div class="flow-box purple" style="min-width:130px;">Activity_Inventory</div>
     </div>
 
     <ol class="steps" style="margin-top:24px;">
       <li>
         <div class="step-body">
           <strong>Crie os Activity assets</strong>
-          <code>Activity_Gameplay</code> e <code>Activity_Pause</code> via <code>Create → Immersive Framework → Activity</code>.
+          <code>Activity_Gameplay</code> e <code>Activity_Inventory</code> via <code>Create → Immersive Framework → Activity</code>.
         </div>
       </li>
       <li>
@@ -1189,25 +1184,25 @@
       <li>
         <div class="step-body">
           <strong>Configure os GameObjects de cada Activity na cena Gameplay</strong>
-          Na cena <code>Gameplay.unity</code>, crie dois GameObjects: <code>GO_GameplayContent</code> e <code>GO_PauseMenu</code>.
+          Na cena <code>Gameplay.unity</code>, crie dois GameObjects: <code>GO_GameplayContent</code> e <code>GO_InventoryPanel</code>.
           <br><br>
           Em cada um, adicione o componente <strong>Activity Local Visibility Adapter</strong>:<br>
           • <code>GO_GameplayContent</code> → <strong>Activity</strong> = <code>Activity_Gameplay</code>, <strong>Local Content Id</strong> = <code>gameplay-content</code><br>
-          • <code>GO_PauseMenu</code> → <strong>Activity</strong> = <code>Activity_Pause</code>, <strong>Local Content Id</strong> = <code>pause-menu</code>
+          • <code>GO_InventoryPanel</code> → <strong>Activity</strong> = <code>Activity_Inventory</code>, <strong>Local Content Id</strong> = <code>inventory-panel</code>
         </div>
       </li>
       <li>
         <div class="step-body">
-          <strong>Crie o botão de Pause</strong>
-          Dentro de <code>GO_GameplayContent</code>, crie um botão "Pausar". Em um GameObject (pode ser no botão mesmo), adicione <strong>Activity Request Trigger</strong>.<br>
-          • <strong>Target Activity</strong> = <code>Activity_Pause</code><br>
+          <strong>Crie o botao de Inventory</strong>
+          Dentro de <code>GO_GameplayContent</code>, crie um botao "Inventory". Em um GameObject (pode ser no botao mesmo), adicione <strong>Activity Request Trigger</strong>.<br>
+          • <strong>Target Activity</strong> = <code>Activity_Inventory</code><br>
           • No <code>Button → On Click ()</code> → <code>ActivityRequestTrigger.RequestActivity</code>
         </div>
       </li>
       <li>
         <div class="step-body">
-          <strong>Crie o botão "Retomar" no Pause Menu</strong>
-          Dentro de <code>GO_PauseMenu</code>, crie um botão "Retomar". Adicione <strong>Activity Request Trigger</strong>.<br>
+          <strong>Crie o botao "Voltar" no Inventory Panel</strong>
+          Dentro de <code>GO_InventoryPanel</code>, crie um botão "Voltar". Adicione <strong>Activity Request Trigger</strong>.<br>
           • Deixe <strong>Target Activity</strong> vazio<br>
           • No <code>Button → On Click ()</code> → <code>ActivityRequestTrigger.ClearActivity</code>
         </div>
@@ -1335,11 +1330,11 @@
 │   ├── GameplayContent (ActivityLocalVisibilityAdapter → Activity_Gameplay)
 │   │   ├── Player HUD
 │   │   ├── World Objects
-│   │   └── Pause Button
+│   │   └── Inventory Button
 │   
-└── [Activity_Pause]
-    └── PauseMenu (ActivityLocalVisibilityAdapter → Activity_Pause)
-        ├── Pause Panel
+└── [Activity_Inventory]
+    └── InventoryPanel (ActivityLocalVisibilityAdapter -> Activity_Inventory)
+        ├── Inventory Panel
         ├── Resume Button
         └── Quit Button</code></pre>
 
@@ -1651,23 +1646,14 @@ public class MinhaLogicaDeActivity : ActivityContentBehaviour
       </table>
     </div>
 
-    <h3>Exemplo prático: Pause Menu com lógica de tempo</h3>
-    <div class="pre-label">C# — Pausar e retomar o tempo com ActivityContentBehaviour</div>
-    <pre><code>using Immersive.Framework.ActivityFlow;
-using UnityEngine;
-
-public class PauseMenuBehaviour : ActivityContentBehaviour
-{
-    protected override void OnActivityContentEntered(ActivityContentLifecycleContext context)
-    {
-        Time.timeScale = 0f; // congela o jogo
-    }
-
-    protected override void OnActivityContentExited(ActivityContentLifecycleContext context)
-    {
-        Time.timeScale = 1f; // retoma o jogo
-    }
-}</code></pre>
+    <h3>Nota de planejamento: Pause</h3>
+    <div class="callout warn">
+      <span class="callout-icon">!</span>
+      <div class="callout-body">
+        <div class="callout-title">Pause nao e Activity nem contrato de tempo</div>
+        <p>O plano atual trata Pause como estado + Gate blocker. Overlay, input e politica de tempo ficam para fases futuras; <code>Time.timeScale</code> nao e contrato canonico de Pause.</p>
+      </div>
+    </div>
 
     <!-- ─────────────────────────────────────── -->
     <h2 id="request-bridges">Unity Event Bridges — Reagir ao resultado de uma Request</h2>
@@ -1739,187 +1725,8 @@ public class PauseMenuBehaviour : ActivityContentBehaviour
     </div>
 
     <!-- ─────────────────────────────────────── -->
-    <h2 id="cycle-reset">Cycle Reset — Solicitar um novo ciclo de Route ou Activity</h2>
-    <p><strong>Cycle Reset</strong> envia ao framework uma solicitação para reiniciar o ciclo lógico da Route ativa ou da Activity ativa. O trigger é o componente principal. Você só precisa de uma bridge quando quiser reagir ao resultado por Unity Events no Inspector.</p>
-
-    <div class="callout stop">
-      <span class="callout-icon">🚫</span>
-      <div class="callout-body">
-        <div class="callout-title">Cycle Reset ainda não reseta objetos</div>
-        <p>Na F12 ele não reposiciona Transform, não limpa Rigidbody/Animator, não restaura save, não recarrega cena e não reseta Player ou Actor. Sem participants reais, um pedido correto termina como <code>SucceededNoParticipants</code>.</p>
-      </div>
-    </div>
-
-    <h3>Início rápido — botão de reset sem bridge</h3>
-    <ol>
-      <li>Crie um GameObject, por exemplo <code>ResetActivityButtonHandler</code>.</li>
-      <li>Adicione <code>ActivityCycleResetTrigger</code> para a Activity ativa, ou <code>RouteCycleResetTrigger</code> para a Route ativa.</li>
-      <li>No campo <strong>Reason</strong>, escreva uma razão de diagnóstico, por exemplo <code>Retry Activity</code>.</li>
-      <li>No evento <code>Button.onClick</code>, arraste o GameObject do trigger.</li>
-      <li>Escolha <code>RequestActivityCycleReset()</code> ou <code>RequestRouteCycleReset()</code>.</li>
-    </ol>
-
-    <div class="flow">
-      <div class="flow-box">Button.onClick</div>
-      <span class="flow-arrow">▶</span>
-      <div class="flow-box accent">Cycle Reset Trigger</div>
-      <span class="flow-arrow">▶</span>
-      <div class="flow-box green">Framework Runtime</div>
-    </div>
-
-    <div class="screenshot-placeholder">
-      <strong>SCREENSHOT PENDENTE</strong><br>
-      Inspector de um Button mostrando <code>On Click → ActivityCycleResetTrigger.RequestActivityCycleReset()</code>, sem Unity Event Bridge.
-    </div>
-
-    <div class="component-card">
-      <div class="comp-header">
-        <div class="comp-icon">🔄</div>
-        <div class="comp-meta">
-          <div class="comp-name">ActivityCycleResetTrigger</div>
-          <h4>Activity Cycle Reset Trigger</h4>
-          <div class="comp-menu">Add Component → Immersive Framework → Cycle Reset → Activity Cycle Reset Trigger</div>
-        </div>
-      </div>
-      <p style="font-size:13.5px; color:var(--text-soft); margin-top:10px;">Use quando o pedido deve atingir somente a Activity atualmente ativa. O componente resolve a Activity pelo runtime; você não escolhe um asset alvo.</p>
-    </div>
-
-    <div class="component-card">
-      <div class="comp-header">
-        <div class="comp-icon">🔄</div>
-        <div class="comp-meta">
-          <div class="comp-name">RouteCycleResetTrigger</div>
-          <h4>Route Cycle Reset Trigger</h4>
-          <div class="comp-menu">Add Component → Immersive Framework → Cycle Reset → Route Cycle Reset Trigger</div>
-        </div>
-      </div>
-      <p style="font-size:13.5px; color:var(--text-soft); margin-top:10px;">Use quando o pedido deve atingir a Route atualmente ativa. Ele não troca a Route nem recarrega suas cenas.</p>
-    </div>
-
-    <h3>Bridge opcional — somente para callbacks no Inspector</h3>
-    <p>Adicione <code>ActivityCycleResetTriggerUnityEventBridge</code> ou <code>RouteCycleResetTriggerUnityEventBridge</code> no mesmo GameObject somente se precisar conectar respostas visuais, áudio de UI ou feedback a Unity Events.</p>
-
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Evento</th><th>Quando usar</th></tr></thead>
-        <tbody>
-          <tr><td><code>Request Submitted</code></td><td>Desativar o botão enquanto o pedido está em andamento.</td></tr>
-          <tr><td><code>Request Succeeded</code></td><td>Feedback geral de sucesso.</td></tr>
-          <tr><td><code>Request Succeeded No Participants</code></td><td>Resultado esperado na F12 quando ainda não existem objetos participantes.</td></tr>
-          <tr><td><code>Request Succeeded With Participants</code></td><td>Reservado para quando fases futuras fornecerem participants reais.</td></tr>
-          <tr><td><code>Request Completed With Warnings</code></td><td>Mostrar aviso sem tratar o pedido como falha total.</td></tr>
-          <tr><td><code>Request Ignored</code></td><td>Pedido duplicado/em voo ou sem condição válida para executar.</td></tr>
-          <tr><td><code>Request Failed</code></td><td>Mostrar erro quando runtime ou contexto obrigatório não está disponível.</td></tr>
-          <tr><td><code>Request Completed</code></td><td>Reativar controles independentemente do resultado.</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="screenshot-placeholder">
-      <strong>SCREENSHOT PENDENTE</strong><br>
-      Inspector do <code>ActivityCycleResetTrigger</code> em Play Mode mostrando Last Result Status, Participants e Blocking/Non-blocking Issues.
-    </div>
-
-    <h3>Exemplo por script</h3>
-    <p>Na maioria dos casos, o Button pode chamar o trigger diretamente. Se outro script precisar disparar o pedido, mantenha a referência explícita no Inspector:</p>
-
-    <div class="pre-label">C# — Solicitar Cycle Reset por referência explícita</div>
-    <pre><code>using Immersive.Framework.CycleReset;
-using UnityEngine;
-
-public sealed class RetryActivityAction : MonoBehaviour
-{
-    [SerializeField] private ActivityCycleResetTrigger cycleResetTrigger;
-
-    public void RetryActivity()
-    {
-        if (cycleResetTrigger == null)
-        {
-            Debug.LogError("Activity Cycle Reset Trigger não foi configurado.");
-            return;
-        }
-
-        cycleResetTrigger.RequestActivityCycleReset();
-    }
-}</code></pre>
-
-    <!-- ─────────────────────────────────────── -->
-    <h2 id="object-entry">Object Entry — Declarar objetos lógicos do lifecycle</h2>
-    <p><strong>Object Entry</strong> permite declarar que um objeto lógico pertence à Session, Route ou Activity. O framework registra identidade, owner, scope e requiredness em um snapshot. Na F13 isso ainda é metadado: o componente não transforma automaticamente o próprio GameObject em um alvo físico.</p>
-
-    <div class="callout warn">
-      <span class="callout-icon">⚠️</span>
-      <div class="callout-body">
-        <div class="callout-title">Declaração lógica, não binding físico</div>
-        <p><code>ObjectEntryDeclaration</code> não reseta Transform, não procura Components, não cria Player/Actor, não faz spawn e não mantém referência pública ao GameObject. Essas operações pertencem às fases seguintes.</p>
-      </div>
-    </div>
-
-    <h3>Início rápido</h3>
-    <ol>
-      <li>Selecione o GameObject que representa o objeto lógico.</li>
-      <li>Adicione <code>Immersive Framework → Object Entry → Object Entry Declaration</code>.</li>
-      <li>Defina um <strong>Object Entry Id</strong> estável, por exemplo <code>gameplay.primary-door</code>.</li>
-      <li>Escolha o <strong>Scope</strong>.</li>
-      <li>Se for Route ou Activity, configure o owner exato solicitado pelo Inspector.</li>
-      <li>Escolha <strong>Required</strong> ou <strong>Optional</strong>.</li>
-    </ol>
-
-    <div class="screenshot-placeholder">
-      <strong>SCREENSHOT PENDENTE</strong><br>
-      Inspector de <code>ObjectEntryDeclaration</code> com Scope = Activity e Activity Owner = QA Primary Content Activity.
-    </div>
-
-    <div class="component-card">
-      <div class="comp-header">
-        <div class="comp-icon">🧾</div>
-        <div class="comp-meta">
-          <div class="comp-name">ObjectEntryDeclaration</div>
-          <h4>Object Entry Declaration</h4>
-          <div class="comp-menu">Add Component → Immersive Framework → Object Entry → Object Entry Declaration</div>
-        </div>
-      </div>
-      <div class="comp-fields">
-        <div class="comp-field"><span class="field-name">Object Entry Id</span><span class="field-desc">Identidade funcional estável. Não use nome ou hierarchy path como chave.</span></div>
-        <div class="comp-field"><span class="field-name">Scope</span><span class="field-desc">Session, Route ou Activity.</span></div>
-        <div class="comp-field"><span class="field-name">Route Owner</span><span class="field-desc">Aparece somente em Scope = Route. Deve apontar para o RouteAsset exato.</span></div>
-        <div class="comp-field"><span class="field-name">Activity Owner</span><span class="field-desc">Aparece somente em Scope = Activity. Deve apontar para o ActivityAsset exato usado pelo runtime.</span></div>
-        <div class="comp-field"><span class="field-name">Requiredness</span><span class="field-desc">Declara se a entry é obrigatória ou opcional para validação e fluxos futuros; não executa reset.</span></div>
-        <div class="comp-field"><span class="field-name">Display Name</span><span class="field-desc">Label humano opcional para diagnóstico; não é identidade.</span></div>
-      </div>
-    </div>
-
-    <h3>Como o owner funciona</h3>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Scope</th><th>Owner</th><th>Comportamento</th></tr></thead>
-        <tbody>
-          <tr><td><code>Session</code></td><td>Resolvido automaticamente</td><td>Usa a Session do Application Runtime.</td></tr>
-          <tr><td><code>Route</code></td><td><code>Route Owner</code></td><td>Só entra no snapshot quando essa Route está ativa e a declaração está numa cena da composição dela.</td></tr>
-          <tr><td><code>Activity</code></td><td><code>Activity Owner</code></td><td>Só entra no snapshot quando exatamente esse asset de Activity está ativo.</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="callout tip">
-      <span class="callout-icon">💡</span>
-      <div class="callout-body">
-        <div class="callout-title">Mesmo nome não significa mesmo asset</div>
-        <p>Dois ActivityAssets podem ter o mesmo nome visível. O owner usa a referência do asset exato. Se uma declaração aparece como <code>filtered</code> quando deveria estar ativa, confira a referência no campo Activity Owner.</p>
-      </div>
-    </div>
-
-    <h3>Validação final</h3>
-    <p>Após configurar as declarações, inicie um novo Play e rode <code>Run Object Entry Foundation Closure Smoke</code>. O resultado correto confirma lifecycle source, owners válidos, invariantes de contagem e ausência de entries foreign/stale.</p>
-
-    <div class="screenshot-placeholder">
-      <strong>SCREENSHOT PENDENTE</strong><br>
-      QA Canvas mostrando somente o botão canônico <code>Run Object Entry Foundation Closure Smoke</code> para a F13.
-    </div>
-
-    <!-- ─────────────────────────────────────── -->
     <h2 id="participant">Activity Content Execution Participants — Lógica de Enter/Exit de Activity</h2>
-    <p>Esta base foi introduzida na F10. Ela permite que um script declare <strong>"eu quero ser notificado quando uma Activity entra ou sai"</strong> e execute lógica customizada nesse momento, de forma ordenada e com resultado reportado ao framework.</p>
+    <p>Este é o sistema mais avançado disponível no F10. Ele permite que um script declare <strong>"eu quero ser notificado quando uma Activity entra ou sai"</strong> e execute lógica customizada nesse momento, de forma ordenada e com resultado reportado ao framework.</p>
 
     <div class="callout warn">
       <span class="callout-icon">⚠️</span>
@@ -2088,10 +1895,6 @@ public class MeuParticipantSource : MonoBehaviour, IActivityContentExecutionPart
           <tr><td><code>Local Contribution Smoke</code></td><td>Discovery de local contributions na cena carregada.</td></tr>
           <tr><td><code>Content Anchor Diagnostics Smoke</code></td><td>Contagem e validação de Content Anchors declarados na cena.</td></tr>
           <tr><td><code>Activity Content Anchor Smoke</code></td><td>Âncoras de Activity: count, invalid, mismatch.</td></tr>
-          <tr><td><code>Cycle Reset Runtime Host Smoke</code></td><td>Caminho canônico Route/Activity até o executor de Cycle Reset.</td></tr>
-          <tr><td><code>Cycle Reset Trigger Smoke</code></td><td>Entry points públicos dos triggers de Route e Activity.</td></tr>
-          <tr><td><code>Cycle Reset Bridge Smoke</code></td><td>Callbacks das bridges opcionais e resultado <code>SucceededNoParticipants</code>.</td></tr>
-          <tr><td><code>Object Entry Foundation Closure Smoke</code></td><td>Snapshot automático, owner/domain, invariantes e ausência de entries foreign/stale.</td></tr>
         </tbody>
       </table>
     </div>
@@ -2105,25 +1908,537 @@ public class MeuParticipantSource : MonoBehaviour, IActivityContentExecutionPart
     </div>
 
     <!-- ══════════════════════════════════════════
+         NOVIDADES F11–F15
+    ══════════════════════════════════════════ -->
+    <h2 id="f11-intro">Novidades F11–F15 — Três novos sistemas</h2>
+    <p>As fases F11 a F15 adicionaram três sistemas independentes que se encaixam sobre o que já existia. Cada um tem componentes de cena próprios e pode ser usado sem código quando combinado com os Event Bridges correspondentes.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Sistema</th><th>Para que serve</th><th>Fase</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Cycle Reset</strong></td>
+            <td>Reiniciar o ciclo lógico de uma Route ou Activity — notifica todos os sistemas registrados para "zerar" seu estado de jogo para aquele escopo.</td>
+            <td><span class="badge badge-yellow">F11</span></td>
+          </tr>
+          <tr>
+            <td><strong>Object Entry</strong></td>
+            <td>Declarar que um objeto de jogo específico pertence a uma Route ou Activity. É a identidade do objeto no mundo do framework — base para o Object Reset saber <em>quem</em> resetar.</td>
+            <td><span class="badge badge-yellow">F13</span></td>
+          </tr>
+          <tr>
+            <td><strong>Object Reset</strong></td>
+            <td>Resetar propriedades físicas de um objeto individual (ex: Transform) de volta ao baseline. Usa Object Entry como alvo e participants para executar o reset concreto.</td>
+            <td><span class="badge badge-yellow">F14–F15</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ️</span>
+      <div class="callout-body">
+        <div class="callout-title">Diferença fundamental entre os sistemas de reset</div>
+        <p><strong>Cycle Reset</strong> é um sinal de alto nível: "recomeça o ciclo desta Route/Activity" — os sistemas de jogo decidem o que isso significa para eles. <strong>Object Reset</strong> é granular: "restaura este objeto específico" com valores concretos (posição, rotação, escala). Os dois podem ser usados em conjunto.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <h2 id="cycle-reset">Cycle Reset — Reiniciar o ciclo de uma Route ou Activity</h2>
+    <p>O Cycle Reset é um sinal que o framework envia para todos os sistemas registrados dizendo <em>"este ciclo de Route ou Activity está recomeçando"</em>. É a forma padronizada de implementar "restart de fase" ou "reiniciar rodada" sem trocar de Route.</p>
+
+    <h3>Fluxo do Cycle Reset</h3>
+    <div class="flow" style="flex-wrap:wrap; row-gap:10px;">
+      <div class="flow-box" style="min-width:120px; font-size:12px;">Trigger dispara<br>RequestReset</div>
+      <span class="flow-arrow">▶</span>
+      <div class="flow-box accent" style="min-width:120px; font-size:12px;">Runtime consulta<br>ICycleResetParticipantSource</div>
+      <span class="flow-arrow">▶</span>
+      <div class="flow-box" style="min-width:120px; font-size:12px;">Chama ResetCycle()<br>em cada Participant</div>
+      <span class="flow-arrow">▶</span>
+      <div class="flow-box green" style="min-width:120px; font-size:12px;">Agrega resultado<br>e dispara Bridge</div>
+    </div>
+
+    <h3>Componentes de Cena</h3>
+
+    <div class="component-card">
+      <div class="comp-header">
+        <div class="comp-icon">🔁</div>
+        <div class="comp-meta">
+          <div class="comp-name">ActivityCycleResetTrigger</div>
+          <h4>Activity Cycle Reset Trigger</h4>
+          <div class="comp-menu">Add Component → Immersive Framework → Cycle Reset → Activity Cycle Reset Trigger</div>
+        </div>
+      </div>
+      <p style="font-size:13.5px; color:var(--text-soft); margin-top:10px; margin-bottom:12px;">
+        Dispara um reset do ciclo da Activity ativa. Use para "reiniciar rodada" sem sair da Route. Conecte ao <code>On Click</code> de um botão ou chame <code>RequestActivityCycleReset()</code> via Unity Event.
+      </p>
+      <div class="comp-fields">
+        <div class="comp-field">
+          <span class="field-name">Reason</span>
+          <span class="field-desc">Texto opcional que aparece nos logs para identificar por que o reset foi pedido. Ex: <code>player-died</code>, <code>round-restart</code>.</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="pre-label">Método público para Unity Events</div>
+        <div class="log-block" style="font-size:12.5px; line-height:1.8;">
+          <span class="log-val">ActivityCycleResetTrigger.RequestActivityCycleReset()</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="component-card">
+      <div class="comp-header">
+        <div class="comp-icon">🔁</div>
+        <div class="comp-meta">
+          <div class="comp-name">RouteCycleResetTrigger</div>
+          <h4>Route Cycle Reset Trigger</h4>
+          <div class="comp-menu">Add Component → Immersive Framework → Cycle Reset → Route Cycle Reset Trigger</div>
+        </div>
+      </div>
+      <p style="font-size:13.5px; color:var(--text-soft); margin-top:10px; margin-bottom:12px;">
+        Idêntico ao Activity, mas reinicia o ciclo da Route inteira. A policy padrão de Route já inclui a Activity ativa no reset automaticamente (<code>IncludeActiveActivity = true</code>).
+      </p>
+      <div class="comp-fields">
+        <div class="comp-field">
+          <span class="field-name">Reason</span>
+          <span class="field-desc">Mesmo comportamento do Activity Cycle Reset Trigger.</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="pre-label">Método público para Unity Events</div>
+        <div class="log-block" style="font-size:12.5px; line-height:1.8;">
+          <span class="log-val">RouteCycleResetTrigger.RequestRouteCycleReset()</span>
+        </div>
+      </div>
+    </div>
+
+    <h3>Diferença entre Route e Activity Cycle Reset</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tipo</th><th>Escopo</th><th>Inclui Activity?</th><th>Quando usar</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>Activity Reset</code></td>
+            <td>Só a Activity ativa</td>
+            <td>Não</td>
+            <td>Reiniciar uma rodada/modo sem resetar o contexto maior da fase</td>
+          </tr>
+          <tr>
+            <td><code>Route Reset</code></td>
+            <td>Route + Activity ativa</td>
+            <td>Sim (policy padrão)</td>
+            <td>Reiniciar a fase inteira, equivalente a "retry da fase"</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Implementando um Participant de Cycle Reset (código)</h3>
+    <p>Para que o reset faça algo, você precisa de pelo menos um script que implemente <code>ICycleResetParticipant</code> e um <code>ICycleResetParticipantSource</code> registrado no runtime.</p>
+
+    <div class="pre-label">C# — Exemplo mínimo de ICycleResetParticipant</div>
+    <pre><code>using Immersive.Framework.CycleReset;
+
+public class MeuResetDeRodada : ICycleResetParticipant
+{
+    public CycleResetParticipantDescriptor GetCycleResetDescriptor()
+    {
+        return new CycleResetParticipantDescriptor(
+            participantId: CycleResetParticipantId.From("reset-rodada"),
+            participantScope: CycleResetScope.Activity, // Route ou Activity
+            requiredness: CycleResetParticipantRequiredness.Optional,
+            order: 0,
+            displayName: "Reset de Rodada",
+            source: "MeuResetDeRodada",
+            reason: "reiniciar-estado-rodada"
+        );
+    }
+
+    public CycleResetParticipantResult ResetCycle(CycleResetContext context)
+    {
+        // Sua lógica de reset aqui
+        // context.ActiveRoute — qual Route está ativa
+        // context.ActiveActivity — qual Activity está ativa
+        // context.IsRouteReset / context.IsActivityReset
+
+        ResetarPlacar();
+        ReposicionarInimigos();
+        ZerarTimer();
+
+        return CycleResetParticipantResult.Succeeded(
+            context, "MeuResetDeRodada", "rodada-reiniciada", "Estado de rodada restaurado.");
+    }
+
+    private void ResetarPlacar() { /* ... */ }
+    private void ReposicionarInimigos() { /* ... */ }
+    private void ZerarTimer() { /* ... */ }
+}</code></pre>
+
+    <div class="pre-label">C# — Registrando o Participant via ICycleResetParticipantSource</div>
+    <pre><code>using System.Collections.Generic;
+using Immersive.Framework.CycleReset;
+using Immersive.Framework.ApplicationLifecycle;
+using UnityEngine;
+
+public class MinhaCycleResetSource : MonoBehaviour, ICycleResetParticipantSource
+{
+    private readonly MeuResetDeRodada _resetRodada = new MeuResetDeRodada();
+
+    private void OnEnable()
+    {
+        if (FrameworkRuntimeHost.TryGetCurrent(out var host))
+            host.SetCycleResetParticipantSource(this);
+    }
+
+    private void OnDisable()
+    {
+        if (FrameworkRuntimeHost.TryGetCurrent(out var host))
+            host.ClearCycleResetParticipantSource(this);
+    }
+
+    public IReadOnlyList&lt;ICycleResetParticipant&gt; ResolveCycleResetParticipants(CycleResetRequest request)
+    {
+        // Retorne apenas os participants que fazem sentido para este request
+        return new ICycleResetParticipant[] { _resetRodada };
+    }
+}</code></pre>
+
+    <div class="callout tip">
+      <span class="callout-icon">💡</span>
+      <div class="callout-body">
+        <div class="callout-title">Nenhum participant é válido</div>
+        <p>Se nenhum participant for registrado, o resultado é <code>SucceededNoParticipants</code> — não é um erro. A policy padrão (<code>AllowNoParticipants = true</code>) aceita isso. Útil durante desenvolvimento quando você ainda não implementou os sistemas de reset.</p>
+      </div>
+    </div>
+
+    <h3>Status de resultado do Cycle Reset</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Status</th><th>Significa</th></tr></thead>
+        <tbody>
+          <tr><td><code>Succeeded</code></td><td>Todos os participants obrigatórios completaram sem erros.</td></tr>
+          <tr><td><code>SucceededNoParticipants</code></td><td>Nenhum participant foi registrado, mas policy permite isso.</td></tr>
+          <tr><td><code>CompletedWithWarnings</code></td><td>Algum participant opcional falhou. Reset continua.</td></tr>
+          <tr><td><code>Failed</code></td><td>Um participant obrigatório falhou ou a policy não permitia o estado atual.</td></tr>
+          <tr><td><code>RejectedInvalidRequest</code></td><td>O request era inválido (ex: sem Route/Activity ativa).</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <h2 id="object-entry">Object Entry — Declarar um objeto de jogo no framework</h2>
+    <p>Um <strong>Object Entry</strong> é a forma de dizer ao framework "este GameObject existe e pertence a esta Route/Activity". É uma <em>declaração de identidade</em> — não cria, destrói ou move nada. A razão de existir é dar ao <strong>Object Reset</strong> um alvo com identidade estável.</p>
+
+    <div class="component-card">
+      <div class="comp-header">
+        <div class="comp-icon">🏷️</div>
+        <div class="comp-meta">
+          <div class="comp-name">ObjectEntryDeclaration</div>
+          <h4>Object Entry Declaration</h4>
+          <div class="comp-menu">Add Component → Immersive Framework → Object Entry → Object Entry Declaration</div>
+        </div>
+      </div>
+      <p style="font-size:13.5px; color:var(--text-soft); margin-top:10px; margin-bottom:12px;">
+        Adicione este componente no GameObject do objeto de jogo que você quer que o framework conheça. Um componente por GameObject — <code>DisallowMultipleComponent</code>.
+      </p>
+      <div class="comp-fields">
+        <div class="comp-field">
+          <span class="field-name">Object Entry Id</span>
+          <span class="field-desc">ID único e estável para este objeto. Ex: <code>player-character</code>, <code>enemy-boss-1</code>. <strong>Não use o nome do GameObject.</strong></span>
+        </div>
+        <div class="comp-field">
+          <span class="field-name">Scope</span>
+          <span class="field-desc"><code>Activity</code> (padrão), <code>Route</code> ou <code>Session</code>. Define o ciclo de vida ao qual este objeto pertence.</span>
+        </div>
+        <div class="comp-field">
+          <span class="field-name">Route Owner</span>
+          <span class="field-desc">Se Scope = Route, arraste aqui o asset da Route dona. Obrigatório para scope Route.</span>
+        </div>
+        <div class="comp-field">
+          <span class="field-name">Activity Owner</span>
+          <span class="field-desc">Se Scope = Activity, arraste aqui o asset da Activity dona. Obrigatório para scope Activity.</span>
+        </div>
+        <div class="comp-field">
+          <span class="field-name">Requiredness</span>
+          <span class="field-desc"><code>Required</code> ou <code>Optional</code>. Afeta diagnósticos e como falhas são reportadas.</span>
+        </div>
+        <div class="comp-field">
+          <span class="field-name">Display Name</span>
+          <span class="field-desc">Nome legível para diagnóstico. Se vazio, usa o nome do GameObject (só para display).</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <div class="callout-body">
+        <div class="callout-title">Regra do Scope e Owner</div>
+        <p>Se você escolher <code>Scope = Route</code>, o campo <strong>Route Owner</strong> precisa de um asset com Primary Scene definida. Se escolher <code>Scope = Activity</code>, o campo <strong>Activity Owner</strong> precisa de um asset com nome definido. Scope = Session não precisa de owner.</p>
+      </div>
+    </div>
+
+    <h3>Exemplo de hierarquia com Object Entry</h3>
+    <pre><code>Gameplay (Scene)
+├── Player (GameObject)
+│   └── ObjectEntryDeclaration
+│       • Object Entry Id: "player-character"
+│       • Scope: Activity
+│       • Activity Owner: Activity_Gameplay
+│       • Requiredness: Required
+│
+└── BossEnemy (GameObject)
+    └── ObjectEntryDeclaration
+        • Object Entry Id: "enemy-boss"
+        • Scope: Route
+        • Route Owner: Route_Gameplay
+        • Requiredness: Optional</code></pre>
+
+    <!-- ═══════════════════════════════════════ -->
+    <h2 id="object-reset">Object Reset — Resetar um objeto individual</h2>
+    <p>O <strong>Object Reset</strong> é o sistema que executa reset físico em um objeto específico — identificado por um <code>ObjectEntryDeclaration</code>. É separado do Cycle Reset: você pode disparar um Object Reset para um único objeto a qualquer momento, independente do ciclo de Route ou Activity.</p>
+
+    <div class="component-card">
+      <div class="comp-header">
+        <div class="comp-icon">🎯</div>
+        <div class="comp-meta">
+          <div class="comp-name">ObjectResetTrigger</div>
+          <h4>Object Reset Trigger</h4>
+          <div class="comp-menu">Add Component → Immersive Framework → Object Reset → Object Reset Trigger</div>
+        </div>
+      </div>
+      <p style="font-size:13.5px; color:var(--text-soft); margin-top:10px; margin-bottom:12px;">
+        Dispara o reset de um objeto específico via Unity Event. Precisa saber qual objeto resetar — informe via <strong>Target Declaration</strong> ou <strong>Object Entry Id</strong>.
+      </p>
+      <div class="comp-fields">
+        <div class="comp-field">
+          <span class="field-name">Target Declaration</span>
+          <span class="field-desc">Arraste aqui o <code>ObjectEntryDeclaration</code> do objeto que deve ser resetado. <strong>Prefira este campo</strong> — é mais explícito e menos sujeito a erro de digitação.</span>
+        </div>
+        <div class="comp-field">
+          <span class="field-name">Object Entry Id</span>
+          <span class="field-desc">Alternativa ao campo acima: texto do ID do Object Entry alvo. Usado quando o Declaration não pode ser arrastado diretamente.</span>
+        </div>
+        <div class="comp-field">
+          <span class="field-name">Reason</span>
+          <span class="field-desc">Texto para diagnóstico. Ex: <code>player-respawn</code>, <code>enemy-revive</code>.</span>
+        </div>
+        <div class="comp-field">
+          <span class="field-name">Allow No Participants</span>
+          <span class="field-desc">Se ativado, um reset sem nenhum participant registrado não é tratado como falha. Padrão: true.</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="pre-label">Método público para Unity Events</div>
+        <div class="log-block" style="font-size:12.5px; line-height:1.8;">
+          <span class="log-val">ObjectResetTrigger.RequestObjectReset()</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <h2 id="transform-participant">Transform Reset Participant — Resetar posição, rotação e escala</h2>
+    <p>Este é o primeiro participant concreto de Object Reset incluído no framework. Ele restaura o <strong>Transform local</strong> (posição, rotação, escala) de um GameObject para um baseline capturado previamente no Inspector — sem código.</p>
+
+    <div class="component-card">
+      <div class="comp-header">
+        <div class="comp-icon">📐</div>
+        <div class="comp-meta">
+          <div class="comp-name">ObjectResetTransformParticipant</div>
+          <h4>Transform Reset Participant</h4>
+          <div class="comp-menu">Add Component → Immersive Framework → Object Reset → Transform Reset Participant</div>
+        </div>
+      </div>
+      <p style="font-size:13.5px; color:var(--text-soft); margin-top:10px; margin-bottom:12px;">
+        Coloque este componente <strong>no mesmo GameObject</strong> que tem o <code>ObjectEntryDeclaration</code> (ou em qualquer filho). Capture o baseline de Transform uma vez; o framework restaura automaticamente quando o reset é disparado.
+      </p>
+      <div class="comp-fields">
+        <div class="comp-field">
+          <span class="field-name">Target Declaration</span>
+          <span class="field-desc">Arraste o <code>ObjectEntryDeclaration</code> do objeto dono. Este campo define <em>a qual objeto</em> este participant pertence.</span>
+        </div>
+        <div class="comp-field">
+          <span class="field-name">Participant Id</span>
+          <span class="field-desc">ID estável para este participant. Ex: <code>transform-reset-player</code>.</span>
+        </div>
+        <div class="comp-field">
+          <span class="field-name">Target Transform Override</span>
+          <span class="field-desc">Opcional. Se preenchido, reseta este Transform em vez do Transform do próprio GameObject.</span>
+        </div>
+        <div class="comp-field">
+          <span class="field-name">Reset Local Position / Rotation / Scale</span>
+          <span class="field-desc">Toggles individuais para cada propriedade. Desative as que não precisam ser resetadas.</span>
+        </div>
+        <div class="comp-field">
+          <span class="field-name">Baseline Local Position / Euler Angles / Scale</span>
+          <span class="field-desc">Os valores que serão restaurados. <strong>Capture via Context Menu</strong> em vez de digitar manualmente.</span>
+        </div>
+        <div class="comp-field">
+          <span class="field-name">Requiredness</span>
+          <span class="field-desc"><code>Required</code>: falha bloqueia o reset. <code>Optional</code>: falha vira warning.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">✅</span>
+      <div class="callout-body">
+        <div class="callout-title">Como capturar o baseline</div>
+        <p>Posicione o GameObject na posição/rotação/escala inicial desejada. Então, no Inspector, clique com botão direito no componente <code>ObjectResetTransformParticipant</code> e selecione <strong>"Capture Current Transform Baseline"</strong>. Os valores são salvos automaticamente.</p>
+      </div>
+    </div>
+
+    <h3>Registrando participants com Object Reset Unity Participant Source</h3>
+    <p>Para que o framework encontre os <code>ObjectResetTransformParticipant</code> da cena, adicione este componente em um GameObject persistente:</p>
+
+    <div class="component-card">
+      <div class="comp-header">
+        <div class="comp-icon">📋</div>
+        <div class="comp-meta">
+          <div class="comp-name">ObjectResetUnityParticipantSource</div>
+          <h4>Object Reset Unity Participant Source</h4>
+          <div class="comp-menu">Add Component → Immersive Framework → Object Reset → Object Reset Unity Participant Source</div>
+        </div>
+      </div>
+      <p style="font-size:13.5px; color:var(--text-soft); margin-top:10px; margin-bottom:12px;">
+        Registra-se automaticamente no framework ao ficar ativo (<code>OnEnable</code>) e se desregistra ao ser desativado. Funciona como "lista explícita" dos participants — o framework não busca na hierarquia sozinho.
+      </p>
+      <div class="comp-fields">
+        <div class="comp-field">
+          <span class="field-name">Register On Enable</span>
+          <span class="field-desc">Se ativo, registra-se no runtime quando o GameObject ativar. Padrão: true.</span>
+        </div>
+        <div class="comp-field">
+          <span class="field-name">Participants</span>
+          <span class="field-desc">Lista de <code>ObjectResetUnityParticipantBehaviour</code> (ex: <code>ObjectResetTransformParticipant</code>) que devem ser consultados em cada reset. Arraste todos os participants aqui.</span>
+        </div>
+      </div>
+    </div>
+
+    <h3>Setup completo: resetar Transform do Player ao morrer</h3>
+    <ol class="steps">
+      <li>
+        <div class="step-body">
+          <strong>No GameObject do Player</strong>, adicione dois componentes:<br>
+          • <code>ObjectEntryDeclaration</code> com Id <code>player-character</code>, Scope <code>Activity</code>, Activity Owner = <code>Activity_Gameplay</code><br>
+          • <code>ObjectResetTransformParticipant</code>, arraste o <code>ObjectEntryDeclaration</code> acima para <strong>Target Declaration</strong>, preencha o Participant Id como <code>transform-reset-player</code>, depois use <em>Capture Current Transform Baseline</em> no Context Menu
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Crie um GameObject de gerenciamento</strong> (ex: <code>ResetManager</code>), adicione <code>ObjectResetUnityParticipantSource</code> e arraste o <code>ObjectResetTransformParticipant</code> do Player para a lista <strong>Participants</strong>.
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Crie um botão "Respawn"</strong> (ou use o evento de morte do Player). Adicione <code>ObjectResetTrigger</code> num GameObject, defina <strong>Target Declaration</strong> apontando para o <code>ObjectEntryDeclaration</code> do Player. No botão ou evento, conecte <code>ObjectResetTrigger.RequestObjectReset()</code>.
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Dê Play e teste.</strong> Ao disparar o trigger, o Transform do Player volta ao baseline capturado. Verifique nos logs: <code>status='Succeeded' participants='1' participantSucceeded='1'</code>.
+        </div>
+      </li>
+    </ol>
+
+    <!-- ═══════════════════════════════════════ -->
+    <h2 id="f11-bridges">Unity Event Bridges — F11–F15</h2>
+    <p>Cada novo sistema tem seu próprio Event Bridge, com eventos mais granulares que os bridges anteriores. Todos funcionam da mesma forma: exigem o trigger correspondente no mesmo GameObject.</p>
+
+    <div class="component-card">
+      <div class="comp-header">
+        <div class="comp-icon">🌉</div>
+        <div class="comp-meta">
+          <div class="comp-name">ActivityCycleResetTriggerUnityEventBridge</div>
+          <h4>Activity Cycle Reset Trigger Unity Event Bridge</h4>
+          <div class="comp-menu">Add Component → Immersive Framework → Cycle Reset → Activity Cycle Reset Trigger Unity Event Bridge</div>
+        </div>
+      </div>
+      <p style="font-size:13.5px; color:var(--text-soft); margin-top:10px; margin-bottom:12px;">
+        Requer <code>ActivityCycleResetTrigger</code> no mesmo GameObject. Expõe 8 Unity Events.
+      </p>
+      <div class="comp-fields">
+        <div class="comp-field"><span class="field-name">Request Submitted</span><span class="field-desc">Reset iniciado, ainda processando.</span></div>
+        <div class="comp-field"><span class="field-name">Request Succeeded</span><span class="field-desc">Reset completou — com ou sem participants.</span></div>
+        <div class="comp-field"><span class="field-name">Request Succeeded With Participants</span><span class="field-desc">Completou e havia participants registrados.</span></div>
+        <div class="comp-field"><span class="field-name">Request Succeeded No Participants</span><span class="field-desc">Completou mas nenhum participant foi encontrado (policy permitia).</span></div>
+        <div class="comp-field"><span class="field-name">Request Completed With Warnings</span><span class="field-desc">Algum participant opcional falhou; reset continuou.</span></div>
+        <div class="comp-field"><span class="field-name">Request Ignored</span><span class="field-desc">Reset ignorado (outro em andamento).</span></div>
+        <div class="comp-field"><span class="field-name">Request Failed</span><span class="field-desc">Reset falhou (participant obrigatório ou runtime indisponível).</span></div>
+        <div class="comp-field"><span class="field-name">Request Completed</span><span class="field-desc">Sempre dispara ao final, independente do resultado.</span></div>
+      </div>
+    </div>
+
+    <div class="component-card">
+      <div class="comp-header">
+        <div class="comp-icon">🌉</div>
+        <div class="comp-meta">
+          <div class="comp-name">RouteCycleResetTriggerUnityEventBridge</div>
+          <h4>Route Cycle Reset Trigger Unity Event Bridge</h4>
+          <div class="comp-menu">Add Component → Immersive Framework → Cycle Reset → Route Cycle Reset Trigger Unity Event Bridge</div>
+        </div>
+      </div>
+      <p style="font-size:13.5px; color:var(--text-soft); margin-top:10px; margin-bottom:12px;">
+        Idêntico ao de Activity, mas para <code>RouteCycleResetTrigger</code>. Mesmos 8 Unity Events.
+      </p>
+    </div>
+
+    <div class="component-card">
+      <div class="comp-header">
+        <div class="comp-icon">🌉</div>
+        <div class="comp-meta">
+          <div class="comp-name">ObjectResetTriggerUnityEventBridge</div>
+          <h4>Object Reset Trigger Unity Event Bridge</h4>
+          <div class="comp-menu">Add Component → Immersive Framework → Object Reset → Object Reset Trigger Unity Event Bridge</div>
+        </div>
+      </div>
+      <p style="font-size:13.5px; color:var(--text-soft); margin-top:10px; margin-bottom:12px;">
+        Requer <code>ObjectResetTrigger</code> no mesmo GameObject. Mesmos 8 Unity Events que os bridges de Cycle Reset, adaptados para Object Reset.
+      </p>
+    </div>
+
+    <h3>Exemplo: exibir efeito de respawn após reset</h3>
+    <div class="log-block" style="font-size:13px; line-height:1.8;">
+      <div class="log-label">Inspector — ObjectResetTriggerUnityEventBridge</div>
+      <span class="log-key">Request Submitted</span> → <span class="log-val">RespawnEffect.SetActive(false)</span> (esconde antes)<br>
+      <span class="log-key">Request Succeeded With Participants</span> → <span class="log-val">RespawnEffect.SetActive(true)</span><br>
+      <span class="log-key">Request Failed</span> → <span class="log-val">ErrorUI.Show("Respawn falhou")</span>
+    </div>
+
+    <h3>Comparativo: qual Bridge usar em cada situação</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Situação</th><th>Bridge recomendado</th></tr></thead>
+        <tbody>
+          <tr><td>Restart de rodada (ex: F clicou em "Tentar Novamente")</td><td><code>ActivityCycleResetTriggerUnityEventBridge</code></td></tr>
+          <tr><td>Restart de fase (ex: "Repetir Fase")</td><td><code>RouteCycleResetTriggerUnityEventBridge</code></td></tr>
+          <tr><td>Reposicionar player ao morrer</td><td><code>ObjectResetTriggerUnityEventBridge</code></td></tr>
+          <tr><td>Tudo junto em um evento de morte</td><td>Chame o <code>ObjectResetTrigger</code> primeiro (reposiciona), depois o <code>ActivityCycleResetTrigger</code> (zera o estado)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ══════════════════════════════════════════
          LIMITES
     ══════════════════════════════════════════ -->
     <h2 id="limites">O que ainda NÃO existe nesta versão</h2>
-    <p>Esta versão fecha as capacidades aprovadas até F13. As funcionalidades abaixo estão planejadas para fases futuras e <strong>não devem ser esperadas agora</strong>.</p>
+    <p>Esta versão (F15) avançou bastante em relação à F10. As funcionalidades abaixo continuam fora do escopo e <strong>não devem ser esperadas</strong>.</p>
 
     <div class="callout stop">
       <span class="callout-icon">🚫</span>
       <div class="callout-body">
-        <div class="callout-title">Não disponível ainda</div>
+        <div class="callout-title">Ainda não disponível em F15</div>
         <p>
-          <strong>Materialização física</strong> — O framework não faz <code>Instantiate</code>, <code>Destroy</code> ou posicionamento automático de prefabs.<br><br>
+          <strong>Materialização física</strong> — O framework ainda não faz <code>Instantiate</code>, <code>Destroy</code> ou posicionamento automático de prefabs. Content Anchors continuam declarativos.<br><br>
           <strong>Addressables</strong> — Sem carregamento assíncrono de assets por endereço.<br><br>
-          <strong>Sistema de Actors</strong> — Não existe gerenciamento de personagens, NPCs ou câmera pelo framework.<br><br>
-          <strong>Input Management</strong> — Sem integração com sistemas de input pelo framework.<br><br>
+          <strong>Sistema de Actors / Player</strong> — Não existe gerenciamento de personagens, câmera ou câmera pelo framework.<br><br>
+          <strong>Object Reset além de Transform</strong> — O único participant concreto incluído é o <code>ObjectResetTransformParticipant</code>. Reset de Rigidbody, Animator, AudioSource, etc. precisam de código próprio (<code>IObjectResetParticipant</code>).<br><br>
+          <strong>Object Reset para múltiplos objetos de uma vez</strong> — Cada <code>ObjectResetTrigger</code> reseta um único Object Entry por request.<br><br>
+          <strong>Snapshot de estado para restore</strong> — O framework captura baseline de Transform via authoring, mas não faz snapshot dinâmico em runtime do estado atual para restaurar depois.<br><br>
           <strong>Save/Load</strong> — Sem sistema de persistência de dados.<br><br>
           <strong>Pooling</strong> — Sem sistema de object pooling integrado.<br><br>
-          <strong>Reset físico/de objetos</strong> — Cycle Reset existe como request lógico, mas ainda não reposiciona nem limpa objetos de gameplay.<br><br>
-          <strong>Binding físico de Object Entry</strong> — Object Entry registra identidade/owner/scope, mas ainda não expõe GameObject, Transform ou Component como alvo funcional.<br><br>
-          <strong>UI/Presentation layer</strong> — Sem gerenciamento de UI automatizado além da visibilidade local.
+          <strong>Input Management</strong> — Sem integração com sistemas de input pelo framework.<br><br>
+          <strong>UI/Presentation layer</strong> — Sem gerenciamento de UI automatizado além da visibilidade por Activity.
         </p>
       </div>
     </div>
@@ -2138,7 +2453,7 @@ public class MeuParticipantSource : MonoBehaviour, IActivityContentExecutionPart
         <tbody>
           <tr><td><code>Session</code></td><td>O ciclo de vida completo da aplicação, do boot ao fechamento.</td></tr>
           <tr><td><code>Route</code></td><td>Uma área ou fase do jogo com sua própria Primary Scene.</td></tr>
-          <tr><td><code>Activity</code></td><td>Um modo de estado dentro de uma Route (ex: Gameplay, Pause, Inventory).</td></tr>
+          <tr><td><code>Activity</code></td><td>Um modo de estado dentro de uma Route (ex: Gameplay, Inventory, Inspection). Pause e planejado separadamente como estado + Gate blocker.</td></tr>
           <tr><td><code>Primary Scene</code></td><td>A cena Unity principal de uma Route, carregada em modo <code>Single</code>.</td></tr>
           <tr><td><code>Additional Scene</code></td><td>Cena extra carregada em modo <code>Additive</code> via Route Content Profile.</td></tr>
           <tr><td><code>Content Profile</code></td><td>Asset que lista as cenas adicionais de uma Route.</td></tr>
@@ -2146,10 +2461,21 @@ public class MeuParticipantSource : MonoBehaviour, IActivityContentExecutionPart
           <tr><td><code>Local Visibility Adapter</code></td><td>Componente que liga a visibilidade de um GameObject a uma Activity.</td></tr>
           <tr><td><code>Content Id</code></td><td>Texto único e estável que identifica um conteúdo. Não use nomes de cenas ou GameObjects como IDs.</td></tr>
           <tr><td><code>Requiredness</code></td><td><code>Required</code> = bloqueia o fluxo se falhar; <code>Optional</code> = apenas reporta o problema.</td></tr>
-          <tr><td><code>Ownership</code></td><td><code>Owned</code> = o framework é responsável por descarregar ao sair; <code>Registered</code> = só registra, sem release.</td></tr>
+          <tr><td><code>Ownership</code></td><td><code>Owned</code> = o framework descarrega ao sair; <code>Registered</code> = só registra, sem release.</td></tr>
+          <tr><td><code>Cycle Reset</code></td><td>Sinal de alto nível que diz "recomeça o ciclo desta Route ou Activity". Os participants decidem o que fazer.</td></tr>
+          <tr><td><code>CycleResetScope</code></td><td><code>Route</code> = reseta a Route inteira (e a Activity ativa por policy); <code>Activity</code> = reseta só a Activity ativa.</td></tr>
+          <tr><td><code>ICycleResetParticipant</code></td><td>Interface que um script implementa para receber e executar a lógica de Cycle Reset.</td></tr>
+          <tr><td><code>ICycleResetParticipantSource</code></td><td>Interface que fornece a lista de participants ao framework quando um Cycle Reset é disparado.</td></tr>
+          <tr><td><code>Object Entry</code></td><td>Declaração de identidade de um objeto de jogo no framework. Define a quem pertence (Route/Activity) e qual é seu ID estável.</td></tr>
+          <tr><td><code>ObjectEntryDeclaration</code></td><td>Componente Unity que declara um Object Entry. Um por GameObject.</td></tr>
+          <tr><td><code>Object Reset</code></td><td>Reset granular de um objeto individual: restaura propriedades físicas (ex: Transform) para um baseline definido.</td></tr>
+          <tr><td><code>ObjectResetTransformParticipant</code></td><td>Participant concreto incluído no framework que restaura Transform local (posição, rotação, escala) para baseline capturado.</td></tr>
+          <tr><td><code>ObjectResetUnityParticipantSource</code></td><td>Componente MonoBehaviour que registra a lista explícita de participants de Object Reset no runtime.</td></tr>
+          <tr><td><code>Baseline</code></td><td>Os valores de referência capturados em authoring (ex: posição inicial de um objeto) que serão restaurados pelo Object Reset.</td></tr>
+          <tr><td><code>Participant</code></td><td>Qualquer implementação de <code>ICycleResetParticipant</code> ou <code>IObjectResetParticipant</code> que recebe e executa um reset.</td></tr>
+          <tr><td><code>SucceededNoParticipants</code></td><td>Status de reset que indica que nenhum participant foi encontrado, mas a policy permitia isso — não é um erro.</td></tr>
+          <tr><td><code>CompletedWithWarnings</code></td><td>Status de reset que indica que algum participant opcional falhou, mas o reset continuou.</td></tr>
           <tr><td><code>Smoke</code></td><td>Teste rápido de regressão do framework (visível no QA Canvas em modo desenvolvimento).</td></tr>
-          <tr><td><code>Cycle Reset</code></td><td>Pedido lógico para reiniciar o ciclo da Route ou Activity ativa. Na F12 ainda não executa reset físico de objetos.</td></tr>
-          <tr><td><code>Object Entry</code></td><td>Declaração lógica owned/scoped conhecida pelo lifecycle. Na F13 não é binding físico nem inventário de reset.</td></tr>
           <tr><td><code>Experimental</code></td><td>Status de API: funciona, mas pode mudar em versões futuras do framework.</td></tr>
           <tr><td><code>Bootstrap</code></td><td>Código interno do framework que inicializa tudo automaticamente ao dar Play — você não interage com ele diretamente.</td></tr>
         </tbody>
@@ -2158,8 +2484,8 @@ public class MeuParticipantSource : MonoBehaviour, IActivityContentExecutionPart
 
     <!-- FOOTER -->
     <div style="margin-top:56px; padding-top:24px; border-top:1px solid var(--border-soft); color:var(--text-muted); font-size:13px;">
-      <p><strong style="color:var(--text-soft);">Immersive Framework</strong> — Manual do Game Designer &nbsp;·&nbsp; Versão F13</p>
-      <p style="margin-top:4px;">Este manual cobre as funcionalidades fechadas até F13. A próxima fase planejada é Local/Object Reset Foundation.</p>
+      <p><strong style="color:var(--text-soft);">Immersive Framework</strong> — Manual do Game Designer &nbsp;·&nbsp; Versão F15</p>
+      <p style="margin-top:4px;">Este manual cobre as funcionalidades fechadas até F15. Atualizar ao fechar F16+.</p>
     </div>
 
   </main>

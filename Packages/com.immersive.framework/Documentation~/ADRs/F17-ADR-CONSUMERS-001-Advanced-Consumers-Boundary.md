@@ -1,42 +1,55 @@
-# F17-ADR-CONSUMERS-001 — Advanced Consumers Boundary
+# F17-ADR-CONSUMERS-001 - Advanced Consumers Boundary
 
-Status: Proposed  
-Fase: F17 — Advanced Consumers  
-Tipo: Consumers / Boundary / Integration  
-Última atualização: 2026-06-25
-
----
-
-## 1. Contexto
-
-Camera, Audio, Actor e Pooling estavam originalmente previstos cedo demais como F11. A decisão pós-F10 reposiciona esses módulos para depois de Cycle Reset, Object Entry, Local/Object Reset, Unity Reset Adapters e Player baseline.
-
-F17 recupera esses consumers sem permitir que eles capturem o core.
+Status: Deferred / Superseded phase number  
+Original phase: F17 - Advanced Consumers  
+Current phase: F22+ / Future  
+Type: Consumers / Boundary / Integration  
+Last updated: 2026-06-26
 
 ---
 
-## 2. Dor original
+## 1. Context
 
-O framework precisa integrar subsistemas técnicos reais, mas sem voltar ao problema do projeto anterior: subsistemas controlando lifecycle, descobrindo mundo sozinhos ou criando authorities globais.
+This ADR preserved the boundary for future advanced consumers such as Camera, Audio, Actor and Pooling.
+
+The original phase number is superseded. F17 is now `Gate Foundation`, with F17A as documentation/ADR-only plan realignment. Advanced Consumers must not be treated as the current next cut.
 
 ---
 
-## 3. Decisão
+## 2. Current Decision
 
-F17 define a fronteira de consumers avançados.
+Advanced Consumers are deferred to F22+.
 
-Consumers avançados incluem:
+They can be reconsidered only after:
+
+```text
+F17 - Gate Foundation
+F18 - Transition Orchestration Foundation
+F19 - Transition Effects / Loading and Fade Adapters
+F20 - Pause State and Pause Gate
+F21 - Pause Content / Overlay / Input Boundary
+```
+
+They also depend on a mature enough model for gameplay objects/actors where relevant.
+
+---
+
+## 3. Deferred Consumers
+
+Future advanced consumers may include:
 
 ```text
 Camera
 Audio
 Actor
-Pooling
+Pooling integration
+pooled materializer
 ```
 
-Eles devem consumir core contracts existentes:
+They must consume existing core contracts instead of defining them:
 
 ```text
+Gate
 Lifecycle
 Content Anchor
 Runtime Materialization
@@ -48,27 +61,11 @@ Release
 Diagnostics
 ```
 
-Eles não definem esses contratos.
-
 ---
 
-## 4. Escopo incluído
+## 4. Still Excluded
 
-F17 pode incluir ADRs/cortes específicos para:
-
-```text
-Camera as Content Anchor consumer
-Audio as lifecycle consumer
-Actor runtime boundary
-Pooling package boundary
-Pooled materializer
-```
-
----
-
-## 5. Escopo excluído
-
-F17 exclui gameplay pesado:
+This deferred ADR still excludes gameplay-heavy systems:
 
 ```text
 Projectile gameplay
@@ -78,131 +75,22 @@ Powerups
 Combat rules
 Inventory
 Enemy AI framework
-```
-
-Actor baseline pode entrar como runtime object/consumer, mas não como sistema completo de gameplay.
-
----
-
-## 6. Modelo conceitual
-
-Consumer avançado deve seguir o fluxo:
-
-```text
-Framework core context
-  -> consumer request/contract
-    -> result/handle
-      -> release/reset participation through existing contracts
-```
-
-Não permitido:
-
-```text
-consumer scans world globally
-consumer owns Route/Activity lifecycle
-consumer creates static global authority as primary API
-consumer bypasses RuntimeContentHandle/ContentAnchor when materializing content
+contextual Player/Actor/NPC/Timer/Door/Pickup reset
 ```
 
 ---
 
-## 7. Camera
+## 5. Guardrails
 
-Camera deve ser consumer de Content Anchor/Route/Activity context.
-
-Guardrails:
-
-```text
-Sem FrameworkCameraAuthority static global como contrato público.
-Sem câmera definindo Route/Activity lifecycle.
-Sem Cinemachine como dependência obrigatória do core, salvo decisão explícita de package/adapter.
-```
+- No advanced consumer can create a parallel lifecycle.
+- No advanced consumer can discover the world globally as source of truth.
+- No advanced consumer can use name/path as functional identity.
+- No advanced consumer can create a silent fallback when a required dependency is missing.
+- No advanced consumer can transform reset into release or pool return.
+- No advanced consumer should bypass Gate when flow admission is required.
 
 ---
 
-## 8. Audio
+## 6. What Not To Change Now
 
-Audio deve consumir lifecycle context.
-
-Guardrails:
-
-```text
-Audio não possui Route/Activity.
-Audio listener persistente deve ser Session content/consumer, não core obrigatório.
-BGM/SFX não podem controlar transição de lifecycle.
-```
-
----
-
-## 9. Actor
-
-Actor é runtime object/contribution, não lifecycle core.
-
-Guardrails:
-
-```text
-Actor entra por RuntimeMaterialization/ObjectEntry.
-Actor reset/release usa contracts existentes.
-Actor não substitui Player/Participant baseline.
-Actor não força gameplay capabilities.
-```
-
----
-
-## 10. Pooling
-
-Pooling é infraestrutura técnica.
-
-Guardrails:
-
-```text
-Pool não é owner de lifecycle.
-Pool return é release policy/materializer behavior, não reset.
-Pooling não deve ser projectile-first.
-Pooling package permanece separado.
-```
-
----
-
-## 11. Diagnostics e validação
-
-Cada consumer deve ter smoke específico, mas todos devem provar:
-
-```text
-consumer entered through core contract
-consumer did not bypass owner
-consumer produced result/handle
-consumer released through explicit path
-consumer did not leave orphan runtime content
-```
-
----
-
-## 12. Consequências
-
-### Positivas
-
-- Consumers entram quando o core já tem lifecycle, reset, object entry e release.
-- Menor risco de Camera/Audio/Actor capturarem arquitetura.
-- Pooling fica técnico, não gameplay-first.
-
-### Custos
-
-- Consumers úteis entram mais tarde.
-- Cada consumer precisará de boundary próprio.
-
----
-
-## 13. Guardrails gerais
-
-- Nenhum consumer pode criar lifecycle paralelo.
-- Nenhum consumer pode descobrir o mundo sozinho como fonte de verdade.
-- Nenhum consumer pode usar nome/path como chave funcional.
-- Nenhum consumer pode criar fallback silencioso quando required dependency faltar.
-- Nenhum consumer pode transformar reset em release ou pool return.
-
----
-
-## 14. Relação com fases futuras
-
-F17 desbloqueia F18, onde gameplay capabilities passam a usar Actor/Runtime/Pooling/Input/Reset de forma controlada.
+Do not implement Camera, Audio, Actor, gameplay Pooling, Projectile, Damage, Attributes or Powerups in F17-F21.

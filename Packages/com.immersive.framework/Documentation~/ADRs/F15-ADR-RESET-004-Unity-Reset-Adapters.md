@@ -1,16 +1,16 @@
-# F15-ADR-RESET-004 — Unity Reset Adapters minimos
+# F15-ADR-RESET-004 — Unity Reset Adapters mínimos
 
-Status: Accepted / Planned through F15A  
-Fase: F15 — Unity Reset Adapters minimos  
+Status: Closed / Applied through F15F  
+Fase: F15 — Unity Reset Adapters mínimos  
 Tipo: Unity Adapter / Object Reset / Authoring  
 Ultima atualizacao: 2026-06-26  
-Corte: F15A — ADR
+Corte: F15F — Unity Reset Adapters Closure
 
 ---
 
 ## 1. Contexto
 
-F14 fechou a fundacao logica de Object Reset:
+F14 fechou a fundacao lógica de Object Reset:
 
 ```text
 ObjectEntryId + Scope + OwnerIdentity
@@ -23,79 +23,79 @@ ObjectEntryId + Scope + OwnerIdentity
 -> ObjectResetTriggerUnityEventBridge opcional
 ```
 
-F14 nao executa reset fisico Unity. Ela apenas resolve alvo logico, monta plano deterministico, executa participantes sinteticos/contratuais e agrega resultado.
+F14 não executa reset físico Unity. Ela apenas resolve alvo lógico, monta plano deterministico, executa participantes sintéticos/contratuais e agrega resultado.
 
-F15 abre os primeiros adapters Unity reais para tornar Object Reset observavel em objetos comuns de cena, sem introduzir gameplay, Player, Actor, pooling ou save/checkpoint.
+F15 abriu e fechou os primeiros adapters Unity reais para tornar Object Reset observável em objetos comuns de cena, sem introduzir gameplay, Player, Actor, pooling ou save/checkpoint.
 
 ---
 
 ## 2. Problema
 
-Depois da F14, um trigger valido pode terminar como `SucceededNoParticipants` porque ainda nao ha participantes Unity reais. Isso e correto para a fundacao, mas insuficiente para uso pratico.
+Depois da F14, um trigger valido pode terminar como `SucceededNoParticipants` porque ainda não há participantes Unity reais. Isso e correto para a fundacao, mas insuficiente para uso pratico.
 
 A F15 precisa responder:
 
 ```text
 Como um componente Unity real vira IObjectResetParticipant?
 Como o Runtime Host recebe a participant source?
-Quando ausencia de adapter e erro?
-Como aplicar baseline fisico sem fallback silencioso?
+Quando ausência de adapter e erro?
+Como aplicar baseline físico sem fallback silencioso?
 Como evitar GameObject.name/path como identidade funcional?
 ```
 
 ---
 
-## 3. Decisoes aceitas
+## 3. Decisões aceitas
 
 ### 3.1 Boundary de assembly para F15
 
-F15 **nao fara split de asmdef**.
+F15 **não fara split de asmdef**.
 
-O package atual ja possui um Runtime asmdef com `UnityEngine` habilitado e ja contem componentes Unity de authoring/UX, como triggers e bridges. Para F15, os adapters Unity minimos ficam no proprio `com.immersive.framework`.
+O package atual já possui um Runtime asmdef com `UnityEngine` habilitado e já contem componentes Unity de authoring/UX, como triggers e bridges. Para F15, os adapters Unity mínimos ficam no próprio `com.immersive.framework`.
 
-Decisao:
+Decisão:
 
 ```text
-Nao criar novo asmdef neste corte.
-Nao splitar core puro vs Unity adapter dentro da F15.
-Manter a separacao por namespace/pasta e contrato.
-Registrar split futuro como refactor arquitetural separado, nao como pre-requisito de F15.
+Não criar novo asmdef neste corte.
+Não splitar core puro vs Unity adapter dentro da F15.
+Manter a separação por namespace/pasta e contrato.
+Registrar split futuro como refactor arquitetural separado, não como pre-requisito de F15.
 ```
 
 Regra pratica:
 
 ```text
-ObjectResetTargetResolver, ObjectResetPlan e ObjectResetRuntime continuam sem dependencia conceitual de Unity.
+ObjectResetTargetResolver, ObjectResetPlan e ObjectResetRuntime continuam sem dependência conceitual de Unity.
 Adapters Unity podem depender de UnityEngine.
-Adapters nao podem mover lifecycle, ownership, identity ou policy para Unity components.
+Adapters não podem mover lifecycle, ownership, identity ou policy para Unity components.
 ```
 
 ### 3.2 Registro de participants/adapters
 
 `FrameworkRuntimeHost` continua sendo o owner do `IObjectResetParticipantSource` ativo.
 
-O setter interno existente pode continuar interno. F15 nao deve exigir que gameplay/user code injete source manualmente.
+O setter interno existente pode continuar interno. F15 não deve exigir que gameplay/user code injete source manualmente.
 
-Decisao:
+Decisão:
 
 ```text
 F15 implementara uma participant source Unity pertencente ao framework.
-Essa source sera registrada pelo proprio framework, dentro do package.
+Essa source sera registrada pelo próprio framework, dentro do package.
 Ela fornecera participants ao ObjectResetRuntime.
-Ela nao executara reset por conta propria.
-Ela nao sera service locator.
-Ela nao cria lifecycle paralelo.
+Ela não executara reset por conta própria.
+Ela não sera service locator.
+Ela não cria lifecycle paralelo.
 ```
 
-A source Unity deve coletar apenas participantes explicitos.
+A source Unity deve coletar apenas participantes explícitos.
 
 Permitido:
 
 ```text
 Componentes que implementam IObjectResetParticipant.
 Componentes de adapter declarados em GameObjects de cena.
-Filtro por ObjectResetTarget canonico.
-Include inactive quando necessario para objetos de cena explicitamente declarados.
+Filtro por ObjectResetTarget canônico.
+Include inactive quando necessário para objetos de cena explícitamente declarados.
 ```
 
 Proibido:
@@ -110,7 +110,7 @@ Criar manager de reset separado do Runtime Host.
 
 ### 3.3 Identidade de target dos adapters
 
-Todo adapter Unity real deve declarar para qual target logico ele participa.
+Todo adapter Unity real deve declarar para qual target lógico ele participa.
 
 Caminho preferido:
 
@@ -120,13 +120,13 @@ ObjectEntryDeclaration
 + adapter referencia a declaration ou resolve ObjectEntryId/scope/owner por ela
 ```
 
-Caminho manual permitido apenas como authoring explicito:
+Caminho manual permitido apenas como authoring explícito:
 
 ```text
-ObjectEntryId manual quando nao houver Target Declaration atribuida.
+ObjectEntryId manual quando não houver Target Declaration atribuida.
 ```
 
-Nao permitido:
+Não permitido:
 
 ```text
 GameObject.name
@@ -138,24 +138,24 @@ Sibling index
 
 ### 3.4 `SucceededNoParticipants` em F15
 
-`SucceededNoParticipants` continua valido para F14 foundation e para requests que explicitamente permitem ausencia de participantes.
+`SucceededNoParticipants` continua valido para F14 foundation e para requests que explícitamente permitem ausência de participantes.
 
-Para F15, ausencia de adapter nao pode mascarar erro quando o fluxo espera reset fisico.
+Para F15, ausência de adapter não pode mascarar erro quando o fluxo espera reset físico.
 
-Decisao:
+Decisão:
 
 ```text
-Request/policy de reset fisico deve poder exigir pelo menos um participant.
+Request/policy de reset físico deve poder exigir pelo menos um participant.
 Adapter required ausente deve gerar issue blocking.
-Adapter optional ausente pode gerar skip/warning nao bloqueante.
+Adapter optional ausente pode gerar skip/warning não bloqueante.
 Trigger/authoring deve deixar claro se no participants e permitido.
 ```
 
-A F15 nao deve transformar `SucceededNoParticipants` em fallback silencioso para reset fisico nao executado.
+A F15 não deve transformar `SucceededNoParticipants` em fallback silencioso para reset físico não executado.
 
 ### 3.5 Required vs Optional
 
-Adapters Unity usam a mesma semantica de participant requiredness da F14:
+Adapters Unity usam a mesma semântica de participant requiredness da F14:
 
 ```text
 Required -> falha bloqueia o Object Reset.
@@ -166,32 +166,32 @@ Baseline ausente:
 
 ```text
 Required adapter + baseline ausente -> FailedBlocking.
-Optional adapter + baseline ausente -> SkippedOptional ou warning nao bloqueante.
+Optional adapter + baseline ausente -> SkippedOptional ou warning não bloqueante.
 ```
 
 ### 3.6 Baseline
 
-F15 prioriza baseline minimo de `Transform`.
+F15 prioriza baseline mínimo de `Transform`.
 
 Fontes aceitas:
 
 ```text
 Authored baseline.
-Captured baseline em boundary deterministico, se implementado em corte proprio.
+Captured baseline em boundary deterministico, se implementado em corte próprio.
 ```
 
 Proibido:
 
 ```text
 Capturar baseline silenciosamente no momento do reset.
-Usar posicao atual como fallback se baseline obrigatorio estiver ausente.
+Usar posicao atual como fallback se baseline obrigatório estiver ausente.
 Recarregar cena para recuperar baseline.
 Usar prefab/pool/save como baseline implicito na F15.
 ```
 
-### 3.7 Ordem de adapters fisicos
+### 3.7 Ordem de adapters físicos
 
-A ordenacao canonica continua sendo:
+A ordenacao canônica continua sendo:
 
 ```text
 participant.Order
@@ -207,23 +207,23 @@ Rigidbody reset/velocity cleanup: 200
 Animator reset: 300
 ```
 
-A decisao operacional e: reset fisico deve ser deterministico e diagnosticavel. Se uma ordem diferente for necessaria em corte especifico, o corte deve justificar no smoke/diagnostics.
+A decisão operacional e: reset físico deve ser deterministico e diagnosticavel. Se uma ordem diferente for necessaria em corte específico, o corte deve justificar no smoke/diagnostics.
 
 ### 3.8 GameObject inactive / component disabled
 
-Objetos inativos podem precisar de reset fisico antes de serem reativados.
+Objetos inativos podem precisar de reset físico antes de serem reativados.
 
-Decisao:
+Decisão:
 
 ```text
-A source Unity pode coletar adapters em GameObjects inativos quando eles sao explicitamente authored.
-Component disabled nao deve ser tratado como participant ativo por default.
-Se um reset required depende de adapter desabilitado/ausente, isso deve virar issue explicito.
+A source Unity pode coletar adapters em GameObjects inativos quando eles sao explícitamente authored.
+Component disabled não deve ser tratado como participant ativo por default.
+Se um reset required depende de adapter desabilitado/ausente, isso deve virar issue explícito.
 ```
 
 Nenhuma dessas regras autoriza identity por hierarchy/name.
 
-### 3.9 Diagnostics minimos
+### 3.9 Diagnostics mínimos
 
 Logs/smokes de adapters devem declarar:
 
@@ -243,28 +243,29 @@ blockingIssues
 nonBlockingIssues
 ```
 
-Diagnostics nao devem despejar detalhes excessivos de Transform por frame nem gerar ruido em smokes felizes.
+Diagnostics não devem despejár detalhes excessivos de Transform por frame nem gerar ruido em smokes felizes.
 
 ---
 
-## 4. Escopo da F15
+## 4. Escopo fechado da F15
 
-Incluido:
+Incluido e aplicado:
 
 ```text
 Unity Object Reset participant source.
-Authoring minimo para adapters Unity.
-Transform reset participant com baseline explicito.
-Policy/diagnostics para ausencia de required adapter/baseline.
-Smokes de reset fisico minimo.
+Authoring mínimo para adapters Unity.
+Transform reset participant com baseline explícito.
+Policy/diagnostics para ausência de required adapter/baseline.
+Smokes de reset físico mínimo.
 Documentacao curta de uso.
 ```
 
-Pode entrar se o corte permanecer pequeno:
+Diferido para fases futuras:
 
 ```text
 Rigidbody velocity cleanup.
-Animator reset minimo.
+Animator reset mínimo.
+GameObject active state reset was deferred out of F15 and closed separately in F16.
 ```
 
 Fora da F15:
@@ -287,23 +288,22 @@ Camera/audio/gameplay consumers.
 
 ---
 
-## 5. Sequencia proposta de cortes
+## 5. Sequencia aplicada de cortes
 
 ```text
-F15B — Unity Object Reset Participant Source
-F15C — Transform Reset Participant / Authored Baseline
-F15D — Missing Required Adapter/Baseline Guardrails
-F15E — Optional Rigidbody/Animator candidate, only if still minimal
-F15F — Unity Reset Adapters Closure Smoke + docs/QA cleanup
+F15A — Unity Reset Adapters ADR.
+F15B — Unity Object Reset Participant Source.
+F15C — Transform Reset Participant / Authored Baseline.
+F15D — Missing Required Adapter/Baseline Guardrails.
+F15E — Transform Reset Authoring UX + Guide.
+F15F — Unity Reset Adapters Closure Smoke + docs/QA cleanup.
 ```
-
-A sequencia pode ser ajustada se F15B revelar acoplamento indevido.
 
 ---
 
 ## 6. UX esperada
 
-Fluxo recomendado para GameDesigner:
+Fluxo fechado recomendado para GameDesigner:
 
 ```text
 1. Criar/selecionar um GameObject de cena.
@@ -317,38 +317,48 @@ Fluxo recomendado para GameDesigner:
 Inspector deve explicar:
 
 ```text
-Este componente participa do Object Reset canonico.
-Ele nao executa reset sozinho.
-Ele nao recarrega cena.
-Ele nao controla Route/Activity lifecycle.
-Ele nao substitui pooling, save ou gameplay reset.
+Este componente participa do Object Reset canônico.
+Ele não executa reset sozinho.
+Ele não recarrega cena.
+Ele não controla Route/Activity lifecycle.
+Ele não substitui pooling, save ou gameplay reset.
 ```
 
 ---
 
-## 7. Consequencias
+## 7. Resultado fechado
+
+```text
+ObjectResetUnityParticipantSource registra participants Unity explícitos no Runtime Host.
+ObjectResetTransformParticipant restaura baseline local authored de Transform.
+Required adapter ausente e required baseline ausente geram blocking issue.
+Optional baseline ausente gera warning não bloqueante.
+F15 closure smoke valida source, Transform reset e guardrails sem depender de GameObject.name/path.
+```
+
+## 8. Consequencias
 
 ### Positivas
 
-- Object Reset deixa de ser apenas orquestracao logica.
-- Reset de Transform fica validavel por smoke real.
-- Player/Actor futuro pode consumir adapters tecnicos sem redefinir core.
+- Object Reset deixa de ser apenas orquestração lógica.
+- Reset de Transform fica validável por smoke real.
+- Player/Actor futuro pode consumir adapters técnicos sem redefinir core.
 
 ### Custos
 
-- A superficie Unity do framework aumenta.
-- A politica de no-participants precisa ser explicita.
-- Source/adapter devem ser bem diagnosticados para nao virar fallback silencioso.
+- A superfície Unity do framework aumenta.
+- A politica de no-participants precisa ser explícita.
+- Source/adapter devem ser bem diagnosticados para não virar fallback silencioso.
 
 ---
 
-## 8. Guardrails finais
+## 9. Guardrails finais
 
-- Nao usar F15 para implementar Player/Actor reset.
-- Nao usar F15 para pooling.
-- Nao usar reset fisico como lifecycle paralelo.
-- Nao mover identity/owner/scope para components Unity.
-- Nao usar `GameObject.name`, path ou InstanceID como identidade funcional.
-- Nao fazer fallback silencioso quando adapter required estiver ausente.
-- Nao capturar baseline no momento do reset.
-- Nao criar singleton/global reset manager.
+- Não usar F15 para implementar Player/Actor reset.
+- Não usar F15 para pooling.
+- Não usar reset físico como lifecycle paralelo.
+- Não mover identity/owner/scope para components Unity.
+- Não usar `GameObject.name`, path ou InstanceID como identidade funcional.
+- Não fazer fallback silencioso quando adapter required estiver ausente.
+- Não capturar baseline no momento do reset.
+- Não criar singleton/global reset manager.

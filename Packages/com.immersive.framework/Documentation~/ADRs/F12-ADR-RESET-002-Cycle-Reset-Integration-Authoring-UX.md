@@ -9,9 +9,9 @@ Ultima atualizacao: 2026-06-25
 
 ## 1. Contexto
 
-F11 criou o contrato e o executor minimo de Cycle Reset. F12 torna esse caminho usavel dentro do fluxo real do framework, sem ainda introduzir reset local/object ou gameplay.
+F11 criou o contrato e o executor mínimo de Cycle Reset. F12 torna esse caminho usavel dentro do fluxo real do framework, sem ainda introduzir reset local/object ou gameplay.
 
-A F12 existe para impedir que Cycle Reset fique como contrato tecnico sem superficie de uso, validacao ou authoring claro.
+A F12 existe para impedir que Cycle Reset fique como contrato técnico sem superfície de uso, validação ou authoring claro.
 
 ---
 
@@ -30,13 +30,13 @@ Componente authored: solicitar reset da Route.
 
 ---
 
-## 3. Decisao
+## 3. Decisão
 
-F12 integra Cycle Reset ao runtime publico do framework por superficies authoring/dev controladas.
+F12 integra Cycle Reset ao runtime público do framework por superficies authoring/dev controladas.
 
-F12 nao cria reset real de objetos. Ela apenas expoe o caminho canonico criado na F11 para uso e validacao.
+F12 não cria reset real de objetos. Ela apenas expoe o caminho canônico criado na F11 para uso e validação.
 
-A decisao central de UX e:
+A decisão central de UX e:
 
 ```text
 Trigger e o componente principal.
@@ -57,12 +57,12 @@ RouteCycleResetTrigger
 FrameworkQaCanvas reset buttons/smokes
 Trigger result UX
 Unity Event Bridges opcionais
-Authoring validation minima de triggers
+Authoring validation mínima de triggers
 Cycle Reset smoke criteria
 Diagnostics de request concluido
 ```
 
-F12 tambem garante que os triggers chamem o owner correto do runtime, e nao executem reset localmente.
+F12 tambem garante que os triggers chamem o owner correto do runtime, e não executem reset localmente.
 
 ---
 
@@ -88,7 +88,7 @@ Scene reload
 
 ## 6. Modelo conceitual
 
-F12 adiciona superficie de uso para o contrato F11:
+F12 adiciona superfície de uso para o contrato F11:
 
 ```text
 Scene/UI/QA Trigger
@@ -100,7 +100,7 @@ Scene/UI/QA Trigger
           -> result
 ```
 
-Os triggers sao request sources, nao owners de reset.
+Os triggers sao request sources, não owners de reset.
 
 A bridge e apenas um adapter de evento:
 
@@ -109,7 +109,7 @@ CycleResetTriggerEvent typed
   -> UnityEvent callbacks opcionais
 ```
 
-A bridge nao cria request novo, nao executa reset e nao substitui o trigger.
+A bridge não cria request novo, não executa reset e não substitui o trigger.
 
 ---
 
@@ -117,30 +117,30 @@ A bridge nao cria request novo, nao executa reset e nao substitui o trigger.
 
 ### ActivityCycleResetTrigger
 
-Componente publico para scene/UI solicitar reset da Activity ativa.
+Componente público para scene/UI solicitar reset da Activity ativa.
 
 Requisitos:
 
 ```text
-Nao precisa conhecer Activity asset alvo.
+Não precisa conhecer Activity asset alvo.
 Usa Activity ativa do runtime.
-Falha explicitamente se nao houver runtime ou Activity ativa.
+Falha explicitamente se não houver runtime ou Activity ativa.
 Possui Source/Reason para diagnostics.
-Expor ultimo resultado para Inspector/UX.
+Expor último resultado para Inspector/UX.
 ```
 
 ### RouteCycleResetTrigger
 
-Componente publico para scene/UI solicitar reset da Route ativa.
+Componente público para scene/UI solicitar reset da Route ativa.
 
 Requisitos:
 
 ```text
-Nao precisa conhecer Route asset alvo.
+Não precisa conhecer Route asset alvo.
 Usa Route ativa do runtime.
 Pode expor Include Active Activity quando a policy permitir.
-Falha explicitamente se nao houver runtime ou Route ativa.
-Expor ultimo resultado para Inspector/UX.
+Falha explicitamente se não houver runtime ou Route ativa.
+Expor último resultado para Inspector/UX.
 ```
 
 ### Unity Event Bridges
@@ -178,20 +178,20 @@ Inspector deve explicar de forma direta:
 
 ```text
 Este componente solicita reset do ciclo ativo.
-Ele nao recarrega cena.
-Ele nao troca Route/Activity.
-Ele nao reseta objeto especifico.
-Ele nao restaura save/checkpoint.
+Ele não recarrega cena.
+Ele não troca Route/Activity.
+Ele não reseta objeto específico.
+Ele não restaura save/checkpoint.
 ```
 
 Campos recomendados:
 
 ```text
 Reason
-Include Active Activity, somente para Route reset se aplicavel
+Include Active Activity, somente para Route reset se aplicável
 ```
 
-O Inspector/guia deve deixar explicito:
+O Inspector/guia deve deixar explícito:
 
 ```text
 Unity Event Bridge is optional.
@@ -208,7 +208,7 @@ Button.onClick -> ActivityCycleResetTrigger.RequestActivityCycleReset()
 
 ---
 
-## 9. Diagnostics e validacao
+## 9. Diagnostics e validação
 
 F12 expande QA para validar o caminho real de request e a UX dos triggers.
 
@@ -219,7 +219,7 @@ Run Cycle Reset Trigger Smoke
 Run Cycle Reset Bridge Smoke
 ```
 
-Logs/resultados devem deixar explicito:
+Logs/resultados devem deixar explícito:
 
 ```text
 requestSource
@@ -240,7 +240,7 @@ routeCycleResetTriggers
 activityCycleResetTriggers
 ```
 
-O validator nao deve exigir bridges.
+O validator não deve exigir bridges.
 
 Warnings aceitaveis:
 
@@ -252,7 +252,7 @@ Trigger inativo na hierarquia, se o smoke/QA depender dele ativo.
 
 ---
 
-## 10. Evidencia aceita da F12
+## 10. Evidência aceita da F12
 
 ### F12A — Authoring Guardrails
 
@@ -279,7 +279,7 @@ Route bridge: submittedEvents='1', succeededEvents='1', succeededNoParticipantsE
 Activity bridge: submittedEvents='1', succeededEvents='1', succeededNoParticipantsEvents='1', completedEvents='1', failedEvents='0', ignoredEvents='0'.
 ```
 
-`SucceededNoParticipants` e resultado esperado nesta fase para triggers reais sem participantes fisicos.
+`SucceededNoParticipants` e resultado esperado nesta fase para triggers reais sem participantes físicos.
 
 ---
 
@@ -287,39 +287,39 @@ Activity bridge: submittedEvents='1', succeededEvents='1', succeededNoParticipan
 
 ### Positivas
 
-- Cycle Reset passa a ser utilizavel no Unity.
+- Cycle Reset passa a ser utilizável no Unity.
 - QA consegue validar a mecanica sem objetos reais.
 - Triggers tem feedback de resultado suficiente para Inspector/UI.
 - Bridges opcionais permitem callbacks de resultado sem obrigar toda UI a usar bridge.
-- O core nao fica dependente de implementacao futura de Player.
+- O core não fica dependente de implementação futura de Player.
 
 ### Custos
 
-- Ainda nao ha reset local util para gameplay.
-- A UX precisa ser explicita para nao prometer reset de objeto.
-- Bridges aumentam a superficie authoring, entao precisam permanecer claramente opcionais.
+- Ainda não há reset local útil para gameplay.
+- A UX precisa ser explícita para não prometer reset de objeto.
+- Bridges aumentam a superfície authoring, entao precisam permanecer claramente opcionais.
 
 ---
 
 ## 12. Guardrails
 
-- Triggers nao podem executar reset diretamente.
-- QA Canvas nao pode virar owner de reset.
-- Inspector nao pode sugerir que reset recarrega cena ou restaura save.
-- Nao adicionar campos de Player/Actor/Component nos triggers de cycle reset.
-- Nao implementar fallback silencioso se nao houver runtime ativo.
-- Validator nao deve exigir bridge.
-- Bridge nao deve existir como segundo caminho de request.
-- Bridge nao deve ser documentada como obrigatoria.
+- Triggers não podem executar reset diretamente.
+- QA Canvas não pode virar owner de reset.
+- Inspector não pode sugerir que reset recarrega cena ou restaura save.
+- Não adicionar campos de Player/Actor/Component nos triggers de cycle reset.
+- Não implementar fallback silencioso se não houver runtime ativo.
+- Validator não deve exigir bridge.
+- Bridge não deve existir como segundo caminho de request.
+- Bridge não deve ser documentada como obrigatória.
 - Guia deve mostrar primeiro o caminho simples sem bridge.
 
 ---
 
 ## 13. Relacao com fases futuras
 
-F12 desbloqueia uso pratico do Cycle Reset enquanto F13/F14 ainda nao existem.
+F12 desbloqueia uso pratico do Cycle Reset enquanto F13/F14 ainda não existem.
 
-F12 nao desbloqueia gameplay reset diretamente. Object Reset e reset de objetos reais continuam para F14/F15/F16.
+F12 não desbloqueia gameplay reset diretamente. Object Reset e reset de objetos reais continuam para F14/F15/F16.
 
 F13 deve iniciar Object Entry Foundation sem reaproveitar Cycle Reset como atalho para reset local.
 
@@ -327,17 +327,17 @@ F13 deve iniciar Object Entry Foundation sem reaproveitar Cycle Reset como atalh
 
 ## 14. Fechamento auditado
 
-F12 foi revalidada contra o package atualizado antes da reconciliacao da F13.
+F12 foi revalidada contra o package atualizado antes da reconciliação da F13.
 
 Confirmado no codigo:
 
 ```text
 RouteCycleResetTrigger e ActivityCycleResetTrigger chamam o Runtime Host.
-Triggers expoem ultimo status, resultado, participants e issues.
-Bridges apenas observam CycleResetTriggerEvent; nao criam segundo request path.
+Triggers expoem último status, resultado, participants e issues.
+Bridges apenas observam CycleResetTriggerEvent; não criam segundo request path.
 QA Canvas expoe Trigger Smoke e Bridge Smoke.
 Authoring Validation conta triggers de Route e Activity sem exigir bridge.
-Inspectors explicam que Cycle Reset nao e reset de objeto, save ou scene reload.
+Inspectors explicam que Cycle Reset não e reset de objeto, save ou scene reload.
 ```
 
 Confirmado na documentacao de uso:

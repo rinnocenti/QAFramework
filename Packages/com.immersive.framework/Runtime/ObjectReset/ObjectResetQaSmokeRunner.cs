@@ -14,10 +14,10 @@ using UnityEngine;
 namespace Immersive.Framework.ObjectReset
 {
     /// <summary>
-    /// Development-only runner for F14 Object Reset foundation smokes.
-    /// It uses synthetic ObjectEntry snapshots and performs no Unity object reset side effects.
+    /// Development-only runner for Object Reset foundation and Unity adapter smokes.
+    /// Foundation smokes validate logical orchestration; Unity adapter smokes validate explicit technical participants such as Transform reset.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.DevelopmentTooling, "F14 Object Reset QA smoke runner; no physical reset.")]
+    [FrameworkApiStatus(FrameworkApiStatus.DevelopmentTooling, "F16 Object Reset QA smoke runner with foundation, Transform and GameObject active adapter closure coverage.")]
     internal static class ObjectResetQaSmokeRunner
     {
         internal const string TargetResolutionSmokeName = "Object Reset Target Resolution Smoke";
@@ -33,6 +33,16 @@ namespace Immersive.Framework.ObjectReset
         internal const string BridgeSmokeName = "Object Reset Bridge Smoke";
 
         internal const string FoundationClosureSmokeName = "Object Reset Foundation Closure Smoke";
+
+        internal const string UnityParticipantSourceSmokeName = "Object Reset Unity Participant Source Smoke";
+
+        internal const string TransformParticipantSmokeName = "Object Reset Transform Participant Smoke";
+
+        internal const string RequiredGuardrailsSmokeName = "Object Reset Required Guardrails Smoke";
+
+        internal const string UnityAdaptersClosureSmokeName = "Object Reset Unity Adapters Closure Smoke";
+
+        internal const string GameObjectActiveClosureSmokeName = "Object Reset GameObject Active Closure Smoke";
 
         internal static Task<bool> RunTargetResolutionSmokeAsync(
             FrameworkLogger logger,
@@ -989,6 +999,1236 @@ namespace Immersive.Framework.ObjectReset
         }
 
 
+        internal static async Task<bool> RunUnityParticipantSourceSmokeAsync(
+            FrameworkRuntimeHost runtimeHost,
+            FrameworkLogger logger,
+            string source)
+        {
+            if (runtimeHost == null || logger == null)
+            {
+                return false;
+            }
+
+            source = string.IsNullOrWhiteSpace(source) ? nameof(ObjectResetQaSmokeRunner) : source;
+
+            GameObject qaObject = null;
+            try
+            {
+                var activeActivity = runtimeHost.State.CurrentActivity;
+                if (activeActivity == null)
+                {
+                    logger.Warning(
+                        "QA Object Reset Unity Participant Source Smoke step failed.",
+                        LogFields.Of(
+                            LogFields.Field("step", "unity-participant-source"),
+                            LogFields.Field("reason", "active-activity-missing")));
+                    return false;
+                }
+
+                var objectEntryId = $"qa.object-reset.unity-source.target.{Guid.NewGuid():N}";
+                qaObject = new GameObject("QA_ObjectResetUnityParticipantSource_Target");
+                var declaration = qaObject.AddComponent<ObjectEntryDeclaration>();
+                declaration.ConfigureForQa(
+                    objectEntryId,
+                    ObjectEntryScope.Activity,
+                    ObjectEntryRequiredness.Required,
+                    "QA Object Reset Unity Source Target",
+                    qaActivityOwner: activeActivity);
+
+                var requiredParticipant = qaObject.AddComponent<ObjectResetQaUnityParticipantBehaviour>();
+                requiredParticipant.ConfigureForQa(
+                    declaration,
+                    "qa.object-reset.unity-source.required",
+                    ObjectResetParticipantRequiredness.Required,
+                    20,
+                    "QA Object Reset Unity Source Required Participant",
+                    source,
+                    "qa.object-reset.unity-source.required");
+                requiredParticipant.ConfigureResultForQa(ObjectResetParticipantResultStatus.Succeeded);
+
+                var optionalParticipant = qaObject.AddComponent<ObjectResetQaUnityParticipantBehaviour>();
+                optionalParticipant.ConfigureForQa(
+                    declaration,
+                    "qa.object-reset.unity-source.optional",
+                    ObjectResetParticipantRequiredness.Optional,
+                    10,
+                    "QA Object Reset Unity Source Optional Participant",
+                    source,
+                    "qa.object-reset.unity-source.optional");
+                optionalParticipant.ConfigureResultForQa(ObjectResetParticipantResultStatus.SkippedOptional);
+
+                var unitySource = qaObject.AddComponent<ObjectResetUnityParticipantSource>();
+                unitySource.ConfigureForQa(
+                    qaRegisterOnEnable: false,
+                    requiredParticipant,
+                    optionalParticipant);
+
+                runtimeHost.SetObjectResetParticipantSource(null);
+                var snapshot = runtimeHost.RefreshObjectEntryRuntimeContextSnapshot($"{source}:object-reset-unity-participant-source-smoke");
+                var id = ObjectEntryId.From(objectEntryId);
+                ObjectEntryDescriptor descriptor = default;
+                var targetCollected = snapshot != null && snapshot.TryGet(id, out descriptor);
+                if (!targetCollected)
+                {
+                    logger.Warning(
+                        "QA Object Reset Unity Participant Source Smoke step failed.",
+                        LogFields.Of(
+                            LogFields.Field("step", "unity-participant-source"),
+                            LogFields.Field("reason", "target-not-collected"),
+                            LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                            LogFields.Field("objectEntry", objectEntryId)));
+                    return false;
+                }
+
+                var request = ObjectResetRequest.ForTarget(
+                    ObjectResetTarget.FromDescriptor(descriptor),
+                    source,
+                    "qa.object-reset.unity-source.request");
+                var resolvedParticipants = unitySource.ResolveObjectResetParticipants(request, descriptor);
+                var registered = unitySource.RegisterWithCurrentHost()
+                    && runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
+                var result = await runtimeHost.RequestObjectResetAsync(request);
+
+                var sourceResolved = resolvedParticipants != null && resolvedParticipants.Count == 2;
+                var resultValid = result.Status == ObjectResetResultStatus.Succeeded
+                    && result.ParticipantCount == 2
+                    && result.ParticipantSucceededCount == 1
+                    && result.ParticipantSkippedCount == 1
+                    && result.ParticipantFailedCount == 0
+                    && result.BlockingIssueCount == 0
+                    && result.NonBlockingIssueCount == 0;
+                var targetResolved = result.HasResolvedTarget
+                    && result.ResolvedTarget.Id == id
+                    && result.ResolvedTarget.HasOwnerIdentity;
+                var cleared = unitySource.ClearRegistration()
+                    && !runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
+
+                if (!targetCollected
+                    || !targetResolved
+                    || !sourceResolved
+                    || !registered
+                    || !resultValid
+                    || !cleared)
+                {
+                    logger.Warning(
+                        "QA Object Reset Unity Participant Source Smoke step failed.",
+                        LogFields.Of(
+                            LogFields.Field("step", "unity-participant-source"),
+                            LogFields.Field("targetCollected", targetCollected),
+                            LogFields.Field("targetResolved", targetResolved),
+                            LogFields.Field("sourceResolved", sourceResolved),
+                            LogFields.Field("registered", registered),
+                            LogFields.Field("cleared", cleared),
+                            LogFields.Field("status", result.Status.ToString()),
+                            LogFields.Field("participants", result.ParticipantCount),
+                            LogFields.Field("blockingIssues", result.BlockingIssueCount),
+                            LogFields.Field("nonBlockingIssues", result.NonBlockingIssueCount)));
+                    return false;
+                }
+
+                logger.Info(
+                    "QA Object Reset Unity Participant Source Smoke step completed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "unity-participant-source"),
+                        LogFields.Field("source", source),
+                        LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                        LogFields.Field("objectEntry", id.StableText),
+                        LogFields.Field("targetCollected", targetCollected),
+                        LogFields.Field("targetResolved", targetResolved),
+                        LogFields.Field("authoredParticipants", unitySource.AuthoredParticipantCount),
+                        LogFields.Field("resolvedParticipants", resolvedParticipants.Count),
+                        LogFields.Field("registered", registered),
+                        LogFields.Field("cleared", cleared),
+                        LogFields.Field("resultStatus", result.Status.ToString()),
+                        LogFields.Field("participants", result.ParticipantCount),
+                        LogFields.Field("participantSucceeded", result.ParticipantSucceededCount),
+                        LogFields.Field("participantSkipped", result.ParticipantSkippedCount),
+                        LogFields.Field("participantFailed", result.ParticipantFailedCount),
+                        LogFields.Field("blockingIssues", result.BlockingIssueCount),
+                        LogFields.Field("nonBlockingIssues", result.NonBlockingIssueCount),
+                        LogFields.Field("summary", result.ToDiagnosticString())));
+
+                return true;
+            }
+            catch (Exception exception)
+            {
+                logger.Warning(
+                    "QA Object Reset Unity Participant Source Smoke step failed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "unity-participant-source"),
+                        LogFields.Field("reason", exception.Message)));
+                return false;
+            }
+            finally
+            {
+                runtimeHost.SetObjectResetParticipantSource(null);
+                if (qaObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(qaObject);
+                    runtimeHost.RefreshObjectEntryRuntimeContextSnapshot($"{source}:object-reset-unity-participant-source-smoke-cleanup");
+                }
+            }
+        }
+
+
+        internal static async Task<bool> RunTransformParticipantSmokeAsync(
+            FrameworkRuntimeHost runtimeHost,
+            FrameworkLogger logger,
+            string source)
+        {
+            if (runtimeHost == null || logger == null)
+            {
+                return false;
+            }
+
+            source = string.IsNullOrWhiteSpace(source) ? nameof(ObjectResetQaSmokeRunner) : source;
+
+            GameObject qaObject = null;
+            try
+            {
+                var activeActivity = runtimeHost.State.CurrentActivity;
+                if (activeActivity == null)
+                {
+                    logger.Warning(
+                        "QA Object Reset Transform Participant Smoke step failed.",
+                        LogFields.Of(
+                            LogFields.Field("step", "transform-participant"),
+                            LogFields.Field("reason", "active-activity-missing")));
+                    return false;
+                }
+
+                var objectEntryId = $"qa.object-reset.transform.target.{Guid.NewGuid():N}";
+                qaObject = new GameObject("QA_ObjectResetTransform_Target");
+                var declaration = qaObject.AddComponent<ObjectEntryDeclaration>();
+                declaration.ConfigureForQa(
+                    objectEntryId,
+                    ObjectEntryScope.Activity,
+                    ObjectEntryRequiredness.Required,
+                    "QA Object Reset Transform Target",
+                    qaActivityOwner: activeActivity);
+
+                var baselineLocalPosition = new Vector3(1.25f, 2.5f, -3.75f);
+                var baselineLocalEulerAngles = new Vector3(10f, 25f, 40f);
+                var baselineLocalScale = new Vector3(1.5f, 0.75f, 2.25f);
+                var mutatedLocalPosition = new Vector3(-9f, 8f, 7f);
+                var mutatedLocalEulerAngles = new Vector3(0f, 90f, 180f);
+                var mutatedLocalScale = new Vector3(3f, 3f, 3f);
+
+                var transformParticipant = qaObject.AddComponent<ObjectResetTransformParticipant>();
+                transformParticipant.ConfigureForQa(
+                    declaration,
+                    "qa.object-reset.transform.required",
+                    ObjectResetParticipantRequiredness.Required,
+                    10,
+                    "QA Object Reset Transform Required Participant",
+                    source,
+                    "qa.object-reset.transform.required");
+                transformParticipant.ConfigureTransformBaselineForQa(
+                    qaObject.transform,
+                    qaBaselineConfigured: true,
+                    qaResetLocalPosition: true,
+                    qaResetLocalRotation: true,
+                    qaResetLocalScale: true,
+                    baselineLocalPosition,
+                    baselineLocalEulerAngles,
+                    baselineLocalScale);
+
+                qaObject.transform.localPosition = mutatedLocalPosition;
+                qaObject.transform.localRotation = Quaternion.Euler(mutatedLocalEulerAngles);
+                qaObject.transform.localScale = mutatedLocalScale;
+
+                var unitySource = qaObject.AddComponent<ObjectResetUnityParticipantSource>();
+                unitySource.ConfigureForQa(
+                    qaRegisterOnEnable: false,
+                    transformParticipant);
+
+                runtimeHost.SetObjectResetParticipantSource(null);
+                var snapshot = runtimeHost.RefreshObjectEntryRuntimeContextSnapshot($"{source}:object-reset-transform-participant-smoke");
+                var id = ObjectEntryId.From(objectEntryId);
+                ObjectEntryDescriptor descriptor = default;
+                var targetCollected = snapshot != null && snapshot.TryGet(id, out descriptor);
+                if (!targetCollected)
+                {
+                    logger.Warning(
+                        "QA Object Reset Transform Participant Smoke step failed.",
+                        LogFields.Of(
+                            LogFields.Field("step", "transform-participant"),
+                            LogFields.Field("reason", "target-not-collected"),
+                            LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                            LogFields.Field("objectEntry", objectEntryId)));
+                    return false;
+                }
+
+                var request = ObjectResetRequest.ForTarget(
+                    ObjectResetTarget.FromDescriptor(descriptor),
+                    source,
+                    "qa.object-reset.transform.request");
+                var resolvedParticipants = unitySource.ResolveObjectResetParticipants(request, descriptor);
+                var registered = unitySource.RegisterWithCurrentHost()
+                    && runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
+                var result = await runtimeHost.RequestObjectResetAsync(request);
+
+                var sourceResolved = resolvedParticipants != null && resolvedParticipants.Count == 1;
+                var targetResolved = result.HasResolvedTarget
+                    && result.ResolvedTarget.Id == id
+                    && result.ResolvedTarget.HasOwnerIdentity;
+                var transformPositionReset = VectorApproximatelyEqual(qaObject.transform.localPosition, baselineLocalPosition);
+                var transformRotationReset = EulerApproximatelyEqual(qaObject.transform.localEulerAngles, baselineLocalEulerAngles);
+                var transformScaleReset = VectorApproximatelyEqual(qaObject.transform.localScale, baselineLocalScale);
+                var resultValid = result.Status == ObjectResetResultStatus.Succeeded
+                    && result.ParticipantCount == 1
+                    && result.ParticipantSucceededCount == 1
+                    && result.ParticipantSkippedCount == 0
+                    && result.ParticipantFailedCount == 0
+                    && result.BlockingIssueCount == 0
+                    && result.NonBlockingIssueCount == 0;
+                var cleared = unitySource.ClearRegistration()
+                    && !runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
+
+                if (!targetCollected
+                    || !targetResolved
+                    || !sourceResolved
+                    || !registered
+                    || !resultValid
+                    || !transformPositionReset
+                    || !transformRotationReset
+                    || !transformScaleReset
+                    || !cleared)
+                {
+                    logger.Warning(
+                        "QA Object Reset Transform Participant Smoke step failed.",
+                        LogFields.Of(
+                            LogFields.Field("step", "transform-participant"),
+                            LogFields.Field("targetCollected", targetCollected),
+                            LogFields.Field("targetResolved", targetResolved),
+                            LogFields.Field("sourceResolved", sourceResolved),
+                            LogFields.Field("registered", registered),
+                            LogFields.Field("cleared", cleared),
+                            LogFields.Field("resultStatus", result.Status.ToString()),
+                            LogFields.Field("participants", result.ParticipantCount),
+                            LogFields.Field("transformPositionReset", transformPositionReset),
+                            LogFields.Field("transformRotationReset", transformRotationReset),
+                            LogFields.Field("transformScaleReset", transformScaleReset),
+                            LogFields.Field("blockingIssues", result.BlockingIssueCount),
+                            LogFields.Field("nonBlockingIssues", result.NonBlockingIssueCount)));
+                    return false;
+                }
+
+                logger.Info(
+                    "QA Object Reset Transform Participant Smoke step completed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "transform-participant"),
+                        LogFields.Field("source", source),
+                        LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                        LogFields.Field("objectEntry", id.StableText),
+                        LogFields.Field("targetCollected", targetCollected),
+                        LogFields.Field("targetResolved", targetResolved),
+                        LogFields.Field("authoredParticipants", unitySource.AuthoredParticipantCount),
+                        LogFields.Field("resolvedParticipants", resolvedParticipants.Count),
+                        LogFields.Field("registered", registered),
+                        LogFields.Field("cleared", cleared),
+                        LogFields.Field("baselineConfigured", transformParticipant.HasBaseline),
+                        LogFields.Field("resultStatus", result.Status.ToString()),
+                        LogFields.Field("participants", result.ParticipantCount),
+                        LogFields.Field("participantSucceeded", result.ParticipantSucceededCount),
+                        LogFields.Field("participantSkipped", result.ParticipantSkippedCount),
+                        LogFields.Field("participantFailed", result.ParticipantFailedCount),
+                        LogFields.Field("transformPositionReset", transformPositionReset),
+                        LogFields.Field("transformRotationReset", transformRotationReset),
+                        LogFields.Field("transformScaleReset", transformScaleReset),
+                        LogFields.Field("blockingIssues", result.BlockingIssueCount),
+                        LogFields.Field("nonBlockingIssues", result.NonBlockingIssueCount),
+                        LogFields.Field("summary", result.ToDiagnosticString())));
+
+                return true;
+            }
+            catch (Exception exception)
+            {
+                logger.Warning(
+                    "QA Object Reset Transform Participant Smoke step failed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "transform-participant"),
+                        LogFields.Field("reason", exception.Message)));
+                return false;
+            }
+            finally
+            {
+                runtimeHost.SetObjectResetParticipantSource(null);
+                if (qaObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(qaObject);
+                    runtimeHost.RefreshObjectEntryRuntimeContextSnapshot($"{source}:object-reset-transform-participant-smoke-cleanup");
+                }
+            }
+        }
+
+
+
+        internal static async Task<bool> RunRequiredGuardrailsSmokeAsync(
+            FrameworkRuntimeHost runtimeHost,
+            FrameworkLogger logger,
+            string source)
+        {
+            if (runtimeHost == null || logger == null)
+            {
+                return false;
+            }
+
+            source = string.IsNullOrWhiteSpace(source) ? nameof(ObjectResetQaSmokeRunner) : source;
+
+            GameObject qaObject = null;
+            GameObject requiredParticipantObject = null;
+            GameObject optionalParticipantObject = null;
+            try
+            {
+                var activeActivity = runtimeHost.State.CurrentActivity;
+                if (activeActivity == null)
+                {
+                    logger.Warning(
+                        "QA Object Reset Required Guardrails Smoke step failed.",
+                        LogFields.Of(
+                            LogFields.Field("step", "required-guardrails"),
+                            LogFields.Field("reason", "active-activity-missing")));
+                    return false;
+                }
+
+                var objectEntryId = $"qa.object-reset.required-guardrails.target.{Guid.NewGuid():N}";
+                qaObject = new GameObject("QA_ObjectResetRequiredGuardrails_Target");
+                var declaration = qaObject.AddComponent<ObjectEntryDeclaration>();
+                declaration.ConfigureForQa(
+                    objectEntryId,
+                    ObjectEntryScope.Activity,
+                    ObjectEntryRequiredness.Required,
+                    "QA Object Reset Required Guardrails Target",
+                    qaActivityOwner: activeActivity);
+
+                var unitySource = qaObject.AddComponent<ObjectResetUnityParticipantSource>();
+                unitySource.ConfigureForQa(qaRegisterOnEnable: false);
+
+                runtimeHost.SetObjectResetParticipantSource(null);
+                var snapshot = runtimeHost.RefreshObjectEntryRuntimeContextSnapshot($"{source}:object-reset-required-guardrails-smoke");
+                var id = ObjectEntryId.From(objectEntryId);
+                ObjectEntryDescriptor descriptor = default;
+                var targetCollected = snapshot != null && snapshot.TryGet(id, out descriptor);
+                if (!targetCollected)
+                {
+                    logger.Warning(
+                        "QA Object Reset Required Guardrails Smoke step failed.",
+                        LogFields.Of(
+                            LogFields.Field("step", "required-guardrails"),
+                            LogFields.Field("reason", "target-not-collected"),
+                            LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                            LogFields.Field("objectEntry", objectEntryId)));
+                    return false;
+                }
+
+                var target = ObjectResetTarget.FromDescriptor(descriptor);
+                var requireParticipantsPolicy = new ObjectResetPolicy(
+                    requireCurrentSnapshot: true,
+                    allowNoParticipants: false);
+                var missingAdapterRequest = new ObjectResetRequest(
+                    target,
+                    requireParticipantsPolicy,
+                    source,
+                    "qa.object-reset.required-guardrails.missing-adapter");
+
+                var registered = unitySource.RegisterWithCurrentHost()
+                    && runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
+                var missingAdapterResult = await runtimeHost.RequestObjectResetAsync(missingAdapterRequest);
+
+                requiredParticipantObject = new GameObject("QA_ObjectResetRequiredGuardrails_RequiredMissingBaseline");
+                requiredParticipantObject.transform.SetParent(qaObject.transform, false);
+                var requiredParticipant = requiredParticipantObject.AddComponent<ObjectResetTransformParticipant>();
+                requiredParticipant.ConfigureForQa(
+                    declaration,
+                    "qa.object-reset.required-guardrails.required-missing-baseline",
+                    ObjectResetParticipantRequiredness.Required,
+                    10,
+                    "QA Object Reset Required Missing Baseline Participant",
+                    source,
+                    "qa.object-reset.required-guardrails.required-missing-baseline");
+                requiredParticipant.ConfigureTransformBaselineForQa(
+                    qaObject.transform,
+                    qaBaselineConfigured: false,
+                    qaResetLocalPosition: true,
+                    qaResetLocalRotation: true,
+                    qaResetLocalScale: true,
+                    Vector3.zero,
+                    Vector3.zero,
+                    Vector3.one);
+
+                unitySource.ConfigureForQa(qaRegisterOnEnable: false, requiredParticipant);
+                var requiredMissingBaselineRequest = ObjectResetRequest.ForTarget(
+                    target,
+                    source,
+                    "qa.object-reset.required-guardrails.required-missing-baseline");
+                var requiredMissingBaselineResult = await runtimeHost.RequestObjectResetAsync(requiredMissingBaselineRequest);
+
+                optionalParticipantObject = new GameObject("QA_ObjectResetRequiredGuardrails_OptionalMissingBaseline");
+                optionalParticipantObject.transform.SetParent(qaObject.transform, false);
+                var optionalParticipant = optionalParticipantObject.AddComponent<ObjectResetTransformParticipant>();
+                optionalParticipant.ConfigureForQa(
+                    declaration,
+                    "qa.object-reset.required-guardrails.optional-missing-baseline",
+                    ObjectResetParticipantRequiredness.Optional,
+                    20,
+                    "QA Object Reset Optional Missing Baseline Participant",
+                    source,
+                    "qa.object-reset.required-guardrails.optional-missing-baseline");
+                optionalParticipant.ConfigureTransformBaselineForQa(
+                    qaObject.transform,
+                    qaBaselineConfigured: false,
+                    qaResetLocalPosition: true,
+                    qaResetLocalRotation: true,
+                    qaResetLocalScale: true,
+                    Vector3.zero,
+                    Vector3.zero,
+                    Vector3.one);
+
+                unitySource.ConfigureForQa(qaRegisterOnEnable: false, optionalParticipant);
+                var optionalMissingBaselineRequest = ObjectResetRequest.ForTarget(
+                    target,
+                    source,
+                    "qa.object-reset.required-guardrails.optional-missing-baseline");
+                var optionalMissingBaselineResult = await runtimeHost.RequestObjectResetAsync(optionalMissingBaselineRequest);
+
+                var missingAdapterBlocked = missingAdapterResult.Status == ObjectResetResultStatus.Failed
+                    && missingAdapterResult.ParticipantCount == 0
+                    && missingAdapterResult.BlockingIssueCount > 0;
+                var requiredMissingBaselineBlocked = requiredMissingBaselineResult.Status == ObjectResetResultStatus.Failed
+                    && requiredMissingBaselineResult.ParticipantCount == 1
+                    && requiredMissingBaselineResult.ParticipantFailedCount == 1
+                    && requiredMissingBaselineResult.ParticipantBlockingFailureCount == 1
+                    && requiredMissingBaselineResult.BlockingIssueCount > 0;
+                var optionalMissingBaselineWarned = optionalMissingBaselineResult.Status == ObjectResetResultStatus.CompletedWithWarnings
+                    && optionalMissingBaselineResult.ParticipantCount == 1
+                    && optionalMissingBaselineResult.ParticipantFailedCount == 1
+                    && optionalMissingBaselineResult.ParticipantBlockingFailureCount == 0
+                    && optionalMissingBaselineResult.BlockingIssueCount == 0
+                    && optionalMissingBaselineResult.NonBlockingIssueCount > 0;
+                var targetResolved = missingAdapterResult.HasResolvedTarget
+                    && requiredMissingBaselineResult.HasResolvedTarget
+                    && optionalMissingBaselineResult.HasResolvedTarget
+                    && missingAdapterResult.ResolvedTarget.Id == id
+                    && requiredMissingBaselineResult.ResolvedTarget.Id == id
+                    && optionalMissingBaselineResult.ResolvedTarget.Id == id;
+                var cleared = unitySource.ClearRegistration()
+                    && !runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
+
+                if (!targetCollected
+                    || !targetResolved
+                    || !registered
+                    || !missingAdapterBlocked
+                    || !requiredMissingBaselineBlocked
+                    || !optionalMissingBaselineWarned
+                    || !cleared)
+                {
+                    logger.Warning(
+                        "QA Object Reset Required Guardrails Smoke step failed.",
+                        LogFields.Of(
+                            LogFields.Field("step", "required-guardrails"),
+                            LogFields.Field("targetCollected", targetCollected),
+                            LogFields.Field("targetResolved", targetResolved),
+                            LogFields.Field("registered", registered),
+                            LogFields.Field("missingAdapterBlocked", missingAdapterBlocked),
+                            LogFields.Field("requiredMissingBaselineBlocked", requiredMissingBaselineBlocked),
+                            LogFields.Field("optionalMissingBaselineWarned", optionalMissingBaselineWarned),
+                            LogFields.Field("cleared", cleared),
+                            LogFields.Field("missingAdapterStatus", missingAdapterResult.Status.ToString()),
+                            LogFields.Field("requiredMissingBaselineStatus", requiredMissingBaselineResult.Status.ToString()),
+                            LogFields.Field("optionalMissingBaselineStatus", optionalMissingBaselineResult.Status.ToString()),
+                            LogFields.Field("missingAdapterBlockingIssues", missingAdapterResult.BlockingIssueCount),
+                            LogFields.Field("requiredMissingBaselineBlockingIssues", requiredMissingBaselineResult.BlockingIssueCount),
+                            LogFields.Field("optionalMissingBaselineNonBlockingIssues", optionalMissingBaselineResult.NonBlockingIssueCount)));
+                    return false;
+                }
+
+                logger.Info(
+                    "QA Object Reset Required Guardrails Smoke step completed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "required-guardrails"),
+                        LogFields.Field("source", source),
+                        LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                        LogFields.Field("objectEntry", id.StableText),
+                        LogFields.Field("targetCollected", targetCollected),
+                        LogFields.Field("targetResolved", targetResolved),
+                        LogFields.Field("registered", registered),
+                        LogFields.Field("allowNoParticipants", missingAdapterRequest.AllowsNoParticipants),
+                        LogFields.Field("missingAdapterStatus", missingAdapterResult.Status.ToString()),
+                        LogFields.Field("missingAdapterParticipants", missingAdapterResult.ParticipantCount),
+                        LogFields.Field("missingAdapterBlockingIssues", missingAdapterResult.BlockingIssueCount),
+                        LogFields.Field("missingAdapterBlocked", missingAdapterBlocked),
+                        LogFields.Field("requiredBaselineConfigured", requiredParticipant.HasBaseline),
+                        LogFields.Field("requiredMissingBaselineStatus", requiredMissingBaselineResult.Status.ToString()),
+                        LogFields.Field("requiredMissingBaselineParticipants", requiredMissingBaselineResult.ParticipantCount),
+                        LogFields.Field("requiredMissingBaselineFailed", requiredMissingBaselineResult.ParticipantFailedCount),
+                        LogFields.Field("requiredMissingBaselineBlockingIssues", requiredMissingBaselineResult.BlockingIssueCount),
+                        LogFields.Field("requiredMissingBaselineBlocked", requiredMissingBaselineBlocked),
+                        LogFields.Field("optionalBaselineConfigured", optionalParticipant.HasBaseline),
+                        LogFields.Field("optionalMissingBaselineStatus", optionalMissingBaselineResult.Status.ToString()),
+                        LogFields.Field("optionalMissingBaselineParticipants", optionalMissingBaselineResult.ParticipantCount),
+                        LogFields.Field("optionalMissingBaselineFailed", optionalMissingBaselineResult.ParticipantFailedCount),
+                        LogFields.Field("optionalMissingBaselineBlockingIssues", optionalMissingBaselineResult.BlockingIssueCount),
+                        LogFields.Field("optionalMissingBaselineNonBlockingIssues", optionalMissingBaselineResult.NonBlockingIssueCount),
+                        LogFields.Field("optionalMissingBaselineWarned", optionalMissingBaselineWarned),
+                        LogFields.Field("cleared", cleared),
+                        LogFields.Field("summary", requiredMissingBaselineResult.ToDiagnosticString())));
+
+                return true;
+            }
+            catch (Exception exception)
+            {
+                logger.Warning(
+                    "QA Object Reset Required Guardrails Smoke step failed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "required-guardrails"),
+                        LogFields.Field("reason", exception.Message)));
+                return false;
+            }
+            finally
+            {
+                runtimeHost.SetObjectResetParticipantSource(null);
+                if (qaObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(qaObject);
+                    runtimeHost.RefreshObjectEntryRuntimeContextSnapshot($"{source}:object-reset-required-guardrails-smoke-cleanup");
+                }
+            }
+        }
+
+
+        internal static async Task<bool> RunUnityAdaptersClosureSmokeAsync(
+            FrameworkRuntimeHost runtimeHost,
+            FrameworkLogger logger,
+            string source)
+        {
+            if (runtimeHost == null || logger == null)
+            {
+                return false;
+            }
+
+            source = string.IsNullOrWhiteSpace(source) ? nameof(ObjectResetQaSmokeRunner) : source;
+
+            GameObject qaObject = null;
+            try
+            {
+                var activeActivity = runtimeHost.State.CurrentActivity;
+                if (activeActivity == null)
+                {
+                    logger.Warning(
+                        "QA Object Reset Unity Adapters Closure Smoke step failed.",
+                        LogFields.Of(
+                            LogFields.Field("step", "unity-adapters-closure"),
+                            LogFields.Field("reason", "active-activity-missing")));
+                    return false;
+                }
+
+                var objectEntryId = $"qa.object-reset.unity-adapters.target.{Guid.NewGuid():N}";
+                qaObject = new GameObject("QA_ObjectResetUnityAdaptersClosure_Target");
+                var declaration = qaObject.AddComponent<ObjectEntryDeclaration>();
+                declaration.ConfigureForQa(
+                    objectEntryId,
+                    ObjectEntryScope.Activity,
+                    ObjectEntryRequiredness.Required,
+                    "QA Object Reset Unity Adapters Closure Target",
+                    qaActivityOwner: activeActivity);
+
+                var unitySource = qaObject.AddComponent<ObjectResetUnityParticipantSource>();
+                unitySource.ConfigureForQa(qaRegisterOnEnable: false);
+
+                var targetBaselinePosition = new Vector3(1.5f, 2.5f, -3.5f);
+                var targetBaselineEuler = new Vector3(10f, 25f, 40f);
+                var targetBaselineScale = new Vector3(1.25f, 0.75f, 2f);
+                qaObject.transform.localPosition = targetBaselinePosition;
+                qaObject.transform.localRotation = Quaternion.Euler(targetBaselineEuler);
+                qaObject.transform.localScale = targetBaselineScale;
+
+                var transformParticipant = qaObject.AddComponent<ObjectResetTransformParticipant>();
+                transformParticipant.ConfigureForQa(
+                    declaration,
+                    "qa.object-reset.unity-adapters.transform",
+                    ObjectResetParticipantRequiredness.Required,
+                    100,
+                    "QA Object Reset Unity Adapters Transform Participant",
+                    source,
+                    "qa.object-reset.unity-adapters.transform");
+                transformParticipant.ConfigureTransformBaselineForQa(
+                    qaObject.transform,
+                    qaBaselineConfigured: true,
+                    qaResetLocalPosition: true,
+                    qaResetLocalRotation: true,
+                    qaResetLocalScale: true,
+                    targetBaselinePosition,
+                    targetBaselineEuler,
+                    targetBaselineScale);
+
+                runtimeHost.SetObjectResetParticipantSource(null);
+                var snapshot = runtimeHost.RefreshObjectEntryRuntimeContextSnapshot($"{source}:object-reset-unity-adapters-closure-smoke");
+                var id = ObjectEntryId.From(objectEntryId);
+                ObjectEntryDescriptor descriptor = default;
+                var targetCollected = snapshot != null && snapshot.TryGet(id, out descriptor);
+                if (!targetCollected)
+                {
+                    logger.Warning(
+                        "QA Object Reset Unity Adapters Closure Smoke step failed.",
+                        LogFields.Of(
+                            LogFields.Field("step", "unity-adapters-closure"),
+                            LogFields.Field("reason", "target-not-collected"),
+                            LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                            LogFields.Field("objectEntry", objectEntryId)));
+                    return false;
+                }
+
+                var target = ObjectResetTarget.FromDescriptor(descriptor);
+                var targetResolved = ObjectResetTargetResolver.ResolveTarget(
+                    snapshot,
+                    ObjectResetRequest.ForTarget(target, source, "qa.object-reset.unity-adapters.target-resolution")).Succeeded;
+
+                qaObject.transform.localPosition = new Vector3(-8f, 9f, 10f);
+                qaObject.transform.localRotation = Quaternion.Euler(70f, 80f, 90f);
+                qaObject.transform.localScale = new Vector3(3f, 4f, 5f);
+
+                unitySource.ConfigureForQa(qaRegisterOnEnable: false, transformParticipant);
+                var registered = unitySource.RegisterWithCurrentHost()
+                    && runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
+                var hostResult = await runtimeHost.RequestObjectResetAsync(ObjectResetRequest.ForTarget(
+                    target,
+                    source,
+                    "qa.object-reset.unity-adapters.transform"));
+
+                var transformPositionReset = VectorApproximatelyEqual(qaObject.transform.localPosition, targetBaselinePosition);
+                var transformRotationReset = EulerApproximatelyEqual(qaObject.transform.localEulerAngles, targetBaselineEuler);
+                var transformScaleReset = VectorApproximatelyEqual(qaObject.transform.localScale, targetBaselineScale);
+                var cleared = unitySource.ClearRegistration()
+                    && !runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
+
+                var objectResetRuntime = new ObjectResetRuntime();
+                var requireParticipantsPolicy = new ObjectResetPolicy(
+                    requireCurrentSnapshot: true,
+                    allowNoParticipants: false);
+                var missingAdapterResult = objectResetRuntime.Execute(
+                    snapshot,
+                    new ObjectResetRequest(
+                        target,
+                        requireParticipantsPolicy,
+                        source,
+                        "qa.object-reset.unity-adapters.missing-adapter"),
+                    new SyntheticObjectResetParticipantSource());
+
+                var requiredMissingBaselineObject = new GameObject("QA_ObjectResetUnityAdaptersClosure_RequiredMissingBaseline");
+                requiredMissingBaselineObject.transform.SetParent(qaObject.transform, false);
+                var requiredMissingBaselineParticipant = requiredMissingBaselineObject.AddComponent<ObjectResetTransformParticipant>();
+                requiredMissingBaselineParticipant.ConfigureForQa(
+                    declaration,
+                    "qa.object-reset.unity-adapters.required-missing-baseline",
+                    ObjectResetParticipantRequiredness.Required,
+                    100,
+                    "QA Object Reset Unity Adapters Required Missing Baseline Participant",
+                    source,
+                    "qa.object-reset.unity-adapters.required-missing-baseline");
+                requiredMissingBaselineParticipant.ConfigureTransformBaselineForQa(
+                    qaObject.transform,
+                    qaBaselineConfigured: false,
+                    qaResetLocalPosition: true,
+                    qaResetLocalRotation: true,
+                    qaResetLocalScale: true,
+                    Vector3.zero,
+                    Vector3.zero,
+                    Vector3.one);
+                var requiredMissingBaselineResult = objectResetRuntime.Execute(
+                    snapshot,
+                    ObjectResetRequest.ForTarget(
+                        target,
+                        source,
+                        "qa.object-reset.unity-adapters.required-missing-baseline"),
+                    new SyntheticObjectResetParticipantSource(requiredMissingBaselineParticipant));
+
+                var optionalMissingBaselineObject = new GameObject("QA_ObjectResetUnityAdaptersClosure_OptionalMissingBaseline");
+                optionalMissingBaselineObject.transform.SetParent(qaObject.transform, false);
+                var optionalMissingBaselineParticipant = optionalMissingBaselineObject.AddComponent<ObjectResetTransformParticipant>();
+                optionalMissingBaselineParticipant.ConfigureForQa(
+                    declaration,
+                    "qa.object-reset.unity-adapters.optional-missing-baseline",
+                    ObjectResetParticipantRequiredness.Optional,
+                    100,
+                    "QA Object Reset Unity Adapters Optional Missing Baseline Participant",
+                    source,
+                    "qa.object-reset.unity-adapters.optional-missing-baseline");
+                optionalMissingBaselineParticipant.ConfigureTransformBaselineForQa(
+                    qaObject.transform,
+                    qaBaselineConfigured: false,
+                    qaResetLocalPosition: true,
+                    qaResetLocalRotation: true,
+                    qaResetLocalScale: true,
+                    Vector3.zero,
+                    Vector3.zero,
+                    Vector3.one);
+                var optionalMissingBaselineResult = objectResetRuntime.Execute(
+                    snapshot,
+                    ObjectResetRequest.ForTarget(
+                        target,
+                        source,
+                        "qa.object-reset.unity-adapters.optional-missing-baseline"),
+                    new SyntheticObjectResetParticipantSource(optionalMissingBaselineParticipant));
+
+                var hostSucceeded = hostResult.Status == ObjectResetResultStatus.Succeeded
+                    && hostResult.ParticipantCount == 1
+                    && hostResult.ParticipantSucceededCount == 1
+                    && hostResult.ParticipantFailedCount == 0
+                    && hostResult.BlockingIssueCount == 0
+                    && hostResult.NonBlockingIssueCount == 0;
+                var missingAdapterBlocked = missingAdapterResult.Status == ObjectResetResultStatus.Failed
+                    && missingAdapterResult.ParticipantCount == 0
+                    && missingAdapterResult.BlockingIssueCount > 0;
+                var requiredMissingBaselineBlocked = requiredMissingBaselineResult.Status == ObjectResetResultStatus.Failed
+                    && requiredMissingBaselineResult.ParticipantCount == 1
+                    && requiredMissingBaselineResult.ParticipantFailedCount == 1
+                    && requiredMissingBaselineResult.ParticipantBlockingFailureCount == 1
+                    && requiredMissingBaselineResult.BlockingIssueCount > 0;
+                var optionalMissingBaselineWarned = optionalMissingBaselineResult.Status == ObjectResetResultStatus.CompletedWithWarnings
+                    && optionalMissingBaselineResult.ParticipantCount == 1
+                    && optionalMissingBaselineResult.ParticipantFailedCount == 1
+                    && optionalMissingBaselineResult.ParticipantBlockingFailureCount == 0
+                    && optionalMissingBaselineResult.BlockingIssueCount == 0
+                    && optionalMissingBaselineResult.NonBlockingIssueCount > 0;
+                var transformReset = transformPositionReset && transformRotationReset && transformScaleReset;
+                var closurePassed = targetCollected
+                    && targetResolved
+                    && registered
+                    && cleared
+                    && hostSucceeded
+                    && transformReset
+                    && missingAdapterBlocked
+                    && requiredMissingBaselineBlocked
+                    && optionalMissingBaselineWarned;
+
+                if (!closurePassed)
+                {
+                    logger.Warning(
+                        "QA Object Reset Unity Adapters Closure Smoke step failed.",
+                        LogFields.Of(
+                            LogFields.Field("step", "unity-adapters-closure"),
+                            LogFields.Field("targetCollected", targetCollected),
+                            LogFields.Field("targetResolved", targetResolved),
+                            LogFields.Field("registered", registered),
+                            LogFields.Field("cleared", cleared),
+                            LogFields.Field("hostSucceeded", hostSucceeded),
+                            LogFields.Field("transformReset", transformReset),
+                            LogFields.Field("missingAdapterBlocked", missingAdapterBlocked),
+                            LogFields.Field("requiredMissingBaselineBlocked", requiredMissingBaselineBlocked),
+                            LogFields.Field("optionalMissingBaselineWarned", optionalMissingBaselineWarned),
+                            LogFields.Field("hostStatus", hostResult.Status.ToString()),
+                            LogFields.Field("missingAdapterStatus", missingAdapterResult.Status.ToString()),
+                            LogFields.Field("requiredMissingBaselineStatus", requiredMissingBaselineResult.Status.ToString()),
+                            LogFields.Field("optionalMissingBaselineStatus", optionalMissingBaselineResult.Status.ToString())));
+                    return false;
+                }
+
+                logger.Info(
+                    "QA Object Reset Unity Adapters Closure Smoke step completed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "unity-adapters-closure"),
+                        LogFields.Field("source", source),
+                        LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                        LogFields.Field("snapshotSource", snapshot != null ? snapshot.Source : "<none>"),
+                        LogFields.Field("objectEntry", id.StableText),
+                        LogFields.Field("targetCollected", targetCollected),
+                        LogFields.Field("targetResolved", targetResolved),
+                        LogFields.Field("authoredParticipants", unitySource.AuthoredParticipantCount),
+                        LogFields.Field("registered", registered),
+                        LogFields.Field("cleared", cleared),
+                        LogFields.Field("hostStatus", hostResult.Status.ToString()),
+                        LogFields.Field("hostParticipants", hostResult.ParticipantCount),
+                        LogFields.Field("hostParticipantSucceeded", hostResult.ParticipantSucceededCount),
+                        LogFields.Field("hostParticipantSkipped", hostResult.ParticipantSkippedCount),
+                        LogFields.Field("hostParticipantFailed", hostResult.ParticipantFailedCount),
+                        LogFields.Field("transformPositionReset", transformPositionReset),
+                        LogFields.Field("transformRotationReset", transformRotationReset),
+                        LogFields.Field("transformScaleReset", transformScaleReset),
+                        LogFields.Field("missingAdapterStatus", missingAdapterResult.Status.ToString()),
+                        LogFields.Field("missingAdapterBlocked", missingAdapterBlocked),
+                        LogFields.Field("requiredMissingBaselineStatus", requiredMissingBaselineResult.Status.ToString()),
+                        LogFields.Field("requiredMissingBaselineBlocked", requiredMissingBaselineBlocked),
+                        LogFields.Field("optionalMissingBaselineStatus", optionalMissingBaselineResult.Status.ToString()),
+                        LogFields.Field("optionalMissingBaselineWarned", optionalMissingBaselineWarned),
+                        LogFields.Field("blockingIssues", hostResult.BlockingIssueCount),
+                        LogFields.Field("nonBlockingIssues", hostResult.NonBlockingIssueCount),
+                        LogFields.Field("summary", hostResult.ToDiagnosticString())));
+
+                return true;
+            }
+            catch (Exception exception)
+            {
+                logger.Warning(
+                    "QA Object Reset Unity Adapters Closure Smoke step failed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "unity-adapters-closure"),
+                        LogFields.Field("reason", exception.Message)));
+                return false;
+            }
+            finally
+            {
+                runtimeHost.SetObjectResetParticipantSource(null);
+                if (qaObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(qaObject);
+                    runtimeHost.RefreshObjectEntryRuntimeContextSnapshot($"{source}:object-reset-unity-adapters-closure-smoke-cleanup");
+                }
+            }
+        }
+
+
+        internal static async Task<bool> RunGameObjectActiveClosureSmokeAsync(
+            FrameworkRuntimeHost runtimeHost,
+            FrameworkLogger logger,
+            string source)
+        {
+            if (runtimeHost == null || logger == null)
+            {
+                return false;
+            }
+
+            source = string.IsNullOrWhiteSpace(source) ? nameof(ObjectResetQaSmokeRunner) : source;
+
+            GameObject sourceObject = null;
+            GameObject inactiveBaselineObject = null;
+            GameObject activeBaselineObject = null;
+            GameObject guardrailObject = null;
+            try
+            {
+                var activeActivity = runtimeHost.State.CurrentActivity;
+                if (activeActivity == null)
+                {
+                    logger.Warning(
+                        "QA Object Reset GameObject Active Closure Smoke step failed.",
+                        LogFields.Of(
+                            LogFields.Field("step", "gameobject-active-closure"),
+                            LogFields.Field("reason", "active-activity-missing")));
+                    return false;
+                }
+
+                sourceObject = new GameObject("QA_ObjectResetGameObjectActive_Source");
+                var unitySource = sourceObject.AddComponent<ObjectResetUnityParticipantSource>();
+                unitySource.ConfigureForQa(qaRegisterOnEnable: false);
+
+                var inactiveObjectEntryId = $"qa.object-reset.gameobject-active.inactive-target.{Guid.NewGuid():N}";
+                inactiveBaselineObject = new GameObject("QA_ObjectResetGameObjectActive_InactiveBaselineTarget");
+                var inactiveDeclaration = inactiveBaselineObject.AddComponent<ObjectEntryDeclaration>();
+                inactiveDeclaration.ConfigureForQa(
+                    inactiveObjectEntryId,
+                    ObjectEntryScope.Activity,
+                    ObjectEntryRequiredness.Required,
+                    "QA Object Reset GameObject Active Inactive Baseline Target",
+                    qaActivityOwner: activeActivity);
+                var inactiveParticipant = inactiveBaselineObject.AddComponent<ObjectResetGameObjectActiveParticipant>();
+                inactiveParticipant.ConfigureForQa(
+                    inactiveDeclaration,
+                    "qa.object-reset.gameobject-active.inactive-baseline",
+                    ObjectResetParticipantRequiredness.Required,
+                    100,
+                    "QA Object Reset GameObject Active Inactive Baseline Participant",
+                    source,
+                    "qa.object-reset.gameobject-active.inactive-baseline");
+                inactiveParticipant.ConfigureActiveBaselineForQa(
+                    inactiveBaselineObject,
+                    qaBaselineConfigured: true,
+                    qaBaselineActiveSelf: false);
+
+                var activeObjectEntryId = $"qa.object-reset.gameobject-active.active-target.{Guid.NewGuid():N}";
+                activeBaselineObject = new GameObject("QA_ObjectResetGameObjectActive_ActiveBaselineTarget");
+                var activeDeclaration = activeBaselineObject.AddComponent<ObjectEntryDeclaration>();
+                activeDeclaration.ConfigureForQa(
+                    activeObjectEntryId,
+                    ObjectEntryScope.Activity,
+                    ObjectEntryRequiredness.Required,
+                    "QA Object Reset GameObject Active Active Baseline Target",
+                    qaActivityOwner: activeActivity);
+                var activeParticipant = activeBaselineObject.AddComponent<ObjectResetGameObjectActiveParticipant>();
+                activeParticipant.ConfigureForQa(
+                    activeDeclaration,
+                    "qa.object-reset.gameobject-active.active-baseline",
+                    ObjectResetParticipantRequiredness.Required,
+                    100,
+                    "QA Object Reset GameObject Active Active Baseline Participant",
+                    source,
+                    "qa.object-reset.gameobject-active.active-baseline");
+                activeParticipant.ConfigureActiveBaselineForQa(
+                    activeBaselineObject,
+                    qaBaselineConfigured: true,
+                    qaBaselineActiveSelf: true);
+
+                var guardrailObjectEntryId = $"qa.object-reset.gameobject-active.guardrails.{Guid.NewGuid():N}";
+                guardrailObject = new GameObject("QA_ObjectResetGameObjectActive_GuardrailTarget");
+                var guardrailDeclaration = guardrailObject.AddComponent<ObjectEntryDeclaration>();
+                guardrailDeclaration.ConfigureForQa(
+                    guardrailObjectEntryId,
+                    ObjectEntryScope.Activity,
+                    ObjectEntryRequiredness.Required,
+                    "QA Object Reset GameObject Active Guardrail Target",
+                    qaActivityOwner: activeActivity);
+
+                runtimeHost.SetObjectResetParticipantSource(null);
+                var snapshot = runtimeHost.RefreshObjectEntryRuntimeContextSnapshot($"{source}:object-reset-gameobject-active-closure-smoke");
+
+                var inactiveId = ObjectEntryId.From(inactiveObjectEntryId);
+                var activeId = ObjectEntryId.From(activeObjectEntryId);
+                var guardrailId = ObjectEntryId.From(guardrailObjectEntryId);
+
+                ObjectEntryDescriptor inactiveDescriptor = default;
+                ObjectEntryDescriptor activeDescriptor = default;
+                ObjectEntryDescriptor guardrailDescriptor = default;
+                var inactiveTargetCollected = snapshot != null && snapshot.TryGet(inactiveId, out inactiveDescriptor);
+                var activeTargetCollected = snapshot != null && snapshot.TryGet(activeId, out activeDescriptor);
+                var guardrailTargetCollected = snapshot != null && snapshot.TryGet(guardrailId, out guardrailDescriptor);
+                if (!inactiveTargetCollected || !activeTargetCollected || !guardrailTargetCollected)
+                {
+                    logger.Warning(
+                        "QA Object Reset GameObject Active Closure Smoke step failed.",
+                        LogFields.Of(
+                            LogFields.Field("step", "gameobject-active-closure"),
+                            LogFields.Field("reason", "target-not-collected"),
+                            LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                            LogFields.Field("inactiveTargetCollected", inactiveTargetCollected),
+                            LogFields.Field("activeTargetCollected", activeTargetCollected),
+                            LogFields.Field("guardrailTargetCollected", guardrailTargetCollected)));
+                    return false;
+                }
+
+                var inactiveTarget = ObjectResetTarget.FromDescriptor(inactiveDescriptor);
+                var activeTarget = ObjectResetTarget.FromDescriptor(activeDescriptor);
+                var guardrailTarget = ObjectResetTarget.FromDescriptor(guardrailDescriptor);
+
+                var inactiveTargetResolved = ObjectResetTargetResolver.ResolveTarget(
+                    snapshot,
+                    ObjectResetRequest.ForTarget(inactiveTarget, source, "qa.object-reset.gameobject-active.inactive-target-resolution")).Succeeded;
+                var activeTargetResolved = ObjectResetTargetResolver.ResolveTarget(
+                    snapshot,
+                    ObjectResetRequest.ForTarget(activeTarget, source, "qa.object-reset.gameobject-active.active-target-resolution")).Succeeded;
+                var guardrailTargetResolved = ObjectResetTargetResolver.ResolveTarget(
+                    snapshot,
+                    ObjectResetRequest.ForTarget(guardrailTarget, source, "qa.object-reset.gameobject-active.guardrail-target-resolution")).Succeeded;
+
+                inactiveBaselineObject.SetActive(true);
+                activeBaselineObject.SetActive(false);
+
+                unitySource.ConfigureForQa(qaRegisterOnEnable: false, inactiveParticipant, activeParticipant);
+                var registered = unitySource.RegisterWithCurrentHost()
+                    && runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
+
+                var inactiveBaselineResult = await runtimeHost.RequestObjectResetAsync(ObjectResetRequest.ForTarget(
+                    inactiveTarget,
+                    source,
+                    "qa.object-reset.gameobject-active.inactive-baseline"));
+                var inactiveTargetReset = !inactiveBaselineObject.activeSelf;
+
+                var activeBaselineResult = await runtimeHost.RequestObjectResetAsync(ObjectResetRequest.ForTarget(
+                    activeTarget,
+                    source,
+                    "qa.object-reset.gameobject-active.active-baseline"));
+                var activeTargetReset = activeBaselineObject.activeSelf;
+
+                var cleared = unitySource.ClearRegistration()
+                    && !runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
+
+                var objectResetRuntime = new ObjectResetRuntime();
+                var requireParticipantsPolicy = new ObjectResetPolicy(
+                    requireCurrentSnapshot: true,
+                    allowNoParticipants: false);
+                var missingAdapterResult = objectResetRuntime.Execute(
+                    snapshot,
+                    new ObjectResetRequest(
+                        guardrailTarget,
+                        requireParticipantsPolicy,
+                        source,
+                        "qa.object-reset.gameobject-active.missing-adapter"),
+                    new SyntheticObjectResetParticipantSource());
+
+                var requiredMissingBaselineParticipant = guardrailObject.AddComponent<ObjectResetGameObjectActiveParticipant>();
+                requiredMissingBaselineParticipant.ConfigureForQa(
+                    guardrailDeclaration,
+                    "qa.object-reset.gameobject-active.required-missing-baseline",
+                    ObjectResetParticipantRequiredness.Required,
+                    100,
+                    "QA Object Reset GameObject Active Required Missing Baseline Participant",
+                    source,
+                    "qa.object-reset.gameobject-active.required-missing-baseline");
+                requiredMissingBaselineParticipant.ConfigureActiveBaselineForQa(
+                    guardrailObject,
+                    qaBaselineConfigured: false,
+                    qaBaselineActiveSelf: false);
+                var requiredMissingBaselineResult = objectResetRuntime.Execute(
+                    snapshot,
+                    ObjectResetRequest.ForTarget(
+                        guardrailTarget,
+                        source,
+                        "qa.object-reset.gameobject-active.required-missing-baseline"),
+                    new SyntheticObjectResetParticipantSource(requiredMissingBaselineParticipant));
+
+                var optionalMissingBaselineObject = new GameObject("QA_ObjectResetGameObjectActive_OptionalMissingBaseline");
+                optionalMissingBaselineObject.transform.SetParent(sourceObject.transform, false);
+                var optionalMissingBaselineParticipant = optionalMissingBaselineObject.AddComponent<ObjectResetGameObjectActiveParticipant>();
+                optionalMissingBaselineParticipant.ConfigureForQa(
+                    guardrailDeclaration,
+                    "qa.object-reset.gameobject-active.optional-missing-baseline",
+                    ObjectResetParticipantRequiredness.Optional,
+                    100,
+                    "QA Object Reset GameObject Active Optional Missing Baseline Participant",
+                    source,
+                    "qa.object-reset.gameobject-active.optional-missing-baseline");
+                optionalMissingBaselineParticipant.ConfigureActiveBaselineForQa(
+                    guardrailObject,
+                    qaBaselineConfigured: false,
+                    qaBaselineActiveSelf: false);
+                var optionalMissingBaselineResult = objectResetRuntime.Execute(
+                    snapshot,
+                    ObjectResetRequest.ForTarget(
+                        guardrailTarget,
+                        source,
+                        "qa.object-reset.gameobject-active.optional-missing-baseline"),
+                    new SyntheticObjectResetParticipantSource(optionalMissingBaselineParticipant));
+
+                var inactiveResetSucceeded = inactiveBaselineResult.Status == ObjectResetResultStatus.Succeeded
+                    && inactiveBaselineResult.ParticipantCount == 1
+                    && inactiveBaselineResult.ParticipantSucceededCount == 1
+                    && inactiveBaselineResult.BlockingIssueCount == 0
+                    && inactiveBaselineResult.NonBlockingIssueCount == 0
+                    && inactiveTargetReset;
+                var activeResetSucceeded = activeBaselineResult.Status == ObjectResetResultStatus.Succeeded
+                    && activeBaselineResult.ParticipantCount == 1
+                    && activeBaselineResult.ParticipantSucceededCount == 1
+                    && activeBaselineResult.BlockingIssueCount == 0
+                    && activeBaselineResult.NonBlockingIssueCount == 0
+                    && activeTargetReset;
+                var missingAdapterBlocked = missingAdapterResult.Status == ObjectResetResultStatus.Failed
+                    && missingAdapterResult.ParticipantCount == 0
+                    && missingAdapterResult.BlockingIssueCount > 0;
+                var requiredMissingBaselineBlocked = requiredMissingBaselineResult.Status == ObjectResetResultStatus.Failed
+                    && requiredMissingBaselineResult.ParticipantCount == 1
+                    && requiredMissingBaselineResult.ParticipantFailedCount == 1
+                    && requiredMissingBaselineResult.ParticipantBlockingFailureCount == 1
+                    && requiredMissingBaselineResult.BlockingIssueCount > 0;
+                var optionalMissingBaselineWarned = optionalMissingBaselineResult.Status == ObjectResetResultStatus.CompletedWithWarnings
+                    && optionalMissingBaselineResult.ParticipantCount == 1
+                    && optionalMissingBaselineResult.ParticipantFailedCount == 1
+                    && optionalMissingBaselineResult.ParticipantBlockingFailureCount == 0
+                    && optionalMissingBaselineResult.BlockingIssueCount == 0
+                    && optionalMissingBaselineResult.NonBlockingIssueCount > 0;
+
+                var closurePassed = inactiveTargetCollected
+                    && activeTargetCollected
+                    && guardrailTargetCollected
+                    && inactiveTargetResolved
+                    && activeTargetResolved
+                    && guardrailTargetResolved
+                    && registered
+                    && cleared
+                    && inactiveResetSucceeded
+                    && activeResetSucceeded
+                    && missingAdapterBlocked
+                    && requiredMissingBaselineBlocked
+                    && optionalMissingBaselineWarned;
+
+                if (!closurePassed)
+                {
+                    logger.Warning(
+                        "QA Object Reset GameObject Active Closure Smoke step failed.",
+                        LogFields.Of(
+                            LogFields.Field("step", "gameobject-active-closure"),
+                            LogFields.Field("inactiveTargetCollected", inactiveTargetCollected),
+                            LogFields.Field("activeTargetCollected", activeTargetCollected),
+                            LogFields.Field("guardrailTargetCollected", guardrailTargetCollected),
+                            LogFields.Field("inactiveTargetResolved", inactiveTargetResolved),
+                            LogFields.Field("activeTargetResolved", activeTargetResolved),
+                            LogFields.Field("guardrailTargetResolved", guardrailTargetResolved),
+                            LogFields.Field("registered", registered),
+                            LogFields.Field("cleared", cleared),
+                            LogFields.Field("inactiveResetSucceeded", inactiveResetSucceeded),
+                            LogFields.Field("activeResetSucceeded", activeResetSucceeded),
+                            LogFields.Field("missingAdapterBlocked", missingAdapterBlocked),
+                            LogFields.Field("requiredMissingBaselineBlocked", requiredMissingBaselineBlocked),
+                            LogFields.Field("optionalMissingBaselineWarned", optionalMissingBaselineWarned),
+                            LogFields.Field("inactiveStatus", inactiveBaselineResult.Status.ToString()),
+                            LogFields.Field("activeStatus", activeBaselineResult.Status.ToString()),
+                            LogFields.Field("missingAdapterStatus", missingAdapterResult.Status.ToString()),
+                            LogFields.Field("requiredMissingBaselineStatus", requiredMissingBaselineResult.Status.ToString()),
+                            LogFields.Field("optionalMissingBaselineStatus", optionalMissingBaselineResult.Status.ToString())));
+                    return false;
+                }
+
+                logger.Info(
+                    "QA Object Reset GameObject Active Closure Smoke step completed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "gameobject-active-closure"),
+                        LogFields.Field("source", source),
+                        LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                        LogFields.Field("snapshotSource", snapshot != null ? snapshot.Source : "<none>"),
+                        LogFields.Field("inactiveObjectEntry", inactiveId.StableText),
+                        LogFields.Field("activeObjectEntry", activeId.StableText),
+                        LogFields.Field("inactiveTargetCollected", inactiveTargetCollected),
+                        LogFields.Field("activeTargetCollected", activeTargetCollected),
+                        LogFields.Field("guardrailTargetCollected", guardrailTargetCollected),
+                        LogFields.Field("inactiveTargetResolved", inactiveTargetResolved),
+                        LogFields.Field("activeTargetResolved", activeTargetResolved),
+                        LogFields.Field("guardrailTargetResolved", guardrailTargetResolved),
+                        LogFields.Field("authoredParticipants", unitySource.AuthoredParticipantCount),
+                        LogFields.Field("registered", registered),
+                        LogFields.Field("cleared", cleared),
+                        LogFields.Field("inactiveStatus", inactiveBaselineResult.Status.ToString()),
+                        LogFields.Field("inactiveParticipants", inactiveBaselineResult.ParticipantCount),
+                        LogFields.Field("inactiveParticipantSucceeded", inactiveBaselineResult.ParticipantSucceededCount),
+                        LogFields.Field("inactiveActiveSelfReset", inactiveTargetReset),
+                        LogFields.Field("activeStatus", activeBaselineResult.Status.ToString()),
+                        LogFields.Field("activeParticipants", activeBaselineResult.ParticipantCount),
+                        LogFields.Field("activeParticipantSucceeded", activeBaselineResult.ParticipantSucceededCount),
+                        LogFields.Field("activeActiveSelfReset", activeTargetReset),
+                        LogFields.Field("missingAdapterStatus", missingAdapterResult.Status.ToString()),
+                        LogFields.Field("missingAdapterBlocked", missingAdapterBlocked),
+                        LogFields.Field("requiredMissingBaselineStatus", requiredMissingBaselineResult.Status.ToString()),
+                        LogFields.Field("requiredMissingBaselineBlocked", requiredMissingBaselineBlocked),
+                        LogFields.Field("optionalMissingBaselineStatus", optionalMissingBaselineResult.Status.ToString()),
+                        LogFields.Field("optionalMissingBaselineWarned", optionalMissingBaselineWarned),
+                        LogFields.Field("blockingIssues", inactiveBaselineResult.BlockingIssueCount + activeBaselineResult.BlockingIssueCount),
+                        LogFields.Field("nonBlockingIssues", inactiveBaselineResult.NonBlockingIssueCount + activeBaselineResult.NonBlockingIssueCount),
+                        LogFields.Field("summary", inactiveBaselineResult.ToDiagnosticString())));
+
+                return true;
+            }
+            catch (Exception exception)
+            {
+                logger.Warning(
+                    "QA Object Reset GameObject Active Closure Smoke step failed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "gameobject-active-closure"),
+                        LogFields.Field("reason", exception.Message)));
+                return false;
+            }
+            finally
+            {
+                runtimeHost.SetObjectResetParticipantSource(null);
+                if (sourceObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(sourceObject);
+                }
+
+                if (inactiveBaselineObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(inactiveBaselineObject);
+                }
+
+                if (activeBaselineObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(activeBaselineObject);
+                }
+
+                if (guardrailObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(guardrailObject);
+                }
+
+                runtimeHost.RefreshObjectEntryRuntimeContextSnapshot($"{source}:object-reset-gameobject-active-closure-smoke-cleanup");
+            }
+        }
+
         internal static async Task<bool> RunFoundationClosureSmokeAsync(
             FrameworkRuntimeHost runtimeHost,
             FrameworkLogger logger,
@@ -1229,6 +2469,23 @@ namespace Immersive.Framework.ObjectReset
                 rejectedDeclarationCount: 0,
                 filteredDeclarationCount: 0);
             return result.ToRuntimeContextSnapshot($"{nameof(ObjectResetQaSmokeRunner)}:{source}");
+        }
+
+
+        private static bool VectorApproximatelyEqual(Vector3 actual, Vector3 expected)
+        {
+            const float tolerance = 0.001f;
+            return Mathf.Abs(actual.x - expected.x) <= tolerance
+                && Mathf.Abs(actual.y - expected.y) <= tolerance
+                && Mathf.Abs(actual.z - expected.z) <= tolerance;
+        }
+
+        private static bool EulerApproximatelyEqual(Vector3 actual, Vector3 expected)
+        {
+            const float tolerance = 0.001f;
+            return Mathf.Abs(Mathf.DeltaAngle(actual.x, expected.x)) <= tolerance
+                && Mathf.Abs(Mathf.DeltaAngle(actual.y, expected.y)) <= tolerance
+                && Mathf.Abs(Mathf.DeltaAngle(actual.z, expected.z)) <= tolerance;
         }
 
 

@@ -1,226 +1,101 @@
-# F16-ADR-PLAYER-001 — Player/Participant Entry Baseline
+# F16-ADR-PLAYER-001 - Player/Participant Entry Baseline
 
-Status: Proposed  
-Fase: F16 — Player/Participant Entry Baseline  
-Tipo: Consumer Controlado / Player / Participation  
-Última atualização: 2026-06-25
-
----
-
-## 1. Contexto
-
-Após Cycle Reset, Object Entry, Object Reset e Unity Reset Adapters, o framework pode receber o primeiro objeto real de gameplay controlado: Player/Participant.
-
-F16 não deve virar sistema completo de personagem. Ela introduz Player como consumidor dos contratos existentes.
+Status: Deferred / Historical Proposal  
+Original phase: F16 - Player/Participant Entry Baseline  
+Current phase: F22+ / Future - after Gate, Transition, Pause and a mature gameplay object model  
+Type: Controlled Consumer / Player / Participation  
+Last updated: 2026-06-26
 
 ---
 
-## 2. Dor original
+## 1. Context
 
-O usuário quer que objetos reais, como o jogador, entrem no lifecycle de forma previsível e possam participar de reset.
+This ADR preserves a histórical proposal: Player/Participant as a future consumer of Object Entry, Object Reset, Unity Reset Adapters, Input ownership and Route/Activity lifecycle context.
 
-Exemplo:
+It is not the current F16 plan. F16 was closed as `GameObject Active State Reset Adapter`.
+
+It is also not the current F17 plan. F17 now starts with Gate Foundation, and F17A is documentation/ADR only.
+
+---
+
+## 2. Current Decision
+
+Do not implement Player/Participant now.
+
+Contextual reset for Player/Actor/NPC/Timer/Door/Pickup remains deferred because the framework does not yet have a mature gameplay object/actor/player model.
+
+Before this ADR can become active again, the framework must first plan:
 
 ```text
-Activity Reset limpa movimento e volta player ao ponto inicial.
-Object Reset do Player pode limpar estado local e aplicar policies próprias.
+F17 - Gate Foundation
+F18 - Transition Orchestration Foundation
+F19 - Transition Effects / Loading and Fade Adapters
+F20 - Pause State and Pause Gate
+F21 - Pause Content / Overlay / Input Boundary
 ```
-
-Isso só é seguro depois de existir Object Entry e reset local.
 
 ---
 
-## 3. Decisão
+## 3. Historical Proposal Kept For Reference
 
-F16 define Player/Participant como primeiro consumidor real de Object Entry e Reset.
-
-Player não define o core. Player consome:
+A future Player/Participant could consume:
 
 ```text
 Object Entry
 Local/Object Reset
 Unity Reset Adapters
 Input ownership
+Gate
+Pause/Transition boundaries
 Activity/Route lifecycle context
 ```
 
----
-
-## 4. Escopo incluído
-
-F16 pode incluir:
+A future phase may evaluate:
 
 ```text
-PlayerParticipantIdentity
-PlayerObjectEntry
-PlayerParticipationDescriptor
-Player readiness mínimo
-Player reset participation mínimo
-Player input binding mínimo, se dependências F10 estiverem prontas
+typed Player/Participant identity
+Player Object Entry usage
+Player participation descriptor
+Player readiness facts
+Player reset participation
+Player input binding as consumer
 Player smoke
 ```
 
 ---
 
-## 5. Escopo excluído
+## 4. Still Excluded
 
-F16 exclui:
+This deferred ADR still excludes:
 
 ```text
 Combat
 Damage
-Attributes completos
+complete Attributes
 Powerup system
 Inventory
-Advanced character controller
+advanced character controller
 NPC framework
-Actor framework completo
+complete Actor framework
 Projectile
-Pooling gameplay
+gameplay Pooling
 Save progression
 ```
 
 ---
 
-## 6. Modelo conceitual
+## 5. Guardrails
 
-Player é um objeto participante do lifecycle, não owner do lifecycle.
-
-```text
-Route/Activity active
-  -> Object Entry
-    -> Player participant registered
-      -> readiness
-      -> reset participation
-      -> input binding consumer
-```
-
-Player pode ter vários reset participants internos, mas o core só vê participants por contrato.
+- Player must not define lifecycle core.
+- Player must not create a service locator.
+- Player must not discover Route/Activity by itself as source of truth.
+- Player must not use `GameObject.name`, tag, hierarchy path or scene path as canonical identity.
+- Player must not become required for the framework to work.
+- Player reset must not replace Gate, Transition or Pause boundaries.
+- Player/Actor/NPC/Timer/Door/Pickup reset must not become F17-F21 work.
 
 ---
 
-## 7. Identidade
+## 6. Relationship To Future Phases
 
-Player identity deve ser tipada.
-
-Exemplos conceituais:
-
-```text
-Player:Primary
-Player:Slot1
-Participant:LocalSolo
-```
-
-Não usar:
-
-```text
-GameObject.name = Player
-Tag = Player como identidade canônica
-Scene path
-```
-
-Tags/camadas podem ajudar em Unity authoring, mas não devem ser chave funcional.
-
----
-
-## 8. Reset do Player
-
-F16 pode permitir reset mínimo do Player por composição de participantes:
-
-```text
-TransformResetParticipant
-MovementStateResetParticipant mínimo, se existir
-PlayerParticipationResetParticipant mínimo
-```
-
-Mas não deve implementar gameplay-specific reset.
-
-Diferença importante:
-
-```text
-Activity Reset do Player ≠ Object Reset do Player.
-```
-
-O participante recebe contexto e decide comportamento.
-
----
-
-## 9. Input
-
-Se Input ownership da F10 estiver aplicado, F16 pode conectar Player ao modo de input mínimo.
-
-Guardrail:
-
-```text
-Player não pode controlar Input global diretamente.
-Player recebe binding/contexto de input como consumer.
-```
-
----
-
-## 10. Diagnostics e validação
-
-Smokes esperados:
-
-```text
-Player entry smoke
-Player readiness smoke
-Activity reset affects player participant smoke
-Object reset player smoke
-```
-
-Diagnostics mínimos:
-
-```text
-playerIdentity
-participantId
-objectEntryStatus
-readiness
-resetParticipation
-inputBindingStatus
-issues
-```
-
----
-
-## 11. Consequências
-
-### Positivas
-
-- O framework ganha primeiro consumidor real sem perder genericidade.
-- Reset passa a ter valor prático em gameplay básico.
-- Player usa contratos existentes em vez de forçar novos atalhos.
-
-### Custos
-
-- É o primeiro ponto em que gameplay começa a tocar o framework.
-- Exige disciplina para não antecipar Actor/Combat.
-
----
-
-## 12. Guardrails
-
-- Player não define lifecycle core.
-- Player não cria service locator.
-- Player não descobre Route/Activity por conta própria.
-- Player não usa Tag/GameObject.name como identidade canônica.
-- Não implementar combat/attributes/powerups em F16.
-- Não tornar Player obrigatório para o framework funcionar.
-
----
-
-## 13. Relação com fases futuras
-
-F16 desbloqueia consumidores avançados e gameplay futuro com uma referência real de participante.
-
-F16 mantém bloqueado:
-
-```text
-Actor framework completo
-NPC framework completo
-Projectile
-Damage
-Attributes
-Powerups
-Advanced gameplay capabilities
-```
+Advanced Consumers, Gameplay Capabilities and contextual reset can be reconsidered in F22+ only after Gate, Transition and Pause are planned and a mature gameplay object model exists.

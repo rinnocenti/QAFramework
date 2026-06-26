@@ -64,6 +64,22 @@ namespace Immersive.Framework.ApplicationLifecycle
             _objectResetParticipantSource = participantSource;
         }
 
+        internal bool ClearObjectResetParticipantSource(IObjectResetParticipantSource participantSource)
+        {
+            if (participantSource == null || !ReferenceEquals(_objectResetParticipantSource, participantSource))
+            {
+                return false;
+            }
+
+            _objectResetParticipantSource = null;
+            return true;
+        }
+
+        internal bool IsObjectResetParticipantSourceRegistered(IObjectResetParticipantSource participantSource)
+        {
+            return participantSource != null && ReferenceEquals(_objectResetParticipantSource, participantSource);
+        }
+
         internal int ContentAnchorBindingCount => _contentAnchorBindingRuntime != null ? _contentAnchorBindingRuntime.BindingCount : 0;
 
         internal int ObjectEntryRuntimeContextRevision => _objectEntryRuntimeContextRevision;

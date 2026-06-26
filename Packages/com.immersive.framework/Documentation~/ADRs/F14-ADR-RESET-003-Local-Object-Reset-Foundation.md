@@ -371,7 +371,7 @@ F14 só fecha quando:
 target vier exclusivamente de Object Entry atual;
 foreign/missing/stale target for rejeitado;
 participant source for explícita e sem scan global;
-ordering/requiredness/duplicate validation estiverem provados;
+ordering/requiredness/duplicaté validation estiverem provados;
 runtime agregar results/issues sem executar Unity diretamente;
 Cycle Reset permanecer separado;
 nenhum adapter Unity ou gameplay reset entrar na fase;
@@ -386,13 +386,14 @@ F14 desbloqueia:
 
 ```text
 F15 — Unity Reset Adapters mínimos
-F16 — Player/Participant Entry Baseline e readiness real
+F16 — GameObject Active State Reset Adapter
+F22+ / Future - Contextual Reset / Participant readiness after Gate/Transition/Pause
 ```
 
 F14 mantém bloqueado:
 
 ```text
-Transform/Rigidbody/Animator reset concreto
+Rigidbody/Animator reset concreto
 Player/Actor reset concreto
 pool return
 Projectile/Damage/Attributes/Powerups
@@ -439,7 +440,7 @@ nonBlockingIssues = 0.
 
 Botões intermediários de Object Reset foram removidos do painel QA. Os métodos/runners intermediários permanecem internos para regressão controlada.
 
-F14 continua excluindo explicitamente:
+F14 continua excluindo explícitamente:
 
 ```text
 Transform reset real;

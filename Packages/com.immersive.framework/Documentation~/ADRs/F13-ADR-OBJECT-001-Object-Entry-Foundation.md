@@ -98,7 +98,7 @@ F13E separou corretamente:
 
 ```text
 declarations
-candidateDescriptors
+candidatéDescriptors
 acceptedDeclarations
 rejectedDeclarations
 resultStatus
@@ -181,7 +181,7 @@ issues='0'
 ```text
 resultStatus='Accepted'
 declarations='2'
-candidateDescriptors='2'
+candidatéDescriptors='2'
 acceptedDeclarations='2'
 rejectedDeclarations='0'
 objectEntries='2'
@@ -313,7 +313,7 @@ Decisão aceita:
 
 ```text
 F13 fecha catálogo lógico + ownership + snapshot scoped.
-Readiness de execução entra em F16, quando existir Participant Entry real.
+Readiness de execução de gameplay fica deferred para F22+ / Future, depois de Gate/Transition/Pause e quando existir Participant Entry real com modelo de gameplay object maduro.
 ```
 
 ---
@@ -357,7 +357,8 @@ F13 desbloqueia:
 ```text
 F14 — Local/Object Reset Foundation
 F15 — Unity Reset Adapters mínimos
-F16 — Player/Participant Entry Baseline e readiness real
+F16 — GameObject Active State Reset Adapter
+F22+ / Future - Contextual Reset / Participant readiness after Gate/Transition/Pause
 ```
 
 F13 não desbloqueia diretamente:

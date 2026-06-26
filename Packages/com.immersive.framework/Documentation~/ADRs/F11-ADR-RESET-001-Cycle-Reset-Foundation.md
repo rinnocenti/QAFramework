@@ -118,7 +118,7 @@ O reset geral passou, passou com warnings ou falhou?
 
 ## 5. Escopo excluído
 
-F11 exclui explicitamente:
+F11 exclui explícitamente:
 
 ```text
 Reset real de Transform
@@ -257,7 +257,7 @@ Ordem conceitual recomendada:
 
 ```text
 1. Build Plan
-2. Validate Plan
+2. Validaté Plan
 3. Dispatch Participants
 4. Aggregate Results
 5. Emit Diagnostics
@@ -364,7 +364,8 @@ F12 — Cycle Reset Integration & Authoring UX
 F13 — Object Entry Foundation
 F14 — Local/Object Reset Foundation
 F15 — Unity Reset Adapters mínimos
-F16 — Player/Participant Entry Baseline
+F16 — GameObject Active State Reset Adapter
+F22+ / Future - Contextual Reset / Player Participant planning after Gate/Transition/Pause
 ```
 
 F11 mantém bloqueado:
@@ -388,12 +389,12 @@ F11 foi aplicada como `Cycle Reset Foundation`.
 
 Cortes aceitos:
 
-| Corte | Status | Evidencia |
+| Corte | Status | Evidência |
 |---|---|---|
 | F11A | `CLOSED / COMPILE PASS` | Contratos e executor isolado compilaram. |
-| F11B | `CLOSED / SYNTHETIC SMOKE EVOLVED` | Probe sintetico consolidado no runner de QA. |
-| F11C | `CLOSED / RUNTIME PATH PASS` | Caminho canonico interno criado. |
-| F11D/F11E | `CLOSED / QA CANVAS SMOKE PASS` | `Run Cycle Reset Runtime Host Smoke` validou Route e Activity reset com participantes sinteticos. |
+| F11B | `CLOSED / SYNTHETIC SMOKE EVOLVED` | Probe sintético consolidado no runner de QA. |
+| F11C | `CLOSED / RUNTIME PATH PASS` | Caminho canônico interno criado. |
+| F11D/F11E | `CLOSED / QA CANVAS SMOKE PASS` | `Run Cycle Reset Runtime Host Smoke` validou Route e Activity reset com participantes sintéticos. |
 | F11F | `CLOSED / TRIGGER PASS` | `RouteCycleResetTrigger` e `ActivityCycleResetTrigger` solicitaram reset via runtime host. |
 | F11G | `CLOSED / DOCS` | Plano e ADR atualizados para fronteira F12. |
 
@@ -421,6 +422,6 @@ RouteCycleResetTrigger -> status='SucceededNoParticipants', blockingIssues='0'.
 ActivityCycleResetTrigger -> status='SucceededNoParticipants', blockingIssues='0'.
 ```
 
-`SucceededNoParticipants` e permitido em trigger real na F11 porque discovery real e participantes fisicos ainda nao existem. Required participants reais pertencem a fases posteriores.
+`SucceededNoParticipants` e permitido em trigger real na F11 porque discovery real e participantes físicos ainda não existem. Required participants reais pertencem a fases posteriores.
 
-F11 permanece limitada a reset de ciclo. Object Reset, Component Reset, Player Reset, Actor Reset, adapters fisicos e gameplay mutation seguem bloqueados ate F14/F15/F16+.
+F11 permanece limitada a reset de ciclo. Object Reset, Component Reset, Player Reset, Actor Reset, adapters físicos e gameplay mutation seguem bloqueados até suas fases próprias. Contextual Player/Actor reset permanece deferred para F22+ depois de Gate/Transition/Pause e de um modelo maduro de gameplay object.
