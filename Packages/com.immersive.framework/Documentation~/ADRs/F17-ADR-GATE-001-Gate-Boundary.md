@@ -1,6 +1,6 @@
 # F17-ADR-GATE-001 - Gate Boundary
 
-Status: Planned / F17A ADR Only  
+Status: Accepted / F17B Primitives  
 Phase: F17 - Gate Foundation  
 Type: Framework Core / Flow Admission / Boundary  
 Last updated: 2026-06-26
@@ -13,7 +13,7 @@ F0-F16 closed the first framework foundations through Object Entry, Object Reset
 
 The next core axis is Gate. Gate must define whether the framework can admit a request, input, interaction or gameplay action at a given moment.
 
-F17A is documentation/ADR only. It does not create runtime, editor, authoring components, assets or configuration.
+F17A was documentation/ADR only. F17B introduces passive runtime primitives for Gate decisions, blockers and snapshots. It does not integrate Gate with GameFlow, Route, Activity, Input, Pause or Transition yet.
 
 ---
 
@@ -107,12 +107,29 @@ Advanced consumers and gameplay capabilities must not bypass Gate when they need
 
 ---
 
-## 6. Excluded Now
+## 6. F17B Runtime Primitives
 
-F17A does not implement:
+F17B introduces only passive primitives:
 
 ```text
-runtime Gate API
+GateScope
+GateDomain
+GateDecisionStatus
+GateDecision
+GateBlocker
+GateEvaluationResult
+GateSnapshot
+```
+
+These types define admission language and diagnostics. They do not register blockers globally, mutate lifecycle, queue requests, bind input, show UI, run transitions or pause gameplay by themselves.
+
+## 7. Excluded Now
+
+F17B does not implement:
+
+```text
+Gate runtime registry
+Gate integration with GameFlow/Route/Activity requests
 Editor UI
 authoring asset
 global singleton
@@ -127,12 +144,12 @@ gameplay object model
 
 ---
 
-## 7. Guardrails
+## 8. Guardrails
 
 - Gate is not UI.
 - Gate is not readiness.
 - Gate is not the input system.
-- Gate must not fabricaté identity from `GameObject.name`, hierarchy path, tags or scene path.
+- Gate must not fabricate identity from `GameObject.name`, hierarchy path, tags or scene path.
 - Gate must not create a parallel lifecycle.
 - Gate must not be a manager/coordinator hiding ownership.
 - Gate failures and missing required policy must be explicit.
@@ -140,7 +157,7 @@ gameplay object model
 
 ---
 
-## 8. Consequences
+## 9. Consequences
 
 Positive:
 

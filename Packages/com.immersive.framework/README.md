@@ -18,8 +18,8 @@ Status:
 
 ```text
 F0-F16 closed/applied.
-F17 is next/planned as Gate Foundation.
-F17A is documentation/ADR only: Gate Foundation ADR / Plan Realignment.
+F17 is Gate Foundation; F17B introduces passive Gate primitives.
+F17A realigned the plan/ADRs; F17B introduces passive Gate primitives without flow integration.
 ```
 
 F15-F16 reset adapter closure:
@@ -48,7 +48,7 @@ Contextual reset for Player/Actor/NPC/Timer/Door/Pickup is deferred until after 
 Current planning axis:
 
 ```text
-F17 - Gate Foundation
+F17 - Gate Foundation / passive primitives
 F18 - Transition Orchestration Foundation
 F19 - Transition Effects / Loading and Fade Adapters
 F20 - Pause State and Pause Gate

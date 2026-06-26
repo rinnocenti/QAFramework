@@ -17,7 +17,7 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 | Faixa | Status | Leitura oficial |
 |---|---|---|
 | F0-F16 | `CLOSED / APPLIED` | Histórico real resumido neste documento. |
-| F17 | `NEXT / DOCUMENTATION / ADR ONLY` | Gate Foundation. O primeiro corte é F17A: ADR/plan realignment, sem runtime/editor. |
+| F17 | `IN PROGRESS / F17B PRIMITIVES` | Gate Foundation. F17A realinhou ADRs/plano; F17B introduz primitivas runtime passivas sem integração com flow. |
 | F18-F21 | `PLANNED / REVISED ORDER` | Transition orchestration, transition effects/loading/fade adapters, Pause state/gate e Pause content/input boundary. |
 | F22+ | `DEFERRED` | Consumers avançados, gameplay capabilities e contextual reset de Player/Actor/NPC/Timer/Door/Pickup ficam bloqueados até Gate/Transition/Pause e um modelo maduro de gameplay object/actor/player. |
 
@@ -130,7 +130,7 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Player, Actor,
 | F14 | Local/Object Reset Foundation | Framework Core | `CLOSED / APPLIED`: target canônico deriva de Object Entry atual; participant source explícita; plan/runtime executor; Runtime Host; trigger público; bridge opcional; sem Unity adapters ou gameplay reset. |
 | F15 | Unity Reset Adapters mínimos | Unity Adapter | `CLOSED / APPLIED`: source Unity explícita, Transform Reset Participant com baseline local authored, guardrails required/optional, UX e closure smoke, sem gameplay consumers. |
 | F16 | GameObject Active State Reset Adapter | Unity Adapter | `CLOSED / APPLIED`: reset primitivo de `activeSelf` authored, com source explícita e guardrails. |
-| F17 | Gate Foundation | Framework Core | `NEXT / PLANNED`: definir boundary, scopes, decision/result/facts e relação com Session/Route/Activity/GameFlow/content. Primeiro corte: F17A documental/ADR only. |
+| F17 | Gate Foundation | Framework Core | `IN PROGRESS`: F17A definiu boundary documental; F17B introduz primitivas de scope/domain/decision/blocker/snapshot. Integração com requests fica para F17C. |
 | F18 | Transition Orchestration Foundation | Framework Core | Orquestrar fluxo consumindo Gate, Scene Lifecycle, release, readiness e callbacks. Não e fade visual. |
 | F19 | Transition Effects / Loading and Fade Adapters | Unity Adapter / Optional Effects | Efeitos de fade/loading/curtain como adapters depois do contrato lógico. Sem dependência obrigatória de DOTween/Asset Store e sem fallback silencioso para adapter required ausente. |
 | F20 | Pause State and Pause Gate | Framework Core | Pause como estado + Gate blocker. Não é Activity, menu ou lifecycle de Route/Activity. |
@@ -397,9 +397,9 @@ Run Object Reset Foundation Closure Smoke
 ## Próximo corte
 
 ```text
-F17A - Gate Foundation ADR / Plan Realignment
+F17C - Request Admission Gate Integration
 ```
 
-Entrada de F17A: atualizar planejamento e ADRs para posicionar Gate antes de Transition e Pause. Este corte é documental/ADR only.
+Entrada de F17C: usar as primitivas passivas de F17B para validar a admissão de requests canônicos do framework, começando por pontos de entrada já existentes.
 
-F17A não implementa runtime/editor, não cria Gate concreto, não cria fade/loading visual, não cria Pause menu e não cria reset contextual de Player/Actor/NPC/Timer/Door/Pickup.
+F17C não deve criar Pause menu, fade/loading visual, input real, gameplay object model, reset contextual de Player/Actor/NPC/Timer/Door/Pickup, lifecycle paralelo ou service locator. Se F17B ainda não tiver smoke/compile aceito no Unity, validar F17B antes de iniciar F17C.

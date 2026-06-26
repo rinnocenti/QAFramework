@@ -12,8 +12,8 @@ Accepted architectural decisions:
 ADRs/ADR-INDEX.md
 ```
 
-F0-F16 are closed/applied. F17 is next/planned as Gate Foundation.
-F17A is documentation/ADR only: Gate Foundation ADR / Plan Realignment.
+F0-F16 are closed/applied. F17 is Gate Foundation.
+F17A realigned the plan/ADRs; F17B introduces passive Gate primitives without flow integration.
 
 Current reset boundary:
 
@@ -27,7 +27,7 @@ Contextual reset for Player/Actor/NPC/Timer/Door/Pickup is deferred until after 
 Current planning axis:
 
 ```text
-F17 - Gate Foundation
+F17 - Gate Foundation / passive primitives
 F18 - Transition Orchestration Foundation
 F19 - Transition Effects / Loading and Fade Adapters
 F20 - Pause State and Pause Gate
