@@ -286,6 +286,11 @@ namespace Immersive.Framework.Diagnostics
                     RunObjectResetTargetResolutionSmoke();
                 }
 
+                if (GUILayout.Button("Run Object Reset Participant Contract Smoke"))
+                {
+                    RunObjectResetParticipantContractSmoke();
+                }
+
                 if (GUILayout.Button("Validate Loaded Authoring"))
                 {
                     ValidateLoadedLocalContributionsAuthoring();
@@ -768,6 +773,12 @@ namespace Immersive.Framework.Diagnostics
         {
             await RunSmokeAsync(ObjectResetQaSmokeRunner.TargetResolutionSmokeName, runtimeHost =>
                 ObjectResetQaSmokeRunner.RunTargetResolutionSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunObjectResetParticipantContractSmoke()
+        {
+            await RunSmokeAsync(ObjectResetQaSmokeRunner.ParticipantContractSmokeName, runtimeHost =>
+                ObjectResetQaSmokeRunner.RunParticipantContractSmokeAsync(_logger, QaSource));
         }
 
         private async void RunStandardSmoke()
