@@ -430,6 +430,18 @@
     .log-sep { color: var(--text-muted); }
     .log-label { color: var(--text-muted); font-size: 10px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .08em; }
 
+    /* ── SCREENSHOT PLACEHOLDER ── */
+    .screenshot-placeholder {
+      border: 1px dashed var(--accent);
+      background: var(--accent-soft);
+      color: var(--text-soft);
+      border-radius: 8px;
+      padding: 18px;
+      margin: 16px 0;
+      font-size: 13px;
+      text-align: center;
+    }
+
     /* ── DIVIDER ── */
     .section-divider {
       height: 1px;
@@ -521,6 +533,7 @@
       <a href="#route-lifecycle-events"><span class="icon">📡</span> Route Lifecycle Events</a>
       <a href="#activity-lifecycle-events"><span class="icon">📡</span> Activity Lifecycle Events</a>
       <a href="#request-bridges"><span class="icon">🌉</span> Unity Event Bridges</a>
+      <a href="#cycle-reset"><span class="icon">🔄</span> Cycle Reset</a>
       <a href="#participant"><span class="icon">🧪</span> Execution Participants</a>
       <a href="#qa-canvas"><span class="icon">🎛️</span> QA Canvas</a>
     </div>
@@ -539,11 +552,11 @@
          HERO / INTRO
     ══════════════════════════════════════════ -->
     <div class="hero" id="intro">
-      <div class="eyebrow">Manual de Uso · Versão F10</div>
+      <div class="eyebrow">Manual de Uso · Versão F12</div>
       <h1>Immersive Framework<br>para Game Designers</h1>
       <p>Tudo que você precisa para usar o framework no Unity sem precisar escrever código. Configure Routes, Activities e cenas usando apenas o Inspector.</p>
       <div class="badge-row">
-        <span class="badge badge-green">✓ F10 — Fechado</span>
+        <span class="badge badge-green">✓ F12 — Fechado</span>
         <span class="badge badge-blue">Unity Package</span>
         <span class="badge badge-yellow">⚠ API Experimental</span>
       </div>
@@ -1725,8 +1738,113 @@ public class PauseMenuBehaviour : ActivityContentBehaviour
     </div>
 
     <!-- ─────────────────────────────────────── -->
+    <h2 id="cycle-reset">Cycle Reset — Solicitar um novo ciclo de Route ou Activity</h2>
+    <p><strong>Cycle Reset</strong> envia ao framework uma solicitação para reiniciar o ciclo lógico da Route ativa ou da Activity ativa. O trigger é o componente principal. Você só precisa de uma bridge quando quiser reagir ao resultado por Unity Events no Inspector.</p>
+
+    <div class="callout stop">
+      <span class="callout-icon">🚫</span>
+      <div class="callout-body">
+        <div class="callout-title">Cycle Reset ainda não reseta objetos</div>
+        <p>Na F12 ele não reposiciona Transform, não limpa Rigidbody/Animator, não restaura save, não recarrega cena e não reseta Player ou Actor. Sem participants reais, um pedido correto termina como <code>SucceededNoParticipants</code>.</p>
+      </div>
+    </div>
+
+    <h3>Início rápido — botão de reset sem bridge</h3>
+    <ol>
+      <li>Crie um GameObject, por exemplo <code>ResetActivityButtonHandler</code>.</li>
+      <li>Adicione <code>ActivityCycleResetTrigger</code> para a Activity ativa, ou <code>RouteCycleResetTrigger</code> para a Route ativa.</li>
+      <li>No campo <strong>Reason</strong>, escreva uma razão de diagnóstico, por exemplo <code>Retry Activity</code>.</li>
+      <li>No evento <code>Button.onClick</code>, arraste o GameObject do trigger.</li>
+      <li>Escolha <code>RequestActivityCycleReset()</code> ou <code>RequestRouteCycleReset()</code>.</li>
+    </ol>
+
+    <div class="flow">
+      <div class="flow-box">Button.onClick</div>
+      <span class="flow-arrow">▶</span>
+      <div class="flow-box accent">Cycle Reset Trigger</div>
+      <span class="flow-arrow">▶</span>
+      <div class="flow-box green">Framework Runtime</div>
+    </div>
+
+    <div class="screenshot-placeholder">
+      <strong>SCREENSHOT PENDENTE</strong><br>
+      Inspector de um Button mostrando <code>On Click → ActivityCycleResetTrigger.RequestActivityCycleReset()</code>, sem Unity Event Bridge.
+    </div>
+
+    <div class="component-card">
+      <div class="comp-header">
+        <div class="comp-icon">🔄</div>
+        <div class="comp-meta">
+          <div class="comp-name">ActivityCycleResetTrigger</div>
+          <h4>Activity Cycle Reset Trigger</h4>
+          <div class="comp-menu">Add Component → Immersive Framework → Cycle Reset → Activity Cycle Reset Trigger</div>
+        </div>
+      </div>
+      <p style="font-size:13.5px; color:var(--text-soft); margin-top:10px;">Use quando o pedido deve atingir somente a Activity atualmente ativa. O componente resolve a Activity pelo runtime; você não escolhe um asset alvo.</p>
+    </div>
+
+    <div class="component-card">
+      <div class="comp-header">
+        <div class="comp-icon">🔄</div>
+        <div class="comp-meta">
+          <div class="comp-name">RouteCycleResetTrigger</div>
+          <h4>Route Cycle Reset Trigger</h4>
+          <div class="comp-menu">Add Component → Immersive Framework → Cycle Reset → Route Cycle Reset Trigger</div>
+        </div>
+      </div>
+      <p style="font-size:13.5px; color:var(--text-soft); margin-top:10px;">Use quando o pedido deve atingir a Route atualmente ativa. Ele não troca a Route nem recarrega suas cenas.</p>
+    </div>
+
+    <h3>Bridge opcional — somente para callbacks no Inspector</h3>
+    <p>Adicione <code>ActivityCycleResetTriggerUnityEventBridge</code> ou <code>RouteCycleResetTriggerUnityEventBridge</code> no mesmo GameObject somente se precisar conectar respostas visuais, áudio de UI ou feedback a Unity Events.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Evento</th><th>Quando usar</th></tr></thead>
+        <tbody>
+          <tr><td><code>Request Submitted</code></td><td>Desativar o botão enquanto o pedido está em andamento.</td></tr>
+          <tr><td><code>Request Succeeded</code></td><td>Feedback geral de sucesso.</td></tr>
+          <tr><td><code>Request Succeeded No Participants</code></td><td>Resultado esperado na F12 quando ainda não existem objetos participantes.</td></tr>
+          <tr><td><code>Request Succeeded With Participants</code></td><td>Reservado para quando fases futuras fornecerem participants reais.</td></tr>
+          <tr><td><code>Request Completed With Warnings</code></td><td>Mostrar aviso sem tratar o pedido como falha total.</td></tr>
+          <tr><td><code>Request Ignored</code></td><td>Pedido duplicado/em voo ou sem condição válida para executar.</td></tr>
+          <tr><td><code>Request Failed</code></td><td>Mostrar erro quando runtime ou contexto obrigatório não está disponível.</td></tr>
+          <tr><td><code>Request Completed</code></td><td>Reativar controles independentemente do resultado.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="screenshot-placeholder">
+      <strong>SCREENSHOT PENDENTE</strong><br>
+      Inspector do <code>ActivityCycleResetTrigger</code> em Play Mode mostrando Last Result Status, Participants e Blocking/Non-blocking Issues.
+    </div>
+
+    <h3>Exemplo por script</h3>
+    <p>Na maioria dos casos, o Button pode chamar o trigger diretamente. Se outro script precisar disparar o pedido, mantenha a referência explícita no Inspector:</p>
+
+    <div class="pre-label">C# — Solicitar Cycle Reset por referência explícita</div>
+    <pre><code>using Immersive.Framework.CycleReset;
+using UnityEngine;
+
+public sealed class RetryActivityAction : MonoBehaviour
+{
+    [SerializeField] private ActivityCycleResetTrigger cycleResetTrigger;
+
+    public void RetryActivity()
+    {
+        if (cycleResetTrigger == null)
+        {
+            Debug.LogError("Activity Cycle Reset Trigger não foi configurado.");
+            return;
+        }
+
+        cycleResetTrigger.RequestActivityCycleReset();
+    }
+}</code></pre>
+
+    <!-- ─────────────────────────────────────── -->
     <h2 id="participant">Activity Content Execution Participants — Lógica de Enter/Exit de Activity</h2>
-    <p>Este é o sistema mais avançado disponível no F10. Ele permite que um script declare <strong>"eu quero ser notificado quando uma Activity entra ou sai"</strong> e execute lógica customizada nesse momento, de forma ordenada e com resultado reportado ao framework.</p>
+    <p>Esta base foi introduzida na F10. Ela permite que um script declare <strong>"eu quero ser notificado quando uma Activity entra ou sai"</strong> e execute lógica customizada nesse momento, de forma ordenada e com resultado reportado ao framework.</p>
 
     <div class="callout warn">
       <span class="callout-icon">⚠️</span>
@@ -1895,6 +2013,9 @@ public class MeuParticipantSource : MonoBehaviour, IActivityContentExecutionPart
           <tr><td><code>Local Contribution Smoke</code></td><td>Discovery de local contributions na cena carregada.</td></tr>
           <tr><td><code>Content Anchor Diagnostics Smoke</code></td><td>Contagem e validação de Content Anchors declarados na cena.</td></tr>
           <tr><td><code>Activity Content Anchor Smoke</code></td><td>Âncoras de Activity: count, invalid, mismatch.</td></tr>
+          <tr><td><code>Cycle Reset Runtime Host Smoke</code></td><td>Caminho canônico Route/Activity até o executor de Cycle Reset.</td></tr>
+          <tr><td><code>Cycle Reset Trigger Smoke</code></td><td>Entry points públicos dos triggers de Route e Activity.</td></tr>
+          <tr><td><code>Cycle Reset Bridge Smoke</code></td><td>Callbacks das bridges opcionais e resultado <code>SucceededNoParticipants</code>.</td></tr>
         </tbody>
       </table>
     </div>
@@ -1911,7 +2032,7 @@ public class MeuParticipantSource : MonoBehaviour, IActivityContentExecutionPart
          LIMITES
     ══════════════════════════════════════════ -->
     <h2 id="limites">O que ainda NÃO existe nesta versão</h2>
-    <p>Esta versão (F10) estabelece a estrutura central do framework. As funcionalidades abaixo estão planejadas para fases futuras e <strong>não devem ser esperadas agora</strong>.</p>
+    <p>Esta versão fecha as capacidades aprovadas até F12. As funcionalidades abaixo estão planejadas para fases futuras e <strong>não devem ser esperadas agora</strong>.</p>
 
     <div class="callout stop">
       <span class="callout-icon">🚫</span>
@@ -1924,7 +2045,7 @@ public class MeuParticipantSource : MonoBehaviour, IActivityContentExecutionPart
           <strong>Input Management</strong> — Sem integração com sistemas de input pelo framework.<br><br>
           <strong>Save/Load</strong> — Sem sistema de persistência de dados.<br><br>
           <strong>Pooling</strong> — Sem sistema de object pooling integrado.<br><br>
-          <strong>Reset de estado</strong> — O framework não reseta estados de gameplay entre Activities.<br><br>
+          <strong>Reset físico/de objetos</strong> — Cycle Reset existe como request lógico, mas ainda não reposiciona nem limpa objetos de gameplay.<br><br>
           <strong>UI/Presentation layer</strong> — Sem gerenciamento de UI automatizado além da visibilidade local.
         </p>
       </div>
@@ -1950,6 +2071,7 @@ public class MeuParticipantSource : MonoBehaviour, IActivityContentExecutionPart
           <tr><td><code>Requiredness</code></td><td><code>Required</code> = bloqueia o fluxo se falhar; <code>Optional</code> = apenas reporta o problema.</td></tr>
           <tr><td><code>Ownership</code></td><td><code>Owned</code> = o framework é responsável por descarregar ao sair; <code>Registered</code> = só registra, sem release.</td></tr>
           <tr><td><code>Smoke</code></td><td>Teste rápido de regressão do framework (visível no QA Canvas em modo desenvolvimento).</td></tr>
+          <tr><td><code>Cycle Reset</code></td><td>Pedido lógico para reiniciar o ciclo da Route ou Activity ativa. Na F12 ainda não executa reset físico de objetos.</td></tr>
           <tr><td><code>Experimental</code></td><td>Status de API: funciona, mas pode mudar em versões futuras do framework.</td></tr>
           <tr><td><code>Bootstrap</code></td><td>Código interno do framework que inicializa tudo automaticamente ao dar Play — você não interage com ele diretamente.</td></tr>
         </tbody>
@@ -1958,8 +2080,8 @@ public class MeuParticipantSource : MonoBehaviour, IActivityContentExecutionPart
 
     <!-- FOOTER -->
     <div style="margin-top:56px; padding-top:24px; border-top:1px solid var(--border-soft); color:var(--text-muted); font-size:13px;">
-      <p><strong style="color:var(--text-soft);">Immersive Framework</strong> — Manual do Game Designer &nbsp;·&nbsp; Versão F10</p>
-      <p style="margin-top:4px;">Este manual cobre as funcionalidades fechadas até F10. Atualizar ao fechar F11+.</p>
+      <p><strong style="color:var(--text-soft);">Immersive Framework</strong> — Manual do Game Designer &nbsp;·&nbsp; Versão F12</p>
+      <p style="margin-top:4px;">Este manual cobre as funcionalidades fechadas até F12. A F13 ainda está em desenvolvimento.</p>
     </div>
 
   </main>

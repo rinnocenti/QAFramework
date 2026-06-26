@@ -44,6 +44,17 @@ namespace Immersive.Framework.ObjectEntry
                 throw new ArgumentException("Owner identity must be valid when provided.", nameof(ownerIdentity));
             }
 
+            if (ownerIdentity.HasValue)
+            {
+                var expectedOwnerDomain = GetExpectedOwnerDomain(scope);
+                if (ownerIdentity.Value.Domain != expectedOwnerDomain)
+                {
+                    throw new ArgumentException(
+                        $"Object entry owner for scope '{scope}' must use identity domain '{expectedOwnerDomain}', but received '{ownerIdentity.Value.Domain}'.",
+                        nameof(ownerIdentity));
+                }
+            }
+
             Id = id;
             Scope = scope;
             SourceKind = sourceKind;
@@ -67,6 +78,21 @@ namespace Immersive.Framework.ObjectEntry
         public bool HasOwnerIdentity => OwnerIdentity.HasValue;
 
         public bool IsRequired => Requiredness == ObjectEntryRequiredness.Required;
+
+        internal static FrameworkIdentityDomain GetExpectedOwnerDomain(ObjectEntryScope scope)
+        {
+            switch (scope)
+            {
+                case ObjectEntryScope.Session:
+                    return FrameworkIdentityDomain.Session;
+                case ObjectEntryScope.Route:
+                    return FrameworkIdentityDomain.Route;
+                case ObjectEntryScope.Activity:
+                    return FrameworkIdentityDomain.Activity;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(scope), scope, "Object entry owner domain cannot be inferred for an unspecified scope.");
+            }
+        }
 
         public bool Equals(ObjectEntryDescriptor other)
         {

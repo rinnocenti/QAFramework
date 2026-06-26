@@ -1,254 +1,289 @@
 # F13-ADR-OBJECT-001 — Object Entry Foundation
 
-Status: Proposed  
+Status: In progress through F13H / reconciliation in F13I  
 Fase: F13 — Object Entry Foundation  
-Tipo: Core / Object Lifecycle / Contribution  
+Tipo: Core / Object Lifecycle / Diagnostics  
 Última atualização: 2026-06-25
 
 ---
 
 ## 1. Contexto
 
-Após Cycle Reset existir como caminho canônico para Route/Activity, o framework precisa preparar a entrada de objetos reais. Sem isso, Local/Object Reset não tem alvo funcional estável.
+F11 criou o caminho canônico de Cycle Reset e F12 tornou esse caminho utilizável por QA, triggers e bridges opcionais. Antes de criar Local/Object Reset, o framework precisa de uma representação estável dos objetos lógicos conhecidos pelo lifecycle.
 
-F13 não cria Player completo nem gameplay. F13 define o formato genérico para objetos entrarem no lifecycle do framework.
+F13 não cria Player, Actor, spawn ou reset físico. Ela cria a fundação passiva de Object Entry: identidade, escopo, requiredness, declaração authored, conjunto imutável, diagnóstico e snapshot runtime controlado.
 
 ---
 
 ## 2. Dor original
 
-O framework precisa receber objetos reais — authored ou runtime — de forma controlada, identificável e diagnosticável, para que fases posteriores possam resetar, snapshotar, liberar ou conectar capabilities.
-
-Sem Object Entry, qualquer reset local tenderia a usar:
+Sem Object Entry, fases posteriores tenderiam a identificar objetos por:
 
 ```text
 GameObject.name
 hierarchy path
+scene path
 component reference solta
-scan global
+scan global sem owner
 ```
 
-Esses caminhos já foram rejeitados como chave funcional.
+Esses dados podem aparecer em diagnóstico, mas não podem ser a identidade funcional do objeto.
 
 ---
 
-## 3. Decisão
+## 3. Decisão consolidada até F13H
 
-F13 cria **Object Entry Foundation** como camada core para registrar objetos participantes de Route/Activity sem assumir gameplay.
-
-Object Entry define:
+Object Entry é, nesta fase, um catálogo lógico passivo. O formato aceito é:
 
 ```text
-identidade
-escopo
-owner
-entry result
-readiness mínimo
-contribution descriptor
-lifetime relation
+ObjectEntryId
+ObjectEntryScope
+ObjectEntrySourceKind
+ObjectEntryRequiredness
+ObjectEntryDescriptor
+ObjectEntrySet
+ObjectEntryIssue
+ObjectEntryRequest / ObjectEntryResult
+ObjectEntryDeclaration
+ObjectEntryDeclarationSourceResult
+ObjectEntryRuntimeContextSnapshot
 ```
 
-F13 não define o que é Player, Actor, NPC ou Projectile.
+O `FrameworkRuntimeHost` pode armazenar e expor o último snapshot coletado, mas esse snapshot ainda não é atualizado automaticamente pelo lifecycle e não é um registry vivo.
 
 ---
 
-## 4. Escopo incluído
+## 4. Implementação real
 
-F13 inclui:
+### F13A — Primitivas de Object Entry
+
+Criou identidade tipada, escopo `Session/Route/Activity`, source kind, requiredness, descriptor, request/result, issues e `ObjectEntrySet` imutável.
+
+Decisões:
 
 ```text
-ObjectContentIdentity ou ObjectRuntimeIdentity
-ObjectEntryRequest
-ObjectEntryResult
-ObjectLifecycleContext
-ObjectContributionDescriptor
-ObjectReadinessState mínimo
-ObjectEntryParticipant / provider contract
-ObjectEntrySet ou extensão de contribution set, se necessário
-Mock object entry smoke
+ObjectEntryId usa FrameworkIdentityDomain.ObjectEntry.
+DisplayName é diagnóstico, não identidade.
+ObjectEntrySet rejeita ObjectEntryId duplicado.
+OwnerIdentity é opcional no descriptor enquanto a policy de owner não está fechada.
 ```
 
----
+### F13B — Synthetic Set Smoke
 
-## 5. Escopo excluído
+Validou conjunto passivo, required/optional, scopes e rejeição de identidade duplicada sem usar GameObject real.
 
-F13 exclui:
+### F13C — Scene-authored Declaration
+
+Criou `ObjectEntryDeclaration`, componente authored passivo com:
 
 ```text
-Player implementation
-Actor implementation
-NPC implementation
-Projectile implementation
-Health/attributes
-Movement binding real
-Powerups
-Object Reset execution
-Component Reset execution
-Pooling
-Save backend
+Object Entry Id
+Scope
+Requiredness
+Display Name
 ```
 
----
+O componente não faz binding físico e não transforma o próprio GameObject em alvo runtime.
 
-## 6. Modelo conceitual
+O Fix01 removeu `GetInstanceID()` do caminho de QA para compatibilidade com Unity 6.5.
 
-Object Entry é a entrada de um objeto no contexto ativo do framework.
+### F13D/F13E — Declaration Source e diagnostics
+
+`ObjectEntryDeclarationSource` converte declarações em descriptors e produz resultado agregado.
+
+F13E separou corretamente:
 
 ```text
-Route/Activity active scope
-  -> discovers/receives object entry participants
-  -> builds ObjectEntrySet/ContributionSet
-  -> records identity + scope + readiness
+declarations
+candidateDescriptors
+acceptedDeclarations
+rejectedDeclarations
+resultStatus
 ```
 
-Objeto pode ser:
+Quando há identidade duplicada, o conjunto inteiro é rejeitado e nenhuma declaração entra no `ObjectEntrySet` final.
+
+### F13F — Loaded-scene Integration Smoke
+
+Validou coleta de declarações em cenas carregadas, incluindo declaração em GameObject inativo.
+
+Esse caminho é evidência de integração/QA. Ele ainda não é aceito como fonte autoritativa final do lifecycle porque coleta todas as cenas carregadas sem owner ativo explícito.
+
+### F13G — Runtime Context Snapshot
+
+Criou `ObjectEntryRuntimeContextSnapshot` como fotografia passiva do resultado coletado.
+
+O snapshot permite consulta por id e scope e expõe contagens/diagnósticos. Ele não contém binding para GameObject, Transform ou Component.
+
+### F13H — Runtime Host Snapshot Exposure
+
+`FrameworkRuntimeHost` passou a guardar o último snapshot e expor leitura interna controlada:
 
 ```text
-scene-authored local object
-runtime-materialized object
-future actor/player object
+RefreshObjectEntryRuntimeContextSnapshot(source)
+TryGetObjectEntryRuntimeContextSnapshot(out snapshot)
 ```
 
-Mas F13 deve tratar todos como objeto participante genérico.
+O refresh atual é explícito. Boot, troca de Route, entrada/saída de Activity e release ainda não atualizam ou invalidam esse snapshot automaticamente.
 
 ---
 
-## 7. Identidade
+## 5. Evidência aceita até F13H
 
-F13 deve preservar a política de identidade tipada:
+### Scene-authored Declaration
 
 ```text
-GameObject.name = diagnostic only
-scene path = diagnostic only
-hierarchy path = diagnostic only
-object reference = runtime reference, not canonical identity
+objectEntryDeclarations='1'
+objectEntries='1'
+objectEntryRequired='1'
+objectEntryActivity='1'
+issues='0'
 ```
 
-Identidade funcional deve carregar domínio explícito:
+### Declaration Source
 
 ```text
-Object:PlayerPrimary
-Object:DoorA
-Object:RuntimeActor:<runtime-id>
+resultStatus='Accepted'
+declarations='2'
+candidateDescriptors='2'
+acceptedDeclarations='2'
+rejectedDeclarations='0'
+objectEntries='2'
+blockingIssues='0'
 ```
 
-O formato final pode variar, mas não pode usar fallback silencioso instável.
-
----
-
-## 8. Contratos esperados
-
-```csharp
-public readonly struct ObjectEntryRequest
-{
-    public ObjectContentIdentity Identity { get; }
-    public FrameworkContentScope Scope { get; }
-    public string Source { get; }
-    public string Reason { get; }
-}
-```
-
-```csharp
-public readonly struct ObjectEntryResult
-{
-    public ObjectEntryStatus Status { get; }
-    public ObjectContentIdentity Identity { get; }
-    public ObjectReadinessState Readiness { get; }
-}
-```
-
-```csharp
-public interface IObjectEntryParticipant
-{
-    ObjectContributionDescriptor Descriptor { get; }
-    ObjectEntryResult EnterObject(ObjectLifecycleContext context);
-}
-```
-
----
-
-## 9. Readiness
-
-F13 deve manter readiness mínimo.
-
-Estados conceituais:
+Duplicidade:
 
 ```text
-Unknown
-Ready
-NotReady
-Skipped
-Failed
+resultStatus='Rejected'
+acceptedDeclarations='0'
+rejectedDeclarations='2'
+objectEntries='0'
+blockingIssues='1'
 ```
 
-Readiness não deve virar gate complexo nesta fase. Ele deve apenas permitir que o framework saiba se o objeto entrou de forma utilizável.
-
----
-
-## 10. Diagnostics e validação
-
-Smoke inicial pode usar mock objects.
-
-Diagnostics mínimos:
+### Runtime Host Snapshot Exposure
 
 ```text
-objectIdentity
-scope
-ownerRoute
-ownerActivity
-entryStatus
-readiness
-requiredness
-source
-reason
-issues
+hostSnapshotAvailable='True'
+snapshotAvailable='True'
+resultStatus='Accepted'
+declarations='3'
+acceptedDeclarations='3'
+rejectedDeclarations='0'
+qaRouteFound='True'
+qaActivityFound='True'
+blockingIssues='0'
+```
+
+O total `3` é esperado nessa evidência: duas declarações temporárias do smoke e uma declaração authored real já carregada.
+
+---
+
+## 6. Escopo excluído
+
+F13 continua excluindo:
+
+```text
+GameObject/Transform/Component binding funcional
+entry execution de objeto
+Object Reset ou Component Reset
+Player, Actor, NPC ou Projectile
+prefab materialization ou spawn
+pool rent/return
+save/checkpoint restore
+registry público mutável
+service locator
 ```
 
 ---
 
-## 11. Consequências
+## 7. Correções necessárias antes do fechamento
 
-### Positivas
+### 7.1. Ownership ainda não está resolvido
 
-- O framework ganha formato para objetos reais antes de reset local.
-- Player/Actor não ditam o contrato inicial.
-- Object Reset futuro terá alvo canônico.
+`ObjectEntryDescriptor` aceita `OwnerIdentity`, mas `ObjectEntryDeclaration` não cria owner e o source atual não resolve owner pelo contexto ativo.
 
-### Custos
+Antes do fechamento, Route/Activity entries precisam carregar owner coerente com o scope:
 
-- Mais uma camada foundation antes de gameplay.
-- Pode parecer abstrato enquanto não houver Player real.
+```text
+Route entry -> FrameworkIdentityDomain.Route
+Activity entry -> FrameworkIdentityDomain.Activity
+Session entry -> FrameworkIdentityDomain.Session
+```
+
+Não pode haver fallback por nome de GameObject, path ou cena.
+
+### 7.2. Coleta global não pode virar autoridade do lifecycle
+
+`CollectLoadedSceneDeclarations()` usa `FindObjectsByType` sobre todas as cenas carregadas. Isso é aceitável para QA/diagnóstico temporário, mas não como fonte autoritativa final do runtime.
+
+O caminho canônico deve ser scoped pelo contexto conhecido do framework, seguindo o precedente de Route scene composition, `SceneScopedComponentQuery`, Route owner e Activity owner.
+
+### 7.3. Snapshot ainda pode ficar stale
+
+O host armazena o último snapshot, mas não possui policy de refresh/invalidation. Antes de expor esse snapshot a outras fases, é necessário definir quando ele nasce, muda e deixa de ser válido.
+
+### 7.4. Readiness não deve ser inventada sem execução
+
+O ADR original previa readiness por objeto. Como F13 não executa entrada física nem possui participant runtime, um estado `Ready` seria apenas um espelho artificial de “descriptor aceito”.
+
+Decisão proposta:
+
+```text
+F13 fecha catálogo lógico + ownership + snapshot scoped.
+Readiness de execução entra em F16, quando existir Participant Entry real.
+```
 
 ---
 
-## 12. Guardrails
+## 8. Sequência proposta para fechar F13
 
-- Não implementar Player em F13.
-- Não implementar Object Reset em F13.
-- Não usar scan global como fonte de verdade.
-- Não usar nome/path como identidade funcional.
-- Não criar service locator de objetos.
-- Não criar registry público mutável que subsistemas possam usar como atalho.
+| Corte | Status | Objetivo |
+|---|---|---|
+| F13I | `DOC/AUDIT` | Reconciliar ADR, roadmap e implementação real após F13H. |
+| F13J | `PROPOSED` | Fechar owner tipado por scope e substituir o refresh autoritativo global por coleta scoped. |
+| F13K | `PROPOSED` | Definir refresh/invalidation do snapshot nos boundaries de Route/Activity, sem binding físico. |
+| F13L | `PROPOSED` | Smoke de ownership, filtro de scope e invalidation; fechamento documental da fase. |
+
+Os nomes e a divisão F13J–F13L só se tornam canônicos após revisão desta ADR.
 
 ---
 
-## 13. Relação com fases futuras
+## 9. Critério de fechamento
+
+F13 só pode ser marcada `CLOSED / APPLIED` quando:
+
+```text
+identidade duplicada continuar bloqueando o set;
+owner estiver presente e coerente com Route/Activity/Session scope;
+coleta runtime autoritativa não usar all-loaded scan sem filtro;
+snapshot tiver policy explícita de refresh/invalidation;
+QA provar Route e Activity scope sem foreign/stale entries;
+nenhum binding físico, reset, Player/Actor ou spawn entrar na fase.
+```
+
+---
+
+## 10. Relação com fases futuras
 
 F13 desbloqueia:
 
 ```text
 F14 — Local/Object Reset Foundation
 F15 — Unity Reset Adapters mínimos
-F16 — Player/Participant Entry Baseline
+F16 — Player/Participant Entry Baseline e readiness real
 ```
 
-F13 mantém bloqueado:
+F13 não desbloqueia diretamente:
 
 ```text
-Player gameplay
+Camera
+Audio
 Actor gameplay
+Pooling consumer
 Projectile
 Damage
+Attributes
 Powerups
-Pooling consumer
 ```

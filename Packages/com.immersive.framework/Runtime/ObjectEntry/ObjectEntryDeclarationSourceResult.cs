@@ -22,6 +22,27 @@ namespace Immersive.Framework.ObjectEntry
             int acceptedDeclarationCount,
             int rejectedDeclarationCount,
             IEnumerable<ObjectEntryIssue> issues = null)
+            : this(
+                objectEntries,
+                status,
+                declarationCount,
+                candidateDescriptorCount,
+                acceptedDeclarationCount,
+                rejectedDeclarationCount,
+                0,
+                issues)
+        {
+        }
+
+        public ObjectEntryDeclarationSourceResult(
+            ObjectEntrySet objectEntries,
+            ObjectEntryResultStatus status,
+            int declarationCount,
+            int candidateDescriptorCount,
+            int acceptedDeclarationCount,
+            int rejectedDeclarationCount,
+            int filteredDeclarationCount,
+            IEnumerable<ObjectEntryIssue> issues = null)
         {
             if (!Enum.IsDefined(typeof(ObjectEntryResultStatus), status) || status == ObjectEntryResultStatus.Unknown)
             {
@@ -48,9 +69,14 @@ namespace Immersive.Framework.ObjectEntry
                 throw new ArgumentOutOfRangeException(nameof(rejectedDeclarationCount), rejectedDeclarationCount, "Rejected declaration count cannot be negative.");
             }
 
-            if (acceptedDeclarationCount + rejectedDeclarationCount != declarationCount)
+            if (filteredDeclarationCount < 0)
             {
-                throw new ArgumentException("Accepted and rejected declaration counts must match total declaration count.");
+                throw new ArgumentOutOfRangeException(nameof(filteredDeclarationCount), filteredDeclarationCount, "Filtered declaration count cannot be negative.");
+            }
+
+            if (acceptedDeclarationCount + rejectedDeclarationCount + filteredDeclarationCount != declarationCount)
+            {
+                throw new ArgumentException("Accepted, rejected and filtered declaration counts must match total declaration count.");
             }
 
             if (candidateDescriptorCount > declarationCount)
@@ -64,6 +90,7 @@ namespace Immersive.Framework.ObjectEntry
             CandidateDescriptorCount = candidateDescriptorCount;
             AcceptedDeclarationCount = acceptedDeclarationCount;
             RejectedDeclarationCount = rejectedDeclarationCount;
+            FilteredDeclarationCount = filteredDeclarationCount;
             Issues = issues == null ? EmptyIssues : issues.ToArray();
         }
 
@@ -90,6 +117,12 @@ namespace Immersive.Framework.ObjectEntry
         /// </summary>
         public int RejectedDeclarationCount { get; }
 
+        /// <summary>
+        /// Number of valid authored declarations intentionally excluded because their explicit owner is not active.
+        /// Filtered declarations are neither accepted nor rejected.
+        /// </summary>
+        public int FilteredDeclarationCount { get; }
+
         public IReadOnlyList<ObjectEntryIssue> Issues { get; }
 
         public int IssueCount => Issues.Count;
@@ -102,7 +135,7 @@ namespace Immersive.Framework.ObjectEntry
 
         public bool Failed => Status == ObjectEntryResultStatus.Rejected;
 
-        public string Summary => $"resultStatus='{Status}' declarations='{DeclarationCount}' candidateDescriptors='{CandidateDescriptorCount}' acceptedDeclarations='{AcceptedDeclarationCount}' rejectedDeclarations='{RejectedDeclarationCount}' objectEntries='{ObjectEntries.Count}' required='{ObjectEntries.RequiredCount}' optional='{ObjectEntries.OptionalCount}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' nonBlockingIssues='{NonBlockingIssueCount}'";
+        public string Summary => $"resultStatus='{Status}' declarations='{DeclarationCount}' candidateDescriptors='{CandidateDescriptorCount}' acceptedDeclarations='{AcceptedDeclarationCount}' rejectedDeclarations='{RejectedDeclarationCount}' filteredDeclarations='{FilteredDeclarationCount}' objectEntries='{ObjectEntries.Count}' required='{ObjectEntries.RequiredCount}' optional='{ObjectEntries.OptionalCount}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' nonBlockingIssues='{NonBlockingIssueCount}'";
 
         public ObjectEntryRuntimeContextSnapshot ToRuntimeContextSnapshot(string source = null)
         {

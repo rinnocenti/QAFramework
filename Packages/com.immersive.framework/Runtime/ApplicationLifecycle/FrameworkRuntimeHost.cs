@@ -33,6 +33,9 @@ namespace Immersive.Framework.ApplicationLifecycle
         private RuntimeContentAnchorBinding _contentAnchorBindingRuntime;
         private RuntimeScopeLifecycleResult _runtimeSessionScopeResult;
         private ObjectEntryRuntimeContextSnapshot _objectEntryRuntimeContextSnapshot;
+        private int _objectEntryRuntimeContextRevision;
+        private int _objectEntryRuntimeContextInvalidationCount;
+        private string _lastObjectEntryRuntimeContextInvalidationReason = string.Empty;
         private FrameworkRuntimeState _state;
         private FrameworkLogger _logger;
 
@@ -54,6 +57,12 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         internal int ContentAnchorBindingCount => _contentAnchorBindingRuntime != null ? _contentAnchorBindingRuntime.BindingCount : 0;
 
+        internal int ObjectEntryRuntimeContextRevision => _objectEntryRuntimeContextRevision;
+
+        internal int ObjectEntryRuntimeContextInvalidationCount => _objectEntryRuntimeContextInvalidationCount;
+
+        internal string LastObjectEntryRuntimeContextInvalidationReason => _lastObjectEntryRuntimeContextInvalidationReason;
+
         internal bool TryGetObjectEntryRuntimeContextSnapshot(out ObjectEntryRuntimeContextSnapshot snapshot)
         {
             snapshot = _objectEntryRuntimeContextSnapshot;
@@ -63,8 +72,18 @@ namespace Immersive.Framework.ApplicationLifecycle
         internal ObjectEntryRuntimeContextSnapshot RefreshObjectEntryRuntimeContextSnapshot(string source)
         {
             var declarationSource = new ObjectEntryDeclarationSource(includeInactiveDeclarations: true);
-            var result = declarationSource.CollectLoadedSceneDeclarations();
+            var context = new ObjectEntryScopedCollectionContext(
+                _runtimeSessionScopeResult.HasOwner
+                    ? _runtimeSessionScopeResult.Owner.OwnerIdentity
+                    : default,
+                _state.CurrentRoute,
+                _state.RouteState.RouteIdentity,
+                _state.RouteSceneCompositionResult,
+                _state.CurrentActivity,
+                _state.ActivityState.ActivityIdentity);
+            var result = declarationSource.CollectScoped(context);
             _objectEntryRuntimeContextSnapshot = result.ToRuntimeContextSnapshot(source);
+            _objectEntryRuntimeContextRevision++;
             return _objectEntryRuntimeContextSnapshot;
         }
 
@@ -100,8 +119,14 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         internal async Task<FrameworkGameFlowStartResult> StartAsync()
         {
+            InvalidateObjectEntryRuntimeContextSnapshot("framework-start");
             var result = await _gameFlowRuntime.StartAsync(_gameApplication);
             _state = FrameworkRuntimeState.FromGameFlowResult(_gameApplication, result);
+            if (result.Started)
+            {
+                RefreshObjectEntryRuntimeContextSnapshot("FrameworkRuntimeHost:framework-start");
+            }
+
             return result;
         }
 
@@ -110,10 +135,16 @@ namespace Immersive.Framework.ApplicationLifecycle
             string source,
             string reason)
         {
+            InvalidateObjectEntryRuntimeContextSnapshot($"route-request:{NormalizeLifecycleSource(source)}");
             var result = await _gameFlowRuntime.RequestRouteAsync(targetRoute, source, reason);
             if (result.Succeeded)
             {
                 _state = FrameworkRuntimeState.FromRouteRequestResult(_state, result, true);
+                RefreshObjectEntryRuntimeContextSnapshot($"FrameworkRuntimeHost:route-request:{NormalizeLifecycleSource(source)}");
+            }
+            else if (result.Kind == FrameworkRouteRequestKind.IgnoredAlreadyActive)
+            {
+                RefreshObjectEntryRuntimeContextSnapshot($"FrameworkRuntimeHost:route-request-kept:{NormalizeLifecycleSource(source)}");
             }
 
             LogRouteRequestResult(result);
@@ -125,10 +156,16 @@ namespace Immersive.Framework.ApplicationLifecycle
             string source,
             string reason)
         {
+            InvalidateObjectEntryRuntimeContextSnapshot($"activity-request:{NormalizeLifecycleSource(source)}");
             var result = await _gameFlowRuntime.RequestActivityAsync(targetActivity, source, reason);
             if (result.Succeeded)
             {
                 _state = FrameworkRuntimeState.FromActivityRequestResult(_state, result);
+                RefreshObjectEntryRuntimeContextSnapshot($"FrameworkRuntimeHost:activity-request:{NormalizeLifecycleSource(source)}");
+            }
+            else if (result.Kind == FrameworkActivityRequestKind.IgnoredAlreadyActive)
+            {
+                RefreshObjectEntryRuntimeContextSnapshot($"FrameworkRuntimeHost:activity-request-kept:{NormalizeLifecycleSource(source)}");
             }
 
             LogActivityRequestResult(result);
@@ -137,10 +174,16 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         internal async Task<FrameworkActivityRequestResult> ClearActivityAsync(string source, string reason)
         {
+            InvalidateObjectEntryRuntimeContextSnapshot($"activity-clear:{NormalizeLifecycleSource(source)}");
             var result = await _gameFlowRuntime.ClearActivityAsync(source, reason);
             if (result.Succeeded)
             {
                 _state = FrameworkRuntimeState.FromActivityRequestResult(_state, result);
+                RefreshObjectEntryRuntimeContextSnapshot($"FrameworkRuntimeHost:activity-clear:{NormalizeLifecycleSource(source)}");
+            }
+            else if (result.Kind == FrameworkActivityRequestKind.IgnoredNoActiveActivity)
+            {
+                RefreshObjectEntryRuntimeContextSnapshot($"FrameworkRuntimeHost:activity-clear-kept:{NormalizeLifecycleSource(source)}");
             }
 
             LogActivityRequestResult(result);
@@ -170,6 +213,20 @@ namespace Immersive.Framework.ApplicationLifecycle
             _gameFlowRuntime = new GameFlowRuntime(_runtimeContentRuntime, _contentAnchorBindingRuntime);
             _logger = FrameworkLogger.Create<FrameworkRuntimeHost>();
             _state = FrameworkRuntimeState.Empty(application);
+        }
+
+        private void InvalidateObjectEntryRuntimeContextSnapshot(string reason)
+        {
+            _objectEntryRuntimeContextSnapshot = null;
+            _objectEntryRuntimeContextInvalidationCount++;
+            _lastObjectEntryRuntimeContextInvalidationReason = string.IsNullOrWhiteSpace(reason)
+                ? "lifecycle-boundary"
+                : reason.Trim();
+        }
+
+        private static string NormalizeLifecycleSource(string source)
+        {
+            return string.IsNullOrWhiteSpace(source) ? "Unknown" : source.Trim();
         }
 
 

@@ -12,7 +12,7 @@ Accepted architectural decisions:
 ADRs/ADR-INDEX.md
 ```
 
-F0-F12 are closed/applied. F13 is the next planned phase: `Object Entry Foundation`.
+F0-F12 are closed/applied. F13 `Object Entry Foundation` is in progress through F13H; F13I reconciles the implemented passive catalog/snapshot with the remaining ownership and lifecycle requirements.
 
 Current reset boundary:
 
@@ -26,4 +26,12 @@ Cycle Reset authoring note:
 ```text
 RouteCycleResetTrigger and ActivityCycleResetTrigger are the primary components.
 Unity Event Bridges are optional and are only needed for Inspector/UnityEvent callbacks.
+```
+
+Current Object Entry boundary:
+
+```text
+Object Entry is a passive logical catalog/snapshot.
+It is not GameObject binding, Object Reset, a mutable registry or a service locator.
+F13 remains open until ownership, scoped collection and snapshot invalidation are explicit.
 ```

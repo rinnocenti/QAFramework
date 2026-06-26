@@ -300,6 +300,21 @@ namespace Immersive.Framework.Diagnostics
                     RunObjectEntryRuntimeHostSnapshotExposureSmoke();
                 }
 
+                if (GUILayout.Button("Run Object Entry Scoped Ownership Smoke"))
+                {
+                    RunObjectEntryScopedOwnershipSmoke();
+                }
+
+                if (GUILayout.Button("Run Object Entry Snapshot Lifecycle Smoke"))
+                {
+                    RunObjectEntrySnapshotLifecycleSmoke();
+                }
+
+                if (GUILayout.Button("Run Object Entry Foundation Closure Smoke"))
+                {
+                    RunObjectEntryFoundationClosureSmoke();
+                }
+
                 if (GUILayout.Button("Validate Loaded Authoring"))
                 {
                     ValidateLoadedLocalContributionsAuthoring();
@@ -800,6 +815,29 @@ namespace Immersive.Framework.Diagnostics
         {
             await RunSmokeAsync(ObjectEntryQaSmokeRunner.RuntimeHostSnapshotExposureSmokeName, runtimeHost =>
                 ObjectEntryQaSmokeRunner.RunRuntimeHostSnapshotExposureSmokeAsync(runtimeHost, _logger, QaSource));
+        }
+
+        private async void RunObjectEntryScopedOwnershipSmoke()
+        {
+            await RunSmokeAsync(ObjectEntryQaSmokeRunner.ScopedOwnershipSmokeName, runtimeHost =>
+                ObjectEntryQaSmokeRunner.RunScopedOwnershipSmokeAsync(runtimeHost, _logger, QaSource));
+        }
+
+        private async void RunObjectEntrySnapshotLifecycleSmoke()
+        {
+            await RunSmokeAsync(ObjectEntryQaSmokeRunner.SnapshotLifecycleSmokeName, runtimeHost =>
+                ObjectEntryQaSmokeRunner.RunSnapshotLifecycleSmokeAsync(
+                    runtimeHost,
+                    _logger,
+                    QaSource,
+                    primaryActivity,
+                    secondaryActivity));
+        }
+
+        private async void RunObjectEntryFoundationClosureSmoke()
+        {
+            await RunSmokeAsync(ObjectEntryQaSmokeRunner.FoundationClosureSmokeName, runtimeHost =>
+                ObjectEntryQaSmokeRunner.RunFoundationClosureSmokeAsync(runtimeHost, _logger, QaSource));
         }
 
         private async void RunStandardSmoke()
@@ -3771,6 +3809,15 @@ namespace Immersive.Framework.Diagnostics
                     ref issueCount,
                     ref warningCount,
                     $"ObjectEntryDeclaration object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Declaration GameObject is inactive in hierarchy'.");
+            }
+
+            if (!declaration.HasRequiredAuthoredOwner)
+            {
+                AddQaAuthoringIssue(
+                    ref issueCount,
+                    ref errorCount,
+                    $"ObjectEntryDeclaration object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' scope='{declaration.Scope}' issue='Explicit owner is required for Route/Activity Object Entry'.");
+                return;
             }
 
             if (!declaration.TryCreateDescriptor(out var descriptor, out var issue))

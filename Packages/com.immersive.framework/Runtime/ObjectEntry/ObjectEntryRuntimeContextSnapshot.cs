@@ -8,7 +8,7 @@ namespace Immersive.Framework.ObjectEntry
     /// API status: Experimental. Passive runtime snapshot of the current logical Object Entry context.
     /// It exposes diagnostics and immutable descriptors only; it is not a registry, binding table, reset inventory, lifecycle owner or service locator.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Object Entry runtime context snapshot introduced by F13G; diagnostic only, no physical binding or reset authority.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Object Entry runtime context snapshot introduced by F13G and extended with F13J scoped-filter diagnostics; no physical binding or reset authority.")]
     public sealed class ObjectEntryRuntimeContextSnapshot
     {
         private ObjectEntryRuntimeContextSnapshot(
@@ -19,6 +19,7 @@ namespace Immersive.Framework.ObjectEntry
             int candidateDescriptorCount,
             int acceptedDeclarationCount,
             int rejectedDeclarationCount,
+            int filteredDeclarationCount,
             int issueCount,
             int blockingIssueCount,
             int nonBlockingIssueCount)
@@ -40,6 +41,7 @@ namespace Immersive.Framework.ObjectEntry
             CandidateDescriptorCount = candidateDescriptorCount;
             AcceptedDeclarationCount = acceptedDeclarationCount;
             RejectedDeclarationCount = rejectedDeclarationCount;
+            FilteredDeclarationCount = filteredDeclarationCount;
             IssueCount = issueCount;
             BlockingIssueCount = blockingIssueCount;
             NonBlockingIssueCount = nonBlockingIssueCount;
@@ -60,6 +62,8 @@ namespace Immersive.Framework.ObjectEntry
         public int AcceptedDeclarationCount { get; }
 
         public int RejectedDeclarationCount { get; }
+
+        public int FilteredDeclarationCount { get; }
 
         public int IssueCount { get; }
 
@@ -91,7 +95,7 @@ namespace Immersive.Framework.ObjectEntry
             return ObjectEntries.GetByScope(scope);
         }
 
-        public string Summary => $"source='{Source}' resultStatus='{Status}' declarations='{DeclarationCount}' candidateDescriptors='{CandidateDescriptorCount}' acceptedDeclarations='{AcceptedDeclarationCount}' rejectedDeclarations='{RejectedDeclarationCount}' objectEntries='{Count}' required='{RequiredCount}' optional='{OptionalCount}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' nonBlockingIssues='{NonBlockingIssueCount}'";
+        public string Summary => $"source='{Source}' resultStatus='{Status}' declarations='{DeclarationCount}' candidateDescriptors='{CandidateDescriptorCount}' acceptedDeclarations='{AcceptedDeclarationCount}' rejectedDeclarations='{RejectedDeclarationCount}' filteredDeclarations='{FilteredDeclarationCount}' objectEntries='{Count}' required='{RequiredCount}' optional='{OptionalCount}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' nonBlockingIssues='{NonBlockingIssueCount}'";
 
         public static ObjectEntryRuntimeContextSnapshot From(
             ObjectEntryDeclarationSourceResult result,
@@ -110,6 +114,7 @@ namespace Immersive.Framework.ObjectEntry
                 result.CandidateDescriptorCount,
                 result.AcceptedDeclarationCount,
                 result.RejectedDeclarationCount,
+                result.FilteredDeclarationCount,
                 result.IssueCount,
                 result.BlockingIssueCount,
                 result.NonBlockingIssueCount);
