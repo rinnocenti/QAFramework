@@ -1,6 +1,6 @@
 # F23-ADR-PAUSE-003 - Pause Content Overlay Input Boundary
 
-Status: Deferred / Moved from former F21 plan  
+Status: Planned / Blocked until F22G  
 Phase: F23 - Pause Content / Overlay / Input Boundary  
 Type: Framework Consumer / Authoring / Input Boundary  
 Last updated: 2026-06-26
@@ -11,7 +11,7 @@ Last updated: 2026-06-26
 
 F20 closed Pause State/Gate as logical Pause core. That core owns Pause state, request/result, snapshot/facts and the passive Gate blocker relationship. It intentionally does not own visual overlay, menu content, input binding, Canvas/prefab setup or `Time.timeScale`.
 
-F21 now opens Save / Snapshot / Preferences / Progression Save Foundation. F22 now owns Loading Operation / Progress / Readiness Boundary. Pause visual/content/input therefore moves to F23 so those consumers do not precede core Save and Loading contracts.
+F21 now opens Save / Snapshot / Preferences / Progression Save Foundation. F22 now owns Loading Operation / Progress / Readiness Boundary. Pause visual/content/input therefore moves to F23 so those consumers do not precede core Save and Loading contracts. A pre-F23 lifecycle audit found that F22 still needs a small F22G readiness/result primitive closure before this ADR can move from planned boundary to implementation plan.
 
 ---
 
@@ -100,3 +100,15 @@ gameplay contextual reset
 - Pause input is separate from gameplay input.
 - `Time.timeScale` is a future adapter/policy, not the central contract.
 - Overlay/content cannot bypass Gate to resume gameplay.
+
+## 8. Precondition before F23A
+
+Do not start F23A until F22G has either:
+
+```text
+closed Loading readiness/result primitives
+```
+
+or explicitly narrowed F22 so `Readiness` is no longer claimed as part of the closed Loading boundary.
+
+F23 must consume Pause, Gate, Content Anchor, Loading and Preferences boundaries. It must not create a parallel loading/readiness model inside Pause overlay/input.

@@ -1,6 +1,6 @@
 # F22-ADR-LOADING-001 - Loading Operation Progress Readiness Boundary
 
-Status: Accepted / Closed F22F  
+Status: Accepted / Pre-F23 Debt Closure F22H  
 Phase: F22 - Loading Operation / Progress / Readiness Boundary  
 Type: Framework Core + Loading Module Boundary  
 Last updated: 2026-06-26
@@ -107,6 +107,8 @@ F22B must introduce a single canonical namespace for Loading primitives. Any fut
 | F22D | `APPLIED / OBSERVATION ADAPTER` | SceneLifecycle / Transition Loading Observation Adapter. |
 | F22E | `APPLIED / LOADING SCREEN ADAPTER BOUNDARY` | Loading Screen Adapter Boundary. |
 | F22F | `APPLIED / CLOSED` | Closure + Usage Guide. |
+| F22G | `APPLIED / READINESS OBSERVATION` | Loading Readiness Observation Primitives + Smoke. |
+| F22H | `APPLIED / RESULT ISSUE PRIMITIVES` | Loading Result / Issue Primitive Closure + Smoke. |
 
 ---
 
@@ -285,3 +287,34 @@ QA diagnostics smokes
 The closure cut is documentation-only. It does not add runtime execution, UI, prefab, scene object, ScriptableObject, fade/curtain execution, SceneLifecycle replacement, Transition replacement, readiness mutation, backend, PlayerPrefs, JSON or asmdef changes.
 
 Next phase: F23 - Pause Content / Overlay / Input Boundary.
+
+
+## 11. F22G readiness observation result
+
+Pre-F23 audit found that F22 had closed operation/progress/adapter surfaces, but readiness was still represented indirectly by step names and Transition readiness diagnostics. F22G adds a canonical, passive readiness observation shape under `Runtime/Loading`:
+
+```text
+LoadingReadinessObservationId
+LoadingReadinessStatus
+LoadingReadinessObservation
+```
+
+`LoadingReadinessObservation` reports `Waiting`, `Ready`, `Blocked`, `Failed`, `Skipped` or `NotObserved`. It does not wait, mutate readiness, execute lifecycle, schedule loading, own SceneLifecycle, own Transition, create UI or call gameplay adapters.
+
+F22G adds `Run Loading Readiness Observation Smoke` under QA Canvas `Show Loading diagnostics`. The smoke validates contracts, waiting, ready, blocked, failed and canonical boundary behavior.
+
+
+## 12. F22H result / issue result
+
+F22H closes the remaining framework-owned Loading result/reporting debt before F23 by adding passive result and issue primitives under `Runtime/Loading`:
+
+```text
+LoadingIssueSeverity
+LoadingIssue
+LoadingResultStatus
+LoadingResult
+```
+
+`LoadingResult` combines a `LoadingProgressAggregationResult`, readiness observations and issues into one passive summary. It does not retry, fallback, execute lifecycle, mutate readiness, own SceneLifecycle, own Transition, run TransitionEffects, create UI or call gameplay adapters.
+
+F22H adds `Run Loading Result and Issue Smoke` under QA Canvas `Show Loading diagnostics`. The smoke validates contracts, successful result, waiting readiness result, failed result with blocking issue and canonical boundary behavior.

@@ -108,3 +108,14 @@ F22E applied note: F22E adds `ILoadingScreenAdapter`, `LoadingScreenPresentation
 
 
 F22F closure note: Loading Operation / Progress / Readiness Boundary is closed. The guide documents primitive construction, weighted aggregation, observation mapping, loading screen adapter implementation expectations and QA smokes. No UI prefab, scene object, ScriptableObject, fade/curtain execution, SceneLifecycle replacement, Transition replacement, readiness mutation, backend, PlayerPrefs, JSON or asmdef change was added by the closure cut.
+
+
+## F22G pre-F23 debt closure
+
+- `F22-ADR-LOADING-001-Loading-Operation-Progress-Readiness-Boundary.md` — updated with `F22G — Loading Readiness Observation Primitives`.
+
+
+## F22H pre-F23 debt closure
+
+- `F22-ADR-LOADING-001-Loading-Operation-Progress-Readiness-Boundary.md` — updated with `F22H — Loading Result / Issue Primitive Closure`.
+- Remove obsolete `F21-ADR-PAUSE-003-Pause-Content-Overlay-Input-Boundary.md`; canonical Pause Content/Overlay/Input ADR is F23.

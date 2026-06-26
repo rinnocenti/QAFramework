@@ -427,7 +427,7 @@ namespace Immersive.Framework.Diagnostics
         {
             GUILayout.Space(4f);
             GUILayout.Label("Loading Diagnostics", GUI.skin.box);
-            GUILayout.Label("F22 diagnostics. Aggregates passive LoadingStep progress, observes SceneLifecycle/Transition results and validates loading screen adapter contracts. No SceneLifecycle execution, Transition execution, UI prefab, fade, curtain or readiness mutation.");
+            GUILayout.Label("F22 diagnostics. Aggregates passive LoadingStep progress, observes SceneLifecycle/Transition results, validates readiness observations, validates result/issue summaries and validates loading screen adapter contracts. No SceneLifecycle execution, Transition execution, UI prefab, fade, curtain or readiness mutation.");
 
             using (new EditorDisabledScope(_requestInFlight))
             {
@@ -439,6 +439,16 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Loading Observation Adapter Smoke"))
                 {
                     RunLoadingObservationAdapterSmoke();
+                }
+
+                if (GUILayout.Button("Run Loading Readiness Observation Smoke"))
+                {
+                    RunLoadingReadinessObservationSmoke();
+                }
+
+                if (GUILayout.Button("Run Loading Result and Issue Smoke"))
+                {
+                    RunLoadingResultAndIssueSmoke();
                 }
 
                 if (GUILayout.Button("Run Loading Screen Adapter Boundary Smoke"))
@@ -951,6 +961,18 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(LoadingObservationQaSmokeRunner.SmokeName, runtimeHost =>
                 LoadingObservationQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunLoadingReadinessObservationSmoke()
+        {
+            await RunSmokeAsync(LoadingReadinessQaSmokeRunner.SmokeName, runtimeHost =>
+                LoadingReadinessQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunLoadingResultAndIssueSmoke()
+        {
+            await RunSmokeAsync(LoadingResultQaSmokeRunner.SmokeName, runtimeHost =>
+                LoadingResultQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
         }
 
         private async void RunLoadingScreenAdapterBoundarySmoke()

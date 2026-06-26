@@ -36,7 +36,7 @@ Documentation~/Guides/F22-Loading-Operation-Progress-Readiness-Usage.md
 Status:
 
 ```text
-F0-F22 closed/applied. F21 is closed with F21H usage documentation. F22 is closed with F22F usage documentation. F22A Loading Architecture ADR Plan is applied. F22B Loading Operation / Step / Weighted Progress Primitives is applied. F22C Loading Progress Aggregation Smoke is applied. F22D SceneLifecycle / Transition Loading Observation Adapter is applied. F22E Loading Screen Adapter Boundary is applied. F22F Closure + Usage Guide is applied.
+F0-F22 closed/applied. F21 is closed with F21H usage documentation. F22 was closed with F22F usage documentation and is now receiving pre-F23 framework-only debt closure. F22A Loading Architecture ADR Plan is applied. F22B Loading Operation / Step / Weighted Progress Primitives is applied. F22C Loading Progress Aggregation Smoke is applied. F22D SceneLifecycle / Transition Loading Observation Adapter is applied. F22E Loading Screen Adapter Boundary is applied. F22G Loading Readiness Observation Primitives is applied. F22H Loading Result / Issue Primitive Closure is applied. F22F Closure + Usage Guide is applied.
 F17 is Gate Foundation and is closed through F17E. F18 is Transition Orchestration Foundation and is closed through F18F. F19 is Transition Effects and is closed through F19F. F20 is Pause State/Gate and is closed through F20F with `Documentation~/Guides/F20-Pause-State-Gate-Usage.md`. F20A accepted the Pause State/Gate implementation plan. F20B introduced passive Pause state primitives under `Runtime/Pause`. F20C added `Run Pause Diagnostics Smoke`. F20D added passive Pause-to-Gate blocker policy. F20E added the minimal runtime Pause request path through `FrameworkRuntimeHost` and `PauseRuntime`. F20F closes the phase and hands off to F21 Save / Snapshot / Preferences / Progression Save Foundation. F21A realigns the roadmap and accepts Save/Loading boundaries; F21B adds passive Snapshot envelope primitives under `Runtime/Snapshot`; F21C adds Snapshot participant contracts and a synthetic diagnostics smoke; F21D adds Preferences store contracts and the PlayerPrefs adapter; F21E adds Progression Save port, slot, record and manifest primitives; F21F adds the JSON backend adapter and diagnostics smoke; F21G adds the explicit Progression Save runtime request path and passive autosave/manual moment contracts; F21H closes the phase with `Documentation~/Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md` and hands off to F22 Loading. F22A accepts the Loading architecture plan and reconciles existing loading-like concepts so SceneLifecycle, Transition and TransitionEffects do not become parallel Loading tracks. F22B adds passive Loading primitives; F22C adds weighted aggregation; F22D adds observation adapters for SceneLifecycle/Transition diagnostics. F22E adds loading screen adapter contracts and a synthetic boundary smoke without UI/prefab implementation.
 F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C routes existing in-flight request admission through Gate; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase without adding Pause, Transition runtime, UI or gameplay. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes. F18D adds a passive Transition-to-Gate blocker relationship and smoke. F18E adds a passive Route/Activity orchestration observation policy and smoke. F18F closes the phase with a Transition Orchestration usage guide and hands off to F19. F19A accepts the Transition Effects boundary/implementation plan. F19B introduces passive Transition Effect primitives under `Runtime/TransitionEffects`. F19C adds `Run Transition Effect Diagnostics Smoke`. F19D adds the minimal built-in Unity `UnityFadeCurtainEffectAdapter`, adapter contract and `Run Unity Fade Curtain Effect Adapter Smoke`. F19E adds required/optional effect policy guardrails and `Run Transition Effect Policy Guardrails Smoke`, using explicit adapter lists only. F19F closes the phase with `Documentation~/Guides/F19-Transition-Effects-Usage.md`, preserves the asset-free policy boundary, and compacts QA Canvas by hiding phase diagnostics behind foldouts. F20A accepted the Pause State/Gate implementation plan: Pause is state plus Gate blocker relationship, not Activity, menu, overlay, input system or `Time.timeScale` contract. F20B adds passive Pause primitives: `PauseRequestId`, `PauseState`, `PauseRequestKind`, `PauseRequestStatus`, `PauseIssue`, `PauseRequest`, `PauseResult` and `PauseSnapshot`. F20C validates pause/resume/toggle/idempotent/rejected/snapshot shapes through a synthetic QA smoke under the collapsed Pause diagnostics group. F20D validates Pause-to-Gate blockers. F20E adds the minimal request path. F20F closes the phase with the F20 usage guide. Fade/loading/curtain are F19 adapters/effects and are not core Transition.
 ```
@@ -72,7 +72,7 @@ F18 - Transition Orchestration Foundation / CLOSED
 F19 - Transition Effects / CLOSED
 F20 - Pause State and Pause Gate / CLOSED / F20F QA PASS + USAGE
 F21 - Save / Snapshot / Preferences / Progression Save Foundation / CLOSED / F21H QA PASS + USAGE
-F22 - Loading Operation / Progress / Readiness Boundary / CLOSED / F22F QA PASS + USAGE
+F22 - Loading Operation / Progress / Readiness Boundary / PRE-F23 DEBT CLOSURE / F22H RESULT APPLIED
 F23 - Pause Content / Overlay / Input Boundary / NEXT
 F24 - Gameplay Adapter Foundation
 ```
@@ -343,3 +343,30 @@ The closed boundary includes passive operation/step primitives, weighted progres
 F22F does not add UI, scene objects, prefabs, ScriptableObjects, fade/curtain execution, SceneLifecycle replacement, Transition replacement, readiness mutation, backend, PlayerPrefs, JSON or asmdef changes.
 
 Next cut: `F23A — Pause Content / Overlay / Input ADR Plan`.
+
+
+### F22G — Loading Readiness Observation Primitives
+
+F22G resolves the framework-only readiness debt found before F23. It adds passive readiness observation primitives under `Runtime/Loading`:
+
+```text
+LoadingReadinessObservationId
+LoadingReadinessStatus
+LoadingReadinessObservation
+```
+
+It also adds `Run Loading Readiness Observation Smoke` under QA Canvas `Show Loading diagnostics`. The smoke validates waiting, ready, blocked and failed readiness observations. F22G does not execute SceneLifecycle, replace Transition, run TransitionEffects, mutate Activity readiness, create UI, instantiate prefabs or introduce gameplay adapters.
+
+
+### F22H — Loading Result / Issue Primitive Closure
+
+F22H resolves the remaining framework-only Loading result debt before F23. It adds passive result and issue primitives under `Runtime/Loading`:
+
+```text
+LoadingIssueSeverity
+LoadingIssue
+LoadingResultStatus
+LoadingResult
+```
+
+It also adds `Run Loading Result and Issue Smoke` under QA Canvas `Show Loading diagnostics`. The smoke validates success, waiting-for-readiness and failed result summaries. F22H does not execute lifecycle, retry, fallback, mutate readiness, create UI, instantiate prefabs or introduce gameplay adapters.
