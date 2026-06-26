@@ -22,6 +22,10 @@ namespace Immersive.Framework.GameFlow
         private bool _activityRequestInFlight;
         private bool _cycleResetRequestInFlight;
 
+        internal bool HasLifecycleRequestInFlight => _routeRequestInFlight
+            || _activityRequestInFlight
+            || _cycleResetRequestInFlight;
+
         internal GameFlowRuntime(
             RuntimeContentRuntime runtimeContentRuntime,
             RuntimeContentAnchorBinding contentAnchorBindingRuntime)

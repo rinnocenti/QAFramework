@@ -8,18 +8,38 @@ namespace Immersive.Framework.ObjectReset
 {
     /// <summary>
     /// API status: Experimental. Aggregate result for Object Reset foundation operations.
-    /// F14B resolves the logical ObjectEntry target only; participant results are added later.
+    /// F14D includes target resolution, deterministic plan execution and participant aggregation; no Unity reset side effects are implemented here.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F14B Object Reset aggregate result; target resolution only.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F14D Object Reset aggregate result; target resolution and participant aggregation only.")]
     public readonly struct ObjectResetResult : IEquatable<ObjectResetResult>
     {
         private readonly ObjectResetIssue[] issues;
+        private readonly ObjectResetParticipantResult[] participantResults;
 
         public ObjectResetResult(
             ObjectResetRequest request,
             ObjectResetResultStatus status,
             ObjectEntryDescriptor resolvedTarget,
             bool hasResolvedTarget,
+            IReadOnlyList<ObjectResetIssue> issues,
+            string message)
+            : this(
+                request,
+                status,
+                resolvedTarget,
+                hasResolvedTarget,
+                Array.Empty<ObjectResetParticipantResult>(),
+                issues,
+                message)
+        {
+        }
+
+        public ObjectResetResult(
+            ObjectResetRequest request,
+            ObjectResetResultStatus status,
+            ObjectEntryDescriptor resolvedTarget,
+            bool hasResolvedTarget,
+            IReadOnlyList<ObjectResetParticipantResult> participantResults,
             IReadOnlyList<ObjectResetIssue> issues,
             string message)
         {
@@ -32,6 +52,9 @@ namespace Immersive.Framework.ObjectReset
             Status = status;
             ResolvedTarget = resolvedTarget;
             HasResolvedTarget = hasResolvedTarget;
+            this.participantResults = participantResults == null
+                ? Array.Empty<ObjectResetParticipantResult>()
+                : participantResults.ToArray();
             this.issues = issues == null ? Array.Empty<ObjectResetIssue>() : issues.ToArray();
             Message = string.IsNullOrWhiteSpace(message) ? string.Empty : message.Trim();
         }
@@ -43,6 +66,8 @@ namespace Immersive.Framework.ObjectReset
         public ObjectEntryDescriptor ResolvedTarget { get; }
 
         public bool HasResolvedTarget { get; }
+
+        public IReadOnlyList<ObjectResetParticipantResult> ParticipantResults => participantResults ?? Array.Empty<ObjectResetParticipantResult>();
 
         public IReadOnlyList<ObjectResetIssue> Issues => issues ?? Array.Empty<ObjectResetIssue>();
 
@@ -58,6 +83,20 @@ namespace Immersive.Framework.ObjectReset
             || Status == ObjectResetResultStatus.RejectedRuntimeContextUnavailable
             || Status == ObjectResetResultStatus.RejectedTargetNotFound
             || Status == ObjectResetResultStatus.RejectedForeignTarget;
+
+        public int ParticipantCount => ParticipantResults.Count;
+
+        public int ParticipantSucceededCount => ParticipantResults.Count(result => result.Succeeded);
+
+        public int ParticipantSkippedCount => ParticipantResults.Count(result => result.WasSkipped);
+
+        public int ParticipantFailedCount => ParticipantResults.Count(result => result.Failed);
+
+        public int ParticipantBlockingFailureCount => ParticipantResults.Count(result => result.BlocksReset);
+
+        public int RequiredParticipantCount => ParticipantResults.Count(result => result.IsRequired);
+
+        public int OptionalParticipantCount => ParticipantResults.Count(result => result.IsOptional);
 
         public int IssueCount => Issues.Count;
 
@@ -81,6 +120,22 @@ namespace Immersive.Framework.ObjectReset
             return snapshot;
         }
 
+        public ObjectResetParticipantResult[] SnapshotParticipantResults()
+        {
+            if (ParticipantCount == 0)
+            {
+                return Array.Empty<ObjectResetParticipantResult>();
+            }
+
+            var snapshot = new ObjectResetParticipantResult[ParticipantCount];
+            for (var i = 0; i < ParticipantCount; i++)
+            {
+                snapshot[i] = ParticipantResults[i];
+            }
+
+            return snapshot;
+        }
+
         public bool Equals(ObjectResetResult other)
         {
             if (!Request.Equals(other.Request)
@@ -88,7 +143,8 @@ namespace Immersive.Framework.ObjectReset
                 || HasResolvedTarget != other.HasResolvedTarget
                 || !ResolvedTarget.Equals(other.ResolvedTarget)
                 || !string.Equals(Message, other.Message, StringComparison.Ordinal)
-                || IssueCount != other.IssueCount)
+                || IssueCount != other.IssueCount
+                || ParticipantCount != other.ParticipantCount)
             {
                 return false;
             }
@@ -96,6 +152,14 @@ namespace Immersive.Framework.ObjectReset
             for (var i = 0; i < IssueCount; i++)
             {
                 if (!Issues[i].Equals(other.Issues[i]))
+                {
+                    return false;
+                }
+            }
+
+            for (var i = 0; i < ParticipantCount; i++)
+            {
+                if (!ParticipantResults[i].Equals(other.ParticipantResults[i]))
                 {
                     return false;
                 }
@@ -118,6 +182,7 @@ namespace Immersive.Framework.ObjectReset
                 hashCode = (hashCode * 397) ^ (HasResolvedTarget ? 1 : 0);
                 hashCode = (hashCode * 397) ^ ResolvedTarget.GetHashCode();
                 hashCode = (hashCode * 397) ^ IssueCount;
+                hashCode = (hashCode * 397) ^ ParticipantCount;
                 hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
@@ -130,7 +195,7 @@ namespace Immersive.Framework.ObjectReset
 
         public string ToDiagnosticString()
         {
-            return $"status='{Status}' succeeded='{Succeeded}' failed='{Failed}' hasResolvedTarget='{HasResolvedTarget}' {Request.ToDiagnosticString()} issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' nonBlockingIssues='{NonBlockingIssueCount}' message='{Message}'";
+            return $"status='{Status}' succeeded='{Succeeded}' completedWithWarnings='{CompletedWithWarnings}' failed='{Failed}' hasResolvedTarget='{HasResolvedTarget}' participants='{ParticipantCount}' participantSucceeded='{ParticipantSucceededCount}' participantSkipped='{ParticipantSkippedCount}' participantFailed='{ParticipantFailedCount}' participantBlockingFailures='{ParticipantBlockingFailureCount}' {Request.ToDiagnosticString()} issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' nonBlockingIssues='{NonBlockingIssueCount}' message='{Message}'";
         }
 
         public static ObjectResetResult TargetResolved(ObjectResetRequest request, ObjectEntryDescriptor resolvedTarget)
@@ -157,6 +222,26 @@ namespace Immersive.Framework.ObjectReset
                 hasResolvedTarget: false,
                 new[] { issue },
                 message);
+        }
+
+        public static ObjectResetResult FromExecution(
+            ObjectResetRequest request,
+            ObjectResetResultStatus status,
+            ObjectEntryDescriptor resolvedTarget,
+            bool hasResolvedTarget,
+            ObjectResetPlan plan,
+            IReadOnlyList<ObjectResetParticipantResult> participantResults,
+            IReadOnlyList<ObjectResetIssue> issues,
+            string message)
+        {
+            return new ObjectResetResult(
+                request,
+                status,
+                resolvedTarget,
+                hasResolvedTarget,
+                participantResults,
+                issues,
+                string.IsNullOrWhiteSpace(message) && plan != null ? plan.Summary : message);
         }
     }
 }

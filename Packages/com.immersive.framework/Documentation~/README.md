@@ -12,13 +12,14 @@ Accepted architectural decisions:
 ADRs/ADR-INDEX.md
 ```
 
-F0-F13 are closed/applied. F14 `Local/Object Reset Foundation` is active: F14A accepted the architecture and F14B is the next implementation cut.
+F0-F14 are closed/applied. F15 `Unity Reset Adapters mínimos` is the next planned phase.
 
 Current reset boundary:
 
 ```text
 Cycle Reset is Route/Activity reset only.
-Object Reset, Component Reset, Player Reset and physical Unity reset adapters are future phases.
+Object Reset foundation is closed as logical orchestration only.
+Component Reset, Player Reset and physical Unity reset adapters are future phases.
 ```
 
 Cycle Reset authoring note:
@@ -39,7 +40,18 @@ Route/Activity owners, scoped collection and snapshot lifecycle were closed in F
 Current Object Reset boundary:
 
 ```text
-F14A approved ObjectResetTarget as ObjectEntryId + owner + scope.
-Object Reset uses one IObjectResetParticipant contract and an explicit participant source.
-Transform/Rigidbody/Animator, pooling, Player/Actor and gameplay reset remain outside F14.
+F14 closed ObjectResetTarget as ObjectEntryId + owner + scope from the current Object Entry snapshot.
+Object Reset has request/policy/result, target resolver, participant contract/source, deterministic plan/runtime executor, Runtime Host integration, public trigger and optional UnityEvent bridge.
+Transform/Rigidbody/Animator, pooling, Player/Actor and gameplay reset remain outside F14 and start only through explicit future adapters.
+```
+
+
+Closed Object Reset usage note:
+
+```text
+Author a current Object Entry Declaration.
+Add Object Reset Trigger and reference that declaration.
+UGUI/Button may call ObjectResetTrigger.RequestObjectReset() directly.
+Object Reset Trigger Unity Event Bridge is optional and only adapts trigger events to Inspector UnityEvents.
+Until F15 adapters exist, a valid authored trigger can complete as SucceededNoParticipants.
 ```

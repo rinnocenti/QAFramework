@@ -2,7 +2,7 @@
 
 Plano canonico do package `com.immersive.framework`.
 
-Este e o unico arquivo de planejamento do framework. Decisoes aceitas, historico F0-F13 e a ordem futura ficam resumidos aqui para evitar fontes paralelas.
+Este e o unico arquivo de planejamento do framework. Decisoes aceitas, historico F0-F14 e a ordem futura ficam resumidos aqui para evitar fontes paralelas.
 
 ADRs aceitos ficam em `Documentation~/ADRs/ADR-INDEX.md`. ADRs registram decisoes estaveis e nao substituem este roadmap operacional.
 
@@ -16,11 +16,11 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 
 | Faixa | Status | Leitura oficial |
 |---|---|---|
-| F0-F13 | `CLOSED / APPLIED` | Historico real resumido neste documento. |
-| F14 | `ACTIVE / ADR ACCEPTED` | F14A fechou arquitetura; F14B inicia primitives de Object Reset. |
-| F15-F18 | `PLANNED / REVISED ORDER` | Ordem futura mantida e bloqueada pelo fechamento da F14. |
+| F0-F14 | `CLOSED / APPLIED` | Historico real resumido neste documento. |
+| F15 | `NEXT / PLANNED` | Unity Reset Adapters minimos, desbloqueado pelo fechamento da F14. |
+| F16-F18 | `PLANNED / REVISED ORDER` | Ordem futura mantida; gameplay continua bloqueado ate adapters/core aprovados. |
 
-## Historico real F0-F13
+## Historico real F0-F14
 
 | Fase | Status | Resultado fechado |
 |---|---|---|
@@ -38,6 +38,7 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 | F11 | `CLOSED / APPLIED` | Cycle Reset Foundation: contratos, executor, runtime request path, QA Canvas smoke e triggers publicos de Route/Activity Cycle Reset, sem reset fisico. |
 | F12 | `CLOSED / APPLIED` | Cycle Reset Integration & Authoring UX: guardrails, result UX, trigger smoke e bridge smoke opcional, sem reset local/fisico. |
 | F13 | `CLOSED / APPLIED` | Object Entry Foundation: identidade, declaration, owner tipado, coleta scoped, snapshot lifecycle e closure smoke, sem binding/reset fisico. |
+| F14 | `CLOSED / APPLIED` | Local/Object Reset Foundation: target derivado de Object Entry atual, participant source explicita, plan/runtime executor, Runtime Host, trigger publico e bridge opcional, sem adapters Unity ou gameplay reset. |
 
 F10 encerrou a execucao logica de Activity content no core. Ele nao adicionou authoring real de participants, scene scan, placement fisico, prefab/Addressables execution, pooling gameplay use, audio, camera, actor/player mutation ou reset fisico.
 
@@ -45,7 +46,9 @@ F11 criou o caminho canonico de reset de ciclo.
 
 F12 tornou esse caminho utilizavel e validavel por authoring/QA sem transformar reset de ciclo em reset de objeto.
 
-F13 criou o catalogo logico owned/scoped de objetos que desbloqueia os contratos de Local/Object Reset da F14.
+F13 criou o catalogo logico owned/scoped de objetos que desbloqueou os contratos de Local/Object Reset da F14.
+
+F14 fechou a orquestracao logica de Object Reset sem executar reset fisico Unity.
 
 ## Decisoes arquiteturais aceitas
 
@@ -107,7 +110,7 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Camera, Audio,
 | F11 | Cycle Reset Foundation | Framework Core | `CLOSED / APPLIED`: contratos centrais de reset de ciclo, request/result, policy, diagnostics, executor minimo, smoke runtime-host e triggers publicos, sem reset fisico. |
 | F12 | Cycle Reset Integration & Authoring UX | Framework Core + Editor/Authoring | `CLOSED / APPLIED`: validar e documentar UX/authoring dos triggers e bridges opcionais, sem reset fisico/local. |
 | F13 | Object Entry Foundation | Framework Core | `CLOSED / APPLIED`: identidade, descriptor, declaration, typed ownership, scoped collection, snapshot invalidation/refresh e closure smoke. Readiness real fica para F16. |
-| F14 | Local/Object Reset Foundation | Framework Core | `ACTIVE / ADR ACCEPTED`: target canonico deriva de Object Entry atual; participant source explicita; sem Unity adapters ou gameplay reset. |
+| F14 | Local/Object Reset Foundation | Framework Core | `CLOSED / APPLIED`: target canonico deriva de Object Entry atual; participant source explicita; plan/runtime executor; Runtime Host; trigger publico; bridge opcional; sem Unity adapters ou gameplay reset. |
 | F15 | Unity Reset Adapters minimos | Unity Adapter | Criar adapters minimos para traducao Unity de reset local/object aprovado pelo core, sem gameplay consumers. |
 | F16 | Player/Participant Entry Baseline | Framework Core + Authoring | Definir baseline de entrada de player/participant sobre Object Entry, sem Actor/Camera/Audio/Pooling. |
 | F17 | Advanced Consumers | Gameplay Consumer | Abrir consumers avancados somente depois de core reset/object entry estar estavel. Inclui Camera, Audio, Actor e gameplay Pooling quando aprovados. |
@@ -305,18 +308,21 @@ Runners intermediarios permanecem internos para regressao/evidencia.
 
 Readiness por objeto nao entra artificialmente na F13. Ela pertence a F16, quando existir Participant Entry executavel.
 
-## Plano ativo F14 — Local/Object Reset Foundation
+## Fechamento real F14 — Local/Object Reset Foundation
 
-F14 cria orquestracao logica direcionada a um Object Entry especifico. Ela reutiliza o padrao descriptor/source/plan/result do Cycle Reset, mas mantem target e executor separados.
+F14 fechou a orquestracao logica direcionada a um Object Entry especifico. Ela reutiliza o padrao descriptor/source/plan/result do Cycle Reset, mas mantem target e executor separados.
 
-Decisoes aceitas em F14A:
+Decisoes aplicadas:
 
 ```text
 ObjectResetTarget = ObjectEntryId + ObjectEntryScope + OwnerIdentity.
 Target deve existir no ObjectEntryRuntimeContextSnapshot atual.
 IObjectResetParticipant e o unico participant contract; nao existe ILocalResetParticipant paralelo.
 IObjectResetParticipantSource fornece participants conhecidos sem scene scan.
-Ordering inicial usa Order + ParticipantId estavel.
+Ordering usa Order + sourceIndex + ParticipantId estavel.
+Runtime Host expoe RequestObjectResetAsync(...).
+ObjectResetTrigger e o entry point publico para UI/Inspector.
+ObjectResetTriggerUnityEventBridge e opcional.
 Reset Baseline payload pertence aos adapters concretos da F15.
 Cycle Reset nao chama Object Reset automaticamente.
 ```
@@ -324,11 +330,19 @@ Cycle Reset nao chama Object Reset automaticamente.
 | Corte | Status | Objetivo |
 |---|---|---|
 | F14A | `CLOSED / ADR` | Reconciliar e aceitar Local/Object Reset apos o fechamento real da F13. |
-| F14B | `NEXT` | Target, request, policy, status, issues e synthetic target smoke. |
-| F14C | `PLANNED` | Participant descriptor/interface/source, validation e ordering. |
-| F14D | `PLANNED` | Plan, context, participant result, executor e aggregate result. |
-| F14E | `PLANNED` | Runtime Host resolve target contra snapshot atual; valid/foreign/stale smoke. |
-| F14F | `PLANNED` | Closure smoke, QA panel hygiene, docs e fechamento. |
+| F14B | `CLOSED / PASS` | Target, request, policy, status, issues e synthetic target smoke. |
+| F14C | `CLOSED / PASS` | Participant descriptor/interface/source, validation e ordering. |
+| F14D | `CLOSED / PASS` | Plan, context, participant result, executor e aggregate result. |
+| F14E | `CLOSED / PASS` | Runtime Host resolve target contra snapshot atual e executa participant source explicita. |
+| F14F | `CLOSED / PASS` | Trigger publico com result UX para Inspector/UI. |
+| F14G | `CLOSED / PASS` | Bridge opcional de UnityEvent para callbacks de resultado. |
+| F14H | `CLOSED / DOCS + QA HYGIENE` | Closure smoke canonico, limpeza de botoes intermediarios e documentacao. |
+
+Smoke canonico final:
+
+```text
+Run Object Reset Foundation Closure Smoke
+```
 
 ## Guardrails pos-F13
 
@@ -354,7 +368,7 @@ Cycle Reset nao chama Object Reset automaticamente.
 ## Proximo corte
 
 ```text
-F14B — Object Reset primitives and synthetic target smoke
+F15A — Unity Reset Adapters mínimos / ADR reconciliation
 ```
 
-Entrada de F14B: criar somente primitives puras de target/request/policy/status/issues e provar target valido/foreign sem participant, executor, GameObject ou adapter Unity.
+Entrada de F15A: reconciliar os adapters Unity mínimos que podem consumir `IObjectResetParticipant` sem alterar o core, sem gameplay reset e sem transformar trigger em execução física direta.

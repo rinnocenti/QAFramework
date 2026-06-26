@@ -281,14 +281,9 @@ namespace Immersive.Framework.Diagnostics
                     RunObjectEntryFoundationClosureSmoke();
                 }
 
-                if (GUILayout.Button("Run Object Reset Target Resolution Smoke"))
+                if (GUILayout.Button("Run Object Reset Foundation Closure Smoke"))
                 {
-                    RunObjectResetTargetResolutionSmoke();
-                }
-
-                if (GUILayout.Button("Run Object Reset Participant Contract Smoke"))
-                {
-                    RunObjectResetParticipantContractSmoke();
+                    RunObjectResetFoundationClosureSmoke();
                 }
 
                 if (GUILayout.Button("Validate Loaded Authoring"))
@@ -769,6 +764,12 @@ namespace Immersive.Framework.Diagnostics
                 ObjectEntryQaSmokeRunner.RunFoundationClosureSmokeAsync(runtimeHost, _logger, QaSource));
         }
 
+        private async void RunObjectResetFoundationClosureSmoke()
+        {
+            await RunSmokeAsync(ObjectResetQaSmokeRunner.FoundationClosureSmokeName, runtimeHost =>
+                ObjectResetQaSmokeRunner.RunFoundationClosureSmokeAsync(runtimeHost, _logger, QaSource));
+        }
+
         private async void RunObjectResetTargetResolutionSmoke()
         {
             await RunSmokeAsync(ObjectResetQaSmokeRunner.TargetResolutionSmokeName, runtimeHost =>
@@ -779,6 +780,30 @@ namespace Immersive.Framework.Diagnostics
         {
             await RunSmokeAsync(ObjectResetQaSmokeRunner.ParticipantContractSmokeName, runtimeHost =>
                 ObjectResetQaSmokeRunner.RunParticipantContractSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunObjectResetRuntimeExecutorSmoke()
+        {
+            await RunSmokeAsync(ObjectResetQaSmokeRunner.RuntimeExecutorSmokeName, runtimeHost =>
+                ObjectResetQaSmokeRunner.RunRuntimeExecutorSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunObjectResetRuntimeHostIntegrationSmoke()
+        {
+            await RunSmokeAsync(ObjectResetQaSmokeRunner.RuntimeHostIntegrationSmokeName, runtimeHost =>
+                ObjectResetQaSmokeRunner.RunRuntimeHostIntegrationSmokeAsync(runtimeHost, _logger, QaSource));
+        }
+
+        private async void RunObjectResetTriggerSmoke()
+        {
+            await RunSmokeAsync(ObjectResetQaSmokeRunner.TriggerSmokeName, runtimeHost =>
+                ObjectResetQaSmokeRunner.RunTriggerSmokeAsync(runtimeHost, _logger, QaSource));
+        }
+
+        private async void RunObjectResetBridgeSmoke()
+        {
+            await RunSmokeAsync(ObjectResetQaSmokeRunner.BridgeSmokeName, runtimeHost =>
+                ObjectResetQaSmokeRunner.RunBridgeSmokeAsync(runtimeHost, _logger, QaSource));
         }
 
         private async void RunStandardSmoke()
@@ -3479,6 +3504,8 @@ namespace Immersive.Framework.Diagnostics
                 FindObjectsInactive.Include);
             ObjectEntryDeclaration[] objectEntryDeclarations = FindObjectsByType<ObjectEntryDeclaration>(
                 FindObjectsInactive.Include);
+            ObjectResetTrigger[] objectResetTriggers = FindObjectsByType<ObjectResetTrigger>(
+                FindObjectsInactive.Include);
 
             int routeBindingCount = routeBindings != null ? routeBindings.Length : 0;
             int activityAdapterCount = activityAdapters != null ? activityAdapters.Length : 0;
@@ -3487,6 +3514,7 @@ namespace Immersive.Framework.Diagnostics
             int routeCycleResetTriggerCount = routeCycleResetTriggers != null ? routeCycleResetTriggers.Length : 0;
             int activityCycleResetTriggerCount = activityCycleResetTriggers != null ? activityCycleResetTriggers.Length : 0;
             int objectEntryDeclarationCount = objectEntryDeclarations != null ? objectEntryDeclarations.Length : 0;
+            int objectResetTriggerCount = objectResetTriggers != null ? objectResetTriggers.Length : 0;
 
             if (routeBindingCount == 0
                 && activityAdapterCount == 0
@@ -3494,9 +3522,10 @@ namespace Immersive.Framework.Diagnostics
                 && activityContentAnchorCount == 0
                 && routeCycleResetTriggerCount == 0
                 && activityCycleResetTriggerCount == 0
-                && objectEntryDeclarationCount == 0)
+                && objectEntryDeclarationCount == 0
+                && objectResetTriggerCount == 0)
             {
-                _logger.Warning("QA Authoring Validation completed. scope='Loaded Authoring' routeBindings='0' activityAdapters='0' routeContentAnchors='0' activityContentAnchors='0' routeCycleResetTriggers='0' activityCycleResetTriggers='0' objectEntryDeclarations='0' localContributions='0' contentAnchors='0' objectEntries='0' issues='1' reason='No framework authoring components found in loaded scenes'.");
+                _logger.Warning("QA Authoring Validation completed. scope='Loaded Authoring' routeBindings='0' activityAdapters='0' routeContentAnchors='0' activityContentAnchors='0' routeCycleResetTriggers='0' activityCycleResetTriggers='0' objectEntryDeclarations='0' objectResetTriggers='0' localContributions='0' contentAnchors='0' objectEntries='0' issues='1' reason='No framework authoring components found in loaded scenes'.");
                 return;
             }
 
@@ -3560,6 +3589,13 @@ namespace Immersive.Framework.Diagnostics
                 }
             }
 
+            ValidateLoadedObjectResetTriggers(
+                objectResetTriggers,
+                objectEntryDescriptors,
+                ref issueCount,
+                ref errorCount,
+                ref warningCount);
+
             var objectEntrySet = CreateLoadedObjectEntrySet(
                 objectEntryDescriptors,
                 ref issueCount,
@@ -3584,6 +3620,7 @@ namespace Immersive.Framework.Diagnostics
                         LogFields.Field("routeCycleResetTriggers", routeCycleResetTriggerCount),
                         LogFields.Field("activityCycleResetTriggers", activityCycleResetTriggerCount),
                         LogFields.Field("objectEntryDeclarations", objectEntryDeclarationCount),
+                        LogFields.Field("objectResetTriggers", objectResetTriggerCount),
                         LogFields.Field("issues", 0),
                         LogFields.Field("localContributions", validationResult.ContributionCount),
                         LogFields.Field("blockingIssues", validationResult.BlockingIssueCount),
@@ -3618,6 +3655,7 @@ namespace Immersive.Framework.Diagnostics
                     LogFields.Field("routeCycleResetTriggers", routeCycleResetTriggerCount),
                     LogFields.Field("activityCycleResetTriggers", activityCycleResetTriggerCount),
                     LogFields.Field("objectEntryDeclarations", objectEntryDeclarationCount),
+                    LogFields.Field("objectResetTriggers", objectResetTriggerCount),
                     LogFields.Field("issues", issueCount),
                     LogFields.Field("errors", errorCount),
                     LogFields.Field("warnings", warningCount),
@@ -3720,6 +3758,78 @@ namespace Immersive.Framework.Diagnostics
                     ref issueCount,
                     ref warningCount,
                     $"{triggerType} object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' reason='{FormatValue(reason)}' issue='Reason uses object/component/player/actor/pool/save/reload vocabulary reserved for later reset phases'.");
+            }
+        }
+
+        private void ValidateLoadedObjectResetTriggers(
+            ObjectResetTrigger[] objectResetTriggers,
+            List<ObjectEntryDescriptor> objectEntryDescriptors,
+            ref int issueCount,
+            ref int errorCount,
+            ref int warningCount)
+        {
+            if (objectResetTriggers == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < objectResetTriggers.Length; i++)
+            {
+                var trigger = objectResetTriggers[i];
+                if (trigger == null)
+                {
+                    AddQaAuthoringIssue(
+                        ref issueCount,
+                        ref errorCount,
+                        "ObjectResetTrigger is missing.");
+                    continue;
+                }
+
+                string objectName = trigger.gameObject != null ? trigger.gameObject.name : "<missing>";
+                string sceneName = trigger.gameObject != null && trigger.gameObject.scene.IsValid()
+                    ? trigger.gameObject.scene.name
+                    : "<no-scene>";
+
+                if (trigger.gameObject != null && !trigger.gameObject.activeInHierarchy)
+                {
+                    AddQaAuthoringWarning(
+                        ref issueCount,
+                        ref warningCount,
+                        $"ObjectResetTrigger object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Trigger GameObject is inactive in hierarchy'.");
+                }
+
+                var targetId = trigger.ResolvedAuthoringObjectEntryId;
+                if (string.IsNullOrWhiteSpace(targetId))
+                {
+                    AddQaAuthoringIssue(
+                        ref issueCount,
+                        ref errorCount,
+                        $"ObjectResetTrigger object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Target Object Entry Id is missing'.");
+                    continue;
+                }
+
+                bool targetDeclared = false;
+                if (objectEntryDescriptors != null)
+                {
+                    for (int descriptorIndex = 0; descriptorIndex < objectEntryDescriptors.Count; descriptorIndex++)
+                    {
+                        var descriptor = objectEntryDescriptors[descriptorIndex];
+                        if (descriptor.Id.IsValid
+                            && string.Equals(descriptor.Id.Value.Value, targetId.Trim(), StringComparison.Ordinal))
+                        {
+                            targetDeclared = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!targetDeclared)
+                {
+                    AddQaAuthoringWarning(
+                        ref issueCount,
+                        ref warningCount,
+                        $"ObjectResetTrigger object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' objectEntry='{FormatValue(targetId)}' issue='Target Object Entry Id is not declared in loaded Object Entry authoring'.");
+                }
             }
         }
 

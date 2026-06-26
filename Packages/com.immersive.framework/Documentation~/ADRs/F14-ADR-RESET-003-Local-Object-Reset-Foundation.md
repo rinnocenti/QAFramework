@@ -1,9 +1,9 @@
 # F14-ADR-RESET-003 — Local/Object Reset Foundation
 
-Status: Accepted / Ready for implementation after F14A  
+Status: Closed / Applied through F14H  
 Fase: F14 — Local/Object Reset Foundation  
 Tipo: Core / Object Lifecycle / Reset  
-Última atualização: 2026-06-25
+Última atualização: 2026-06-25 — F14H closure
 
 ---
 
@@ -354,8 +354,10 @@ service locator
 | F14B | Primitivas puras: target, request, policy, status e issues; synthetic target smoke. |
 | F14C | Participant descriptor/interface/source, collection validation e ordering. |
 | F14D | Plan, context, participant result, runtime executor e aggregate result com probes sintéticos. |
-| F14E | Runtime Host resolve target contra snapshot atual e executa source injetada; smoke de target válido/foreign/stale. |
-| F14F | Closure smoke, QA panel hygiene, documentação e fechamento da F14. |
+| F14E | Runtime Host resolve target contra snapshot atual e executa source injetada; smoke de host. |
+| F14F | Trigger público com result UX para `ObjectEntryDeclaration`/`ObjectEntryId`. |
+| F14G | Bridge opcional de UnityEvent para resultado do trigger. |
+| F14H | Closure smoke canônico, QA panel hygiene, documentação e fechamento da F14. |
 
 Cada corte deve preservar compile/smoke antes do próximo.
 
@@ -396,3 +398,58 @@ pool return
 Projectile/Damage/Attributes/Powerups
 Save/checkpoint restore
 ```
+
+
+---
+
+## 17. Fechamento aplicado em F14H
+
+F14 fechou como foundation lógica de Object Reset.
+
+Implementado:
+
+```text
+ObjectResetTarget / ObjectResetRequest / ObjectResetPolicy / ObjectResetResult;
+ObjectResetTargetResolver contra ObjectEntryRuntimeContextSnapshot atual;
+IObjectResetParticipant e IObjectResetParticipantSource;
+ObjectResetPlan e ObjectResetRuntime determinísticos;
+FrameworkRuntimeHost.RequestObjectResetAsync(...);
+ObjectResetTrigger público;
+ObjectResetTriggerUnityEventBridge opcional;
+QA Object Reset Foundation Closure Smoke.
+```
+
+Smoke canônico final:
+
+```text
+Run Object Reset Foundation Closure Smoke
+```
+
+O smoke final valida, sem reset físico Unity:
+
+```text
+snapshot atual disponível;
+target coletado e resolvido por Object Entry;
+Runtime Host executa participants sintéticos required/optional;
+trigger público completa via snapshot atual;
+bridge opcional recebe eventos corretos;
+blockingIssues = 0;
+nonBlockingIssues = 0.
+```
+
+Botões intermediários de Object Reset foram removidos do painel QA. Os métodos/runners intermediários permanecem internos para regressão controlada.
+
+F14 continua excluindo explicitamente:
+
+```text
+Transform reset real;
+Rigidbody reset real;
+Animator reset real;
+GameObject active reset real;
+Player/Actor reset real;
+pool return;
+gameplay state reset;
+save/checkpoint restore.
+```
+
+Esses itens pertencem a F15+ mediante adapters explícitos.

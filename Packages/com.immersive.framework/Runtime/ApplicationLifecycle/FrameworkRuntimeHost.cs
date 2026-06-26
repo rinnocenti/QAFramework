@@ -10,6 +10,7 @@ using Immersive.Framework.SessionLifecycle;
 using Immersive.Framework.RuntimeContent;
 using Immersive.Framework.CycleReset;
 using Immersive.Framework.ObjectEntry;
+using Immersive.Framework.ObjectReset;
 using UnityEngine;
 using Immersive.Framework.ApiStatus;
 using Immersive.Logging.Records;
@@ -33,6 +34,9 @@ namespace Immersive.Framework.ApplicationLifecycle
         private RuntimeContentAnchorBinding _contentAnchorBindingRuntime;
         private RuntimeScopeLifecycleResult _runtimeSessionScopeResult;
         private ObjectEntryRuntimeContextSnapshot _objectEntryRuntimeContextSnapshot;
+        private ObjectResetRuntime _objectResetRuntime;
+        private IObjectResetParticipantSource _objectResetParticipantSource;
+        private bool _objectResetRequestInFlight;
         private int _objectEntryRuntimeContextRevision;
         private int _objectEntryRuntimeContextInvalidationCount;
         private string _lastObjectEntryRuntimeContextInvalidationReason = string.Empty;
@@ -53,6 +57,11 @@ namespace Immersive.Framework.ApplicationLifecycle
         internal void SetCycleResetParticipantSource(ICycleResetParticipantSource participantSource)
         {
             _gameFlowRuntime?.SetCycleResetParticipantSource(participantSource);
+        }
+
+        internal void SetObjectResetParticipantSource(IObjectResetParticipantSource participantSource)
+        {
+            _objectResetParticipantSource = participantSource;
         }
 
         internal int ContentAnchorBindingCount => _contentAnchorBindingRuntime != null ? _contentAnchorBindingRuntime.BindingCount : 0;
@@ -202,6 +211,41 @@ namespace Immersive.Framework.ApplicationLifecycle
             var result = await _gameFlowRuntime.RequestActivityCycleResetAsync(source, reason);
             LogCycleResetResult(result);
             return result;
+        }
+
+        internal async Task<ObjectResetResult> RequestObjectResetAsync(ObjectResetRequest request)
+        {
+            if (_objectResetRuntime == null)
+            {
+                _objectResetRuntime = new ObjectResetRuntime();
+            }
+
+            if (_objectResetRequestInFlight || (_gameFlowRuntime != null && _gameFlowRuntime.HasLifecycleRequestInFlight))
+            {
+                var inFlightResult = ObjectResetResult.Rejected(
+                    request,
+                    ObjectResetResultStatus.RejectedInvalidRequest,
+                    ObjectResetIssue.Error(
+                        ObjectResetIssueKind.RequestAlreadyInFlight,
+                        "Object Reset Request ignored because another framework lifecycle or Object Reset request is already in flight."),
+                    "Object Reset Request ignored because another framework lifecycle or Object Reset request is already in flight.");
+                LogObjectResetResult(inFlightResult);
+                return inFlightResult;
+            }
+
+            _objectResetRequestInFlight = true;
+            try
+            {
+                await Task.Yield();
+                var snapshot = _objectEntryRuntimeContextSnapshot;
+                var result = _objectResetRuntime.Execute(snapshot, request, _objectResetParticipantSource);
+                LogObjectResetResult(result);
+                return result;
+            }
+            finally
+            {
+                _objectResetRequestInFlight = false;
+            }
         }
 
         private void Initialize(GameApplicationAsset application)
@@ -428,6 +472,36 @@ namespace Immersive.Framework.ApplicationLifecycle
             }
 
             _logger.Error("Cycle Reset Request failed. " + result.ToDiagnosticString());
+        }
+
+        private void LogObjectResetResult(ObjectResetResult result)
+        {
+            if (result.Succeeded || result.CompletedWithWarnings)
+            {
+                _logger.Info("Object Reset Request completed.", BuildObjectResetFields(result));
+                _logger.Debug("Object Reset Request diagnostics. " + result.ToDiagnosticString());
+                return;
+            }
+
+            _logger.Error("Object Reset Request failed. " + result.ToDiagnosticString());
+        }
+
+        private LogField[] BuildObjectResetFields(ObjectResetResult result)
+        {
+            return LogFields.Of(
+                LogFields.Field("source", result.Request.Source),
+                LogFields.Field("reason", result.Request.Reason),
+                LogFields.Field("status", result.Status.ToString()),
+                LogFields.Field("objectEntry", result.Request.Target.ObjectEntryId.IsValid ? result.Request.Target.ObjectEntryId.StableText : "<invalid>"),
+                LogFields.Field("scope", result.Request.Target.Scope.ToString()),
+                LogFields.Field("owner", result.Request.Target.OwnerIdentity.IsValid ? result.Request.Target.OwnerIdentity.StableText : "<invalid>"),
+                LogFields.Field("participants", result.ParticipantCount),
+                LogFields.Field("participantSucceeded", result.ParticipantSucceededCount),
+                LogFields.Field("participantSkipped", result.ParticipantSkippedCount),
+                LogFields.Field("participantFailed", result.ParticipantFailedCount),
+                LogFields.Field("participantBlockingFailures", result.ParticipantBlockingFailureCount),
+                LogFields.Field("blockingIssues", result.BlockingIssueCount),
+                LogFields.Field("nonBlockingIssues", result.NonBlockingIssueCount));
         }
 
         private LogField[] BuildCycleResetFields(CycleResetResult result)
