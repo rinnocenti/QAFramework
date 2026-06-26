@@ -12,6 +12,7 @@ using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.RuntimeContent;
 using Immersive.Framework.CycleReset;
 using Immersive.Framework.ObjectEntry;
+using Immersive.Framework.ObjectReset;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
@@ -278,6 +279,11 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Object Entry Foundation Closure Smoke"))
                 {
                     RunObjectEntryFoundationClosureSmoke();
+                }
+
+                if (GUILayout.Button("Run Object Reset Target Resolution Smoke"))
+                {
+                    RunObjectResetTargetResolutionSmoke();
                 }
 
                 if (GUILayout.Button("Validate Loaded Authoring"))
@@ -756,6 +762,12 @@ namespace Immersive.Framework.Diagnostics
         {
             await RunSmokeAsync(ObjectEntryQaSmokeRunner.FoundationClosureSmokeName, runtimeHost =>
                 ObjectEntryQaSmokeRunner.RunFoundationClosureSmokeAsync(runtimeHost, _logger, QaSource));
+        }
+
+        private async void RunObjectResetTargetResolutionSmoke()
+        {
+            await RunSmokeAsync(ObjectResetQaSmokeRunner.TargetResolutionSmokeName, runtimeHost =>
+                ObjectResetQaSmokeRunner.RunTargetResolutionSmokeAsync(_logger, QaSource));
         }
 
         private async void RunStandardSmoke()
