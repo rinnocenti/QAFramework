@@ -25,7 +25,7 @@ Closure rule: when a framework phase is closed, add or update its `Usage` guide 
 
 
 F0-F17 are closed/applied. F17 is Gate Foundation. F18 is now in progress as Transition Orchestration Foundation.
-F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C integrates those primitives with existing request-admission guards; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase and hands off to F18. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes without runtime visual effects.
+F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C integrates those primitives with existing request-admission guards; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase and hands off to F18. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes without runtime visual effects. F18D adds a passive Transition-to-Gate blocker relationship and synthetic smoke without registering runtime Gate state.
 
 Current reset boundary:
 
@@ -40,7 +40,7 @@ Current planning axis:
 
 ```text
 F17 - Gate Foundation / CLOSED
-F18 - Transition Orchestration Foundation / IN PROGRESS - F18C DIAGNOSTICS SMOKE
+F18 - Transition Orchestration Foundation / IN PROGRESS - F18D GATE BLOCKER RELATIONSHIP
 F19 - Transition Effects / Loading and Fade Adapters
 F20 - Pause State and Pause Gate
 F21 - Pause Content / Overlay / Input Boundary

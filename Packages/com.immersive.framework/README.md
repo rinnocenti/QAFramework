@@ -33,7 +33,7 @@ Status:
 ```text
 F0-F17 closed/applied.
 F17 is Gate Foundation and is closed through F17E. F18 is now in progress as Transition Orchestration Foundation.
-F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C routes existing in-flight request admission through Gate; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase without adding Pause, Transition runtime, UI or gameplay. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes and keeps fade/loading/curtain out of core.
+F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C routes existing in-flight request admission through Gate; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase without adding Pause, Transition runtime, UI or gameplay. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes. F18D adds a passive Transition-to-Gate blocker relationship and smoke, while keeping fade/loading/curtain out of core.
 ```
 
 F15-F16 reset adapter closure:
@@ -63,7 +63,7 @@ Current planning axis:
 
 ```text
 F17 - Gate Foundation / CLOSED
-F18 - Transition Orchestration Foundation / IN PROGRESS - F18C DIAGNOSTICS SMOKE
+F18 - Transition Orchestration Foundation / IN PROGRESS - F18D GATE BLOCKER RELATIONSHIP
 F19 - Transition Effects / Loading and Fade Adapters
 F20 - Pause State and Pause Gate
 F21 - Pause Content / Overlay / Input Boundary

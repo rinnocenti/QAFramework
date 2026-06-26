@@ -18,7 +18,7 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 |---|---|---|
 | F0-F17 | `CLOSED / APPLIED` | Histórico real resumido neste documento. |
 | F17 | `CLOSED / F17E QA PASS` | Gate Foundation fechada. F17A realinhou ADRs/plano; F17B introduziu primitivas passivas; F17C integrou admissão de requests existentes via Gate; F17D adicionou smoke sintético de diagnóstico; F17E fechou a fase e preparou F18. |
-| F18 | `IN PROGRESS / F18C DIAGNOSTICS SMOKE` | Transition Orchestration Foundation possui plano, primitivas passivas e smoke sintético de diagnostics. Sem fade/loading visual, Pause, Input ou gameplay. |
+| F18 | `IN PROGRESS / F18D GATE BLOCKER RELATIONSHIP` | Transition Orchestration Foundation possui plano, primitivas passivas, diagnostics smoke e relação passiva com Gate blocker. Sem fade/loading visual, Pause, Input ou gameplay. |
 | F19-F21 | `PLANNED / REVISED ORDER` | Transition effects/loading/fade adapters, Pause state/gate e Pause content/input boundary. |
 | F22+ | `DEFERRED` | Consumers avançados, gameplay capabilities e contextual reset de Player/Actor/NPC/Timer/Door/Pickup ficam bloqueados até Gate/Transition/Pause e um modelo maduro de gameplay object/actor/player. |
 
@@ -132,7 +132,7 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Player, Actor,
 | F15 | Unity Reset Adapters mínimos | Unity Adapter | `CLOSED / APPLIED`: source Unity explícita, Transform Reset Participant com baseline local authored, guardrails required/optional, UX e closure smoke, sem gameplay consumers. |
 | F16 | GameObject Active State Reset Adapter | Unity Adapter | `CLOSED / APPLIED`: reset primitivo de `activeSelf` authored, com source explícita e guardrails. |
 | F17 | Gate Foundation | Framework Core | `CLOSED / F17E QA PASS`: F17A definiu boundary documental; F17B introduziu primitivas de scope/domain/decision/blocker/snapshot; F17C integrou bloqueios already-in-flight de Route/Activity/CycleReset/ObjectReset por Gate; F17D validou diagnóstico de admissão por smoke sintético; F17E fechou o handoff para F18. |
-| F18 | Transition Orchestration Foundation | Framework Core | `IN PROGRESS / F18C DIAGNOSTICS SMOKE`: orquestrar fluxo consumindo Gate, Scene Lifecycle, release, readiness e callbacks. Não é fade visual. |
+| F18 | Transition Orchestration Foundation | Framework Core | `IN PROGRESS / F18D GATE BLOCKER RELATIONSHIP`: orquestrar fluxo consumindo Gate, Scene Lifecycle, release, readiness e callbacks. Não é fade visual. |
 | F19 | Transition Effects / Loading and Fade Adapters | Unity Adapter / Optional Effects | Efeitos de fade/loading/curtain como adapters depois do contrato lógico. Sem dependência obrigatória de DOTween/Asset Store e sem fallback silencioso para adapter required ausente. |
 | F20 | Pause State and Pause Gate | Framework Core | Pause como estado + Gate blocker. Não é Activity, menu ou lifecycle de Route/Activity. |
 | F21 | Pause Content / Overlay / Input Boundary | Framework Consumer / Authoring / Input Boundary | Overlay/content de Pause como consumer, usando Content Anchor/binding/runtime placement quando aplicável. Input de Pause separado de input de gameplay. |
@@ -444,8 +444,8 @@ Sequência planejada de F18:
 | F18A | `CLOSED / ADR IMPLEMENTATION PLAN` | Aceitar ADR operacional e definir sequência segura para F18. |
 | F18B | `CLOSED / PRIMITIVES APPLIED` | Primitivas passivas de Transition: operação, tipo, fase/status, plano/resultado/snapshot. |
 | F18C | `CLOSED / DIAGNOSTICS SMOKE APPLIED` | Smoke/diagnóstico sintético de resultados de Transition sem trocar cenas. |
-| F18D | `NEXT` | Relação lógica entre operação ativa de Transition e Gate blocker. |
-| F18E | `PLANNED` | Observação mínima de Route/Activity orchestration, se necessária, preservando happy path e result kinds existentes. |
+| F18D | `CLOSED / GATE BLOCKER RELATIONSHIP APPLIED` | Relação lógica entre operação ativa de Transition e Gate blocker, validada por smoke sintético. |
+| F18E | `NEXT` | Observação mínima de Route/Activity orchestration, se necessária, preservando happy path e result kinds existentes. |
 | F18F | `PLANNED` | Fechamento da fase, Usage Guide de Transition Orchestration e handoff para F19 Transition Effects. |
 
 Evidência F18C esperada após aplicação:
@@ -453,6 +453,13 @@ Evidência F18C esperada após aplicação:
 ```text
 QA Smoke completed. name='Transition Diagnostics Smoke'.
 Steps: plan, succeeded-result, warnings-result, failed-result, snapshot.
+```
+
+Evidência F18D esperada após aplicação:
+
+```text
+QA Smoke completed. name='Transition Gate Blocker Relationship Smoke'.
+Steps: blocker-created, running-blocks-lifecycle, completed-releases-blocker, failed-releases-blocker.
 ```
 
 F18 não implementa:
@@ -508,4 +515,6 @@ F18B fechado: foram criadas primitivas passivas em `Runtime/Transition/` para op
 
 F18C fechado: foi criado `Run Transition Diagnostics Smoke`, um smoke sintético que valida shapes de `TransitionPlan`, `TransitionResult` e `TransitionSnapshot` sem trocar cenas e sem integrar Route/Activity.
 
-Entrada de F18D: criar relação lógica entre operação ativa de Transition e Gate blocker, ainda sem visual fade/loading, Pause menu, input real, gameplay object model, reset contextual de Player/Actor/NPC/Timer/Door/Pickup, lifecycle paralelo ou service locator. Fade/loading/curtain ficam para F19 como adapters/effects depois do contrato lógico.
+F18D fechado: foi criado `TransitionGateBlockerPolicy`, que descreve uma operação ativa de Transition como `GateBlocker` passivo para `GameFlow/LifecycleRequest`, e `Run Transition Gate Blocker Smoke`, que valida criação do blocker, bloqueio sintético durante operação e liberação sintética em sucesso/falha.
+
+Entrada de F18E: observar a orquestração de Route/Activity de forma mínima, se necessária, preservando happy path e result kinds existentes. Ainda sem visual fade/loading, Pause menu, input real, gameplay object model, reset contextual de Player/Actor/NPC/Timer/Door/Pickup, lifecycle paralelo ou service locator. Fade/loading/curtain ficam para F19 como adapters/effects depois do contrato lógico.

@@ -1,6 +1,6 @@
 # F18-ADR-TRANSITION-001 - Transition Orchestration
 
-Status: Accepted / F18C Diagnostics Smoke  
+Status: Accepted / F18D Gate Blocker Relationship  
 Phase: F18 - Transition Orchestration Foundation  
 Type: Framework Core / Flow Orchestration / Boundary  
 Last updated: 2026-06-26
@@ -141,8 +141,8 @@ F18B also adds `FrameworkIdentityDomain.Transition` so operation identity stays 
 | F18A | ADR implementation plan | Documentation only. Accept boundary and define implementation sequence. |
 | F18B | Transition primitives | CLOSED. Passive types for operation identity, kind, phase/status, plan/result/snapshot. |
 | F18C | Transition diagnostics smoke | CLOSED. Synthetic QA runner for valid/warning/failed transition plan/result/snapshot shapes without scene changes. |
-| F18D | Gate blocker relationship | NEXT. Logical helper that maps active transition operations to Gate blockers without Pause or visual effects. |
-| F18E | Route/Activity orchestration observation | Minimal integration with existing route/activity request path only if needed, preserving happy-path result kinds. |
+| F18D | Gate blocker relationship | CLOSED. Passive policy/helper and synthetic smoke that map active transition operations to Gate blockers without applying runtime Gate state. |
+| F18E | Route/Activity orchestration observation | NEXT. Minimal observation of existing route/activity request path only if needed, preserving happy-path result kinds. |
 | F18F | Closure / handoff to F19 | Document evidence and hand off to Transition Effects adapters. |
 
 The sequence may be adjusted if implementation shows a smaller safe path, but F18 must remain orchestration-only.
@@ -170,7 +170,7 @@ The identity domain is extended with:
 FrameworkIdentityDomain.Transition
 ```
 
-F18B does not add runtime ownership, operation registry, route/activity integration, Gate blocker mapping, fade/loading/curtain, visual progress, UI, Pause or input.
+F18B does not add runtime ownership, operation registry, route/activity integration, runtime Gate blocker registration, fade/loading/curtain, visual progress, UI, Pause or input.
 
 ---
 
@@ -205,9 +205,53 @@ QA Transition Diagnostics Smoke step completed. step='snapshot' ...
 QA Smoke completed. name='Transition Diagnostics Smoke'.
 ```
 
-F18C does not create scene changes, Route/Activity integration, Transition registry, Gate blocker mapping, fade/loading/curtain, visual progress, UI, Pause or input.
+F18C does not create scene changes, Route/Activity integration, Transition registry, runtime Gate blocker registration, fade/loading/curtain, visual progress, UI, Pause or input.
 
-## 10. Required Diagnostics
+
+---
+
+## 10. F18D Implemented Evidence
+
+F18D adds a passive relationship between a logical Transition operation and Gate blockers:
+
+```text
+Runtime/Transition/TransitionGateBlockerPolicy.cs
+Runtime/Diagnostics/TransitionGateBlockerQaSmokeRunner.cs
+Framework QA Canvas -> Run Transition Gate Blocker Smoke
+```
+
+The helper describes a running Transition as a lifecycle request Gate blocker:
+
+```text
+blocker='transition-operation-in-flight'
+scope='GameFlow'
+domain='LifecycleRequest'
+policySource='F18D.TransitionGateBlocker'
+```
+
+The smoke validates:
+
+```text
+blocker-created
+running-blocks-lifecycle
+completed-releases-blocker
+failed-releases-blocker
+```
+
+The expected smoke envelope is:
+
+```text
+QA Smoke started. name='Transition Gate Blocker Relationship Smoke'.
+QA Transition Gate Blocker Smoke step completed. step='blocker-created' ...
+QA Transition Gate Blocker Smoke step completed. step='running-blocks-lifecycle' ...
+QA Transition Gate Blocker Smoke step completed. step='completed-releases-blocker' ...
+QA Transition Gate Blocker Smoke step completed. step='failed-releases-blocker' ...
+QA Smoke completed. name='Transition Gate Blocker Relationship Smoke'.
+```
+
+F18D does not register Gate state, mutate GameFlow, change Route/Activity requests, create a Transition registry, create fade/loading/curtain, introduce Pause/Input/UI or add a lifecycle owner.
+
+## 11. Required Diagnostics
 
 Transition diagnostics should be able to answer:
 
@@ -225,9 +269,9 @@ Diagnostics must be facts/loggable summaries, not hidden state inside scene obje
 
 ---
 
-## 11. Excluded From F18A-F18C
+## 12. Excluded From F18A-F18D
 
-F18A-F18C do not implement or require:
+F18A-F18D do not implement or require:
 
 ```text
 fade visual
