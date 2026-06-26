@@ -295,6 +295,11 @@ namespace Immersive.Framework.Diagnostics
                     RunObjectEntryRuntimeContextSnapshotSmoke();
                 }
 
+                if (GUILayout.Button("Run Object Entry Runtime Host Snapshot Exposure Smoke"))
+                {
+                    RunObjectEntryRuntimeHostSnapshotExposureSmoke();
+                }
+
                 if (GUILayout.Button("Validate Loaded Authoring"))
                 {
                     ValidateLoadedLocalContributionsAuthoring();
@@ -789,6 +794,12 @@ namespace Immersive.Framework.Diagnostics
         {
             await RunSmokeAsync(ObjectEntryQaSmokeRunner.RuntimeContextSnapshotSmokeName, runtimeHost =>
                 ObjectEntryQaSmokeRunner.RunRuntimeContextSnapshotSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunObjectEntryRuntimeHostSnapshotExposureSmoke()
+        {
+            await RunSmokeAsync(ObjectEntryQaSmokeRunner.RuntimeHostSnapshotExposureSmokeName, runtimeHost =>
+                ObjectEntryQaSmokeRunner.RunRuntimeHostSnapshotExposureSmokeAsync(runtimeHost, _logger, QaSource));
         }
 
         private async void RunStandardSmoke()

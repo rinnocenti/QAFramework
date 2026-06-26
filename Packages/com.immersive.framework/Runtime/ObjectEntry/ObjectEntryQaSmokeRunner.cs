@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Diagnostics;
 using Immersive.Framework.Identity;
 using Immersive.Logging.Records;
@@ -24,6 +25,8 @@ namespace Immersive.Framework.ObjectEntry
         internal const string RuntimeIntegrationSmokeName = "Object Entry Runtime Integration Smoke";
 
         internal const string RuntimeContextSnapshotSmokeName = "Object Entry Runtime Context Snapshot Smoke";
+
+        internal const string RuntimeHostSnapshotExposureSmokeName = "Object Entry Runtime Host Snapshot Exposure Smoke";
 
         internal static Task<bool> RunSyntheticSetSmokeAsync(
             FrameworkLogger logger,
@@ -402,6 +405,101 @@ namespace Immersive.Framework.ObjectEntry
             }
         }
 
+
+        internal static Task<bool> RunRuntimeHostSnapshotExposureSmokeAsync(
+            FrameworkRuntimeHost runtimeHost,
+            FrameworkLogger logger,
+            string source)
+        {
+            if (runtimeHost == null || logger == null)
+            {
+                return Task.FromResult(false);
+            }
+
+            source = string.IsNullOrWhiteSpace(source) ? nameof(ObjectEntryQaSmokeRunner) : source;
+
+            const string routeEntryId = "qa.object-entry.runtime-host.route";
+            const string activityEntryId = "qa.object-entry.runtime-host.activity";
+
+            GameObject routeObject = null;
+            GameObject activityObject = null;
+
+            try
+            {
+                routeObject = new GameObject("QA_ObjectEntryRuntimeHost_Route");
+                activityObject = new GameObject("QA_ObjectEntryRuntimeHost_Activity");
+
+                var routeDeclaration = routeObject.AddComponent<ObjectEntryDeclaration>();
+                routeDeclaration.ConfigureForQa(
+                    routeEntryId,
+                    ObjectEntryScope.Route,
+                    ObjectEntryRequiredness.Required,
+                    "QA Runtime Host Route Entry");
+
+                var activityDeclaration = activityObject.AddComponent<ObjectEntryDeclaration>();
+                activityDeclaration.ConfigureForQa(
+                    activityEntryId,
+                    ObjectEntryScope.Activity,
+                    ObjectEntryRequiredness.Optional,
+                    "QA Runtime Host Activity Entry");
+                activityObject.SetActive(false);
+
+                var snapshot = runtimeHost.RefreshObjectEntryRuntimeContextSnapshot(source);
+                bool hostSnapshotAvailable = runtimeHost.TryGetObjectEntryRuntimeContextSnapshot(out var hostedSnapshot);
+
+                if (!hostSnapshotAvailable || !ReferenceEquals(snapshot, hostedSnapshot))
+                {
+                    logger.Warning("QA Object Entry Runtime Host Snapshot Exposure Smoke step failed. step='runtime-host-snapshot' reason='Runtime Host did not expose the refreshed Object Entry snapshot'.");
+                    return Task.FromResult(false);
+                }
+
+                if (!ValidateRuntimeHostSnapshotExposure(logger, hostedSnapshot, routeEntryId, activityEntryId))
+                {
+                    return Task.FromResult(false);
+                }
+
+                logger.Info(
+                    "QA Object Entry Runtime Host Snapshot Exposure Smoke step completed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "runtime-host-snapshot"),
+                        LogFields.Field("source", source),
+                        LogFields.Field("hostSnapshotAvailable", hostSnapshotAvailable),
+                        LogFields.Field("snapshotAvailable", hostedSnapshot.IsAvailable),
+                        LogFields.Field("resultStatus", hostedSnapshot.Status.ToString()),
+                        LogFields.Field("declarations", hostedSnapshot.DeclarationCount),
+                        LogFields.Field("candidateDescriptors", hostedSnapshot.CandidateDescriptorCount),
+                        LogFields.Field("acceptedDeclarations", hostedSnapshot.AcceptedDeclarationCount),
+                        LogFields.Field("rejectedDeclarations", hostedSnapshot.RejectedDeclarationCount),
+                        LogFields.Field("objectEntries", hostedSnapshot.Count),
+                        LogFields.Field("required", hostedSnapshot.RequiredCount),
+                        LogFields.Field("optional", hostedSnapshot.OptionalCount),
+                        LogFields.Field("route", hostedSnapshot.GetByScope(ObjectEntryScope.Route).Count),
+                        LogFields.Field("activity", hostedSnapshot.GetByScope(ObjectEntryScope.Activity).Count),
+                        LogFields.Field("session", hostedSnapshot.GetByScope(ObjectEntryScope.Session).Count),
+                        LogFields.Field("qaRouteFound", true),
+                        LogFields.Field("qaActivityFound", true),
+                        LogFields.Field("blockingIssues", hostedSnapshot.BlockingIssueCount),
+                        LogFields.Field("nonBlockingIssues", hostedSnapshot.NonBlockingIssueCount),
+                        LogFields.Field("summary", hostedSnapshot.Summary)));
+
+                return Task.FromResult(true);
+            }
+            catch (Exception exception)
+            {
+                logger.Warning(
+                    "QA Object Entry Runtime Host Snapshot Exposure Smoke step failed.",
+                    LogFields.Of(
+                        LogFields.Field("step", "runtime-host-snapshot"),
+                        LogFields.Field("reason", exception.Message)));
+                return Task.FromResult(false);
+            }
+            finally
+            {
+                DestroyQaObject(routeObject);
+                DestroyQaObject(activityObject);
+            }
+        }
+
         private static bool ValidateSet(
             FrameworkLogger logger,
             ObjectEntrySet set,
@@ -619,6 +717,54 @@ namespace Immersive.Framework.ObjectEntry
                 || activityDescriptor.SourceKind != ObjectEntrySourceKind.SceneAuthored)
             {
                 logger.Warning($"QA Object Entry Runtime Context Snapshot Smoke step failed. step='runtime-context-snapshot' reason='QA Activity declaration was not present in snapshot'. {snapshot.Summary}");
+                return false;
+            }
+
+            return true;
+        }
+
+
+        private static bool ValidateRuntimeHostSnapshotExposure(
+            FrameworkLogger logger,
+            ObjectEntryRuntimeContextSnapshot snapshot,
+            string routeEntryId,
+            string activityEntryId)
+        {
+            if (snapshot == null)
+            {
+                logger.Warning("QA Object Entry Runtime Host Snapshot Exposure Smoke step failed. step='runtime-host-snapshot' reason='Snapshot was missing'.");
+                return false;
+            }
+
+            if (!snapshot.IsAvailable || snapshot.Failed || snapshot.BlockingIssueCount != 0)
+            {
+                logger.Warning($"QA Object Entry Runtime Host Snapshot Exposure Smoke step failed. step='runtime-host-snapshot' reason='Snapshot was not available'. {snapshot.Summary}");
+                return false;
+            }
+
+            if (snapshot.Count < 2 || snapshot.DeclarationCount < 2 || snapshot.CandidateDescriptorCount < 2)
+            {
+                logger.Warning($"QA Object Entry Runtime Host Snapshot Exposure Smoke step failed. step='runtime-host-snapshot' reason='Snapshot counts were too low'. {snapshot.Summary}");
+                return false;
+            }
+
+            var routeId = ObjectEntryId.From(routeEntryId);
+            if (!snapshot.TryGet(routeId, out var routeDescriptor)
+                || routeDescriptor.Scope != ObjectEntryScope.Route
+                || routeDescriptor.Requiredness != ObjectEntryRequiredness.Required
+                || routeDescriptor.SourceKind != ObjectEntrySourceKind.SceneAuthored)
+            {
+                logger.Warning($"QA Object Entry Runtime Host Snapshot Exposure Smoke step failed. step='runtime-host-snapshot' reason='QA Route declaration was not present in Runtime Host snapshot'. {snapshot.Summary}");
+                return false;
+            }
+
+            var activityId = ObjectEntryId.From(activityEntryId);
+            if (!snapshot.TryGet(activityId, out var activityDescriptor)
+                || activityDescriptor.Scope != ObjectEntryScope.Activity
+                || activityDescriptor.Requiredness != ObjectEntryRequiredness.Optional
+                || activityDescriptor.SourceKind != ObjectEntrySourceKind.SceneAuthored)
+            {
+                logger.Warning($"QA Object Entry Runtime Host Snapshot Exposure Smoke step failed. step='runtime-host-snapshot' reason='QA Activity declaration was not present in Runtime Host snapshot'. {snapshot.Summary}");
                 return false;
             }
 

@@ -9,6 +9,7 @@ using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.SessionLifecycle;
 using Immersive.Framework.RuntimeContent;
 using Immersive.Framework.CycleReset;
+using Immersive.Framework.ObjectEntry;
 using UnityEngine;
 using Immersive.Framework.ApiStatus;
 using Immersive.Logging.Records;
@@ -31,6 +32,7 @@ namespace Immersive.Framework.ApplicationLifecycle
         private RuntimeContentRuntime _runtimeContentRuntime;
         private RuntimeContentAnchorBinding _contentAnchorBindingRuntime;
         private RuntimeScopeLifecycleResult _runtimeSessionScopeResult;
+        private ObjectEntryRuntimeContextSnapshot _objectEntryRuntimeContextSnapshot;
         private FrameworkRuntimeState _state;
         private FrameworkLogger _logger;
 
@@ -51,6 +53,20 @@ namespace Immersive.Framework.ApplicationLifecycle
         }
 
         internal int ContentAnchorBindingCount => _contentAnchorBindingRuntime != null ? _contentAnchorBindingRuntime.BindingCount : 0;
+
+        internal bool TryGetObjectEntryRuntimeContextSnapshot(out ObjectEntryRuntimeContextSnapshot snapshot)
+        {
+            snapshot = _objectEntryRuntimeContextSnapshot;
+            return snapshot != null;
+        }
+
+        internal ObjectEntryRuntimeContextSnapshot RefreshObjectEntryRuntimeContextSnapshot(string source)
+        {
+            var declarationSource = new ObjectEntryDeclarationSource(includeInactiveDeclarations: true);
+            var result = declarationSource.CollectLoadedSceneDeclarations();
+            _objectEntryRuntimeContextSnapshot = result.ToRuntimeContextSnapshot(source);
+            return _objectEntryRuntimeContextSnapshot;
+        }
 
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
