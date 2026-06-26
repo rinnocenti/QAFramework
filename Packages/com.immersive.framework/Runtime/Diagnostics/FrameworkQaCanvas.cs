@@ -42,6 +42,7 @@ namespace Immersive.Framework.Diagnostics
         private bool _requestInFlight;
         private bool _showAdvancedControls;
         private bool _showTransitionEffectDiagnostics;
+        private bool _showPauseDiagnostics;
         private bool _showRouteContentDiagnostics;
         private bool _showFoundationDiagnostics;
         private bool _showResetObjectDiagnostics;
@@ -280,6 +281,12 @@ namespace Immersive.Framework.Diagnostics
                 DrawTransitionEffectDiagnosticSmokeControls();
             }
 
+            _showPauseDiagnostics = GUILayout.Toggle(_showPauseDiagnostics, "Show Pause diagnostics");
+            if (_showPauseDiagnostics)
+            {
+                DrawPauseDiagnosticSmokeControls();
+            }
+
             _showRouteContentDiagnostics = GUILayout.Toggle(_showRouteContentDiagnostics, "Show Route / Content diagnostics");
             if (_showRouteContentDiagnostics)
             {
@@ -339,6 +346,21 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Transition Effect Policy Guardrails Smoke"))
                 {
                     RunTransitionEffectPolicyGuardrailsSmoke();
+                }
+            }
+        }
+
+        private void DrawPauseDiagnosticSmokeControls()
+        {
+            GUILayout.Space(4f);
+            GUILayout.Label("Pause Diagnostics", GUI.skin.box);
+            GUILayout.Label("Synthetic F20 diagnostics. No input, overlay, Gate execution or Time.timeScale changes.");
+
+            using (new EditorDisabledScope(_requestInFlight))
+            {
+                if (GUILayout.Button("Run Pause Diagnostics Smoke"))
+                {
+                    RunPauseDiagnosticsSmoke();
                 }
             }
         }
@@ -792,6 +814,12 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(TransitionEffectPolicyQaSmokeRunner.SmokeName, runtimeHost =>
                 TransitionEffectPolicyQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunPauseDiagnosticsSmoke()
+        {
+            await RunSmokeAsync(PauseQaSmokeRunner.SmokeName, runtimeHost =>
+                PauseQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
         }
 
         private async void RunCycleResetRuntimeHostSmoke()

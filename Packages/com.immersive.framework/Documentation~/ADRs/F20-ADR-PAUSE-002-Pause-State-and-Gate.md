@@ -1,6 +1,6 @@
 # F20-ADR-PAUSE-002 - Pause State and Gate
 
-Status: Accepted / In Progress through F20B  
+Status: Accepted / In Progress through F20C  
 Phase: F20 - Pause State and Pause Gate  
 Type: Framework Core / Pause / Gate Consumer  
 Last updated: 2026-06-26
@@ -126,7 +126,7 @@ The canonical contract must remain Pause state, Gate effects and explicit facts.
 |---|---|---|---|
 | F20A | `CLOSED / ADR PLAN ACCEPTED` | Accept Pause State/Gate boundary and implementation order. | None. Documentation only. |
 | F20B | `CLOSED / PRIMITIVES APPLIED` | Add passive Pause primitives: state, request/result, reason/source, snapshot and issue/fact shape. | None. No scene/object/SO. |
-| F20C | `NEXT / PLANNED` | Add synthetic Pause diagnostics smoke for pause/resume/reject/idempotent cases. | None expected. |
+| F20C | `CLOSED / DIAGNOSTICS SMOKE APPLIED` | Add synthetic Pause diagnostics smoke for request, pause applied, resume applied, toggle target, idempotent/no-change, rejected and snapshot cases. | None. No scene/object/SO/input/Gate/timeScale. |
 | F20D | `PLANNED` | Add passive Pause-to-Gate blocker policy and smoke. | None expected. No runtime Gate registry. |
 | F20E | `PLANNED` | Add minimal runtime Pause request path, likely through `FrameworkRuntimeHost`, without overlay/input ownership. | No saved scene setup expected unless the cut explicitly says otherwise. |
 | F20F | `PLANNED` | Close F20 with Usage Guide and handoff to F21 Pause Content/Overlay/Input Boundary. | Usage guide only. |
@@ -226,4 +226,47 @@ These types are data/diagnostics only. They do not read input, open menu content
 
 `FrameworkIdentityDomain.Pause = 160` is reserved for Pause request identity.
 
-F20C must validate these shapes through a synthetic QA smoke before a runtime request path is introduced.
+F20C validates these shapes through a synthetic QA smoke before a runtime request path is introduced.
+
+
+---
+
+## 14. F20C Diagnostics Smoke
+
+F20C adds the synthetic QA smoke:
+
+```text
+Run Pause Diagnostics Smoke
+```
+
+The smoke is exposed under:
+
+```text
+Show Pause diagnostics
+```
+
+Validated steps:
+
+```text
+request
+pause-applied-result
+resume-applied-result
+toggle-target-state
+ignored-no-change-result
+rejected-result
+snapshot
+```
+
+The smoke validates passive Pause shapes only. It does not:
+
+```text
+read input
+open overlay/menu content
+execute a runtime Pause request path
+register a real Gate blocker
+change Time.timeScale
+change Route/Activity lifecycle
+create scene objects, Canvas, prefab or ScriptableObject assets
+```
+
+F20D is the next cut and should define the passive Pause-to-Gate blocker relationship before a real runtime request path is introduced.
