@@ -1,6 +1,6 @@
 # F20-ADR-PAUSE-002 - Pause State and Gate
 
-Status: Accepted / In Progress through F20C  
+Status: Accepted / In Progress through F20E  
 Phase: F20 - Pause State and Pause Gate  
 Type: Framework Core / Pause / Gate Consumer  
 Last updated: 2026-06-26
@@ -127,8 +127,8 @@ The canonical contract must remain Pause state, Gate effects and explicit facts.
 | F20A | `CLOSED / ADR PLAN ACCEPTED` | Accept Pause State/Gate boundary and implementation order. | None. Documentation only. |
 | F20B | `CLOSED / PRIMITIVES APPLIED` | Add passive Pause primitives: state, request/result, reason/source, snapshot and issue/fact shape. | None. No scene/object/SO. |
 | F20C | `CLOSED / DIAGNOSTICS SMOKE APPLIED` | Add synthetic Pause diagnostics smoke for request, pause applied, resume applied, toggle target, idempotent/no-change, rejected and snapshot cases. | None. No scene/object/SO/input/Gate/timeScale. |
-| F20D | `PLANNED` | Add passive Pause-to-Gate blocker policy and smoke. | None expected. No runtime Gate registry. |
-| F20E | `PLANNED` | Add minimal runtime Pause request path, likely through `FrameworkRuntimeHost`, without overlay/input ownership. | No saved scene setup expected unless the cut explicitly says otherwise. |
+| F20D | `CLOSED / PAUSE GATE BLOCKER POLICY APPLIED` | Add passive Pause-to-Gate blocker policy and smoke. | None. No runtime Gate registry. |
+| F20E | `CLOSED / MINIMAL RUNTIME REQUEST PATH APPLIED` | Add `PauseRuntime`, `FrameworkRuntimeHost.RequestPause(...)`, runtime Pause snapshot and derived Pause Gate snapshot diagnostics. | None. No saved scene setup, input, overlay, `Time.timeScale` or Gate registry. |
 | F20F | `PLANNED` | Close F20 with Usage Guide and handoff to F21 Pause Content/Overlay/Input Boundary. | Usage guide only. |
 
 ---
@@ -269,4 +269,82 @@ change Route/Activity lifecycle
 create scene objects, Canvas, prefab or ScriptableObject assets
 ```
 
-F20D is the next cut and should define the passive Pause-to-Gate blocker relationship before a real runtime request path is introduced.
+F20D defined the passive Pause-to-Gate blocker relationship before a real runtime request path was introduced.
+
+
+## 15. F20D Pause-to-Gate Blocker Policy
+
+F20D adds the passive `PauseGateBlockerPolicy` and the synthetic QA smoke `Pause Gate Blocker Policy Smoke`.
+
+The policy describes this relationship only as data:
+
+```text
+Pause state Paused
+→ GateSnapshot with pause blockers
+→ Gameplay/GameAction blocked
+→ Interaction/InteractionAcceptance blocked
+→ Pause/PauseRequest remains allowed
+```
+
+The policy does not register blockers in a global Gate registry, does not mutate GameFlow, does not own input, does not show an overlay, and does not change `Time.timeScale`.
+
+Smoke coverage:
+
+```text
+paused-blockers-created
+paused-blocks-gameplay-action
+paused-blocks-interaction-acceptance
+pause-request-remains-allowed
+running-releases-blockers
+rejected-resume-keeps-blockers
+```
+
+## 16. F20E Minimal Runtime Request Path
+
+F20E adds the first real in-memory Pause request execution path:
+
+```text
+FrameworkRuntimeHost.RequestPause(...)
+  -> PauseRuntime.Request(PauseRequest)
+  -> PauseResult
+  -> PauseSnapshot
+  -> PauseGateBlockerPolicy-derived GateSnapshot
+```
+
+This path mutates only the framework Pause state held by `PauseRuntime`.
+
+It does not:
+
+```text
+read input
+show Pause menu
+show overlay
+create Canvas/prefab/ScriptableObject
+change Time.timeScale
+own Route/Activity lifecycle
+register blockers in a global Gate runtime
+create a service locator
+```
+
+F20E adds the QA smoke:
+
+```text
+Show Pause diagnostics
+Run Pause Runtime Request Smoke
+```
+
+Expected smoke steps:
+
+```text
+ensure-running
+pause-request-applied
+paused-gate-blocks-gameplay
+toggle-request-resumes
+resume-no-change
+snapshot-running
+```
+
+The smoke intentionally leaves Pause state as `Running` when it completes.
+
+F20F should close the phase with a Usage Guide and handoff to F21 Pause Content/Overlay/Input Boundary.
+

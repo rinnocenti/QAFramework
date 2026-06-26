@@ -15,6 +15,7 @@ using UnityEngine;
 using Immersive.Framework.ApiStatus;
 using Immersive.Logging.Records;
 using Immersive.Framework.Gate;
+using Immersive.Framework.Pause;
 
 namespace Immersive.Framework.ApplicationLifecycle
 {
@@ -31,6 +32,8 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         private GameApplicationAsset _gameApplication;
         private GameFlowRuntime _gameFlowRuntime;
+        private PauseRuntime _pauseRuntime;
+        private int _pauseRequestSequence;
         private RuntimeContentRuntime _runtimeContentRuntime;
         private RuntimeContentAnchorBinding _contentAnchorBindingRuntime;
         private RuntimeScopeLifecycleResult _runtimeSessionScopeResult;
@@ -47,6 +50,22 @@ namespace Immersive.Framework.ApplicationLifecycle
         public FrameworkRuntimeState State => _state;
 
         public SessionRuntimeState SessionState => _state.SessionState;
+
+        internal PauseState PauseState => _pauseRuntime != null ? _pauseRuntime.State : PauseState.Unknown;
+
+        internal GateSnapshot PauseGateSnapshot => _pauseRuntime != null ? _pauseRuntime.GateSnapshot : GateSnapshot.Empty();
+
+        internal bool TryGetPauseSnapshot(out PauseSnapshot snapshot)
+        {
+            if (_pauseRuntime == null)
+            {
+                snapshot = default;
+                return false;
+            }
+
+            snapshot = _pauseRuntime.Snapshot;
+            return true;
+        }
 
         internal RuntimeContentRuntime RuntimeContentRuntime => _runtimeContentRuntime;
 
@@ -230,6 +249,38 @@ namespace Immersive.Framework.ApplicationLifecycle
             return result;
         }
 
+        internal PauseResult RequestPause(PauseRequestKind kind, string source, string reason)
+        {
+            return RequestPause(CreatePauseRequest(kind, source, reason));
+        }
+
+        internal PauseResult RequestPause(PauseRequest request)
+        {
+            if (_pauseRuntime == null)
+            {
+                throw new InvalidOperationException("Pause runtime is not initialized.");
+            }
+
+            var result = _pauseRuntime.Request(request);
+            LogPauseRequestResult(result);
+            return result;
+        }
+
+        internal GateEvaluationResult EvaluatePauseGateAdmission(
+            GateScope scope,
+            GateDomain domain,
+            string subject,
+            string source,
+            string reason)
+        {
+            if (_pauseRuntime == null)
+            {
+                throw new InvalidOperationException("Pause runtime is not initialized.");
+            }
+
+            return _pauseRuntime.EvaluateGate(scope, domain, subject, source, reason);
+        }
+
         internal async Task<ObjectResetResult> RequestObjectResetAsync(ObjectResetRequest request)
         {
             if (_objectResetRuntime == null)
@@ -295,6 +346,7 @@ namespace Immersive.Framework.ApplicationLifecycle
             _gameApplication = application;
             _runtimeContentRuntime = new RuntimeContentRuntime();
             _contentAnchorBindingRuntime = new RuntimeContentAnchorBinding();
+            _pauseRuntime = new PauseRuntime();
             _runtimeSessionScopeResult = CreateSessionScopeRoot(application, "FrameworkRuntimeHost", "session-start");
             _gameFlowRuntime = new GameFlowRuntime(_runtimeContentRuntime, _contentAnchorBindingRuntime);
             _logger = FrameworkLogger.Create<FrameworkRuntimeHost>();
@@ -308,6 +360,22 @@ namespace Immersive.Framework.ApplicationLifecycle
             _lastObjectEntryRuntimeContextInvalidationReason = string.IsNullOrWhiteSpace(reason)
                 ? "lifecycle-boundary"
                 : reason.Trim();
+        }
+
+        private PauseRequest CreatePauseRequest(PauseRequestKind kind, string source, string reason)
+        {
+            if (!Enum.IsDefined(typeof(PauseRequestKind), kind) || kind == PauseRequestKind.Unknown)
+            {
+                throw new ArgumentOutOfRangeException(nameof(kind), kind, "Pause request kind must be explicit.");
+            }
+
+            _pauseRequestSequence++;
+            var requestId = $"framework.pause.{_pauseRequestSequence}.{kind.ToString().ToLowerInvariant()}";
+            return new PauseRequest(
+                PauseRequestId.From(requestId),
+                kind,
+                NormalizeLifecycleSource(source),
+                string.IsNullOrWhiteSpace(reason) ? "pause.request" : reason.Trim());
         }
 
         private static string NormalizeLifecycleSource(string source)
@@ -498,6 +566,24 @@ namespace Immersive.Framework.ApplicationLifecycle
             _logger.Error(result.Message);
         }
 
+        private void LogPauseRequestResult(PauseResult result)
+        {
+            if (result.Applied || result.IgnoredNoChange)
+            {
+                _logger.Info("Pause Request completed.", BuildPauseRequestFields(result));
+                _logger.Debug("Pause Request diagnostics. " + result.ToDiagnosticString());
+                return;
+            }
+
+            if (result.Rejected)
+            {
+                _logger.Warning("Pause Request rejected. " + result.ToDiagnosticString());
+                return;
+            }
+
+            _logger.Error("Pause Request failed. " + result.ToDiagnosticString());
+        }
+
         private void LogCycleResetResult(CycleResetResult result)
         {
             if (result.Succeeded || result.CompletedWithWarnings)
@@ -544,6 +630,31 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("participantBlockingFailures", result.ParticipantBlockingFailureCount),
                 LogFields.Field("blockingIssues", result.BlockingIssueCount),
                 LogFields.Field("nonBlockingIssues", result.NonBlockingIssueCount));
+        }
+
+        private LogField[] BuildPauseRequestFields(PauseResult result)
+        {
+            var gateSnapshot = PauseGateSnapshot;
+            return LogFields.Of(
+                LogFields.Field("request", result.RequestId.StableText),
+                LogFields.Field("kind", result.Kind.ToString()),
+                LogFields.Field("source", result.Request.Source),
+                LogFields.Field("reason", result.Request.Reason),
+                LogFields.Field("status", result.Status.ToString()),
+                LogFields.Field("previousState", result.PreviousState.ToString()),
+                LogFields.Field("currentState", result.CurrentState.ToString()),
+                LogFields.Field("completed", result.Completed),
+                LogFields.Field("applied", result.Applied),
+                LogFields.Field("ignoredNoChange", result.IgnoredNoChange),
+                LogFields.Field("rejected", result.Rejected),
+                LogFields.Field("failed", result.Failed),
+                LogFields.Field("stateChanged", result.StateChanged),
+                LogFields.Field("gateBlockers", gateSnapshot.BlockerCount),
+                LogFields.Field("blocksGameplay", gateSnapshot.IsBlocked(GateScope.Gameplay, GateDomain.GameplayAction)),
+                LogFields.Field("blocksInteraction", gateSnapshot.IsBlocked(GateScope.Interaction, GateDomain.InteractionAcceptance)),
+                LogFields.Field("blocksPauseRequest", gateSnapshot.IsBlocked(GateScope.Pause, GateDomain.PauseRequest)),
+                LogFields.Field("issues", result.IssueCount),
+                LogFields.Field("blockingIssues", result.BlockingIssueCount));
         }
 
         private LogField[] BuildCycleResetFields(CycleResetResult result)

@@ -33,8 +33,8 @@ Documentation~/Guides/F19-Transition-Effects-Usage.md
 Status:
 
 ```text
-F0-F19 closed/applied. F20 is in progress through F20C.
-F17 is Gate Foundation and is closed through F17E. F18 is Transition Orchestration Foundation and is closed through F18F. F19 is Transition Effects and is closed through F19F. F20A accepts the Pause State/Gate implementation plan. F20B introduces passive Pause state primitives under `Runtime/Pause`. F20C adds `Run Pause Diagnostics Smoke`.
+F0-F19 closed/applied. F20 is in progress through F20E.
+F17 is Gate Foundation and is closed through F17E. F18 is Transition Orchestration Foundation and is closed through F18F. F19 is Transition Effects and is closed through F19F. F20A accepts the Pause State/Gate implementation plan. F20B introduces passive Pause state primitives under `Runtime/Pause`. F20C adds `Run Pause Diagnostics Smoke`. F20D adds passive Pause-to-Gate blocker policy. F20E adds the minimal runtime Pause request path through `FrameworkRuntimeHost` and `PauseRuntime`.
 F17A realigned the plan/ADRs; F17B introduced passive Gate primitives; F17C routes existing in-flight request admission through Gate; F17D added a synthetic QA smoke for Gate admission diagnostics; F17E closes the phase without adding Pause, Transition runtime, UI or gameplay. F18A accepts the Transition Orchestration implementation plan. F18B introduces passive Transition primitives. F18C adds a synthetic Transition diagnostics smoke for plan/result/snapshot shapes. F18D adds a passive Transition-to-Gate blocker relationship and smoke. F18E adds a passive Route/Activity orchestration observation policy and smoke. F18F closes the phase with a Transition Orchestration usage guide and hands off to F19. F19A accepts the Transition Effects boundary/implementation plan. F19B introduces passive Transition Effect primitives under `Runtime/TransitionEffects`. F19C adds `Run Transition Effect Diagnostics Smoke`. F19D adds the minimal built-in Unity `UnityFadeCurtainEffectAdapter`, adapter contract and `Run Unity Fade Curtain Effect Adapter Smoke`. F19E adds required/optional effect policy guardrails and `Run Transition Effect Policy Guardrails Smoke`, using explicit adapter lists only. F19F closes the phase with `Documentation~/Guides/F19-Transition-Effects-Usage.md`, preserves the asset-free policy boundary, and compacts QA Canvas by hiding phase diagnostics behind foldouts. F20A accepts the Pause State/Gate implementation plan: Pause is state plus Gate blocker relationship, not Activity, menu, overlay, input system or `Time.timeScale` contract. F20B adds passive Pause primitives: `PauseRequestId`, `PauseState`, `PauseRequestKind`, `PauseRequestStatus`, `PauseIssue`, `PauseRequest`, `PauseResult` and `PauseSnapshot`. F20C validates pause/resume/toggle/idempotent/rejected/snapshot shapes through a synthetic QA smoke under the collapsed Pause diagnostics group. Fade/loading/curtain are F19 adapters/effects and are not core Transition.
 ```
 
@@ -67,7 +67,7 @@ Current planning axis:
 F17 - Gate Foundation / CLOSED
 F18 - Transition Orchestration Foundation / CLOSED
 F19 - Transition Effects / Loading and Fade Adapters / CLOSED
-F20 - Pause State and Pause Gate / IN PROGRESS / F20C DIAGNOSTICS SMOKE APPLIED
+F20 - Pause State and Pause Gate / IN PROGRESS / F20E MINIMAL RUNTIME REQUEST PATH APPLIED
 F21 - Pause Content / Overlay / Input Boundary / PLANNED
 F22+ - Advanced Consumers / Gameplay Capabilities
 ```
@@ -88,5 +88,14 @@ F20 pause note:
 F20B adds passive Pause primitives under `Runtime/Pause`. No scene object, Canvas, prefab or ScriptableObject is required.
 F20 remains the logical Pause core: state, request/result, snapshot/facts, policy and Gate blocker relationship. F20C remains synthetic and does not mutate runtime state.
 Pause visual content, overlay and input binding are F21 boundaries.
-F20C adds `Run Pause Diagnostics Smoke` under `Show Pause diagnostics`, validating passive Pause requests/results/snapshots without a runtime request path.
+F20C adds `Run Pause Diagnostics Smoke` under `Show Pause diagnostics`, validating passive Pause requests/results/snapshots. F20D adds `Run Pause Gate Blocker Smoke`. F20E adds `Run Pause Runtime Request Smoke`, which exercises the real in-memory Pause request path and leaves the runtime in `Running`.
 ```
+
+
+### F20D — Pause-to-Gate Blocker Policy
+
+F20D adds passive Pause-to-Gate blocker policy diagnostics. It does not create a Pause runtime owner, input binding, overlay, Time.timeScale adapter or Gate registry.
+
+### F20E — Minimal Runtime Pause Request Path
+
+F20E adds `PauseRuntime` and `FrameworkRuntimeHost.RequestPause(...)`. It mutates only in-memory Pause state and derived Pause Gate snapshots. It does not read input, show overlay/menu UI, change `Time.timeScale`, own Route/Activity lifecycle or register blockers in a global Gate runtime.

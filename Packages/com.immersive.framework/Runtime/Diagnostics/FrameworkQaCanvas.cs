@@ -221,6 +221,10 @@ namespace Immersive.Framework.Diagnostics
             GUILayout.Label($"Active Route: {GetName(state.CurrentRouteName, "<none>")}");
             GUILayout.Label($"Active Activity: {GetName(state.CurrentActivityName, "<none>")}");
             GUILayout.Label($"Content Anchor Bindings: {runtimeHost.ContentAnchorBindingCount}");
+            if (runtimeHost.TryGetPauseSnapshot(out var pauseSnapshot))
+            {
+                GUILayout.Label($"Pause State: {pauseSnapshot.State} / Gate blockers: {runtimeHost.PauseGateSnapshot.BlockerCount}");
+            }
         }
 
         private void DrawQaScenarioSummary()
@@ -354,13 +358,23 @@ namespace Immersive.Framework.Diagnostics
         {
             GUILayout.Space(4f);
             GUILayout.Label("Pause Diagnostics", GUI.skin.box);
-            GUILayout.Label("Synthetic F20 diagnostics. No input, overlay, Gate execution or Time.timeScale changes.");
+            GUILayout.Label("F20 diagnostics and minimal runtime request path. No input, overlay or Time.timeScale changes.");
 
             using (new EditorDisabledScope(_requestInFlight))
             {
                 if (GUILayout.Button("Run Pause Diagnostics Smoke"))
                 {
                     RunPauseDiagnosticsSmoke();
+                }
+
+                if (GUILayout.Button("Run Pause Gate Blocker Smoke"))
+                {
+                    RunPauseGateBlockerSmoke();
+                }
+
+                if (GUILayout.Button("Run Pause Runtime Request Smoke"))
+                {
+                    RunPauseRuntimeRequestSmoke();
                 }
             }
         }
@@ -820,6 +834,18 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(PauseQaSmokeRunner.SmokeName, runtimeHost =>
                 PauseQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunPauseGateBlockerSmoke()
+        {
+            await RunSmokeAsync(PauseGateBlockerQaSmokeRunner.SmokeName, runtimeHost =>
+                PauseGateBlockerQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunPauseRuntimeRequestSmoke()
+        {
+            await RunSmokeAsync(PauseRuntimeRequestQaSmokeRunner.SmokeName, runtimeHost =>
+                PauseRuntimeRequestQaSmokeRunner.RunRuntimeRequestSmokeAsync(runtimeHost, _logger, QaSource));
         }
 
         private async void RunCycleResetRuntimeHostSmoke()
