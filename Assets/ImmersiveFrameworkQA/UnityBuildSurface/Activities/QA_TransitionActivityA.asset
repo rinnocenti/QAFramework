@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.ActivityAsset
   activityName: QA Transition Activity A
   description: Unity Build Surface QA activity for transition route A.
+  activityContentProfile: {fileID: 11400000, guid: 630d293a74f1d1c4d8e320ac811a3317, type: 2}
   visualTransitionMode: 0

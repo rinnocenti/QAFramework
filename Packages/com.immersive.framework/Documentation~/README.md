@@ -24,7 +24,7 @@ Read the documentation in this order:
 | F22 | Loading Operation / Progress / Readiness Boundary | Closed |
 | F23 | Pause Content / Overlay / Input Intent Boundary | Closed |
 | F24 | Unity Build Surface / Lifecycle Wiring | Next |
-| F25 | Adapter Module Foundation | Deferred after F24 |
+| F25 | Activity Content Scene Composition | Current after F24 visual policy |
 
 ## F23 Boundary
 
@@ -63,10 +63,26 @@ Project documentation now splits the UIGlobal work into `F24E1 - Surface/Loading
 
 ## F25 Boundary
 
-F25 is Adapter Module Foundation. It is broader than gameplay-only work and can later cover gameplay, camera, audio, input, advanced save authoring, pooling/runtime spawned objects, actor/player/NPC, inventory, combat, projectile and damage adapters.
+F25 opens as Activity Content Scene Composition. It is framework lifecycle/content core, not a gameplay adapter track. Later adapter module work can still cover gameplay, camera, audio, input, advanced save authoring, pooling/runtime spawned objects, actor/player/NPC, inventory, combat, projectile and damage adapters after the Activity content boundary is stable.
 
-F25 must consume framework contracts and F24 Unity build surfaces. It must not create a parallel lifecycle pipeline or move optional subsystem behavior into framework core.
+F25 must consume F24 Unity build surfaces and must not create a parallel lifecycle pipeline or move optional subsystem behavior into framework core.
 
 `F24F - Activity Transition Policy` adds an Activity-level authoring policy for optional Activity transitions. Route transitions remain mandatory; Activity loading remains skipped until real Activity content/scene loading exists.
 
 `F24F1 - Activity Loading Reserved Finding` marks `FadeWithLoading` as reserved. Activity loading remains `SkippedNoSceneLoad` until an Activity content composition track adds `ActivityContentProfile`, Activity scene composition plan/result, execution and release.
+
+## F25 Activity Content Scene Composition
+
+F25 now opens with Activity content scene composition before broader adapter modules.
+
+`F25A - Activity Content Profile Contract` adds declaration-only Activity content authoring:
+
+- `ActivityContentProfileAsset`
+- `ActivityContentSceneEntry`
+- `ActivityContentSceneLoadMode`
+- `ActivityContentReleasePolicy`
+- `ActivityAsset.ActivityContentProfile`
+
+F25A does not load Activity scenes. Activity loading remains `SkippedNoSceneLoad` until Activity scene composition execution is implemented in a later F25 cut.
+
+Project plan: `Assets/_Documentation/Plans/F25-PLAN-Activity-Content-Scene-Composition.md`.

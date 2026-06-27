@@ -16,7 +16,7 @@ namespace Immersive.Framework.Authoring
         Fade = 10,
 
         /// <summary>
-        /// Reserved for future Activity content/scene loading. Until ActivityContentProfile and Activity scene composition exist, this behaves as Fade and keeps Loading skipped.
+        /// Reserved for future Activity content/scene loading. Until Activity scene composition execution exists, this behaves as Fade and keeps Loading skipped.
         /// </summary>
         FadeWithLoading = 20
     }

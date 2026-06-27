@@ -347,3 +347,9 @@ Accepted behavior:
 - F25 must own Activity content scene composition.
 
 Boundary: no Activity scenes, no ActivityContentProfile, no Activity scene loader, no Activity release, no Route transition/loading change.
+
+## F25 handoff — Activity Content Scene Composition
+
+F24F/F24F1 closed the Activity visual transition policy and documented that `FadeWithLoading` is reserved while Activity has no real scene/content loading.
+
+F25A opens the Activity Content Scene Composition track with a declaration-only `ActivityContentProfile` contract. Runtime loading remains unchanged until later F25 cuts.

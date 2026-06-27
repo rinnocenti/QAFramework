@@ -1,0 +1,67 @@
+# F25 Plan — Activity Content Scene Composition
+
+## Status
+Current planning track
+
+## Purpose
+
+F25 adds Activity-owned scene/content declarations and prepares Activity content composition.
+
+The goal is to make Activity more than a state switch:
+
+```text
+Activity = identity + readiness + content profile + scene/content composition + release
+```
+
+## Boundary
+
+F25 belongs to framework lifecycle/content core, not adapter modules.
+
+Activity content scenes are still Unity Build Surface work, but the contracts must remain framework-owned and explicit.
+
+## Canonical ownership
+
+```text
+Session/App
+  -> UIGlobal persistent scene
+      -> TransitionSurface
+      -> LoadingSurface
+
+Route
+  -> Primary Scene
+  -> Route Content Profile
+
+Activity
+  -> Activity Content Profile
+      -> Activity-owned content scenes
+```
+
+## Planned cuts
+
+| Cut | Name | Scope |
+|---|---|---|
+| F25A | Activity Content Profile Contract | Authoring contract only. No scene loading. |
+| F25B | Activity Scene Composition Plan/Result | Plan/result language for Activity scene composition. No execution. |
+| F25C | Activity Scene Composition Execution | Load Activity content scenes and connect LoadingSurface when real loading exists. |
+| F25D | Activity Content Release | Release Activity-owned content according to policy. |
+
+## F25A acceptance
+
+- Activity can reference an Activity Content Profile.
+- Activity Content Profile can declare Activity scenes.
+- Each scene entry has explicit content id, scene path/name, requiredness, load mode and release policy.
+- Validator covers declaration issues.
+- Runtime behavior is unchanged.
+- Activity loading remains `SkippedNoSceneLoad` until F25C.
+
+## Non-goals
+
+F25 does not introduce:
+
+- gameplay actor materialization;
+- player/input adapters;
+- camera/audio adapters;
+- save backend;
+- Addressables;
+- pause overlays;
+- pooling/runtime spawned objects.

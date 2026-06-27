@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentAnchor;
+using Immersive.Framework.ContentFlow;
 using Immersive.Framework.CycleReset;
 using Immersive.Framework.Loading;
 using Immersive.Framework.Editor.Editor.Authoring;
@@ -84,6 +85,11 @@ namespace Immersive.Framework.Editor.Editor.Validation
         internal static FrameworkAuthoringValidationReport ValidateActivity(ActivityAsset activity)
         {
             return ValidateActivity(activity, FrameworkValidationMode.Standard);
+        }
+
+        internal static FrameworkAuthoringValidationReport ValidateActivityContentProfile(ActivityContentProfileAsset profile)
+        {
+            return ValidateActivityContentProfile(profile, FrameworkValidationMode.Standard);
         }
 
         internal static FrameworkAuthoringValidationReport ValidateActivityLocalVisibilityAdapter(ActivityLocalVisibilityAdapter binding)
@@ -237,6 +243,31 @@ namespace Immersive.Framework.Editor.Editor.Validation
                     $"UIGlobal Scene '{scenePath}' is not included in Build Settings.",
                     gameApplication);
             }
+        }
+
+        private static bool IsSceneInBuildSettings(string scenePath)
+        {
+            if (string.IsNullOrWhiteSpace(scenePath))
+            {
+                return false;
+            }
+
+            var scenes = EditorBuildSettings.scenes;
+            if (scenes == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < scenes.Length; i++)
+            {
+                var scene = scenes[i];
+                if (scene != null && string.Equals(scene.path, scenePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static void ValidateGlobalUiSceneAdapters(
@@ -428,9 +459,20 @@ namespace Immersive.Framework.Editor.Editor.Validation
                     break;
                 case ActivityVisualTransitionMode.FadeWithLoading:
                     report.AddWarning(
-                        "Activity Transition Mode is FadeWithLoading. This mode is reserved until ActivityContentProfile and Activity Content Scene Composition exist. Current runtime uses Fade, logs ReservedNoActivityContentLoading and keeps Loading skipped.",
+                        "Activity Transition Mode is FadeWithLoading. This mode is reserved until Activity Content Scene Composition execution exists. Current runtime uses Fade, logs ReservedNoActivityContentLoading and keeps Loading skipped.",
                         activity);
                     break;
+            }
+
+            if (activity.ActivityContentProfile == null)
+            {
+                report.AddInfo(
+                    "Activity has no Activity Content Profile. Activity scene/content loading remains absent and Loading will be skipped for Activity requests.",
+                    activity);
+            }
+            else
+            {
+                report.AddRange(ValidateActivityContentProfile(activity.ActivityContentProfile, validationMode));
             }
 
             if (!report.HasIssues)
@@ -439,6 +481,125 @@ namespace Immersive.Framework.Editor.Editor.Validation
             }
 
             return report;
+        }
+
+        private static FrameworkAuthoringValidationReport ValidateActivityContentProfile(
+            ActivityContentProfileAsset profile,
+            FrameworkValidationMode validationMode)
+        {
+            var report = new FrameworkAuthoringValidationReport(validationMode);
+
+            if (profile == null)
+            {
+                report.AddError("Activity Content Profile is missing.", null);
+                return report;
+            }
+
+            if (string.IsNullOrWhiteSpace(profile.ProfileId))
+            {
+                report.AddWarning(
+                    "Activity Content Profile has no explicit Profile Id. The asset name will be used in diagnostics.",
+                    profile);
+            }
+
+            if (!profile.HasScenes)
+            {
+                report.AddWarning(
+                    "Activity Content Profile has no scene declarations. This is valid as a placeholder, but it will not enable Activity content loading in future F25 execution cuts.",
+                    profile);
+            }
+
+            var contentIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            for (int i = 0; i < profile.Scenes.Count; i++)
+            {
+                ValidateActivityContentSceneEntry(report, profile, profile.Scenes[i], i, contentIds);
+            }
+
+            if (!report.HasIssues)
+            {
+                report.AddInfo(
+                    $"Activity Content Profile '{profile.ProfileId}' is valid for the F25A declaration-only contract.",
+                    profile);
+            }
+
+            return report;
+        }
+
+        private static void ValidateActivityContentSceneEntry(
+            FrameworkAuthoringValidationReport report,
+            ActivityContentProfileAsset profile,
+            ActivityContentSceneEntry entry,
+            int index,
+            HashSet<string> contentIds)
+        {
+            if (entry == null)
+            {
+                report.AddError(
+                    $"Activity Content Profile '{profile.ProfileId}' has a null scene entry at index {index}.",
+                    profile);
+                return;
+            }
+
+            var label = $"Activity Content Scene {index + 1}";
+            if (!entry.HasExplicitContentId)
+            {
+                report.AddError(
+                    $"{label} in profile '{profile.ProfileId}' has no explicit Content Id. F25 Activity content identity must not fall back to scene path/name.",
+                    profile);
+            }
+            else if (!contentIds.Add(entry.ExplicitContentId))
+            {
+                report.AddError(
+                    $"{label} in profile '{profile.ProfileId}' duplicates Content Id '{entry.ExplicitContentId}'. Content ids must be unique within an Activity Content Profile.",
+                    profile);
+            }
+
+            if (!entry.HasScene)
+            {
+                if (entry.Requiredness == FrameworkContentRequiredness.Required)
+                {
+                    report.AddError(
+                        $"{label} in profile '{profile.ProfileId}' is Required but has no scene assigned.",
+                        profile);
+                }
+                else
+                {
+                    report.AddWarning(
+                        $"{label} in profile '{profile.ProfileId}' has no scene assigned. Optional entries remain declaration-only and will be skipped by future execution.",
+                        profile);
+                }
+
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(entry.ScenePath))
+            {
+                report.AddError(
+                    $"{label} in profile '{profile.ProfileId}' has a cached scene name but no scene path. Reassign the scene in the Inspector.",
+                    profile);
+                return;
+            }
+
+            ValidateSceneAssetReference(
+                report,
+                profile,
+                entry.ScenePath,
+                entry.SceneName,
+                label);
+
+            if (!IsSceneInBuildSettings(entry.ScenePath))
+            {
+                report.AddWarning(
+                    $"{label} scene '{entry.ScenePath}' is not included in Build Settings. F25 execution will require Activity content scenes to be build-loadable.",
+                    profile);
+            }
+
+            if (entry.LoadMode != ActivityContentSceneLoadMode.Additive)
+            {
+                report.AddError(
+                    $"{label} in profile '{profile.ProfileId}' has unsupported load mode '{entry.LoadMode}'. F25A only declares Additive Activity scenes.",
+                    profile);
+            }
         }
 
         private static FrameworkAuthoringValidationReport ValidateActivityLocalVisibilityAdapter(
