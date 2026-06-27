@@ -6,8 +6,10 @@ using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.CycleReset;
 using Immersive.Framework.Editor.Editor.Authoring;
 using Immersive.Framework.RouteLifecycle;
+using Immersive.Framework.TransitionEffects;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 namespace Immersive.Framework.Editor.Editor.Validation
 {
@@ -143,6 +145,32 @@ namespace Immersive.Framework.Editor.Editor.Validation
                 report.AddRange(ValidateRoute(gameApplication.StartupRoute, true, validationMode));
             }
 
+            if (gameApplication.TransitionSurfacePolicyValue == TransitionSurfacePolicy.NoneConfigured)
+            {
+                if (gameApplication.TransitionSurfacePrefab != null)
+                {
+                    report.AddWarning(
+                        "Transition Surface Prefab is assigned, but Transition Surface Policy is NoneConfigured. The prefab will not be instantiated and transition will remain explicit NoOp.",
+                        gameApplication);
+                }
+                else
+                {
+                    report.AddInfo(
+                        "Transition surface is configured as explicit NoOp.",
+                        gameApplication);
+                }
+            }
+            else if (gameApplication.TransitionSurfacePrefab == null)
+            {
+                report.AddError(
+                    "Transition Surface Policy is Required, but Transition Surface Prefab is missing.",
+                    gameApplication);
+            }
+            else
+            {
+                report.AddRange(ValidateTransitionSurfacePrefab(gameApplication.TransitionSurfacePrefab, validationMode));
+            }
+
             if (!report.HasIssues)
             {
                 report.AddInfo("Game Application authoring is valid for the current framework scope.", gameApplication);
@@ -226,6 +254,113 @@ namespace Immersive.Framework.Editor.Editor.Validation
             }
 
             return report;
+        }
+
+        private static FrameworkAuthoringValidationReport ValidateTransitionSurfacePrefab(
+            GameObject transitionSurfacePrefab,
+            FrameworkValidationMode validationMode)
+        {
+            var report = new FrameworkAuthoringValidationReport(validationMode);
+
+            if (transitionSurfacePrefab == null)
+            {
+                report.AddError("Transition Surface Prefab is missing.", null);
+                return report;
+            }
+
+            var prefabPath = AssetDatabase.GetAssetPath(transitionSurfacePrefab);
+            if (string.IsNullOrWhiteSpace(prefabPath))
+            {
+                report.AddError(
+                    $"Transition Surface Prefab '{transitionSurfacePrefab.name}' is not a prefab asset.",
+                    transitionSurfacePrefab);
+                return report;
+            }
+
+            if (!PrefabUtility.IsPartOfPrefabAsset(transitionSurfacePrefab))
+            {
+                report.AddError(
+                    $"Transition Surface Prefab '{transitionSurfacePrefab.name}' must be a prefab asset.",
+                    transitionSurfacePrefab);
+                return report;
+            }
+
+            GameObject prefabRoot = null;
+            try
+            {
+                prefabRoot = PrefabUtility.LoadPrefabContents(prefabPath);
+                if (prefabRoot == null)
+                {
+                    report.AddError(
+                        $"Transition Surface Prefab '{transitionSurfacePrefab.name}' could not be loaded for validation.",
+                        transitionSurfacePrefab);
+                    return report;
+                }
+
+                ValidateTransitionSurfacePrefabStructure(report, prefabRoot, transitionSurfacePrefab);
+            }
+            catch (Exception exception)
+            {
+                report.AddError(
+                    $"Transition Surface Prefab '{transitionSurfacePrefab.name}' could not be validated. {exception.Message}",
+                    transitionSurfacePrefab);
+            }
+            finally
+            {
+                if (prefabRoot != null)
+                {
+                    PrefabUtility.UnloadPrefabContents(prefabRoot);
+                }
+            }
+
+            if (!report.HasIssues)
+            {
+                report.AddInfo(
+                    $"Transition Surface Prefab '{transitionSurfacePrefab.name}' is valid for the current framework scope.",
+                    transitionSurfacePrefab);
+            }
+
+            return report;
+        }
+
+        private static void ValidateTransitionSurfacePrefabStructure(
+            FrameworkAuthoringValidationReport report,
+            GameObject prefabRoot,
+            GameObject source)
+        {
+            var canvas = prefabRoot.GetComponentInChildren<Canvas>(true);
+            if (canvas == null)
+            {
+                report.AddError(
+                    $"Transition Surface Prefab '{source.name}' must contain a Canvas.",
+                    source);
+            }
+
+            var adapter = prefabRoot.GetComponentInChildren<UnityFadeCurtainEffectAdapter>(true);
+            if (adapter == null)
+            {
+                report.AddError(
+                    $"Transition Surface Prefab '{source.name}' must contain a UnityFadeCurtainEffectAdapter.",
+                    source);
+                return;
+            }
+
+            var adapterGameObject = adapter.gameObject;
+            var canvasGroup = adapterGameObject != null ? adapterGameObject.GetComponent<CanvasGroup>() : null;
+            if (canvasGroup == null)
+            {
+                report.AddError(
+                    $"Transition Surface Prefab '{source.name}' must place a CanvasGroup on the same GameObject as UnityFadeCurtainEffectAdapter.",
+                    source);
+            }
+
+            var image = adapterGameObject != null ? adapterGameObject.GetComponent<Image>() : null;
+            if (image == null)
+            {
+                report.AddError(
+                    $"Transition Surface Prefab '{source.name}' must include an Image on the same GameObject as UnityFadeCurtainEffectAdapter.",
+                    source);
+            }
         }
 
         private static FrameworkAuthoringValidationReport ValidateActivityLocalVisibilityAdapter(

@@ -4,6 +4,17 @@ using Immersive.Framework.ApiStatus;
 namespace Immersive.Framework.Authoring
 {
     /// <summary>
+    /// API status: Experimental. Policy for the Unity transition surface wired through a Game Application.
+    /// NoneConfigured keeps Transition explicit NoOp; Required instantiates the configured prefab and fails explicitly when the surface is missing or invalid.
+    /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F24C Transition surface policy for GameApplication authoring.")]
+    public enum TransitionSurfacePolicy
+    {
+        NoneConfigured = 0,
+        Required = 1
+    }
+
+    /// <summary>
     /// API status: Experimental. Public authoring root retained as the baseline entry point before F1 identity/status hardening.
     /// Public root asset for an Immersive game/application.
     /// Keep this asset small: it should grow only when a real framework cut needs a new decision.
@@ -24,6 +35,14 @@ namespace Immersive.Framework.Authoring
         private RouteAsset startupRoute;
 
         [SerializeField]
+        [Tooltip("Controls whether this Game Application uses an explicit Unity transition surface. NoneConfigured keeps Transition as an explicit NoOp. Required instantiates the configured prefab under the persistent FrameworkRuntimeHost and fails explicitly if the surface is missing or invalid.")]
+        private TransitionSurfacePolicy transitionSurfacePolicy = TransitionSurfacePolicy.NoneConfigured;
+
+        [SerializeField]
+        [Tooltip("Prefab for the app/session-scoped transition surface. The prefab should include a Canvas, a UI panel and UnityFadeCurtainEffectAdapter. It is instantiated under the persistent FrameworkRuntimeHost when the policy is Required.")]
+        private GameObject transitionSurfacePrefab;
+
+        [SerializeField]
         [Tooltip("Controls validation and diagnostics severity. Required configuration fails in every mode; Strict promotes warnings, Standard keeps them, Release suppresses info diagnostics.")]
         private FrameworkValidationMode validationMode = FrameworkValidationMode.Standard;
 
@@ -41,6 +60,10 @@ namespace Immersive.Framework.Authoring
         }
 
         public RouteAsset StartupRoute => startupRoute;
+
+        public TransitionSurfacePolicy TransitionSurfacePolicyValue => transitionSurfacePolicy;
+
+        public GameObject TransitionSurfacePrefab => transitionSurfacePrefab;
 
         public FrameworkValidationMode ValidationMode => validationMode;
     }

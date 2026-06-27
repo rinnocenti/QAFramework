@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.ContentAnchor;
@@ -16,6 +17,8 @@ using Immersive.Framework.ApiStatus;
 using Immersive.Logging.Records;
 using Immersive.Framework.Gate;
 using Immersive.Framework.Pause;
+using Immersive.Framework.Transition;
+using Immersive.Framework.TransitionEffects;
 
 namespace Immersive.Framework.ApplicationLifecycle
 {
@@ -347,9 +350,10 @@ namespace Immersive.Framework.ApplicationLifecycle
             _runtimeContentRuntime = new RuntimeContentRuntime();
             _contentAnchorBindingRuntime = new RuntimeContentAnchorBinding();
             _pauseRuntime = new PauseRuntime();
-            _runtimeSessionScopeResult = CreateSessionScopeRoot(application, "FrameworkRuntimeHost", "session-start");
-            _gameFlowRuntime = new GameFlowRuntime(_runtimeContentRuntime, _contentAnchorBindingRuntime);
             _logger = FrameworkLogger.Create<FrameworkRuntimeHost>();
+            _runtimeSessionScopeResult = CreateSessionScopeRoot(application, "FrameworkRuntimeHost", "session-start");
+            var transitionOrchestrator = CreateTransitionOrchestrator(application);
+            _gameFlowRuntime = new GameFlowRuntime(_runtimeContentRuntime, _contentAnchorBindingRuntime, transitionOrchestrator);
             _state = FrameworkRuntimeState.Empty(application);
         }
 
@@ -381,6 +385,90 @@ namespace Immersive.Framework.ApplicationLifecycle
         private static string NormalizeLifecycleSource(string source)
         {
             return string.IsNullOrWhiteSpace(source) ? "Unknown" : source.Trim();
+        }
+
+        private ITransitionOrchestrator CreateTransitionOrchestrator(GameApplicationAsset application)
+        {
+            if (application == null)
+            {
+                _logger.Warning("Transition surface is not configured because the Game Application is missing.");
+                return NoOpTransitionOrchestrator.Instance;
+            }
+
+            if (application.TransitionSurfacePolicyValue == TransitionSurfacePolicy.NoneConfigured)
+            {
+                if (application.TransitionSurfacePrefab != null)
+                {
+                    _logger.Warning(
+                        "Transition surface prefab is assigned but Transition Surface Policy is NoneConfigured. The runtime will keep explicit NoOp Transition.");
+                }
+                else
+                {
+                    _logger.Info("Transition surface is not configured. Transition will remain explicit NoOp.");
+                }
+
+                return NoOpTransitionOrchestrator.Instance;
+            }
+
+            if (application.TransitionSurfacePrefab == null)
+            {
+                _logger.Error("Transition surface is required, but the Transition Surface Prefab is missing.");
+                return new TransitionEffectOrchestrator(
+                    Array.Empty<ITransitionEffectAdapter>(),
+                    "Transition Surface");
+            }
+
+            try
+            {
+                var surfaceInstance = Instantiate(application.TransitionSurfacePrefab, transform, false);
+                surfaceInstance.name = $"{application.TransitionSurfacePrefab.name} (Transition Surface)";
+                var adapters = CollectTransitionEffectAdapters(surfaceInstance);
+                if (adapters.Count == 0)
+                {
+                    _logger.Error(
+                        $"Transition surface prefab '{application.TransitionSurfacePrefab.name}' instantiated, but no Transition Effect adapters were found.");
+                }
+                else
+                {
+                    _logger.Info(
+                        $"Transition surface prefab '{application.TransitionSurfacePrefab.name}' instantiated with adapterCount='{adapters.Count}'.");
+                }
+
+                return new TransitionEffectOrchestrator(adapters, surfaceInstance.name);
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(
+                    $"Transition surface prefab '{application.TransitionSurfacePrefab.name}' could not be instantiated. {exception.Message}");
+                return new TransitionEffectOrchestrator(
+                    Array.Empty<ITransitionEffectAdapter>(),
+                    application.TransitionSurfacePrefab.name);
+            }
+        }
+
+        private static List<ITransitionEffectAdapter> CollectTransitionEffectAdapters(GameObject surfaceInstance)
+        {
+            var adapters = new List<ITransitionEffectAdapter>();
+            if (surfaceInstance == null)
+            {
+                return adapters;
+            }
+
+            var behaviours = surfaceInstance.GetComponentsInChildren<MonoBehaviour>(true);
+            if (behaviours == null || behaviours.Length == 0)
+            {
+                return adapters;
+            }
+
+            for (var i = 0; i < behaviours.Length; i++)
+            {
+                if (behaviours[i] is ITransitionEffectAdapter adapter)
+                {
+                    adapters.Add(adapter);
+                }
+            }
+
+            return adapters;
         }
 
 
@@ -689,6 +777,12 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("transitionBefore", result.TransitionDiagnostics.BeforeText),
                 LogFields.Field("transitionAfter", result.TransitionDiagnostics.AfterText),
                 LogFields.Field("transitionBlockingIssues", result.TransitionDiagnostics.BlockingIssueCount),
+                LogFields.Field("transitionVisual", result.TransitionDiagnostics.VisualText),
+                LogFields.Field("transitionEffect", result.TransitionDiagnostics.EffectText),
+                LogFields.Field("transitionEffectBefore", result.TransitionDiagnostics.EffectBeforeText),
+                LogFields.Field("transitionEffectAfter", result.TransitionDiagnostics.EffectAfterText),
+                LogFields.Field("transitionEffectBlockingIssues", result.TransitionDiagnostics.EffectBlockingIssueCount),
+                LogFields.Field("transitionEffectAdapterCount", result.TransitionDiagnostics.EffectAdapterCount),
                 LogFields.Field("previousRoute", GetRouteName(routeLifecycle.PreviousRoute)),
                 LogFields.Field("targetRoute", GetRouteName(result.TargetRoute)),
                 LogFields.Field("scene", routeLifecycle.SceneLifecycleResult.SceneName),
@@ -762,6 +856,12 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("transitionBefore", result.TransitionDiagnostics.BeforeText),
                 LogFields.Field("transitionAfter", result.TransitionDiagnostics.AfterText),
                 LogFields.Field("transitionBlockingIssues", result.TransitionDiagnostics.BlockingIssueCount),
+                LogFields.Field("transitionVisual", result.TransitionDiagnostics.VisualText),
+                LogFields.Field("transitionEffect", result.TransitionDiagnostics.EffectText),
+                LogFields.Field("transitionEffectBefore", result.TransitionDiagnostics.EffectBeforeText),
+                LogFields.Field("transitionEffectAfter", result.TransitionDiagnostics.EffectAfterText),
+                LogFields.Field("transitionEffectBlockingIssues", result.TransitionDiagnostics.EffectBlockingIssueCount),
+                LogFields.Field("transitionEffectAdapterCount", result.TransitionDiagnostics.EffectAdapterCount),
                 LogFields.Field("targetActivity", GetActivityName(result.TargetActivity)),
                 LogFields.Field("previousActivity", GetActivityName(activityFlow.PreviousActivity)),
                 LogFields.Field("activity", FormatDiagnosticValue(activityFlow.ActivityState.ActivityName)),

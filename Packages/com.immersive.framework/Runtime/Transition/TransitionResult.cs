@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.TransitionEffects;
 
 namespace Immersive.Framework.Transition
 {
@@ -14,6 +15,11 @@ namespace Immersive.Framework.Transition
     {
         private readonly TransitionStep[] observedSteps;
         private readonly string[] issues;
+        private readonly TransitionEffectKind effectKind;
+        private readonly TransitionEffectStatus effectStatus;
+        private readonly int effectAdapterCount;
+        private readonly string visualText;
+        private readonly int effectBlockingIssueCount;
 
         public TransitionResult(
             TransitionOperationId operationId,
@@ -23,7 +29,12 @@ namespace Immersive.Framework.Transition
             string reason,
             string message,
             IReadOnlyList<TransitionStep> observedSteps,
-            IReadOnlyList<string> issues)
+            IReadOnlyList<string> issues,
+            TransitionEffectKind effectKind = TransitionEffectKind.Unknown,
+            TransitionEffectStatus effectStatus = TransitionEffectStatus.Skipped,
+            int effectAdapterCount = 0,
+            string visualText = "NoneConfigured",
+            int effectBlockingIssueCount = 0)
         {
             if (!operationId.IsValid)
             {
@@ -48,6 +59,11 @@ namespace Immersive.Framework.Transition
             Message = Normalize(message);
             this.observedSteps = CopySteps(observedSteps);
             this.issues = CopyIssues(issues);
+            this.effectKind = effectKind;
+            this.effectStatus = effectStatus;
+            this.effectAdapterCount = Math.Max(0, effectAdapterCount);
+            this.visualText = NormalizeVisual(visualText);
+            this.effectBlockingIssueCount = Math.Max(0, effectBlockingIssueCount);
         }
 
         public TransitionOperationId OperationId { get; }
@@ -70,6 +86,16 @@ namespace Immersive.Framework.Transition
 
         public int IssueCount => Issues.Count;
 
+        public TransitionEffectKind EffectKind => effectKind;
+
+        public TransitionEffectStatus EffectStatus => effectStatus;
+
+        public int EffectAdapterCount => effectAdapterCount;
+
+        public string VisualText => visualText;
+
+        public int EffectBlockingIssueCount => effectBlockingIssueCount;
+
         public int BlockingIssueCount
         {
             get
@@ -91,6 +117,12 @@ namespace Immersive.Framework.Transition
         public bool HasObservedSteps => ObservedStepCount > 0;
 
         public bool HasIssues => IssueCount > 0;
+
+        public bool HasEffectDiagnostics => EffectKind != TransitionEffectKind.Unknown
+            || EffectStatus != TransitionEffectStatus.Skipped
+            || EffectAdapterCount > 0
+            || EffectBlockingIssueCount > 0
+            || !string.Equals(VisualText, "NoneConfigured", StringComparison.Ordinal);
 
         public bool IsValid => OperationId.IsValid && Kind != TransitionKind.Unknown && Status != TransitionStatus.Unknown;
 
@@ -115,7 +147,12 @@ namespace Immersive.Framework.Transition
                 && string.Equals(Reason, other.Reason, StringComparison.Ordinal)
                 && string.Equals(Message, other.Message, StringComparison.Ordinal)
                 && SequenceEquals(ObservedSteps, other.ObservedSteps)
-                && SequenceEquals(Issues, other.Issues);
+                && SequenceEquals(Issues, other.Issues)
+                && EffectKind == other.EffectKind
+                && EffectStatus == other.EffectStatus
+                && EffectAdapterCount == other.EffectAdapterCount
+                && string.Equals(VisualText, other.VisualText, StringComparison.Ordinal)
+                && EffectBlockingIssueCount == other.EffectBlockingIssueCount;
         }
 
         public override bool Equals(object obj)
@@ -133,6 +170,11 @@ namespace Immersive.Framework.Transition
                 hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
                 hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                hashCode = (hashCode * 397) ^ (int)EffectKind;
+                hashCode = (hashCode * 397) ^ (int)EffectStatus;
+                hashCode = (hashCode * 397) ^ EffectAdapterCount;
+                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(VisualText ?? string.Empty);
+                hashCode = (hashCode * 397) ^ EffectBlockingIssueCount;
 
                 var steps = ObservedSteps;
                 for (var i = 0; i < steps.Count; i++)
@@ -161,7 +203,9 @@ namespace Immersive.Framework.Transition
             var sourceText = string.IsNullOrWhiteSpace(Source) ? "<none>" : Source;
             var reasonText = string.IsNullOrWhiteSpace(Reason) ? "<none>" : Reason;
             var messageText = string.IsNullOrWhiteSpace(Message) ? "<none>" : Message;
-            builder.Append($"operation='{OperationId.StableText}' kind='{Kind}' status='{Status}' source='{sourceText}' reason='{reasonText}' observedSteps='{ObservedStepCount}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' message='{messageText}'");
+            var effectText = EffectKind != TransitionEffectKind.Unknown ? EffectKind.ToString() : VisualText;
+            builder.Append(
+                $"operation='{OperationId.StableText}' kind='{Kind}' status='{Status}' source='{sourceText}' reason='{reasonText}' observedSteps='{ObservedStepCount}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' message='{messageText}' effectKind='{effectText}' effectStatus='{EffectStatus}' effectAdapters='{EffectAdapterCount}' visual='{VisualText}' effectBlockingIssues='{EffectBlockingIssueCount}'");
 
             if (HasObservedSteps)
             {
@@ -206,9 +250,27 @@ namespace Immersive.Framework.Transition
             string source,
             string reason,
             string message,
-            IReadOnlyList<TransitionStep> observedSteps)
+            IReadOnlyList<TransitionStep> observedSteps,
+            TransitionEffectKind effectKind = TransitionEffectKind.Unknown,
+            TransitionEffectStatus effectStatus = TransitionEffectStatus.Skipped,
+            int effectAdapterCount = 0,
+            string visualText = "NoneConfigured",
+            int effectBlockingIssueCount = 0)
         {
-            return new TransitionResult(operationId, kind, TransitionStatus.Succeeded, source, reason, message, observedSteps, Array.Empty<string>());
+            return new TransitionResult(
+                operationId,
+                kind,
+                TransitionStatus.Succeeded,
+                source,
+                reason,
+                message,
+                observedSteps,
+                Array.Empty<string>(),
+                effectKind,
+                effectStatus,
+                effectAdapterCount,
+                visualText,
+                effectBlockingIssueCount);
         }
 
         public static TransitionResult CompletedWithWarningsResult(
@@ -218,9 +280,27 @@ namespace Immersive.Framework.Transition
             string reason,
             string message,
             IReadOnlyList<TransitionStep> observedSteps,
-            IReadOnlyList<string> issues)
+            IReadOnlyList<string> issues,
+            TransitionEffectKind effectKind = TransitionEffectKind.Unknown,
+            TransitionEffectStatus effectStatus = TransitionEffectStatus.Skipped,
+            int effectAdapterCount = 0,
+            string visualText = "NoneConfigured",
+            int effectBlockingIssueCount = 0)
         {
-            return new TransitionResult(operationId, kind, TransitionStatus.CompletedWithWarnings, source, reason, message, observedSteps, issues);
+            return new TransitionResult(
+                operationId,
+                kind,
+                TransitionStatus.CompletedWithWarnings,
+                source,
+                reason,
+                message,
+                observedSteps,
+                issues,
+                effectKind,
+                effectStatus,
+                effectAdapterCount,
+                visualText,
+                effectBlockingIssueCount);
         }
 
         public static TransitionResult FailedResult(
@@ -230,9 +310,27 @@ namespace Immersive.Framework.Transition
             string reason,
             string message,
             IReadOnlyList<TransitionStep> observedSteps,
-            IReadOnlyList<string> issues)
+            IReadOnlyList<string> issues,
+            TransitionEffectKind effectKind = TransitionEffectKind.Unknown,
+            TransitionEffectStatus effectStatus = TransitionEffectStatus.Skipped,
+            int effectAdapterCount = 0,
+            string visualText = "NoneConfigured",
+            int effectBlockingIssueCount = 0)
         {
-            return new TransitionResult(operationId, kind, TransitionStatus.Failed, source, reason, message, observedSteps, issues);
+            return new TransitionResult(
+                operationId,
+                kind,
+                TransitionStatus.Failed,
+                source,
+                reason,
+                message,
+                observedSteps,
+                issues,
+                effectKind,
+                effectStatus,
+                effectAdapterCount,
+                visualText,
+                effectBlockingIssueCount);
         }
 
         public static TransitionResult RejectedResult(
@@ -241,9 +339,27 @@ namespace Immersive.Framework.Transition
             string source,
             string reason,
             string message,
-            IReadOnlyList<string> issues)
+            IReadOnlyList<string> issues,
+            TransitionEffectKind effectKind = TransitionEffectKind.Unknown,
+            TransitionEffectStatus effectStatus = TransitionEffectStatus.Skipped,
+            int effectAdapterCount = 0,
+            string visualText = "NoneConfigured",
+            int effectBlockingIssueCount = 0)
         {
-            return new TransitionResult(operationId, kind, TransitionStatus.Rejected, source, reason, message, Array.Empty<TransitionStep>(), issues);
+            return new TransitionResult(
+                operationId,
+                kind,
+                TransitionStatus.Rejected,
+                source,
+                reason,
+                message,
+                Array.Empty<TransitionStep>(),
+                issues,
+                effectKind,
+                effectStatus,
+                effectAdapterCount,
+                visualText,
+                effectBlockingIssueCount);
         }
 
         public static bool operator ==(TransitionResult left, TransitionResult right)
@@ -320,6 +436,11 @@ namespace Immersive.Framework.Transition
         private static string Normalize(string value)
         {
             return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+        }
+
+        private static string NormalizeVisual(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? "NoneConfigured" : value.Trim();
         }
     }
 }

@@ -14,6 +14,7 @@ Activities/QA_TransitionActivityA_Alt.asset
 Activities/QA_TransitionActivityB.asset
 Activities/QA_TransitionActivityB_Alt.asset
 GameApplications/QA_TransitionGameApplication.asset
+Prefabs/QA_TransitionCurtainSurface.prefab
 Scripts/Runtime/TransitionQaRouteSwitchPanel.cs
 Scripts/Runtime/TransitionQaActivitySwitchPanel.cs
 ```
@@ -36,12 +37,19 @@ With `QA Transition Game Application` active:
 2. Route switch A -> B logs transition diagnostics.
 3. Route switch B -> A logs transition diagnostics.
 4. Activity switch and clear in each route log transition diagnostics.
+5. The transition surface prefab is instantiated under the persistent runtime host.
 
 Expected transition diagnostics:
 
 ```text
-transition='SucceededNoVisual'
-transitionBefore='SucceededNoVisual'
-transitionAfter='SucceededNoVisual'
+transition='SucceededWithUnitySurface'
+transitionVisual='UnitySurface'
+transitionEffect='Fade'
+transitionBefore='SucceededWithUnitySurface'
+transitionAfter='SucceededWithUnitySurface'
 transitionBlockingIssues='0'
+transitionEffectBefore='Succeeded'
+transitionEffectAfter='Succeeded'
+transitionEffectBlockingIssues='0'
+transitionEffectAdapterCount='1'
 ```

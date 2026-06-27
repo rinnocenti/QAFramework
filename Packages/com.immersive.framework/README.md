@@ -18,7 +18,7 @@ The package is organized as framework contracts first, Unity build surfaces seco
 | F21 | Save / Snapshot / Preferences / Progression Save Foundation | Closed |
 | F22 | Loading Operation / Progress / Readiness Boundary | Closed |
 | F23 | Pause Content / Overlay / Input Intent Boundary | Closed |
-| F24 | Unity Build Surface / Lifecycle Wiring | Next |
+| F24 | Unity Build Surface / Lifecycle Wiring | Current |
 | F25 | Adapter Module Foundation | Deferred after F24 |
 
 ## Tracks

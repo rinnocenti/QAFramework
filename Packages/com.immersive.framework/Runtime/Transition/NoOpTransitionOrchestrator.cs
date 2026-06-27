@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.TransitionEffects;
 
 namespace Immersive.Framework.Transition
 {
@@ -31,7 +32,12 @@ namespace Immersive.Framework.Transition
                 request.Source,
                 request.Reason,
                 "SucceededNoVisual",
-                new[] { step });
+                new[] { step },
+                TransitionEffectKind.Unknown,
+                TransitionEffectStatus.Skipped,
+                0,
+                "NoneConfigured",
+                0);
         }
 
         private static string BuildStepLabel(TransitionRequest request)

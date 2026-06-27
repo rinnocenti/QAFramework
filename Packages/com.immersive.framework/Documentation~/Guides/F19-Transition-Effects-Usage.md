@@ -193,7 +193,7 @@ Transition Effect Result records exactly what happened.
 Transition Effect Authoring Policy checks whether required adapters exist before pretending the plan is valid.
 ```
 
-For now, this remains diagnostic/adapter-level. It is not wired into real Route/Activity transitions yet.
+This remains adapter-level, but F24C now wires the minimal Unity surface into real Route/Activity/ActivityClear requests through the persistent `FrameworkRuntimeHost` when a `GameApplicationAsset` provides a transition surface prefab.
 
 ---
 

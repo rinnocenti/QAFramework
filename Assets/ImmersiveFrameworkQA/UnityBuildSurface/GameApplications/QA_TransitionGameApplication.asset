@@ -14,4 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.GameApplicationAsset
   applicationName: QA Transition Game Application
   startupRoute: {fileID: 11400000, guid: 761a1beced829b3459ca6788c0963773, type: 2}
+  transitionSurfacePolicy: 1
+  transitionSurfacePrefab: {fileID: 3216439661792465728, guid: c3e7a4f29b1d4c0e8f6a2b3d1c4e5f60, type: 3}
   validationMode: 1

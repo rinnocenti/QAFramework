@@ -149,7 +149,7 @@ Escopo:
 
 ### F24C - Transition Unity Surface
 
-Status: Planned
+Status: Current
 
 Escopo:
 

@@ -10,12 +10,16 @@ namespace Immersive.Framework.Editor.Editor.Authoring
     {
         private SerializedProperty _applicationName;
         private SerializedProperty _startupRoute;
+        private SerializedProperty _transitionSurfacePolicy;
+        private SerializedProperty _transitionSurfacePrefab;
         private SerializedProperty _validationMode;
 
         private void OnEnable()
         {
             _applicationName = serializedObject.FindProperty("applicationName");
             _startupRoute = serializedObject.FindProperty("startupRoute");
+            _transitionSurfacePolicy = serializedObject.FindProperty("transitionSurfacePolicy");
+            _transitionSurfacePrefab = serializedObject.FindProperty("transitionSurfacePrefab");
             _validationMode = serializedObject.FindProperty("validationMode");
         }
 
@@ -37,6 +41,9 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
             EditorGUILayout.Space(6);
             DrawStartup();
+
+            EditorGUILayout.Space(6);
+            DrawTransitionSurface();
 
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Validation", EditorStyles.boldLabel);
@@ -64,6 +71,16 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             EditorGUILayout.LabelField("Authoring Validation", EditorStyles.boldLabel);
             FrameworkAuthoringValidationGui.DrawSummary(report);
             FrameworkAuthoringValidationGui.DrawIssues(report, false);
+        }
+
+        private void DrawTransitionSurface()
+        {
+            EditorGUILayout.LabelField("Transition Surface", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_transitionSurfacePolicy, new GUIContent("Transition Surface Policy"));
+            EditorGUILayout.PropertyField(_transitionSurfacePrefab, new GUIContent("Transition Surface Prefab"));
+            EditorGUILayout.HelpBox(
+                "NoneConfigured keeps transition explicit NoOp. Required instantiates the prefab under the persistent FrameworkRuntimeHost. The prefab should contain a Canvas, a UI panel and UnityFadeCurtainEffectAdapter.",
+                MessageType.Info);
         }
 
         private void DrawProjectAssignment()
