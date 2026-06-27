@@ -179,13 +179,24 @@ Escopo:
 
 ### F24E1 - Surface/Loading Legacy Cleanup
 
-Status: Current
+Status: Closed / Documentation Pass
 
 Escopo:
 
 - remover os campos e caminhos runtime legados de Transition/Loading prefab;
 - consolidar UIGlobal como única origem runtime para adapters visuais globais;
 - manter a cascata visual já validada sem fallback silencioso.
+
+### F24E2 - Route/Activity Visual Operation Policy
+
+Status: Current / Documentation Pass
+
+Escopo:
+
+- documentar UIGlobal como capability session-scoped;
+- registrar TransitionSurface e LoadingSurface como capabilities de UI da sessão;
+- registrar que Route exige transition e usa loading durante composition;
+- registrar que Activity usa transition por policy e loading apenas quando houver scene/content loading real.
 
 ### F24F - Pause Unity Surface
 
