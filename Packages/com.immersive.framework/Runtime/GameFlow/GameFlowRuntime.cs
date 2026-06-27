@@ -9,6 +9,7 @@ using Immersive.Framework.RuntimeContent;
 using Immersive.Framework.CycleReset;
 using Immersive.Framework.Gate;
 using Immersive.Framework.Transition;
+using Immersive.Framework.TransitionEffects;
 using UnityEngine;
 
 namespace Immersive.Framework.GameFlow
@@ -257,8 +258,9 @@ namespace Immersive.Framework.GameFlow
             {
                 var currentRoute = _routeLifecycleRuntime.CurrentRoute;
                 var previousActivity = _routeLifecycleRuntime.CurrentActivity;
+                var activityTransitionMode = ResolveActivityTransitionMode(targetActivity);
                 var operationId = CreateTransitionOperationId(TransitionScope.Activity);
-                var transitionBefore = await ExecuteTransitionAsync(
+                var transitionBefore = await ExecuteActivityTransitionAsync(
                     TransitionRequest.Before(
                         operationId,
                         TransitionScope.Activity,
@@ -267,10 +269,11 @@ namespace Immersive.Framework.GameFlow
                         currentRoute,
                         currentRoute,
                         previousActivity,
-                        targetActivity));
+                        targetActivity),
+                    activityTransitionMode);
 
                 var activityFlowResult = await _routeLifecycleRuntime.StartActivityAsync(targetActivity, resolvedSource, resolvedReason);
-                var transitionAfter = await ExecuteTransitionAsync(
+                var transitionAfter = await ExecuteActivityTransitionAsync(
                     TransitionRequest.After(
                         operationId,
                         TransitionScope.Activity,
@@ -279,7 +282,8 @@ namespace Immersive.Framework.GameFlow
                         currentRoute,
                         currentRoute,
                         previousActivity,
-                        activityFlowResult.Activity));
+                        activityFlowResult.Activity),
+                    activityTransitionMode);
                 var transitionDiagnostics = FrameworkTransitionDiagnostics.Completed(
                     TransitionScope.Activity,
                     transitionBefore,
@@ -299,7 +303,8 @@ namespace Immersive.Framework.GameFlow
                     resolvedSource,
                     resolvedReason,
                     activityFlowResult,
-                    transitionDiagnostics);
+                    transitionDiagnostics,
+                    activityTransitionMode);
             }
             finally
             {
@@ -341,8 +346,9 @@ namespace Immersive.Framework.GameFlow
             {
                 var currentRoute = _routeLifecycleRuntime.CurrentRoute;
                 var previousActivity = _routeLifecycleRuntime.CurrentActivity;
+                var activityTransitionMode = ResolveActivityTransitionMode(previousActivity);
                 var operationId = CreateTransitionOperationId(TransitionScope.ActivityClear);
-                var transitionBefore = await ExecuteTransitionAsync(
+                var transitionBefore = await ExecuteActivityTransitionAsync(
                     TransitionRequest.Before(
                         operationId,
                         TransitionScope.ActivityClear,
@@ -351,10 +357,11 @@ namespace Immersive.Framework.GameFlow
                         currentRoute,
                         currentRoute,
                         previousActivity,
-                        null));
+                        null),
+                    activityTransitionMode);
 
                 var activityFlowResult = await _routeLifecycleRuntime.ClearActivityAsync(resolvedSource, resolvedReason);
-                var transitionAfter = await ExecuteTransitionAsync(
+                var transitionAfter = await ExecuteActivityTransitionAsync(
                     TransitionRequest.After(
                         operationId,
                         TransitionScope.ActivityClear,
@@ -363,7 +370,8 @@ namespace Immersive.Framework.GameFlow
                         currentRoute,
                         currentRoute,
                         previousActivity,
-                        activityFlowResult.Activity));
+                        activityFlowResult.Activity),
+                    activityTransitionMode);
                 var transitionDiagnostics = FrameworkTransitionDiagnostics.Completed(
                     TransitionScope.ActivityClear,
                     transitionBefore,
@@ -383,7 +391,8 @@ namespace Immersive.Framework.GameFlow
                     resolvedSource,
                     resolvedReason,
                     activityFlowResult,
-                    transitionDiagnostics);
+                    transitionDiagnostics,
+                    activityTransitionMode);
             }
             finally
             {
@@ -493,6 +502,59 @@ namespace Immersive.Framework.GameFlow
         private Task<RouteLifecycleStartResult> StartRouteCoreAsync(RouteAsset route, string source, string reason)
         {
             return _routeLifecycleRuntime.StartRouteAsync(route, source, reason);
+        }
+
+        private async Awaitable<TransitionResult> ExecuteActivityTransitionAsync(
+            TransitionRequest request,
+            ActivityVisualTransitionMode mode)
+        {
+            if (!ShouldExecuteActivityTransition(mode))
+            {
+                return CreateSkippedActivityTransitionResult(request, mode);
+            }
+
+            return await ExecuteTransitionAsync(request);
+        }
+
+        private static ActivityVisualTransitionMode ResolveActivityTransitionMode(ActivityAsset activity)
+        {
+            return activity != null ? activity.VisualTransitionMode : ActivityVisualTransitionMode.Seamless;
+        }
+
+        private static bool ShouldExecuteActivityTransition(ActivityVisualTransitionMode mode)
+        {
+            return mode == ActivityVisualTransitionMode.Fade
+                || mode == ActivityVisualTransitionMode.FadeWithLoading;
+        }
+
+        private static TransitionResult CreateSkippedActivityTransitionResult(
+            TransitionRequest request,
+            ActivityVisualTransitionMode mode)
+        {
+            var step = TransitionStep.Skipped(
+                0,
+                request.Phase,
+                BuildSkippedActivityTransitionStepLabel(request),
+                $"Activity Transition skipped by policy. mode='{mode}'.");
+
+            return TransitionResult.SkippedResult(
+                request.OperationId,
+                request.Kind,
+                request.Source,
+                request.Reason,
+                "SkippedByActivityPolicy",
+                new[] { step },
+                TransitionEffectKind.Unknown,
+                TransitionEffectStatus.Skipped,
+                0,
+                "None",
+                0);
+        }
+
+        private static string BuildSkippedActivityTransitionStepLabel(TransitionRequest request)
+        {
+            var phase = request.Phase == TransitionPhase.OperationOpened ? "before" : "after";
+            return $"{request.Scope.ToString().ToLowerInvariant()}-{phase}-policy-skip";
         }
 
         private Awaitable<TransitionResult> ExecuteTransitionAsync(TransitionRequest request)

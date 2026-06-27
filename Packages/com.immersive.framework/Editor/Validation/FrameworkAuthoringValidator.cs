@@ -414,6 +414,25 @@ namespace Immersive.Framework.Editor.Editor.Validation
                     activity);
             }
 
+            switch (activity.VisualTransitionMode)
+            {
+                case ActivityVisualTransitionMode.Seamless:
+                    report.AddInfo(
+                        "Activity Transition Mode is Seamless. Activity requests will skip the Session TransitionSurface by policy.",
+                        activity);
+                    break;
+                case ActivityVisualTransitionMode.Fade:
+                    report.AddInfo(
+                        "Activity Transition Mode is Fade. Activity requests will use the Session TransitionSurface; Loading remains skipped unless Activity content loading exists.",
+                        activity);
+                    break;
+                case ActivityVisualTransitionMode.FadeWithLoading:
+                    report.AddWarning(
+                        "Activity Transition Mode is FadeWithLoading. Activity content/scene loading is not implemented yet, so current runtime uses Fade and keeps Loading skipped.",
+                        activity);
+                    break;
+            }
+
             if (!report.HasIssues)
             {
                 report.AddInfo("Activity authoring is valid for the current framework scope.", activity);

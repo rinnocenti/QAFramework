@@ -24,6 +24,10 @@ namespace Immersive.Framework.Authoring
         [Tooltip("Optional authoring note for the activity. This has no runtime behavior yet.")]
         private string description = string.Empty;
 
+        [SerializeField]
+        [Tooltip("Defines whether Activity requests should use the session TransitionSurface. Seamless is the default; Route transitions remain mandatory elsewhere.")]
+        private ActivityVisualTransitionMode visualTransitionMode = ActivityVisualTransitionMode.Seamless;
+
         public string ActivityName
         {
             get
@@ -38,5 +42,15 @@ namespace Immersive.Framework.Authoring
         }
 
         public string Description => description ?? string.Empty;
+
+        public ActivityVisualTransitionMode VisualTransitionMode
+        {
+            get
+            {
+                return System.Enum.IsDefined(typeof(ActivityVisualTransitionMode), visualTransitionMode)
+                    ? visualTransitionMode
+                    : ActivityVisualTransitionMode.Seamless;
+            }
+        }
     }
 }

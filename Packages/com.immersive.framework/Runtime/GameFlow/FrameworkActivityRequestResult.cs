@@ -19,7 +19,8 @@ namespace Immersive.Framework.GameFlow
             string source,
             string reason,
             ActivityFlowStartResult activityFlowResult,
-            FrameworkTransitionDiagnostics transitionDiagnostics = default)
+            FrameworkTransitionDiagnostics transitionDiagnostics = default,
+            ActivityVisualTransitionMode activityTransitionMode = ActivityVisualTransitionMode.Seamless)
         {
             Kind = kind;
             Message = message ?? string.Empty;
@@ -28,6 +29,7 @@ namespace Immersive.Framework.GameFlow
             Reason = reason ?? string.Empty;
             ActivityFlowResult = activityFlowResult;
             TransitionDiagnostics = transitionDiagnostics;
+            ActivityTransitionMode = NormalizeActivityTransitionMode(activityTransitionMode);
         }
 
         public FrameworkActivityRequestKind Kind { get; }
@@ -43,6 +45,8 @@ namespace Immersive.Framework.GameFlow
         internal ActivityFlowStartResult ActivityFlowResult { get; }
 
         internal FrameworkTransitionDiagnostics TransitionDiagnostics { get; }
+
+        internal ActivityVisualTransitionMode ActivityTransitionMode { get; }
 
         public bool Succeeded => Kind == FrameworkActivityRequestKind.Succeeded;
 
@@ -139,7 +143,8 @@ namespace Immersive.Framework.GameFlow
             string source,
             string reason,
             ActivityFlowStartResult activityFlowResult,
-            FrameworkTransitionDiagnostics transitionDiagnostics = default)
+            FrameworkTransitionDiagnostics transitionDiagnostics = default,
+            ActivityVisualTransitionMode activityTransitionMode = ActivityVisualTransitionMode.Seamless)
         {
             return new FrameworkActivityRequestResult(
                 FrameworkActivityRequestKind.Succeeded,
@@ -148,7 +153,8 @@ namespace Immersive.Framework.GameFlow
                 NormalizeSource(source),
                 NormalizeReason(reason),
                 activityFlowResult,
-                transitionDiagnostics);
+                transitionDiagnostics,
+                activityTransitionMode);
         }
 
         internal static string NormalizeSource(string source)
@@ -159,6 +165,13 @@ namespace Immersive.Framework.GameFlow
         internal static string NormalizeReason(string reason)
         {
             return string.IsNullOrWhiteSpace(reason) ? "None" : reason.Trim();
+        }
+
+        private static ActivityVisualTransitionMode NormalizeActivityTransitionMode(ActivityVisualTransitionMode mode)
+        {
+            return System.Enum.IsDefined(typeof(ActivityVisualTransitionMode), mode)
+                ? mode
+                : ActivityVisualTransitionMode.Seamless;
         }
 
         private static string FormatRequestContext(string source, string reason)

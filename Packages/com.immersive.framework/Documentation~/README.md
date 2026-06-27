@@ -51,9 +51,9 @@ Planned cuts:
 | F24B | Transition <-> GameFlow Runtime Integration |
 | F24C | Transition Curtain Unity Build |
 | F24D | Loading Screen Unity Adapter Build |
-| F24E | Pause Overlay Unity Build |
-| F24F | Save Moment Authoring Boundary |
-| F24G | Preferences Authoring Boundary |
+| F24E | Canonical UIGlobal Surface / Loading Cleanup |
+| F24F | Activity Transition Policy |
+| F24G | Save Moment / Preferences Authoring Boundary |
 | F24H | Closure + Usage Guide |
 
 F24B must be the first technical cut. `Transition` already exists as framework language, but `RouteRequestTrigger` / `GameFlow` must pass through a real `TransitionPlan` before curtain, loading or pause visuals are built.
@@ -66,3 +66,5 @@ Project documentation now splits the UIGlobal work into `F24E1 - Surface/Loading
 F25 is Adapter Module Foundation. It is broader than gameplay-only work and can later cover gameplay, camera, audio, input, advanced save authoring, pooling/runtime spawned objects, actor/player/NPC, inventory, combat, projectile and damage adapters.
 
 F25 must consume framework contracts and F24 Unity build surfaces. It must not create a parallel lifecycle pipeline or move optional subsystem behavior into framework core.
+
+`F24F - Activity Transition Policy` adds an Activity-level authoring policy for optional Activity transitions. Route transitions remain mandatory; Activity loading remains skipped until real Activity content/scene loading exists.

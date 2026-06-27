@@ -273,6 +273,36 @@ namespace Immersive.Framework.Transition
                 effectBlockingIssueCount);
         }
 
+
+        public static TransitionResult SkippedResult(
+            TransitionOperationId operationId,
+            TransitionKind kind,
+            string source,
+            string reason,
+            string message,
+            IReadOnlyList<TransitionStep> observedSteps,
+            TransitionEffectKind effectKind = TransitionEffectKind.Unknown,
+            TransitionEffectStatus effectStatus = TransitionEffectStatus.Skipped,
+            int effectAdapterCount = 0,
+            string visualText = "NoneConfigured",
+            int effectBlockingIssueCount = 0)
+        {
+            return new TransitionResult(
+                operationId,
+                kind,
+                TransitionStatus.Skipped,
+                source,
+                reason,
+                message,
+                observedSteps,
+                Array.Empty<string>(),
+                effectKind,
+                effectStatus,
+                effectAdapterCount,
+                visualText,
+                effectBlockingIssueCount);
+        }
+
         public static TransitionResult CompletedWithWarningsResult(
             TransitionOperationId operationId,
             TransitionKind kind,

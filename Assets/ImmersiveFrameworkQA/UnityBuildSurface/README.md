@@ -69,3 +69,30 @@ This is a QA fixture correction only. It does not alter Route, Activity, SceneLi
 `Scenes/QA_UIGlobal.unity` is the canonical QA scene for app/session-scoped UI surfaces.
 It contains the Transition Curtain Surface and Loading Surface.
 `QA_TransitionGameApplication.asset` loads this scene before the Startup Route and resolves adapters from it; legacy surface prefabs, if kept, are templates only and no longer runtime paths.
+
+## F24F Activity Transition Policy QA
+
+The QA activities intentionally cover both Activity transition policy branches:
+
+- `QA_TransitionActivityA` and `QA_TransitionActivityB`: `Seamless`.
+- `QA_TransitionActivityA_Alt` and `QA_TransitionActivityB_Alt`: `Fade`.
+
+Expected Activity diagnostics after F24F:
+
+```text
+activityTransitionMode='Seamless'
+transition='SkippedByActivityPolicy'
+transitionVisual='None'
+transitionEffectAdapterCount='0'
+loading='SkippedNoSceneLoad'
+```
+
+or, for the alternate Fade activities:
+
+```text
+activityTransitionMode='Fade'
+transition='SucceededWithUnitySurface'
+transitionVisual='UnitySurface'
+transitionEffectAdapterCount='1'
+loading='SkippedNoSceneLoad'
+```

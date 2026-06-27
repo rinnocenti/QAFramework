@@ -15,3 +15,4 @@ MonoBehaviour:
   activityName: QA Transition Activity B Alt
   description: Alternate activity used only to validate Activity transition request
     diagnostics inside TransitionRouteB.
+  visualTransitionMode: 10

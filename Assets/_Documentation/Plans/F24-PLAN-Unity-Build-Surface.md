@@ -314,3 +314,19 @@ Boundary: uses `UnityEngine.Awaitable`; no SceneLifecycle delay, no new scene lo
 Status: implemented / smoke pending.
 
 Corrige warnings CS1998 do eixo Awaitable e ajusta o prefab QA de loading para renderizar acima da cortina, sem alterar lifecycle de Route/Scene/Activity.
+
+## F24F — Activity Transition Policy
+
+Status: implemented / smoke pending.
+
+Purpose: make Activity transition optional by Activity authoring policy while keeping Route transitions mandatory.
+
+Accepted behavior:
+
+- `ActivityAsset.Visual Transition Mode = Seamless` skips Activity transition by policy.
+- `Fade` uses the Session `TransitionSurface` from `UIGlobal`.
+- `FadeWithLoading` is reserved for future Activity content/scene loading and currently behaves as `Fade` with Loading skipped.
+- `ActivityClear` uses the policy of the Activity being cleared.
+- Route transition/loading behavior is unchanged.
+
+Boundary: no Activity scene loading, no LoadingSurface for Activity without real content loading, no new lifecycle, no scene loader change.
