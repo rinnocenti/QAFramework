@@ -1,37 +1,53 @@
-# Unity Build Surface QA
+# Unity Build Surface QA Workspace
 
-Workspace isolado para validar os elementos Unity-facing da F24.
+Este workspace isola os testes Unity-facing da etapa F24.
 
-Este espaco nao substitui o QA baseline do framework. Ele existe para testar surfaces, assets e authoring voltados a level/game designers sem contaminar `StartupScene`, `SecondScene` ou os smokes canonicos existentes.
+Use esta pasta para validar surfaces, assets e cenas de QA ligados a:
+
+- Transition
+- Loading
+- Pause
+- Save Moment
+- Preferences
+
+## Regra de uso
+
+- Este workspace e QA, nao produto.
+- Objetos especificos de jogo ficam em `Assets/_Project`.
+- Experimentos descartaveis ficam em `Assets/_Sandbox`.
+- Componentes genericos reutilizaveis devem ir para o framework quando fizer sentido.
+- Adapters avancados devem ficar no framework ou em modulo proprio, nao neste workspace.
 
 ## Estrutura
 
 ```text
 Assets/ImmersiveFrameworkQA/UnityBuildSurface/
-  README.md
   Scenes/
   ScriptableObjects/
   Prefabs/
   Materials/
   Sprites/
+  README.md
 ```
 
-## Uso
+## Cena inicial
 
-Use este workspace para:
+A cena inicial deve ser criada dentro do Unity pelo menu:
 
-- Transition Surface QA;
-- Loading Surface QA;
-- Pause Surface QA;
-- Save Moment Authoring QA;
-- Preferences Authoring QA;
-- exemplos de Inspector e authoring para designers.
+```text
+Immersive Framework > QA > Unity Build Surface > Create QA Scene
+```
 
-## Regras
+O menu cria, de forma idempotente:
 
-- Nao colocar assets finais de jogo aqui.
-- Nao criar lifecycle paralelo aqui.
-- Nao transformar cenas deste workspace em produto.
-- Nao mover QA baseline para ca.
-- Se algo for singular do projeto consumidor, mover para `Assets/_Project`.
-- Se algo for generico/reutilizavel, avaliar entrada no framework.
+```text
+Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/UnityBuildSurfaceQA.unity
+```
+
+Se a cena ja existir, o menu apenas seleciona o asset existente.
+
+## Non-goals
+
+Este workspace nao implementa lifecycle de Transition, Loading, Pause, Save ou Preferences.
+
+Ele apenas prepara uma area isolada para os proximos cortes Unity Build Surface.
