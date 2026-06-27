@@ -4,6 +4,7 @@ using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.CycleReset;
+using Immersive.Framework.Loading;
 using Immersive.Framework.Editor.Editor.Authoring;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.TransitionEffects;
@@ -171,6 +172,44 @@ namespace Immersive.Framework.Editor.Editor.Validation
                 report.AddRange(ValidateTransitionSurfacePrefab(gameApplication.TransitionSurfacePrefab, validationMode));
             }
 
+            if (gameApplication.LoadingSurfacePolicyValue == LoadingSurfacePolicy.NoneConfigured)
+            {
+                if (gameApplication.LoadingSurfacePrefab != null)
+                {
+                    report.AddWarning(
+                        "Loading Surface Prefab is assigned, but Loading Surface Policy is NoneConfigured. The prefab will not be instantiated and loading will remain explicit NoOp.",
+                        gameApplication);
+                }
+                else
+                {
+                    report.AddInfo(
+                        "Loading surface is configured as explicit NoOp.",
+                        gameApplication);
+                }
+            }
+            else if (gameApplication.LoadingSurfacePrefab == null)
+            {
+                if (gameApplication.LoadingSurfacePolicyValue == LoadingSurfacePolicy.Required)
+                {
+                    report.AddError(
+                        "Loading Surface Policy is Required, but Loading Surface Prefab is missing.",
+                        gameApplication);
+                }
+                else
+                {
+                    report.AddInfo(
+                        "Loading Surface Policy is Optional, but no Loading Surface Prefab is assigned. Loading will remain explicit NoOp.",
+                        gameApplication);
+                }
+            }
+            else
+            {
+                report.AddRange(ValidateLoadingSurfacePrefab(
+                    gameApplication.LoadingSurfacePrefab,
+                    validationMode,
+                    gameApplication.LoadingSurfacePolicyValue == LoadingSurfacePolicy.Required));
+            }
+
             if (!report.HasIssues)
             {
                 report.AddInfo("Game Application authoring is valid for the current framework scope.", gameApplication);
@@ -321,6 +360,158 @@ namespace Immersive.Framework.Editor.Editor.Validation
             }
 
             return report;
+        }
+
+        private static FrameworkAuthoringValidationReport ValidateLoadingSurfacePrefab(
+            GameObject loadingSurfacePrefab,
+            FrameworkValidationMode validationMode,
+            bool required)
+        {
+            var report = new FrameworkAuthoringValidationReport(validationMode);
+
+            if (loadingSurfacePrefab == null)
+            {
+                if (required)
+                {
+                    report.AddError("Loading Surface Prefab is missing.", null);
+                }
+                else
+                {
+                    report.AddWarning("Loading Surface Prefab is missing.", null);
+                }
+                return report;
+            }
+
+            var prefabPath = AssetDatabase.GetAssetPath(loadingSurfacePrefab);
+            if (string.IsNullOrWhiteSpace(prefabPath))
+            {
+                AddLoadingSurfaceIssue(
+                    report,
+                    required,
+                    $"Loading Surface Prefab '{loadingSurfacePrefab.name}' is not a prefab asset.",
+                    loadingSurfacePrefab);
+                return report;
+            }
+
+            if (!PrefabUtility.IsPartOfPrefabAsset(loadingSurfacePrefab))
+            {
+                AddLoadingSurfaceIssue(
+                    report,
+                    required,
+                    $"Loading Surface Prefab '{loadingSurfacePrefab.name}' must be a prefab asset.",
+                    loadingSurfacePrefab);
+                return report;
+            }
+
+            GameObject prefabRoot = null;
+            try
+            {
+                prefabRoot = PrefabUtility.LoadPrefabContents(prefabPath);
+                if (prefabRoot == null)
+                {
+                    AddLoadingSurfaceIssue(
+                        report,
+                        required,
+                        $"Loading Surface Prefab '{loadingSurfacePrefab.name}' could not be loaded for validation.",
+                        loadingSurfacePrefab);
+                    return report;
+                }
+
+                ValidateLoadingSurfacePrefabStructure(report, prefabRoot, loadingSurfacePrefab, required);
+            }
+            catch (Exception exception)
+            {
+                AddLoadingSurfaceIssue(
+                    report,
+                    required,
+                    $"Loading Surface Prefab '{loadingSurfacePrefab.name}' could not be validated. {exception.Message}",
+                    loadingSurfacePrefab);
+            }
+            finally
+            {
+                if (prefabRoot != null)
+                {
+                    PrefabUtility.UnloadPrefabContents(prefabRoot);
+                }
+            }
+
+            if (!report.HasIssues)
+            {
+                report.AddInfo(
+                    $"Loading Surface Prefab '{loadingSurfacePrefab.name}' is valid for the current framework scope.",
+                    loadingSurfacePrefab);
+            }
+
+            return report;
+        }
+
+        private static void ValidateLoadingSurfacePrefabStructure(
+            FrameworkAuthoringValidationReport report,
+            GameObject prefabRoot,
+            GameObject source,
+            bool required)
+        {
+            var canvas = prefabRoot.GetComponentInChildren<Canvas>(true);
+            if (canvas == null)
+            {
+                report.AddError(
+                    $"Loading Surface Prefab '{source.name}' must contain a Canvas.",
+                    source);
+            }
+
+            var adapter = prefabRoot.GetComponentInChildren<UnityLoadingSurfaceAdapter>(true);
+            if (adapter == null)
+            {
+                if (CountLoadingSurfaceAdapters(prefabRoot) == 0)
+                {
+                    AddLoadingSurfaceIssue(
+                        report,
+                        required,
+                        $"Loading Surface Prefab '{source.name}' must contain an ILoadingSurfaceAdapter implementation.",
+                        source);
+                }
+                else
+                {
+                    report.AddInfo(
+                        $"Loading Surface Prefab '{source.name}' contains a non-Unity loading surface adapter implementation.",
+                        source);
+                }
+
+                return;
+            }
+
+            if (!adapter.HasCanvasGroup)
+            {
+                AddLoadingSurfaceIssue(
+                    report,
+                    required,
+                    $"Loading Surface Prefab '{source.name}' must place a CanvasGroup on the same GameObject as UnityLoadingSurfaceAdapter.",
+                    source);
+            }
+
+            if (!adapter.HasSurfaceImage)
+            {
+                AddLoadingSurfaceIssue(
+                    report,
+                    required,
+                    $"Loading Surface Prefab '{source.name}' must include an Image on the same GameObject as UnityLoadingSurfaceAdapter.",
+                    source);
+            }
+        }
+
+        private static void AddLoadingSurfaceIssue(
+            FrameworkAuthoringValidationReport report,
+            bool required,
+            string message,
+            UnityEngine.Object context)
+        {
+            if (required)
+            {
+                report.AddError(message, context);
+                return;
+            }
+
+            report.AddWarning(message, context);
         }
 
         private static void ValidateTransitionSurfacePrefabStructure(
@@ -1233,6 +1424,28 @@ namespace Immersive.Framework.Editor.Editor.Validation
             for (int i = 0; i < behaviours.Length; i++)
             {
                 if (behaviours[i] is IRouteContentLifecycleReceiver)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private static int CountLoadingSurfaceAdapters(GameObject prefabRoot)
+        {
+            MonoBehaviour[] behaviours = prefabRoot != null
+                ? prefabRoot.GetComponentsInChildren<MonoBehaviour>(true)
+                : null;
+            if (behaviours == null || behaviours.Length == 0)
+            {
+                return 0;
+            }
+
+            int count = 0;
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                if (behaviours[i] is ILoadingSurfaceAdapter)
                 {
                     count++;
                 }

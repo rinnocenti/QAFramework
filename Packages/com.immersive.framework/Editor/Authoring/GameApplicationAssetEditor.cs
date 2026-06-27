@@ -12,6 +12,8 @@ namespace Immersive.Framework.Editor.Editor.Authoring
         private SerializedProperty _startupRoute;
         private SerializedProperty _transitionSurfacePolicy;
         private SerializedProperty _transitionSurfacePrefab;
+        private SerializedProperty _loadingSurfacePolicy;
+        private SerializedProperty _loadingSurfacePrefab;
         private SerializedProperty _validationMode;
 
         private void OnEnable()
@@ -20,6 +22,8 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             _startupRoute = serializedObject.FindProperty("startupRoute");
             _transitionSurfacePolicy = serializedObject.FindProperty("transitionSurfacePolicy");
             _transitionSurfacePrefab = serializedObject.FindProperty("transitionSurfacePrefab");
+            _loadingSurfacePolicy = serializedObject.FindProperty("loadingSurfacePolicy");
+            _loadingSurfacePrefab = serializedObject.FindProperty("loadingSurfacePrefab");
             _validationMode = serializedObject.FindProperty("validationMode");
         }
 
@@ -44,6 +48,9 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
             EditorGUILayout.Space(6);
             DrawTransitionSurface();
+
+            EditorGUILayout.Space(6);
+            DrawLoadingSurface();
 
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Validation", EditorStyles.boldLabel);
@@ -80,6 +87,16 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             EditorGUILayout.PropertyField(_transitionSurfacePrefab, new GUIContent("Transition Surface Prefab"));
             EditorGUILayout.HelpBox(
                 "NoneConfigured keeps transition explicit NoOp. Required instantiates the prefab under the persistent FrameworkRuntimeHost. The prefab should contain a Canvas, a UI panel and UnityFadeCurtainEffectAdapter.",
+                MessageType.Info);
+        }
+
+        private void DrawLoadingSurface()
+        {
+            EditorGUILayout.LabelField("Loading Surface", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_loadingSurfacePolicy, new GUIContent("Loading Surface Policy"));
+            EditorGUILayout.PropertyField(_loadingSurfacePrefab, new GUIContent("Loading Surface Prefab"));
+            EditorGUILayout.HelpBox(
+                "NoneConfigured keeps loading explicit NoOp. Optional uses the prefab when present and skips explicitly when absent. Required instantiates the prefab under the persistent FrameworkRuntimeHost. The prefab should contain a Canvas, a loading panel and UnityLoadingSurfaceAdapter.",
                 MessageType.Info);
         }
 

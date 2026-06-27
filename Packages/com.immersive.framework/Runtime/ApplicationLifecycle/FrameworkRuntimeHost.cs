@@ -10,6 +10,7 @@ using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.SessionLifecycle;
 using Immersive.Framework.RuntimeContent;
 using Immersive.Framework.CycleReset;
+using Immersive.Framework.Loading;
 using Immersive.Framework.ObjectEntry;
 using Immersive.Framework.ObjectReset;
 using UnityEngine;
@@ -43,6 +44,7 @@ namespace Immersive.Framework.ApplicationLifecycle
         private ObjectEntryRuntimeContextSnapshot _objectEntryRuntimeContextSnapshot;
         private ObjectResetRuntime _objectResetRuntime;
         private IObjectResetParticipantSource _objectResetParticipantSource;
+        private LoadingSurfaceRuntime _loadingSurfaceRuntime;
         private bool _objectResetRequestInFlight;
         private int _objectEntryRuntimeContextRevision;
         private int _objectEntryRuntimeContextInvalidationCount;
@@ -168,6 +170,13 @@ namespace Immersive.Framework.ApplicationLifecycle
         internal async Task<FrameworkGameFlowStartResult> StartAsync()
         {
             InvalidateObjectEntryRuntimeContextSnapshot("framework-start");
+            if (HasBlockingLoadingSurfaceConfigurationIssue)
+            {
+                var failed = FrameworkGameFlowStartResult.Failed(_loadingSurfaceRuntime.BlockingConfigurationMessage);
+                _state = FrameworkRuntimeState.FromGameFlowResult(_gameApplication, failed);
+                return failed;
+            }
+
             var result = await _gameFlowRuntime.StartAsync(_gameApplication);
             _state = FrameworkRuntimeState.FromGameFlowResult(_gameApplication, result);
             if (result.Started)
@@ -184,19 +193,74 @@ namespace Immersive.Framework.ApplicationLifecycle
             string reason)
         {
             InvalidateObjectEntryRuntimeContextSnapshot($"route-request:{NormalizeLifecycleSource(source)}");
-            var result = await _gameFlowRuntime.RequestRouteAsync(targetRoute, source, reason);
-            if (result.Succeeded)
+            if (HasBlockingLoadingSurfaceConfigurationIssue)
             {
-                _state = FrameworkRuntimeState.FromRouteRequestResult(_state, result, true);
+                var failed = FrameworkRouteRequestResult.FailedInvalidConfig(
+                    _loadingSurfaceRuntime.BlockingConfigurationMessage,
+                    targetRoute,
+                    source,
+                    reason);
+                LogRouteRequestResult(failed, FrameworkLoadingDiagnostics.FailedRequiredUnitySurfaceMissing());
+                return failed;
+            }
+
+            if (targetRoute != null && ReferenceEquals(_state.CurrentRoute, targetRoute))
+            {
+                var result = await _gameFlowRuntime.RequestRouteAsync(targetRoute, source, reason);
+                if (result.Succeeded)
+                {
+                    _state = FrameworkRuntimeState.FromRouteRequestResult(_state, result, true);
+                    RefreshObjectEntryRuntimeContextSnapshot($"FrameworkRuntimeHost:route-request:{NormalizeLifecycleSource(source)}");
+                }
+                else if (result.Kind == FrameworkRouteRequestKind.IgnoredAlreadyActive)
+                {
+                    RefreshObjectEntryRuntimeContextSnapshot($"FrameworkRuntimeHost:route-request-kept:{NormalizeLifecycleSource(source)}");
+                }
+
+                LogRouteRequestResult(result, FrameworkLoadingDiagnostics.SkippedAlreadyLoaded());
+                return result;
+            }
+
+            var loadingRequest = CreateLoadingSurfaceRequest(targetRoute, source, reason, true);
+            var showLoadingSurface = ShouldShowLoadingSurface(targetRoute);
+            LoadingSurfaceResult loadingBeforeResult = default;
+            LoadingSurfaceResult loadingAfterResult = default;
+            if (showLoadingSurface)
+            {
+                loadingBeforeResult = _loadingSurfaceRuntime.Show(loadingRequest);
+            }
+
+            var routeResult = await _gameFlowRuntime.RequestRouteAsync(targetRoute, source, reason);
+            if (routeResult.Succeeded)
+            {
+                _state = FrameworkRuntimeState.FromRouteRequestResult(_state, routeResult, true);
                 RefreshObjectEntryRuntimeContextSnapshot($"FrameworkRuntimeHost:route-request:{NormalizeLifecycleSource(source)}");
             }
-            else if (result.Kind == FrameworkRouteRequestKind.IgnoredAlreadyActive)
+            else if (routeResult.Kind == FrameworkRouteRequestKind.IgnoredAlreadyActive)
             {
                 RefreshObjectEntryRuntimeContextSnapshot($"FrameworkRuntimeHost:route-request-kept:{NormalizeLifecycleSource(source)}");
             }
 
-            LogRouteRequestResult(result);
-            return result;
+            if (showLoadingSurface)
+            {
+                loadingAfterResult = _loadingSurfaceRuntime.Hide(CreateLoadingSurfaceRequest(targetRoute, source, reason, false));
+            }
+
+            var loadingDiagnostics = showLoadingSurface
+                ? FrameworkLoadingDiagnostics.FromUnitySurface(
+                    loadingBeforeResult,
+                    loadingAfterResult,
+                    _loadingSurfaceRuntime.AdapterCount,
+                    _loadingSurfaceRuntime.ProgressSupported)
+                : FrameworkLoadingDiagnostics.SucceededWithNoOp();
+
+            if (!showLoadingSurface && routeResult.Kind == FrameworkRouteRequestKind.IgnoredAlreadyActive)
+            {
+                loadingDiagnostics = FrameworkLoadingDiagnostics.SkippedAlreadyLoaded();
+            }
+
+            LogRouteRequestResult(routeResult, loadingDiagnostics);
+            return routeResult;
         }
 
         internal async Task<FrameworkActivityRequestResult> RequestActivityAsync(
@@ -216,7 +280,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                 RefreshObjectEntryRuntimeContextSnapshot($"FrameworkRuntimeHost:activity-request-kept:{NormalizeLifecycleSource(source)}");
             }
 
-            LogActivityRequestResult(result);
+            LogActivityRequestResult(result, FrameworkLoadingDiagnostics.SkippedNoSceneLoad());
             return result;
         }
 
@@ -234,7 +298,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                 RefreshObjectEntryRuntimeContextSnapshot($"FrameworkRuntimeHost:activity-clear-kept:{NormalizeLifecycleSource(source)}");
             }
 
-            LogActivityRequestResult(result);
+            LogActivityRequestResult(result, FrameworkLoadingDiagnostics.SkippedNoSceneLoad());
             return result;
         }
 
@@ -351,6 +415,7 @@ namespace Immersive.Framework.ApplicationLifecycle
             _contentAnchorBindingRuntime = new RuntimeContentAnchorBinding();
             _pauseRuntime = new PauseRuntime();
             _logger = FrameworkLogger.Create<FrameworkRuntimeHost>();
+            _loadingSurfaceRuntime = CreateLoadingSurfaceRuntime(application);
             _runtimeSessionScopeResult = CreateSessionScopeRoot(application, "FrameworkRuntimeHost", "session-start");
             var transitionOrchestrator = CreateTransitionOrchestrator(application);
             _gameFlowRuntime = new GameFlowRuntime(_runtimeContentRuntime, _contentAnchorBindingRuntime, transitionOrchestrator);
@@ -385,6 +450,44 @@ namespace Immersive.Framework.ApplicationLifecycle
         private static string NormalizeLifecycleSource(string source)
         {
             return string.IsNullOrWhiteSpace(source) ? "Unknown" : source.Trim();
+        }
+
+        private bool HasBlockingLoadingSurfaceConfigurationIssue => _loadingSurfaceRuntime != null && _loadingSurfaceRuntime.HasBlockingConfigurationIssue;
+
+        private bool ShouldShowLoadingSurface(RouteAsset targetRoute)
+        {
+            return _loadingSurfaceRuntime != null
+                && _loadingSurfaceRuntime.HasVisibleSurface
+                && targetRoute != null;
+        }
+
+        private static LoadingSurfaceRequest CreateLoadingSurfaceRequest(
+            RouteAsset targetRoute,
+            string source,
+            string reason,
+            bool show)
+        {
+            var routeLabel = targetRoute != null && !string.IsNullOrWhiteSpace(targetRoute.RouteName)
+                ? targetRoute.RouteName
+                : "Loading";
+            var sceneLabel = targetRoute != null && !string.IsNullOrWhiteSpace(targetRoute.PrimarySceneName)
+                ? targetRoute.PrimarySceneName
+                : targetRoute != null && !string.IsNullOrWhiteSpace(targetRoute.PrimaryScenePath)
+                    ? targetRoute.PrimaryScenePath
+                    : string.Empty;
+
+            var detail = string.IsNullOrWhiteSpace(sceneLabel)
+                ? routeLabel
+                : $"{routeLabel} / {sceneLabel}";
+
+            return show
+                ? LoadingSurfaceRequest.Show(routeLabel, detail, source, reason)
+                : LoadingSurfaceRequest.Hide(routeLabel, detail, source, reason);
+        }
+
+        private LoadingSurfaceRuntime CreateLoadingSurfaceRuntime(GameApplicationAsset application)
+        {
+            return LoadingSurfaceRuntime.Create(application, transform, _logger);
         }
 
         private ITransitionOrchestrator CreateTransitionOrchestrator(GameApplicationAsset application)
@@ -613,11 +716,11 @@ namespace Immersive.Framework.ApplicationLifecycle
                 reason);
         }
 
-        private void LogRouteRequestResult(FrameworkRouteRequestResult result)
+        private void LogRouteRequestResult(FrameworkRouteRequestResult result, FrameworkLoadingDiagnostics loadingDiagnostics)
         {
             if (result.Succeeded)
             {
-                _logger.Info("Route Request completed.", BuildRouteRequestFields(result));
+                _logger.Info("Route Request completed.", BuildRouteRequestFields(result, loadingDiagnostics));
                 _logger.Debug("Route Request diagnostics. " + result.Message);
                 LogActivityContentObservability(result.RouteLifecycleResult.ActivityFlowResult.ActivityContentResult);
                 return;
@@ -626,18 +729,18 @@ namespace Immersive.Framework.ApplicationLifecycle
             if (result.Kind == FrameworkRouteRequestKind.IgnoredAlreadyActive ||
                 result.Kind == FrameworkRouteRequestKind.IgnoredAlreadyInFlight)
             {
-                _logger.Warning(result.Message);
+                _logger.Warning(result.Message, BuildRouteRequestFields(result, loadingDiagnostics));
                 return;
             }
 
-            _logger.Error(result.Message);
+            _logger.Error(result.Message, BuildRouteRequestFields(result, loadingDiagnostics));
         }
 
-        private void LogActivityRequestResult(FrameworkActivityRequestResult result)
+        private void LogActivityRequestResult(FrameworkActivityRequestResult result, FrameworkLoadingDiagnostics loadingDiagnostics)
         {
             if (result.Succeeded)
             {
-                _logger.Info("Activity Request completed.", BuildActivityRequestFields(result));
+                _logger.Info("Activity Request completed.", BuildActivityRequestFields(result, loadingDiagnostics));
                 _logger.Debug("Activity Request diagnostics. " + result.Message);
                 LogActivityContentObservability(result.ActivityFlowResult.ActivityContentResult);
                 return;
@@ -647,11 +750,11 @@ namespace Immersive.Framework.ApplicationLifecycle
                 result.Kind == FrameworkActivityRequestKind.IgnoredAlreadyInFlight ||
                 result.Kind == FrameworkActivityRequestKind.IgnoredNoActiveActivity)
             {
-                _logger.Warning(result.Message);
+                _logger.Warning(result.Message, BuildActivityRequestFields(result, loadingDiagnostics));
                 return;
             }
 
-            _logger.Error(result.Message);
+            _logger.Error(result.Message, BuildActivityRequestFields(result, loadingDiagnostics));
         }
 
         private void LogPauseRequestResult(PauseResult result)
@@ -762,7 +865,9 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("nonBlockingIssues", result.NonBlockingIssueCount));
         }
 
-        private LogField[] BuildRouteRequestFields(FrameworkRouteRequestResult result)
+        private LogField[] BuildRouteRequestFields(
+            FrameworkRouteRequestResult result,
+            FrameworkLoadingDiagnostics loadingDiagnostics)
         {
             RouteLifecycleStartResult routeLifecycle = result.RouteLifecycleResult;
             ActivityFlowStartResult activityFlow = routeLifecycle.ActivityFlowResult;
@@ -838,10 +943,20 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("runtimeActivityRootEnter", activityFlow.RuntimeActivityScopeResult.EnterStatus),
                 LogFields.Field("runtimeActivityRootExit", activityFlow.RuntimeActivityScopeResult.ExitStatus),
                 LogFields.Field("runtimeActivityContext", activityFlow.RuntimeActivityScopeResult.ContextStatus),
-                LogFields.Field("activityContentHandles", activityContent.ActivityContentCount));
+                LogFields.Field("activityContentHandles", activityContent.ActivityContentCount),
+                LogFields.Field("loading", loadingDiagnostics.LoadingText),
+                LogFields.Field("loadingVisual", loadingDiagnostics.VisualText),
+                LogFields.Field("loadingBefore", loadingDiagnostics.BeforeText),
+                LogFields.Field("loadingAfter", loadingDiagnostics.AfterText),
+                LogFields.Field("loadingBlockingIssues", loadingDiagnostics.BlockingIssueCount),
+                LogFields.Field("loadingAdapterCount", loadingDiagnostics.AdapterCount),
+                LogFields.Field("loadingProgressSupported", loadingDiagnostics.ProgressSupported),
+                LogFields.Field("loadingProgress", loadingDiagnostics.ProgressText));
         }
 
-        private LogField[] BuildActivityRequestFields(FrameworkActivityRequestResult result)
+        private LogField[] BuildActivityRequestFields(
+            FrameworkActivityRequestResult result,
+            FrameworkLoadingDiagnostics loadingDiagnostics)
         {
             ActivityFlowStartResult activityFlow = result.ActivityFlowResult;
             ActivityContentApplyResult activityContent = activityFlow.ActivityContentResult;
@@ -896,7 +1011,28 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("activityContentHandles", activityContent.ActivityContentCount),
                 LogFields.Field("activityContentLifecycle", lifecycle.DiagnosticStatus),
                 LogFields.Field("activityContentEnterFailed", lifecycle.EnterFailedReceiverCount),
-                LogFields.Field("activityContentExitFailed", lifecycle.ExitFailedReceiverCount));
+                LogFields.Field("activityContentExitFailed", lifecycle.ExitFailedReceiverCount),
+                LogFields.Field("loading", loadingDiagnostics.LoadingText),
+                LogFields.Field("loadingVisual", loadingDiagnostics.VisualText),
+                LogFields.Field("loadingBefore", loadingDiagnostics.BeforeText),
+                LogFields.Field("loadingAfter", loadingDiagnostics.AfterText),
+                LogFields.Field("loadingBlockingIssues", loadingDiagnostics.BlockingIssueCount),
+                LogFields.Field("loadingAdapterCount", loadingDiagnostics.AdapterCount),
+                LogFields.Field("loadingProgressSupported", loadingDiagnostics.ProgressSupported),
+                LogFields.Field("loadingProgress", loadingDiagnostics.ProgressText));
+        }
+
+        private LogField[] BuildLoadingFields(FrameworkLoadingDiagnostics loadingDiagnostics)
+        {
+            return LogFields.Of(
+                LogFields.Field("loading", loadingDiagnostics.LoadingText),
+                LogFields.Field("loadingVisual", loadingDiagnostics.VisualText),
+                LogFields.Field("loadingBefore", loadingDiagnostics.BeforeText),
+                LogFields.Field("loadingAfter", loadingDiagnostics.AfterText),
+                LogFields.Field("loadingBlockingIssues", loadingDiagnostics.BlockingIssueCount),
+                LogFields.Field("loadingAdapterCount", loadingDiagnostics.AdapterCount),
+                LogFields.Field("loadingProgressSupported", loadingDiagnostics.ProgressSupported),
+                LogFields.Field("loadingProgress", loadingDiagnostics.ProgressText));
         }
 
         private void LogActivityContentObservability(ActivityContentApplyResult activityContentResult)

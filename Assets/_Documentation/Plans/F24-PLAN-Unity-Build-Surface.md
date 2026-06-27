@@ -149,7 +149,7 @@ Escopo:
 
 ### F24C - Transition Unity Surface
 
-Status: Current
+Status: Closed / Transition Unity Surface Wiring Pass
 
 Escopo:
 
@@ -159,7 +159,7 @@ Escopo:
 
 ### F24D - Loading Unity Surface
 
-Status: Planned
+Status: Current
 
 Escopo:
 

@@ -1,5 +1,6 @@
 using UnityEngine;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Loading;
 
 namespace Immersive.Framework.Authoring
 {
@@ -43,6 +44,14 @@ namespace Immersive.Framework.Authoring
         private GameObject transitionSurfacePrefab;
 
         [SerializeField]
+        [Tooltip("Controls whether this Game Application uses an explicit Unity loading surface. NoneConfigured keeps loading as an explicit NoOp. Optional uses the prefab if present and skips explicitly when absent. Required instantiates the configured prefab under the persistent FrameworkRuntimeHost and fails explicitly if the surface is missing or invalid.")]
+        private LoadingSurfacePolicy loadingSurfacePolicy = LoadingSurfacePolicy.NoneConfigured;
+
+        [SerializeField]
+        [Tooltip("Prefab for the app/session-scoped loading surface. The prefab should include a Canvas, a loading panel and UnityLoadingSurfaceAdapter. It is instantiated under the persistent FrameworkRuntimeHost when the policy is Optional or Required and a prefab is assigned.")]
+        private GameObject loadingSurfacePrefab;
+
+        [SerializeField]
         [Tooltip("Controls validation and diagnostics severity. Required configuration fails in every mode; Strict promotes warnings, Standard keeps them, Release suppresses info diagnostics.")]
         private FrameworkValidationMode validationMode = FrameworkValidationMode.Standard;
 
@@ -64,6 +73,10 @@ namespace Immersive.Framework.Authoring
         public TransitionSurfacePolicy TransitionSurfacePolicyValue => transitionSurfacePolicy;
 
         public GameObject TransitionSurfacePrefab => transitionSurfacePrefab;
+
+        public LoadingSurfacePolicy LoadingSurfacePolicyValue => loadingSurfacePolicy;
+
+        public GameObject LoadingSurfacePrefab => loadingSurfacePrefab;
 
         public FrameworkValidationMode ValidationMode => validationMode;
     }
