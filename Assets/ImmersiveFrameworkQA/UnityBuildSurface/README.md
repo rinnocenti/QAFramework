@@ -53,3 +53,28 @@ transitionEffectAfter='Succeeded'
 transitionEffectBlockingIssues='0'
 transitionEffectAdapterCount='1'
 ```
+
+## Loading surface QA hold
+
+`QA_LoadingSurface.prefab` uses `QaLoadingSurfaceVisibilityHoldAdapter` to keep the loading panel visible briefly after a hide request.
+
+This is QA-only visibility aid:
+
+```text
+- It does not delay Route, Activity, SceneLifecycle or GameFlow.
+- It does not simulate loading in the framework core.
+- It only delays the visual hide state on the QA prefab.
+```
+
+Expected loading diagnostics remain:
+
+```text
+loading='SucceededWithUnitySurface'
+loadingVisual='UnitySurface'
+loadingBefore='Succeeded'
+loadingAfter='Succeeded'
+loadingBlockingIssues='0'
+loadingAdapterCount='1'
+loadingProgressSupported='False'
+loadingProgress='Indeterminate'
+```

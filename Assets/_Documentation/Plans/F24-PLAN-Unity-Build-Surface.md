@@ -159,12 +159,22 @@ Escopo:
 
 ### F24D - Loading Unity Surface
 
-Status: Current
+Status: Closed / Loading Unity Surface Wiring Pass
 
 Escopo:
 
 - criar superficie de loading/progress;
 - loading apresenta operacao, nao vira owner de scene lifecycle.
+
+### F24D1 - Loading Surface QA Visibility Hold
+
+Status: Current
+
+Escopo:
+
+- manter a loading surface QA visivel tempo suficiente para validacao humana;
+- nao simular load no framework core;
+- nao atrasar Route, Activity, SceneLifecycle ou GameFlow.
 
 ### F24E - Pause Unity Surface
 
