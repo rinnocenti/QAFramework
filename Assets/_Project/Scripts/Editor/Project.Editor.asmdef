@@ -1,8 +1,13 @@
 {
     "name": "Project.Editor",
     "rootNamespace": "Project.Editor",
-    "references": ["Project.Runtime"],
-    "includePlatforms": ["Editor"],
+    "references": [
+        "Project.Runtime",
+        "Immersive.Framework.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

@@ -1,53 +1,72 @@
 # Unity Build Surface QA Workspace
 
-Este workspace isola os testes Unity-facing da etapa F24.
+This workspace isolates QA assets for the Unity-facing phase of the Immersive Framework.
 
-Use esta pasta para validar surfaces, assets e cenas de QA ligados a:
+It is not product content.
 
-- Transition
-- Loading
-- Pause
-- Save Moment
-- Preferences
+## Purpose
 
-## Regra de uso
+Use this area to test Unity Build Surfaces without polluting the baseline Framework QA scenes.
 
-- Este workspace e QA, nao produto.
-- Objetos especificos de jogo ficam em `Assets/_Project`.
-- Experimentos descartaveis ficam em `Assets/_Sandbox`.
-- Componentes genericos reutilizaveis devem ir para o framework quando fizer sentido.
-- Adapters avancados devem ficar no framework ou em modulo proprio, nao neste workspace.
+Examples:
 
-## Estrutura
+- Transition surfaces
+- Loading surfaces
+- Pause surfaces
+- Save moment authoring
+- Preferences authoring
 
-```text
-Assets/ImmersiveFrameworkQA/UnityBuildSurface/
-  Scenes/
-  ScriptableObjects/
-  Prefabs/
-  Materials/
-  Sprites/
-  README.md
-```
+## Current QA workspace
 
-## Cena inicial
+### F24A3
 
-A cena inicial deve ser criada dentro do Unity pelo menu:
+Created the workspace folders:
 
-```text
-Immersive Framework > QA > Unity Build Surface > Create QA Scene
-```
+- `Scenes/`
+- `ScriptableObjects/`
+- `Prefabs/`
+- `Materials/`
+- `Sprites/`
 
-O menu cria, de forma idempotente:
+### F24A4
 
-```text
-Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/UnityBuildSurfaceQA.unity
-```
+Added the editor command:
 
-Se a cena ja existir, o menu apenas seleciona o asset existente.
+`Immersive Framework > QA > Unity Build Surface > Create QA Scene`
 
-## Non-goals
+This creates/selects:
 
-Este workspace nao implementa lifecycle de Transition, Loading, Pause, Save ou Preferences.
+`Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/UnityBuildSurfaceQA.unity`
 
-Ele apenas prepara uma area isolada para os proximos cortes Unity Build Surface.
+### F24A6
+
+Added the editor command:
+
+`Immersive Framework > QA > Unity Build Surface > Create Transition QA Routes and Scenes`
+
+This creates/repairs:
+
+- `Scenes/TransitionRouteA.unity`
+- `Scenes/TransitionRouteB.unity`
+- `Routes/QA_TransitionRouteA.asset`
+- `Routes/QA_TransitionRouteB.asset`
+- `Activities/QA_TransitionActivityA.asset`
+- `Activities/QA_TransitionActivityB.asset`
+
+The generated transition scenes are also added/enabled in Build Settings by the editor tool.
+
+## Rules
+
+- Keep this workspace isolated from `Assets/ImmersiveFrameworkQA/Scenes` baseline smokes.
+- Do not place product-specific content here.
+- Do not place reusable framework runtime code here.
+- Use this area for QA assets, scenes and temporary authoring fixtures only.
+- Transition/Loading/Pause visuals can be tested here before becoming framework-level surfaces.
+
+## Manual validation
+
+1. Open Unity and wait for import/compile.
+2. Run `Immersive Framework > QA > Unity Build Surface > Create Transition QA Routes and Scenes`.
+3. Confirm the scenes, routes and activities were created under this workspace.
+4. Confirm `TransitionRouteA.unity` and `TransitionRouteB.unity` are in Build Settings.
+5. Run the command again and confirm it is idempotent.

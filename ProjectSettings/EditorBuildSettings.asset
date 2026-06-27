@@ -17,5 +17,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/ImmersiveFrameworkQA/Scenes/AdditionalRouteScene.unity
     guid: 9c623bdd65250ac448fa366920252c4d
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/TransitionRouteA.unity
+    guid: d6bb51a224660fe4c98a40a08366682a
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/TransitionRouteB.unity
+    guid: 23a97001965f2814682a8a2569165e80
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

@@ -83,7 +83,7 @@ Escopo:
 
 ### F24A5 — Source Boundary Correction + Transition QA Route Plan
 
-Status: Current
+Status: Closed / Source Boundary Documentation Pass
 
 Escopo:
 
@@ -94,12 +94,14 @@ Escopo:
 
 ### F24A6 — Transition QA Routes and Scenes
 
-Status: Planned
+Status: Current
 
 Escopo:
 
-- criar uma ou duas cenas de teste específicas para transition no workspace `Assets/ImmersiveFrameworkQA/UnityBuildSurface`;
-- criar Route/Activity/Profile assets de QA específicos para transition;
+- criar cenas de teste específicas para transition no workspace `Assets/ImmersiveFrameworkQA/UnityBuildSurface`;
+- criar Route/Activity assets de QA específicos para transition;
+- criar ferramenta editor idempotente para gerar/selecionar esses fixtures;
+- adicionar as cenas de transition ao Build Settings quando o editor tool for executado;
 - evitar reaproveitar cenas antigas cheias de QA baseline;
 - não alterar framework core;
 - não implementar transition wiring.
