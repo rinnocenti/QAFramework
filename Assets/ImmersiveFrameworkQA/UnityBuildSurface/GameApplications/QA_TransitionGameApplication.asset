@@ -14,8 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.GameApplicationAsset
   applicationName: QA Transition Game Application
   startupRoute: {fileID: 11400000, guid: 761a1beced829b3459ca6788c0963773, type: 2}
+  globalUiScenePolicy: 1
+  globalUiScenePath: Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/QA_UIGlobal.unity
+  globalUiSceneName: QA_UIGlobal
   transitionSurfacePolicy: 1
-  transitionSurfacePrefab: {fileID: 3216439661792465728, guid: c3e7a4f29b1d4c0e8f6a2b3d1c4e5f60, type: 3}
+  transitionSurfacePrefab: {fileID: 0}
   loadingSurfacePolicy: 2
-  loadingSurfacePrefab: {fileID: 4216439661792465728, guid: b4c7d8e9f0a1b2c3d4e5f60718293a4b, type: 3}
+  loadingSurfacePrefab: {fileID: 0}
   validationMode: 1

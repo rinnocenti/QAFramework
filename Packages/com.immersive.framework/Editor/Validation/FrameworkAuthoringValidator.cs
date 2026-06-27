@@ -146,6 +146,10 @@ namespace Immersive.Framework.Editor.Editor.Validation
                 report.AddRange(ValidateRoute(gameApplication.StartupRoute, true, validationMode));
             }
 
+            ValidateGlobalUiSceneConfiguration(report, gameApplication);
+            bool hasRequiredGlobalUiScene = gameApplication.GlobalUiScenePolicyValue == GlobalUiScenePolicy.Required
+                && gameApplication.HasGlobalUiScene;
+
             if (gameApplication.TransitionSurfacePolicyValue == TransitionSurfacePolicy.NoneConfigured)
             {
                 if (gameApplication.TransitionSurfacePrefab != null)
@@ -161,10 +165,23 @@ namespace Immersive.Framework.Editor.Editor.Validation
                         gameApplication);
                 }
             }
+            else if (hasRequiredGlobalUiScene)
+            {
+                report.AddInfo(
+                    "Transition Surface Policy is Required and will resolve adapters from UIGlobal first. Legacy prefab is fallback-only.",
+                    gameApplication);
+
+                if (gameApplication.TransitionSurfacePrefab != null)
+                {
+                    report.AddWarning(
+                        "Transition Surface Prefab is still assigned while UIGlobal is Required. Runtime will ignore the prefab when the UIGlobal scene provides transition adapters.",
+                        gameApplication);
+                }
+            }
             else if (gameApplication.TransitionSurfacePrefab == null)
             {
                 report.AddError(
-                    "Transition Surface Policy is Required, but Transition Surface Prefab is missing.",
+                    "Transition Surface Policy is Required, but neither UIGlobal Scene nor Transition Surface Prefab is configured.",
                     gameApplication);
             }
             else
@@ -187,12 +204,25 @@ namespace Immersive.Framework.Editor.Editor.Validation
                         gameApplication);
                 }
             }
+            else if (hasRequiredGlobalUiScene)
+            {
+                report.AddInfo(
+                    "Loading Surface Policy is configured and will resolve adapters from UIGlobal first. Legacy prefab is fallback-only.",
+                    gameApplication);
+
+                if (gameApplication.LoadingSurfacePrefab != null)
+                {
+                    report.AddWarning(
+                        "Loading Surface Prefab is still assigned while UIGlobal is Required. Runtime will ignore the prefab when the UIGlobal scene provides loading adapters.",
+                        gameApplication);
+                }
+            }
             else if (gameApplication.LoadingSurfacePrefab == null)
             {
                 if (gameApplication.LoadingSurfacePolicyValue == LoadingSurfacePolicy.Required)
                 {
                     report.AddError(
-                        "Loading Surface Policy is Required, but Loading Surface Prefab is missing.",
+                        "Loading Surface Policy is Required, but neither UIGlobal Scene nor Loading Surface Prefab is configured.",
                         gameApplication);
                 }
                 else
@@ -216,6 +246,44 @@ namespace Immersive.Framework.Editor.Editor.Validation
             }
 
             return report;
+        }
+
+        private static void ValidateGlobalUiSceneConfiguration(
+            FrameworkAuthoringValidationReport report,
+            GameApplicationAsset gameApplication)
+        {
+            if (gameApplication.GlobalUiScenePolicyValue == GlobalUiScenePolicy.NoneConfigured)
+            {
+                if (gameApplication.HasGlobalUiScene)
+                {
+                    report.AddWarning(
+                        "UIGlobal Scene is assigned, but Global UI Scene Policy is NoneConfigured. The scene will not be loaded and surface prefab fallback/no-op behavior remains active.",
+                        gameApplication);
+                }
+                else
+                {
+                    report.AddInfo(
+                        "UIGlobal scene is configured as explicit NoOp.",
+                        gameApplication);
+                }
+
+                return;
+            }
+
+            if (!gameApplication.HasGlobalUiScene)
+            {
+                report.AddError(
+                    "Global UI Scene Policy is Required, but UIGlobal Scene is missing.",
+                    gameApplication);
+                return;
+            }
+
+            ValidateSceneAssetReference(
+                report,
+                gameApplication,
+                gameApplication.GlobalUiScenePath,
+                gameApplication.GlobalUiSceneName,
+                "UIGlobal Scene");
         }
 
         private static FrameworkAuthoringValidationReport ValidateRoute(
@@ -1012,21 +1080,34 @@ namespace Immersive.Framework.Editor.Editor.Validation
 
         private static void ValidatePrimarySceneReference(FrameworkAuthoringValidationReport report, RouteAsset route)
         {
-            string scenePath = route.PrimaryScenePath;
+            ValidateSceneAssetReference(
+                report,
+                route,
+                route.PrimaryScenePath,
+                route.PrimarySceneName,
+                "Primary Scene");
+        }
 
+        private static void ValidateSceneAssetReference(
+            FrameworkAuthoringValidationReport report,
+            Object owner,
+            string scenePath,
+            string cachedSceneName,
+            string label)
+        {
             if (!scenePath.StartsWith("Assets/"))
             {
                 report.AddError(
-                    $"Primary Scene path must be project-relative under Assets. Current path: '{scenePath}'.",
-                    route);
+                    $"{label} path must be project-relative under Assets. Current path: '{scenePath}'.",
+                    owner);
                 return;
             }
 
             if (!scenePath.EndsWith(".unity"))
             {
                 report.AddError(
-                    $"Primary Scene path must reference a Unity scene asset. Current path: '{scenePath}'.",
-                    route);
+                    $"{label} path must reference a Unity scene asset. Current path: '{scenePath}'.",
+                    owner);
                 return;
             }
 
@@ -1034,16 +1115,16 @@ namespace Immersive.Framework.Editor.Editor.Validation
             if (sceneAsset == null)
             {
                 report.AddError(
-                    $"Primary Scene asset could not be found at '{scenePath}'. Reassign the scene in the Route Inspector.",
-                    route);
+                    $"{label} asset could not be found at '{scenePath}'. Reassign the scene in the Inspector.",
+                    owner);
                 return;
             }
 
-            if (!string.Equals(sceneAsset.name, route.PrimarySceneName, System.StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(route.PrimarySceneName))
+            if (!string.Equals(sceneAsset.name, cachedSceneName, System.StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(cachedSceneName))
             {
                 report.AddWarning(
-                    $"Primary Scene cached name '{route.PrimarySceneName}' does not match scene asset name '{sceneAsset.name}'. Reassign the scene to refresh diagnostics.",
-                    route);
+                    $"{label} cached name '{cachedSceneName}' does not match scene asset name '{sceneAsset.name}'. Reassign the scene to refresh diagnostics.",
+                    owner);
             }
         }
 

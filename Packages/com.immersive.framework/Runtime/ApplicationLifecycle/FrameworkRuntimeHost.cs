@@ -17,6 +17,7 @@ using UnityEngine;
 using Immersive.Framework.ApiStatus;
 using Immersive.Logging.Records;
 using Immersive.Framework.Gate;
+using Immersive.Framework.GlobalUi;
 using Immersive.Framework.Pause;
 using Immersive.Framework.Transition;
 using Immersive.Framework.TransitionEffects;
@@ -45,6 +46,7 @@ namespace Immersive.Framework.ApplicationLifecycle
         private ObjectResetRuntime _objectResetRuntime;
         private IObjectResetParticipantSource _objectResetParticipantSource;
         private LoadingSurfaceRuntime _loadingSurfaceRuntime;
+        private GlobalUiSceneRuntime _globalUiSceneRuntime;
         private bool _objectResetRequestInFlight;
         private int _objectEntryRuntimeContextRevision;
         private int _objectEntryRuntimeContextInvalidationCount;
@@ -170,12 +172,24 @@ namespace Immersive.Framework.ApplicationLifecycle
         internal async Task<FrameworkGameFlowStartResult> StartAsync()
         {
             InvalidateObjectEntryRuntimeContextSnapshot("framework-start");
+            _globalUiSceneRuntime = await GlobalUiSceneRuntime.LoadAndPersistAsync(_gameApplication, transform, _logger);
+            if (_globalUiSceneRuntime.HasBlockingConfigurationIssue)
+            {
+                var failed = FrameworkGameFlowStartResult.Failed(_globalUiSceneRuntime.BlockingConfigurationMessage);
+                _state = FrameworkRuntimeState.FromGameFlowResult(_gameApplication, failed);
+                return failed;
+            }
+
+            _loadingSurfaceRuntime = CreateLoadingSurfaceRuntime(_gameApplication, _globalUiSceneRuntime);
             if (HasBlockingLoadingSurfaceConfigurationIssue)
             {
                 var failed = FrameworkGameFlowStartResult.Failed(_loadingSurfaceRuntime.BlockingConfigurationMessage);
                 _state = FrameworkRuntimeState.FromGameFlowResult(_gameApplication, failed);
                 return failed;
             }
+
+            var transitionOrchestrator = CreateTransitionOrchestrator(_gameApplication, _globalUiSceneRuntime);
+            _gameFlowRuntime = new GameFlowRuntime(_runtimeContentRuntime, _contentAnchorBindingRuntime, transitionOrchestrator);
 
             var result = await _gameFlowRuntime.StartAsync(_gameApplication);
             _state = FrameworkRuntimeState.FromGameFlowResult(_gameApplication, result);
@@ -432,10 +446,7 @@ namespace Immersive.Framework.ApplicationLifecycle
             _contentAnchorBindingRuntime = new RuntimeContentAnchorBinding();
             _pauseRuntime = new PauseRuntime();
             _logger = FrameworkLogger.Create<FrameworkRuntimeHost>();
-            _loadingSurfaceRuntime = CreateLoadingSurfaceRuntime(application);
             _runtimeSessionScopeResult = CreateSessionScopeRoot(application, "FrameworkRuntimeHost", "session-start");
-            var transitionOrchestrator = CreateTransitionOrchestrator(application);
-            _gameFlowRuntime = new GameFlowRuntime(_runtimeContentRuntime, _contentAnchorBindingRuntime, transitionOrchestrator);
             _state = FrameworkRuntimeState.Empty(application);
         }
 
@@ -502,12 +513,21 @@ namespace Immersive.Framework.ApplicationLifecycle
                 : LoadingSurfaceRequest.Hide(routeLabel, detail, source, reason);
         }
 
-        private LoadingSurfaceRuntime CreateLoadingSurfaceRuntime(GameApplicationAsset application)
+        private LoadingSurfaceRuntime CreateLoadingSurfaceRuntime(
+            GameApplicationAsset application,
+            GlobalUiSceneRuntime globalUiSceneRuntime)
         {
-            return LoadingSurfaceRuntime.Create(application, transform, _logger);
+            return LoadingSurfaceRuntime.Create(
+                application,
+                transform,
+                _logger,
+                globalUiSceneRuntime != null ? globalUiSceneRuntime.LoadingAdapters : Array.Empty<ILoadingSurfaceAdapter>(),
+                globalUiSceneRuntime != null ? globalUiSceneRuntime.Label : string.Empty);
         }
 
-        private ITransitionOrchestrator CreateTransitionOrchestrator(GameApplicationAsset application)
+        private ITransitionOrchestrator CreateTransitionOrchestrator(
+            GameApplicationAsset application,
+            GlobalUiSceneRuntime globalUiSceneRuntime)
         {
             if (application == null)
             {
@@ -515,12 +535,20 @@ namespace Immersive.Framework.ApplicationLifecycle
                 return NoOpTransitionOrchestrator.Instance;
             }
 
+            var sceneAdapters = globalUiSceneRuntime != null
+                ? globalUiSceneRuntime.TransitionAdapters
+                : Array.Empty<ITransitionEffectAdapter>();
+            var hasSceneAdapters = sceneAdapters != null && sceneAdapters.Count > 0;
+            var sceneLabel = globalUiSceneRuntime != null && !string.IsNullOrWhiteSpace(globalUiSceneRuntime.Label)
+                ? globalUiSceneRuntime.Label
+                : "UIGlobal Transition Surface";
+
             if (application.TransitionSurfacePolicyValue == TransitionSurfacePolicy.NoneConfigured)
             {
-                if (application.TransitionSurfacePrefab != null)
+                if (hasSceneAdapters || application.TransitionSurfacePrefab != null)
                 {
                     _logger.Warning(
-                        "Transition surface prefab is assigned but Transition Surface Policy is NoneConfigured. The runtime will keep explicit NoOp Transition.");
+                        "Transition surface adapters are available, but Transition Surface Policy is NoneConfigured. The runtime will keep explicit NoOp Transition.");
                 }
                 else
                 {
@@ -530,9 +558,20 @@ namespace Immersive.Framework.ApplicationLifecycle
                 return NoOpTransitionOrchestrator.Instance;
             }
 
+            if (hasSceneAdapters)
+            {
+                if (application.TransitionSurfacePrefab != null)
+                {
+                    _logger.Warning("Transition Surface Prefab is assigned, but UIGlobal scene adapters are available. The prefab fallback is ignored for this boot.");
+                }
+
+                _logger.Info($"Transition surface resolved from UIGlobal scene '{sceneLabel}' with adapterCount='{sceneAdapters.Count}'.");
+                return new TransitionEffectOrchestrator(sceneAdapters, sceneLabel);
+            }
+
             if (application.TransitionSurfacePrefab == null)
             {
-                _logger.Error("Transition surface is required, but the Transition Surface Prefab is missing.");
+                _logger.Error("Transition surface is required, but no UIGlobal transition adapter or Transition Surface Prefab is available.");
                 return new TransitionEffectOrchestrator(
                     Array.Empty<ITransitionEffectAdapter>(),
                     "Transition Surface");

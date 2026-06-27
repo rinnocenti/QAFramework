@@ -60,3 +60,10 @@ transitionEffectAdapterCount='1'
 `QA_TransitionCurtainSurface.prefab` keeps `CurtainPanel` active and hidden via `CanvasGroup.alpha = 0` instead of disabling the surface root. This avoids the first-use UI cold start where the transition diagnostics succeeded but the curtain could miss the first visible render.
 
 This is a QA fixture correction only. It does not alter Route, Activity, SceneLifecycle, Loading or Transition ownership.
+
+
+## F24E Canonical UIGlobal Scene
+
+`Scenes/QA_UIGlobal.unity` is the canonical QA scene for app/session-scoped UI surfaces.
+It contains the Transition Curtain Surface and Loading Surface.
+`QA_TransitionGameApplication.asset` loads this scene before the Startup Route and resolves adapters from it; legacy surface prefabs remain fallback-only.

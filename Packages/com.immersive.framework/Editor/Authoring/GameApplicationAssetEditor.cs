@@ -10,6 +10,9 @@ namespace Immersive.Framework.Editor.Editor.Authoring
     {
         private SerializedProperty _applicationName;
         private SerializedProperty _startupRoute;
+        private SerializedProperty _globalUiScenePolicy;
+        private SerializedProperty _globalUiScenePath;
+        private SerializedProperty _globalUiSceneName;
         private SerializedProperty _transitionSurfacePolicy;
         private SerializedProperty _transitionSurfacePrefab;
         private SerializedProperty _loadingSurfacePolicy;
@@ -20,6 +23,9 @@ namespace Immersive.Framework.Editor.Editor.Authoring
         {
             _applicationName = serializedObject.FindProperty("applicationName");
             _startupRoute = serializedObject.FindProperty("startupRoute");
+            _globalUiScenePolicy = serializedObject.FindProperty("globalUiScenePolicy");
+            _globalUiScenePath = serializedObject.FindProperty("globalUiScenePath");
+            _globalUiSceneName = serializedObject.FindProperty("globalUiSceneName");
             _transitionSurfacePolicy = serializedObject.FindProperty("transitionSurfacePolicy");
             _transitionSurfacePrefab = serializedObject.FindProperty("transitionSurfacePrefab");
             _loadingSurfacePolicy = serializedObject.FindProperty("loadingSurfacePolicy");
@@ -47,6 +53,9 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             DrawStartup();
 
             EditorGUILayout.Space(6);
+            DrawGlobalUiScene();
+
+            EditorGUILayout.Space(6);
             DrawTransitionSurface();
 
             EditorGUILayout.Space(6);
@@ -62,7 +71,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Current Scope", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "This asset controls application identity, project assignment, Startup Route, and validation mode. The Route declares the Primary Scene loaded by Scene Lifecycle. Actor, Input, Camera, Save, and Pooling are intentionally not part of this asset yet.",
+                "This asset controls application identity, project assignment, Startup Route, canonical UIGlobal scene, transition/loading surface policies, and validation mode. The Route still owns Primary Scene loading. UIGlobal is app/session UI only; it does not own Route, Activity or SceneLifecycle.",
                 MessageType.Info);
 
             serializedObject.ApplyModifiedProperties();
@@ -80,13 +89,40 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             FrameworkAuthoringValidationGui.DrawIssues(report, false);
         }
 
+        private void DrawGlobalUiScene()
+        {
+            EditorGUILayout.LabelField("UIGlobal Scene", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_globalUiScenePolicy, new GUIContent("Global UI Scene Policy"));
+
+            var currentScene = LoadCurrentGlobalUiSceneAsset();
+            var selectedScene = (SceneAsset)EditorGUILayout.ObjectField(
+                new GUIContent("UIGlobal Scene"),
+                currentScene,
+                typeof(SceneAsset),
+                false);
+
+            if (selectedScene != currentScene)
+            {
+                SetGlobalUiScene(selectedScene);
+            }
+
+            using (new EditorGUI.DisabledScope(true))
+            {
+                EditorGUILayout.TextField("Scene Path", _globalUiScenePath.stringValue ?? string.Empty);
+            }
+
+            EditorGUILayout.HelpBox(
+                "Optional canonical app/session UI scene. When Required, FrameworkRuntimeHost loads it before Startup Route, persists its UI roots, discovers Transition/Loading adapters from it, then lets Route SceneLifecycle continue normally.",
+                MessageType.Info);
+        }
+
         private void DrawTransitionSurface()
         {
             EditorGUILayout.LabelField("Transition Surface", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_transitionSurfacePolicy, new GUIContent("Transition Surface Policy"));
-            EditorGUILayout.PropertyField(_transitionSurfacePrefab, new GUIContent("Transition Surface Prefab"));
+            EditorGUILayout.PropertyField(_transitionSurfacePrefab, new GUIContent("Legacy Transition Surface Prefab"));
             EditorGUILayout.HelpBox(
-                "NoneConfigured keeps transition explicit NoOp. Required instantiates the prefab under the persistent FrameworkRuntimeHost. The prefab should contain a Canvas, a UI panel and UnityFadeCurtainEffectAdapter.",
+                "Required resolves a Transition adapter from UIGlobal first. The prefab remains a temporary fallback and is ignored when UIGlobal provides adapters.",
                 MessageType.Info);
         }
 
@@ -94,9 +130,9 @@ namespace Immersive.Framework.Editor.Editor.Authoring
         {
             EditorGUILayout.LabelField("Loading Surface", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_loadingSurfacePolicy, new GUIContent("Loading Surface Policy"));
-            EditorGUILayout.PropertyField(_loadingSurfacePrefab, new GUIContent("Loading Surface Prefab"));
+            EditorGUILayout.PropertyField(_loadingSurfacePrefab, new GUIContent("Legacy Loading Surface Prefab"));
             EditorGUILayout.HelpBox(
-                "NoneConfigured keeps loading explicit NoOp. Optional uses the prefab when present and skips explicitly when absent. Required instantiates the prefab under the persistent FrameworkRuntimeHost. The prefab should contain a Canvas, a loading panel and UnityLoadingSurfaceAdapter.",
+                "Required resolves a Loading adapter from UIGlobal first. Optional uses UIGlobal/prefab when available and skips explicitly when absent. The prefab remains a temporary fallback and is ignored when UIGlobal provides adapters.",
                 MessageType.Info);
         }
 
@@ -172,6 +208,29 @@ namespace Immersive.Framework.Editor.Editor.Authoring
                     }
                 }
             }
+        }
+
+        private SceneAsset LoadCurrentGlobalUiSceneAsset()
+        {
+            if (string.IsNullOrWhiteSpace(_globalUiScenePath.stringValue))
+            {
+                return null;
+            }
+
+            return AssetDatabase.LoadAssetAtPath<SceneAsset>(_globalUiScenePath.stringValue);
+        }
+
+        private void SetGlobalUiScene(SceneAsset sceneAsset)
+        {
+            if (sceneAsset == null)
+            {
+                _globalUiScenePath.stringValue = string.Empty;
+                _globalUiSceneName.stringValue = string.Empty;
+                return;
+            }
+
+            _globalUiScenePath.stringValue = AssetDatabase.GetAssetPath(sceneAsset);
+            _globalUiSceneName.stringValue = sceneAsset.name;
         }
     }
 }

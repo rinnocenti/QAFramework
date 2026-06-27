@@ -159,20 +159,31 @@ Escopo:
 
 ### F24D - Loading Unity Surface
 
-Status: Current
+Status: Closed / Loading Unity Surface Cascade Pass
 
 Escopo:
 
 - criar superficie de loading/progress;
 - loading apresenta operacao, nao vira owner de scene lifecycle.
 
-### F24E - Pause Unity Surface
+### F24E - Canonical UIGlobal Scene
+
+Status: Current
+
+Escopo:
+
+- substituir surfaces app-scoped por prefab por uma cena UIGlobal canônica;
+- carregar UIGlobal antes da Startup Route e persistir seus roots sob o FrameworkRuntimeHost;
+- descobrir adapters de Transition/Loading na cena;
+- manter Loading/Transition como visual/diagnostics, sem ownership de Route/Activity/SceneLifecycle.
+
+### F24F - Pause Unity Surface
 
 Status: Planned
 
 Escopo:
 
-- criar superficie de pause;
+- criar superficie de pause dentro do shape UIGlobal;
 - pause consome lifecycle/input/presentation;
 - pause nao controla Activity/Route diretamente.
 

@@ -65,6 +65,21 @@ namespace Immersive.Framework.Loading
             Transform parent,
             FrameworkLogger logger)
         {
+            return Create(
+                application,
+                parent,
+                logger,
+                Array.Empty<ILoadingSurfaceAdapter>(),
+                string.Empty);
+        }
+
+        internal static LoadingSurfaceRuntime Create(
+            GameApplicationAsset application,
+            Transform parent,
+            FrameworkLogger logger,
+            IReadOnlyList<ILoadingSurfaceAdapter> sceneAdapters,
+            string sceneLabel)
+        {
             logger ??= FrameworkLogger.Create<LoadingSurfaceRuntime>();
 
             if (application == null)
@@ -83,15 +98,18 @@ namespace Immersive.Framework.Loading
 
             var policy = application.LoadingSurfacePolicyValue;
             var prefab = application.LoadingSurfacePrefab;
+            var hasSceneAdapters = sceneAdapters != null && sceneAdapters.Count > 0;
+            var resolvedSceneLabel = string.IsNullOrWhiteSpace(sceneLabel) ? "UIGlobal Loading Surface" : sceneLabel.Trim();
+
             if (policy == LoadingSurfacePolicy.NoneConfigured)
             {
-                if (prefab != null)
+                if (hasSceneAdapters || prefab != null)
                 {
-                    var warningMessage = $"Loading surface prefab is assigned but Loading Surface Policy is NoneConfigured. The runtime will keep explicit NoOp Loading.";
+                    var warningMessage = "Loading surface adapters are available, but Loading Surface Policy is NoneConfigured. The runtime will keep explicit NoOp Loading.";
                     logger.Warning(warningMessage);
                     return new LoadingSurfaceRuntime(
                         policy,
-                        "Loading Surface",
+                        resolvedSceneLabel,
                         Array.Empty<ILoadingSurfaceAdapter>(),
                         false,
                         true,
@@ -111,10 +129,28 @@ namespace Immersive.Framework.Loading
                     infoMessage);
             }
 
+            if (hasSceneAdapters)
+            {
+                if (prefab != null)
+                {
+                    logger.Warning("Loading Surface Prefab is assigned, but UIGlobal scene adapters are available. The prefab fallback is ignored for this boot.");
+                }
+
+                logger.Info($"Loading surface resolved from UIGlobal scene '{resolvedSceneLabel}' with adapterCount='{sceneAdapters.Count}'.");
+                return new LoadingSurfaceRuntime(
+                    policy,
+                    resolvedSceneLabel,
+                    sceneAdapters,
+                    false,
+                    false,
+                    string.Empty,
+                    string.Empty);
+            }
+
             if (prefab == null)
             {
                 var message = policy == LoadingSurfacePolicy.Required
-                    ? "Loading surface is required, but the Loading Surface Prefab is missing."
+                    ? "Loading surface is required, but no UIGlobal loading adapter or Loading Surface Prefab is available."
                     : "Loading surface is optional and not configured. Loading will remain explicit NoOp.";
 
                 if (policy == LoadingSurfacePolicy.Required)

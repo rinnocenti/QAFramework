@@ -4,6 +4,18 @@ using Immersive.Framework.Loading;
 
 namespace Immersive.Framework.Authoring
 {
+
+    /// <summary>
+    /// API status: Experimental. Policy for the canonical app/session scoped Unity UI scene.
+    /// The Global UI scene is loaded before the Startup Route, its roots are persisted under the FrameworkRuntimeHost,
+    /// and Transition/Loading adapters are discovered from that scene.
+    /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F24E canonical UIGlobal scene policy for GameApplication authoring.")]
+    public enum GlobalUiScenePolicy
+    {
+        NoneConfigured = 0,
+        Required = 1
+    }
     /// <summary>
     /// API status: Experimental. Policy for the Unity transition surface wired through a Game Application.
     /// NoneConfigured keeps Transition explicit NoOp; Required instantiates the configured prefab and fails explicitly when the surface is missing or invalid.
@@ -36,7 +48,19 @@ namespace Immersive.Framework.Authoring
         private RouteAsset startupRoute;
 
         [SerializeField]
-        [Tooltip("Controls whether this Game Application uses an explicit Unity transition surface. NoneConfigured keeps Transition as an explicit NoOp. Required instantiates the configured prefab under the persistent FrameworkRuntimeHost and fails explicitly if the surface is missing or invalid.")]
+        [Tooltip("Controls whether this Game Application uses a canonical app/session scoped UIGlobal scene. Required loads the scene before Startup Route, persists its UI roots under the FrameworkRuntimeHost, and discovers Transition/Loading adapters from it.")]
+        private GlobalUiScenePolicy globalUiScenePolicy = GlobalUiScenePolicy.NoneConfigured;
+
+        [SerializeField]
+        [Tooltip("Project-relative path of the canonical UIGlobal scene. Managed by the Game Application Inspector.")]
+        private string globalUiScenePath = string.Empty;
+
+        [SerializeField]
+        [Tooltip("Cached human-readable UIGlobal scene name shown in framework diagnostics.")]
+        private string globalUiSceneName = string.Empty;
+
+        [SerializeField]
+        [Tooltip("Controls whether this Game Application uses an explicit Unity transition surface. NoneConfigured keeps Transition as an explicit NoOp. Required discovers the adapter from UIGlobal first, then from the legacy prefab fallback if assigned.")]
         private TransitionSurfacePolicy transitionSurfacePolicy = TransitionSurfacePolicy.NoneConfigured;
 
         [SerializeField]
@@ -69,6 +93,34 @@ namespace Immersive.Framework.Authoring
         }
 
         public RouteAsset StartupRoute => startupRoute;
+
+        public GlobalUiScenePolicy GlobalUiScenePolicyValue => globalUiScenePolicy;
+
+        public string GlobalUiScenePath => globalUiScenePath ?? string.Empty;
+
+        public string GlobalUiSceneName
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(globalUiSceneName))
+                {
+                    return globalUiSceneName.Trim();
+                }
+
+                if (!string.IsNullOrWhiteSpace(globalUiScenePath))
+                {
+                    var fileName = System.IO.Path.GetFileNameWithoutExtension(globalUiScenePath);
+                    if (!string.IsNullOrWhiteSpace(fileName))
+                    {
+                        return fileName;
+                    }
+                }
+
+                return string.Empty;
+            }
+        }
+
+        public bool HasGlobalUiScene => !string.IsNullOrWhiteSpace(globalUiScenePath);
 
         public TransitionSurfacePolicy TransitionSurfacePolicyValue => transitionSurfacePolicy;
 
