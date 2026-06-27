@@ -282,7 +282,39 @@ namespace Immersive.Framework.ApplicationLifecycle
             string reason)
         {
             InvalidateObjectEntryRuntimeContextSnapshot($"activity-request:{NormalizeLifecycleSource(source)}");
-            var result = await _gameFlowRuntime.RequestActivityAsync(targetActivity, source, reason);
+            var previousActivity = _state.CurrentActivity;
+            var showLoadingSurface = ShouldShowActivityLoadingSurface(targetActivity, previousActivity, source, reason);
+            var loadingShowRequest = CreateActivityLoadingSurfaceRequest(targetActivity, source, reason, true);
+            var loadingHideRequest = CreateActivityLoadingSurfaceRequest(targetActivity, source, reason, false);
+            LoadingSurfaceResult loadingBeforeResult = default;
+            LoadingSurfaceResult loadingAfterResult = default;
+
+            async Awaitable ShowLoadingAfterTransitionGate()
+            {
+                if (!showLoadingSurface)
+                {
+                    return;
+                }
+
+                loadingBeforeResult = await _loadingSurfaceRuntime.ShowAsync(loadingShowRequest);
+            }
+
+            async Awaitable HideLoadingBeforeTransitionRelease()
+            {
+                if (!showLoadingSurface)
+                {
+                    return;
+                }
+
+                loadingAfterResult = await _loadingSurfaceRuntime.HideAsync(loadingHideRequest);
+            }
+
+            var result = await _gameFlowRuntime.RequestActivityAsync(
+                targetActivity,
+                source,
+                reason,
+                ShowLoadingAfterTransitionGate,
+                HideLoadingBeforeTransitionRelease);
             if (result.Succeeded)
             {
                 _state = FrameworkRuntimeState.FromActivityRequestResult(_state, result);
@@ -293,14 +325,53 @@ namespace Immersive.Framework.ApplicationLifecycle
                 RefreshObjectEntryRuntimeContextSnapshot($"FrameworkRuntimeHost:activity-request-kept:{NormalizeLifecycleSource(source)}");
             }
 
-            LogActivityRequestResult(result, FrameworkLoadingDiagnostics.SkippedNoSceneLoad());
+            var loadingDiagnostics = showLoadingSurface
+                ? FrameworkLoadingDiagnostics.FromUnitySurface(
+                    loadingBeforeResult,
+                    loadingAfterResult,
+                    _loadingSurfaceRuntime.AdapterCount,
+                    _loadingSurfaceRuntime.ProgressSupported)
+                : FrameworkLoadingDiagnostics.SkippedNoSceneLoad();
+
+            LogActivityRequestResult(result, loadingDiagnostics);
             return result;
         }
 
         internal async Task<FrameworkActivityRequestResult> ClearActivityAsync(string source, string reason)
         {
             InvalidateObjectEntryRuntimeContextSnapshot($"activity-clear:{NormalizeLifecycleSource(source)}");
-            var result = await _gameFlowRuntime.ClearActivityAsync(source, reason);
+            var previousActivity = _state.CurrentActivity;
+            var showLoadingSurface = ShouldShowActivityClearLoadingSurface(previousActivity);
+            var loadingShowRequest = CreateActivityLoadingSurfaceRequest(previousActivity, source, reason, true);
+            var loadingHideRequest = CreateActivityLoadingSurfaceRequest(previousActivity, source, reason, false);
+            LoadingSurfaceResult loadingBeforeResult = default;
+            LoadingSurfaceResult loadingAfterResult = default;
+
+            async Awaitable ShowLoadingAfterTransitionGate()
+            {
+                if (!showLoadingSurface)
+                {
+                    return;
+                }
+
+                loadingBeforeResult = await _loadingSurfaceRuntime.ShowAsync(loadingShowRequest);
+            }
+
+            async Awaitable HideLoadingBeforeTransitionRelease()
+            {
+                if (!showLoadingSurface)
+                {
+                    return;
+                }
+
+                loadingAfterResult = await _loadingSurfaceRuntime.HideAsync(loadingHideRequest);
+            }
+
+            var result = await _gameFlowRuntime.ClearActivityAsync(
+                source,
+                reason,
+                ShowLoadingAfterTransitionGate,
+                HideLoadingBeforeTransitionRelease);
             if (result.Succeeded)
             {
                 _state = FrameworkRuntimeState.FromActivityRequestResult(_state, result);
@@ -311,7 +382,15 @@ namespace Immersive.Framework.ApplicationLifecycle
                 RefreshObjectEntryRuntimeContextSnapshot($"FrameworkRuntimeHost:activity-clear-kept:{NormalizeLifecycleSource(source)}");
             }
 
-            LogActivityRequestResult(result, FrameworkLoadingDiagnostics.SkippedNoSceneLoad());
+            var loadingDiagnostics = showLoadingSurface
+                ? FrameworkLoadingDiagnostics.FromUnitySurface(
+                    loadingBeforeResult,
+                    loadingAfterResult,
+                    _loadingSurfaceRuntime.AdapterCount,
+                    _loadingSurfaceRuntime.ProgressSupported)
+                : FrameworkLoadingDiagnostics.SkippedNoSceneLoad();
+
+            LogActivityRequestResult(result, loadingDiagnostics);
             return result;
         }
 
@@ -492,6 +571,65 @@ namespace Immersive.Framework.ApplicationLifecycle
                 ? LoadingSurfaceRequest.Show(routeLabel, detail, source, reason)
                 : LoadingSurfaceRequest.Hide(routeLabel, detail, source, reason);
         }
+
+        private bool ShouldShowActivityLoadingSurface(
+            ActivityAsset targetActivity,
+            ActivityAsset previousActivity,
+            string source,
+            string reason)
+        {
+            if (_loadingSurfaceRuntime == null || !_loadingSurfaceRuntime.HasVisibleSurface)
+            {
+                return false;
+            }
+
+            if (targetActivity != null && ReferenceEquals(targetActivity, previousActivity))
+            {
+                return false;
+            }
+
+            var hasTargetComposition = false;
+            if (targetActivity != null)
+            {
+                var plan = ActivitySceneCompositionPlan.FromActivity(targetActivity, source, reason);
+                hasTargetComposition = ActivitySceneCompositionRuntime.ShouldExecute(plan);
+            }
+
+            var hasPreviousRelease = previousActivity != null
+                && _gameFlowRuntime != null
+                && _gameFlowRuntime.HasActivitySceneReleaseOnActivityChange(previousActivity);
+
+            return hasTargetComposition || hasPreviousRelease;
+        }
+
+        private bool ShouldShowActivityClearLoadingSurface(ActivityAsset previousActivity)
+        {
+            return _loadingSurfaceRuntime != null
+                && _loadingSurfaceRuntime.HasVisibleSurface
+                && previousActivity != null
+                && _gameFlowRuntime != null
+                && _gameFlowRuntime.HasActivitySceneReleaseOnActivityChange(previousActivity);
+        }
+
+        private static LoadingSurfaceRequest CreateActivityLoadingSurfaceRequest(
+            ActivityAsset targetActivity,
+            string source,
+            string reason,
+            bool show)
+        {
+            var activityLabel = targetActivity != null && !string.IsNullOrWhiteSpace(targetActivity.ActivityName)
+                ? targetActivity.ActivityName
+                : "Activity";
+            var profile = targetActivity != null ? targetActivity.ActivityContentProfile : null;
+            var detail = profile != null && !string.IsNullOrWhiteSpace(profile.ProfileId)
+                ? $"{activityLabel} / {profile.ProfileId}"
+                : activityLabel;
+
+            return show
+                ? LoadingSurfaceRequest.Show(activityLabel, detail, source, reason)
+                : LoadingSurfaceRequest.Hide(activityLabel, detail, source, reason);
+        }
+
 
         private LoadingSurfaceRuntime CreateLoadingSurfaceRuntime(GlobalUiSceneRuntime globalUiSceneRuntime)
         {
@@ -855,6 +993,13 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("routeReleaseSkipped", routeLifecycle.ContentReleaseResult.SkippedCount),
                 LogFields.Field("routeReleaseFailed", routeLifecycle.ContentReleaseResult.FailedCount),
                 LogFields.Field("routeReleaseBlockingIssues", routeLifecycle.ContentReleaseResult.BlockingIssueCount),
+                LogFields.Field("routeActivitySceneRelease", routeLifecycle.ActivitySceneRouteReleaseResult.DiagnosticStatus),
+                LogFields.Field("routeActivitySceneReleaseScenes", routeLifecycle.ActivitySceneRouteReleaseResult.SceneCount),
+                LogFields.Field("routeActivitySceneReleaseReleased", routeLifecycle.ActivitySceneRouteReleaseResult.ReleasedSceneCount),
+                LogFields.Field("routeActivitySceneReleaseSkipped", routeLifecycle.ActivitySceneRouteReleaseResult.SkippedSceneCount),
+                LogFields.Field("routeActivitySceneReleaseFailed", routeLifecycle.ActivitySceneRouteReleaseResult.FailedSceneCount),
+                LogFields.Field("routeActivitySceneReleaseSideEffects", routeLifecycle.ActivitySceneRouteReleaseResult.SideEffectsExecuted),
+                LogFields.Field("routeActivitySceneReleaseBlockingIssues", routeLifecycle.ActivitySceneRouteReleaseResult.BlockingIssueCount),
                 LogFields.Field("routeExit", routeLifecycle.RouteExitResult.DiagnosticStatus),
                 LogFields.Field("runtimeRouteScope", routeLifecycle.RuntimeRouteScopeResult.DiagnosticStatus),
                 LogFields.Field("runtimeRouteRootEnter", routeLifecycle.RuntimeRouteScopeResult.EnterStatus),
@@ -970,7 +1115,19 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("activitySceneCompositionRequired", activityFlow.ActivitySceneCompositionResult.RequiredSceneCount),
                 LogFields.Field("activitySceneCompositionOptional", activityFlow.ActivitySceneCompositionResult.OptionalSceneCount),
                 LogFields.Field("activitySceneCompositionExecutionReady", activityFlow.ActivitySceneCompositionResult.ExecutionReadySceneCount),
+                LogFields.Field("activitySceneCompositionLoaded", activityFlow.ActivitySceneCompositionResult.LoadedSceneCount),
+                LogFields.Field("activitySceneCompositionAlreadyLoaded", activityFlow.ActivitySceneCompositionResult.AlreadyLoadedSceneCount),
+                LogFields.Field("activitySceneCompositionFailed", activityFlow.ActivitySceneCompositionResult.FailedSceneCount),
+                LogFields.Field("activitySceneCompositionSkipped", activityFlow.ActivitySceneCompositionResult.SkippedSceneCount),
+                LogFields.Field("activitySceneCompositionSideEffects", activityFlow.ActivitySceneCompositionResult.SideEffectsExecuted),
                 LogFields.Field("activitySceneCompositionBlockingIssues", activityFlow.ActivitySceneCompositionResult.BlockingIssueCount),
+                LogFields.Field("activitySceneRelease", activityFlow.ActivitySceneReleaseResult.DiagnosticStatus),
+                LogFields.Field("activitySceneReleaseScenes", activityFlow.ActivitySceneReleaseResult.SceneCount),
+                LogFields.Field("activitySceneReleaseReleased", activityFlow.ActivitySceneReleaseResult.ReleasedSceneCount),
+                LogFields.Field("activitySceneReleaseFailed", activityFlow.ActivitySceneReleaseResult.FailedSceneCount),
+                LogFields.Field("activitySceneReleaseSkipped", activityFlow.ActivitySceneReleaseResult.SkippedSceneCount),
+                LogFields.Field("activitySceneReleaseSideEffects", activityFlow.ActivitySceneReleaseResult.SideEffectsExecuted),
+                LogFields.Field("activitySceneReleaseBlockingIssues", activityFlow.ActivitySceneReleaseResult.BlockingIssueCount),
                 LogFields.Field("activityContentLifecycle", lifecycle.DiagnosticStatus),
                 LogFields.Field("activityContentEnterFailed", lifecycle.EnterFailedReceiverCount),
                 LogFields.Field("activityContentExitFailed", lifecycle.ExitFailedReceiverCount),

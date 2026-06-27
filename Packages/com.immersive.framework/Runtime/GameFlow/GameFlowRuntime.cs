@@ -63,6 +63,16 @@ namespace Immersive.Framework.GameFlow
             _routeLifecycleRuntime.SetCycleResetParticipantSource(participantSource);
         }
 
+        internal bool HasActivitySceneReleaseOnActivityChange(ActivityAsset activity)
+        {
+            return _routeLifecycleRuntime.HasActivitySceneReleaseOnActivityChange(activity);
+        }
+
+        internal bool HasAnyActivitySceneReleaseForRouteChange(ActivityAsset activity)
+        {
+            return _routeLifecycleRuntime.HasAnyActivitySceneReleaseForRouteChange(activity);
+        }
+
         internal async Task<FrameworkGameFlowStartResult> StartAsync(GameApplicationAsset gameApplication)
         {
             if (gameApplication == null)
@@ -217,6 +227,21 @@ namespace Immersive.Framework.GameFlow
             string source,
             string reason)
         {
+            return await RequestActivityAsync(
+                targetActivity,
+                source,
+                reason,
+                beforeActivityLifecycle: null,
+                afterActivityLifecycle: null);
+        }
+
+        internal async Task<FrameworkActivityRequestResult> RequestActivityAsync(
+            ActivityAsset targetActivity,
+            string source,
+            string reason,
+            Func<Awaitable> beforeActivityLifecycle,
+            Func<Awaitable> afterActivityLifecycle)
+        {
             string resolvedSource = FrameworkActivityRequestResult.NormalizeSource(source);
             string resolvedReason = FrameworkActivityRequestResult.NormalizeReason(reason);
 
@@ -272,7 +297,18 @@ namespace Immersive.Framework.GameFlow
                         targetActivity),
                     activityTransitionMode);
 
+                if (beforeActivityLifecycle != null)
+                {
+                    await beforeActivityLifecycle();
+                }
+
                 var activityFlowResult = await _routeLifecycleRuntime.StartActivityAsync(targetActivity, resolvedSource, resolvedReason);
+
+                if (afterActivityLifecycle != null)
+                {
+                    await afterActivityLifecycle();
+                }
+
                 var transitionAfter = await ExecuteActivityTransitionAsync(
                     TransitionRequest.After(
                         operationId,
@@ -313,6 +349,15 @@ namespace Immersive.Framework.GameFlow
         }
 
         internal async Task<FrameworkActivityRequestResult> ClearActivityAsync(string source, string reason)
+        {
+            return await ClearActivityAsync(source, reason, beforeActivityLifecycle: null, afterActivityLifecycle: null);
+        }
+
+        internal async Task<FrameworkActivityRequestResult> ClearActivityAsync(
+            string source,
+            string reason,
+            Func<Awaitable> beforeActivityLifecycle,
+            Func<Awaitable> afterActivityLifecycle)
         {
             string resolvedSource = FrameworkActivityRequestResult.NormalizeSource(source);
             string resolvedReason = FrameworkActivityRequestResult.NormalizeReason(reason);
@@ -360,7 +405,18 @@ namespace Immersive.Framework.GameFlow
                         null),
                     activityTransitionMode);
 
+                if (beforeActivityLifecycle != null)
+                {
+                    await beforeActivityLifecycle();
+                }
+
                 var activityFlowResult = await _routeLifecycleRuntime.ClearActivityAsync(resolvedSource, resolvedReason);
+
+                if (afterActivityLifecycle != null)
+                {
+                    await afterActivityLifecycle();
+                }
+
                 var transitionAfter = await ExecuteActivityTransitionAsync(
                     TransitionRequest.After(
                         operationId,

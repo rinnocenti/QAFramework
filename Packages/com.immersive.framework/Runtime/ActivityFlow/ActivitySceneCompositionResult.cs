@@ -7,10 +7,10 @@ using Immersive.Framework.Authoring;
 namespace Immersive.Framework.ActivityFlow
 {
     /// <summary>
-    /// Side-effect-free result produced from an Activity scene composition plan.
-    /// F25B intentionally does not load scenes or release content.
+    /// Result produced from an Activity scene composition plan.
+    /// F25C can represent both planning-only evidence and additive load execution evidence.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F25B Activity scene composition result; plan evidence only, execution deferred.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F25C Activity scene composition result; additive scene execution, release deferred.")]
     internal readonly struct ActivitySceneCompositionResult
     {
         private readonly ActivitySceneCompositionResultEntry[] _entries;
@@ -19,12 +19,14 @@ namespace Immersive.Framework.ActivityFlow
             ActivitySceneCompositionPlan plan,
             IReadOnlyList<ActivitySceneCompositionResultEntry> entries,
             ActivitySceneCompositionStatus status,
+            bool sideEffectsExecuted,
             string source,
             string reason,
             string message)
         {
             Plan = plan;
             Status = status;
+            SideEffectsExecuted = sideEffectsExecuted;
             Source = Normalize(source);
             Reason = Normalize(reason);
             Message = Normalize(message);
@@ -57,6 +59,8 @@ namespace Immersive.Framework.ActivityFlow
 
         public ActivitySceneCompositionStatus Status { get; }
 
+        public bool SideEffectsExecuted { get; }
+
         public IReadOnlyList<ActivitySceneCompositionResultEntry> Entries => _entries ?? Array.Empty<ActivitySceneCompositionResultEntry>();
 
         public string Source { get; }
@@ -79,9 +83,21 @@ namespace Immersive.Framework.ActivityFlow
 
         public int ExecutionReadySceneCount => Plan.ExecutionReadySceneCount;
 
+        public int LoadedSceneCount => CountByStatus(ActivitySceneCompositionEntryStatus.Loaded)
+            + CountByStatus(ActivitySceneCompositionEntryStatus.AlreadyLoaded);
+
+        public int AlreadyLoadedSceneCount => CountByStatus(ActivitySceneCompositionEntryStatus.AlreadyLoaded);
+
+        public int FailedSceneCount => CountByStatus(ActivitySceneCompositionEntryStatus.Failed);
+
+        public int SkippedSceneCount => CountByStatus(ActivitySceneCompositionEntryStatus.Skipped)
+            + CountByStatus(ActivitySceneCompositionEntryStatus.NotExecutionReady);
+
         public int BlockingIssueCount => CountBlockingIssues();
 
         public bool HasBlockingIssues => BlockingIssueCount > 0;
+
+        public bool HasSceneLoadExecution => SideEffectsExecuted && LoadedSceneCount > 0;
 
         public string DiagnosticStatus => Status.ToString();
 
@@ -89,10 +105,8 @@ namespace Immersive.Framework.ActivityFlow
         {
             if (!plan.HasActivity)
             {
-                return new ActivitySceneCompositionResult(
+                return NotRequested(
                     plan,
-                    Array.Empty<ActivitySceneCompositionResultEntry>(),
-                    ActivitySceneCompositionStatus.NotRequested,
                     source,
                     reason,
                     "Activity scene composition planning was not requested because Activity is missing.");
@@ -100,10 +114,8 @@ namespace Immersive.Framework.ActivityFlow
 
             if (!plan.HasProfile)
             {
-                return new ActivitySceneCompositionResult(
+                return NotRequested(
                     plan,
-                    Array.Empty<ActivitySceneCompositionResultEntry>(),
-                    ActivitySceneCompositionStatus.NotRequested,
                     source,
                     reason,
                     "Activity scene composition planning skipped because Activity has no Activity Content Profile.");
@@ -111,10 +123,8 @@ namespace Immersive.Framework.ActivityFlow
 
             if (!plan.HasScenes)
             {
-                return new ActivitySceneCompositionResult(
+                return NotRequested(
                     plan,
-                    Array.Empty<ActivitySceneCompositionResultEntry>(),
-                    ActivitySceneCompositionStatus.NotRequested,
                     source,
                     reason,
                     "Activity scene composition planning skipped because Activity Content Profile has no scenes.");
@@ -133,23 +143,41 @@ namespace Immersive.Framework.ActivityFlow
                 ? ActivitySceneCompositionStatus.PlannedWithIssues
                 : ActivitySceneCompositionStatus.Planned;
             var message = status == ActivitySceneCompositionStatus.Planned
-                ? "Activity scene composition plan recorded. F25B is side-effect-free; scene loading is deferred."
-                : "Activity scene composition plan recorded with blocking declaration issues. F25B is side-effect-free; scene loading is deferred.";
+                ? "Activity scene composition plan recorded. Scene loading has not executed yet."
+                : "Activity scene composition plan recorded with blocking declaration issues. Scene loading has not executed yet.";
 
             return new ActivitySceneCompositionResult(
                 plan,
                 entries,
                 status,
+                false,
                 source,
                 reason,
                 message);
+        }
+
+        public static ActivitySceneCompositionResult ExecutedResult(
+            ActivitySceneCompositionPlan plan,
+            IReadOnlyList<ActivitySceneCompositionResultEntry> entries,
+            string source,
+            string reason)
+        {
+            var status = DetermineExecutedStatus(entries);
+            return new ActivitySceneCompositionResult(
+                plan,
+                entries,
+                status,
+                true,
+                source,
+                reason,
+                BuildExecutedMessage(plan, entries, status));
         }
 
         public string ToDiagnosticString()
         {
             var activityName = !string.IsNullOrWhiteSpace(ActivityOwnerName) ? ActivityOwnerName : "<missing>";
             var builder = new StringBuilder();
-            builder.Append($"Activity Scene Composition Result activity='{activityName}' profile='{ProfileId}' status='{Status}' scenes='{SceneCount}' required='{RequiredSceneCount}' optional='{OptionalSceneCount}' executionReady='{ExecutionReadySceneCount}' blockingIssues='{BlockingIssueCount}' sideEffects='False' message='{Message}' details=[");
+            builder.Append($"Activity Scene Composition Result activity='{activityName}' profile='{ProfileId}' status='{Status}' scenes='{SceneCount}' required='{RequiredSceneCount}' optional='{OptionalSceneCount}' executionReady='{ExecutionReadySceneCount}' loaded='{LoadedSceneCount}' alreadyLoaded='{AlreadyLoadedSceneCount}' failed='{FailedSceneCount}' skipped='{SkippedSceneCount}' blockingIssues='{BlockingIssueCount}' sideEffects='{SideEffectsExecuted}' message='{Message}' details=[");
 
             for (var i = 0; i < Entries.Count; i++)
             {
@@ -163,6 +191,65 @@ namespace Immersive.Framework.ActivityFlow
 
             builder.Append("]");
             return builder.ToString();
+        }
+
+        private static ActivitySceneCompositionResult NotRequested(
+            ActivitySceneCompositionPlan plan,
+            string source,
+            string reason,
+            string message)
+        {
+            return new ActivitySceneCompositionResult(
+                plan,
+                Array.Empty<ActivitySceneCompositionResultEntry>(),
+                ActivitySceneCompositionStatus.NotRequested,
+                false,
+                source,
+                reason,
+                message);
+        }
+
+        private static ActivitySceneCompositionStatus DetermineExecutedStatus(IReadOnlyList<ActivitySceneCompositionResultEntry> entries)
+        {
+            if (entries == null || entries.Count == 0)
+            {
+                return ActivitySceneCompositionStatus.NotRequested;
+            }
+
+            var hasIssue = false;
+            for (var i = 0; i < entries.Count; i++)
+            {
+                var entry = entries[i];
+                if (entry.BlocksComposition)
+                {
+                    return ActivitySceneCompositionStatus.Failed;
+                }
+
+                if (entry.HasIssue)
+                {
+                    hasIssue = true;
+                }
+            }
+
+            return hasIssue
+                ? ActivitySceneCompositionStatus.SucceededWithIssues
+                : ActivitySceneCompositionStatus.Succeeded;
+        }
+
+        private static string BuildExecutedMessage(
+            ActivitySceneCompositionPlan plan,
+            IReadOnlyList<ActivitySceneCompositionResultEntry> entries,
+            ActivitySceneCompositionStatus status)
+        {
+            var activityName = !string.IsNullOrWhiteSpace(plan.ActivityOwnerName) ? plan.ActivityOwnerName : "<missing>";
+            var entryCount = entries != null ? entries.Count : 0;
+            var loaded = CountByStatus(entries, ActivitySceneCompositionEntryStatus.Loaded)
+                + CountByStatus(entries, ActivitySceneCompositionEntryStatus.AlreadyLoaded);
+            var failed = CountByStatus(entries, ActivitySceneCompositionEntryStatus.Failed);
+            var skipped = CountByStatus(entries, ActivitySceneCompositionEntryStatus.Skipped)
+                + CountByStatus(entries, ActivitySceneCompositionEntryStatus.NotExecutionReady);
+            var blockingIssues = CountBlockingIssues(entries);
+            return $"Activity scene composition executed for Activity '{activityName}'. status='{status}' scenes='{entryCount}' loaded='{loaded}' failed='{failed}' skipped='{skipped}' blockingIssues='{blockingIssues}' release='Deferred'.";
         }
 
         private static bool EntriesHaveBlockingIssues(IReadOnlyList<ActivitySceneCompositionResultEntry> entries)
@@ -183,12 +270,48 @@ namespace Immersive.Framework.ActivityFlow
             return false;
         }
 
+        private int CountByStatus(ActivitySceneCompositionEntryStatus status)
+        {
+            return CountByStatus(Entries, status);
+        }
+
+        private static int CountByStatus(
+            IReadOnlyList<ActivitySceneCompositionResultEntry> entries,
+            ActivitySceneCompositionEntryStatus status)
+        {
+            if (entries == null || entries.Count == 0)
+            {
+                return 0;
+            }
+
+            var count = 0;
+            for (var i = 0; i < entries.Count; i++)
+            {
+                if (entries[i].Status == status)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
         private int CountBlockingIssues()
         {
-            var count = 0;
-            for (var i = 0; i < Entries.Count; i++)
+            return CountBlockingIssues(Entries);
+        }
+
+        private static int CountBlockingIssues(IReadOnlyList<ActivitySceneCompositionResultEntry> entries)
+        {
+            if (entries == null || entries.Count == 0)
             {
-                if (Entries[i].BlocksComposition)
+                return 0;
+            }
+
+            var count = 0;
+            for (var i = 0; i < entries.Count; i++)
+            {
+                if (entries[i].BlocksComposition)
                 {
                     count++;
                 }

@@ -30,7 +30,7 @@ namespace Immersive.Framework.GameFlow
             ActivityFlowResult = activityFlowResult;
             TransitionDiagnostics = transitionDiagnostics;
             ActivityTransitionMode = NormalizeActivityTransitionMode(activityTransitionMode);
-            ActivityLoadingMode = DetermineActivityLoadingMode(ActivityTransitionMode);
+            ActivityLoadingMode = DetermineActivityLoadingMode(ActivityFlowResult, ActivityTransitionMode);
         }
 
         public FrameworkActivityRequestKind Kind { get; }
@@ -177,11 +177,34 @@ namespace Immersive.Framework.GameFlow
                 : ActivityVisualTransitionMode.Seamless;
         }
 
-        private static string DetermineActivityLoadingMode(ActivityVisualTransitionMode mode)
+        private static string DetermineActivityLoadingMode(
+            ActivityFlowStartResult activityFlowResult,
+            ActivityVisualTransitionMode mode)
         {
-            return mode == ActivityVisualTransitionMode.FadeWithLoading
-                ? "ReservedNoActivityContentLoading"
-                : "SkippedNoSceneLoad";
+            bool hasSceneLoad = activityFlowResult.ActivitySceneCompositionResult.HasSceneLoadExecution;
+            bool hasSceneRelease = activityFlowResult.ActivitySceneReleaseResult.HasSceneReleaseExecution;
+
+            if (hasSceneLoad && hasSceneRelease)
+            {
+                return "ActivitySceneCompositionAndRelease";
+            }
+
+            if (hasSceneLoad)
+            {
+                return "ActivitySceneComposition";
+            }
+
+            if (hasSceneRelease)
+            {
+                return "ActivitySceneRelease";
+            }
+
+            if (mode == ActivityVisualTransitionMode.FadeWithLoading)
+            {
+                return "ReservedNoActivityContentLoading";
+            }
+
+            return "SkippedNoSceneLoad";
         }
 
         private static string FormatRequestContext(string source, string reason)

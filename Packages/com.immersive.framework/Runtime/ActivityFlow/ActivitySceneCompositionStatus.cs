@@ -4,14 +4,17 @@ namespace Immersive.Framework.ActivityFlow
 {
     /// <summary>
     /// Aggregate status for an Activity scene composition result.
-    /// F25B records side-effect-free planning evidence only; execution starts in later F25 cuts.
+    /// F25C introduces additive execution while Activity content release remains deferred.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F25B Activity scene composition result vocabulary; execution and release are deferred.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F25C Activity scene composition result vocabulary; additive execution, release deferred.")]
     internal enum ActivitySceneCompositionStatus
     {
         Unknown = 0,
         NotRequested = 10,
         Planned = 20,
-        PlannedWithIssues = 30
+        PlannedWithIssues = 30,
+        Succeeded = 40,
+        SucceededWithIssues = 50,
+        Failed = 60
     }
 }

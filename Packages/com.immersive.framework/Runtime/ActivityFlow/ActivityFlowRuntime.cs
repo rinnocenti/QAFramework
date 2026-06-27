@@ -5,6 +5,7 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.RuntimeContent;
+using Immersive.Framework.SceneLifecycle;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -18,6 +19,7 @@ namespace Immersive.Framework.ActivityFlow
         private readonly ActivityContentRuntime _activityContentRuntime = new ActivityContentRuntime();
         private readonly ContentAnchorDiscoveryRuntime _contentAnchorDiscoveryRuntime = new ContentAnchorDiscoveryRuntime();
         private readonly ActivityContentExecutionRuntime _activityContentExecutionRuntime = new ActivityContentExecutionRuntime();
+        private readonly ActivitySceneCompositionRuntime _activitySceneCompositionRuntime;
         private IActivityContentExecutionParticipantSource _activityContentExecutionParticipantSource;
         private readonly RuntimeContentRuntime _runtimeContentRuntime;
         private readonly RuntimeContentAnchorBinding _contentAnchorBindingRuntime;
@@ -30,18 +32,21 @@ namespace Immersive.Framework.ActivityFlow
 
         internal ActivityFlowRuntime(
             RuntimeContentRuntime runtimeContentRuntime,
-            RuntimeContentAnchorBinding contentAnchorBindingRuntime)
-            : this(runtimeContentRuntime, contentAnchorBindingRuntime, EmptyActivityContentExecutionParticipantSource.Instance)
+            RuntimeContentAnchorBinding contentAnchorBindingRuntime,
+            SceneLifecycleRuntime sceneLifecycleRuntime)
+            : this(runtimeContentRuntime, contentAnchorBindingRuntime, sceneLifecycleRuntime, EmptyActivityContentExecutionParticipantSource.Instance)
         {
         }
 
         internal ActivityFlowRuntime(
             RuntimeContentRuntime runtimeContentRuntime,
             RuntimeContentAnchorBinding contentAnchorBindingRuntime,
+            SceneLifecycleRuntime sceneLifecycleRuntime,
             IActivityContentExecutionParticipantSource activityContentExecutionParticipantSource)
         {
             _runtimeContentRuntime = runtimeContentRuntime ?? throw new ArgumentNullException(nameof(runtimeContentRuntime));
             _contentAnchorBindingRuntime = contentAnchorBindingRuntime ?? throw new ArgumentNullException(nameof(contentAnchorBindingRuntime));
+            _activitySceneCompositionRuntime = new ActivitySceneCompositionRuntime(sceneLifecycleRuntime ?? throw new ArgumentNullException(nameof(sceneLifecycleRuntime)));
             _activityContentExecutionParticipantSource = activityContentExecutionParticipantSource ?? EmptyActivityContentExecutionParticipantSource.Instance;
             _currentActivityState = ActivityRuntimeState.Empty();
             _activityContentEnteredBinding = _activityEnteredEvents.Subscribe(_activityContentRuntime.HandleActivityEntered);
@@ -53,6 +58,24 @@ namespace Immersive.Framework.ActivityFlow
         internal ActivityAsset CurrentActivity => _currentActivityState.Activity;
 
         internal bool HasActiveActivity => _currentActivityState.IsActive;
+
+        internal bool HasActivitySceneReleaseOnActivityChange(ActivityAsset activity)
+        {
+            return _activitySceneCompositionRuntime.HasReleaseOnActivityChangeScenes(activity);
+        }
+
+        internal bool HasAnyActivitySceneReleaseForRouteChange(ActivityAsset activity)
+        {
+            return _activitySceneCompositionRuntime.HasAnyTrackedScenes(activity);
+        }
+
+        internal Task<ActivitySceneReleaseResult> ReleaseActivityScenesForRouteChangeAsync(
+            ActivityAsset activity,
+            string source,
+            string reason)
+        {
+            return _activitySceneCompositionRuntime.ReleaseForRouteChangeAsync(activity, source, reason);
+        }
 
         internal bool IsActivityActive(ActivityAsset activity)
         {
@@ -134,7 +157,7 @@ namespace Immersive.Framework.ActivityFlow
             return ClearActivityAsync(_currentRoute, source, reason);
         }
 
-        internal Task<ActivityFlowStartResult> ClearActivityAsync(RouteAsset route, string source, string reason)
+        internal async Task<ActivityFlowStartResult> ClearActivityAsync(RouteAsset route, string source, string reason)
         {
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
@@ -147,7 +170,7 @@ namespace Immersive.Framework.ActivityFlow
             var previousActivity = _currentActivityState.Activity;
             if (previousActivity == null)
             {
-                return Task.FromResult(ActivityFlowStartResult.Failed("Activity Flow cannot clear Activity because no Activity is active."));
+                return ActivityFlowStartResult.Failed("Activity Flow cannot clear Activity because no Activity is active.");
             }
 
             _currentActivityState = ActivityRuntimeState.None(previousActivity, resolvedSource, resolvedReason);
@@ -155,8 +178,9 @@ namespace Immersive.Framework.ActivityFlow
             var executionResult = ExecuteActivityContentLifecycle(previousActivity, null, resolvedSource, resolvedReason);
             var sceneCompositionResult = CreateActivitySceneCompositionResult(null, resolvedSource, resolvedReason);
             var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, null, resolvedSource, resolvedReason);
+            var sceneReleaseResult = await ReleasePreviousActivityScenesAsync(previousActivity, resolvedSource, resolvedReason);
             var runtimeScopeResult = RemovePreviousActivityScopeRoot(previousActivity, null, resolvedSource, resolvedReason);
-            return Task.FromResult(ActivityFlowStartResult.ClearedByRequest(
+            return ActivityFlowStartResult.ClearedByRequest(
                 _currentActivityState,
                 previousActivity,
                 contentResult,
@@ -164,17 +188,18 @@ namespace Immersive.Framework.ActivityFlow
                 bindingCleanupResult,
                 ActivityContentAnchorDiscoveryResult.Empty(null, resolvedSource, resolvedReason, "Activity was cleared; Activity Content Anchor discovery was skipped."),
                 executionResult,
-                sceneCompositionResult));
+                sceneCompositionResult,
+                sceneReleaseResult);
         }
 
-        private Task<ActivityFlowStartResult> StartActivityCoreAsync(ActivityAsset nextActivity, ActivityAsset previousActivity, string source, string reason)
+        private async Task<ActivityFlowStartResult> StartActivityCoreAsync(ActivityAsset nextActivity, ActivityAsset previousActivity, string source, string reason)
         {
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
 
             if (nextActivity == null)
             {
-                return Task.FromResult(ActivityFlowStartResult.Failed("Activity is missing."));
+                return ActivityFlowStartResult.Failed("Activity is missing.");
             }
 
             if (ReferenceEquals(previousActivity, nextActivity))
@@ -184,11 +209,21 @@ namespace Immersive.Framework.ActivityFlow
                     _currentActivityState = ActivityRuntimeState.ActiveWith(nextActivity, previousActivity, resolvedSource, resolvedReason);
                 }
 
-                return Task.FromResult(ActivityFlowStartResult.KeptCurrentActivity(_currentActivityState));
+                return ActivityFlowStartResult.KeptCurrentActivity(_currentActivityState);
             }
 
             var runtimeEnterResult = CreateActivityScopeRoot(nextActivity, resolvedSource, resolvedReason);
             _currentActivityState = ActivityRuntimeState.ActiveWith(nextActivity, previousActivity, resolvedSource, resolvedReason);
+            var sceneCompositionResult = await ExecuteActivitySceneCompositionAsync(nextActivity, resolvedSource, resolvedReason);
+            if (sceneCompositionResult.HasBlockingIssues)
+            {
+                RemovePreviousActivityScopeRoot(nextActivity, previousActivity, resolvedSource, resolvedReason);
+                _currentActivityState = previousActivity != null
+                    ? ActivityRuntimeState.ActiveWith(previousActivity, nextActivity, resolvedSource, resolvedReason)
+                    : ActivityRuntimeState.None(nextActivity, resolvedSource, resolvedReason);
+                return ActivityFlowStartResult.Failed(sceneCompositionResult.ToDiagnosticString());
+            }
+
             var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, nextActivity, resolvedSource, resolvedReason);
             var activityContentAnchorDiscoveryResult = _contentAnchorDiscoveryRuntime.DiscoverActivityAnchors(
                 nextActivity,
@@ -196,12 +231,12 @@ namespace Immersive.Framework.ActivityFlow
                 resolvedSource,
                 resolvedReason);
             var executionResult = ExecuteActivityContentLifecycle(previousActivity, nextActivity, resolvedSource, resolvedReason);
-            var sceneCompositionResult = CreateActivitySceneCompositionResult(nextActivity, resolvedSource, resolvedReason);
             var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, nextActivity, resolvedSource, resolvedReason);
+            var sceneReleaseResult = await ReleasePreviousActivityScenesAsync(previousActivity, resolvedSource, resolvedReason);
             var runtimeExitResult = RemovePreviousActivityScopeRoot(previousActivity, nextActivity, resolvedSource, resolvedReason);
             var runtimeScopeResult = MergeActivityScopeResults(runtimeEnterResult, runtimeExitResult, nextActivity, previousActivity, resolvedSource, resolvedReason);
 
-            return Task.FromResult(ActivityFlowStartResult.StartedWith(
+            return ActivityFlowStartResult.StartedWith(
                 _currentActivityState,
                 previousActivity,
                 contentResult,
@@ -209,7 +244,25 @@ namespace Immersive.Framework.ActivityFlow
                 bindingCleanupResult,
                 activityContentAnchorDiscoveryResult,
                 executionResult,
-                sceneCompositionResult));
+                sceneCompositionResult,
+                sceneReleaseResult);
+        }
+
+        private Task<ActivitySceneCompositionResult> ExecuteActivitySceneCompositionAsync(
+            ActivityAsset activity,
+            string source,
+            string reason)
+        {
+            var plan = ActivitySceneCompositionPlan.FromActivity(activity, source, reason);
+            return _activitySceneCompositionRuntime.ExecuteAsync(plan);
+        }
+
+        private Task<ActivitySceneReleaseResult> ReleasePreviousActivityScenesAsync(
+            ActivityAsset previousActivity,
+            string source,
+            string reason)
+        {
+            return _activitySceneCompositionRuntime.ReleaseOnActivityChangeAsync(previousActivity, source, reason);
         }
 
         private static ActivitySceneCompositionResult CreateActivitySceneCompositionResult(

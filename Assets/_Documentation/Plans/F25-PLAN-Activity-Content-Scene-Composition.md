@@ -76,3 +76,30 @@ F25 does not introduce:
 - Blocking declaration issues are reported.
 - No Activity scene loading occurs yet.
 - LoadingSurface remains skipped for Activity until F25C.
+
+## F25C acceptance
+
+- Activity scene composition executes execution-ready Activity content scenes additively.
+- Activity scene loading runs inside the canonical LoadingSurface window when a LoadingSurface is available.
+- Activity local discovery/callbacks run after Activity scene composition execution.
+- Activity request diagnostics include loaded/already-loaded/failed/skipped/side-effect counts.
+- Loading progress remains indeterminate until a future progress aggregation cut.
+- Activity content release/unload remains deferred to F25D.
+
+## F25D acceptance
+
+- Activity-owned scenes loaded by Activity scene composition are tracked by their owning Activity.
+- `ReleaseOnActivityChange` scenes unload when the Activity is replaced or cleared.
+- Release runs inside the LoadingSurface window when a LoadingSurface exists.
+- Activity Request diagnostics report release status, released/skipped/failed counts and side effects.
+- `KeepOnActivityChange` remains loaded on Activity change and is not expanded in this cut.
+- Loading progress remains indeterminate until a future progress aggregation cut.
+
+## IF-FW-F25D1 — Activity release policy semantics
+
+`ActivityContentReleasePolicy` controls Activity changes only:
+
+- `ReleaseOnActivityChange`: unload on Activity replace/clear.
+- `KeepOnActivityChange`: keep loaded on Activity replace/clear.
+
+Route changes always force-release all Activity-owned scenes regardless of that policy. Route content has no release policy; Route-owned content is always released on Route change. Content that must survive Route changes belongs to Session content.

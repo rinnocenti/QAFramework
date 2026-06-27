@@ -87,7 +87,7 @@ namespace Immersive.Framework.ActivityFlow
             var scenePath = entry != null ? Normalize(entry.ScenePath) : string.Empty;
             var requiredness = entry != null ? entry.Requiredness : FrameworkContentRequiredness.Optional;
             var loadMode = entry != null ? entry.LoadMode : ActivityContentSceneLoadMode.Additive;
-            var releasePolicy = entry != null ? entry.ReleasePolicy : ActivityContentReleasePolicy.ReleaseOnActivityExit;
+            var releasePolicy = entry != null ? entry.ReleasePolicy : ActivityContentReleasePolicy.ReleaseOnActivityChange;
             var hasExplicitContentId = !string.IsNullOrWhiteSpace(explicitContentId);
             FrameworkContentIdentity identity = default;
             if (hasExplicitContentId)

@@ -89,3 +89,17 @@ Project plan: `Assets/_Documentation/Plans/F25-PLAN-Activity-Content-Scene-Compo
 
 
 `F25B - Activity Scene Composition Plan/Result` adds side-effect-free Activity scene composition diagnostics. Activity requests can now report planned Activity content scenes, required/optional counts and execution-ready declarations, but Activity scene loading and release remain deferred to later F25 cuts.
+
+`F25C - Activity Scene Composition Execution` loads execution-ready Activity content scenes additively. When a canonical `LoadingSurface` exists, Activity scene composition runs inside the loading window. Progress remains indeterminate and Activity content release is deferred to F25D.
+
+### IF-FW-F25D — Activity Content Release
+
+Activity-owned additive scenes loaded through Activity scene composition are now released on Activity change when their scene entry uses `ReleaseOnActivityChange`.
+The release operation runs inside the Activity loading window when a LoadingSurface is available and is reported through `activitySceneRelease*` diagnostics.
+`KeepOnActivityChange` is valid only across Activity changes; Route changes always force-release Activity-owned scenes.
+
+### IF-FW-F25D1 — Activity release policy semantics
+
+Activity content release policy is scoped to Activity changes only. `ReleaseOnActivityChange` unloads Activity-owned scenes when the Activity is replaced or cleared. `KeepOnActivityChange` keeps them loaded across Activity changes.
+
+Route changes always force-release Activity-owned scenes, regardless of Activity policy. Route content has no release policy; content that survives Route changes must be modeled as Session content.

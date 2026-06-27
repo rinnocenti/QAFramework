@@ -31,7 +31,8 @@ namespace Immersive.Framework.RouteLifecycle
             ContentReleaseResult contentReleaseResult,
             ActivityFlowStartResult activityFlowResult,
             RuntimeScopeLifecycleResult runtimeRouteScopeResult = default(RuntimeScopeLifecycleResult),
-            ContentAnchorBindingLifecycleResult routeContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult))
+            ContentAnchorBindingLifecycleResult routeContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult),
+            ActivitySceneReleaseResult activitySceneRouteReleaseResult = default(ActivitySceneReleaseResult))
         {
             Started = started;
             Message = message ?? string.Empty;
@@ -47,6 +48,7 @@ namespace Immersive.Framework.RouteLifecycle
             RouteContentExitResult = routeContentExitResult;
             ContentReleaseResult = contentReleaseResult;
             ActivityFlowResult = activityFlowResult;
+            ActivitySceneRouteReleaseResult = activitySceneRouteReleaseResult;
             RuntimeRouteScopeResult = runtimeRouteScopeResult;
             RouteContentAnchorBindingCleanupResult = routeContentAnchorBindingCleanupResult;
         }
@@ -85,6 +87,8 @@ namespace Immersive.Framework.RouteLifecycle
 
         public ActivityFlowStartResult ActivityFlowResult { get; }
 
+        public ActivitySceneReleaseResult ActivitySceneRouteReleaseResult { get; }
+
         public RuntimeScopeLifecycleResult RuntimeRouteScopeResult { get; }
 
         public ContentAnchorBindingLifecycleResult RouteContentAnchorBindingCleanupResult { get; }
@@ -110,7 +114,8 @@ namespace Immersive.Framework.RouteLifecycle
             string source,
             string reason,
             RuntimeScopeLifecycleResult runtimeRouteScopeResult = default(RuntimeScopeLifecycleResult),
-            ContentAnchorBindingLifecycleResult routeContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult))
+            ContentAnchorBindingLifecycleResult routeContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult),
+            ActivitySceneReleaseResult activitySceneRouteReleaseResult = default(ActivitySceneReleaseResult))
         {
             var previousRoute = previousRouteState.Route;
             var routeExitResult = RouteExitResult.Exited(previousRouteState, route, source, reason);
@@ -131,6 +136,9 @@ namespace Immersive.Framework.RouteLifecycle
             var releaseMessage = contentReleaseResult.Completed || contentReleaseResult.NotExecuted
                 ? $" routeRelease='{contentReleaseResult.Status}' routeReleaseReleased='{contentReleaseResult.ReleasedCount}' routeReleaseSkipped='{contentReleaseResult.SkippedCount}' routeReleaseFailed='{contentReleaseResult.FailedCount}' routeReleaseBlockingIssues='{contentReleaseResult.BlockingIssueCount}'."
                 : string.Empty;
+            var activitySceneRouteReleaseMessage = activitySceneRouteReleaseResult.Executed
+                ? $" routeActivitySceneRelease='{activitySceneRouteReleaseResult.DiagnosticStatus}' routeActivitySceneReleaseScenes='{activitySceneRouteReleaseResult.SceneCount}' routeActivitySceneReleaseReleased='{activitySceneRouteReleaseResult.ReleasedSceneCount}' routeActivitySceneReleaseSkipped='{activitySceneRouteReleaseResult.SkippedSceneCount}' routeActivitySceneReleaseFailed='{activitySceneRouteReleaseResult.FailedSceneCount}' routeActivitySceneReleaseBlockingIssues='{activitySceneRouteReleaseResult.BlockingIssueCount}'."
+                : string.Empty;
             var routeContentMessage = routeContentSet.HasContent ? $" {routeContentSet.DiagnosticMessage}" : string.Empty;
             var contentAnchorMessage = !string.IsNullOrWhiteSpace(contentAnchorDiscoveryResult.Message)
                 ? $" {contentAnchorDiscoveryResult.DiagnosticMessage}"
@@ -145,8 +153,8 @@ namespace Immersive.Framework.RouteLifecycle
             var routeBindingCleanupMessage = BindingCleanupMessage("routeContentAnchorBindingCleanup", routeContentAnchorBindingCleanupResult);
             var activityMessage = !string.IsNullOrWhiteSpace(activityFlowResult.Message) ? $" {activityFlowResult.Message}" : string.Empty;
             var message = previousRoute != null
-                ? $"Route Lifecycle switched from Route '{previousRoute.RouteName}' to Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage}{releaseMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{contentAnchorMessage}{routeContentEnterMessage}{routeBindingCleanupMessage}{runtimeRouteMessage}{activityMessage}"
-                : $"Route Lifecycle started Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage}{releaseMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{contentAnchorMessage}{routeContentEnterMessage}{routeBindingCleanupMessage}{runtimeRouteMessage}{activityMessage}";
+                ? $"Route Lifecycle switched from Route '{previousRoute.RouteName}' to Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage}{releaseMessage}{activitySceneRouteReleaseMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{contentAnchorMessage}{routeContentEnterMessage}{routeBindingCleanupMessage}{runtimeRouteMessage}{activityMessage}"
+                : $"Route Lifecycle started Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage}{releaseMessage}{activitySceneRouteReleaseMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{contentAnchorMessage}{routeContentEnterMessage}{routeBindingCleanupMessage}{runtimeRouteMessage}{activityMessage}";
 
             return new RouteLifecycleStartResult(
                 true,
@@ -164,7 +172,8 @@ namespace Immersive.Framework.RouteLifecycle
                 contentReleaseResult,
                 activityFlowResult,
                 runtimeRouteScopeResult,
-                routeContentAnchorBindingCleanupResult);
+                routeContentAnchorBindingCleanupResult,
+                activitySceneRouteReleaseResult);
         }
 
         private static string BindingCleanupMessage(string fieldPrefix, ContentAnchorBindingLifecycleResult result)

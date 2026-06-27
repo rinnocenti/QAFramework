@@ -1,14 +1,15 @@
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentFlow;
+using Immersive.Framework.SceneLifecycle;
 
 namespace Immersive.Framework.ActivityFlow
 {
     /// <summary>
     /// Immutable evidence record for one Activity scene composition plan entry.
-    /// F25B does not load scenes; this only records whether the declaration is execution-ready for future cuts.
+    /// F25C records additive load execution; release/unload is deferred to a later cut.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F25B Activity scene composition result entry; planning evidence only.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F25C Activity scene composition result entry; additive load evidence, release deferred.")]
     internal readonly struct ActivitySceneCompositionResultEntry
     {
         public ActivitySceneCompositionResultEntry(
@@ -51,7 +52,15 @@ namespace Immersive.Framework.ActivityFlow
 
         public bool NotExecutionReady => Status == ActivitySceneCompositionEntryStatus.NotExecutionReady;
 
-        public bool HasIssue => NotExecutionReady || BlocksComposition;
+        public bool Loaded => Status == ActivitySceneCompositionEntryStatus.Loaded;
+
+        public bool AlreadyLoaded => Status == ActivitySceneCompositionEntryStatus.AlreadyLoaded;
+
+        public bool Failed => Status == ActivitySceneCompositionEntryStatus.Failed;
+
+        public bool Skipped => Status == ActivitySceneCompositionEntryStatus.Skipped;
+
+        public bool HasIssue => NotExecutionReady || Failed || Skipped || BlocksComposition;
 
         public string ToDiagnosticString()
         {
@@ -81,12 +90,46 @@ namespace Immersive.Framework.ActivityFlow
             var blocksComposition = planEntry.Requiredness == FrameworkContentRequiredness.Required;
             var message = blocksComposition
                 ? "Required Activity scene declaration is not execution-ready. Scene, explicit content id and content identity are required."
-                : "Optional Activity scene declaration is not execution-ready and will be skipped once execution exists.";
+                : "Optional Activity scene declaration is not execution-ready and was skipped.";
 
             return new ActivitySceneCompositionResultEntry(
                 planEntry,
                 ActivitySceneCompositionEntryStatus.NotExecutionReady,
                 blocksComposition,
+                message);
+        }
+
+        public static ActivitySceneCompositionResultEntry LoadedEntry(
+            ActivitySceneCompositionPlanEntry planEntry,
+            SceneLifecycleLoadResult loadResult)
+        {
+            return new ActivitySceneCompositionResultEntry(
+                planEntry,
+                loadResult.AlreadyLoaded ? ActivitySceneCompositionEntryStatus.AlreadyLoaded : ActivitySceneCompositionEntryStatus.Loaded,
+                false,
+                loadResult.Message);
+        }
+
+        public static ActivitySceneCompositionResultEntry FailedEntry(
+            ActivitySceneCompositionPlanEntry planEntry,
+            SceneLifecycleLoadResult loadResult)
+        {
+            var blocksComposition = planEntry.Requiredness == FrameworkContentRequiredness.Required;
+            return new ActivitySceneCompositionResultEntry(
+                planEntry,
+                ActivitySceneCompositionEntryStatus.Failed,
+                blocksComposition,
+                loadResult.Message);
+        }
+
+        public static ActivitySceneCompositionResultEntry SkippedEntry(
+            ActivitySceneCompositionPlanEntry planEntry,
+            string message)
+        {
+            return new ActivitySceneCompositionResultEntry(
+                planEntry,
+                ActivitySceneCompositionEntryStatus.Skipped,
+                false,
                 message);
         }
 

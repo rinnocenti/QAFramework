@@ -34,8 +34,8 @@ namespace Immersive.Framework.Authoring
         private ActivityContentSceneLoadMode loadMode = ActivityContentSceneLoadMode.Additive;
 
         [SerializeField]
-        [Tooltip("How this Activity scene should be released once Activity content release is implemented. F25A only records intent.")]
-        private ActivityContentReleasePolicy releasePolicy = ActivityContentReleasePolicy.ReleaseOnActivityExit;
+        [Tooltip("Whether this Activity-owned scene is released or kept when the active Activity changes. Route changes always release Activity-owned scenes regardless of this policy.")]
+        private ActivityContentReleasePolicy releasePolicy = ActivityContentReleasePolicy.ReleaseOnActivityChange;
 
         public string ExplicitContentId
         {
@@ -107,7 +107,7 @@ namespace Immersive.Framework.Authoring
             {
                 return Enum.IsDefined(typeof(ActivityContentReleasePolicy), releasePolicy)
                     ? releasePolicy
-                    : ActivityContentReleasePolicy.ReleaseOnActivityExit;
+                    : ActivityContentReleasePolicy.ReleaseOnActivityChange;
             }
         }
 

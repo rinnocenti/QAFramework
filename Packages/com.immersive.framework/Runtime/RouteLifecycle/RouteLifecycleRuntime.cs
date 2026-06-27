@@ -40,7 +40,7 @@ namespace Immersive.Framework.RouteLifecycle
         {
             _runtimeContentRuntime = runtimeContentRuntime ?? throw new ArgumentNullException(nameof(runtimeContentRuntime));
             _contentAnchorBindingRuntime = contentAnchorBindingRuntime ?? throw new ArgumentNullException(nameof(contentAnchorBindingRuntime));
-            _activityFlowRuntime = new ActivityFlowRuntime(_runtimeContentRuntime, _contentAnchorBindingRuntime);
+            _activityFlowRuntime = new ActivityFlowRuntime(_runtimeContentRuntime, _contentAnchorBindingRuntime, _sceneLifecycleRuntime);
             _routeSceneCompositionRuntime = new RouteSceneCompositionRuntime(_sceneLifecycleRuntime);
             _contentReleaseRuntime = new ContentReleaseRuntime(_sceneLifecycleRuntime);
         }
@@ -56,6 +56,16 @@ namespace Immersive.Framework.RouteLifecycle
         internal bool HasActiveRoute => CurrentRoute != null;
 
         internal bool HasActiveActivity => _activityFlowRuntime.HasActiveActivity;
+
+        internal bool HasActivitySceneReleaseOnActivityChange(ActivityAsset activity)
+        {
+            return _activityFlowRuntime.HasActivitySceneReleaseOnActivityChange(activity);
+        }
+
+        internal bool HasAnyActivitySceneReleaseForRouteChange(ActivityAsset activity)
+        {
+            return _activityFlowRuntime.HasAnyActivitySceneReleaseForRouteChange(activity);
+        }
 
         internal bool IsRouteActive(RouteAsset route)
         {
@@ -104,7 +114,14 @@ namespace Immersive.Framework.RouteLifecycle
 
             var previousRouteState = _currentRouteState;
             var previousRoute = previousRouteState.Route;
+            var previousActivity = _activityFlowRuntime.CurrentActivity;
             var routeContentExitResult = _routeContentRuntime.ExitRouteContent(previousRoute, route, source, reason);
+            var activitySceneRouteReleaseResult = await _activityFlowRuntime.ReleaseActivityScenesForRouteChangeAsync(previousActivity, source, reason);
+            if (activitySceneRouteReleaseResult.HasBlockingIssues)
+            {
+                return RouteLifecycleStartResult.Failed(activitySceneRouteReleaseResult.ToDiagnosticString());
+            }
+
             var releasePlan = previousRouteState.HasRouteContent
                 ? previousRouteState.RouteContentSet.CreateReleasePlan(source, reason)
                 : ContentReleasePlan.Empty(
@@ -174,7 +191,8 @@ namespace Immersive.Framework.RouteLifecycle
                 source,
                 reason,
                 runtimeRouteScopeResult,
-                routeBindingCleanupResult);
+                routeBindingCleanupResult,
+                activitySceneRouteReleaseResult);
             _currentRouteState = result.RouteState;
             PublishRouteTransition(previousRoute, route, source, reason);
             return result;
