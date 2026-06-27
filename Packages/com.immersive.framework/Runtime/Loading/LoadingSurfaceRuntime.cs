@@ -239,6 +239,21 @@ namespace Immersive.Framework.Loading
             return Execute(request, LoadingSurfaceAction.Hide);
         }
 
+        public Awaitable<LoadingSurfaceResult> ShowAsync(LoadingSurfaceRequest request)
+        {
+            return ExecuteAsync(request, LoadingSurfaceAction.Show);
+        }
+
+        public Awaitable<LoadingSurfaceResult> UpdateAsync(LoadingSurfaceRequest request)
+        {
+            return ExecuteAsync(request, LoadingSurfaceAction.Update);
+        }
+
+        public Awaitable<LoadingSurfaceResult> HideAsync(LoadingSurfaceRequest request)
+        {
+            return ExecuteAsync(request, LoadingSurfaceAction.Hide);
+        }
+
         private LoadingSurfaceResult Execute(LoadingSurfaceRequest request, LoadingSurfaceAction expectedAction)
         {
             if (!request.IsValid)
@@ -334,6 +349,101 @@ namespace Immersive.Framework.Loading
                 $"Loading surface '{_surfaceLabel}' completed successfully.");
         }
 
+        private async Awaitable<LoadingSurfaceResult> ExecuteAsync(LoadingSurfaceRequest request, LoadingSurfaceAction expectedAction)
+        {
+            if (!request.IsValid)
+            {
+                throw new ArgumentException("Loading surface runtime requires a valid request.", nameof(request));
+            }
+
+            if (request.Action != expectedAction)
+            {
+                return LoadingSurfaceResult.RejectedResult(
+                    request,
+                    _surfaceLabel,
+                    $"Loading surface runtime expected action '{expectedAction}' but received '{request.Action}'.",
+                    new[] { "loading-surface-request-action-mismatch" });
+            }
+
+            if (_hasBlockingConfigurationIssue)
+            {
+                return LoadingSurfaceResult.FailedResult(
+                    request,
+                    _surfaceLabel,
+                    _blockingConfigurationMessage,
+                    new[] { "loading-surface-required-configuration-missing" });
+            }
+
+            if (!HasVisibleSurface)
+            {
+                return ExecuteNoOp(request, expectedAction);
+            }
+
+            var matchingAdapters = CollectSupportingAdapters(request);
+            if (matchingAdapters.Count == 0)
+            {
+                return LoadingSurfaceResult.SkippedResult(
+                    request,
+                    _surfaceLabel,
+                    $"Loading surface '{_surfaceLabel}' has no adapters that can handle action '{request.Action}'.");
+            }
+
+            var issues = new List<string>();
+            var blockingIssueCount = 0;
+            var warningIssueCount = 0;
+
+            for (var i = 0; i < matchingAdapters.Count; i++)
+            {
+                var adapter = matchingAdapters[i];
+                var result = await ExecuteAdapterAsync(adapter, request, expectedAction);
+                if (result.Failed || result.Rejected)
+                {
+                    blockingIssueCount++;
+                }
+                else if (result.SucceededWithWarnings)
+                {
+                    warningIssueCount++;
+                }
+
+                if (!result.HasIssues)
+                {
+                    continue;
+                }
+
+                for (var issueIndex = 0; issueIndex < result.Issues.Count; issueIndex++)
+                {
+                    var issueText = result.Issues[issueIndex];
+                    if (!string.IsNullOrWhiteSpace(issueText))
+                    {
+                        issues.Add($"{adapter.AdapterName}: {issueText.Trim()}");
+                    }
+                }
+            }
+
+            if (blockingIssueCount > 0)
+            {
+                return LoadingSurfaceResult.FailedResult(
+                    request,
+                    _surfaceLabel,
+                    $"Loading surface '{_surfaceLabel}' adapter execution failed.",
+                    issues);
+            }
+
+            if (warningIssueCount > 0)
+            {
+                return LoadingSurfaceResult.SucceededWithWarningsResult(
+                    request,
+                    _surfaceLabel,
+                    $"Loading surface '{_surfaceLabel}' completed with warnings.",
+                    issues);
+            }
+
+            return LoadingSurfaceResult.SucceededResult(
+                request,
+                _surfaceLabel,
+                $"Loading surface '{_surfaceLabel}' completed successfully.");
+        }
+
         private LoadingSurfaceResult ExecuteAdapter(
             ILoadingSurfaceAdapter adapter,
             LoadingSurfaceRequest request,
@@ -354,6 +464,33 @@ namespace Immersive.Framework.Loading
                         $"Unsupported loading surface action '{expectedAction}'.",
                         new[] { "loading-surface-action-unsupported" });
             }
+        }
+
+        private async Awaitable<LoadingSurfaceResult> ExecuteAdapterAsync(
+            ILoadingSurfaceAdapter adapter,
+            LoadingSurfaceRequest request,
+            LoadingSurfaceAction expectedAction)
+        {
+            if (adapter is IAsyncLoadingSurfaceAdapter asyncAdapter)
+            {
+                switch (expectedAction)
+                {
+                    case LoadingSurfaceAction.Show:
+                        return await asyncAdapter.ShowAsync(request);
+                    case LoadingSurfaceAction.Update:
+                        return await asyncAdapter.UpdateAsync(request);
+                    case LoadingSurfaceAction.Hide:
+                        return await asyncAdapter.HideAsync(request);
+                    default:
+                        return LoadingSurfaceResult.RejectedResult(
+                            request,
+                            adapter.AdapterName,
+                            $"Unsupported loading surface action '{expectedAction}'.",
+                            new[] { "loading-surface-action-unsupported" });
+                }
+            }
+
+            return ExecuteAdapter(adapter, request, expectedAction);
         }
 
         private LoadingSurfaceResult ExecuteNoOp(LoadingSurfaceRequest request, LoadingSurfaceAction expectedAction)

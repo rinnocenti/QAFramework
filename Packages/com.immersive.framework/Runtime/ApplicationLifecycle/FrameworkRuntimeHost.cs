@@ -221,16 +221,38 @@ namespace Immersive.Framework.ApplicationLifecycle
                 return result;
             }
 
-            var loadingRequest = CreateLoadingSurfaceRequest(targetRoute, source, reason, true);
             var showLoadingSurface = ShouldShowLoadingSurface(targetRoute);
+            var loadingShowRequest = CreateLoadingSurfaceRequest(targetRoute, source, reason, true);
+            var loadingHideRequest = CreateLoadingSurfaceRequest(targetRoute, source, reason, false);
             LoadingSurfaceResult loadingBeforeResult = default;
             LoadingSurfaceResult loadingAfterResult = default;
-            if (showLoadingSurface)
+
+            async Awaitable ShowLoadingAfterTransitionGate()
             {
-                loadingBeforeResult = _loadingSurfaceRuntime.Show(loadingRequest);
+                if (!showLoadingSurface)
+                {
+                    return;
+                }
+
+                loadingBeforeResult = await _loadingSurfaceRuntime.ShowAsync(loadingShowRequest);
             }
 
-            var routeResult = await _gameFlowRuntime.RequestRouteAsync(targetRoute, source, reason);
+            async Awaitable HideLoadingBeforeTransitionRelease()
+            {
+                if (!showLoadingSurface)
+                {
+                    return;
+                }
+
+                loadingAfterResult = await _loadingSurfaceRuntime.HideAsync(loadingHideRequest);
+            }
+
+            var routeResult = await _gameFlowRuntime.RequestRouteAsync(
+                targetRoute,
+                source,
+                reason,
+                ShowLoadingAfterTransitionGate,
+                HideLoadingBeforeTransitionRelease);
             if (routeResult.Succeeded)
             {
                 _state = FrameworkRuntimeState.FromRouteRequestResult(_state, routeResult, true);
@@ -239,11 +261,6 @@ namespace Immersive.Framework.ApplicationLifecycle
             else if (routeResult.Kind == FrameworkRouteRequestKind.IgnoredAlreadyActive)
             {
                 RefreshObjectEntryRuntimeContextSnapshot($"FrameworkRuntimeHost:route-request-kept:{NormalizeLifecycleSource(source)}");
-            }
-
-            if (showLoadingSurface)
-            {
-                loadingAfterResult = _loadingSurfaceRuntime.Hide(CreateLoadingSurfaceRequest(targetRoute, source, reason, false));
             }
 
             var loadingDiagnostics = showLoadingSurface

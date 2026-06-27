@@ -54,27 +54,9 @@ transitionEffectBlockingIssues='0'
 transitionEffectAdapterCount='1'
 ```
 
-## Loading surface QA hold
 
-`QA_LoadingSurface.prefab` uses `QaLoadingSurfaceVisibilityHoldAdapter` to keep the loading panel visible briefly after a hide request.
+## F24D1B — Transition Curtain QA warm state
 
-This is QA-only visibility aid:
+`QA_TransitionCurtainSurface.prefab` keeps `CurtainPanel` active and hidden via `CanvasGroup.alpha = 0` instead of disabling the surface root. This avoids the first-use UI cold start where the transition diagnostics succeeded but the curtain could miss the first visible render.
 
-```text
-- It does not delay Route, Activity, SceneLifecycle or GameFlow.
-- It does not simulate loading in the framework core.
-- It only delays the visual hide state on the QA prefab.
-```
-
-Expected loading diagnostics remain:
-
-```text
-loading='SucceededWithUnitySurface'
-loadingVisual='UnitySurface'
-loadingBefore='Succeeded'
-loadingAfter='Succeeded'
-loadingBlockingIssues='0'
-loadingAdapterCount='1'
-loadingProgressSupported='False'
-loadingProgress='Indeterminate'
-```
+This is a QA fixture correction only. It does not alter Route, Activity, SceneLifecycle, Loading or Transition ownership.

@@ -159,22 +159,12 @@ Escopo:
 
 ### F24D - Loading Unity Surface
 
-Status: Closed / Loading Unity Surface Wiring Pass
+Status: Current
 
 Escopo:
 
 - criar superficie de loading/progress;
 - loading apresenta operacao, nao vira owner de scene lifecycle.
-
-### F24D1 - Loading Surface QA Visibility Hold
-
-Status: Current
-
-Escopo:
-
-- manter a loading surface QA visivel tempo suficiente para validacao humana;
-- nao simular load no framework core;
-- nao atrasar Route, Activity, SceneLifecycle ou GameFlow.
 
 ### F24E - Pause Unity Surface
 
@@ -258,3 +248,27 @@ F24 nao implementa:
 - Framework core fica em `Packages/com.immersive.framework`.
 - Assets/configuracoes/QA/docs ficam em `Assets`.
 - F24B foi validado para Route, Activity e ActivityClear.
+
+
+## F24D1B — Transition Curtain QA Warm Visible State
+
+Status: Current until smoke validation.
+
+Purpose: fix the QA transition curtain first-use visual miss by keeping the QA curtain panel active and hidden through CanvasGroup alpha instead of disabling its surface root.
+
+Boundary: QA fixture only; no lifecycle, scene loading, transition contract or loading runtime changes.
+
+## F24D4 — Awaitable Cascade Loading Hide Boundary
+
+Status: Current until smoke validation.
+
+Purpose: enforce the visual cascade `transition fade-in -> loading show/load/hide -> transition fade-out` by awaiting the loading hide boundary before executing the transition release phase.
+
+Boundary: uses `UnityEngine.Awaitable`; no SceneLifecycle delay, no new scene loader, no lifecycle ownership transfer, no DOTween, no `Task.Delay`.
+
+
+## F24D5 — Loading Surface Visibility And Warnings Fix
+
+Status: implemented / smoke pending.
+
+Corrige warnings CS1998 do eixo Awaitable e ajusta o prefab QA de loading para renderizar acima da cortina, sem alterar lifecycle de Route/Scene/Activity.

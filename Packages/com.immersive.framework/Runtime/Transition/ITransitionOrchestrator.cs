@@ -1,4 +1,5 @@
 using Immersive.Framework.ApiStatus;
+using UnityEngine;
 
 namespace Immersive.Framework.Transition
 {
@@ -10,5 +11,11 @@ namespace Immersive.Framework.Transition
     public interface ITransitionOrchestrator
     {
         TransitionResult Execute(TransitionRequest request);
+
+        /// <summary>
+        /// Executes the transition and completes only after the visual phase has settled.
+        /// No-op implementations may complete immediately.
+        /// </summary>
+        Awaitable<TransitionResult> ExecuteAsync(TransitionRequest request);
     }
 }

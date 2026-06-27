@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Immersive.Framework.ApiStatus;
+using UnityEngine;
 using Immersive.Framework.TransitionEffects;
 
 namespace Immersive.Framework.Transition
@@ -8,8 +9,9 @@ namespace Immersive.Framework.Transition
     /// <summary>
     /// API status: Internal. Transition orchestrator that applies an explicit Unity transition surface.
     /// It owns no Route, Activity or scene lifecycle; it only maps transition phases to effect requests.
+    /// Async execution completes only after the visual effect phase has settled.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F24C explicit Unity Transition surface orchestrator.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F24D3 ordered Unity Transition surface orchestrator with visual settle boundary.")]
     internal sealed class TransitionEffectOrchestrator : ITransitionOrchestrator
     {
         private readonly ITransitionEffectAdapter[] _adapters;
@@ -24,6 +26,16 @@ namespace Immersive.Framework.Transition
         }
 
         public TransitionResult Execute(TransitionRequest request)
+        {
+            return ExecuteInternalAsync(request, useAsyncAdapters: false).GetAwaiter().GetResult();
+        }
+
+        public Awaitable<TransitionResult> ExecuteAsync(TransitionRequest request)
+        {
+            return ExecuteInternalAsync(request, useAsyncAdapters: true);
+        }
+
+        private async Awaitable<TransitionResult> ExecuteInternalAsync(TransitionRequest request, bool useAsyncAdapters)
         {
             if (!request.IsValid)
             {
@@ -77,7 +89,9 @@ namespace Immersive.Framework.Transition
             for (var i = 0; i < matchingAdapters.Count; i++)
             {
                 var adapter = matchingAdapters[i];
-                var result = adapter.Execute(effectRequest);
+                var result = useAsyncAdapters && adapter is IAsyncTransitionEffectAdapter asyncAdapter
+                    ? await asyncAdapter.ExecuteAsync(effectRequest)
+                    : adapter.Execute(effectRequest);
 
                 if (result.BlocksTransition)
                 {
@@ -125,9 +139,6 @@ namespace Immersive.Framework.Transition
                     blockingIssueCount);
             }
 
-            var resultStatus = warningIssueCount > 0
-                ? TransitionStatus.CompletedWithWarnings
-                : TransitionStatus.Succeeded;
             var effectStatus = warningIssueCount > 0
                 ? TransitionEffectStatus.CompletedWithWarnings
                 : TransitionEffectStatus.Succeeded;
@@ -146,7 +157,7 @@ namespace Immersive.Framework.Transition
                     BuildStepLabel(request, visibleState),
                     BuildStepMessage(visibleState));
 
-            if (resultStatus == TransitionStatus.CompletedWithWarnings)
+            if (warningIssueCount > 0)
             {
                 return TransitionResult.CompletedWithWarningsResult(
                     request.OperationId,
@@ -262,8 +273,8 @@ namespace Immersive.Framework.Transition
         private static string BuildStepMessage(bool visibleState)
         {
             return visibleState
-                ? "Transition surface applied as visible."
-                : "Transition surface applied as hidden.";
+                ? "Transition surface visual fade-in settled."
+                : "Transition surface visual fade-out settled.";
         }
 
         private static string BuildFailureMessage(bool visibleState, string message)

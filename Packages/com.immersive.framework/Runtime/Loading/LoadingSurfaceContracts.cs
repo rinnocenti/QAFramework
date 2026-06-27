@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
+using UnityEngine;
 
 namespace Immersive.Framework.Loading
 {
@@ -474,6 +475,23 @@ namespace Immersive.Framework.Loading
 
         /// <summary>Hides the loading surface for a canonical request.</summary>
         LoadingSurfaceResult Hide(LoadingSurfaceRequest request);
+    }
+
+    /// <summary>
+    /// Optional Awaitable extension for loading adapters that have a real visual settle boundary.
+    /// Implementations still do not own SceneLifecycle, RouteLifecycle, ActivityFlow or GameFlow.
+    /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F24D4 Awaitable Loading surface adapter boundary for visible show/hide phases.")]
+    public interface IAsyncLoadingSurfaceAdapter : ILoadingSurfaceAdapter
+    {
+        /// <summary>Shows the loading surface and completes after the visual phase is ready.</summary>
+        Awaitable<LoadingSurfaceResult> ShowAsync(LoadingSurfaceRequest request);
+
+        /// <summary>Updates the loading surface and completes after the visual update is applied.</summary>
+        Awaitable<LoadingSurfaceResult> UpdateAsync(LoadingSurfaceRequest request);
+
+        /// <summary>Hides the loading surface and completes only after the visual phase is hidden.</summary>
+        Awaitable<LoadingSurfaceResult> HideAsync(LoadingSurfaceRequest request);
     }
 
     /// <summary>

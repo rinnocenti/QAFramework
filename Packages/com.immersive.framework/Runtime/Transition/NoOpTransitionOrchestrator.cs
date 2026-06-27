@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using UnityEngine;
 using Immersive.Framework.TransitionEffects;
 
 namespace Immersive.Framework.Transition
@@ -39,6 +40,13 @@ namespace Immersive.Framework.Transition
                 "NoneConfigured",
                 0);
         }
+
+#pragma warning disable CS1998 // NoOp async contract intentionally completes synchronously without yielding.
+        public async Awaitable<TransitionResult> ExecuteAsync(TransitionRequest request)
+        {
+            return Execute(request);
+        }
+#pragma warning restore CS1998
 
         private static string BuildStepLabel(TransitionRequest request)
         {

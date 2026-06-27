@@ -1,4 +1,3 @@
-using System.Collections;
 using Immersive.Framework.Loading;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,12 +6,13 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
 {
     /// <summary>
     /// QA-only loading surface adapter used to keep the loading panel visible long enough for manual inspection.
-    /// This adapter never delays Route, Activity, SceneLifecycle or GameFlow. Hide requests return immediately and
-    /// the visual hidden state is applied later by a local coroutine on this QA surface only.
+    /// The hold is awaited by the loading surface runtime, so the route sequence remains:
+    /// transition fade-in -> loading show/load/hide -> transition fade-out.
+    /// It never delays SceneLifecycle directly and it does not own Route, Activity or GameFlow.
     /// </summary>
     [DisallowMultipleComponent]
     [AddComponentMenu("Immersive Framework QA/Unity Build Surface/QA Loading Surface Visibility Hold Adapter")]
-    public sealed class QaLoadingSurfaceVisibilityHoldAdapter : MonoBehaviour, ILoadingSurfaceAdapter
+    public sealed class QaLoadingSurfaceVisibilityHoldAdapter : MonoBehaviour, IAsyncLoadingSurfaceAdapter
     {
         private const string MissingCanvasGroupIssue = "qa-loading-surface-canvas-group-missing";
         private const string MissingImageIssue = "qa-loading-surface-image-missing";
@@ -41,6 +41,7 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
         [SerializeField] private bool holdHideForManualQa = true;
         [Min(0f)]
         [SerializeField] private float hideHoldSeconds = 0.75f;
+        [Tooltip("When enabled, the QA hold uses unscaled delta time through Awaitable.NextFrameAsync.")]
         [SerializeField] private bool useRealtimeSeconds = true;
 
         [Header("Diagnostics")]
@@ -49,7 +50,7 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
         [SerializeField] private bool lastVisibleState;
         [SerializeField] private bool hideHoldActive;
 
-        private Coroutine hideHoldRoutine;
+        private int hideHoldVersion;
 
         public string AdapterName => string.IsNullOrWhiteSpace(adapterName)
             ? nameof(QaLoadingSurfaceVisibilityHoldAdapter)
@@ -87,6 +88,23 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
         public LoadingSurfaceResult Hide(LoadingSurfaceRequest request)
         {
             return Apply(request, LoadingSurfaceAction.Hide, false);
+        }
+
+        public Awaitable<LoadingSurfaceResult> ShowAsync(LoadingSurfaceRequest request)
+        {
+            return ApplyVisibleAndAwaitRenderAsync(request, LoadingSurfaceAction.Show);
+        }
+
+        Awaitable<LoadingSurfaceResult> IAsyncLoadingSurfaceAdapter.UpdateAsync(LoadingSurfaceRequest request)
+        {
+            return request.ShouldBeVisible
+                ? ApplyVisibleAndAwaitRenderAsync(request, LoadingSurfaceAction.Update)
+                : ApplyAsync(request, LoadingSurfaceAction.Update, false);
+        }
+
+        public Awaitable<LoadingSurfaceResult> HideAsync(LoadingSurfaceRequest request)
+        {
+            return ApplyAsync(request, LoadingSurfaceAction.Hide, false);
         }
 
         [ContextMenu("Immersive Framework/QA Apply Visible Loading State")]
@@ -150,40 +168,50 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
             LoadingSurfaceAction expectedAction,
             bool visibleState)
         {
-            if (!request.IsValid)
+            if (!TryValidate(request, expectedAction, out var failureResult, out var resolvedCanvasGroup))
             {
-                return Record(LoadingSurfaceResult.RejectedResult(
-                    request,
-                    AdapterName,
-                    "QA loading surface adapter requires a valid request.",
-                    new[] { InvalidRequestIssue }));
+                return Record(failureResult);
             }
 
-            if (request.Action != expectedAction)
+            if (visibleState)
             {
-                return Record(LoadingSurfaceResult.RejectedResult(
+                CancelPendingHide();
+                ApplyVisibleState(resolvedCanvasGroup);
+                return Record(LoadingSurfaceResult.SucceededResult(
                     request,
                     AdapterName,
-                    $"Adapter '{AdapterName}' expected action '{expectedAction}' but received '{request.Action}'.",
-                    new[] { UnsupportedActionIssue }));
+                    $"Adapter '{AdapterName}' applied visible loading state."));
             }
 
-            if (!TryResolveCanvasGroup(out var resolvedCanvasGroup))
+            CancelPendingHide();
+            ApplyHiddenState(resolvedCanvasGroup);
+            return Record(LoadingSurfaceResult.SucceededResult(
+                request,
+                AdapterName,
+                $"Adapter '{AdapterName}' applied hidden loading state."));
+        }
+
+        private async Awaitable<LoadingSurfaceResult> ApplyVisibleAndAwaitRenderAsync(
+            LoadingSurfaceRequest request,
+            LoadingSurfaceAction expectedAction)
+        {
+            var result = Apply(request, expectedAction, true);
+            if (result.Succeeded && Application.isPlaying)
             {
-                return Record(LoadingSurfaceResult.FailedResult(
-                    request,
-                    AdapterName,
-                    $"Adapter '{AdapterName}' requires a CanvasGroup surface.",
-                    new[] { MissingCanvasGroupIssue }));
+                await Awaitable.NextFrameAsync();
             }
 
-            if (!TryResolveSurfaceImage(out _))
+            return result;
+        }
+
+        private async Awaitable<LoadingSurfaceResult> ApplyAsync(
+            LoadingSurfaceRequest request,
+            LoadingSurfaceAction expectedAction,
+            bool visibleState)
+        {
+            if (!TryValidate(request, expectedAction, out var failureResult, out var resolvedCanvasGroup))
             {
-                return Record(LoadingSurfaceResult.FailedResult(
-                    request,
-                    AdapterName,
-                    $"Adapter '{AdapterName}' requires a surface Image for the loading panel.",
-                    new[] { MissingImageIssue }));
+                return Record(failureResult);
             }
 
             if (visibleState)
@@ -198,11 +226,22 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
 
             if (ShouldHoldHide())
             {
-                ScheduleHiddenState(resolvedCanvasGroup);
+                var version = BeginAwaitableHideHold();
+                await WaitForHideHoldAsync(version);
+                if (version != hideHoldVersion)
+                {
+                    return Record(LoadingSurfaceResult.SkippedResult(
+                        request,
+                        AdapterName,
+                        $"Adapter '{AdapterName}' skipped hidden loading state because a newer loading request cancelled the QA hold."));
+                }
+
+                ApplyHiddenState(resolvedCanvasGroup);
+                hideHoldActive = false;
                 return Record(LoadingSurfaceResult.SucceededResult(
                     request,
                     AdapterName,
-                    $"Adapter '{AdapterName}' scheduled hidden loading state after QA hold seconds='{hideHoldSeconds:0.###}'."));
+                    $"Adapter '{AdapterName}' completed awaited hidden loading state after QA hold seconds='{hideHoldSeconds:0.###}'."));
             }
 
             CancelPendingHide();
@@ -213,42 +252,94 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
                 $"Adapter '{AdapterName}' applied hidden loading state."));
         }
 
+        private bool TryValidate(
+            LoadingSurfaceRequest request,
+            LoadingSurfaceAction expectedAction,
+            out LoadingSurfaceResult failureResult,
+            out CanvasGroup resolvedCanvasGroup)
+        {
+            failureResult = default;
+            resolvedCanvasGroup = null;
+
+            if (!request.IsValid)
+            {
+                failureResult = LoadingSurfaceResult.RejectedResult(
+                    request,
+                    AdapterName,
+                    "QA loading surface adapter requires a valid request.",
+                    new[] { InvalidRequestIssue });
+                return false;
+            }
+
+            if (request.Action != expectedAction)
+            {
+                failureResult = LoadingSurfaceResult.RejectedResult(
+                    request,
+                    AdapterName,
+                    $"Adapter '{AdapterName}' expected action '{expectedAction}' but received '{request.Action}'.",
+                    new[] { UnsupportedActionIssue });
+                return false;
+            }
+
+            if (!TryResolveCanvasGroup(out resolvedCanvasGroup))
+            {
+                failureResult = LoadingSurfaceResult.FailedResult(
+                    request,
+                    AdapterName,
+                    $"Adapter '{AdapterName}' requires a CanvasGroup surface.",
+                    new[] { MissingCanvasGroupIssue });
+                return false;
+            }
+
+            if (!TryResolveSurfaceImage(out _))
+            {
+                failureResult = LoadingSurfaceResult.FailedResult(
+                    request,
+                    AdapterName,
+                    $"Adapter '{AdapterName}' requires a surface Image for the loading panel.",
+                    new[] { MissingImageIssue });
+                return false;
+            }
+
+            return true;
+        }
+
         private bool ShouldHoldHide()
         {
             return Application.isPlaying && holdHideForManualQa && hideHoldSeconds > 0f;
         }
 
-        private void ScheduleHiddenState(CanvasGroup resolvedCanvasGroup)
+        private int BeginAwaitableHideHold()
         {
-            CancelPendingHide();
+            hideHoldVersion++;
             hideHoldActive = true;
-            hideHoldRoutine = StartCoroutine(HideAfterHold(resolvedCanvasGroup));
+            return hideHoldVersion;
         }
 
-        private IEnumerator HideAfterHold(CanvasGroup resolvedCanvasGroup)
+        private async Awaitable WaitForHideHoldAsync(int version)
         {
-            if (useRealtimeSeconds)
+            if (hideHoldSeconds <= 0f)
             {
-                yield return new WaitForSecondsRealtime(hideHoldSeconds);
-            }
-            else
-            {
-                yield return new WaitForSeconds(hideHoldSeconds);
+                return;
             }
 
-            ApplyHiddenState(resolvedCanvasGroup);
-            hideHoldRoutine = null;
-            hideHoldActive = false;
+            if (!useRealtimeSeconds)
+            {
+                await Awaitable.WaitForSecondsAsync(hideHoldSeconds);
+                return;
+            }
+
+            var elapsed = 0f;
+            while (version == hideHoldVersion && elapsed < hideHoldSeconds)
+            {
+                await Awaitable.NextFrameAsync();
+                elapsed += Time.unscaledDeltaTime;
+            }
         }
 
         private void CancelPendingHide()
         {
-            if (hideHoldRoutine != null)
-            {
-                StopCoroutine(hideHoldRoutine);
-                hideHoldRoutine = null;
-            }
-
+            hideHoldVersion++;
             hideHoldActive = false;
         }
 
@@ -263,6 +354,7 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
             resolvedCanvasGroup.alpha = visibleAlpha;
             resolvedCanvasGroup.blocksRaycasts = blockRaycastsWhenVisible;
             resolvedCanvasGroup.interactable = interactableWhenVisible;
+            Canvas.ForceUpdateCanvases();
             lastVisibleState = true;
         }
 
@@ -278,6 +370,7 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
                 root.SetActive(false);
             }
 
+            Canvas.ForceUpdateCanvases();
             lastVisibleState = false;
         }
 

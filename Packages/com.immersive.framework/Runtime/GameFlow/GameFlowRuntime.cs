@@ -9,6 +9,7 @@ using Immersive.Framework.RuntimeContent;
 using Immersive.Framework.CycleReset;
 using Immersive.Framework.Gate;
 using Immersive.Framework.Transition;
+using UnityEngine;
 
 namespace Immersive.Framework.GameFlow
 {
@@ -93,6 +94,21 @@ namespace Immersive.Framework.GameFlow
             string source,
             string reason)
         {
+            return await RequestRouteAsync(
+                targetRoute,
+                source,
+                reason,
+                beforeRouteLifecycle: null,
+                afterRouteLifecycle: null);
+        }
+
+        internal async Task<FrameworkRouteRequestResult> RequestRouteAsync(
+            RouteAsset targetRoute,
+            string source,
+            string reason,
+            Func<Awaitable> beforeRouteLifecycle,
+            Func<Awaitable> afterRouteLifecycle)
+        {
             string resolvedSource = FrameworkRouteRequestResult.NormalizeSource(source);
             string resolvedReason = FrameworkRouteRequestResult.NormalizeReason(reason);
 
@@ -135,7 +151,7 @@ namespace Immersive.Framework.GameFlow
                 var previousRoute = _routeLifecycleRuntime.CurrentRoute;
                 var previousActivity = _routeLifecycleRuntime.CurrentActivity;
                 var operationId = CreateTransitionOperationId(TransitionScope.Route);
-                var transitionBefore = ExecuteTransition(
+                var transitionBefore = await ExecuteTransitionAsync(
                     TransitionRequest.Before(
                         operationId,
                         TransitionScope.Route,
@@ -146,8 +162,19 @@ namespace Immersive.Framework.GameFlow
                         previousActivity,
                         previousActivity));
 
+                if (beforeRouteLifecycle != null)
+                {
+                    await beforeRouteLifecycle();
+                }
+
                 var routeLifecycleResult = await StartRouteCoreAsync(targetRoute, resolvedSource, resolvedReason);
-                var transitionAfter = ExecuteTransition(
+
+                if (afterRouteLifecycle != null)
+                {
+                    await afterRouteLifecycle();
+                }
+
+                var transitionAfter = await ExecuteTransitionAsync(
                     TransitionRequest.After(
                         operationId,
                         TransitionScope.Route,
@@ -231,7 +258,7 @@ namespace Immersive.Framework.GameFlow
                 var currentRoute = _routeLifecycleRuntime.CurrentRoute;
                 var previousActivity = _routeLifecycleRuntime.CurrentActivity;
                 var operationId = CreateTransitionOperationId(TransitionScope.Activity);
-                var transitionBefore = ExecuteTransition(
+                var transitionBefore = await ExecuteTransitionAsync(
                     TransitionRequest.Before(
                         operationId,
                         TransitionScope.Activity,
@@ -243,7 +270,7 @@ namespace Immersive.Framework.GameFlow
                         targetActivity));
 
                 var activityFlowResult = await _routeLifecycleRuntime.StartActivityAsync(targetActivity, resolvedSource, resolvedReason);
-                var transitionAfter = ExecuteTransition(
+                var transitionAfter = await ExecuteTransitionAsync(
                     TransitionRequest.After(
                         operationId,
                         TransitionScope.Activity,
@@ -315,7 +342,7 @@ namespace Immersive.Framework.GameFlow
                 var currentRoute = _routeLifecycleRuntime.CurrentRoute;
                 var previousActivity = _routeLifecycleRuntime.CurrentActivity;
                 var operationId = CreateTransitionOperationId(TransitionScope.ActivityClear);
-                var transitionBefore = ExecuteTransition(
+                var transitionBefore = await ExecuteTransitionAsync(
                     TransitionRequest.Before(
                         operationId,
                         TransitionScope.ActivityClear,
@@ -327,7 +354,7 @@ namespace Immersive.Framework.GameFlow
                         null));
 
                 var activityFlowResult = await _routeLifecycleRuntime.ClearActivityAsync(resolvedSource, resolvedReason);
-                var transitionAfter = ExecuteTransition(
+                var transitionAfter = await ExecuteTransitionAsync(
                     TransitionRequest.After(
                         operationId,
                         TransitionScope.ActivityClear,
@@ -468,9 +495,9 @@ namespace Immersive.Framework.GameFlow
             return _routeLifecycleRuntime.StartRouteAsync(route, source, reason);
         }
 
-        private TransitionResult ExecuteTransition(TransitionRequest request)
+        private Awaitable<TransitionResult> ExecuteTransitionAsync(TransitionRequest request)
         {
-            return _transitionOrchestrator.Execute(request);
+            return _transitionOrchestrator.ExecuteAsync(request);
         }
 
         private TransitionOperationId CreateTransitionOperationId(TransitionScope scope)

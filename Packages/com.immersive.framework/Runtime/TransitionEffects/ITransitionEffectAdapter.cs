@@ -1,4 +1,5 @@
 using Immersive.Framework.ApiStatus;
+using UnityEngine;
 
 namespace Immersive.Framework.TransitionEffects
 {
@@ -22,4 +23,16 @@ namespace Immersive.Framework.TransitionEffects
         /// </summary>
         TransitionEffectResult Execute(TransitionEffectRequest request);
     }
+
+    /// <summary>
+    /// API status: Experimental. Optional async extension for Transition Effect adapters that need a real visual settle boundary.
+    /// Implementations still do not own Transition orchestration, SceneLifecycle, RouteLifecycle, ActivityFlow or Pause.
+    /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F24D3 async Transition Effect adapter boundary for visible fade-in/fade-out phases.")]
+    public interface IAsyncTransitionEffectAdapter : ITransitionEffectAdapter
+    {
+        /// <summary>Executes a single effect request and completes only after the visual phase is settled.</summary>
+        Awaitable<TransitionEffectResult> ExecuteAsync(TransitionEffectRequest request);
+    }
+
 }
