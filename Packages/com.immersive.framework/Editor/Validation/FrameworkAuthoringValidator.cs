@@ -428,7 +428,7 @@ namespace Immersive.Framework.Editor.Editor.Validation
                     break;
                 case ActivityVisualTransitionMode.FadeWithLoading:
                     report.AddWarning(
-                        "Activity Transition Mode is FadeWithLoading. Activity content/scene loading is not implemented yet, so current runtime uses Fade and keeps Loading skipped.",
+                        "Activity Transition Mode is FadeWithLoading. This mode is reserved until ActivityContentProfile and Activity Content Scene Composition exist. Current runtime uses Fade, logs ReservedNoActivityContentLoading and keeps Loading skipped.",
                         activity);
                     break;
             }

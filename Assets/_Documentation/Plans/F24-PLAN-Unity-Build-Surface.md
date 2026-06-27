@@ -330,3 +330,20 @@ Accepted behavior:
 - Route transition/loading behavior is unchanged.
 
 Boundary: no Activity scene loading, no LoadingSurface for Activity without real content loading, no new lifecycle, no scene loader change.
+
+
+## F24F1 — Activity Loading Reserved Finding
+
+Status: implemented / smoke pending.
+
+Purpose: mark `FadeWithLoading` as reserved until Activity Content Scene Composition exists. Activity loading remains `SkippedNoSceneLoad` because there is no `ActivityContentProfile`, Activity scene composition plan/result, additive Activity scene loading or Activity content release yet.
+
+Accepted behavior:
+
+- `FadeWithLoading` runs the current fade path only.
+- Activity request logs `activityLoadingMode='ReservedNoActivityContentLoading'`.
+- LoadingSurface is not opened for Activity without real scene/content loading.
+- Validator warns when an Activity uses `FadeWithLoading`.
+- F25 must own Activity content scene composition.
+
+Boundary: no Activity scenes, no ActivityContentProfile, no Activity scene loader, no Activity release, no Route transition/loading change.

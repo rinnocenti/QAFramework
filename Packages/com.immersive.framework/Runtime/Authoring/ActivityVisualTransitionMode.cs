@@ -15,7 +15,9 @@ namespace Immersive.Framework.Authoring
         /// <summary>Activity switch/clear runs the session TransitionSurface fade before and after the Activity operation.</summary>
         Fade = 10,
 
-        /// <summary>Reserved for Activity content/scene loading. Until Activity loading exists, this behaves as Fade with no LoadingSurface.</summary>
+        /// <summary>
+        /// Reserved for future Activity content/scene loading. Until ActivityContentProfile and Activity scene composition exist, this behaves as Fade and keeps Loading skipped.
+        /// </summary>
         FadeWithLoading = 20
     }
 }

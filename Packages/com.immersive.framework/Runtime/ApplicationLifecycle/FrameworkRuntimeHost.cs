@@ -931,6 +931,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("transitionEffectBlockingIssues", result.TransitionDiagnostics.EffectBlockingIssueCount),
                 LogFields.Field("transitionEffectAdapterCount", result.TransitionDiagnostics.EffectAdapterCount),
                 LogFields.Field("activityTransitionMode", result.ActivityTransitionMode.ToString()),
+                LogFields.Field("activityLoadingMode", result.ActivityLoadingMode),
                 LogFields.Field("targetActivity", GetActivityName(result.TargetActivity)),
                 LogFields.Field("previousActivity", GetActivityName(activityFlow.PreviousActivity)),
                 LogFields.Field("activity", FormatDiagnosticValue(activityFlow.ActivityState.ActivityName)),

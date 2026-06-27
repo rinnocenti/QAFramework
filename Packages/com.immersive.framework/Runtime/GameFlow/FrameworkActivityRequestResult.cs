@@ -30,6 +30,7 @@ namespace Immersive.Framework.GameFlow
             ActivityFlowResult = activityFlowResult;
             TransitionDiagnostics = transitionDiagnostics;
             ActivityTransitionMode = NormalizeActivityTransitionMode(activityTransitionMode);
+            ActivityLoadingMode = DetermineActivityLoadingMode(ActivityTransitionMode);
         }
 
         public FrameworkActivityRequestKind Kind { get; }
@@ -47,6 +48,8 @@ namespace Immersive.Framework.GameFlow
         internal FrameworkTransitionDiagnostics TransitionDiagnostics { get; }
 
         internal ActivityVisualTransitionMode ActivityTransitionMode { get; }
+
+        internal string ActivityLoadingMode { get; }
 
         public bool Succeeded => Kind == FrameworkActivityRequestKind.Succeeded;
 
@@ -172,6 +175,13 @@ namespace Immersive.Framework.GameFlow
             return System.Enum.IsDefined(typeof(ActivityVisualTransitionMode), mode)
                 ? mode
                 : ActivityVisualTransitionMode.Seamless;
+        }
+
+        private static string DetermineActivityLoadingMode(ActivityVisualTransitionMode mode)
+        {
+            return mode == ActivityVisualTransitionMode.FadeWithLoading
+                ? "ReservedNoActivityContentLoading"
+                : "SkippedNoSceneLoad";
         }
 
         private static string FormatRequestContext(string source, string reason)

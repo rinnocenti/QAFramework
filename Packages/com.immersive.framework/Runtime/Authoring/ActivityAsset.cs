@@ -25,7 +25,7 @@ namespace Immersive.Framework.Authoring
         private string description = string.Empty;
 
         [SerializeField]
-        [Tooltip("Defines whether Activity requests should use the session TransitionSurface. Seamless is the default; Route transitions remain mandatory elsewhere.")]
+        [Tooltip("Defines whether Activity requests should use the session TransitionSurface. Seamless is the default. FadeWithLoading is reserved until ActivityContentProfile and Activity scene/content loading exist. Route transitions remain mandatory elsewhere.")]
         private ActivityVisualTransitionMode visualTransitionMode = ActivityVisualTransitionMode.Seamless;
 
         public string ActivityName

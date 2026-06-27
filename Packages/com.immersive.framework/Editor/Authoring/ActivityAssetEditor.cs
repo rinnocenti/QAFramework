@@ -69,12 +69,12 @@ namespace Immersive.Framework.Editor.Editor.Authoring
                     break;
                 case ActivityVisualTransitionMode.Fade:
                     EditorGUILayout.HelpBox(
-                        "Activity switch/clear uses the Session UIGlobal TransitionSurface fade. Loading remains skipped unless a future Activity content/scene loading source exists.",
+                        "Activity switch/clear uses the Session UIGlobal TransitionSurface fade. Loading remains skipped because Activity does not own scene/content loading yet.",
                         MessageType.Info);
                     break;
                 case ActivityVisualTransitionMode.FadeWithLoading:
                     EditorGUILayout.HelpBox(
-                        "Reserved for future Activity scene/content loading. In the current runtime it behaves as Fade and keeps Loading skipped because Activity loading has no real progress/content source yet.",
+                        "Reserved for future Activity Content Scene Composition. In the current runtime it behaves as Fade, logs activityLoadingMode='ReservedNoActivityContentLoading', and keeps Loading skipped because ActivityContentProfile does not exist yet.",
                         MessageType.Warning);
                     break;
             }

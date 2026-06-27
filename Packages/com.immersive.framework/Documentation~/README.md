@@ -68,3 +68,5 @@ F25 is Adapter Module Foundation. It is broader than gameplay-only work and can 
 F25 must consume framework contracts and F24 Unity build surfaces. It must not create a parallel lifecycle pipeline or move optional subsystem behavior into framework core.
 
 `F24F - Activity Transition Policy` adds an Activity-level authoring policy for optional Activity transitions. Route transitions remain mandatory; Activity loading remains skipped until real Activity content/scene loading exists.
+
+`F24F1 - Activity Loading Reserved Finding` marks `FadeWithLoading` as reserved. Activity loading remains `SkippedNoSceneLoad` until an Activity content composition track adds `ActivityContentProfile`, Activity scene composition plan/result, execution and release.
