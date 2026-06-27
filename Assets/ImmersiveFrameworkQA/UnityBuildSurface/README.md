@@ -5,6 +5,7 @@ Workspace isolado para fixtures de QA da etapa F24.
 ## Current fixtures
 
 ```text
+Scenes/QA_UIGlobal.unity
 Scenes/TransitionRouteA.unity
 Scenes/TransitionRouteB.unity
 Routes/QA_TransitionRouteA.asset
@@ -15,6 +16,7 @@ Activities/QA_TransitionActivityB.asset
 Activities/QA_TransitionActivityB_Alt.asset
 GameApplications/QA_TransitionGameApplication.asset
 Prefabs/QA_TransitionCurtainSurface.prefab
+Prefabs/QA_LoadingSurface.prefab
 Scripts/Runtime/TransitionQaRouteSwitchPanel.cs
 Scripts/Runtime/TransitionQaActivitySwitchPanel.cs
 ```
@@ -37,7 +39,7 @@ With `QA Transition Game Application` active:
 2. Route switch A -> B logs transition diagnostics.
 3. Route switch B -> A logs transition diagnostics.
 4. Activity switch and clear in each route log transition diagnostics.
-5. The transition surface prefab is instantiated under the persistent runtime host.
+5. `QA_UIGlobal` provides the Transition and Loading adapters that are persisted under the runtime host.
 
 Expected transition diagnostics:
 
@@ -66,4 +68,4 @@ This is a QA fixture correction only. It does not alter Route, Activity, SceneLi
 
 `Scenes/QA_UIGlobal.unity` is the canonical QA scene for app/session-scoped UI surfaces.
 It contains the Transition Curtain Surface and Loading Surface.
-`QA_TransitionGameApplication.asset` loads this scene before the Startup Route and resolves adapters from it; legacy surface prefabs remain fallback-only.
+`QA_TransitionGameApplication.asset` loads this scene before the Startup Route and resolves adapters from it; legacy surface prefabs, if kept, are templates only and no longer runtime paths.

@@ -168,7 +168,7 @@ Escopo:
 
 ### F24E - Canonical UIGlobal Scene
 
-Status: Current
+Status: Closed / Visual-runtime pass
 
 Escopo:
 
@@ -176,6 +176,16 @@ Escopo:
 - carregar UIGlobal antes da Startup Route e persistir seus roots sob o FrameworkRuntimeHost;
 - descobrir adapters de Transition/Loading na cena;
 - manter Loading/Transition como visual/diagnostics, sem ownership de Route/Activity/SceneLifecycle.
+
+### F24E1 - Surface/Loading Legacy Cleanup
+
+Status: Current
+
+Escopo:
+
+- remover os campos e caminhos runtime legados de Transition/Loading prefab;
+- consolidar UIGlobal como única origem runtime para adapters visuais globais;
+- manter a cascata visual já validada sem fallback silencioso.
 
 ### F24F - Pause Unity Surface
 

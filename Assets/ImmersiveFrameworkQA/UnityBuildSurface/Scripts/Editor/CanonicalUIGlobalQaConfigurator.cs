@@ -32,10 +32,6 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface.Editor
             serializedObject.FindProperty("globalUiScenePolicy").enumValueIndex = (int)GlobalUiScenePolicy.Required;
             serializedObject.FindProperty("globalUiScenePath").stringValue = GlobalUiScenePath;
             serializedObject.FindProperty("globalUiSceneName").stringValue = "QA_UIGlobal";
-            serializedObject.FindProperty("transitionSurfacePolicy").enumValueIndex = (int)TransitionSurfacePolicy.Required;
-            serializedObject.FindProperty("transitionSurfacePrefab").objectReferenceValue = null;
-            serializedObject.FindProperty("loadingSurfacePolicy").enumValueIndex = 2; // LoadingSurfacePolicy.Required without adding another runtime using.
-            serializedObject.FindProperty("loadingSurfacePrefab").objectReferenceValue = null;
             serializedObject.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(gameApplication);
         }

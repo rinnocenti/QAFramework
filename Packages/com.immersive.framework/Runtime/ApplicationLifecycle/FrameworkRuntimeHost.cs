@@ -180,15 +180,8 @@ namespace Immersive.Framework.ApplicationLifecycle
                 return failed;
             }
 
-            _loadingSurfaceRuntime = CreateLoadingSurfaceRuntime(_gameApplication, _globalUiSceneRuntime);
-            if (HasBlockingLoadingSurfaceConfigurationIssue)
-            {
-                var failed = FrameworkGameFlowStartResult.Failed(_loadingSurfaceRuntime.BlockingConfigurationMessage);
-                _state = FrameworkRuntimeState.FromGameFlowResult(_gameApplication, failed);
-                return failed;
-            }
-
-            var transitionOrchestrator = CreateTransitionOrchestrator(_gameApplication, _globalUiSceneRuntime);
+            _loadingSurfaceRuntime = CreateLoadingSurfaceRuntime(_globalUiSceneRuntime);
+            var transitionOrchestrator = CreateTransitionOrchestrator(_globalUiSceneRuntime);
             _gameFlowRuntime = new GameFlowRuntime(_runtimeContentRuntime, _contentAnchorBindingRuntime, transitionOrchestrator);
 
             var result = await _gameFlowRuntime.StartAsync(_gameApplication);
@@ -207,17 +200,6 @@ namespace Immersive.Framework.ApplicationLifecycle
             string reason)
         {
             InvalidateObjectEntryRuntimeContextSnapshot($"route-request:{NormalizeLifecycleSource(source)}");
-            if (HasBlockingLoadingSurfaceConfigurationIssue)
-            {
-                var failed = FrameworkRouteRequestResult.FailedInvalidConfig(
-                    _loadingSurfaceRuntime.BlockingConfigurationMessage,
-                    targetRoute,
-                    source,
-                    reason);
-                LogRouteRequestResult(failed, FrameworkLoadingDiagnostics.FailedRequiredUnitySurfaceMissing());
-                return failed;
-            }
-
             if (targetRoute != null && ReferenceEquals(_state.CurrentRoute, targetRoute))
             {
                 var result = await _gameFlowRuntime.RequestRouteAsync(targetRoute, source, reason);
@@ -480,8 +462,6 @@ namespace Immersive.Framework.ApplicationLifecycle
             return string.IsNullOrWhiteSpace(source) ? "Unknown" : source.Trim();
         }
 
-        private bool HasBlockingLoadingSurfaceConfigurationIssue => _loadingSurfaceRuntime != null && _loadingSurfaceRuntime.HasBlockingConfigurationIssue;
-
         private bool ShouldShowLoadingSurface(RouteAsset targetRoute)
         {
             return _loadingSurfaceRuntime != null
@@ -513,25 +493,19 @@ namespace Immersive.Framework.ApplicationLifecycle
                 : LoadingSurfaceRequest.Hide(routeLabel, detail, source, reason);
         }
 
-        private LoadingSurfaceRuntime CreateLoadingSurfaceRuntime(
-            GameApplicationAsset application,
-            GlobalUiSceneRuntime globalUiSceneRuntime)
+        private LoadingSurfaceRuntime CreateLoadingSurfaceRuntime(GlobalUiSceneRuntime globalUiSceneRuntime)
         {
             return LoadingSurfaceRuntime.Create(
-                application,
-                transform,
                 _logger,
                 globalUiSceneRuntime != null ? globalUiSceneRuntime.LoadingAdapters : Array.Empty<ILoadingSurfaceAdapter>(),
                 globalUiSceneRuntime != null ? globalUiSceneRuntime.Label : string.Empty);
         }
 
-        private ITransitionOrchestrator CreateTransitionOrchestrator(
-            GameApplicationAsset application,
-            GlobalUiSceneRuntime globalUiSceneRuntime)
+        private ITransitionOrchestrator CreateTransitionOrchestrator(GlobalUiSceneRuntime globalUiSceneRuntime)
         {
-            if (application == null)
+            if (globalUiSceneRuntime == null)
             {
-                _logger.Warning("Transition surface is not configured because the Game Application is missing.");
+                _logger.Warning("Transition surface is not configured because the UIGlobal scene runtime is missing.");
                 return NoOpTransitionOrchestrator.Instance;
             }
 
@@ -543,91 +517,14 @@ namespace Immersive.Framework.ApplicationLifecycle
                 ? globalUiSceneRuntime.Label
                 : "UIGlobal Transition Surface";
 
-            if (application.TransitionSurfacePolicyValue == TransitionSurfacePolicy.NoneConfigured)
+            if (!hasSceneAdapters)
             {
-                if (hasSceneAdapters || application.TransitionSurfacePrefab != null)
-                {
-                    _logger.Warning(
-                        "Transition surface adapters are available, but Transition Surface Policy is NoneConfigured. The runtime will keep explicit NoOp Transition.");
-                }
-                else
-                {
-                    _logger.Info("Transition surface is not configured. Transition will remain explicit NoOp.");
-                }
-
+                _logger.Info("Transition surface is not configured. Transition will remain explicit NoOp.");
                 return NoOpTransitionOrchestrator.Instance;
             }
 
-            if (hasSceneAdapters)
-            {
-                if (application.TransitionSurfacePrefab != null)
-                {
-                    _logger.Warning("Transition Surface Prefab is assigned, but UIGlobal scene adapters are available. The prefab fallback is ignored for this boot.");
-                }
-
-                _logger.Info($"Transition surface resolved from UIGlobal scene '{sceneLabel}' with adapterCount='{sceneAdapters.Count}'.");
-                return new TransitionEffectOrchestrator(sceneAdapters, sceneLabel);
-            }
-
-            if (application.TransitionSurfacePrefab == null)
-            {
-                _logger.Error("Transition surface is required, but no UIGlobal transition adapter or Transition Surface Prefab is available.");
-                return new TransitionEffectOrchestrator(
-                    Array.Empty<ITransitionEffectAdapter>(),
-                    "Transition Surface");
-            }
-
-            try
-            {
-                var surfaceInstance = Instantiate(application.TransitionSurfacePrefab, transform, false);
-                surfaceInstance.name = $"{application.TransitionSurfacePrefab.name} (Transition Surface)";
-                var adapters = CollectTransitionEffectAdapters(surfaceInstance);
-                if (adapters.Count == 0)
-                {
-                    _logger.Error(
-                        $"Transition surface prefab '{application.TransitionSurfacePrefab.name}' instantiated, but no Transition Effect adapters were found.");
-                }
-                else
-                {
-                    _logger.Info(
-                        $"Transition surface prefab '{application.TransitionSurfacePrefab.name}' instantiated with adapterCount='{adapters.Count}'.");
-                }
-
-                return new TransitionEffectOrchestrator(adapters, surfaceInstance.name);
-            }
-            catch (Exception exception)
-            {
-                _logger.Error(
-                    $"Transition surface prefab '{application.TransitionSurfacePrefab.name}' could not be instantiated. {exception.Message}");
-                return new TransitionEffectOrchestrator(
-                    Array.Empty<ITransitionEffectAdapter>(),
-                    application.TransitionSurfacePrefab.name);
-            }
-        }
-
-        private static List<ITransitionEffectAdapter> CollectTransitionEffectAdapters(GameObject surfaceInstance)
-        {
-            var adapters = new List<ITransitionEffectAdapter>();
-            if (surfaceInstance == null)
-            {
-                return adapters;
-            }
-
-            var behaviours = surfaceInstance.GetComponentsInChildren<MonoBehaviour>(true);
-            if (behaviours == null || behaviours.Length == 0)
-            {
-                return adapters;
-            }
-
-            for (var i = 0; i < behaviours.Length; i++)
-            {
-                if (behaviours[i] is ITransitionEffectAdapter adapter)
-                {
-                    adapters.Add(adapter);
-                }
-            }
-
-            return adapters;
+            _logger.Info($"Transition surface resolved from UIGlobal scene '{sceneLabel}' with adapterCount='{sceneAdapters.Count}'.");
+            return new TransitionEffectOrchestrator(sceneAdapters, sceneLabel);
         }
 
 

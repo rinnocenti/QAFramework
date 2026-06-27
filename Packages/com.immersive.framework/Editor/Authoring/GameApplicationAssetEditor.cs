@@ -3,6 +3,7 @@ using Immersive.Framework.Editor.Editor.Settings;
 using Immersive.Framework.Editor.Editor.Validation;
 using UnityEditor;
 using UnityEngine;
+
 namespace Immersive.Framework.Editor.Editor.Authoring
 {
     [CustomEditor(typeof(GameApplicationAsset))]
@@ -13,10 +14,6 @@ namespace Immersive.Framework.Editor.Editor.Authoring
         private SerializedProperty _globalUiScenePolicy;
         private SerializedProperty _globalUiScenePath;
         private SerializedProperty _globalUiSceneName;
-        private SerializedProperty _transitionSurfacePolicy;
-        private SerializedProperty _transitionSurfacePrefab;
-        private SerializedProperty _loadingSurfacePolicy;
-        private SerializedProperty _loadingSurfacePrefab;
         private SerializedProperty _validationMode;
 
         private void OnEnable()
@@ -26,10 +23,6 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             _globalUiScenePolicy = serializedObject.FindProperty("globalUiScenePolicy");
             _globalUiScenePath = serializedObject.FindProperty("globalUiScenePath");
             _globalUiSceneName = serializedObject.FindProperty("globalUiSceneName");
-            _transitionSurfacePolicy = serializedObject.FindProperty("transitionSurfacePolicy");
-            _transitionSurfacePrefab = serializedObject.FindProperty("transitionSurfacePrefab");
-            _loadingSurfacePolicy = serializedObject.FindProperty("loadingSurfacePolicy");
-            _loadingSurfacePrefab = serializedObject.FindProperty("loadingSurfacePrefab");
             _validationMode = serializedObject.FindProperty("validationMode");
         }
 
@@ -56,12 +49,6 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             DrawGlobalUiScene();
 
             EditorGUILayout.Space(6);
-            DrawTransitionSurface();
-
-            EditorGUILayout.Space(6);
-            DrawLoadingSurface();
-
-            EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Validation", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_validationMode, new GUIContent("Validation Mode"));
             EditorGUILayout.HelpBox(
@@ -71,7 +58,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Current Scope", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "This asset controls application identity, project assignment, Startup Route, canonical UIGlobal scene, transition/loading surface policies, and validation mode. The Route still owns Primary Scene loading. UIGlobal is app/session UI only; it does not own Route, Activity or SceneLifecycle.",
+                "This asset controls application identity, project assignment, Startup Route, canonical UIGlobal scene, and validation mode. The Route still owns Primary Scene loading. UIGlobal is app/session UI only; it does not own Route, Activity or SceneLifecycle.",
                 MessageType.Info);
 
             serializedObject.ApplyModifiedProperties();
@@ -113,26 +100,6 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
             EditorGUILayout.HelpBox(
                 "Optional canonical app/session UI scene. When Required, FrameworkRuntimeHost loads it before Startup Route, persists its UI roots, discovers Transition/Loading adapters from it, then lets Route SceneLifecycle continue normally.",
-                MessageType.Info);
-        }
-
-        private void DrawTransitionSurface()
-        {
-            EditorGUILayout.LabelField("Transition Surface", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(_transitionSurfacePolicy, new GUIContent("Transition Surface Policy"));
-            EditorGUILayout.PropertyField(_transitionSurfacePrefab, new GUIContent("Legacy Transition Surface Prefab"));
-            EditorGUILayout.HelpBox(
-                "Required resolves a Transition adapter from UIGlobal first. The prefab remains a temporary fallback and is ignored when UIGlobal provides adapters.",
-                MessageType.Info);
-        }
-
-        private void DrawLoadingSurface()
-        {
-            EditorGUILayout.LabelField("Loading Surface", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(_loadingSurfacePolicy, new GUIContent("Loading Surface Policy"));
-            EditorGUILayout.PropertyField(_loadingSurfacePrefab, new GUIContent("Legacy Loading Surface Prefab"));
-            EditorGUILayout.HelpBox(
-                "Required resolves a Loading adapter from UIGlobal first. Optional uses UIGlobal/prefab when available and skips explicitly when absent. The prefab remains a temporary fallback and is ignored when UIGlobal provides adapters.",
                 MessageType.Info);
         }
 

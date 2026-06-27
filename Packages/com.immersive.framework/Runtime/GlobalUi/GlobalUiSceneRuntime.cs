@@ -86,11 +86,11 @@ namespace Immersive.Framework.GlobalUi
             {
                 if (application.HasGlobalUiScene)
                 {
-                    logger.Warning($"UIGlobal scene '{application.GlobalUiScenePath}' is assigned but Global UI Scene Policy is NoneConfigured. The runtime will use surface prefab fallback/no-op behavior.");
+                    logger.Warning($"UIGlobal scene '{application.GlobalUiScenePath}' is assigned but Global UI Scene Policy is NoneConfigured. The scene will not be loaded and the runtime will keep explicit NoOp behavior.");
                 }
                 else
                 {
-                    logger.Info("UIGlobal scene is not configured. Surface prefab fallback/no-op behavior remains active.");
+                    logger.Info("UIGlobal scene is not configured. The runtime will keep explicit NoOp behavior.");
                 }
 
                 return new GlobalUiSceneRuntime(
@@ -162,6 +162,11 @@ namespace Immersive.Framework.GlobalUi
 
             var transitionAdapters = CollectAdapters<ITransitionEffectAdapter>(persistedRoots);
             var loadingAdapters = CollectAdapters<ILoadingSurfaceAdapter>(persistedRoots);
+            var blockingMessage = BuildBlockingMessageIfRequired(
+                application.GlobalUiScenePolicyValue,
+                application.GlobalUiSceneName,
+                transitionAdapters.Count,
+                loadingAdapters.Count);
 
             var unloadOperation = SceneManager.UnloadSceneAsync(scene);
             if (unloadOperation != null)
@@ -175,6 +180,22 @@ namespace Immersive.Framework.GlobalUi
             var label = string.IsNullOrWhiteSpace(application.GlobalUiSceneName)
                 ? "UIGlobal"
                 : application.GlobalUiSceneName;
+            if (!string.IsNullOrWhiteSpace(blockingMessage))
+            {
+                logger.Error($"UIGlobal scene '{label}' loaded and persisted, but required adapters are missing. {blockingMessage}");
+                return new GlobalUiSceneRuntime(
+                    application.GlobalUiScenePolicyValue,
+                    application.GlobalUiScenePath,
+                    application.GlobalUiSceneName,
+                    label,
+                    persistedRoots,
+                    transitionAdapters,
+                    loadingAdapters,
+                    true,
+                    blockingMessage,
+                    $"UIGlobal scene '{label}' loaded and persisted with rootCount='{persistedRoots.Count}' transitionAdapterCount='{transitionAdapters.Count}' loadingAdapterCount='{loadingAdapters.Count}'.");
+            }
+
             logger.Info($"UIGlobal scene '{label}' loaded and persisted with rootCount='{persistedRoots.Count}' transitionAdapterCount='{transitionAdapters.Count}' loadingAdapterCount='{loadingAdapters.Count}'.");
 
             return new GlobalUiSceneRuntime(
@@ -247,6 +268,36 @@ namespace Immersive.Framework.GlobalUi
             }
 
             return new List<T>(source);
+        }
+
+        private static string BuildBlockingMessageIfRequired(
+            GlobalUiScenePolicy policy,
+            string label,
+            int transitionAdapterCount,
+            int loadingAdapterCount)
+        {
+            if (policy != GlobalUiScenePolicy.Required)
+            {
+                return string.Empty;
+            }
+
+            var missing = new List<string>(2);
+            if (transitionAdapterCount == 0)
+            {
+                missing.Add("Transition adapter");
+            }
+
+            if (loadingAdapterCount == 0)
+            {
+                missing.Add("Loading adapter");
+            }
+
+            if (missing.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            return $"UIGlobal scene '{label}' is required, but missing {string.Join(" and ", missing)}.";
         }
 
         private static string Normalize(string value)

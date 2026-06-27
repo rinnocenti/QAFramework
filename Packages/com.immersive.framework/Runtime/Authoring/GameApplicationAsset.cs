@@ -1,6 +1,5 @@
-using UnityEngine;
 using Immersive.Framework.ApiStatus;
-using Immersive.Framework.Loading;
+using UnityEngine;
 
 namespace Immersive.Framework.Authoring
 {
@@ -16,17 +15,6 @@ namespace Immersive.Framework.Authoring
         NoneConfigured = 0,
         Required = 1
     }
-    /// <summary>
-    /// API status: Experimental. Policy for the Unity transition surface wired through a Game Application.
-    /// NoneConfigured keeps Transition explicit NoOp; Required instantiates the configured prefab and fails explicitly when the surface is missing or invalid.
-    /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F24C Transition surface policy for GameApplication authoring.")]
-    public enum TransitionSurfacePolicy
-    {
-        NoneConfigured = 0,
-        Required = 1
-    }
-
     /// <summary>
     /// API status: Experimental. Public authoring root retained as the baseline entry point before F1 identity/status hardening.
     /// Public root asset for an Immersive game/application.
@@ -58,22 +46,6 @@ namespace Immersive.Framework.Authoring
         [SerializeField]
         [Tooltip("Cached human-readable UIGlobal scene name shown in framework diagnostics.")]
         private string globalUiSceneName = string.Empty;
-
-        [SerializeField]
-        [Tooltip("Controls whether this Game Application uses an explicit Unity transition surface. NoneConfigured keeps Transition as an explicit NoOp. Required discovers the adapter from UIGlobal first, then from the legacy prefab fallback if assigned.")]
-        private TransitionSurfacePolicy transitionSurfacePolicy = TransitionSurfacePolicy.NoneConfigured;
-
-        [SerializeField]
-        [Tooltip("Prefab for the app/session-scoped transition surface. The prefab should include a Canvas, a UI panel and UnityFadeCurtainEffectAdapter. It is instantiated under the persistent FrameworkRuntimeHost when the policy is Required.")]
-        private GameObject transitionSurfacePrefab;
-
-        [SerializeField]
-        [Tooltip("Controls whether this Game Application uses an explicit Unity loading surface. NoneConfigured keeps loading as an explicit NoOp. Optional uses the prefab if present and skips explicitly when absent. Required instantiates the configured prefab under the persistent FrameworkRuntimeHost and fails explicitly if the surface is missing or invalid.")]
-        private LoadingSurfacePolicy loadingSurfacePolicy = LoadingSurfacePolicy.NoneConfigured;
-
-        [SerializeField]
-        [Tooltip("Prefab for the app/session-scoped loading surface. The prefab should include a Canvas, a loading panel and UnityLoadingSurfaceAdapter. It is instantiated under the persistent FrameworkRuntimeHost when the policy is Optional or Required and a prefab is assigned.")]
-        private GameObject loadingSurfacePrefab;
 
         [SerializeField]
         [Tooltip("Controls validation and diagnostics severity. Required configuration fails in every mode; Strict promotes warnings, Standard keeps them, Release suppresses info diagnostics.")]
@@ -121,14 +93,6 @@ namespace Immersive.Framework.Authoring
         }
 
         public bool HasGlobalUiScene => !string.IsNullOrWhiteSpace(globalUiScenePath);
-
-        public TransitionSurfacePolicy TransitionSurfacePolicyValue => transitionSurfacePolicy;
-
-        public GameObject TransitionSurfacePrefab => transitionSurfacePrefab;
-
-        public LoadingSurfacePolicy LoadingSurfacePolicyValue => loadingSurfacePolicy;
-
-        public GameObject LoadingSurfacePrefab => loadingSurfacePrefab;
 
         public FrameworkValidationMode ValidationMode => validationMode;
     }

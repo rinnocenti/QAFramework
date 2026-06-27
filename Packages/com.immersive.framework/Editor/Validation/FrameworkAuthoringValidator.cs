@@ -9,6 +9,7 @@ using Immersive.Framework.Editor.Editor.Authoring;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.TransitionEffects;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -146,99 +147,7 @@ namespace Immersive.Framework.Editor.Editor.Validation
                 report.AddRange(ValidateRoute(gameApplication.StartupRoute, true, validationMode));
             }
 
-            ValidateGlobalUiSceneConfiguration(report, gameApplication);
-            bool hasRequiredGlobalUiScene = gameApplication.GlobalUiScenePolicyValue == GlobalUiScenePolicy.Required
-                && gameApplication.HasGlobalUiScene;
-
-            if (gameApplication.TransitionSurfacePolicyValue == TransitionSurfacePolicy.NoneConfigured)
-            {
-                if (gameApplication.TransitionSurfacePrefab != null)
-                {
-                    report.AddWarning(
-                        "Transition Surface Prefab is assigned, but Transition Surface Policy is NoneConfigured. The prefab will not be instantiated and transition will remain explicit NoOp.",
-                        gameApplication);
-                }
-                else
-                {
-                    report.AddInfo(
-                        "Transition surface is configured as explicit NoOp.",
-                        gameApplication);
-                }
-            }
-            else if (hasRequiredGlobalUiScene)
-            {
-                report.AddInfo(
-                    "Transition Surface Policy is Required and will resolve adapters from UIGlobal first. Legacy prefab is fallback-only.",
-                    gameApplication);
-
-                if (gameApplication.TransitionSurfacePrefab != null)
-                {
-                    report.AddWarning(
-                        "Transition Surface Prefab is still assigned while UIGlobal is Required. Runtime will ignore the prefab when the UIGlobal scene provides transition adapters.",
-                        gameApplication);
-                }
-            }
-            else if (gameApplication.TransitionSurfacePrefab == null)
-            {
-                report.AddError(
-                    "Transition Surface Policy is Required, but neither UIGlobal Scene nor Transition Surface Prefab is configured.",
-                    gameApplication);
-            }
-            else
-            {
-                report.AddRange(ValidateTransitionSurfacePrefab(gameApplication.TransitionSurfacePrefab, validationMode));
-            }
-
-            if (gameApplication.LoadingSurfacePolicyValue == LoadingSurfacePolicy.NoneConfigured)
-            {
-                if (gameApplication.LoadingSurfacePrefab != null)
-                {
-                    report.AddWarning(
-                        "Loading Surface Prefab is assigned, but Loading Surface Policy is NoneConfigured. The prefab will not be instantiated and loading will remain explicit NoOp.",
-                        gameApplication);
-                }
-                else
-                {
-                    report.AddInfo(
-                        "Loading surface is configured as explicit NoOp.",
-                        gameApplication);
-                }
-            }
-            else if (hasRequiredGlobalUiScene)
-            {
-                report.AddInfo(
-                    "Loading Surface Policy is configured and will resolve adapters from UIGlobal first. Legacy prefab is fallback-only.",
-                    gameApplication);
-
-                if (gameApplication.LoadingSurfacePrefab != null)
-                {
-                    report.AddWarning(
-                        "Loading Surface Prefab is still assigned while UIGlobal is Required. Runtime will ignore the prefab when the UIGlobal scene provides loading adapters.",
-                        gameApplication);
-                }
-            }
-            else if (gameApplication.LoadingSurfacePrefab == null)
-            {
-                if (gameApplication.LoadingSurfacePolicyValue == LoadingSurfacePolicy.Required)
-                {
-                    report.AddError(
-                        "Loading Surface Policy is Required, but neither UIGlobal Scene nor Loading Surface Prefab is configured.",
-                        gameApplication);
-                }
-                else
-                {
-                    report.AddInfo(
-                        "Loading Surface Policy is Optional, but no Loading Surface Prefab is assigned. Loading will remain explicit NoOp.",
-                        gameApplication);
-                }
-            }
-            else
-            {
-                report.AddRange(ValidateLoadingSurfacePrefab(
-                    gameApplication.LoadingSurfacePrefab,
-                    validationMode,
-                    gameApplication.LoadingSurfacePolicyValue == LoadingSurfacePolicy.Required));
-            }
+            ValidateGlobalUiSceneConfiguration(report, gameApplication, validateDependencies);
 
             if (!report.HasIssues)
             {
@@ -250,14 +159,15 @@ namespace Immersive.Framework.Editor.Editor.Validation
 
         private static void ValidateGlobalUiSceneConfiguration(
             FrameworkAuthoringValidationReport report,
-            GameApplicationAsset gameApplication)
+            GameApplicationAsset gameApplication,
+            bool validateDependencies)
         {
             if (gameApplication.GlobalUiScenePolicyValue == GlobalUiScenePolicy.NoneConfigured)
             {
                 if (gameApplication.HasGlobalUiScene)
                 {
                     report.AddWarning(
-                        "UIGlobal Scene is assigned, but Global UI Scene Policy is NoneConfigured. The scene will not be loaded and surface prefab fallback/no-op behavior remains active.",
+                        "UIGlobal Scene is assigned, but Global UI Scene Policy is NoneConfigured. The scene will not be loaded and explicit NoOp behavior remains active.",
                         gameApplication);
                 }
                 else
@@ -284,6 +194,155 @@ namespace Immersive.Framework.Editor.Editor.Validation
                 gameApplication.GlobalUiScenePath,
                 gameApplication.GlobalUiSceneName,
                 "UIGlobal Scene");
+
+            ValidateGlobalUiSceneBuildSettings(report, gameApplication);
+
+            if (validateDependencies)
+            {
+                ValidateGlobalUiSceneAdapters(report, gameApplication);
+            }
+        }
+
+        private static void ValidateGlobalUiSceneBuildSettings(
+            FrameworkAuthoringValidationReport report,
+            GameApplicationAsset gameApplication)
+        {
+            var scenePath = gameApplication.GlobalUiScenePath;
+            if (string.IsNullOrWhiteSpace(scenePath))
+            {
+                report.AddError(
+                    "Global UI Scene Policy is Required, but UIGlobal Scene path is empty.",
+                    gameApplication);
+                return;
+            }
+
+            var scenes = EditorBuildSettings.scenes;
+            var found = false;
+            if (scenes != null)
+            {
+                for (var i = 0; i < scenes.Length; i++)
+                {
+                    var scene = scenes[i];
+                    if (scene != null && string.Equals(scene.path, scenePath, System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!found)
+            {
+                report.AddError(
+                    $"UIGlobal Scene '{scenePath}' is not included in Build Settings.",
+                    gameApplication);
+            }
+        }
+
+        private static void ValidateGlobalUiSceneAdapters(
+            FrameworkAuthoringValidationReport report,
+            GameApplicationAsset gameApplication)
+        {
+            var scenePath = gameApplication.GlobalUiScenePath;
+            if (string.IsNullOrWhiteSpace(scenePath))
+            {
+                return;
+            }
+
+            var scene = default(UnityEngine.SceneManagement.Scene);
+            try
+            {
+                scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+                if (!scene.IsValid() || !scene.isLoaded)
+                {
+                    report.AddError(
+                        $"UIGlobal Scene '{scenePath}' could not be loaded for adapter validation.",
+                        gameApplication);
+                    return;
+                }
+
+                var transitionAdapterCount = CountSceneAdapters<ITransitionEffectAdapter>(scene);
+                var loadingAdapterCount = CountSceneAdapters<ILoadingSurfaceAdapter>(scene);
+
+                if (transitionAdapterCount == 0)
+                {
+                    report.AddError(
+                        $"UIGlobal Scene '{scenePath}' must contain at least one ITransitionEffectAdapter implementation.",
+                        gameApplication);
+                }
+                else
+                {
+                    report.AddInfo(
+                        $"UIGlobal Scene '{scenePath}' contains {transitionAdapterCount} Transition adapter(s).",
+                        gameApplication);
+                }
+
+                if (loadingAdapterCount == 0)
+                {
+                    report.AddError(
+                        $"UIGlobal Scene '{scenePath}' must contain at least one ILoadingSurfaceAdapter implementation.",
+                        gameApplication);
+                }
+                else
+                {
+                    report.AddInfo(
+                        $"UIGlobal Scene '{scenePath}' contains {loadingAdapterCount} Loading adapter(s).",
+                        gameApplication);
+                }
+            }
+            catch (Exception exception)
+            {
+                report.AddError(
+                    $"UIGlobal Scene '{scenePath}' could not be validated. {exception.Message}",
+                    gameApplication);
+            }
+            finally
+            {
+                if (scene.IsValid())
+                {
+                    EditorSceneManager.CloseScene(scene, true);
+                }
+            }
+        }
+
+        private static int CountSceneAdapters<TAdapter>(UnityEngine.SceneManagement.Scene scene)
+        {
+            if (!scene.IsValid() || !scene.isLoaded)
+            {
+                return 0;
+            }
+
+            var roots = scene.GetRootGameObjects();
+            if (roots == null || roots.Length == 0)
+            {
+                return 0;
+            }
+
+            var count = 0;
+            for (var i = 0; i < roots.Length; i++)
+            {
+                var root = roots[i];
+                if (root == null)
+                {
+                    continue;
+                }
+
+                var behaviours = root.GetComponentsInChildren<MonoBehaviour>(true);
+                if (behaviours == null)
+                {
+                    continue;
+                }
+
+                for (var j = 0; j < behaviours.Length; j++)
+                {
+                    if (behaviours[j] is TAdapter)
+                    {
+                        count++;
+                    }
+                }
+            }
+
+            return count;
         }
 
         private static FrameworkAuthoringValidationReport ValidateRoute(
@@ -361,265 +420,6 @@ namespace Immersive.Framework.Editor.Editor.Validation
             }
 
             return report;
-        }
-
-        private static FrameworkAuthoringValidationReport ValidateTransitionSurfacePrefab(
-            GameObject transitionSurfacePrefab,
-            FrameworkValidationMode validationMode)
-        {
-            var report = new FrameworkAuthoringValidationReport(validationMode);
-
-            if (transitionSurfacePrefab == null)
-            {
-                report.AddError("Transition Surface Prefab is missing.", null);
-                return report;
-            }
-
-            var prefabPath = AssetDatabase.GetAssetPath(transitionSurfacePrefab);
-            if (string.IsNullOrWhiteSpace(prefabPath))
-            {
-                report.AddError(
-                    $"Transition Surface Prefab '{transitionSurfacePrefab.name}' is not a prefab asset.",
-                    transitionSurfacePrefab);
-                return report;
-            }
-
-            if (!PrefabUtility.IsPartOfPrefabAsset(transitionSurfacePrefab))
-            {
-                report.AddError(
-                    $"Transition Surface Prefab '{transitionSurfacePrefab.name}' must be a prefab asset.",
-                    transitionSurfacePrefab);
-                return report;
-            }
-
-            GameObject prefabRoot = null;
-            try
-            {
-                prefabRoot = PrefabUtility.LoadPrefabContents(prefabPath);
-                if (prefabRoot == null)
-                {
-                    report.AddError(
-                        $"Transition Surface Prefab '{transitionSurfacePrefab.name}' could not be loaded for validation.",
-                        transitionSurfacePrefab);
-                    return report;
-                }
-
-                ValidateTransitionSurfacePrefabStructure(report, prefabRoot, transitionSurfacePrefab);
-            }
-            catch (Exception exception)
-            {
-                report.AddError(
-                    $"Transition Surface Prefab '{transitionSurfacePrefab.name}' could not be validated. {exception.Message}",
-                    transitionSurfacePrefab);
-            }
-            finally
-            {
-                if (prefabRoot != null)
-                {
-                    PrefabUtility.UnloadPrefabContents(prefabRoot);
-                }
-            }
-
-            if (!report.HasIssues)
-            {
-                report.AddInfo(
-                    $"Transition Surface Prefab '{transitionSurfacePrefab.name}' is valid for the current framework scope.",
-                    transitionSurfacePrefab);
-            }
-
-            return report;
-        }
-
-        private static FrameworkAuthoringValidationReport ValidateLoadingSurfacePrefab(
-            GameObject loadingSurfacePrefab,
-            FrameworkValidationMode validationMode,
-            bool required)
-        {
-            var report = new FrameworkAuthoringValidationReport(validationMode);
-
-            if (loadingSurfacePrefab == null)
-            {
-                if (required)
-                {
-                    report.AddError("Loading Surface Prefab is missing.", null);
-                }
-                else
-                {
-                    report.AddWarning("Loading Surface Prefab is missing.", null);
-                }
-                return report;
-            }
-
-            var prefabPath = AssetDatabase.GetAssetPath(loadingSurfacePrefab);
-            if (string.IsNullOrWhiteSpace(prefabPath))
-            {
-                AddLoadingSurfaceIssue(
-                    report,
-                    required,
-                    $"Loading Surface Prefab '{loadingSurfacePrefab.name}' is not a prefab asset.",
-                    loadingSurfacePrefab);
-                return report;
-            }
-
-            if (!PrefabUtility.IsPartOfPrefabAsset(loadingSurfacePrefab))
-            {
-                AddLoadingSurfaceIssue(
-                    report,
-                    required,
-                    $"Loading Surface Prefab '{loadingSurfacePrefab.name}' must be a prefab asset.",
-                    loadingSurfacePrefab);
-                return report;
-            }
-
-            GameObject prefabRoot = null;
-            try
-            {
-                prefabRoot = PrefabUtility.LoadPrefabContents(prefabPath);
-                if (prefabRoot == null)
-                {
-                    AddLoadingSurfaceIssue(
-                        report,
-                        required,
-                        $"Loading Surface Prefab '{loadingSurfacePrefab.name}' could not be loaded for validation.",
-                        loadingSurfacePrefab);
-                    return report;
-                }
-
-                ValidateLoadingSurfacePrefabStructure(report, prefabRoot, loadingSurfacePrefab, required);
-            }
-            catch (Exception exception)
-            {
-                AddLoadingSurfaceIssue(
-                    report,
-                    required,
-                    $"Loading Surface Prefab '{loadingSurfacePrefab.name}' could not be validated. {exception.Message}",
-                    loadingSurfacePrefab);
-            }
-            finally
-            {
-                if (prefabRoot != null)
-                {
-                    PrefabUtility.UnloadPrefabContents(prefabRoot);
-                }
-            }
-
-            if (!report.HasIssues)
-            {
-                report.AddInfo(
-                    $"Loading Surface Prefab '{loadingSurfacePrefab.name}' is valid for the current framework scope.",
-                    loadingSurfacePrefab);
-            }
-
-            return report;
-        }
-
-        private static void ValidateLoadingSurfacePrefabStructure(
-            FrameworkAuthoringValidationReport report,
-            GameObject prefabRoot,
-            GameObject source,
-            bool required)
-        {
-            var canvas = prefabRoot.GetComponentInChildren<Canvas>(true);
-            if (canvas == null)
-            {
-                report.AddError(
-                    $"Loading Surface Prefab '{source.name}' must contain a Canvas.",
-                    source);
-            }
-
-            var adapter = prefabRoot.GetComponentInChildren<UnityLoadingSurfaceAdapter>(true);
-            if (adapter == null)
-            {
-                if (CountLoadingSurfaceAdapters(prefabRoot) == 0)
-                {
-                    AddLoadingSurfaceIssue(
-                        report,
-                        required,
-                        $"Loading Surface Prefab '{source.name}' must contain an ILoadingSurfaceAdapter implementation.",
-                        source);
-                }
-                else
-                {
-                    report.AddInfo(
-                        $"Loading Surface Prefab '{source.name}' contains a non-Unity loading surface adapter implementation.",
-                        source);
-                }
-
-                return;
-            }
-
-            if (!adapter.HasCanvasGroup)
-            {
-                AddLoadingSurfaceIssue(
-                    report,
-                    required,
-                    $"Loading Surface Prefab '{source.name}' must place a CanvasGroup on the same GameObject as UnityLoadingSurfaceAdapter.",
-                    source);
-            }
-
-            if (!adapter.HasSurfaceImage)
-            {
-                AddLoadingSurfaceIssue(
-                    report,
-                    required,
-                    $"Loading Surface Prefab '{source.name}' must include an Image on the same GameObject as UnityLoadingSurfaceAdapter.",
-                    source);
-            }
-        }
-
-        private static void AddLoadingSurfaceIssue(
-            FrameworkAuthoringValidationReport report,
-            bool required,
-            string message,
-            UnityEngine.Object context)
-        {
-            if (required)
-            {
-                report.AddError(message, context);
-                return;
-            }
-
-            report.AddWarning(message, context);
-        }
-
-        private static void ValidateTransitionSurfacePrefabStructure(
-            FrameworkAuthoringValidationReport report,
-            GameObject prefabRoot,
-            GameObject source)
-        {
-            var canvas = prefabRoot.GetComponentInChildren<Canvas>(true);
-            if (canvas == null)
-            {
-                report.AddError(
-                    $"Transition Surface Prefab '{source.name}' must contain a Canvas.",
-                    source);
-            }
-
-            var adapter = prefabRoot.GetComponentInChildren<UnityFadeCurtainEffectAdapter>(true);
-            if (adapter == null)
-            {
-                report.AddError(
-                    $"Transition Surface Prefab '{source.name}' must contain a UnityFadeCurtainEffectAdapter.",
-                    source);
-                return;
-            }
-
-            var adapterGameObject = adapter.gameObject;
-            var canvasGroup = adapterGameObject != null ? adapterGameObject.GetComponent<CanvasGroup>() : null;
-            if (canvasGroup == null)
-            {
-                report.AddError(
-                    $"Transition Surface Prefab '{source.name}' must place a CanvasGroup on the same GameObject as UnityFadeCurtainEffectAdapter.",
-                    source);
-            }
-
-            var image = adapterGameObject != null ? adapterGameObject.GetComponent<Image>() : null;
-            if (image == null)
-            {
-                report.AddError(
-                    $"Transition Surface Prefab '{source.name}' must include an Image on the same GameObject as UnityFadeCurtainEffectAdapter.",
-                    source);
-            }
         }
 
         private static FrameworkAuthoringValidationReport ValidateActivityLocalVisibilityAdapter(
@@ -1505,28 +1305,6 @@ namespace Immersive.Framework.Editor.Editor.Validation
             for (int i = 0; i < behaviours.Length; i++)
             {
                 if (behaviours[i] is IRouteContentLifecycleReceiver)
-                {
-                    count++;
-                }
-            }
-
-            return count;
-        }
-
-        private static int CountLoadingSurfaceAdapters(GameObject prefabRoot)
-        {
-            MonoBehaviour[] behaviours = prefabRoot != null
-                ? prefabRoot.GetComponentsInChildren<MonoBehaviour>(true)
-                : null;
-            if (behaviours == null || behaviours.Length == 0)
-            {
-                return 0;
-            }
-
-            int count = 0;
-            for (int i = 0; i < behaviours.Length; i++)
-            {
-                if (behaviours[i] is ILoadingSurfaceAdapter)
                 {
                     count++;
                 }

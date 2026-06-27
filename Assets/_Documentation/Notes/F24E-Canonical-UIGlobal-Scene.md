@@ -33,9 +33,9 @@ FrameworkRuntimeHost
 
 ## Surface resolution
 
-When `UIGlobal` provides adapters, it is preferred over legacy prefab fields.
-
-Legacy prefab fields remain temporary fallback only.
+`UIGlobal` is now the only runtime source for Transition and Loading adapters.
+Legacy prefab fields were removed from `GameApplicationAsset` and are no longer runtime paths.
+If any prefab template remains in the repository, it is manual-only and not part of boot.
 
 ## QA fixture
 
@@ -50,9 +50,7 @@ The QA Game Application now uses:
 ```text
 Global UI Scene Policy: Required
 UIGlobal Scene: QA_UIGlobal
-Transition Surface Policy: Required
-Loading Surface Policy: Required
-Transition/Loading prefabs: cleared
+Transition/Loading prefab fields: removed
 ```
 
 ## Expected visual cascade

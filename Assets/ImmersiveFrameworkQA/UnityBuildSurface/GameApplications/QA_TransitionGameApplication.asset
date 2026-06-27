@@ -17,8 +17,4 @@ MonoBehaviour:
   globalUiScenePolicy: 1
   globalUiScenePath: Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/QA_UIGlobal.unity
   globalUiSceneName: QA_UIGlobal
-  transitionSurfacePolicy: 1
-  transitionSurfacePrefab: {fileID: 0}
-  loadingSurfacePolicy: 2
-  loadingSurfacePrefab: {fileID: 0}
   validationMode: 1

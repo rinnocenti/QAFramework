@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Immersive.Framework.Authoring;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Diagnostics;
 using UnityEngine;
@@ -8,11 +7,11 @@ using UnityEngine;
 namespace Immersive.Framework.Loading
 {
     /// <summary>
-    /// API status: Internal. Loading surface runtime that instantiates an app/session-scoped Unity surface and
-    /// executes explicit show/update/hide requests against the collected adapters.
+    /// API status: Internal. Loading surface runtime that executes explicit show/update/hide requests against
+    /// adapters collected from the canonical UIGlobal scene.
     /// It does not own RouteLifecycle, SceneLifecycle or ActivityFlow.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F24D explicit Unity Loading surface runtime.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F24E canonical UIGlobal loading surface runtime.")]
     internal sealed class LoadingSurfaceRuntime
     {
         private readonly ILoadingSurfaceAdapter[] _adapters;
@@ -61,66 +60,20 @@ namespace Immersive.Framework.Loading
         public bool ProgressSupported => false;
 
         internal static LoadingSurfaceRuntime Create(
-            GameApplicationAsset application,
-            Transform parent,
-            FrameworkLogger logger)
-        {
-            return Create(
-                application,
-                parent,
-                logger,
-                Array.Empty<ILoadingSurfaceAdapter>(),
-                string.Empty);
-        }
-
-        internal static LoadingSurfaceRuntime Create(
-            GameApplicationAsset application,
-            Transform parent,
             FrameworkLogger logger,
             IReadOnlyList<ILoadingSurfaceAdapter> sceneAdapters,
             string sceneLabel)
         {
             logger ??= FrameworkLogger.Create<LoadingSurfaceRuntime>();
-
-            if (application == null)
-            {
-                const string message = "Loading surface is not configured because the Game Application is missing.";
-                logger.Warning(message);
-                return new LoadingSurfaceRuntime(
-                    LoadingSurfacePolicy.NoneConfigured,
-                    "Loading Surface",
-                    Array.Empty<ILoadingSurfaceAdapter>(),
-                    false,
-                    false,
-                    string.Empty,
-                    message);
-            }
-
-            var policy = application.LoadingSurfacePolicyValue;
-            var prefab = application.LoadingSurfacePrefab;
-            var hasSceneAdapters = sceneAdapters != null && sceneAdapters.Count > 0;
             var resolvedSceneLabel = string.IsNullOrWhiteSpace(sceneLabel) ? "UIGlobal Loading Surface" : sceneLabel.Trim();
+            var hasSceneAdapters = sceneAdapters != null && sceneAdapters.Count > 0;
 
-            if (policy == LoadingSurfacePolicy.NoneConfigured)
+            if (!hasSceneAdapters)
             {
-                if (hasSceneAdapters || prefab != null)
-                {
-                    var warningMessage = "Loading surface adapters are available, but Loading Surface Policy is NoneConfigured. The runtime will keep explicit NoOp Loading.";
-                    logger.Warning(warningMessage);
-                    return new LoadingSurfaceRuntime(
-                        policy,
-                        resolvedSceneLabel,
-                        Array.Empty<ILoadingSurfaceAdapter>(),
-                        false,
-                        true,
-                        string.Empty,
-                        warningMessage);
-                }
-
                 const string infoMessage = "Loading surface is not configured. Loading will remain explicit NoOp.";
                 logger.Info(infoMessage);
                 return new LoadingSurfaceRuntime(
-                    policy,
+                    LoadingSurfacePolicy.NoneConfigured,
                     "Loading Surface",
                     Array.Empty<ILoadingSurfaceAdapter>(),
                     false,
@@ -129,135 +82,15 @@ namespace Immersive.Framework.Loading
                     infoMessage);
             }
 
-            if (hasSceneAdapters)
-            {
-                if (prefab != null)
-                {
-                    logger.Warning("Loading Surface Prefab is assigned, but UIGlobal scene adapters are available. The prefab fallback is ignored for this boot.");
-                }
-
-                logger.Info($"Loading surface resolved from UIGlobal scene '{resolvedSceneLabel}' with adapterCount='{sceneAdapters.Count}'.");
-                return new LoadingSurfaceRuntime(
-                    policy,
-                    resolvedSceneLabel,
-                    sceneAdapters,
-                    false,
-                    false,
-                    string.Empty,
-                    string.Empty);
-            }
-
-            if (prefab == null)
-            {
-                var message = policy == LoadingSurfacePolicy.Required
-                    ? "Loading surface is required, but no UIGlobal loading adapter or Loading Surface Prefab is available."
-                    : "Loading surface is optional and not configured. Loading will remain explicit NoOp.";
-
-                if (policy == LoadingSurfacePolicy.Required)
-                {
-                    logger.Error(message);
-                    return new LoadingSurfaceRuntime(
-                        policy,
-                        "Loading Surface",
-                        Array.Empty<ILoadingSurfaceAdapter>(),
-                        true,
-                        false,
-                        message,
-                        string.Empty);
-                }
-
-                logger.Info(message);
-                return new LoadingSurfaceRuntime(
-                    policy,
-                    "Loading Surface",
-                    Array.Empty<ILoadingSurfaceAdapter>(),
-                    false,
-                    false,
-                    string.Empty,
-                    message);
-            }
-
-            GameObject surfaceInstance = null;
-            var destroySurfaceInstance = false;
-            try
-            {
-                surfaceInstance = UnityEngine.Object.Instantiate(prefab, parent, false);
-                surfaceInstance.name = $"{prefab.name} (Loading Surface)";
-
-                var adapters = CollectAdapters(surfaceInstance);
-                if (adapters.Count == 0)
-                {
-                    var message = $"Loading surface prefab '{prefab.name}' instantiated, but no Loading Surface adapters were found.";
-                    destroySurfaceInstance = true;
-                    if (policy == LoadingSurfacePolicy.Required)
-                    {
-                        logger.Error(message);
-                        return new LoadingSurfaceRuntime(
-                            policy,
-                            surfaceInstance.name,
-                            Array.Empty<ILoadingSurfaceAdapter>(),
-                            true,
-                            false,
-                            message,
-                            string.Empty);
-                    }
-
-                    logger.Warning(message);
-                    return new LoadingSurfaceRuntime(
-                        policy,
-                        surfaceInstance.name,
-                        Array.Empty<ILoadingSurfaceAdapter>(),
-                        false,
-                        true,
-                        string.Empty,
-                        message);
-                }
-
-                destroySurfaceInstance = false;
-                logger.Info($"Loading surface prefab '{prefab.name}' instantiated with adapterCount='{adapters.Count}'.");
-                return new LoadingSurfaceRuntime(
-                    policy,
-                    surfaceInstance.name,
-                    adapters,
-                    false,
-                    false,
-                    string.Empty,
-                    string.Empty);
-            }
-            catch (Exception exception)
-            {
-                var message = $"Loading surface prefab '{prefab.name}' could not be instantiated. {exception.Message}";
-                destroySurfaceInstance = true;
-                if (policy == LoadingSurfacePolicy.Required)
-                {
-                    logger.Error(message);
-                    return new LoadingSurfaceRuntime(
-                        policy,
-                        prefab.name,
-                        Array.Empty<ILoadingSurfaceAdapter>(),
-                        true,
-                        false,
-                        message,
-                        string.Empty);
-                }
-
-                logger.Warning(message);
-                return new LoadingSurfaceRuntime(
-                    policy,
-                    prefab.name,
-                    Array.Empty<ILoadingSurfaceAdapter>(),
-                    false,
-                    true,
-                    string.Empty,
-                    message);
-            }
-            finally
-            {
-                if (destroySurfaceInstance && surfaceInstance != null && !surfaceInstance.Equals(null))
-                {
-                    UnityEngine.Object.Destroy(surfaceInstance);
-                }
-            }
+            logger.Info($"Loading surface resolved from UIGlobal scene '{resolvedSceneLabel}' with adapterCount='{sceneAdapters.Count}'.");
+            return new LoadingSurfaceRuntime(
+                LoadingSurfacePolicy.NoneConfigured,
+                resolvedSceneLabel,
+                sceneAdapters,
+                false,
+                false,
+                string.Empty,
+                string.Empty);
         }
 
         public LoadingSurfaceResult Show(LoadingSurfaceRequest request)
