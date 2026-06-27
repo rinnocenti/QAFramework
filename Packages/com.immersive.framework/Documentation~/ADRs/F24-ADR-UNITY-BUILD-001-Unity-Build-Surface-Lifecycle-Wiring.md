@@ -1,157 +1,72 @@
-# F24-ADR-UNITY-BUILD-001 - Unity Build Surface Lifecycle Wiring
+# F24-ADR-UNITY-BUILD-001 - Unity Build Surface / Lifecycle Wiring
 
 Status: Accepted / F24A Planned  
 Phase: F24 - Unity Build Surface / Lifecycle Wiring  
 Type: Framework Unity Build Surface / Lifecycle Wiring Boundary  
 Last updated: 2026-06-26
 
----
+## Context
 
-## 1. Context
+F23 is closed as Pause intent/requirement-only. The framework now needs a phase that proves existing contracts through minimal real Unity wiring before optional adapter modules begin.
 
-F21 closed Save / Snapshot / Preferences / Progression Save Foundation. F22 closed Loading Operation / Progress / Readiness Boundary. F23 owns Pause Content / Overlay / Input Boundary.
-
-The roadmap needs an intermediate framework phase before Gameplay Adapter Foundation. The blind spot is:
+The gap is:
 
 ```text
 contract exists
-synthetic smoke passes
-adapter exists or is planned
-but no real GameObject / minimal prefab / Unity wiring proves it works in play
+synthetic smoke can pass
+but the real Unity lifecycle path is not wired yet
 ```
 
-This is not gameplay adapter work. It is a framework-owned Unity build surface and lifecycle wiring phase.
+That gap belongs to F24, not to F25 adapter modules.
 
----
+## Decision
 
-## 2. Decision
+F24 is Unity Build Surface / Lifecycle Wiring.
 
-F24 is:
+F24 comes after F23 and before F25 Adapter Module Foundation.
+
+F24 owns minimal Unity surfaces that prove framework contracts through real lifecycle wiring. It does not build product gameplay or broad subsystem adapters.
+
+## Critical Ordering
+
+F24B must be the first technical cut:
 
 ```text
-Unity Build Surface / Lifecycle Wiring
+F24B - Transition <-> GameFlow Runtime Integration
 ```
 
-F24 comes after F23 and before F25 Gameplay Adapter Foundation.
+Reason: `Transition` exists as framework language, but `RouteRequestTrigger` / `GameFlow` must pass through a real `TransitionPlan` before curtain, loading screen or pause overlay visuals become meaningful.
 
-F24 exists to prove framework contracts through minimal real Unity surfaces where applicable:
+## F24 Plan
 
-```text
-real object wiring
-minimal prefab or scene surface
-explicit lifecycle wiring
-real smoke with object/prefab/surface when applicable
-limited framework scope
-```
-
-F24 must follow the F19D pattern:
-
-```text
-minimal object
-explicit wiring
-real smoke
-limited scope
-no product gameplay
-```
-
----
-
-## 3. Critical Ordering
-
-F24B must be the first technical cut of F24:
-
-```text
-F24B - Transition ↔ GameFlow Runtime Integration
-```
-
-Reason:
-
-```text
-Transition exists as language,
-but RouteRequestTrigger / GameFlow still need to pass through a real TransitionPlan.
-```
-
-Without F24B, Transition Curtain and Loading Screen can become visual surfaces that are mounted but not integrated with the real lifecycle path.
-
----
-
-## 4. F24 Plan
-
-| Cut | Status | Objective |
+| Cut | Name | Objective |
 |---|---|---|
-| F24A | `PLANNED / ADR PLAN` | Unity Build / Lifecycle Wiring ADR Plan. |
-| F24B | `PLANNED` | Transition ↔ GameFlow Runtime Integration. |
-| F24C | `PLANNED` | Transition Curtain Unity Build. |
-| F24D | `PLANNED` | Loading Screen Unity Adapter Build. |
-| F24E | `PLANNED` | Pause Overlay Unity Build. |
-| F24F | `PLANNED` | Save Moment Authoring Boundary. |
-| F24G | `PLANNED` | Preferences Authoring Boundary. |
-| F24H | `PLANNED` | Closure + Usage Guide. |
+| F24A | Unity Build / Lifecycle Wiring ADR Plan | Lock the F24 boundary and ordering. |
+| F24B | Transition <-> GameFlow Runtime Integration | Wire the real route/gameflow transition path. |
+| F24C | Transition Curtain Unity Build | Build the minimal curtain surface after lifecycle wiring is real. |
+| F24D | Loading Screen Unity Adapter Build | Build the minimal loading screen adapter surface. |
+| F24E | Pause Overlay Unity Build | Build the minimal pause overlay Unity surface from F23 intent contracts. |
+| F24F | Save Moment Authoring Boundary | Define save moment authoring without gameplay payload ownership. |
+| F24G | Preferences Authoring Boundary | Define preferences authoring without progression slot ownership. |
+| F24H | Closure + Usage Guide | Close F24 and document usage. |
 
----
+## Exclusions
 
-## 5. Recommended Smokes
+F24 does not create:
 
-F24 should register real-object smokes where applicable:
+- gameplay adapters
+- camera/audio/input adapter modules
+- actor/player/NPC modules
+- inventory/combat/projectile/damage modules
+- full UI system
+- product gameplay
+- parallel lifecycle pipeline
+- replacement for Route, Activity, Gate, Transition, Loading, Pause or Save ownership
 
-```text
-F24B - real Route switch generates TransitionSnapshot and executes the full sequence.
-F24C - real Route switch executes visual fade curtain through UnityFadeCurtainEffectAdapter.
-F24D - real Route switch shows/updates/hides a concrete loading screen adapter.
-F24E - RequestPause opens/closes a real overlay without gameplay adapter.
-F24F - manual/checkpoint save authoring triggers ProgressionSaveRuntime without gameplay payload.
-F24G - Preferences authoring writes/reads a key through authoring surface without silent fallback.
-```
+F24A specifically does not implement runtime code, asmdef changes, GameObjects, prefabs, scene objects, ScriptableObjects, UI or smoke execution.
 
----
+## Consequences
 
-## 6. Exclusions
+F24 prevents framework contracts from jumping directly from synthetic documentation/runtime primitives into gameplay adapter work.
 
-F24 does not create gameplay adapters.
-
-F24 must not create:
-
-```text
-Player adapter
-Actor adapter
-NPC adapter
-Door adapter
-Inventory adapter
-Combat adapter
-Projectile/Damage/Attributes adapter
-gameplay reset adapter
-full game menu
-full UI system
-full save system
-product gameplay
-```
-
-F24A does not implement:
-
-```text
-runtime code
-asmdef changes
-GameObject
-prefab
-scene object
-ScriptableObject
-asset
-UI
-Transition ↔ GameFlow integration
-loading screen adapter concrete build
-pause overlay concrete build
-save authoring concrete build
-preferences authoring concrete build
-smoke execution
-```
-
----
-
-## 7. Consequences
-
-F24 prevents synthetic-only framework contracts from being handed directly to gameplay adapter work.
-
-F25 can start only after the framework has proven its Unity build surfaces and lifecycle wiring.
-
-F24 must remain a framework integration phase. It must not become "build the game".
-
+F25 can start only after the framework has proven the real Unity lifecycle/build surfaces needed by adapter modules.

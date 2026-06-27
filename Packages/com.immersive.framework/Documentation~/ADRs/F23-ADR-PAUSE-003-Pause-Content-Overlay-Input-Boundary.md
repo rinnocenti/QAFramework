@@ -1,202 +1,61 @@
-# F23-ADR-PAUSE-003 - Pause Boundary Intent and Adapter Deferral
+# F23-ADR-PAUSE-003 - Pause Content / Overlay / Input Intent Boundary
 
-Status: Closed / F23F QA PASS + Usage  
-Phase: F23 - Pause Content / Overlay / Input Boundary  
+Status: Closed  
+Phase: F23 - Pause Content / Overlay / Input Intent Boundary  
 Type: Framework Intent / Requirement Boundary  
 Last updated: 2026-06-26
 
----
+## Context
 
-## 1. Context
+F20 closed logical Pause state and Gate interaction. F21 closed Save / Snapshot / Preferences / Progression Save Foundation. F22 closed Loading Operation / Progress / Readiness Boundary.
 
-F20 closed Pause State/Gate as the logical Pause core. That core owns Pause state, request/result, snapshot/facts and the passive Gate blocker relationship. It intentionally does not own visual overlay, menu content, input binding, Canvas/prefab setup or `Time.timeScale`.
+F23 exists to define Pause intent language before any Unity build surface is created. It must not become overlay implementation, input wiring or gameplay adapter work.
 
-F21 closed Save / Snapshot / Preferences / Progression Save Foundation. F22 closed Loading Operation / Progress / Readiness Boundary, including readiness observations and loading result/issues.
+## Decision
 
-A pre-F24 review identified that F23 was drifting toward adapter/build-surface language. That would duplicate the job of F24 — Unity Build Surface / Lifecycle Wiring. F23 is therefore reclassified as an intent/requirement boundary only.
+F23 is intent/requirement-only.
 
----
+Canonical runtime contracts:
 
-## 2. Decision
+- `PauseContentRequirement`
+- `PausePresentationIntent`
+- `PauseInputSignal`
+- `PauseInputIntent`
 
-F23 may describe what Pause needs, but it must not materialize it.
+F23 may describe what Pause needs from later surfaces. It does not perform the work.
 
-F23 owns framework-only intent records:
+## F23 Plan
 
-```text
-PauseContentRequirement
-PausePresentationIntent
-PauseInputIntent
-```
+| Cut | Name | Result |
+|---|---|---|
+| F23A | Pause Content / Overlay / Input ADR Plan | Boundary accepted. |
+| F23B | Pause Content Requirement Contracts | Content requirement language accepted. |
+| F23C | Pause Presentation Intent Contracts | Presentation intent language accepted. |
+| F23D | Pause Input Intent Contracts | Input signal and intent language accepted. |
+| F23E | Pause Boundary Intent Smoke + Adapter Deferral | Intent-only boundary verified conceptually. |
+| F23F | Closure + Usage Guide | F23 closed. |
 
-F23 does not own:
+## Explicit Deferrals
 
-```text
-Content Anchor binding execution
-RuntimeContentAnchorBinding
-Canvas or prefab setup
-overlay adapter execution
-Input System action maps
-input polling or dispatch
-Time.timeScale policy
-gameplay adapters
-```
+F23 does not promise or create:
 
-Those belong to F24 when they are Unity build-surface work, or to F25+ when they are gameplay/product behavior.
+- overlay adapter execution
+- Content Anchor binding execution
+- `RuntimeContentAnchorBinding`
+- Input System wiring
+- Canvas
+- prefab
+- scene object
+- ScriptableObject
+- `Time.timeScale` policy
+- gameplay adapter
+- asmdef change
 
----
+These belong to F24 when they are Unity build-surface/lifecycle work, or to F25+ when they are adapter module/product behavior.
 
-## 3. Corrected F23 plan
+## Consequences
 
-```text
-F23A — Pause Content / Overlay / Input ADR Plan
-F23B — Pause Content Requirement Contracts
-F23C — Pause Presentation Intent Contracts
-F23D — Pause Input Intent Contracts
-F23E — Pause Boundary Intent Smoke + Adapter Deferral
-F23F — Closure + Usage Guide
-```
+F23 keeps Pause core language stable while preserving the next boundaries:
 
-The earlier adapter/consumer naming is superseded:
-
-```text
-Pause Content Anchor Consumer -> Pause Content Requirement
-Pause Overlay Adapter -> Pause Presentation Intent
-Pause Input Resolver -> Pause Input Intent
-```
-
----
-
-## 4. F23B/F23C/F23D corrected result
-
-F23 now uses these framework-only contracts under `Runtime/Pause`:
-
-```text
-PauseContentRequirementId
-PauseContentRequirementPurpose
-PauseContentRequirement
-PausePresentationIntent
-PauseInputActionId
-PauseInputCommandKind
-PauseInputSourceKind
-PauseInputSignal
-PauseInputIntent
-```
-
-The conceptual flow is:
-
-```text
-PauseSnapshot
-  -> PauseContentRequirement
-  -> PausePresentationIntent
-
-PauseInputSignal
-  -> PauseInputIntent
-```
-
-There is no interface/port that performs overlay show/hide, input resolution or Content Anchor binding in F23.
-
----
-
-## 5. F23E result — Pause Boundary Intent Smoke
-
-F23E adds a synthetic smoke:
-
-```text
-Run Pause Boundary Intent Smoke
-```
-
-Expected steps:
-
-```text
-contracts
-content-requirement-intent
-presentation-intent
-input-intent
-canonical-boundary
-```
-
-The smoke must prove that F23 remains intent-only:
-
-```text
-anchorBinding = none
-overlayAdapter = none
-inputAdapter = none
-inputSystem = none
-ui = none
-timeScale = none
-gameplayAdapters = none
-unityBuild = deferredToF24
-```
-
----
-
-## 6. Deferral to F24
-
-F24 remains the proper phase for concrete Unity build-surface wiring:
-
-```text
-F24B — Transition ↔ GameFlow Runtime Integration
-F24C — Transition Curtain Unity Build
-F24D — Loading Screen Unity Adapter Build
-F24E — Pause Overlay Unity Build
-F24F — Save Moment Authoring Boundary
-F24G — Preferences Authoring Boundary
-```
-
-Pause overlay materialization starts at F24E, after F23 closes.
-
----
-
-## 7. Non-goals
-
-F23 does not create:
-
-```text
-UI
-Canvas
-prefab
-ScriptableObject
-Input System asset
-action map
-device binding
-input polling
-overlay adapter
-Content Anchor binding execution
-RuntimeContentAnchorBinding
-TransitionEffect execution
-Time.timeScale policy
-Route/Activity lifecycle ownership
-gameplay adapter
-asmdef change
-```
-
----
-
-## 8. F23F closure
-
-F23 closes with the usage guide:
-
-```text
-Documentation~/Guides/F23-Pause-Content-Overlay-Input-Usage.md
-```
-
-The validated smoke is:
-
-```text
-Run Pause Boundary Intent Smoke
-```
-
-F23 is now complete as an intent/requirement-only boundary. F24 must not reinterpret F23 as permission to build a full menu. It should implement only the minimal Unity surface needed to prove the framework contracts.
-
----
-
-## 9. Consequences
-
-F23 becomes safer and smaller. It records the language Pause will use when a later Unity build-surface asks for overlay/input/content, but it does not create that surface.
-
-The next technical cut is:
-
-```text
-F24B — Transition ↔ GameFlow Runtime Integration
-```
+- F24 builds minimal Unity surfaces and lifecycle wiring.
+- F25 defines optional adapter modules after F24 proves the real framework path.

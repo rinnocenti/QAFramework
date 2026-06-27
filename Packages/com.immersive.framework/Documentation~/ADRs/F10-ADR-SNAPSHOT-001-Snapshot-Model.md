@@ -1,6 +1,6 @@
 # F10 ADR SNAPSHOT 001 - Snapshot Model
 
-Status: Accepted / Conceptual History / Operationally Superseded by F21
+Status: Accepted / Conceptual History / Extended by F21
 
 ## Context
 
@@ -16,7 +16,7 @@ Snapshot has envelope, owner, schema, version and payload.
 
 Reset Baseline is not Save Snapshot.
 
-## F21 Supersession
+## F21 Extension
 
 F21 is the canonical operational trail for Save Snapshot work.
 

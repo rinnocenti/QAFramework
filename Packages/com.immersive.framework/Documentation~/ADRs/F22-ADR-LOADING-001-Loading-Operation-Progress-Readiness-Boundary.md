@@ -237,7 +237,7 @@ F19 remains the owner of Transition Effects and fade/curtain adapter boundaries.
 
 SceneLifecycle remains the owner of scene lifecycle execution. Loading observes lifecycle/transition progress instead of replacing that owner.
 
-Pause Content / Overlay / Input stays in F23. F24 is Unity Build Surface / Lifecycle Wiring. Gameplay Adapter Foundation moves to F25.
+Pause Content / Overlay / Input stays in F23. F24 is Unity Build Surface / Lifecycle Wiring. Adapter Module Foundation starts at F25.
 
 ## 9. F22E result
 

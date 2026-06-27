@@ -1,8 +1,8 @@
 # F17-ADR-CONSUMERS-001 - Advanced Consumers Boundary
 
-Status: Deferred / Superseded phase number  
+Status: Deferred / Future adapter module detail  
 Original phase: F17 - Advanced Consumers  
-Current phase: F22+ / Future  
+Current phase: F25+ / Adapter Modules  
 Type: Consumers / Boundary / Integration  
 Last updated: 2026-06-26
 
@@ -10,24 +10,22 @@ Last updated: 2026-06-26
 
 ## 1. Context
 
-This ADR preserved the boundary for future advanced consumers such as Camera, Audio, Actor and Pooling.
+This ADR preserves the boundary for future advanced consumers such as Camera, Audio, Actor and Pooling.
 
-The original phase number is superseded. F17 is now `Gate Foundation`, with F17A as documentation/ADR-only plan realignment. Advanced Consumers must not be treated as the current next cut.
+The original phase number is historical. Advanced Consumers must not be treated as framework core or as the current next cut. They belong under F25+ Adapter Module Foundation.
 
 ---
 
 ## 2. Current Decision
 
-Advanced Consumers are deferred to F22+.
+Advanced Consumers are deferred to F25+.
 
 They can be reconsidered only after:
 
 ```text
-F17 - Gate Foundation
-F18 - Transition Orchestration Foundation
-F19 - Transition Effects / Loading and Fade Adapters
-F20 - Pause State and Pause Gate
-F21 - Pause Content / Overlay / Input Boundary
+F23 - Pause Content / Overlay / Input Intent Boundary
+F24 - Unity Build Surface / Lifecycle Wiring
+F25 - Adapter Module Foundation
 ```
 
 They also depend on a mature enough model for gameplay objects/actors where relevant.
