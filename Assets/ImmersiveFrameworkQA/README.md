@@ -5,6 +5,8 @@ Esta pasta contem assets de QA manual para os smokes do Immersive Framework.
 Esses assets nao sao assets de producao.
 Eles existem apenas para gerar logs padronizados durante validacao manual e desenvolvimento.
 
+A documentacao principal do projeto fica em `Assets/_Documentation/README.md`; esta pasta continua sendo somente superficie de QA.
+
 O `Active Game Application` normal do projeto deve permanecer apontado para o `Game Application` do projeto, nao para um asset QA.
 Se voce criar uma cena QA dedicada, os `ActivityContentBinding` dessa cena devem apontar para activities QA, nao para activities de gameplay. A `StartupScene` do projeto permanece como cena normal de produto/dev.
 

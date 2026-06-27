@@ -12,7 +12,7 @@ EditorBuildSettings:
     path: Assets/ImmersiveFrameworkQA/Scenes/StartupScene.unity
     guid: 1a736d916781e6a48b19fb84d972e950
   - enabled: 1
-    path: Assets/ImmersiveFrameworkQA/Scenes/SecoundScene.unity
+    path: Assets/ImmersiveFrameworkQA/Scenes/SecondScene.unity
     guid: 9e3f6145372bbd043a88d9f68791f17d
   - enabled: 1
     path: Assets/ImmersiveFrameworkQA/Scenes/AdditionalRouteScene.unity
