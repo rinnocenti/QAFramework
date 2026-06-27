@@ -94,7 +94,7 @@ Escopo:
 
 ### F24A6 — Transition QA Routes and Scenes
 
-Status: Current
+Status: Closed / Transition QA Fixtures Pass
 
 Escopo:
 
@@ -108,7 +108,7 @@ Escopo:
 
 ### F24B — Transition Contract Wiring
 
-Status: Planned
+Status: Current
 
 Escopo:
 

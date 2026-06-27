@@ -18,7 +18,8 @@ namespace Immersive.Framework.GameFlow
             ActivityAsset targetActivity,
             string source,
             string reason,
-            ActivityFlowStartResult activityFlowResult)
+            ActivityFlowStartResult activityFlowResult,
+            FrameworkTransitionDiagnostics transitionDiagnostics = default)
         {
             Kind = kind;
             Message = message ?? string.Empty;
@@ -26,6 +27,7 @@ namespace Immersive.Framework.GameFlow
             Source = source ?? string.Empty;
             Reason = reason ?? string.Empty;
             ActivityFlowResult = activityFlowResult;
+            TransitionDiagnostics = transitionDiagnostics;
         }
 
         public FrameworkActivityRequestKind Kind { get; }
@@ -39,6 +41,8 @@ namespace Immersive.Framework.GameFlow
         public string Reason { get; }
 
         internal ActivityFlowStartResult ActivityFlowResult { get; }
+
+        internal FrameworkTransitionDiagnostics TransitionDiagnostics { get; }
 
         public bool Succeeded => Kind == FrameworkActivityRequestKind.Succeeded;
 
@@ -134,7 +138,8 @@ namespace Immersive.Framework.GameFlow
             ActivityAsset targetActivity,
             string source,
             string reason,
-            ActivityFlowStartResult activityFlowResult)
+            ActivityFlowStartResult activityFlowResult,
+            FrameworkTransitionDiagnostics transitionDiagnostics = default)
         {
             return new FrameworkActivityRequestResult(
                 FrameworkActivityRequestKind.Succeeded,
@@ -142,7 +147,8 @@ namespace Immersive.Framework.GameFlow
                 targetActivity,
                 NormalizeSource(source),
                 NormalizeReason(reason),
-                activityFlowResult);
+                activityFlowResult,
+                transitionDiagnostics);
         }
 
         internal static string NormalizeSource(string source)

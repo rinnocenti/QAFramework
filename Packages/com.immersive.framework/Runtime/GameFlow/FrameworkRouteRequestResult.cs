@@ -18,7 +18,8 @@ namespace Immersive.Framework.GameFlow
             RouteAsset targetRoute,
             string source,
             string reason,
-            RouteLifecycleStartResult routeLifecycleResult)
+            RouteLifecycleStartResult routeLifecycleResult,
+            FrameworkTransitionDiagnostics transitionDiagnostics = default)
         {
             Kind = kind;
             Message = message ?? string.Empty;
@@ -26,6 +27,7 @@ namespace Immersive.Framework.GameFlow
             Source = source ?? string.Empty;
             Reason = reason ?? string.Empty;
             RouteLifecycleResult = routeLifecycleResult;
+            TransitionDiagnostics = transitionDiagnostics;
         }
 
         public FrameworkRouteRequestKind Kind { get; }
@@ -39,6 +41,8 @@ namespace Immersive.Framework.GameFlow
         public string Reason { get; }
 
         internal RouteLifecycleStartResult RouteLifecycleResult { get; }
+
+        internal FrameworkTransitionDiagnostics TransitionDiagnostics { get; }
 
         public bool Succeeded => Kind == FrameworkRouteRequestKind.Succeeded;
 
@@ -121,7 +125,8 @@ namespace Immersive.Framework.GameFlow
             RouteAsset targetRoute,
             string source,
             string reason,
-            RouteLifecycleStartResult routeLifecycleResult)
+            RouteLifecycleStartResult routeLifecycleResult,
+            FrameworkTransitionDiagnostics transitionDiagnostics = default)
         {
             return new FrameworkRouteRequestResult(
                 FrameworkRouteRequestKind.Succeeded,
@@ -129,7 +134,8 @@ namespace Immersive.Framework.GameFlow
                 targetRoute,
                 NormalizeSource(source),
                 NormalizeReason(reason),
-                routeLifecycleResult);
+                routeLifecycleResult,
+                transitionDiagnostics);
         }
 
         internal static string NormalizeSource(string source)

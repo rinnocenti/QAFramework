@@ -8,6 +8,7 @@ using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.RuntimeContent;
 using Immersive.Framework.CycleReset;
 using Immersive.Framework.Gate;
+using Immersive.Framework.Transition;
 
 namespace Immersive.Framework.GameFlow
 {
@@ -19,6 +20,8 @@ namespace Immersive.Framework.GameFlow
     internal sealed class GameFlowRuntime
     {
         private readonly RouteLifecycleRuntime _routeLifecycleRuntime;
+        private readonly ITransitionOrchestrator _transitionOrchestrator;
+        private int _transitionRequestSequence;
         private bool _routeRequestInFlight;
         private bool _activityRequestInFlight;
         private bool _cycleResetRequestInFlight;
@@ -30,7 +33,19 @@ namespace Immersive.Framework.GameFlow
         internal GameFlowRuntime(
             RuntimeContentRuntime runtimeContentRuntime,
             RuntimeContentAnchorBinding contentAnchorBindingRuntime)
+            : this(
+                runtimeContentRuntime,
+                contentAnchorBindingRuntime,
+                NoOpTransitionOrchestrator.Instance)
         {
+        }
+
+        internal GameFlowRuntime(
+            RuntimeContentRuntime runtimeContentRuntime,
+            RuntimeContentAnchorBinding contentAnchorBindingRuntime,
+            ITransitionOrchestrator transitionOrchestrator)
+        {
+            _transitionOrchestrator = transitionOrchestrator ?? throw new ArgumentNullException(nameof(transitionOrchestrator));
             _routeLifecycleRuntime = new RouteLifecycleRuntime(
                 runtimeContentRuntime ?? throw new ArgumentNullException(nameof(runtimeContentRuntime)),
                 contentAnchorBindingRuntime ?? throw new ArgumentNullException(nameof(contentAnchorBindingRuntime)));
@@ -117,7 +132,36 @@ namespace Immersive.Framework.GameFlow
             _routeRequestInFlight = true;
             try
             {
+                var previousRoute = _routeLifecycleRuntime.CurrentRoute;
+                var previousActivity = _routeLifecycleRuntime.CurrentActivity;
+                var operationId = CreateTransitionOperationId(TransitionScope.Route);
+                var transitionBefore = ExecuteTransition(
+                    TransitionRequest.Before(
+                        operationId,
+                        TransitionScope.Route,
+                        resolvedSource,
+                        resolvedReason,
+                        previousRoute,
+                        targetRoute,
+                        previousActivity,
+                        previousActivity));
+
                 var routeLifecycleResult = await StartRouteCoreAsync(targetRoute, resolvedSource, resolvedReason);
+                var transitionAfter = ExecuteTransition(
+                    TransitionRequest.After(
+                        operationId,
+                        TransitionScope.Route,
+                        resolvedSource,
+                        resolvedReason,
+                        previousRoute,
+                        targetRoute,
+                        previousActivity,
+                        routeLifecycleResult.ActivityFlowResult.Activity));
+                var transitionDiagnostics = FrameworkTransitionDiagnostics.Completed(
+                    TransitionScope.Route,
+                    transitionBefore,
+                    transitionAfter);
+
                 if (!routeLifecycleResult.Started)
                 {
                     return FrameworkRouteRequestResult.FailedInvalidConfig(
@@ -131,7 +175,8 @@ namespace Immersive.Framework.GameFlow
                     targetRoute,
                     resolvedSource,
                     resolvedReason,
-                    routeLifecycleResult);
+                    routeLifecycleResult,
+                    transitionDiagnostics);
             }
             finally
             {
@@ -183,7 +228,36 @@ namespace Immersive.Framework.GameFlow
             _activityRequestInFlight = true;
             try
             {
+                var currentRoute = _routeLifecycleRuntime.CurrentRoute;
+                var previousActivity = _routeLifecycleRuntime.CurrentActivity;
+                var operationId = CreateTransitionOperationId(TransitionScope.Activity);
+                var transitionBefore = ExecuteTransition(
+                    TransitionRequest.Before(
+                        operationId,
+                        TransitionScope.Activity,
+                        resolvedSource,
+                        resolvedReason,
+                        currentRoute,
+                        currentRoute,
+                        previousActivity,
+                        targetActivity));
+
                 var activityFlowResult = await _routeLifecycleRuntime.StartActivityAsync(targetActivity, resolvedSource, resolvedReason);
+                var transitionAfter = ExecuteTransition(
+                    TransitionRequest.After(
+                        operationId,
+                        TransitionScope.Activity,
+                        resolvedSource,
+                        resolvedReason,
+                        currentRoute,
+                        currentRoute,
+                        previousActivity,
+                        activityFlowResult.Activity));
+                var transitionDiagnostics = FrameworkTransitionDiagnostics.Completed(
+                    TransitionScope.Activity,
+                    transitionBefore,
+                    transitionAfter);
+
                 if (!activityFlowResult.Completed)
                 {
                     return FrameworkActivityRequestResult.FailedInvalidConfig(
@@ -197,7 +271,8 @@ namespace Immersive.Framework.GameFlow
                     targetActivity,
                     resolvedSource,
                     resolvedReason,
-                    activityFlowResult);
+                    activityFlowResult,
+                    transitionDiagnostics);
             }
             finally
             {
@@ -237,7 +312,36 @@ namespace Immersive.Framework.GameFlow
             _activityRequestInFlight = true;
             try
             {
+                var currentRoute = _routeLifecycleRuntime.CurrentRoute;
+                var previousActivity = _routeLifecycleRuntime.CurrentActivity;
+                var operationId = CreateTransitionOperationId(TransitionScope.ActivityClear);
+                var transitionBefore = ExecuteTransition(
+                    TransitionRequest.Before(
+                        operationId,
+                        TransitionScope.ActivityClear,
+                        resolvedSource,
+                        resolvedReason,
+                        currentRoute,
+                        currentRoute,
+                        previousActivity,
+                        null));
+
                 var activityFlowResult = await _routeLifecycleRuntime.ClearActivityAsync(resolvedSource, resolvedReason);
+                var transitionAfter = ExecuteTransition(
+                    TransitionRequest.After(
+                        operationId,
+                        TransitionScope.ActivityClear,
+                        resolvedSource,
+                        resolvedReason,
+                        currentRoute,
+                        currentRoute,
+                        previousActivity,
+                        activityFlowResult.Activity));
+                var transitionDiagnostics = FrameworkTransitionDiagnostics.Completed(
+                    TransitionScope.ActivityClear,
+                    transitionBefore,
+                    transitionAfter);
+
                 if (!activityFlowResult.Completed)
                 {
                     return FrameworkActivityRequestResult.FailedInvalidConfig(
@@ -251,7 +355,8 @@ namespace Immersive.Framework.GameFlow
                     null,
                     resolvedSource,
                     resolvedReason,
-                    activityFlowResult);
+                    activityFlowResult,
+                    transitionDiagnostics);
             }
             finally
             {
@@ -361,6 +466,17 @@ namespace Immersive.Framework.GameFlow
         private Task<RouteLifecycleStartResult> StartRouteCoreAsync(RouteAsset route, string source, string reason)
         {
             return _routeLifecycleRuntime.StartRouteAsync(route, source, reason);
+        }
+
+        private TransitionResult ExecuteTransition(TransitionRequest request)
+        {
+            return _transitionOrchestrator.Execute(request);
+        }
+
+        private TransitionOperationId CreateTransitionOperationId(TransitionScope scope)
+        {
+            _transitionRequestSequence++;
+            return TransitionOperationId.From($"framework.{scope.ToString().ToLowerInvariant()}.{_transitionRequestSequence}");
         }
     }
 }

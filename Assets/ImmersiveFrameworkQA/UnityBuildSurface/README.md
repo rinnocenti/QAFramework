@@ -1,72 +1,67 @@
-# Unity Build Surface QA Workspace
+# Unity Build Surface QA
 
-This workspace isolates QA assets for the Unity-facing phase of the Immersive Framework.
+This workspace contains isolated QA fixtures for the Unity-facing phase of Immersive Framework.
 
-It is not product content.
+It is separate from the baseline framework QA scenes. Use it for Transition, Loading, Pause, Save Moment and Preferences authoring tests.
 
-## Purpose
+## Folders
 
-Use this area to test Unity Build Surfaces without polluting the baseline Framework QA scenes.
+```text
+Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes
+Assets/ImmersiveFrameworkQA/UnityBuildSurface/Routes
+Assets/ImmersiveFrameworkQA/UnityBuildSurface/Activities
+Assets/ImmersiveFrameworkQA/UnityBuildSurface/GameApplications
+Assets/ImmersiveFrameworkQA/UnityBuildSurface/ScriptableObjects
+Assets/ImmersiveFrameworkQA/UnityBuildSurface/Prefabs
+Assets/ImmersiveFrameworkQA/UnityBuildSurface/Materials
+Assets/ImmersiveFrameworkQA/UnityBuildSurface/Sprites
+```
 
-Examples:
+## Editor tools
 
-- Transition surfaces
-- Loading surfaces
-- Pause surfaces
-- Save moment authoring
-- Preferences authoring
+Create the empty QA scene:
 
-## Current QA workspace
+```text
+Immersive Framework > QA > Unity Build Surface > Create QA Scene
+```
 
-### F24A3
+Create transition-specific routes and scenes:
 
-Created the workspace folders:
+```text
+Immersive Framework > QA > Unity Build Surface > Create Transition QA Routes and Scenes
+```
 
-- `Scenes/`
-- `ScriptableObjects/`
-- `Prefabs/`
-- `Materials/`
-- `Sprites/`
+Create or refresh the Transition QA Game Application:
 
-### F24A4
+```text
+Immersive Framework > QA > Unity Build Surface > Create Transition QA Game Application
+```
 
-Added the editor command:
+Set the Transition QA Game Application as the active boot application:
 
-`Immersive Framework > QA > Unity Build Surface > Create QA Scene`
+```text
+Immersive Framework > QA > Unity Build Surface > Set Transition QA Game Application Active
+```
 
-This creates/selects:
+Use the set-active command only when validating Transition QA fixtures. Restore the canonical QA application through Project Settings when returning to baseline framework smokes.
 
-`Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/UnityBuildSurfaceQA.unity`
+## Current fixtures
 
-### F24A6
-
-Added the editor command:
-
-`Immersive Framework > QA > Unity Build Surface > Create Transition QA Routes and Scenes`
-
-This creates/repairs:
-
-- `Scenes/TransitionRouteA.unity`
-- `Scenes/TransitionRouteB.unity`
-- `Routes/QA_TransitionRouteA.asset`
-- `Routes/QA_TransitionRouteB.asset`
-- `Activities/QA_TransitionActivityA.asset`
-- `Activities/QA_TransitionActivityB.asset`
-
-The generated transition scenes are also added/enabled in Build Settings by the editor tool.
+```text
+Scenes/UnityBuildSurfaceQA.unity
+Scenes/TransitionRouteA.unity
+Scenes/TransitionRouteB.unity
+Routes/QA_TransitionRouteA.asset
+Routes/QA_TransitionRouteB.asset
+Activities/QA_TransitionActivityA.asset
+Activities/QA_TransitionActivityB.asset
+GameApplications/QA_TransitionGameApplication.asset
+```
 
 ## Rules
 
-- Keep this workspace isolated from `Assets/ImmersiveFrameworkQA/Scenes` baseline smokes.
-- Do not place product-specific content here.
-- Do not place reusable framework runtime code here.
-- Use this area for QA assets, scenes and temporary authoring fixtures only.
-- Transition/Loading/Pause visuals can be tested here before becoming framework-level surfaces.
-
-## Manual validation
-
-1. Open Unity and wait for import/compile.
-2. Run `Immersive Framework > QA > Unity Build Surface > Create Transition QA Routes and Scenes`.
-3. Confirm the scenes, routes and activities were created under this workspace.
-4. Confirm `TransitionRouteA.unity` and `TransitionRouteB.unity` are in Build Settings.
-5. Run the command again and confirm it is idempotent.
+- Do not use this workspace for product content.
+- Do not put gameplay-specific configuration here.
+- Do not let transition visual tests pollute the baseline QA scenes.
+- Generic framework behavior belongs in `Packages/com.immersive.framework`.
+- Project-specific configuration belongs in `Assets/_Project`.
