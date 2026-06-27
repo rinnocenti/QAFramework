@@ -5,7 +5,8 @@ using UnityEngine.UI;
 namespace ImmersiveFrameworkQA.UnityBuildSurface
 {
     /// <summary>
-    /// QA-only loading surface adapter used to keep the loading panel visible long enough for manual inspection.
+    /// QA-only adapter used to make fast loading transitions visually inspectable.
+    /// Not a canonical production loading surface adapter.
     /// The hold is awaited by the loading surface runtime, so the route sequence remains:
     /// transition fade-in -> loading show/load/hide -> transition fade-out.
     /// It never delays SceneLifecycle directly and it does not own Route, Activity or GameFlow.
@@ -19,35 +20,46 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
         private const string UnsupportedActionIssue = "qa-loading-surface-action-unsupported";
         private const string InvalidRequestIssue = "qa-loading-surface-request-invalid";
 
-        [Header("Identity")]
+        [HideInInspector]
         [SerializeField] private string adapterName = "QA Loading Surface Visibility Hold Adapter";
 
         [Header("Surface")]
         [SerializeField] private CanvasGroup canvasGroup;
-        [SerializeField] private Image surfaceImage;
         [SerializeField] private GameObject surfaceRoot;
-        [SerializeField] private bool setSurfaceRootActive = true;
+        [HideInInspector]
+        [SerializeField] private Image surfaceImage;
 
-        [Header("Visual State")]
+        [HideInInspector]
         [Range(0f, 1f)]
         [SerializeField] private float hiddenAlpha = 0f;
+        [HideInInspector]
         [Range(0f, 1f)]
         [SerializeField] private float visibleAlpha = 1f;
+        [HideInInspector]
+        [SerializeField] private bool setSurfaceRootActive = true;
+        [HideInInspector]
         [SerializeField] private bool blockRaycastsWhenVisible = true;
+        [HideInInspector]
         [SerializeField] private bool interactableWhenVisible;
+        [HideInInspector]
         [SerializeField] private bool applyHiddenStateOnAwake = true;
 
         [Header("QA Visibility Hold")]
-        [SerializeField] private bool holdHideForManualQa = true;
         [Min(0f)]
         [SerializeField] private float hideHoldSeconds = 0.75f;
+        [HideInInspector]
+        [SerializeField] private bool holdHideForManualQa = true;
         [Tooltip("When enabled, the QA hold uses unscaled delta time through Awaitable.NextFrameAsync.")]
+        [HideInInspector]
         [SerializeField] private bool useRealtimeSeconds = true;
 
-        [Header("Diagnostics")]
+        [HideInInspector]
         [SerializeField] private LoadingSurfaceResultStatus lastStatus = LoadingSurfaceResultStatus.Unknown;
+        [HideInInspector]
         [SerializeField] private string lastMessage = string.Empty;
+        [HideInInspector]
         [SerializeField] private bool lastVisibleState;
+        [HideInInspector]
         [SerializeField] private bool hideHoldActive;
 
         private int hideHoldVersion;

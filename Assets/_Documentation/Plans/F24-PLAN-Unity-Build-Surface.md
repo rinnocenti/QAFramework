@@ -189,7 +189,7 @@ Escopo:
 
 ### F24E2 - Route/Activity Visual Operation Policy
 
-Status: Current / Documentation Pass
+Status: Closed / Documentation Pass
 
 Escopo:
 
@@ -197,6 +197,16 @@ Escopo:
 - registrar TransitionSurface e LoadingSurface como capabilities de UI da sessão;
 - registrar que Route exige transition e usa loading durante composition;
 - registrar que Activity usa transition por policy e loading apenas quando houver scene/content loading real.
+
+### F24E3 - Surface Adapter Inspector Cleanup
+
+Status: Current / Documentation Pass
+
+Escopo:
+
+- limpar o Inspector dos adapters UnityFadeCurtainEffectAdapter, UnityLoadingSurfaceAdapter e QaLoadingSurfaceVisibilityHoldAdapter;
+- ocultar diagnostics runtime e campos tecnicos/legados do authoring publico;
+- registrar que o corte nao muda runtime, cascata visual nem ownership.
 
 ### F24F - Pause Unity Surface
 

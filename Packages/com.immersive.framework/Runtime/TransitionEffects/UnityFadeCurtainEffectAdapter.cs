@@ -22,26 +22,33 @@ namespace Immersive.Framework.TransitionEffects
 
         private static readonly AnimationCurve LinearCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
 
-        [Header("Identity")]
+        [HideInInspector]
         [SerializeField] private string adapterName = "Unity Fade Curtain Effect Adapter";
+        [HideInInspector]
         [SerializeField] private TransitionEffectKind effectKind = TransitionEffectKind.Fade;
 
         [Header("Surface")]
         [SerializeField] private CanvasGroup canvasGroup;
         [SerializeField] private GameObject surfaceRoot;
-        [SerializeField] private bool setSurfaceRootActive = true;
 
-        [Header("Visual State")]
+        [HideInInspector]
         [Range(0f, 1f)]
         [SerializeField] private float hiddenAlpha = 0f;
+        [HideInInspector]
         [Range(0f, 1f)]
         [SerializeField] private float visibleAlpha = 1f;
+        [HideInInspector]
+        [SerializeField] private bool setSurfaceRootActive = true;
+        [HideInInspector]
         [SerializeField] private bool blockRaycastsWhenVisible = true;
+        [HideInInspector]
         [SerializeField] private bool interactableWhenVisible;
+        [HideInInspector]
         [SerializeField] private bool applyHiddenStateOnAwake = true;
 
-        [Header("Visual Timing")]
+        [Header("Timing")]
         [Tooltip("When enabled, async transition execution waits until the fade phase has visually settled.")]
+        [HideInInspector]
         [SerializeField] private bool animateAsyncExecution = true;
         [Min(0f)]
         [SerializeField] private float fadeInSeconds = 0.25f;
@@ -50,9 +57,11 @@ namespace Immersive.Framework.TransitionEffects
         [SerializeField] private AnimationCurve fadeInCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
         [SerializeField] private AnimationCurve fadeOutCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
-        [Header("Diagnostics")]
+        [HideInInspector]
         [SerializeField] private TransitionEffectStatus lastStatus = TransitionEffectStatus.Unknown;
+        [HideInInspector]
         [SerializeField] private string lastMessage = string.Empty;
+        [HideInInspector]
         [SerializeField] private bool lastVisibleState;
 
         public string AdapterName => string.IsNullOrWhiteSpace(adapterName)

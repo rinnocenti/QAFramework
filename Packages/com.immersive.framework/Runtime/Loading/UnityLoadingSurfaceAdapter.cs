@@ -20,27 +20,36 @@ namespace Immersive.Framework.Loading
         private const string UnsupportedActionIssue = "unity-loading-surface-action-unsupported";
         private const string InvalidRequestIssue = "unity-loading-surface-request-invalid";
 
-        [Header("Identity")]
+        [HideInInspector]
         [SerializeField] private string adapterName = "Unity Loading Surface Adapter";
 
         [Header("Surface")]
         [SerializeField] private CanvasGroup canvasGroup;
-        [SerializeField] private Image surfaceImage;
         [SerializeField] private GameObject surfaceRoot;
-        [SerializeField] private bool setSurfaceRootActive = true;
 
-        [Header("Visual State")]
+        [Header("Presentation")]
+        [SerializeField] private Image surfaceImage;
+
+        [HideInInspector]
         [Range(0f, 1f)]
         [SerializeField] private float hiddenAlpha = 0f;
+        [HideInInspector]
         [Range(0f, 1f)]
         [SerializeField] private float visibleAlpha = 1f;
+        [HideInInspector]
+        [SerializeField] private bool setSurfaceRootActive = true;
+        [HideInInspector]
         [SerializeField] private bool blockRaycastsWhenVisible = true;
+        [HideInInspector]
         [SerializeField] private bool interactableWhenVisible;
+        [HideInInspector]
         [SerializeField] private bool applyHiddenStateOnAwake = true;
 
-        [Header("Diagnostics")]
+        [HideInInspector]
         [SerializeField] private LoadingSurfaceResultStatus lastStatus = LoadingSurfaceResultStatus.Unknown;
+        [HideInInspector]
         [SerializeField] private string lastMessage = string.Empty;
+        [HideInInspector]
         [SerializeField] private bool lastVisibleState;
 
         public string AdapterName => string.IsNullOrWhiteSpace(adapterName)

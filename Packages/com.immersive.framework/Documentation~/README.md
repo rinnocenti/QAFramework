@@ -59,6 +59,7 @@ Planned cuts:
 F24B must be the first technical cut. `Transition` already exists as framework language, but `RouteRequestTrigger` / `GameFlow` must pass through a real `TransitionPlan` before curtain, loading or pause visuals are built.
 
 Project documentation now splits the UIGlobal work into `F24E1 - Surface/Loading Legacy Cleanup` and `F24E2 - Route/Activity Visual Operation Policy`. See `Assets/_Documentation/Plans/F24-PLAN-Unity-Build-Surface.md` for the project cut list.
+`F24E3 - Surface Adapter Inspector Cleanup` keeps the same runtime shape and trims only authoring/Inspector exposure.
 
 ## F25 Boundary
 
