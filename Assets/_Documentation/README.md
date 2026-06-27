@@ -1,15 +1,20 @@
-# Immersive Framework - Project Documentation
+# Immersive Framework — Project Documentation
 
-Esta pasta contem a documentacao viva da etapa Unity-facing do projeto.
+Esta pasta contém a documentação viva da etapa Unity-facing do projeto.
 
-A partir de F24, a fonte operacional deste projeto e `Assets/`.
+A partir de F24, a fonte operacional deve ser lida por fronteira:
 
-## Indice
+- `Assets/` é a fonte operacional de assets, cenas, QA, documentação viva e configurações do projeto consumidor.
+- `Packages/com.immersive.framework/` é a fonte operacional do framework core quando o corte altera contratos, lifecycle, runtime, diagnostics ou authoring genérico do framework.
+- Outros packages só entram quando o corte declarar explicitamente integração com adapter/package externo.
+
+## Índice
 
 ### ADRs
 
 - `ADRs/F24-ADR-UNITY-001-Implementation-Tracks.md`
 - `ADRs/F24-ADR-UNITY-002-Implementation-Workflow-And-QA-Workspace.md`
+- `ADRs/F24-ADR-UNITY-003-Project-And-Framework-Source-Boundary.md`
 
 ### Plans
 
@@ -21,16 +26,15 @@ Documentos de setup do projeto consumidor.
 
 ### Notes
 
-Notas temporarias e achados de auditoria local.
+Notas temporárias e achados de auditoria local.
 
 ## Regras
 
-- Documentacao viva do projeto fica em `Assets/_Documentation`.
+- Documentação viva do projeto fica em `Assets/_Documentation`.
 - QA assets ficam em `Assets/ImmersiveFrameworkQA`.
 - Assets de produto ficam em `Assets/_Project`.
 - Experimentos ficam em `Assets/_Sandbox`.
 - Ferramentas externas ficam em `Assets/_External`.
-- Material fora de `Assets/` nao orienta esta etapa.
-- Prompts para Codex ficam reservados para documentacao e cortes complexos com coordenacao de 3 ou mais modulos.
-- Cortes simples, primitivos, criacoes pequenas e atualizacoes documentais pequenas podem ser tratados diretamente no chat.
-- Novos elementos Unity Build Surface devem ter QA/workspace proprio antes de contaminar as cenas baseline.
+- Contratos/core genéricos do framework ficam em `Packages/com.immersive.framework`.
+- Configuração singular de jogo/projeto consumidor fica em `Assets/_Project`.
+- Testes Unity-facing novos devem preferir QA workspace isolado antes de tocar no QA baseline.
