@@ -6,111 +6,98 @@ Accepted
 
 ## Context
 
-F24 moved the project from a synthetic core validation phase into a Unity-facing implementation phase.
+A etapa F24 mudou o foco de core sintetico para surfaces Unity-facing.
 
-The framework now needs concrete Unity materials, scenes, prefabs, assets and inspector surfaces for validation. At the same time, implementation must avoid polluting the baseline QA scenes or mixing project-specific configuration with reusable framework features.
+Isso aumenta o risco de misturar:
+- core/framework generico;
+- configuracao singular do projeto consumidor;
+- QA baseline;
+- assets experimentais;
+- adapters avancados.
 
-The project also needs a clearer work mode for deciding when a cut should be handled directly and when it should be delegated to Codex with a coordination prompt.
+Tambem ha uma decisao operacional nova: nem todo corte deve ir para Codex. Cortes documentais e cortes complexos com 3 ou mais modulos continuam adequados para Codex. Cortes simples, primitivos e pequenas criacoes podem ser feitos diretamente no chat.
 
 ## Decision
 
-F24 adopts the following implementation workflow.
+### Workflow de implementacao
 
-### 1. Codex delegation rule
+Usar Codex para:
 
-Use Codex prompts only for:
+- documentacao maior;
+- cortes complexos;
+- cortes que coordenam 3 ou mais modulos;
+- migracoes com muitos arquivos;
+- edicoes que exigem checagem ampla de referencias.
 
-- documentation cuts;
-- complex cuts involving three or more coordinated modules;
-- large migrations with many serialized references;
-- changes where a scoped implementation plan is safer than direct incremental editing.
+Usar o chat para:
 
-Handle directly in the current chat:
+- cortes simples;
+- primitivos;
+- criacoes pequenas;
+- ajustes documentais pequenos;
+- analise e decisao arquitetural antes de implementar.
 
-- simple cuts;
-- primitive contracts;
-- small authoring components;
-- small assets/docs updates;
-- focused analysis before implementation.
+Se um corte iniciado como simples passar a tocar 3 ou mais modulos, ele deve ser reclassificado como corte Codex.
 
-### 2. Unity Build Surface QA workspace
+### Workspace QA de Unity Build Surface
 
-New Unity-facing features must receive isolated QA material before being mixed into the baseline QA scenes.
-
-The preferred QA workspace is:
+Criar e usar um workspace isolado:
 
 ```text
 Assets/ImmersiveFrameworkQA/UnityBuildSurface/
+  README.md
   Scenes/
   ScriptableObjects/
   Prefabs/
   Materials/
   Sprites/
-  README.md
 ```
 
-Initial validation should prefer one shared laboratory scene unless a feature needs strict scene isolation:
+Esse workspace e destinado a validar os novos elementos Unity-facing de F24:
 
-```text
-Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/UnityBuildSurfaceQA.unity
-```
+- Transition surfaces;
+- Loading surfaces;
+- Pause surfaces;
+- Save Moment authoring;
+- Preferences authoring;
+- futuros exemplos de inspector para designers.
 
-Feature-specific QA scenes may be added later, for example:
+### Separacao de ownership
 
-```text
-TransitionSurfaceQA.unity
-LoadingSurfaceQA.unity
-PauseSurfaceQA.unity
-```
-
-### 3. Placement rule
-
-Use these placement rules:
-
-| Item type | Location |
-|---|---|
-| Product/game-specific configuration | `Assets/_Project` |
-| Product/game-specific prefab/material/scene | `Assets/_Project` |
-| Framework QA scene/material/prefab | `Assets/ImmersiveFrameworkQA` |
-| Temporary experiment | `Assets/_Sandbox` |
-| External/manual import | `Assets/_External` |
-| Reusable framework primitive/contract | framework code area |
-| Reusable advanced adapter | framework or adapter package area |
-
-### 4. Framework isolation rule
-
-A feature should enter the framework only when it is generic, reusable and not tied to one game configuration.
-
-A singular configuration for one project or one authored test case must stay in `Assets/_Project` or `Assets/ImmersiveFrameworkQA`.
-
-Adapter modules consume framework contracts. They must not redefine Route, Activity, Transition, Loading, Pause, Save, Runtime scope or Content Anchor lifecycle.
+- Coisa singular de jogo fica em `Assets/_Project`.
+- QA do framework fica em `Assets/ImmersiveFrameworkQA`.
+- Experimento descartavel fica em `Assets/_Sandbox`.
+- Ferramenta externa fica em `Assets/_External`.
+- Componente generico, contrato, surface reutilizavel ou adapter avancado pode entrar no framework.
+- Adapter opcional nao deve virar requisito do core.
 
 ## Consequences
 
-- F24A3 creates the Unity Build Surface QA workspace before Transition/Loading/Pause surfaces are implemented.
-- Baseline QA scenes remain stable and should not absorb every new experiment.
-- Future cuts must state whether they touch Framework Core / Contracts, Unity Build Surface, Adapter Modules, QA assets or project-specific assets.
-- The first visual surfaces should be tested in the Unity Build Surface QA workspace.
-- Documentation updates for small planning changes can be produced directly without Codex.
+- As cenas baseline de QA nao devem ser contaminadas com cada novo teste visual.
+- F24B/F24C/F24D/F24E/F24F/F24G devem preferir validar no workspace Unity Build Surface.
+- Novos assets de teste devem ser explicitamente classificados como QA, projeto ou sandbox.
+- O framework so deve receber o que for generico, reutilizavel e coerente com os trilhos aceitos.
+- A documentacao viva deve refletir quando um corte e feito no chat ou enviado para Codex.
 
 ## Non-goals
 
-This ADR does not implement:
+Este ADR nao implementa:
 
-- Transition runtime visuals;
-- Loading screen;
-- Pause overlay;
-- Save backend;
-- gameplay systems;
-- player/camera/audio adapters;
-- pooling;
-- runtime materializers.
+- runtime novo;
+- transition visual;
+- loading screen;
+- pause overlay;
+- save backend;
+- preferences runtime;
+- player/camera/audio/gameplay adapters;
+- cenas finais de produto.
 
 ## Validation
 
-This ADR is valid when:
+Este ADR e valido quando:
 
-- it exists under `Assets/_Documentation/ADRs`;
-- `Assets/_Documentation/README.md` links to it;
-- `F24-PLAN-Unity-Build-Surface.md` includes F24A3;
-- no runtime or lifecycle code is changed by this documentation cut.
+- existe em `Assets/_Documentation/ADRs`;
+- o plano F24 referencia este ADR;
+- o workspace QA de Unity Build Surface existe;
+- o README do workspace explica sua finalidade;
+- nenhum runtime foi alterado para aceitar esta decisao.

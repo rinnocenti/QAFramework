@@ -31,11 +31,6 @@ Notas temporarias e achados de auditoria local.
 - Experimentos ficam em `Assets/_Sandbox`.
 - Ferramentas externas ficam em `Assets/_External`.
 - Material fora de `Assets/` nao orienta esta etapa.
-
-## Work mode
-
-- Codex deve ser usado para documentacao, cortes complexos e cortes com tres ou mais modulos.
-- Cortes simples, primitivos e criacoes pequenas podem ser resolvidos diretamente no chat.
-- Novos elementos Unity-facing devem ter cenas/assets de QA proprios quando necessario.
-- Configuracoes singulares de jogo ficam em `Assets/_Project`.
-- Elementos genericos, reutilizaveis ou adapters avancados podem entrar no framework ou em packages de adapter.
+- Prompts para Codex ficam reservados para documentacao e cortes complexos com coordenacao de 3 ou mais modulos.
+- Cortes simples, primitivos, criacoes pequenas e atualizacoes documentais pequenas podem ser tratados diretamente no chat.
+- Novos elementos Unity Build Surface devem ter QA/workspace proprio antes de contaminar as cenas baseline.

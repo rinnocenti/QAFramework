@@ -20,31 +20,14 @@ O objetivo de F24 e preparar o framework para ser usado por level/game designers
 
 Este plano segue os ADRs:
 
-- `ADRs/F24-ADR-UNITY-001-Implementation-Tracks.md`
-- `ADRs/F24-ADR-UNITY-002-Implementation-Workflow-And-QA-Workspace.md`
+- `Assets/_Documentation/ADRs/F24-ADR-UNITY-001-Implementation-Tracks.md`
+- `Assets/_Documentation/ADRs/F24-ADR-UNITY-002-Implementation-Workflow-And-QA-Workspace.md`
 
 Trilhos:
 
 - Framework Core / Contracts
 - Unity Build Surface
 - Adapter Modules
-
-## Work mode
-
-Usar Codex somente para:
-
-- documentacao;
-- cortes complexos;
-- cortes que coordenam tres ou mais modulos;
-- migracoes grandes com muitas referencias serializadas.
-
-Resolver diretamente no chat:
-
-- cortes simples;
-- primitivos;
-- criacoes pequenas;
-- ajustes documentais pequenos;
-- analise antes de implementacao.
 
 ## F24 sequence
 
@@ -79,41 +62,17 @@ Escopo:
 - ajustar editor/build settings se necessario;
 - nao alterar lifecycle.
 
-Resultado esperado validado:
-
-- route switch usa `SecondScene`;
-- Standard Smoke conclui sem erro bloqueante;
-- Activity switch, clear e restore continuam funcionando.
-
 ### F24A3 - Unity Build Surface QA Workspace
 
 Status: Current
 
 Escopo:
 
-- criar workspace isolado para testes Unity-facing;
-- criar estrutura de QA para futuras surfaces de Transition, Loading, Pause, Save Moment e Preferences;
-- nao alterar lifecycle;
-- nao implementar Transition/Loading/Pause ainda;
-- nao misturar novos testes visuais nas cenas baseline.
-
-Estrutura alvo:
-
-```text
-Assets/ImmersiveFrameworkQA/UnityBuildSurface/
-  Scenes/
-  ScriptableObjects/
-  Prefabs/
-  Materials/
-  Sprites/
-  README.md
-```
-
-Cena inicial preferida:
-
-```text
-Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/UnityBuildSurfaceQA.unity
-```
+- criar workspace QA isolado para Unity Build Surface;
+- separar cenas/assets de teste de Transition, Loading, Pause, Save Moment e Preferences do QA baseline;
+- registrar politica de criacao de assets de teste;
+- nao implementar lifecycle;
+- nao criar Transition/Loading/Pause ainda.
 
 ### F24B - Transition Contract Wiring
 
@@ -133,7 +92,8 @@ Escopo:
 
 - criar primeira surface Unity-facing para transicao;
 - naming e inspector orientados a designer;
-- nao criar lifecycle paralelo.
+- nao criar lifecycle paralelo;
+- usar o workspace QA de Unity Build Surface para validacao.
 
 ### F24D - Loading Unity Surface
 
@@ -142,7 +102,8 @@ Status: Planned
 Escopo:
 
 - criar superficie de loading/progress;
-- loading apresenta operacao, nao vira owner de scene lifecycle.
+- loading apresenta operacao, nao vira owner de scene lifecycle;
+- usar o workspace QA de Unity Build Surface para validacao.
 
 ### F24E - Pause Unity Surface
 
@@ -152,7 +113,8 @@ Escopo:
 
 - criar superficie de pause;
 - pause consome lifecycle/input/presentation;
-- pause nao controla Activity/Route diretamente.
+- pause nao controla Activity/Route diretamente;
+- usar o workspace QA de Unity Build Surface para validacao.
 
 ### F24F - Save Moment Authoring
 
@@ -162,7 +124,8 @@ Escopo:
 
 - criar authoring minimo de intencao de save;
 - sem backend completo;
-- sem snapshot gameplay ainda.
+- sem snapshot gameplay ainda;
+- usar o workspace QA de Unity Build Surface para validacao.
 
 ### F24G - Preferences Authoring
 
@@ -171,7 +134,8 @@ Status: Planned
 Escopo:
 
 - separar preferences de progression save;
-- criar authoring minimo para configuracoes persistentes.
+- criar authoring minimo para configuracoes persistentes;
+- usar o workspace QA de Unity Build Surface para validacao.
 
 ### F24H - Designer Guide
 
@@ -197,23 +161,42 @@ Componentes Unity-facing devem seguir este padrao:
 ## Folder policy
 
 - `Assets/_Project`: produto/projeto consumidor.
-- `Assets/ImmersiveFrameworkQA`: QA manual, smokes e workspace Unity Build Surface.
+- `Assets/ImmersiveFrameworkQA`: QA manual e smokes.
+- `Assets/ImmersiveFrameworkQA/UnityBuildSurface`: QA isolado para surfaces Unity-facing de F24.
 - `Assets/_Documentation`: documentacao viva do projeto.
 - `Assets/_External`: ferramentas externas e imports manuais.
 - `Assets/_Sandbox`: experimentos descartaveis.
 - `Assets/Settings`, `Assets/TextMesh Pro` e assets oficiais Unity permanecem separados.
 
-## Placement policy
+## Unity Build Surface QA workspace
 
-| Tipo | Local |
-|---|---|
-| Cena de teste de framework | `Assets/ImmersiveFrameworkQA/...` |
-| Asset de QA do framework | `Assets/ImmersiveFrameworkQA/...` |
-| Configuracao especifica do jogo | `Assets/_Project/...` |
-| Material/prefab singular de um jogo | `Assets/_Project/...` |
-| Componente generico reutilizavel | framework |
-| Adapter reutilizavel | framework ou package adapter |
-| Experimento descartavel | `Assets/_Sandbox/...` |
+Estrutura canonica inicial:
+
+```text
+Assets/ImmersiveFrameworkQA/UnityBuildSurface/
+  README.md
+  Scenes/
+  ScriptableObjects/
+  Prefabs/
+  Materials/
+  Sprites/
+```
+
+Uso esperado:
+
+- cenas e assets deste workspace validam surfaces Unity-facing;
+- nao substituir as cenas baseline `StartupScene` e `SecondScene`;
+- nao virar produto;
+- nao conter assets singulares de jogo final;
+- nao criar dependency obrigatoria para runtime core.
+
+## Implementation workflow policy
+
+- Codex: documentacao e cortes complexos com 3 ou mais modulos coordenados.
+- Chat: cortes simples, primitivos, criacoes pequenas, analise e atualizacoes documentais pequenas.
+- Se um corte simples comecar a tocar 3 ou mais modulos, reclassificar como corte Codex.
+- Se um asset for singular de uma configuracao especifica de jogo, manter em `Assets/_Project`.
+- Se for generico, reutilizavel ou adapter avancado, considerar framework/package.
 
 ## Non-goals for F24
 
@@ -233,9 +216,7 @@ F24 nao implementa:
 - ADR dos tres trilhos existe.
 - ADR de workflow/QA workspace existe.
 - Plano F24 existe.
-- README de documentacao aponta para os ADRs e o plano.
-- F24A2 esta marcado como Closed / Standard Smoke Pass.
-- F24A3 esta marcado como Current.
-- Nenhum runtime foi alterado por cortes documentais.
-- Novas surfaces Unity-facing devem ter QA isolado antes de entrar em cenas baseline.
-- Nenhum package externo orienta esta etapa.
+- README de documentacao aponta para ADRs e plano.
+- Workspace `Assets/ImmersiveFrameworkQA/UnityBuildSurface` existe.
+- Nenhum runtime foi alterado neste corte.
+- Nenhum package foi alterado.
