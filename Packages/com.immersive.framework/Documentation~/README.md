@@ -86,3 +86,6 @@ F25 now opens with Activity content scene composition before broader adapter mod
 F25A does not load Activity scenes. Activity loading remains `SkippedNoSceneLoad` until Activity scene composition execution is implemented in a later F25 cut.
 
 Project plan: `Assets/_Documentation/Plans/F25-PLAN-Activity-Content-Scene-Composition.md`.
+
+
+`F25B - Activity Scene Composition Plan/Result` adds side-effect-free Activity scene composition diagnostics. Activity requests can now report planned Activity content scenes, required/optional counts and execution-ready declarations, but Activity scene loading and release remain deferred to later F25 cuts.

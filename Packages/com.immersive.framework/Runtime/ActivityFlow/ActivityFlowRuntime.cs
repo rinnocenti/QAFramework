@@ -153,6 +153,7 @@ namespace Immersive.Framework.ActivityFlow
             _currentActivityState = ActivityRuntimeState.None(previousActivity, resolvedSource, resolvedReason);
             var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, null, resolvedSource, resolvedReason);
             var executionResult = ExecuteActivityContentLifecycle(previousActivity, null, resolvedSource, resolvedReason);
+            var sceneCompositionResult = CreateActivitySceneCompositionResult(null, resolvedSource, resolvedReason);
             var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, null, resolvedSource, resolvedReason);
             var runtimeScopeResult = RemovePreviousActivityScopeRoot(previousActivity, null, resolvedSource, resolvedReason);
             return Task.FromResult(ActivityFlowStartResult.ClearedByRequest(
@@ -162,7 +163,8 @@ namespace Immersive.Framework.ActivityFlow
                 runtimeScopeResult,
                 bindingCleanupResult,
                 ActivityContentAnchorDiscoveryResult.Empty(null, resolvedSource, resolvedReason, "Activity was cleared; Activity Content Anchor discovery was skipped."),
-                executionResult));
+                executionResult,
+                sceneCompositionResult));
         }
 
         private Task<ActivityFlowStartResult> StartActivityCoreAsync(ActivityAsset nextActivity, ActivityAsset previousActivity, string source, string reason)
@@ -194,6 +196,7 @@ namespace Immersive.Framework.ActivityFlow
                 resolvedSource,
                 resolvedReason);
             var executionResult = ExecuteActivityContentLifecycle(previousActivity, nextActivity, resolvedSource, resolvedReason);
+            var sceneCompositionResult = CreateActivitySceneCompositionResult(nextActivity, resolvedSource, resolvedReason);
             var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, nextActivity, resolvedSource, resolvedReason);
             var runtimeExitResult = RemovePreviousActivityScopeRoot(previousActivity, nextActivity, resolvedSource, resolvedReason);
             var runtimeScopeResult = MergeActivityScopeResults(runtimeEnterResult, runtimeExitResult, nextActivity, previousActivity, resolvedSource, resolvedReason);
@@ -205,7 +208,17 @@ namespace Immersive.Framework.ActivityFlow
                 runtimeScopeResult,
                 bindingCleanupResult,
                 activityContentAnchorDiscoveryResult,
-                executionResult));
+                executionResult,
+                sceneCompositionResult));
+        }
+
+        private static ActivitySceneCompositionResult CreateActivitySceneCompositionResult(
+            ActivityAsset activity,
+            string source,
+            string reason)
+        {
+            var plan = ActivitySceneCompositionPlan.FromActivity(activity, source, reason);
+            return ActivitySceneCompositionResult.FromPlan(plan, source, reason);
         }
 
         private ActivityContentExecutionLifecycleResult ExecuteActivityContentLifecycle(

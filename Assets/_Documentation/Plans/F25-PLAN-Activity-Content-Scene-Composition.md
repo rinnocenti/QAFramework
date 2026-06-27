@@ -65,3 +65,14 @@ F25 does not introduce:
 - Addressables;
 - pause overlays;
 - pooling/runtime spawned objects.
+
+
+## F25B acceptance
+
+- Activity scene composition has side-effect-free plan/result language.
+- Activity requests produce scene composition diagnostics when an Activity has an Activity Content Profile.
+- Required/optional counts are reported.
+- Execution-ready declaration count is reported.
+- Blocking declaration issues are reported.
+- No Activity scene loading occurs yet.
+- LoadingSurface remains skipped for Activity until F25C.

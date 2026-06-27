@@ -25,7 +25,8 @@ namespace Immersive.Framework.ActivityFlow
             RuntimeScopeLifecycleResult runtimeActivityScopeResult = default(RuntimeScopeLifecycleResult),
             ContentAnchorBindingLifecycleResult activityContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult),
             ActivityContentAnchorDiscoveryResult activityContentAnchorDiscoveryResult = default(ActivityContentAnchorDiscoveryResult),
-            ActivityContentExecutionLifecycleResult activityContentExecutionResult = default(ActivityContentExecutionLifecycleResult))
+            ActivityContentExecutionLifecycleResult activityContentExecutionResult = default(ActivityContentExecutionLifecycleResult),
+            ActivitySceneCompositionResult activitySceneCompositionResult = default(ActivitySceneCompositionResult))
         {
             Started = started;
             Skipped = skipped;
@@ -40,6 +41,7 @@ namespace Immersive.Framework.ActivityFlow
             ActivityContentAnchorBindingCleanupResult = activityContentAnchorBindingCleanupResult;
             ActivityContentAnchorDiscoveryResult = activityContentAnchorDiscoveryResult;
             ActivityContentExecutionResult = activityContentExecutionResult;
+            ActivitySceneCompositionResult = activitySceneCompositionResult;
         }
 
         public bool Started { get; }
@@ -74,6 +76,8 @@ namespace Immersive.Framework.ActivityFlow
 
         public ActivityContentExecutionLifecycleResult ActivityContentExecutionResult { get; }
 
+        public ActivitySceneCompositionResult ActivitySceneCompositionResult { get; }
+
         public ContentAnchorSet ActivityContentAnchorSet => ActivityContentAnchorDiscoveryResult.AnchorSet;
 
         public bool HasActivityContentAnchors => ActivityContentAnchorDiscoveryResult.HasAnchors;
@@ -85,6 +89,8 @@ namespace Immersive.Framework.ActivityFlow
         public bool HasActivityContentLifecycle => ActivityContentLifecycleResult.Executed;
 
         public bool HasActivityContentExecution => ActivityContentExecutionResult.Executed;
+
+        public bool HasActivitySceneComposition => ActivitySceneCompositionResult.Executed;
 
         public bool HasActivityReadiness => ActivityReadinessState.IsReady || ActivityReadinessState.IsNone || ActivityReadinessState.IsNotReady;
 
@@ -110,12 +116,14 @@ namespace Immersive.Framework.ActivityFlow
             RuntimeScopeLifecycleResult runtimeActivityScopeResult = default(RuntimeScopeLifecycleResult),
             ContentAnchorBindingLifecycleResult activityContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult),
             ActivityContentAnchorDiscoveryResult activityContentAnchorDiscoveryResult = default(ActivityContentAnchorDiscoveryResult),
-            ActivityContentExecutionLifecycleResult activityContentExecutionResult = default(ActivityContentExecutionLifecycleResult))
+            ActivityContentExecutionLifecycleResult activityContentExecutionResult = default(ActivityContentExecutionLifecycleResult),
+            ActivitySceneCompositionResult activitySceneCompositionResult = default(ActivitySceneCompositionResult))
         {
             var readinessState = BuildReadinessState(activityState, activityContentResult);
             var runtimeScopeMessage = RuntimeScopeMessage(runtimeActivityScopeResult);
             var bindingCleanupMessage = BindingCleanupMessage(activityContentAnchorBindingCleanupResult);
             var executionMessage = ExecutionMessage(activityContentExecutionResult);
+            var sceneCompositionMessage = SceneCompositionMessage(activitySceneCompositionResult);
             if (previousActivity == null)
             {
                 return new ActivityFlowStartResult(
@@ -123,7 +131,7 @@ namespace Immersive.Framework.ActivityFlow
                     true,
                     false,
                     false,
-                    AppendContentMessage(CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState) + bindingCleanupMessage + executionMessage + runtimeScopeMessage, activityContentResult),
+                    AppendContentMessage(CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState) + bindingCleanupMessage + executionMessage + sceneCompositionMessage + runtimeScopeMessage, activityContentResult),
                     activityState,
                     null,
                     activityContentResult,
@@ -131,7 +139,8 @@ namespace Immersive.Framework.ActivityFlow
                     runtimeActivityScopeResult,
                     activityContentAnchorBindingCleanupResult,
                     activityContentAnchorDiscoveryResult,
-                    activityContentExecutionResult);
+                    activityContentExecutionResult,
+                    activitySceneCompositionResult);
             }
 
             return new ActivityFlowStartResult(
@@ -139,7 +148,7 @@ namespace Immersive.Framework.ActivityFlow
                 false,
                 false,
                 true,
-                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' because Route has no Startup Activity. {CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState)}{bindingCleanupMessage}{executionMessage}{runtimeScopeMessage}", activityContentResult),
+                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' because Route has no Startup Activity. {CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState)}{bindingCleanupMessage}{executionMessage}{sceneCompositionMessage}{runtimeScopeMessage}", activityContentResult),
                 activityState,
                 previousActivity,
                 activityContentResult,
@@ -147,7 +156,8 @@ namespace Immersive.Framework.ActivityFlow
                 runtimeActivityScopeResult,
                 activityContentAnchorBindingCleanupResult,
                 activityContentAnchorDiscoveryResult,
-                activityContentExecutionResult);
+                activityContentExecutionResult,
+                activitySceneCompositionResult);
         }
 
         public static ActivityFlowStartResult ClearedByRequest(
@@ -157,7 +167,8 @@ namespace Immersive.Framework.ActivityFlow
             RuntimeScopeLifecycleResult runtimeActivityScopeResult = default(RuntimeScopeLifecycleResult),
             ContentAnchorBindingLifecycleResult activityContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult),
             ActivityContentAnchorDiscoveryResult activityContentAnchorDiscoveryResult = default(ActivityContentAnchorDiscoveryResult),
-            ActivityContentExecutionLifecycleResult activityContentExecutionResult = default(ActivityContentExecutionLifecycleResult))
+            ActivityContentExecutionLifecycleResult activityContentExecutionResult = default(ActivityContentExecutionLifecycleResult),
+            ActivitySceneCompositionResult activitySceneCompositionResult = default(ActivitySceneCompositionResult))
         {
             if (previousActivity == null)
             {
@@ -168,12 +179,13 @@ namespace Immersive.Framework.ActivityFlow
             var runtimeScopeMessage = RuntimeScopeMessage(runtimeActivityScopeResult);
             var bindingCleanupMessage = BindingCleanupMessage(activityContentAnchorBindingCleanupResult);
             var executionMessage = ExecutionMessage(activityContentExecutionResult);
+            var sceneCompositionMessage = SceneCompositionMessage(activitySceneCompositionResult);
             return new ActivityFlowStartResult(
                 false,
                 false,
                 false,
                 true,
-                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' by request. {CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState)}{bindingCleanupMessage}{executionMessage}{runtimeScopeMessage}", activityContentResult),
+                AppendContentMessage($"Activity Flow cleared Activity '{previousActivity.ActivityName}' by request. {CombineStateAndReadinessMessage(ActivityStateMessage(activityState), readinessState)}{bindingCleanupMessage}{executionMessage}{sceneCompositionMessage}{runtimeScopeMessage}", activityContentResult),
                 activityState,
                 previousActivity,
                 activityContentResult,
@@ -181,7 +193,8 @@ namespace Immersive.Framework.ActivityFlow
                 runtimeActivityScopeResult,
                 activityContentAnchorBindingCleanupResult,
                 activityContentAnchorDiscoveryResult,
-                activityContentExecutionResult);
+                activityContentExecutionResult,
+                activitySceneCompositionResult);
         }
 
         public static ActivityFlowStartResult KeptCurrentActivity(ActivityRuntimeState activityState)
@@ -207,7 +220,8 @@ namespace Immersive.Framework.ActivityFlow
             RuntimeScopeLifecycleResult runtimeActivityScopeResult = default(RuntimeScopeLifecycleResult),
             ContentAnchorBindingLifecycleResult activityContentAnchorBindingCleanupResult = default(ContentAnchorBindingLifecycleResult),
             ActivityContentAnchorDiscoveryResult activityContentAnchorDiscoveryResult = default(ActivityContentAnchorDiscoveryResult),
-            ActivityContentExecutionLifecycleResult activityContentExecutionResult = default(ActivityContentExecutionLifecycleResult))
+            ActivityContentExecutionLifecycleResult activityContentExecutionResult = default(ActivityContentExecutionLifecycleResult),
+            ActivitySceneCompositionResult activitySceneCompositionResult = default(ActivitySceneCompositionResult))
         {
             var activity = activityState.Activity;
             var readinessState = BuildReadinessState(activityState, activityContentResult);
@@ -215,9 +229,10 @@ namespace Immersive.Framework.ActivityFlow
             string runtimeScopeMessage = RuntimeScopeMessage(runtimeActivityScopeResult);
             string bindingCleanupMessage = BindingCleanupMessage(activityContentAnchorBindingCleanupResult);
             string executionMessage = ExecutionMessage(activityContentExecutionResult);
+            string sceneCompositionMessage = SceneCompositionMessage(activitySceneCompositionResult);
             string message = previousActivity != null && !ReferenceEquals(previousActivity, activity)
-                ? $"Activity Flow switched from Activity '{previousActivity.ActivityName}' to Activity '{activity.ActivityName}'. {stateMessage}{bindingCleanupMessage}{executionMessage}{runtimeScopeMessage}"
-                : $"Activity Flow started Activity '{activity.ActivityName}'. {stateMessage}{bindingCleanupMessage}{executionMessage}{runtimeScopeMessage}";
+                ? $"Activity Flow switched from Activity '{previousActivity.ActivityName}' to Activity '{activity.ActivityName}'. {stateMessage}{bindingCleanupMessage}{executionMessage}{sceneCompositionMessage}{runtimeScopeMessage}"
+                : $"Activity Flow started Activity '{activity.ActivityName}'. {stateMessage}{bindingCleanupMessage}{executionMessage}{sceneCompositionMessage}{runtimeScopeMessage}";
 
             return new ActivityFlowStartResult(
                 true,
@@ -232,7 +247,8 @@ namespace Immersive.Framework.ActivityFlow
                 runtimeActivityScopeResult,
                 activityContentAnchorBindingCleanupResult,
                 activityContentAnchorDiscoveryResult,
-                activityContentExecutionResult);
+                activityContentExecutionResult,
+                activitySceneCompositionResult);
         }
 
         private static ActivityReadinessState BuildReadinessState(ActivityRuntimeState activityState, ActivityContentApplyResult activityContentResult)
@@ -297,6 +313,17 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             return $" activityContentExecution='{result.DiagnosticStatus}' activityContentExecutionParticipantSource='{result.ParticipantSourceStatus}' activityContentExecutionParticipantSourceIssues='{result.ParticipantSourceIssueCount}' activityContentExecutionParticipants='{result.ParticipantCount}' activityContentExecutionEnter='{result.EnterResult.Status}' activityContentExecutionEnterRequests='{result.EnterRequestCount}' activityContentExecutionExit='{result.ExitResult.Status}' activityContentExecutionExitRequests='{result.ExitRequestCount}' activityContentExecutionBlockingIssues='{result.BlockingIssueCount}' activityContentExecutionBlocksReadiness='{result.BlocksReadiness}'.";
+        }
+
+
+        private static string SceneCompositionMessage(ActivitySceneCompositionResult result)
+        {
+            if (!result.Executed)
+            {
+                return string.Empty;
+            }
+
+            return $" activitySceneComposition='{result.DiagnosticStatus}' activitySceneCompositionProfile='{result.ProfileId}' activitySceneCompositionScenes='{result.SceneCount}' activitySceneCompositionRequired='{result.RequiredSceneCount}' activitySceneCompositionOptional='{result.OptionalSceneCount}' activitySceneCompositionExecutionReady='{result.ExecutionReadySceneCount}' activitySceneCompositionBlockingIssues='{result.BlockingIssueCount}'.";
         }
 
         private static string BindingCleanupMessage(ContentAnchorBindingLifecycleResult result)
