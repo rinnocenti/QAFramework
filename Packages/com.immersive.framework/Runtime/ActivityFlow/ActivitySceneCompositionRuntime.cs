@@ -39,6 +39,17 @@ namespace Immersive.Framework.ActivityFlow
                     continue;
                 }
 
+                if (TryGetTrackedScene(plan.Activity, scene, out var trackedRecord))
+                {
+                    if (_sceneLifecycleRuntime.IsSceneLoaded(scene.SceneName, scene.ScenePath))
+                    {
+                        entries.Add(ActivitySceneCompositionResultEntry.AlreadyLoadedTrackedEntry(scene));
+                        continue;
+                    }
+
+                    RemoveTrackedScene(trackedRecord);
+                }
+
                 var loadResult = await _sceneLifecycleRuntime.LoadAdditiveSceneAsync(scene.SceneName, scene.ScenePath);
                 if (loadResult.Loaded)
                 {
@@ -63,11 +74,15 @@ namespace Immersive.Framework.ActivityFlow
         }
 
         internal Task<ActivitySceneReleaseResult> ReleaseForRouteChangeAsync(
-            ActivityAsset activity,
             string source,
             string reason)
         {
-            return ReleaseTrackedScenesAsync(activity, forceReleaseAll: true, source, reason);
+            return ReleaseTrackedScenesAsync(activity: null, forceReleaseAll: true, source, reason);
+        }
+
+        internal bool HasAnyTrackedScenes()
+        {
+            return _loadedScenes.Count > 0;
         }
 
         internal bool HasAnyTrackedScenes(ActivityAsset activity)
@@ -108,13 +123,48 @@ namespace Immersive.Framework.ActivityFlow
             return false;
         }
 
+        internal bool HasSceneLoadOnActivityChange(ActivityAsset activity, string source, string reason)
+        {
+            if (activity == null)
+            {
+                return false;
+            }
+
+            var plan = ActivitySceneCompositionPlan.FromActivity(activity, source, reason);
+            if (!ShouldExecute(plan))
+            {
+                return false;
+            }
+
+            for (var i = 0; i < plan.Scenes.Count; i++)
+            {
+                var scene = plan.Scenes[i];
+                if (!scene.IsExecutionReady)
+                {
+                    continue;
+                }
+
+                if (!TryGetTrackedScene(activity, scene, out _))
+                {
+                    return true;
+                }
+
+                if (!_sceneLifecycleRuntime.IsSceneLoaded(scene.SceneName, scene.ScenePath))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private async Task<ActivitySceneReleaseResult> ReleaseTrackedScenesAsync(
             ActivityAsset activity,
             bool forceReleaseAll,
             string source,
             string reason)
         {
-            if (activity == null)
+            if (activity == null && !forceReleaseAll)
             {
                 return ActivitySceneReleaseResult.NotRequested(
                     null,
@@ -123,14 +173,18 @@ namespace Immersive.Framework.ActivityFlow
                     "Activity scene release was not requested because Activity is missing.");
             }
 
-            var records = CollectRecordsForActivity(activity);
+            var records = forceReleaseAll && activity == null
+                ? CollectAllRecords()
+                : CollectRecordsForActivity(activity);
             if (records.Count == 0)
             {
                 return ActivitySceneReleaseResult.NotRequested(
                     activity,
                     source,
                     reason,
-                    "Activity scene release skipped because no Activity-owned scenes are tracked for this Activity.");
+                    forceReleaseAll
+                        ? "Activity scene release skipped because no Activity-owned scenes are tracked for route change."
+                        : "Activity scene release skipped because no Activity-owned scenes are tracked for this Activity.");
             }
 
             var entries = new List<ActivitySceneReleaseResultEntry>(records.Count);
@@ -195,6 +249,32 @@ namespace Immersive.Framework.ActivityFlow
             _loadedScenes.Add(new LoadedActivitySceneRecord(activity, entry));
         }
 
+        private bool TryGetTrackedScene(
+            ActivityAsset activity,
+            ActivitySceneCompositionPlanEntry entry,
+            out LoadedActivitySceneRecord record)
+        {
+            record = default;
+            if (activity == null || entry.ContentIdentity.IsValid == false)
+            {
+                return false;
+            }
+
+            var identity = entry.ContentIdentity.StableText;
+            for (var i = 0; i < _loadedScenes.Count; i++)
+            {
+                var existing = _loadedScenes[i];
+                if (ReferenceEquals(existing.Activity, activity)
+                    && string.Equals(existing.Entry.ContentIdentity.StableText, identity, StringComparison.Ordinal))
+                {
+                    record = existing;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private List<LoadedActivitySceneRecord> CollectRecordsForActivity(ActivityAsset activity)
         {
             var records = new List<LoadedActivitySceneRecord>();
@@ -208,6 +288,11 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             return records;
+        }
+
+        private List<LoadedActivitySceneRecord> CollectAllRecords()
+        {
+            return new List<LoadedActivitySceneRecord>(_loadedScenes);
         }
 
         private void RemoveTrackedScene(LoadedActivitySceneRecord record)

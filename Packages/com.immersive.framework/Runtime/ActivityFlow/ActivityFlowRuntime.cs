@@ -64,17 +64,21 @@ namespace Immersive.Framework.ActivityFlow
             return _activitySceneCompositionRuntime.HasReleaseOnActivityChangeScenes(activity);
         }
 
-        internal bool HasAnyActivitySceneReleaseForRouteChange(ActivityAsset activity)
+        internal bool HasActivitySceneLoadOnActivityChange(ActivityAsset activity, string source, string reason)
         {
-            return _activitySceneCompositionRuntime.HasAnyTrackedScenes(activity);
+            return _activitySceneCompositionRuntime.HasSceneLoadOnActivityChange(activity, source, reason);
+        }
+
+        internal bool HasAnyActivitySceneReleaseForRouteChange()
+        {
+            return _activitySceneCompositionRuntime.HasAnyTrackedScenes();
         }
 
         internal Task<ActivitySceneReleaseResult> ReleaseActivityScenesForRouteChangeAsync(
-            ActivityAsset activity,
             string source,
             string reason)
         {
-            return _activitySceneCompositionRuntime.ReleaseForRouteChangeAsync(activity, source, reason);
+            return _activitySceneCompositionRuntime.ReleaseForRouteChangeAsync(source, reason);
         }
 
         internal bool IsActivityActive(ActivityAsset activity)

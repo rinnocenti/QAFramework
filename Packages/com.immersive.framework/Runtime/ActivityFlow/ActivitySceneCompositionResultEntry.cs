@@ -110,6 +110,15 @@ namespace Immersive.Framework.ActivityFlow
                 loadResult.Message);
         }
 
+        public static ActivitySceneCompositionResultEntry AlreadyLoadedTrackedEntry(ActivitySceneCompositionPlanEntry planEntry)
+        {
+            return new ActivitySceneCompositionResultEntry(
+                planEntry,
+                ActivitySceneCompositionEntryStatus.AlreadyLoaded,
+                false,
+                "Activity scene composition skipped load because the Activity-owned scene is already tracked and loaded.");
+        }
+
         public static ActivitySceneCompositionResultEntry FailedEntry(
             ActivitySceneCompositionPlanEntry planEntry,
             SceneLifecycleLoadResult loadResult)

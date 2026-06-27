@@ -68,9 +68,14 @@ namespace Immersive.Framework.GameFlow
             return _routeLifecycleRuntime.HasActivitySceneReleaseOnActivityChange(activity);
         }
 
-        internal bool HasAnyActivitySceneReleaseForRouteChange(ActivityAsset activity)
+        internal bool HasActivitySceneLoadOnActivityChange(ActivityAsset activity, string source, string reason)
         {
-            return _routeLifecycleRuntime.HasAnyActivitySceneReleaseForRouteChange(activity);
+            return _routeLifecycleRuntime.HasActivitySceneLoadOnActivityChange(activity, source, reason);
+        }
+
+        internal bool HasAnyActivitySceneReleaseForRouteChange()
+        {
+            return _routeLifecycleRuntime.HasAnyActivitySceneReleaseForRouteChange();
         }
 
         internal async Task<FrameworkGameFlowStartResult> StartAsync(GameApplicationAsset gameApplication)

@@ -588,12 +588,9 @@ namespace Immersive.Framework.ApplicationLifecycle
                 return false;
             }
 
-            var hasTargetComposition = false;
-            if (targetActivity != null)
-            {
-                var plan = ActivitySceneCompositionPlan.FromActivity(targetActivity, source, reason);
-                hasTargetComposition = ActivitySceneCompositionRuntime.ShouldExecute(plan);
-            }
+            var hasTargetComposition = targetActivity != null
+                && _gameFlowRuntime != null
+                && _gameFlowRuntime.HasActivitySceneLoadOnActivityChange(targetActivity, source, reason);
 
             var hasPreviousRelease = previousActivity != null
                 && _gameFlowRuntime != null

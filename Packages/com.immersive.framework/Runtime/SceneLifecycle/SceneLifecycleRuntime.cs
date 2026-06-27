@@ -178,6 +178,15 @@ namespace Immersive.Framework.SceneLifecycle
             }
         }
 
+        internal bool IsSceneLoaded(string sceneName, string scenePath)
+        {
+            sceneName = Normalize(sceneName);
+            scenePath = Normalize(scenePath);
+            var loadedScene = FindLoadedScene(scenePath, sceneName);
+            return loadedScene.IsValid() && loadedScene.isLoaded;
+        }
+
+
         private static Task<SceneLifecycleLoadResult> TryLoadSceneSingleAsync(string scenePath, string sceneName)
         {
             return TryLoadSceneAsync(

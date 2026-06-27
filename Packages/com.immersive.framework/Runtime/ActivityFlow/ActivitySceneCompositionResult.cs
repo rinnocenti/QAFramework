@@ -83,8 +83,7 @@ namespace Immersive.Framework.ActivityFlow
 
         public int ExecutionReadySceneCount => Plan.ExecutionReadySceneCount;
 
-        public int LoadedSceneCount => CountByStatus(ActivitySceneCompositionEntryStatus.Loaded)
-            + CountByStatus(ActivitySceneCompositionEntryStatus.AlreadyLoaded);
+        public int LoadedSceneCount => CountByStatus(ActivitySceneCompositionEntryStatus.Loaded);
 
         public int AlreadyLoadedSceneCount => CountByStatus(ActivitySceneCompositionEntryStatus.AlreadyLoaded);
 
@@ -163,11 +162,12 @@ namespace Immersive.Framework.ActivityFlow
             string reason)
         {
             var status = DetermineExecutedStatus(entries);
+            var sideEffectsExecuted = CountByStatus(entries, ActivitySceneCompositionEntryStatus.Loaded) > 0;
             return new ActivitySceneCompositionResult(
                 plan,
                 entries,
                 status,
-                true,
+                sideEffectsExecuted,
                 source,
                 reason,
                 BuildExecutedMessage(plan, entries, status));
@@ -243,13 +243,13 @@ namespace Immersive.Framework.ActivityFlow
         {
             var activityName = !string.IsNullOrWhiteSpace(plan.ActivityOwnerName) ? plan.ActivityOwnerName : "<missing>";
             var entryCount = entries != null ? entries.Count : 0;
-            var loaded = CountByStatus(entries, ActivitySceneCompositionEntryStatus.Loaded)
-                + CountByStatus(entries, ActivitySceneCompositionEntryStatus.AlreadyLoaded);
+            var loaded = CountByStatus(entries, ActivitySceneCompositionEntryStatus.Loaded);
+            var alreadyLoaded = CountByStatus(entries, ActivitySceneCompositionEntryStatus.AlreadyLoaded);
             var failed = CountByStatus(entries, ActivitySceneCompositionEntryStatus.Failed);
             var skipped = CountByStatus(entries, ActivitySceneCompositionEntryStatus.Skipped)
                 + CountByStatus(entries, ActivitySceneCompositionEntryStatus.NotExecutionReady);
             var blockingIssues = CountBlockingIssues(entries);
-            return $"Activity scene composition executed for Activity '{activityName}'. status='{status}' scenes='{entryCount}' loaded='{loaded}' failed='{failed}' skipped='{skipped}' blockingIssues='{blockingIssues}' release='Deferred'.";
+            return $"Activity scene composition executed for Activity '{activityName}'. status='{status}' scenes='{entryCount}' loaded='{loaded}' alreadyLoaded='{alreadyLoaded}' failed='{failed}' skipped='{skipped}' blockingIssues='{blockingIssues}'.";
         }
 
         private static bool EntriesHaveBlockingIssues(IReadOnlyList<ActivitySceneCompositionResultEntry> entries)

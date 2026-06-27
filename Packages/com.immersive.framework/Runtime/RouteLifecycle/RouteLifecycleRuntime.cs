@@ -62,9 +62,14 @@ namespace Immersive.Framework.RouteLifecycle
             return _activityFlowRuntime.HasActivitySceneReleaseOnActivityChange(activity);
         }
 
-        internal bool HasAnyActivitySceneReleaseForRouteChange(ActivityAsset activity)
+        internal bool HasActivitySceneLoadOnActivityChange(ActivityAsset activity, string source, string reason)
         {
-            return _activityFlowRuntime.HasAnyActivitySceneReleaseForRouteChange(activity);
+            return _activityFlowRuntime.HasActivitySceneLoadOnActivityChange(activity, source, reason);
+        }
+
+        internal bool HasAnyActivitySceneReleaseForRouteChange()
+        {
+            return _activityFlowRuntime.HasAnyActivitySceneReleaseForRouteChange();
         }
 
         internal bool IsRouteActive(RouteAsset route)
@@ -116,7 +121,7 @@ namespace Immersive.Framework.RouteLifecycle
             var previousRoute = previousRouteState.Route;
             var previousActivity = _activityFlowRuntime.CurrentActivity;
             var routeContentExitResult = _routeContentRuntime.ExitRouteContent(previousRoute, route, source, reason);
-            var activitySceneRouteReleaseResult = await _activityFlowRuntime.ReleaseActivityScenesForRouteChangeAsync(previousActivity, source, reason);
+            var activitySceneRouteReleaseResult = await _activityFlowRuntime.ReleaseActivityScenesForRouteChangeAsync(source, reason);
             if (activitySceneRouteReleaseResult.HasBlockingIssues)
             {
                 return RouteLifecycleStartResult.Failed(activitySceneRouteReleaseResult.ToDiagnosticString());
