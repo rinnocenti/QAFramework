@@ -1,0 +1,23 @@
+# F24B1 — Delete Manifest
+
+Delete these files and their .meta files if present:
+
+Assets/_Project/Scripts/Editor/ImmersiveFrameworkUnityBuildSurfaceQaSceneCreator.cs
+Assets/_Project/Scripts/Editor/ImmersiveFrameworkUnityBuildSurfaceQaSceneCreator.cs.meta
+
+Assets/_Project/Scripts/Editor/ImmersiveFrameworkTransitionQaWorkspaceCreator.cs
+Assets/_Project/Scripts/Editor/ImmersiveFrameworkTransitionQaWorkspaceCreator.cs.meta
+
+Assets/_Project/Scripts/Editor/ImmersiveFrameworkTransitionQaGameApplicationCreator.cs
+Assets/_Project/Scripts/Editor/ImmersiveFrameworkTransitionQaGameApplicationCreator.cs.meta
+
+Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scripts/Editor/TransitionQaRouteSwitchPanelInstaller.cs
+Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scripts/Editor/TransitionQaRouteSwitchPanelInstaller.cs.meta
+
+Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scripts/Editor/TransitionQaActivitySwitchPanelInstaller.cs
+Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scripts/Editor/TransitionQaActivitySwitchPanelInstaller.cs.meta
+
+Optional cleanup only if the directory becomes empty after deletion:
+
+Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scripts/Editor/
+Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scripts/Editor.meta

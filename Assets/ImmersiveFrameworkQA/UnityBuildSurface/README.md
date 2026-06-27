@@ -1,27 +1,8 @@
-# Unity Build Surface QA
+# Unity Build Surface QA Workspace
 
-Workspace isolado para testar a etapa F24 — Unity Build Surface.
+Workspace isolado para fixtures de QA da etapa F24.
 
-Este espaço é QA do framework. Não é produto final e não deve ser usado como cena/base de gameplay.
-
-## Estrutura
-
-```text
-Assets/ImmersiveFrameworkQA/UnityBuildSurface/
-  Scenes/
-  Routes/
-  Activities/
-  GameApplications/
-  ScriptableObjects/
-  Prefabs/
-  Materials/
-  Sprites/
-  Scripts/
-```
-
-## Transition QA
-
-Fixtures principais:
+## Current fixtures
 
 ```text
 Scenes/TransitionRouteA.unity
@@ -29,23 +10,38 @@ Scenes/TransitionRouteB.unity
 Routes/QA_TransitionRouteA.asset
 Routes/QA_TransitionRouteB.asset
 Activities/QA_TransitionActivityA.asset
+Activities/QA_TransitionActivityA_Alt.asset
 Activities/QA_TransitionActivityB.asset
+Activities/QA_TransitionActivityB_Alt.asset
 GameApplications/QA_TransitionGameApplication.asset
+Scripts/Runtime/TransitionQaRouteSwitchPanel.cs
+Scripts/Runtime/TransitionQaActivitySwitchPanel.cs
 ```
 
-Menus úteis:
+## Temporary tools
+
+The editor installers used to create these fixtures are temporary and can be deleted after validation.
+
+See:
 
 ```text
-Immersive Framework > QA > Unity Build Surface > Create QA Scene
-Immersive Framework > QA > Unity Build Surface > Create Transition QA Routes and Scenes
-Immersive Framework > QA > Unity Build Surface > Create Transition QA Game Application
-Immersive Framework > QA > Unity Build Surface > Set Transition QA Game Application Active
-Immersive Framework > QA > Unity Build Surface > Install Transition QA Route Switch Panels
+Assets/_Documentation/Notes/F24B1-DELETE-MANIFEST.txt
 ```
 
-## Regra
+## Validation target
 
-- QA fixtures ficam aqui.
-- Configuração singular do jogo fica em `Assets/_Project`.
-- Core genérico fica em `Packages/com.immersive.framework`.
-- Este workspace não deve criar lifecycle paralelo.
+With `QA Transition Game Application` active:
+
+1. Boot enters `TransitionRouteA`.
+2. Route switch A -> B logs transition diagnostics.
+3. Route switch B -> A logs transition diagnostics.
+4. Activity switch and clear in each route log transition diagnostics.
+
+Expected transition diagnostics:
+
+```text
+transition='SucceededNoVisual'
+transitionBefore='SucceededNoVisual'
+transitionAfter='SucceededNoVisual'
+transitionBlockingIssues='0'
+```

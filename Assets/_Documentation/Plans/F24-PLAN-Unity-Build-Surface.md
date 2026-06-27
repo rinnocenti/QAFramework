@@ -1,28 +1,26 @@
-# F24 Plan — Unity Build Surface
+# F24 Plan - Unity Build Surface
 
 ## Status
 
-Planned
+In Progress
 
 ## Source boundaries
 
-A fonte operacional desta etapa depende da fronteira do corte:
+For project assets, QA fixtures, scenes, documentation and project-specific configuration, use `Assets/`.
 
-- `Assets/` é a fonte operacional para assets, cenas, QA, documentação viva e configurações do projeto consumidor.
-- `Packages/com.immersive.framework/` é a fonte operacional para contratos, lifecycle, runtime, diagnostics e surfaces genéricas do framework.
-- Outros packages só entram quando o corte declarar explicitamente integração com adapter/package externo.
+For generic framework core/contracts, use `Packages/com.immersive.framework/`.
 
-Não usar docs antigas fora de `Assets/_Documentation` como base de decisão desta etapa.
+Do not create framework core contracts under `Assets/_Project/Scripts/Runtime` unless they are intentionally project-specific.
 
 ## Purpose
 
-Dar forma Unity-facing às partes principais do framework antes de avançar para gameplay/adapters.
+Dar forma Unity-facing as partes principais do framework antes de avancar para gameplay/adapters.
 
-O objetivo de F24 é preparar o framework para ser usado por level/game designers com componentes, assets e inspectors compreensíveis.
+O objetivo de F24 e preparar o framework para ser usado por level/game designers com componentes, assets e inspectors compreensiveis.
 
 ## Implementation tracks
 
-Este plano segue os ADRs:
+Este plano segue os ADRs de F24:
 
 - Framework Core / Contracts
 - Unity Build Surface
@@ -30,143 +28,174 @@ Este plano segue os ADRs:
 
 ## F24 sequence
 
-### F24A0 — Assets Structure Hygiene
+### F24A0 - Assets Structure Hygiene
 
 Status: Closed / Smoke Pass
 
 Escopo:
 
-- reorganização de `Assets`;
-- correção de editor creators;
-- separação de `_Project`, `ImmersiveFrameworkQA`, `_Sandbox`, `_External` e `_Documentation`.
+- reorganizacao de `Assets`;
+- correcao de editor creators;
+- separacao de `_Project`, `ImmersiveFrameworkQA`, `_Sandbox`, `_External` e `_Documentation`.
 
-### F24A1 — Implementation Tracks ADR + Unity Plan
+### F24A1 - Implementation Tracks ADR + Unity Plan
 
 Status: Closed / Documentation Pass
 
 Escopo:
 
-- registrar os três trilhos;
-- registrar a fonte operacional `Assets/` para assets/docs/QA/configurações;
-- criar plano oficial da próxima etapa.
+- registrar os tres trilhos;
+- registrar a fonte operacional de assets/configuracao;
+- criar plano oficial da proxima etapa.
 
-### F24A2 — Naming and Scene Path Reconciliation
+### F24A2 - Naming and Scene Path Reconciliation
 
 Status: Closed / Standard Smoke Pass
 
 Escopo:
 
-- corrigir nomes ruins herdados e reconciliar nomenclatura visível;
+- corrigir nomes ruins herdados e reconciliar nomenclatura visivel;
 - atualizar scene paths e serialized references;
-- ajustar editor/build settings se necessário;
-- não alterar lifecycle.
+- ajustar editor/build settings se necessario;
+- nao alterar lifecycle.
 
-### F24A3 — Unity Build Surface QA Workspace
+### F24A3 - Unity Build Surface QA Workspace
 
 Status: Closed / Documentation + Workspace Pass
 
 Escopo:
 
 - criar workspace QA isolado para Unity Build Surface;
-- preparar pastas de cenas, assets, prefabs, materials e sprites;
-- não implementar runtime/visual.
+- separar fixtures de Transition/Loading/Pause/Save/Preferences do QA baseline.
 
-### F24A4 — Unity Build Surface QA Scene Creator
+### F24A4 - Unity Build Surface QA Scene Creator
 
 Status: Closed / QA Scene Creator Pass
 
 Escopo:
 
-- criar ferramenta editor idempotente para gerar a cena QA de Unity Build Surface;
-- não criar transition/loading/pause;
-- não alterar lifecycle.
+- criar ferramenta editor idempotente para gerar a cena QA inicial;
+- nao criar visual/lifecycle novo.
 
-### F24A5 — Source Boundary Correction + Transition QA Route Plan
+### F24A5 - Project and Framework Source Boundary
 
-Status: Closed / Source Boundary Documentation Pass
+Status: Closed / Documentation Pass
 
 Escopo:
 
-- corrigir a regra “somente `Assets/`”;
-- registrar que Framework Core / Contracts pode editar `Packages/com.immersive.framework`;
-- planejar rotas/cenas específicas de teste para transitions;
-- não implementar Transition Contract ainda.
+- corrigir a regra de fonte operacional;
+- declarar `Assets/` como fonte de assets/configuracao/docs;
+- declarar `Packages/com.immersive.framework/` como fonte do Framework Core / Contracts.
 
-### F24A6 — Transition QA Routes and Scenes
+### F24A6 - Transition QA Routes and Scenes
 
 Status: Closed / Transition QA Fixtures Pass
 
 Escopo:
 
-- criar cenas de teste específicas para transition no workspace `Assets/ImmersiveFrameworkQA/UnityBuildSurface`;
-- criar Route/Activity assets de QA específicos para transition;
-- criar ferramenta editor idempotente para gerar/selecionar esses fixtures;
-- adicionar as cenas de transition ao Build Settings quando o editor tool for executado;
-- evitar reaproveitar cenas antigas cheias de QA baseline;
-- não alterar framework core;
-- não implementar transition wiring.
+- criar rotas/cenas/assets especificos para QA de Transition;
+- nao reutilizar apenas `StartupScene`/`SecondScene` para transition;
+- nao alterar lifecycle.
 
-### F24B — Transition Contract Wiring
+### F24A7 - Transition QA Game Application
+
+Status: Closed / Transition QA Game Application Pass
+
+Escopo:
+
+- criar Game Application especifica para QA de Transition;
+- permitir ativacao explicita dessa aplicacao nos settings do framework;
+- bootar em `TransitionRouteA`.
+
+### F24A8 - Transition QA Route Switch Panels
+
+Status: Closed / Transition QA Route Switch Panel Pass
+
+Escopo:
+
+- instalar painéis QA runtime para alternar `TransitionRouteA` e `TransitionRouteB`;
+- validar Route Request com diagnostico de transition;
+- nao criar visual de transition.
+
+### F24A9 - Transition QA Activity Switch Panels
+
+Status: Closed / Transition QA Activity Switch Panel Pass
+
+Escopo:
+
+- instalar painéis QA runtime para Activity Request e Activity Clear;
+- validar Activity/ActivityClear com diagnostico de transition;
+- nao criar visual de transition.
+
+### F24B - Transition Contract Wiring
+
+Status: Closed / Route + Activity Transition Contract Pass
+
+Escopo:
+
+- garantir que Route/Activity requests passam por contrato de transition;
+- sem visual obrigatorio;
+- sem curtain/loading screen ainda.
+
+### F24B1 - Temporary QA Tooling Cleanup
 
 Status: Current
 
 Escopo:
 
-- editar `Packages/com.immersive.framework` quando necessário;
-- garantir que Route/Activity requests passam por um contrato de transition;
-- sem visual obrigatório;
-- sem curtain/loading screen ainda.
+- remover ferramentas editor-only temporarias usadas para gerar fixtures F24A4-F24A9;
+- manter assets, cenas e painéis runtime de QA;
+- nao alterar framework core.
 
-### F24C — Transition Unity Surface
+### F24C - Transition Unity Surface
 
 Status: Planned
 
 Escopo:
 
-- criar primeira surface Unity-facing para transição;
+- criar primeira surface Unity-facing para transicao;
 - naming e inspector orientados a designer;
-- usar as cenas/assets QA isoladas de Unity Build Surface;
-- não criar lifecycle paralelo.
+- nao criar lifecycle paralelo.
 
-### F24D — Loading Unity Surface
-
-Status: Planned
-
-Escopo:
-
-- criar superfície de loading/progress;
-- loading apresenta operação, não vira owner de scene lifecycle.
-
-### F24E — Pause Unity Surface
+### F24D - Loading Unity Surface
 
 Status: Planned
 
 Escopo:
 
-- criar superfície de pause;
+- criar superficie de loading/progress;
+- loading apresenta operacao, nao vira owner de scene lifecycle.
+
+### F24E - Pause Unity Surface
+
+Status: Planned
+
+Escopo:
+
+- criar superficie de pause;
 - pause consome lifecycle/input/presentation;
-- pause não controla Activity/Route diretamente.
+- pause nao controla Activity/Route diretamente.
 
-### F24F — Save Moment Authoring
+### F24F - Save Moment Authoring
 
 Status: Planned
 
 Escopo:
 
-- criar authoring mínimo de intenção de save;
+- criar authoring minimo de intencao de save;
 - sem backend completo;
 - sem snapshot gameplay ainda.
 
-### F24G — Preferences Authoring
+### F24G - Preferences Authoring
 
 Status: Planned
 
 Escopo:
 
 - separar preferences de progression save;
-- criar authoring mínimo para configurações persistentes.
+- criar authoring minimo para configuracoes persistentes.
 
-### F24H — Designer Guide
+### F24H - Designer Guide
 
 Status: Planned
 
@@ -177,7 +206,7 @@ Escopo:
 
 ## Inspector UX rule
 
-Componentes Unity-facing devem seguir este padrão:
+Componentes Unity-facing devem seguir este padrao:
 
 1. Owner
 2. Intent / Role
@@ -191,31 +220,16 @@ Componentes Unity-facing devem seguir este padrão:
 
 - `Assets/_Project`: produto/projeto consumidor.
 - `Assets/ImmersiveFrameworkQA`: QA manual e smokes.
-- `Assets/ImmersiveFrameworkQA/UnityBuildSurface`: QA isolado para surfaces Unity-facing.
-- `Assets/_Documentation`: documentação viva do projeto.
+- `Assets/ImmersiveFrameworkQA/UnityBuildSurface`: fixtures isoladas da etapa F24.
+- `Assets/_Documentation`: documentacao viva do projeto.
 - `Assets/_External`: ferramentas externas e imports manuais.
-- `Assets/_Sandbox`: experimentos descartáveis.
-- `Packages/com.immersive.framework`: framework core e surfaces/adapters genéricos.
+- `Assets/_Sandbox`: experimentos descartaveis.
+- `Packages/com.immersive.framework`: framework core/contracts genericos.
 - `Assets/Settings`, `Assets/TextMesh Pro` e assets oficiais Unity permanecem separados.
-
-## Operational workflow
-
-Usar Codex principalmente para:
-
-- documentação;
-- cortes complexos;
-- cortes que coordenam três ou mais módulos.
-
-Fazer diretamente no chat:
-
-- cortes simples;
-- primitivos;
-- criações pequenas;
-- ajustes documentais pequenos.
 
 ## Non-goals for F24
 
-F24 não implementa:
+F24 nao implementa:
 
 - player gameplay;
 - actor system;
@@ -228,9 +242,9 @@ F24 não implementa:
 
 ## Acceptance criteria
 
-- ADR dos três trilhos existe.
-- ADR de source boundary existe.
+- ADR dos tres trilhos existe.
 - Plano F24 existe.
-- README de documentação aponta para ADRs e plano.
-- Novos cortes declaram se editam `Assets`, `Packages/com.immersive.framework` ou ambos.
-- QA de Transition não depende das cenas antigas de QA baseline.
+- README de documentacao aponta para ADR e plano.
+- Framework core fica em `Packages/com.immersive.framework`.
+- Assets/configuracoes/QA/docs ficam em `Assets`.
+- F24B foi validado para Route, Activity e ActivityClear.
