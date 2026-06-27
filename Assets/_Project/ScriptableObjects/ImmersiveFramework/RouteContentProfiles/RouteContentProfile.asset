@@ -15,7 +15,7 @@ MonoBehaviour:
   profileId: route.primary.aditional
   additionalScenes:
   - contentId: scene.addictive.scene01
-    scenePath: Assets/Scenes/AdditionalRouteScene.unity
+    scenePath: Assets/ImmersiveFrameworkQA/Scenes/AdditionalRouteScene.unity
     sceneName: AdditionalRouteScene
     requiredness: 10
   description: Cena aditiva

@@ -7,12 +7,12 @@ namespace Immersive.Framework.Editor.Editor.Settings
 {
     internal static class ImmersiveFrameworkEditorSettingsUtility
     {
-        internal const string SettingsPath = "Assets/ImmersiveFramework/Resources/ImmersiveFrameworkSettings.asset";
-        internal const string GameApplicationDefaultPath = "Assets/ImmersiveFramework/GameApplication.asset";
-        internal const string StartupRouteDefaultPath = "Assets/ImmersiveFramework/Routes/StartupRoute.asset";
-        internal const string StartupActivityDefaultPath = "Assets/ImmersiveFramework/Activities/StartupActivity.asset";
-        internal const string RouteContentProfileDefaultPath = "Assets/ImmersiveFramework/Routes/RouteContentProfile.asset";
-        internal const string LoggingConfigDefaultPath = "Assets/ImmersiveFramework/Logging/LoggingConfig.asset";
+        internal const string SettingsPath = "Assets/_Project/Settings/ImmersiveFramework/Resources/ImmersiveFrameworkSettings.asset";
+        internal const string GameApplicationDefaultPath = "Assets/_Project/ScriptableObjects/ImmersiveFramework/GameApplication.asset";
+        internal const string StartupRouteDefaultPath = "Assets/_Project/ScriptableObjects/ImmersiveFramework/Routes/StartupRoute.asset";
+        internal const string StartupActivityDefaultPath = "Assets/_Project/ScriptableObjects/ImmersiveFramework/Activities/StartupActivity.asset";
+        internal const string RouteContentProfileDefaultPath = "Assets/_Project/ScriptableObjects/ImmersiveFramework/RouteContentProfiles/RouteContentProfile.asset";
+        internal const string LoggingConfigDefaultPath = "Assets/_Project/Settings/ImmersiveFramework/Logging/LoggingConfig.asset";
         internal const string UsageGuidePath = "Packages/com.immersive.framework/Documentation~/Guides/Usage/index.html";
 
         internal static ImmersiveFrameworkSettingsAsset LoadOrCreateSettingsAsset()
@@ -23,7 +23,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
                 return settings;
             }
 
-            EnsureDirectory("Assets/ImmersiveFramework/Resources");
+            EnsureDirectory("Assets/_Project/Settings/ImmersiveFramework/Resources");
 
             settings = ScriptableObject.CreateInstance<ImmersiveFrameworkSettingsAsset>();
             AssetDatabase.CreateAsset(settings, SettingsPath);
@@ -35,7 +35,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
 
         internal static GameApplicationAsset CreateGameApplicationAsset()
         {
-            EnsureDirectory("Assets/ImmersiveFramework");
+            EnsureDirectory("Assets/_Project/ScriptableObjects/ImmersiveFramework");
 
             var path = AssetDatabase.GenerateUniqueAssetPath(GameApplicationDefaultPath);
             var gameApplication = ScriptableObject.CreateInstance<GameApplicationAsset>();
@@ -48,7 +48,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
 
         internal static RouteAsset CreateStartupRouteAsset()
         {
-            EnsureDirectory("Assets/ImmersiveFramework/Routes");
+            EnsureDirectory("Assets/_Project/ScriptableObjects/ImmersiveFramework/Routes");
 
             var path = AssetDatabase.GenerateUniqueAssetPath(StartupRouteDefaultPath);
             var route = ScriptableObject.CreateInstance<RouteAsset>();
@@ -61,7 +61,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
 
         internal static ActivityAsset CreateStartupActivityAsset()
         {
-            EnsureDirectory("Assets/ImmersiveFramework/Activities");
+            EnsureDirectory("Assets/_Project/ScriptableObjects/ImmersiveFramework/Activities");
 
             var path = AssetDatabase.GenerateUniqueAssetPath(StartupActivityDefaultPath);
             var activity = ScriptableObject.CreateInstance<ActivityAsset>();
@@ -74,7 +74,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
 
         internal static RouteContentProfileAsset CreateRouteContentProfileAsset()
         {
-            EnsureDirectory("Assets/ImmersiveFramework/Routes");
+            EnsureDirectory("Assets/_Project/ScriptableObjects/ImmersiveFramework/RouteContentProfiles");
 
             var path = AssetDatabase.GenerateUniqueAssetPath(RouteContentProfileDefaultPath);
             var profile = ScriptableObject.CreateInstance<RouteContentProfileAsset>();
@@ -87,7 +87,7 @@ namespace Immersive.Framework.Editor.Editor.Settings
 
         internal static LoggingConfigAsset CreateLoggingConfigAsset()
         {
-            EnsureDirectory("Assets/ImmersiveFramework/Logging");
+            EnsureDirectory("Assets/_Project/Settings/ImmersiveFramework/Logging");
 
             var path = AssetDatabase.GenerateUniqueAssetPath(LoggingConfigDefaultPath);
             var loggingConfig = ScriptableObject.CreateInstance<LoggingConfigAsset>();

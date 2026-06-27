@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: QA_CanonicalRoute
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.RouteAsset
   routeName: QA Canonical Route
-  primaryScenePath: Assets/Scenes/StartupScene.unity
+  primaryScenePath: Assets/ImmersiveFrameworkQA/Scenes/StartupScene.unity
   primarySceneName: StartupScene
   routeContentProfile: {fileID: 11400000, guid: fca82a09ef87fce40846919ed75acbbb, type: 2}
   startupActivity: {fileID: 11400000, guid: a9fb61714d4d4cdd95b7ddb0835a7a29, type: 2}

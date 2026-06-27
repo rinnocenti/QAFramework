@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SecoundRoute
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.RouteAsset
   routeName: Secound Route
-  primaryScenePath: Assets/Scenes/SecoundScene.unity
+  primaryScenePath: Assets/ImmersiveFrameworkQA/Scenes/SecoundScene.unity
   primarySceneName: SecoundScene
   startupActivity: {fileID: 11400000, guid: 65dc5dc1b271ad34a95734ee924a46ef, type: 2}
   description: 

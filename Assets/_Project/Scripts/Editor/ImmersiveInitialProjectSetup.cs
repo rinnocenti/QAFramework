@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using UnityEngine;
-namespace Editor
+namespace Project.Editor
 {
     /// <summary>
     /// Setup inicial do projeto consumidor.
@@ -24,8 +24,6 @@ namespace Editor
 
         private static readonly string[] InitialFolders =
         {
-            "Assets/Editor",
-
             ProjectRootFolder,
             ProjectRootFolder + "/Art",
             ProjectRootFolder + "/Audio",

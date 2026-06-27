@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: QA_AlternateRoute
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.RouteAsset
   routeName: QA Alternate Route
-  primaryScenePath: Assets/Scenes/SecoundScene.unity
+  primaryScenePath: Assets/ImmersiveFrameworkQA/Scenes/SecoundScene.unity
   primarySceneName: SecoundScene
   startupActivity: {fileID: 11400000, guid: 4f86e4e9c7dd4ef19428ee7863c8bcd6, type: 2}
   description: Alternate QA route for manual switch smoke logs.

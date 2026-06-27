@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: QA_NoActivityRoute
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.RouteAsset
   routeName: QA No Activity Route
-  primaryScenePath: Assets/Scenes/StartupScene.unity
+  primaryScenePath: Assets/ImmersiveFrameworkQA/Scenes/StartupScene.unity
   primarySceneName: StartupScene
   startupActivity: {fileID: 0}
   description: Valid QA route without a startup activity.
