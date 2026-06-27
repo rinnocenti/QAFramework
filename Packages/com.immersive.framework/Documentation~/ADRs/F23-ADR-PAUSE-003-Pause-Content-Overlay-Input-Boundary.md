@@ -1,6 +1,6 @@
 # F23-ADR-PAUSE-003 - Pause Boundary Intent and Adapter Deferral
 
-Status: Accepted / F23E Applied / Boundary Reclassified  
+Status: Closed / F23F QA PASS + Usage  
 Phase: F23 - Pause Content / Overlay / Input Boundary  
 Type: Framework Intent / Requirement Boundary  
 Last updated: 2026-06-26
@@ -173,8 +173,30 @@ asmdef change
 
 ---
 
-## 8. Consequences
+## 8. F23F closure
+
+F23 closes with the usage guide:
+
+```text
+Documentation~/Guides/F23-Pause-Content-Overlay-Input-Usage.md
+```
+
+The validated smoke is:
+
+```text
+Run Pause Boundary Intent Smoke
+```
+
+F23 is now complete as an intent/requirement-only boundary. F24 must not reinterpret F23 as permission to build a full menu. It should implement only the minimal Unity surface needed to prove the framework contracts.
+
+---
+
+## 9. Consequences
 
 F23 becomes safer and smaller. It records the language Pause will use when a later Unity build-surface asks for overlay/input/content, but it does not create that surface.
 
-F24 must not reinterpret F23 as permission to build a full menu. It should implement only the minimal Unity surface needed to prove the framework contracts.
+The next technical cut is:
+
+```text
+F24B — Transition ↔ GameFlow Runtime Integration
+```

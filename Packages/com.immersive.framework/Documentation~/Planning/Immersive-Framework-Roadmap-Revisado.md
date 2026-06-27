@@ -23,8 +23,8 @@ O core do framework consome `com.immersive.foundation`, `com.immersive.logging` 
 | F20 | `CLOSED / F20F QA PASS + USAGE` | Pause State/Gate fechado como core lógico. F20B adicionou primitivas passivas; F20C adicionou diagnostics smoke; F20D adicionou policy passiva Pause-to-Gate blocker; F20E adicionou request path mínimo em memória via `FrameworkRuntimeHost`/`PauseRuntime`; F20F criou Usage Guide. Sem Gate registry real, overlay, input ou `Time.timeScale`. |
 | F21 | `CLOSED / F21H QA PASS + USAGE` | Save / Snapshot / Preferences / Progression Save Foundation fechada. F21B adicionou Snapshot Envelope primitives. F21C adicionou participant contracts/smoke. F21D adicionou Preferences store/PlayerPrefs adapter. F21E adicionou Progression Save port/slot/manifest. F21F adicionou JSON backend adapter/smoke. F21G adicionou runtime request path e autosave moment contracts. F21H criou Usage Guide e fechou a fase. |
 | F22 | `CLOSED / F22H QA PASS` | Loading Operation / Progress / Readiness Boundary fechada. F22A-F22F fecharam operação/progresso/adapters/guide; F22G fechou readiness observation; F22H fechou result/issues. |
-| F23 | `F23E APPLIED / NEXT F23F` | Pause reclassificado para intent/requirement only; adapter/materialização movidos para F24; próximo corte cria closure/usage guide. |
-| F24 | `PLANNED AFTER F23` | Unity Build Surface / Lifecycle Wiring prova contratos framework em superfícies Unity reais antes de gameplay adapters. |
+| F23 | `CLOSED / F23F QA PASS + USAGE` | Pause fechado como intent/requirement only; adapter/materialização movidos para F24; usage guide criado. |
+| F24 | `NEXT / F24B` | Unity Build Surface / Lifecycle Wiring prova contratos framework em superfícies Unity reais antes de gameplay adapters. F24A já aceitou o plano; próximo corte técnico é F24B. |
 | F25 | `DEFERRED` | Gameplay Adapter Foundation e consumers avançados ficam bloqueados até F24 provar build surface/lifecycle wiring. |
 
 ## Histórico real F0-F17
@@ -153,8 +153,8 @@ Gameplay consumers futuros possuem comportamento de produto/jogo. Player, Actor,
 | F20 | Pause State and Pause Gate | Framework Core | `CLOSED / F20F QA PASS + USAGE`: Pause como estado + Gate blocker. F20B primitives; F20C diagnostics smoke; F20D relação passiva Pause-to-Gate; F20E request path mínimo em memória; F20F Usage Guide. Não é Activity, menu, overlay, input system, `Time.timeScale` contract ou lifecycle de Route/Activity. |
 | F21 | Save / Snapshot / Preferences / Progression Save Foundation | Framework Core + Save Module | `CLOSED / F21H QA PASS + USAGE`: ADR plan aceito, Snapshot Envelope primitives aplicadas, participant contracts/smoke sintetico aplicados, Preferences store/PlayerPrefs adapter aplicado, Progression Save port/slot/manifest primitives aplicadas, JSON backend/smoke aplicados, runtime request path/autosave moment contracts aplicados e Usage Guide criado. |
 | F22 | Loading Operation / Progress / Readiness Boundary | Framework Core + Loading Module | `CLOSED / F22H`: operação, steps, progresso ponderado, observation adapter, loading screen adapter boundary, readiness observation, result/issues e usage guide. Loading não é visual, fade, curtain, prefab, TransitionEffect vocabulary ou substituto de SceneLifecycle. |
-| F23 | Pause Content / Overlay / Input Boundary | Framework Intent / Requirement Boundary | `F23E APPLIED`: F23 reclassificado para `PauseContentRequirement`, `PausePresentationIntent`, `PauseInputSignal` e `PauseInputIntent`; adapters/materialização ficam em F24. Próximo: F23F Closure + Usage Guide. |
-| F24 | Unity Build Surface / Lifecycle Wiring | Framework Unity Build Surface / Lifecycle Wiring | `PLANNED AFTER F23`: prova contratos framework em Unity real antes de gameplay adapters. Inclui wiring explícito, objetos/prefabs mínimos e smokes reais quando aplicável. Não cria gameplay adapters nem monta o jogo. |
+| F23 | Pause Content / Overlay / Input Boundary | Framework Intent / Requirement Boundary | `CLOSED / F23F QA PASS + USAGE`: F23 reclassificado para `PauseContentRequirement`, `PausePresentationIntent`, `PauseInputSignal` e `PauseInputIntent`; adapters/materialização ficam em F24. |
+| F24 | Unity Build Surface / Lifecycle Wiring | Framework Unity Build Surface / Lifecycle Wiring | `NEXT / F24B`: prova contratos framework em Unity real antes de gameplay adapters. Inclui wiring explícito, objetos/prefabs mínimos e smokes reais quando aplicável. Não cria gameplay adapters nem monta o jogo. |
 | F25 | Gameplay Adapter Foundation | Gameplay Adapter / Consumer Boundary | Camera, Audio, Actor, gameplay Pooling, Projectile, Damage, Attributes, Powerups e contextual reset entram somente depois de F24 e do modelo de gameplay object amadurecerem. |
 
 ## Plano F19 — Transition Effects / Loading and Fade Adapters
@@ -350,7 +350,7 @@ Run Progression Save JSON Backend Smoke: PASS
 Run Progression Save Runtime Request Smoke: PASS
 ```
 
-F22G/F22H debt closure accepted. F23A applied. F23B/F23C/F23D reclassified by F23E as intent/requirement contracts. Next cut: F23F — Closure + Usage Guide.
+F22G/F22H debt closure accepted. F23A applied. F23B/F23C/F23D reclassified by F23E as intent/requirement contracts. F23F closure is applied; next technical cut is F24B — Transition ↔ GameFlow Runtime Integration.
 
 ## Plano F22 — Loading Operation / Progress / Readiness Boundary
 
@@ -401,7 +401,7 @@ A revisão pré-F24 reclassificou F23 para evitar antecipar materialização. O 
 | F23C | `RECLASSIFIED BY F23E` | Pause Presentation Intent Contracts. | Compile/import. |
 | F23D | `RECLASSIFIED BY F23E` | Pause Input Intent Contracts. | Compile/import. |
 | F23E | `APPLIED / INTENT SMOKE + ADAPTER DEFERRAL` | Pause Boundary Intent Smoke + Adapter Deferral. | `Run Pause Boundary Intent Smoke`. |
-| F23F | `NEXT / PLANNED` | Closure + Usage Guide. | Guia em `Documentation~/Guides/`. |
+| F23F | `APPLIED / CLOSURE + USAGE` | Closure + Usage Guide. | `Documentation~/Guides/F23-Pause-Content-Overlay-Input-Usage.md`; `Run Pause Boundary Intent Smoke` PASS. |
 
 Guardrails de F23:
 
@@ -857,13 +857,16 @@ F22F result: Loading Operation / Progress / Readiness Boundary closed with `Docu
 
 F22G result: Loading Readiness Observation Primitives applied. Added `LoadingReadinessObservationId`, `LoadingReadinessStatus`, `LoadingReadinessObservation` and `Run Loading Readiness Observation Smoke`. This resolves readiness observation as a canonical framework boundary without gameplay adapters, lifecycle execution, readiness mutation, UI, prefab, SceneLifecycle replacement or Transition replacement.
 
-F22H result: Loading Result / Issue Primitive Closure applied. Added `LoadingIssueSeverity`, `LoadingIssue`, `LoadingResultStatus`, `LoadingResult` and `Run Loading Result and Issue Smoke`. This resolves Loading result/reporting as a canonical framework boundary without retry/fallback behavior, lifecycle execution, readiness mutation, UI, prefab, SceneLifecycle replacement, Transition replacement or gameplay adapters. F23B is now applied; next cut: F23F - Closure + Usage Guide.
+F22H result: Loading Result / Issue Primitive Closure applied. Added `LoadingIssueSeverity`, `LoadingIssue`, `LoadingResultStatus`, `LoadingResult` and `Run Loading Result and Issue Smoke`. This resolves Loading result/reporting as a canonical framework boundary without retry/fallback behavior, lifecycle execution, readiness mutation, UI, prefab, SceneLifecycle replacement, Transition replacement or gameplay adapters. F23 is now closed by F23F; next technical cut is F24B - Transition ↔ GameFlow Runtime Integration.
 
 
 F23B/F23C/F23D corrective note: F23 contracts were reclassified by F23E from adapter/consumer language to intent/requirement language. The canonical F23 runtime surface is now `PauseContentRequirement`, `PausePresentationIntent`, `PauseInputSignal` and `PauseInputIntent`. Overlay adapters, input resolvers and physical Content Anchor binding are deferred to F24 Unity Build Surface / Lifecycle Wiring.
 
 
-F23E result: Pause Boundary Intent Smoke applied. Added intent-only diagnostics for content requirement, presentation intent and input intent. This smoke explicitly records `anchorBinding=none`, `overlayAdapter=none`, `inputAdapter=none`, `inputSystem=none`, `ui=none`, `timeScale=none`, `gameplayAdapters=none` and `unityBuild=deferredToF24`. Next cut: F23F - Closure + Usage Guide.
+F23E result: Pause Boundary Intent Smoke applied. Added intent-only diagnostics for content requirement, presentation intent and input intent. This smoke explicitly records `anchorBinding=none`, `overlayAdapter=none`, `inputAdapter=none`, `inputSystem=none`, `ui=none`, `timeScale=none`, `gameplayAdapters=none` and `unityBuild=deferredToF24`. F23F closes the phase with `Documentation~/Guides/F23-Pause-Content-Overlay-Input-Usage.md`.
 
 
 
+
+
+F23F result: Pause Content / Overlay / Input Boundary closed as framework intent/requirement only. Added `Documentation~/Guides/F23-Pause-Content-Overlay-Input-Usage.md`. F23 remains free of overlay adapters, Content Anchor binding execution, Input System wiring, UI/Canvas/prefab setup, `Time.timeScale` policy and gameplay adapters. Next technical cut: F24B — Transition ↔ GameFlow Runtime Integration.

@@ -8,7 +8,7 @@ Documentation~/Planning/Immersive-Framework-Roadmap-Revisado.md
 
 ADRs record accepted architectural decisions. They do not replace the operational roadmap and must not redefine phase order.
 
-F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integration & Authoring UX`. F13 is closed as `Object Entry Foundation`. F14 is closed as `Local Object Reset Foundation`. F15 is closed as `Unity Reset Adapters minimos`. F16 is closed as `GameObject Active State Reset Adapter`. F17 is closed as `Gate Foundation`. F18 is closed as `Transition Orchestration Foundation`. F19 is closed as `Transition Effects`. F20 is closed as `Pause State and Gate`. F21 is closed for Save / Snapshot / Preferences / Progression Save Foundation. F21A through F21G are applied and F21H closes the phase with a usage guide. F22 is closed for Loading Operation / Progress / Readiness Boundary. F22B is applied for Loading Operation / Step / Weighted Progress Primitives. F22C is applied for Loading Progress Aggregation Smoke. F22D is applied for SceneLifecycle / Transition Loading Observation Adapter. F22E is applied for Loading Screen Adapter Boundary. F22F is applied for Closure + Usage Guide. F22G/F22H close the pre-F23 framework-only Loading readiness/result debt. F23A is applied as Pause Content/Overlay/Input ADR Plan. F23E reclassifies F23 as intent/requirement only, deferring adapters and Unity build surfaces to F24. F24 is Unity Build Surface / Lifecycle Wiring. Gameplay Adapter Foundation moves to F25.
+F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integration & Authoring UX`. F13 is closed as `Object Entry Foundation`. F14 is closed as `Local Object Reset Foundation`. F15 is closed as `Unity Reset Adapters minimos`. F16 is closed as `GameObject Active State Reset Adapter`. F17 is closed as `Gate Foundation`. F18 is closed as `Transition Orchestration Foundation`. F19 is closed as `Transition Effects`. F20 is closed as `Pause State and Gate`. F21 is closed for Save / Snapshot / Preferences / Progression Save Foundation. F21A through F21G are applied and F21H closes the phase with a usage guide. F22 is closed for Loading Operation / Progress / Readiness Boundary. F22B is applied for Loading Operation / Step / Weighted Progress Primitives. F22C is applied for Loading Progress Aggregation Smoke. F22D is applied for SceneLifecycle / Transition Loading Observation Adapter. F22E is applied for Loading Screen Adapter Boundary. F22F is applied for Closure + Usage Guide. F22G/F22H close the pre-F23 framework-only Loading readiness/result debt. F23A is applied as Pause Content/Overlay/Input ADR Plan. F23E reclassifies F23 as intent/requirement only, deferring adapters and Unity build surfaces to F24. F23F closes F23 with `Documentation~/Guides/F23-Pause-Content-Overlay-Input-Usage.md`. F24 is Unity Build Surface / Lifecycle Wiring. Gameplay Adapter Foundation moves to F25.
 
 ## Accepted ADRs
 
@@ -43,7 +43,7 @@ F11 is closed as `Cycle Reset Foundation`. F12 is closed as `Cycle Reset Integra
 | F20 | [Pause State and Gate](F20-ADR-PAUSE-002-Pause-State-and-Gate.md) | Accepted / Closed F20F |
 | F21 | [Save Snapshot Preferences Progression Boundary](F21-ADR-SAVE-001-Save-Snapshot-Preferences-Progression-Boundary.md) | Accepted / Closed F21H |
 | F22 | [Loading Operation Progress Readiness Boundary](F22-ADR-LOADING-001-Loading-Operation-Progress-Readiness-Boundary.md) | Closed / F22H QA PASS |
-| F23 | [Pause Content Overlay Input Boundary](F23-ADR-PAUSE-003-Pause-Content-Overlay-Input-Boundary.md) | Accepted / F23E Intent Reclassification Applied |
+| F23 | [Pause Content Overlay Input Boundary](F23-ADR-PAUSE-003-Pause-Content-Overlay-Input-Boundary.md) | Closed / F23F QA PASS + Usage |
 | F24 | [Unity Build Surface Lifecycle Wiring](F24-ADR-UNITY-BUILD-001-Unity-Build-Surface-Lifecycle-Wiring.md) | Accepted / Planned after F23 |
 | F25 | [Gameplay Adapter Foundation](F25-ADR-GAMEPLAY-001-Gameplay-Adapter-Foundation.md) | Deferred / After F24 |
 | F25+ | [Advanced Consumers Boundary](F17-ADR-CONSUMERS-001-Advanced-Consumers-Boundary.md) | Deferred / After Gameplay Adapter Foundation |
@@ -101,16 +101,16 @@ F21G applied note: F21G adds `ProgressionSaveRuntime`, `ProgressionSaveRequest`,
 
 F21H closure note: F21 is closed as Save / Snapshot / Preferences / Progression Save Foundation. Use `Documentation~/Guides/F21-Save-Snapshot-Preferences-Progression-Usage.md`.
 
-F22A applied note: F22A is documentation-only. It accepts the Loading architecture plan, updates the roadmap/ADR index and records the audit that prevents loading ghosts/orphans across SceneLifecycle, Route Scene Composition, Transition and TransitionEffects. It adds no runtime code, asmdef changes, primitives, progress aggregator, smoke, fade, curtain, loading screen prefab, UI, scene object, prefab, ScriptableObject, SceneLifecycle replacement, Transition replacement, backend, PlayerPrefs or JSON. Current next cut: F23E - Pause Content / Overlay / Input Diagnostics Smoke.
+F22A applied note: F22A is documentation-only. It accepts the Loading architecture plan, updates the roadmap/ADR index and records the audit that prevents loading ghosts/orphans across SceneLifecycle, Route Scene Composition, Transition and TransitionEffects. It adds no runtime code, asmdef changes, primitives, progress aggregator, smoke, fade, curtain, loading screen prefab, UI, scene object, prefab, ScriptableObject, SceneLifecycle replacement, Transition replacement, backend, PlayerPrefs or JSON. Historical next cut superseded by F23E/F23F closure.
 
 
 F22B applied note: F22B adds the canonical `Immersive.Framework.Loading` primitive namespace and `FrameworkIdentityDomain.Loading`. It creates operation id, step id, operation/step statuses, normalized progress, step weight, weighted progress, step and operation records.
 
 F22C applied note: F22C adds `LoadingProgressAggregationStatus`, `LoadingProgressAggregationResult`, `LoadingProgressAggregator` and `Run Loading Progress Aggregation Smoke` under QA Canvas `Show Loading diagnostics`. It does not add SceneLifecycle/Transition observation adapter, visual adapter, UI, fade, curtain, loading screen prefab or lifecycle execution.
 
-F22D applied note: F22D adds `LoadingObservationAdapter` and `Run Loading Observation Adapter Smoke`. It observes SceneLifecycle and Transition diagnostics as canonical Loading progress data without executing lifecycle, replacing Transition, running effects or creating UI. Current next cut: F23E - Pause Content / Overlay / Input Diagnostics Smoke.
+F22D applied note: F22D adds `LoadingObservationAdapter` and `Run Loading Observation Adapter Smoke`. It observes SceneLifecycle and Transition diagnostics as canonical Loading progress data without executing lifecycle, replacing Transition, running effects or creating UI. Historical next cut superseded by F23E/F23F closure.
 
-F22E applied note: F22E adds `ILoadingScreenAdapter`, `LoadingScreenPresentation`, `LoadingScreenAdapterAction`, `LoadingScreenAdapterStatus`, `LoadingScreenAdapterResult` and `Run Loading Screen Adapter Boundary Smoke`. The loading screen boundary is visual-facing only and consumes canonical `LoadingOperation`; it does not create UI, scene objects, prefabs, ScriptableObjects, fade, curtain, TransitionEffects execution, SceneLifecycle execution, Transition execution or readiness mutation. Current next cut: F23E - Pause Content / Overlay / Input Diagnostics Smoke.
+F22E applied note: F22E adds `ILoadingScreenAdapter`, `LoadingScreenPresentation`, `LoadingScreenAdapterAction`, `LoadingScreenAdapterStatus`, `LoadingScreenAdapterResult` and `Run Loading Screen Adapter Boundary Smoke`. The loading screen boundary is visual-facing only and consumes canonical `LoadingOperation`; it does not create UI, scene objects, prefabs, ScriptableObjects, fade, curtain, TransitionEffects execution, SceneLifecycle execution, Transition execution or readiness mutation. Historical next cut superseded by F23E/F23F closure.
 
 
 F22F closure note: Loading Operation / Progress / Readiness Boundary is closed. The guide documents primitive construction, weighted aggregation, observation mapping, loading screen adapter implementation expectations and QA smokes. No UI prefab, scene object, ScriptableObject, fade/curtain execution, SceneLifecycle replacement, Transition replacement, readiness mutation, backend, PlayerPrefs, JSON or asmdef change was added by the closure cut.
@@ -134,7 +134,7 @@ F22F closure note: Loading Operation / Progress / Readiness Boundary is closed. 
 - F23E reclassifies F23 as intent/requirement only.
 - Canonical F23 contracts: `PauseContentRequirement`, `PausePresentationIntent`, `PauseInputSignal`, `PauseInputIntent`.
 - Overlay adapters, input resolvers, Content Anchor binding execution, UI/Canvas/prefabs, Input System assets and gameplay adapters are deferred to F24/F25.
-- Immediate next cut is F23F - Closure + Usage Guide.
+- F23F closes the phase with `Documentation~/Guides/F23-Pause-Content-Overlay-Input-Usage.md`.
 
 ## F23 Pause Content / Overlay / Input
 
@@ -142,6 +142,13 @@ F22F closure note: Loading Operation / Progress / Readiness Boundary is closed. 
 - F23E supersedes earlier F23B/F23C/F23D adapter/consumer wording.
 - F23 is now intent-only: `PauseContentRequirement`, `PausePresentationIntent`, `PauseInputSignal`, `PauseInputIntent`.
 - F23 does not create Input System assets, action maps, device bindings, UI navigation, Time.timeScale policy, lifecycle ownership, overlay adapters, Content Anchor binding execution or gameplay adapters.
+
+## F23F Closure + Usage Guide
+
+- F23 is closed as Pause Content / Overlay / Input intent boundary.
+- Usage guide: `Documentation~/Guides/F23-Pause-Content-Overlay-Input-Usage.md`.
+- Validated smoke: `Run Pause Boundary Intent Smoke`.
+- Next technical cut: `F24B — Transition ↔ GameFlow Runtime Integration`.
 
 ## F24 Unity Build Surface / Lifecycle Wiring
 
