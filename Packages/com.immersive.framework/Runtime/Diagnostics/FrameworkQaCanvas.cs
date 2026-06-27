@@ -372,7 +372,7 @@ namespace Immersive.Framework.Diagnostics
         {
             GUILayout.Space(4f);
             GUILayout.Label("Pause Diagnostics", GUI.skin.box);
-            GUILayout.Label("F20 diagnostics and minimal runtime request path. No input, overlay or Time.timeScale changes.");
+            GUILayout.Label("F20 diagnostics plus F23 intent-only boundaries. No input adapter, overlay adapter, UI, Time.timeScale changes or Unity Build materialization.");
 
             using (new EditorDisabledScope(_requestInFlight))
             {
@@ -389,6 +389,11 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Pause Runtime Request Smoke"))
                 {
                     RunPauseRuntimeRequestSmoke();
+                }
+
+                if (GUILayout.Button("Run Pause Boundary Intent Smoke"))
+                {
+                    RunPauseBoundaryIntentSmoke();
                 }
             }
         }
@@ -925,6 +930,12 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(PauseRuntimeRequestQaSmokeRunner.SmokeName, runtimeHost =>
                 PauseRuntimeRequestQaSmokeRunner.RunRuntimeRequestSmokeAsync(runtimeHost, _logger, QaSource));
+        }
+
+        private async void RunPauseBoundaryIntentSmoke()
+        {
+            await RunSmokeAsync(PauseBoundaryIntentQaSmokeRunner.SmokeName, runtimeHost =>
+                PauseBoundaryIntentQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
         }
 
         private async void RunSnapshotParticipantDiagnosticsSmoke()

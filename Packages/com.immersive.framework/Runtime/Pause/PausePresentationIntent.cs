@@ -4,29 +4,28 @@ using Immersive.Framework.ApiStatus;
 namespace Immersive.Framework.Pause
 {
     /// <summary>
-    /// API status: Experimental. Visual-facing presentation data for Pause overlay adapters.
-    /// It wraps a canonical PauseSnapshot and optional prepared Pause Content Anchor consumer result. It does not own UI,
-    /// Canvas, prefab, input binding, Time.timeScale, Transition Effects or lifecycle execution.
+    /// API status: Experimental. Intent-level presentation data for Pause.
+    /// This does not show, update or hide UI and does not require an overlay adapter.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F23C Pause Overlay presentation boundary; visual adapter data only.")]
-    public readonly struct PauseOverlayPresentation : IEquatable<PauseOverlayPresentation>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F23E Pause presentation intent; no overlay adapter or UI materialization.")]
+    public readonly struct PausePresentationIntent : IEquatable<PausePresentationIntent>
     {
-        public PauseOverlayPresentation(
+        public PausePresentationIntent(
             PauseSnapshot snapshot,
             bool shouldBeVisible,
-            PauseContentAnchorConsumerResult contentAnchorResult,
+            PauseContentRequirement contentRequirement,
             string title,
             string detail,
             string source)
         {
             if (!snapshot.IsValid)
             {
-                throw new ArgumentException("Pause overlay presentation requires a valid Pause snapshot.", nameof(snapshot));
+                throw new ArgumentException("Pause presentation intent requires a valid Pause snapshot.", nameof(snapshot));
             }
 
             Snapshot = snapshot;
             ShouldBeVisible = shouldBeVisible;
-            ContentAnchorResult = contentAnchorResult;
+            ContentRequirement = contentRequirement;
             Title = Normalize(title);
             Detail = Normalize(detail);
             Source = Normalize(source);
@@ -34,15 +33,9 @@ namespace Immersive.Framework.Pause
 
         public PauseSnapshot Snapshot { get; }
 
-        public PauseState State => Snapshot.State;
-
-        public PauseRequestId LastRequestId => Snapshot.LastRequestId;
-
-        public bool HasLastRequest => Snapshot.HasLastRequest;
-
         public bool ShouldBeVisible { get; }
 
-        public PauseContentAnchorConsumerResult ContentAnchorResult { get; }
+        public PauseContentRequirement ContentRequirement { get; }
 
         public string Title { get; }
 
@@ -52,9 +45,7 @@ namespace Immersive.Framework.Pause
 
         public bool IsValid => Snapshot.IsValid;
 
-        public bool IsPaused => Snapshot.IsPaused;
-
-        public bool IsRunning => Snapshot.IsRunning;
+        public bool HasContentRequirement => ContentRequirement.IsValid;
 
         public bool HasTitle => !string.IsNullOrWhiteSpace(Title);
 
@@ -62,17 +53,11 @@ namespace Immersive.Framework.Pause
 
         public bool HasSource => !string.IsNullOrWhiteSpace(Source);
 
-        public bool HasContentAnchorResult => ContentAnchorResult.IsValid;
-
-        public bool HasPreparedContentAnchor => HasContentAnchorResult && ContentAnchorResult.Prepared;
-
-        public bool HasBlockingContentAnchorIssues => HasContentAnchorResult && ContentAnchorResult.BlocksPauseContent;
-
-        public bool Equals(PauseOverlayPresentation other)
+        public bool Equals(PausePresentationIntent other)
         {
             return Snapshot.Equals(other.Snapshot)
                 && ShouldBeVisible == other.ShouldBeVisible
-                && ContentAnchorResult.Equals(other.ContentAnchorResult)
+                && ContentRequirement.Equals(other.ContentRequirement)
                 && string.Equals(Title, other.Title, StringComparison.Ordinal)
                 && string.Equals(Detail, other.Detail, StringComparison.Ordinal)
                 && string.Equals(Source, other.Source, StringComparison.Ordinal);
@@ -80,7 +65,7 @@ namespace Immersive.Framework.Pause
 
         public override bool Equals(object obj)
         {
-            return obj is PauseOverlayPresentation other && Equals(other);
+            return obj is PausePresentationIntent other && Equals(other);
         }
 
         public override int GetHashCode()
@@ -89,7 +74,7 @@ namespace Immersive.Framework.Pause
             {
                 var hashCode = Snapshot.GetHashCode();
                 hashCode = (hashCode * 397) ^ ShouldBeVisible.GetHashCode();
-                hashCode = (hashCode * 397) ^ ContentAnchorResult.GetHashCode();
+                hashCode = (hashCode * 397) ^ ContentRequirement.GetHashCode();
                 hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Title ?? string.Empty);
                 hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Detail ?? string.Empty);
                 hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
@@ -104,41 +89,39 @@ namespace Immersive.Framework.Pause
 
         public string ToDiagnosticString()
         {
-            var requestText = HasLastRequest ? LastRequestId.StableText : "<none>";
             var titleText = HasTitle ? Title : "<none>";
             var detailText = HasDetail ? Detail : "<none>";
             var sourceText = HasSource ? Source : "<none>";
-            var anchorStatus = HasContentAnchorResult ? ContentAnchorResult.Status.ToString() : "<none>";
-            return $"state='{State}' visible='{ShouldBeVisible}' paused='{IsPaused}' running='{IsRunning}' lastRequest='{requestText}' title='{titleText}' detail='{detailText}' source='{sourceText}' hasContentAnchorResult='{HasContentAnchorResult}' contentAnchorPrepared='{HasPreparedContentAnchor}' contentAnchorBlocks='{HasBlockingContentAnchorIssues}' contentAnchorStatus='{anchorStatus}'";
+            return $"state='{Snapshot.State}' visible='{ShouldBeVisible}' hasContentRequirement='{HasContentRequirement}' title='{titleText}' detail='{detailText}' source='{sourceText}'";
         }
 
-        public static PauseOverlayPresentation FromSnapshot(
+        public static PausePresentationIntent FromSnapshot(
             PauseSnapshot snapshot,
             bool shouldBeVisible,
             string title,
             string detail,
             string source)
         {
-            return new PauseOverlayPresentation(snapshot, shouldBeVisible, default, title, detail, source);
+            return new PausePresentationIntent(snapshot, shouldBeVisible, default, title, detail, source);
         }
 
-        public static PauseOverlayPresentation FromSnapshot(
+        public static PausePresentationIntent FromSnapshot(
             PauseSnapshot snapshot,
             bool shouldBeVisible,
-            PauseContentAnchorConsumerResult contentAnchorResult,
+            PauseContentRequirement contentRequirement,
             string title,
             string detail,
             string source)
         {
-            return new PauseOverlayPresentation(snapshot, shouldBeVisible, contentAnchorResult, title, detail, source);
+            return new PausePresentationIntent(snapshot, shouldBeVisible, contentRequirement, title, detail, source);
         }
 
-        public static bool operator ==(PauseOverlayPresentation left, PauseOverlayPresentation right)
+        public static bool operator ==(PausePresentationIntent left, PausePresentationIntent right)
         {
             return left.Equals(right);
         }
 
-        public static bool operator !=(PauseOverlayPresentation left, PauseOverlayPresentation right)
+        public static bool operator !=(PausePresentationIntent left, PausePresentationIntent right)
         {
             return !left.Equals(right);
         }

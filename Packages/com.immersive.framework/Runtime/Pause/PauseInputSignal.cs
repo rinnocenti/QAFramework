@@ -5,10 +5,10 @@ namespace Immersive.Framework.Pause
 {
     /// <summary>
     /// API status: Experimental. Normalized, device-agnostic Pause input signal.
-    /// A signal can be produced by a future concrete input adapter, but it does not poll input, bind actions,
+    /// A signal describes intent only; it does not poll input, bind actions, dispatch PauseRequest,
     /// own UI navigation, mutate Pause state or change Time.timeScale.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F23D Pause Input signal boundary; no concrete input binding.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F23E Pause Input signal boundary; intent-only and no concrete input binding.")]
     public readonly struct PauseInputSignal : IEquatable<PauseInputSignal>
     {
         public PauseInputSignal(
@@ -61,26 +61,6 @@ namespace Immersive.Framework.Pause
         public bool HasSource => !string.IsNullOrWhiteSpace(Source);
 
         public bool HasReason => !string.IsNullOrWhiteSpace(Reason);
-
-        public PauseRequest ToPauseRequest(string requestId)
-        {
-            if (!IsPauseStateCommand)
-            {
-                throw new InvalidOperationException("Only Pause state commands can be converted to PauseRequest.");
-            }
-
-            if (CommandKind == PauseInputCommandKind.Pause)
-            {
-                return PauseRequest.Pause(requestId, Source, Reason);
-            }
-
-            if (CommandKind == PauseInputCommandKind.Resume)
-            {
-                return PauseRequest.Resume(requestId, Source, Reason);
-            }
-
-            return PauseRequest.Toggle(requestId, Source, Reason);
-        }
 
         public bool Equals(PauseInputSignal other)
         {
