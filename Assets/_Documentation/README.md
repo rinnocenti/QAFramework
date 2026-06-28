@@ -44,6 +44,7 @@ Loading progress closeout: `Notes/F26F-Loading-Progress-Polish-And-Closeout.md`.
 F26F cleanup manifest: `Notes/F26F-DELETE-MANIFEST.txt`.
 
 Pause UIGlobal surface baseline: `Notes/F27A-Pause-UIGlobal-Surface-Baseline.md`.
+Pause input binding: `Notes/F27B-Pause-Input-Binding.md`.
 
 ## Regras
 

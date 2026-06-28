@@ -26,7 +26,7 @@ Read the documentation in this order:
 | F24 | Unity Build Surface / Lifecycle Wiring | Closed / validated by QA surface |
 | F25 | Activity Content Scene Composition | Closed / final docs aligned in F25J |
 | F26 | Activity Scene Discovery Integration / Loading Progress Integration | Closed / loading progress closed through F26F |
-| F27 | Pause UIGlobal Surface and Input Wiring | Open / F27A ready for smoke |
+| F27 | Pause UIGlobal Surface and Input Wiring | Open / F27B ready for smoke |
 
 ## F23 Boundary
 
@@ -79,7 +79,9 @@ F27 implements the deferred Unity-facing Pause surface work after F26 loading pr
 
 F27A adds a Pause surface adapter boundary, collects `IPauseSurfaceAdapter` from the canonical UIGlobal scene, applies `PauseSnapshot` updates after logical Pause requests and exposes a QA `PauseRequestTrigger` for manual validation.
 
-F27A does not bind keyboard/controller input, does not change `Time.timeScale` and does not own Route/Activity lifecycle. Those are later adapter/policy cuts.
+F27A does not bind keyboard/controller input, does not change `Time.timeScale` and does not own Route/Activity lifecycle.
+
+F27B adds `UnityPauseInputActionAdapter`, a narrow Unity Input System adapter that maps authored `Player/PauseToggle` and `UI/PauseToggle` actions to `PauseRequestKind.Toggle`. It preserves same-frame dedupe and does not own InputMode, PlayerInput, action-map switching or `Time.timeScale`.
 
 Project plan: `Assets/_Documentation/Plans/F27-PLAN-Pause-UIGlobal-And-Input.md`.
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-Open / F27A ready for smoke
+Open / F27B ready for smoke
 
 ## Purpose
 
@@ -27,8 +27,8 @@ Later adapters:
 
 | Cut | Name | Status | Scope |
 |---|---|---|---|
-| F27A | Pause UIGlobal Surface Baseline | Ready for smoke | Collect `IPauseSurfaceAdapter` from UIGlobal, apply Pause snapshots to QA surface, expose PauseRequestTrigger buttons. |
-| F27B | Pause Input Signal Wiring | Planned | Map an authored input signal to `PauseRequestKind.Toggle` without hardcoding a product input map. |
+| F27A | Pause UIGlobal Surface Baseline | Closed / PASS | Collect `IPauseSurfaceAdapter` from UIGlobal, apply Pause snapshots to QA surface, expose PauseRequestTrigger buttons. |
+| F27B | Pause Input Signal Wiring | Ready for smoke | Map authored `Player/PauseToggle` and `UI/PauseToggle` actions to `PauseRequestKind.Toggle` without owning InputMode. |
 | F27C | Pause Time Policy Adapter | Planned | Optional adapter for `Time.timeScale` or local gameplay freeze policy. |
 | F27D | Pause Closeout / Guide | Planned | Document designer setup and boundary rules. |
 
@@ -47,3 +47,12 @@ Later adapters:
 - No Time.timeScale changes.
 - No product-grade menu.
 - No changes to Route/Activity request ownership.
+
+## F27B acceptance
+
+- `InputSystem_Actions` has `PauseToggle` in both `Player` and `UI` maps.
+- `QA_UIGlobal` has `UnityPauseInputActionAdapter` configured with the authored input asset.
+- Boot logs `Pause Input Action Adapter ready`.
+- Pressing Escape or Gamepad Start triggers `PauseRequestKind.Toggle`.
+- Same-frame duplicate action callbacks are ignored.
+- No InputMode or action-map switching is introduced in this cut.

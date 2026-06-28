@@ -204,3 +204,12 @@ pauseSurfaceAdapterCount='1'
 
 This is still QA surface validation only. It does not bind keyboard/controller input, does not change `Time.timeScale` and does not own Route or Activity lifecycle.
 
+
+
+## F27B Pause Input Binding
+
+`QA_UIGlobal` now includes `UnityPauseInputActionAdapter` configured with `Assets/InputSystem_Actions.inputactions`.
+
+The QA input asset has `PauseToggle` in both `Player` and `UI` maps. Default bindings are Escape and Gamepad Start.
+
+This adapter is intentionally narrow: it converts input to `PauseRequestKind.Toggle` and does not switch action maps or own InputMode policy.
