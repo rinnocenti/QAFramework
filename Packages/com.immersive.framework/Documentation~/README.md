@@ -23,8 +23,8 @@ Read the documentation in this order:
 | F21 | Save / Snapshot / Preferences / Progression Save Foundation | Closed |
 | F22 | Loading Operation / Progress / Readiness Boundary | Closed |
 | F23 | Pause Content / Overlay / Input Intent Boundary | Closed |
-| F24 | Unity Build Surface / Lifecycle Wiring | Next |
-| F25 | Activity Content Scene Composition | Current after F24 visual policy |
+| F24 | Unity Build Surface / Lifecycle Wiring | Closed / validated by QA surface |
+| F25 | Activity Content Scene Composition | Closed / final docs aligned in F25J |
 
 ## F23 Boundary
 
@@ -69,7 +69,7 @@ F25 must consume F24 Unity build surfaces and must not create a parallel lifecyc
 
 `F24F - Activity Transition Policy` adds an Activity-level authoring policy for optional Activity transitions. Route transitions remain mandatory; Activity loading remains skipped until real Activity content/scene loading exists.
 
-`F24F1 - Activity Loading Reserved Finding` marks `FadeWithLoading` as reserved. Activity loading remains `SkippedNoSceneLoad` until an Activity content composition track adds `ActivityContentProfile`, Activity scene composition plan/result, execution and release.
+`F24F1 - Activity Loading Reserved Finding` was a historical pre-F25 finding. After F25I1/F25I2, `FadeWithLoading` is no longer reserved; it means Activity operation uses TransitionSurface and LoadingSurface when the operation requests loading presentation.
 
 ## F25 Activity Content Scene Composition
 
@@ -83,7 +83,7 @@ F25 now opens with Activity content scene composition before broader adapter mod
 - `ActivityContentReleasePolicy`
 - `ActivityAsset.ActivityContentProfile`
 
-F25A does not load Activity scenes. Activity loading remains `SkippedNoSceneLoad` until Activity scene composition execution is implemented in a later F25 cut.
+F25A itself did not load Activity scenes. Later F25 cuts added composition, release, operation planning, ledger tracking and visual-mode diagnostics.
 
 Project plan: `Assets/_Documentation/Plans/F25-PLAN-Activity-Content-Scene-Composition.md`.
 
@@ -92,17 +92,17 @@ Project plan: `Assets/_Documentation/Plans/F25-PLAN-Activity-Content-Scene-Compo
 
 `F25C - Activity Scene Composition Execution` loads execution-ready Activity content scenes additively. When a canonical `LoadingSurface` exists, Activity scene composition runs inside the loading window. Progress remains indeterminate and Activity content release is deferred to F25D.
 
-`F25R - Activity Scene Operation Architecture Reset` classifies F25C-D4 as experimental/partial execution evidence and makes `ActivityOperationPlan` the required owner of Activity visual policy, scene composition, scene release, LoadingSurface requirement, TransitionSurface visual envelope requirement, Route startup Activity unification and future Activity scene ledger. `Seamless + Activity scene load/release side-effect` is invalid and must not open LoadingSurface without fade.
+`F25R - Activity Scene Operation Architecture Reset` classifies F25C-D4 as experimental/partial execution evidence and makes `ActivityOperationPlan` the required owner of Activity visual policy, scene composition, scene release, LoadingSurface requirement, TransitionSurface visual envelope requirement, Route startup Activity unification and future Activity scene ledger. `F25I1` corrects the visual-mode rule: `Seamless + Activity scene load/release side-effect` is valid, but it must not open LoadingSurface implicitly.
 
 `F25E - Activity Operation Plan Baseline` adds side-effect-free Activity operation planning/result types under `Runtime/ActivityFlow`. It does not change execution; it only records the canonical planning language and visual validity rules required before the executor cut.
 
 `F25F - Activity Operation Executor Preview` adds `ActivityOperationPlanner` and a validation-only `ActivityOperationExecutor` facade. It can produce unified preview plans from target Activity loads, previous Activity releases and visual policy, but does not replace the legacy runtime execution path yet.
 
-`F25F1 - Activity Operation Runtime Gate` starts consuming the preview plan in Activity request/clear. Blocked plans such as `Seamless + Activity scene side-effect` now fail before transition/loading/lifecycle side-effects, and Activity LoadingSurface is shown only when the valid operation plan requires it.
+`F25F1 - Activity Operation Runtime Gate` starts consuming the preview plan in Activity request/clear. After `F25I1`, the gate still blocks true declaration/configuration failures, but `Seamless` and `Fade` are valid with Activity scene side-effects. Activity LoadingSurface is shown only when the valid operation plan explicitly requires it.
 
 `F25F2 - Activity Operation Blocked Diagnostics Fix` preserves the resolved operation visual mode in blocked/failed Activity request diagnostics, so a blocked `Fade` plan no longer reports `activityTransitionMode=Seamless` in the final result fields.
 
-`F25G - Startup Activity Path Unification` previews Route startup Activity as `ActivityOperationKind.RouteStartup`, blocks invalid startup plans before Route lifecycle side-effects, carries the operation result into `ActivityFlowStartResult`, and adds Route request diagnostics for startup Activity operation and Activity scene composition/release. Route transition/loading remains the outer visual envelope; no final ledger is introduced yet.
+`F25G - Startup Activity Path Unification` previews Route startup Activity as `ActivityOperationKind.RouteStartup`, carries the operation result into `ActivityFlowStartResult`, and adds Route request diagnostics for startup Activity operation and Activity scene composition/release. Route transition/loading remains the outer visual envelope; F25H later adds the final ledger.
 
 ### IF-FW-F25D — Activity Content Release
 
@@ -131,8 +131,15 @@ Follow-up cuts:
 | F25G | Startup Activity Path Unification |
 | F25H | Activity Scene Ledger |
 | F25I | Activity Operation Validator Guards |
+| F25I1 | Activity Operation Visual Mode Scope Correction |
+| F25I2 | Loading Skip Diagnostics Refinement |
 
 `F25H - Activity Scene Ledger` replaces the implicit loaded Activity scene list with an explicit internal ledger. The ledger records route instance id, Activity identity, content id, scene path/name, Activity release policy, Activity ownership and Loaded/Released/Stale state. Existing visual/loading behavior is preserved, while Activity/Route logs gain `activitySceneLedger*` snapshot fields.
 
 
-`F25I - Activity Operation Validator Guards` adds editor-only/QA validation for Activity operation authoring. Activities with Activity content scene declarations must use `FadeWithLoading`; `Seamless` and `Fade` are now validation errors when the Activity can produce scene load/release side-effects. Existing profile guards for required scene references, cached scene names without scene paths and duplicate content ids remain active. Runtime visual/loading behavior is unchanged.
+`F25I1 - Activity Operation Visual Mode Scope Correction` corrects the F25I guard. Activities with Activity content scene declarations may use `Seamless`, `Fade` or `FadeWithLoading`. Existing profile guards for required scene references, cached scene names without scene paths and duplicate content ids remain active. Runtime planning no longer blocks `Seamless/Fade + scene side-effect`; it only controls whether TransitionSurface and LoadingSurface are used.
+
+
+`F25I2 - Loading Skip Diagnostics Refinement` is diagnostics-only. When an Activity operation executes Activity scene load/release without opening LoadingSurface because the authored visual mode is `Seamless` or `Fade`, request logs now report `loading=SkippedByActivityPolicy` instead of `loading=SkippedNoSceneLoad`. No runtime loading, transition or ledger behavior changes.
+
+`F25J - Activity Operation Final Documentation / Matrix Alignment` closes the F25 documentation baseline. Canonical final rule: visual mode selects presentation, not permission to execute Activity scene composition/release. `Seamless` skips TransitionSurface and LoadingSurface, `Fade` uses only TransitionSurface, and `FadeWithLoading` uses TransitionSurface plus LoadingSurface when the operation requests loading presentation. Cleanup of false/legacy trails is deferred to a dedicated Codex audit.

@@ -100,28 +100,28 @@ The envelope is required when Activity scene load/release side-effects would oth
 
 ## Valid Visual Rules
 
-`Seamless` is valid only when the plan has no Activity scene load/release side-effects.
+`Seamless` is valid with or without Activity scene load/release side-effects after F25I1. It means no TransitionSurface and no LoadingSurface.
 
 ```text
 Seamless + no scene side-effect = valid
-Seamless + scene load/release side-effect = invalid
+Seamless + scene load/release side-effect = valid, without TransitionSurface and without LoadingSurface
 ```
 
 `Fade` is valid for Activity visual changes that need transition occlusion but do not require LoadingSurface.
 
 ```text
-Fade + no required loading surface = valid
-Fade + required loading surface = invalid unless upgraded by explicit authoring to FadeWithLoading
+Fade + no scene side-effect = valid
+Fade + scene load/release side-effect = valid, with TransitionSurface and without LoadingSurface
 ```
 
-`FadeWithLoading` is required when the Activity operation will show LoadingSurface because of Activity scene load/release.
+`FadeWithLoading` is required only when the authored Activity operation should show LoadingSurface for Activity scene load/release.
 
 ```text
 FadeWithLoading + scene load/release side-effect + LoadingSurface = valid
 FadeWithLoading + no scene side-effect = valid but should report no Activity loading side-effect
 ```
 
-The runtime must not silently upgrade `Seamless` or `Fade` to `FadeWithLoading`. Invalid plans must produce explicit blocking issues.
+The runtime must not silently upgrade `Seamless` or `Fade` to `FadeWithLoading`. Scene side-effects alone are not invalid.
 
 `AlreadyLoaded` is diagnostics only. It is not a scene load side-effect and must not require LoadingSurface.
 
@@ -194,7 +194,10 @@ No F25C-D4 runtime code is removed in this reset cut.
 | F25F | Activity Operation Executor | Move Activity transition/loading/release/load/state sequencing to one executor. |
 | F25G | Startup Activity Path Unification | Route startup Activity uses the same Activity operation plan/executor path. |
 | F25H | Activity Scene Ledger | Replace loose Activity scene tracking with route-scoped ledger entries. |
-| F25I | Validator Guards | Block invalid visual combinations such as `Seamless` plus scene side-effects. |
+| F25I | Validator Guards | Initial validator guards; visual-mode side-effect restriction superseded by F25I1. |
+| F25I1 | Visual Mode Scope Correction | `Seamless`/`Fade`/`FadeWithLoading` are valid choices with scene side-effects; they select presentation, not permission. |
+| F25I2 | Loading Skip Diagnostics Refinement | Distinguish no scene load from scene load without LoadingSurface. |
+| F25J | Final Documentation / Matrix Alignment | Close the F25 baseline and prepare cleanup audit targets. |
 
 ## Non-Goals
 
@@ -207,3 +210,23 @@ This reset does not implement runtime code, validators, Editor UI, asmdef change
 - Activity scene composition/release must report explicit blocking issues instead of silent visual fallback.
 - Startup Activity and Route cleanup become first-class Activity operation kinds.
 - F25C-D4 remain useful but no longer define the canonical operation architecture.
+
+
+## F25I1 correction
+
+F25I1 supersedes the original visual invalidity rule in this ADR. Activity scene load/release side-effects do not require `FadeWithLoading`. `Seamless` is the explicit authoring choice for loading/releasing Activity content without a curtain or canonical LoadingSurface; `Fade` uses only the TransitionSurface; `FadeWithLoading` uses both TransitionSurface and LoadingSurface.
+
+The forbidden behavior is not the scene side-effect itself. The forbidden behavior is a silent visual upgrade or an implicit LoadingSurface that contradicts the authored mode.
+
+
+## F25J closure
+
+F25J closes this ADR's follow-up sequence as a documented baseline. Runtime behavior after F25I2:
+
+```text
+Seamless       -> no TransitionSurface, no LoadingSurface, Activity scene side-effects may execute.
+Fade           -> TransitionSurface, no LoadingSurface, Activity scene side-effects may execute.
+FadeWithLoading -> TransitionSurface and LoadingSurface when the operation requests loading presentation.
+```
+
+The next cleanup audit should remove or rewrite false trails that still imply Activity scene side-effects require `FadeWithLoading`.

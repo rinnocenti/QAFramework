@@ -44,7 +44,7 @@ F24 starts with lifecycle wiring before visual loading/pause surfaces. The first
 
 F25 currently stabilizes Activity Content Scene Composition before broader adapter module work resumes. Adapter module foundation remains deferred until Activity scene operation ownership is stable.
 
-`F25R - Activity Scene Operation Architecture Reset` is the current documentary reset for Activity scene loading/release. It classifies F25C-D4 as experimental/partial execution evidence, records the invalid `Seamless + Activity scene side-effect => LoadingSurface without fade` behavior, and requires future work to start from `ActivityOperationPlan`, Visual Envelope and route-scoped Activity scene ledger ownership.
+`F25R - Activity Scene Operation Architecture Reset` is the documentary reset for Activity scene loading/release. `F25I1` corrects its early visual-mode constraint: `Seamless + Activity scene side-effect` is valid, but must never auto-open LoadingSurface or silently upgrade to another visual mode.
 
 ## Anti-Regression Rules
 

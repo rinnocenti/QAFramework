@@ -449,17 +449,17 @@ namespace Immersive.Framework.Editor.Editor.Validation
             {
                 case ActivityVisualTransitionMode.Seamless:
                     report.AddInfo(
-                        "Activity Transition Mode is Seamless. Activity requests will skip the Session TransitionSurface when the Activity operation has no scene load/release side-effects.",
+                        "Activity Transition Mode is Seamless. Activity requests skip the Session TransitionSurface and canonical LoadingSurface, including when the operation performs Activity scene load/release side-effects.",
                         activity);
                     break;
                 case ActivityVisualTransitionMode.Fade:
                     report.AddInfo(
-                        "Activity Transition Mode is Fade. Activity requests will use the Session TransitionSurface when the Activity operation has no scene load/release side-effects.",
+                        "Activity Transition Mode is Fade. Activity requests use the Session TransitionSurface and skip the canonical LoadingSurface, including when the operation performs Activity scene load/release side-effects.",
                         activity);
                     break;
                 case ActivityVisualTransitionMode.FadeWithLoading:
                     report.AddInfo(
-                        "Activity Transition Mode is FadeWithLoading. Activity scene load/release side-effects are allowed and require the canonical LoadingSurface.",
+                        "Activity Transition Mode is FadeWithLoading. Activity requests use the Session TransitionSurface and canonical LoadingSurface when the operation performs Activity scene load/release side-effects.",
                         activity);
                     break;
             }
@@ -498,18 +498,18 @@ namespace Immersive.Framework.Editor.Editor.Validation
             switch (activity.VisualTransitionMode)
             {
                 case ActivityVisualTransitionMode.Seamless:
-                    report.AddError(
-                        $"Activity '{activity.ActivityName}' declares {sceneSideEffectDeclarations} Activity content scene(s), but Activity Transition Mode is Seamless. Activity scene load/release side-effects require explicit FadeWithLoading authoring.",
+                    report.AddInfo(
+                        $"Activity '{activity.ActivityName}' declares {sceneSideEffectDeclarations} Activity content scene(s) and uses Seamless. Runtime may load/release those scenes without TransitionSurface or LoadingSurface.",
                         activity);
                     break;
                 case ActivityVisualTransitionMode.Fade:
-                    report.AddError(
-                        $"Activity '{activity.ActivityName}' declares {sceneSideEffectDeclarations} Activity content scene(s), but Activity Transition Mode is Fade. Activity scene load/release side-effects require explicit FadeWithLoading authoring.",
+                    report.AddInfo(
+                        $"Activity '{activity.ActivityName}' declares {sceneSideEffectDeclarations} Activity content scene(s) and uses Fade. Runtime may load/release those scenes inside the TransitionSurface without the canonical LoadingSurface.",
                         activity);
                     break;
                 case ActivityVisualTransitionMode.FadeWithLoading:
                     report.AddInfo(
-                        $"Activity '{activity.ActivityName}' declares {sceneSideEffectDeclarations} Activity content scene(s) and uses FadeWithLoading, which is valid for Activity scene load/release side-effects.",
+                        $"Activity '{activity.ActivityName}' declares {sceneSideEffectDeclarations} Activity content scene(s) and uses FadeWithLoading. Runtime may load/release those scenes inside the TransitionSurface with the canonical LoadingSurface.",
                         activity);
                     break;
             }

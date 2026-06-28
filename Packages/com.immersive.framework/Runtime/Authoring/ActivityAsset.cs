@@ -29,7 +29,7 @@ namespace Immersive.Framework.Authoring
         private ActivityContentProfileAsset activityContentProfile;
 
         [SerializeField]
-        [Tooltip("Defines whether Activity operations use the session TransitionSurface and, for scene side-effects, the canonical LoadingSurface. Activity-owned scene load/release requires FadeWithLoading.")]
+        [Tooltip("Defines whether Activity operations use the session TransitionSurface and, for scene side-effects, the canonical LoadingSurface. Seamless/Fade/FadeWithLoading are all valid with Activity-owned scene load/release; they select presentation.")]
         private ActivityVisualTransitionMode visualTransitionMode = ActivityVisualTransitionMode.Seamless;
 
         public string ActivityName

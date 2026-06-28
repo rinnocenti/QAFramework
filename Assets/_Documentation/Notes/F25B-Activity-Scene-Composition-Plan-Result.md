@@ -1,13 +1,13 @@
 # IF-FW-F25B — Activity Scene Composition Plan/Result
 
 ## Status
-Implemented / smoke pending
+Implemented / historical planning cut
 
 ## Context
 
 F25A added `ActivityContentProfileAsset` and scene declarations, but Activity still had no composition evidence in runtime diagnostics.
 
-F24F/F24F1 already separated Activity visual transition policy from Activity loading. `FadeWithLoading` remains reserved until Activity scene/content loading exists.
+F24F/F24F1 already separated Activity visual transition policy from Activity loading. Historical F25B state: `FadeWithLoading` was still reserved until Activity scene/content loading existed.
 
 ## Decision
 
@@ -56,3 +56,8 @@ If the Activity has no profile, the result is `NotRequested`.
 
 - `IF-FW-F25C` — Activity Scene Composition Execution.
 - `IF-FW-F25D` — Activity Content Release.
+
+
+## F25J closure note
+
+This note is historical. Later F25 cuts added execution, release, ActivityOperationPlan, ActivitySceneLedger and the final visual-mode rule. `FadeWithLoading` is no longer reserved after F25I1/F25I2; `Seamless`, `Fade` and `FadeWithLoading` all allow Activity scene side-effects and differ only by presentation.

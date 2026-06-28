@@ -10,7 +10,7 @@ F25R requires Route startup Activity to use the same Activity operation planning
 ## Changes
 
 - `ActivityFlowRuntime.StartStartupActivityAsync` now previews startup Activity as `ActivityOperationKind.RouteStartup`.
-- Blocked startup plans return an explicit failed Activity flow result with the `ActivityOperationResult`.
+- Blocked startup plans return an explicit failed Activity flow result with the `ActivityOperationResult`. After F25I1, `Seamless/Fade + scene side-effect` is not blocked by itself.
 - Route lifecycle preflights the startup Activity operation before Route lifecycle side-effects continue.
 - `ActivityFlowStartResult` can carry the relevant `ActivityOperationResult`.
 - Route request diagnostics now include `routeStartupActivityOperation*` fields.
@@ -31,7 +31,7 @@ F25G does not create a separate Activity visual envelope for Route startup Activ
 
 ## Expected smoke
 
-For a Route whose startup Activity has Activity-owned scenes and valid `FadeWithLoading` authoring, Route request logs should include:
+For a Route whose startup Activity has Activity-owned scenes and `FadeWithLoading` authoring, Route request logs should include:
 
 ```text
 routeStartupActivityOperation='Planned'
@@ -44,4 +44,4 @@ activitySceneCompositionSideEffects='True'
 loading='SucceededWithUnitySurface'
 ```
 
-For invalid startup Activity authoring such as `Seamless` with scene side-effects, the Route start should fail explicitly before executing Route lifecycle side-effects.
+For a Route whose startup Activity has Activity-owned scenes and `Seamless` authoring, the Route start should succeed and Activity composition should execute inside the Route operation without opening an Activity LoadingSurface. Structural declaration/configuration failures should still fail explicitly before lifecycle side-effects continue.

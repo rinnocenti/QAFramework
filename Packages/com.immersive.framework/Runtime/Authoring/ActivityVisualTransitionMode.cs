@@ -9,10 +9,16 @@ namespace Immersive.Framework.Authoring
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F24F Activity visual transition policy; Session UIGlobal remains the surface owner.")]
     public enum ActivityVisualTransitionMode
     {
-        /// <summary>Activity switch/clear runs without a visual transition.</summary>
+        /// <summary>
+        /// Activity switch/clear/startup runs without TransitionSurface and without the canonical LoadingSurface.
+        /// Activity scene load/release may still execute when the operation requires it.
+        /// </summary>
         Seamless = 0,
 
-        /// <summary>Activity switch/clear runs the session TransitionSurface fade before and after the Activity operation.</summary>
+        /// <summary>
+        /// Activity switch/clear/startup runs the session TransitionSurface fade before and after the Activity operation, without the canonical LoadingSurface.
+        /// Activity scene load/release may still execute when the operation requires it.
+        /// </summary>
         Fade = 10,
 
         /// <summary>

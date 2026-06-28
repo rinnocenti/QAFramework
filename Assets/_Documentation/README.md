@@ -19,6 +19,7 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 ### Plans
 
 - `Plans/F24-PLAN-Unity-Build-Surface.md`
+- `Plans/F25-PLAN-Activity-Content-Scene-Composition.md`
 
 ### Setup
 
@@ -27,6 +28,8 @@ Documentos de setup do projeto consumidor.
 ### Notes
 
 Notas temporárias e achados de auditoria local.
+
+Fechamento F25: `Notes/F25J-Activity-Operation-Final-Documentation-And-Matrix-Alignment.md`.
 
 ## Regras
 

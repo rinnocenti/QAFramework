@@ -78,6 +78,19 @@ namespace Immersive.Framework.ApplicationLifecycle
                 false);
         }
 
+        public static FrameworkLoadingDiagnostics SkippedByActivityPolicy()
+        {
+            return new FrameworkLoadingDiagnostics(
+                "SkippedByActivityPolicy",
+                NoneText,
+                SkippedText,
+                SkippedText,
+                IndeterminateProgressText,
+                0,
+                0,
+                false);
+        }
+
         public static FrameworkLoadingDiagnostics SucceededWithNoOp()
         {
             return new FrameworkLoadingDiagnostics(

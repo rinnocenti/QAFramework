@@ -2,70 +2,49 @@
 
 ## Status
 
-Implemented.
+Superseded by `IF-FW-F25I1` for visual-mode scope.
 
-## Purpose
+## Correction
 
-F25I adds editor-only/QA authoring guards for the Activity operation rules that are already enforced by runtime planning.
+The original F25I validator was too strict because it treated Activity content scene declarations as requiring `FadeWithLoading`.
 
-The validator must surface invalid authoring before Play Mode whenever an Activity can produce Activity scene load/release side-effects without an explicit loading-capable visual policy.
+That is no longer the canonical rule.
 
-## Rules
-
-Activity content scene side-effects require explicit `FadeWithLoading` authoring.
-
-Invalid:
+Correct rule:
 
 ```text
-ActivityVisualTransitionMode.Seamless
-+
-Activity Content Profile with scene declarations
+Activity scene load/release side-effects are allowed in Seamless, Fade and FadeWithLoading.
+The selected ActivityVisualTransitionMode controls presentation only.
 ```
 
-Invalid:
+Meaning:
 
 ```text
-ActivityVisualTransitionMode.Fade
-+
-Activity Content Profile with scene declarations
+Seamless       = no TransitionSurface, no LoadingSurface
+Fade           = TransitionSurface, no LoadingSurface
+FadeWithLoading = TransitionSurface + LoadingSurface when scene side-effects exist
 ```
 
-Valid:
+The framework must not silently upgrade `Seamless` or `Fade` into `FadeWithLoading`.
+
+## Preserved validator errors
+
+F25I/F25I1 still keep structural profile errors:
+
+- required Activity content scene entry without scene reference;
+- cached scene name without scene path;
+- duplicate content id inside one Activity Content Profile.
+
+## Superseded rule
+
+The following rule was rejected:
 
 ```text
-ActivityVisualTransitionMode.FadeWithLoading
-+
-Activity Content Profile with scene declarations
+Activity Content Profile with scenes requires FadeWithLoading.
 ```
 
-Rationale:
+Reason:
 
-- `Seamless` has no visual envelope and cannot hide load/release side-effects.
-- `Fade` has transition occlusion but does not authorize LoadingSurface usage for Activity scene load/release.
-- `FadeWithLoading` explicitly authorizes the TransitionSurface + LoadingSurface operation required by Activity-owned scene side-effects.
-
-## Scope
-
-Changed:
-
-- `FrameworkAuthoringValidator.ValidateActivity(...)` now checks Activity operation visual guards.
-- Activity content profile validation messages were updated from early declaration-only wording to current Activity scene composition wording.
-- Authoring tooltip/XML comments for `ActivityVisualTransitionMode`, `ActivityAsset`, `ActivityContentProfileAsset` and `ActivityContentSceneEntry` were updated to match the current F25 runtime.
-
-Preserved:
-
-- Existing runtime execution.
-- Activity operation planner/gate behavior.
-- Activity scene ledger behavior.
-- Route startup operation behavior.
-
-## Non-goals
-
-F25I does not add:
-
-- Inspector custom UI.
-- validator window redesign.
-- runtime load/release changes.
-- Addressables.
-- loading progress.
-- final executor migration.
+```text
+It prevents the intended use case of loading a sequence of Activities without a curtain/loading screen.
+```

@@ -40,9 +40,9 @@ tracked Activity-owned scene evidence
 The plan applies the F25R rules:
 
 ```text
-Seamless + scene side-effect = blocking issue
-Fade + scene side-effect = blocking issue
-FadeWithLoading + scene side-effect = valid and requires LoadingSurface
+Seamless + scene side-effect = valid without TransitionSurface/LoadingSurface (corrected by F25I1)
+Fade + scene side-effect = valid with TransitionSurface and without LoadingSurface (corrected by F25I1)
+FadeWithLoading + scene side-effect = valid and requests LoadingSurface
 AlreadyLoaded = diagnostics only, not a side-effect
 ```
 

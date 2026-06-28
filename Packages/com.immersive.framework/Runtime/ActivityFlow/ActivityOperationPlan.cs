@@ -220,22 +220,7 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var sceneSideEffects = CountSceneSideEffects(scenes);
-            if (sceneSideEffects > 0)
-            {
-                if (visualMode == ActivityVisualTransitionMode.Seamless)
-                {
-                    issues.Add(ActivityOperationIssue.Blocking(
-                        ActivityOperationIssueKind.SeamlessSceneSideEffects,
-                        "Seamless Activity operation cannot contain Activity scene load/release side-effects."));
-                }
-                else if (visualMode == ActivityVisualTransitionMode.Fade)
-                {
-                    issues.Add(ActivityOperationIssue.Blocking(
-                        ActivityOperationIssueKind.FadeSceneSideEffectsRequireFadeWithLoading,
-                        "Activity scene load/release side-effects require explicit FadeWithLoading authoring."));
-                }
-            }
-            else if (visualMode == ActivityVisualTransitionMode.FadeWithLoading)
+            if (sceneSideEffects <= 0 && visualMode == ActivityVisualTransitionMode.FadeWithLoading)
             {
                 issues.Add(ActivityOperationIssue.Warning(
                     ActivityOperationIssueKind.FadeWithLoadingWithoutSceneSideEffects,

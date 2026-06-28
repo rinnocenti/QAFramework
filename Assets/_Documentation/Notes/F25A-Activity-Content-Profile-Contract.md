@@ -1,11 +1,11 @@
 # IF-FW-F25A — Activity Content Profile Contract
 
 ## Status
-Implemented / Unity validation pending
+Implemented / historical contract cut
 
 ## Context
 
-F24F introduced Activity visual transition policy and F24F1 marked `FadeWithLoading` as reserved because Activity did not yet own scene/content declarations.
+F24F introduced Activity visual transition policy. At that historical point, F24F1 marked `FadeWithLoading` as reserved because Activity did not yet own scene/content declarations.
 
 Before this cut, Activity could switch identity, readiness and local content callbacks, but it could not declare Activity-owned scenes as content.
 
@@ -45,7 +45,7 @@ Activity loading remains:
 loading='SkippedNoSceneLoad'
 ```
 
-`FadeWithLoading` remains reserved until later F25 execution cuts.
+Historical F25A state: `FadeWithLoading` was still reserved until later F25 execution cuts.
 
 ## Authoring validation
 
@@ -65,3 +65,8 @@ The validator checks Activity content profile declarations for:
 - `IF-FW-F25C` — Activity Scene Composition Execution
 - `IF-FW-F25D` — Activity Content Release
 - future loading progress only when there is a real progress source
+
+
+## F25J closure note
+
+This note is historical. Later F25 cuts implemented Activity scene composition, release, operation planning, startup unification, ledger tracking and visual-mode diagnostics. `FadeWithLoading` is no longer reserved after F25I1/F25I2; it is the Activity visual mode that uses TransitionSurface plus LoadingSurface when the operation requests loading presentation.

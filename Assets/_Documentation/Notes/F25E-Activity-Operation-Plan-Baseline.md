@@ -50,8 +50,8 @@ The plan records:
 Visual invariants are represented as planning issues:
 
 ```text
-Seamless + scene side-effect = blocking
-Fade + scene side-effect = blocking unless authored as FadeWithLoading
+Seamless + scene side-effect = valid without TransitionSurface/LoadingSurface (corrected by F25I1)
+Fade + scene side-effect = valid with TransitionSurface and without LoadingSurface (corrected by F25I1)
 FadeWithLoading + no scene side-effect = warning only
 AlreadyLoaded = diagnostics only, not a side-effect
 ```

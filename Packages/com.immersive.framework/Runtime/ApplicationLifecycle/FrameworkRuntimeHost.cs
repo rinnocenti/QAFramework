@@ -331,7 +331,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                     loadingAfterResult,
                     _loadingSurfaceRuntime.AdapterCount,
                     _loadingSurfaceRuntime.ProgressSupported)
-                : FrameworkLoadingDiagnostics.SkippedNoSceneLoad();
+                : CreateSkippedActivityLoadingDiagnostics(result);
 
             LogActivityRequestResult(result, loadingDiagnostics);
             return result;
@@ -388,10 +388,22 @@ namespace Immersive.Framework.ApplicationLifecycle
                     loadingAfterResult,
                     _loadingSurfaceRuntime.AdapterCount,
                     _loadingSurfaceRuntime.ProgressSupported)
-                : FrameworkLoadingDiagnostics.SkippedNoSceneLoad();
+                : CreateSkippedActivityLoadingDiagnostics(result);
 
             LogActivityRequestResult(result, loadingDiagnostics);
             return result;
+        }
+
+
+        private static FrameworkLoadingDiagnostics CreateSkippedActivityLoadingDiagnostics(FrameworkActivityRequestResult result)
+        {
+            var activityFlowResult = result.ActivityFlowResult;
+            bool hasActivitySceneSideEffects = activityFlowResult.ActivitySceneCompositionResult.SideEffectsExecuted
+                || activityFlowResult.ActivitySceneReleaseResult.SideEffectsExecuted;
+
+            return hasActivitySceneSideEffects
+                ? FrameworkLoadingDiagnostics.SkippedByActivityPolicy()
+                : FrameworkLoadingDiagnostics.SkippedNoSceneLoad();
         }
 
         internal async Task<CycleResetResult> RequestRouteCycleResetAsync(string source, string reason)
