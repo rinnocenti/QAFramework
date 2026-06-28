@@ -26,7 +26,8 @@ Read the documentation in this order:
 | F24 | Unity Build Surface / Lifecycle Wiring | Closed / validated by QA surface |
 | F25 | Activity Content Scene Composition | Closed / final docs aligned in F25J |
 | F26 | Activity Scene Discovery Integration / Loading Progress Integration | Closed / loading progress closed through F26F |
-| F27 | Pause UIGlobal Surface, Input Wiring and Gate Reframe | Open / F27C audit closed |
+| F27 | Pause UIGlobal Surface, Input Wiring and Gate Reframe | Frozen after F27D / F27E cancelled |
+| F28 | InputMode and Adapter Boundary Reorganization | Planned / audit-first |
 
 ## F23 Boundary
 
@@ -83,7 +84,29 @@ F27A does not bind keyboard/controller input, does not change `Time.timeScale` a
 
 F27B adds `UnityPauseInputActionAdapter`, a narrow Unity Input System adapter that maps authored `Player/PauseToggle` and `UI/PauseToggle` actions to `PauseRequestKind.Toggle`. It preserves same-frame dedupe and does not own InputMode, PlayerInput, action-map switching or `Time.timeScale`.
 
+F27C-F27D reframe Gate away from component blocking, but F27E is cancelled: ordinary input consumers should not each query Gate as the primary Pause/Input strategy. InputMode and adapter ownership must be planned first.
+
 Project plan: `Assets/_Documentation/Plans/F27-PLAN-Pause-UIGlobal-And-Input.md`.
+
+Next plan: `Assets/_Documentation/Plans/F28-PLAN-InputMode-And-Adapter-Boundary.md`.
+
+## F28 InputMode and Adapter Boundary
+
+F28 is audit-first. It must answer PlayerInput ownership, typed InputMode semantics and Unity Input System adapter placement before Pause drives action-map behavior.
+
+The accepted direction is:
+
+```text
+PauseRuntime -> InputMode request -> Unity Input adapter applies concrete action-map policy
+```
+
+The rejected direction is:
+
+```text
+Pause -> Gate -> every ordinary input consumer checks Gate
+```
+
+ADR: `ADRs/F28-ADR-INPUT-001-InputMode-Adapter-Boundary.md`.
 
 ## F25 Activity Content Scene Composition
 

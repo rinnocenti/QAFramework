@@ -2,92 +2,113 @@
 
 ## Status
 
-Open / F27D ready for smoke
+Frozen after F27D / runtime implementation paused
 
 ## Purpose
 
-F27 turns the already-existing logical Pause foundation into a minimal Unity-facing surface.
+F27 turned the logical Pause foundation into a minimal Unity-facing surface and validated a narrow PauseToggle input adapter.
 
-This phase starts with visual surface wiring only. Input and gameplay freeze behavior remain separate cuts so Pause does not become a hidden owner of unrelated systems.
+F27 is now frozen because the next attempted direction started mixing Pause, Gate, InputMode, PlayerInput ownership and adapter-module planning. The current state is stable enough to preserve, but not enough to justify more runtime code before the input/adapter matrix is reorganized.
 
-## Boundary
+## Accepted current state
 
 ```text
-Framework Core:
-  PauseRuntime, PauseSnapshot, PauseRequest, Pause Gate snapshot
+F27A — Closed / PASS
+Pause UIGlobal surface baseline.
 
-Unity Build Surface:
-  UIGlobal Pause adapter and authored request trigger
+F27B — Closed / PASS
+Narrow Unity Input System PauseToggle adapter.
 
-Later adapters:
-  Input binding, Time.timeScale policy, gameplay freeze, product pause menu
+F27C — Closed / Audit PASS
+Gate must not become a component blocker.
+
+F27D — Closed / PASS
+Pause diagnostics use InputAcceptance / InteractionAcceptance language.
 ```
 
-## Cut matrix
+## Frozen / cancelled work
 
-| Cut | Name | Status | Scope |
+| Cut | Name | Status | Decision |
 |---|---|---|---|
-| F27A | Pause UIGlobal Surface Baseline | Closed / PASS | Collect `IPauseSurfaceAdapter` from UIGlobal, apply Pause snapshots to QA surface, expose PauseRequestTrigger buttons. |
-| F27B | Pause Input Signal Wiring | Closed / PASS | Map authored `Player/PauseToggle` and `UI/PauseToggle` actions to `PauseRequestKind.Toggle` without owning InputMode. |
-| F27C | Gate / Input Capability Audit | Closed / Audit PASS | Reframe Gate as capability/admission consumed by input/command adapters; do not let it become a component blocker. |
-| F27D | Pause Capability Gate Reframe | Ready for smoke | Runtime now derives Pause blockers as `Input/InputAcceptance` and `Interaction/InteractionAcceptance`; diagnostics use `blocksInputAcceptance` and `blocksInteractionAcceptance`. |
-| F27E | Input Consumers Respect Gate | Planned | Make gameplay-facing input/command adapters evaluate Gate before emitting commands. |
-| F27F | Pause Freeze Policy Adapter | Planned | Optional `GateOnly` / `TimeScaleOnly` / `Hybrid` policy; remains separate from Gate admission. |
-| F27G | Pause Closeout / Guide | Planned | Document designer setup and boundary rules. |
+| F27E | Input Consumers Respect Gate | Cancelled / Do not apply | Direct Gate checks in ordinary input consumers would complicate Pause and hide the missing InputMode boundary. |
+| F27F | Pause Freeze Policy Adapter | Deferred | `Time.timeScale` policy should wait until InputMode and PlayerInput ownership are resolved. |
+| F27G | Pause Closeout / Usage Guide | Deferred | Closeout should happen after the F28 replan confirms the future boundary. |
 
-## F27A acceptance
+## Why F27 is frozen
 
-- Boot logs `pauseAdapterCount='1'` for `QA_UIGlobal`.
-- Boot logs `Pause surface resolved ... adapterCount='1'`.
-- QA pause button applies `PauseState.Paused`.
-- QA resume button applies `PauseState.Running`.
-- Pause request logs include `pauseSurface='Succeeded'` and `pauseSurfaceVisual='UnitySurface'`.
-- Route/Activity transitions continue to work while Pause surface exists.
-
-## Non-goals for F27A
-
-- No keyboard/controller input yet.
-- No Time.timeScale changes.
-- No product-grade menu.
-- No changes to Route/Activity request ownership.
-
-## F27B acceptance
-
-- `InputSystem_Actions` has `PauseToggle` in both `Player` and `UI` maps.
-- `QA_UIGlobal` has `UnityPauseInputActionAdapter` configured with the authored input asset.
-- Boot logs `Pause Input Action Adapter ready`.
-- Pressing Escape or Gamepad Start triggers `PauseRequestKind.Toggle`.
-- Same-frame duplicate action callbacks are ignored.
-- No InputMode or action-map switching is introduced in this cut.
-
-
-## F27C audit acceptance
-
-- Gate remains passive: no component discovery, no GameObject pause, no Input System ownership.
-- Pause is treated as a blocker producer, not the owner of Gate.
-- Gate is reframed as capability/admission consumed by input and command adapters.
-- `InputModeService` from NewScripts remains reference material only; it is not copied into F27.
-- `Time.timeScale` is deferred to a separate freeze policy cut.
-
-## F27D runtime correction
+The current question is larger than Pause:
 
 ```text
-closed problematic macro language:
-  blocksGameplay
-  blocksInteraction
-
-active F27D language:
-  blocksInputAcceptance
-  blocksInteractionAcceptance
-  blocksPauseRequest = False as negative proof
+Who owns the PlayerInput object?
+Where do Unity Input System adapters live?
+What is the typed InputMode contract?
+How does PauseOverlay keep UI input alive while gameplay input stops?
+What role remains for Gate after InputMode exists?
+Where do player/camera/audio/gameplay adapters belong?
 ```
 
-The purpose is to keep Gate as admission/capability state, not as a component-level pause system.
+Those questions must be answered before further implementation.
 
-## F27D acceptance
+## Corrected direction
 
-- Pause produces exactly two blockers while paused.
-- The blockers are `Input/InputAcceptance` and `Interaction/InteractionAcceptance`.
-- Pause does not block `Pause/PauseRequest`.
-- Pause request logs expose `blocksInputAcceptance` and `blocksInteractionAcceptance`.
-- `UnityPauseInputActionAdapter` can still toggle pause/resume.
+The preferred shape is now:
+
+```text
+PauseRuntime
+  -> state/result owner
+
+InputModeRuntime
+  -> typed active mode owner
+
+Unity Input System adapter
+  -> applies mode to concrete Unity targets
+
+Player/Actor/Input adapter modules
+  -> provide concrete PlayerInput targets later
+
+Gate
+  -> passive admission / hard-lock / diagnostics, not normal Pause action-map behavior
+```
+
+## Gate position after F27D
+
+F27D can remain because it only corrected the diagnostic vocabulary away from broad component/gameplay blocking.
+
+However, F27D must not be read as approval to build this normal path:
+
+```text
+Pause -> Gate -> every input consumer checks Gate
+```
+
+Gate is not removed. It is demoted from the main Pause/Input solution to a passive/safety/admission layer until F28 clarifies the InputMode boundary.
+
+## Handoff to F28
+
+F28 owns the reorganization:
+
+```text
+F28 — InputMode and Adapter Boundary Reorganization
+```
+
+F28 starts audit-first and must decide PlayerInput ownership before any runtime service applies action maps.
+
+See:
+
+```text
+Assets/_Documentation/Plans/F28-PLAN-InputMode-And-Adapter-Boundary.md
+Packages/com.immersive.framework/Documentation~/ADRs/F28-ADR-INPUT-001-InputMode-Adapter-Boundary.md
+Assets/_Documentation/Notes/F27E-CANCELLED-Input-Consumers-Gate-Replan.md
+```
+
+## Validation preserved
+
+The frozen F27 state remains validated by the latest smokes:
+
+```text
+Pause surface resolved from UIGlobal.
+Pause/Resume/Toggle through QA trigger.
+PauseToggle through Unity Input System.
+Same-frame Player/UI PauseToggle dedupe.
+Pause blockers report InputAcceptance / InteractionAcceptance.
+PauseRequest remains allowed.
+```

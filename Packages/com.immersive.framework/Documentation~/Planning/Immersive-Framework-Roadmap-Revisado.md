@@ -32,7 +32,7 @@ Do not read F25 adapter work back into F23 or F24. F23 does not build visuals. F
 
 ## 3. Current Phase
 
-F27 is the active Unity-facing phase in the current package state. F24, F25 and F26 are closed; the F26 loading progress thread is closed through F26F. F27 starts the deferred Pause UIGlobal surface work.
+F27 is frozen after F27D. F24, F25 and F26 are closed; the F26 loading progress thread is closed through F26F. F27 validated the deferred Pause UIGlobal surface and narrow PauseToggle input path, then stopped before broader InputMode / PlayerInput / adapter ownership work.
 
 F23 is intent/requirement-only and owns these canonical Pause contracts:
 
@@ -116,12 +116,28 @@ Loading progress is now considered closed until a new concrete loading source ap
 
 | Cut | Name | Status |
 |---|---|---|
-| F27A | Pause UIGlobal Surface Baseline | Ready for smoke |
-| F27B | Pause Input Signal Wiring | Planned |
-| F27C | Pause Time Policy Adapter | Planned |
-| F27D | Pause Closeout / Usage Guide | Planned |
+| F27A | Pause UIGlobal Surface Baseline | Closed / PASS |
+| F27B | Pause Input Signal Wiring | Closed / PASS |
+| F27C | Gate / Input Capability Audit | Closed / Audit PASS |
+| F27D | Pause Capability Gate Reframe | Closed / PASS |
+| F27E | Input Consumers Respect Gate | Cancelled / do not apply |
 
-F27 implements the deferred Pause Unity surface goal after the F26 loading progress closeout. F27A only presents logical Pause state through UIGlobal and a QA trigger. Input binding, Time policy and gameplay freeze remain separate cuts.
+F27 implemented the deferred Pause Unity surface goal and narrow PauseToggle input binding. F27 is now frozen because the next step requires the broader InputMode and adapter boundary to be planned first.
+
+F27E was cancelled because ordinary input consumers should not each become responsible for querying Gate just to make Pause work.
+
+### F28 - InputMode and Adapter Boundary Reorganization
+
+| Cut | Name | Status |
+|---|---|---|
+| F28A | Input / Adapter Audit Matrix | Planned |
+| F28B | InputMode Contract Boundary | Planned |
+| F28C | Unity Input Adapter Ownership Plan | Planned |
+| F28D | QA InputMode Surface / Manual Target Proof | Planned / conditional |
+| F28E | Pause Drives InputMode | Planned / after ownership decision |
+| F28F | InputMode Closeout Guide | Planned |
+
+F28 must decide PlayerInput ownership, typed InputMode semantics and adapter placement before Pause drives action-map behavior or TimeScale policy.
 
 ## 5. Tracks
 
@@ -145,3 +161,36 @@ F27 implements the deferred Pause Unity surface goal after the F26 loading progr
 - F25 is Adapter Module Foundation, not a gameplay-only rewrite of core.
 - No route/activity lifecycle ownership moves into gameplay or adapter modules.
 - No framework identity may be fabricated from Unity names or paths.
+
+
+## F27 Pause UIGlobal / Input / Gate Reframe
+
+`F27A` validates the Pause UIGlobal surface. `F27B` validates the narrow Unity Input System `PauseToggle` adapter. `F27C` audits the Gate/Input boundary and accepts the correction that Gate is capability/admission language, not a component blocker. `F27D` applies that diagnostic correction in runtime by changing Pause-derived blockers from broad gameplay language to `Input/InputAcceptance` and `Interaction/InteractionAcceptance`.
+
+F27 is frozen after F27D. `F27E - Input Consumers Respect Gate` is cancelled and must not be applied.
+
+Corrected F27 rule:
+
+```text
+Pause produces state and may produce blockers.
+Gate remains passive admission / hard-lock / diagnostics.
+InputMode must be planned before action-map behavior.
+Gameplay components are not paused directly by Gate.
+Ordinary input consumers should not each query Gate just to implement Pause.
+TimeScale freeze policy is separate and deferred.
+```
+
+See:
+
+```text
+ADRs/F27-ADR-GATE-INPUT-001-Capability-Gate-Boundary.md
+ADRs/F28-ADR-INPUT-001-InputMode-Adapter-Boundary.md
+Assets/_Documentation/Notes/F27C-Gate-Input-Capability-Audit.md
+Assets/_Documentation/Notes/F27D-Pause-Capability-Gate-Reframe.md
+Assets/_Documentation/Notes/F27E-CANCELLED-Input-Consumers-Gate-Replan.md
+Assets/_Documentation/Plans/F28-PLAN-InputMode-And-Adapter-Boundary.md
+```
+
+## F28 InputMode and Adapter Boundary
+
+F28 reorganizes the future input/adapter track before more runtime. It starts with an audit matrix and must answer who supplies concrete `PlayerInput` targets, where Unity Input System adapters live and how PauseOverlay keeps UI input alive while gameplay input is unavailable.

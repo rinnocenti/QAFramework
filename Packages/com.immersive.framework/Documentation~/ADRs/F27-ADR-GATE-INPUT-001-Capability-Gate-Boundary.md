@@ -163,3 +163,22 @@ Cost:
 Gameplay systems that bypass input/command adapters will not be automatically blocked by GateOnly pause.
 Those systems must either use scaled time, consult Gate, or implement a local receiver in a future adapter cut.
 ```
+
+
+---
+
+## F27E cancellation addendum
+
+After F27D, the proposed F27E direction was rejected.
+
+Gate remains a capability/admission boundary, but ordinary input consumers should not each query Gate as the primary way to implement Pause. That direction would spread Pause behavior across consumers and bypass the missing InputMode decision.
+
+Corrected handoff:
+
+```text
+Pause -> InputMode -> Unity Input adapter/action-map policy
+```
+
+Gate remains available for lifecycle admission, hard locks, stale/foreign/in-flight safety and diagnostics. It is not the normal action-map switch mechanism.
+
+See `F28-ADR-INPUT-001-InputMode-Adapter-Boundary.md`.

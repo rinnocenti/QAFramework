@@ -49,6 +49,7 @@ Current order:
 | F25 | [Adapter Module Foundation](F25-ADR-ADAPTER-001-Adapter-Module-Foundation.md) | Deferred after Activity scene operation stability |
 | F25R | [Activity Scene Operation Architecture Reset](F25R-ADR-ACTIVITY-001-Activity-Scene-Operation-Architecture-Reset.md) | Accepted / Documentation reset |
 | F27 | [Gate as Capability Admission Boundary](F27-ADR-GATE-INPUT-001-Capability-Gate-Boundary.md) | Accepted / F27D runtime reframe |
+| F28 | [InputMode and Adapter Boundary](F28-ADR-INPUT-001-InputMode-Adapter-Boundary.md) | Proposed / planning gate |
 
 ## Boundary Rules
 
@@ -63,4 +64,10 @@ Current order:
 
 ## F27 Gate/Input correction
 
-F27C accepts that Gate is a capability/admission boundary consumed by input and command adapters. F27D applies that runtime correction: Pause now derives `Input/InputAcceptance` and `Interaction/InteractionAcceptance` blockers, not broad gameplay/component blockers. Gate must not become a component-level pause/blocker system. Pause is a blocker producer; `Time.timeScale` is a separate freeze policy.
+F27C accepts that Gate is a capability/admission boundary and not a component blocker. F27D applies a diagnostic/runtime vocabulary correction: Pause now derives `Input/InputAcceptance` and `Interaction/InteractionAcceptance` blockers, not broad gameplay/component blockers.
+
+F27E is cancelled. Ordinary input consumers should not each query Gate as the primary Pause/Input implementation. InputMode and PlayerInput ownership must be planned first.
+
+## F28 InputMode correction
+
+F28 starts audit-first. It decides typed InputMode, Unity Input System adapter placement and concrete PlayerInput target ownership before Pause drives action-map behavior or `Time.timeScale` policy.
