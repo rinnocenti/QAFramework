@@ -29,7 +29,8 @@ Documentos de setup do projeto consumidor.
 
 Notas temporárias e achados de auditoria local.
 
-Fechamento F25: `Notes/F25J-Activity-Operation-Final-Documentation-And-Matrix-Alignment.md`.
+`Notes/F25R1-Activity-Visual-Policy-Awaitable-Clarification.md`
+Reset F25: `Notes/F25R-Activity-Scene-Operation-Architecture-Reset.md`.
 
 ## Regras
 

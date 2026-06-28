@@ -98,30 +98,35 @@ TransitionSurface after/close
 
 The envelope is required when Activity scene load/release side-effects would otherwise expose intermediate scene state to the player.
 
-## Valid Visual Rules
-
-`Seamless` is valid with or without Activity scene load/release side-effects after F25I1. It means no TransitionSurface and no LoadingSurface.
+## Final Visual Rules
 
 ```text
-Seamless + no scene side-effect = valid
-Seamless + scene load/release side-effect = valid, without TransitionSurface and without LoadingSurface
+Seamless
+  Activity scene load/release may execute.
+  TransitionSurface is skipped.
+  LoadingSurface is skipped.
+
+Fade
+  Activity scene load/release may execute.
+  TransitionSurface is used.
+  LoadingSurface is skipped.
+
+FadeWithLoading
+  Activity scene load/release may execute.
+  TransitionSurface is used.
+  LoadingSurface is used when the Activity operation requests it.
 ```
 
-`Fade` is valid for Activity visual changes that need transition occlusion but do not require LoadingSurface.
+The bug is not `Seamless + scene side-effect`. The bug is `LoadingSurface` opening when the visual mode is not `FadeWithLoading`.
+
+Invalid combinations:
 
 ```text
-Fade + no scene side-effect = valid
-Fade + scene load/release side-effect = valid, with TransitionSurface and without LoadingSurface
+Seamless + LoadingSurface = invalid
+Fade + LoadingSurface = invalid
 ```
 
-`FadeWithLoading` is required only when the authored Activity operation should show LoadingSurface for Activity scene load/release.
-
-```text
-FadeWithLoading + scene load/release side-effect + LoadingSurface = valid
-FadeWithLoading + no scene side-effect = valid but should report no Activity loading side-effect
-```
-
-The runtime must not silently upgrade `Seamless` or `Fade` to `FadeWithLoading`. Scene side-effects alone are not invalid.
+The runtime must not silently upgrade `Seamless` or `Fade` to `FadeWithLoading`.
 
 `AlreadyLoaded` is diagnostics only. It is not a scene load side-effect and must not require LoadingSurface.
 
@@ -131,7 +136,7 @@ Route startup Activity must use the same `ActivityOperationPlan` and executor pa
 
 The Route operation may wrap the whole Route switch in its own Route visual envelope. That does not make startup Activity composition a separate incomplete path. Startup Activity scene composition, release evidence and ledger writes must still be represented by the Activity operation model with `OperationKind.RouteStartup`.
 
-## Route Switch Cleanup
+## Route Exit Cleanup
 
 Route content remains Route-scoped. Route content has no keep policy.
 
@@ -171,6 +176,27 @@ Rules:
 - A tracked entry with `UnitySceneLoaded = false` is stale and must be removed or corrected.
 - Activity identity, Route identity and Content identity must not be fabricated from scene paths or object names.
 
+## Async Execution Model
+
+`ActivityOperationPlan` is synchronous and side-effect-free.
+
+- It does not use `UnityEngine.Awaitable`.
+- It does not load or unload scenes.
+- It does not call transition or loading APIs.
+
+`ActivityOperationExecutor` is the async runtime execution boundary.
+
+- It may use `UnityEngine.Awaitable` for `TransitionSurface`, `LoadingSurface`, scene load/release and future progress operations.
+- It must not use `Task.Delay`.
+- It must not create coroutine-based canonical flow.
+- It must not await the same `Awaitable` instance more than once.
+- It must not mix loose Task-based async with framework lifecycle behavior unless an explicit adapter boundary exists.
+
+`LoadingSurfaceAdapter` remains presentation only.
+
+- It may expose awaitable show/hide/progress methods in a later executor cut.
+- It does not own lifecycle, loading policy, scene lifecycle or progress aggregation.
+
 ## Status Of F25C-D4
 
 F25C through F25D4 are retained as experimental/partial execution evidence:
@@ -194,10 +220,8 @@ No F25C-D4 runtime code is removed in this reset cut.
 | F25F | Activity Operation Executor | Move Activity transition/loading/release/load/state sequencing to one executor. |
 | F25G | Startup Activity Path Unification | Route startup Activity uses the same Activity operation plan/executor path. |
 | F25H | Activity Scene Ledger | Replace loose Activity scene tracking with route-scoped ledger entries. |
-| F25I | Validator Guards | Initial validator guards; visual-mode side-effect restriction superseded by F25I1. |
-| F25I1 | Visual Mode Scope Correction | `Seamless`/`Fade`/`FadeWithLoading` are valid choices with scene side-effects; they select presentation, not permission. |
-| F25I2 | Loading Skip Diagnostics Refinement | Distinguish no scene load from scene load without LoadingSurface. |
-| F25J | Final Documentation / Matrix Alignment | Close the F25 baseline and prepare cleanup audit targets. |
+| F25R1 | Activity Visual Policy / Awaitable Clarification | Clarify visual policy, LoadingSurface ownership and Awaitable boundaries. |
+| F25I | Validator Guards | Initial validator guards for the reset path. |
 
 ## Non-Goals
 
@@ -206,27 +230,7 @@ This reset does not implement runtime code, validators, Editor UI, asmdef change
 ## Consequences
 
 - Future Activity execution cuts must start from `ActivityOperationPlan`.
-- LoadingSurface must never be opened by Activity scene side-effect alone.
+- LoadingSurface must only be opened when the authored visual mode requests it.
 - Activity scene composition/release must report explicit blocking issues instead of silent visual fallback.
 - Startup Activity and Route cleanup become first-class Activity operation kinds.
 - F25C-D4 remain useful but no longer define the canonical operation architecture.
-
-
-## F25I1 correction
-
-F25I1 supersedes the original visual invalidity rule in this ADR. Activity scene load/release side-effects do not require `FadeWithLoading`. `Seamless` is the explicit authoring choice for loading/releasing Activity content without a curtain or canonical LoadingSurface; `Fade` uses only the TransitionSurface; `FadeWithLoading` uses both TransitionSurface and LoadingSurface.
-
-The forbidden behavior is not the scene side-effect itself. The forbidden behavior is a silent visual upgrade or an implicit LoadingSurface that contradicts the authored mode.
-
-
-## F25J closure
-
-F25J closes this ADR's follow-up sequence as a documented baseline. Runtime behavior after F25I2:
-
-```text
-Seamless       -> no TransitionSurface, no LoadingSurface, Activity scene side-effects may execute.
-Fade           -> TransitionSurface, no LoadingSurface, Activity scene side-effects may execute.
-FadeWithLoading -> TransitionSurface and LoadingSurface when the operation requests loading presentation.
-```
-
-The next cleanup audit should remove or rewrite false trails that still imply Activity scene side-effects require `FadeWithLoading`.
