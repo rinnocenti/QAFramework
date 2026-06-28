@@ -28,11 +28,7 @@ The canonical reset is recorded in:
 Packages/com.immersive.framework/Documentation~/ADRs/F25R-ADR-ACTIVITY-001-Activity-Scene-Operation-Architecture-Reset.md
 ```
 
-The visual-policy clarification is recorded in:
-
-```text
-Assets/_Documentation/Notes/F25R1-Activity-Visual-Policy-Awaitable-Clarification.md
-```
+The visual-policy clarification is folded into this note as `F25R1`.
 
 The next implementation work must introduce `ActivityOperationPlan` as the owner of:
 

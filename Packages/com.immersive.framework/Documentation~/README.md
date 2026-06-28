@@ -151,6 +151,8 @@ Diagnostic mapping:
 
 `F25J - Activity Operation Final Documentation / Matrix Alignment` closes the F25 documentation baseline. Canonical final rule: visual mode selects presentation, not permission to execute Activity scene composition/release. `Seamless` skips TransitionSurface and LoadingSurface, `Fade` uses only TransitionSurface, and `FadeWithLoading` uses TransitionSurface plus LoadingSurface when the operation requests loading presentation. Cleanup of false/legacy trails is deferred to a dedicated Codex audit.
 
+`F25H1 - Activity Scene Ledger Route Instance Key Fix` stabilizes Activity scene ledger ownership by matching loaded entries with `RouteInstanceId + Activity + ContentIdentity`, keeping Activity-owned content scoped to the route instance that created it.
+
 ## F26 Activity Scene Discovery Integration
 
 `F26A - Activity Scene Discovery Integration` connects Activity-owned additive scenes loaded by Activity scene composition to Activity content discovery. After composition records loaded scenes in `ActivitySceneLedger`, Activity discovery scans the Route primary scene plus loaded Activity-owned scenes for the current Route instance and Activity. Route-owned discovery remains separate, and `IActivityContentExecutionParticipantSource` remains the explicit source for execution participants.
@@ -158,3 +160,5 @@ Diagnostic mapping:
 `F26A1 - Activity Content Execution Diagnostics Clarification` keeps the existing `activityContentExecution*` fields for compatibility and adds explicit `activityContentParticipant*` diagnostics. Local Activity content is represented by `activityContentHandles`, `activityContentBindings` and `activityContentLifecycle`; participant execution represents only participants supplied by `IActivityContentExecutionParticipantSource`.
 
 `F26B - Loading Progress Contract` adds the internal loading progress model and explicit diagnostics fields for `loadingProgressSupported`, `loadingProgressMode`, `loadingProgressValue`, `loadingProgressPercent`, `loadingProgressPhase` and `loadingProgressMessage`. It does not add a loading bar, does not change the visual LoadingSurface contract, and does not wire real scene loading progress yet.
+
+`F25H2 - Activity Scene Ledger Route-Scoped Queries` removes unused route-less loaded-entry collection methods from `ActivitySceneLedger`. Canonical Activity-owned scene ledger reads must include `RouteInstanceId`, preventing future cross-route stale tracking regressions.

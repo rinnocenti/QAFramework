@@ -43,10 +43,12 @@ namespace Immersive.Framework.ActivityFlow
         internal bool TryGetLoaded(
             ActivityAsset activity,
             ActivitySceneCompositionPlanEntry planEntry,
+            string routeInstanceId,
             out ActivitySceneLedgerEntry entry)
         {
             entry = default;
-            if (activity == null || planEntry.ContentIdentity.IsValid == false)
+            var normalizedRouteInstanceId = Normalize(routeInstanceId);
+            if (activity == null || !planEntry.ContentIdentity.IsValid || string.IsNullOrWhiteSpace(normalizedRouteInstanceId))
             {
                 return false;
             }
@@ -59,8 +61,7 @@ namespace Immersive.Framework.ActivityFlow
                     continue;
                 }
 
-                if (ReferenceEquals(existing.Activity, activity)
-                    && string.Equals(existing.ContentIdentity, planEntry.ContentIdentity.StableText, StringComparison.Ordinal))
+                if (IsSameEntry(existing, normalizedRouteInstanceId, activity, planEntry.ContentIdentity.StableText))
                 {
                     entry = existing;
                     return true;
@@ -68,21 +69,6 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             return false;
-        }
-
-        internal List<ActivitySceneLedgerEntry> CollectLoadedForActivity(ActivityAsset activity)
-        {
-            var entries = new List<ActivitySceneLedgerEntry>();
-            for (var i = 0; i < _entries.Count; i++)
-            {
-                var entry = _entries[i];
-                if (entry.IsLoaded && ReferenceEquals(entry.Activity, activity))
-                {
-                    entries.Add(entry);
-                }
-            }
-
-            return entries;
         }
 
         internal List<ActivitySceneLedgerEntry> CollectLoadedForActivityRouteInstance(ActivityAsset activity, string routeInstanceId)
@@ -109,13 +95,21 @@ namespace Immersive.Framework.ActivityFlow
             return entries;
         }
 
-        internal List<ActivitySceneLedgerEntry> CollectLoaded()
+        internal List<ActivitySceneLedgerEntry> CollectLoadedForRouteInstance(string routeInstanceId)
         {
             var entries = new List<ActivitySceneLedgerEntry>();
+            var normalizedRouteInstanceId = Normalize(routeInstanceId);
+            if (string.IsNullOrWhiteSpace(normalizedRouteInstanceId))
+            {
+                return entries;
+            }
+
             for (var i = 0; i < _entries.Count; i++)
             {
                 var entry = _entries[i];
-                if (entry.IsLoaded)
+                if (entry.IsLoaded
+                    && entry.Ownership == ActivitySceneLedgerOwnership.Activity
+                    && string.Equals(entry.RouteInstanceId, normalizedRouteInstanceId, StringComparison.Ordinal))
                 {
                     entries.Add(entry);
                 }
@@ -139,8 +133,7 @@ namespace Immersive.Framework.ActivityFlow
             for (var i = _entries.Count - 1; i >= 0; i--)
             {
                 var existing = _entries[i];
-                if (ReferenceEquals(existing.Activity, entry.Activity)
-                    && string.Equals(existing.ContentIdentity, entry.ContentIdentity, StringComparison.Ordinal))
+                if (IsSameEntry(existing, entry.RouteInstanceId, entry.Activity, entry.ContentIdentity))
                 {
                     _entries[i] = entry;
                     return;
@@ -155,13 +148,23 @@ namespace Immersive.Framework.ActivityFlow
             for (var i = _entries.Count - 1; i >= 0; i--)
             {
                 var existing = _entries[i];
-                if (ReferenceEquals(existing.Activity, entry.Activity)
-                    && string.Equals(existing.ContentIdentity, entry.ContentIdentity, StringComparison.Ordinal))
+                if (IsSameEntry(existing, entry.RouteInstanceId, entry.Activity, entry.ContentIdentity))
                 {
                     _entries[i] = existing.WithStatus(status);
                     return;
                 }
             }
+        }
+
+        private static bool IsSameEntry(
+            ActivitySceneLedgerEntry existing,
+            string routeInstanceId,
+            ActivityAsset activity,
+            string contentIdentity)
+        {
+            return string.Equals(existing.RouteInstanceId, Normalize(routeInstanceId), StringComparison.Ordinal)
+                && ReferenceEquals(existing.Activity, activity)
+                && string.Equals(existing.ContentIdentity, Normalize(contentIdentity), StringComparison.Ordinal);
         }
 
         private int CountByStatus(ActivitySceneLedgerEntryStatus status)

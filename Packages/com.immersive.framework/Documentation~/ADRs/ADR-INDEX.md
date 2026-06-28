@@ -9,7 +9,6 @@ Current order:
 3. F23 - Pause Content / Overlay / Input Intent Boundary
 4. F24 - Unity Build Surface / Lifecycle Wiring
 5. F25 - Activity Content Scene Composition / Operation Reset
-6. F25R1 - Activity Visual Policy / Awaitable Clarification
 
 ## Roadmap ADRs
 
@@ -54,8 +53,8 @@ Current order:
 
 - F23 is intent/requirement-only.
 - F24 is Unity build surface and lifecycle wiring.
-- F25 now documents the Activity scene operation reset and the follow-up path from F25R1 through F25I.
+- F25 now documents the Activity scene operation reset and the compact F25R history record through F25I.
 - F25R resets Activity scene operation architecture: visual policy, LoadingSurface, TransitionSurface, scene load/release, Route startup unification and ledger ownership must be decided by `ActivityOperationPlan`.
-- F25R1 corrects the visual-policy contradiction and documents that the planner stays synchronous while the future executor boundary may use `UnityEngine.Awaitable`.
+- F25R1 is folded into the F25R history record and documents that the planner stays synchronous while the future executor boundary may use `UnityEngine.Awaitable`.
 - Core contracts must not depend on concrete Unity UI, gameplay modules or backend implementations.
 - Adapter modules consume framework contracts; they do not redefine route, activity, transition, pause, loading, save or reset ownership.

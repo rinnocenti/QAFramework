@@ -52,6 +52,8 @@ Activity
 | F25F2 | Activity Operation Blocked Diagnostics Fix | Preserve operation visual mode in blocked/failed Activity request diagnostics. |
 | F25G | Startup Activity Path Unification | Route startup Activity uses the same Activity operation path. |
 | F25H | Activity Scene Ledger | Replace loose tracking with route-scoped Activity-owned ledger entries. |
+| F25H1 | Activity Scene Ledger Route Instance Key Fix | Stabilize ledger keying by `RouteInstanceId + Activity + ContentIdentity`. |
+| F25H2 | Activity Scene Ledger Route-Scoped Queries | Remove route-less ledger reads so Activity-owned scene evidence is always scoped by Route instance. |
 | F25I | Activity Operation Validator Guards | Initial validator guards for the reset path. |
 
 ## IF-FW-F25E - Activity operation plan baseline
@@ -401,6 +403,30 @@ Operational rules remain unchanged:
 
 F25H is internal infrastructure only. Validators and authoring guards remain for F25I.
 
+
+## IF-FW-F25H1 — Activity Scene Ledger Route Instance Key Fix
+
+F25H1 stabilizes the ledger key introduced by F25H. Loaded Activity-owned scene entries are matched by:
+
+```text
+RouteInstanceId + Activity + ContentIdentity
+```
+
+Activity change/clear release planning is scoped to the current route instance. Route change release planning collects loaded Activity-owned entries for the route instance being exited. This prevents stale ledger evidence from being reused across route instances.
+
+
+## IF-FW-F25H2 — Activity Scene Ledger Route-Scoped Queries
+
+F25H2 removes unused route-less loaded-entry collection methods from `ActivitySceneLedger`.
+
+Canonical ledger reads must include `RouteInstanceId`:
+
+```text
+CollectLoadedForActivityRouteInstance(activity, routeInstanceId)
+CollectLoadedForRouteInstance(routeInstanceId)
+```
+
+This is an internal API hardening cut. It does not change runtime behavior, scene load/release behavior, transition behavior or loading behavior.
 
 ## IF-FW-F25I / F25I1 — Activity Operation Validator Guards Scope Correction
 

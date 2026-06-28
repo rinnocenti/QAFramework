@@ -98,7 +98,7 @@ namespace Immersive.Framework.ActivityFlow
                     continue;
                 }
 
-                if (_ledger.TryGetLoaded(plan.Activity, scene, out var ledgerEntry))
+                if (_ledger.TryGetLoaded(plan.Activity, scene, _currentRouteInstanceId, out var ledgerEntry))
                 {
                     if (_sceneLifecycleRuntime.IsSceneLoaded(scene.SceneName, scene.ScenePath))
                     {
@@ -155,8 +155,8 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var records = forceReleaseAll && activity == null
-                ? _ledger.CollectLoaded()
-                : _ledger.CollectLoadedForActivity(activity);
+                ? _ledger.CollectLoadedForRouteInstance(_currentRouteInstanceId)
+                : _ledger.CollectLoadedForActivityRouteInstance(activity, _currentRouteInstanceId);
             if (records.Count == 0)
             {
                 return ActivitySceneReleaseResult.NotRequested(
@@ -250,8 +250,8 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var records = operationKind == ActivityOperationKind.RouteExitCleanup
-                ? _ledger.CollectLoaded()
-                : _ledger.CollectLoadedForActivity(previousActivity);
+                ? _ledger.CollectLoadedForRouteInstance(_currentRouteInstanceId)
+                : _ledger.CollectLoadedForActivityRouteInstance(previousActivity, _currentRouteInstanceId);
 
             for (var i = 0; i < records.Count; i++)
             {
