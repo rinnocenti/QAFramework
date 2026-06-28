@@ -22,6 +22,31 @@ namespace Immersive.Framework.ActivityFlow
             _sceneLifecycleRuntime = sceneLifecycleRuntime ?? throw new ArgumentNullException(nameof(sceneLifecycleRuntime));
         }
 
+        internal ActivityOperationPlan CreateActivityOperationPlan(
+            ActivityOperationKind operationKind,
+            ActivityAsset previousActivity,
+            ActivityAsset targetActivity,
+            ActivityVisualTransitionMode visualMode,
+            string source,
+            string reason)
+        {
+            var scenes = new List<ActivityOperationPlanSceneEntry>();
+            var issues = new List<ActivityOperationIssue>();
+
+            AddReleaseEntries(operationKind, previousActivity, targetActivity, scenes, issues);
+            AddLoadEntries(operationKind, targetActivity, scenes);
+
+            return new ActivityOperationPlan(
+                operationKind,
+                previousActivity,
+                targetActivity,
+                visualMode,
+                scenes,
+                issues,
+                source,
+                reason);
+        }
+
         internal async Task<ActivitySceneCompositionResult> ExecuteAsync(ActivitySceneCompositionPlan plan)
         {
             if (!plan.HasActivity || !plan.HasProfile || !plan.HasScenes)
@@ -225,6 +250,123 @@ namespace Immersive.Framework.ActivityFlow
                 && plan.HasProfile
                 && plan.HasScenes
                 && plan.ExecutionReadySceneCount > 0;
+        }
+
+        private void AddLoadEntries(
+            ActivityOperationKind operationKind,
+            ActivityAsset targetActivity,
+            List<ActivityOperationPlanSceneEntry> scenes)
+        {
+            if (!ShouldPlanTargetLoad(operationKind, targetActivity))
+            {
+                return;
+            }
+
+            var compositionPlan = ActivitySceneCompositionPlan.FromActivity(targetActivity, source: string.Empty, reason: string.Empty);
+            if (!ShouldExecute(compositionPlan))
+            {
+                return;
+            }
+
+            for (var i = 0; i < compositionPlan.Scenes.Count; i++)
+            {
+                var scene = compositionPlan.Scenes[i];
+                if (!scene.IsExecutionReady)
+                {
+                    continue;
+                }
+
+                var isAlreadyLoaded = _sceneLifecycleRuntime.IsSceneLoaded(scene.SceneName, scene.ScenePath);
+                scenes.Add(ActivityOperationPlanSceneEntry.FromCompositionPlanEntry(scene, isAlreadyLoaded));
+            }
+        }
+
+        private void AddReleaseEntries(
+            ActivityOperationKind operationKind,
+            ActivityAsset previousActivity,
+            ActivityAsset targetActivity,
+            List<ActivityOperationPlanSceneEntry> scenes,
+            List<ActivityOperationIssue> issues)
+        {
+            if (!ShouldPlanRelease(operationKind, previousActivity, targetActivity))
+            {
+                return;
+            }
+
+            var records = operationKind == ActivityOperationKind.RouteExitCleanup
+                ? CollectAllRecords()
+                : CollectRecordsForActivity(previousActivity);
+
+            for (var i = 0; i < records.Count; i++)
+            {
+                var record = records[i];
+                var planEntry = record.Entry.PlanEntry;
+                if (operationKind != ActivityOperationKind.RouteExitCleanup
+                    && planEntry.ReleasePolicy == ActivityContentReleasePolicy.KeepOnActivityChange)
+                {
+                    continue;
+                }
+
+                if (!_sceneLifecycleRuntime.IsSceneLoaded(planEntry.SceneName, planEntry.ScenePath))
+                {
+                    issues.Add(ActivityOperationIssue.Warning(
+                        ActivityOperationIssueKind.StaleTrackedScene,
+                        $"Tracked Activity scene '{ResolveSceneLabel(planEntry)}' is not loaded in Unity; release side-effect is not planned."));
+                    continue;
+                }
+
+                scenes.Add(ActivityOperationPlanSceneEntry.ForRelease(
+                    planEntry.ContentIdentity,
+                    planEntry.ContentId,
+                    planEntry.SceneName,
+                    planEntry.ScenePath,
+                    planEntry.Requiredness,
+                    planEntry.LoadMode,
+                    planEntry.ReleasePolicy,
+                    planEntry.ExecutionOrder));
+            }
+        }
+
+        private static bool ShouldPlanTargetLoad(ActivityOperationKind operationKind, ActivityAsset targetActivity)
+        {
+            return targetActivity != null
+                && (operationKind == ActivityOperationKind.Start
+                    || operationKind == ActivityOperationKind.Switch
+                    || operationKind == ActivityOperationKind.RouteStartup);
+        }
+
+        private static bool ShouldPlanRelease(
+            ActivityOperationKind operationKind,
+            ActivityAsset previousActivity,
+            ActivityAsset targetActivity)
+        {
+            if (operationKind == ActivityOperationKind.RouteExitCleanup)
+            {
+                return true;
+            }
+
+            if (previousActivity == null || ReferenceEquals(previousActivity, targetActivity))
+            {
+                return false;
+            }
+
+            return operationKind == ActivityOperationKind.Switch
+                || operationKind == ActivityOperationKind.Clear;
+        }
+
+        private static string ResolveSceneLabel(ActivitySceneCompositionPlanEntry entry)
+        {
+            if (!string.IsNullOrWhiteSpace(entry.SceneName))
+            {
+                return entry.SceneName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(entry.ScenePath))
+            {
+                return entry.ScenePath;
+            }
+
+            return "<missing>";
         }
 
         private void TrackLoadedScene(ActivityAsset activity, ActivitySceneCompositionResultEntry entry)

@@ -20,6 +20,8 @@ namespace Immersive.Framework.ActivityFlow
         private readonly ContentAnchorDiscoveryRuntime _contentAnchorDiscoveryRuntime = new ContentAnchorDiscoveryRuntime();
         private readonly ActivityContentExecutionRuntime _activityContentExecutionRuntime = new ActivityContentExecutionRuntime();
         private readonly ActivitySceneCompositionRuntime _activitySceneCompositionRuntime;
+        private readonly ActivityOperationPlanner _activityOperationPlanner;
+        private readonly ActivityOperationExecutor _activityOperationExecutor = new ActivityOperationExecutor();
         private IActivityContentExecutionParticipantSource _activityContentExecutionParticipantSource;
         private readonly RuntimeContentRuntime _runtimeContentRuntime;
         private readonly RuntimeContentAnchorBinding _contentAnchorBindingRuntime;
@@ -47,6 +49,7 @@ namespace Immersive.Framework.ActivityFlow
             _runtimeContentRuntime = runtimeContentRuntime ?? throw new ArgumentNullException(nameof(runtimeContentRuntime));
             _contentAnchorBindingRuntime = contentAnchorBindingRuntime ?? throw new ArgumentNullException(nameof(contentAnchorBindingRuntime));
             _activitySceneCompositionRuntime = new ActivitySceneCompositionRuntime(sceneLifecycleRuntime ?? throw new ArgumentNullException(nameof(sceneLifecycleRuntime)));
+            _activityOperationPlanner = new ActivityOperationPlanner(_activitySceneCompositionRuntime);
             _activityContentExecutionParticipantSource = activityContentExecutionParticipantSource ?? EmptyActivityContentExecutionParticipantSource.Instance;
             _currentActivityState = ActivityRuntimeState.Empty();
             _activityContentEnteredBinding = _activityEnteredEvents.Subscribe(_activityContentRuntime.HandleActivityEntered);
@@ -99,6 +102,25 @@ namespace Immersive.Framework.ActivityFlow
         internal IEventBinding SubscribeActivityExited(Action<ActivityExitedEvent> handler)
         {
             return _activityExitedEvents.Subscribe(handler);
+        }
+
+        internal ActivityOperationResult PreviewActivityOperation(
+            ActivityOperationKind operationKind,
+            ActivityAsset previousActivity,
+            ActivityAsset targetActivity,
+            ActivityVisualTransitionMode visualMode,
+            string source,
+            string reason)
+        {
+            var plan = _activityOperationPlanner.CreatePlan(
+                operationKind,
+                previousActivity,
+                targetActivity,
+                visualMode,
+                NormalizeSource(source),
+                NormalizeReason(reason));
+
+            return _activityOperationExecutor.Preview(plan);
         }
 
         internal Task<ActivityFlowStartResult> StartStartupActivityAsync(RouteAsset route, string source, string reason)

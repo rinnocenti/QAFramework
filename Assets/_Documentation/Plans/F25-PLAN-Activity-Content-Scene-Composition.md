@@ -46,7 +46,7 @@ Activity
 | F25D | Activity Content Release | Experimental/partial. Release Activity-owned content according to policy. Superseded architecturally by F25R. |
 | F25R | Activity Scene Operation Architecture Reset | Documentation reset. Defines `ActivityOperationPlan`, Visual Envelope, Activity scene ledger direction and next cuts. |
 | F25E | Activity Operation Plan Baseline | Add side-effect-free operation plan/result model. |
-| F25F | Activity Operation Executor | Move Activity visual/loading/release/load/state sequencing to one executor. |
+| F25F | Activity Operation Executor Preview | Add side-effect-free planner and validation-only executor preview over `ActivityOperationPlan`; runtime execution unchanged. |
 | F25G | Startup Activity Path Unification | Route startup Activity uses the same Activity operation path. |
 | F25H | Activity Scene Ledger | Replace loose tracking with route-scoped Activity-owned ledger entries. |
 | F25I | Validator Guards | Block invalid visual/scene side-effect combinations. |
@@ -69,6 +69,23 @@ Added runtime planning types:
 - `ActivityOperationResult`
 
 F25E does not alter runtime execution. Host-side loading probes, Activity scene execution/release and Route startup Activity wiring remain unchanged until the executor cut.
+
+## IF-FW-F25F - Activity operation executor preview
+
+F25F introduces `ActivityOperationPlanner` and a validation-only `ActivityOperationExecutor` facade.
+
+The planner produces one side-effect-free `ActivityOperationPlan` from target Activity scene composition declarations, previous Activity release evidence, current Unity scene loaded state and Activity visual mode.
+
+This is the first bridge from the F25R architecture reset into code, but it intentionally does not replace current runtime execution yet.
+
+F25F acceptance:
+
+- Activity operation preview can be created without load/unload/transition/loading side-effects.
+- Planned scenes include target Activity loads and previous Activity/Route cleanup releases.
+- `Seamless` or `Fade` with scene side-effects produces blocking plan issues.
+- `FadeWithLoading` with scene side-effects produces a valid plan that requires LoadingSurface.
+- `AlreadyLoaded` and stale tracked scenes are diagnostics, not scene side-effects.
+- Existing F25C-D4 execution remains unchanged and experimental.
 
 Acceptance:
 

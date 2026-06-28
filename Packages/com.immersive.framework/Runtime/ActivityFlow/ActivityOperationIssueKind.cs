@@ -14,6 +14,7 @@ namespace Immersive.Framework.ActivityFlow
         SeamlessSceneSideEffects = 30,
         FadeSceneSideEffectsRequireFadeWithLoading = 40,
         FadeWithLoadingWithoutSceneSideEffects = 50,
-        InvalidSceneEntry = 60
+        InvalidSceneEntry = 60,
+        StaleTrackedScene = 70
     }
 }

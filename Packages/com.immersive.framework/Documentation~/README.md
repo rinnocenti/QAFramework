@@ -96,6 +96,8 @@ Project plan: `Assets/_Documentation/Plans/F25-PLAN-Activity-Content-Scene-Compo
 
 `F25E - Activity Operation Plan Baseline` adds side-effect-free Activity operation planning/result types under `Runtime/ActivityFlow`. It does not change execution; it only records the canonical planning language and visual validity rules required before the executor cut.
 
+`F25F - Activity Operation Executor Preview` adds `ActivityOperationPlanner` and a validation-only `ActivityOperationExecutor` facade. It can produce unified preview plans from target Activity loads, previous Activity releases and visual policy, but does not replace the legacy runtime execution path yet.
+
 ### IF-FW-F25D — Activity Content Release
 
 Activity-owned additive scenes loaded through Activity scene composition are now released on Activity change when their scene entry uses `ReleaseOnActivityChange`.
@@ -117,7 +119,7 @@ Follow-up cuts:
 | Cut | Name |
 |---|---|
 | F25E | Activity Operation Plan Baseline |
-| F25F | Activity Operation Executor |
+| F25F | Activity Operation Executor Preview |
 | F25G | Startup Activity Path Unification |
 | F25H | Activity Scene Ledger |
 | F25I | Validator Guards |
