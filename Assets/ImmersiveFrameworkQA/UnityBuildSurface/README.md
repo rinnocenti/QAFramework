@@ -20,6 +20,7 @@ Prefabs/QA_TransitionCurtainSurface.prefab
 Prefabs/QA_LoadingSurface.prefab
 Scripts/Runtime/TransitionQaRouteSwitchPanel.cs
 Scripts/Runtime/TransitionQaActivitySwitchPanel.cs
+Scripts/Runtime/QaPauseSurfaceAdapter.cs
 ```
 
 ## Temporary tools
@@ -171,3 +172,35 @@ Assets/_Documentation/Notes/F26F-DELETE-MANIFEST.txt
 The corrected scene keeps the original Unity `.meta` GUID so existing references remain stable after cleanup.
 
 F26F also records the final loading progress rule: framework diagnostics report technical progress, while the QA loading adapter may smooth visual fill movement for readability. Smoothing is presentation only and does not change `loadingProgressValue` / `loadingProgressPercent` diagnostics.
+
+## F27A Pause UIGlobal Surface Baseline
+
+`Scenes/QA_UIGlobal.unity` now also contains a QA Pause surface adapter and a `PauseRequestTrigger` on the persisted UIGlobal root.
+
+The QA adapter presents the current logical Pause snapshot and exposes manual IMGUI buttons for:
+
+```text
+Pause
+Resume
+Toggle
+```
+
+Expected boot evidence:
+
+```text
+pauseAdapterCount='1'
+Pause surface resolved from UIGlobal scene 'QA_UIGlobal' with adapterCount='1'
+```
+
+Expected request evidence after Toggle/Pause:
+
+```text
+Pause Request completed.
+currentState='Paused'
+pauseSurface='Succeeded'
+pauseSurfaceVisual='UnitySurface'
+pauseSurfaceAdapterCount='1'
+```
+
+This is still QA surface validation only. It does not bind keyboard/controller input, does not change `Time.timeScale` and does not own Route or Activity lifecycle.
+

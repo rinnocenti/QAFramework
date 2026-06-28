@@ -38,6 +38,7 @@ namespace Immersive.Framework.ApplicationLifecycle
         private GameApplicationAsset _gameApplication;
         private GameFlowRuntime _gameFlowRuntime;
         private PauseRuntime _pauseRuntime;
+        private PauseSurfaceRuntime _pauseSurfaceRuntime;
         private int _pauseRequestSequence;
         private RuntimeContentRuntime _runtimeContentRuntime;
         private RuntimeContentAnchorBinding _contentAnchorBindingRuntime;
@@ -181,6 +182,8 @@ namespace Immersive.Framework.ApplicationLifecycle
             }
 
             _loadingSurfaceRuntime = CreateLoadingSurfaceRuntime(_globalUiSceneRuntime);
+            _pauseSurfaceRuntime = CreatePauseSurfaceRuntime(_globalUiSceneRuntime);
+            ApplyPauseSurfaceSnapshot("FrameworkRuntimeHost", "framework-start");
             var transitionOrchestrator = CreateTransitionOrchestrator(_globalUiSceneRuntime);
             _gameFlowRuntime = new GameFlowRuntime(_runtimeContentRuntime, _contentAnchorBindingRuntime, transitionOrchestrator);
 
@@ -481,7 +484,8 @@ namespace Immersive.Framework.ApplicationLifecycle
             }
 
             var result = _pauseRuntime.Request(request);
-            LogPauseRequestResult(result);
+            var pauseSurfaceResult = ApplyPauseSurfaceSnapshot(request.Source, request.Reason);
+            LogPauseRequestResult(result, pauseSurfaceResult);
             return result;
         }
 
@@ -738,6 +742,36 @@ namespace Immersive.Framework.ApplicationLifecycle
                 globalUiSceneRuntime != null ? globalUiSceneRuntime.Label : string.Empty);
         }
 
+        private PauseSurfaceRuntime CreatePauseSurfaceRuntime(GlobalUiSceneRuntime globalUiSceneRuntime)
+        {
+            return PauseSurfaceRuntime.Create(
+                _logger,
+                globalUiSceneRuntime != null ? globalUiSceneRuntime.PauseAdapters : Array.Empty<IPauseSurfaceAdapter>(),
+                globalUiSceneRuntime != null ? globalUiSceneRuntime.Label : string.Empty);
+        }
+
+        private PauseSurfaceApplicationResult ApplyPauseSurfaceSnapshot(string source, string reason)
+        {
+            if (_pauseRuntime == null)
+            {
+                throw new InvalidOperationException("Pause runtime is not initialized.");
+            }
+
+            if (_pauseSurfaceRuntime == null)
+            {
+                return PauseSurfaceApplicationResult.NoSurface(
+                    _pauseRuntime.Snapshot,
+                    "Pause Surface",
+                    source,
+                    reason);
+            }
+
+            return _pauseSurfaceRuntime.ApplySnapshot(
+                _pauseRuntime.Snapshot,
+                NormalizeLifecycleSource(source),
+                string.IsNullOrWhiteSpace(reason) ? "pause.surface.apply" : reason.Trim());
+        }
+
         private ITransitionOrchestrator CreateTransitionOrchestrator(GlobalUiSceneRuntime globalUiSceneRuntime)
         {
             if (globalUiSceneRuntime == null)
@@ -947,22 +981,23 @@ namespace Immersive.Framework.ApplicationLifecycle
             _logger.Error(result.Message, BuildActivityRequestFields(result, loadingDiagnostics));
         }
 
-        private void LogPauseRequestResult(PauseResult result)
+        private void LogPauseRequestResult(PauseResult result, PauseSurfaceApplicationResult pauseSurfaceResult)
         {
             if (result.Applied || result.IgnoredNoChange)
             {
-                _logger.Info("Pause Request completed.", BuildPauseRequestFields(result));
+                _logger.Info("Pause Request completed.", BuildPauseRequestFields(result, pauseSurfaceResult));
                 _logger.Debug("Pause Request diagnostics. " + result.ToDiagnosticString());
                 return;
             }
 
             if (result.Rejected)
             {
-                _logger.Warning("Pause Request rejected. " + result.ToDiagnosticString());
+                _logger.Warning("Pause Request rejected.", BuildPauseRequestFields(result, pauseSurfaceResult));
+                _logger.Debug("Pause Request diagnostics. " + result.ToDiagnosticString());
                 return;
             }
 
-            _logger.Error("Pause Request failed. " + result.ToDiagnosticString());
+            _logger.Error("Pause Request failed. " + result.ToDiagnosticString(), BuildPauseRequestFields(result, pauseSurfaceResult));
         }
 
         private void LogCycleResetResult(CycleResetResult result)
@@ -1013,7 +1048,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("nonBlockingIssues", result.NonBlockingIssueCount));
         }
 
-        private LogField[] BuildPauseRequestFields(PauseResult result)
+        private LogField[] BuildPauseRequestFields(PauseResult result, PauseSurfaceApplicationResult pauseSurfaceResult)
         {
             var gateSnapshot = PauseGateSnapshot;
             return LogFields.Of(
@@ -1035,7 +1070,16 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("blocksInteraction", gateSnapshot.IsBlocked(GateScope.Interaction, GateDomain.InteractionAcceptance)),
                 LogFields.Field("blocksPauseRequest", gateSnapshot.IsBlocked(GateScope.Pause, GateDomain.PauseRequest)),
                 LogFields.Field("issues", result.IssueCount),
-                LogFields.Field("blockingIssues", result.BlockingIssueCount));
+                LogFields.Field("blockingIssues", result.BlockingIssueCount),
+                LogFields.Field("pauseSurface", pauseSurfaceResult.StatusText),
+                LogFields.Field("pauseSurfaceVisual", pauseSurfaceResult.VisualText),
+                LogFields.Field("pauseSurfaceAdapterCount", pauseSurfaceResult.AdapterCount),
+                LogFields.Field("pauseSurfaceSupportedAdapters", pauseSurfaceResult.SupportedAdapterCount),
+                LogFields.Field("pauseSurfaceAppliedAdapters", pauseSurfaceResult.AppliedAdapterCount),
+                LogFields.Field("pauseSurfaceFailedAdapters", pauseSurfaceResult.FailedAdapterCount),
+                LogFields.Field("pauseSurfaceIssues", pauseSurfaceResult.IssueCount),
+                LogFields.Field("pauseSurfaceState", pauseSurfaceResult.Snapshot.State.ToString()),
+                LogFields.Field("pauseSurfacePaused", pauseSurfaceResult.Snapshot.IsPaused));
         }
 
         private LogField[] BuildCycleResetFields(CycleResetResult result)

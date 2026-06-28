@@ -25,7 +25,8 @@ Read the documentation in this order:
 | F23 | Pause Content / Overlay / Input Intent Boundary | Closed |
 | F24 | Unity Build Surface / Lifecycle Wiring | Closed / validated by QA surface |
 | F25 | Activity Content Scene Composition | Closed / final docs aligned in F25J |
-| F26 | Activity Scene Discovery Integration / Loading Progress Integration | Open / loading progress closed through F26F |
+| F26 | Activity Scene Discovery Integration / Loading Progress Integration | Closed / loading progress closed through F26F |
+| F27 | Pause UIGlobal Surface and Input Wiring | Open / F27A ready for smoke |
 
 ## F23 Boundary
 
@@ -71,6 +72,16 @@ F25 must consume F24 Unity build surfaces and must not create a parallel lifecyc
 `F24F - Activity Transition Policy` adds an Activity-level authoring policy for optional Activity transitions. Route transitions remain mandatory; Activity loading remains skipped until real Activity content/scene loading exists.
 
 `F24F1 - Activity Loading Reserved Finding` was a historical pre-F25 finding. After the F25R reset and the F25R1 clarification, `FadeWithLoading` means Activity operation uses TransitionSurface and LoadingSurface when the operation requests loading presentation.
+
+## F27 Pause UIGlobal Surface
+
+F27 implements the deferred Unity-facing Pause surface work after F26 loading progress closeout.
+
+F27A adds a Pause surface adapter boundary, collects `IPauseSurfaceAdapter` from the canonical UIGlobal scene, applies `PauseSnapshot` updates after logical Pause requests and exposes a QA `PauseRequestTrigger` for manual validation.
+
+F27A does not bind keyboard/controller input, does not change `Time.timeScale` and does not own Route/Activity lifecycle. Those are later adapter/policy cuts.
+
+Project plan: `Assets/_Documentation/Plans/F27-PLAN-Pause-UIGlobal-And-Input.md`.
 
 ## F25 Activity Content Scene Composition
 

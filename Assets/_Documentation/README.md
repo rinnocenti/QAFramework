@@ -21,6 +21,7 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Plans/F24-PLAN-Unity-Build-Surface.md`
 - `Plans/F25-PLAN-Activity-Content-Scene-Composition.md`
 - `Plans/F26-PLAN-Activity-Discovery-And-Loading-Progress.md`
+- `Plans/F27-PLAN-Pause-UIGlobal-And-Input.md`
 
 ### Setup
 
@@ -41,6 +42,8 @@ Aggregated loading progress: `Notes/F26E-Aggregated-Loading-Progress.md`.
 Loading progress closeout: `Notes/F26F-Loading-Progress-Polish-And-Closeout.md`.
 
 F26F cleanup manifest: `Notes/F26F-DELETE-MANIFEST.txt`.
+
+Pause UIGlobal surface baseline: `Notes/F27A-Pause-UIGlobal-Surface-Baseline.md`.
 
 ## Regras
 

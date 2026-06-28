@@ -4,6 +4,7 @@ using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Diagnostics;
 using Immersive.Framework.Loading;
+using Immersive.Framework.Pause;
 using Immersive.Framework.TransitionEffects;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -20,6 +21,7 @@ namespace Immersive.Framework.GlobalUi
     {
         private readonly List<ITransitionEffectAdapter> _transitionAdapters;
         private readonly List<ILoadingSurfaceAdapter> _loadingAdapters;
+        private readonly List<IPauseSurfaceAdapter> _pauseAdapters;
 
         private GlobalUiSceneRuntime(
             GlobalUiScenePolicy policy,
@@ -29,6 +31,7 @@ namespace Immersive.Framework.GlobalUi
             IReadOnlyList<GameObject> persistedRoots,
             IReadOnlyList<ITransitionEffectAdapter> transitionAdapters,
             IReadOnlyList<ILoadingSurfaceAdapter> loadingAdapters,
+            IReadOnlyList<IPauseSurfaceAdapter> pauseAdapters,
             bool hasBlockingConfigurationIssue,
             string blockingConfigurationMessage,
             string message)
@@ -40,6 +43,7 @@ namespace Immersive.Framework.GlobalUi
             PersistedRootCount = persistedRoots != null ? persistedRoots.Count : 0;
             _transitionAdapters = Copy(transitionAdapters);
             _loadingAdapters = Copy(loadingAdapters);
+            _pauseAdapters = Copy(pauseAdapters);
             HasBlockingConfigurationIssue = hasBlockingConfigurationIssue;
             BlockingConfigurationMessage = Normalize(blockingConfigurationMessage);
             Message = Normalize(message);
@@ -52,11 +56,13 @@ namespace Immersive.Framework.GlobalUi
         public int PersistedRootCount { get; }
         public int TransitionAdapterCount => _transitionAdapters.Count;
         public int LoadingAdapterCount => _loadingAdapters.Count;
+        public int PauseAdapterCount => _pauseAdapters.Count;
         public bool HasBlockingConfigurationIssue { get; }
         public string BlockingConfigurationMessage { get; }
         public string Message { get; }
         public IReadOnlyList<ITransitionEffectAdapter> TransitionAdapters => _transitionAdapters;
         public IReadOnlyList<ILoadingSurfaceAdapter> LoadingAdapters => _loadingAdapters;
+        public IReadOnlyList<IPauseSurfaceAdapter> PauseAdapters => _pauseAdapters;
 
         internal static async Awaitable<GlobalUiSceneRuntime> LoadAndPersistAsync(
             GameApplicationAsset application,
@@ -77,6 +83,7 @@ namespace Immersive.Framework.GlobalUi
                     Array.Empty<GameObject>(),
                     Array.Empty<ITransitionEffectAdapter>(),
                     Array.Empty<ILoadingSurfaceAdapter>(),
+                    Array.Empty<IPauseSurfaceAdapter>(),
                     false,
                     string.Empty,
                     message);
@@ -101,6 +108,7 @@ namespace Immersive.Framework.GlobalUi
                     Array.Empty<GameObject>(),
                     Array.Empty<ITransitionEffectAdapter>(),
                     Array.Empty<ILoadingSurfaceAdapter>(),
+                    Array.Empty<IPauseSurfaceAdapter>(),
                     false,
                     string.Empty,
                     "UIGlobal scene is explicit NoOp.");
@@ -162,6 +170,7 @@ namespace Immersive.Framework.GlobalUi
 
             var transitionAdapters = CollectAdapters<ITransitionEffectAdapter>(persistedRoots);
             var loadingAdapters = CollectAdapters<ILoadingSurfaceAdapter>(persistedRoots);
+            var pauseAdapters = CollectAdapters<IPauseSurfaceAdapter>(persistedRoots);
             var blockingMessage = BuildBlockingMessageIfRequired(
                 application.GlobalUiScenePolicyValue,
                 application.GlobalUiSceneName,
@@ -191,12 +200,13 @@ namespace Immersive.Framework.GlobalUi
                     persistedRoots,
                     transitionAdapters,
                     loadingAdapters,
+                    pauseAdapters,
                     true,
                     blockingMessage,
-                    $"UIGlobal scene '{label}' loaded and persisted with rootCount='{persistedRoots.Count}' transitionAdapterCount='{transitionAdapters.Count}' loadingAdapterCount='{loadingAdapters.Count}'.");
+                    $"UIGlobal scene '{label}' loaded and persisted with rootCount='{persistedRoots.Count}' transitionAdapterCount='{transitionAdapters.Count}' loadingAdapterCount='{loadingAdapters.Count}' pauseAdapterCount='{pauseAdapters.Count}'.");
             }
 
-            logger.Info($"UIGlobal scene '{label}' loaded and persisted with rootCount='{persistedRoots.Count}' transitionAdapterCount='{transitionAdapters.Count}' loadingAdapterCount='{loadingAdapters.Count}'.");
+            logger.Info($"UIGlobal scene '{label}' loaded and persisted with rootCount='{persistedRoots.Count}' transitionAdapterCount='{transitionAdapters.Count}' loadingAdapterCount='{loadingAdapters.Count}' pauseAdapterCount='{pauseAdapters.Count}'.");
 
             return new GlobalUiSceneRuntime(
                 application.GlobalUiScenePolicyValue,
@@ -206,6 +216,7 @@ namespace Immersive.Framework.GlobalUi
                 persistedRoots,
                 transitionAdapters,
                 loadingAdapters,
+                pauseAdapters,
                 false,
                 string.Empty,
                 "UIGlobal scene loaded and persisted.");
@@ -221,6 +232,7 @@ namespace Immersive.Framework.GlobalUi
                 Array.Empty<GameObject>(),
                 Array.Empty<ITransitionEffectAdapter>(),
                 Array.Empty<ILoadingSurfaceAdapter>(),
+                Array.Empty<IPauseSurfaceAdapter>(),
                 true,
                 message,
                 message);

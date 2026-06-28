@@ -32,7 +32,7 @@ Do not read F25 adapter work back into F23 or F24. F23 does not build visuals. F
 
 ## 3. Current Phase
 
-F26 is the active documentation phase in the current package state. F24 and F25 are closed; the F26 loading progress thread is closed through F26F.
+F27 is the active Unity-facing phase in the current package state. F24, F25 and F26 are closed; the F26 loading progress thread is closed through F26F. F27 starts the deferred Pause UIGlobal surface work.
 
 F23 is intent/requirement-only and owns these canonical Pause contracts:
 
@@ -109,6 +109,19 @@ F25 must not create a parallel lifecycle, bypass Gate/Transition/Loading/Pause o
 | F26F | Loading Progress Polish / Documentation Closeout | Closed / PASS |
 
 Loading progress is now considered closed until a new concrete loading source appears, such as Addressables, asset bundles, remote content or long-running non-scene operations.
+
+
+
+### F27 - Pause UIGlobal Surface and Input Wiring
+
+| Cut | Name | Status |
+|---|---|---|
+| F27A | Pause UIGlobal Surface Baseline | Ready for smoke |
+| F27B | Pause Input Signal Wiring | Planned |
+| F27C | Pause Time Policy Adapter | Planned |
+| F27D | Pause Closeout / Usage Guide | Planned |
+
+F27 implements the deferred Pause Unity surface goal after the F26 loading progress closeout. F27A only presents logical Pause state through UIGlobal and a QA trigger. Input binding, Time policy and gameplay freeze remain separate cuts.
 
 ## 5. Tracks
 

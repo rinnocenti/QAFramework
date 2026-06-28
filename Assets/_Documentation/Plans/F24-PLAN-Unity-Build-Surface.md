@@ -210,13 +210,15 @@ Escopo:
 
 ### F24F - Pause Unity Surface
 
-Status: Planned
+Status: Deferred / implemented as F27A+
 
-Escopo:
+Escopo original:
 
 - criar superficie de pause dentro do shape UIGlobal;
 - pause consome lifecycle/input/presentation;
 - pause nao controla Activity/Route diretamente.
+
+Nota: o objetivo Unity-facing de Pause foi reaberto depois do fechamento F26 e passa a ser acompanhado em `Plans/F27-PLAN-Pause-UIGlobal-And-Input.md`. F27A implementa a surface visual baseline; input e policy ficam para F27B/F27C.
 
 ### F24F - Save Moment Authoring
 
