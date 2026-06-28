@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.ContentFlow;
 using Immersive.Framework.SceneLifecycle;
+using Immersive.Framework.Loading;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -22,7 +23,14 @@ namespace Immersive.Framework.RouteLifecycle
             _sceneLifecycleRuntime = sceneLifecycleRuntime ?? throw new ArgumentNullException(nameof(sceneLifecycleRuntime));
         }
 
-        internal async Task<RouteSceneCompositionResult> ExecuteAsync(RouteSceneCompositionPlan plan)
+        internal Task<RouteSceneCompositionResult> ExecuteAsync(RouteSceneCompositionPlan plan)
+        {
+            return ExecuteAsync(plan, NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal async Task<RouteSceneCompositionResult> ExecuteAsync(
+            RouteSceneCompositionPlan plan,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             var entries = new List<RouteSceneCompositionResultEntry>(Math.Max(1, plan.EntryCount));
             if (!plan.HasRoute)
@@ -40,7 +48,7 @@ namespace Immersive.Framework.RouteLifecycle
                     plan.Reason);
             }
 
-            var primarySceneLoadResult = await _sceneLifecycleRuntime.LoadPrimarySceneAsync(plan.Route);
+            var primarySceneLoadResult = await _sceneLifecycleRuntime.LoadPrimarySceneAsync(plan.Route, progressReporter);
             if (!primarySceneLoadResult.Loaded)
             {
                 entries.Add(RouteSceneCompositionResultEntry.FailedEntry(
@@ -77,7 +85,8 @@ namespace Immersive.Framework.RouteLifecycle
 
                 var additiveLoadResult = await _sceneLifecycleRuntime.LoadAdditiveSceneAsync(
                     additionalScene.SceneName,
-                    additionalScene.ScenePath);
+                    additionalScene.ScenePath,
+                    progressReporter);
 
                 if (additiveLoadResult.Loaded)
                 {

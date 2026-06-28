@@ -31,6 +31,10 @@ Notas temporárias e achados de auditoria local.
 
 Reset F25: `Notes/F25R-Activity-Scene-Operation-Architecture-Reset.md`.
 
+Loading progress preparation: `Notes/F26C-Loading-Surface-Progress-Bar-Receiver.md`.
+
+Determinate loading progress source: `Notes/F26D-Determinate-Loading-Progress-Source.md`.
+
 ## Regras
 
 - Documentação viva do projeto fica em `Assets/_Documentation`.

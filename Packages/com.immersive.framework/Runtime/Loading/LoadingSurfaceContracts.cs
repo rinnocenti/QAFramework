@@ -157,15 +157,26 @@ namespace Immersive.Framework.Loading
             string source,
             string reason)
         {
-            return new LoadingSurfaceRequest(
+            return Show(title, detail, source, reason, LoadingProgress.Zero, progressSupported: false);
+        }
+
+        public static LoadingSurfaceRequest Show(
+            string title,
+            string detail,
+            string source,
+            string reason,
+            LoadingProgress progress,
+            bool progressSupported)
+        {
+            return Create(
                 LoadingSurfaceAction.Show,
                 true,
-                LoadingProgress.Zero,
-                false,
                 title,
                 detail,
                 source,
-                reason);
+                reason,
+                progress,
+                progressSupported);
         }
 
         public static LoadingSurfaceRequest Update(
@@ -174,15 +185,26 @@ namespace Immersive.Framework.Loading
             string source,
             string reason)
         {
-            return new LoadingSurfaceRequest(
+            return Update(title, detail, source, reason, LoadingProgress.Zero, progressSupported: false);
+        }
+
+        public static LoadingSurfaceRequest Update(
+            string title,
+            string detail,
+            string source,
+            string reason,
+            LoadingProgress progress,
+            bool progressSupported)
+        {
+            return Create(
                 LoadingSurfaceAction.Update,
                 true,
-                LoadingProgress.Zero,
-                false,
                 title,
                 detail,
                 source,
-                reason);
+                reason,
+                progress,
+                progressSupported);
         }
 
         public static LoadingSurfaceRequest Hide(
@@ -191,11 +213,43 @@ namespace Immersive.Framework.Loading
             string source,
             string reason)
         {
-            return new LoadingSurfaceRequest(
+            return Hide(title, detail, source, reason, LoadingProgress.Zero, progressSupported: false);
+        }
+
+        public static LoadingSurfaceRequest Hide(
+            string title,
+            string detail,
+            string source,
+            string reason,
+            LoadingProgress progress,
+            bool progressSupported)
+        {
+            return Create(
                 LoadingSurfaceAction.Hide,
                 false,
-                LoadingProgress.Zero,
-                false,
+                title,
+                detail,
+                source,
+                reason,
+                progress,
+                progressSupported);
+        }
+
+        private static LoadingSurfaceRequest Create(
+            LoadingSurfaceAction action,
+            bool shouldBeVisible,
+            string title,
+            string detail,
+            string source,
+            string reason,
+            LoadingProgress progress,
+            bool progressSupported)
+        {
+            return new LoadingSurfaceRequest(
+                action,
+                shouldBeVisible,
+                progressSupported ? progress : LoadingProgress.Zero,
+                progressSupported,
                 title,
                 detail,
                 source,
@@ -475,6 +529,18 @@ namespace Immersive.Framework.Loading
 
         /// <summary>Hides the loading surface for a canonical request.</summary>
         LoadingSurfaceResult Hide(LoadingSurfaceRequest request);
+    }
+
+    /// <summary>
+    /// Optional marker for loading surface adapters that can present request progress visually.
+    /// This does not mean the loading lifecycle has a determinate source yet; it only states that
+    /// the adapter can consume progress data when a request carries it.
+    /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F26C Loading surface progress presentation receiver contract.")]
+    public interface ILoadingSurfaceProgressPresentationAdapter : ILoadingSurfaceAdapter
+    {
+        /// <summary>Returns true when progress UI references are configured and can receive request progress.</summary>
+        bool HasProgressPresentation { get; }
     }
 
     /// <summary>

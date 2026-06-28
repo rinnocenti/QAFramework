@@ -142,18 +142,29 @@ namespace Immersive.Framework.ApplicationLifecycle
             int adapterCount,
             bool progressSupported)
         {
+            return FromUnitySurface(
+                beforeResult,
+                afterResult,
+                adapterCount,
+                progressSupported,
+                FrameworkLoadingProgress.Indeterminate(
+                    progressSupported,
+                    UnitySurfaceText,
+                    "Loading progress support is available but no determinate source is wired for this operation."));
+        }
+
+        public static FrameworkLoadingDiagnostics FromUnitySurface(
+            LoadingSurfaceResult beforeResult,
+            LoadingSurfaceResult afterResult,
+            int adapterCount,
+            bool progressSupported,
+            FrameworkLoadingProgress observedProgress)
+        {
             var blockingIssueCount = beforeResult.BlockingIssueCount + afterResult.BlockingIssueCount;
             var beforeText = StatusText(beforeResult);
             var afterText = StatusText(afterResult);
             var loadingText = DetermineSurfaceLoadingText(beforeResult, afterResult);
-            var progress = progressSupported
-                ? FrameworkLoadingProgress.Indeterminate(
-                    true,
-                    UnitySurfaceText,
-                    "Loading progress support is available but no determinate source is wired in this cut.")
-                : FrameworkLoadingProgress.Unsupported(
-                    UnitySurfaceText,
-                    "Loading surface adapters do not expose progress in this cut.");
+            var progress = ResolveObservedProgress(progressSupported, observedProgress);
             return new FrameworkLoadingDiagnostics(
                 loadingText,
                 UnitySurfaceText,
@@ -184,6 +195,28 @@ namespace Immersive.Framework.ApplicationLifecycle
             }
 
             return "SucceededWithUnitySurface";
+        }
+
+        private static FrameworkLoadingProgress ResolveObservedProgress(
+            bool progressSupported,
+            FrameworkLoadingProgress observedProgress)
+        {
+            if (!progressSupported)
+            {
+                return FrameworkLoadingProgress.Unsupported(
+                    UnitySurfaceText,
+                    "Loading surface adapters do not expose progress for this operation.");
+            }
+
+            if (observedProgress.Supported && observedProgress.IsDeterminate)
+            {
+                return observedProgress;
+            }
+
+            return FrameworkLoadingProgress.Indeterminate(
+                true,
+                UnitySurfaceText,
+                "Loading progress support is available but no determinate source reported progress for this operation.");
         }
 
         private static string StatusText(LoadingSurfaceResult result)

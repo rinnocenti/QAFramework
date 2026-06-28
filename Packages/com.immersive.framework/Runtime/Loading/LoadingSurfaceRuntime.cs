@@ -57,7 +57,7 @@ namespace Immersive.Framework.Loading
 
         public string VisualText => HasVisibleSurface ? "UnitySurface" : "None";
 
-        public bool ProgressSupported => false;
+        public bool ProgressSupported => HasProgressPresentationAdapter();
 
         internal static LoadingSurfaceRuntime Create(
             FrameworkLogger logger,
@@ -379,6 +379,20 @@ namespace Immersive.Framework.Loading
                         $"Unsupported loading surface action '{expectedAction}'.",
                         new[] { "loading-surface-action-unsupported" });
             }
+        }
+
+        private bool HasProgressPresentationAdapter()
+        {
+            for (var i = 0; i < _adapters.Length; i++)
+            {
+                if (_adapters[i] is ILoadingSurfaceProgressPresentationAdapter progressAdapter
+                    && progressAdapter.HasProgressPresentation)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private List<ILoadingSurfaceAdapter> CollectSupportingAdapters(LoadingSurfaceRequest request)

@@ -10,6 +10,7 @@ using Immersive.Framework.CycleReset;
 using Immersive.Framework.Gate;
 using Immersive.Framework.Transition;
 using Immersive.Framework.TransitionEffects;
+using Immersive.Framework.Loading;
 using UnityEngine;
 
 namespace Immersive.Framework.GameFlow
@@ -120,12 +121,29 @@ namespace Immersive.Framework.GameFlow
                 afterRouteLifecycle: null);
         }
 
-        internal async Task<FrameworkRouteRequestResult> RequestRouteAsync(
+        internal Task<FrameworkRouteRequestResult> RequestRouteAsync(
             RouteAsset targetRoute,
             string source,
             string reason,
             Func<Awaitable> beforeRouteLifecycle,
             Func<Awaitable> afterRouteLifecycle)
+        {
+            return RequestRouteAsync(
+                targetRoute,
+                source,
+                reason,
+                beforeRouteLifecycle,
+                afterRouteLifecycle,
+                NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal async Task<FrameworkRouteRequestResult> RequestRouteAsync(
+            RouteAsset targetRoute,
+            string source,
+            string reason,
+            Func<Awaitable> beforeRouteLifecycle,
+            Func<Awaitable> afterRouteLifecycle,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             string resolvedSource = FrameworkRouteRequestResult.NormalizeSource(source);
             string resolvedReason = FrameworkRouteRequestResult.NormalizeReason(reason);
@@ -185,7 +203,7 @@ namespace Immersive.Framework.GameFlow
                     await beforeRouteLifecycle();
                 }
 
-                var routeLifecycleResult = await StartRouteCoreAsync(targetRoute, resolvedSource, resolvedReason);
+                var routeLifecycleResult = await StartRouteCoreAsync(targetRoute, resolvedSource, resolvedReason, progressReporter);
 
                 if (afterRouteLifecycle != null)
                 {
@@ -242,12 +260,29 @@ namespace Immersive.Framework.GameFlow
                 afterActivityLifecycle: null);
         }
 
-        internal async Task<FrameworkActivityRequestResult> RequestActivityAsync(
+        internal Task<FrameworkActivityRequestResult> RequestActivityAsync(
             ActivityAsset targetActivity,
             string source,
             string reason,
             Func<Awaitable> beforeActivityLifecycle,
             Func<Awaitable> afterActivityLifecycle)
+        {
+            return RequestActivityAsync(
+                targetActivity,
+                source,
+                reason,
+                beforeActivityLifecycle,
+                afterActivityLifecycle,
+                NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal async Task<FrameworkActivityRequestResult> RequestActivityAsync(
+            ActivityAsset targetActivity,
+            string source,
+            string reason,
+            Func<Awaitable> beforeActivityLifecycle,
+            Func<Awaitable> afterActivityLifecycle,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             string resolvedSource = FrameworkActivityRequestResult.NormalizeSource(source);
             string resolvedReason = FrameworkActivityRequestResult.NormalizeReason(reason);
@@ -327,7 +362,7 @@ namespace Immersive.Framework.GameFlow
                     await beforeActivityLifecycle();
                 }
 
-                var activityFlowResult = await _routeLifecycleRuntime.StartActivityAsync(targetActivity, resolvedSource, resolvedReason);
+                var activityFlowResult = await _routeLifecycleRuntime.StartActivityAsync(targetActivity, resolvedSource, resolvedReason, progressReporter);
 
                 if (afterActivityLifecycle != null)
                 {
@@ -379,11 +414,26 @@ namespace Immersive.Framework.GameFlow
             return await ClearActivityAsync(source, reason, beforeActivityLifecycle: null, afterActivityLifecycle: null);
         }
 
-        internal async Task<FrameworkActivityRequestResult> ClearActivityAsync(
+        internal Task<FrameworkActivityRequestResult> ClearActivityAsync(
             string source,
             string reason,
             Func<Awaitable> beforeActivityLifecycle,
             Func<Awaitable> afterActivityLifecycle)
+        {
+            return ClearActivityAsync(
+                source,
+                reason,
+                beforeActivityLifecycle,
+                afterActivityLifecycle,
+                NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal async Task<FrameworkActivityRequestResult> ClearActivityAsync(
+            string source,
+            string reason,
+            Func<Awaitable> beforeActivityLifecycle,
+            Func<Awaitable> afterActivityLifecycle,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             string resolvedSource = FrameworkActivityRequestResult.NormalizeSource(source);
             string resolvedReason = FrameworkActivityRequestResult.NormalizeReason(reason);
@@ -453,7 +503,7 @@ namespace Immersive.Framework.GameFlow
                     await beforeActivityLifecycle();
                 }
 
-                var activityFlowResult = await _routeLifecycleRuntime.ClearActivityAsync(resolvedSource, resolvedReason);
+                var activityFlowResult = await _routeLifecycleRuntime.ClearActivityAsync(resolvedSource, resolvedReason, progressReporter);
 
                 if (afterActivityLifecycle != null)
                 {
@@ -601,7 +651,16 @@ namespace Immersive.Framework.GameFlow
 
         private Task<RouteLifecycleStartResult> StartRouteCoreAsync(RouteAsset route, string source, string reason)
         {
-            return _routeLifecycleRuntime.StartRouteAsync(route, source, reason);
+            return StartRouteCoreAsync(route, source, reason, NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        private Task<RouteLifecycleStartResult> StartRouteCoreAsync(
+            RouteAsset route,
+            string source,
+            string reason,
+            IFrameworkLoadingProgressReporter progressReporter)
+        {
+            return _routeLifecycleRuntime.StartRouteAsync(route, source, reason, progressReporter);
         }
 
         private async Awaitable<TransitionResult> ExecuteActivityTransitionAsync(

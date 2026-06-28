@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.SceneLifecycle;
+using Immersive.Framework.Loading;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -81,7 +82,14 @@ namespace Immersive.Framework.ActivityFlow
                 reason);
         }
 
-        internal async Task<ActivitySceneCompositionResult> ExecuteAsync(ActivitySceneCompositionPlan plan)
+        internal Task<ActivitySceneCompositionResult> ExecuteAsync(ActivitySceneCompositionPlan plan)
+        {
+            return ExecuteAsync(plan, NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal async Task<ActivitySceneCompositionResult> ExecuteAsync(
+            ActivitySceneCompositionPlan plan,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             if (!plan.HasActivity || !plan.HasProfile || !plan.HasScenes)
             {
@@ -109,7 +117,10 @@ namespace Immersive.Framework.ActivityFlow
                     _ledger.MarkStale(ledgerEntry);
                 }
 
-                var loadResult = await _sceneLifecycleRuntime.LoadAdditiveSceneAsync(scene.SceneName, scene.ScenePath);
+                var loadResult = await _sceneLifecycleRuntime.LoadAdditiveSceneAsync(
+                    scene.SceneName,
+                    scene.ScenePath,
+                    progressReporter);
                 if (loadResult.Loaded)
                 {
                     var loadedEntry = ActivitySceneCompositionResultEntry.LoadedEntry(scene, loadResult);
@@ -129,21 +140,39 @@ namespace Immersive.Framework.ActivityFlow
             string source,
             string reason)
         {
-            return ReleaseTrackedScenesAsync(activity, forceReleaseAll: false, source, reason);
+            return ReleaseOnActivityChangeAsync(activity, source, reason, NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal Task<ActivitySceneReleaseResult> ReleaseOnActivityChangeAsync(
+            ActivityAsset activity,
+            string source,
+            string reason,
+            IFrameworkLoadingProgressReporter progressReporter)
+        {
+            return ReleaseTrackedScenesAsync(activity, forceReleaseAll: false, source, reason, progressReporter);
         }
 
         internal Task<ActivitySceneReleaseResult> ReleaseForRouteChangeAsync(
             string source,
             string reason)
         {
-            return ReleaseTrackedScenesAsync(activity: null, forceReleaseAll: true, source, reason);
+            return ReleaseForRouteChangeAsync(source, reason, NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal Task<ActivitySceneReleaseResult> ReleaseForRouteChangeAsync(
+            string source,
+            string reason,
+            IFrameworkLoadingProgressReporter progressReporter)
+        {
+            return ReleaseTrackedScenesAsync(activity: null, forceReleaseAll: true, source, reason, progressReporter);
         }
 
         private async Task<ActivitySceneReleaseResult> ReleaseTrackedScenesAsync(
             ActivityAsset activity,
             bool forceReleaseAll,
             string source,
-            string reason)
+            string reason,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             if (activity == null && !forceReleaseAll)
             {
@@ -179,7 +208,10 @@ namespace Immersive.Framework.ActivityFlow
                     continue;
                 }
 
-                var unloadResult = await _sceneLifecycleRuntime.UnloadSceneAsync(planEntry.SceneName, planEntry.ScenePath);
+                var unloadResult = await _sceneLifecycleRuntime.UnloadSceneAsync(
+                    planEntry.SceneName,
+                    planEntry.ScenePath,
+                    progressReporter);
                 if (unloadResult.Completed && unloadResult.Unloaded)
                 {
                     entries.Add(ActivitySceneReleaseResultEntry.UnloadedEntry(planEntry, unloadResult));

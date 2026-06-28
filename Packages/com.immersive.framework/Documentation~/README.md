@@ -161,4 +161,6 @@ Diagnostic mapping:
 
 `F26B - Loading Progress Contract` adds the internal loading progress model and explicit diagnostics fields for `loadingProgressSupported`, `loadingProgressMode`, `loadingProgressValue`, `loadingProgressPercent`, `loadingProgressPhase` and `loadingProgressMessage`. It does not add a loading bar, does not change the visual LoadingSurface contract, and does not wire real scene loading progress yet.
 
+`F26D - Determinate Loading Progress Source` wires concrete `SceneManager.LoadSceneAsync` and `SceneManager.UnloadSceneAsync` progress into the loading surface reporter used by route and activity lifecycle operations. It preserves transition/loading ordering and reports determinate diagnostics only when a real scene operation emits progress.
+
 `F25H2 - Activity Scene Ledger Route-Scoped Queries` removes unused route-less loaded-entry collection methods from `ActivitySceneLedger`. Canonical Activity-owned scene ledger reads must include `RouteInstanceId`, preventing future cross-route stale tracking regressions.

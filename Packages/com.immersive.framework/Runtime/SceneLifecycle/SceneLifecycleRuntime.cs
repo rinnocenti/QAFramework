@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Loading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Immersive.Framework.ApiStatus;
@@ -19,6 +20,13 @@ namespace Immersive.Framework.SceneLifecycle
         private const string AdditiveLoadMode = "Additive";
 
         internal async Task<SceneLifecycleLoadResult> LoadPrimarySceneAsync(RouteAsset route)
+        {
+            return await LoadPrimarySceneAsync(route, NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal async Task<SceneLifecycleLoadResult> LoadPrimarySceneAsync(
+            RouteAsset route,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             if (route == null)
             {
@@ -49,7 +57,7 @@ namespace Immersive.Framework.SceneLifecycle
 
             if (!alreadyLoaded)
             {
-                var loadResult = await TryLoadSceneSingleAsync(scenePath, sceneName);
+                var loadResult = await TryLoadSceneSingleAsync(scenePath, sceneName, progressReporter);
                 if (!loadResult.Loaded)
                 {
                     return loadResult;
@@ -84,6 +92,14 @@ namespace Immersive.Framework.SceneLifecycle
 
         internal async Task<SceneLifecycleLoadResult> LoadAdditiveSceneAsync(string sceneName, string scenePath)
         {
+            return await LoadAdditiveSceneAsync(sceneName, scenePath, NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal async Task<SceneLifecycleLoadResult> LoadAdditiveSceneAsync(
+            string sceneName,
+            string scenePath,
+            IFrameworkLoadingProgressReporter progressReporter)
+        {
             sceneName = Normalize(sceneName);
             scenePath = Normalize(scenePath);
             if (string.IsNullOrWhiteSpace(sceneName) && string.IsNullOrWhiteSpace(scenePath))
@@ -101,7 +117,7 @@ namespace Immersive.Framework.SceneLifecycle
                     AlreadyLoadedMode);
             }
 
-            var loadResult = await TryLoadSceneAdditiveAsync(scenePath, sceneName);
+            var loadResult = await TryLoadSceneAdditiveAsync(scenePath, sceneName, progressReporter);
             if (!loadResult.Loaded)
             {
                 return loadResult;
@@ -123,6 +139,14 @@ namespace Immersive.Framework.SceneLifecycle
 
 
         internal async Task<SceneLifecycleUnloadResult> UnloadSceneAsync(string sceneName, string scenePath)
+        {
+            return await UnloadSceneAsync(sceneName, scenePath, NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal async Task<SceneLifecycleUnloadResult> UnloadSceneAsync(
+            string sceneName,
+            string scenePath,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             sceneName = Normalize(sceneName);
             scenePath = Normalize(scenePath);
@@ -148,17 +172,42 @@ namespace Immersive.Framework.SceneLifecycle
 
             try
             {
+                var sceneLabel = ResolveSceneLabel(scenePath, sceneName);
                 var operation = SceneManager.UnloadSceneAsync(loadedScene);
                 if (operation == null)
                 {
                     return SceneLifecycleUnloadResult.Failed(
-                        $"Scene Lifecycle failed to start unloading Scene '{ResolveSceneLabel(scenePath, sceneName)}'.");
+                        $"Scene Lifecycle failed to start unloading Scene '{sceneLabel}'.");
                 }
 
+                await ReportDeterminateProgressAsync(
+                    progressReporter,
+                    0f,
+                    "SceneUnload",
+                    $"Unloading Scene '{sceneLabel}'.");
+
+                var lastReportedProgress = 0f;
                 while (!operation.isDone)
                 {
-                    await Task.Yield();
+                    var normalizedProgress = NormalizeAsyncOperationProgress(operation.progress, divideByActivationGate: false);
+                    if (ShouldReportProgress(lastReportedProgress, normalizedProgress))
+                    {
+                        lastReportedProgress = normalizedProgress;
+                        await ReportDeterminateProgressAsync(
+                            progressReporter,
+                            normalizedProgress,
+                            "SceneUnload",
+                            $"Unloading Scene '{sceneLabel}'.");
+                    }
+
+                    await Awaitable.NextFrameAsync();
                 }
+
+                await ReportDeterminateProgressAsync(
+                    progressReporter,
+                    1f,
+                    "SceneUnload",
+                    $"Scene '{sceneLabel}' unloaded.");
 
                 var remainingScene = FindLoadedScene(scenePath, sceneName);
                 if (remainingScene.IsValid() && remainingScene.isLoaded)
@@ -187,7 +236,10 @@ namespace Immersive.Framework.SceneLifecycle
         }
 
 
-        private static Task<SceneLifecycleLoadResult> TryLoadSceneSingleAsync(string scenePath, string sceneName)
+        private static Task<SceneLifecycleLoadResult> TryLoadSceneSingleAsync(
+            string scenePath,
+            string sceneName,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             return TryLoadSceneAsync(
                 scenePath,
@@ -195,10 +247,14 @@ namespace Immersive.Framework.SceneLifecycle
                 LoadSceneMode.Single,
                 "Primary Scene",
                 SingleLoadMode,
-                SceneLifecycleLoadResult.LoadedPrimaryScene);
+                SceneLifecycleLoadResult.LoadedPrimaryScene,
+                progressReporter);
         }
 
-        private static Task<SceneLifecycleLoadResult> TryLoadSceneAdditiveAsync(string scenePath, string sceneName)
+        private static Task<SceneLifecycleLoadResult> TryLoadSceneAdditiveAsync(
+            string scenePath,
+            string sceneName,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             return TryLoadSceneAsync(
                 scenePath,
@@ -206,7 +262,8 @@ namespace Immersive.Framework.SceneLifecycle
                 LoadSceneMode.Additive,
                 "Additive Scene",
                 AdditiveLoadMode,
-                SceneLifecycleLoadResult.LoadedAdditiveScene);
+                SceneLifecycleLoadResult.LoadedAdditiveScene,
+                progressReporter);
         }
 
         private static async Task<SceneLifecycleLoadResult> TryLoadSceneAsync(
@@ -215,7 +272,8 @@ namespace Immersive.Framework.SceneLifecycle
             LoadSceneMode sceneLoadMode,
             string sceneRoleLabel,
             string resultLoadMode,
-            Func<string, string, bool, string, SceneLifecycleLoadResult> createLoadedResult)
+            Func<string, string, bool, string, SceneLifecycleLoadResult> createLoadedResult,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             var sceneLabel = ResolveSceneLabel(scenePath, sceneName);
             if (!TryGetLoadSceneIdentifier(scenePath, sceneName, out string sceneIdentifier))
@@ -233,10 +291,34 @@ namespace Immersive.Framework.SceneLifecycle
                         $"Scene Lifecycle failed to start loading {sceneRoleLabel} '{sceneLabel}'. Make sure the scene is included in Build Settings.");
                 }
 
+                await ReportDeterminateProgressAsync(
+                    progressReporter,
+                    0f,
+                    "SceneLoad",
+                    $"Loading {sceneRoleLabel} '{sceneLabel}'.");
+
+                var lastReportedProgress = 0f;
                 while (!operation.isDone)
                 {
-                    await Task.Yield();
+                    var normalizedProgress = NormalizeAsyncOperationProgress(operation.progress, divideByActivationGate: true);
+                    if (ShouldReportProgress(lastReportedProgress, normalizedProgress))
+                    {
+                        lastReportedProgress = normalizedProgress;
+                        await ReportDeterminateProgressAsync(
+                            progressReporter,
+                            normalizedProgress,
+                            "SceneLoad",
+                            $"Loading {sceneRoleLabel} '{sceneLabel}'.");
+                    }
+
+                    await Awaitable.NextFrameAsync();
                 }
+
+                await ReportDeterminateProgressAsync(
+                    progressReporter,
+                    1f,
+                    "SceneLoad",
+                    $"{sceneRoleLabel} '{sceneLabel}' loaded.");
 
                 return createLoadedResult(sceneName, scenePath, false, resultLoadMode);
             }
@@ -245,6 +327,60 @@ namespace Immersive.Framework.SceneLifecycle
                 return SceneLifecycleLoadResult.Failed(
                     $"Scene Lifecycle failed to load {sceneRoleLabel} '{sceneLabel}'. {exception.GetType().Name}: {exception.Message}");
             }
+        }
+
+        private static async Awaitable ReportDeterminateProgressAsync(
+            IFrameworkLoadingProgressReporter progressReporter,
+            float value01,
+            string phase,
+            string message)
+        {
+            if (progressReporter == null || !progressReporter.IsEnabled)
+            {
+                return;
+            }
+
+            await progressReporter.ReportAsync(FrameworkLoadingProgress.Determinate(value01, phase, message));
+        }
+
+        private static float NormalizeAsyncOperationProgress(float operationProgress, bool divideByActivationGate)
+        {
+            if (float.IsNaN(operationProgress) || float.IsInfinity(operationProgress))
+            {
+                return 0f;
+            }
+
+            var normalized = divideByActivationGate
+                ? operationProgress / 0.9f
+                : operationProgress;
+
+            return Clamp01(normalized);
+        }
+
+        private static bool ShouldReportProgress(float lastReportedProgress, float currentProgress)
+        {
+            if (currentProgress >= 1f && lastReportedProgress < 1f)
+            {
+                return true;
+            }
+
+            return currentProgress > lastReportedProgress
+                && currentProgress - lastReportedProgress >= 0.01f;
+        }
+
+        private static float Clamp01(float value)
+        {
+            if (value < 0f)
+            {
+                return 0f;
+            }
+
+            if (value > 1f)
+            {
+                return 1f;
+            }
+
+            return value;
         }
 
         private static bool TryGetLoadSceneIdentifier(string scenePath, string sceneName, out string sceneIdentifier)

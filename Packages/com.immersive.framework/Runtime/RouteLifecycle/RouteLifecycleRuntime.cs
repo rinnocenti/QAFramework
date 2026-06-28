@@ -10,6 +10,7 @@ using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.RuntimeContent;
 using Immersive.Framework.CycleReset;
+using Immersive.Framework.Loading;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -104,10 +105,19 @@ namespace Immersive.Framework.RouteLifecycle
                 reason);
         }
 
-        internal async Task<RouteLifecycleStartResult> StartRouteAsync(
+        internal Task<RouteLifecycleStartResult> StartRouteAsync(
             RouteAsset route,
             string source,
             string reason)
+        {
+            return StartRouteAsync(route, source, reason, NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal async Task<RouteLifecycleStartResult> StartRouteAsync(
+            RouteAsset route,
+            string source,
+            string reason,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             if (route == null)
             {
@@ -130,7 +140,7 @@ namespace Immersive.Framework.RouteLifecycle
             }
 
             var routeContentExitResult = _routeContentRuntime.ExitRouteContent(previousRoute, route, source, reason);
-            var activitySceneRouteReleaseResult = await _activityFlowRuntime.ReleaseActivityScenesForRouteChangeAsync(source, reason);
+            var activitySceneRouteReleaseResult = await _activityFlowRuntime.ReleaseActivityScenesForRouteChangeAsync(source, reason, progressReporter);
             if (activitySceneRouteReleaseResult.HasBlockingIssues)
             {
                 return RouteLifecycleStartResult.Failed(activitySceneRouteReleaseResult.ToDiagnosticString());
@@ -145,7 +155,7 @@ namespace Immersive.Framework.RouteLifecycle
                     source,
                     reason,
                     "No previous Route content is active; release plan is empty.");
-            var releaseResult = await _contentReleaseRuntime.ExecuteAsync(releasePlan);
+            var releaseResult = await _contentReleaseRuntime.ExecuteAsync(releasePlan, progressReporter);
             if (releaseResult.Failed || releaseResult.HasBlockingIssues)
             {
                 return RouteLifecycleStartResult.Failed(releaseResult.ToDiagnosticString());
@@ -153,7 +163,7 @@ namespace Immersive.Framework.RouteLifecycle
 
             var routeContentPlan = RouteContentMaterializationPlan.FromRoute(route);
             var routeSceneCompositionPlan = RouteSceneCompositionPlan.FromRoute(route, source, reason);
-            var routeSceneCompositionResult = await _routeSceneCompositionRuntime.ExecuteAsync(routeSceneCompositionPlan);
+            var routeSceneCompositionResult = await _routeSceneCompositionRuntime.ExecuteAsync(routeSceneCompositionPlan, progressReporter);
             if (routeSceneCompositionResult.Failed || routeSceneCompositionResult.HasBlockingIssues)
             {
                 return RouteLifecycleStartResult.Failed(routeSceneCompositionResult.ToDiagnosticString());
@@ -175,7 +185,7 @@ namespace Immersive.Framework.RouteLifecycle
 
             var routeContentEnterResult = _routeContentRuntime.EnterRouteContent(route, previousRoute, source, reason);
 
-            var activityFlowResult = await _activityFlowRuntime.StartStartupActivityAsync(route, source, reason);
+            var activityFlowResult = await _activityFlowRuntime.StartStartupActivityAsync(route, source, reason, progressReporter);
             if (!activityFlowResult.Completed)
             {
                 return RouteLifecycleStartResult.Failed(activityFlowResult.Message);
@@ -368,22 +378,39 @@ namespace Immersive.Framework.RouteLifecycle
             string source,
             string reason)
         {
-            if (CurrentRoute == null)
-            {
-                return Task.FromResult(ActivityFlowStartResult.Failed("No active Route is available."));
-            }
-
-            return _activityFlowRuntime.StartActivityAsync(activity, CurrentRoute, source, reason);
+            return StartActivityAsync(activity, source, reason, NoOpFrameworkLoadingProgressReporter.Instance);
         }
 
-        internal Task<ActivityFlowStartResult> ClearActivityAsync(string source, string reason)
+        internal Task<ActivityFlowStartResult> StartActivityAsync(
+            ActivityAsset activity,
+            string source,
+            string reason,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             if (CurrentRoute == null)
             {
                 return Task.FromResult(ActivityFlowStartResult.Failed("No active Route is available."));
             }
 
-            return _activityFlowRuntime.ClearActivityAsync(CurrentRoute, source, reason);
+            return _activityFlowRuntime.StartActivityAsync(activity, CurrentRoute, source, reason, progressReporter);
+        }
+
+        internal Task<ActivityFlowStartResult> ClearActivityAsync(string source, string reason)
+        {
+            return ClearActivityAsync(source, reason, NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal Task<ActivityFlowStartResult> ClearActivityAsync(
+            string source,
+            string reason,
+            IFrameworkLoadingProgressReporter progressReporter)
+        {
+            if (CurrentRoute == null)
+            {
+                return Task.FromResult(ActivityFlowStartResult.Failed("No active Route is available."));
+            }
+
+            return _activityFlowRuntime.ClearActivityAsync(CurrentRoute, source, reason, progressReporter);
         }
 
         private RuntimeScopeLifecycleResult CreateRouteScopeRoot(RouteAsset route, string source, string reason)

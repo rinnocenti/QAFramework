@@ -96,3 +96,37 @@ transitionVisual='UnitySurface'
 transitionEffectAdapterCount='1'
 loading='SkippedNoSceneLoad'
 ```
+
+## F26C Loading progress bar receiver
+
+`Scenes/QA_UIGlobal.unity` now includes a QA progress bar under `LoadingPanel`:
+
+```text
+LoadingProgressRoot
+  LoadingProgressTrack
+    LoadingProgressFill
+```
+
+The bar is wired to `QaLoadingSurfaceVisibilityHoldAdapter` through the optional `Progress Presentation` fields. The adapter now consumes `LoadingSurfaceRequest.Progress` when `ProgressSupported=true`; otherwise it stays in an indeterminate/reset state.
+
+The framework `UnityLoadingSurfaceAdapter` has the same optional progress receiver fields for non-QA surfaces. `LoadingSurfaceRuntime.ProgressSupported` becomes true when a resolved adapter has progress presentation configured, but no real determinate loading source is invented in this cut.
+
+
+## F26D Determinate loading progress source
+
+F26D keeps the F26C progress bar receiver and connects it to real Unity scene operation progress. During route/activity operations that execute `LoadSceneAsync` or `UnloadSceneAsync`, `FrameworkRuntimeHost` forwards determinate progress updates to the resolved loading surface.
+
+Expected smoke evidence after a scene load/release operation with the QA loading surface configured:
+
+```text
+loadingProgressSupported='True'
+loadingProgressMode='Determinate'
+loadingProgressPercent='100'
+```
+
+If no scene operation occurs, the progress mode may remain `Indeterminate`; that is still valid because no real source reported progress.
+
+
+### F26D loading progress visual inspection
+
+The QA loading adapter smooths determinate progress updates for a short minimum visual duration. This makes tiny QA scene loads/release operations inspectable without changing the determinate progress value reported by the framework diagnostics.

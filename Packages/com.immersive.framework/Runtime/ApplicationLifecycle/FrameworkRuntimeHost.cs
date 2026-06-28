@@ -218,8 +218,15 @@ namespace Immersive.Framework.ApplicationLifecycle
             }
 
             var showLoadingSurface = ShouldShowLoadingSurface(targetRoute);
-            var loadingShowRequest = CreateLoadingSurfaceRequest(targetRoute, source, reason, true);
-            var loadingHideRequest = CreateLoadingSurfaceRequest(targetRoute, source, reason, false);
+            var loadingProgressSupported = showLoadingSurface && _loadingSurfaceRuntime.ProgressSupported;
+            var loadingShowRequest = CreateLoadingSurfaceRequest(
+                targetRoute,
+                source,
+                reason,
+                true,
+                LoadingProgress.Zero,
+                loadingProgressSupported);
+            var loadingProgressReporter = CreateLoadingProgressReporter(loadingShowRequest, showLoadingSurface);
             LoadingSurfaceResult loadingBeforeResult = default;
             LoadingSurfaceResult loadingAfterResult = default;
 
@@ -240,6 +247,13 @@ namespace Immersive.Framework.ApplicationLifecycle
                     return;
                 }
 
+                var loadingHideRequest = CreateLoadingSurfaceRequest(
+                    targetRoute,
+                    source,
+                    reason,
+                    false,
+                    ToSurfaceProgress(loadingProgressReporter.LastProgress),
+                    loadingProgressReporter.HasReportedProgress && loadingProgressReporter.LastProgress.Supported && loadingProgressReporter.LastProgress.IsDeterminate);
                 loadingAfterResult = await _loadingSurfaceRuntime.HideAsync(loadingHideRequest);
             }
 
@@ -248,7 +262,8 @@ namespace Immersive.Framework.ApplicationLifecycle
                 source,
                 reason,
                 ShowLoadingAfterTransitionGate,
-                HideLoadingBeforeTransitionRelease);
+                HideLoadingBeforeTransitionRelease,
+                loadingProgressReporter);
             if (routeResult.Succeeded)
             {
                 _state = FrameworkRuntimeState.FromRouteRequestResult(_state, routeResult, true);
@@ -264,7 +279,8 @@ namespace Immersive.Framework.ApplicationLifecycle
                     loadingBeforeResult,
                     loadingAfterResult,
                     _loadingSurfaceRuntime.AdapterCount,
-                    _loadingSurfaceRuntime.ProgressSupported)
+                    _loadingSurfaceRuntime.ProgressSupported,
+                    loadingProgressReporter.LastProgress)
                 : FrameworkLoadingDiagnostics.SucceededWithNoOp();
 
             if (!showLoadingSurface && routeResult.Kind == FrameworkRouteRequestKind.IgnoredAlreadyActive)
@@ -284,8 +300,15 @@ namespace Immersive.Framework.ApplicationLifecycle
             InvalidateObjectEntryRuntimeContextSnapshot($"activity-request:{NormalizeLifecycleSource(source)}");
             var previousActivity = _state.CurrentActivity;
             var showLoadingSurface = ShouldShowActivityLoadingSurface(targetActivity, previousActivity, source, reason);
-            var loadingShowRequest = CreateActivityLoadingSurfaceRequest(targetActivity, source, reason, true);
-            var loadingHideRequest = CreateActivityLoadingSurfaceRequest(targetActivity, source, reason, false);
+            var loadingProgressSupported = showLoadingSurface && _loadingSurfaceRuntime.ProgressSupported;
+            var loadingShowRequest = CreateActivityLoadingSurfaceRequest(
+                targetActivity,
+                source,
+                reason,
+                true,
+                LoadingProgress.Zero,
+                loadingProgressSupported);
+            var loadingProgressReporter = CreateLoadingProgressReporter(loadingShowRequest, showLoadingSurface);
             LoadingSurfaceResult loadingBeforeResult = default;
             LoadingSurfaceResult loadingAfterResult = default;
 
@@ -306,6 +329,13 @@ namespace Immersive.Framework.ApplicationLifecycle
                     return;
                 }
 
+                var loadingHideRequest = CreateActivityLoadingSurfaceRequest(
+                    targetActivity,
+                    source,
+                    reason,
+                    false,
+                    ToSurfaceProgress(loadingProgressReporter.LastProgress),
+                    loadingProgressReporter.HasReportedProgress && loadingProgressReporter.LastProgress.Supported && loadingProgressReporter.LastProgress.IsDeterminate);
                 loadingAfterResult = await _loadingSurfaceRuntime.HideAsync(loadingHideRequest);
             }
 
@@ -314,7 +344,8 @@ namespace Immersive.Framework.ApplicationLifecycle
                 source,
                 reason,
                 ShowLoadingAfterTransitionGate,
-                HideLoadingBeforeTransitionRelease);
+                HideLoadingBeforeTransitionRelease,
+                loadingProgressReporter);
             if (result.Succeeded)
             {
                 _state = FrameworkRuntimeState.FromActivityRequestResult(_state, result);
@@ -330,7 +361,8 @@ namespace Immersive.Framework.ApplicationLifecycle
                     loadingBeforeResult,
                     loadingAfterResult,
                     _loadingSurfaceRuntime.AdapterCount,
-                    _loadingSurfaceRuntime.ProgressSupported)
+                    _loadingSurfaceRuntime.ProgressSupported,
+                    loadingProgressReporter.LastProgress)
                 : CreateSkippedActivityLoadingDiagnostics(result);
 
             LogActivityRequestResult(result, loadingDiagnostics);
@@ -342,8 +374,15 @@ namespace Immersive.Framework.ApplicationLifecycle
             InvalidateObjectEntryRuntimeContextSnapshot($"activity-clear:{NormalizeLifecycleSource(source)}");
             var previousActivity = _state.CurrentActivity;
             var showLoadingSurface = ShouldShowActivityClearLoadingSurface(previousActivity, source, reason);
-            var loadingShowRequest = CreateActivityLoadingSurfaceRequest(previousActivity, source, reason, true);
-            var loadingHideRequest = CreateActivityLoadingSurfaceRequest(previousActivity, source, reason, false);
+            var loadingProgressSupported = showLoadingSurface && _loadingSurfaceRuntime.ProgressSupported;
+            var loadingShowRequest = CreateActivityLoadingSurfaceRequest(
+                previousActivity,
+                source,
+                reason,
+                true,
+                LoadingProgress.Zero,
+                loadingProgressSupported);
+            var loadingProgressReporter = CreateLoadingProgressReporter(loadingShowRequest, showLoadingSurface);
             LoadingSurfaceResult loadingBeforeResult = default;
             LoadingSurfaceResult loadingAfterResult = default;
 
@@ -364,6 +403,13 @@ namespace Immersive.Framework.ApplicationLifecycle
                     return;
                 }
 
+                var loadingHideRequest = CreateActivityLoadingSurfaceRequest(
+                    previousActivity,
+                    source,
+                    reason,
+                    false,
+                    ToSurfaceProgress(loadingProgressReporter.LastProgress),
+                    loadingProgressReporter.HasReportedProgress && loadingProgressReporter.LastProgress.Supported && loadingProgressReporter.LastProgress.IsDeterminate);
                 loadingAfterResult = await _loadingSurfaceRuntime.HideAsync(loadingHideRequest);
             }
 
@@ -371,7 +417,8 @@ namespace Immersive.Framework.ApplicationLifecycle
                 source,
                 reason,
                 ShowLoadingAfterTransitionGate,
-                HideLoadingBeforeTransitionRelease);
+                HideLoadingBeforeTransitionRelease,
+                loadingProgressReporter);
             if (result.Succeeded)
             {
                 _state = FrameworkRuntimeState.FromActivityRequestResult(_state, result);
@@ -387,7 +434,8 @@ namespace Immersive.Framework.ApplicationLifecycle
                     loadingBeforeResult,
                     loadingAfterResult,
                     _loadingSurfaceRuntime.AdapterCount,
-                    _loadingSurfaceRuntime.ProgressSupported)
+                    _loadingSurfaceRuntime.ProgressSupported,
+                    loadingProgressReporter.LastProgress)
                 : CreateSkippedActivityLoadingDiagnostics(result);
 
             LogActivityRequestResult(result, loadingDiagnostics);
@@ -564,7 +612,9 @@ namespace Immersive.Framework.ApplicationLifecycle
             RouteAsset targetRoute,
             string source,
             string reason,
-            bool show)
+            bool show,
+            LoadingProgress progress,
+            bool progressSupported)
         {
             var routeLabel = targetRoute != null && !string.IsNullOrWhiteSpace(targetRoute.RouteName)
                 ? targetRoute.RouteName
@@ -580,8 +630,8 @@ namespace Immersive.Framework.ApplicationLifecycle
                 : $"{routeLabel} / {sceneLabel}";
 
             return show
-                ? LoadingSurfaceRequest.Show(routeLabel, detail, source, reason)
-                : LoadingSurfaceRequest.Hide(routeLabel, detail, source, reason);
+                ? LoadingSurfaceRequest.Show(routeLabel, detail, source, reason, progress, progressSupported)
+                : LoadingSurfaceRequest.Hide(routeLabel, detail, source, reason, progress, progressSupported);
         }
 
         private bool ShouldShowActivityLoadingSurface(
@@ -643,7 +693,9 @@ namespace Immersive.Framework.ApplicationLifecycle
             ActivityAsset targetActivity,
             string source,
             string reason,
-            bool show)
+            bool show,
+            LoadingProgress progress,
+            bool progressSupported)
         {
             var activityLabel = targetActivity != null && !string.IsNullOrWhiteSpace(targetActivity.ActivityName)
                 ? targetActivity.ActivityName
@@ -654,10 +706,29 @@ namespace Immersive.Framework.ApplicationLifecycle
                 : activityLabel;
 
             return show
-                ? LoadingSurfaceRequest.Show(activityLabel, detail, source, reason)
-                : LoadingSurfaceRequest.Hide(activityLabel, detail, source, reason);
+                ? LoadingSurfaceRequest.Show(activityLabel, detail, source, reason, progress, progressSupported)
+                : LoadingSurfaceRequest.Hide(activityLabel, detail, source, reason, progress, progressSupported);
         }
 
+
+        private IFrameworkLoadingProgressReporter CreateLoadingProgressReporter(
+            LoadingSurfaceRequest baseRequest,
+            bool showLoadingSurface)
+        {
+            if (!showLoadingSurface || _loadingSurfaceRuntime == null || !_loadingSurfaceRuntime.ProgressSupported)
+            {
+                return NoOpFrameworkLoadingProgressReporter.Instance;
+            }
+
+            return new LoadingSurfaceProgressReporter(_loadingSurfaceRuntime, baseRequest);
+        }
+
+        private static LoadingProgress ToSurfaceProgress(FrameworkLoadingProgress progress)
+        {
+            return progress.Supported && progress.IsDeterminate
+                ? LoadingProgress.FromNormalized(progress.Value01)
+                : LoadingProgress.Zero;
+        }
 
         private LoadingSurfaceRuntime CreateLoadingSurfaceRuntime(GlobalUiSceneRuntime globalUiSceneRuntime)
         {

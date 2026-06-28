@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.SceneLifecycle;
+using Immersive.Framework.Loading;
 
 namespace Immersive.Framework.ContentFlow
 {
@@ -19,7 +20,14 @@ namespace Immersive.Framework.ContentFlow
             this.sceneLifecycleRuntime = sceneLifecycleRuntime ?? throw new System.ArgumentNullException(nameof(sceneLifecycleRuntime));
         }
 
-        internal async Task<ContentReleaseResult> ExecuteAsync(ContentReleasePlan plan)
+        internal Task<ContentReleaseResult> ExecuteAsync(ContentReleasePlan plan)
+        {
+            return ExecuteAsync(plan, NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal async Task<ContentReleaseResult> ExecuteAsync(
+            ContentReleasePlan plan,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             if (plan.IsEmpty)
             {
@@ -36,7 +44,7 @@ namespace Immersive.Framework.ContentFlow
             var results = new List<ContentReleaseResultEntry>(plan.EntryCount);
             for (var i = 0; i < plan.Entries.Count; i++)
             {
-                results.Add(await ExecuteEntryAsync(plan.Entries[i]));
+                results.Add(await ExecuteEntryAsync(plan.Entries[i], progressReporter));
             }
 
             var status = ResolveStatus(results);
@@ -50,7 +58,9 @@ namespace Immersive.Framework.ContentFlow
                 BuildMessage(status, results));
         }
 
-        private async Task<ContentReleaseResultEntry> ExecuteEntryAsync(ContentReleasePlanEntry entry)
+        private async Task<ContentReleaseResultEntry> ExecuteEntryAsync(
+            ContentReleasePlanEntry entry,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             if (!entry.IsReleasable)
             {
@@ -62,7 +72,7 @@ namespace Immersive.Framework.ContentFlow
             switch (entry.Action)
             {
                 case ContentReleaseAction.UnloadScene:
-                    return await ExecuteUnloadSceneAsync(entry);
+                    return await ExecuteUnloadSceneAsync(entry, progressReporter);
                 default:
                     return ContentReleaseResultEntry.SkippedEntry(
                         entry,
@@ -70,9 +80,14 @@ namespace Immersive.Framework.ContentFlow
             }
         }
 
-        private async Task<ContentReleaseResultEntry> ExecuteUnloadSceneAsync(ContentReleasePlanEntry entry)
+        private async Task<ContentReleaseResultEntry> ExecuteUnloadSceneAsync(
+            ContentReleasePlanEntry entry,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
-            var unloadResult = await sceneLifecycleRuntime.UnloadSceneAsync(entry.ResourceName, entry.ResourcePath);
+            var unloadResult = await sceneLifecycleRuntime.UnloadSceneAsync(
+                entry.ResourceName,
+                entry.ResourcePath,
+                progressReporter);
             if (unloadResult.Unloaded)
             {
                 return ContentReleaseResultEntry.ReleasedEntry(entry, unloadResult.Message);

@@ -6,6 +6,7 @@ using Immersive.Framework.ApiStatus;
 using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.RuntimeContent;
 using Immersive.Framework.SceneLifecycle;
+using Immersive.Framework.Loading;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -76,7 +77,15 @@ namespace Immersive.Framework.ActivityFlow
             string source,
             string reason)
         {
-            return _activitySceneCompositionRuntime.ReleaseForRouteChangeAsync(source, reason);
+            return ReleaseActivityScenesForRouteChangeAsync(source, reason, NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal Task<ActivitySceneReleaseResult> ReleaseActivityScenesForRouteChangeAsync(
+            string source,
+            string reason,
+            IFrameworkLoadingProgressReporter progressReporter)
+        {
+            return _activitySceneCompositionRuntime.ReleaseForRouteChangeAsync(source, reason, progressReporter);
         }
 
         internal bool IsActivityActive(ActivityAsset activity)
@@ -119,6 +128,15 @@ namespace Immersive.Framework.ActivityFlow
         }
 
         internal Task<ActivityFlowStartResult> StartStartupActivityAsync(RouteAsset route, string source, string reason)
+        {
+            return StartStartupActivityAsync(route, source, reason, NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal Task<ActivityFlowStartResult> StartStartupActivityAsync(
+            RouteAsset route,
+            string source,
+            string reason,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
@@ -170,15 +188,35 @@ namespace Immersive.Framework.ActivityFlow
                 previousActivity,
                 resolvedSource,
                 resolvedReason,
-                operationPreview);
+                operationPreview,
+                progressReporter);
         }
 
         internal Task<ActivityFlowStartResult> StartActivityAsync(ActivityAsset activity, string source, string reason)
         {
-            return StartActivityAsync(activity, _currentRoute, source, reason);
+            return StartActivityAsync(activity, _currentRoute, source, reason, NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal Task<ActivityFlowStartResult> StartActivityAsync(
+            ActivityAsset activity,
+            string source,
+            string reason,
+            IFrameworkLoadingProgressReporter progressReporter)
+        {
+            return StartActivityAsync(activity, _currentRoute, source, reason, progressReporter);
         }
 
         internal Task<ActivityFlowStartResult> StartActivityAsync(ActivityAsset activity, RouteAsset route, string source, string reason)
+        {
+            return StartActivityAsync(activity, route, source, reason, NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal Task<ActivityFlowStartResult> StartActivityAsync(
+            ActivityAsset activity,
+            RouteAsset route,
+            string source,
+            string reason,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
@@ -193,15 +231,32 @@ namespace Immersive.Framework.ActivityFlow
                 SetRouteContext(route);
             }
 
-            return StartActivityCoreAsync(activity, _currentActivityState.Activity, resolvedSource, resolvedReason);
+            return StartActivityCoreAsync(activity, _currentActivityState.Activity, resolvedSource, resolvedReason, progressReporter: progressReporter);
         }
 
         internal Task<ActivityFlowStartResult> ClearActivityAsync(string source, string reason)
         {
-            return ClearActivityAsync(_currentRoute, source, reason);
+            return ClearActivityAsync(_currentRoute, source, reason, NoOpFrameworkLoadingProgressReporter.Instance);
         }
 
-        internal async Task<ActivityFlowStartResult> ClearActivityAsync(RouteAsset route, string source, string reason)
+        internal Task<ActivityFlowStartResult> ClearActivityAsync(
+            string source,
+            string reason,
+            IFrameworkLoadingProgressReporter progressReporter)
+        {
+            return ClearActivityAsync(_currentRoute, source, reason, progressReporter);
+        }
+
+        internal Task<ActivityFlowStartResult> ClearActivityAsync(RouteAsset route, string source, string reason)
+        {
+            return ClearActivityAsync(route, source, reason, NoOpFrameworkLoadingProgressReporter.Instance);
+        }
+
+        internal async Task<ActivityFlowStartResult> ClearActivityAsync(
+            RouteAsset route,
+            string source,
+            string reason,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
@@ -222,7 +277,7 @@ namespace Immersive.Framework.ActivityFlow
             var executionResult = ExecuteActivityContentLifecycle(previousActivity, null, resolvedSource, resolvedReason);
             var sceneCompositionResult = CreateActivitySceneCompositionResult(null, resolvedSource, resolvedReason);
             var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, null, resolvedSource, resolvedReason);
-            var sceneReleaseResult = await ReleasePreviousActivityScenesAsync(previousActivity, resolvedSource, resolvedReason);
+            var sceneReleaseResult = await ReleasePreviousActivityScenesAsync(previousActivity, resolvedSource, resolvedReason, progressReporter);
             var runtimeScopeResult = RemovePreviousActivityScopeRoot(previousActivity, null, resolvedSource, resolvedReason);
             return ActivityFlowStartResult.ClearedByRequest(
                 _currentActivityState,
@@ -242,7 +297,8 @@ namespace Immersive.Framework.ActivityFlow
             ActivityAsset previousActivity,
             string source,
             string reason,
-            ActivityOperationResult activityOperationResult = default(ActivityOperationResult))
+            ActivityOperationResult activityOperationResult = default(ActivityOperationResult),
+            IFrameworkLoadingProgressReporter progressReporter = null)
         {
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
@@ -264,7 +320,8 @@ namespace Immersive.Framework.ActivityFlow
 
             var runtimeEnterResult = CreateActivityScopeRoot(nextActivity, resolvedSource, resolvedReason);
             _currentActivityState = ActivityRuntimeState.ActiveWith(nextActivity, previousActivity, resolvedSource, resolvedReason);
-            var sceneCompositionResult = await ExecuteActivitySceneCompositionAsync(nextActivity, resolvedSource, resolvedReason);
+            var resolvedProgressReporter = progressReporter ?? NoOpFrameworkLoadingProgressReporter.Instance;
+            var sceneCompositionResult = await ExecuteActivitySceneCompositionAsync(nextActivity, resolvedSource, resolvedReason, resolvedProgressReporter);
             if (sceneCompositionResult.HasBlockingIssues)
             {
                 RemovePreviousActivityScopeRoot(nextActivity, previousActivity, resolvedSource, resolvedReason);
@@ -283,7 +340,7 @@ namespace Immersive.Framework.ActivityFlow
                 resolvedReason);
             var executionResult = ExecuteActivityContentLifecycle(previousActivity, nextActivity, resolvedSource, resolvedReason);
             var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, nextActivity, resolvedSource, resolvedReason);
-            var sceneReleaseResult = await ReleasePreviousActivityScenesAsync(previousActivity, resolvedSource, resolvedReason);
+            var sceneReleaseResult = await ReleasePreviousActivityScenesAsync(previousActivity, resolvedSource, resolvedReason, resolvedProgressReporter);
             var runtimeExitResult = RemovePreviousActivityScopeRoot(previousActivity, nextActivity, resolvedSource, resolvedReason);
             var runtimeScopeResult = MergeActivityScopeResults(runtimeEnterResult, runtimeExitResult, nextActivity, previousActivity, resolvedSource, resolvedReason);
 
@@ -310,18 +367,20 @@ namespace Immersive.Framework.ActivityFlow
         private Task<ActivitySceneCompositionResult> ExecuteActivitySceneCompositionAsync(
             ActivityAsset activity,
             string source,
-            string reason)
+            string reason,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
             var plan = ActivitySceneCompositionPlan.FromActivity(activity, source, reason);
-            return _activitySceneCompositionRuntime.ExecuteAsync(plan);
+            return _activitySceneCompositionRuntime.ExecuteAsync(plan, progressReporter);
         }
 
         private Task<ActivitySceneReleaseResult> ReleasePreviousActivityScenesAsync(
             ActivityAsset previousActivity,
             string source,
-            string reason)
+            string reason,
+            IFrameworkLoadingProgressReporter progressReporter)
         {
-            return _activitySceneCompositionRuntime.ReleaseOnActivityChangeAsync(previousActivity, source, reason);
+            return _activitySceneCompositionRuntime.ReleaseOnActivityChangeAsync(previousActivity, source, reason, progressReporter);
         }
 
         private static ActivitySceneCompositionResult CreateActivitySceneCompositionResult(
