@@ -78,6 +78,23 @@ namespace Immersive.Framework.GameFlow
             return _routeLifecycleRuntime.HasAnyActivitySceneReleaseForRouteChange();
         }
 
+        internal ActivityOperationResult PreviewActivityOperation(
+            ActivityOperationKind operationKind,
+            ActivityAsset previousActivity,
+            ActivityAsset targetActivity,
+            ActivityVisualTransitionMode visualMode,
+            string source,
+            string reason)
+        {
+            return _routeLifecycleRuntime.PreviewActivityOperation(
+                operationKind,
+                previousActivity,
+                targetActivity,
+                visualMode,
+                FrameworkActivityRequestResult.NormalizeSource(source),
+                FrameworkActivityRequestResult.NormalizeReason(reason));
+        }
+
         internal async Task<FrameworkGameFlowStartResult> StartAsync(GameApplicationAsset gameApplication)
         {
             if (gameApplication == null)
@@ -283,12 +300,29 @@ namespace Immersive.Framework.GameFlow
                 return FrameworkActivityRequestResult.IgnoredAlreadyActive(targetActivity, resolvedSource, resolvedReason);
             }
 
+            var currentRoute = _routeLifecycleRuntime.CurrentRoute;
+            var previousActivity = _routeLifecycleRuntime.CurrentActivity;
+            var activityTransitionMode = ResolveActivityTransitionMode(targetActivity);
+            var operationKind = ResolveActivityOperationKind(previousActivity, targetActivity);
+            var operationPreview = PreviewActivityOperation(
+                operationKind,
+                previousActivity,
+                targetActivity,
+                activityTransitionMode,
+                resolvedSource,
+                resolvedReason);
+            if (operationPreview.IsBlocked)
+            {
+                return FrameworkActivityRequestResult.FailedInvalidConfig(
+                    "Activity Request blocked by ActivityOperationPlan. " + operationPreview.ToDiagnosticString(),
+                    targetActivity,
+                    resolvedSource,
+                    resolvedReason);
+            }
+
             _activityRequestInFlight = true;
             try
             {
-                var currentRoute = _routeLifecycleRuntime.CurrentRoute;
-                var previousActivity = _routeLifecycleRuntime.CurrentActivity;
-                var activityTransitionMode = ResolveActivityTransitionMode(targetActivity);
                 var operationId = CreateTransitionOperationId(TransitionScope.Activity);
                 var transitionBefore = await ExecuteActivityTransitionAsync(
                     TransitionRequest.Before(
@@ -391,12 +425,28 @@ namespace Immersive.Framework.GameFlow
                 return FrameworkActivityRequestResult.IgnoredNoActiveActivity(resolvedSource, resolvedReason);
             }
 
+            var currentRoute = _routeLifecycleRuntime.CurrentRoute;
+            var previousActivity = _routeLifecycleRuntime.CurrentActivity;
+            var activityTransitionMode = ResolveActivityTransitionMode(previousActivity);
+            var operationPreview = PreviewActivityOperation(
+                ActivityOperationKind.Clear,
+                previousActivity,
+                null,
+                activityTransitionMode,
+                resolvedSource,
+                resolvedReason);
+            if (operationPreview.IsBlocked)
+            {
+                return FrameworkActivityRequestResult.FailedInvalidConfig(
+                    "Activity Clear blocked by ActivityOperationPlan. " + operationPreview.ToDiagnosticString(),
+                    null,
+                    resolvedSource,
+                    resolvedReason);
+            }
+
             _activityRequestInFlight = true;
             try
             {
-                var currentRoute = _routeLifecycleRuntime.CurrentRoute;
-                var previousActivity = _routeLifecycleRuntime.CurrentActivity;
-                var activityTransitionMode = ResolveActivityTransitionMode(previousActivity);
                 var operationId = CreateTransitionOperationId(TransitionScope.ActivityClear);
                 var transitionBefore = await ExecuteActivityTransitionAsync(
                     TransitionRequest.Before(
@@ -575,6 +625,18 @@ namespace Immersive.Framework.GameFlow
             }
 
             return await ExecuteTransitionAsync(request);
+        }
+
+        private static ActivityOperationKind ResolveActivityOperationKind(ActivityAsset previousActivity, ActivityAsset targetActivity)
+        {
+            if (targetActivity == null)
+            {
+                return ActivityOperationKind.Clear;
+            }
+
+            return previousActivity == null
+                ? ActivityOperationKind.Start
+                : ActivityOperationKind.Switch;
         }
 
         private static ActivityVisualTransitionMode ResolveActivityTransitionMode(ActivityAsset activity)

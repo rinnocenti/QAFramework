@@ -341,7 +341,7 @@ namespace Immersive.Framework.ApplicationLifecycle
         {
             InvalidateObjectEntryRuntimeContextSnapshot($"activity-clear:{NormalizeLifecycleSource(source)}");
             var previousActivity = _state.CurrentActivity;
-            var showLoadingSurface = ShouldShowActivityClearLoadingSurface(previousActivity);
+            var showLoadingSurface = ShouldShowActivityClearLoadingSurface(previousActivity, source, reason);
             var loadingShowRequest = CreateActivityLoadingSurfaceRequest(previousActivity, source, reason, true);
             var loadingHideRequest = CreateActivityLoadingSurfaceRequest(previousActivity, source, reason, false);
             LoadingSurfaceResult loadingBeforeResult = default;
@@ -583,29 +583,48 @@ namespace Immersive.Framework.ApplicationLifecycle
                 return false;
             }
 
-            if (targetActivity != null && ReferenceEquals(targetActivity, previousActivity))
+            if (_gameFlowRuntime == null || targetActivity == null)
             {
                 return false;
             }
 
-            var hasTargetComposition = targetActivity != null
-                && _gameFlowRuntime != null
-                && _gameFlowRuntime.HasActivitySceneLoadOnActivityChange(targetActivity, source, reason);
+            if (ReferenceEquals(targetActivity, previousActivity))
+            {
+                return false;
+            }
 
-            var hasPreviousRelease = previousActivity != null
-                && _gameFlowRuntime != null
-                && _gameFlowRuntime.HasActivitySceneReleaseOnActivityChange(previousActivity);
+            var operationPreview = _gameFlowRuntime.PreviewActivityOperation(
+                previousActivity == null ? ActivityOperationKind.Start : ActivityOperationKind.Switch,
+                previousActivity,
+                targetActivity,
+                targetActivity.VisualTransitionMode,
+                source,
+                reason);
 
-            return hasTargetComposition || hasPreviousRelease;
+            return operationPreview.IsValid && operationPreview.RequiresLoadingSurface;
         }
 
-        private bool ShouldShowActivityClearLoadingSurface(ActivityAsset previousActivity)
+        private bool ShouldShowActivityClearLoadingSurface(ActivityAsset previousActivity, string source, string reason)
         {
-            return _loadingSurfaceRuntime != null
-                && _loadingSurfaceRuntime.HasVisibleSurface
-                && previousActivity != null
-                && _gameFlowRuntime != null
-                && _gameFlowRuntime.HasActivitySceneReleaseOnActivityChange(previousActivity);
+            if (_loadingSurfaceRuntime == null || !_loadingSurfaceRuntime.HasVisibleSurface)
+            {
+                return false;
+            }
+
+            if (_gameFlowRuntime == null || previousActivity == null)
+            {
+                return false;
+            }
+
+            var operationPreview = _gameFlowRuntime.PreviewActivityOperation(
+                ActivityOperationKind.Clear,
+                previousActivity,
+                null,
+                previousActivity.VisualTransitionMode,
+                source,
+                reason);
+
+            return operationPreview.IsValid && operationPreview.RequiresLoadingSurface;
         }
 
         private static LoadingSurfaceRequest CreateActivityLoadingSurfaceRequest(

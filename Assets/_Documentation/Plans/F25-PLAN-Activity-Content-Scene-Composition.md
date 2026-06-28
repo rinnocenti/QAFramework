@@ -47,6 +47,7 @@ Activity
 | F25R | Activity Scene Operation Architecture Reset | Documentation reset. Defines `ActivityOperationPlan`, Visual Envelope, Activity scene ledger direction and next cuts. |
 | F25E | Activity Operation Plan Baseline | Add side-effect-free operation plan/result model. |
 | F25F | Activity Operation Executor Preview | Add side-effect-free planner and validation-only executor preview over `ActivityOperationPlan`; runtime execution unchanged. |
+| F25F1 | Activity Operation Runtime Gate | Activity request/clear uses operation preview to block invalid visual/scene side-effect plans before loading/transition/lifecycle execution. |
 | F25G | Startup Activity Path Unification | Route startup Activity uses the same Activity operation path. |
 | F25H | Activity Scene Ledger | Replace loose tracking with route-scoped Activity-owned ledger entries. |
 | F25I | Validator Guards | Block invalid visual/scene side-effect combinations. |
@@ -96,6 +97,21 @@ Acceptance:
 - `Fade + scene side-effect` is represented as a blocking issue requiring explicit `FadeWithLoading`.
 - `FadeWithLoading + no scene side-effect` is valid with a warning and no loading requirement.
 - Result diagnostics expose validity, blocking/warning counts, visual occlusion requirement and LoadingSurface requirement.
+
+## IF-FW-F25F1 - Activity operation runtime gate
+
+F25F1 starts consuming `ActivityOperationPlan` in the real Activity request and Activity clear path without moving scene execution into the final executor yet.
+
+Runtime rules:
+
+- Activity request/clear previews the operation before transition, loading hooks, scene composition or release.
+- Blocked plans fail explicitly and perform no Activity lifecycle side-effects.
+- `FrameworkRuntimeHost` opens Activity `LoadingSurface` only when the preview plan is valid and `RequiresLoadingSurface = true`.
+- Legacy host load/release probes are no longer used to decide Activity loading visibility.
+
+This guards the F25R invalid behavior: `Seamless + Activity scene side-effect` no longer opens Loading without fade. It is blocked until authoring is explicit, normally `FadeWithLoading` for scene load/release operations.
+
+F25F1 does not unify Route startup Activity yet; that remains F25G.
 
 ## F25A acceptance
 

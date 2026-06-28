@@ -102,6 +102,23 @@ namespace Immersive.Framework.RouteLifecycle
             _cycleResetParticipantSource = participantSource ?? EmptyCycleResetParticipantSource.Instance;
         }
 
+        internal ActivityOperationResult PreviewActivityOperation(
+            ActivityOperationKind operationKind,
+            ActivityAsset previousActivity,
+            ActivityAsset targetActivity,
+            ActivityVisualTransitionMode visualMode,
+            string source,
+            string reason)
+        {
+            return _activityFlowRuntime.PreviewActivityOperation(
+                operationKind,
+                previousActivity,
+                targetActivity,
+                visualMode,
+                source,
+                reason);
+        }
+
         internal async Task<RouteLifecycleStartResult> StartRouteAsync(
             RouteAsset route,
             string source,

@@ -98,6 +98,8 @@ Project plan: `Assets/_Documentation/Plans/F25-PLAN-Activity-Content-Scene-Compo
 
 `F25F - Activity Operation Executor Preview` adds `ActivityOperationPlanner` and a validation-only `ActivityOperationExecutor` facade. It can produce unified preview plans from target Activity loads, previous Activity releases and visual policy, but does not replace the legacy runtime execution path yet.
 
+`F25F1 - Activity Operation Runtime Gate` starts consuming the preview plan in Activity request/clear. Blocked plans such as `Seamless + Activity scene side-effect` now fail before transition/loading/lifecycle side-effects, and Activity LoadingSurface is shown only when the valid operation plan requires it.
+
 ### IF-FW-F25D — Activity Content Release
 
 Activity-owned additive scenes loaded through Activity scene composition are now released on Activity change when their scene entry uses `ReleaseOnActivityChange`.
@@ -120,6 +122,7 @@ Follow-up cuts:
 |---|---|
 | F25E | Activity Operation Plan Baseline |
 | F25F | Activity Operation Executor Preview |
+| F25F1 | Activity Operation Runtime Gate |
 | F25G | Startup Activity Path Unification |
 | F25H | Activity Scene Ledger |
 | F25I | Validator Guards |
