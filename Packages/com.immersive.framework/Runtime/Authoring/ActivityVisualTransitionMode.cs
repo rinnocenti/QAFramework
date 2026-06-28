@@ -4,7 +4,7 @@ namespace Immersive.Framework.Authoring
 {
     /// <summary>
     /// API status: Experimental. Activity-level policy for using the session TransitionSurface during Activity requests.
-    /// This selects whether Activity Flow asks the Session UIGlobal transition capability to run; it does not own the surface or load scenes.
+    /// This selects whether Activity Flow asks the Session UIGlobal transition/loading capabilities to wrap an Activity operation; it does not own the surfaces.
     /// </summary>
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F24F Activity visual transition policy; Session UIGlobal remains the surface owner.")]
     public enum ActivityVisualTransitionMode
@@ -16,7 +16,7 @@ namespace Immersive.Framework.Authoring
         Fade = 10,
 
         /// <summary>
-        /// Reserved for future Activity content/scene loading. Until Activity scene composition execution exists, this behaves as Fade and keeps Loading skipped.
+        /// Activity switch/clear/startup runs the session TransitionSurface fade and the canonical LoadingSurface when the Activity operation has scene load/release side-effects.
         /// </summary>
         FadeWithLoading = 20
     }

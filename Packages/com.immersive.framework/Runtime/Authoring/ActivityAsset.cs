@@ -25,11 +25,11 @@ namespace Immersive.Framework.Authoring
         private string description = string.Empty;
 
         [SerializeField]
-        [Tooltip("Optional Activity Content Profile. F25A declares Activity-owned scenes only; scene composition execution and release are added in later F25 cuts.")]
+        [Tooltip("Optional Activity Content Profile. Declares Activity-owned scenes for composition and release by Activity operations.")]
         private ActivityContentProfileAsset activityContentProfile;
 
         [SerializeField]
-        [Tooltip("Defines whether Activity requests should use the session TransitionSurface. Seamless is the default. FadeWithLoading is reserved until Activity scene/content loading execution exists. Route transitions remain mandatory elsewhere.")]
+        [Tooltip("Defines whether Activity operations use the session TransitionSurface and, for scene side-effects, the canonical LoadingSurface. Activity-owned scene load/release requires FadeWithLoading.")]
         private ActivityVisualTransitionMode visualTransitionMode = ActivityVisualTransitionMode.Seamless;
 
         public string ActivityName

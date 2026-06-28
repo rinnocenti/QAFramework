@@ -51,7 +51,7 @@ Activity
 | F25F2 | Activity Operation Blocked Diagnostics Fix | Preserve operation visual mode in blocked/failed Activity request diagnostics. |
 | F25G | Startup Activity Path Unification | Route startup Activity uses the same Activity operation path. |
 | F25H | Activity Scene Ledger | Replace loose tracking with route-scoped Activity-owned ledger entries. |
-| F25I | Validator Guards | Block invalid visual/scene side-effect combinations. |
+| F25I | Activity Operation Validator Guards | Editor-only/QA guards for invalid visual/scene side-effect authoring. |
 
 ## IF-FW-F25E - Activity operation plan baseline
 
@@ -278,3 +278,21 @@ Operational rules remain unchanged:
 - Activity/Route diagnostics now include `activitySceneLedger*` snapshot fields.
 
 F25H is internal infrastructure only. Validators and authoring guards remain for F25I.
+
+
+## IF-FW-F25I — Activity Operation Validator Guards
+
+F25I adds editor-only/QA validation for the Activity operation rules already enforced at runtime by `ActivityOperationPlan`.
+
+Validator rules:
+
+- Activity with executable Activity content scene declarations cannot use `Seamless`.
+- Activity with executable Activity content scene declarations cannot use `Fade`.
+- Activity scene load/release side-effects require explicit `FadeWithLoading` authoring.
+- Required Activity content scene entries without a scene remain errors.
+- Cached scene names without scene paths remain errors.
+- Duplicate content ids inside one Activity Content Profile remain errors.
+
+F25I updates stale authoring messages left from the declaration-only F25A/F24F1 era. `FadeWithLoading` is no longer reserved; it is the valid mode for Activity scene load/release operations.
+
+F25I does not alter runtime scene loading, release, Route startup operation, ledger, visual surfaces or loading progress.

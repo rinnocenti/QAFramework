@@ -7,10 +7,10 @@ namespace Immersive.Framework.Authoring
 {
     /// <summary>
     /// API status: Experimental. Authoring declaration for one scene owned by an Activity content profile.
-    /// F25A is contract-only: entries are validated and documented but not loaded yet.
+    /// Entries are validated, planned and executed by Activity scene composition when execution-ready.
     /// </summary>
     [Serializable]
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Activity content scene entries are declaration-only in F25A; loading is deferred to Activity scene composition.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Activity content scene entries are loaded/released by Activity scene composition operations.")]
     public sealed class ActivityContentSceneEntry
     {
         [SerializeField]
@@ -30,7 +30,7 @@ namespace Immersive.Framework.Authoring
         private FrameworkContentRequiredness requiredness = FrameworkContentRequiredness.Optional;
 
         [SerializeField]
-        [Tooltip("How this Activity scene will be loaded when Activity scene composition is implemented. F25A only supports declaration; runtime execution is deferred.")]
+        [Tooltip("How this Activity scene is loaded by Activity scene composition. Current runtime supports Additive only.")]
         private ActivityContentSceneLoadMode loadMode = ActivityContentSceneLoadMode.Additive;
 
         [SerializeField]

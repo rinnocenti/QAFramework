@@ -130,6 +130,9 @@ Follow-up cuts:
 | F25F2 | Activity Operation Blocked Diagnostics Fix |
 | F25G | Startup Activity Path Unification |
 | F25H | Activity Scene Ledger |
-| F25I | Validator Guards |
+| F25I | Activity Operation Validator Guards |
 
 `F25H - Activity Scene Ledger` replaces the implicit loaded Activity scene list with an explicit internal ledger. The ledger records route instance id, Activity identity, content id, scene path/name, Activity release policy, Activity ownership and Loaded/Released/Stale state. Existing visual/loading behavior is preserved, while Activity/Route logs gain `activitySceneLedger*` snapshot fields.
+
+
+`F25I - Activity Operation Validator Guards` adds editor-only/QA validation for Activity operation authoring. Activities with Activity content scene declarations must use `FadeWithLoading`; `Seamless` and `Fade` are now validation errors when the Activity can produce scene load/release side-effects. Existing profile guards for required scene references, cached scene names without scene paths and duplicate content ids remain active. Runtime visual/loading behavior is unchanged.

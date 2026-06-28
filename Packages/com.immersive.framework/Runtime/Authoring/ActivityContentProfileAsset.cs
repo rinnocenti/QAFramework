@@ -7,13 +7,13 @@ namespace Immersive.Framework.Authoring
 {
     /// <summary>
     /// API status: Experimental. Authoring profile for Activity-owned content declarations.
-    /// F25A only defines the contract; later F25 cuts add plan/result, execution and release.
+    /// Defines Activity-owned scene content used by Activity operation planning, composition and release.
     /// </summary>
     [CreateAssetMenu(
         fileName = "Activity Content Profile",
         menuName = "Immersive Framework/Activity Content Profile",
         order = 21)]
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Activity content profile is declaration-only in F25A; scene composition execution is deferred.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Activity content profile participates in Activity scene composition and release.")]
     public sealed class ActivityContentProfileAsset : ScriptableObject
     {
         [SerializeField]
@@ -21,7 +21,7 @@ namespace Immersive.Framework.Authoring
         private string profileId = string.Empty;
 
         [SerializeField]
-        [Tooltip("Scenes declared by this Activity. F25A validates declarations only; later F25 cuts load them additively when execution-ready.")]
+        [Tooltip("Scenes declared by this Activity. Execution-ready entries are loaded additively by Activity scene composition.")]
         private ActivityContentSceneEntry[] scenes = Array.Empty<ActivityContentSceneEntry>();
 
         [SerializeField]

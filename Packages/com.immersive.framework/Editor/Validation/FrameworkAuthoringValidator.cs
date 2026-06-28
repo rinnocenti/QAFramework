@@ -449,17 +449,17 @@ namespace Immersive.Framework.Editor.Editor.Validation
             {
                 case ActivityVisualTransitionMode.Seamless:
                     report.AddInfo(
-                        "Activity Transition Mode is Seamless. Activity requests will skip the Session TransitionSurface by policy.",
+                        "Activity Transition Mode is Seamless. Activity requests will skip the Session TransitionSurface when the Activity operation has no scene load/release side-effects.",
                         activity);
                     break;
                 case ActivityVisualTransitionMode.Fade:
                     report.AddInfo(
-                        "Activity Transition Mode is Fade. Activity requests will use the Session TransitionSurface; Loading remains skipped unless Activity content loading exists.",
+                        "Activity Transition Mode is Fade. Activity requests will use the Session TransitionSurface when the Activity operation has no scene load/release side-effects.",
                         activity);
                     break;
                 case ActivityVisualTransitionMode.FadeWithLoading:
-                    report.AddWarning(
-                        "Activity Transition Mode is FadeWithLoading. This mode is reserved until Activity Content Scene Composition execution exists. Current runtime uses Fade, logs ReservedNoActivityContentLoading and keeps Loading skipped.",
+                    report.AddInfo(
+                        "Activity Transition Mode is FadeWithLoading. Activity scene load/release side-effects are allowed and require the canonical LoadingSurface.",
                         activity);
                     break;
             }
@@ -472,6 +472,7 @@ namespace Immersive.Framework.Editor.Editor.Validation
             }
             else
             {
+                ValidateActivityOperationGuards(report, activity, activity.ActivityContentProfile);
                 report.AddRange(ValidateActivityContentProfile(activity.ActivityContentProfile, validationMode));
             }
 
@@ -481,6 +482,57 @@ namespace Immersive.Framework.Editor.Editor.Validation
             }
 
             return report;
+        }
+
+        private static void ValidateActivityOperationGuards(
+            FrameworkAuthoringValidationReport report,
+            ActivityAsset activity,
+            ActivityContentProfileAsset profile)
+        {
+            int sceneSideEffectDeclarations = CountActivitySceneSideEffectDeclarations(profile);
+            if (sceneSideEffectDeclarations <= 0)
+            {
+                return;
+            }
+
+            switch (activity.VisualTransitionMode)
+            {
+                case ActivityVisualTransitionMode.Seamless:
+                    report.AddError(
+                        $"Activity '{activity.ActivityName}' declares {sceneSideEffectDeclarations} Activity content scene(s), but Activity Transition Mode is Seamless. Activity scene load/release side-effects require explicit FadeWithLoading authoring.",
+                        activity);
+                    break;
+                case ActivityVisualTransitionMode.Fade:
+                    report.AddError(
+                        $"Activity '{activity.ActivityName}' declares {sceneSideEffectDeclarations} Activity content scene(s), but Activity Transition Mode is Fade. Activity scene load/release side-effects require explicit FadeWithLoading authoring.",
+                        activity);
+                    break;
+                case ActivityVisualTransitionMode.FadeWithLoading:
+                    report.AddInfo(
+                        $"Activity '{activity.ActivityName}' declares {sceneSideEffectDeclarations} Activity content scene(s) and uses FadeWithLoading, which is valid for Activity scene load/release side-effects.",
+                        activity);
+                    break;
+            }
+        }
+
+        private static int CountActivitySceneSideEffectDeclarations(ActivityContentProfileAsset profile)
+        {
+            if (profile == null || !profile.HasScenes)
+            {
+                return 0;
+            }
+
+            int count = 0;
+            for (int i = 0; i < profile.Scenes.Count; i++)
+            {
+                var entry = profile.Scenes[i];
+                if (entry != null && entry.HasScene)
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         private static FrameworkAuthoringValidationReport ValidateActivityContentProfile(
@@ -505,7 +557,7 @@ namespace Immersive.Framework.Editor.Editor.Validation
             if (!profile.HasScenes)
             {
                 report.AddWarning(
-                    "Activity Content Profile has no scene declarations. This is valid as a placeholder, but it will not enable Activity content loading in future F25 execution cuts.",
+                    "Activity Content Profile has no scene declarations. This is valid as a placeholder, but it does not enable Activity content loading.",
                     profile);
             }
 
@@ -518,7 +570,7 @@ namespace Immersive.Framework.Editor.Editor.Validation
             if (!report.HasIssues)
             {
                 report.AddInfo(
-                    $"Activity Content Profile '{profile.ProfileId}' is valid for the F25A declaration-only contract.",
+                    $"Activity Content Profile '{profile.ProfileId}' is valid for Activity scene composition authoring.",
                     profile);
             }
 
@@ -565,7 +617,7 @@ namespace Immersive.Framework.Editor.Editor.Validation
                 else
                 {
                     report.AddWarning(
-                        $"{label} in profile '{profile.ProfileId}' has no scene assigned. Optional entries remain declaration-only and will be skipped by future execution.",
+                        $"{label} in profile '{profile.ProfileId}' has no scene assigned. Optional entries are skipped by Activity scene composition execution.",
                         profile);
                 }
 
@@ -590,14 +642,14 @@ namespace Immersive.Framework.Editor.Editor.Validation
             if (!IsSceneInBuildSettings(entry.ScenePath))
             {
                 report.AddWarning(
-                    $"{label} scene '{entry.ScenePath}' is not included in Build Settings. F25 execution will require Activity content scenes to be build-loadable.",
+                    $"{label} scene '{entry.ScenePath}' is not included in Build Settings. Activity scene composition execution requires Activity content scenes to be build-loadable.",
                     profile);
             }
 
             if (entry.LoadMode != ActivityContentSceneLoadMode.Additive)
             {
                 report.AddError(
-                    $"{label} in profile '{profile.ProfileId}' has unsupported load mode '{entry.LoadMode}'. F25A only declares Additive Activity scenes.",
+                    $"{label} in profile '{profile.ProfileId}' has unsupported load mode '{entry.LoadMode}'. Activity scene composition only supports Additive Activity scenes.",
                     profile);
             }
         }
