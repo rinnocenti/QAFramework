@@ -250,3 +250,31 @@ Canonical ADR:
 ```text
 Packages/com.immersive.framework/Documentation~/ADRs/F25R-ADR-ACTIVITY-001-Activity-Scene-Operation-Architecture-Reset.md
 ```
+
+## IF-FW-F25H — Activity Scene Ledger
+
+F25H replaces the implicit loaded-scene record list with an explicit `ActivitySceneLedger`.
+
+Ledger entries carry:
+
+```text
+RouteInstanceId
+Route
+Activity
+ActivityId
+ContentIdentity
+ContentId
+SceneName / ScenePath
+ReleasePolicy
+Ownership = Activity
+Status = Loaded | Released | Stale
+```
+
+Operational rules remain unchanged:
+
+- Activity switch/clear respects `ReleaseOnActivityChange` and skips `KeepOnActivityChange`.
+- Route change force-releases every loaded Activity-owned scene regardless of Activity release policy.
+- If Unity no longer reports a ledger-loaded scene as loaded, the entry becomes `Stale` and is not planned as a release side-effect.
+- Activity/Route diagnostics now include `activitySceneLedger*` snapshot fields.
+
+F25H is internal infrastructure only. Validators and authoring guards remain for F25I.

@@ -15,12 +15,28 @@ namespace Immersive.Framework.ActivityFlow
     internal sealed class ActivitySceneCompositionRuntime
     {
         private readonly SceneLifecycleRuntime _sceneLifecycleRuntime;
-        private readonly List<LoadedActivitySceneRecord> _loadedScenes = new List<LoadedActivitySceneRecord>();
+        private readonly ActivitySceneLedger _ledger = new ActivitySceneLedger();
+        private RouteAsset _currentRoute;
+        private string _currentRouteInstanceId = string.Empty;
 
         internal ActivitySceneCompositionRuntime(SceneLifecycleRuntime sceneLifecycleRuntime)
         {
             _sceneLifecycleRuntime = sceneLifecycleRuntime ?? throw new ArgumentNullException(nameof(sceneLifecycleRuntime));
         }
+
+        internal void SetRouteContext(RouteAsset route, string routeInstanceId)
+        {
+            _currentRoute = route;
+            _currentRouteInstanceId = Normalize(routeInstanceId);
+        }
+
+        internal int LedgerEntryCount => _ledger.EntryCount;
+
+        internal int LedgerLoadedCount => _ledger.LoadedCount;
+
+        internal int LedgerReleasedCount => _ledger.ReleasedCount;
+
+        internal int LedgerStaleCount => _ledger.StaleCount;
 
         internal ActivityOperationPlan CreateActivityOperationPlan(
             ActivityOperationKind operationKind,
@@ -64,7 +80,7 @@ namespace Immersive.Framework.ActivityFlow
                     continue;
                 }
 
-                if (TryGetTrackedScene(plan.Activity, scene, out var trackedRecord))
+                if (_ledger.TryGetLoaded(plan.Activity, scene, out var ledgerEntry))
                 {
                     if (_sceneLifecycleRuntime.IsSceneLoaded(scene.SceneName, scene.ScenePath))
                     {
@@ -72,7 +88,7 @@ namespace Immersive.Framework.ActivityFlow
                         continue;
                     }
 
-                    RemoveTrackedScene(trackedRecord);
+                    _ledger.MarkStale(ledgerEntry);
                 }
 
                 var loadResult = await _sceneLifecycleRuntime.LoadAdditiveSceneAsync(scene.SceneName, scene.ScenePath);
@@ -107,7 +123,7 @@ namespace Immersive.Framework.ActivityFlow
 
         internal bool HasAnyTrackedScenes()
         {
-            return _loadedScenes.Count > 0;
+            return _ledger.LoadedCount > 0;
         }
 
         internal bool HasAnyTrackedScenes(ActivityAsset activity)
@@ -117,15 +133,7 @@ namespace Immersive.Framework.ActivityFlow
                 return false;
             }
 
-            for (var i = 0; i < _loadedScenes.Count; i++)
-            {
-                if (ReferenceEquals(_loadedScenes[i].Activity, activity))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return _ledger.CollectLoadedForActivity(activity).Count > 0;
         }
 
         internal bool HasReleaseOnActivityChangeScenes(ActivityAsset activity)
@@ -135,11 +143,10 @@ namespace Immersive.Framework.ActivityFlow
                 return false;
             }
 
-            for (var i = 0; i < _loadedScenes.Count; i++)
+            var entries = _ledger.CollectLoadedForActivity(activity);
+            for (var i = 0; i < entries.Count; i++)
             {
-                var record = _loadedScenes[i];
-                if (ReferenceEquals(record.Activity, activity)
-                    && record.Entry.ReleasePolicy == ActivityContentReleasePolicy.ReleaseOnActivityChange)
+                if (entries[i].ReleasePolicy == ActivityContentReleasePolicy.ReleaseOnActivityChange)
                 {
                     return true;
                 }
@@ -169,7 +176,7 @@ namespace Immersive.Framework.ActivityFlow
                     continue;
                 }
 
-                if (!TryGetTrackedScene(activity, scene, out _))
+                if (!_ledger.TryGetLoaded(activity, scene, out _))
                 {
                     return true;
                 }
@@ -199,8 +206,8 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var records = forceReleaseAll && activity == null
-                ? CollectAllRecords()
-                : CollectRecordsForActivity(activity);
+                ? _ledger.CollectLoaded()
+                : _ledger.CollectLoadedForActivity(activity);
             if (records.Count == 0)
             {
                 return ActivitySceneReleaseResult.NotRequested(
@@ -216,7 +223,7 @@ namespace Immersive.Framework.ActivityFlow
             for (var i = 0; i < records.Count; i++)
             {
                 var record = records[i];
-                var planEntry = record.Entry.PlanEntry;
+                var planEntry = record.PlanEntry;
                 if (!forceReleaseAll && planEntry.ReleasePolicy == ActivityContentReleasePolicy.KeepOnActivityChange)
                 {
                     entries.Add(ActivitySceneReleaseResultEntry.SkippedKeepOnActivityChangeEntry(planEntry));
@@ -227,14 +234,14 @@ namespace Immersive.Framework.ActivityFlow
                 if (unloadResult.Completed && unloadResult.Unloaded)
                 {
                     entries.Add(ActivitySceneReleaseResultEntry.UnloadedEntry(planEntry, unloadResult));
-                    RemoveTrackedScene(record);
+                    _ledger.MarkReleased(record);
                     continue;
                 }
 
                 if (unloadResult.Completed && unloadResult.Skipped)
                 {
                     entries.Add(ActivitySceneReleaseResultEntry.SkippedNotLoadedEntry(planEntry, unloadResult));
-                    RemoveTrackedScene(record);
+                    _ledger.MarkStale(record);
                     continue;
                 }
 
@@ -294,13 +301,13 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var records = operationKind == ActivityOperationKind.RouteExitCleanup
-                ? CollectAllRecords()
-                : CollectRecordsForActivity(previousActivity);
+                ? _ledger.CollectLoaded()
+                : _ledger.CollectLoadedForActivity(previousActivity);
 
             for (var i = 0; i < records.Count; i++)
             {
                 var record = records[i];
-                var planEntry = record.Entry.PlanEntry;
+                var planEntry = record.PlanEntry;
                 if (operationKind != ActivityOperationKind.RouteExitCleanup
                     && planEntry.ReleasePolicy == ActivityContentReleasePolicy.KeepOnActivityChange)
                 {
@@ -309,9 +316,10 @@ namespace Immersive.Framework.ActivityFlow
 
                 if (!_sceneLifecycleRuntime.IsSceneLoaded(planEntry.SceneName, planEntry.ScenePath))
                 {
+                    _ledger.MarkStale(record);
                     issues.Add(ActivityOperationIssue.Warning(
                         ActivityOperationIssueKind.StaleTrackedScene,
-                        $"Tracked Activity scene '{ResolveSceneLabel(planEntry)}' is not loaded in Unity; release side-effect is not planned."));
+                        $"Ledger Activity scene '{ResolveSceneLabel(planEntry)}' is marked stale because Unity no longer reports it as loaded; release side-effect is not planned."));
                     continue;
                 }
 
@@ -371,97 +379,16 @@ namespace Immersive.Framework.ActivityFlow
 
         private void TrackLoadedScene(ActivityAsset activity, ActivitySceneCompositionResultEntry entry)
         {
-            if (activity == null || !entry.Loaded && !entry.AlreadyLoaded)
-            {
-                return;
-            }
-
-            var identity = entry.ContentIdentity.StableText;
-            for (var i = 0; i < _loadedScenes.Count; i++)
-            {
-                var existing = _loadedScenes[i];
-                if (ReferenceEquals(existing.Activity, activity)
-                    && string.Equals(existing.Entry.ContentIdentity.StableText, identity, StringComparison.Ordinal))
-                {
-                    _loadedScenes[i] = new LoadedActivitySceneRecord(activity, entry);
-                    return;
-                }
-            }
-
-            _loadedScenes.Add(new LoadedActivitySceneRecord(activity, entry));
+            _ledger.RegisterLoaded(
+                _currentRouteInstanceId,
+                _currentRoute,
+                activity,
+                entry);
         }
 
-        private bool TryGetTrackedScene(
-            ActivityAsset activity,
-            ActivitySceneCompositionPlanEntry entry,
-            out LoadedActivitySceneRecord record)
+        private static string Normalize(string value)
         {
-            record = default;
-            if (activity == null || entry.ContentIdentity.IsValid == false)
-            {
-                return false;
-            }
-
-            var identity = entry.ContentIdentity.StableText;
-            for (var i = 0; i < _loadedScenes.Count; i++)
-            {
-                var existing = _loadedScenes[i];
-                if (ReferenceEquals(existing.Activity, activity)
-                    && string.Equals(existing.Entry.ContentIdentity.StableText, identity, StringComparison.Ordinal))
-                {
-                    record = existing;
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private List<LoadedActivitySceneRecord> CollectRecordsForActivity(ActivityAsset activity)
-        {
-            var records = new List<LoadedActivitySceneRecord>();
-            for (var i = 0; i < _loadedScenes.Count; i++)
-            {
-                var record = _loadedScenes[i];
-                if (ReferenceEquals(record.Activity, activity))
-                {
-                    records.Add(record);
-                }
-            }
-
-            return records;
-        }
-
-        private List<LoadedActivitySceneRecord> CollectAllRecords()
-        {
-            return new List<LoadedActivitySceneRecord>(_loadedScenes);
-        }
-
-        private void RemoveTrackedScene(LoadedActivitySceneRecord record)
-        {
-            for (var i = _loadedScenes.Count - 1; i >= 0; i--)
-            {
-                var existing = _loadedScenes[i];
-                if (ReferenceEquals(existing.Activity, record.Activity)
-                    && string.Equals(existing.Entry.ContentIdentity.StableText, record.Entry.ContentIdentity.StableText, StringComparison.Ordinal))
-                {
-                    _loadedScenes.RemoveAt(i);
-                    return;
-                }
-            }
-        }
-
-        private readonly struct LoadedActivitySceneRecord
-        {
-            internal LoadedActivitySceneRecord(ActivityAsset activity, ActivitySceneCompositionResultEntry entry)
-            {
-                Activity = activity;
-                Entry = entry;
-            }
-
-            internal ActivityAsset Activity { get; }
-
-            internal ActivitySceneCompositionResultEntry Entry { get; }
+            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
         }
     }
 }

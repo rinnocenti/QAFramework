@@ -129,7 +129,12 @@ namespace Immersive.Framework.Bootstrap
                 LogFields.Field("runtimeActivityRootEnter", activityFlowResult.RuntimeActivityScopeResult.EnterStatus),
                 LogFields.Field("runtimeActivityRootExit", activityFlowResult.RuntimeActivityScopeResult.ExitStatus),
                 LogFields.Field("runtimeActivityContext", activityFlowResult.RuntimeActivityScopeResult.ContextStatus),
-                LogFields.Field("activityContentHandles", activityContentResult.ActivityContentCount));
+                LogFields.Field("activityContentHandles", activityContentResult.ActivityContentCount),
+                LogFields.Field("activitySceneLedger", activityFlowResult.ActivitySceneLedgerSnapshot.DiagnosticStatus),
+                LogFields.Field("activitySceneLedgerEntries", activityFlowResult.ActivitySceneLedgerSnapshot.EntryCount),
+                LogFields.Field("activitySceneLedgerLoaded", activityFlowResult.ActivitySceneLedgerSnapshot.LoadedCount),
+                LogFields.Field("activitySceneLedgerReleased", activityFlowResult.ActivitySceneLedgerSnapshot.ReleasedCount),
+                LogFields.Field("activitySceneLedgerStale", activityFlowResult.ActivitySceneLedgerSnapshot.StaleCount));
         }
 
         private static string FormatDiagnosticValue(string value)

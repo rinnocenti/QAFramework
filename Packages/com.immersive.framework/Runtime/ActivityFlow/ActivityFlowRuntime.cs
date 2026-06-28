@@ -30,6 +30,8 @@ namespace Immersive.Framework.ActivityFlow
         private readonly IEventBinding _activityContentEnteredBinding;
         private readonly IEventBinding _activityContentExitedBinding;
         private RouteAsset _currentRoute;
+        private string _currentRouteInstanceId = string.Empty;
+        private int _routeInstanceSequence;
         private ActivityRuntimeState _currentActivityState;
 
         internal ActivityFlowRuntime(
@@ -61,6 +63,14 @@ namespace Immersive.Framework.ActivityFlow
         internal ActivityAsset CurrentActivity => _currentActivityState.Activity;
 
         internal bool HasActiveActivity => _currentActivityState.IsActive;
+
+        internal int ActivitySceneLedgerLoadedCount => _activitySceneCompositionRuntime.LedgerLoadedCount;
+
+        internal int ActivitySceneLedgerReleasedCount => _activitySceneCompositionRuntime.LedgerReleasedCount;
+
+        internal int ActivitySceneLedgerStaleCount => _activitySceneCompositionRuntime.LedgerStaleCount;
+
+        internal int ActivitySceneLedgerEntryCount => _activitySceneCompositionRuntime.LedgerEntryCount;
 
         internal bool HasActivitySceneReleaseOnActivityChange(ActivityAsset activity)
         {
@@ -133,7 +143,7 @@ namespace Immersive.Framework.ActivityFlow
                 return Task.FromResult(ActivityFlowStartResult.Failed("Route is missing."));
             }
 
-            _currentRoute = route;
+            SetRouteContext(route);
             var previousActivity = _currentActivityState.Activity;
             if (!route.HasStartupActivity)
             {
@@ -151,7 +161,8 @@ namespace Immersive.Framework.ActivityFlow
                     bindingCleanupResult,
                     ActivityContentAnchorDiscoveryResult.Empty(null, resolvedSource, resolvedReason, "No startup Activity is active; Activity Content Anchor discovery was skipped."),
                     executionResult,
-                    activityOperationResult: operationResult));
+                    activityOperationResult: operationResult,
+                    activitySceneLedgerSnapshot: CreateActivitySceneLedgerSnapshot()));
             }
 
             var startupActivity = route.StartupActivity;
@@ -194,7 +205,7 @@ namespace Immersive.Framework.ActivityFlow
 
             if (route != null)
             {
-                _currentRoute = route;
+                SetRouteContext(route);
             }
 
             return StartActivityCoreAsync(activity, _currentActivityState.Activity, resolvedSource, resolvedReason);
@@ -212,7 +223,7 @@ namespace Immersive.Framework.ActivityFlow
 
             if (route != null)
             {
-                _currentRoute = route;
+                SetRouteContext(route);
             }
 
             var previousActivity = _currentActivityState.Activity;
@@ -237,7 +248,8 @@ namespace Immersive.Framework.ActivityFlow
                 ActivityContentAnchorDiscoveryResult.Empty(null, resolvedSource, resolvedReason, "Activity was cleared; Activity Content Anchor discovery was skipped."),
                 executionResult,
                 sceneCompositionResult,
-                sceneReleaseResult);
+                sceneReleaseResult,
+                activitySceneLedgerSnapshot: CreateActivitySceneLedgerSnapshot());
         }
 
         private async Task<ActivityFlowStartResult> StartActivityCoreAsync(
@@ -299,7 +311,8 @@ namespace Immersive.Framework.ActivityFlow
                 executionResult,
                 sceneCompositionResult,
                 sceneReleaseResult,
-                activityOperationResult);
+                activityOperationResult,
+                CreateActivitySceneLedgerSnapshot());
         }
 
 
@@ -466,6 +479,40 @@ namespace Immersive.Framework.ActivityFlow
                     request.Source,
                     request.Reason);
             }
+        }
+
+        private ActivitySceneLedgerSnapshot CreateActivitySceneLedgerSnapshot()
+        {
+            return new ActivitySceneLedgerSnapshot(
+                _activitySceneCompositionRuntime.LedgerEntryCount,
+                _activitySceneCompositionRuntime.LedgerLoadedCount,
+                _activitySceneCompositionRuntime.LedgerReleasedCount,
+                _activitySceneCompositionRuntime.LedgerStaleCount);
+        }
+
+        private void SetRouteContext(RouteAsset route)
+        {
+            if (route == null)
+            {
+                return;
+            }
+
+            if (!ReferenceEquals(_currentRoute, route))
+            {
+                _routeInstanceSequence++;
+                _currentRoute = route;
+                _currentRouteInstanceId = CreateRouteInstanceId(route, _routeInstanceSequence);
+            }
+
+            _activitySceneCompositionRuntime.SetRouteContext(_currentRoute, _currentRouteInstanceId);
+        }
+
+        private static string CreateRouteInstanceId(RouteAsset route, int sequence)
+        {
+            var routeName = route != null && !string.IsNullOrWhiteSpace(route.RouteName)
+                ? route.RouteName.Trim()
+                : "Route";
+            return $"route:{sequence}:{routeName}";
         }
 
         private bool TryCreateActivityScopeContext(

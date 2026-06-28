@@ -28,7 +28,8 @@ namespace Immersive.Framework.ActivityFlow
             ActivityContentExecutionLifecycleResult activityContentExecutionResult = default(ActivityContentExecutionLifecycleResult),
             ActivitySceneCompositionResult activitySceneCompositionResult = default(ActivitySceneCompositionResult),
             ActivitySceneReleaseResult activitySceneReleaseResult = default(ActivitySceneReleaseResult),
-            ActivityOperationResult activityOperationResult = default(ActivityOperationResult))
+            ActivityOperationResult activityOperationResult = default(ActivityOperationResult),
+            ActivitySceneLedgerSnapshot activitySceneLedgerSnapshot = default(ActivitySceneLedgerSnapshot))
         {
             Started = started;
             Skipped = skipped;
@@ -46,6 +47,7 @@ namespace Immersive.Framework.ActivityFlow
             ActivitySceneCompositionResult = activitySceneCompositionResult;
             ActivitySceneReleaseResult = activitySceneReleaseResult;
             ActivityOperationResult = activityOperationResult;
+            ActivitySceneLedgerSnapshot = activitySceneLedgerSnapshot;
         }
 
         public bool Started { get; }
@@ -85,6 +87,8 @@ namespace Immersive.Framework.ActivityFlow
         public ActivitySceneReleaseResult ActivitySceneReleaseResult { get; }
 
         public ActivityOperationResult ActivityOperationResult { get; }
+
+        public ActivitySceneLedgerSnapshot ActivitySceneLedgerSnapshot { get; }
 
         public ContentAnchorSet ActivityContentAnchorSet => ActivityContentAnchorDiscoveryResult.AnchorSet;
 
@@ -131,7 +135,8 @@ namespace Immersive.Framework.ActivityFlow
             ActivityContentExecutionLifecycleResult activityContentExecutionResult = default(ActivityContentExecutionLifecycleResult),
             ActivitySceneCompositionResult activitySceneCompositionResult = default(ActivitySceneCompositionResult),
             ActivitySceneReleaseResult activitySceneReleaseResult = default(ActivitySceneReleaseResult),
-            ActivityOperationResult activityOperationResult = default(ActivityOperationResult))
+            ActivityOperationResult activityOperationResult = default(ActivityOperationResult),
+            ActivitySceneLedgerSnapshot activitySceneLedgerSnapshot = default(ActivitySceneLedgerSnapshot))
         {
             var readinessState = BuildReadinessState(activityState, activityContentResult);
             var runtimeScopeMessage = RuntimeScopeMessage(runtimeActivityScopeResult);
@@ -157,7 +162,8 @@ namespace Immersive.Framework.ActivityFlow
                     activityContentExecutionResult,
                     activitySceneCompositionResult,
                     activitySceneReleaseResult,
-                    activityOperationResult);
+                    activityOperationResult,
+                    activitySceneLedgerSnapshot);
             }
 
             return new ActivityFlowStartResult(
@@ -176,7 +182,8 @@ namespace Immersive.Framework.ActivityFlow
                 activityContentExecutionResult,
                 activitySceneCompositionResult,
                 activitySceneReleaseResult,
-                activityOperationResult);
+                activityOperationResult,
+                activitySceneLedgerSnapshot);
         }
 
         public static ActivityFlowStartResult ClearedByRequest(
@@ -189,7 +196,8 @@ namespace Immersive.Framework.ActivityFlow
             ActivityContentExecutionLifecycleResult activityContentExecutionResult = default(ActivityContentExecutionLifecycleResult),
             ActivitySceneCompositionResult activitySceneCompositionResult = default(ActivitySceneCompositionResult),
             ActivitySceneReleaseResult activitySceneReleaseResult = default(ActivitySceneReleaseResult),
-            ActivityOperationResult activityOperationResult = default(ActivityOperationResult))
+            ActivityOperationResult activityOperationResult = default(ActivityOperationResult),
+            ActivitySceneLedgerSnapshot activitySceneLedgerSnapshot = default(ActivitySceneLedgerSnapshot))
         {
             if (previousActivity == null)
             {
@@ -218,7 +226,8 @@ namespace Immersive.Framework.ActivityFlow
                 activityContentExecutionResult,
                 activitySceneCompositionResult,
                 activitySceneReleaseResult,
-                activityOperationResult);
+                activityOperationResult,
+                activitySceneLedgerSnapshot);
         }
 
         public static ActivityFlowStartResult KeptCurrentActivity(ActivityRuntimeState activityState)
@@ -247,7 +256,8 @@ namespace Immersive.Framework.ActivityFlow
             ActivityContentExecutionLifecycleResult activityContentExecutionResult = default(ActivityContentExecutionLifecycleResult),
             ActivitySceneCompositionResult activitySceneCompositionResult = default(ActivitySceneCompositionResult),
             ActivitySceneReleaseResult activitySceneReleaseResult = default(ActivitySceneReleaseResult),
-            ActivityOperationResult activityOperationResult = default(ActivityOperationResult))
+            ActivityOperationResult activityOperationResult = default(ActivityOperationResult),
+            ActivitySceneLedgerSnapshot activitySceneLedgerSnapshot = default(ActivitySceneLedgerSnapshot))
         {
             var activity = activityState.Activity;
             var readinessState = BuildReadinessState(activityState, activityContentResult);
@@ -277,7 +287,8 @@ namespace Immersive.Framework.ActivityFlow
                 activityContentExecutionResult,
                 activitySceneCompositionResult,
                 activitySceneReleaseResult,
-                activityOperationResult);
+                activityOperationResult,
+                activitySceneLedgerSnapshot);
         }
 
         private static ActivityReadinessState BuildReadinessState(ActivityRuntimeState activityState, ActivityContentApplyResult activityContentResult)
