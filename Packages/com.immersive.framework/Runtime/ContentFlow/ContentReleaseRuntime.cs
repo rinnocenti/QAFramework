@@ -42,10 +42,26 @@ namespace Immersive.Framework.ContentFlow
             }
 
             var results = new List<ContentReleaseResultEntry>(plan.EntryCount);
+            var progressStepIndex = 0;
             for (var i = 0; i < plan.Entries.Count; i++)
             {
-                results.Add(await ExecuteEntryAsync(plan.Entries[i], progressReporter));
+                var entry = plan.Entries[i];
+                var entryProgressReporter = entry.IsReleasable
+                    ? FrameworkLoadingProgressReporterUtility.CreateWeightedStepReporter(
+                        progressReporter,
+                        progressStepIndex++,
+                        plan.ReleasableCount,
+                        "RouteContentRelease",
+                        "Route content release progress.")
+                    : NoOpFrameworkLoadingProgressReporter.Instance;
+
+                results.Add(await ExecuteEntryAsync(entry, entryProgressReporter));
             }
+
+            await FrameworkLoadingProgressReporterUtility.ReportCompletedIfAnyAsync(
+                progressReporter,
+                "RouteContentRelease",
+                "Route content release progress completed.");
 
             var status = ResolveStatus(results);
             return new ContentReleaseResult(

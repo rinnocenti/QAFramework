@@ -139,13 +139,6 @@ namespace Immersive.Framework.RouteLifecycle
                     "Route Startup Activity blocked by ActivityOperationPlan. " + startupOperationPreview.ToDiagnosticString());
             }
 
-            var routeContentExitResult = _routeContentRuntime.ExitRouteContent(previousRoute, route, source, reason);
-            var activitySceneRouteReleaseResult = await _activityFlowRuntime.ReleaseActivityScenesForRouteChangeAsync(source, reason, progressReporter);
-            if (activitySceneRouteReleaseResult.HasBlockingIssues)
-            {
-                return RouteLifecycleStartResult.Failed(activitySceneRouteReleaseResult.ToDiagnosticString());
-            }
-
             var releasePlan = previousRouteState.HasRouteContent
                 ? previousRouteState.RouteContentSet.CreateReleasePlan(source, reason)
                 : ContentReleasePlan.Empty(
@@ -155,15 +148,58 @@ namespace Immersive.Framework.RouteLifecycle
                     source,
                     reason,
                     "No previous Route content is active; release plan is empty.");
-            var releaseResult = await _contentReleaseRuntime.ExecuteAsync(releasePlan, progressReporter);
+            var routeContentPlan = RouteContentMaterializationPlan.FromRoute(route);
+            var routeSceneCompositionPlan = RouteSceneCompositionPlan.FromRoute(route, source, reason);
+            var activitySceneRouteReleaseCount = _activityFlowRuntime.PreviewActivitySceneReleaseForRouteChangeCount();
+            var routeContentReleaseCount = releasePlan.ReleasableCount;
+            var routeSceneLoadCount = CountRouteSceneCompositionProgressSteps(routeSceneCompositionPlan);
+            var startupActivityProgressCount = startupOperationPreview.IsValid
+                ? startupOperationPreview.SceneSideEffectCount
+                : 0;
+            var routeProgressStepCount = activitySceneRouteReleaseCount
+                + routeContentReleaseCount
+                + routeSceneLoadCount
+                + startupActivityProgressCount;
+            var routeProgressStepIndex = 0;
+
+            var routeContentExitResult = _routeContentRuntime.ExitRouteContent(previousRoute, route, source, reason);
+            var activitySceneRouteReleaseProgressReporter = FrameworkLoadingProgressReporterUtility.CreateWeightedRangeReporter(
+                progressReporter,
+                routeProgressStepIndex,
+                activitySceneRouteReleaseCount,
+                routeProgressStepCount,
+                "RouteTransition",
+                "Route transition loading progress.");
+            routeProgressStepIndex += activitySceneRouteReleaseCount;
+            var activitySceneRouteReleaseResult = await _activityFlowRuntime.ReleaseActivityScenesForRouteChangeAsync(source, reason, activitySceneRouteReleaseProgressReporter);
+            if (activitySceneRouteReleaseResult.HasBlockingIssues)
+            {
+                return RouteLifecycleStartResult.Failed(activitySceneRouteReleaseResult.ToDiagnosticString());
+            }
+
+            var routeContentReleaseProgressReporter = FrameworkLoadingProgressReporterUtility.CreateWeightedRangeReporter(
+                progressReporter,
+                routeProgressStepIndex,
+                routeContentReleaseCount,
+                routeProgressStepCount,
+                "RouteTransition",
+                "Route transition loading progress.");
+            routeProgressStepIndex += routeContentReleaseCount;
+            var releaseResult = await _contentReleaseRuntime.ExecuteAsync(releasePlan, routeContentReleaseProgressReporter);
             if (releaseResult.Failed || releaseResult.HasBlockingIssues)
             {
                 return RouteLifecycleStartResult.Failed(releaseResult.ToDiagnosticString());
             }
 
-            var routeContentPlan = RouteContentMaterializationPlan.FromRoute(route);
-            var routeSceneCompositionPlan = RouteSceneCompositionPlan.FromRoute(route, source, reason);
-            var routeSceneCompositionResult = await _routeSceneCompositionRuntime.ExecuteAsync(routeSceneCompositionPlan, progressReporter);
+            var routeSceneCompositionProgressReporter = FrameworkLoadingProgressReporterUtility.CreateWeightedRangeReporter(
+                progressReporter,
+                routeProgressStepIndex,
+                routeSceneLoadCount,
+                routeProgressStepCount,
+                "RouteTransition",
+                "Route transition loading progress.");
+            routeProgressStepIndex += routeSceneLoadCount;
+            var routeSceneCompositionResult = await _routeSceneCompositionRuntime.ExecuteAsync(routeSceneCompositionPlan, routeSceneCompositionProgressReporter);
             if (routeSceneCompositionResult.Failed || routeSceneCompositionResult.HasBlockingIssues)
             {
                 return RouteLifecycleStartResult.Failed(routeSceneCompositionResult.ToDiagnosticString());
@@ -185,7 +221,18 @@ namespace Immersive.Framework.RouteLifecycle
 
             var routeContentEnterResult = _routeContentRuntime.EnterRouteContent(route, previousRoute, source, reason);
 
-            var activityFlowResult = await _activityFlowRuntime.StartStartupActivityAsync(route, source, reason, progressReporter);
+            var startupActivityProgressReporter = FrameworkLoadingProgressReporterUtility.CreateWeightedRangeReporter(
+                progressReporter,
+                routeProgressStepIndex,
+                startupActivityProgressCount,
+                routeProgressStepCount,
+                "RouteTransition",
+                "Route transition loading progress.");
+            var activityFlowResult = await _activityFlowRuntime.StartStartupActivityAsync(route, source, reason, startupActivityProgressReporter);
+            await FrameworkLoadingProgressReporterUtility.ReportCompletedIfAnyAsync(
+                progressReporter,
+                "RouteTransition",
+                "Route transition loading progress completed.");
             if (!activityFlowResult.Completed)
             {
                 return RouteLifecycleStartResult.Failed(activityFlowResult.Message);
@@ -222,6 +269,25 @@ namespace Immersive.Framework.RouteLifecycle
             return result;
         }
 
+
+        private static int CountRouteSceneCompositionProgressSteps(RouteSceneCompositionPlan plan)
+        {
+            if (!plan.HasRoute)
+            {
+                return 0;
+            }
+
+            var count = plan.PrimaryScene.IsExecutionReady ? 1 : 0;
+            for (var i = 0; i < plan.AdditionalScenes.Count; i++)
+            {
+                if (plan.AdditionalScenes[i].IsExecutionReady)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
 
         private ActivityOperationResult PreviewRouteStartupActivityOperation(
             RouteAsset route,

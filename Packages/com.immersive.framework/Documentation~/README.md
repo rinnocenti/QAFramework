@@ -163,4 +163,7 @@ Diagnostic mapping:
 
 `F26D - Determinate Loading Progress Source` wires concrete `SceneManager.LoadSceneAsync` and `SceneManager.UnloadSceneAsync` progress into the loading surface reporter used by route and activity lifecycle operations. It preserves transition/loading ordering and reports determinate diagnostics only when a real scene operation emits progress.
 
+
+`F26E - Aggregated Loading Progress` maps local SceneLifecycle progress into weighted Route/Activity operation progress. `SceneLifecycleRuntime` still reports concrete scene load/unload progress, while Route/Activity lifecycle owners wrap those reports into `RouteTransition` or `ActivityTransition` aggregate phases so multi-step loading no longer restarts the progress value per scene.
+
 `F25H2 - Activity Scene Ledger Route-Scoped Queries` removes unused route-less loaded-entry collection methods from `ActivitySceneLedger`. Canonical Activity-owned scene ledger reads must include `RouteInstanceId`, preventing future cross-route stale tracking regressions.

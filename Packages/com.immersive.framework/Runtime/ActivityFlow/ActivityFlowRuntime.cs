@@ -73,6 +73,16 @@ namespace Immersive.Framework.ActivityFlow
 
         internal int ActivitySceneLedgerEntryCount => _activitySceneCompositionRuntime.LedgerEntryCount;
 
+        internal int PreviewActivitySceneReleaseForRouteChangeCount()
+        {
+            return _activitySceneCompositionRuntime.PreviewReleaseForRouteChangeCount();
+        }
+
+        internal int PreviewActivitySceneReleaseForActivityChangeCount(ActivityAsset activity)
+        {
+            return _activitySceneCompositionRuntime.PreviewReleaseForActivityChangeCount(activity);
+        }
+
         internal Task<ActivitySceneReleaseResult> ReleaseActivityScenesForRouteChangeAsync(
             string source,
             string reason)
@@ -277,7 +287,19 @@ namespace Immersive.Framework.ActivityFlow
             var executionResult = ExecuteActivityContentLifecycle(previousActivity, null, resolvedSource, resolvedReason);
             var sceneCompositionResult = CreateActivitySceneCompositionResult(null, resolvedSource, resolvedReason);
             var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, null, resolvedSource, resolvedReason);
-            var sceneReleaseResult = await ReleasePreviousActivityScenesAsync(previousActivity, resolvedSource, resolvedReason, progressReporter);
+            var releaseCount = PreviewActivitySceneReleaseForActivityChangeCount(previousActivity);
+            var sceneReleaseProgressReporter = FrameworkLoadingProgressReporterUtility.CreateWeightedRangeReporter(
+                progressReporter,
+                0,
+                releaseCount,
+                releaseCount,
+                "ActivityTransition",
+                "Activity transition loading progress.");
+            var sceneReleaseResult = await ReleasePreviousActivityScenesAsync(previousActivity, resolvedSource, resolvedReason, sceneReleaseProgressReporter);
+            await FrameworkLoadingProgressReporterUtility.ReportCompletedIfAnyAsync(
+                progressReporter,
+                "ActivityTransition",
+                "Activity transition loading progress completed.");
             var runtimeScopeResult = RemovePreviousActivityScopeRoot(previousActivity, null, resolvedSource, resolvedReason);
             return ActivityFlowStartResult.ClearedByRequest(
                 _currentActivityState,
@@ -321,7 +343,23 @@ namespace Immersive.Framework.ActivityFlow
             var runtimeEnterResult = CreateActivityScopeRoot(nextActivity, resolvedSource, resolvedReason);
             _currentActivityState = ActivityRuntimeState.ActiveWith(nextActivity, previousActivity, resolvedSource, resolvedReason);
             var resolvedProgressReporter = progressReporter ?? NoOpFrameworkLoadingProgressReporter.Instance;
-            var sceneCompositionResult = await ExecuteActivitySceneCompositionAsync(nextActivity, resolvedSource, resolvedReason, resolvedProgressReporter);
+            var operationForProgress = ResolveActivityOperationForProgress(
+                activityOperationResult,
+                previousActivity,
+                nextActivity,
+                resolvedSource,
+                resolvedReason);
+            var loadProgressCount = CountActivityOperationSceneSideEffects(operationForProgress, ActivityOperationSceneAction.Load);
+            var releaseProgressCount = CountActivityOperationSceneSideEffects(operationForProgress, ActivityOperationSceneAction.Release);
+            var totalProgressCount = loadProgressCount + releaseProgressCount;
+            var sceneCompositionProgressReporter = FrameworkLoadingProgressReporterUtility.CreateWeightedRangeReporter(
+                resolvedProgressReporter,
+                0,
+                loadProgressCount,
+                totalProgressCount,
+                "ActivityTransition",
+                "Activity transition loading progress.");
+            var sceneCompositionResult = await ExecuteActivitySceneCompositionAsync(nextActivity, resolvedSource, resolvedReason, sceneCompositionProgressReporter);
             if (sceneCompositionResult.HasBlockingIssues)
             {
                 RemovePreviousActivityScopeRoot(nextActivity, previousActivity, resolvedSource, resolvedReason);
@@ -340,7 +378,18 @@ namespace Immersive.Framework.ActivityFlow
                 resolvedReason);
             var executionResult = ExecuteActivityContentLifecycle(previousActivity, nextActivity, resolvedSource, resolvedReason);
             var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, nextActivity, resolvedSource, resolvedReason);
-            var sceneReleaseResult = await ReleasePreviousActivityScenesAsync(previousActivity, resolvedSource, resolvedReason, resolvedProgressReporter);
+            var sceneReleaseProgressReporter = FrameworkLoadingProgressReporterUtility.CreateWeightedRangeReporter(
+                resolvedProgressReporter,
+                loadProgressCount,
+                releaseProgressCount,
+                totalProgressCount,
+                "ActivityTransition",
+                "Activity transition loading progress.");
+            var sceneReleaseResult = await ReleasePreviousActivityScenesAsync(previousActivity, resolvedSource, resolvedReason, sceneReleaseProgressReporter);
+            await FrameworkLoadingProgressReporterUtility.ReportCompletedIfAnyAsync(
+                resolvedProgressReporter,
+                "ActivityTransition",
+                "Activity transition loading progress completed.");
             var runtimeExitResult = RemovePreviousActivityScopeRoot(previousActivity, nextActivity, resolvedSource, resolvedReason);
             var runtimeScopeResult = MergeActivityScopeResults(runtimeEnterResult, runtimeExitResult, nextActivity, previousActivity, resolvedSource, resolvedReason);
 
@@ -358,6 +407,52 @@ namespace Immersive.Framework.ActivityFlow
                 CreateActivitySceneLedgerSnapshot());
         }
 
+
+        private ActivityOperationResult ResolveActivityOperationForProgress(
+            ActivityOperationResult activityOperationResult,
+            ActivityAsset previousActivity,
+            ActivityAsset nextActivity,
+            string source,
+            string reason)
+        {
+            if (activityOperationResult.IsValid)
+            {
+                return activityOperationResult;
+            }
+
+            var operationKind = previousActivity == null
+                ? ActivityOperationKind.Start
+                : ActivityOperationKind.Switch;
+            return PreviewActivityOperation(
+                operationKind,
+                previousActivity,
+                nextActivity,
+                ResolveActivityTransitionMode(nextActivity),
+                source,
+                reason);
+        }
+
+        private static int CountActivityOperationSceneSideEffects(
+            ActivityOperationResult activityOperationResult,
+            ActivityOperationSceneAction action)
+        {
+            if (!activityOperationResult.IsValid)
+            {
+                return 0;
+            }
+
+            var count = 0;
+            var scenes = activityOperationResult.Plan.Scenes;
+            for (var i = 0; i < scenes.Count; i++)
+            {
+                if (scenes[i].Action == action && scenes[i].IsSceneSideEffect)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
 
         private static ActivityVisualTransitionMode ResolveActivityTransitionMode(ActivityAsset activity)
         {

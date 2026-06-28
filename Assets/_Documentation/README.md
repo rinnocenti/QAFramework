@@ -35,6 +35,8 @@ Loading progress preparation: `Notes/F26C-Loading-Surface-Progress-Bar-Receiver.
 
 Determinate loading progress source: `Notes/F26D-Determinate-Loading-Progress-Source.md`.
 
+Aggregated loading progress: `Notes/F26E-Aggregated-Loading-Progress.md`.
+
 ## Regras
 
 - Documentação viva do projeto fica em `Assets/_Documentation`.

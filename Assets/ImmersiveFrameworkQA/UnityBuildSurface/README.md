@@ -130,3 +130,24 @@ If no scene operation occurs, the progress mode may remain `Indeterminate`; that
 ### F26D loading progress visual inspection
 
 The QA loading adapter smooths determinate progress updates for a short minimum visual duration. This makes tiny QA scene loads/release operations inspectable without changing the determinate progress value reported by the framework diagnostics.
+
+
+## F26E Aggregated loading progress
+
+F26E keeps the F26D visual smoothing and changes the framework progress source from isolated per-scene `0..1` reporting to weighted operation-level reporting. Route transitions now aggregate activity-scene release, route content release, route scene composition and route startup Activity scene work into one route transition progress window. Activity transitions aggregate Activity scene composition and release into one Activity transition progress window.
+
+Expected final request evidence:
+
+```text
+loadingProgressMode='Determinate'
+loadingProgressPhase='RouteTransition'
+loadingProgressPercent='100'
+```
+
+or, for Activity loading presentation:
+
+```text
+loadingProgressMode='Determinate'
+loadingProgressPhase='ActivityTransition'
+loadingProgressPercent='100'
+```

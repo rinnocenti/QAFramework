@@ -39,6 +39,31 @@ namespace Immersive.Framework.ActivityFlow
 
         internal int LedgerStaleCount => _ledger.StaleCount;
 
+        internal int PreviewReleaseForRouteChangeCount()
+        {
+            return _ledger.CollectLoadedForRouteInstance(_currentRouteInstanceId).Count;
+        }
+
+        internal int PreviewReleaseForActivityChangeCount(ActivityAsset activity)
+        {
+            if (activity == null)
+            {
+                return 0;
+            }
+
+            var records = _ledger.CollectLoadedForActivityRouteInstance(activity, _currentRouteInstanceId);
+            var count = 0;
+            for (var i = 0; i < records.Count; i++)
+            {
+                if (records[i].PlanEntry.ReleasePolicy != ActivityContentReleasePolicy.KeepOnActivityChange)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
         internal ActivityContentDiscoveryScope CreateActivityContentDiscoveryScope(ActivityAsset activity)
         {
             return CreateActivityContentDiscoveryScope(activity, null);
@@ -97,6 +122,8 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var entries = new List<ActivitySceneCompositionResultEntry>(plan.SceneCount);
+            var progressStepCount = CountExecutionReadyScenes(plan);
+            var progressStepIndex = 0;
             for (var i = 0; i < plan.Scenes.Count; i++)
             {
                 var scene = plan.Scenes[i];
@@ -117,10 +144,18 @@ namespace Immersive.Framework.ActivityFlow
                     _ledger.MarkStale(ledgerEntry);
                 }
 
+                var sceneProgressReporter = FrameworkLoadingProgressReporterUtility.CreateWeightedStepReporter(
+                    progressReporter,
+                    progressStepIndex,
+                    progressStepCount,
+                    "ActivitySceneComposition",
+                    "Activity scene composition progress.");
+                progressStepIndex++;
+
                 var loadResult = await _sceneLifecycleRuntime.LoadAdditiveSceneAsync(
                     scene.SceneName,
                     scene.ScenePath,
-                    progressReporter);
+                    sceneProgressReporter);
                 if (loadResult.Loaded)
                 {
                     var loadedEntry = ActivitySceneCompositionResultEntry.LoadedEntry(scene, loadResult);
@@ -131,6 +166,11 @@ namespace Immersive.Framework.ActivityFlow
 
                 entries.Add(ActivitySceneCompositionResultEntry.FailedEntry(scene, loadResult));
             }
+
+            await FrameworkLoadingProgressReporterUtility.ReportCompletedIfAnyAsync(
+                progressReporter,
+                "ActivitySceneComposition",
+                "Activity scene composition progress completed.");
 
             return ActivitySceneCompositionResult.ExecutedResult(plan, entries, plan.Source, plan.Reason);
         }
@@ -198,6 +238,8 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var entries = new List<ActivitySceneReleaseResultEntry>(records.Count);
+            var progressStepCount = CountReleasableRecords(records, forceReleaseAll);
+            var progressStepIndex = 0;
             for (var i = 0; i < records.Count; i++)
             {
                 var record = records[i];
@@ -208,10 +250,18 @@ namespace Immersive.Framework.ActivityFlow
                     continue;
                 }
 
+                var sceneProgressReporter = FrameworkLoadingProgressReporterUtility.CreateWeightedStepReporter(
+                    progressReporter,
+                    progressStepIndex,
+                    progressStepCount,
+                    forceReleaseAll ? "RouteActivitySceneRelease" : "ActivitySceneRelease",
+                    forceReleaseAll ? "Route activity scene release progress." : "Activity scene release progress.");
+                progressStepIndex++;
+
                 var unloadResult = await _sceneLifecycleRuntime.UnloadSceneAsync(
                     planEntry.SceneName,
                     planEntry.ScenePath,
-                    progressReporter);
+                    sceneProgressReporter);
                 if (unloadResult.Completed && unloadResult.Unloaded)
                 {
                     entries.Add(ActivitySceneReleaseResultEntry.UnloadedEntry(planEntry, unloadResult));
@@ -229,7 +279,51 @@ namespace Immersive.Framework.ActivityFlow
                 entries.Add(ActivitySceneReleaseResultEntry.FailedEntry(planEntry, unloadResult));
             }
 
+            await FrameworkLoadingProgressReporterUtility.ReportCompletedIfAnyAsync(
+                progressReporter,
+                forceReleaseAll ? "RouteActivitySceneRelease" : "ActivitySceneRelease",
+                forceReleaseAll ? "Route activity scene release progress completed." : "Activity scene release progress completed.");
+
             return ActivitySceneReleaseResult.FromEntries(activity, entries, source, reason);
+        }
+
+        private static int CountExecutionReadyScenes(ActivitySceneCompositionPlan plan)
+        {
+            if (!plan.HasScenes)
+            {
+                return 0;
+            }
+
+            var count = 0;
+            for (var i = 0; i < plan.Scenes.Count; i++)
+            {
+                if (plan.Scenes[i].IsExecutionReady)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private static int CountReleasableRecords(IReadOnlyList<ActivitySceneLedgerEntry> records, bool forceReleaseAll)
+        {
+            if (records == null || records.Count == 0)
+            {
+                return 0;
+            }
+
+            var count = 0;
+            for (var i = 0; i < records.Count; i++)
+            {
+                var planEntry = records[i].PlanEntry;
+                if (forceReleaseAll || planEntry.ReleasePolicy != ActivityContentReleasePolicy.KeepOnActivityChange)
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         internal static bool ShouldExecute(ActivitySceneCompositionPlan plan)

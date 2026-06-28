@@ -48,7 +48,17 @@ namespace Immersive.Framework.RouteLifecycle
                     plan.Reason);
             }
 
-            var primarySceneLoadResult = await _sceneLifecycleRuntime.LoadPrimarySceneAsync(plan.Route, progressReporter);
+            var progressStepCount = CountExecutionReadyScenes(plan);
+            var progressStepIndex = 0;
+            var primaryProgressReporter = FrameworkLoadingProgressReporterUtility.CreateWeightedStepReporter(
+                progressReporter,
+                progressStepIndex,
+                progressStepCount,
+                "RouteSceneComposition",
+                "Route scene composition progress.");
+            progressStepIndex++;
+
+            var primarySceneLoadResult = await _sceneLifecycleRuntime.LoadPrimarySceneAsync(plan.Route, primaryProgressReporter);
             if (!primarySceneLoadResult.Loaded)
             {
                 entries.Add(RouteSceneCompositionResultEntry.FailedEntry(
@@ -83,10 +93,18 @@ namespace Immersive.Framework.RouteLifecycle
                     continue;
                 }
 
+                var additiveProgressReporter = FrameworkLoadingProgressReporterUtility.CreateWeightedStepReporter(
+                    progressReporter,
+                    progressStepIndex,
+                    progressStepCount,
+                    "RouteSceneComposition",
+                    "Route scene composition progress.");
+                progressStepIndex++;
+
                 var additiveLoadResult = await _sceneLifecycleRuntime.LoadAdditiveSceneAsync(
                     additionalScene.SceneName,
                     additionalScene.ScenePath,
-                    progressReporter);
+                    additiveProgressReporter);
 
                 if (additiveLoadResult.Loaded)
                 {
@@ -104,12 +122,36 @@ namespace Immersive.Framework.RouteLifecycle
                     additiveLoadResult.Message));
             }
 
+            await FrameworkLoadingProgressReporterUtility.ReportCompletedIfAnyAsync(
+                progressReporter,
+                "RouteSceneComposition",
+                "Route scene composition progress completed.");
+
             return RouteSceneCompositionResult.ExecutedResult(
                 plan,
                 entries,
                 primarySceneLoadResult,
                 plan.Source,
                 plan.Reason);
+        }
+
+        private static int CountExecutionReadyScenes(RouteSceneCompositionPlan plan)
+        {
+            if (!plan.HasRoute)
+            {
+                return 0;
+            }
+
+            var count = plan.PrimaryScene.IsExecutionReady ? 1 : 0;
+            for (var i = 0; i < plan.AdditionalScenes.Count; i++)
+            {
+                if (plan.AdditionalScenes[i].IsExecutionReady)
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         private static void AddNotExecutedAdditionalScenes(
