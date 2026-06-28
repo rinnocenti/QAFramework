@@ -92,6 +92,10 @@ Project plan: `Assets/_Documentation/Plans/F25-PLAN-Activity-Content-Scene-Compo
 
 `F25C - Activity Scene Composition Execution` loads execution-ready Activity content scenes additively. When a canonical `LoadingSurface` exists, Activity scene composition runs inside the loading window. Progress remains indeterminate and Activity content release is deferred to F25D.
 
+`F25R - Activity Scene Operation Architecture Reset` classifies F25C-D4 as experimental/partial execution evidence and makes `ActivityOperationPlan` the required owner of Activity visual policy, scene composition, scene release, LoadingSurface requirement, TransitionSurface visual envelope requirement, Route startup Activity unification and future Activity scene ledger. `Seamless + Activity scene load/release side-effect` is invalid and must not open LoadingSurface without fade.
+
+`F25E - Activity Operation Plan Baseline` adds side-effect-free Activity operation planning/result types under `Runtime/ActivityFlow`. It does not change execution; it only records the canonical planning language and visual validity rules required before the executor cut.
+
 ### IF-FW-F25D — Activity Content Release
 
 Activity-owned additive scenes loaded through Activity scene composition are now released on Activity change when their scene entry uses `ReleaseOnActivityChange`.
@@ -103,3 +107,17 @@ The release operation runs inside the Activity loading window when a LoadingSurf
 Activity content release policy is scoped to Activity changes only. `ReleaseOnActivityChange` unloads Activity-owned scenes when the Activity is replaced or cleared. `KeepOnActivityChange` keeps them loaded across Activity changes.
 
 Route changes always force-release Activity-owned scenes, regardless of Activity policy. Route content has no release policy; content that survives Route changes must be modeled as Session content.
+
+### IF-FW-F25R - Activity Scene Operation Architecture Reset
+
+Canonical ADR: [F25R Activity Scene Operation Architecture Reset](ADRs/F25R-ADR-ACTIVITY-001-Activity-Scene-Operation-Architecture-Reset.md).
+
+Follow-up cuts:
+
+| Cut | Name |
+|---|---|
+| F25E | Activity Operation Plan Baseline |
+| F25F | Activity Operation Executor |
+| F25G | Startup Activity Path Unification |
+| F25H | Activity Scene Ledger |
+| F25I | Validator Guards |

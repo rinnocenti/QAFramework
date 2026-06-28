@@ -42,8 +42,43 @@ Activity
 |---|---|---|
 | F25A | Activity Content Profile Contract | Authoring contract only. No scene loading. |
 | F25B | Activity Scene Composition Plan/Result | Plan/result language for Activity scene composition. No execution. |
-| F25C | Activity Scene Composition Execution | Load Activity content scenes and connect LoadingSurface when real loading exists. |
-| F25D | Activity Content Release | Release Activity-owned content according to policy. |
+| F25C | Activity Scene Composition Execution | Experimental/partial. Load Activity content scenes and connect LoadingSurface when real loading exists. Superseded architecturally by F25R. |
+| F25D | Activity Content Release | Experimental/partial. Release Activity-owned content according to policy. Superseded architecturally by F25R. |
+| F25R | Activity Scene Operation Architecture Reset | Documentation reset. Defines `ActivityOperationPlan`, Visual Envelope, Activity scene ledger direction and next cuts. |
+| F25E | Activity Operation Plan Baseline | Add side-effect-free operation plan/result model. |
+| F25F | Activity Operation Executor | Move Activity visual/loading/release/load/state sequencing to one executor. |
+| F25G | Startup Activity Path Unification | Route startup Activity uses the same Activity operation path. |
+| F25H | Activity Scene Ledger | Replace loose tracking with route-scoped Activity-owned ledger entries. |
+| F25I | Validator Guards | Block invalid visual/scene side-effect combinations. |
+
+## IF-FW-F25E - Activity operation plan baseline
+
+F25E introduces the side-effect-free Activity operation planning language required by F25R.
+
+Added runtime planning types:
+
+- `ActivityOperationKind`
+- `ActivityOperationSceneAction`
+- `ActivityOperationIssueSeverity`
+- `ActivityOperationIssueKind`
+- `ActivityOperationPlanStatus`
+- `ActivityOperationResultStatus`
+- `ActivityOperationIssue`
+- `ActivityOperationPlanSceneEntry`
+- `ActivityOperationPlan`
+- `ActivityOperationResult`
+
+F25E does not alter runtime execution. Host-side loading probes, Activity scene execution/release and Route startup Activity wiring remain unchanged until the executor cut.
+
+Acceptance:
+
+- Activity operation planning can represent Start, Switch, Clear, RouteStartup and RouteExitCleanup.
+- The plan records scenes to load/release without executing them.
+- The plan reports scene side-effects separately from `AlreadyLoaded` diagnostics.
+- `Seamless + scene side-effect` is represented as a blocking issue.
+- `Fade + scene side-effect` is represented as a blocking issue requiring explicit `FadeWithLoading`.
+- `FadeWithLoading + no scene side-effect` is valid with a warning and no loading requirement.
+- Result diagnostics expose validity, blocking/warning counts, visual occlusion requirement and LoadingSurface requirement.
 
 ## F25A acceptance
 
@@ -103,3 +138,59 @@ F25 does not introduce:
 - `KeepOnActivityChange`: keep loaded on Activity replace/clear.
 
 Route changes always force-release all Activity-owned scenes regardless of that policy. Route content has no release policy; Route-owned content is always released on Route change. Content that must survive Route changes belongs to Session content.
+
+## IF-FW-F25R - Activity scene operation architecture reset
+
+F25R documents that F25C-D4 are experimental/partial execution cuts. They remain in the project as evidence, but they are not the final architecture.
+
+Invalid behavior recorded by F25R:
+
+```text
+ActivityVisualTransitionMode.Seamless
++
+Activity scene load/release side-effect
+=
+LoadingSurface appears without fade
+```
+
+Activity scene operations must be decided by one `ActivityOperationPlan`.
+
+The plan owns:
+
+- previous and target Activity;
+- operation kind: Start, Switch, Clear, RouteStartup, RouteExitCleanup;
+- visual mode: Seamless, Fade, FadeWithLoading;
+- scenes to load;
+- scenes to release;
+- scene side-effect detection;
+- visual occlusion requirement;
+- LoadingSurface requirement;
+- validity and blocking issues.
+
+Visual rules:
+
+- `Seamless` is valid only when there is no Activity scene load/release side-effect.
+- `Fade` is valid for a visual Activity operation without mandatory LoadingSurface.
+- `FadeWithLoading` is required when Activity scene load/release requires LoadingSurface.
+- Invalid combinations must block explicitly; no silent fallback is allowed.
+
+Route startup Activity must use the same `ActivityOperationPlan` and executor as normal Activity requests. Route exit cleanup must remove all Activity-owned content for the previous Route.
+
+Activity scene tracking must become an explicit ledger:
+
+```text
+ActivitySceneLedgerEntry
+  RouteInstanceId
+  ActivityId
+  ContentId
+  ScenePath
+  ReleasePolicy
+  Ownership = Activity
+  UnitySceneLoaded
+```
+
+Canonical ADR:
+
+```text
+Packages/com.immersive.framework/Documentation~/ADRs/F25R-ADR-ACTIVITY-001-Activity-Scene-Operation-Architecture-Reset.md
+```

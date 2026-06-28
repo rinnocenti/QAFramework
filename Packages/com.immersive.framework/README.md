@@ -19,7 +19,7 @@ The package is organized as framework contracts first, Unity build surfaces seco
 | F22 | Loading Operation / Progress / Readiness Boundary | Closed |
 | F23 | Pause Content / Overlay / Input Intent Boundary | Closed |
 | F24 | Unity Build Surface / Lifecycle Wiring | Current |
-| F25 | Adapter Module Foundation | Deferred after F24 |
+| F25 | Activity Content Scene Composition | Current after F24 visual policy |
 
 ## Tracks
 
@@ -42,7 +42,9 @@ F23 does not promise overlay adapters, Content Anchor binding execution, `Runtim
 
 F24 starts with lifecycle wiring before visual loading/pause surfaces. The first technical cut is `F24B - Transition <-> GameFlow Runtime Integration`, because `RouteRequestTrigger` / `GameFlow` must pass through a real `TransitionPlan` before curtain or loading visuals become meaningful.
 
-F25 is broader than gameplay. It is the adapter module foundation phase and must not mix optional subsystem adapters back into framework core.
+F25 currently stabilizes Activity Content Scene Composition before broader adapter module work resumes. Adapter module foundation remains deferred until Activity scene operation ownership is stable.
+
+`F25R - Activity Scene Operation Architecture Reset` is the current documentary reset for Activity scene loading/release. It classifies F25C-D4 as experimental/partial execution evidence, records the invalid `Seamless + Activity scene side-effect => LoadingSurface without fade` behavior, and requires future work to start from `ActivityOperationPlan`, Visual Envelope and route-scoped Activity scene ledger ownership.
 
 ## Anti-Regression Rules
 

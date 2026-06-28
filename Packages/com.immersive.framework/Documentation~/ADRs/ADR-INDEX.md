@@ -8,7 +8,7 @@ Current order:
 2. F22 - Loading Operation / Progress / Readiness Boundary
 3. F23 - Pause Content / Overlay / Input Intent Boundary
 4. F24 - Unity Build Surface / Lifecycle Wiring
-5. F25 - Adapter Module Foundation
+5. F25 - Activity Content Scene Composition
 
 ## Roadmap ADRs
 
@@ -46,12 +46,14 @@ Current order:
 | F22 | [Loading Operation / Progress / Readiness Boundary](F22-ADR-LOADING-001-Loading-Operation-Progress-Readiness-Boundary.md) | Accepted |
 | F23 | [Pause Content / Overlay / Input Intent Boundary](F23-ADR-PAUSE-003-Pause-Content-Overlay-Input-Boundary.md) | Closed |
 | F24 | [Unity Build Surface / Lifecycle Wiring](F24-ADR-UNITY-BUILD-001-Unity-Build-Surface-Lifecycle-Wiring.md) | Accepted / Planned |
-| F25 | [Adapter Module Foundation](F25-ADR-ADAPTER-001-Adapter-Module-Foundation.md) | Deferred after F24 |
+| F25 | [Adapter Module Foundation](F25-ADR-ADAPTER-001-Adapter-Module-Foundation.md) | Deferred after Activity scene operation stability |
+| F25R | [Activity Scene Operation Architecture Reset](F25R-ADR-ACTIVITY-001-Activity-Scene-Operation-Architecture-Reset.md) | Accepted / Documentation reset |
 
 ## Boundary Rules
 
 - F23 is intent/requirement-only.
 - F24 is Unity build surface and lifecycle wiring.
-- F25 is adapter module foundation.
+- F25 currently stabilizes Activity content scene composition before adapter module foundation resumes.
+- F25R resets Activity scene operation architecture: visual policy, LoadingSurface, TransitionSurface, scene load/release and ledger ownership must be decided by `ActivityOperationPlan`.
 - Core contracts must not depend on concrete Unity UI, gameplay modules or backend implementations.
 - Adapter modules consume framework contracts; they do not redefine route, activity, transition, pause, loading, save or reset ownership.
