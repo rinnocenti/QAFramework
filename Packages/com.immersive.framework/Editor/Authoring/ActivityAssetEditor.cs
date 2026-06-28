@@ -27,7 +27,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
             EditorGUILayout.LabelField("Activity", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "An Activity is a gameplay step inside a Route. It has identity, visual transition policy and an optional declaration-only Activity Content Profile; scene composition execution and gameplay integrations are added later.",
+                "An Activity is a gameplay step inside a Route. It has identity, visual transition policy and an optional Activity Content Profile used by Activity scene composition and release.",
                 MessageType.Info);
 
             EditorGUILayout.Space(6);
@@ -44,7 +44,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Current Scope", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "This Activity is an identity target for Activity Flow and scene-authored ActivityLocalVisibilityAdapter. It can declare an Activity Content Profile for future scene composition and request a Session UIGlobal transition by policy, but it does not own TransitionSurface, LoadingSurface, actors, input, camera, save, pause or pooling.",
+                "This Activity is an identity target for Activity Flow and scene-authored ActivityLocalVisibilityAdapter. It can declare Activity-owned scene content and select Activity presentation policy, but it does not own TransitionSurface, LoadingSurface, actors, input, camera, save, pause or pooling.",
                 MessageType.None);
 
             serializedObject.ApplyModifiedProperties();
@@ -58,8 +58,8 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             EditorGUILayout.LabelField("Activity Content", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_activityContentProfile, new GUIContent("Content Profile"));
             EditorGUILayout.HelpBox(
-                "Optional. F25A only declares Activity-owned scenes. The profile is not executed yet; Activity scene composition, loading and release come in later F25 cuts.",
-                MessageType.Warning);
+                "Optional. Declares Activity-owned scenes used by Activity operation planning, additive composition and release.",
+                MessageType.Info);
 
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -100,18 +100,18 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             {
                 case ActivityVisualTransitionMode.Seamless:
                     EditorGUILayout.HelpBox(
-                        "Default. Activity switch/clear runs without fade. Use this for local or seamless Activity changes inside the same Route.",
+                        "Default. Activity operations run without TransitionSurface and without canonical LoadingSurface. Activity scene load/release may still execute.",
                         MessageType.Info);
                     break;
                 case ActivityVisualTransitionMode.Fade:
                     EditorGUILayout.HelpBox(
-                        "Activity switch/clear uses the Session UIGlobal TransitionSurface fade. Loading remains skipped because Activity does not own scene/content loading yet.",
+                        "Activity operations use the Session UIGlobal TransitionSurface and skip canonical LoadingSurface. Activity scene load/release may still execute.",
                         MessageType.Info);
                     break;
                 case ActivityVisualTransitionMode.FadeWithLoading:
                     EditorGUILayout.HelpBox(
-                        "Reserved for future Activity Content Scene Composition execution. In the current runtime it behaves as Fade, logs activityLoadingMode='ReservedNoActivityContentLoading', and keeps Loading skipped because ActivityContentProfile is declaration-only in F25A.",
-                        MessageType.Warning);
+                        "Activity operations use the Session UIGlobal TransitionSurface and the canonical LoadingSurface when the Activity operation requests loading presentation.",
+                        MessageType.Info);
                     break;
             }
         }

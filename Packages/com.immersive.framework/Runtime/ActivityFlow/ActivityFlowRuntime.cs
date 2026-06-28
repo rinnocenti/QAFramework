@@ -72,21 +72,6 @@ namespace Immersive.Framework.ActivityFlow
 
         internal int ActivitySceneLedgerEntryCount => _activitySceneCompositionRuntime.LedgerEntryCount;
 
-        internal bool HasActivitySceneReleaseOnActivityChange(ActivityAsset activity)
-        {
-            return _activitySceneCompositionRuntime.HasReleaseOnActivityChangeScenes(activity);
-        }
-
-        internal bool HasActivitySceneLoadOnActivityChange(ActivityAsset activity, string source, string reason)
-        {
-            return _activitySceneCompositionRuntime.HasSceneLoadOnActivityChange(activity, source, reason);
-        }
-
-        internal bool HasAnyActivitySceneReleaseForRouteChange()
-        {
-            return _activitySceneCompositionRuntime.HasAnyTrackedScenes();
-        }
-
         internal Task<ActivitySceneReleaseResult> ReleaseActivityScenesForRouteChangeAsync(
             string source,
             string reason)

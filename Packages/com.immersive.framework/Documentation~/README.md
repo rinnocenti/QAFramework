@@ -75,7 +75,7 @@ F25 must consume F24 Unity build surfaces and must not create a parallel lifecyc
 
 F25 now opens with Activity content scene composition before broader adapter modules.
 
-`F25A - Activity Content Profile Contract` adds declaration-only Activity content authoring:
+`F25A - Activity Content Profile Contract` introduced Activity content authoring:
 
 - `ActivityContentProfileAsset`
 - `ActivityContentSceneEntry`

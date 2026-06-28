@@ -202,11 +202,6 @@ namespace Immersive.Framework.GameFlow
                 return "ActivitySceneRelease";
             }
 
-            if (mode == ActivityVisualTransitionMode.FadeWithLoading)
-            {
-                return "ReservedNoActivityContentLoading";
-            }
-
             return "SkippedNoSceneLoad";
         }
 

@@ -57,21 +57,6 @@ namespace Immersive.Framework.RouteLifecycle
 
         internal bool HasActiveActivity => _activityFlowRuntime.HasActiveActivity;
 
-        internal bool HasActivitySceneReleaseOnActivityChange(ActivityAsset activity)
-        {
-            return _activityFlowRuntime.HasActivitySceneReleaseOnActivityChange(activity);
-        }
-
-        internal bool HasActivitySceneLoadOnActivityChange(ActivityAsset activity, string source, string reason)
-        {
-            return _activityFlowRuntime.HasActivitySceneLoadOnActivityChange(activity, source, reason);
-        }
-
-        internal bool HasAnyActivitySceneReleaseForRouteChange()
-        {
-            return _activityFlowRuntime.HasAnyActivitySceneReleaseForRouteChange();
-        }
-
         internal bool IsRouteActive(RouteAsset route)
         {
             return route != null && ReferenceEquals(CurrentRoute, route);

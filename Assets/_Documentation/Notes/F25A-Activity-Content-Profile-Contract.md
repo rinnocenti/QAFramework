@@ -13,7 +13,7 @@ Before this cut, Activity could switch identity, readiness and local content cal
 
 F25 opens the Activity Content Scene Composition track.
 
-F25A creates the declaration-only contract:
+F25A introduced the initial Activity content profile contract:
 
 - `ActivityContentProfileAsset`
 - `ActivityContentSceneEntry`
@@ -45,7 +45,7 @@ Activity loading remains:
 loading='SkippedNoSceneLoad'
 ```
 
-Historical F25A state: `FadeWithLoading` was still reserved until later F25 execution cuts.
+Historical F25A state: `FadeWithLoading` did not yet drive Activity scene loading presentation until later F25 execution cuts.
 
 ## Authoring validation
 

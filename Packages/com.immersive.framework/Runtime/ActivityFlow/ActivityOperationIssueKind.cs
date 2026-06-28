@@ -11,8 +11,6 @@ namespace Immersive.Framework.ActivityFlow
         Unknown = 0,
         MissingOperationKind = 10,
         MissingTargetActivity = 20,
-        SeamlessSceneSideEffects = 30,
-        FadeSceneSideEffectsRequireFadeWithLoading = 40,
         FadeWithLoadingWithoutSceneSideEffects = 50,
         InvalidSceneEntry = 60,
         StaleTrackedScene = 70

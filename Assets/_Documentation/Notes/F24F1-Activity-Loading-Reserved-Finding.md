@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted / Documentation + Guard.
+Superseded / historical pre-F25 finding.
+
+F25I1/F25I2 replace this finding. `FadeWithLoading` is no longer reserved; it is the Activity visual mode that uses TransitionSurface and LoadingSurface when the Activity operation requests loading presentation. `Seamless`, `Fade` and `FadeWithLoading` may all execute Activity scene load/release.
 
 ## Context
 
@@ -34,9 +36,9 @@ Current Activity does not yet support:
 
 ## Decision
 
-`FadeWithLoading` is reserved until Activity Content Scene Composition exists.
+At this historical point, `FadeWithLoading` was unavailable for Activity loading until Activity Content Scene Composition existed.
 
-It must not imply real Activity loading in the current runtime.
+This no longer describes current runtime behavior after F25I1/F25I2.
 
 ## Current behavior
 
@@ -44,7 +46,7 @@ It must not imply real Activity loading in the current runtime.
 |---|---|
 | `Seamless` | Skips Activity transition by policy. |
 | `Fade` | Uses the Session `TransitionSurface`; Activity loading remains skipped. |
-| `FadeWithLoading` | Reserved. Uses the same fade behavior for now, logs `activityLoadingMode='ReservedNoActivityContentLoading'`, and keeps Activity loading skipped. |
+| `FadeWithLoading` | Historical F24F1 behavior only. Current F25 behavior uses TransitionSurface and LoadingSurface when the Activity operation requests loading presentation. |
 
 The request-level loading fields remain explicit:
 
@@ -55,13 +57,13 @@ loadingBefore='Skipped'
 loadingAfter='Skipped'
 ```
 
-This is correct until Activity has real scene/content loading.
+This was correct only before Activity had real scene/content loading.
 
 ## Guard
 
-Authoring validation warns when an Activity uses `FadeWithLoading` because no `ActivityContentProfile` execution exists yet.
+Current authoring validation no longer warns only because an Activity uses `FadeWithLoading`.
 
-The Inspector also marks `FadeWithLoading` as reserved.
+Current Inspector text presents `FadeWithLoading` as an active visual mode.
 
 ## Non-goals
 

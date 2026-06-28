@@ -325,7 +325,7 @@ Accepted behavior:
 
 - `ActivityAsset.Visual Transition Mode = Seamless` skips Activity transition by policy.
 - `Fade` uses the Session `TransitionSurface` from `UIGlobal`.
-- `FadeWithLoading` is reserved for future Activity content/scene loading and currently behaves as `Fade` with Loading skipped.
+- Historical F24F behavior: `FadeWithLoading` was unavailable for Activity loading before Activity Content Scene Composition existed and behaved as `Fade` with Loading skipped. Current F25 behavior supersedes this.
 - `ActivityClear` uses the policy of the Activity being cleared.
 - Route transition/loading behavior is unchanged.
 
@@ -336,20 +336,18 @@ Boundary: no Activity scene loading, no LoadingSurface for Activity without real
 
 Status: implemented / smoke pending.
 
-Purpose: mark `FadeWithLoading` as reserved until Activity Content Scene Composition exists. Activity loading remains `SkippedNoSceneLoad` because there is no `ActivityContentProfile`, Activity scene composition plan/result, additive Activity scene loading or Activity content release yet.
+Purpose at F24F1 time: mark `FadeWithLoading` as unavailable for Activity loading until Activity Content Scene Composition existed. Current F25 behavior supersedes this historical state.
 
 Accepted behavior:
 
-- `FadeWithLoading` runs the current fade path only.
-- Activity request logs `activityLoadingMode='ReservedNoActivityContentLoading'`.
-- LoadingSurface is not opened for Activity without real scene/content loading.
-- Validator warns when an Activity uses `FadeWithLoading`.
+- Historical F24F1 behavior only: `FadeWithLoading` ran the fade path and skipped Activity loading because Activity scene composition did not exist yet.
+- Current F25 behavior: `FadeWithLoading` is active and may use LoadingSurface when the Activity operation requests loading presentation.
 - F25 must own Activity content scene composition.
 
 Boundary: no Activity scenes, no ActivityContentProfile, no Activity scene loader, no Activity release, no Route transition/loading change.
 
 ## F25 handoff — Activity Content Scene Composition
 
-F24F/F24F1 closed the Activity visual transition policy and documented that `FadeWithLoading` is reserved while Activity has no real scene/content loading.
+F24F/F24F1 closed the Activity visual transition policy before Activity had real scene/content loading. F25I1/F25I2 supersede the reserved-loading wording.
 
-F25A opens the Activity Content Scene Composition track with a declaration-only `ActivityContentProfile` contract. Runtime loading remains unchanged until later F25 cuts.
+F25A opened the Activity Content Scene Composition track with the initial `ActivityContentProfile` contract. Later F25 cuts added operation planning, scene execution, release, ledger tracking and final visual/loading diagnostics.

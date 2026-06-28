@@ -127,7 +127,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             EditorGUILayout.LabelField("Activity", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_startupActivity, new GUIContent("Startup Activity"));
             EditorGUILayout.HelpBox(
-                "Optional. If assigned, Activity Flow starts this Activity after the Route Primary Scene is resolved. The Activity currently has identity only; it does not load content, actors, input, camera, save or pause.",
+                "Optional. If assigned, Activity Flow starts this Activity after the Route Primary Scene is resolved through the Activity operation path. Activity-owned scenes may be composed; actors, input, camera, save and pause remain outside Route startup ownership.",
                 MessageType.None);
 
             using (new EditorGUILayout.HorizontalScope())

@@ -25,8 +25,8 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
             EditorGUILayout.LabelField("Activity Content Profile", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "Status: Experimental / Declaration-only in F25A. This asset declares Activity-owned scenes. Loading, composition execution and release are deferred to later F25 cuts.",
-                MessageType.Warning);
+                "Status: Experimental. This asset declares Activity-owned scenes used by Activity operation planning, additive composition and release.",
+                MessageType.Info);
 
             EditorGUILayout.Space(6);
             EditorGUILayout.PropertyField(_profileId, new GUIContent("Profile Id"));
@@ -54,8 +54,8 @@ namespace Immersive.Framework.Editor.Editor.Authoring
         {
             EditorGUILayout.LabelField("Activity Scenes", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "These scenes are Activity-owned content declarations. F25A does not load them yet; later cuts create Activity scene composition plan/result, execution and release.",
-                MessageType.Warning);
+                "These scenes are Activity-owned content declarations. Execution-ready entries are planned, loaded additively and released by Activity scene composition according to Activity operation policy.",
+                MessageType.Info);
 
             for (var i = 0; i < _scenes.arraySize; i++)
             {
@@ -129,7 +129,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             if (string.IsNullOrWhiteSpace(scenePath.stringValue))
             {
                 EditorGUILayout.HelpBox(
-                    "Scene is missing. This profile is declaration-only now, but execution-ready Activity content will require valid scene data.",
+                    "Scene is missing. Execution-ready Activity content requires valid scene data.",
                     MessageType.Warning);
             }
 
