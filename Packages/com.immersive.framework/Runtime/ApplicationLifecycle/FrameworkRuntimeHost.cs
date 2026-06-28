@@ -21,6 +21,7 @@ using Immersive.Framework.GlobalUi;
 using Immersive.Framework.Pause;
 using Immersive.Framework.Transition;
 using Immersive.Framework.TransitionEffects;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ApplicationLifecycle
 {
@@ -59,9 +60,9 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         public SessionRuntimeState SessionState => _state.SessionState;
 
-        internal PauseState PauseState => _pauseRuntime != null ? _pauseRuntime.State : PauseState.Unknown;
+        internal PauseState PauseState => _pauseRuntime?.State ?? PauseState.Unknown;
 
-        internal GateSnapshot PauseGateSnapshot => _pauseRuntime != null ? _pauseRuntime.GateSnapshot : GateSnapshot.Empty();
+        internal GateSnapshot PauseGateSnapshot => _pauseRuntime?.GateSnapshot ?? GateSnapshot.Empty();
 
         internal bool TryGetPauseSnapshot(out PauseSnapshot snapshot)
         {
@@ -108,7 +109,7 @@ namespace Immersive.Framework.ApplicationLifecycle
             return participantSource != null && ReferenceEquals(_objectResetParticipantSource, participantSource);
         }
 
-        internal int ContentAnchorBindingCount => _contentAnchorBindingRuntime != null ? _contentAnchorBindingRuntime.BindingCount : 0;
+        internal int ContentAnchorBindingCount => _contentAnchorBindingRuntime?.BindingCount ?? 0;
 
         internal int ObjectEntryRuntimeContextRevision => _objectEntryRuntimeContextRevision;
 
@@ -220,8 +221,8 @@ namespace Immersive.Framework.ApplicationLifecycle
                 return result;
             }
 
-            var showLoadingSurface = ShouldShowLoadingSurface(targetRoute);
-            var loadingProgressSupported = showLoadingSurface && _loadingSurfaceRuntime.ProgressSupported;
+            bool showLoadingSurface = ShouldShowLoadingSurface(targetRoute);
+            bool loadingProgressSupported = showLoadingSurface && _loadingSurfaceRuntime.ProgressSupported;
             var loadingShowRequest = CreateLoadingSurfaceRequest(
                 targetRoute,
                 source,
@@ -302,8 +303,8 @@ namespace Immersive.Framework.ApplicationLifecycle
         {
             InvalidateObjectEntryRuntimeContextSnapshot($"activity-request:{NormalizeLifecycleSource(source)}");
             var previousActivity = _state.CurrentActivity;
-            var showLoadingSurface = ShouldShowActivityLoadingSurface(targetActivity, previousActivity, source, reason);
-            var loadingProgressSupported = showLoadingSurface && _loadingSurfaceRuntime.ProgressSupported;
+            bool showLoadingSurface = ShouldShowActivityLoadingSurface(targetActivity, previousActivity, source, reason);
+            bool loadingProgressSupported = showLoadingSurface && _loadingSurfaceRuntime.ProgressSupported;
             var loadingShowRequest = CreateActivityLoadingSurfaceRequest(
                 targetActivity,
                 source,
@@ -376,8 +377,8 @@ namespace Immersive.Framework.ApplicationLifecycle
         {
             InvalidateObjectEntryRuntimeContextSnapshot($"activity-clear:{NormalizeLifecycleSource(source)}");
             var previousActivity = _state.CurrentActivity;
-            var showLoadingSurface = ShouldShowActivityClearLoadingSurface(previousActivity, source, reason);
-            var loadingProgressSupported = showLoadingSurface && _loadingSurfaceRuntime.ProgressSupported;
+            bool showLoadingSurface = ShouldShowActivityClearLoadingSurface(previousActivity, source, reason);
+            bool loadingProgressSupported = showLoadingSurface && _loadingSurfaceRuntime.ProgressSupported;
             var loadingShowRequest = CreateActivityLoadingSurfaceRequest(
                 previousActivity,
                 source,
@@ -514,7 +515,7 @@ namespace Immersive.Framework.ApplicationLifecycle
             var gateEvaluation = EvaluateObjectResetRequestAdmission(request);
             if (!gateEvaluation.IsAllowed)
             {
-                var blockedMessage = GateRequestAdmission.FormatBlockedMessage(
+                string blockedMessage = GateRequestAdmission.FormatBlockedMessage(
                     "Object Reset Request",
                     gateEvaluation);
                 var inFlightResult = ObjectResetResult.Rejected(
@@ -579,9 +580,7 @@ namespace Immersive.Framework.ApplicationLifecycle
         {
             _objectEntryRuntimeContextSnapshot = null;
             _objectEntryRuntimeContextInvalidationCount++;
-            _lastObjectEntryRuntimeContextInvalidationReason = string.IsNullOrWhiteSpace(reason)
-                ? "lifecycle-boundary"
-                : reason.Trim();
+            _lastObjectEntryRuntimeContextInvalidationReason = reason.NormalizeTextOrFallback("lifecycle-boundary");
         }
 
         private PauseRequest CreatePauseRequest(PauseRequestKind kind, string source, string reason)
@@ -592,7 +591,7 @@ namespace Immersive.Framework.ApplicationLifecycle
             }
 
             _pauseRequestSequence++;
-            var requestId = $"framework.pause.{_pauseRequestSequence}.{kind.ToString().ToLowerInvariant()}";
+            string requestId = $"framework.pause.{_pauseRequestSequence}.{kind.ToString().ToLowerInvariant()}";
             return new PauseRequest(
                 PauseRequestId.From(requestId),
                 kind,
@@ -602,7 +601,7 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         private static string NormalizeLifecycleSource(string source)
         {
-            return string.IsNullOrWhiteSpace(source) ? "Unknown" : source.Trim();
+            return source.NormalizeTextOrFallback("Unknown");
         }
 
         private bool ShouldShowLoadingSurface(RouteAsset targetRoute)
@@ -620,16 +619,16 @@ namespace Immersive.Framework.ApplicationLifecycle
             LoadingProgress progress,
             bool progressSupported)
         {
-            var routeLabel = targetRoute != null && !string.IsNullOrWhiteSpace(targetRoute.RouteName)
+            string routeLabel = targetRoute != null && !string.IsNullOrWhiteSpace(targetRoute.RouteName)
                 ? targetRoute.RouteName
                 : "Loading";
-            var sceneLabel = targetRoute != null && !string.IsNullOrWhiteSpace(targetRoute.PrimarySceneName)
+            string sceneLabel = targetRoute != null && !string.IsNullOrWhiteSpace(targetRoute.PrimarySceneName)
                 ? targetRoute.PrimarySceneName
                 : targetRoute != null && !string.IsNullOrWhiteSpace(targetRoute.PrimaryScenePath)
                     ? targetRoute.PrimaryScenePath
                     : string.Empty;
 
-            var detail = string.IsNullOrWhiteSpace(sceneLabel)
+            string detail = string.IsNullOrWhiteSpace(sceneLabel)
                 ? routeLabel
                 : $"{routeLabel} / {sceneLabel}";
 
@@ -701,11 +700,11 @@ namespace Immersive.Framework.ApplicationLifecycle
             LoadingProgress progress,
             bool progressSupported)
         {
-            var activityLabel = targetActivity != null && !string.IsNullOrWhiteSpace(targetActivity.ActivityName)
+            string activityLabel = targetActivity != null && !string.IsNullOrWhiteSpace(targetActivity.ActivityName)
                 ? targetActivity.ActivityName
                 : "Activity";
             var profile = targetActivity != null ? targetActivity.ActivityContentProfile : null;
-            var detail = profile != null && !string.IsNullOrWhiteSpace(profile.ProfileId)
+            string detail = profile != null && !string.IsNullOrWhiteSpace(profile.ProfileId)
                 ? $"{activityLabel} / {profile.ProfileId}"
                 : activityLabel;
 
@@ -780,11 +779,11 @@ namespace Immersive.Framework.ApplicationLifecycle
                 return NoOpTransitionOrchestrator.Instance;
             }
 
-            var sceneAdapters = globalUiSceneRuntime != null
+            IReadOnlyList<ITransitionEffectAdapter> sceneAdapters = globalUiSceneRuntime != null
                 ? globalUiSceneRuntime.TransitionAdapters
                 : Array.Empty<ITransitionEffectAdapter>();
-            var hasSceneAdapters = sceneAdapters != null && sceneAdapters.Count > 0;
-            var sceneLabel = globalUiSceneRuntime != null && !string.IsNullOrWhiteSpace(globalUiSceneRuntime.Label)
+            bool hasSceneAdapters = sceneAdapters != null && sceneAdapters.Count > 0;
+            string sceneLabel = globalUiSceneRuntime != null && !string.IsNullOrWhiteSpace(globalUiSceneRuntime.Label)
                 ? globalUiSceneRuntime.Label
                 : "UIGlobal Transition Surface";
 
@@ -950,8 +949,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                 return;
             }
 
-            if (result.Kind == FrameworkRouteRequestKind.IgnoredAlreadyActive ||
-                result.Kind == FrameworkRouteRequestKind.IgnoredAlreadyInFlight)
+            if (result.Kind is FrameworkRouteRequestKind.IgnoredAlreadyActive or FrameworkRouteRequestKind.IgnoredAlreadyInFlight)
             {
                 _logger.Warning(result.Message, BuildRouteRequestFields(result, loadingDiagnostics));
                 return;
@@ -970,9 +968,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                 return;
             }
 
-            if (result.Kind == FrameworkActivityRequestKind.IgnoredAlreadyActive ||
-                result.Kind == FrameworkActivityRequestKind.IgnoredAlreadyInFlight ||
-                result.Kind == FrameworkActivityRequestKind.IgnoredNoActiveActivity)
+            if (result.Kind is FrameworkActivityRequestKind.IgnoredAlreadyActive or FrameworkActivityRequestKind.IgnoredAlreadyInFlight or FrameworkActivityRequestKind.IgnoredNoActiveActivity)
             {
                 _logger.Warning(result.Message, BuildActivityRequestFields(result, loadingDiagnostics));
                 return;
@@ -1397,7 +1393,7 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         private static string FormatDiagnosticValue(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? "<none>" : value.Trim();
+            return value.NormalizeTextOrFallback("<none>");
         }
 
         private void OnDestroy()

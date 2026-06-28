@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using UnityEngine;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Loading
 {
@@ -60,7 +61,7 @@ namespace Immersive.Framework.Loading
             LoadingSurfaceRuntime loadingSurfaceRuntime,
             LoadingSurfaceRequest baseRequest)
         {
-            this._loadingSurfaceRuntime = loadingSurfaceRuntime;
+            _loadingSurfaceRuntime = loadingSurfaceRuntime;
             _title = baseRequest.Title;
             _detail = baseRequest.Detail;
             _source = baseRequest.Source;
@@ -89,7 +90,7 @@ namespace Immersive.Framework.Loading
             _lastProgress = progress;
             _hasReportedProgress = true;
 
-            var progressSupported = progress.Supported && progress.IsDeterminate;
+            bool progressSupported = progress.Supported && progress.IsDeterminate;
             var surfaceProgress = progressSupported
                 ? LoadingProgress.FromNormalized(progress.Value01)
                 : LoadingProgress.Zero;
@@ -145,8 +146,8 @@ namespace Immersive.Framework.Loading
                     : new FrameworkLoadingProgressPhaseReporter(parent, aggregatePhase, aggregateMessage);
             }
 
-            var start01 = Clamp01((float)Math.Max(0, startStepIndex) / totalStepCount);
-            var weight01 = Clamp01((float)rangeStepCount / totalStepCount);
+            float start01 = Clamp01((float)Math.Max(0, startStepIndex) / totalStepCount);
+            float weight01 = Clamp01((float)rangeStepCount / totalStepCount);
             if (weight01 <= 0f)
             {
                 return NoOpFrameworkLoadingProgressReporter.Instance;
@@ -203,10 +204,10 @@ namespace Immersive.Framework.Loading
             string phase,
             string messagePrefix)
         {
-            this._parent = parent ?? NoOpFrameworkLoadingProgressReporter.Instance;
-            this._phase = NormalizePhase(phase);
-            this._messagePrefix = Normalize(messagePrefix);
-            _lastProgress = parent != null ? parent.LastProgress : FrameworkLoadingProgress.Unsupported("NoOp", "No loading progress reporter is active for this operation.");
+            _parent = parent ?? NoOpFrameworkLoadingProgressReporter.Instance;
+            _phase = NormalizePhase(phase);
+            _messagePrefix = Normalize(messagePrefix);
+            _lastProgress = parent?.LastProgress ?? FrameworkLoadingProgress.Unsupported("NoOp", "No loading progress reporter is active for this operation.");
         }
 
         public bool IsEnabled => _parent.IsEnabled;
@@ -252,12 +253,12 @@ namespace Immersive.Framework.Loading
 
         private static string NormalizePhase(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? "Loading" : value.Trim();
+            return value.NormalizeTextOrFallback("Loading");
         }
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 
@@ -279,12 +280,12 @@ namespace Immersive.Framework.Loading
             string aggregatePhase,
             string aggregateMessagePrefix)
         {
-            this._parent = parent ?? NoOpFrameworkLoadingProgressReporter.Instance;
-            this._start01 = Clamp01(start01);
-            this._weight01 = Clamp01(weight01);
-            this._aggregatePhase = string.IsNullOrWhiteSpace(aggregatePhase) ? "Loading" : aggregatePhase.Trim();
-            this._aggregateMessagePrefix = Normalize(aggregateMessagePrefix);
-            _lastProgress = parent != null ? parent.LastProgress : FrameworkLoadingProgress.Unsupported("NoOp", "No loading progress reporter is active for this operation.");
+            _parent = parent ?? NoOpFrameworkLoadingProgressReporter.Instance;
+            _start01 = Clamp01(start01);
+            _weight01 = Clamp01(weight01);
+            _aggregatePhase = aggregatePhase.NormalizeTextOrFallback("Loading");
+            _aggregateMessagePrefix = Normalize(aggregateMessagePrefix);
+            _lastProgress = parent?.LastProgress ?? FrameworkLoadingProgress.Unsupported("NoOp", "No loading progress reporter is active for this operation.");
         }
 
         public bool IsEnabled => _parent.IsEnabled && _weight01 > 0f;
@@ -316,7 +317,7 @@ namespace Immersive.Framework.Loading
                     BuildMessage(progress.Message));
             }
 
-            var mappedValue = _start01 + Clamp01(progress.Value01) * _weight01;
+            float mappedValue = _start01 + Clamp01(progress.Value01) * _weight01;
             return FrameworkLoadingProgress.Determinate(
                 Clamp01(mappedValue),
                 _aggregatePhase,
@@ -353,7 +354,7 @@ namespace Immersive.Framework.Loading
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

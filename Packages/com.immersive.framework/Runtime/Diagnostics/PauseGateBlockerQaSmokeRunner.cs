@@ -1,3 +1,4 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System.Threading.Tasks;
 using Immersive.Framework.ApiStatus;
@@ -23,9 +24,7 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source)
-                ? nameof(PauseGateBlockerQaSmokeRunner)
-                : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(PauseGateBlockerQaSmokeRunner));
 
             var pausedSnapshot = PauseSnapshot.FromState(
                 PauseState.Paused,
@@ -33,12 +32,12 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.gate.paused",
                 new[] { "qa.pause.gate.paused.snapshot" });
 
-            var pausedBlockersCreatedPassed = ValidatePausedBlockersCreated(logger, pausedSnapshot, normalizedSource);
-            var inputBlockedPassed = ValidatePausedBlocksInputAcceptance(logger, pausedSnapshot, normalizedSource);
-            var interactionBlockedPassed = ValidatePausedBlocksInteractionAcceptance(logger, pausedSnapshot, normalizedSource);
-            var pauseRequestAllowedPassed = ValidatePauseRequestRemainsAllowed(logger, pausedSnapshot, normalizedSource);
-            var runningReleasesPassed = ValidateRunningReleasesBlockers(logger, normalizedSource);
-            var rejectedResumeKeepsBlockersPassed = ValidateRejectedResumeKeepsBlockers(logger, normalizedSource);
+            bool pausedBlockersCreatedPassed = ValidatePausedBlockersCreated(logger, pausedSnapshot, normalizedSource);
+            bool inputBlockedPassed = ValidatePausedBlocksInputAcceptance(logger, pausedSnapshot, normalizedSource);
+            bool interactionBlockedPassed = ValidatePausedBlocksInteractionAcceptance(logger, pausedSnapshot, normalizedSource);
+            bool pauseRequestAllowedPassed = ValidatePauseRequestRemainsAllowed(logger, pausedSnapshot, normalizedSource);
+            bool runningReleasesPassed = ValidateRunningReleasesBlockers(logger, normalizedSource);
+            bool rejectedResumeKeepsBlockersPassed = ValidateRejectedResumeKeepsBlockers(logger, normalizedSource);
 
             return Task.FromResult(pausedBlockersCreatedPassed
                 && inputBlockedPassed
@@ -58,7 +57,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "qa.pause.gate.paused-blockers");
 
-            var passed = gateSnapshot.HasBlockers
+            bool passed = gateSnapshot.HasBlockers
                 && gateSnapshot.BlockerCount == 2
                 && gateSnapshot.CountByScope(GateScope.Input) == 1
                 && gateSnapshot.CountByScope(GateScope.Interaction) == 1
@@ -91,7 +90,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.gate.evaluate-input",
                 PauseGateBlockerPolicy.PolicySource);
 
-            var passed = evaluation.IsBlocked
+            bool passed = evaluation.IsBlocked
                 && evaluation.Decision.Status == GateDecisionStatus.Blocked
                 && evaluation.BlockingBlockerCount == 1
                 && evaluation.BlockingBlockers[0].BlockerId.Value == PauseGateBlockerPolicy.InputAcceptanceBlockerId
@@ -120,7 +119,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.gate.evaluate-interaction",
                 PauseGateBlockerPolicy.PolicySource);
 
-            var passed = evaluation.IsBlocked
+            bool passed = evaluation.IsBlocked
                 && evaluation.Decision.Status == GateDecisionStatus.Blocked
                 && evaluation.BlockingBlockerCount == 1
                 && evaluation.BlockingBlockers[0].BlockerId.Value == PauseGateBlockerPolicy.InteractionAcceptanceBlockerId
@@ -149,7 +148,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.gate.evaluate-pause-request",
                 PauseGateBlockerPolicy.PolicySource);
 
-            var passed = evaluation.IsAllowed
+            bool passed = evaluation.IsAllowed
                 && evaluation.Decision.Status == GateDecisionStatus.Allowed
                 && evaluation.BlockingBlockerCount == 0
                 && evaluation.Decision.Scope == GateScope.Pause
@@ -181,7 +180,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.gate.evaluate-running-release",
                 PauseGateBlockerPolicy.PolicySource);
 
-            var passed = gateSnapshot.IsEmpty
+            bool passed = gateSnapshot.IsEmpty
                 && gateSnapshot.BlockerCount == 0
                 && evaluation.IsAllowed
                 && evaluation.BlockingBlockerCount == 0;
@@ -228,7 +227,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.gate.evaluate-rejected-resume",
                 PauseGateBlockerPolicy.PolicySource);
 
-            var passed = result.Rejected
+            bool passed = result.Rejected
                 && !result.Completed
                 && result.IsPaused
                 && result.BlockingIssueCount == 1
@@ -248,7 +247,7 @@ namespace Immersive.Framework.Diagnostics
             PauseSnapshot pauseSnapshot,
             GateSnapshot gateSnapshot)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("pauseState", pauseSnapshot.State.ToString()),
@@ -280,7 +279,7 @@ namespace Immersive.Framework.Diagnostics
             GateEvaluationResult evaluation,
             int snapshotBlockers)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("pauseState", pauseSnapshot.State.ToString()),

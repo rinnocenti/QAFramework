@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -29,24 +30,20 @@ namespace Immersive.Framework.ActivityFlow
 
             Kind = kind;
             Index = index;
-            Key = Normalize(key);
+            Key = key.NormalizeText();
             Descriptor = descriptor;
-            Message = Normalize(message);
+            Message = message.NormalizeText();
         }
 
         public ActivityContentExecutionParticipantCollectionIssueKind Kind { get; }
 
-        public int Index { get; }
+        private int Index { get; }
 
-        public string Key { get; }
+        private string Key { get; }
 
-        public ActivityContentExecutionParticipantDescriptor Descriptor { get; }
+        private ActivityContentExecutionParticipantDescriptor Descriptor { get; }
 
-        public string Message { get; }
-
-        public bool HasDescriptor => Descriptor.IsValid;
-
-        public bool HasMessage => !string.IsNullOrWhiteSpace(Message);
+        private string Message { get; }
 
         public bool Equals(ActivityContentExecutionParticipantCollectionIssue other)
         {
@@ -66,11 +63,11 @@ namespace Immersive.Framework.ActivityFlow
         {
             unchecked
             {
-                var hashCode = (int)Kind;
-                hashCode = (hashCode * 397) ^ Index;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Key ?? string.Empty);
-                hashCode = (hashCode * 397) ^ Descriptor.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = (int)Kind;
+                hashCode = hashCode * 397 ^ Index;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Key ?? string.Empty);
+                hashCode = hashCode * 397 ^ Descriptor.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -82,15 +79,10 @@ namespace Immersive.Framework.ActivityFlow
 
         public string ToDiagnosticString()
         {
-            var keyText = !string.IsNullOrWhiteSpace(Key) ? Key : "<none>";
-            var messageText = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
-            var descriptorText = Descriptor.IsValid ? Descriptor.ToDiagnosticString() : "<invalid>";
+            string keyText = Key.ToDiagnosticText();
+            string messageText = Message.ToDiagnosticText();
+            string descriptorText = Descriptor.IsValid ? Descriptor.ToDiagnosticString() : "<invalid>";
             return $"kind='{Kind}' index='{Index}' key='{keyText}' descriptor='{descriptorText}' message='{messageText}'";
-        }
-
-        private static string Normalize(string value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
         }
     }
 }

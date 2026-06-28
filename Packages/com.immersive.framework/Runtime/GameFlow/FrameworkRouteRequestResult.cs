@@ -2,6 +2,7 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Gate;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.GameFlow
 {
@@ -22,10 +23,10 @@ namespace Immersive.Framework.GameFlow
             FrameworkTransitionDiagnostics transitionDiagnostics = default)
         {
             Kind = kind;
-            Message = message ?? string.Empty;
+            Message = message.NormalizeText();
             TargetRoute = targetRoute;
-            Source = source ?? string.Empty;
-            Reason = reason ?? string.Empty;
+            Source = source.NormalizeTextOrFallback("Unknown");
+            Reason = reason.NormalizeTextOrFallback("None");
             RouteLifecycleResult = routeLifecycleResult;
             TransitionDiagnostics = transitionDiagnostics;
         }
@@ -56,8 +57,8 @@ namespace Immersive.Framework.GameFlow
                 FrameworkRouteRequestKind.FailedInvalidConfig,
                 message,
                 targetRoute,
-                NormalizeSource(source),
-                NormalizeReason(reason),
+                source,
+                reason,
                 default);
         }
 
@@ -71,8 +72,8 @@ namespace Immersive.Framework.GameFlow
                 FrameworkRouteRequestKind.FailedRuntimeUnavailable,
                 message,
                 targetRoute,
-                NormalizeSource(source),
-                NormalizeReason(reason),
+                source,
+                reason,
                 default);
         }
 
@@ -85,8 +86,8 @@ namespace Immersive.Framework.GameFlow
                 FrameworkRouteRequestKind.IgnoredAlreadyActive,
                 $"Route Request ignored. {FormatRequestContext(source, reason)} Route '{targetRoute.RouteName}' is already active.",
                 targetRoute,
-                NormalizeSource(source),
-                NormalizeReason(reason),
+                source,
+                reason,
                 default);
         }
 
@@ -95,13 +96,13 @@ namespace Immersive.Framework.GameFlow
             string source,
             string reason)
         {
-            string routeName = targetRoute != null ? targetRoute.RouteName : "<missing>";
+            string routeName = targetRoute.ToDiagnosticText(x => x.RouteName, "<missing>");
             return new FrameworkRouteRequestResult(
                 FrameworkRouteRequestKind.IgnoredAlreadyInFlight,
                 $"Route Request ignored. {FormatRequestContext(source, reason)} Another route request is already in flight. targetRoute='{routeName}'.",
                 targetRoute,
-                NormalizeSource(source),
-                NormalizeReason(reason),
+                source,
+                reason,
                 default);
         }
 
@@ -111,13 +112,13 @@ namespace Immersive.Framework.GameFlow
             string reason,
             GateEvaluationResult gateEvaluation)
         {
-            string routeName = targetRoute != null ? targetRoute.RouteName : "<missing>";
+            string routeName = targetRoute.ToDiagnosticText(x => x.RouteName, "<missing>");
             return new FrameworkRouteRequestResult(
                 FrameworkRouteRequestKind.IgnoredAlreadyInFlight,
                 $"Route Request ignored. {FormatRequestContext(source, reason)} targetRoute='{routeName}'. {GateRequestAdmission.FormatBlockedMessage("Route Request", gateEvaluation)}",
                 targetRoute,
-                NormalizeSource(source),
-                NormalizeReason(reason),
+                source,
+                reason,
                 default);
         }
 
@@ -132,25 +133,15 @@ namespace Immersive.Framework.GameFlow
                 FrameworkRouteRequestKind.Succeeded,
                 $"Route Request completed. {FormatRequestContext(source, reason)} {routeLifecycleResult.Message}",
                 targetRoute,
-                NormalizeSource(source),
-                NormalizeReason(reason),
+                source,
+                reason,
                 routeLifecycleResult,
                 transitionDiagnostics);
         }
 
-        internal static string NormalizeSource(string source)
-        {
-            return string.IsNullOrWhiteSpace(source) ? "Unknown" : source.Trim();
-        }
-
-        internal static string NormalizeReason(string reason)
-        {
-            return string.IsNullOrWhiteSpace(reason) ? "None" : reason.Trim();
-        }
-
         private static string FormatRequestContext(string source, string reason)
         {
-            return $"source='{NormalizeSource(source)}' reason='{NormalizeReason(reason)}'.";
+            return $"source='{source.NormalizeTextOrFallback("Unknown")}' reason='{reason.NormalizeTextOrFallback("None")}'.";
         }
     }
 }

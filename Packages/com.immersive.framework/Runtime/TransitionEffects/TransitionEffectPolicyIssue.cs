@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.TransitionEffects
 {
@@ -84,12 +85,12 @@ namespace Immersive.Framework.TransitionEffects
         {
             unchecked
             {
-                var hashCode = StringComparer.Ordinal.GetHashCode(Code ?? string.Empty);
-                hashCode = (hashCode * 397) ^ (int)Severity;
-                hashCode = (hashCode * 397) ^ EffectId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)EffectKind;
-                hashCode = (hashCode * 397) ^ (int)Requiredness;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = StringComparer.Ordinal.GetHashCode(Code ?? string.Empty);
+                hashCode = hashCode * 397 ^ (int)Severity;
+                hashCode = hashCode * 397 ^ EffectId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)EffectKind;
+                hashCode = hashCode * 397 ^ (int)Requiredness;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -101,8 +102,8 @@ namespace Immersive.Framework.TransitionEffects
 
         public string ToDiagnosticString()
         {
-            var messageText = string.IsNullOrWhiteSpace(Message) ? "<none>" : Message;
-            var effectText = EffectId.IsValid ? EffectId.StableText : "<none>";
+            string messageText = Message.ToDiagnosticText();
+            string effectText = EffectId.IsValid ? EffectId.StableText : "<none>";
             return $"code='{Code}' severity='{Severity}' blocksTransition='{BlocksTransition}' effect='{effectText}' effectKind='{EffectKind}' requiredness='{Requiredness}' message='{messageText}'";
         }
 
@@ -141,7 +142,7 @@ namespace Immersive.Framework.TransitionEffects
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

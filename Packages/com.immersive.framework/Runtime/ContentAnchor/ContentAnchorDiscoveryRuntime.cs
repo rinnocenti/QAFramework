@@ -4,6 +4,7 @@ using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.SceneLifecycle;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ContentAnchor
 {
@@ -40,12 +41,12 @@ namespace Immersive.Framework.ContentAnchor
 
             var declarations = new List<ContentAnchorDeclaration>();
             var scannedSceneKeys = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
-            var scannedSceneCount = 0;
-            var candidateCount = 0;
-            var skippedRouteMismatchCount = 0;
-            var invalidAuthoringCount = 0;
+            int scannedSceneCount = 0;
+            int candidateCount = 0;
+            int skippedRouteMismatchCount = 0;
+            int invalidAuthoringCount = 0;
 
-            for (var i = 0; i < sceneCompositionResult.Entries.Count; i++)
+            for (int i = 0; i < sceneCompositionResult.Entries.Count; i++)
             {
                 var entry = sceneCompositionResult.Entries[i];
                 if (!entry.Loaded)
@@ -53,14 +54,14 @@ namespace Immersive.Framework.ContentAnchor
                     continue;
                 }
 
-                var sceneKey = CreateSceneKey(entry.ScenePath, entry.SceneName);
+                string sceneKey = CreateSceneKey(entry.ScenePath, entry.SceneName);
                 if (!scannedSceneKeys.Add(sceneKey))
                 {
                     continue;
                 }
 
                 scannedSceneCount++;
-                var anchors = SceneScopedComponentQuery.GetComponentsInLoadedScene<RouteContentAnchor>(
+                IReadOnlyList<RouteContentAnchor> anchors = SceneScopedComponentQuery.GetComponentsInLoadedScene<RouteContentAnchor>(
                     entry.ScenePath,
                     entry.SceneName);
                 if (anchors == null || anchors.Count == 0)
@@ -68,7 +69,7 @@ namespace Immersive.Framework.ContentAnchor
                     continue;
                 }
 
-                for (var anchorIndex = 0; anchorIndex < anchors.Count; anchorIndex++)
+                for (int anchorIndex = 0; anchorIndex < anchors.Count; anchorIndex++)
                 {
                     var anchor = anchors[anchorIndex];
                     if (anchor == null)
@@ -136,11 +137,11 @@ namespace Immersive.Framework.ContentAnchor
 
             var declarations = new List<ContentAnchorDeclaration>();
             var scannedSceneKeys = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
-            var scannedSceneCount = 0;
-            var discoverySceneRootCount = 0;
-            var candidateCount = 0;
-            var skippedActivityMismatchCount = 0;
-            var invalidAuthoringCount = 0;
+            int scannedSceneCount = 0;
+            int discoverySceneRootCount = 0;
+            int candidateCount = 0;
+            int skippedActivityMismatchCount = 0;
+            int invalidAuthoringCount = 0;
 
             if (SceneScopedComponentQuery.TryGetLoadedPrimaryScene(route, out _)
                 && scannedSceneKeys.Add(CreateSceneKey(route.PrimaryScenePath, route.PrimarySceneName)))
@@ -155,8 +156,8 @@ namespace Immersive.Framework.ContentAnchor
                     ref invalidAuthoringCount);
             }
 
-            var activityOwnedScenes = discoveryScope.ActivityOwnedScenes;
-            for (var sceneIndex = 0; sceneIndex < activityOwnedScenes.Count; sceneIndex++)
+            IReadOnlyList<ActivityContentDiscoveryScene> activityOwnedScenes = discoveryScope.ActivityOwnedScenes;
+            for (int sceneIndex = 0; sceneIndex < activityOwnedScenes.Count; sceneIndex++)
             {
                 var scene = activityOwnedScenes[sceneIndex];
                 if (!scene.MatchesActivity(activity))
@@ -164,7 +165,7 @@ namespace Immersive.Framework.ContentAnchor
                     continue;
                 }
 
-                var sceneKey = CreateSceneKey(scene.ScenePath, scene.SceneName);
+                string sceneKey = CreateSceneKey(scene.ScenePath, scene.SceneName);
                 if (string.IsNullOrWhiteSpace(sceneKey) || !scannedSceneKeys.Add(sceneKey))
                 {
                     continue;
@@ -227,7 +228,7 @@ namespace Immersive.Framework.ContentAnchor
                 return;
             }
 
-            for (var anchorIndex = 0; anchorIndex < anchors.Count; anchorIndex++)
+            for (int anchorIndex = 0; anchorIndex < anchors.Count; anchorIndex++)
             {
                 var anchor = anchors[anchorIndex];
                 if (anchor == null)
@@ -259,7 +260,7 @@ namespace Immersive.Framework.ContentAnchor
                 return scenePath.Trim();
             }
 
-            return string.IsNullOrWhiteSpace(sceneName) ? "<none>" : sceneName.Trim();
+            return sceneName.NormalizeTextOrFallback("<none>");
         }
     }
 }

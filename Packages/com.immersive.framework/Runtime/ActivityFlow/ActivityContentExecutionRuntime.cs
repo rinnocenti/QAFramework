@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -16,8 +17,8 @@ namespace Immersive.Framework.ActivityFlow
             string source,
             string reason)
         {
-            var sourceText = Normalize(source);
-            var reasonText = Normalize(reason);
+            string sourceText = source.NormalizeText();
+            string reasonText = reason.NormalizeText();
             var phase = ResolvePhase(plan.Phase);
 
             if (plan.Phase == ActivityContentExecutionPhase.Unknown)
@@ -69,10 +70,9 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var results = new List<ActivityContentExecutionResult>(plan.RequestCount);
-            var requests = plan.Requests;
-            for (var i = 0; i < requests.Count; i++)
+            IReadOnlyList<ActivityContentExecutionRequest> requests = plan.Requests;
+            foreach (var request in requests)
             {
-                var request = requests[i];
                 if (!request.IsValid)
                 {
                     return ActivityContentExecutionAggregateResult.RejectedInvalidResults(
@@ -119,7 +119,7 @@ namespace Immersive.Framework.ActivityFlow
                 try
                 {
                     var result = entry.Participant.ExecuteActivityContent(request);
-                    if (!IsValidResultForRequest(result, request, out var invalidResultMessage))
+                    if (!IsValidResultForRequest(result, request, out string invalidResultMessage))
                     {
                         results.Add(CreateFailure(
                             request,
@@ -157,10 +157,9 @@ namespace Immersive.Framework.ActivityFlow
             ActivityContentExecutionRequest request,
             out ActivityContentExecutionParticipantEntry entry)
         {
-            var entries = plan.Entries;
-            for (var i = 0; i < entries.Count; i++)
+            IReadOnlyList<ActivityContentExecutionParticipantEntry> entries = plan.Entries;
+            foreach (var candidate in entries)
             {
-                var candidate = entries[i];
                 if (candidate.ContentId.Equals(request.ContentId))
                 {
                     entry = candidate;
@@ -251,11 +250,6 @@ namespace Immersive.Framework.ActivityFlow
             return phase == ActivityContentExecutionPhase.Unknown
                 ? ActivityContentExecutionPhase.Enter
                 : phase;
-        }
-
-        private static string Normalize(string value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
         }
     }
 }

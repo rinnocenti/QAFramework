@@ -30,7 +30,7 @@ namespace Immersive.Framework.RouteLifecycle
             else
             {
                 _additionalScenes = new RouteContentScenePlanEntry[additionalScenes.Count];
-                for (var i = 0; i < additionalScenes.Count; i++)
+                for (int i = 0; i < additionalScenes.Count; i++)
                 {
                     _additionalScenes[i] = additionalScenes[i];
                 }
@@ -47,7 +47,7 @@ namespace Immersive.Framework.RouteLifecycle
 
         public IReadOnlyList<RouteContentScenePlanEntry> AdditionalScenes => _additionalScenes ?? Array.Empty<RouteContentScenePlanEntry>();
 
-        public int AdditionalSceneCount => _additionalScenes != null ? _additionalScenes.Length : 0;
+        public int AdditionalSceneCount => _additionalScenes?.Length ?? 0;
 
         public bool HasAdditionalScenes => AdditionalSceneCount > 0;
 
@@ -64,14 +64,14 @@ namespace Immersive.Framework.RouteLifecycle
             }
 
             var profile = route.RouteContentProfile;
-            var entries = profile.AdditionalScenes;
+            IReadOnlyList<RouteContentSceneEntry> entries = profile.AdditionalScenes;
             if (entries == null || entries.Count == 0)
             {
                 return new RouteContentMaterializationPlan(route, profile, Array.Empty<RouteContentScenePlanEntry>());
             }
 
             var plannedEntries = new List<RouteContentScenePlanEntry>(entries.Count);
-            for (var i = 0; i < entries.Count; i++)
+            for (int i = 0; i < entries.Count; i++)
             {
                 var planEntry = RouteContentScenePlanEntry.FromEntry(entries[i], i);
                 if (planEntry.HasScene)
@@ -97,7 +97,7 @@ namespace Immersive.Framework.RouteLifecycle
 
             var builder = new StringBuilder();
             builder.Append($"Route Content Plan profile='{ProfileId}' additionalScenes='{AdditionalSceneCount}' execution='RouteSceneComposition' details=[");
-            for (var i = 0; i < _additionalScenes.Length; i++)
+            for (int i = 0; i < _additionalScenes.Length; i++)
             {
                 if (i > 0)
                 {

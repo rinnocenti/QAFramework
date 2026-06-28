@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.RuntimeContent;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ContentAnchor
 {
@@ -31,8 +32,7 @@ namespace Immersive.Framework.ContentAnchor
                 throw new ArgumentOutOfRangeException(nameof(status), status, "Content Anchor binding status must be explicit.");
             }
 
-            if (status == ContentAnchorBindingStatus.Succeeded
-                || status == ContentAnchorBindingStatus.SucceededAlreadyBound)
+            if (status is ContentAnchorBindingStatus.Succeeded or ContentAnchorBindingStatus.SucceededAlreadyBound)
             {
                 if (!anchor.IsValid)
                 {
@@ -73,8 +73,7 @@ namespace Immersive.Framework.ContentAnchor
 
         public string Message { get; }
 
-        public bool Succeeded => Status == ContentAnchorBindingStatus.Succeeded
-            || Status == ContentAnchorBindingStatus.SucceededAlreadyBound;
+        public bool Succeeded => Status is ContentAnchorBindingStatus.Succeeded or ContentAnchorBindingStatus.SucceededAlreadyBound;
 
         public bool Failed => !Succeeded;
 
@@ -108,13 +107,13 @@ namespace Immersive.Framework.ContentAnchor
         {
             unchecked
             {
-                var hashCode = Request.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ Anchor.GetHashCode();
-                hashCode = (hashCode * 397) ^ Handle.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = Request.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ Anchor.GetHashCode();
+                hashCode = hashCode * 397 ^ Handle.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -126,11 +125,11 @@ namespace Immersive.Framework.ContentAnchor
 
         public string ToDiagnosticString()
         {
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            var messageText = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
-            var anchorText = HasAnchor ? Anchor.ToDiagnosticString() : "<none>";
-            var handleText = HasHandle ? Handle.ToDiagnosticString() : "<none>";
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string messageText = Message.ToDiagnosticText();
+            string anchorText = HasAnchor ? Anchor.ToDiagnosticString() : "<none>";
+            string handleText = HasHandle ? Handle.ToDiagnosticString() : "<none>";
             return $"anchorRequest='{Request.AnchorStableText}' runtimeIdentity='{RuntimeIdentity.StableText}' status='{Status}' succeeded='{Succeeded}' anchor={anchorText} bindingHandle={handleText} source='{sourceText}' reason='{reasonText}' message='{messageText}'";
         }
 
@@ -183,8 +182,7 @@ namespace Immersive.Framework.ContentAnchor
             string reason,
             string message)
         {
-            if (status == ContentAnchorBindingStatus.Succeeded
-                || status == ContentAnchorBindingStatus.SucceededAlreadyBound)
+            if (status is ContentAnchorBindingStatus.Succeeded or ContentAnchorBindingStatus.SucceededAlreadyBound)
             {
                 throw new ArgumentException("Use Success or AlreadyBound for successful Content Anchor binding results.", nameof(status));
             }
@@ -240,7 +238,7 @@ namespace Immersive.Framework.ContentAnchor
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

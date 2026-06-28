@@ -48,10 +48,10 @@ namespace Immersive.Framework.CycleReset
         {
             unchecked
             {
-                var hashCode = _isDefined.GetHashCode();
-                hashCode = (hashCode * 397) ^ IncludeActiveActivity.GetHashCode();
-                hashCode = (hashCode * 397) ^ AllowNoParticipants.GetHashCode();
-                hashCode = (hashCode * 397) ^ TreatOptionalFailuresAsWarnings.GetHashCode();
+                int hashCode = _isDefined.GetHashCode();
+                hashCode = hashCode * 397 ^ IncludeActiveActivity.GetHashCode();
+                hashCode = hashCode * 397 ^ AllowNoParticipants.GetHashCode();
+                hashCode = hashCode * 397 ^ TreatOptionalFailuresAsWarnings.GetHashCode();
                 return hashCode;
             }
         }

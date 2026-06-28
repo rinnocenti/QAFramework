@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.CycleReset
 {
@@ -34,8 +35,8 @@ namespace Immersive.Framework.CycleReset
             Source = Normalize(source);
             Reason = Normalize(reason);
             Message = Normalize(message);
-            this._entries = CopyEntries(entries);
-            this._issues = CopyIssues(issues);
+            _entries = CopyEntries(entries);
+            _issues = CopyIssues(issues);
         }
 
         public CycleResetRequest Request { get; }
@@ -58,16 +59,15 @@ namespace Immersive.Framework.CycleReset
 
         public bool Skipped => Status == CycleResetPlanStatus.SkippedNoParticipants;
 
-        public bool Rejected => Status == CycleResetPlanStatus.RejectedInvalidRequest
-            || Status == CycleResetPlanStatus.RejectedInvalidParticipants;
+        public bool Rejected => Status is CycleResetPlanStatus.RejectedInvalidRequest or CycleResetPlanStatus.RejectedInvalidParticipants;
 
         public bool HasEntries => EntryCount > 0;
 
         public bool HasIssues => IssueCount > 0;
 
-        public int EntryCount => _entries != null ? _entries.Length : 0;
+        public int EntryCount => _entries?.Length ?? 0;
 
-        public int IssueCount => _issues != null ? _issues.Length : 0;
+        public int IssueCount => _issues?.Length ?? 0;
 
         public int RouteParticipantCount => CountEntriesByScope(CycleResetScope.Route);
 
@@ -89,7 +89,7 @@ namespace Immersive.Framework.CycleReset
             }
 
             var snapshot = new CycleResetParticipantEntry[EntryCount];
-            for (var i = 0; i < EntryCount; i++)
+            for (int i = 0; i < EntryCount; i++)
             {
                 snapshot[i] = Entries[i];
             }
@@ -105,7 +105,7 @@ namespace Immersive.Framework.CycleReset
             }
 
             var snapshot = new CycleResetIssue[IssueCount];
-            for (var i = 0; i < IssueCount; i++)
+            for (int i = 0; i < IssueCount; i++)
             {
                 snapshot[i] = Issues[i];
             }
@@ -126,7 +126,7 @@ namespace Immersive.Framework.CycleReset
                 return false;
             }
 
-            for (var i = 0; i < EntryCount; i++)
+            for (int i = 0; i < EntryCount; i++)
             {
                 if (!Entries[i].Equals(other.Entries[i]))
                 {
@@ -134,7 +134,7 @@ namespace Immersive.Framework.CycleReset
                 }
             }
 
-            for (var i = 0; i < IssueCount; i++)
+            for (int i = 0; i < IssueCount; i++)
             {
                 if (!Issues[i].Equals(other.Issues[i]))
                 {
@@ -154,13 +154,13 @@ namespace Immersive.Framework.CycleReset
         {
             unchecked
             {
-                var hashCode = Request.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ EntryCount;
-                hashCode = (hashCode * 397) ^ IssueCount;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = Request.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ EntryCount;
+                hashCode = hashCode * 397 ^ IssueCount;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -188,8 +188,8 @@ namespace Immersive.Framework.CycleReset
             string source,
             string reason)
         {
-            var sourceText = Normalize(source);
-            var reasonText = Normalize(reason);
+            string sourceText = Normalize(source);
+            string reasonText = Normalize(reason);
 
             if (!request.IsValid)
             {
@@ -225,9 +225,9 @@ namespace Immersive.Framework.CycleReset
             var entries = new List<CycleResetParticipantEntry>(participants.Count);
             var issues = new List<CycleResetIssue>();
             var ids = new HashSet<CycleResetParticipantId>();
-            var hasBlockingIssue = false;
+            bool hasBlockingIssue = false;
 
-            for (var i = 0; i < participants.Count; i++)
+            for (int i = 0; i < participants.Count; i++)
             {
                 var participant = participants[i];
                 if (participant == null)
@@ -340,8 +340,8 @@ namespace Immersive.Framework.CycleReset
 
         private int CountEntriesByScope(CycleResetScope scope)
         {
-            var count = 0;
-            for (var i = 0; i < EntryCount; i++)
+            int count = 0;
+            for (int i = 0; i < EntryCount; i++)
             {
                 if (Entries[i].ParticipantScope == scope)
                 {
@@ -354,8 +354,8 @@ namespace Immersive.Framework.CycleReset
 
         private int CountEntriesByRequiredness(CycleResetParticipantRequiredness requiredness)
         {
-            var count = 0;
-            for (var i = 0; i < EntryCount; i++)
+            int count = 0;
+            for (int i = 0; i < EntryCount; i++)
             {
                 if (Entries[i].Requiredness == requiredness)
                 {
@@ -368,8 +368,8 @@ namespace Immersive.Framework.CycleReset
 
         private int CountIssues(bool blocking)
         {
-            var count = 0;
-            for (var i = 0; i < IssueCount; i++)
+            int count = 0;
+            for (int i = 0; i < IssueCount; i++)
             {
                 if (Issues[i].Blocking == blocking)
                 {
@@ -382,13 +382,13 @@ namespace Immersive.Framework.CycleReset
 
         private static int CompareEntries(CycleResetParticipantEntry left, CycleResetParticipantEntry right)
         {
-            var scopeCompare = GetScopeOrder(left.ParticipantScope).CompareTo(GetScopeOrder(right.ParticipantScope));
+            int scopeCompare = GetScopeOrder(left.ParticipantScope).CompareTo(GetScopeOrder(right.ParticipantScope));
             if (scopeCompare != 0)
             {
                 return scopeCompare;
             }
 
-            var orderCompare = left.Order.CompareTo(right.Order);
+            int orderCompare = left.Order.CompareTo(right.Order);
             if (orderCompare != 0)
             {
                 return orderCompare;
@@ -410,7 +410,7 @@ namespace Immersive.Framework.CycleReset
             }
 
             var copy = new CycleResetParticipantEntry[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 var entry = source[i];
                 if (!entry.IsValid)
@@ -432,7 +432,7 @@ namespace Immersive.Framework.CycleReset
             }
 
             var copy = new CycleResetIssue[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 copy[i] = source[i];
             }
@@ -442,7 +442,7 @@ namespace Immersive.Framework.CycleReset
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.ObjectEntry;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ObjectReset
 {
@@ -52,11 +53,11 @@ namespace Immersive.Framework.ObjectReset
             Status = status;
             ResolvedTarget = resolvedTarget;
             HasResolvedTarget = hasResolvedTarget;
-            this._participantResults = participantResults == null
+            _participantResults = participantResults == null
                 ? Array.Empty<ObjectResetParticipantResult>()
                 : participantResults.ToArray();
-            this._issues = issues == null ? Array.Empty<ObjectResetIssue>() : issues.ToArray();
-            Message = string.IsNullOrWhiteSpace(message) ? string.Empty : message.Trim();
+            _issues = issues == null ? Array.Empty<ObjectResetIssue>() : issues.ToArray();
+            Message = message.NormalizeText();
         }
 
         public ObjectResetRequest Request { get; }
@@ -73,16 +74,11 @@ namespace Immersive.Framework.ObjectReset
 
         public string Message { get; }
 
-        public bool Succeeded => Status == ObjectResetResultStatus.Succeeded
-            || Status == ObjectResetResultStatus.SucceededNoParticipants;
+        public bool Succeeded => Status is ObjectResetResultStatus.Succeeded or ObjectResetResultStatus.SucceededNoParticipants;
 
         public bool CompletedWithWarnings => Status == ObjectResetResultStatus.CompletedWithWarnings;
 
-        public bool Failed => Status == ObjectResetResultStatus.Failed
-            || Status == ObjectResetResultStatus.RejectedInvalidRequest
-            || Status == ObjectResetResultStatus.RejectedRuntimeContextUnavailable
-            || Status == ObjectResetResultStatus.RejectedTargetNotFound
-            || Status == ObjectResetResultStatus.RejectedForeignTarget;
+        public bool Failed => Status is ObjectResetResultStatus.Failed or ObjectResetResultStatus.RejectedInvalidRequest or ObjectResetResultStatus.RejectedRuntimeContextUnavailable or ObjectResetResultStatus.RejectedTargetNotFound or ObjectResetResultStatus.RejectedForeignTarget;
 
         public int ParticipantCount => ParticipantResults.Count;
 
@@ -112,7 +108,7 @@ namespace Immersive.Framework.ObjectReset
             }
 
             var snapshot = new ObjectResetIssue[IssueCount];
-            for (var i = 0; i < IssueCount; i++)
+            for (int i = 0; i < IssueCount; i++)
             {
                 snapshot[i] = Issues[i];
             }
@@ -128,7 +124,7 @@ namespace Immersive.Framework.ObjectReset
             }
 
             var snapshot = new ObjectResetParticipantResult[ParticipantCount];
-            for (var i = 0; i < ParticipantCount; i++)
+            for (int i = 0; i < ParticipantCount; i++)
             {
                 snapshot[i] = ParticipantResults[i];
             }
@@ -149,7 +145,7 @@ namespace Immersive.Framework.ObjectReset
                 return false;
             }
 
-            for (var i = 0; i < IssueCount; i++)
+            for (int i = 0; i < IssueCount; i++)
             {
                 if (!Issues[i].Equals(other.Issues[i]))
                 {
@@ -157,7 +153,7 @@ namespace Immersive.Framework.ObjectReset
                 }
             }
 
-            for (var i = 0; i < ParticipantCount; i++)
+            for (int i = 0; i < ParticipantCount; i++)
             {
                 if (!ParticipantResults[i].Equals(other.ParticipantResults[i]))
                 {
@@ -177,13 +173,13 @@ namespace Immersive.Framework.ObjectReset
         {
             unchecked
             {
-                var hashCode = Request.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ (HasResolvedTarget ? 1 : 0);
-                hashCode = (hashCode * 397) ^ ResolvedTarget.GetHashCode();
-                hashCode = (hashCode * 397) ^ IssueCount;
-                hashCode = (hashCode * 397) ^ ParticipantCount;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = Request.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ (HasResolvedTarget ? 1 : 0);
+                hashCode = hashCode * 397 ^ ResolvedTarget.GetHashCode();
+                hashCode = hashCode * 397 ^ IssueCount;
+                hashCode = hashCode * 397 ^ ParticipantCount;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }

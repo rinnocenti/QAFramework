@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Snapshot
 {
@@ -18,7 +19,7 @@ namespace Immersive.Framework.Snapshot
         {
             ValidateFormat(format);
 
-            var copiedBytes = CopyBytes(bytes);
+            byte[] copiedBytes = CopyBytes(bytes);
             if (format == SnapshotPayloadFormat.Empty && copiedBytes.Length > 0)
             {
                 throw new ArgumentException("Snapshot empty payload cannot carry bytes.", nameof(bytes));
@@ -30,7 +31,7 @@ namespace Immersive.Framework.Snapshot
             }
 
             Format = format;
-            this._bytes = copiedBytes;
+            _bytes = copiedBytes;
             MediaType = Normalize(mediaType);
         }
 
@@ -49,19 +50,19 @@ namespace Immersive.Framework.Snapshot
         public bool HasMediaType => !string.IsNullOrWhiteSpace(MediaType);
 
         public bool IsValid => Format != SnapshotPayloadFormat.Unknown
-            && ((Format == SnapshotPayloadFormat.Empty && ByteCount == 0)
-                || (Format != SnapshotPayloadFormat.Empty && ByteCount > 0));
+            && (Format == SnapshotPayloadFormat.Empty && ByteCount == 0
+                || Format != SnapshotPayloadFormat.Empty && ByteCount > 0);
 
         public byte[] ToByteArray()
         {
-            var items = Bytes;
+            IReadOnlyList<byte> items = Bytes;
             if (items.Count == 0)
             {
                 return Array.Empty<byte>();
             }
 
-            var copy = new byte[items.Count];
-            for (var i = 0; i < items.Count; i++)
+            byte[] copy = new byte[items.Count];
+            for (int i = 0; i < items.Count; i++)
             {
                 copy[i] = items[i];
             }
@@ -85,13 +86,13 @@ namespace Immersive.Framework.Snapshot
         {
             unchecked
             {
-                var hashCode = (int)Format;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(MediaType ?? string.Empty);
+                int hashCode = (int)Format;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(MediaType ?? string.Empty);
 
-                var items = Bytes;
-                for (var i = 0; i < items.Count; i++)
+                IReadOnlyList<byte> items = Bytes;
+                for (int i = 0; i < items.Count; i++)
                 {
-                    hashCode = (hashCode * 397) ^ items[i];
+                    hashCode = hashCode * 397 ^ items[i];
                 }
 
                 return hashCode;
@@ -105,7 +106,7 @@ namespace Immersive.Framework.Snapshot
 
         public string ToDiagnosticString()
         {
-            var mediaTypeText = HasMediaType ? MediaType : "<none>";
+            string mediaTypeText = HasMediaType ? MediaType : "<none>";
             return $"format='{Format}' bytes='{ByteCount}' mediaType='{mediaTypeText}'";
         }
 
@@ -157,8 +158,8 @@ namespace Immersive.Framework.Snapshot
                 return Array.Empty<byte>();
             }
 
-            var copy = new byte[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            byte[] copy = new byte[source.Count];
+            for (int i = 0; i < source.Count; i++)
             {
                 copy[i] = source[i];
             }
@@ -178,7 +179,7 @@ namespace Immersive.Framework.Snapshot
                 return false;
             }
 
-            for (var i = 0; i < left.Count; i++)
+            for (int i = 0; i < left.Count; i++)
             {
                 if (left[i] != right[i])
                 {
@@ -191,7 +192,7 @@ namespace Immersive.Framework.Snapshot
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

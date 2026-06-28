@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ContentFlow
 {
@@ -37,14 +38,14 @@ namespace Immersive.Framework.ContentFlow
 
             if (entries == null || entries.Count == 0)
             {
-                this._entries = Array.Empty<ContentReleaseResultEntry>();
+                _entries = Array.Empty<ContentReleaseResultEntry>();
             }
             else
             {
-                this._entries = new ContentReleaseResultEntry[entries.Count];
-                for (var i = 0; i < entries.Count; i++)
+                _entries = new ContentReleaseResultEntry[entries.Count];
+                for (int i = 0; i < entries.Count; i++)
                 {
-                    this._entries[i] = entries[i];
+                    _entries[i] = entries[i];
                 }
             }
         }
@@ -71,7 +72,7 @@ namespace Immersive.Framework.ContentFlow
 
         public int PlannedCount => Plan.EntryCount;
 
-        public int ResultCount => _entries != null ? _entries.Length : 0;
+        public int ResultCount => _entries?.Length ?? 0;
 
         public int ReleasedCount => CountByStatus(ContentReleaseEntryStatus.Released);
 
@@ -89,8 +90,7 @@ namespace Immersive.Framework.ContentFlow
 
         public bool HasBlockingIssues => BlockingIssueCount > 0;
 
-        public bool Succeeded => Status == ContentReleaseStatus.Succeeded
-            || Status == ContentReleaseStatus.SucceededWithIssues;
+        public bool Succeeded => Status is ContentReleaseStatus.Succeeded or ContentReleaseStatus.SucceededWithIssues;
 
         public bool Failed => Status == ContentReleaseStatus.Failed;
 
@@ -102,7 +102,7 @@ namespace Immersive.Framework.ContentFlow
             string reason)
         {
             var resultEntries = new List<ContentReleaseResultEntry>(plan.EntryCount);
-            for (var i = 0; i < plan.Entries.Count; i++)
+            for (int i = 0; i < plan.Entries.Count; i++)
             {
                 resultEntries.Add(ContentReleaseResultEntry.NotExecutedEntry(
                     plan.Entries[i],
@@ -121,16 +121,16 @@ namespace Immersive.Framework.ContentFlow
 
         public string ToDiagnosticString()
         {
-            var owner = !string.IsNullOrWhiteSpace(OwnerName) ? OwnerName : OwnerId;
+            string owner = !string.IsNullOrWhiteSpace(OwnerName) ? OwnerName : OwnerId;
             if (string.IsNullOrWhiteSpace(owner))
             {
                 owner = "<missing>";
             }
 
-            var message = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
+            string message = Message.ToDiagnosticText();
             var builder = new StringBuilder();
             builder.Append($"Content Release Result scope='{Scope}' owner='{owner}' ownerId='{OwnerId}' status='{Status}' completed='{Completed}' planned='{PlannedCount}' results='{ResultCount}' released='{ReleasedCount}' skipped='{SkippedCount}' failed='{FailedCount}' notExecuted='{NotExecutedCount}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' source='{Source}' reason='{Reason}' message='{message}' details=[");
-            for (var i = 0; i < Entries.Count; i++)
+            for (int i = 0; i < Entries.Count; i++)
             {
                 if (i > 0)
                 {
@@ -151,8 +151,8 @@ namespace Immersive.Framework.ContentFlow
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < _entries.Length; i++)
+            int count = 0;
+            for (int i = 0; i < _entries.Length; i++)
             {
                 if (_entries[i].Status == status)
                 {
@@ -170,8 +170,8 @@ namespace Immersive.Framework.ContentFlow
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < _entries.Length; i++)
+            int count = 0;
+            for (int i = 0; i < _entries.Length; i++)
             {
                 var entry = _entries[i];
                 if (blockingOnly)
@@ -195,7 +195,7 @@ namespace Immersive.Framework.ContentFlow
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

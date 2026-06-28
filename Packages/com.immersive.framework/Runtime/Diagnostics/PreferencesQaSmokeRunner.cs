@@ -1,3 +1,4 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source) ? nameof(PreferencesQaSmokeRunner) : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(PreferencesQaSmokeRunner));
             var store = new PlayerPrefsPreferencesStore(QaPrefix);
             var languageKey = PreferenceKey.From("qa.language");
             var volumeKey = PreferenceKey.From("qa.volume");
@@ -38,13 +39,13 @@ namespace Immersive.Framework.Diagnostics
 
             try
             {
-                var contractPassed = ValidateContracts(logger, normalizedSource, store, languageKey);
-                var writeReadPassed = ValidateWriteRead(logger, store, languageKey, volumeKey, fullscreenKey);
-                var missingPassed = ValidateMissing(logger, store, missingKey);
-                var mismatchPassed = ValidateTypeMismatch(logger, store, mismatchKey);
-                var markerGuardPassed = ValidateMarkerGuard(logger, store, orphanKey);
-                var deletePassed = ValidateDelete(logger, store, languageKey, volumeKey, fullscreenKey, mismatchKey, orphanKey, missingKey);
-                var boundaryPassed = ValidateBoundary(logger, store);
+                bool contractPassed = ValidateContracts(logger, normalizedSource, store, languageKey);
+                bool writeReadPassed = ValidateWriteRead(logger, store, languageKey, volumeKey, fullscreenKey);
+                bool missingPassed = ValidateMissing(logger, store, missingKey);
+                bool mismatchPassed = ValidateTypeMismatch(logger, store, mismatchKey);
+                bool markerGuardPassed = ValidateMarkerGuard(logger, store, orphanKey);
+                bool deletePassed = ValidateDelete(logger, store, languageKey, volumeKey, fullscreenKey, mismatchKey, orphanKey, missingKey);
+                bool boundaryPassed = ValidateBoundary(logger, store);
 
                 return Task.FromResult(contractPassed
                     && writeReadPassed
@@ -81,7 +82,7 @@ namespace Immersive.Framework.Diagnostics
             var floatValue = PreferenceValue.FromFloat(0.75f);
             var boolValue = PreferenceValue.FromBool(true);
 
-            var passed = languageKey.IsValid
+            bool passed = languageKey.IsValid
                 && languageKey.StableText == "Preferences:qa.language"
                 && stringValue.Kind == PreferenceValueKind.String
                 && intValue.Kind == PreferenceValueKind.Int
@@ -126,7 +127,7 @@ namespace Immersive.Framework.Diagnostics
             var volumeRead = store.Read(volumeKey, PreferenceValueKind.Float);
             var fullscreenRead = store.Read(fullscreenKey, PreferenceValueKind.Bool);
 
-            var passed = languageWrite.Written
+            bool passed = languageWrite.Written
                 && volumeWrite.Written
                 && fullscreenWrite.Written
                 && languageRead.Found
@@ -162,7 +163,7 @@ namespace Immersive.Framework.Diagnostics
             var read = store.Read(missingKey, PreferenceValueKind.String);
             var delete = store.Delete(missingKey);
 
-            var passed = read.Missing
+            bool passed = read.Missing
                 && !read.HasValue
                 && delete.Missing
                 && !store.Contains(missingKey);
@@ -187,7 +188,7 @@ namespace Immersive.Framework.Diagnostics
             var write = store.Write(mismatchKey, PreferenceValue.FromInt(1));
             var read = store.Read(mismatchKey, PreferenceValueKind.Bool);
 
-            var passed = write.Written
+            bool passed = write.Written
                 && read.TypeMismatch
                 && !read.HasValue
                 && store.Contains(mismatchKey);
@@ -215,7 +216,7 @@ namespace Immersive.Framework.Diagnostics
             PlayerPrefs.DeleteKey(store.ToPhysicalTypeKey(orphanKey));
 
             var read = store.Read(orphanKey, PreferenceValueKind.String);
-            var passed = read.TypeMismatch && !read.HasValue && !store.Contains(orphanKey);
+            bool passed = read.TypeMismatch && !read.HasValue && !store.Contains(orphanKey);
 
             LogStep(
                 logger,
@@ -235,8 +236,8 @@ namespace Immersive.Framework.Diagnostics
             IPreferencesStore store,
             params PreferenceKey[] keys)
         {
-            var deleted = 0;
-            var missing = 0;
+            int deleted = 0;
+            int missing = 0;
             foreach (var key in keys)
             {
                 var result = store.Delete(key);
@@ -252,7 +253,7 @@ namespace Immersive.Framework.Diagnostics
 
             store.Flush();
 
-            var remaining = 0;
+            int remaining = 0;
             foreach (var key in keys)
             {
                 if (store.Contains(key))
@@ -261,7 +262,7 @@ namespace Immersive.Framework.Diagnostics
                 }
             }
 
-            var passed = remaining == 0 && deleted >= 4 && missing >= 1;
+            bool passed = remaining == 0 && deleted >= 4 && missing >= 1;
 
             LogStep(
                 logger,
@@ -277,7 +278,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidateBoundary(FrameworkLogger logger, PlayerPrefsPreferencesStore store)
         {
-            var passed = store.KeyPrefix == QaPrefix;
+            bool passed = store.KeyPrefix == QaPrefix;
 
             LogStep(
                 logger,
@@ -317,7 +318,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogStep(FrameworkLogger logger, string step, bool passed, LogField[] fields)
         {
-            var allFields = AppendFields(
+            LogField[] allFields = AppendFields(
                 LogFields.Of(
                     LogFields.Field("step", step),
                     LogFields.Field("passed", passed)),

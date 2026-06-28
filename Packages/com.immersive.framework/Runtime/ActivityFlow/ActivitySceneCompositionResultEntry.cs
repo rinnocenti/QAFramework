@@ -2,6 +2,7 @@ using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentFlow;
 using Immersive.Framework.SceneLifecycle;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -64,15 +65,15 @@ namespace Immersive.Framework.ActivityFlow
 
         public string ToDiagnosticString()
         {
-            var scene = !string.IsNullOrWhiteSpace(SceneName) ? SceneName : ScenePath;
+            string scene = !string.IsNullOrWhiteSpace(SceneName) ? SceneName : ScenePath;
             if (string.IsNullOrWhiteSpace(scene))
             {
                 scene = "<missing>";
             }
 
-            var identity = ContentIdentity.IsValid ? ContentIdentity.StableText : "<missing>";
-            var contentId = !string.IsNullOrWhiteSpace(ContentId) ? ContentId : "<missing>";
-            var message = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
+            string identity = ContentIdentity.IsValid ? ContentIdentity.StableText : "<missing>";
+            string contentId = ContentId.ToDiagnosticText("<missing>");
+            string message = Message.ToDiagnosticText();
             return $"identity='{identity}' id='{contentId}' scene='{scene}' requiredness='{Requiredness}' loadMode='{LoadMode}' releasePolicy='{ReleasePolicy}' order='{ExecutionOrder}' status='{Status}' blocksComposition='{BlocksComposition}' message='{message}'";
         }
 
@@ -87,8 +88,8 @@ namespace Immersive.Framework.ActivityFlow
 
         public static ActivitySceneCompositionResultEntry NotExecutionReadyEntry(ActivitySceneCompositionPlanEntry planEntry)
         {
-            var blocksComposition = planEntry.Requiredness == FrameworkContentRequiredness.Required;
-            var message = blocksComposition
+            bool blocksComposition = planEntry.Requiredness == FrameworkContentRequiredness.Required;
+            string message = blocksComposition
                 ? "Required Activity scene declaration is not execution-ready. Scene, explicit content id and content identity are required."
                 : "Optional Activity scene declaration is not execution-ready and was skipped.";
 
@@ -123,7 +124,7 @@ namespace Immersive.Framework.ActivityFlow
             ActivitySceneCompositionPlanEntry planEntry,
             SceneLifecycleLoadResult loadResult)
         {
-            var blocksComposition = planEntry.Requiredness == FrameworkContentRequiredness.Required;
+            bool blocksComposition = planEntry.Requiredness == FrameworkContentRequiredness.Required;
             return new ActivitySceneCompositionResultEntry(
                 planEntry,
                 ActivitySceneCompositionEntryStatus.Failed,
@@ -144,7 +145,7 @@ namespace Immersive.Framework.ActivityFlow
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

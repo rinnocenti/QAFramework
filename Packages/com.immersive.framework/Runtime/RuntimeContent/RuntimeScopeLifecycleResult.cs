@@ -1,4 +1,5 @@
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RuntimeContent
 {
@@ -55,11 +56,11 @@ namespace Immersive.Framework.RuntimeContent
 
         public bool Executed => HasEnterRootResult || HasExitRootResult || HasContext;
 
-        public bool Rejected => (EnterRootResult != null && EnterRootResult.Rejected)
-            || (ExitRootResult != null && ExitRootResult.Rejected);
+        public bool Rejected => EnterRootResult != null && EnterRootResult.Rejected
+            || ExitRootResult != null && ExitRootResult.Rejected;
 
-        public bool Applied => (EnterRootResult != null && EnterRootResult.Applied)
-            || (ExitRootResult != null && ExitRootResult.Applied);
+        public bool Applied => EnterRootResult != null && EnterRootResult.Applied
+            || ExitRootResult != null && ExitRootResult.Applied;
 
         public string DiagnosticStatus
         {
@@ -94,9 +95,9 @@ namespace Immersive.Framework.RuntimeContent
 
         public string ToDiagnosticString()
         {
-            var ownerText = HasOwner ? Owner.StableText : "<none>";
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
+            string ownerText = HasOwner ? Owner.StableText : "<none>";
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
 
             return $"scope='{Scope}' owner='{ownerText}' status='{DiagnosticStatus}' enterRoot='{EnterStatus}' exitRoot='{ExitStatus}' context='{ContextStatus}' rootCount='{RootCount}' source='{sourceText}' reason='{reasonText}'";
         }
@@ -116,7 +117,7 @@ namespace Immersive.Framework.RuntimeContent
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

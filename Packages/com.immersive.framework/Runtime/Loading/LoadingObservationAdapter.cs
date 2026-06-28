@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.SceneLifecycle;
 using Immersive.Framework.Transition;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Loading
 {
@@ -27,7 +28,7 @@ namespace Immersive.Framework.Loading
                 throw new ArgumentException("Scene load Loading observation requires a valid step id.", nameof(stepId));
             }
 
-            var message = BuildSceneMessage("load", result.SceneName, result.ScenePath, result.LoadMode, result.Message, reason);
+            string message = BuildSceneMessage("load", result.SceneName, result.ScenePath, result.LoadMode, result.Message, reason);
             if (result.Loaded)
             {
                 return new LoadingStep(
@@ -60,7 +61,7 @@ namespace Immersive.Framework.Loading
                 throw new ArgumentException("Scene unload Loading observation requires a valid step id.", nameof(stepId));
             }
 
-            var message = BuildSceneMessage("unload", result.SceneName, result.ScenePath, string.Empty, result.Message, reason);
+            string message = BuildSceneMessage("unload", result.SceneName, result.ScenePath, string.Empty, result.Message, reason);
             if (result.Unloaded)
             {
                 return new LoadingStep(
@@ -129,9 +130,9 @@ namespace Immersive.Framework.Loading
             }
 
             var status = MapTransitionStepStatus(transitionStep.Status);
-            var normalizedProgress = GetProgressForStepStatus(status);
-            var displayName = transitionStep.HasLabel ? transitionStep.Label : transitionStep.Phase.ToString();
-            var message = string.IsNullOrWhiteSpace(transitionStep.Message)
+            float normalizedProgress = GetProgressForStepStatus(status);
+            string displayName = transitionStep.HasLabel ? transitionStep.Label : transitionStep.Phase.ToString();
+            string message = string.IsNullOrWhiteSpace(transitionStep.Message)
                 ? NormalizeReason(reason)
                 : transitionStep.Message;
 
@@ -160,9 +161,9 @@ namespace Immersive.Framework.Loading
                 throw new ArgumentException("Transition Loading observation requires a valid transition result.", nameof(result));
             }
 
-            var transitionSteps = result.ObservedSteps;
+            IReadOnlyList<TransitionStep> transitionSteps = result.ObservedSteps;
             var loadingSteps = new LoadingStep[transitionSteps.Count];
-            for (var i = 0; i < transitionSteps.Count; i++)
+            for (int i = 0; i < transitionSteps.Count; i++)
             {
                 var step = transitionSteps[i];
                 loadingSteps[i] = ObserveTransitionStep(
@@ -309,10 +310,10 @@ namespace Immersive.Framework.Loading
 
         private static string BuildSceneMessage(string verb, string sceneName, string scenePath, string loadMode, string resultMessage, string reason)
         {
-            var label = ResolveSceneLabel(sceneName, scenePath);
-            var normalizedReason = NormalizeReason(reason);
-            var normalizedResultMessage = Normalize(resultMessage);
-            var normalizedLoadMode = Normalize(loadMode);
+            string label = ResolveSceneLabel(sceneName, scenePath);
+            string normalizedReason = NormalizeReason(reason);
+            string normalizedResultMessage = Normalize(resultMessage);
+            string normalizedLoadMode = Normalize(loadMode);
             if (!string.IsNullOrWhiteSpace(normalizedLoadMode))
             {
                 return $"Observed SceneLifecycle {verb} for '{label}'. loadMode='{normalizedLoadMode}'. reason='{normalizedReason}'. result='{normalizedResultMessage}'.";
@@ -343,17 +344,17 @@ namespace Immersive.Framework.Loading
 
         private static string NormalizeSource(string source)
         {
-            return string.IsNullOrWhiteSpace(source) ? AdapterSource : source.Trim();
+            return source.NormalizeTextOrFallback(AdapterSource);
         }
 
         private static string NormalizeReason(string reason)
         {
-            return string.IsNullOrWhiteSpace(reason) ? "loading.observation" : reason.Trim();
+            return reason.NormalizeTextOrFallback("loading.observation");
         }
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

@@ -1,5 +1,5 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System;
 using System.Threading.Tasks;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Identity;
@@ -26,16 +26,16 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source) ? nameof(TransitionEffectQaSmokeRunner) : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(TransitionEffectQaSmokeRunner));
             var operationId = TransitionOperationId.From("qa.transition-effect.diagnostics.route-switch");
             var plan = CreatePlan(operationId, normalizedSource);
 
-            var requestPassed = ValidateRequest(logger, plan);
-            var planPassed = ValidatePlan(logger, plan);
-            var succeededPassed = ValidateSucceededResult(logger, plan);
-            var optionalSkippedPassed = ValidateOptionalSkippedResult(logger, plan);
-            var requiredMissingAdapterPassed = ValidateRequiredMissingAdapterResult(logger, plan);
-            var snapshotPassed = ValidateSnapshot(logger, plan);
+            bool requestPassed = ValidateRequest(logger, plan);
+            bool planPassed = ValidatePlan(logger, plan);
+            bool succeededPassed = ValidateSucceededResult(logger, plan);
+            bool optionalSkippedPassed = ValidateOptionalSkippedResult(logger, plan);
+            bool requiredMissingAdapterPassed = ValidateRequiredMissingAdapterResult(logger, plan);
+            bool snapshotPassed = ValidateSnapshot(logger, plan);
 
             return Task.FromResult(requestPassed
                 && planPassed
@@ -47,7 +47,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static TransitionEffectPlan CreatePlan(TransitionOperationId operationId, string source)
         {
-            var requests = new[]
+            TransitionEffectRequest[] requests = new[]
             {
                 TransitionEffectRequest.Required(
                     "qa.transition-effect.fade.required",
@@ -78,7 +78,7 @@ namespace Immersive.Framework.Diagnostics
         private static bool ValidateRequest(FrameworkLogger logger, TransitionEffectPlan plan)
         {
             var request = plan.Requests[0];
-            var passed = request.IsValid
+            bool passed = request.IsValid
                 && request.EffectId.Domain == FrameworkIdentityDomain.TransitionEffect
                 && request.OperationId == plan.OperationId
                 && request.TransitionKind == plan.TransitionKind
@@ -94,7 +94,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidatePlan(FrameworkLogger logger, TransitionEffectPlan plan)
         {
-            var passed = plan.IsValid
+            bool passed = plan.IsValid
                 && plan.OperationId.Domain == FrameworkIdentityDomain.Transition
                 && plan.TransitionKind == TransitionKind.RouteSwitch
                 && plan.RequestCount == 2
@@ -111,7 +111,7 @@ namespace Immersive.Framework.Diagnostics
         {
             var request = plan.Requests[0];
             var result = TransitionEffectResult.SucceededResult(request, "Required fade effect completed synthetically.");
-            var passed = result.IsValid
+            bool passed = result.IsValid
                 && result.Succeeded
                 && result.Completed
                 && !result.CompletedWithWarnings
@@ -130,7 +130,7 @@ namespace Immersive.Framework.Diagnostics
         {
             var request = plan.Requests[1];
             var result = TransitionEffectResult.SkippedResult(request, "Optional loading screen skipped synthetically.");
-            var passed = result.IsValid
+            bool passed = result.IsValid
                 && result.Skipped
                 && result.Completed
                 && result.IsOptional
@@ -146,7 +146,7 @@ namespace Immersive.Framework.Diagnostics
         private static bool ValidateRequiredMissingAdapterResult(FrameworkLogger logger, TransitionEffectPlan plan)
         {
             var request = plan.Requests[0];
-            var issues = new[]
+            string[] issues = new[]
             {
                 "required-transition-effect-adapter-missing"
             };
@@ -156,7 +156,7 @@ namespace Immersive.Framework.Diagnostics
                 "Required fade adapter missing is blocking.",
                 issues);
 
-            var passed = result.IsValid
+            bool passed = result.IsValid
                 && result.MissingAdapter
                 && result.IsRequired
                 && result.BlocksTransition
@@ -171,13 +171,13 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidateSnapshot(FrameworkLogger logger, TransitionEffectPlan plan)
         {
-            var results = new[]
+            TransitionEffectResult[] results = new[]
             {
                 TransitionEffectResult.SucceededResult(plan.Requests[0], "Required fade effect completed synthetically."),
                 TransitionEffectResult.SkippedResult(plan.Requests[1], "Optional loading screen skipped synthetically.")
             };
 
-            var facts = new[]
+            string[] facts = new[]
             {
                 "transition-effect.diagnostics.snapshot.created"
             };
@@ -189,7 +189,7 @@ namespace Immersive.Framework.Diagnostics
                 results,
                 facts);
 
-            var passed = snapshot.IsValid
+            bool passed = snapshot.IsValid
                 && snapshot.OperationId == plan.OperationId
                 && snapshot.TransitionKind == plan.TransitionKind
                 && snapshot.CurrentPhase == TransitionPhase.GateBlockReleased
@@ -205,7 +205,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogRequestStep(FrameworkLogger logger, string step, TransitionEffectRequest request, bool passed)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("effect", request.EffectId.StableText),
@@ -229,7 +229,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogPlanStep(FrameworkLogger logger, string step, TransitionEffectPlan plan, bool passed)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("operation", plan.OperationId.StableText),
@@ -253,7 +253,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogResultStep(FrameworkLogger logger, string step, TransitionEffectResult result, bool passed)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("effect", result.EffectId.StableText),
@@ -283,7 +283,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogSnapshotStep(FrameworkLogger logger, string step, TransitionEffectSnapshot snapshot, bool passed)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("operation", snapshot.OperationId.StableText),

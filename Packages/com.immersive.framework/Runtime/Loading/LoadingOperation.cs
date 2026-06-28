@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Loading
 {
@@ -50,9 +51,7 @@ namespace Immersive.Framework.Loading
 
         public bool IsValid => OperationId.IsValid && Status != LoadingOperationStatus.Unknown;
 
-        public bool IsTerminal => Status == LoadingOperationStatus.Completed
-            || Status == LoadingOperationStatus.Failed
-            || Status == LoadingOperationStatus.Canceled;
+        public bool IsTerminal => Status is LoadingOperationStatus.Completed or LoadingOperationStatus.Failed or LoadingOperationStatus.Canceled;
 
         public bool HasDisplayName => !string.IsNullOrWhiteSpace(DisplayName);
 
@@ -79,12 +78,12 @@ namespace Immersive.Framework.Loading
         {
             unchecked
             {
-                var hashCode = OperationId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ Progress.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(DisplayName ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = OperationId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ Progress.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(DisplayName ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -96,9 +95,9 @@ namespace Immersive.Framework.Loading
 
         public string ToDiagnosticString()
         {
-            var displayNameText = HasDisplayName ? DisplayName : "<none>";
-            var sourceText = HasSource ? Source : "<none>";
-            var messageText = HasMessage ? Message : "<none>";
+            string displayNameText = HasDisplayName ? DisplayName : "<none>";
+            string sourceText = HasSource ? Source : "<none>";
+            string messageText = HasMessage ? Message : "<none>";
             return $"operation='{OperationId.StableText}' status='{Status}' displayName='{displayNameText}' source='{sourceText}' message='{messageText}' progress=({Progress.ToDiagnosticString()})";
         }
 
@@ -134,7 +133,7 @@ namespace Immersive.Framework.Loading
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

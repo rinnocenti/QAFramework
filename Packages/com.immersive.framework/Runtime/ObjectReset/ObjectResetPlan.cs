@@ -34,12 +34,12 @@ namespace Immersive.Framework.ObjectReset
 
             Request = request;
             ResolvedTarget = resolvedTarget;
-            this._participants = (participants ?? Array.Empty<ObjectResetParticipantEntry>())
+            _participants = (participants ?? Array.Empty<ObjectResetParticipantEntry>())
                 .OrderBy(entry => entry.Descriptor.Order)
                 .ThenBy(entry => entry.SourceIndex)
                 .ThenBy(entry => entry.Descriptor.ParticipantId.StableText, StringComparer.Ordinal)
                 .ToArray();
-            this._issues = issues == null ? Array.Empty<ObjectResetIssue>() : issues.ToArray();
+            _issues = issues == null ? Array.Empty<ObjectResetIssue>() : issues.ToArray();
         }
 
         public ObjectResetRequest Request { get; }
@@ -78,7 +78,7 @@ namespace Immersive.Framework.ObjectReset
             }
 
             var snapshot = new ObjectResetParticipantEntry[ParticipantCount];
-            for (var i = 0; i < ParticipantCount; i++)
+            for (int i = 0; i < ParticipantCount; i++)
             {
                 snapshot[i] = Participants[i];
             }
@@ -94,7 +94,7 @@ namespace Immersive.Framework.ObjectReset
             }
 
             var snapshot = new ObjectResetIssue[IssueCount];
-            for (var i = 0; i < IssueCount; i++)
+            for (int i = 0; i < IssueCount; i++)
             {
                 snapshot[i] = Issues[i];
             }

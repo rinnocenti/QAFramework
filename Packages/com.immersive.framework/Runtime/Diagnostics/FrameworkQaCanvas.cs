@@ -1,3 +1,4 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
@@ -1217,14 +1218,14 @@ private async void RunLocalContributionSmoke()
         {
             EnsureLogger();
 
-            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string normalizedStepName = stepName.NormalizeTextOrFallback("<unknown>");
             RouteContentBinding[] routeBindings = FindObjectsByType<RouteContentBinding>(
                 FindObjectsInactive.Include);
             ActivityLocalVisibilityAdapter[] activityAdapters = FindObjectsByType<ActivityLocalVisibilityAdapter>(
                 FindObjectsInactive.Include);
 
-            int routeBindingCount = routeBindings != null ? routeBindings.Length : 0;
-            int activityAdapterCount = activityAdapters != null ? activityAdapters.Length : 0;
+            int routeBindingCount = routeBindings?.Length ?? 0;
+            int activityAdapterCount = activityAdapters?.Length ?? 0;
             if (routeBindingCount == 0)
             {
                 _logger.Warning($"QA Local Contribution Smoke step failed. step='{FormatValue(normalizedStepName)}' reason='No RouteContentBinding found in loaded scenes' routeBindings='0' activityAdapters='{activityAdapterCount}'.");
@@ -2238,7 +2239,7 @@ private async void RunRouteSceneCompositionSmoke()
                             out var materializationIdentity,
                             out var bindingResult,
                             out var idempotentBindingResult,
-                            out var bindingCountBefore))
+                            out int bindingCountBefore))
                     {
                         return false;
                     }
@@ -2257,7 +2258,7 @@ private async void RunRouteSceneCompositionSmoke()
                         return false;
                     }
 
-                    var boundCount = runtimeHost.ContentAnchorBindingCount;
+                    int boundCount = runtimeHost.ContentAnchorBindingCount;
                     if (boundCount <= bindingCountBefore)
                     {
                         runtimeHost.UnbindContentAnchor(bindingResult.Request);
@@ -2434,7 +2435,7 @@ private async void RunRouteSceneCompositionSmoke()
                         out var context,
                         out var materializationIdentity,
                         out var bindingResult,
-                        out var bindingCountBefore))
+                        out int bindingCountBefore))
                 {
                     return false;
                 }
@@ -2453,7 +2454,7 @@ private async void RunRouteSceneCompositionSmoke()
                     return false;
                 }
 
-                var boundCount = runtimeHost.ContentAnchorBindingCount;
+                int boundCount = runtimeHost.ContentAnchorBindingCount;
                 if (boundCount <= bindingCountBefore)
                 {
                     runtimeHost.UnbindContentAnchor(bindingResult.Request);
@@ -2589,7 +2590,7 @@ private async void RunNoActivityRouteSmoke()
             bool allowAlreadyActive = false)
         {
             var result = await RequestRouteWithResultCoreAsync(runtimeHost, route, reason);
-            return result.Succeeded || (allowAlreadyActive && result.Kind == FrameworkRouteRequestKind.IgnoredAlreadyActive);
+            return result.Succeeded || allowAlreadyActive && result.Kind == FrameworkRouteRequestKind.IgnoredAlreadyActive;
         }
 
         private async Task<FrameworkRouteRequestResult> RequestRouteWithResultCoreAsync(
@@ -2612,7 +2613,7 @@ private async void RunNoActivityRouteSmoke()
 
         private bool ValidateRouteCallbackSmokeStep(FrameworkRouteRequestResult result, string stepName)
         {
-            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string normalizedStepName = stepName.NormalizeTextOrFallback("<unknown>");
             string routeName = result.TargetRoute != null ? GetAssetName(result.TargetRoute, "<unnamed>") : "<missing>";
 
             if (!result.Succeeded)
@@ -2655,7 +2656,7 @@ private async void RunNoActivityRouteSmoke()
             ActivityAsset expectedActivity,
             bool requireActivityContent)
         {
-            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string normalizedStepName = stepName.NormalizeTextOrFallback("<unknown>");
             string expectedActivityName = GetAssetName(expectedActivity, "<missing>");
 
             if (!result.Succeeded)
@@ -2708,7 +2709,7 @@ private async void RunNoActivityRouteSmoke()
 
         private bool ValidateActivityBaselineClearedStep(FrameworkActivityRequestResult result, string stepName)
         {
-            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string normalizedStepName = stepName.NormalizeTextOrFallback("<unknown>");
 
             if (!result.Succeeded)
             {
@@ -2736,7 +2737,7 @@ private async void RunNoActivityRouteSmoke()
 
         private bool ValidateRouteSceneCompositionSmokeStep(FrameworkRouteRequestResult result, string stepName)
         {
-            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string normalizedStepName = stepName.NormalizeTextOrFallback("<unknown>");
             string routeName = result.TargetRoute != null ? GetAssetName(result.TargetRoute, "<unnamed>") : "<missing>";
 
             if (!result.Succeeded)
@@ -2804,7 +2805,7 @@ private async void RunNoActivityRouteSmoke()
 
         private bool ValidateRouteReleaseSmokeStep(FrameworkRouteRequestResult result, string stepName)
         {
-            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string normalizedStepName = stepName.NormalizeTextOrFallback("<unknown>");
             string routeName = result.TargetRoute != null ? GetAssetName(result.TargetRoute, "<unnamed>") : "<missing>";
 
             if (!result.Succeeded)
@@ -2975,7 +2976,7 @@ private async void RunNoActivityRouteSmoke()
             string stepName,
             FrameworkRuntimeHost runtimeHost)
         {
-            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string normalizedStepName = stepName.NormalizeTextOrFallback("<unknown>");
             string routeName = result.TargetRoute != null ? GetAssetName(result.TargetRoute, "<unnamed>") : "<missing>";
 
             if (runtimeHost == null || runtimeHost.RuntimeContentRuntime == null)
@@ -3062,7 +3063,7 @@ private async void RunNoActivityRouteSmoke()
                 resource,
                 QaSource,
                 "qa.content-anchor-binding.request");
-            var bindingCountBefore = runtimeHost.ContentAnchorBindingCount;
+            int bindingCountBefore = runtimeHost.ContentAnchorBindingCount;
             var bindingResult = runtimeHost.BindContentAnchor(
                 anchorSet,
                 bindingRequest,
@@ -3323,7 +3324,7 @@ private async void RunNoActivityRouteSmoke()
                 return false;
             }
 
-            var anchorId = ResolveReason(positiveActivityContentAnchorId, "qa.activity.anchor.positive");
+            string anchorId = ResolveReason(positiveActivityContentAnchorId, "qa.activity.anchor.positive");
             var anchorKind = positiveActivityContentAnchorKind == ContentAnchorKind.Unknown
                 ? ContentAnchorKind.Slot
                 : positiveActivityContentAnchorKind;
@@ -3349,7 +3350,7 @@ private async void RunNoActivityRouteSmoke()
             string stepName,
             ActivityContentAnchor fixtureAnchor)
         {
-            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string normalizedStepName = stepName.NormalizeTextOrFallback("<unknown>");
             string activityName = result.TargetActivity != null ? GetAssetName(result.TargetActivity, "<unnamed>") : "<missing>";
 
             if (!result.Succeeded)
@@ -3416,7 +3417,7 @@ private async void RunNoActivityRouteSmoke()
 
         private bool ValidateActivityContentAnchorDiagnosticsSmokeStep(FrameworkRouteRequestResult result, string stepName)
         {
-            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string normalizedStepName = stepName.NormalizeTextOrFallback("<unknown>");
             string routeName = result.TargetRoute != null ? GetAssetName(result.TargetRoute, "<unnamed>") : "<missing>";
 
             if (!result.Succeeded)
@@ -3486,7 +3487,7 @@ private async void RunNoActivityRouteSmoke()
 
         private bool ValidateContentAnchorDiagnosticsSmokeStep(FrameworkRouteRequestResult result, string stepName)
         {
-            string normalizedStepName = string.IsNullOrWhiteSpace(stepName) ? "<unknown>" : stepName.Trim();
+            string normalizedStepName = stepName.NormalizeTextOrFallback("<unknown>");
             string routeName = result.TargetRoute != null ? GetAssetName(result.TargetRoute, "<unnamed>") : "<missing>";
 
             if (!result.Succeeded)
@@ -3640,14 +3641,14 @@ private async void RunNoActivityRouteSmoke()
             ObjectResetTrigger[] objectResetTriggers = FindObjectsByType<ObjectResetTrigger>(
                 FindObjectsInactive.Include);
 
-            int routeBindingCount = routeBindings != null ? routeBindings.Length : 0;
-            int activityAdapterCount = activityAdapters != null ? activityAdapters.Length : 0;
-            int routeContentAnchorCount = routeContentAnchors != null ? routeContentAnchors.Length : 0;
-            int activityContentAnchorCount = activityContentAnchors != null ? activityContentAnchors.Length : 0;
-            int routeCycleResetTriggerCount = routeCycleResetTriggers != null ? routeCycleResetTriggers.Length : 0;
-            int activityCycleResetTriggerCount = activityCycleResetTriggers != null ? activityCycleResetTriggers.Length : 0;
-            int objectEntryDeclarationCount = objectEntryDeclarations != null ? objectEntryDeclarations.Length : 0;
-            int objectResetTriggerCount = objectResetTriggers != null ? objectResetTriggers.Length : 0;
+            int routeBindingCount = routeBindings?.Length ?? 0;
+            int activityAdapterCount = activityAdapters?.Length ?? 0;
+            int routeContentAnchorCount = routeContentAnchors?.Length ?? 0;
+            int activityContentAnchorCount = activityContentAnchors?.Length ?? 0;
+            int routeCycleResetTriggerCount = routeCycleResetTriggers?.Length ?? 0;
+            int activityCycleResetTriggerCount = activityCycleResetTriggers?.Length ?? 0;
+            int objectEntryDeclarationCount = objectEntryDeclarations?.Length ?? 0;
+            int objectResetTriggerCount = objectResetTriggers?.Length ?? 0;
 
             if (routeBindingCount == 0
                 && activityAdapterCount == 0
@@ -3931,7 +3932,7 @@ private async void RunNoActivityRouteSmoke()
                         $"ObjectResetTrigger object='{FormatValue(objectName)}' scene='{FormatValue(sceneName)}' issue='Trigger GameObject is inactive in hierarchy'.");
                 }
 
-                var targetId = trigger.ResolvedAuthoringObjectEntryId;
+                string targetId = trigger.ResolvedAuthoringObjectEntryId;
                 if (string.IsNullOrWhiteSpace(targetId))
                 {
                     AddQaAuthoringIssue(
@@ -4004,7 +4005,7 @@ private async void RunNoActivityRouteSmoke()
                 return;
             }
 
-            if (!declaration.TryCreateDescriptor(out var descriptor, out var issue))
+            if (!declaration.TryCreateDescriptor(out var descriptor, out string issue))
             {
                 AddQaAuthoringIssue(
                     ref issueCount,
@@ -4042,7 +4043,7 @@ private async void RunNoActivityRouteSmoke()
                 return 0;
             }
 
-            var entries = set.Entries;
+            IReadOnlyList<ObjectEntryDescriptor> entries = set.Entries;
             int count = 0;
             for (int i = 0; i < entries.Count; i++)
             {
@@ -4062,7 +4063,7 @@ private async void RunNoActivityRouteSmoke()
                 return "objectEntries='0'";
             }
 
-            var entries = set.Entries;
+            IReadOnlyList<ObjectEntryDescriptor> entries = set.Entries;
             var details = new List<string>(entries.Count);
             for (int i = 0; i < entries.Count; i++)
             {
@@ -4118,7 +4119,7 @@ private async void RunNoActivityRouteSmoke()
                 return;
             }
 
-            var issues = validationResult.Issues;
+            IReadOnlyList<LocalContributionValidationIssue> issues = validationResult.Issues;
             for (int i = 0; i < issues.Count; i++)
             {
                 if (issues[i].Blocking)
@@ -4314,7 +4315,7 @@ private async void RunNoActivityRouteSmoke()
                 return;
             }
 
-            var issues = contentAnchorSet.Issues;
+            IReadOnlyList<ContentAnchorSetIssue> issues = contentAnchorSet.Issues;
             for (int i = 0; i < issues.Count; i++)
             {
                 var issue = issues[i];
@@ -4520,7 +4521,7 @@ private async void RunNoActivityRouteSmoke()
             bool allowAlreadyActive = false)
         {
             var result = await RequestActivityWithResultCoreAsync(runtimeHost, activity, reason);
-            return result.Succeeded || (allowAlreadyActive && result.Kind == FrameworkActivityRequestKind.IgnoredAlreadyActive);
+            return result.Succeeded || allowAlreadyActive && result.Kind == FrameworkActivityRequestKind.IgnoredAlreadyActive;
         }
 
         private async Task<FrameworkActivityRequestResult> RequestActivityWithResultCoreAsync(
@@ -4553,7 +4554,7 @@ private async void RunNoActivityRouteSmoke()
                 return result.Kind == FrameworkActivityRequestKind.IgnoredNoActiveActivity;
             }
 
-            return result.Succeeded || (allowNoActiveActivity && result.Kind == FrameworkActivityRequestKind.IgnoredNoActiveActivity);
+            return result.Succeeded || allowNoActiveActivity && result.Kind == FrameworkActivityRequestKind.IgnoredNoActiveActivity;
         }
 
         private async Task<FrameworkActivityRequestResult> ClearActivityWithResultCoreAsync(
@@ -4637,7 +4638,7 @@ private async void RunNoActivityRouteSmoke()
 
         private static string ResolveReason(string configuredReason, string fallback)
         {
-            return string.IsNullOrWhiteSpace(configuredReason) ? fallback : configuredReason.Trim();
+            return configuredReason.NormalizeTextOrFallback(fallback);
         }
 
         private static string GetAssetName(Object asset, string fallback)
@@ -4711,7 +4712,7 @@ private async void RunNoActivityRouteSmoke()
 
         private static string GetName(string value, string fallback)
         {
-            return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+            return value.NormalizeTextOrFallback(fallback);
         }
 
         private static string FormatValue(string value)
@@ -4777,8 +4778,8 @@ private async void RunNoActivityRouteSmoke()
                 ActivityContentExecutionParticipantDescriptor descriptor,
                 SyntheticActivityContentExecutionParticipantMode mode)
             {
-                this._descriptor = descriptor;
-                this._mode = mode;
+                _descriptor = descriptor;
+                _mode = mode;
             }
 
             public ActivityContentExecutionParticipantDescriptor GetActivityContentExecutionDescriptor()

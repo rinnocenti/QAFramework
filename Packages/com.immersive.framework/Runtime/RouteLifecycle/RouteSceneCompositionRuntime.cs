@@ -48,8 +48,8 @@ namespace Immersive.Framework.RouteLifecycle
                     plan.Reason);
             }
 
-            var progressStepCount = CountExecutionReadyScenes(plan);
-            var progressStepIndex = 0;
+            int progressStepCount = CountExecutionReadyScenes(plan);
+            int progressStepIndex = 0;
             var primaryProgressReporter = FrameworkLoadingProgressReporterUtility.CreateWeightedStepReporter(
                 progressReporter,
                 progressStepIndex,
@@ -84,7 +84,7 @@ namespace Immersive.Framework.RouteLifecycle
                 plan.ActiveScenePolicy == RouteSceneActiveScenePolicy.PrimarySceneActive,
                 primarySceneLoadResult.Message));
 
-            for (var i = 0; i < plan.AdditionalScenes.Count; i++)
+            for (int i = 0; i < plan.AdditionalScenes.Count; i++)
             {
                 var additionalScene = plan.AdditionalScenes[i];
                 if (!additionalScene.IsExecutionReady)
@@ -142,8 +142,8 @@ namespace Immersive.Framework.RouteLifecycle
                 return 0;
             }
 
-            var count = plan.PrimaryScene.IsExecutionReady ? 1 : 0;
-            for (var i = 0; i < plan.AdditionalScenes.Count; i++)
+            int count = plan.PrimaryScene.IsExecutionReady ? 1 : 0;
+            for (int i = 0; i < plan.AdditionalScenes.Count; i++)
             {
                 if (plan.AdditionalScenes[i].IsExecutionReady)
                 {
@@ -159,7 +159,7 @@ namespace Immersive.Framework.RouteLifecycle
             ICollection<RouteSceneCompositionResultEntry> entries,
             string message)
         {
-            for (var i = 0; i < plan.AdditionalScenes.Count; i++)
+            for (int i = 0; i < plan.AdditionalScenes.Count; i++)
             {
                 entries.Add(RouteSceneCompositionResultEntry.NotExecutedEntry(plan.AdditionalScenes[i], message));
             }
@@ -167,8 +167,8 @@ namespace Immersive.Framework.RouteLifecycle
 
         private static RouteSceneCompositionResultEntry CreateNotReadyEntry(RouteSceneCompositionPlanEntry additionalScene)
         {
-            var blocksComposition = additionalScene.Requiredness == FrameworkContentRequiredness.Required;
-            var message = blocksComposition
+            bool blocksComposition = additionalScene.Requiredness == FrameworkContentRequiredness.Required;
+            string message = blocksComposition
                 ? "Required additive scene declaration is not execution-ready. Scene, explicit content id and content identity are required."
                 : "Optional additive scene declaration skipped because it is not execution-ready.";
 

@@ -25,7 +25,7 @@ namespace Immersive.Framework.ContentFlow
                 throw new ArgumentException("Framework content id must be valid.", nameof(value));
             }
 
-            this._value = value;
+            _value = value;
         }
 
         public FrameworkIdentityDomain Domain => FrameworkIdentityDomain.Content;

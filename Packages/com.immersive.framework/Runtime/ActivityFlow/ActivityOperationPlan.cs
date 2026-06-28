@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -77,8 +78,7 @@ namespace Immersive.Framework.ActivityFlow
 
         public bool RequiresLoadingSurface => VisualMode == ActivityVisualTransitionMode.FadeWithLoading && HasSceneSideEffects;
 
-        public bool RequiresVisualOcclusion => VisualMode == ActivityVisualTransitionMode.Fade
-            || VisualMode == ActivityVisualTransitionMode.FadeWithLoading;
+        public bool RequiresVisualOcclusion => VisualMode is ActivityVisualTransitionMode.Fade or ActivityVisualTransitionMode.FadeWithLoading;
 
         public int BlockingIssueCount => CountIssues(ActivityOperationIssueSeverity.Blocking);
 
@@ -87,8 +87,7 @@ namespace Immersive.Framework.ActivityFlow
         public bool HasBlockingIssues => BlockingIssueCount > 0;
 
         public bool IsValid => !HasBlockingIssues
-            && (Status == ActivityOperationPlanStatus.Planned
-                || Status == ActivityOperationPlanStatus.PlannedWithIssues);
+            && Status is ActivityOperationPlanStatus.Planned or ActivityOperationPlanStatus.PlannedWithIssues;
 
         public static ActivityOperationPlan NotRequested(string source, string reason)
         {
@@ -105,12 +104,12 @@ namespace Immersive.Framework.ActivityFlow
 
         public string ToDiagnosticString()
         {
-            var previous = !string.IsNullOrWhiteSpace(PreviousActivityName) ? PreviousActivityName : "<none>";
-            var target = !string.IsNullOrWhiteSpace(TargetActivityName) ? TargetActivityName : "<none>";
+            string previous = PreviousActivityName.ToDiagnosticText();
+            string target = TargetActivityName.ToDiagnosticText();
             var builder = new StringBuilder();
             builder.Append($"Activity Operation Plan kind='{OperationKind}' status='{Status}' previous='{previous}' target='{target}' visualMode='{VisualMode}' scenes='{SceneCount}' load='{ScenesToLoadCount}' release='{ScenesToReleaseCount}' sceneSideEffects='{SceneSideEffectCount}' requiresVisualOcclusion='{RequiresVisualOcclusion}' requiresLoadingSurface='{RequiresLoadingSurface}' valid='{IsValid}' blockingIssues='{BlockingIssueCount}' warnings='{WarningIssueCount}' source='{Source}' reason='{Reason}' scenes=[");
 
-            for (var i = 0; i < Scenes.Count; i++)
+            for (int i = 0; i < Scenes.Count; i++)
             {
                 if (i > 0)
                 {
@@ -121,7 +120,7 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             builder.Append("] issues=[");
-            for (var i = 0; i < Issues.Count; i++)
+            for (int i = 0; i < Issues.Count; i++)
             {
                 if (i > 0)
                 {
@@ -137,8 +136,8 @@ namespace Immersive.Framework.ActivityFlow
 
         private int CountScenes(ActivityOperationSceneAction action)
         {
-            var count = 0;
-            for (var i = 0; i < Scenes.Count; i++)
+            int count = 0;
+            for (int i = 0; i < Scenes.Count; i++)
             {
                 if (Scenes[i].Action == action)
                 {
@@ -151,8 +150,8 @@ namespace Immersive.Framework.ActivityFlow
 
         private int CountSceneSideEffects()
         {
-            var count = 0;
-            for (var i = 0; i < Scenes.Count; i++)
+            int count = 0;
+            for (int i = 0; i < Scenes.Count; i++)
             {
                 if (Scenes[i].IsSceneSideEffect)
                 {
@@ -165,8 +164,8 @@ namespace Immersive.Framework.ActivityFlow
 
         private int CountIssues(ActivityOperationIssueSeverity severity)
         {
-            var count = 0;
-            for (var i = 0; i < Issues.Count; i++)
+            int count = 0;
+            for (int i = 0; i < Issues.Count; i++)
             {
                 if (Issues[i].Severity == severity)
                 {
@@ -185,7 +184,7 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var copy = new ActivityOperationPlanSceneEntry[scenes.Count];
-            for (var i = 0; i < scenes.Count; i++)
+            for (int i = 0; i < scenes.Count; i++)
             {
                 copy[i] = scenes[i];
             }
@@ -203,7 +202,7 @@ namespace Immersive.Framework.ActivityFlow
             var issues = new List<ActivityOperationIssue>();
             if (callerIssues != null)
             {
-                for (var i = 0; i < callerIssues.Count; i++)
+                for (int i = 0; i < callerIssues.Count; i++)
                 {
                     if (callerIssues[i].HasIssue)
                     {
@@ -219,7 +218,7 @@ namespace Immersive.Framework.ActivityFlow
                     "Activity operation target Activity is required for this operation kind."));
             }
 
-            var sceneSideEffects = CountSceneSideEffects(scenes);
+            int sceneSideEffects = CountSceneSideEffects(scenes);
             if (sceneSideEffects <= 0 && visualMode == ActivityVisualTransitionMode.FadeWithLoading)
             {
                 issues.Add(ActivityOperationIssue.Warning(
@@ -229,7 +228,7 @@ namespace Immersive.Framework.ActivityFlow
 
             if (scenes != null)
             {
-                for (var i = 0; i < scenes.Count; i++)
+                for (int i = 0; i < scenes.Count; i++)
                 {
                     if (scenes[i].HasBlockingDeclarationIssue)
                     {
@@ -279,7 +278,7 @@ namespace Immersive.Framework.ActivityFlow
                 return false;
             }
 
-            for (var i = 0; i < issues.Count; i++)
+            for (int i = 0; i < issues.Count; i++)
             {
                 if (issues[i].Severity == severity)
                 {
@@ -297,8 +296,8 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < scenes.Count; i++)
+            int count = 0;
+            for (int i = 0; i < scenes.Count; i++)
             {
                 if (scenes[i].IsSceneSideEffect)
                 {
@@ -311,14 +310,12 @@ namespace Immersive.Framework.ActivityFlow
 
         private static bool RequiresTargetActivity(ActivityOperationKind operationKind)
         {
-            return operationKind == ActivityOperationKind.Start
-                || operationKind == ActivityOperationKind.Switch
-                || operationKind == ActivityOperationKind.RouteStartup;
+            return operationKind is ActivityOperationKind.Start or ActivityOperationKind.Switch or ActivityOperationKind.RouteStartup;
         }
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

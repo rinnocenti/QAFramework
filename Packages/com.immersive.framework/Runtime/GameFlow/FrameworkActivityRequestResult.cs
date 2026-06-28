@@ -2,6 +2,7 @@ using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Gate;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.GameFlow
 {
@@ -23,10 +24,10 @@ namespace Immersive.Framework.GameFlow
             ActivityVisualTransitionMode activityTransitionMode = ActivityVisualTransitionMode.Seamless)
         {
             Kind = kind;
-            Message = message ?? string.Empty;
+            Message = message.NormalizeText();
             TargetActivity = targetActivity;
-            Source = source ?? string.Empty;
-            Reason = reason ?? string.Empty;
+            Source = source.NormalizeTextOrFallback("Unknown");
+            Reason = reason.NormalizeTextOrFallback("None");
             ActivityFlowResult = activityFlowResult;
             TransitionDiagnostics = transitionDiagnostics;
             ActivityTransitionMode = NormalizeActivityTransitionMode(activityTransitionMode);
@@ -64,8 +65,8 @@ namespace Immersive.Framework.GameFlow
                 FrameworkActivityRequestKind.FailedInvalidConfig,
                 message,
                 targetActivity,
-                NormalizeSource(source),
-                NormalizeReason(reason),
+                source,
+                reason,
                 default,
                 default,
                 activityTransitionMode);
@@ -81,8 +82,8 @@ namespace Immersive.Framework.GameFlow
                 FrameworkActivityRequestKind.FailedRuntimeUnavailable,
                 message,
                 targetActivity,
-                NormalizeSource(source),
-                NormalizeReason(reason),
+                source,
+                reason,
                 default);
         }
 
@@ -95,8 +96,8 @@ namespace Immersive.Framework.GameFlow
                 FrameworkActivityRequestKind.IgnoredAlreadyActive,
                 $"Activity Request ignored. {FormatRequestContext(source, reason)} Activity '{targetActivity.ActivityName}' is already active.",
                 targetActivity,
-                NormalizeSource(source),
-                NormalizeReason(reason),
+                source,
+                reason,
                 default);
         }
 
@@ -105,13 +106,13 @@ namespace Immersive.Framework.GameFlow
             string source,
             string reason)
         {
-            string activityName = targetActivity != null ? targetActivity.ActivityName : "<none>";
+            string activityName = targetActivity.ToDiagnosticText(x => x.ActivityName);
             return new FrameworkActivityRequestResult(
                 FrameworkActivityRequestKind.IgnoredAlreadyInFlight,
                 $"Activity Request ignored. {FormatRequestContext(source, reason)} Another activity or route request is already in flight. targetActivity='{activityName}'.",
                 targetActivity,
-                NormalizeSource(source),
-                NormalizeReason(reason),
+                source,
+                reason,
                 default);
         }
 
@@ -121,13 +122,13 @@ namespace Immersive.Framework.GameFlow
             string reason,
             GateEvaluationResult gateEvaluation)
         {
-            string activityName = targetActivity != null ? targetActivity.ActivityName : "<none>";
+            string activityName = targetActivity.ToDiagnosticText(x => x.ActivityName);
             return new FrameworkActivityRequestResult(
                 FrameworkActivityRequestKind.IgnoredAlreadyInFlight,
                 $"Activity Request ignored. {FormatRequestContext(source, reason)} targetActivity='{activityName}'. {GateRequestAdmission.FormatBlockedMessage("Activity Request", gateEvaluation)}",
                 targetActivity,
-                NormalizeSource(source),
-                NormalizeReason(reason),
+                source,
+                reason,
                 default);
         }
 
@@ -139,8 +140,8 @@ namespace Immersive.Framework.GameFlow
                 FrameworkActivityRequestKind.IgnoredNoActiveActivity,
                 $"Activity Request ignored. {FormatRequestContext(source, reason)} No Activity is active.",
                 null,
-                NormalizeSource(source),
-                NormalizeReason(reason),
+                source.NormalizeTextOrFallback("Unknown"),
+                reason.NormalizeTextOrFallback("None"),
                 default);
         }
 
@@ -156,21 +157,11 @@ namespace Immersive.Framework.GameFlow
                 FrameworkActivityRequestKind.Succeeded,
                 $"Activity Request completed. {FormatRequestContext(source, reason)} {activityFlowResult.Message}",
                 targetActivity,
-                NormalizeSource(source),
-                NormalizeReason(reason),
+                source,
+                reason,
                 activityFlowResult,
                 transitionDiagnostics,
                 activityTransitionMode);
-        }
-
-        internal static string NormalizeSource(string source)
-        {
-            return string.IsNullOrWhiteSpace(source) ? "Unknown" : source.Trim();
-        }
-
-        internal static string NormalizeReason(string reason)
-        {
-            return string.IsNullOrWhiteSpace(reason) ? "None" : reason.Trim();
         }
 
         private static ActivityVisualTransitionMode NormalizeActivityTransitionMode(ActivityVisualTransitionMode mode)
@@ -207,7 +198,7 @@ namespace Immersive.Framework.GameFlow
 
         private static string FormatRequestContext(string source, string reason)
         {
-            return $"source='{NormalizeSource(source)}' reason='{NormalizeReason(reason)}'.";
+            return $"source='{source.NormalizeTextOrFallback("Unknown")}' reason='{reason.NormalizeTextOrFallback("None")}'.";
         }
     }
 }

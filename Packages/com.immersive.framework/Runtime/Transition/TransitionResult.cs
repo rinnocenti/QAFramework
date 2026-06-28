@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.TransitionEffects;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Transition
 {
@@ -57,13 +58,13 @@ namespace Immersive.Framework.Transition
             Source = Normalize(source);
             Reason = Normalize(reason);
             Message = Normalize(message);
-            this._observedSteps = CopySteps(observedSteps);
-            this._issues = CopyIssues(issues);
-            this._effectKind = effectKind;
-            this._effectStatus = effectStatus;
-            this._effectAdapterCount = Math.Max(0, effectAdapterCount);
-            this._visualText = NormalizeVisual(visualText);
-            this._effectBlockingIssueCount = Math.Max(0, effectBlockingIssueCount);
+            _observedSteps = CopySteps(observedSteps);
+            _issues = CopyIssues(issues);
+            _effectKind = effectKind;
+            _effectStatus = effectStatus;
+            _effectAdapterCount = Math.Max(0, effectAdapterCount);
+            _visualText = NormalizeVisual(visualText);
+            _effectBlockingIssueCount = Math.Max(0, effectBlockingIssueCount);
         }
 
         public TransitionOperationId OperationId { get; }
@@ -100,9 +101,9 @@ namespace Immersive.Framework.Transition
         {
             get
             {
-                var count = 0;
-                var items = ObservedSteps;
-                for (var i = 0; i < items.Count; i++)
+                int count = 0;
+                IReadOnlyList<TransitionStep> items = ObservedSteps;
+                for (int i = 0; i < items.Count; i++)
                 {
                     if (items[i].BlockingIssue)
                     {
@@ -164,28 +165,28 @@ namespace Immersive.Framework.Transition
         {
             unchecked
             {
-                var hashCode = OperationId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Kind;
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
-                hashCode = (hashCode * 397) ^ (int)EffectKind;
-                hashCode = (hashCode * 397) ^ (int)EffectStatus;
-                hashCode = (hashCode * 397) ^ EffectAdapterCount;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(VisualText ?? string.Empty);
-                hashCode = (hashCode * 397) ^ EffectBlockingIssueCount;
+                int hashCode = OperationId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Kind;
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                hashCode = hashCode * 397 ^ (int)EffectKind;
+                hashCode = hashCode * 397 ^ (int)EffectStatus;
+                hashCode = hashCode * 397 ^ EffectAdapterCount;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(VisualText ?? string.Empty);
+                hashCode = hashCode * 397 ^ EffectBlockingIssueCount;
 
-                var steps = ObservedSteps;
-                for (var i = 0; i < steps.Count; i++)
+                IReadOnlyList<TransitionStep> steps = ObservedSteps;
+                for (int i = 0; i < steps.Count; i++)
                 {
-                    hashCode = (hashCode * 397) ^ steps[i].GetHashCode();
+                    hashCode = hashCode * 397 ^ steps[i].GetHashCode();
                 }
 
-                var issueItems = Issues;
-                for (var i = 0; i < issueItems.Count; i++)
+                IReadOnlyList<string> issueItems = Issues;
+                for (int i = 0; i < issueItems.Count; i++)
                 {
-                    hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(issueItems[i] ?? string.Empty);
+                    hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(issueItems[i] ?? string.Empty);
                 }
 
                 return hashCode;
@@ -200,18 +201,18 @@ namespace Immersive.Framework.Transition
         public string ToDiagnosticString()
         {
             var builder = new StringBuilder();
-            var sourceText = string.IsNullOrWhiteSpace(Source) ? "<none>" : Source;
-            var reasonText = string.IsNullOrWhiteSpace(Reason) ? "<none>" : Reason;
-            var messageText = string.IsNullOrWhiteSpace(Message) ? "<none>" : Message;
-            var effectText = EffectKind != TransitionEffectKind.Unknown ? EffectKind.ToString() : VisualText;
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string messageText = Message.ToDiagnosticText();
+            string effectText = EffectKind != TransitionEffectKind.Unknown ? EffectKind.ToString() : VisualText;
             builder.Append(
                 $"operation='{OperationId.StableText}' kind='{Kind}' status='{Status}' source='{sourceText}' reason='{reasonText}' observedSteps='{ObservedStepCount}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' message='{messageText}' effectKind='{effectText}' effectStatus='{EffectStatus}' effectAdapters='{EffectAdapterCount}' visual='{VisualText}' effectBlockingIssues='{EffectBlockingIssueCount}'");
 
             if (HasObservedSteps)
             {
                 builder.Append(" observed=[");
-                var steps = ObservedSteps;
-                for (var i = 0; i < steps.Count; i++)
+                IReadOnlyList<TransitionStep> steps = ObservedSteps;
+                for (int i = 0; i < steps.Count; i++)
                 {
                     if (i > 0)
                     {
@@ -227,8 +228,8 @@ namespace Immersive.Framework.Transition
             if (HasIssues)
             {
                 builder.Append(" issues=[");
-                var issueItems = Issues;
-                for (var i = 0; i < issueItems.Count; i++)
+                IReadOnlyList<string> issueItems = Issues;
+                for (int i = 0; i < issueItems.Count; i++)
                 {
                     if (i > 0)
                     {
@@ -410,7 +411,7 @@ namespace Immersive.Framework.Transition
             }
 
             var copy = new TransitionStep[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 if (!source[i].IsValid)
                 {
@@ -431,7 +432,7 @@ namespace Immersive.Framework.Transition
             }
 
             var copy = new List<string>(source.Count);
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 if (string.IsNullOrWhiteSpace(source[i]))
                 {
@@ -451,8 +452,8 @@ namespace Immersive.Framework.Transition
                 return false;
             }
 
-            var comparer = EqualityComparer<T>.Default;
-            for (var i = 0; i < left.Count; i++)
+            EqualityComparer<T> comparer = EqualityComparer<T>.Default;
+            for (int i = 0; i < left.Count; i++)
             {
                 if (!comparer.Equals(left[i], right[i]))
                 {
@@ -465,12 +466,12 @@ namespace Immersive.Framework.Transition
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
 
         private static string NormalizeVisual(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? "NoneConfigured" : value.Trim();
+            return value.NormalizeTextOrFallback("NoneConfigured");
         }
     }
 }

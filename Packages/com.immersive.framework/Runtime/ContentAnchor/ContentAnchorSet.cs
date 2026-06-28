@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ContentAnchor
 {
@@ -20,7 +21,7 @@ namespace Immersive.Framework.ContentAnchor
         {
             if (declarations == null || declarations.Count == 0)
             {
-                this._declarations = Array.Empty<ContentAnchorDeclaration>();
+                _declarations = Array.Empty<ContentAnchorDeclaration>();
                 _issues = Array.Empty<ContentAnchorSetIssue>();
                 return;
             }
@@ -30,7 +31,7 @@ namespace Immersive.Framework.ContentAnchor
             var identityKeys = new HashSet<string>(StringComparer.Ordinal);
             var anchorIdKeys = new HashSet<string>(StringComparer.Ordinal);
 
-            for (var i = 0; i < declarations.Count; i++)
+            for (int i = 0; i < declarations.Count; i++)
             {
                 var declaration = declarations[i];
                 if (!declaration.IsValid)
@@ -43,7 +44,7 @@ namespace Immersive.Framework.ContentAnchor
                     continue;
                 }
 
-                var identityKey = declaration.StableText;
+                string identityKey = declaration.StableText;
                 if (identityKeys.Contains(identityKey))
                 {
                     detectedIssues.Add(new ContentAnchorSetIssue(
@@ -54,7 +55,7 @@ namespace Immersive.Framework.ContentAnchor
                     continue;
                 }
 
-                var anchorIdKey = CreateAnchorIdKey(declaration);
+                string anchorIdKey = CreateAnchorIdKey(declaration);
                 if (anchorIdKeys.Contains(anchorIdKey))
                 {
                     detectedIssues.Add(new ContentAnchorSetIssue(
@@ -70,7 +71,7 @@ namespace Immersive.Framework.ContentAnchor
                 uniqueDeclarations.Add(declaration);
             }
 
-            this._declarations = uniqueDeclarations.Count == 0
+            _declarations = uniqueDeclarations.Count == 0
                 ? Array.Empty<ContentAnchorDeclaration>()
                 : uniqueDeclarations.ToArray();
             _issues = detectedIssues.Count == 0
@@ -131,15 +132,15 @@ namespace Immersive.Framework.ContentAnchor
 
         public bool TryGetByIdentity(string stableText, out ContentAnchorDeclaration declaration)
         {
-            var normalized = Normalize(stableText);
+            string normalized = Normalize(stableText);
             if (string.IsNullOrWhiteSpace(normalized) || !HasAnchors)
             {
                 declaration = default;
                 return false;
             }
 
-            var items = Declarations;
-            for (var i = 0; i < items.Count; i++)
+            IReadOnlyList<ContentAnchorDeclaration> items = Declarations;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (string.Equals(items[i].StableText, normalized, StringComparison.Ordinal))
                 {
@@ -164,10 +165,10 @@ namespace Immersive.Framework.ContentAnchor
                 return false;
             }
 
-            var owner = Normalize(ownerStableText);
-            var id = Normalize(anchorId);
-            var items = Declarations;
-            for (var i = 0; i < items.Count; i++)
+            string owner = Normalize(ownerStableText);
+            string id = Normalize(anchorId);
+            IReadOnlyList<ContentAnchorDeclaration> items = Declarations;
+            for (int i = 0; i < items.Count; i++)
             {
                 var item = items[i];
                 if (item.Scope == scope
@@ -249,9 +250,9 @@ namespace Immersive.Framework.ContentAnchor
                 return 0;
             }
 
-            var count = 0;
-            var items = Declarations;
-            for (var i = 0; i < items.Count; i++)
+            int count = 0;
+            IReadOnlyList<ContentAnchorDeclaration> items = Declarations;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (items[i].Scope == scope)
                 {
@@ -269,9 +270,9 @@ namespace Immersive.Framework.ContentAnchor
                 return 0;
             }
 
-            var count = 0;
-            var items = Declarations;
-            for (var i = 0; i < items.Count; i++)
+            int count = 0;
+            IReadOnlyList<ContentAnchorDeclaration> items = Declarations;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (items[i].Kind == kind)
                 {
@@ -290,9 +291,9 @@ namespace Immersive.Framework.ContentAnchor
             }
 
             var normalized = NormalizeRequiredness(requiredness);
-            var count = 0;
-            var items = Declarations;
-            for (var i = 0; i < items.Count; i++)
+            int count = 0;
+            IReadOnlyList<ContentAnchorDeclaration> items = Declarations;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (NormalizeRequiredness(items[i].Requiredness) == normalized)
                 {
@@ -310,9 +311,9 @@ namespace Immersive.Framework.ContentAnchor
                 return 0;
             }
 
-            var count = 0;
-            var items = Issues;
-            for (var i = 0; i < items.Count; i++)
+            int count = 0;
+            IReadOnlyList<ContentAnchorSetIssue> items = Issues;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (items[i].Kind == issueKind)
                 {
@@ -376,8 +377,8 @@ namespace Immersive.Framework.ContentAnchor
             }
 
             var matches = new List<ContentAnchorDeclaration>();
-            var items = Declarations;
-            for (var i = 0; i < items.Count; i++)
+            IReadOnlyList<ContentAnchorDeclaration> items = Declarations;
+            for (int i = 0; i < items.Count; i++)
             {
                 var declaration = items[i];
                 if (predicate(declaration))
@@ -398,10 +399,10 @@ namespace Immersive.Framework.ContentAnchor
                 return;
             }
 
-            var limit = Math.Max(0, maxDeclarations);
-            var shown = Math.Min(limit, Count);
+            int limit = Math.Max(0, maxDeclarations);
+            int shown = Math.Min(limit, Count);
             builder.Append(" details=[");
-            for (var i = 0; i < shown; i++)
+            for (int i = 0; i < shown; i++)
             {
                 if (i > 0)
                 {
@@ -425,10 +426,10 @@ namespace Immersive.Framework.ContentAnchor
                 return;
             }
 
-            var limit = Math.Max(0, maxIssues);
-            var shown = Math.Min(limit, IssueCount);
+            int limit = Math.Max(0, maxIssues);
+            int shown = Math.Min(limit, IssueCount);
             builder.Append(" issueDetails=[");
-            for (var i = 0; i < shown; i++)
+            for (int i = 0; i < shown; i++)
             {
                 if (i > 0)
                 {
@@ -447,7 +448,7 @@ namespace Immersive.Framework.ContentAnchor
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

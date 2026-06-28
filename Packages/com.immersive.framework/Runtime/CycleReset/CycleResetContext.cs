@@ -76,7 +76,7 @@ namespace Immersive.Framework.CycleReset
         {
             unchecked
             {
-                return (Request.GetHashCode() * 397) ^ Participant.GetHashCode();
+                return Request.GetHashCode() * 397 ^ Participant.GetHashCode();
             }
         }
 

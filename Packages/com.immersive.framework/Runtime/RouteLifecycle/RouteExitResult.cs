@@ -1,5 +1,6 @@
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -58,7 +59,7 @@ namespace Immersive.Framework.RouteLifecycle
 
         public static RouteExitResult None(RouteAsset nextRoute, string source, string reason)
         {
-            var nextRouteName = nextRoute != null ? nextRoute.RouteName : "<missing>";
+            string nextRouteName = nextRoute.ToDiagnosticText(x => x.RouteName, "<missing>");
             return new RouteExitResult(
                 false,
                 null,
@@ -80,8 +81,8 @@ namespace Immersive.Framework.RouteLifecycle
                 return None(nextRoute, source, reason);
             }
 
-            var nextRouteName = nextRoute != null ? nextRoute.RouteName : "<missing>";
-            var identityMessage = previousRouteState.HasIdentity
+            string nextRouteName = nextRoute.ToDiagnosticText(x => x.RouteName, "<missing>");
+            string identityMessage = previousRouteState.HasIdentity
                 ? $" routeIdentity='{previousRouteState.DiagnosticIdentity}'."
                 : string.Empty;
 
@@ -97,12 +98,12 @@ namespace Immersive.Framework.RouteLifecycle
 
         private static string NormalizeSource(string source)
         {
-            return string.IsNullOrWhiteSpace(source) ? "Unknown" : source.Trim();
+            return source.NormalizeTextOrFallback("Unknown");
         }
 
         private static string NormalizeReason(string reason)
         {
-            return string.IsNullOrWhiteSpace(reason) ? "None" : reason.Trim();
+            return reason.NormalizeTextOrFallback("None");
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RuntimeContent
 {
@@ -66,10 +67,10 @@ namespace Immersive.Framework.RuntimeContent
         {
             unchecked
             {
-                var hashCode = StringComparer.Ordinal.GetHashCode(ResourceType ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(ResourceKey ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(ResourceName ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(ResourcePath ?? string.Empty);
+                int hashCode = StringComparer.Ordinal.GetHashCode(ResourceType ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(ResourceKey ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(ResourceName ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(ResourcePath ?? string.Empty);
                 return hashCode;
             }
         }
@@ -81,8 +82,8 @@ namespace Immersive.Framework.RuntimeContent
 
         public string ToDiagnosticString()
         {
-            var nameText = HasResourceName ? ResourceName : "<none>";
-            var pathText = HasResourcePath ? ResourcePath : "<none>";
+            string nameText = HasResourceName ? ResourceName : "<none>";
+            string pathText = HasResourcePath ? ResourcePath : "<none>";
             return $"resource='{StableText}' resourceName='{nameText}' resourcePath='{pathText}'";
         }
 
@@ -111,7 +112,7 @@ namespace Immersive.Framework.RuntimeContent
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RuntimeContent
 {
@@ -93,12 +94,12 @@ namespace Immersive.Framework.RuntimeContent
         {
             unchecked
             {
-                var hashCode = Request.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ (Handle != null ? Handle.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = Request.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ (Handle != null ? Handle.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -110,10 +111,10 @@ namespace Immersive.Framework.RuntimeContent
 
         public string ToDiagnosticString()
         {
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            var messageText = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
-            var handleText = HasHandle ? Handle.ToDiagnosticString() : "<none>";
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string messageText = Message.ToDiagnosticText();
+            string handleText = HasHandle ? Handle.ToDiagnosticString() : "<none>";
             return $"identity='{Identity.StableText}' owner='{Owner.StableText}' scope='{Scope}' status='{Status}' succeeded='{Succeeded}' handle={handleText} source='{sourceText}' reason='{reasonText}' message='{messageText}'";
         }
 
@@ -201,7 +202,7 @@ namespace Immersive.Framework.RuntimeContent
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

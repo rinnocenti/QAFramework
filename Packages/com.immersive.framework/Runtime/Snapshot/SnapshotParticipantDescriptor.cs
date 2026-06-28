@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Identity;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Snapshot
 {
@@ -132,16 +133,16 @@ namespace Immersive.Framework.Snapshot
         {
             unchecked
             {
-                var hashCode = ParticipantId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Scope;
-                hashCode = (hashCode * 397) ^ OwnerIdentity.GetHashCode();
-                hashCode = (hashCode * 397) ^ SchemaId.GetHashCode();
-                hashCode = (hashCode * 397) ^ SchemaVersion.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Requiredness;
-                hashCode = (hashCode * 397) ^ Order;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(DisplayName ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = ParticipantId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Scope;
+                hashCode = hashCode * 397 ^ OwnerIdentity.GetHashCode();
+                hashCode = hashCode * 397 ^ SchemaId.GetHashCode();
+                hashCode = hashCode * 397 ^ SchemaVersion.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Requiredness;
+                hashCode = hashCode * 397 ^ Order;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(DisplayName ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 return hashCode;
             }
         }
@@ -153,9 +154,9 @@ namespace Immersive.Framework.Snapshot
 
         public string ToDiagnosticString()
         {
-            var displayNameText = HasDisplayName ? DisplayName : "<none>";
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
+            string displayNameText = HasDisplayName ? DisplayName : "<none>";
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
             return $"participant='{ParticipantId.StableText}' scope='{Scope}' owner='{OwnerIdentity.StableText}' schema='{SchemaId.StableText}' version='{SchemaVersion.StableText}' requiredness='{Requiredness}' order='{Order}' displayName='{displayNameText}' source='{sourceText}' reason='{reasonText}'";
         }
 
@@ -243,7 +244,7 @@ namespace Immersive.Framework.Snapshot
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

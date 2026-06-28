@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Identity;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ObjectEntry
 {
@@ -59,7 +60,7 @@ namespace Immersive.Framework.ObjectEntry
             Scope = scope;
             SourceKind = sourceKind;
             Requiredness = requiredness;
-            DisplayName = string.IsNullOrWhiteSpace(displayName) ? id.StableText : displayName.Trim();
+            DisplayName = displayName.NormalizeTextOrFallback(id.StableText);
             OwnerIdentity = ownerIdentity;
         }
 
@@ -113,12 +114,12 @@ namespace Immersive.Framework.ObjectEntry
         {
             unchecked
             {
-                var hashCode = Id.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Scope;
-                hashCode = (hashCode * 397) ^ (int)SourceKind;
-                hashCode = (hashCode * 397) ^ (int)Requiredness;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(DisplayName ?? string.Empty);
-                hashCode = (hashCode * 397) ^ (OwnerIdentity.HasValue ? OwnerIdentity.Value.GetHashCode() : 0);
+                int hashCode = Id.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Scope;
+                hashCode = hashCode * 397 ^ (int)SourceKind;
+                hashCode = hashCode * 397 ^ (int)Requiredness;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(DisplayName ?? string.Empty);
+                hashCode = hashCode * 397 ^ (OwnerIdentity.HasValue ? OwnerIdentity.Value.GetHashCode() : 0);
                 return hashCode;
             }
         }

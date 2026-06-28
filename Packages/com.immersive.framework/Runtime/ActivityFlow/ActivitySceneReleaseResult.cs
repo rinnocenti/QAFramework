@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -26,9 +27,9 @@ namespace Immersive.Framework.ActivityFlow
             Activity = activity;
             Status = status;
             SideEffectsExecuted = sideEffectsExecuted;
-            Source = Normalize(source);
-            Reason = Normalize(reason);
-            Message = Normalize(message);
+            Source = source.NormalizeText();
+            Reason = reason.NormalizeText();
+            Message = message.NormalizeText();
 
             if (entries == null || entries.Count == 0)
             {
@@ -37,7 +38,7 @@ namespace Immersive.Framework.ActivityFlow
             else
             {
                 _entries = new ActivitySceneReleaseResultEntry[entries.Count];
-                for (var i = 0; i < entries.Count; i++)
+                for (int i = 0; i < entries.Count; i++)
                 {
                     _entries[i] = entries[i];
                 }
@@ -100,13 +101,11 @@ namespace Immersive.Framework.ActivityFlow
             string reason)
         {
             var status = DetermineStatus(entries);
-            var released = CountByStatus(entries, ActivitySceneReleaseEntryStatus.Unloaded);
-            var failed = CountByStatus(entries, ActivitySceneReleaseEntryStatus.Failed);
-            var skipped = CountByStatus(entries, ActivitySceneReleaseEntryStatus.SkippedKeepOnActivityChange)
+            int released = CountByStatus(entries, ActivitySceneReleaseEntryStatus.Unloaded);
+            int failed = CountByStatus(entries, ActivitySceneReleaseEntryStatus.Failed);
+            int skipped = CountByStatus(entries, ActivitySceneReleaseEntryStatus.SkippedKeepOnActivityChange)
                 + CountByStatus(entries, ActivitySceneReleaseEntryStatus.SkippedNotLoaded);
-            var activityName = activity != null && !string.IsNullOrWhiteSpace(activity.ActivityName)
-                ? activity.ActivityName
-                : "<none>";
+            string activityName = activity.ToDiagnosticText(x => x.ActivityName);
             return new ActivitySceneReleaseResult(
                 activity,
                 entries,
@@ -114,18 +113,16 @@ namespace Immersive.Framework.ActivityFlow
                 released > 0,
                 source,
                 reason,
-                $"Activity scene release executed for Activity '{activityName}'. status='{status}' scenes='{(entries != null ? entries.Count : 0)}' released='{released}' failed='{failed}' skipped='{skipped}'.");
+                $"Activity scene release executed for Activity '{activityName}'. status='{status}' scenes='{entries?.Count ?? 0}' released='{released}' failed='{failed}' skipped='{skipped}'.");
         }
 
         public string ToDiagnosticString()
         {
-            var activityName = Activity != null && !string.IsNullOrWhiteSpace(Activity.ActivityName)
-                ? Activity.ActivityName
-                : "<none>";
+            string activityName = Activity.ToDiagnosticText(x => x.ActivityName);
             var builder = new StringBuilder();
             builder.Append($"Activity Scene Release Result activity='{activityName}' status='{Status}' scenes='{SceneCount}' released='{ReleasedSceneCount}' failed='{FailedSceneCount}' skipped='{SkippedSceneCount}' blockingIssues='{BlockingIssueCount}' sideEffects='{SideEffectsExecuted}' message='{Message}' details=[");
 
-            for (var i = 0; i < Entries.Count; i++)
+            for (int i = 0; i < Entries.Count; i++)
             {
                 if (i > 0)
                 {
@@ -146,8 +143,8 @@ namespace Immersive.Framework.ActivityFlow
                 return ActivitySceneReleaseStatus.NotRequested;
             }
 
-            var hasIssue = false;
-            for (var i = 0; i < entries.Count; i++)
+            bool hasIssue = false;
+            for (int i = 0; i < entries.Count; i++)
             {
                 var entry = entries[i];
                 if (entry.BlocksRelease)
@@ -178,8 +175,8 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < entries.Count; i++)
+            int count = 0;
+            for (int i = 0; i < entries.Count; i++)
             {
                 if (entries[i].Status == status)
                 {
@@ -192,8 +189,8 @@ namespace Immersive.Framework.ActivityFlow
 
         private int CountBlockingIssues()
         {
-            var count = 0;
-            for (var i = 0; i < Entries.Count; i++)
+            int count = 0;
+            for (int i = 0; i < Entries.Count; i++)
             {
                 if (Entries[i].BlocksRelease)
                 {
@@ -202,11 +199,6 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             return count;
-        }
-
-        private static string Normalize(string value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
         }
     }
 }

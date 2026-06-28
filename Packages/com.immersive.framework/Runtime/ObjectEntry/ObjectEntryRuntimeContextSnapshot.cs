@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ObjectEntry
 {
@@ -79,7 +80,7 @@ namespace Immersive.Framework.ObjectEntry
 
         public bool HasEntries => !ObjectEntries.IsEmpty;
 
-        public bool Succeeded => Status == ObjectEntryResultStatus.Accepted || Status == ObjectEntryResultStatus.AcceptedWithWarnings;
+        public bool Succeeded => Status is ObjectEntryResultStatus.Accepted or ObjectEntryResultStatus.AcceptedWithWarnings;
 
         public bool Failed => Status == ObjectEntryResultStatus.Rejected;
 
@@ -122,7 +123,7 @@ namespace Immersive.Framework.ObjectEntry
 
         private static string ResolveSource(string source)
         {
-            return string.IsNullOrWhiteSpace(source) ? nameof(ObjectEntryRuntimeContextSnapshot) : source.Trim();
+            return source.NormalizeTextOrFallback(nameof(ObjectEntryRuntimeContextSnapshot));
         }
     }
 }

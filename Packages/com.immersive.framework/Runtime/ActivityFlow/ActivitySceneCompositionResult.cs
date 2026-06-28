@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -38,7 +39,7 @@ namespace Immersive.Framework.ActivityFlow
             else
             {
                 _entries = new ActivitySceneCompositionResultEntry[entries.Count];
-                for (var i = 0; i < entries.Count; i++)
+                for (int i = 0; i < entries.Count; i++)
                 {
                     _entries[i] = entries[i];
                 }
@@ -130,7 +131,7 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var entries = new List<ActivitySceneCompositionResultEntry>(plan.SceneCount);
-            for (var i = 0; i < plan.Scenes.Count; i++)
+            for (int i = 0; i < plan.Scenes.Count; i++)
             {
                 var entry = plan.Scenes[i];
                 entries.Add(entry.IsExecutionReady
@@ -141,7 +142,7 @@ namespace Immersive.Framework.ActivityFlow
             var status = EntriesHaveBlockingIssues(entries)
                 ? ActivitySceneCompositionStatus.PlannedWithIssues
                 : ActivitySceneCompositionStatus.Planned;
-            var message = status == ActivitySceneCompositionStatus.Planned
+            string message = status == ActivitySceneCompositionStatus.Planned
                 ? "Activity scene composition plan recorded. Scene loading has not executed yet."
                 : "Activity scene composition plan recorded with blocking declaration issues. Scene loading has not executed yet.";
 
@@ -162,7 +163,7 @@ namespace Immersive.Framework.ActivityFlow
             string reason)
         {
             var status = DetermineExecutedStatus(entries);
-            var sideEffectsExecuted = CountByStatus(entries, ActivitySceneCompositionEntryStatus.Loaded) > 0;
+            bool sideEffectsExecuted = CountByStatus(entries, ActivitySceneCompositionEntryStatus.Loaded) > 0;
             return new ActivitySceneCompositionResult(
                 plan,
                 entries,
@@ -175,11 +176,11 @@ namespace Immersive.Framework.ActivityFlow
 
         public string ToDiagnosticString()
         {
-            var activityName = !string.IsNullOrWhiteSpace(ActivityOwnerName) ? ActivityOwnerName : "<missing>";
+            string activityName = ActivityOwnerName.ToDiagnosticText("<missing>");
             var builder = new StringBuilder();
             builder.Append($"Activity Scene Composition Result activity='{activityName}' profile='{ProfileId}' status='{Status}' scenes='{SceneCount}' required='{RequiredSceneCount}' optional='{OptionalSceneCount}' executionReady='{ExecutionReadySceneCount}' loaded='{LoadedSceneCount}' alreadyLoaded='{AlreadyLoadedSceneCount}' failed='{FailedSceneCount}' skipped='{SkippedSceneCount}' blockingIssues='{BlockingIssueCount}' sideEffects='{SideEffectsExecuted}' message='{Message}' details=[");
 
-            for (var i = 0; i < Entries.Count; i++)
+            for (int i = 0; i < Entries.Count; i++)
             {
                 if (i > 0)
                 {
@@ -216,8 +217,8 @@ namespace Immersive.Framework.ActivityFlow
                 return ActivitySceneCompositionStatus.NotRequested;
             }
 
-            var hasIssue = false;
-            for (var i = 0; i < entries.Count; i++)
+            bool hasIssue = false;
+            for (int i = 0; i < entries.Count; i++)
             {
                 var entry = entries[i];
                 if (entry.BlocksComposition)
@@ -241,14 +242,14 @@ namespace Immersive.Framework.ActivityFlow
             IReadOnlyList<ActivitySceneCompositionResultEntry> entries,
             ActivitySceneCompositionStatus status)
         {
-            var activityName = !string.IsNullOrWhiteSpace(plan.ActivityOwnerName) ? plan.ActivityOwnerName : "<missing>";
-            var entryCount = entries != null ? entries.Count : 0;
-            var loaded = CountByStatus(entries, ActivitySceneCompositionEntryStatus.Loaded);
-            var alreadyLoaded = CountByStatus(entries, ActivitySceneCompositionEntryStatus.AlreadyLoaded);
-            var failed = CountByStatus(entries, ActivitySceneCompositionEntryStatus.Failed);
-            var skipped = CountByStatus(entries, ActivitySceneCompositionEntryStatus.Skipped)
+            string activityName = plan.ActivityOwnerName.ToDiagnosticText("<missing>");
+            int entryCount = entries?.Count ?? 0;
+            int loaded = CountByStatus(entries, ActivitySceneCompositionEntryStatus.Loaded);
+            int alreadyLoaded = CountByStatus(entries, ActivitySceneCompositionEntryStatus.AlreadyLoaded);
+            int failed = CountByStatus(entries, ActivitySceneCompositionEntryStatus.Failed);
+            int skipped = CountByStatus(entries, ActivitySceneCompositionEntryStatus.Skipped)
                 + CountByStatus(entries, ActivitySceneCompositionEntryStatus.NotExecutionReady);
-            var blockingIssues = CountBlockingIssues(entries);
+            int blockingIssues = CountBlockingIssues(entries);
             return $"Activity scene composition executed for Activity '{activityName}'. status='{status}' scenes='{entryCount}' loaded='{loaded}' alreadyLoaded='{alreadyLoaded}' failed='{failed}' skipped='{skipped}' blockingIssues='{blockingIssues}'.";
         }
 
@@ -259,7 +260,7 @@ namespace Immersive.Framework.ActivityFlow
                 return false;
             }
 
-            for (var i = 0; i < entries.Count; i++)
+            for (int i = 0; i < entries.Count; i++)
             {
                 if (entries[i].BlocksComposition)
                 {
@@ -284,8 +285,8 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < entries.Count; i++)
+            int count = 0;
+            for (int i = 0; i < entries.Count; i++)
             {
                 if (entries[i].Status == status)
                 {
@@ -308,8 +309,8 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < entries.Count; i++)
+            int count = 0;
+            for (int i = 0; i < entries.Count; i++)
             {
                 if (entries[i].BlocksComposition)
                 {
@@ -322,7 +323,7 @@ namespace Immersive.Framework.ActivityFlow
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

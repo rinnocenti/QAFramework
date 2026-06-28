@@ -2,6 +2,7 @@ using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Transition;
 using UnityEngine;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.TransitionEffects
 {
@@ -64,9 +65,7 @@ namespace Immersive.Framework.TransitionEffects
         [HideInInspector]
         [SerializeField] private bool lastVisibleState;
 
-        public string AdapterName => string.IsNullOrWhiteSpace(adapterName)
-            ? nameof(UnityFadeCurtainEffectAdapter)
-            : adapterName.Trim();
+        public string AdapterName => adapterName.NormalizeTextOrFallback(nameof(UnityFadeCurtainEffectAdapter));
 
         public TransitionEffectKind ConfiguredEffectKind => effectKind;
 
@@ -87,7 +86,7 @@ namespace Immersive.Framework.TransitionEffects
 
         public TransitionEffectResult Execute(TransitionEffectRequest request)
         {
-            if (!TryValidateRequest(request, out var failureResult, out var resolvedCanvasGroup, out var shouldShow))
+            if (!TryValidateRequest(request, out var failureResult, out var resolvedCanvasGroup, out bool shouldShow))
             {
                 return Record(failureResult);
             }
@@ -108,7 +107,7 @@ namespace Immersive.Framework.TransitionEffects
 
         public async Awaitable<TransitionEffectResult> ExecuteAsync(TransitionEffectRequest request)
         {
-            if (!TryValidateRequest(request, out var failureResult, out var resolvedCanvasGroup, out var shouldShow))
+            if (!TryValidateRequest(request, out var failureResult, out var resolvedCanvasGroup, out bool shouldShow))
             {
                 return Record(failureResult);
             }
@@ -253,8 +252,8 @@ namespace Immersive.Framework.TransitionEffects
                 await Awaitable.NextFrameAsync();
             }
 
-            var targetAlpha = visible ? visibleAlpha : hiddenAlpha;
-            var duration = visible ? fadeInSeconds : fadeOutSeconds;
+            float targetAlpha = visible ? visibleAlpha : hiddenAlpha;
+            float duration = visible ? fadeInSeconds : fadeOutSeconds;
             var curve = visible ? fadeInCurve : fadeOutCurve;
 
             if (visible)
@@ -290,7 +289,7 @@ namespace Immersive.Framework.TransitionEffects
                 return;
             }
 
-            var startAlpha = resolvedCanvasGroup.alpha;
+            float startAlpha = resolvedCanvasGroup.alpha;
             if (duration <= 0f)
             {
                 resolvedCanvasGroup.alpha = targetAlpha;
@@ -300,13 +299,13 @@ namespace Immersive.Framework.TransitionEffects
             }
 
             curve = IsCurveUsable(curve) ? curve : LinearCurve;
-            var elapsed = 0f;
+            float elapsed = 0f;
 
             while (resolvedCanvasGroup != null && elapsed < duration)
             {
                 elapsed += Time.unscaledDeltaTime;
-                var normalized = Mathf.Clamp01(elapsed / duration);
-                var evaluated = Mathf.Clamp01(curve.Evaluate(normalized));
+                float normalized = Mathf.Clamp01(elapsed / duration);
+                float evaluated = Mathf.Clamp01(curve.Evaluate(normalized));
                 resolvedCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, evaluated);
                 Canvas.ForceUpdateCanvases();
                 await Awaitable.NextFrameAsync();
@@ -410,23 +409,17 @@ namespace Immersive.Framework.TransitionEffects
 
         private static bool IsSupportedKind(TransitionEffectKind candidateKind)
         {
-            return candidateKind == TransitionEffectKind.Fade
-                || candidateKind == TransitionEffectKind.Curtain
-                || candidateKind == TransitionEffectKind.Blackout;
+            return candidateKind is TransitionEffectKind.Fade or TransitionEffectKind.Curtain or TransitionEffectKind.Blackout;
         }
 
         private static bool ShouldApplyVisibleState(TransitionPhase phase)
         {
-            return phase == TransitionPhase.OperationOpened
-                || phase == TransitionPhase.GateBlockApplied
-                || phase == TransitionPhase.PreviousScopeExitObserved;
+            return phase is TransitionPhase.OperationOpened or TransitionPhase.GateBlockApplied or TransitionPhase.PreviousScopeExitObserved;
         }
 
         private static bool ShouldApplyHiddenState(TransitionPhase phase)
         {
-            return phase == TransitionPhase.ReadinessObserved
-                || phase == TransitionPhase.GateBlockReleased
-                || phase == TransitionPhase.OperationClosed;
+            return phase is TransitionPhase.ReadinessObserved or TransitionPhase.GateBlockReleased or TransitionPhase.OperationClosed;
         }
 
         private static bool IsCurveUsable(AnimationCurve curve)

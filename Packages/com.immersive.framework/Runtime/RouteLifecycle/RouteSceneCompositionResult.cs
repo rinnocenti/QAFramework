@@ -4,6 +4,7 @@ using System.Text;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.SceneLifecycle;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -43,7 +44,7 @@ namespace Immersive.Framework.RouteLifecycle
             else
             {
                 _entries = new RouteSceneCompositionResultEntry[entries.Count];
-                for (var i = 0; i < entries.Count; i++)
+                for (int i = 0; i < entries.Count; i++)
                 {
                     _entries[i] = entries[i];
                 }
@@ -78,8 +79,7 @@ namespace Immersive.Framework.RouteLifecycle
 
         public bool HasRoute => Plan.HasRoute;
 
-        public bool Succeeded => Status == RouteSceneCompositionStatus.Succeeded
-            || Status == RouteSceneCompositionStatus.SucceededWithIssues;
+        public bool Succeeded => Status is RouteSceneCompositionStatus.Succeeded or RouteSceneCompositionStatus.SucceededWithIssues;
 
         public bool Failed => Status == RouteSceneCompositionStatus.Failed;
 
@@ -88,7 +88,7 @@ namespace Immersive.Framework.RouteLifecycle
         public bool HasActiveScene => !string.IsNullOrWhiteSpace(ActiveSceneName)
             || !string.IsNullOrWhiteSpace(ActiveScenePath);
 
-        public int EntryCount => _entries != null ? _entries.Length : 0;
+        public int EntryCount => _entries?.Length ?? 0;
 
         public int LoadedCount => CountByStatus(RouteSceneCompositionEntryStatus.Loaded)
             + CountByStatus(RouteSceneCompositionEntryStatus.AlreadyLoaded);
@@ -113,8 +113,8 @@ namespace Immersive.Framework.RouteLifecycle
 
         public string ToDiagnosticString()
         {
-            var routeName = !string.IsNullOrWhiteSpace(RouteOwnerName) ? RouteOwnerName : "<missing>";
-            var activeScene = !string.IsNullOrWhiteSpace(ActiveSceneName) ? ActiveSceneName : ActiveScenePath;
+            string routeName = RouteOwnerName.ToDiagnosticText("<missing>");
+            string activeScene = !string.IsNullOrWhiteSpace(ActiveSceneName) ? ActiveSceneName : ActiveScenePath;
             if (string.IsNullOrWhiteSpace(activeScene))
             {
                 activeScene = "<none>";
@@ -122,7 +122,7 @@ namespace Immersive.Framework.RouteLifecycle
 
             var builder = new StringBuilder();
             builder.Append($"Route Scene Composition Result route='{routeName}' owner='{RouteOwnerId}' status='{Status}' entries='{EntryCount}' loaded='{LoadedCount}' alreadyLoaded='{AlreadyLoadedCount}' failed='{FailedCount}' skipped='{SkippedCount}' notExecuted='{NotExecutedCount}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' ownedLoaded='{OwnedLoadedCount}' activeScenePolicy='{ActiveScenePolicy}' activeScene='{activeScene}' source='{Source}' reason='{Reason}' message='{Message}' details=[");
-            for (var i = 0; i < Entries.Count; i++)
+            for (int i = 0; i < Entries.Count; i++)
             {
                 if (i > 0)
                 {
@@ -141,7 +141,7 @@ namespace Immersive.Framework.RouteLifecycle
             string source,
             string reason)
         {
-            var entries = CreateNotExecutedEntries(plan, "Route scene composition execution has not started.");
+            IReadOnlyList<RouteSceneCompositionResultEntry> entries = CreateNotExecutedEntries(plan, "Route scene composition execution has not started.");
             return new RouteSceneCompositionResult(
                 plan,
                 entries,
@@ -177,7 +177,7 @@ namespace Immersive.Framework.RouteLifecycle
                     primarySceneLoadResult.Message));
             }
 
-            for (var i = 0; i < plan.AdditionalScenes.Count; i++)
+            for (int i = 0; i < plan.AdditionalScenes.Count; i++)
             {
                 entries.Add(RouteSceneCompositionResultEntry.NotExecutedEntry(
                     plan.AdditionalScenes[i],
@@ -185,9 +185,9 @@ namespace Immersive.Framework.RouteLifecycle
             }
 
             var status = primarySceneLoadResult.Loaded
-                ? (plan.HasAdditionalScenes ? RouteSceneCompositionStatus.SucceededWithIssues : RouteSceneCompositionStatus.Succeeded)
+                ? plan.HasAdditionalScenes ? RouteSceneCompositionStatus.SucceededWithIssues : RouteSceneCompositionStatus.Succeeded
                 : RouteSceneCompositionStatus.Failed;
-            var message = primarySceneLoadResult.Loaded
+            string message = primarySceneLoadResult.Loaded
                 ? $"Route scene composition recorded primary scene result. additiveExecution='NotRequested' additionalScenes='{plan.AdditionalSceneCount}'."
                 : "Route scene composition failed while resolving the primary scene.";
 
@@ -212,9 +212,9 @@ namespace Immersive.Framework.RouteLifecycle
             string reason)
         {
             var status = DetermineStatus(entries);
-            var activeSceneName = primarySceneLoadResult.Loaded ? primarySceneLoadResult.SceneName : string.Empty;
-            var activeScenePath = primarySceneLoadResult.Loaded ? primarySceneLoadResult.ScenePath : string.Empty;
-            var message = BuildExecutedMessage(plan, entries, status);
+            string activeSceneName = primarySceneLoadResult.Loaded ? primarySceneLoadResult.SceneName : string.Empty;
+            string activeScenePath = primarySceneLoadResult.Loaded ? primarySceneLoadResult.ScenePath : string.Empty;
+            string message = BuildExecutedMessage(plan, entries, status);
 
             return new RouteSceneCompositionResult(
                 plan,
@@ -235,8 +235,8 @@ namespace Immersive.Framework.RouteLifecycle
                 return RouteSceneCompositionStatus.NotExecuted;
             }
 
-            var hasIssue = false;
-            for (var i = 0; i < entries.Count; i++)
+            bool hasIssue = false;
+            for (int i = 0; i < entries.Count; i++)
             {
                 var entry = entries[i];
                 if (entry.BlocksComposition)
@@ -260,15 +260,15 @@ namespace Immersive.Framework.RouteLifecycle
             IReadOnlyList<RouteSceneCompositionResultEntry> entries,
             RouteSceneCompositionStatus status)
         {
-            var entryCount = entries != null ? entries.Count : 0;
-            var loaded = CountByStatus(entries, RouteSceneCompositionEntryStatus.Loaded)
+            int entryCount = entries?.Count ?? 0;
+            int loaded = CountByStatus(entries, RouteSceneCompositionEntryStatus.Loaded)
                 + CountByStatus(entries, RouteSceneCompositionEntryStatus.AlreadyLoaded);
-            var failed = CountByStatus(entries, RouteSceneCompositionEntryStatus.Failed);
-            var skipped = CountByStatus(entries, RouteSceneCompositionEntryStatus.Skipped);
-            var notExecuted = CountByStatus(entries, RouteSceneCompositionEntryStatus.NotExecuted);
-            var issues = CountIssues(entries, false);
-            var blockingIssues = CountIssues(entries, true);
-            var routeName = !string.IsNullOrWhiteSpace(plan.RouteOwnerName) ? plan.RouteOwnerName : "<missing>";
+            int failed = CountByStatus(entries, RouteSceneCompositionEntryStatus.Failed);
+            int skipped = CountByStatus(entries, RouteSceneCompositionEntryStatus.Skipped);
+            int notExecuted = CountByStatus(entries, RouteSceneCompositionEntryStatus.NotExecuted);
+            int issues = CountIssues(entries, false);
+            int blockingIssues = CountIssues(entries, true);
+            string routeName = plan.RouteOwnerName.ToDiagnosticText("<missing>");
 
             return $"Route scene composition executed for Route '{routeName}'. status='{status}' entries='{entryCount}' loaded='{loaded}' failed='{failed}' skipped='{skipped}' notExecuted='{notExecuted}' issues='{issues}' blockingIssues='{blockingIssues}' additiveScenes='{plan.AdditionalSceneCount}'.";
         }
@@ -282,8 +282,8 @@ namespace Immersive.Framework.RouteLifecycle
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < entries.Count; i++)
+            int count = 0;
+            for (int i = 0; i < entries.Count; i++)
             {
                 if (entries[i].Status == status)
                 {
@@ -303,8 +303,8 @@ namespace Immersive.Framework.RouteLifecycle
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < entries.Count; i++)
+            int count = 0;
+            for (int i = 0; i < entries.Count; i++)
             {
                 var entry = entries[i];
                 if (blockingOnly)
@@ -335,7 +335,7 @@ namespace Immersive.Framework.RouteLifecycle
                 RouteSceneCompositionResultEntry.NotExecutedEntry(plan.PrimaryScene, message)
             };
 
-            for (var i = 0; i < plan.AdditionalScenes.Count; i++)
+            for (int i = 0; i < plan.AdditionalScenes.Count; i++)
             {
                 entries.Add(RouteSceneCompositionResultEntry.NotExecutedEntry(plan.AdditionalScenes[i], message));
             }
@@ -350,8 +350,8 @@ namespace Immersive.Framework.RouteLifecycle
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < _entries.Length; i++)
+            int count = 0;
+            for (int i = 0; i < _entries.Length; i++)
             {
                 if (_entries[i].Status == status)
                 {
@@ -369,8 +369,8 @@ namespace Immersive.Framework.RouteLifecycle
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < _entries.Length; i++)
+            int count = 0;
+            for (int i = 0; i < _entries.Length; i++)
             {
                 var entry = _entries[i];
                 if (blockingOnly)
@@ -399,8 +399,8 @@ namespace Immersive.Framework.RouteLifecycle
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < _entries.Length; i++)
+            int count = 0;
+            for (int i = 0; i < _entries.Length; i++)
             {
                 if (_entries[i].IsOwnedLoaded)
                 {
@@ -413,7 +413,7 @@ namespace Immersive.Framework.RouteLifecycle
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

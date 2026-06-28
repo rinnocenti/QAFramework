@@ -5,6 +5,7 @@ using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Diagnostics;
 using Immersive.Framework.GameFlow;
 using UnityEngine;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.CycleReset
 {
@@ -92,11 +93,11 @@ namespace Immersive.Framework.CycleReset
         {
             EnsureLogger();
 
-            var resolvedReason = ResolveReason();
+            string resolvedReason = ResolveReason();
 
             if (_requestInFlight)
             {
-                var message = "Activity Cycle Reset ignored. This Activity Cycle Reset Trigger already has a request in flight.";
+                string message = "Activity Cycle Reset ignored. This Activity Cycle Reset Trigger already has a request in flight.";
                 _logger.Warning(message);
                 PublishCompleted(FlowRequestOutcome.Ignored, resolvedReason, message, default, false);
                 return;
@@ -104,7 +105,7 @@ namespace Immersive.Framework.CycleReset
 
             if (!FrameworkRuntimeHost.TryGetCurrent(out var runtimeHost))
             {
-                var message = "Activity Cycle Reset failed. Application Runtime is unavailable.";
+                string message = "Activity Cycle Reset failed. Application Runtime is unavailable.";
                 _logger.Error(message);
                 PublishCompleted(FlowRequestOutcome.Failed, resolvedReason, message, default, false);
                 return;
@@ -142,12 +143,12 @@ namespace Immersive.Framework.CycleReset
 
         private string ResolveReason()
         {
-            return string.IsNullOrWhiteSpace(reason) ? DefaultReason : reason.Trim();
+            return reason.NormalizeTextOrFallback(DefaultReason);
         }
 
         private void PublishSubmitted(string resolvedReason)
         {
-            var message = $"Activity Cycle Reset submitted. source='{DefaultSource}' reason='{resolvedReason}'.";
+            string message = $"Activity Cycle Reset submitted. source='{DefaultSource}' reason='{resolvedReason}'.";
             SetRequestState(FlowRequestEventPhase.Submitted, FlowRequestOutcome.Submitted, resolvedReason, message, default, false);
 
             _requestEvents.Publish(new CycleResetTriggerEvent(

@@ -46,9 +46,9 @@ namespace Immersive.Framework.ObjectReset
         {
             unchecked
             {
-                var hashCode = _defined ? 1 : 0;
-                hashCode = (hashCode * 397) ^ (RequireCurrentSnapshot ? 1 : 0);
-                hashCode = (hashCode * 397) ^ (AllowNoParticipants ? 1 : 0);
+                int hashCode = _defined ? 1 : 0;
+                hashCode = hashCode * 397 ^ (RequireCurrentSnapshot ? 1 : 0);
+                hashCode = hashCode * 397 ^ (AllowNoParticipants ? 1 : 0);
                 return hashCode;
             }
         }

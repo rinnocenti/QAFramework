@@ -113,14 +113,14 @@ namespace Immersive.Framework.ObjectReset
                 }
             }
 
-            var blockingIssues = issues.Count(issue => issue.IsBlocking);
-            var nonBlockingIssues = issues.Count - blockingIssues;
+            int blockingIssues = issues.Count(issue => issue.IsBlocking);
+            int nonBlockingIssues = issues.Count - blockingIssues;
             var status = blockingIssues > 0
                 ? ObjectResetResultStatus.Failed
                 : nonBlockingIssues > 0
                     ? ObjectResetResultStatus.CompletedWithWarnings
                     : ObjectResetResultStatus.Succeeded;
-            var message = status == ObjectResetResultStatus.Succeeded
+            string message = status == ObjectResetResultStatus.Succeeded
                 ? "Object Reset completed successfully."
                 : status == ObjectResetResultStatus.CompletedWithWarnings
                     ? "Object Reset completed with non-blocking participant warnings."
@@ -161,7 +161,7 @@ namespace Immersive.Framework.ObjectReset
             }
 
             var participantIds = new HashSet<ObjectResetParticipantId>();
-            for (var index = 0; index < participants.Count; index++)
+            for (int index = 0; index < participants.Count; index++)
             {
                 var participant = participants[index];
                 if (participant == null)

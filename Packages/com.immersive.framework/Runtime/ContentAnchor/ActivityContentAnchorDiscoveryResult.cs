@@ -1,5 +1,6 @@
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ContentAnchor
 {
@@ -112,7 +113,7 @@ namespace Immersive.Framework.ContentAnchor
 
         private static string GetActivityName(ActivityAsset activity)
         {
-            return activity != null ? activity.ActivityName : "<none>";
+            return activity.ToDiagnosticText(x => x.ActivityName);
         }
     }
 }

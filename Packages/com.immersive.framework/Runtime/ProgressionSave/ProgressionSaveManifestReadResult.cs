@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ProgressionSave
 {
@@ -36,12 +37,9 @@ namespace Immersive.Framework.ProgressionSave
 
         public bool HasManifest => Status == ProgressionSaveReadStatus.Found && Manifest.IsValid;
 
-        public bool Completed => Status == ProgressionSaveReadStatus.Found || Status == ProgressionSaveReadStatus.Missing;
+        public bool Completed => Status is ProgressionSaveReadStatus.Found or ProgressionSaveReadStatus.Missing;
 
-        public bool Failed => Status == ProgressionSaveReadStatus.Corrupt
-            || Status == ProgressionSaveReadStatus.BackendUnavailable
-            || Status == ProgressionSaveReadStatus.Failed
-            || Status == ProgressionSaveReadStatus.Rejected;
+        public bool Failed => Status is ProgressionSaveReadStatus.Corrupt or ProgressionSaveReadStatus.BackendUnavailable or ProgressionSaveReadStatus.Failed or ProgressionSaveReadStatus.Rejected;
 
         public bool HasMessage => !string.IsNullOrWhiteSpace(Message);
 
@@ -61,17 +59,17 @@ namespace Immersive.Framework.ProgressionSave
         {
             unchecked
             {
-                var hashCode = (int)Status;
-                hashCode = (hashCode * 397) ^ Manifest.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = (int)Status;
+                hashCode = hashCode * 397 ^ Manifest.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
 
         public override string ToString()
         {
-            var messageText = HasMessage ? Message : "<none>";
-            var count = HasManifest ? Manifest.Count : 0;
+            string messageText = HasMessage ? Message : "<none>";
+            int count = HasManifest ? Manifest.Count : 0;
             return $"status='{Status}' hasManifest='{HasManifest}' entries='{count}' message='{messageText}'";
         }
 
@@ -115,7 +113,7 @@ namespace Immersive.Framework.ProgressionSave
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

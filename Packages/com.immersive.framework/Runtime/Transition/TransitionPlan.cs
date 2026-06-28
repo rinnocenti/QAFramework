@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Identity;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Transition
 {
@@ -38,7 +39,7 @@ namespace Immersive.Framework.Transition
             Owner = owner;
             Source = Normalize(source);
             Reason = Normalize(reason);
-            this._steps = CopySteps(steps);
+            _steps = CopySteps(steps);
         }
 
         public TransitionOperationId OperationId { get; }
@@ -80,16 +81,16 @@ namespace Immersive.Framework.Transition
         {
             unchecked
             {
-                var hashCode = OperationId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Kind;
-                hashCode = (hashCode * 397) ^ Owner.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = OperationId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Kind;
+                hashCode = hashCode * 397 ^ Owner.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
 
-                var items = Steps;
-                for (var i = 0; i < items.Count; i++)
+                IReadOnlyList<TransitionStep> items = Steps;
+                for (int i = 0; i < items.Count; i++)
                 {
-                    hashCode = (hashCode * 397) ^ items[i].GetHashCode();
+                    hashCode = hashCode * 397 ^ items[i].GetHashCode();
                 }
 
                 return hashCode;
@@ -104,16 +105,16 @@ namespace Immersive.Framework.Transition
         public string ToDiagnosticString()
         {
             var builder = new StringBuilder();
-            var ownerText = HasOwner ? Owner.StableText : "<none>";
-            var sourceText = string.IsNullOrWhiteSpace(Source) ? "<none>" : Source;
-            var reasonText = string.IsNullOrWhiteSpace(Reason) ? "<none>" : Reason;
+            string ownerText = HasOwner ? Owner.StableText : "<none>";
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
             builder.Append($"operation='{OperationId.StableText}' kind='{Kind}' owner='{ownerText}' source='{sourceText}' reason='{reasonText}' steps='{StepCount}'");
 
             if (HasSteps)
             {
                 builder.Append(" plannedSteps=[");
-                var items = Steps;
-                for (var i = 0; i < items.Count; i++)
+                IReadOnlyList<TransitionStep> items = Steps;
+                for (int i = 0; i < items.Count; i++)
                 {
                     if (i > 0)
                     {
@@ -173,7 +174,7 @@ namespace Immersive.Framework.Transition
             }
 
             var copy = new TransitionStep[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 if (!source[i].IsValid)
                 {
@@ -193,7 +194,7 @@ namespace Immersive.Framework.Transition
                 return false;
             }
 
-            for (var i = 0; i < left.Count; i++)
+            for (int i = 0; i < left.Count; i++)
             {
                 if (!left[i].Equals(right[i]))
                 {
@@ -206,7 +207,7 @@ namespace Immersive.Framework.Transition
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

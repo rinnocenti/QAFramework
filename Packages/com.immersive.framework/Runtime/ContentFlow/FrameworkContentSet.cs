@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ContentFlow
 {
@@ -31,7 +32,7 @@ namespace Immersive.Framework.ContentFlow
             else
             {
                 _handles = new FrameworkContentHandle[handles.Count];
-                for (var i = 0; i < handles.Count; i++)
+                for (int i = 0; i < handles.Count; i++)
                 {
                     _handles[i] = handles[i];
                 }
@@ -46,7 +47,7 @@ namespace Immersive.Framework.ContentFlow
 
         public IReadOnlyList<FrameworkContentHandle> Handles => _handles ?? Array.Empty<FrameworkContentHandle>();
 
-        public int Count => _handles != null ? _handles.Length : 0;
+        public int Count => _handles?.Length ?? 0;
 
         public bool IsEmpty => Count == 0;
 
@@ -78,7 +79,7 @@ namespace Immersive.Framework.ContentFlow
 
             var builder = new StringBuilder();
             builder.Append($"scope='{Scope}' owner='{OwnerName}' handles='{Count}' details=[");
-            for (var i = 0; i < _handles.Length; i++)
+            for (int i = 0; i < _handles.Length; i++)
             {
                 if (i > 0)
                 {
@@ -94,7 +95,7 @@ namespace Immersive.Framework.ContentFlow
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

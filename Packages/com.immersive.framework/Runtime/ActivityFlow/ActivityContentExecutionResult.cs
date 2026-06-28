@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.RuntimeContent;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -11,7 +12,7 @@ namespace Immersive.Framework.ActivityFlow
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F10B Activity Content Execution result contract; no execution runtime or Unity side effects.")]
     public readonly struct ActivityContentExecutionResult : IEquatable<ActivityContentExecutionResult>
     {
-        public ActivityContentExecutionResult(
+        private ActivityContentExecutionResult(
             ActivityContentExecutionRequest request,
             ActivityContentExecutionStatus status,
             int blockingIssueCount,
@@ -45,9 +46,9 @@ namespace Immersive.Framework.ActivityFlow
             Status = status;
             BlockingIssueCount = blockingIssueCount;
             NonBlockingIssueCount = nonBlockingIssueCount;
-            Source = Normalize(source);
-            Reason = Normalize(reason);
-            Message = Normalize(message);
+            Source = source.NormalizeText();
+            Reason = reason.NormalizeText();
+            Message = message.NormalizeText();
         }
 
         public ActivityContentExecutionRequest Request { get; }
@@ -58,41 +59,31 @@ namespace Immersive.Framework.ActivityFlow
 
         public int NonBlockingIssueCount { get; }
 
-        public string Source { get; }
+        private string Source { get; }
 
-        public string Reason { get; }
+        private string Reason { get; }
 
-        public string Message { get; }
+        private string Message { get; }
 
         public ActivityContentExecutionPhase Phase => Request.Phase;
 
         public ActivityContentExecutionRequiredness Requiredness => Request.Requiredness;
 
-        public RuntimeContentIdentity Identity => Request.Identity;
+        private RuntimeContentIdentity Identity => Request.Identity;
 
-        public RuntimeContentOwner Owner => Request.Owner;
+        private RuntimeContentOwner Owner => Request.Owner;
 
-        public RuntimeContentScope Scope => Request.Scope;
+        public bool Succeeded => Status is ActivityContentExecutionStatus.Succeeded or ActivityContentExecutionStatus.SucceededNoOp;
 
-        public bool Succeeded => Status == ActivityContentExecutionStatus.Succeeded
-            || Status == ActivityContentExecutionStatus.SucceededNoOp;
+        public bool Skipped => Status is ActivityContentExecutionStatus.SkippedNotApplicable or ActivityContentExecutionStatus.SkippedOptional;
 
-        public bool Skipped => Status == ActivityContentExecutionStatus.SkippedNotApplicable
-            || Status == ActivityContentExecutionStatus.SkippedOptional;
-
-        public bool Failed => Status == ActivityContentExecutionStatus.FailedNonBlocking
-            || Status == ActivityContentExecutionStatus.FailedBlocking
-            || Status == ActivityContentExecutionStatus.RejectedInvalidRequest;
-
-        public bool HasIssues => BlockingIssueCount > 0 || NonBlockingIssueCount > 0;
+        public bool Failed => Status is ActivityContentExecutionStatus.FailedNonBlocking or ActivityContentExecutionStatus.FailedBlocking or ActivityContentExecutionStatus.RejectedInvalidRequest;
 
         public bool HasBlockingIssues => BlockingIssueCount > 0 || Status == ActivityContentExecutionStatus.FailedBlocking;
 
         public bool HasNonBlockingIssues => NonBlockingIssueCount > 0 || Status == ActivityContentExecutionStatus.FailedNonBlocking;
 
-        public bool BlocksReadiness => HasBlockingIssues;
-
-        public bool HasMessage => !string.IsNullOrWhiteSpace(Message);
+        private bool BlocksReadiness => HasBlockingIssues;
 
         public bool Equals(ActivityContentExecutionResult other)
         {
@@ -114,13 +105,13 @@ namespace Immersive.Framework.ActivityFlow
         {
             unchecked
             {
-                var hashCode = Request.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ BlockingIssueCount;
-                hashCode = (hashCode * 397) ^ NonBlockingIssueCount;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = Request.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ BlockingIssueCount;
+                hashCode = hashCode * 397 ^ NonBlockingIssueCount;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -132,9 +123,9 @@ namespace Immersive.Framework.ActivityFlow
 
         public string ToDiagnosticString()
         {
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            var messageText = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string messageText = Message.ToDiagnosticText();
             return $"phase='{Phase}' identity='{Identity.StableText}' owner='{Owner.StableText}' status='{Status}' requiredness='{Requiredness}' succeeded='{Succeeded}' skipped='{Skipped}' failed='{Failed}' blockingIssues='{BlockingIssueCount}' nonBlockingIssues='{NonBlockingIssueCount}' blocksReadiness='{BlocksReadiness}' source='{sourceText}' reason='{reasonText}' message='{messageText}'";
         }
 
@@ -225,11 +216,6 @@ namespace Immersive.Framework.ActivityFlow
                 source,
                 reason,
                 string.IsNullOrWhiteSpace(message) ? "Activity content execution failed and blocks readiness." : message);
-        }
-
-        private static string Normalize(string value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
         }
     }
 }

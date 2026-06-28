@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RuntimeContent
 {
@@ -52,17 +53,11 @@ namespace Immersive.Framework.RuntimeContent
 
         public bool HasToken => Token.IsValid;
 
-        public bool Applied => Status == RuntimeScopeTransitionGuardStatus.ScopeOpened
-            || Status == RuntimeScopeTransitionGuardStatus.CancellationRequested
-            || Status == RuntimeScopeTransitionGuardStatus.ScopeRemoved;
+        public bool Applied => Status is RuntimeScopeTransitionGuardStatus.ScopeOpened or RuntimeScopeTransitionGuardStatus.CancellationRequested or RuntimeScopeTransitionGuardStatus.ScopeRemoved;
 
         public bool Allowed => Status == RuntimeScopeTransitionGuardStatus.MaterializationAllowed;
 
-        public bool Rejected => Status == RuntimeScopeTransitionGuardStatus.RejectedMissingScope
-            || Status == RuntimeScopeTransitionGuardStatus.RejectedScopeCancelling
-            || Status == RuntimeScopeTransitionGuardStatus.RejectedScopeRemoved
-            || Status == RuntimeScopeTransitionGuardStatus.RejectedStaleToken
-            || Status == RuntimeScopeTransitionGuardStatus.RejectedMismatchedOwner;
+        public bool Rejected => Status is RuntimeScopeTransitionGuardStatus.RejectedMissingScope or RuntimeScopeTransitionGuardStatus.RejectedScopeCancelling or RuntimeScopeTransitionGuardStatus.RejectedScopeRemoved or RuntimeScopeTransitionGuardStatus.RejectedStaleToken or RuntimeScopeTransitionGuardStatus.RejectedMismatchedOwner;
 
         public RuntimeMaterializationStatus ToMaterializationStatus()
         {
@@ -85,10 +80,10 @@ namespace Immersive.Framework.RuntimeContent
 
         public string ToDiagnosticString()
         {
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            var messageText = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
-            var tokenText = HasToken ? Token.ToDiagnosticString() : "<none>";
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string messageText = Message.ToDiagnosticText();
+            string tokenText = HasToken ? Token.ToDiagnosticString() : "<none>";
             return $"owner='{Owner.StableText}' scope='{Scope}' status='{Status}' token={tokenText} source='{sourceText}' reason='{reasonText}' message='{messageText}'";
         }
 
@@ -258,7 +253,7 @@ namespace Immersive.Framework.RuntimeContent
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

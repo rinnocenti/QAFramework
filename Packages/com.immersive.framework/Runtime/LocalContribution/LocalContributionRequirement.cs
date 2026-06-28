@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.ContentFlow;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.LocalContribution
 {
@@ -18,7 +19,7 @@ namespace Immersive.Framework.LocalContribution
         {
             Identity = identity;
             Requiredness = NormalizeRequiredness(requiredness);
-            DiagnosticLabel = string.IsNullOrWhiteSpace(diagnosticLabel) ? string.Empty : diagnosticLabel.Trim();
+            DiagnosticLabel = diagnosticLabel.NormalizeText();
         }
 
         public LocalContentIdentity Identity { get; }
@@ -49,16 +50,16 @@ namespace Immersive.Framework.LocalContribution
         {
             unchecked
             {
-                var hashCode = Identity.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Requiredness;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(DiagnosticLabel ?? string.Empty);
+                int hashCode = Identity.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Requiredness;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(DiagnosticLabel ?? string.Empty);
                 return hashCode;
             }
         }
 
         public string ToDiagnosticString()
         {
-            var label = string.IsNullOrWhiteSpace(DiagnosticLabel)
+            string label = string.IsNullOrWhiteSpace(DiagnosticLabel)
                 ? string.Empty
                 : $" label='{FormatValue(DiagnosticLabel)}'";
 

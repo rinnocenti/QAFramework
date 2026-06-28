@@ -107,7 +107,7 @@ namespace Immersive.Framework.ActivityFlow
                     "Activity content execution phase plan rejected because runtime scope context is not valid Activity scope.");
             }
 
-            var collectionIssues = participants.SnapshotIssues();
+            ActivityContentExecutionParticipantCollectionIssue[] collectionIssues = participants.SnapshotIssues();
             if (participants.HasIssues && !participants.HasParticipants)
             {
                 return ActivityContentExecutionPhasePlan.RejectedResult(
@@ -123,7 +123,7 @@ namespace Immersive.Framework.ActivityFlow
                     "Activity content execution phase plan rejected because participant collection has issues and no valid participants.");
             }
 
-            var entries = participants.SnapshotEntriesForPhase(phase);
+            ActivityContentExecutionParticipantEntry[] entries = participants.SnapshotEntriesForPhase(phase);
             if (entries.Length == 0)
             {
                 return ActivityContentExecutionPhasePlan.SkippedNoParticipants(
@@ -139,7 +139,7 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var requests = new List<ActivityContentExecutionRequest>(entries.Length);
-            for (var i = 0; i < entries.Length; i++)
+            for (int i = 0; i < entries.Length; i++)
             {
                 var descriptor = entries[i].Descriptor;
                 var request = phase == ActivityContentExecutionPhase.Enter

@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RuntimeContent
 {
@@ -85,11 +86,11 @@ namespace Immersive.Framework.RuntimeContent
         {
             unchecked
             {
-                var hashCode = Context.GetHashCode();
-                hashCode = (hashCode * 397) ^ Identity.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Policy;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = Context.GetHashCode();
+                hashCode = hashCode * 397 ^ Identity.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Policy;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 return hashCode;
             }
         }
@@ -101,8 +102,8 @@ namespace Immersive.Framework.RuntimeContent
 
         public string ToDiagnosticString()
         {
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
             return $"identity='{Identity.StableText}' owner='{Owner.StableText}' scope='{Scope}' policy='{Policy}' source='{sourceText}' reason='{reasonText}'";
         }
 
@@ -148,7 +149,7 @@ namespace Immersive.Framework.RuntimeContent
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

@@ -1,5 +1,5 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System;
 using System.Threading.Tasks;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.ApplicationLifecycle;
@@ -29,14 +29,14 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source) ? nameof(PauseRuntimeRequestQaSmokeRunner) : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(PauseRuntimeRequestQaSmokeRunner));
 
-            var ensureRunningPassed = EnsureRunning(runtimeHost, logger, normalizedSource);
-            var pauseAppliedPassed = ValidatePauseRequestApplied(runtimeHost, logger, normalizedSource);
-            var pausedGatePassed = ValidatePausedGateBlocksInputAcceptance(runtimeHost, logger, normalizedSource);
-            var toggleResumePassed = ValidateToggleRequestResumes(runtimeHost, logger, normalizedSource);
-            var resumeNoChangePassed = ValidateResumeNoChange(runtimeHost, logger, normalizedSource);
-            var runningSnapshotPassed = ValidateRunningSnapshot(runtimeHost, logger, normalizedSource);
+            bool ensureRunningPassed = EnsureRunning(runtimeHost, logger, normalizedSource);
+            bool pauseAppliedPassed = ValidatePauseRequestApplied(runtimeHost, logger, normalizedSource);
+            bool pausedGatePassed = ValidatePausedGateBlocksInputAcceptance(runtimeHost, logger, normalizedSource);
+            bool toggleResumePassed = ValidateToggleRequestResumes(runtimeHost, logger, normalizedSource);
+            bool resumeNoChangePassed = ValidateResumeNoChange(runtimeHost, logger, normalizedSource);
+            bool runningSnapshotPassed = ValidateRunningSnapshot(runtimeHost, logger, normalizedSource);
 
             return Task.FromResult(ensureRunningPassed
                 && pauseAppliedPassed
@@ -54,7 +54,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.runtime.ensure-running"));
 
             var gateSnapshot = runtimeHost.PauseGateSnapshot;
-            var passed = result.IsValid
+            bool passed = result.IsValid
                 && result.Completed
                 && result.IsRunning
                 && runtimeHost.PauseState == PauseState.Running
@@ -72,7 +72,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.runtime.pause"));
 
             var gateSnapshot = runtimeHost.PauseGateSnapshot;
-            var passed = result.Applied
+            bool passed = result.Applied
                 && result.Completed
                 && result.StateChanged
                 && result.PreviousState == PauseState.Running
@@ -96,7 +96,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "qa.pause.runtime.evaluate-input");
 
-            var passed = runtimeHost.PauseState == PauseState.Paused
+            bool passed = runtimeHost.PauseState == PauseState.Paused
                 && evaluation.IsBlocked
                 && evaluation.Status == GateDecisionStatus.Blocked
                 && evaluation.BlockingBlockerCount == 1
@@ -114,7 +114,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.runtime.toggle"));
 
             var gateSnapshot = runtimeHost.PauseGateSnapshot;
-            var passed = result.Applied
+            bool passed = result.Applied
                 && result.Completed
                 && result.StateChanged
                 && result.PreviousState == PauseState.Paused
@@ -134,7 +134,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.runtime.resume-no-change"));
 
             var gateSnapshot = runtimeHost.PauseGateSnapshot;
-            var passed = result.IgnoredNoChange
+            bool passed = result.IgnoredNoChange
                 && result.Completed
                 && !result.StateChanged
                 && result.PreviousState == PauseState.Running
@@ -148,7 +148,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidateRunningSnapshot(FrameworkRuntimeHost runtimeHost, FrameworkLogger logger, string source)
         {
-            var snapshotAvailable = runtimeHost.TryGetPauseSnapshot(out var snapshot);
+            bool snapshotAvailable = runtimeHost.TryGetPauseSnapshot(out var snapshot);
             var gateSnapshot = runtimeHost.PauseGateSnapshot;
             var evaluation = runtimeHost.EvaluatePauseGateAdmission(
                 GateScope.Input,
@@ -157,7 +157,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "qa.pause.runtime.evaluate-running");
 
-            var passed = snapshotAvailable
+            bool passed = snapshotAvailable
                 && snapshot.IsRunning
                 && !snapshot.IsPaused
                 && snapshot.HasLastRequest
@@ -178,7 +178,7 @@ namespace Immersive.Framework.Diagnostics
             bool passed)
         {
             var gateSnapshot = runtimeHost.PauseGateSnapshot;
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("request", result.RequestId.StableText),
@@ -216,7 +216,7 @@ namespace Immersive.Framework.Diagnostics
             bool passed)
         {
             var gateSnapshot = runtimeHost.PauseGateSnapshot;
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("runtimeState", runtimeHost.PauseState.ToString()),
@@ -247,7 +247,7 @@ namespace Immersive.Framework.Diagnostics
             GateEvaluationResult evaluation,
             bool passed)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("snapshotAvailable", snapshotAvailable),

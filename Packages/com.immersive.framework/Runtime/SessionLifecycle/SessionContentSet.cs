@@ -18,20 +18,20 @@ namespace Immersive.Framework.SessionLifecycle
         {
             if (entries == null || entries.Count == 0)
             {
-                this._entries = Array.Empty<SessionContentEntry>();
+                _entries = Array.Empty<SessionContentEntry>();
                 return;
             }
 
-            this._entries = new SessionContentEntry[entries.Count];
-            for (var i = 0; i < entries.Count; i++)
+            _entries = new SessionContentEntry[entries.Count];
+            for (int i = 0; i < entries.Count; i++)
             {
-                this._entries[i] = entries[i];
+                _entries[i] = entries[i];
             }
         }
 
         public IReadOnlyList<SessionContentEntry> Entries => _entries ?? Array.Empty<SessionContentEntry>();
 
-        public int Count => _entries != null ? _entries.Length : 0;
+        public int Count => _entries?.Length ?? 0;
 
         public bool IsEmpty => Count == 0;
 
@@ -62,7 +62,7 @@ namespace Immersive.Framework.SessionLifecycle
 
             var builder = new StringBuilder();
             builder.Append($"Session Content Set registered {Count} item(s). registered='{RegisteredCount}' owned='{OwnedCount}' diagnosticOnly='{DiagnosticOnlyCount}' details=[");
-            for (var i = 0; i < _entries.Length; i++)
+            for (int i = 0; i < _entries.Length; i++)
             {
                 if (i > 0)
                 {
@@ -83,8 +83,8 @@ namespace Immersive.Framework.SessionLifecycle
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < _entries.Length; i++)
+            int count = 0;
+            for (int i = 0; i < _entries.Length; i++)
             {
                 if (_entries[i].Ownership == ownership)
                 {

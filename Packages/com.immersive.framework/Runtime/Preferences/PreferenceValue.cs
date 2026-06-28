@@ -28,10 +28,10 @@ namespace Immersive.Framework.Preferences
             }
 
             Kind = kind;
-            this._stringValue = Normalize(stringValue);
-            this._intValue = intValue;
-            this._floatValue = floatValue;
-            this._boolValue = boolValue;
+            _stringValue = Normalize(stringValue);
+            _intValue = intValue;
+            _floatValue = floatValue;
+            _boolValue = boolValue;
         }
 
         public PreferenceValueKind Kind { get; }
@@ -116,11 +116,11 @@ namespace Immersive.Framework.Preferences
         {
             unchecked
             {
-                var hashCode = (int)Kind;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(_stringValue ?? string.Empty);
-                hashCode = (hashCode * 397) ^ _intValue;
-                hashCode = (hashCode * 397) ^ _floatValue.GetHashCode();
-                hashCode = (hashCode * 397) ^ _boolValue.GetHashCode();
+                int hashCode = (int)Kind;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(_stringValue ?? string.Empty);
+                hashCode = hashCode * 397 ^ _intValue;
+                hashCode = hashCode * 397 ^ _floatValue.GetHashCode();
+                hashCode = hashCode * 397 ^ _boolValue.GetHashCode();
                 return hashCode;
             }
         }

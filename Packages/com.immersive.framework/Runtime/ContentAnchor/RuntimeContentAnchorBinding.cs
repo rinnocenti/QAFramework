@@ -121,7 +121,7 @@ namespace Immersive.Framework.ContentAnchor
                     "Content Anchor binding failed because the runtime content handle is already released.");
             }
 
-            var bindingKey = CreateBindingKey(request);
+            string bindingKey = CreateBindingKey(request);
             if (_bindings.TryGetValue(bindingKey, out var existingHandle))
             {
                 return EvaluateExistingBinding(
@@ -168,7 +168,7 @@ namespace Immersive.Framework.ContentAnchor
         {
             ValidateIdentity(identity);
 
-            var before = BindingCount;
+            int before = BindingCount;
             RemoveBindingsWhere(handle => handle.Request.RuntimeIdentity == identity);
             return ContentAnchorBindingLifecycleResult.FromCounts(
                 before,
@@ -192,7 +192,7 @@ namespace Immersive.Framework.ContentAnchor
         {
             ValidateOwner(owner);
 
-            var before = BindingCount;
+            int before = BindingCount;
             RemoveBindingsWhere(handle => handle.Request.RuntimeOwner == owner);
             return ContentAnchorBindingLifecycleResult.FromCounts(
                 before,
@@ -216,7 +216,7 @@ namespace Immersive.Framework.ContentAnchor
         {
             ValidateRuntimeScope(scope);
 
-            var before = BindingCount;
+            int before = BindingCount;
             RemoveBindingsWhere(handle => handle.Request.RuntimeScope == scope);
             return ContentAnchorBindingLifecycleResult.FromCounts(
                 before,
@@ -240,7 +240,7 @@ namespace Immersive.Framework.ContentAnchor
         {
             ValidateAnchor(anchor);
 
-            var before = BindingCount;
+            int before = BindingCount;
             RemoveBindingsWhere(handle => handle.Request.Matches(anchor));
             return ContentAnchorBindingLifecycleResult.FromCounts(
                 before,
@@ -265,7 +265,7 @@ namespace Immersive.Framework.ContentAnchor
         {
             ValidateAnchorOwner(scope, owner);
 
-            var before = BindingCount;
+            int before = BindingCount;
             RemoveBindingsWhere(handle => handle.Request.AnchorScope == scope && handle.Request.AnchorOwner == owner);
             return ContentAnchorBindingLifecycleResult.FromCounts(
                 before,
@@ -289,7 +289,7 @@ namespace Immersive.Framework.ContentAnchor
         {
             ValidateAnchorScope(scope);
 
-            var before = BindingCount;
+            int before = BindingCount;
             RemoveBindingsWhere(handle => handle.Request.AnchorScope == scope);
             return ContentAnchorBindingLifecycleResult.FromCounts(
                 before,
@@ -352,7 +352,7 @@ namespace Immersive.Framework.ContentAnchor
             }
 
             var keys = new List<string>();
-            foreach (var pair in _bindings)
+            foreach (KeyValuePair<string, ContentAnchorContentHandle> pair in _bindings)
             {
                 if (pair.Value.RuntimeIdentity == identity)
                 {
@@ -373,7 +373,7 @@ namespace Immersive.Framework.ContentAnchor
             }
 
             var keys = new List<string>();
-            foreach (var pair in _bindings)
+            foreach (KeyValuePair<string, ContentAnchorContentHandle> pair in _bindings)
             {
                 if (pair.Value.RuntimeOwner == owner)
                 {
@@ -480,7 +480,7 @@ namespace Immersive.Framework.ContentAnchor
             }
 
             var keys = new List<string>();
-            foreach (var pair in _bindings)
+            foreach (KeyValuePair<string, ContentAnchorContentHandle> pair in _bindings)
             {
                 if (predicate(pair.Value))
                 {
@@ -517,8 +517,8 @@ namespace Immersive.Framework.ContentAnchor
 
         private int RemoveKeys(List<string> keys)
         {
-            var removed = 0;
-            for (var i = 0; i < keys.Count; i++)
+            int removed = 0;
+            for (int i = 0; i < keys.Count; i++)
             {
                 if (_bindings.Remove(keys[i]))
                 {

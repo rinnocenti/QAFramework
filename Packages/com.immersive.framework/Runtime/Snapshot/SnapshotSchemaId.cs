@@ -25,7 +25,7 @@ namespace Immersive.Framework.Snapshot
                 throw new ArgumentException("Snapshot schema id must be valid.", nameof(value));
             }
 
-            this._value = value;
+            _value = value;
         }
 
         public FrameworkIdentityDomain Domain => FrameworkIdentityDomain.Snapshot;

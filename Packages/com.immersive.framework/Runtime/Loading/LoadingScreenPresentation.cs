@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Loading
 {
@@ -71,11 +72,11 @@ namespace Immersive.Framework.Loading
         {
             unchecked
             {
-                var hashCode = Operation.GetHashCode();
-                hashCode = (hashCode * 397) ^ ShouldBeVisible.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Title ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Detail ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                int hashCode = Operation.GetHashCode();
+                hashCode = hashCode * 397 ^ ShouldBeVisible.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Title ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Detail ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
                 return hashCode;
             }
         }
@@ -87,9 +88,9 @@ namespace Immersive.Framework.Loading
 
         public string ToDiagnosticString()
         {
-            var titleText = HasTitle ? Title : "<none>";
-            var detailText = HasDetail ? Detail : "<none>";
-            var sourceText = HasSource ? Source : "<none>";
+            string titleText = HasTitle ? Title : "<none>";
+            string detailText = HasDetail ? Detail : "<none>";
+            string sourceText = HasSource ? Source : "<none>";
             return $"operation='{OperationId.StableText}' status='{OperationStatus}' visible='{ShouldBeVisible}' progress='{Progress.NormalizedValue:0.###}' percent='{Progress.PercentRounded}' title='{titleText}' detail='{detailText}' source='{sourceText}'";
         }
 
@@ -115,7 +116,7 @@ namespace Immersive.Framework.Loading
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

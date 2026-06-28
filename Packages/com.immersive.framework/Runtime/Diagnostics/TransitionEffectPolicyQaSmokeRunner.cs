@@ -1,5 +1,5 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System;
 using System.Threading.Tasks;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Transition;
@@ -26,9 +26,7 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source)
-                ? nameof(TransitionEffectPolicyQaSmokeRunner)
-                : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(TransitionEffectPolicyQaSmokeRunner));
 
             GameObject surfaceRoot = null;
             try
@@ -37,11 +35,11 @@ namespace Immersive.Framework.Diagnostics
                 var adapter = surfaceRoot.AddComponent<UnityFadeCurtainEffectAdapter>();
                 var adapters = new ITransitionEffectAdapter[] { adapter };
 
-                var requiredPresent = ValidateRequiredAdapterPresent(logger, adapters, normalizedSource);
-                var optionalMissing = ValidateOptionalAdapterMissing(logger, adapters, normalizedSource);
-                var requiredMissing = ValidateRequiredAdapterMissing(logger, adapters, normalizedSource);
-                var duplicateId = ValidateDuplicateEffectId(logger, adapters, normalizedSource);
-                var mixedPolicy = ValidateMixedPolicyEvaluation(logger, adapters, normalizedSource);
+                bool requiredPresent = ValidateRequiredAdapterPresent(logger, adapters, normalizedSource);
+                bool optionalMissing = ValidateOptionalAdapterMissing(logger, adapters, normalizedSource);
+                bool requiredMissing = ValidateRequiredAdapterMissing(logger, adapters, normalizedSource);
+                bool duplicateId = ValidateDuplicateEffectId(logger, adapters, normalizedSource);
+                bool mixedPolicy = ValidateMixedPolicyEvaluation(logger, adapters, normalizedSource);
 
                 return Task.FromResult(requiredPresent
                     && optionalMissing
@@ -73,7 +71,7 @@ namespace Immersive.Framework.Diagnostics
                     "qa.transition-effect.policy.required-present"));
 
             var evaluation = TransitionEffectAuthoringPolicy.Evaluate(plan, adapters);
-            var passed = evaluation.IsValid
+            bool passed = evaluation.IsValid
                 && evaluation.IsAllowed
                 && !evaluation.BlocksTransition
                 && evaluation.AdapterCount == 1
@@ -105,7 +103,7 @@ namespace Immersive.Framework.Diagnostics
                     "qa.transition-effect.policy.optional-missing"));
 
             var evaluation = TransitionEffectAuthoringPolicy.Evaluate(plan, adapters);
-            var passed = evaluation.IsValid
+            bool passed = evaluation.IsValid
                 && evaluation.IsAllowed
                 && !evaluation.BlocksTransition
                 && evaluation.AdapterCount == 1
@@ -138,7 +136,7 @@ namespace Immersive.Framework.Diagnostics
                     "qa.transition-effect.policy.required-missing"));
 
             var evaluation = TransitionEffectAuthoringPolicy.Evaluate(plan, adapters);
-            var passed = evaluation.IsValid
+            bool passed = evaluation.IsValid
                 && !evaluation.IsAllowed
                 && evaluation.BlocksTransition
                 && evaluation.AdapterCount == 1
@@ -159,8 +157,8 @@ namespace Immersive.Framework.Diagnostics
             string source)
         {
             var operationId = TransitionOperationId.From("qa.transition-effect.policy.duplicate-id");
-            var duplicateId = "qa.transition-effect.policy.duplicate.fade";
-            var requests = new[]
+            string duplicateId = "qa.transition-effect.policy.duplicate.fade";
+            TransitionEffectRequest[] requests = new[]
             {
                 TransitionEffectRequest.Required(
                     duplicateId,
@@ -188,7 +186,7 @@ namespace Immersive.Framework.Diagnostics
                 requests);
 
             var evaluation = TransitionEffectAuthoringPolicy.Evaluate(plan, adapters);
-            var passed = evaluation.IsValid
+            bool passed = evaluation.IsValid
                 && !evaluation.IsAllowed
                 && evaluation.BlocksTransition
                 && evaluation.AdapterCount == 1
@@ -209,7 +207,7 @@ namespace Immersive.Framework.Diagnostics
             string source)
         {
             var operationId = TransitionOperationId.From("qa.transition-effect.policy.mixed");
-            var requests = new[]
+            TransitionEffectRequest[] requests = new[]
             {
                 TransitionEffectRequest.Required(
                     "qa.transition-effect.policy.mixed.fade.required",
@@ -237,7 +235,7 @@ namespace Immersive.Framework.Diagnostics
                 requests);
 
             var evaluation = TransitionEffectAuthoringPolicy.Evaluate(plan, adapters);
-            var passed = evaluation.IsValid
+            bool passed = evaluation.IsValid
                 && evaluation.IsAllowed
                 && !evaluation.BlocksTransition
                 && evaluation.AdapterCount == 1

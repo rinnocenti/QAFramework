@@ -1,6 +1,7 @@
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
 using UnityEngine;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ContentAnchor
 {
@@ -92,7 +93,7 @@ namespace Immersive.Framework.ContentAnchor
 
         public bool IsSceneAuthored => gameObject.scene.IsValid() && gameObject.scene.isLoaded;
 
-        public string ObjectName => gameObject != null ? gameObject.name : "<missing>";
+        public string ObjectName => gameObject.ToDiagnosticText(x => x.name, "<missing>");
 
         public string SceneName => gameObject != null && gameObject.scene.IsValid()
             ? gameObject.scene.name
@@ -169,7 +170,7 @@ namespace Immersive.Framework.ContentAnchor
 
         private static string GetActivityName(ActivityAsset activity)
         {
-            return activity != null ? activity.ActivityName : "<none>";
+            return activity.ToDiagnosticText(x => x.ActivityName);
         }
 
         private static string GetHierarchyPath(Transform transform)
@@ -179,7 +180,7 @@ namespace Immersive.Framework.ContentAnchor
                 return string.Empty;
             }
 
-            var path = transform.name;
+            string path = transform.name;
             var parent = transform.parent;
             while (parent != null)
             {
@@ -192,7 +193,7 @@ namespace Immersive.Framework.ContentAnchor
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

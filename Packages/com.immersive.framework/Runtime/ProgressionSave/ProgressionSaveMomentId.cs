@@ -25,7 +25,7 @@ namespace Immersive.Framework.ProgressionSave
                 throw new ArgumentException("Progression Save moment id must be valid.", nameof(value));
             }
 
-            this._value = value;
+            _value = value;
         }
 
         public FrameworkIdentityDomain Domain => FrameworkIdentityDomain.ProgressionSave;

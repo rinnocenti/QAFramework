@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
 using UnityEngine;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Loading
 {
@@ -125,14 +126,14 @@ namespace Immersive.Framework.Loading
         {
             unchecked
             {
-                var hashCode = (int)Action;
-                hashCode = (hashCode * 397) ^ ShouldBeVisible.GetHashCode();
-                hashCode = (hashCode * 397) ^ Progress.GetHashCode();
-                hashCode = (hashCode * 397) ^ ProgressSupported.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Title ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Detail ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = (int)Action;
+                hashCode = hashCode * 397 ^ ShouldBeVisible.GetHashCode();
+                hashCode = hashCode * 397 ^ Progress.GetHashCode();
+                hashCode = hashCode * 397 ^ ProgressSupported.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Title ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Detail ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 return hashCode;
             }
         }
@@ -144,10 +145,10 @@ namespace Immersive.Framework.Loading
 
         public string ToDiagnosticString()
         {
-            var titleText = HasTitle ? Title : "<none>";
-            var detailText = HasDetail ? Detail : "<none>";
-            var sourceText = HasSource ? Source : "<none>";
-            var reasonText = HasReason ? Reason : "<none>";
+            string titleText = HasTitle ? Title : "<none>";
+            string detailText = HasDetail ? Detail : "<none>";
+            string sourceText = HasSource ? Source : "<none>";
+            string reasonText = HasReason ? Reason : "<none>";
             return $"action='{Action}' visible='{ShouldBeVisible}' progressSupported='{ProgressSupported}' progress='{Progress.NormalizedValue:0.###}' percent='{Progress.PercentRounded}' title='{titleText}' detail='{detailText}' source='{sourceText}' reason='{reasonText}'";
         }
 
@@ -268,7 +269,7 @@ namespace Immersive.Framework.Loading
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 
@@ -333,7 +334,7 @@ namespace Immersive.Framework.Loading
 
         public int IssueCount => Issues.Count;
 
-        public int BlockingIssueCount => Status == LoadingSurfaceResultStatus.Failed || Status == LoadingSurfaceResultStatus.Rejected
+        public int BlockingIssueCount => Status is LoadingSurfaceResultStatus.Failed or LoadingSurfaceResultStatus.Rejected
             ? Math.Max(1, IssueCount)
             : 0;
 
@@ -371,13 +372,13 @@ namespace Immersive.Framework.Loading
         {
             unchecked
             {
-                var hashCode = Request.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(AdapterName ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
-                for (var i = 0; i < Issues.Count; i++)
+                int hashCode = Request.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(AdapterName ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                for (int i = 0; i < Issues.Count; i++)
                 {
-                    hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Issues[i] ?? string.Empty);
+                    hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Issues[i] ?? string.Empty);
                 }
 
                 return hashCode;
@@ -391,14 +392,14 @@ namespace Immersive.Framework.Loading
 
         public string ToDiagnosticString()
         {
-            var adapterText = string.IsNullOrWhiteSpace(AdapterName) ? "<none>" : AdapterName;
-            var messageText = string.IsNullOrWhiteSpace(Message) ? "<none>" : Message;
+            string adapterText = AdapterName.ToDiagnosticText();
+            string messageText = Message.ToDiagnosticText();
             var builder = new StringBuilder();
             builder.Append($"adapter='{adapterText}' action='{Action}' status='{Status}' visible='{ShouldBeVisible}' progressSupported='{ProgressSupported}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' message='{messageText}' request=({Request.ToDiagnosticString()})");
             if (HasIssues)
             {
                 builder.Append(" issues=[");
-                for (var i = 0; i < Issues.Count; i++)
+                for (int i = 0; i < Issues.Count; i++)
                 {
                     if (i > 0)
                     {
@@ -474,8 +475,8 @@ namespace Immersive.Framework.Loading
                 return Array.Empty<string>();
             }
 
-            var copy = new string[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            string[] copy = new string[source.Count];
+            for (int i = 0; i < source.Count; i++)
             {
                 copy[i] = Normalize(source[i]);
             }
@@ -490,7 +491,7 @@ namespace Immersive.Framework.Loading
                 return false;
             }
 
-            for (var i = 0; i < left.Count; i++)
+            for (int i = 0; i < left.Count; i++)
             {
                 if (!string.Equals(left[i], right[i], StringComparison.Ordinal))
                 {
@@ -503,7 +504,7 @@ namespace Immersive.Framework.Loading
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 

@@ -1,5 +1,5 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System;
 using System.Threading.Tasks;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Gate;
@@ -24,9 +24,7 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source)
-                ? nameof(TransitionGateBlockerQaSmokeRunner)
-                : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(TransitionGateBlockerQaSmokeRunner));
 
             var operationId = TransitionOperationId.From("qa.transition.gate-blocker.route-switch");
             const TransitionKind kind = TransitionKind.RouteSwitch;
@@ -37,10 +35,10 @@ namespace Immersive.Framework.Diagnostics
                 normalizedSource,
                 "qa.transition.gate-blocker.running");
 
-            var blockerCreatedPassed = ValidateBlockerCreated(logger, blocker, operationId, kind);
-            var runningBlocksPassed = ValidateRunningBlocksLifecycleRequest(logger, operationId, kind, normalizedSource);
-            var completedReleasesPassed = ValidateCompletedReleasesBlocker(logger, operationId, kind, normalizedSource);
-            var failedReleasesPassed = ValidateFailedReleasesBlocker(logger, operationId, kind, normalizedSource);
+            bool blockerCreatedPassed = ValidateBlockerCreated(logger, blocker, operationId, kind);
+            bool runningBlocksPassed = ValidateRunningBlocksLifecycleRequest(logger, operationId, kind, normalizedSource);
+            bool completedReleasesPassed = ValidateCompletedReleasesBlocker(logger, operationId, kind, normalizedSource);
+            bool failedReleasesPassed = ValidateFailedReleasesBlocker(logger, operationId, kind, normalizedSource);
 
             return Task.FromResult(blockerCreatedPassed
                 && runningBlocksPassed
@@ -54,7 +52,7 @@ namespace Immersive.Framework.Diagnostics
             TransitionOperationId operationId,
             TransitionKind kind)
         {
-            var passed = blocker.IsValid
+            bool passed = blocker.IsValid
                 && blocker.BlockerId.Value == TransitionGateBlockerPolicy.LifecycleRequestBlockerId
                 && blocker.Scope == GateScope.GameFlow
                 && blocker.Domain == GateDomain.LifecycleRequest
@@ -87,7 +85,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.transition.gate-blocker.evaluate-running",
                 TransitionGateBlockerPolicy.PolicySource);
 
-            var passed = snapshot.HasBlockers
+            bool passed = snapshot.HasBlockers
                 && snapshot.BlockerCount == 1
                 && evaluation.IsBlocked
                 && evaluation.BlockingBlockerCount == 1
@@ -106,7 +104,7 @@ namespace Immersive.Framework.Diagnostics
             TransitionKind kind,
             string source)
         {
-            var observedSteps = new[]
+            TransitionStep[] observedSteps = new[]
             {
                 TransitionStep.Observed(0, TransitionPhase.OperationOpened, "operation-opened", "transition operation opened."),
                 TransitionStep.Succeeded(10, TransitionPhase.GateBlockApplied, "gate-block-applied", "transition Gate blocker applied."),
@@ -131,7 +129,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.transition.gate-blocker.evaluate-completed-release",
                 TransitionGateBlockerPolicy.PolicySource);
 
-            var passed = result.Succeeded
+            bool passed = result.Succeeded
                 && result.Completed
                 && result.ObservedStepCount == 4
                 && result.BlockingIssueCount == 0
@@ -148,7 +146,7 @@ namespace Immersive.Framework.Diagnostics
             TransitionKind kind,
             string source)
         {
-            var observedSteps = new[]
+            TransitionStep[] observedSteps = new[]
             {
                 TransitionStep.Observed(0, TransitionPhase.OperationOpened, "operation-opened", "transition operation opened."),
                 TransitionStep.Succeeded(10, TransitionPhase.GateBlockApplied, "gate-block-applied", "transition Gate blocker applied."),
@@ -156,7 +154,7 @@ namespace Immersive.Framework.Diagnostics
                 TransitionStep.Succeeded(30, TransitionPhase.GateBlockReleased, "gate-block-released", "transition Gate blocker released after failure.")
             };
 
-            var issues = new[]
+            string[] issues = new[]
             {
                 "synthetic-transition-failure"
             };
@@ -179,7 +177,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.transition.gate-blocker.evaluate-failed-release",
                 TransitionGateBlockerPolicy.PolicySource);
 
-            var passed = result.Failed
+            bool passed = result.Failed
                 && !result.Completed
                 && result.ObservedStepCount == 4
                 && result.IssueCount == 1
@@ -199,7 +197,7 @@ namespace Immersive.Framework.Diagnostics
             TransitionOperationId operationId,
             TransitionKind kind)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("operation", operationId.StableText),
@@ -230,7 +228,7 @@ namespace Immersive.Framework.Diagnostics
             GateEvaluationResult evaluation,
             int snapshotBlockers)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("operation", operationId.StableText),
@@ -262,7 +260,7 @@ namespace Immersive.Framework.Diagnostics
             TransitionResult result,
             GateEvaluationResult releasedEvaluation)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("operation", operationId.StableText),

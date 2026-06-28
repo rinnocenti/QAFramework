@@ -22,7 +22,7 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Plans/F25-PLAN-Activity-Content-Scene-Composition.md`
 - `Plans/F26-PLAN-Activity-Discovery-And-Loading-Progress.md`
 - `Plans/F27-PLAN-Pause-UIGlobal-And-Input.md`
-- `Plans/F28-PLAN-InputMode-And-Adapter-Boundary.md`
+- `Plans/F28-PLAN-InputMode-And-Adapter-Boundary.md` — Roadmap Reconciliation and Adapter Module Spine
 
 ### Setup
 
@@ -50,6 +50,8 @@ Gate / input capability audit: `Notes/F27C-Gate-Input-Capability-Audit.md`.
 Pause capability Gate reframe: `Notes/F27D-Pause-Capability-Gate-Reframe.md`.
 
 F27E cancelled / InputMode replan: `Notes/F27E-CANCELLED-Input-Consumers-Gate-Replan.md`.
+
+F28 roadmap correction: `Plans/F28-PLAN-InputMode-And-Adapter-Boundary.md`.
 
 ## Regras
 

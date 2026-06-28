@@ -8,6 +8,7 @@ using Immersive.Framework.Pause;
 using Immersive.Framework.TransitionEffects;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.GlobalUi
 {
@@ -39,8 +40,8 @@ namespace Immersive.Framework.GlobalUi
             Policy = policy;
             ScenePath = Normalize(scenePath);
             SceneName = Normalize(sceneName);
-            Label = string.IsNullOrWhiteSpace(label) ? "UIGlobal" : label.Trim();
-            PersistedRootCount = persistedRoots != null ? persistedRoots.Count : 0;
+            Label = label.NormalizeTextOrFallback("UIGlobal");
+            PersistedRootCount = persistedRoots?.Count ?? 0;
             _transitionAdapters = Copy(transitionAdapters);
             _loadingAdapters = Copy(loadingAdapters);
             _pauseAdapters = Copy(pauseAdapters);
@@ -121,11 +122,11 @@ namespace Immersive.Framework.GlobalUi
                 return Failed(application, message);
             }
 
-            var scenePath = application.GlobalUiScenePath;
+            string scenePath = application.GlobalUiScenePath;
             var asyncOperation = SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Additive);
             if (asyncOperation == null)
             {
-                var message = $"UIGlobal scene '{scenePath}' could not be loaded. Ensure it is in Build Settings.";
+                string message = $"UIGlobal scene '{scenePath}' could not be loaded. Ensure it is in Build Settings.";
                 logger.Error(message);
                 return Failed(application, message);
             }
@@ -143,16 +144,16 @@ namespace Immersive.Framework.GlobalUi
 
             if (!scene.IsValid() || !scene.isLoaded)
             {
-                var message = $"UIGlobal scene '{scenePath}' finished loading but could not be resolved as a loaded scene.";
+                string message = $"UIGlobal scene '{scenePath}' finished loading but could not be resolved as a loaded scene.";
                 logger.Error(message);
                 return Failed(application, message);
             }
 
-            var roots = scene.GetRootGameObjects();
+            GameObject[] roots = scene.GetRootGameObjects();
             var persistedRoots = new List<GameObject>();
             if (roots != null)
             {
-                for (var i = 0; i < roots.Length; i++)
+                for (int i = 0; i < roots.Length; i++)
                 {
                     var root = roots[i];
                     if (root == null)
@@ -168,10 +169,10 @@ namespace Immersive.Framework.GlobalUi
                 }
             }
 
-            var transitionAdapters = CollectAdapters<ITransitionEffectAdapter>(persistedRoots);
-            var loadingAdapters = CollectAdapters<ILoadingSurfaceAdapter>(persistedRoots);
-            var pauseAdapters = CollectAdapters<IPauseSurfaceAdapter>(persistedRoots);
-            var blockingMessage = BuildBlockingMessageIfRequired(
+            List<ITransitionEffectAdapter> transitionAdapters = CollectAdapters<ITransitionEffectAdapter>(persistedRoots);
+            List<ILoadingSurfaceAdapter> loadingAdapters = CollectAdapters<ILoadingSurfaceAdapter>(persistedRoots);
+            List<IPauseSurfaceAdapter> pauseAdapters = CollectAdapters<IPauseSurfaceAdapter>(persistedRoots);
+            string blockingMessage = BuildBlockingMessageIfRequired(
                 application.GlobalUiScenePolicyValue,
                 application.GlobalUiSceneName,
                 transitionAdapters.Count,
@@ -186,7 +187,7 @@ namespace Immersive.Framework.GlobalUi
                 }
             }
 
-            var label = string.IsNullOrWhiteSpace(application.GlobalUiSceneName)
+            string label = string.IsNullOrWhiteSpace(application.GlobalUiSceneName)
                 ? "UIGlobal"
                 : application.GlobalUiSceneName;
             if (!string.IsNullOrWhiteSpace(blockingMessage))
@@ -246,7 +247,7 @@ namespace Immersive.Framework.GlobalUi
                 return adapters;
             }
 
-            for (var i = 0; i < roots.Count; i++)
+            for (int i = 0; i < roots.Count; i++)
             {
                 var root = roots[i];
                 if (root == null)
@@ -254,13 +255,13 @@ namespace Immersive.Framework.GlobalUi
                     continue;
                 }
 
-                var behaviours = root.GetComponentsInChildren<MonoBehaviour>(true);
+                MonoBehaviour[] behaviours = root.GetComponentsInChildren<MonoBehaviour>(true);
                 if (behaviours == null)
                 {
                     continue;
                 }
 
-                for (var j = 0; j < behaviours.Length; j++)
+                for (int j = 0; j < behaviours.Length; j++)
                 {
                     if (behaviours[j] is TAdapter adapter)
                     {
@@ -314,7 +315,7 @@ namespace Immersive.Framework.GlobalUi
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

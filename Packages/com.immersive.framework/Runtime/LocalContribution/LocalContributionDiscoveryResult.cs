@@ -21,14 +21,14 @@ namespace Immersive.Framework.LocalContribution
 
             if (issues == null || issues.Count == 0)
             {
-                this._issues = Array.Empty<LocalContributionDiscoveryIssue>();
+                _issues = Array.Empty<LocalContributionDiscoveryIssue>();
                 return;
             }
 
-            this._issues = new LocalContributionDiscoveryIssue[issues.Count];
-            for (var i = 0; i < issues.Count; i++)
+            _issues = new LocalContributionDiscoveryIssue[issues.Count];
+            for (int i = 0; i < issues.Count; i++)
             {
-                this._issues[i] = issues[i];
+                _issues[i] = issues[i];
             }
         }
 
@@ -59,10 +59,10 @@ namespace Immersive.Framework.LocalContribution
                 return builder.ToString();
             }
 
-            var limit = Math.Max(0, maxIssues);
-            var shown = Math.Min(limit, IssueCount);
+            int limit = Math.Max(0, maxIssues);
+            int shown = Math.Min(limit, IssueCount);
             builder.Append(" discoveryIssues=[");
-            for (var i = 0; i < shown; i++)
+            for (int i = 0; i < shown; i++)
             {
                 if (i > 0)
                 {

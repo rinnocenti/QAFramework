@@ -1,5 +1,5 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System;
 using System.Threading.Tasks;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Identity;
@@ -24,23 +24,23 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source) ? nameof(TransitionQaSmokeRunner) : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(TransitionQaSmokeRunner));
 
             var operationId = TransitionOperationId.From("qa.transition.diagnostics.route-switch");
             var plan = CreateRouteSwitchPlan(operationId, normalizedSource);
 
-            var planPassed = ValidatePlan(logger, plan);
-            var succeededPassed = ValidateSucceededResult(logger, operationId, normalizedSource, plan);
-            var warningsPassed = ValidateWarningsResult(logger, operationId, normalizedSource);
-            var failedPassed = ValidateFailedResult(logger, operationId, normalizedSource);
-            var snapshotPassed = ValidateSnapshot(logger, plan);
+            bool planPassed = ValidatePlan(logger, plan);
+            bool succeededPassed = ValidateSucceededResult(logger, operationId, normalizedSource, plan);
+            bool warningsPassed = ValidateWarningsResult(logger, operationId, normalizedSource);
+            bool failedPassed = ValidateFailedResult(logger, operationId, normalizedSource);
+            bool snapshotPassed = ValidateSnapshot(logger, plan);
 
             return Task.FromResult(planPassed && succeededPassed && warningsPassed && failedPassed && snapshotPassed);
         }
 
         private static TransitionPlan CreateRouteSwitchPlan(TransitionOperationId operationId, string source)
         {
-            var steps = new[]
+            TransitionStep[] steps = new[]
             {
                 TransitionStep.Planned(0, TransitionPhase.RequestAdmitted, "request-admitted"),
                 TransitionStep.Planned(10, TransitionPhase.OperationOpened, "operation-opened"),
@@ -64,7 +64,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidatePlan(FrameworkLogger logger, TransitionPlan plan)
         {
-            var passed = plan.IsValid
+            bool passed = plan.IsValid
                 && plan.Kind == TransitionKind.RouteSwitch
                 && plan.StepCount == 10
                 && !plan.HasOwner
@@ -80,7 +80,7 @@ namespace Immersive.Framework.Diagnostics
             string source,
             TransitionPlan plan)
         {
-            var observedSteps = new[]
+            TransitionStep[] observedSteps = new[]
             {
                 TransitionStep.Observed(0, TransitionPhase.RequestAdmitted, "request-admitted", "request admitted by Gate."),
                 TransitionStep.Observed(10, TransitionPhase.OperationOpened, "operation-opened", "transition operation opened."),
@@ -96,7 +96,7 @@ namespace Immersive.Framework.Diagnostics
                 "Transition diagnostics succeeded.",
                 observedSteps);
 
-            var passed = result.IsValid
+            bool passed = result.IsValid
                 && result.Succeeded
                 && result.Completed
                 && !result.CompletedWithWarnings
@@ -116,13 +116,13 @@ namespace Immersive.Framework.Diagnostics
             TransitionOperationId operationId,
             string source)
         {
-            var observedSteps = new[]
+            TransitionStep[] observedSteps = new[]
             {
                 TransitionStep.Observed(0, TransitionPhase.RequestAdmitted, "request-admitted", "request admitted by Gate."),
                 TransitionStep.Skipped(10, TransitionPhase.ContentReleaseObserved, "content-release-skipped", "no content release required.")
             };
 
-            var issues = new[]
+            string[] issues = new[]
             {
                 "optional-transition-observation-skipped"
             };
@@ -136,7 +136,7 @@ namespace Immersive.Framework.Diagnostics
                 observedSteps,
                 issues);
 
-            var passed = result.IsValid
+            bool passed = result.IsValid
                 && result.CompletedWithWarnings
                 && result.Completed
                 && !result.Succeeded
@@ -154,13 +154,13 @@ namespace Immersive.Framework.Diagnostics
             TransitionOperationId operationId,
             string source)
         {
-            var observedSteps = new[]
+            TransitionStep[] observedSteps = new[]
             {
                 TransitionStep.Observed(0, TransitionPhase.RequestAdmitted, "request-admitted", "request admitted by Gate."),
                 TransitionStep.Failed(10, TransitionPhase.SceneOrContentOperationObserved, "scene-operation-failed", "synthetic blocking issue.")
             };
 
-            var issues = new[]
+            string[] issues = new[]
             {
                 "synthetic-transition-blocking-issue"
             };
@@ -174,7 +174,7 @@ namespace Immersive.Framework.Diagnostics
                 observedSteps,
                 issues);
 
-            var passed = result.IsValid
+            bool passed = result.IsValid
                 && result.Failed
                 && !result.Completed
                 && !result.Succeeded
@@ -188,7 +188,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidateSnapshot(FrameworkLogger logger, TransitionPlan plan)
         {
-            var facts = new[]
+            string[] facts = new[]
             {
                 "transition.diagnostics.snapshot.created"
             };
@@ -199,7 +199,7 @@ namespace Immersive.Framework.Diagnostics
                 TransitionStatus.Running,
                 facts);
 
-            var passed = snapshot.IsValid
+            bool passed = snapshot.IsValid
                 && snapshot.OperationId == plan.OperationId
                 && snapshot.Kind == plan.Kind
                 && snapshot.CurrentPhase == TransitionPhase.OperationOpened
@@ -214,7 +214,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogPlanStep(FrameworkLogger logger, string step, TransitionPlan plan, bool passed)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("operation", plan.OperationId.StableText),
@@ -235,7 +235,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogResultStep(FrameworkLogger logger, string step, TransitionResult result, bool passed)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("operation", result.OperationId.StableText),
@@ -262,7 +262,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogSnapshotStep(FrameworkLogger logger, string step, TransitionSnapshot snapshot, bool passed)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("operation", snapshot.OperationId.StableText),

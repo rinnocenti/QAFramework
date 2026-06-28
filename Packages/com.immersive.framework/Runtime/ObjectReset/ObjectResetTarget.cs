@@ -80,9 +80,9 @@ namespace Immersive.Framework.ObjectReset
         {
             unchecked
             {
-                var hashCode = ObjectEntryId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Scope;
-                hashCode = (hashCode * 397) ^ OwnerIdentity.GetHashCode();
+                int hashCode = ObjectEntryId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Scope;
+                hashCode = hashCode * 397 ^ OwnerIdentity.GetHashCode();
                 return hashCode;
             }
         }
@@ -94,8 +94,8 @@ namespace Immersive.Framework.ObjectReset
 
         public string ToDiagnosticString()
         {
-            var objectEntryText = ObjectEntryId.IsValid ? ObjectEntryId.StableText : "<invalid>";
-            var ownerText = OwnerIdentity.IsValid ? OwnerIdentity.StableText : "<invalid>";
+            string objectEntryText = ObjectEntryId.IsValid ? ObjectEntryId.StableText : "<invalid>";
+            string ownerText = OwnerIdentity.IsValid ? OwnerIdentity.StableText : "<invalid>";
             return $"objectEntry='{objectEntryText}' scope='{Scope}' owner='{ownerText}'";
         }
 

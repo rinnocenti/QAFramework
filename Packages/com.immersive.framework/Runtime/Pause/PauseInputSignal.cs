@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Pause
 {
@@ -52,9 +53,7 @@ namespace Immersive.Framework.Pause
 
         public bool IsValid => ActionId.IsValid && CommandKind != PauseInputCommandKind.Unknown && SourceKind != PauseInputSourceKind.Unknown;
 
-        public bool IsPauseStateCommand => CommandKind == PauseInputCommandKind.TogglePause
-            || CommandKind == PauseInputCommandKind.Pause
-            || CommandKind == PauseInputCommandKind.Resume;
+        public bool IsPauseStateCommand => CommandKind is PauseInputCommandKind.TogglePause or PauseInputCommandKind.Pause or PauseInputCommandKind.Resume;
 
         public bool IsMenuCommand => !IsPauseStateCommand;
 
@@ -80,11 +79,11 @@ namespace Immersive.Framework.Pause
         {
             unchecked
             {
-                var hashCode = ActionId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)CommandKind;
-                hashCode = (hashCode * 397) ^ (int)SourceKind;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = ActionId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)CommandKind;
+                hashCode = hashCode * 397 ^ (int)SourceKind;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 return hashCode;
             }
         }
@@ -96,8 +95,8 @@ namespace Immersive.Framework.Pause
 
         public string ToDiagnosticString()
         {
-            var sourceText = HasSource ? Source : "<none>";
-            var reasonText = HasReason ? Reason : "<none>";
+            string sourceText = HasSource ? Source : "<none>";
+            string reasonText = HasReason ? Reason : "<none>";
             return $"action='{ActionId.StableText}' command='{CommandKind}' sourceKind='{SourceKind}' stateCommand='{IsPauseStateCommand}' menuCommand='{IsMenuCommand}' source='{sourceText}' reason='{reasonText}'";
         }
 
@@ -133,7 +132,7 @@ namespace Immersive.Framework.Pause
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

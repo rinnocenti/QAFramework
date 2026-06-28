@@ -139,11 +139,11 @@ namespace Immersive.Framework.ActivityFlow
             ActivitySceneLedgerSnapshot activitySceneLedgerSnapshot = default(ActivitySceneLedgerSnapshot))
         {
             var readinessState = BuildReadinessState(activityState, activityContentResult);
-            var runtimeScopeMessage = RuntimeScopeMessage(runtimeActivityScopeResult);
-            var bindingCleanupMessage = BindingCleanupMessage(activityContentAnchorBindingCleanupResult);
-            var executionMessage = ExecutionMessage(activityContentExecutionResult);
-            var sceneCompositionMessage = SceneCompositionMessage(activitySceneCompositionResult);
-            var sceneReleaseMessage = SceneReleaseMessage(activitySceneReleaseResult);
+            string runtimeScopeMessage = RuntimeScopeMessage(runtimeActivityScopeResult);
+            string bindingCleanupMessage = BindingCleanupMessage(activityContentAnchorBindingCleanupResult);
+            string executionMessage = ExecutionMessage(activityContentExecutionResult);
+            string sceneCompositionMessage = SceneCompositionMessage(activitySceneCompositionResult);
+            string sceneReleaseMessage = SceneReleaseMessage(activitySceneReleaseResult);
             if (previousActivity == null)
             {
                 return new ActivityFlowStartResult(
@@ -205,11 +205,11 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var readinessState = BuildReadinessState(activityState, activityContentResult);
-            var runtimeScopeMessage = RuntimeScopeMessage(runtimeActivityScopeResult);
-            var bindingCleanupMessage = BindingCleanupMessage(activityContentAnchorBindingCleanupResult);
-            var executionMessage = ExecutionMessage(activityContentExecutionResult);
-            var sceneCompositionMessage = SceneCompositionMessage(activitySceneCompositionResult);
-            var sceneReleaseMessage = SceneReleaseMessage(activitySceneReleaseResult);
+            string runtimeScopeMessage = RuntimeScopeMessage(runtimeActivityScopeResult);
+            string bindingCleanupMessage = BindingCleanupMessage(activityContentAnchorBindingCleanupResult);
+            string executionMessage = ExecutionMessage(activityContentExecutionResult);
+            string sceneCompositionMessage = SceneCompositionMessage(activitySceneCompositionResult);
+            string sceneReleaseMessage = SceneReleaseMessage(activitySceneReleaseResult);
             return new ActivityFlowStartResult(
                 false,
                 false,

@@ -48,7 +48,7 @@ namespace Immersive.Framework.Identity
         {
             unchecked
             {
-                return ((int)Domain * 397) ^ Value.GetHashCode();
+                return (int)Domain * 397 ^ Value.GetHashCode();
             }
         }
 

@@ -12,26 +12,15 @@ namespace Immersive.Framework.ActivityFlow
 
         internal ActivityContentDiscoveryScope(
             RouteAsset route,
-            string routeInstanceId,
             IReadOnlyList<ActivityContentDiscoveryScene> activityOwnedScenes)
         {
             Route = route;
-            RouteInstanceId = Normalize(routeInstanceId);
-            this._activityOwnedScenes = CopyScenes(activityOwnedScenes);
+            _activityOwnedScenes = CopyScenes(activityOwnedScenes);
         }
 
         internal RouteAsset Route { get; }
 
-        internal string RouteInstanceId { get; }
-
         internal IReadOnlyList<ActivityContentDiscoveryScene> ActivityOwnedScenes => _activityOwnedScenes ?? Array.Empty<ActivityContentDiscoveryScene>();
-
-        internal int ActivityOwnedSceneCount => _activityOwnedScenes != null ? _activityOwnedScenes.Length : 0;
-
-        internal static ActivityContentDiscoveryScope Empty(RouteAsset route, string routeInstanceId)
-        {
-            return new ActivityContentDiscoveryScope(route, routeInstanceId, Array.Empty<ActivityContentDiscoveryScene>());
-        }
 
         private static ActivityContentDiscoveryScene[] CopyScenes(IReadOnlyList<ActivityContentDiscoveryScene> scenes)
         {
@@ -41,17 +30,12 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var copy = new ActivityContentDiscoveryScene[scenes.Count];
-            for (var i = 0; i < scenes.Count; i++)
+            for (int i = 0; i < scenes.Count; i++)
             {
                 copy[i] = scenes[i];
             }
 
             return copy;
-        }
-
-        private static string Normalize(string value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
         }
     }
 }

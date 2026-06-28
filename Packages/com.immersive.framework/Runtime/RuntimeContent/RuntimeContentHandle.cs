@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RuntimeContent
 {
@@ -31,9 +32,9 @@ namespace Immersive.Framework.RuntimeContent
 
             Identity = identity;
             _state = initialState;
-            this._source = Normalize(source);
-            this._reason = Normalize(reason);
-            this._message = Normalize(message);
+            _source = Normalize(source);
+            _reason = Normalize(reason);
+            _message = Normalize(message);
         }
 
         public RuntimeContentHandle(RuntimeContentIdentity identity)
@@ -72,9 +73,7 @@ namespace Immersive.Framework.RuntimeContent
 
         public bool IsReleaseFailed => _state == RuntimeContentState.ReleaseFailed;
 
-        public bool CanRequestRelease => _state == RuntimeContentState.Declared
-            || _state == RuntimeContentState.Materialized
-            || _state == RuntimeContentState.ReleaseFailed;
+        public bool CanRequestRelease => _state is RuntimeContentState.Declared or RuntimeContentState.Materialized or RuntimeContentState.ReleaseFailed;
 
         public bool CanMarkMaterialized => _state == RuntimeContentState.Declared;
 
@@ -188,7 +187,7 @@ namespace Immersive.Framework.RuntimeContent
 
         public RuntimeContentHandleTransitionResult MarkReleaseFailed(string source, string reason, string failureMessage)
         {
-            var normalizedFailureMessage = Normalize(failureMessage);
+            string normalizedFailureMessage = Normalize(failureMessage);
             if (!CanMarkReleaseFailed)
             {
                 return RuntimeContentHandleTransitionResult.RejectedInvalidTransition(
@@ -213,9 +212,9 @@ namespace Immersive.Framework.RuntimeContent
 
         public string ToDiagnosticString()
         {
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            var messageText = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string messageText = Message.ToDiagnosticText();
             return $"identity='{Identity.StableText}' scope='{Scope}' contentId='{ContentId.StableText}' owner='{Owner.OwnerName}' state='{_state}' source='{sourceText}' reason='{reasonText}' message='{messageText}'";
         }
 
@@ -253,17 +252,17 @@ namespace Immersive.Framework.RuntimeContent
         {
             var previousState = _state;
             _state = newState;
-            this._source = Normalize(source);
-            this._reason = Normalize(reason);
-            this._message = Normalize(message);
+            _source = Normalize(source);
+            _reason = Normalize(reason);
+            _message = Normalize(message);
 
             return RuntimeContentHandleTransitionResult.AppliedResult(
                 Identity,
                 previousState,
                 _state,
-                this._source,
-                this._reason,
-                this._message);
+                _source,
+                _reason,
+                _message);
         }
 
         private static void ValidateInitialState(RuntimeContentState initialState)
@@ -273,9 +272,7 @@ namespace Immersive.Framework.RuntimeContent
                 throw new ArgumentOutOfRangeException(nameof(initialState), initialState, "Runtime content handle initial state must be explicit.");
             }
 
-            if (initialState == RuntimeContentState.ReleaseRequested
-                || initialState == RuntimeContentState.Released
-                || initialState == RuntimeContentState.ReleaseFailed)
+            if (initialState is RuntimeContentState.ReleaseRequested or RuntimeContentState.Released or RuntimeContentState.ReleaseFailed)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(initialState),
@@ -286,7 +283,7 @@ namespace Immersive.Framework.RuntimeContent
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

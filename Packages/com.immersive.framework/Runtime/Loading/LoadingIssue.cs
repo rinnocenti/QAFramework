@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Loading
 {
@@ -46,11 +47,9 @@ namespace Immersive.Framework.Loading
 
         public bool IsValid => OperationId.IsValid && Severity != LoadingIssueSeverity.Unknown;
 
-        public bool BlocksCompletion => Severity == LoadingIssueSeverity.Blocking || Severity == LoadingIssueSeverity.Error;
+        public bool BlocksCompletion => Severity is LoadingIssueSeverity.Blocking or LoadingIssueSeverity.Error;
 
-        public bool IsWarningOrHigher => Severity == LoadingIssueSeverity.Warning
-            || Severity == LoadingIssueSeverity.Error
-            || Severity == LoadingIssueSeverity.Blocking;
+        public bool IsWarningOrHigher => Severity is LoadingIssueSeverity.Warning or LoadingIssueSeverity.Error or LoadingIssueSeverity.Blocking;
 
         public bool HasCode => !string.IsNullOrWhiteSpace(Code);
 
@@ -76,11 +75,11 @@ namespace Immersive.Framework.Loading
         {
             unchecked
             {
-                var hashCode = OperationId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Severity;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Code ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = OperationId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Severity;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Code ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -92,9 +91,9 @@ namespace Immersive.Framework.Loading
 
         public string ToDiagnosticString()
         {
-            var codeText = HasCode ? Code : "<none>";
-            var sourceText = HasSource ? Source : "<none>";
-            var messageText = HasMessage ? Message : "<none>";
+            string codeText = HasCode ? Code : "<none>";
+            string sourceText = HasSource ? Source : "<none>";
+            string messageText = HasMessage ? Message : "<none>";
             return $"operation='{OperationId.StableText}' severity='{Severity}' code='{codeText}' source='{sourceText}' message='{messageText}' blocksCompletion='{BlocksCompletion}'";
         }
 
@@ -130,7 +129,7 @@ namespace Immersive.Framework.Loading
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

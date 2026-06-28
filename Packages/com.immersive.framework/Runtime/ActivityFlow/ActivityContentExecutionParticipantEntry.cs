@@ -42,21 +42,7 @@ namespace Immersive.Framework.ActivityFlow
 
         public ActivityContentExecutionRequiredness Requiredness => Descriptor.Requiredness;
 
-        public bool IsRequired => Descriptor.IsRequired;
-
-        public bool IsOptional => Descriptor.IsOptional;
-
-        public bool SupportsEnter => Descriptor.SupportsEnter;
-
-        public bool SupportsExit => Descriptor.SupportsExit;
-
         public int Order => Descriptor.Order;
-
-        public string DisplayName => Descriptor.DisplayName;
-
-        public string Source => Descriptor.Source;
-
-        public string Reason => Descriptor.Reason;
 
         public bool IsValid => Participant != null && Descriptor.IsValid && SourceIndex >= 0;
 
@@ -81,9 +67,9 @@ namespace Immersive.Framework.ActivityFlow
         {
             unchecked
             {
-                var hashCode = Participant != null ? Participant.GetHashCode() : 0;
-                hashCode = (hashCode * 397) ^ Descriptor.GetHashCode();
-                hashCode = (hashCode * 397) ^ SourceIndex;
+                int hashCode = Participant != null ? Participant.GetHashCode() : 0;
+                hashCode = hashCode * 397 ^ Descriptor.GetHashCode();
+                hashCode = hashCode * 397 ^ SourceIndex;
                 return hashCode;
             }
         }

@@ -2,6 +2,7 @@ using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Identity;
 using Immersive.Framework.RuntimeContent;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ContentAnchor
 {
@@ -95,8 +96,7 @@ namespace Immersive.Framework.ContentAnchor
 
         public string DiagnosticStatus => Executed ? Status.ToString() : "None";
 
-        public bool Succeeded => Status == ContentAnchorBindingLifecycleStatus.Succeeded
-            || Status == ContentAnchorBindingLifecycleStatus.SucceededNoBindings;
+        public bool Succeeded => Status is ContentAnchorBindingLifecycleStatus.Succeeded or ContentAnchorBindingLifecycleStatus.SucceededNoBindings;
 
         public bool RemovedAny => RemovedCount > 0;
 
@@ -134,19 +134,19 @@ namespace Immersive.Framework.ContentAnchor
         {
             unchecked
             {
-                var hashCode = (int)Status;
-                hashCode = (hashCode * 397) ^ BindingCountBefore;
-                hashCode = (hashCode * 397) ^ BindingCountAfter;
-                hashCode = (hashCode * 397) ^ RuntimeOwner.GetHashCode();
-                hashCode = (hashCode * 397) ^ RuntimeIdentity.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)AnchorScope;
-                hashCode = (hashCode * 397) ^ AnchorOwner.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)AnchorKind;
-                hashCode = (hashCode * 397) ^ AnchorId.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Operation ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = (int)Status;
+                hashCode = hashCode * 397 ^ BindingCountBefore;
+                hashCode = hashCode * 397 ^ BindingCountAfter;
+                hashCode = hashCode * 397 ^ RuntimeOwner.GetHashCode();
+                hashCode = hashCode * 397 ^ RuntimeIdentity.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)AnchorScope;
+                hashCode = hashCode * 397 ^ AnchorOwner.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)AnchorKind;
+                hashCode = hashCode * 397 ^ AnchorId.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Operation ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -158,14 +158,14 @@ namespace Immersive.Framework.ContentAnchor
 
         public string ToDiagnosticString()
         {
-            var runtimeOwnerText = HasRuntimeOwner ? RuntimeOwner.StableText : "<none>";
-            var runtimeIdentityText = HasRuntimeIdentity ? RuntimeIdentity.StableText : "<none>";
-            var anchorOwnerText = HasAnchorOwner ? AnchorOwner.StableText : "<none>";
-            var anchorIdText = HasAnchorId ? AnchorId.StableText : "<none>";
-            var operationText = !string.IsNullOrWhiteSpace(Operation) ? Operation : "<none>";
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            var messageText = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
+            string runtimeOwnerText = HasRuntimeOwner ? RuntimeOwner.StableText : "<none>";
+            string runtimeIdentityText = HasRuntimeIdentity ? RuntimeIdentity.StableText : "<none>";
+            string anchorOwnerText = HasAnchorOwner ? AnchorOwner.StableText : "<none>";
+            string anchorIdText = HasAnchorId ? AnchorId.StableText : "<none>";
+            string operationText = Operation.ToDiagnosticText();
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string messageText = Message.ToDiagnosticText();
 
             return $"operation='{operationText}' status='{Status}' removed='{RemovedCount}' before='{BindingCountBefore}' after='{BindingCountAfter}' runtimeOwner='{runtimeOwnerText}' runtimeIdentity='{runtimeIdentityText}' anchorScope='{AnchorScope}' anchorOwner='{anchorOwnerText}' anchorKind='{AnchorKind}' anchorId='{anchorIdText}' source='{sourceText}' reason='{reasonText}' message='{messageText}'";
         }
@@ -208,7 +208,7 @@ namespace Immersive.Framework.ContentAnchor
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

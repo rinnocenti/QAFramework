@@ -1,6 +1,7 @@
 using Immersive.Framework.Authoring;
 using UnityEngine;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -27,8 +28,8 @@ namespace Immersive.Framework.RouteLifecycle
             NextRoute = nextRoute;
             Binding = binding;
             ContentRoot = contentRoot;
-            Source = string.IsNullOrWhiteSpace(source) ? "Unknown" : source.Trim();
-            Reason = string.IsNullOrWhiteSpace(reason) ? "None" : reason.Trim();
+            Source = source.NormalizeTextOrFallback("Unknown");
+            Reason = reason.NormalizeTextOrFallback("None");
         }
 
         public RouteContentLifecyclePhase Phase { get; }

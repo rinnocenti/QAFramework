@@ -1,5 +1,6 @@
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -119,12 +120,12 @@ namespace Immersive.Framework.ActivityFlow
 
         private static string NormalizeSource(string source)
         {
-            return string.IsNullOrWhiteSpace(source) ? "Unknown" : source.Trim();
+            return source.NormalizeTextOrFallback("Unknown");
         }
 
         private static string NormalizeReason(string reason)
         {
-            return string.IsNullOrWhiteSpace(reason) ? "None" : reason.Trim();
+            return reason.NormalizeTextOrFallback("None");
         }
     }
 }

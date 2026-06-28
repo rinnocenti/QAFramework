@@ -17,7 +17,7 @@ namespace Immersive.Framework.ContentFlow
 
         internal ContentReleaseRuntime(SceneLifecycleRuntime sceneLifecycleRuntime)
         {
-            this._sceneLifecycleRuntime = sceneLifecycleRuntime ?? throw new System.ArgumentNullException(nameof(sceneLifecycleRuntime));
+            _sceneLifecycleRuntime = sceneLifecycleRuntime ?? throw new System.ArgumentNullException(nameof(sceneLifecycleRuntime));
         }
 
         internal Task<ContentReleaseResult> ExecuteAsync(ContentReleasePlan plan)
@@ -42,8 +42,8 @@ namespace Immersive.Framework.ContentFlow
             }
 
             var results = new List<ContentReleaseResultEntry>(plan.EntryCount);
-            var progressStepIndex = 0;
-            for (var i = 0; i < plan.Entries.Count; i++)
+            int progressStepIndex = 0;
+            for (int i = 0; i < plan.Entries.Count; i++)
             {
                 var entry = plan.Entries[i];
                 var entryProgressReporter = entry.IsReleasable
@@ -122,9 +122,9 @@ namespace Immersive.Framework.ContentFlow
 
         private static ContentReleaseStatus ResolveStatus(IReadOnlyList<ContentReleaseResultEntry> results)
         {
-            var failed = 0;
-            var issues = 0;
-            for (var i = 0; i < results.Count; i++)
+            int failed = 0;
+            int issues = 0;
+            for (int i = 0; i < results.Count; i++)
             {
                 if (results[i].Failed)
                 {
@@ -156,10 +156,10 @@ namespace Immersive.Framework.ContentFlow
             ContentReleaseStatus status,
             IReadOnlyList<ContentReleaseResultEntry> results)
         {
-            var released = 0;
-            var skipped = 0;
-            var failed = 0;
-            for (var i = 0; i < results.Count; i++)
+            int released = 0;
+            int skipped = 0;
+            int failed = 0;
+            for (int i = 0; i < results.Count; i++)
             {
                 if (results[i].Released)
                 {

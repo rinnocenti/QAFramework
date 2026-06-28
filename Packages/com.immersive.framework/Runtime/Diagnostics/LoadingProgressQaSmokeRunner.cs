@@ -1,3 +1,4 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Threading.Tasks;
@@ -24,16 +25,16 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source) ? nameof(LoadingProgressQaSmokeRunner) : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(LoadingProgressQaSmokeRunner));
 
             try
             {
-                var contractsPassed = ValidateContracts(logger, normalizedSource);
-                var weightedRunningPassed = ValidateWeightedRunningAggregation(logger, normalizedSource);
-                var completedSkippedPassed = ValidateCompletedWithSkippedAggregation(logger, normalizedSource);
-                var failedPassed = ValidateFailedAggregation(logger, normalizedSource);
-                var emptyPassed = ValidateNoStepsAggregation(logger, normalizedSource);
-                var boundaryPassed = ValidateBoundary(logger);
+                bool contractsPassed = ValidateContracts(logger, normalizedSource);
+                bool weightedRunningPassed = ValidateWeightedRunningAggregation(logger, normalizedSource);
+                bool completedSkippedPassed = ValidateCompletedWithSkippedAggregation(logger, normalizedSource);
+                bool failedPassed = ValidateFailedAggregation(logger, normalizedSource);
+                bool emptyPassed = ValidateNoStepsAggregation(logger, normalizedSource);
+                bool boundaryPassed = ValidateBoundary(logger);
 
                 return Task.FromResult(contractsPassed
                     && weightedRunningPassed
@@ -82,7 +83,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.loading.contracts",
                 "contracts");
 
-            var passed = operationId.Domain == FrameworkIdentityDomain.Loading
+            bool passed = operationId.Domain == FrameworkIdentityDomain.Loading
                 && stepId.Domain == FrameworkIdentityDomain.Loading
                 && operation.IsValid
                 && step.IsValid
@@ -114,7 +115,7 @@ namespace Immersive.Framework.Diagnostics
         private static bool ValidateWeightedRunningAggregation(FrameworkLogger logger, string source)
         {
             var operationId = LoadingOperationId.From("qa.loading.operation.weighted-running");
-            var steps = new[]
+            LoadingStep[] steps = new[]
             {
                 LoadingStep.Completed("qa.loading.step.bootstrap", 2f, "Bootstrap", source, "synthetic-complete"),
                 LoadingStep.Running("qa.loading.step.scene", 3f, 0.5f, "Scene", source, "synthetic-running"),
@@ -128,8 +129,8 @@ namespace Immersive.Framework.Diagnostics
                 "qa.loading.weighted-running",
                 "weighted-running");
 
-            var expectedProgress = 0.35f;
-            var passed = result.Status == LoadingProgressAggregationStatus.Running
+            float expectedProgress = 0.35f;
+            bool passed = result.Status == LoadingProgressAggregationStatus.Running
                 && result.IsRunning
                 && !result.Completed
                 && !result.Failed
@@ -165,7 +166,7 @@ namespace Immersive.Framework.Diagnostics
         private static bool ValidateCompletedWithSkippedAggregation(FrameworkLogger logger, string source)
         {
             var operationId = LoadingOperationId.From("qa.loading.operation.completed-skipped");
-            var steps = new[]
+            LoadingStep[] steps = new[]
             {
                 LoadingStep.Completed("qa.loading.step.scene", 2f, "Scene", source, "synthetic-complete"),
                 CreateSkippedStep("qa.loading.step.optional-ui", 1f, source),
@@ -179,7 +180,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.loading.completed-skipped",
                 "completed-with-skipped");
 
-            var passed = result.Status == LoadingProgressAggregationStatus.CompletedWithSkippedSteps
+            bool passed = result.Status == LoadingProgressAggregationStatus.CompletedWithSkippedSteps
                 && result.Completed
                 && result.IsTerminal
                 && !result.Failed
@@ -210,7 +211,7 @@ namespace Immersive.Framework.Diagnostics
         private static bool ValidateFailedAggregation(FrameworkLogger logger, string source)
         {
             var operationId = LoadingOperationId.From("qa.loading.operation.failed");
-            var steps = new[]
+            LoadingStep[] steps = new[]
             {
                 LoadingStep.Completed("qa.loading.step.bootstrap", 1f, "Bootstrap", source, "synthetic-complete"),
                 LoadingStep.Failed("qa.loading.step.scene", 4f, 0.25f, "Scene", source, "synthetic-failed")
@@ -223,7 +224,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.loading.failed",
                 "failed");
 
-            var passed = result.Status == LoadingProgressAggregationStatus.Failed
+            bool passed = result.Status == LoadingProgressAggregationStatus.Failed
                 && result.Failed
                 && result.IsTerminal
                 && !result.Completed
@@ -259,7 +260,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.loading.empty",
                 "empty");
 
-            var passed = result.Status == LoadingProgressAggregationStatus.NoSteps
+            bool passed = result.Status == LoadingProgressAggregationStatus.NoSteps
                 && result.Completed
                 && result.IsTerminal
                 && !result.HasSteps
@@ -286,7 +287,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidateBoundary(FrameworkLogger logger)
         {
-            var passed = true;
+            bool passed = true;
             LogStep(
                 logger,
                 "canonical-boundary",
@@ -325,7 +326,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogStep(FrameworkLogger logger, string step, bool passed, LogField[] fields)
         {
-            var stepFields = LogFields.Of(
+            LogField[] stepFields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed));
 

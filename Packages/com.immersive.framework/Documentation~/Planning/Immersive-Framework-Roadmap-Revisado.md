@@ -2,7 +2,7 @@
 
 This is the canonical roadmap for `com.immersive.framework`.
 
-The roadmap is intentionally organized around three tracks:
+The roadmap is organized around three implementation tracks:
 
 1. Framework Core / Contracts
 2. Unity Build Surface / Lifecycle Wiring
@@ -10,13 +10,13 @@ The roadmap is intentionally organized around three tracks:
 
 ## 1. Rule of Reading
 
-Read the plan from core contracts to Unity build surfaces to adapter modules.
+Read the plan from stable core contracts to Unity build surfaces, then to adapter modules.
 
-Framework contracts define stable language and boundaries. Unity build surfaces prove those contracts through minimal real Unity wiring. Adapter modules consume the proven contracts and surfaces without changing framework ownership.
+Framework contracts define lifecycle language, identity, state, diagnostics and ownership boundaries. Unity build surfaces prove those contracts through minimal real Unity wiring. Adapter modules consume the proven contracts and surfaces without changing framework ownership.
 
-Do not read F25 adapter work back into F23 or F24. F23 does not build visuals. F24 does not build gameplay modules. F25 does not redefine core contracts.
+Do not read adapter module work backward into earlier phases. F23 does not build visuals. F24 does not build gameplay modules. F25-F26 stabilize Activity scene operation/loading progress. F27 validates Pause surface/input evidence. F28 reorganizes the roadmap before module implementation resumes.
 
-## 2. Closed Phases
+## 2. Closed Baseline
 
 | Phase | Name | Status | Result |
 |---|---|---|---|
@@ -29,123 +29,83 @@ Do not read F25 adapter work back into F23 or F24. F23 does not build visuals. F
 | F21 | Save / Snapshot / Preferences / Progression Save Foundation | Closed | Save tracks split into Snapshot, Preferences and Progression Save boundaries. |
 | F22 | Loading Operation / Progress / Readiness Boundary | Closed | Loading operation/progress/readiness language established without visual loading implementation. |
 | F23 | Pause Content / Overlay / Input Intent Boundary | Closed | Pause content, presentation and input intent contracts established without Unity build surface. |
+| F24 | Unity Build Surface / Lifecycle Wiring | Closed | Transition, loading and Pause-facing Unity surfaces validated as framework-owned build evidence. |
+| F25 | Activity Content Scene Composition / Operation Reset | Closed | Activity content, operation planning, scene loading/release and ledger ownership stabilized. |
+| F26 | Activity Discovery and Loading Progress | Closed | Activity discovery and loading progress closed through F26F. |
+| F27 | Pause UIGlobal Surface and Input Wiring | Frozen after F27D | Pause UIGlobal surface and narrow PauseToggle input path validated; F27E cancelled. |
 
 ## 3. Current Phase
 
-F27 is frozen after F27D. F24, F25 and F26 are closed; the F26 loading progress thread is closed through F26F. F27 validated the deferred Pause UIGlobal surface and narrow PauseToggle input path, then stopped before broader InputMode / PlayerInput / adapter ownership work.
+F28 is the current planning phase.
 
-F23 is intent/requirement-only and owns these canonical Pause contracts:
+The project is back at the F27D freeze. The next step is not another runtime patch. The next step is a positive roadmap correction that explains what the remaining implementation tracks are and in what order they should be built.
 
-- `PauseContentRequirement`
-- `PausePresentationIntent`
-- `PauseInputSignal`
-- `PauseInputIntent`
+F27E is cancelled because ordinary input consumers should not each query Gate as the primary Pause/Input implementation. That cancellation exposes a larger missing chain:
 
-F23 does not promise or create:
+```text
+adapter/module ownership
+  -> Player/Actor ownership
+  -> Unity Input target ownership
+  -> typed InputMode
+  -> Pause requests InputMode
+  -> later Camera/Audio/Save/RuntimeSpawned/Gameplay adapters
+```
 
-- overlay adapter execution
-- Content Anchor binding execution
-- `RuntimeContentAnchorBinding`
-- Input System wiring
-- Canvas
-- prefab
-- scene object
-- ScriptableObject
-- `Time.timeScale` policy
-- gameplay adapter
+## 4. Phase Map From the Freeze Forward
 
-Historical note: F24 opened Unity Build Surface / Lifecycle Wiring. Its transition/loading surface work is now validated and later F25/F26 cuts build on it.
+### F28 — Roadmap Reconciliation and Adapter Module Spine
 
-## 4. Next Phases
+F28 is documentation-first. It creates the dependency and ownership map for the next implementation phases.
 
-### F24 - Unity Build Surface / Lifecycle Wiring
+| Cut | Name | Status | Output |
+|---|---|---|---|
+| F28A | Frozen Baseline Reconciliation | Planned | Authoritative reading of package docs, project docs, QA assets and the cancelled F27E path. |
+| F28B | Completion Dependency Map | Planned | Ordered graph for remaining product-completion tracks. |
+| F28C | Adapter Module Taxonomy | Planned | Module families, owner kind, placement rule and dependency category. |
+| F28D | Player / Actor / Input Ownership Plan | Planned | Player object ownership, `PlayerInput` target ownership and first input target proof. |
+| F28E | InputMode and Pause Integration Plan | Planned | Typed InputMode semantics and Pause-driven mode requests after ownership is clear. |
+| F28F | Next Implementation Closeout | Planned | Next code phase, entry criteria, smoke target and file placement rules. |
 
-| Cut | Name | Objective |
+F28 output is a clean plan, not runtime contracts.
+
+### F29 — Adapter Module Foundation
+
+F29 is the likely first implementation phase after F28, only if F28F selects it.
+
+Expected purpose:
+
+```text
+create minimal adapter module vocabulary
+place adapter module contracts in the correct assembly/package boundary
+prove one adapter family without pulling product behavior into framework core
+```
+
+F29 should not start until F28 defines owner kinds, placement rules and dependency categories.
+
+### F30+ — Product-Facing Module Tracks
+
+The later tracks should be opened incrementally instead of as a single large subsystem pass.
+
+| Track | First dependency | Expected direction |
 |---|---|---|
-| F24A | Unity Build / Lifecycle Wiring ADR Plan | Lock the F24 boundary and ordering. |
-| F24B | Transition <-> GameFlow Runtime Integration | Route/GameFlow requests pass through real `TransitionPlan` execution. |
-| F24C | Transition Curtain Unity Build | Build the minimal Unity curtain surface after lifecycle wiring is real. |
-| F24D | Loading Screen Unity Adapter Build | Build the minimal loading screen adapter surface after progress/readiness contracts exist. |
-| F24E | Pause Overlay Unity Build | Build the minimal pause overlay Unity surface from F23 intent contracts. |
-| F24F | Save Moment Authoring Boundary | Define minimal Unity authoring for save moments without gameplay payload ownership. |
-| F24G | Preferences Authoring Boundary | Define minimal Unity authoring for preferences without using progression slots. |
-| F24H | Closure + Usage Guide | Close the phase and document usage. |
+| Player / Actor | Adapter module foundation | Decide player object lifetime, player participant binding and actor adapter placement. |
+| Unity Input | Player/Input target ownership | Adapt typed input language to concrete Unity Input System targets. |
+| InputMode / Pause Integration | Unity Input target path | Let Pause request `PauseOverlay` / `Gameplay` modes without consumer-side Gate scattering. |
+| Camera | Content Anchor binding + player/actor targets where needed | Build camera adapter as a consumer, not framework core authority. |
+| Audio | Route/Activity/Pause lifecycle evidence | Build audio as lifecycle consumer with project policy outside core. |
+| Save / Progression | Snapshot/progression ports | Add replaceable initial backend adapter without making backend the contract. |
+| Runtime Spawned / Pooling | Runtime handle/root/release policy | Materialize prefab/pool instances through framework runtime ownership. |
+| Gameplay Capabilities | Player/Actor/RuntimeSpawned | Add inventory/combat/projectile/damage as optional modules. |
 
-F24 is not gameplay. It is the framework-owned Unity surface that proves lifecycle wiring.
-
-### F25 - Adapter Module Foundation
-
-F25 starts only after F24.
-
-F25 is broader than gameplay-only work. It defines how optional adapter modules consume framework contracts and Unity build surfaces without moving subsystem behavior into core.
-
-Expected adapter families include:
-
-- gameplay
-- camera
-- audio
-- input
-- advanced save authoring
-- pooling/runtime spawned objects
-- actor/player/NPC
-- inventory
-- combat
-- projectile
-- damage
-
-F25 must not create a parallel lifecycle, bypass Gate/Transition/Loading/Pause ownership or redefine Save/Snapshot/Preferences/Progression contracts.
-
-
-### F26 - Activity Scene Discovery and Loading Progress
-
-| Cut | Name | Status |
-|---|---|---|
-| F26A | Activity Scene Discovery Integration | Closed / PASS |
-| F26A1 | Activity Content Execution Diagnostics Clarification | Closed / PASS |
-| F26B | Loading Progress Contract | Closed / PASS |
-| F26C | Loading Surface Progress Bar Receiver | Closed / PASS |
-| F26D | Determinate Loading Progress Source | Closed / PASS |
-| F26E | Aggregated Loading Progress | Closed / PASS |
-| F26F | Loading Progress Polish / Documentation Closeout | Closed / PASS |
-
-Loading progress is now considered closed until a new concrete loading source appears, such as Addressables, asset bundles, remote content or long-running non-scene operations.
-
-
-
-### F27 - Pause UIGlobal Surface and Input Wiring
-
-| Cut | Name | Status |
-|---|---|---|
-| F27A | Pause UIGlobal Surface Baseline | Closed / PASS |
-| F27B | Pause Input Signal Wiring | Closed / PASS |
-| F27C | Gate / Input Capability Audit | Closed / Audit PASS |
-| F27D | Pause Capability Gate Reframe | Closed / PASS |
-| F27E | Input Consumers Respect Gate | Cancelled / do not apply |
-
-F27 implemented the deferred Pause Unity surface goal and narrow PauseToggle input binding. F27 is now frozen because the next step requires the broader InputMode and adapter boundary to be planned first.
-
-F27E was cancelled because ordinary input consumers should not each become responsible for querying Gate just to make Pause work.
-
-### F28 - InputMode and Adapter Boundary Reorganization
-
-| Cut | Name | Status |
-|---|---|---|
-| F28A | Input / Adapter Audit Matrix | Planned |
-| F28B | InputMode Contract Boundary | Planned |
-| F28C | Unity Input Adapter Ownership Plan | Planned |
-| F28D | QA InputMode Surface / Manual Target Proof | Planned / conditional |
-| F28E | Pause Drives InputMode | Planned / after ownership decision |
-| F28F | InputMode Closeout Guide | Planned |
-
-F28 must decide PlayerInput ownership, typed InputMode semantics and adapter placement before Pause drives action-map behavior or TimeScale policy.
-
-## 5. Tracks
+## 5. Canonical Tracks
 
 | Track | Owns | Examples | Exclusions |
 |---|---|---|---|
 | Framework Core / Contracts | Pure framework contracts, identifiers, states, diagnostics, policies and request/result boundaries. | Route, Activity, Gate, Transition, Loading, Pause, Snapshot, Preferences, Progression Save. | Concrete UI, prefabs, scenes, gameplay modules, backend-specific canonical contracts. |
-| Unity Build Surface / Lifecycle Wiring | Minimal Unity surfaces and lifecycle wiring that prove framework contracts. | Transition integration, curtain, loading screen adapter build, pause overlay build, save/preference authoring boundary. | Product gameplay, broad subsystem adapters, full UI systems. |
-| Adapter Modules / Gameplay & Subsystems | Optional modules that adapt product/gameplay systems to framework contracts. | Player, actor, camera, audio, input, inventory, combat, projectile, damage, spawned objects. | Core contract ownership, route/activity lifecycle, hidden global pipelines. |
+| Unity Build Surface / Lifecycle Wiring | Minimal Unity surfaces and lifecycle wiring that prove framework contracts. | Transition integration, curtain, loading screen, pause overlay, QA scene evidence. | Product gameplay, broad subsystem adapters, full UI systems. |
+| Adapter Modules / Gameplay & Subsystems | Optional modules that adapt product/gameplay systems to framework contracts. | Player, actor, camera, audio, input, save backends, inventory, combat, projectile, damage, spawned objects. | Core contract ownership, route/activity lifecycle, hidden global pipelines. |
+| Project Assets | Product-specific prefabs, scenes, configuration, UI art and game design content. | Player prefab, product pause menu, concrete camera rig, concrete audio bank. | Canonical framework ownership or reusable framework contracts. |
+| External Packages | Unity official modules, optional packages, third-party tools and premium assets. | Unity Input System, Cinemachine, Addressables, future premium save backend. | Hard-coded local paths or mandatory Asset Store imports in canonical setup. |
 
 ## 6. Anti-Regression Rules
 
@@ -155,17 +115,18 @@ F28 must decide PlayerInput ownership, typed InputMode semantics and adapter pla
 - JSON persistence is a future initial adapter, not the canonical contract.
 - A future premium backend must swap behind the same Progression Save port.
 - Loading is not fade, curtain, loading screen prefab or `SceneLifecycle` replacement.
-- Loading visual remains a later adapter/build surface.
-- Pause F23 remains intent/requirement-only.
-- F24 must start technical work with Transition <-> GameFlow runtime integration.
-- F25 is Adapter Module Foundation, not a gameplay-only rewrite of core.
-- No route/activity lifecycle ownership moves into gameplay or adapter modules.
+- Loading visual remains a Unity build surface or adapter, not the Loading contract.
+- Pause F23 remains intent/requirement language.
+- F24-F27 surfaces are evidence, not gameplay modules.
+- F25 is Activity scene operation history, not the adapter module foundation phase.
+- Adapter modules do not own Route/Activity lifecycle.
+- Adapter modules do not redefine Gate, Transition, Loading, Pause, Save, Snapshot, Preferences or Progression Save.
 - No framework identity may be fabricated from Unity names or paths.
+- No module should create service locator behavior to avoid an ownership decision.
 
+## 7. F27 Pause UIGlobal / Input / Gate Reframe
 
-## F27 Pause UIGlobal / Input / Gate Reframe
-
-`F27A` validates the Pause UIGlobal surface. `F27B` validates the narrow Unity Input System `PauseToggle` adapter. `F27C` audits the Gate/Input boundary and accepts the correction that Gate is capability/admission language, not a component blocker. `F27D` applies that diagnostic correction in runtime by changing Pause-derived blockers from broad gameplay language to `Input/InputAcceptance` and `Interaction/InteractionAcceptance`.
+`F27A` validates the Pause UIGlobal surface. `F27B` validates the narrow Unity Input System `PauseToggle` adapter. `F27C` audits the Gate/Input boundary and accepts that Gate is capability/admission language, not a component blocker. `F27D` applies the diagnostic/runtime vocabulary correction by using `Input/InputAcceptance` and `Interaction/InteractionAcceptance` blockers instead of broad gameplay/component blockers.
 
 F27 is frozen after F27D. `F27E - Input Consumers Respect Gate` is cancelled and must not be applied.
 
@@ -191,6 +152,19 @@ Assets/_Documentation/Notes/F27E-CANCELLED-Input-Consumers-Gate-Replan.md
 Assets/_Documentation/Plans/F28-PLAN-InputMode-And-Adapter-Boundary.md
 ```
 
-## F28 InputMode and Adapter Boundary
+## 8. F28 Roadmap Correction
 
-F28 reorganizes the future input/adapter track before more runtime. It starts with an audit matrix and must answer who supplies concrete `PlayerInput` targets, where Unity Input System adapters live and how PauseOverlay keeps UI input alive while gameplay input is unavailable.
+F28 converts the freeze into a progressive plan.
+
+The phase must answer:
+
+```text
+what remains to complete the framework/product bridge;
+which tracks are core, Unity surface, adapter module, project asset or external package;
+which track must be implemented first;
+which ownership decision blocks InputMode;
+which ownership decision blocks Camera, Audio, Save, RuntimeSpawned and Gameplay modules;
+what the first post-F28 code cut proves.
+```
+
+F28 is complete only when the next implementation phase has a clear positive objective, file placement rule and smoke target.

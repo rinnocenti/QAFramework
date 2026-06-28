@@ -4,6 +4,7 @@ using System.Text;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentFlow;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -43,7 +44,7 @@ namespace Immersive.Framework.RouteLifecycle
             else
             {
                 _additionalScenes = new RouteSceneCompositionPlanEntry[additionalScenes.Count];
-                for (var i = 0; i < additionalScenes.Count; i++)
+                for (int i = 0; i < additionalScenes.Count; i++)
                 {
                     _additionalScenes[i] = additionalScenes[i];
                 }
@@ -80,7 +81,7 @@ namespace Immersive.Framework.RouteLifecycle
 
         public bool PrimarySceneExecutionReady => PrimaryScene.IsExecutionReady;
 
-        public int AdditionalSceneCount => _additionalScenes != null ? _additionalScenes.Length : 0;
+        public int AdditionalSceneCount => _additionalScenes?.Length ?? 0;
 
         public bool HasAdditionalScenes => AdditionalSceneCount > 0;
 
@@ -94,8 +95,8 @@ namespace Immersive.Framework.RouteLifecycle
 
         public static RouteSceneCompositionPlan FromRoute(RouteAsset route, string source, string reason)
         {
-            var ownerId = CreateRouteOwnerId(route);
-            var ownerName = route != null ? route.RouteName : string.Empty;
+            string ownerId = CreateRouteOwnerId(route);
+            string ownerName = route != null ? route.RouteName : string.Empty;
             var primaryScene = RouteSceneCompositionPlanEntry.Primary(route, ownerId);
             var profile = route != null ? route.RouteContentProfile : null;
 
@@ -114,7 +115,7 @@ namespace Immersive.Framework.RouteLifecycle
             }
 
             var plannedAdditionalScenes = new List<RouteSceneCompositionPlanEntry>(profile.AdditionalScenes.Count);
-            for (var i = 0; i < profile.AdditionalScenes.Count; i++)
+            for (int i = 0; i < profile.AdditionalScenes.Count; i++)
             {
                 plannedAdditionalScenes.Add(RouteSceneCompositionPlanEntry.Additive(profile.AdditionalScenes[i], i, ownerId));
             }
@@ -133,12 +134,12 @@ namespace Immersive.Framework.RouteLifecycle
 
         public string ToDiagnosticString()
         {
-            var routeName = !string.IsNullOrWhiteSpace(RouteOwnerName) ? RouteOwnerName : "<missing>";
+            string routeName = RouteOwnerName.ToDiagnosticText("<missing>");
             var builder = new StringBuilder();
             builder.Append($"Route Scene Composition Plan route='{routeName}' owner='{RouteOwnerId}' entries='{EntryCount}' required='{RequiredSceneCount}' optional='{OptionalSceneCount}' activeScenePolicy='{ActiveScenePolicy}' sideEffects='False' profile='{ProfileId}' blockingIssues='{HasExecutionBlockingPlanIssue}' details=[");
             builder.Append(PrimaryScene.ToDiagnosticString());
 
-            for (var i = 0; i < AdditionalScenes.Count; i++)
+            for (int i = 0; i < AdditionalScenes.Count; i++)
             {
                 builder.Append(" | ");
                 builder.Append(AdditionalScenes[i].ToDiagnosticString());
@@ -165,8 +166,8 @@ namespace Immersive.Framework.RouteLifecycle
 
         private int CountRequiredness(FrameworkContentRequiredness requiredness)
         {
-            var count = PrimaryScene.Requiredness == requiredness ? 1 : 0;
-            for (var i = 0; i < AdditionalScenes.Count; i++)
+            int count = PrimaryScene.Requiredness == requiredness ? 1 : 0;
+            for (int i = 0; i < AdditionalScenes.Count; i++)
             {
                 if (AdditionalScenes[i].Requiredness == requiredness)
                 {
@@ -179,7 +180,7 @@ namespace Immersive.Framework.RouteLifecycle
 
         private bool HasBlockingAdditionalSceneIssue()
         {
-            for (var i = 0; i < AdditionalScenes.Count; i++)
+            for (int i = 0; i < AdditionalScenes.Count; i++)
             {
                 var entry = AdditionalScenes[i];
                 if (entry.Requiredness == FrameworkContentRequiredness.Required && !entry.IsExecutionReady)
@@ -193,7 +194,7 @@ namespace Immersive.Framework.RouteLifecycle
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

@@ -50,7 +50,7 @@ namespace Immersive.Framework.Transition
 
         private static string BuildStepLabel(TransitionRequest request)
         {
-            var phase = request.Phase == TransitionPhase.OperationOpened ? "before" : "after";
+            string phase = request.Phase == TransitionPhase.OperationOpened ? "before" : "after";
             return $"{request.Scope.ToString().ToLowerInvariant()}-{phase}";
         }
     }

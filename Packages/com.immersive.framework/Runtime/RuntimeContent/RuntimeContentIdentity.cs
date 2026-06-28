@@ -50,7 +50,7 @@ namespace Immersive.Framework.RuntimeContent
         {
             unchecked
             {
-                return (Owner.GetHashCode() * 397) ^ ContentId.GetHashCode();
+                return Owner.GetHashCode() * 397 ^ ContentId.GetHashCode();
             }
         }
 

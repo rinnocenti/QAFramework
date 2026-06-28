@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Gate;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Pause
 {
@@ -104,7 +105,7 @@ namespace Immersive.Framework.Pause
 
         private static string NormalizeSource(string source)
         {
-            return string.IsNullOrWhiteSpace(source) ? nameof(PauseGateBlockerPolicy) : source.Trim();
+            return source.NormalizeTextOrFallback(nameof(PauseGateBlockerPolicy));
         }
 
         private static string NormalizeReason(string reason, PauseSnapshot snapshot, string fallback)
@@ -114,7 +115,7 @@ namespace Immersive.Framework.Pause
                 return reason.Trim();
             }
 
-            var requestText = snapshot.HasLastRequest ? snapshot.LastRequestId.StableText : "<none>";
+            string requestText = snapshot.HasLastRequest ? snapshot.LastRequestId.StableText : "<none>";
             return $"{fallback} state='{snapshot.State}' lastRequest='{requestText}'.";
         }
     }

@@ -81,7 +81,7 @@ namespace Immersive.Framework.LocalContribution
             List<LocalContributionHandle> handles,
             List<LocalContributionDiscoveryIssue> issues)
         {
-            var bindings = routeFilter != null
+            IReadOnlyList<RouteContentBinding> bindings = routeFilter != null
                 ? SceneScopedComponentQuery.GetComponentsInRoutePrimaryScene<RouteContentBinding>(routeFilter)
                 : SceneScopedComponentQuery.GetComponentsInLoadedScenes<RouteContentBinding>();
             if (bindings == null || bindings.Count == 0)
@@ -89,7 +89,7 @@ namespace Immersive.Framework.LocalContribution
                 return;
             }
 
-            for (var i = 0; i < bindings.Count; i++)
+            for (int i = 0; i < bindings.Count; i++)
             {
                 var binding = bindings[i];
                 if (binding == null || !binding.IsSceneBinding)
@@ -144,7 +144,7 @@ namespace Immersive.Framework.LocalContribution
             List<LocalContributionHandle> handles,
             List<LocalContributionDiscoveryIssue> issues)
         {
-            var adapters = routeScope != null
+            IReadOnlyList<ActivityLocalVisibilityAdapter> adapters = routeScope != null
                 ? SceneScopedComponentQuery.GetComponentsInRoutePrimaryScene<ActivityLocalVisibilityAdapter>(routeScope)
                 : SceneScopedComponentQuery.GetComponentsInLoadedScenes<ActivityLocalVisibilityAdapter>();
             if (adapters == null || adapters.Count == 0)
@@ -152,7 +152,7 @@ namespace Immersive.Framework.LocalContribution
                 return;
             }
 
-            for (var i = 0; i < adapters.Count; i++)
+            for (int i = 0; i < adapters.Count; i++)
             {
                 var adapter = adapters[i];
                 if (adapter == null || !adapter.IsSceneBinding)
@@ -239,10 +239,10 @@ namespace Immersive.Framework.LocalContribution
             }
 
             var seen = new Dictionary<string, LocalContributionHandle>(StringComparer.Ordinal);
-            for (var i = 0; i < handles.Count; i++)
+            for (int i = 0; i < handles.Count; i++)
             {
                 var handle = handles[i];
-                var identityText = handle.Identity.StableText;
+                string identityText = handle.Identity.StableText;
                 if (!seen.TryGetValue(identityText, out var previous))
                 {
                     seen.Add(identityText, handle);

@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Gate;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Transition
 {
@@ -31,13 +32,9 @@ namespace Immersive.Framework.Transition
                 throw new ArgumentOutOfRangeException(nameof(kind), kind, "Transition Gate blocker kind must be explicit.");
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source)
-                ? nameof(TransitionGateBlockerPolicy)
-                : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(TransitionGateBlockerPolicy));
 
-            var normalizedReason = string.IsNullOrWhiteSpace(reason)
-                ? $"Transition operation is in flight. operation='{operationId.StableText}' kind='{kind}'."
-                : reason.Trim();
+            string normalizedReason = reason.NormalizeTextOrFallback($"Transition operation is in flight. operation='{operationId.StableText}' kind='{kind}'.");
 
             return GateBlocker.ForAnyOwner(
                 LifecycleRequestBlockerId,

@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -12,7 +13,7 @@ namespace Immersive.Framework.ActivityFlow
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F10I Activity Content Execution lifecycle integration result; diagnostics only and empty by default until participant discovery exists.")]
     public readonly struct ActivityContentExecutionLifecycleResult : IEquatable<ActivityContentExecutionLifecycleResult>
     {
-        public ActivityContentExecutionLifecycleResult(
+        private ActivityContentExecutionLifecycleResult(
             ActivityAsset activity,
             ActivityAsset previousActivity,
             ActivityAsset nextActivity,
@@ -43,72 +44,59 @@ namespace Immersive.Framework.ActivityFlow
             ExitPlan = exitPlan;
             ExitResult = exitResult;
             Status = status;
-            Source = Normalize(source);
-            Reason = Normalize(reason);
-            Message = Normalize(message);
+            Source = source.NormalizeText();
+            Reason = reason.NormalizeText();
+            Message = message.NormalizeText();
         }
 
-        public ActivityAsset Activity { get; }
+        private ActivityAsset Activity { get; }
 
-        public ActivityAsset PreviousActivity { get; }
+        private ActivityAsset PreviousActivity { get; }
 
-        public ActivityAsset NextActivity { get; }
+        private ActivityAsset NextActivity { get; }
 
-        public ActivityContentExecutionParticipantSourceResult ParticipantSourceResult { get; }
+        private ActivityContentExecutionParticipantSourceResult ParticipantSourceResult { get; }
 
-        public ActivityContentExecutionParticipantCollection Participants { get; }
+        private ActivityContentExecutionParticipantCollection Participants { get; }
 
-        public ActivityContentExecutionPhasePlan EnterPlan { get; }
+        private ActivityContentExecutionPhasePlan EnterPlan { get; }
 
         public ActivityContentExecutionAggregateResult EnterResult { get; }
 
-        public ActivityContentExecutionPhasePlan ExitPlan { get; }
+        private ActivityContentExecutionPhasePlan ExitPlan { get; }
 
         public ActivityContentExecutionAggregateResult ExitResult { get; }
 
         public ActivityContentExecutionLifecycleStatus Status { get; }
 
-        public string Source { get; }
+        private string Source { get; }
 
-        public string Reason { get; }
+        private string Reason { get; }
 
-        public string Message { get; }
+        private string Message { get; }
 
         public bool Executed => Status != ActivityContentExecutionLifecycleStatus.None
             && Status != ActivityContentExecutionLifecycleStatus.Unknown;
 
-        public bool Succeeded => Status == ActivityContentExecutionLifecycleStatus.Succeeded
-            || Status == ActivityContentExecutionLifecycleStatus.SucceededNoContent
-            || Status == ActivityContentExecutionLifecycleStatus.SucceededWithNonBlockingIssues;
+        public bool Succeeded => Status is ActivityContentExecutionLifecycleStatus.Succeeded or ActivityContentExecutionLifecycleStatus.SucceededNoContent or ActivityContentExecutionLifecycleStatus.SucceededWithNonBlockingIssues;
 
-        public bool Failed => Status == ActivityContentExecutionLifecycleStatus.FailedBlocking
-            || Status == ActivityContentExecutionLifecycleStatus.FailedNonBlocking
-            || Status == ActivityContentExecutionLifecycleStatus.RejectedInvalidContext
-            || Status == ActivityContentExecutionLifecycleStatus.RejectedParticipantSource;
+        private bool HasEnterPlan => EnterPlan.Status != ActivityContentExecutionPhasePlanStatus.Unknown;
 
-        public bool HasEnterPlan => EnterPlan.Status != ActivityContentExecutionPhasePlanStatus.Unknown;
+        private bool HasExitPlan => ExitPlan.Status != ActivityContentExecutionPhasePlanStatus.Unknown;
 
-        public bool HasExitPlan => ExitPlan.Status != ActivityContentExecutionPhasePlanStatus.Unknown;
+        private bool HasEnterResult => EnterResult.Status != ActivityContentExecutionAggregateStatus.Unknown;
 
-        public bool HasEnterResult => EnterResult.Status != ActivityContentExecutionAggregateStatus.Unknown;
-
-        public bool HasExitResult => ExitResult.Status != ActivityContentExecutionAggregateStatus.Unknown;
-
-        public bool HasParticipants => Participants.HasParticipants;
-
-        public bool HasParticipantIssues => Participants.HasIssues || ParticipantSourceResult.HasIssues;
-
-        public bool HasIssues => BlockingIssueCount > 0 || NonBlockingIssueCount > 0 || HasParticipantIssues;
+        private bool HasExitResult => ExitResult.Status != ActivityContentExecutionAggregateStatus.Unknown;
 
         public bool BlocksReadiness => EnterBlocksReadiness || ExitBlocksReadiness || Status == ActivityContentExecutionLifecycleStatus.FailedBlocking || Status == ActivityContentExecutionLifecycleStatus.RejectedParticipantSource;
 
-        public bool EnterBlocksReadiness => HasEnterResult && EnterResult.BlocksReadiness;
+        private bool EnterBlocksReadiness => HasEnterResult && EnterResult.BlocksReadiness;
 
-        public bool ExitBlocksReadiness => HasExitResult && ExitResult.BlocksReadiness;
+        private bool ExitBlocksReadiness => HasExitResult && ExitResult.BlocksReadiness;
 
         public int ParticipantCount => Participants.Count;
 
-        public int ParticipantIssueCount => Participants.IssueCount;
+        private int ParticipantIssueCount => Participants.IssueCount;
 
         public int ParticipantSourceIssueCount => ParticipantSourceResult.IssueCount;
 
@@ -122,21 +110,17 @@ namespace Immersive.Framework.ActivityFlow
 
         public int ExitResultCount => HasExitResult ? ExitResult.ResultCount : 0;
 
-        public int RequiredCount => (HasEnterResult ? EnterResult.RequiredCount : 0) + (HasExitResult ? ExitResult.RequiredCount : 0);
-
-        public int OptionalCount => (HasEnterResult ? EnterResult.OptionalCount : 0) + (HasExitResult ? ExitResult.OptionalCount : 0);
-
         public int BlockingIssueCount => (HasEnterResult ? EnterResult.BlockingIssueCount : 0) + (HasExitResult ? ExitResult.BlockingIssueCount : 0);
 
-        public int NonBlockingIssueCount => (HasEnterResult ? EnterResult.NonBlockingIssueCount : 0) + (HasExitResult ? ExitResult.NonBlockingIssueCount : 0);
+        private int NonBlockingIssueCount => (HasEnterResult ? EnterResult.NonBlockingIssueCount : 0) + (HasExitResult ? ExitResult.NonBlockingIssueCount : 0);
 
         public string DiagnosticStatus => Status.ToString();
 
-        public string ActivityName => Activity != null ? Activity.ActivityName : string.Empty;
+        private string ActivityName => Activity != null ? Activity.ActivityName : string.Empty;
 
-        public string PreviousActivityName => PreviousActivity != null ? PreviousActivity.ActivityName : string.Empty;
+        private string PreviousActivityName => PreviousActivity != null ? PreviousActivity.ActivityName : string.Empty;
 
-        public string NextActivityName => NextActivity != null ? NextActivity.ActivityName : string.Empty;
+        private string NextActivityName => NextActivity != null ? NextActivity.ActivityName : string.Empty;
 
         public bool Equals(ActivityContentExecutionLifecycleResult other)
         {
@@ -165,20 +149,20 @@ namespace Immersive.Framework.ActivityFlow
         {
             unchecked
             {
-                var hashCode = Activity != null ? Activity.GetHashCode() : 0;
-                hashCode = (hashCode * 397) ^ (PreviousActivity != null ? PreviousActivity.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (NextActivity != null ? NextActivity.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ ParticipantSourceResult.GetHashCode();
-                hashCode = (hashCode * 397) ^ Participants.Count;
-                hashCode = (hashCode * 397) ^ Participants.IssueCount;
-                hashCode = (hashCode * 397) ^ EnterPlan.GetHashCode();
-                hashCode = (hashCode * 397) ^ EnterResult.GetHashCode();
-                hashCode = (hashCode * 397) ^ ExitPlan.GetHashCode();
-                hashCode = (hashCode * 397) ^ ExitResult.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = Activity != null ? Activity.GetHashCode() : 0;
+                hashCode = hashCode * 397 ^ (PreviousActivity != null ? PreviousActivity.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ (NextActivity != null ? NextActivity.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ ParticipantSourceResult.GetHashCode();
+                hashCode = hashCode * 397 ^ Participants.Count;
+                hashCode = hashCode * 397 ^ Participants.IssueCount;
+                hashCode = hashCode * 397 ^ EnterPlan.GetHashCode();
+                hashCode = hashCode * 397 ^ EnterResult.GetHashCode();
+                hashCode = hashCode * 397 ^ ExitPlan.GetHashCode();
+                hashCode = hashCode * 397 ^ ExitResult.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -190,12 +174,12 @@ namespace Immersive.Framework.ActivityFlow
 
         public string ToDiagnosticString()
         {
-            var activityText = !string.IsNullOrWhiteSpace(ActivityName) ? ActivityName : "<none>";
-            var previousText = !string.IsNullOrWhiteSpace(PreviousActivityName) ? PreviousActivityName : "<none>";
-            var nextText = !string.IsNullOrWhiteSpace(NextActivityName) ? NextActivityName : "<none>";
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            var messageText = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
+            string activityText = ActivityName.ToDiagnosticText();
+            string previousText = PreviousActivityName.ToDiagnosticText();
+            string nextText = NextActivityName.ToDiagnosticText();
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string messageText = Message.ToDiagnosticText();
             var builder = new StringBuilder();
             builder.Append($"Activity Content Participant Execution Lifecycle status='{Status}' activity='{activityText}' previousActivity='{previousText}' nextActivity='{nextText}' participantSource='{ParticipantSourceStatus}' participantSourceIssues='{ParticipantSourceIssueCount}' participants='{ParticipantCount}' participantIssues='{ParticipantIssueCount}' enterPlan='{EnterPlan.Status}' enterRequests='{EnterRequestCount}' enterStatus='{EnterResult.Status}' enterResults='{EnterResultCount}' exitPlan='{ExitPlan.Status}' exitRequests='{ExitRequestCount}' exitStatus='{ExitResult.Status}' exitResults='{ExitResultCount}' blockingIssues='{BlockingIssueCount}' nonBlockingIssues='{NonBlockingIssueCount}' blocksReadiness='{BlocksReadiness}' source='{sourceText}' reason='{reasonText}' message='{messageText}'");
             return builder.ToString();
@@ -261,36 +245,36 @@ namespace Immersive.Framework.ActivityFlow
                 return ActivityContentExecutionLifecycleStatus.RejectedParticipantSource;
             }
 
-            var hasEnter = enterResult.Status != ActivityContentExecutionAggregateStatus.Unknown;
-            var hasExit = exitResult.Status != ActivityContentExecutionAggregateStatus.Unknown;
+            bool hasEnter = enterResult.Status != ActivityContentExecutionAggregateStatus.Unknown;
+            bool hasExit = exitResult.Status != ActivityContentExecutionAggregateStatus.Unknown;
             if (!hasEnter && !hasExit)
             {
                 return ActivityContentExecutionLifecycleStatus.None;
             }
 
-            if ((hasEnter && enterResult.Status == ActivityContentExecutionAggregateStatus.RejectedInvalidResults)
-                || (hasExit && exitResult.Status == ActivityContentExecutionAggregateStatus.RejectedInvalidResults))
+            if (hasEnter && enterResult.Status == ActivityContentExecutionAggregateStatus.RejectedInvalidResults
+                || hasExit && exitResult.Status == ActivityContentExecutionAggregateStatus.RejectedInvalidResults)
             {
                 return ActivityContentExecutionLifecycleStatus.RejectedInvalidContext;
             }
 
-            if ((hasEnter && enterResult.BlocksReadiness) || (hasExit && exitResult.BlocksReadiness))
+            if (hasEnter && enterResult.BlocksReadiness || hasExit && exitResult.BlocksReadiness)
             {
                 return ActivityContentExecutionLifecycleStatus.FailedBlocking;
             }
 
-            if ((hasEnter && enterResult.Failed) || (hasExit && exitResult.Failed))
+            if (hasEnter && enterResult.Failed || hasExit && exitResult.Failed)
             {
                 return ActivityContentExecutionLifecycleStatus.FailedNonBlocking;
             }
 
-            if ((hasEnter && enterResult.HasNonBlockingIssues) || (hasExit && exitResult.HasNonBlockingIssues) || participants.HasIssues || participantSourceResult.HasIssues)
+            if (hasEnter && enterResult.HasNonBlockingIssues || hasExit && exitResult.HasNonBlockingIssues || participants.HasIssues || participantSourceResult.HasIssues)
             {
                 return ActivityContentExecutionLifecycleStatus.SucceededWithNonBlockingIssues;
             }
 
-            var noEnterContent = !hasEnter || enterResult.Skipped;
-            var noExitContent = !hasExit || exitResult.Skipped;
+            bool noEnterContent = !hasEnter || enterResult.Skipped;
+            bool noExitContent = !hasExit || exitResult.Skipped;
             if (!participants.HasParticipants && noEnterContent && noExitContent)
             {
                 return ActivityContentExecutionLifecycleStatus.SucceededNoContent;
@@ -298,10 +282,6 @@ namespace Immersive.Framework.ActivityFlow
 
             return ActivityContentExecutionLifecycleStatus.Succeeded;
         }
-
-        private static string Normalize(string value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
-        }
+        
     }
 }

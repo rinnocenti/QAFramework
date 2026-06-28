@@ -91,7 +91,7 @@ namespace Immersive.Framework.ObjectEntry
             AcceptedDeclarationCount = acceptedDeclarationCount;
             RejectedDeclarationCount = rejectedDeclarationCount;
             FilteredDeclarationCount = filteredDeclarationCount;
-            Issues = issues == null ? EmptyIssues : issues.ToArray();
+            Issues = issues?.ToArray() ?? EmptyIssues;
         }
 
         public ObjectEntrySet ObjectEntries { get; }
@@ -131,7 +131,7 @@ namespace Immersive.Framework.ObjectEntry
 
         public int NonBlockingIssueCount => IssueCount - BlockingIssueCount;
 
-        public bool Succeeded => Status == ObjectEntryResultStatus.Accepted || Status == ObjectEntryResultStatus.AcceptedWithWarnings;
+        public bool Succeeded => Status is ObjectEntryResultStatus.Accepted or ObjectEntryResultStatus.AcceptedWithWarnings;
 
         public bool Failed => Status == ObjectEntryResultStatus.Rejected;
 

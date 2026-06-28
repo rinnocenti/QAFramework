@@ -1,3 +1,4 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Threading.Tasks;
@@ -25,16 +26,16 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source) ? nameof(LoadingObservationQaSmokeRunner) : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(LoadingObservationQaSmokeRunner));
 
             try
             {
-                var contractsPassed = ValidateContracts(logger, normalizedSource);
-                var sceneLifecyclePassed = ValidateSceneLifecycleObservation(logger, normalizedSource);
-                var sceneFailurePassed = ValidateSceneLifecycleFailureObservation(logger, normalizedSource);
-                var transitionPassed = ValidateTransitionObservation(logger, normalizedSource);
-                var transitionFailurePassed = ValidateTransitionFailureObservation(logger, normalizedSource);
-                var boundaryPassed = ValidateBoundary(logger);
+                bool contractsPassed = ValidateContracts(logger, normalizedSource);
+                bool sceneLifecyclePassed = ValidateSceneLifecycleObservation(logger, normalizedSource);
+                bool sceneFailurePassed = ValidateSceneLifecycleFailureObservation(logger, normalizedSource);
+                bool transitionPassed = ValidateTransitionObservation(logger, normalizedSource);
+                bool transitionFailurePassed = ValidateTransitionFailureObservation(logger, normalizedSource);
+                bool boundaryPassed = ValidateBoundary(logger);
 
                 return Task.FromResult(contractsPassed
                     && sceneLifecyclePassed
@@ -83,7 +84,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "contracts");
 
-            var passed = operationId.IsValid
+            bool passed = operationId.IsValid
                 && stepId.IsValid
                 && step.Status == LoadingStepStatus.Completed
                 && aggregation.Status == LoadingProgressAggregationStatus.Completed
@@ -145,7 +146,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "scene-lifecycle");
 
-            var passed = loadStep.Status == LoadingStepStatus.Completed
+            bool passed = loadStep.Status == LoadingStepStatus.Completed
                 && unloadStep.Status == LoadingStepStatus.Skipped
                 && aggregation.Status == LoadingProgressAggregationStatus.CompletedWithSkippedSteps
                 && aggregation.Completed
@@ -192,7 +193,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "scene-failure");
 
-            var passed = failedStep.Status == LoadingStepStatus.Failed
+            bool passed = failedStep.Status == LoadingStepStatus.Failed
                 && aggregation.Status == LoadingProgressAggregationStatus.Failed
                 && aggregation.Failed
                 && !aggregation.Completed
@@ -241,7 +242,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "transition-observation");
 
-            var passed = aggregation.Status == LoadingProgressAggregationStatus.CompletedWithSkippedSteps
+            bool passed = aggregation.Status == LoadingProgressAggregationStatus.CompletedWithSkippedSteps
                 && aggregation.Completed
                 && aggregation.StepCount == 3
                 && aggregation.CompletedCount == 2
@@ -295,7 +296,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "transition-failure-observation");
 
-            var passed = aggregation.Status == LoadingProgressAggregationStatus.Failed
+            bool passed = aggregation.Status == LoadingProgressAggregationStatus.Failed
                 && aggregation.Failed
                 && aggregation.FailedCount == 1
                 && !aggregation.Completed
@@ -319,7 +320,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidateBoundary(FrameworkLogger logger)
         {
-            var passed = true;
+            bool passed = true;
             LogStep(
                 logger,
                 "canonical-boundary",
@@ -343,7 +344,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogStep(FrameworkLogger logger, string step, bool passed, LogField[] fields)
         {
-            var stepFields = LogFields.Of(
+            LogField[] stepFields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed));
 

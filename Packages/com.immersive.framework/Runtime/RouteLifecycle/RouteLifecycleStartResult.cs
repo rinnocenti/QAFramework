@@ -128,31 +128,31 @@ namespace Immersive.Framework.RouteLifecycle
                 activityFlowResult,
                 source,
                 reason);
-            var routeStateMessage = routeState.HasIdentity ? $" routeIdentity='{routeState.DiagnosticIdentity}'." : string.Empty;
-            var routeExitMessage = routeExitResult.HasRoute ? $" routeExit='{routeExitResult.DiagnosticStatus}'." : string.Empty;
-            var routeContentExitMessage = routeContentExitResult.Executed
+            string routeStateMessage = routeState.HasIdentity ? $" routeIdentity='{routeState.DiagnosticIdentity}'." : string.Empty;
+            string routeExitMessage = routeExitResult.HasRoute ? $" routeExit='{routeExitResult.DiagnosticStatus}'." : string.Empty;
+            string routeContentExitMessage = routeContentExitResult.Executed
                 ? $" routeContentExit='{routeContentExitResult.DiagnosticStatus}' routeContentExitBindings='{routeContentExitResult.BindingCount}' routeContentExitReceivers='{routeContentExitResult.ReceiverCount}' routeContentExitFailed='{routeContentExitResult.FailedReceiverCount}'."
                 : string.Empty;
-            var releaseMessage = contentReleaseResult.Completed || contentReleaseResult.NotExecuted
+            string releaseMessage = contentReleaseResult.Completed || contentReleaseResult.NotExecuted
                 ? $" routeRelease='{contentReleaseResult.Status}' routeReleaseReleased='{contentReleaseResult.ReleasedCount}' routeReleaseSkipped='{contentReleaseResult.SkippedCount}' routeReleaseFailed='{contentReleaseResult.FailedCount}' routeReleaseBlockingIssues='{contentReleaseResult.BlockingIssueCount}'."
                 : string.Empty;
-            var activitySceneRouteReleaseMessage = activitySceneRouteReleaseResult.Executed
+            string activitySceneRouteReleaseMessage = activitySceneRouteReleaseResult.Executed
                 ? $" routeActivitySceneRelease='{activitySceneRouteReleaseResult.DiagnosticStatus}' routeActivitySceneReleaseScenes='{activitySceneRouteReleaseResult.SceneCount}' routeActivitySceneReleaseReleased='{activitySceneRouteReleaseResult.ReleasedSceneCount}' routeActivitySceneReleaseSkipped='{activitySceneRouteReleaseResult.SkippedSceneCount}' routeActivitySceneReleaseFailed='{activitySceneRouteReleaseResult.FailedSceneCount}' routeActivitySceneReleaseBlockingIssues='{activitySceneRouteReleaseResult.BlockingIssueCount}'."
                 : string.Empty;
-            var routeContentMessage = routeContentSet.HasContent ? $" {routeContentSet.DiagnosticMessage}" : string.Empty;
-            var contentAnchorMessage = !string.IsNullOrWhiteSpace(contentAnchorDiscoveryResult.Message)
+            string routeContentMessage = routeContentSet.HasContent ? $" {routeContentSet.DiagnosticMessage}" : string.Empty;
+            string contentAnchorMessage = !string.IsNullOrWhiteSpace(contentAnchorDiscoveryResult.Message)
                 ? $" {contentAnchorDiscoveryResult.DiagnosticMessage}"
                 : string.Empty;
-            var compositionMessage = !string.IsNullOrWhiteSpace(routeSceneCompositionResult.Message) ? $" {routeSceneCompositionResult.Message}" : string.Empty;
-            var routeContentEnterMessage = routeContentEnterResult.Executed
+            string compositionMessage = !string.IsNullOrWhiteSpace(routeSceneCompositionResult.Message) ? $" {routeSceneCompositionResult.Message}" : string.Empty;
+            string routeContentEnterMessage = routeContentEnterResult.Executed
                 ? $" routeContentEnter='{routeContentEnterResult.DiagnosticStatus}' routeContentEnterBindings='{routeContentEnterResult.BindingCount}' routeContentEnterReceivers='{routeContentEnterResult.ReceiverCount}' routeContentEnterFailed='{routeContentEnterResult.FailedReceiverCount}'."
                 : string.Empty;
-            var runtimeRouteMessage = runtimeRouteScopeResult.Executed
+            string runtimeRouteMessage = runtimeRouteScopeResult.Executed
                 ? $" runtimeRouteScope='{runtimeRouteScopeResult.DiagnosticStatus}' runtimeRouteRootEnter='{runtimeRouteScopeResult.EnterStatus}' runtimeRouteRootExit='{runtimeRouteScopeResult.ExitStatus}' runtimeRouteContext='{runtimeRouteScopeResult.ContextStatus}' runtimeRootCount='{runtimeRouteScopeResult.RootCount}'."
                 : string.Empty;
-            var routeBindingCleanupMessage = BindingCleanupMessage("routeContentAnchorBindingCleanup", routeContentAnchorBindingCleanupResult);
-            var activityMessage = !string.IsNullOrWhiteSpace(activityFlowResult.Message) ? $" {activityFlowResult.Message}" : string.Empty;
-            var message = previousRoute != null
+            string routeBindingCleanupMessage = BindingCleanupMessage("routeContentAnchorBindingCleanup", routeContentAnchorBindingCleanupResult);
+            string activityMessage = !string.IsNullOrWhiteSpace(activityFlowResult.Message) ? $" {activityFlowResult.Message}" : string.Empty;
+            string message = previousRoute != null
                 ? $"Route Lifecycle switched from Route '{previousRoute.RouteName}' to Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage}{releaseMessage}{activitySceneRouteReleaseMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{contentAnchorMessage}{routeContentEnterMessage}{routeBindingCleanupMessage}{runtimeRouteMessage}{activityMessage}"
                 : $"Route Lifecycle started Route '{route.RouteName}'.{routeStateMessage}{routeExitMessage}{routeContentExitMessage}{releaseMessage}{activitySceneRouteReleaseMessage} {sceneLifecycleResult.Message}{compositionMessage}{routeContentMessage}{contentAnchorMessage}{routeContentEnterMessage}{routeBindingCleanupMessage}{runtimeRouteMessage}{activityMessage}";
 

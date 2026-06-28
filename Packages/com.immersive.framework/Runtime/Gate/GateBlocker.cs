@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Identity;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Gate
 {
@@ -37,7 +38,7 @@ namespace Immersive.Framework.Gate
                 throw new ArgumentOutOfRangeException(nameof(domain), domain, "Gate blocker domain must be explicit.");
             }
 
-            this._blockerId = blockerId;
+            _blockerId = blockerId;
             Scope = scope;
             Domain = domain;
             Owner = owner;
@@ -89,7 +90,7 @@ namespace Immersive.Framework.Gate
                 return false;
             }
 
-            return !HasOwner || (owner.IsValid && Owner.Equals(owner));
+            return !HasOwner || owner.IsValid && Owner.Equals(owner);
         }
 
         public bool Equals(GateBlocker other)
@@ -112,13 +113,13 @@ namespace Immersive.Framework.Gate
         {
             unchecked
             {
-                var hashCode = _blockerId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Scope;
-                hashCode = (hashCode * 397) ^ (int)Domain;
-                hashCode = (hashCode * 397) ^ Owner.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(PolicySource ?? string.Empty);
+                int hashCode = _blockerId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Scope;
+                hashCode = hashCode * 397 ^ (int)Domain;
+                hashCode = hashCode * 397 ^ Owner.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(PolicySource ?? string.Empty);
                 return hashCode;
             }
         }
@@ -130,10 +131,10 @@ namespace Immersive.Framework.Gate
 
         public string ToDiagnosticString()
         {
-            var ownerText = HasOwner ? Owner.StableText : "<any-owner>";
-            var sourceText = string.IsNullOrWhiteSpace(Source) ? "<none>" : Source;
-            var reasonText = string.IsNullOrWhiteSpace(Reason) ? "<none>" : Reason;
-            var policySourceText = string.IsNullOrWhiteSpace(PolicySource) ? "<none>" : PolicySource;
+            string ownerText = HasOwner ? Owner.StableText : "<any-owner>";
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string policySourceText = PolicySource.ToDiagnosticText();
             return $"blocker='{_blockerId.Value}' scope='{Scope}' domain='{Domain}' owner='{ownerText}' source='{sourceText}' reason='{reasonText}' policySource='{policySourceText}'";
         }
 
@@ -191,7 +192,7 @@ namespace Immersive.Framework.Gate
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

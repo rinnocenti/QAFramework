@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Gate
 {
@@ -22,7 +22,7 @@ namespace Immersive.Framework.Gate
             bool cycleResetRequestInFlight,
             bool objectResetRequestInFlight)
         {
-            var blockers = BuildLifecycleRequestBlockers(
+            IReadOnlyList<GateBlocker> blockers = BuildLifecycleRequestBlockers(
                 routeRequestInFlight,
                 activityRequestInFlight,
                 cycleResetRequestInFlight,
@@ -41,9 +41,7 @@ namespace Immersive.Framework.Gate
 
         internal static string FormatBlockedMessage(string requestName, GateEvaluationResult evaluation)
         {
-            var resolvedRequestName = string.IsNullOrWhiteSpace(requestName)
-                ? "Framework Request"
-                : requestName.Trim();
+            string resolvedRequestName = requestName.NormalizeTextOrFallback("Framework Request");
 
             return $"{resolvedRequestName} ignored because Gate blocked lifecycle request admission. {evaluation.ToDiagnosticString()}";
         }
@@ -104,7 +102,7 @@ namespace Immersive.Framework.Gate
 
         private static string NormalizeSubject(string subject)
         {
-            return string.IsNullOrWhiteSpace(subject) ? "FrameworkRequest" : subject.Trim();
+            return subject.NormalizeTextOrFallback("FrameworkRequest");
         }
     }
 }

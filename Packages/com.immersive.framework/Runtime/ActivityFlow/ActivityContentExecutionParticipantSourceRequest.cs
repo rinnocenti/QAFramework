@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -21,43 +22,33 @@ namespace Immersive.Framework.ActivityFlow
             Route = route;
             PreviousActivity = previousActivity;
             NextActivity = nextActivity;
-            Source = Normalize(source);
-            Reason = Normalize(reason);
+            Source = source.NormalizeText();
+            Reason = reason.NormalizeText();
         }
 
-        public RouteAsset Route { get; }
+        private RouteAsset Route { get; }
 
-        public ActivityAsset PreviousActivity { get; }
+        private ActivityAsset PreviousActivity { get; }
 
-        public ActivityAsset NextActivity { get; }
+        private ActivityAsset NextActivity { get; }
 
         public string Source { get; }
 
         public string Reason { get; }
 
-        public bool HasRoute => Route != null;
+        private bool HasPreviousActivity => PreviousActivity != null;
 
-        public bool HasPreviousActivity => PreviousActivity != null;
+        private bool HasNextActivity => NextActivity != null;
 
-        public bool HasNextActivity => NextActivity != null;
-
-        public bool HasActivityTransition => HasPreviousActivity || HasNextActivity;
-
-        public bool IsClear => HasPreviousActivity && !HasNextActivity;
-
-        public bool IsEnter => !HasPreviousActivity && HasNextActivity;
-
-        public bool IsSwitch => HasPreviousActivity && HasNextActivity && !ReferenceEquals(PreviousActivity, NextActivity);
-
-        public bool IsSameActivity => HasPreviousActivity && HasNextActivity && ReferenceEquals(PreviousActivity, NextActivity);
+        private bool HasActivityTransition => HasPreviousActivity || HasNextActivity;
 
         public bool IsValid => HasActivityTransition;
 
-        public string RouteName => Route != null ? Route.RouteName : string.Empty;
+        private string RouteName => Route != null ? Route.RouteName : string.Empty;
 
-        public string PreviousActivityName => PreviousActivity != null ? PreviousActivity.ActivityName : string.Empty;
+        private string PreviousActivityName => PreviousActivity != null ? PreviousActivity.ActivityName : string.Empty;
 
-        public string NextActivityName => NextActivity != null ? NextActivity.ActivityName : string.Empty;
+        private string NextActivityName => NextActivity != null ? NextActivity.ActivityName : string.Empty;
 
         public bool Equals(ActivityContentExecutionParticipantSourceRequest other)
         {
@@ -77,11 +68,11 @@ namespace Immersive.Framework.ActivityFlow
         {
             unchecked
             {
-                var hashCode = Route != null ? Route.GetHashCode() : 0;
-                hashCode = (hashCode * 397) ^ (PreviousActivity != null ? PreviousActivity.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (NextActivity != null ? NextActivity.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = Route != null ? Route.GetHashCode() : 0;
+                hashCode = hashCode * 397 ^ (PreviousActivity != null ? PreviousActivity.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ (NextActivity != null ? NextActivity.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 return hashCode;
             }
         }
@@ -93,11 +84,11 @@ namespace Immersive.Framework.ActivityFlow
 
         public string ToDiagnosticString()
         {
-            var routeText = !string.IsNullOrWhiteSpace(RouteName) ? RouteName : "<none>";
-            var previousText = !string.IsNullOrWhiteSpace(PreviousActivityName) ? PreviousActivityName : "<none>";
-            var nextText = !string.IsNullOrWhiteSpace(NextActivityName) ? NextActivityName : "<none>";
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
+            string routeText = RouteName.ToDiagnosticText();
+            string previousText = PreviousActivityName.ToDiagnosticText();
+            string nextText = NextActivityName.ToDiagnosticText();
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
             return $"route='{routeText}' previousActivity='{previousText}' nextActivity='{nextText}' valid='{IsValid}' source='{sourceText}' reason='{reasonText}'";
         }
 
@@ -109,11 +100,6 @@ namespace Immersive.Framework.ActivityFlow
         public static bool operator !=(ActivityContentExecutionParticipantSourceRequest left, ActivityContentExecutionParticipantSourceRequest right)
         {
             return !left.Equals(right);
-        }
-
-        private static string Normalize(string value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
         }
     }
 }

@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
-using Immersive.Framework.RuntimeContent;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -16,7 +17,7 @@ namespace Immersive.Framework.ActivityFlow
     {
         private readonly ActivityContentExecutionResult[] _results;
 
-        public ActivityContentExecutionAggregateResult(
+        private ActivityContentExecutionAggregateResult(
             ActivityContentExecutionPhase phase,
             ActivityAsset activity,
             ActivityAsset previousActivity,
@@ -44,18 +45,19 @@ namespace Immersive.Framework.ActivityFlow
             PreviousActivity = previousActivity;
             NextActivity = nextActivity;
             Status = status;
-            Source = Normalize(source);
-            Reason = Normalize(reason);
-            Message = Normalize(message);
+            
+            Source = source.NormalizeText();
+            Reason = reason.NormalizeText();
+            Message = message.NormalizeText();
 
             if (results == null || results.Count == 0)
             {
-                this._results = Array.Empty<ActivityContentExecutionResult>();
+                _results = Array.Empty<ActivityContentExecutionResult>();
             }
             else
             {
-                this._results = new ActivityContentExecutionResult[results.Count];
-                for (var i = 0; i < results.Count; i++)
+                _results = new ActivityContentExecutionResult[results.Count];
+                for (int i = 0; i < results.Count; i++)
                 {
                     var result = results[i];
                     if (result.Phase != phase)
@@ -63,64 +65,52 @@ namespace Immersive.Framework.ActivityFlow
                         throw new ArgumentException("All Activity content execution results in an aggregate must use the aggregate phase.", nameof(results));
                     }
 
-                    this._results[i] = result;
+                    _results[i] = result;
                 }
             }
         }
 
-        public ActivityContentExecutionPhase Phase { get; }
+        private ActivityContentExecutionPhase Phase { get; }
 
-        public ActivityAsset Activity { get; }
+        private ActivityAsset Activity { get; }
 
-        public ActivityAsset PreviousActivity { get; }
+        private ActivityAsset PreviousActivity { get; } 
 
-        public ActivityAsset NextActivity { get; }
+        private ActivityAsset NextActivity { get; }
 
         public ActivityContentExecutionAggregateStatus Status { get; }
 
-        public IReadOnlyList<ActivityContentExecutionResult> Results => _results ?? Array.Empty<ActivityContentExecutionResult>();
+        private IReadOnlyList<ActivityContentExecutionResult> Results => _results ?? Array.Empty<ActivityContentExecutionResult>();
 
-        public string Source { get; }
+        private string Source { get; }
 
-        public string Reason { get; }
+        private string Reason { get; }
 
-        public string Message { get; }
+        private string Message { get; }
 
-        public bool IsEnter => Phase == ActivityContentExecutionPhase.Enter;
+        private string ActivityName => Activity != null ? Activity.ActivityName : string.Empty;
 
-        public bool IsExit => Phase == ActivityContentExecutionPhase.Exit;
+        private string PreviousActivityName => PreviousActivity != null ? PreviousActivity.ActivityName : string.Empty;
 
-        public bool HasActivity => Activity != null;
+        private string NextActivityName => NextActivity != null ? NextActivity.ActivityName : string.Empty;
 
-        public string ActivityName => Activity != null ? Activity.ActivityName : string.Empty;
-
-        public string PreviousActivityName => PreviousActivity != null ? PreviousActivity.ActivityName : string.Empty;
-
-        public string NextActivityName => NextActivity != null ? NextActivity.ActivityName : string.Empty;
-
-        public int ResultCount => _results != null ? _results.Length : 0;
+        public int ResultCount => _results?.Length ?? 0;
 
         public int RequiredCount => CountByRequiredness(ActivityContentExecutionRequiredness.Required);
 
         public int OptionalCount => CountByRequiredness(ActivityContentExecutionRequiredness.Optional);
 
-        public int SucceededCount => CountSucceeded();
+        private int SucceededCount => CountSucceeded();
 
-        public int SkippedCount => CountSkipped();
+        private int SkippedCount => CountSkipped();
 
-        public int FailedCount => CountFailed();
+        private int FailedCount => CountFailed();
 
         public int BlockingIssueCount => SumBlockingIssues();
 
         public int NonBlockingIssueCount => SumNonBlockingIssues();
 
-        public int IssueCount => BlockingIssueCount + NonBlockingIssueCount;
-
-        public bool HasResults => ResultCount > 0;
-
-        public bool HasIssues => IssueCount > 0;
-
-        public bool HasBlockingIssues => BlockingIssueCount > 0
+        private bool HasBlockingIssues => BlockingIssueCount > 0
             || Status == ActivityContentExecutionAggregateStatus.FailedBlocking;
 
         public bool HasNonBlockingIssues => NonBlockingIssueCount > 0
@@ -129,17 +119,11 @@ namespace Immersive.Framework.ActivityFlow
 
         public bool BlocksReadiness => HasBlockingIssues;
 
-        public bool Succeeded => Status == ActivityContentExecutionAggregateStatus.Succeeded
-            || Status == ActivityContentExecutionAggregateStatus.SucceededNoOp
-            || Status == ActivityContentExecutionAggregateStatus.SucceededWithNonBlockingIssues;
+        public bool Succeeded => Status is ActivityContentExecutionAggregateStatus.Succeeded or ActivityContentExecutionAggregateStatus.SucceededNoOp or ActivityContentExecutionAggregateStatus.SucceededWithNonBlockingIssues;
 
         public bool Skipped => Status == ActivityContentExecutionAggregateStatus.SkippedNoContent;
 
-        public bool Failed => Status == ActivityContentExecutionAggregateStatus.FailedNonBlocking
-            || Status == ActivityContentExecutionAggregateStatus.FailedBlocking
-            || Status == ActivityContentExecutionAggregateStatus.RejectedInvalidResults;
-
-        public bool HasMessage => !string.IsNullOrWhiteSpace(Message);
+        public bool Failed => Status is ActivityContentExecutionAggregateStatus.FailedNonBlocking or ActivityContentExecutionAggregateStatus.FailedBlocking or ActivityContentExecutionAggregateStatus.RejectedInvalidResults;
 
         public bool Equals(ActivityContentExecutionAggregateResult other)
         {
@@ -156,7 +140,7 @@ namespace Immersive.Framework.ActivityFlow
                 return false;
             }
 
-            for (var i = 0; i < ResultCount; i++)
+            for (int i = 0; i < ResultCount; i++)
             {
                 if (!Results[i].Equals(other.Results[i]))
                 {
@@ -176,18 +160,18 @@ namespace Immersive.Framework.ActivityFlow
         {
             unchecked
             {
-                var hashCode = (int)Phase;
-                hashCode = (hashCode * 397) ^ (Activity != null ? Activity.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (PreviousActivity != null ? PreviousActivity.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (NextActivity != null ? NextActivity.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = (int)Phase;
+                hashCode = hashCode * 397 ^ (Activity != null ? Activity.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ (PreviousActivity != null ? PreviousActivity.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ (NextActivity != null ? NextActivity.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
 
-                for (var i = 0; i < ResultCount; i++)
+                for (int i = 0; i < ResultCount; i++)
                 {
-                    hashCode = (hashCode * 397) ^ Results[i].GetHashCode();
+                    hashCode = hashCode * 397 ^ Results[i].GetHashCode();
                 }
 
                 return hashCode;
@@ -201,15 +185,15 @@ namespace Immersive.Framework.ActivityFlow
 
         public string ToDiagnosticString()
         {
-            var activityText = !string.IsNullOrWhiteSpace(ActivityName) ? ActivityName : "<none>";
-            var previousText = !string.IsNullOrWhiteSpace(PreviousActivityName) ? PreviousActivityName : "<none>";
-            var nextText = !string.IsNullOrWhiteSpace(NextActivityName) ? NextActivityName : "<none>";
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            var messageText = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
+            string activityText = ActivityName.ToDiagnosticText();
+            string previousText = PreviousActivityName.ToDiagnosticText();
+            string nextText = NextActivityName.ToDiagnosticText();
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string messageText = Message.ToDiagnosticText();
             var builder = new StringBuilder();
             builder.Append($"Activity Content Participant Execution Aggregate phase='{Phase}' activity='{activityText}' previousActivity='{previousText}' nextActivity='{nextText}' status='{Status}' results='{ResultCount}' required='{RequiredCount}' optional='{OptionalCount}' succeeded='{SucceededCount}' skipped='{SkippedCount}' failed='{FailedCount}' blockingIssues='{BlockingIssueCount}' nonBlockingIssues='{NonBlockingIssueCount}' blocksReadiness='{BlocksReadiness}' source='{sourceText}' reason='{reasonText}' message='{messageText}' details=[");
-            for (var i = 0; i < Results.Count; i++)
+            for (int i = 0; i < Results.Count; i++)
             {
                 if (i > 0)
                 {
@@ -295,15 +279,14 @@ namespace Immersive.Framework.ActivityFlow
                 return ActivityContentExecutionAggregateStatus.SkippedNoContent;
             }
 
-            var succeeded = 0;
-            var skipped = 0;
-            var failed = 0;
-            var blockingIssues = 0;
-            var nonBlockingIssues = 0;
+            int succeeded = 0;
+            int skipped = 0;
+            int failed = 0;
+            int blockingIssues = 0;
+            int nonBlockingIssues = 0;
 
-            for (var i = 0; i < candidateResults.Count; i++)
+            foreach (var result in candidateResults)
             {
-                var result = candidateResults[i];
                 if (result.HasBlockingIssues)
                 {
                     blockingIssues += result.BlockingIssueCount > 0 ? result.BlockingIssueCount : 1;
@@ -360,25 +343,17 @@ namespace Immersive.Framework.ActivityFlow
 
         private static string BuildDefaultMessage(ActivityContentExecutionAggregateStatus status)
         {
-            switch (status)
+            return status switch
             {
-                case ActivityContentExecutionAggregateStatus.Succeeded:
-                    return "Activity content participant execution aggregate succeeded.";
-                case ActivityContentExecutionAggregateStatus.SucceededNoOp:
-                    return "Activity content participant execution aggregate completed with no operation.";
-                case ActivityContentExecutionAggregateStatus.SucceededWithNonBlockingIssues:
-                    return "Activity content participant execution aggregate succeeded with non-blocking issues.";
-                case ActivityContentExecutionAggregateStatus.SkippedNoContent:
-                    return "Activity content participant execution aggregate skipped because no participant results were provided.";
-                case ActivityContentExecutionAggregateStatus.FailedNonBlocking:
-                    return "Activity content participant execution aggregate failed without blocking readiness.";
-                case ActivityContentExecutionAggregateStatus.FailedBlocking:
-                    return "Activity content participant execution aggregate failed and blocks readiness.";
-                case ActivityContentExecutionAggregateStatus.RejectedInvalidResults:
-                    return "Activity content participant execution aggregate rejected invalid results.";
-                default:
-                    return "Activity content participant execution aggregate completed.";
-            }
+                ActivityContentExecutionAggregateStatus.Succeeded => "Activity content participant execution aggregate succeeded.",
+                ActivityContentExecutionAggregateStatus.SucceededNoOp => "Activity content participant execution aggregate completed with no operation.",
+                ActivityContentExecutionAggregateStatus.SucceededWithNonBlockingIssues => "Activity content participant execution aggregate succeeded with non-blocking issues.",
+                ActivityContentExecutionAggregateStatus.SkippedNoContent => "Activity content participant execution aggregate skipped because no participant results were provided.",
+                ActivityContentExecutionAggregateStatus.FailedNonBlocking => "Activity content participant execution aggregate failed without blocking readiness.",
+                ActivityContentExecutionAggregateStatus.FailedBlocking => "Activity content participant execution aggregate failed and blocks readiness.",
+                ActivityContentExecutionAggregateStatus.RejectedInvalidResults => "Activity content participant execution aggregate rejected invalid results.",
+                _ => "Activity content participant execution aggregate completed."
+            };
         }
 
         private int CountByRequiredness(ActivityContentExecutionRequiredness requiredness)
@@ -388,16 +363,7 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < _results.Length; i++)
-            {
-                if (_results[i].Requiredness == requiredness)
-                {
-                    count++;
-                }
-            }
-
-            return count;
+            return _results.Count(t => t.Requiredness == requiredness);
         }
 
         private int CountSucceeded()
@@ -407,16 +373,7 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < _results.Length; i++)
-            {
-                if (_results[i].Succeeded)
-                {
-                    count++;
-                }
-            }
-
-            return count;
+            return _results.Count(t => t.Succeeded);
         }
 
         private int CountSkipped()
@@ -426,16 +383,7 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < _results.Length; i++)
-            {
-                if (_results[i].Skipped)
-                {
-                    count++;
-                }
-            }
-
-            return count;
+            return _results.Count(t => t.Skipped);
         }
 
         private int CountFailed()
@@ -445,16 +393,7 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < _results.Length; i++)
-            {
-                if (_results[i].Failed)
-                {
-                    count++;
-                }
-            }
-
-            return count;
+            return _results.Count(t => t.Failed);
         }
 
         private int SumBlockingIssues()
@@ -464,13 +403,7 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < _results.Length; i++)
-            {
-                count += _results[i].BlockingIssueCount;
-            }
-
-            return count;
+            return _results.Sum(t => t.BlockingIssueCount);
         }
 
         private int SumNonBlockingIssues()
@@ -480,18 +413,7 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < _results.Length; i++)
-            {
-                count += _results[i].NonBlockingIssueCount;
-            }
-
-            return count;
-        }
-
-        private static string Normalize(string value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return _results.Sum(t => t.NonBlockingIssueCount);
         }
     }
 }

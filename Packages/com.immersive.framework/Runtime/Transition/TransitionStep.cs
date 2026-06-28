@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Transition
 {
@@ -80,12 +81,12 @@ namespace Immersive.Framework.Transition
         {
             unchecked
             {
-                var hashCode = Order;
-                hashCode = (hashCode * 397) ^ (int)Phase;
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Label ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
-                hashCode = (hashCode * 397) ^ BlockingIssue.GetHashCode();
+                int hashCode = Order;
+                hashCode = hashCode * 397 ^ (int)Phase;
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Label ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                hashCode = hashCode * 397 ^ BlockingIssue.GetHashCode();
                 return hashCode;
             }
         }
@@ -97,8 +98,8 @@ namespace Immersive.Framework.Transition
 
         public string ToDiagnosticString()
         {
-            var labelText = HasLabel ? Label : "<none>";
-            var messageText = HasMessage ? Message : "<none>";
+            string labelText = HasLabel ? Label : "<none>";
+            string messageText = HasMessage ? Message : "<none>";
             return $"order='{Order}' phase='{Phase}' status='{Status}' label='{labelText}' blockingIssue='{BlockingIssue}' message='{messageText}'";
         }
 
@@ -139,7 +140,7 @@ namespace Immersive.Framework.Transition
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.ContentFlow;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.LocalContribution
 {
@@ -70,12 +71,12 @@ namespace Immersive.Framework.LocalContribution
         {
             unchecked
             {
-                var hashCode = Identity.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)SourceKind;
-                hashCode = (hashCode * 397) ^ (int)Requiredness;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(SceneName);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(ObjectName);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(ComponentType);
+                int hashCode = Identity.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)SourceKind;
+                hashCode = hashCode * 397 ^ (int)Requiredness;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(SceneName);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(ObjectName);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(ComponentType);
                 return hashCode;
             }
         }
@@ -109,7 +110,7 @@ namespace Immersive.Framework.LocalContribution
 
         private static string Normalize(string value, string fallback)
         {
-            return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+            return value.NormalizeTextOrFallback(fallback);
         }
 
         private static string FormatValue(string value)

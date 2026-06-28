@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ProgressionSave
 {
@@ -31,9 +32,7 @@ namespace Immersive.Framework.ProgressionSave
 
         public bool Written => Status == ProgressionSaveWriteStatus.Written;
 
-        public bool Failed => Status == ProgressionSaveWriteStatus.BackendUnavailable
-            || Status == ProgressionSaveWriteStatus.Failed
-            || Status == ProgressionSaveWriteStatus.Rejected;
+        public bool Failed => Status is ProgressionSaveWriteStatus.BackendUnavailable or ProgressionSaveWriteStatus.Failed or ProgressionSaveWriteStatus.Rejected;
 
         public bool HasSlot => SlotId.IsValid;
 
@@ -58,19 +57,19 @@ namespace Immersive.Framework.ProgressionSave
         {
             unchecked
             {
-                var hashCode = (int)Status;
-                hashCode = (hashCode * 397) ^ SlotId.GetHashCode();
-                hashCode = (hashCode * 397) ^ RecordId.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = (int)Status;
+                hashCode = hashCode * 397 ^ SlotId.GetHashCode();
+                hashCode = hashCode * 397 ^ RecordId.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
 
         public override string ToString()
         {
-            var slotText = HasSlot ? SlotId.StableText : "<none>";
-            var recordText = HasRecord ? RecordId.StableText : "<none>";
-            var messageText = HasMessage ? Message : "<none>";
+            string slotText = HasSlot ? SlotId.StableText : "<none>";
+            string recordText = HasRecord ? RecordId.StableText : "<none>";
+            string messageText = HasMessage ? Message : "<none>";
             return $"status='{Status}' slot='{slotText}' record='{recordText}' message='{messageText}'";
         }
 
@@ -131,7 +130,7 @@ namespace Immersive.Framework.ProgressionSave
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Identity;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ContentAnchor
 {
@@ -116,15 +117,15 @@ namespace Immersive.Framework.ContentAnchor
         {
             unchecked
             {
-                var hashCode = Owner.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Scope;
-                hashCode = (hashCode * 397) ^ (int)Kind;
-                hashCode = (hashCode * 397) ^ AnchorId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Requiredness;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(DisplayName ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Description ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(ResourceName ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(ResourcePath ?? string.Empty);
+                int hashCode = Owner.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Scope;
+                hashCode = hashCode * 397 ^ (int)Kind;
+                hashCode = hashCode * 397 ^ AnchorId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Requiredness;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(DisplayName ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Description ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(ResourceName ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(ResourcePath ?? string.Empty);
                 return hashCode;
             }
         }
@@ -136,13 +137,13 @@ namespace Immersive.Framework.ContentAnchor
 
         public string ToDiagnosticString()
         {
-            var resource = !string.IsNullOrWhiteSpace(ResourceName) ? ResourceName : ResourcePath;
+            string resource = !string.IsNullOrWhiteSpace(ResourceName) ? ResourceName : ResourcePath;
             if (string.IsNullOrWhiteSpace(resource))
             {
                 resource = "<none>";
             }
 
-            var label = !string.IsNullOrWhiteSpace(DisplayName) ? DisplayName : "<none>";
+            string label = DisplayName.ToDiagnosticText();
             return $"anchor='{StableText}' id='{AnchorId.StableText}' scope='{Scope}' kind='{Kind}' requiredness='{Requiredness}' owner='{Owner.StableText}' label='{label}' resource='{resource}'";
         }
 
@@ -240,7 +241,7 @@ namespace Immersive.Framework.ContentAnchor
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

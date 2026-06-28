@@ -1,5 +1,6 @@
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -8,19 +9,15 @@ namespace Immersive.Framework.ActivityFlow
     {
         internal ActivityContentDiscoveryScene(
             ActivityAsset activity,
-            string routeInstanceId,
             string scenePath,
             string sceneName)
         {
             Activity = activity;
-            RouteInstanceId = Normalize(routeInstanceId);
-            ScenePath = Normalize(scenePath);
-            SceneName = Normalize(sceneName);
+            ScenePath = scenePath.NormalizeText();
+            SceneName = sceneName.NormalizeText();
         }
 
-        internal ActivityAsset Activity { get; }
-
-        internal string RouteInstanceId { get; }
+        private ActivityAsset Activity { get; }
 
         internal string ScenePath { get; }
 
@@ -29,15 +26,6 @@ namespace Immersive.Framework.ActivityFlow
         internal bool MatchesActivity(ActivityAsset activity)
         {
             return ReferenceEquals(Activity, activity);
-        }
-
-        internal string SceneKey => !string.IsNullOrWhiteSpace(ScenePath)
-            ? ScenePath
-            : !string.IsNullOrWhiteSpace(SceneName) ? SceneName : string.Empty;
-
-        private static string Normalize(string value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
         }
     }
 }

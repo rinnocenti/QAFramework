@@ -47,7 +47,7 @@ namespace Immersive.Framework.GameFlow
         {
             get
             {
-                var count = 0;
+                int count = 0;
                 if (HasBefore)
                 {
                     count += BeforeResult.EffectBlockingIssueCount;
@@ -102,7 +102,7 @@ namespace Immersive.Framework.GameFlow
         {
             get
             {
-                var count = 0;
+                int count = 0;
                 if (HasBefore)
                 {
                     count += BeforeResult.BlockingIssueCount;
@@ -141,7 +141,7 @@ namespace Immersive.Framework.GameFlow
         {
             if (HasBefore && HasAfter)
             {
-                if (string.Equals(BeforeResult.VisualText, AfterResult.VisualText, System.StringComparison.Ordinal))
+                if (string.Equals(BeforeResult.VisualText, AfterResult.VisualText, StringComparison.Ordinal))
                 {
                     return BeforeResult.VisualText;
                 }

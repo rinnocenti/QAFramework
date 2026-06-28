@@ -33,8 +33,6 @@ namespace Immersive.Framework.ActivityFlow
 
         public FrameworkContentHandle Handle { get; }
 
-        public FrameworkContentIdentity Identity => Handle.Identity;
-
         public string ToDiagnosticString()
         {
             return Handle.ToDiagnosticString();

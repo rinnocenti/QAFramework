@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.SceneLifecycle;
 using UnityEngine;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ObjectEntry
 {
@@ -26,14 +28,14 @@ namespace Immersive.Framework.ObjectEntry
         /// </summary>
         internal ObjectEntryDeclarationSourceResult CollectLoadedSceneDeclarations()
         {
-            var declarations = UnityEngine.Object.FindObjectsByType<ObjectEntryDeclaration>(
+            ObjectEntryDeclaration[] declarations = UnityEngine.Object.FindObjectsByType<ObjectEntryDeclaration>(
                 IncludeInactiveDeclarations ? FindObjectsInactive.Include : FindObjectsInactive.Exclude);
             return Collect(declarations, "loaded-scenes");
         }
 
         internal ObjectEntryDeclarationSourceResult CollectScoped(ObjectEntryScopedCollectionContext context)
         {
-            if (!context.TryValidate(out var contextIssue))
+            if (!context.TryValidate(out string contextIssue))
             {
                 return new ObjectEntryDeclarationSourceResult(
                     ObjectEntrySet.Empty(),
@@ -49,10 +51,10 @@ namespace Immersive.Framework.ObjectEntry
                     });
             }
 
-            var declarations = CollectScopedSceneDeclarations(context);
+            IReadOnlyList<ObjectEntryDeclaration> declarations = CollectScopedSceneDeclarations(context);
             var descriptors = new List<ObjectEntryDescriptor>(declarations.Count);
             var issues = new List<ObjectEntryIssue>();
-            var filteredDeclarationCount = 0;
+            int filteredDeclarationCount = 0;
 
             for (int i = 0; i < declarations.Count; i++)
             {
@@ -86,7 +88,7 @@ namespace Immersive.Framework.ObjectEntry
                     continue;
                 }
 
-                if (!declaration.TryCreateScopedDescriptor(ownerIdentity, out var descriptor, out var issue))
+                if (!declaration.TryCreateScopedDescriptor(ownerIdentity, out var descriptor, out string issue))
                 {
                     issues.Add(ObjectEntryIssue.Error(
                         ObjectEntryIssueKind.InvalidRequest,
@@ -138,7 +140,7 @@ namespace Immersive.Framework.ObjectEntry
             IEnumerable<ObjectEntryDeclaration> declarations,
             string source = null)
         {
-            var materializedDeclarations = declarations == null
+            ObjectEntryDeclaration[] materializedDeclarations = declarations == null
                 ? Array.Empty<ObjectEntryDeclaration>()
                 : declarations.Where(declaration => declaration != null).ToArray();
 
@@ -147,7 +149,7 @@ namespace Immersive.Framework.ObjectEntry
             for (int i = 0; i < materializedDeclarations.Length; i++)
             {
                 var declaration = materializedDeclarations[i];
-                if (!declaration.TryCreateDescriptor(out var descriptor, out var issue))
+                if (!declaration.TryCreateDescriptor(out var descriptor, out string issue))
                 {
                     issues.Add(ObjectEntryIssue.Error(
                         ObjectEntryIssueKind.InvalidRequest,
@@ -206,7 +208,7 @@ namespace Immersive.Framework.ObjectEntry
         {
             var declarations = new List<ObjectEntryDeclaration>();
             var scannedScenes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var entries = context.RouteSceneCompositionResult.Entries;
+            IReadOnlyList<RouteSceneCompositionResultEntry> entries = context.RouteSceneCompositionResult.Entries;
             for (int i = 0; i < entries.Count; i++)
             {
                 var entry = entries[i];
@@ -215,7 +217,7 @@ namespace Immersive.Framework.ObjectEntry
                     continue;
                 }
 
-                var sceneKey = !string.IsNullOrWhiteSpace(entry.ScenePath)
+                string sceneKey = !string.IsNullOrWhiteSpace(entry.ScenePath)
                     ? entry.ScenePath.Trim()
                     : entry.SceneName?.Trim() ?? string.Empty;
                 if (string.IsNullOrWhiteSpace(sceneKey) || !scannedScenes.Add(sceneKey))
@@ -223,7 +225,7 @@ namespace Immersive.Framework.ObjectEntry
                     continue;
                 }
 
-                var sceneDeclarations = SceneScopedComponentQuery.GetComponentsInLoadedScene<ObjectEntryDeclaration>(
+                IReadOnlyList<ObjectEntryDeclaration> sceneDeclarations = SceneScopedComponentQuery.GetComponentsInLoadedScene<ObjectEntryDeclaration>(
                     entry.ScenePath,
                     entry.SceneName);
                 for (int declarationIndex = 0; declarationIndex < sceneDeclarations.Count; declarationIndex++)
@@ -247,13 +249,13 @@ namespace Immersive.Framework.ObjectEntry
             string sceneName = declaration != null && declaration.gameObject != null && declaration.gameObject.scene.IsValid()
                 ? declaration.gameObject.scene.name
                 : "<no-scene>";
-            string message = string.IsNullOrWhiteSpace(issue) ? "Invalid Object Entry declaration." : issue.Trim();
+            string message = issue.NormalizeTextOrFallback("Invalid Object Entry declaration.");
             return $"ObjectEntryDeclaration object='{objectName}' scene='{sceneName}' issue='{message}'.";
         }
 
         private static string ResolveSource(string source)
         {
-            return string.IsNullOrWhiteSpace(source) ? nameof(ObjectEntryDeclarationSource) : source.Trim();
+            return source.NormalizeTextOrFallback(nameof(ObjectEntryDeclarationSource));
         }
     }
 }

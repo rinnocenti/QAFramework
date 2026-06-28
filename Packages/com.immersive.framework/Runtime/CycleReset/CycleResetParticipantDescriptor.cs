@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.CycleReset
 {
@@ -95,13 +96,13 @@ namespace Immersive.Framework.CycleReset
         {
             unchecked
             {
-                var hashCode = ParticipantId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)ParticipantScope;
-                hashCode = (hashCode * 397) ^ (int)Requiredness;
-                hashCode = (hashCode * 397) ^ Order;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(DisplayName ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = ParticipantId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)ParticipantScope;
+                hashCode = hashCode * 397 ^ (int)Requiredness;
+                hashCode = hashCode * 397 ^ Order;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(DisplayName ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 return hashCode;
             }
         }
@@ -113,9 +114,9 @@ namespace Immersive.Framework.CycleReset
 
         public string ToDiagnosticString()
         {
-            var displayNameText = !string.IsNullOrWhiteSpace(DisplayName) ? DisplayName : "<none>";
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
+            string displayNameText = DisplayName.ToDiagnosticText();
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
             return $"participantId='{ParticipantId.StableText}' participantScope='{ParticipantScope}' requiredness='{Requiredness}' order='{Order}' displayName='{displayNameText}' source='{sourceText}' reason='{reasonText}'";
         }
 
@@ -167,7 +168,7 @@ namespace Immersive.Framework.CycleReset
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

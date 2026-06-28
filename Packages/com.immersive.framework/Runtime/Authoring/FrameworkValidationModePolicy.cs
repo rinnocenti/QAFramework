@@ -26,9 +26,7 @@ namespace Immersive.Framework.Authoring
 
         public static bool IsKnown(FrameworkValidationMode mode)
         {
-            return mode == FrameworkValidationMode.Strict
-                   || mode == FrameworkValidationMode.Standard
-                   || mode == FrameworkValidationMode.Release;
+            return mode is FrameworkValidationMode.Strict or FrameworkValidationMode.Standard or FrameworkValidationMode.Release;
         }
 
         public static string GetSummary(FrameworkValidationMode mode)

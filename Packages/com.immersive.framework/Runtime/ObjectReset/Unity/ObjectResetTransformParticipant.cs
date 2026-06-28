@@ -1,7 +1,6 @@
 using Immersive.Framework.ApiStatus;
 using UnityEngine;
-
-namespace Immersive.Framework.ObjectReset
+namespace Immersive.Framework.ObjectReset.Unity
 {
     /// <summary>
     /// API status: Experimental. Unity Object Reset participant that restores an authored local Transform baseline.

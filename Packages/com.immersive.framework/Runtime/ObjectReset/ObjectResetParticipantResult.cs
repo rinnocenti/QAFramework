@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.ObjectEntry;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ObjectReset
 {
@@ -85,15 +86,11 @@ namespace Immersive.Framework.ObjectReset
 
         public bool Succeeded => Status == ObjectResetParticipantResultStatus.Succeeded;
 
-        public bool WasSkipped => Status == ObjectResetParticipantResultStatus.SkippedNotApplicable
-            || Status == ObjectResetParticipantResultStatus.SkippedOptional;
+        public bool WasSkipped => Status is ObjectResetParticipantResultStatus.SkippedNotApplicable or ObjectResetParticipantResultStatus.SkippedOptional;
 
-        public bool Failed => Status == ObjectResetParticipantResultStatus.FailedBlocking
-            || Status == ObjectResetParticipantResultStatus.FailedNonBlocking
-            || Status == ObjectResetParticipantResultStatus.RejectedInvalidRequest;
+        public bool Failed => Status is ObjectResetParticipantResultStatus.FailedBlocking or ObjectResetParticipantResultStatus.FailedNonBlocking or ObjectResetParticipantResultStatus.RejectedInvalidRequest;
 
-        public bool BlocksReset => Status == ObjectResetParticipantResultStatus.FailedBlocking
-            || Status == ObjectResetParticipantResultStatus.RejectedInvalidRequest;
+        public bool BlocksReset => Status is ObjectResetParticipantResultStatus.FailedBlocking or ObjectResetParticipantResultStatus.RejectedInvalidRequest;
 
         public bool IsRequired => Participant.IsRequired;
 
@@ -127,14 +124,14 @@ namespace Immersive.Framework.ObjectReset
         {
             unchecked
             {
-                var hashCode = Request.GetHashCode();
-                hashCode = (hashCode * 397) ^ ResolvedTarget.GetHashCode();
-                hashCode = (hashCode * 397) ^ Participant.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ IssueCount;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = Request.GetHashCode();
+                hashCode = hashCode * 397 ^ ResolvedTarget.GetHashCode();
+                hashCode = hashCode * 397 ^ Participant.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ IssueCount;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -146,9 +143,9 @@ namespace Immersive.Framework.ObjectReset
 
         public string ToDiagnosticString()
         {
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            var messageText = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string messageText = Message.ToDiagnosticText();
             return $"participantId='{ParticipantId.StableText}' requiredness='{Requiredness}' status='{Status}' succeeded='{Succeeded}' skipped='{WasSkipped}' failed='{Failed}' blocksReset='{BlocksReset}' issueCount='{IssueCount}' source='{sourceText}' reason='{reasonText}' message='{messageText}' {Target.ToDiagnosticString()}";
         }
 
@@ -253,7 +250,7 @@ namespace Immersive.Framework.ObjectReset
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

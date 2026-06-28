@@ -5,6 +5,7 @@ using Immersive.Framework.Diagnostics;
 using Immersive.Framework.GameFlow;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Pause
 {
@@ -113,7 +114,7 @@ namespace Immersive.Framework.Pause
                 return;
             }
 
-            var resolvedActionName = Normalize(pauseToggleActionName, "PauseToggle");
+            string resolvedActionName = Normalize(pauseToggleActionName, "PauseToggle");
             _playerPauseToggleAction = ResolveAction(actionsAsset, playerActionMapName, resolvedActionName, requirePlayerAction);
             _uiPauseToggleAction = ResolveAction(actionsAsset, uiActionMapName, resolvedActionName, requireUiAction);
 
@@ -181,7 +182,7 @@ namespace Immersive.Framework.Pause
             string actionName,
             bool required)
         {
-            var resolvedMapName = Normalize(actionMapName, string.Empty);
+            string resolvedMapName = Normalize(actionMapName, string.Empty);
             if (string.IsNullOrWhiteSpace(resolvedMapName))
             {
                 if (required)
@@ -243,8 +244,8 @@ namespace Immersive.Framework.Pause
                 return;
             }
 
-            var actionPath = FormatAction(context.action);
-            var reason = $"{DefaultReasonPrefix}:{actionPath}";
+            string actionPath = FormatAction(context.action);
+            string reason = $"{DefaultReasonPrefix}:{actionPath}";
             PauseResult result;
 
             try
@@ -328,7 +329,7 @@ namespace Immersive.Framework.Pause
 
         private static string Normalize(string value, string fallback)
         {
-            return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+            return value.NormalizeTextOrFallback(fallback);
         }
 
         private static string FormatAction(InputAction action)
@@ -338,8 +339,8 @@ namespace Immersive.Framework.Pause
                 return "<none>";
             }
 
-            var actionName = Normalize(action.name, "<unnamed>");
-            var actionMapName = action.actionMap != null ? Normalize(action.actionMap.name, string.Empty) : string.Empty;
+            string actionName = Normalize(action.name, "<unnamed>");
+            string actionMapName = action.actionMap != null ? Normalize(action.actionMap.name, string.Empty) : string.Empty;
             return string.IsNullOrWhiteSpace(actionMapName) ? actionName : $"{actionMapName}/{actionName}";
         }
 

@@ -26,8 +26,8 @@ namespace Immersive.Framework.Gate
             }
 
             Decision = decision;
-            this._blockingBlockers = CopyBlockers(blockingBlockers);
-            this._facts = CopyFacts(facts);
+            _blockingBlockers = CopyBlockers(blockingBlockers);
+            _facts = CopyFacts(facts);
         }
 
         public GateDecision Decision { get; }
@@ -76,17 +76,17 @@ namespace Immersive.Framework.Gate
         {
             unchecked
             {
-                var hashCode = Decision.GetHashCode();
-                var blockers = BlockingBlockers;
-                for (var i = 0; i < blockers.Count; i++)
+                int hashCode = Decision.GetHashCode();
+                IReadOnlyList<GateBlocker> blockers = BlockingBlockers;
+                for (int i = 0; i < blockers.Count; i++)
                 {
-                    hashCode = (hashCode * 397) ^ blockers[i].GetHashCode();
+                    hashCode = hashCode * 397 ^ blockers[i].GetHashCode();
                 }
 
-                var factItems = Facts;
-                for (var i = 0; i < factItems.Count; i++)
+                IReadOnlyList<string> factItems = Facts;
+                for (int i = 0; i < factItems.Count; i++)
                 {
-                    hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(factItems[i] ?? string.Empty);
+                    hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(factItems[i] ?? string.Empty);
                 }
 
                 return hashCode;
@@ -111,8 +111,8 @@ namespace Immersive.Framework.Gate
             if (HasBlockingBlockers)
             {
                 builder.Append(" blocking=[");
-                var blockers = BlockingBlockers;
-                for (var i = 0; i < blockers.Count; i++)
+                IReadOnlyList<GateBlocker> blockers = BlockingBlockers;
+                for (int i = 0; i < blockers.Count; i++)
                 {
                     if (i > 0)
                     {
@@ -128,8 +128,8 @@ namespace Immersive.Framework.Gate
             if (HasFacts)
             {
                 builder.Append(" facts=[");
-                var factItems = Facts;
-                for (var i = 0; i < factItems.Count; i++)
+                IReadOnlyList<string> factItems = Facts;
+                for (int i = 0; i < factItems.Count; i++)
                 {
                     if (i > 0)
                     {
@@ -206,7 +206,7 @@ namespace Immersive.Framework.Gate
             }
 
             var copy = new GateBlocker[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 if (!source[i].IsValid)
                 {
@@ -227,7 +227,7 @@ namespace Immersive.Framework.Gate
             }
 
             var copy = new List<string>(source.Count);
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 if (string.IsNullOrWhiteSpace(source[i]))
                 {
@@ -247,8 +247,8 @@ namespace Immersive.Framework.Gate
                 return false;
             }
 
-            var comparer = EqualityComparer<T>.Default;
-            for (var i = 0; i < left.Count; i++)
+            EqualityComparer<T> comparer = EqualityComparer<T>.Default;
+            for (int i = 0; i < left.Count; i++)
             {
                 if (!comparer.Equals(left[i], right[i]))
                 {

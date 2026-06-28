@@ -23,7 +23,7 @@ That gap belongs to F24, not to F25 adapter modules.
 
 F24 is Unity Build Surface / Lifecycle Wiring.
 
-F24 comes after F23 and before F25 Adapter Module Foundation.
+F24 comes after F23 and before later Activity scene operation, loading progress and adapter module planning work.
 
 F24 owns minimal Unity surfaces that prove framework contracts through real lifecycle wiring. It does not build product gameplay or broad subsystem adapters.
 

@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ContentAnchor
 {
@@ -54,17 +55,17 @@ namespace Immersive.Framework.ContentAnchor
         {
             unchecked
             {
-                var hashCode = (int)Kind;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Key ?? string.Empty);
-                hashCode = (hashCode * 397) ^ Declaration.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = (int)Kind;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Key ?? string.Empty);
+                hashCode = hashCode * 397 ^ Declaration.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
 
         public string ToDiagnosticString()
         {
-            var declaration = HasDeclaration ? Declaration.ToDiagnosticString() : "<invalid>";
+            string declaration = HasDeclaration ? Declaration.ToDiagnosticString() : "<invalid>";
             return $"kind='{Kind}' key='{Key}' message='{Message}' declaration=[{declaration}]";
         }
 
@@ -85,7 +86,7 @@ namespace Immersive.Framework.ContentAnchor
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

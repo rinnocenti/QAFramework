@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ObjectEntry
 {
@@ -13,7 +14,7 @@ namespace Immersive.Framework.ObjectEntry
         {
             Severity = severity;
             Kind = kind;
-            Message = string.IsNullOrWhiteSpace(message) ? kind.ToString() : message.Trim();
+            Message = message.NormalizeTextOrFallback(kind.ToString());
         }
 
         public ObjectEntryIssueSeverity Severity { get; }
@@ -40,9 +41,9 @@ namespace Immersive.Framework.ObjectEntry
         {
             unchecked
             {
-                var hashCode = (int)Severity;
-                hashCode = (hashCode * 397) ^ (int)Kind;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = (int)Severity;
+                hashCode = hashCode * 397 ^ (int)Kind;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }

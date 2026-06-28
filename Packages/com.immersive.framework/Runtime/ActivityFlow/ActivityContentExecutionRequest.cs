@@ -2,6 +2,7 @@ using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.RuntimeContent;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -12,7 +13,7 @@ namespace Immersive.Framework.ActivityFlow
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F10B Activity Content Execution request contract; no execution runtime or Unity side effects.")]
     public readonly struct ActivityContentExecutionRequest : IEquatable<ActivityContentExecutionRequest>
     {
-        public ActivityContentExecutionRequest(
+        private ActivityContentExecutionRequest(
             ActivityContentExecutionPhase phase,
             ActivityAsset activity,
             ActivityAsset previousActivity,
@@ -62,8 +63,8 @@ namespace Immersive.Framework.ActivityFlow
             Context = context;
             ContentId = contentId;
             Requiredness = requiredness;
-            Source = Normalize(source);
-            Reason = Normalize(reason);
+            Source = source.NormalizeText();
+            Reason = reason.NormalizeText();
         }
 
         public ActivityContentExecutionPhase Phase { get; }
@@ -74,7 +75,7 @@ namespace Immersive.Framework.ActivityFlow
 
         public ActivityAsset NextActivity { get; }
 
-        public RuntimeScopeContext Context { get; }
+        private RuntimeScopeContext Context { get; }
 
         public RuntimeContentOwner Owner => Context.Owner;
 
@@ -86,17 +87,11 @@ namespace Immersive.Framework.ActivityFlow
 
         public ActivityContentExecutionRequiredness Requiredness { get; }
 
-        public string Source { get; }
+        private string Source { get; }
 
-        public string Reason { get; }
-
-        public bool IsEnter => Phase == ActivityContentExecutionPhase.Enter;
-
-        public bool IsExit => Phase == ActivityContentExecutionPhase.Exit;
+        private string Reason { get; }
 
         public bool IsRequired => Requiredness == ActivityContentExecutionRequiredness.Required;
-
-        public bool IsOptional => Requiredness == ActivityContentExecutionRequiredness.Optional;
 
         public bool IsValid => Activity != null
             && Context.IsValid
@@ -105,11 +100,11 @@ namespace Immersive.Framework.ActivityFlow
             && Phase != ActivityContentExecutionPhase.Unknown
             && Requiredness != ActivityContentExecutionRequiredness.Unknown;
 
-        public string ActivityName => Activity != null ? Activity.ActivityName : string.Empty;
+        private string ActivityName => Activity != null ? Activity.ActivityName : string.Empty;
 
-        public string PreviousActivityName => PreviousActivity != null ? PreviousActivity.ActivityName : string.Empty;
+        private string PreviousActivityName => PreviousActivity != null ? PreviousActivity.ActivityName : string.Empty;
 
-        public string NextActivityName => NextActivity != null ? NextActivity.ActivityName : string.Empty;
+        private string NextActivityName => NextActivity != null ? NextActivity.ActivityName : string.Empty;
 
         public bool Equals(ActivityContentExecutionRequest other)
         {
@@ -133,15 +128,15 @@ namespace Immersive.Framework.ActivityFlow
         {
             unchecked
             {
-                var hashCode = (int)Phase;
-                hashCode = (hashCode * 397) ^ (Activity != null ? Activity.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (PreviousActivity != null ? PreviousActivity.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (NextActivity != null ? NextActivity.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ Context.GetHashCode();
-                hashCode = (hashCode * 397) ^ ContentId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Requiredness;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = (int)Phase;
+                hashCode = hashCode * 397 ^ (Activity != null ? Activity.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ (PreviousActivity != null ? PreviousActivity.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ (NextActivity != null ? NextActivity.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ Context.GetHashCode();
+                hashCode = hashCode * 397 ^ ContentId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Requiredness;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 return hashCode;
             }
         }
@@ -153,8 +148,8 @@ namespace Immersive.Framework.ActivityFlow
 
         public string ToDiagnosticString()
         {
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
             return $"phase='{Phase}' activity='{ActivityName}' previousActivity='{PreviousActivityName}' nextActivity='{NextActivityName}' identity='{Identity.StableText}' owner='{Owner.StableText}' contentId='{ContentId.StableText}' requiredness='{Requiredness}' source='{sourceText}' reason='{reasonText}'";
         }
 
@@ -208,11 +203,6 @@ namespace Immersive.Framework.ActivityFlow
         public static bool operator !=(ActivityContentExecutionRequest left, ActivityContentExecutionRequest right)
         {
             return !left.Equals(right);
-        }
-
-        private static string Normalize(string value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
         }
     }
 }

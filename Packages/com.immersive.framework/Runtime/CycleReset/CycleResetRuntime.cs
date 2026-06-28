@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.CycleReset
 {
@@ -25,8 +26,8 @@ namespace Immersive.Framework.CycleReset
             string source,
             string reason)
         {
-            var sourceText = Normalize(source);
-            var reasonText = Normalize(reason);
+            string sourceText = Normalize(source);
+            string reasonText = Normalize(reason);
 
             if (!plan.Request.IsValid)
             {
@@ -71,9 +72,9 @@ namespace Immersive.Framework.CycleReset
 
             var results = new List<CycleResetParticipantResult>(plan.EntryCount);
             var executionIssues = new List<CycleResetIssue>(plan.SnapshotIssues());
-            var entries = plan.Entries;
+            IReadOnlyList<CycleResetParticipantEntry> entries = plan.Entries;
 
-            for (var i = 0; i < entries.Count; i++)
+            for (int i = 0; i < entries.Count; i++)
             {
                 var entry = entries[i];
                 if (!entry.IsValid)
@@ -100,7 +101,7 @@ namespace Immersive.Framework.CycleReset
                 {
                     var context = new CycleResetContext(plan.Request, entry.Descriptor);
                     var result = entry.Participant.ResetCycle(context);
-                    if (!IsValidResultForEntry(result, entry, plan.Request, out var invalidResultMessage))
+                    if (!IsValidResultForEntry(result, entry, plan.Request, out string invalidResultMessage))
                     {
                         results.Add(CreateFailure(entry, plan.Request, sourceText, reasonText, invalidResultMessage));
                         executionIssues.Add(CreateResultIssue(entry, invalidResultMessage));
@@ -115,7 +116,7 @@ namespace Immersive.Framework.CycleReset
                 }
                 catch (Exception exception)
                 {
-                    var message = $"Cycle Reset participant threw an exception: {exception.GetType().Name}.";
+                    string message = $"Cycle Reset participant threw an exception: {exception.GetType().Name}.";
                     results.Add(CreateFailure(entry, plan.Request, sourceText, reasonText, message));
                     executionIssues.Add(CycleResetIssue.BlockingIssue(
                         CycleResetIssueKind.ParticipantException,
@@ -217,7 +218,7 @@ namespace Immersive.Framework.CycleReset
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

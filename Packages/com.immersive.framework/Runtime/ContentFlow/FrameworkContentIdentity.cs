@@ -75,10 +75,10 @@ namespace Immersive.Framework.ContentFlow
         {
             unchecked
             {
-                var hashCode = Owner.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Scope;
-                hashCode = (hashCode * 397) ^ (int)Kind;
-                hashCode = (hashCode * 397) ^ ContentId.GetHashCode();
+                int hashCode = Owner.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Scope;
+                hashCode = hashCode * 397 ^ (int)Kind;
+                hashCode = hashCode * 397 ^ ContentId.GetHashCode();
                 return hashCode;
             }
         }

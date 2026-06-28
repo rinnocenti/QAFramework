@@ -5,6 +5,7 @@ using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.SceneLifecycle;
 using Immersive.Framework.Loading;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -51,9 +52,9 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var records = _ledger.CollectLoadedForActivityRouteInstance(activity, _currentRouteInstanceId);
-            var count = 0;
-            for (var i = 0; i < records.Count; i++)
+            List<ActivitySceneLedgerEntry> records = _ledger.CollectLoadedForActivityRouteInstance(activity, _currentRouteInstanceId);
+            int count = 0;
+            for (int i = 0; i < records.Count; i++)
             {
                 if (records[i].PlanEntry.ReleasePolicy != ActivityContentReleasePolicy.KeepOnActivityChange)
                 {
@@ -79,7 +80,7 @@ namespace Immersive.Framework.ActivityFlow
                 AddActivityOwnedDiscoveryScenes(secondActivity, scenes, sceneKeys);
             }
 
-            return new ActivityContentDiscoveryScope(_currentRoute, _currentRouteInstanceId, scenes);
+            return new ActivityContentDiscoveryScope(_currentRoute, scenes);
         }
 
         internal ActivityOperationPlan CreateActivityOperationPlan(
@@ -122,9 +123,9 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var entries = new List<ActivitySceneCompositionResultEntry>(plan.SceneCount);
-            var progressStepCount = CountExecutionReadyScenes(plan);
-            var progressStepIndex = 0;
-            for (var i = 0; i < plan.Scenes.Count; i++)
+            int progressStepCount = CountExecutionReadyScenes(plan);
+            int progressStepIndex = 0;
+            for (int i = 0; i < plan.Scenes.Count; i++)
             {
                 var scene = plan.Scenes[i];
                 if (!scene.IsExecutionReady)
@@ -223,7 +224,7 @@ namespace Immersive.Framework.ActivityFlow
                     "Activity scene release was not requested because Activity is missing.");
             }
 
-            var records = forceReleaseAll && activity == null
+            List<ActivitySceneLedgerEntry> records = forceReleaseAll && activity == null
                 ? _ledger.CollectLoadedForRouteInstance(_currentRouteInstanceId)
                 : _ledger.CollectLoadedForActivityRouteInstance(activity, _currentRouteInstanceId);
             if (records.Count == 0)
@@ -238,9 +239,9 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var entries = new List<ActivitySceneReleaseResultEntry>(records.Count);
-            var progressStepCount = CountReleasableRecords(records, forceReleaseAll);
-            var progressStepIndex = 0;
-            for (var i = 0; i < records.Count; i++)
+            int progressStepCount = CountReleasableRecords(records, forceReleaseAll);
+            int progressStepIndex = 0;
+            for (int i = 0; i < records.Count; i++)
             {
                 var record = records[i];
                 var planEntry = record.PlanEntry;
@@ -294,8 +295,8 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < plan.Scenes.Count; i++)
+            int count = 0;
+            for (int i = 0; i < plan.Scenes.Count; i++)
             {
                 if (plan.Scenes[i].IsExecutionReady)
                 {
@@ -313,8 +314,8 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < records.Count; i++)
+            int count = 0;
+            for (int i = 0; i < records.Count; i++)
             {
                 var planEntry = records[i].PlanEntry;
                 if (forceReleaseAll || planEntry.ReleasePolicy != ActivityContentReleasePolicy.KeepOnActivityChange)
@@ -350,7 +351,7 @@ namespace Immersive.Framework.ActivityFlow
                 return;
             }
 
-            for (var i = 0; i < compositionPlan.Scenes.Count; i++)
+            for (int i = 0; i < compositionPlan.Scenes.Count; i++)
             {
                 var scene = compositionPlan.Scenes[i];
                 if (!scene.IsExecutionReady)
@@ -358,7 +359,7 @@ namespace Immersive.Framework.ActivityFlow
                     continue;
                 }
 
-                var isAlreadyLoaded = _sceneLifecycleRuntime.IsSceneLoaded(scene.SceneName, scene.ScenePath);
+                bool isAlreadyLoaded = _sceneLifecycleRuntime.IsSceneLoaded(scene.SceneName, scene.ScenePath);
                 scenes.Add(ActivityOperationPlanSceneEntry.FromCompositionPlanEntry(scene, isAlreadyLoaded));
             }
         }
@@ -375,11 +376,11 @@ namespace Immersive.Framework.ActivityFlow
                 return;
             }
 
-            var records = operationKind == ActivityOperationKind.RouteExitCleanup
+            List<ActivitySceneLedgerEntry> records = operationKind == ActivityOperationKind.RouteExitCleanup
                 ? _ledger.CollectLoadedForRouteInstance(_currentRouteInstanceId)
                 : _ledger.CollectLoadedForActivityRouteInstance(previousActivity, _currentRouteInstanceId);
 
-            for (var i = 0; i < records.Count; i++)
+            for (int i = 0; i < records.Count; i++)
             {
                 var record = records[i];
                 var planEntry = record.PlanEntry;
@@ -413,9 +414,7 @@ namespace Immersive.Framework.ActivityFlow
         private static bool ShouldPlanTargetLoad(ActivityOperationKind operationKind, ActivityAsset targetActivity)
         {
             return targetActivity != null
-                && (operationKind == ActivityOperationKind.Start
-                    || operationKind == ActivityOperationKind.Switch
-                    || operationKind == ActivityOperationKind.RouteStartup);
+                && operationKind is ActivityOperationKind.Start or ActivityOperationKind.Switch or ActivityOperationKind.RouteStartup;
         }
 
         private static bool ShouldPlanRelease(
@@ -433,8 +432,7 @@ namespace Immersive.Framework.ActivityFlow
                 return false;
             }
 
-            return operationKind == ActivityOperationKind.Switch
-                || operationKind == ActivityOperationKind.Clear;
+            return operationKind is ActivityOperationKind.Switch or ActivityOperationKind.Clear;
         }
 
         private static string ResolveSceneLabel(ActivitySceneCompositionPlanEntry entry)
@@ -471,8 +469,8 @@ namespace Immersive.Framework.ActivityFlow
                 return;
             }
 
-            var records = _ledger.CollectLoadedForActivityRouteInstance(activity, _currentRouteInstanceId);
-            for (var i = 0; i < records.Count; i++)
+            List<ActivitySceneLedgerEntry> records = _ledger.CollectLoadedForActivityRouteInstance(activity, _currentRouteInstanceId);
+            for (int i = 0; i < records.Count; i++)
             {
                 var record = records[i];
                 if (!_sceneLifecycleRuntime.IsSceneLoaded(record.SceneName, record.ScenePath))
@@ -480,7 +478,7 @@ namespace Immersive.Framework.ActivityFlow
                     continue;
                 }
 
-                var sceneKey = CreateSceneKey(record.ScenePath, record.SceneName);
+                string sceneKey = CreateSceneKey(record.ScenePath, record.SceneName);
                 if (string.IsNullOrWhiteSpace(sceneKey) || !sceneKeys.Add(sceneKey))
                 {
                     continue;
@@ -488,7 +486,6 @@ namespace Immersive.Framework.ActivityFlow
 
                 scenes.Add(new ActivityContentDiscoveryScene(
                     record.Activity,
-                    record.RouteInstanceId,
                     record.ScenePath,
                     record.SceneName));
             }
@@ -501,12 +498,12 @@ namespace Immersive.Framework.ActivityFlow
                 return scenePath.Trim();
             }
 
-            return string.IsNullOrWhiteSpace(sceneName) ? string.Empty : sceneName.Trim();
+            return sceneName.NormalizeText();
         }
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

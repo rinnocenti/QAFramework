@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Identity;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RuntimeContent
 {
@@ -50,7 +51,7 @@ namespace Immersive.Framework.RuntimeContent
         {
             unchecked
             {
-                return ((int)Scope * 397) ^ OwnerIdentity.GetHashCode();
+                return (int)Scope * 397 ^ OwnerIdentity.GetHashCode();
             }
         }
 
@@ -144,7 +145,7 @@ namespace Immersive.Framework.RuntimeContent
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

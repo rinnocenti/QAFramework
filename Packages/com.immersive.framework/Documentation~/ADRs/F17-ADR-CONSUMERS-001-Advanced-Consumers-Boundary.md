@@ -2,7 +2,7 @@
 
 Status: Deferred / Future adapter module detail  
 Original phase: F17 - Advanced Consumers  
-Current phase: F25+ / Adapter Modules  
+Current placement: F28/F29+ / Adapter Modules  
 Type: Consumers / Boundary / Integration  
 Last updated: 2026-06-26
 
@@ -12,20 +12,22 @@ Last updated: 2026-06-26
 
 This ADR preserves the boundary for future advanced consumers such as Camera, Audio, Actor and Pooling.
 
-The original phase number is historical. Advanced Consumers must not be treated as framework core or as the current next cut. They belong under F25+ Adapter Module Foundation.
+The original phase number is historical. Advanced Consumers must not be treated as framework core or as the current next cut. They belong under the F28/F29 adapter module spine.
 
 ---
 
 ## 2. Current Decision
 
-Advanced Consumers are deferred to F25+.
+Advanced Consumers are deferred to F28/F29+ planning and adapter module implementation.
 
 They can be reconsidered only after:
 
 ```text
 F23 - Pause Content / Overlay / Input Intent Boundary
 F24 - Unity Build Surface / Lifecycle Wiring
-F25 - Adapter Module Foundation
+F25/F26 - Activity scene operation and loading progress stabilization
+F27 - Pause UIGlobal / input evidence
+F28 - Roadmap Reconciliation and Adapter Module Spine
 ```
 
 They also depend on a mature enough model for gameplay objects/actors where relevant.

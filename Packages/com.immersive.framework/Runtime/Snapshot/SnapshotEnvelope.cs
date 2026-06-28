@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Identity;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Snapshot
 {
@@ -131,15 +132,15 @@ namespace Immersive.Framework.Snapshot
         {
             unchecked
             {
-                var hashCode = EnvelopeId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Scope;
-                hashCode = (hashCode * 397) ^ OwnerIdentity.GetHashCode();
-                hashCode = (hashCode * 397) ^ SchemaId.GetHashCode();
-                hashCode = (hashCode * 397) ^ SchemaVersion.GetHashCode();
-                hashCode = (hashCode * 397) ^ Payload.GetHashCode();
-                hashCode = (hashCode * 397) ^ CapturedUtcTicks.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = EnvelopeId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Scope;
+                hashCode = hashCode * 397 ^ OwnerIdentity.GetHashCode();
+                hashCode = hashCode * 397 ^ SchemaId.GetHashCode();
+                hashCode = hashCode * 397 ^ SchemaVersion.GetHashCode();
+                hashCode = hashCode * 397 ^ Payload.GetHashCode();
+                hashCode = hashCode * 397 ^ CapturedUtcTicks.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 return hashCode;
             }
         }
@@ -151,8 +152,8 @@ namespace Immersive.Framework.Snapshot
 
         public string ToDiagnosticString()
         {
-            var sourceText = HasSource ? Source : "<none>";
-            var reasonText = HasReason ? Reason : "<none>";
+            string sourceText = HasSource ? Source : "<none>";
+            string reasonText = HasReason ? Reason : "<none>";
             return $"envelope='{EnvelopeId.StableText}' scope='{Scope}' owner='{OwnerIdentity.StableText}' schema='{SchemaId.StableText}' version='{SchemaVersion.StableText}' capturedUtcTicks='{CapturedUtcTicks}' source='{sourceText}' reason='{reasonText}' payload=({Payload.ToDiagnosticString()})";
         }
 
@@ -234,7 +235,7 @@ namespace Immersive.Framework.Snapshot
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

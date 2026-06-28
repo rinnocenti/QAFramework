@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ProgressionSave
 {
@@ -29,11 +30,9 @@ namespace Immersive.Framework.ProgressionSave
 
         public string Message { get; }
 
-        public bool Completed => Status == ProgressionSaveDeleteStatus.Deleted || Status == ProgressionSaveDeleteStatus.Missing;
+        public bool Completed => Status is ProgressionSaveDeleteStatus.Deleted or ProgressionSaveDeleteStatus.Missing;
 
-        public bool Failed => Status == ProgressionSaveDeleteStatus.BackendUnavailable
-            || Status == ProgressionSaveDeleteStatus.Failed
-            || Status == ProgressionSaveDeleteStatus.Rejected;
+        public bool Failed => Status is ProgressionSaveDeleteStatus.BackendUnavailable or ProgressionSaveDeleteStatus.Failed or ProgressionSaveDeleteStatus.Rejected;
 
         public bool HasMessage => !string.IsNullOrWhiteSpace(Message);
 
@@ -53,16 +52,16 @@ namespace Immersive.Framework.ProgressionSave
         {
             unchecked
             {
-                var hashCode = (int)Status;
-                hashCode = (hashCode * 397) ^ SlotId.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = (int)Status;
+                hashCode = hashCode * 397 ^ SlotId.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
 
         public override string ToString()
         {
-            var messageText = HasMessage ? Message : "<none>";
+            string messageText = HasMessage ? Message : "<none>";
             return $"status='{Status}' slot='{SlotId.StableText}' message='{messageText}'";
         }
 
@@ -101,7 +100,7 @@ namespace Immersive.Framework.ProgressionSave
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RuntimeContent
 {
@@ -248,8 +249,8 @@ namespace Immersive.Framework.RuntimeContent
                 Owner = owner;
                 Version = version;
                 State = state;
-                this._source = Normalize(source);
-                this._reason = Normalize(reason);
+                _source = Normalize(source);
+                _reason = Normalize(reason);
             }
 
             public RuntimeContentOwner Owner { get; }
@@ -291,8 +292,8 @@ namespace Immersive.Framework.RuntimeContent
 
             public void Touch(string source, string reason)
             {
-                this._source = Normalize(source);
-                this._reason = Normalize(reason);
+                _source = Normalize(source);
+                _reason = Normalize(reason);
             }
 
             public RuntimeScopeCancellationToken ToToken()
@@ -307,7 +308,7 @@ namespace Immersive.Framework.RuntimeContent
 
             private static string Normalize(string value)
             {
-                return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+                return value.NormalizeText();
             }
         }
     }

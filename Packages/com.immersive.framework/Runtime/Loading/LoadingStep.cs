@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Loading
 {
@@ -59,12 +60,9 @@ namespace Immersive.Framework.Loading
 
         public bool IsValid => StepId.IsValid && Status != LoadingStepStatus.Unknown && WeightedProgress.IsValid;
 
-        public bool IsTerminal => Status == LoadingStepStatus.Completed
-            || Status == LoadingStepStatus.Failed
-            || Status == LoadingStepStatus.Skipped
-            || Status == LoadingStepStatus.Canceled;
+        public bool IsTerminal => Status is LoadingStepStatus.Completed or LoadingStepStatus.Failed or LoadingStepStatus.Skipped or LoadingStepStatus.Canceled;
 
-        public bool BlocksCompletion => Status == LoadingStepStatus.Pending || Status == LoadingStepStatus.Running;
+        public bool BlocksCompletion => Status is LoadingStepStatus.Pending or LoadingStepStatus.Running;
 
         public bool HasDisplayName => !string.IsNullOrWhiteSpace(DisplayName);
 
@@ -91,12 +89,12 @@ namespace Immersive.Framework.Loading
         {
             unchecked
             {
-                var hashCode = StepId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ WeightedProgress.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(DisplayName ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = StepId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ WeightedProgress.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(DisplayName ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -108,9 +106,9 @@ namespace Immersive.Framework.Loading
 
         public string ToDiagnosticString()
         {
-            var displayNameText = HasDisplayName ? DisplayName : "<none>";
-            var sourceText = HasSource ? Source : "<none>";
-            var messageText = HasMessage ? Message : "<none>";
+            string displayNameText = HasDisplayName ? DisplayName : "<none>";
+            string sourceText = HasSource ? Source : "<none>";
+            string messageText = HasMessage ? Message : "<none>";
             return $"step='{StepId.StableText}' status='{Status}' displayName='{displayNameText}' source='{sourceText}' message='{messageText}' progress=({WeightedProgress.ToDiagnosticString()})";
         }
 
@@ -146,7 +144,7 @@ namespace Immersive.Framework.Loading
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

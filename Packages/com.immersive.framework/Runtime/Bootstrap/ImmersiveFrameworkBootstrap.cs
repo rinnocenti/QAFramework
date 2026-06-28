@@ -8,6 +8,7 @@ using Immersive.Framework.RouteLifecycle;
 using UnityEngine;
 using Immersive.Framework.ApiStatus;
 using Immersive.Logging.Records;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Bootstrap
 {
@@ -150,7 +151,7 @@ namespace Immersive.Framework.Bootstrap
 
         private static string FormatDiagnosticValue(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? "<none>" : value.Trim();
+            return value.NormalizeTextOrFallback("<none>");
         }
 
         private static void LogActivityContentObservability(FrameworkLogger logger, ActivityContentApplyResult activityContentResult)

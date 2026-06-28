@@ -1,5 +1,6 @@
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.ContentFlow;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -52,8 +53,7 @@ namespace Immersive.Framework.RouteLifecycle
 
         public int ExecutionOrder => PlanEntry.ExecutionOrder;
 
-        public bool Loaded => Status == RouteSceneCompositionEntryStatus.Loaded
-            || Status == RouteSceneCompositionEntryStatus.AlreadyLoaded;
+        public bool Loaded => Status is RouteSceneCompositionEntryStatus.Loaded or RouteSceneCompositionEntryStatus.AlreadyLoaded;
 
         public bool AlreadyLoaded => Status == RouteSceneCompositionEntryStatus.AlreadyLoaded;
 
@@ -69,15 +69,15 @@ namespace Immersive.Framework.RouteLifecycle
 
         public string ToDiagnosticString()
         {
-            var scene = !string.IsNullOrWhiteSpace(SceneName) ? SceneName : ScenePath;
+            string scene = !string.IsNullOrWhiteSpace(SceneName) ? SceneName : ScenePath;
             if (string.IsNullOrWhiteSpace(scene))
             {
                 scene = "<missing>";
             }
 
-            var identity = ContentIdentity.IsValid ? ContentIdentity.StableText : "<missing>";
-            var contentId = !string.IsNullOrWhiteSpace(ContentId) ? ContentId : "<missing>";
-            var message = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
+            string identity = ContentIdentity.IsValid ? ContentIdentity.StableText : "<missing>";
+            string contentId = ContentId.ToDiagnosticText("<missing>");
+            string message = Message.ToDiagnosticText();
             return $"identity='{identity}' id='{contentId}' scene='{scene}' role='{SceneRole}' requiredness='{Requiredness}' ownership='{Ownership}' loadMode='{LoadMode}' order='{ExecutionOrder}' status='{Status}' activeScene='{ActiveScene}' blocksComposition='{BlocksComposition}' message='{message}'";
         }
 
@@ -135,7 +135,7 @@ namespace Immersive.Framework.RouteLifecycle
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

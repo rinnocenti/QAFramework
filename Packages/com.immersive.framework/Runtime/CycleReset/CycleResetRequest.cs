@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.CycleReset
 {
@@ -67,7 +68,7 @@ namespace Immersive.Framework.CycleReset
 
         public bool HasActiveActivity => ActiveActivity != null;
 
-        public bool IncludesActiveActivity => IsActivityReset || (IsRouteReset && Policy.IncludeActiveActivity && HasActiveActivity);
+        public bool IncludesActiveActivity => IsActivityReset || IsRouteReset && Policy.IncludeActiveActivity && HasActiveActivity;
 
         public bool AllowsNoParticipants => Policy.AllowNoParticipants;
 
@@ -89,7 +90,7 @@ namespace Immersive.Framework.CycleReset
 
             if (participantScope == CycleResetScope.Activity)
             {
-                return IsActivityReset || (IsRouteReset && IncludesActiveActivity);
+                return IsActivityReset || IsRouteReset && IncludesActiveActivity;
             }
 
             return false;
@@ -114,12 +115,12 @@ namespace Immersive.Framework.CycleReset
         {
             unchecked
             {
-                var hashCode = (int)Scope;
-                hashCode = (hashCode * 397) ^ (ActiveRoute != null ? ActiveRoute.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (ActiveActivity != null ? ActiveActivity.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ Policy.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = (int)Scope;
+                hashCode = hashCode * 397 ^ (ActiveRoute != null ? ActiveRoute.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ (ActiveActivity != null ? ActiveActivity.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ Policy.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 return hashCode;
             }
         }
@@ -131,9 +132,9 @@ namespace Immersive.Framework.CycleReset
 
         public string ToDiagnosticString()
         {
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            var activeActivityText = !string.IsNullOrWhiteSpace(ActiveActivityName) ? ActiveActivityName : "<none>";
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string activeActivityText = ActiveActivityName.ToDiagnosticText();
             return $"scope='{Scope}' activeRoute='{ActiveRouteName}' activeActivity='{activeActivityText}' includeActiveActivity='{IncludesActiveActivity}' {Policy.ToDiagnosticString()} source='{sourceText}' reason='{reasonText}'";
         }
 
@@ -195,7 +196,7 @@ namespace Immersive.Framework.CycleReset
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

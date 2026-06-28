@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Transition;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.TransitionEffects
 {
@@ -27,7 +28,7 @@ namespace Immersive.Framework.TransitionEffects
                 throw new ArgumentException("Transition Effect plan requires a valid operation id.", nameof(operationId));
             }
 
-            if (!Enum.IsDefined(typeof(TransitionKind), transitionKind) || transitionKind == Immersive.Framework.Transition.TransitionKind.Unknown)
+            if (!Enum.IsDefined(typeof(TransitionKind), transitionKind) || transitionKind == TransitionKind.Unknown)
             {
                 throw new ArgumentOutOfRangeException(nameof(transitionKind), transitionKind, "Transition Effect plan transition kind must be explicit.");
             }
@@ -36,7 +37,7 @@ namespace Immersive.Framework.TransitionEffects
             TransitionKind = transitionKind;
             Source = Normalize(source);
             Reason = Normalize(reason);
-            this._requests = CopyRequests(operationId, transitionKind, requests);
+            _requests = CopyRequests(operationId, transitionKind, requests);
         }
 
         public TransitionOperationId OperationId { get; }
@@ -57,7 +58,7 @@ namespace Immersive.Framework.TransitionEffects
 
         public int OptionalRequestCount => CountByRequiredness(TransitionEffectRequiredness.Optional);
 
-        public bool IsValid => OperationId.IsValid && TransitionKind != Immersive.Framework.Transition.TransitionKind.Unknown;
+        public bool IsValid => OperationId.IsValid && TransitionKind != TransitionKind.Unknown;
 
         public int CountByKind(TransitionEffectKind kind)
         {
@@ -66,9 +67,9 @@ namespace Immersive.Framework.TransitionEffects
                 return 0;
             }
 
-            var count = 0;
-            var items = Requests;
-            for (var i = 0; i < items.Count; i++)
+            int count = 0;
+            IReadOnlyList<TransitionEffectRequest> items = Requests;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (items[i].EffectKind == kind)
                 {
@@ -86,9 +87,9 @@ namespace Immersive.Framework.TransitionEffects
                 return 0;
             }
 
-            var count = 0;
-            var items = Requests;
-            for (var i = 0; i < items.Count; i++)
+            int count = 0;
+            IReadOnlyList<TransitionEffectRequest> items = Requests;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (items[i].Requiredness == requiredness)
                 {
@@ -117,15 +118,15 @@ namespace Immersive.Framework.TransitionEffects
         {
             unchecked
             {
-                var hashCode = OperationId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)TransitionKind;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = OperationId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)TransitionKind;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
 
-                var items = Requests;
-                for (var i = 0; i < items.Count; i++)
+                IReadOnlyList<TransitionEffectRequest> items = Requests;
+                for (int i = 0; i < items.Count; i++)
                 {
-                    hashCode = (hashCode * 397) ^ items[i].GetHashCode();
+                    hashCode = hashCode * 397 ^ items[i].GetHashCode();
                 }
 
                 return hashCode;
@@ -140,15 +141,15 @@ namespace Immersive.Framework.TransitionEffects
         public string ToDiagnosticString()
         {
             var builder = new StringBuilder();
-            var sourceText = string.IsNullOrWhiteSpace(Source) ? "<none>" : Source;
-            var reasonText = string.IsNullOrWhiteSpace(Reason) ? "<none>" : Reason;
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
             builder.Append($"operation='{OperationId.StableText}' transitionKind='{TransitionKind}' source='{sourceText}' reason='{reasonText}' requests='{RequestCount}' required='{RequiredRequestCount}' optional='{OptionalRequestCount}'");
 
             if (HasRequests)
             {
                 builder.Append(" requests=[");
-                var items = Requests;
-                for (var i = 0; i < items.Count; i++)
+                IReadOnlyList<TransitionEffectRequest> items = Requests;
+                for (int i = 0; i < items.Count; i++)
                 {
                     if (i > 0)
                     {
@@ -195,7 +196,7 @@ namespace Immersive.Framework.TransitionEffects
             }
 
             var copy = new TransitionEffectRequest[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 if (!source[i].IsValid)
                 {
@@ -225,7 +226,7 @@ namespace Immersive.Framework.TransitionEffects
                 return false;
             }
 
-            for (var i = 0; i < left.Count; i++)
+            for (int i = 0; i < left.Count; i++)
             {
                 if (!left[i].Equals(right[i]))
                 {
@@ -238,7 +239,7 @@ namespace Immersive.Framework.TransitionEffects
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

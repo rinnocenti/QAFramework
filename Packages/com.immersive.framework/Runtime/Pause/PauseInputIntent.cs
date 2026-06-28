@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Pause
 {
@@ -60,9 +61,9 @@ namespace Immersive.Framework.Pause
         {
             unchecked
             {
-                var hashCode = Signal.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = Signal.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 return hashCode;
             }
         }
@@ -74,8 +75,8 @@ namespace Immersive.Framework.Pause
 
         public string ToDiagnosticString()
         {
-            var sourceText = HasSource ? Source : "<none>";
-            var reasonText = HasReason ? Reason : "<none>";
+            string sourceText = HasSource ? Source : "<none>";
+            string reasonText = HasReason ? Reason : "<none>";
             return $"action='{ActionId.StableText}' command='{CommandKind}' sourceKind='{SourceKind}' pauseStateIntent='{IsPauseStateIntent}' menuIntent='{IsMenuIntent}' source='{sourceText}' reason='{reasonText}'";
         }
 
@@ -96,7 +97,7 @@ namespace Immersive.Framework.Pause
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

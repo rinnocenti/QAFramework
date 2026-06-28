@@ -4,6 +4,7 @@ using System.Text;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentFlow;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -39,7 +40,7 @@ namespace Immersive.Framework.ActivityFlow
             else
             {
                 _scenes = new ActivitySceneCompositionPlanEntry[scenes.Count];
-                for (var i = 0; i < scenes.Count; i++)
+                for (int i = 0; i < scenes.Count; i++)
                 {
                     _scenes[i] = scenes[i];
                 }
@@ -68,7 +69,7 @@ namespace Immersive.Framework.ActivityFlow
 
         public string Reason { get; }
 
-        public int SceneCount => _scenes != null ? _scenes.Length : 0;
+        public int SceneCount => _scenes?.Length ?? 0;
 
         public bool HasScenes => SceneCount > 0;
 
@@ -84,8 +85,8 @@ namespace Immersive.Framework.ActivityFlow
 
         public static ActivitySceneCompositionPlan FromActivity(ActivityAsset activity, string source, string reason)
         {
-            var ownerId = CreateActivityOwnerId(activity);
-            var ownerName = activity != null ? activity.ActivityName : string.Empty;
+            string ownerId = CreateActivityOwnerId(activity);
+            string ownerName = activity != null ? activity.ActivityName : string.Empty;
             var profile = activity != null ? activity.ActivityContentProfile : null;
             if (profile == null || profile.Scenes == null || profile.Scenes.Count == 0)
             {
@@ -100,7 +101,7 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var plannedScenes = new List<ActivitySceneCompositionPlanEntry>(profile.Scenes.Count);
-            for (var i = 0; i < profile.Scenes.Count; i++)
+            for (int i = 0; i < profile.Scenes.Count; i++)
             {
                 plannedScenes.Add(ActivitySceneCompositionPlanEntry.FromEntry(profile.Scenes[i], i, ownerId));
             }
@@ -117,11 +118,11 @@ namespace Immersive.Framework.ActivityFlow
 
         public string ToDiagnosticString()
         {
-            var activityName = !string.IsNullOrWhiteSpace(ActivityOwnerName) ? ActivityOwnerName : "<missing>";
+            string activityName = ActivityOwnerName.ToDiagnosticText("<missing>");
             var builder = new StringBuilder();
             builder.Append($"Activity Scene Composition Plan activity='{activityName}' owner='{ActivityOwnerId}' scenes='{SceneCount}' required='{RequiredSceneCount}' optional='{OptionalSceneCount}' executionReady='{ExecutionReadySceneCount}' blockingIssues='{BlockingIssueCount}' sideEffects='False' profile='{ProfileId}' details=[");
 
-            for (var i = 0; i < Scenes.Count; i++)
+            for (int i = 0; i < Scenes.Count; i++)
             {
                 if (i > 0)
                 {
@@ -147,8 +148,8 @@ namespace Immersive.Framework.ActivityFlow
 
         private int CountRequiredness(FrameworkContentRequiredness requiredness)
         {
-            var count = 0;
-            for (var i = 0; i < Scenes.Count; i++)
+            int count = 0;
+            for (int i = 0; i < Scenes.Count; i++)
             {
                 if (Scenes[i].Requiredness == requiredness)
                 {
@@ -161,8 +162,8 @@ namespace Immersive.Framework.ActivityFlow
 
         private int CountExecutionReady()
         {
-            var count = 0;
-            for (var i = 0; i < Scenes.Count; i++)
+            int count = 0;
+            for (int i = 0; i < Scenes.Count; i++)
             {
                 if (Scenes[i].IsExecutionReady)
                 {
@@ -175,8 +176,8 @@ namespace Immersive.Framework.ActivityFlow
 
         private int CountBlockingIssues()
         {
-            var count = 0;
-            for (var i = 0; i < Scenes.Count; i++)
+            int count = 0;
+            for (int i = 0; i < Scenes.Count; i++)
             {
                 var entry = Scenes[i];
                 if (entry.Requiredness == FrameworkContentRequiredness.Required && !entry.IsExecutionReady)
@@ -190,7 +191,7 @@ namespace Immersive.Framework.ActivityFlow
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

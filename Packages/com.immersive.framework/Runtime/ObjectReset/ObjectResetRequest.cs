@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ObjectReset
 {
@@ -61,10 +62,10 @@ namespace Immersive.Framework.ObjectReset
         {
             unchecked
             {
-                var hashCode = Target.GetHashCode();
-                hashCode = (hashCode * 397) ^ Policy.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = Target.GetHashCode();
+                hashCode = hashCode * 397 ^ Policy.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 return hashCode;
             }
         }
@@ -76,8 +77,8 @@ namespace Immersive.Framework.ObjectReset
 
         public string ToDiagnosticString()
         {
-            var sourceText = string.IsNullOrWhiteSpace(Source) ? "<none>" : Source;
-            var reasonText = string.IsNullOrWhiteSpace(Reason) ? "<none>" : Reason;
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
             return $"{Target.ToDiagnosticString()} {Policy.ToDiagnosticString()} source='{sourceText}' reason='{reasonText}'";
         }
 
@@ -101,7 +102,7 @@ namespace Immersive.Framework.ObjectReset
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

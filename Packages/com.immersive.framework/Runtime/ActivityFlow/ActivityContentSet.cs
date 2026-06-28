@@ -26,14 +26,14 @@ namespace Immersive.Framework.ActivityFlow
 
             if (entries == null || entries.Count == 0)
             {
-                this._entries = Array.Empty<ActivityContentEntry>();
+                _entries = Array.Empty<ActivityContentEntry>();
                 return;
             }
 
-            this._entries = new ActivityContentEntry[entries.Count];
-            for (var i = 0; i < entries.Count; i++)
+            _entries = new ActivityContentEntry[entries.Count];
+            for (int i = 0; i < entries.Count; i++)
             {
-                this._entries[i] = entries[i];
+                _entries[i] = entries[i];
             }
         }
 
@@ -75,7 +75,7 @@ namespace Immersive.Framework.ActivityFlow
 
                 var builder = new StringBuilder();
                 builder.Append($"Activity Content Set details=[");
-                for (var i = 0; i < Entries.Count; i++)
+                for (int i = 0; i < Entries.Count; i++)
                 {
                     if (i > 0)
                     {
@@ -92,8 +92,8 @@ namespace Immersive.Framework.ActivityFlow
 
         public static ActivityContentSet Empty(ActivityAsset activity = null)
         {
-            var ownerId = CreateActivityOwnerId(activity);
-            var ownerName = activity != null ? activity.ActivityName : string.Empty;
+            string ownerId = CreateActivityOwnerId(activity);
+            string ownerName = activity != null ? activity.ActivityName : string.Empty;
             return new ActivityContentSet(
                 activity,
                 FrameworkContentSet.Empty(FrameworkContentScope.Activity, ownerId, ownerName),
@@ -108,7 +108,7 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var handles = new FrameworkContentHandle[entries.Count];
-            for (var i = 0; i < entries.Count; i++)
+            for (int i = 0; i < entries.Count; i++)
             {
                 handles[i] = entries[i].Handle;
             }

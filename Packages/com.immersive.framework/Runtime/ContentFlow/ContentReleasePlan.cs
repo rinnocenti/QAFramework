@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ContentFlow
 {
@@ -37,14 +38,14 @@ namespace Immersive.Framework.ContentFlow
 
             if (entries == null || entries.Count == 0)
             {
-                this._entries = Array.Empty<ContentReleasePlanEntry>();
+                _entries = Array.Empty<ContentReleasePlanEntry>();
             }
             else
             {
-                this._entries = new ContentReleasePlanEntry[entries.Count];
-                for (var i = 0; i < entries.Count; i++)
+                _entries = new ContentReleasePlanEntry[entries.Count];
+                for (int i = 0; i < entries.Count; i++)
                 {
-                    this._entries[i] = entries[i];
+                    _entries[i] = entries[i];
                 }
             }
         }
@@ -63,7 +64,7 @@ namespace Immersive.Framework.ContentFlow
 
         public string Message { get; }
 
-        public int EntryCount => _entries != null ? _entries.Length : 0;
+        public int EntryCount => _entries?.Length ?? 0;
 
         public bool IsEmpty => EntryCount == 0;
 
@@ -101,16 +102,16 @@ namespace Immersive.Framework.ContentFlow
 
         public string ToDiagnosticString()
         {
-            var owner = !string.IsNullOrWhiteSpace(OwnerName) ? OwnerName : OwnerId;
+            string owner = !string.IsNullOrWhiteSpace(OwnerName) ? OwnerName : OwnerId;
             if (string.IsNullOrWhiteSpace(owner))
             {
                 owner = "<missing>";
             }
 
-            var message = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
+            string message = Message.ToDiagnosticText();
             var builder = new StringBuilder();
             builder.Append($"Content Release Plan scope='{Scope}' owner='{owner}' ownerId='{OwnerId}' entries='{EntryCount}' owned='{OwnedCount}' registered='{RegisteredCount}' diagnosticOnly='{DiagnosticOnlyCount}' releasable='{ReleasableCount}' unloadScene='{UnloadSceneCount}' noAction='{NoActionCount}' source='{Source}' reason='{Reason}' message='{message}' details=[");
-            for (var i = 0; i < Entries.Count; i++)
+            for (int i = 0; i < Entries.Count; i++)
             {
                 if (i > 0)
                 {
@@ -131,8 +132,8 @@ namespace Immersive.Framework.ContentFlow
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < _entries.Length; i++)
+            int count = 0;
+            for (int i = 0; i < _entries.Length; i++)
             {
                 if (_entries[i].Ownership == ownership)
                 {
@@ -150,8 +151,8 @@ namespace Immersive.Framework.ContentFlow
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < _entries.Length; i++)
+            int count = 0;
+            for (int i = 0; i < _entries.Length; i++)
             {
                 if (_entries[i].Action == action)
                 {
@@ -169,8 +170,8 @@ namespace Immersive.Framework.ContentFlow
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < _entries.Length; i++)
+            int count = 0;
+            for (int i = 0; i < _entries.Length; i++)
             {
                 if (_entries[i].IsReleasable)
                 {
@@ -183,7 +184,7 @@ namespace Immersive.Framework.ContentFlow
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

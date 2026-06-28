@@ -1,4 +1,6 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Gate;
@@ -23,10 +25,10 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source) ? nameof(GateAdmissionQaSmokeRunner) : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(GateAdmissionQaSmokeRunner));
 
-            var allowed = ValidateAllowedAdmission(logger, normalizedSource);
-            var routeBlocked = ValidateBlockedAdmission(
+            bool allowed = ValidateAllowedAdmission(logger, normalizedSource);
+            bool routeBlocked = ValidateBlockedAdmission(
                 logger,
                 normalizedSource,
                 "route-in-flight",
@@ -37,7 +39,7 @@ namespace Immersive.Framework.Diagnostics
                 objectResetRequestInFlight: false,
                 expectedBlockerId: "route-request-in-flight");
 
-            var activityBlocked = ValidateBlockedAdmission(
+            bool activityBlocked = ValidateBlockedAdmission(
                 logger,
                 normalizedSource,
                 "activity-in-flight",
@@ -48,7 +50,7 @@ namespace Immersive.Framework.Diagnostics
                 objectResetRequestInFlight: false,
                 expectedBlockerId: "activity-request-in-flight");
 
-            var cycleResetBlocked = ValidateBlockedAdmission(
+            bool cycleResetBlocked = ValidateBlockedAdmission(
                 logger,
                 normalizedSource,
                 "cycle-reset-in-flight",
@@ -59,7 +61,7 @@ namespace Immersive.Framework.Diagnostics
                 objectResetRequestInFlight: false,
                 expectedBlockerId: "cycle-reset-request-in-flight");
 
-            var objectResetBlocked = ValidateBlockedAdmission(
+            bool objectResetBlocked = ValidateBlockedAdmission(
                 logger,
                 normalizedSource,
                 "object-reset-in-flight",
@@ -84,7 +86,7 @@ namespace Immersive.Framework.Diagnostics
                 cycleResetRequestInFlight: false,
                 objectResetRequestInFlight: false);
 
-            var passed = evaluation.IsAllowed
+            bool passed = evaluation.IsAllowed
                 && evaluation.Status == GateDecisionStatus.Allowed
                 && evaluation.Scope == GateScope.GameFlow
                 && evaluation.Domain == GateDomain.LifecycleRequest
@@ -115,8 +117,8 @@ namespace Immersive.Framework.Diagnostics
                 cycleResetRequestInFlight,
                 objectResetRequestInFlight);
 
-            var blockerMatched = ContainsBlocker(evaluation, expectedBlockerId);
-            var passed = evaluation.IsBlocked
+            bool blockerMatched = ContainsBlocker(evaluation, expectedBlockerId);
+            bool passed = evaluation.IsBlocked
                 && evaluation.Status == GateDecisionStatus.Blocked
                 && evaluation.Scope == GateScope.GameFlow
                 && evaluation.Domain == GateDomain.LifecycleRequest
@@ -130,8 +132,8 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ContainsBlocker(GateEvaluationResult evaluation, string expectedBlockerId)
         {
-            var blockers = evaluation.BlockingBlockers;
-            for (var i = 0; i < blockers.Count; i++)
+            IReadOnlyList<GateBlocker> blockers = evaluation.BlockingBlockers;
+            for (int i = 0; i < blockers.Count; i++)
             {
                 if (blockers[i].BlockerId.Value == expectedBlockerId)
                 {
@@ -150,7 +152,7 @@ namespace Immersive.Framework.Diagnostics
             bool blockerMatched,
             bool passed)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("status", evaluation.Status.ToString()),

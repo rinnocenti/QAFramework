@@ -5,6 +5,7 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.Diagnostics;
 using UnityEngine;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.GameFlow
 {
@@ -74,11 +75,11 @@ namespace Immersive.Framework.GameFlow
         {
             EnsureLogger();
 
-            var resolvedReason = ResolveRequestReason();
+            string resolvedReason = ResolveRequestReason();
 
             if (_requestInFlight)
             {
-                var message = "Activity Request ignored. This Activity Request Trigger already has a request in flight.";
+                string message = "Activity Request ignored. This Activity Request Trigger already has a request in flight.";
                 _logger.Warning(message);
                 PublishCompleted(false, FlowRequestOutcome.Ignored, resolvedReason, message);
                 return;
@@ -86,7 +87,7 @@ namespace Immersive.Framework.GameFlow
 
             if (targetActivity == null)
             {
-                var message = "Activity Request failed. Target Activity is missing.";
+                string message = "Activity Request failed. Target Activity is missing.";
                 _logger.Error(message);
                 PublishCompleted(false, FlowRequestOutcome.Failed, resolvedReason, message);
                 return;
@@ -118,11 +119,11 @@ namespace Immersive.Framework.GameFlow
         {
             EnsureLogger();
 
-            var resolvedReason = ResolveClearReason();
+            string resolvedReason = ResolveClearReason();
 
             if (_requestInFlight)
             {
-                var message = "Activity Request ignored. This Activity Request Trigger already has a request in flight.";
+                string message = "Activity Request ignored. This Activity Request Trigger already has a request in flight.";
                 _logger.Warning(message);
                 PublishCompleted(true, FlowRequestOutcome.Ignored, resolvedReason, message);
                 return;
@@ -186,12 +187,12 @@ namespace Immersive.Framework.GameFlow
 
         private string ResolveClearReason()
         {
-            return string.IsNullOrWhiteSpace(reason) ? DefaultClearReason : reason.Trim();
+            return reason.NormalizeTextOrFallback(DefaultClearReason);
         }
 
         private void PublishSubmitted(bool clearsActivity, string resolvedReason)
         {
-            var message = $"Activity Request submitted. source='{DefaultSource}' reason='{resolvedReason}'.";
+            string message = $"Activity Request submitted. source='{DefaultSource}' reason='{resolvedReason}'.";
             SetRequestState(clearsActivity, FlowRequestEventPhase.Submitted, FlowRequestOutcome.Submitted, resolvedReason, message);
 
             _requestEvents.Publish(new ActivityRequestTriggerEvent(

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Loading
 {
@@ -42,8 +43,8 @@ namespace Immersive.Framework.Loading
             OperationId = operationId;
             Status = status;
             ProgressAggregation = progressAggregation;
-            this._readinessObservations = CopyReadiness(operationId, readinessObservations);
-            this._issues = CopyIssues(operationId, issues);
+            _readinessObservations = CopyReadiness(operationId, readinessObservations);
+            _issues = CopyIssues(operationId, issues);
             Source = Normalize(source);
             Message = Normalize(message);
         }
@@ -84,11 +85,11 @@ namespace Immersive.Framework.Loading
 
         public bool HasIssues => IssueCount > 0;
 
-        public bool Succeeded => Status == LoadingResultStatus.Succeeded || Status == LoadingResultStatus.SucceededWithWarnings;
+        public bool Succeeded => Status is LoadingResultStatus.Succeeded or LoadingResultStatus.SucceededWithWarnings;
 
         public bool WaitingForReadiness => Status == LoadingResultStatus.WaitingForReadiness;
 
-        public bool Failed => Status == LoadingResultStatus.Failed || Status == LoadingResultStatus.Canceled;
+        public bool Failed => Status is LoadingResultStatus.Failed or LoadingResultStatus.Canceled;
 
         public bool Completed => Succeeded || Failed;
 
@@ -113,7 +114,7 @@ namespace Immersive.Framework.Loading
                 return false;
             }
 
-            for (var i = 0; i < ReadinessObservationCount; i++)
+            for (int i = 0; i < ReadinessObservationCount; i++)
             {
                 if (!ReadinessObservations[i].Equals(other.ReadinessObservations[i]))
                 {
@@ -121,7 +122,7 @@ namespace Immersive.Framework.Loading
                 }
             }
 
-            for (var i = 0; i < IssueCount; i++)
+            for (int i = 0; i < IssueCount; i++)
             {
                 if (!Issues[i].Equals(other.Issues[i]))
                 {
@@ -141,19 +142,19 @@ namespace Immersive.Framework.Loading
         {
             unchecked
             {
-                var hashCode = OperationId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ ProgressAggregation.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
-                for (var i = 0; i < ReadinessObservationCount; i++)
+                int hashCode = OperationId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ ProgressAggregation.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                for (int i = 0; i < ReadinessObservationCount; i++)
                 {
-                    hashCode = (hashCode * 397) ^ ReadinessObservations[i].GetHashCode();
+                    hashCode = hashCode * 397 ^ ReadinessObservations[i].GetHashCode();
                 }
 
-                for (var i = 0; i < IssueCount; i++)
+                for (int i = 0; i < IssueCount; i++)
                 {
-                    hashCode = (hashCode * 397) ^ Issues[i].GetHashCode();
+                    hashCode = hashCode * 397 ^ Issues[i].GetHashCode();
                 }
 
                 return hashCode;
@@ -167,8 +168,8 @@ namespace Immersive.Framework.Loading
 
         public string ToDiagnosticString()
         {
-            var sourceText = string.IsNullOrWhiteSpace(Source) ? "<none>" : Source;
-            var messageText = string.IsNullOrWhiteSpace(Message) ? "<none>" : Message;
+            string sourceText = Source.ToDiagnosticText();
+            string messageText = Message.ToDiagnosticText();
             var builder = new StringBuilder();
             builder.Append($"operation='{OperationId.StableText}' status='{Status}' completed='{Completed}' failed='{Failed}' blocksCompletion='{BlocksCompletion}' readiness='{ReadinessObservationCount}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' source='{sourceText}' message='{messageText}' progress=({ProgressAggregation.ToDiagnosticString()})");
             return builder.ToString();
@@ -235,7 +236,7 @@ namespace Immersive.Framework.Loading
             }
 
             var copy = new LoadingReadinessObservation[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 var observation = source[i];
                 if (!observation.IsValid)
@@ -262,7 +263,7 @@ namespace Immersive.Framework.Loading
             }
 
             var copy = new LoadingIssue[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 var issue = source[i];
                 if (!issue.IsValid)
@@ -283,8 +284,8 @@ namespace Immersive.Framework.Loading
 
         private int CountReadiness(LoadingReadinessStatus status)
         {
-            var count = 0;
-            for (var i = 0; i < ReadinessObservations.Count; i++)
+            int count = 0;
+            for (int i = 0; i < ReadinessObservations.Count; i++)
             {
                 if (ReadinessObservations[i].Status == status)
                 {
@@ -297,8 +298,8 @@ namespace Immersive.Framework.Loading
 
         private int CountBlockingIssues()
         {
-            var count = 0;
-            for (var i = 0; i < Issues.Count; i++)
+            int count = 0;
+            for (int i = 0; i < Issues.Count; i++)
             {
                 if (Issues[i].BlocksCompletion)
                 {
@@ -311,8 +312,8 @@ namespace Immersive.Framework.Loading
 
         private int CountWarningOrHigherIssues()
         {
-            var count = 0;
-            for (var i = 0; i < Issues.Count; i++)
+            int count = 0;
+            for (int i = 0; i < Issues.Count; i++)
             {
                 if (Issues[i].IsWarningOrHigher)
                 {
@@ -325,7 +326,7 @@ namespace Immersive.Framework.Loading
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

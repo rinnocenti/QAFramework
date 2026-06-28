@@ -25,7 +25,7 @@ namespace Immersive.Framework.Loading
                 throw new ArgumentException("Loading step id must be valid.", nameof(value));
             }
 
-            this._value = value;
+            _value = value;
         }
 
         public FrameworkIdentityDomain Domain => FrameworkIdentityDomain.Loading;

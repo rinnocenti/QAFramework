@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Diagnostics;
 using UnityEngine;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Loading
 {
@@ -31,7 +32,7 @@ namespace Immersive.Framework.Loading
             string warningConfigurationMessage)
         {
             Policy = policy;
-            _surfaceLabel = string.IsNullOrWhiteSpace(surfaceLabel) ? "Loading Surface" : surfaceLabel.Trim();
+            _surfaceLabel = surfaceLabel.NormalizeTextOrFallback("Loading Surface");
             _adapters = CopyAdapters(adapters);
             _hasBlockingConfigurationIssue = hasBlockingConfigurationIssue;
             _hasWarningConfigurationIssue = hasWarningConfigurationIssue;
@@ -65,8 +66,8 @@ namespace Immersive.Framework.Loading
             string sceneLabel)
         {
             logger ??= FrameworkLogger.Create<LoadingSurfaceRuntime>();
-            var resolvedSceneLabel = string.IsNullOrWhiteSpace(sceneLabel) ? "UIGlobal Loading Surface" : sceneLabel.Trim();
-            var hasSceneAdapters = sceneAdapters != null && sceneAdapters.Count > 0;
+            string resolvedSceneLabel = sceneLabel.NormalizeTextOrFallback("UIGlobal Loading Surface");
+            bool hasSceneAdapters = sceneAdapters != null && sceneAdapters.Count > 0;
 
             if (!hasSceneAdapters)
             {
@@ -153,7 +154,7 @@ namespace Immersive.Framework.Loading
                 return ExecuteNoOp(request, expectedAction);
             }
 
-            var matchingAdapters = CollectSupportingAdapters(request);
+            List<ILoadingSurfaceAdapter> matchingAdapters = CollectSupportingAdapters(request);
             if (matchingAdapters.Count == 0)
             {
                 return LoadingSurfaceResult.SkippedResult(
@@ -163,10 +164,10 @@ namespace Immersive.Framework.Loading
             }
 
             var issues = new List<string>();
-            var blockingIssueCount = 0;
-            var warningIssueCount = 0;
+            int blockingIssueCount = 0;
+            int warningIssueCount = 0;
 
-            for (var i = 0; i < matchingAdapters.Count; i++)
+            for (int i = 0; i < matchingAdapters.Count; i++)
             {
                 var adapter = matchingAdapters[i];
                 var result = ExecuteAdapter(adapter, request, expectedAction);
@@ -184,9 +185,9 @@ namespace Immersive.Framework.Loading
                     continue;
                 }
 
-                for (var issueIndex = 0; issueIndex < result.Issues.Count; issueIndex++)
+                for (int issueIndex = 0; issueIndex < result.Issues.Count; issueIndex++)
                 {
-                    var issueText = result.Issues[issueIndex];
+                    string issueText = result.Issues[issueIndex];
                     if (!string.IsNullOrWhiteSpace(issueText))
                     {
                         issues.Add($"{adapter.AdapterName}: {issueText.Trim()}");
@@ -248,7 +249,7 @@ namespace Immersive.Framework.Loading
                 return ExecuteNoOp(request, expectedAction);
             }
 
-            var matchingAdapters = CollectSupportingAdapters(request);
+            List<ILoadingSurfaceAdapter> matchingAdapters = CollectSupportingAdapters(request);
             if (matchingAdapters.Count == 0)
             {
                 return LoadingSurfaceResult.SkippedResult(
@@ -258,10 +259,10 @@ namespace Immersive.Framework.Loading
             }
 
             var issues = new List<string>();
-            var blockingIssueCount = 0;
-            var warningIssueCount = 0;
+            int blockingIssueCount = 0;
+            int warningIssueCount = 0;
 
-            for (var i = 0; i < matchingAdapters.Count; i++)
+            for (int i = 0; i < matchingAdapters.Count; i++)
             {
                 var adapter = matchingAdapters[i];
                 var result = await ExecuteAdapterAsync(adapter, request, expectedAction);
@@ -279,9 +280,9 @@ namespace Immersive.Framework.Loading
                     continue;
                 }
 
-                for (var issueIndex = 0; issueIndex < result.Issues.Count; issueIndex++)
+                for (int issueIndex = 0; issueIndex < result.Issues.Count; issueIndex++)
                 {
-                    var issueText = result.Issues[issueIndex];
+                    string issueText = result.Issues[issueIndex];
                     if (!string.IsNullOrWhiteSpace(issueText))
                     {
                         issues.Add($"{adapter.AdapterName}: {issueText.Trim()}");
@@ -383,7 +384,7 @@ namespace Immersive.Framework.Loading
 
         private bool HasProgressPresentationAdapter()
         {
-            for (var i = 0; i < _adapters.Length; i++)
+            for (int i = 0; i < _adapters.Length; i++)
             {
                 if (_adapters[i] is ILoadingSurfaceProgressPresentationAdapter progressAdapter
                     && progressAdapter.HasProgressPresentation)
@@ -398,7 +399,7 @@ namespace Immersive.Framework.Loading
         private List<ILoadingSurfaceAdapter> CollectSupportingAdapters(LoadingSurfaceRequest request)
         {
             var supportingAdapters = new List<ILoadingSurfaceAdapter>();
-            for (var i = 0; i < _adapters.Length; i++)
+            for (int i = 0; i < _adapters.Length; i++)
             {
                 var adapter = _adapters[i];
                 if (adapter != null && adapter.Supports(request))
@@ -418,7 +419,7 @@ namespace Immersive.Framework.Loading
             }
 
             var copy = new ILoadingSurfaceAdapter[adapters.Count];
-            for (var i = 0; i < adapters.Count; i++)
+            for (int i = 0; i < adapters.Count; i++)
             {
                 copy[i] = adapters[i];
             }
@@ -434,13 +435,13 @@ namespace Immersive.Framework.Loading
                 return adapters;
             }
 
-            var behaviours = surfaceInstance.GetComponentsInChildren<MonoBehaviour>(true);
+            MonoBehaviour[] behaviours = surfaceInstance.GetComponentsInChildren<MonoBehaviour>(true);
             if (behaviours == null || behaviours.Length == 0)
             {
                 return adapters;
             }
 
-            for (var i = 0; i < behaviours.Length; i++)
+            for (int i = 0; i < behaviours.Length; i++)
             {
                 if (behaviours[i] is ILoadingSurfaceAdapter adapter)
                 {
@@ -453,7 +454,7 @@ namespace Immersive.Framework.Loading
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

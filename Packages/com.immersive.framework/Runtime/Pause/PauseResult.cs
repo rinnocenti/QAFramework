@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Pause
 {
@@ -40,7 +41,7 @@ namespace Immersive.Framework.Pause
             CurrentState = currentState;
             Status = status;
             Message = Normalize(message);
-            this._issues = CopyIssues(issues);
+            _issues = CopyIssues(issues);
         }
 
         public PauseRequest Request { get; }
@@ -65,9 +66,9 @@ namespace Immersive.Framework.Pause
         {
             get
             {
-                var count = 0;
-                var items = Issues;
-                for (var i = 0; i < items.Count; i++)
+                int count = 0;
+                IReadOnlyList<PauseIssue> items = Issues;
+                for (int i = 0; i < items.Count; i++)
                 {
                     if (items[i].BlocksRequest)
                     {
@@ -123,16 +124,16 @@ namespace Immersive.Framework.Pause
         {
             unchecked
             {
-                var hashCode = Request.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)PreviousState;
-                hashCode = (hashCode * 397) ^ (int)CurrentState;
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = Request.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)PreviousState;
+                hashCode = hashCode * 397 ^ (int)CurrentState;
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
 
-                var issueItems = Issues;
-                for (var i = 0; i < issueItems.Count; i++)
+                IReadOnlyList<PauseIssue> issueItems = Issues;
+                for (int i = 0; i < issueItems.Count; i++)
                 {
-                    hashCode = (hashCode * 397) ^ issueItems[i].GetHashCode();
+                    hashCode = hashCode * 397 ^ issueItems[i].GetHashCode();
                 }
 
                 return hashCode;
@@ -147,14 +148,14 @@ namespace Immersive.Framework.Pause
         public string ToDiagnosticString()
         {
             var builder = new StringBuilder();
-            var messageText = string.IsNullOrWhiteSpace(Message) ? "<none>" : Message;
+            string messageText = Message.ToDiagnosticText();
             builder.Append($"request='{RequestId.StableText}' kind='{Kind}' previousState='{PreviousState}' currentState='{CurrentState}' status='{Status}' completed='{Completed}' stateChanged='{StateChanged}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' message='{messageText}'");
 
             if (HasIssues)
             {
                 builder.Append(" issues=[");
-                var items = Issues;
-                for (var i = 0; i < items.Count; i++)
+                IReadOnlyList<PauseIssue> items = Issues;
+                for (int i = 0; i < items.Count; i++)
                 {
                     if (i > 0)
                     {
@@ -208,7 +209,7 @@ namespace Immersive.Framework.Pause
             }
 
             var copy = new PauseIssue[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 if (!source[i].IsValid)
                 {
@@ -228,7 +229,7 @@ namespace Immersive.Framework.Pause
                 return false;
             }
 
-            for (var i = 0; i < left.Count; i++)
+            for (int i = 0; i < left.Count; i++)
             {
                 if (!left[i].Equals(right[i]))
                 {
@@ -249,7 +250,7 @@ namespace Immersive.Framework.Pause
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

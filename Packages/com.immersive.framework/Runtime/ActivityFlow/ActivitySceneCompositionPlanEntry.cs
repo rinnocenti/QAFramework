@@ -1,6 +1,7 @@
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentFlow;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -66,14 +67,14 @@ namespace Immersive.Framework.ActivityFlow
 
         public string ToDiagnosticString()
         {
-            var scene = !string.IsNullOrWhiteSpace(SceneName) ? SceneName : ScenePath;
+            string scene = !string.IsNullOrWhiteSpace(SceneName) ? SceneName : ScenePath;
             if (string.IsNullOrWhiteSpace(scene))
             {
                 scene = "<missing>";
             }
 
-            var identity = HasContentIdentity ? ContentIdentity.StableText : "<missing>";
-            var contentId = !string.IsNullOrWhiteSpace(ContentId) ? ContentId : "<missing>";
+            string identity = HasContentIdentity ? ContentIdentity.StableText : "<missing>";
+            string contentId = ContentId.ToDiagnosticText("<missing>");
             return $"identity='{identity}' id='{contentId}' scene='{scene}' requiredness='{Requiredness}' loadMode='{LoadMode}' releasePolicy='{ReleasePolicy}' order='{ExecutionOrder}' explicitId='{HasExplicitContentId}' executionReady='{IsExecutionReady}'";
         }
 
@@ -82,13 +83,13 @@ namespace Immersive.Framework.ActivityFlow
             int declarationIndex,
             string activityOwnerId)
         {
-            var explicitContentId = entry != null ? Normalize(entry.ExplicitContentId) : string.Empty;
-            var sceneName = entry != null ? Normalize(entry.SceneName) : string.Empty;
-            var scenePath = entry != null ? Normalize(entry.ScenePath) : string.Empty;
-            var requiredness = entry != null ? entry.Requiredness : FrameworkContentRequiredness.Optional;
-            var loadMode = entry != null ? entry.LoadMode : ActivityContentSceneLoadMode.Additive;
-            var releasePolicy = entry != null ? entry.ReleasePolicy : ActivityContentReleasePolicy.ReleaseOnActivityChange;
-            var hasExplicitContentId = !string.IsNullOrWhiteSpace(explicitContentId);
+            string explicitContentId = entry != null ? Normalize(entry.ExplicitContentId) : string.Empty;
+            string sceneName = entry != null ? Normalize(entry.SceneName) : string.Empty;
+            string scenePath = entry != null ? Normalize(entry.ScenePath) : string.Empty;
+            var requiredness = entry?.Requiredness ?? FrameworkContentRequiredness.Optional;
+            var loadMode = entry?.LoadMode ?? ActivityContentSceneLoadMode.Additive;
+            var releasePolicy = entry?.ReleasePolicy ?? ActivityContentReleasePolicy.ReleaseOnActivityChange;
+            bool hasExplicitContentId = !string.IsNullOrWhiteSpace(explicitContentId);
             FrameworkContentIdentity identity = default;
             if (hasExplicitContentId)
             {
@@ -113,7 +114,7 @@ namespace Immersive.Framework.ActivityFlow
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

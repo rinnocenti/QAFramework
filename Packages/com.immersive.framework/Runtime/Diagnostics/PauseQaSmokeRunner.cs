@@ -1,3 +1,4 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Threading.Tasks;
@@ -25,15 +26,15 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source) ? nameof(PauseQaSmokeRunner) : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(PauseQaSmokeRunner));
 
-            var requestPassed = ValidatePauseRequest(logger, normalizedSource);
-            var pauseAppliedPassed = ValidatePauseAppliedResult(logger, normalizedSource);
-            var resumeAppliedPassed = ValidateResumeAppliedResult(logger, normalizedSource);
-            var toggleTargetPassed = ValidateToggleTargetState(logger, normalizedSource);
-            var ignoredNoChangePassed = ValidateIgnoredNoChangeResult(logger, normalizedSource);
-            var rejectedPassed = ValidateRejectedResult(logger, normalizedSource);
-            var snapshotPassed = ValidateSnapshot(logger, normalizedSource);
+            bool requestPassed = ValidatePauseRequest(logger, normalizedSource);
+            bool pauseAppliedPassed = ValidatePauseAppliedResult(logger, normalizedSource);
+            bool resumeAppliedPassed = ValidateResumeAppliedResult(logger, normalizedSource);
+            bool toggleTargetPassed = ValidateToggleTargetState(logger, normalizedSource);
+            bool ignoredNoChangePassed = ValidateIgnoredNoChangeResult(logger, normalizedSource);
+            bool rejectedPassed = ValidateRejectedResult(logger, normalizedSource);
+            bool snapshotPassed = ValidateSnapshot(logger, normalizedSource);
 
             return Task.FromResult(requestPassed
                 && pauseAppliedPassed
@@ -48,7 +49,7 @@ namespace Immersive.Framework.Diagnostics
         {
             var request = PauseRequest.Pause("qa.pause.diagnostics.pause", source, "qa.pause.request");
             var targetState = PauseRequest.ResolveTargetState(request.Kind, PauseState.Running);
-            var passed = request.IsValid
+            bool passed = request.IsValid
                 && request.RequestId.Domain == FrameworkIdentityDomain.Pause
                 && request.Kind == PauseRequestKind.Pause
                 && request.RequestsPause
@@ -64,7 +65,7 @@ namespace Immersive.Framework.Diagnostics
         {
             var request = PauseRequest.Pause("qa.pause.diagnostics.pause-applied", source, "qa.pause.apply");
             var result = PauseResult.AppliedResult(request, PauseState.Running, PauseState.Paused, "Pause applied synthetically.");
-            var passed = result.IsValid
+            bool passed = result.IsValid
                 && result.Applied
                 && result.Completed
                 && result.StateChanged
@@ -82,7 +83,7 @@ namespace Immersive.Framework.Diagnostics
         {
             var request = PauseRequest.Resume("qa.pause.diagnostics.resume-applied", source, "qa.pause.resume");
             var result = PauseResult.AppliedResult(request, PauseState.Paused, PauseState.Running, "Resume applied synthetically.");
-            var passed = result.IsValid
+            bool passed = result.IsValid
                 && result.Applied
                 && result.Completed
                 && result.StateChanged
@@ -101,7 +102,7 @@ namespace Immersive.Framework.Diagnostics
             var request = PauseRequest.Toggle("qa.pause.diagnostics.toggle", source, "qa.pause.toggle");
             var runningTarget = PauseRequest.ResolveTargetState(request.Kind, PauseState.Running);
             var pausedTarget = PauseRequest.ResolveTargetState(request.Kind, PauseState.Paused);
-            var passed = request.IsValid
+            bool passed = request.IsValid
                 && request.RequestsToggle
                 && !request.RequestsPause
                 && !request.RequestsResume
@@ -117,7 +118,7 @@ namespace Immersive.Framework.Diagnostics
         {
             var request = PauseRequest.Pause("qa.pause.diagnostics.ignored-no-change", source, "qa.pause.idempotent");
             var result = PauseResult.IgnoredNoChangeResult(request, PauseState.Paused, "Pause request ignored because the framework is already paused.");
-            var passed = result.IsValid
+            bool passed = result.IsValid
                 && result.IgnoredNoChange
                 && result.Completed
                 && !result.StateChanged
@@ -132,7 +133,7 @@ namespace Immersive.Framework.Diagnostics
         private static bool ValidateRejectedResult(FrameworkLogger logger, string source)
         {
             var request = PauseRequest.Resume("qa.pause.diagnostics.rejected", source, "qa.pause.rejected");
-            var issues = new[]
+            PauseIssue[] issues = new[]
             {
                 PauseIssue.Blocking(
                     "pause-policy-blocked",
@@ -142,7 +143,7 @@ namespace Immersive.Framework.Diagnostics
             };
 
             var result = PauseResult.RejectedResult(request, PauseState.Paused, "Resume rejected synthetically.", issues);
-            var passed = result.IsValid
+            bool passed = result.IsValid
                 && result.Rejected
                 && !result.Completed
                 && !result.StateChanged
@@ -159,13 +160,13 @@ namespace Immersive.Framework.Diagnostics
         {
             var request = PauseRequest.Pause("qa.pause.diagnostics.snapshot", source, "qa.pause.snapshot");
             var result = PauseResult.AppliedResult(request, PauseState.Running, PauseState.Paused, "Pause snapshot source result.");
-            var facts = new[]
+            string[] facts = new[]
             {
                 "pause.diagnostics.snapshot.created"
             };
 
             var snapshot = PauseSnapshot.FromResult(result, facts);
-            var passed = snapshot.IsValid
+            bool passed = snapshot.IsValid
                 && snapshot.IsPaused
                 && !snapshot.IsRunning
                 && snapshot.HasLastRequest
@@ -187,7 +188,7 @@ namespace Immersive.Framework.Diagnostics
             bool passed,
             params LogField[] additionalFields)
         {
-            var baseFields = LogFields.Of(
+            LogField[] baseFields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("request", request.RequestId.StableText),
@@ -200,7 +201,7 @@ namespace Immersive.Framework.Diagnostics
                 LogFields.Field("requestsResume", request.RequestsResume),
                 LogFields.Field("requestsToggle", request.RequestsToggle));
 
-            var fields = AppendFields(baseFields, additionalFields);
+            LogField[] fields = AppendFields(baseFields, additionalFields);
             if (passed)
             {
                 logger.Info("QA Pause Diagnostics Smoke step completed.", fields);
@@ -213,7 +214,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogResultStep(FrameworkLogger logger, string step, PauseResult result, bool passed)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("request", result.RequestId.StableText),
@@ -244,7 +245,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogSnapshotStep(FrameworkLogger logger, string step, PauseSnapshot snapshot, bool passed)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("state", snapshot.State.ToString()),
@@ -282,7 +283,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static string FormatValue(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? "<none>" : value.Trim();
+            return value.NormalizeTextOrFallback("<none>");
         }
     }
 }

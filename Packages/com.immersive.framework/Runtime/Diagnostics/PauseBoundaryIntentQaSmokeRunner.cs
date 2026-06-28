@@ -1,3 +1,4 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Threading.Tasks;
@@ -25,15 +26,15 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source) ? nameof(PauseBoundaryIntentQaSmokeRunner) : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(PauseBoundaryIntentQaSmokeRunner));
 
             try
             {
-                var contractsPassed = ValidateContracts(logger, normalizedSource);
-                var contentPassed = ValidateContentRequirementIntent(logger, normalizedSource);
-                var presentationPassed = ValidatePresentationIntent(logger, normalizedSource);
-                var inputPassed = ValidateInputIntent(logger, normalizedSource);
-                var boundaryPassed = ValidateCanonicalBoundary(logger);
+                bool contractsPassed = ValidateContracts(logger, normalizedSource);
+                bool contentPassed = ValidateContentRequirementIntent(logger, normalizedSource);
+                bool presentationPassed = ValidatePresentationIntent(logger, normalizedSource);
+                bool inputPassed = ValidateInputIntent(logger, normalizedSource);
+                bool boundaryPassed = ValidateCanonicalBoundary(logger);
 
                 return Task.FromResult(contractsPassed
                     && contentPassed
@@ -58,10 +59,10 @@ namespace Immersive.Framework.Diagnostics
             var requirementId = PauseContentRequirementId.From("qa.pause.requirement.contracts");
             var actionId = PauseInputActionId.From("qa.pause.input.contracts.toggle");
 
-            var passed = requirementId.IsValid
-                && requirementId.Domain == Immersive.Framework.Identity.FrameworkIdentityDomain.Pause
+            bool passed = requirementId.IsValid
+                && requirementId.Domain == Identity.FrameworkIdentityDomain.Pause
                 && actionId.IsValid
-                && actionId.Domain == Immersive.Framework.Identity.FrameworkIdentityDomain.Pause
+                && actionId.Domain == Identity.FrameworkIdentityDomain.Pause
                 && PauseContentRequirementPurpose.PresentationRoot != PauseContentRequirementPurpose.Unknown
                 && PauseInputCommandKind.TogglePause != PauseInputCommandKind.Unknown;
 
@@ -95,7 +96,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "pause content requirement intent");
 
-            var passed = requirement.IsValid
+            bool passed = requirement.IsValid
                 && requirement.IsRequired
                 && requirement.Purpose == PauseContentRequirementPurpose.PresentationRoot
                 && requirement.PauseState == PauseState.Paused
@@ -149,7 +150,7 @@ namespace Immersive.Framework.Diagnostics
                 "QA pause presentation intent",
                 source);
 
-            var passed = presentation.IsValid
+            bool passed = presentation.IsValid
                 && presentation.ShouldBeVisible
                 && presentation.HasContentRequirement
                 && presentation.ContentRequirement.Equals(requirement)
@@ -188,7 +189,7 @@ namespace Immersive.Framework.Diagnostics
             var toggleIntent = PauseInputIntent.FromSignal(toggleSignal, source, "toggle pause intent");
             var menuIntent = PauseInputIntent.FromSignal(menuSignal, source, "menu navigation intent");
 
-            var passed = toggleIntent.IsValid
+            bool passed = toggleIntent.IsValid
                 && toggleIntent.IsPauseStateIntent
                 && !toggleIntent.IsMenuIntent
                 && menuIntent.IsValid
@@ -217,7 +218,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidateCanonicalBoundary(FrameworkLogger logger)
         {
-            var passed = typeof(PauseContentRequirement).Namespace == "Immersive.Framework.Pause"
+            bool passed = typeof(PauseContentRequirement).Namespace == "Immersive.Framework.Pause"
                 && typeof(PausePresentationIntent).Namespace == "Immersive.Framework.Pause"
                 && typeof(PauseInputIntent).Namespace == "Immersive.Framework.Pause";
 
@@ -244,7 +245,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogStep(FrameworkLogger logger, string step, bool passed, LogField[] fields)
         {
-            var stepFields = LogFields.Of(
+            LogField[] stepFields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed));
             if (passed)

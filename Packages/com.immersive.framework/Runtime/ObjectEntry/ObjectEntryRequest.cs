@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ObjectEntry
 {
@@ -13,8 +14,8 @@ namespace Immersive.Framework.ObjectEntry
         public ObjectEntryRequest(ObjectEntryDescriptor descriptor, string source, string reason)
         {
             Descriptor = descriptor;
-            Source = string.IsNullOrWhiteSpace(source) ? "ObjectEntry" : source.Trim();
-            Reason = string.IsNullOrWhiteSpace(reason) ? "object-entry" : reason.Trim();
+            Source = source.NormalizeTextOrFallback("ObjectEntry");
+            Reason = reason.NormalizeTextOrFallback("object-entry");
         }
 
         public ObjectEntryDescriptor Descriptor { get; }
@@ -39,9 +40,9 @@ namespace Immersive.Framework.ObjectEntry
         {
             unchecked
             {
-                var hashCode = Descriptor.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = Descriptor.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 return hashCode;
             }
         }

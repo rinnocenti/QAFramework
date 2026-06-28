@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Immersive.Foundation.Events;
 using Immersive.Framework.Authoring;
@@ -7,6 +8,7 @@ using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.RuntimeContent;
 using Immersive.Framework.SceneLifecycle;
 using Immersive.Framework.Loading;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -59,19 +61,9 @@ namespace Immersive.Framework.ActivityFlow
             _activityContentExitedBinding = _activityExitedEvents.Subscribe(_activityContentRuntime.HandleActivityExited);
         }
 
-        internal ActivityRuntimeState CurrentActivityState => _currentActivityState;
-
         internal ActivityAsset CurrentActivity => _currentActivityState.Activity;
 
         internal bool HasActiveActivity => _currentActivityState.IsActive;
-
-        internal int ActivitySceneLedgerLoadedCount => _activitySceneCompositionRuntime.LedgerLoadedCount;
-
-        internal int ActivitySceneLedgerReleasedCount => _activitySceneCompositionRuntime.LedgerReleasedCount;
-
-        internal int ActivitySceneLedgerStaleCount => _activitySceneCompositionRuntime.LedgerStaleCount;
-
-        internal int ActivitySceneLedgerEntryCount => _activitySceneCompositionRuntime.LedgerEntryCount;
 
         internal int PreviewActivitySceneReleaseForRouteChangeCount()
         {
@@ -81,13 +73,6 @@ namespace Immersive.Framework.ActivityFlow
         internal int PreviewActivitySceneReleaseForActivityChangeCount(ActivityAsset activity)
         {
             return _activitySceneCompositionRuntime.PreviewReleaseForActivityChangeCount(activity);
-        }
-
-        internal Task<ActivitySceneReleaseResult> ReleaseActivityScenesForRouteChangeAsync(
-            string source,
-            string reason)
-        {
-            return ReleaseActivityScenesForRouteChangeAsync(source, reason, NoOpFrameworkLoadingProgressReporter.Instance);
         }
 
         internal Task<ActivitySceneReleaseResult> ReleaseActivityScenesForRouteChangeAsync(
@@ -287,7 +272,7 @@ namespace Immersive.Framework.ActivityFlow
             var executionResult = ExecuteActivityContentLifecycle(previousActivity, null, resolvedSource, resolvedReason);
             var sceneCompositionResult = CreateActivitySceneCompositionResult(null, resolvedSource, resolvedReason);
             var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, null, resolvedSource, resolvedReason);
-            var releaseCount = PreviewActivitySceneReleaseForActivityChangeCount(previousActivity);
+            int releaseCount = PreviewActivitySceneReleaseForActivityChangeCount(previousActivity);
             var sceneReleaseProgressReporter = FrameworkLoadingProgressReporterUtility.CreateWeightedRangeReporter(
                 progressReporter,
                 0,
@@ -349,9 +334,9 @@ namespace Immersive.Framework.ActivityFlow
                 nextActivity,
                 resolvedSource,
                 resolvedReason);
-            var loadProgressCount = CountActivityOperationSceneSideEffects(operationForProgress, ActivityOperationSceneAction.Load);
-            var releaseProgressCount = CountActivityOperationSceneSideEffects(operationForProgress, ActivityOperationSceneAction.Release);
-            var totalProgressCount = loadProgressCount + releaseProgressCount;
+            int loadProgressCount = CountActivityOperationSceneSideEffects(operationForProgress, ActivityOperationSceneAction.Load);
+            int releaseProgressCount = CountActivityOperationSceneSideEffects(operationForProgress, ActivityOperationSceneAction.Release);
+            int totalProgressCount = loadProgressCount + releaseProgressCount;
             var sceneCompositionProgressReporter = FrameworkLoadingProgressReporterUtility.CreateWeightedRangeReporter(
                 resolvedProgressReporter,
                 0,
@@ -441,9 +426,9 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            var scenes = activityOperationResult.Plan.Scenes;
-            for (var i = 0; i < scenes.Count; i++)
+            int count = 0;
+            IReadOnlyList<ActivityOperationPlanSceneEntry> scenes = activityOperationResult.Plan.Scenes;
+            for (int i = 0; i < scenes.Count; i++)
             {
                 if (scenes[i].Action == action && scenes[i].IsSceneSideEffect)
                 {
@@ -649,7 +634,7 @@ namespace Immersive.Framework.ActivityFlow
 
         private static string CreateRouteInstanceId(RouteAsset route, int sequence)
         {
-            var routeName = route != null && !string.IsNullOrWhiteSpace(route.RouteName)
+            string routeName = route != null && !string.IsNullOrWhiteSpace(route.RouteName)
                 ? route.RouteName.Trim()
                 : "Route";
             return $"route:{sequence}:{routeName}";
@@ -803,12 +788,12 @@ namespace Immersive.Framework.ActivityFlow
 
         private static string NormalizeSource(string source)
         {
-            return string.IsNullOrWhiteSpace(source) ? "Unknown" : source.Trim();
+            return source.NormalizeTextOrFallback("Unknown");
         }
 
         private static string NormalizeReason(string reason)
         {
-            return string.IsNullOrWhiteSpace(reason) ? "None" : reason.Trim();
+            return reason.NormalizeTextOrFallback("None");
         }
     }
 }

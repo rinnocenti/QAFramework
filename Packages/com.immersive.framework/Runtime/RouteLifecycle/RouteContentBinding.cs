@@ -3,6 +3,7 @@ using UnityEngine;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.ContentFlow;
 using Immersive.Framework.LocalContribution;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -34,7 +35,7 @@ namespace Immersive.Framework.RouteLifecycle
         public LocalContentScopeKind LocalScopeKind => LocalContentScopeKind.SceneAuthored;
 
         public string LocalContentIdText => !string.IsNullOrWhiteSpace(localContentId)
-            ? localContentId.Trim()
+            ? localContentId.NormalizeText()
             : string.Empty;
 
         public bool HasExplicitLocalContentId => !string.IsNullOrWhiteSpace(localContentId);
@@ -53,7 +54,7 @@ namespace Immersive.Framework.RouteLifecycle
 
         internal bool IsSceneBinding => gameObject.scene.IsValid() && gameObject.scene.isLoaded;
 
-        internal string ObjectName => gameObject != null ? gameObject.name : "<missing>";
+        internal string ObjectName => gameObject.ToDiagnosticText(x => x.name, "<missing>");
 
         internal string SceneName => gameObject != null && gameObject.scene.IsValid()
             ? gameObject.scene.name

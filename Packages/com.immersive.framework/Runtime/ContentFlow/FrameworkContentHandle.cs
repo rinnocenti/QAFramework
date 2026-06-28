@@ -1,5 +1,6 @@
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Identity;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ContentFlow
 {
@@ -102,7 +103,7 @@ namespace Immersive.Framework.ContentFlow
 
         public string ToDiagnosticString()
         {
-            var resource = !string.IsNullOrWhiteSpace(ResourceName) ? ResourceName : ResourcePath;
+            string resource = !string.IsNullOrWhiteSpace(ResourceName) ? ResourceName : ResourcePath;
             if (string.IsNullOrWhiteSpace(resource))
             {
                 resource = "<none>";
@@ -121,9 +122,9 @@ namespace Immersive.Framework.ContentFlow
             string reason,
             string message)
         {
-            var normalizedSceneName = Normalize(sceneName);
-            var normalizedScenePath = Normalize(scenePath);
-            var sceneIdentity = !string.IsNullOrWhiteSpace(normalizedSceneName)
+            string normalizedSceneName = Normalize(sceneName);
+            string normalizedScenePath = Normalize(scenePath);
+            string sceneIdentity = !string.IsNullOrWhiteSpace(normalizedSceneName)
                 ? normalizedSceneName
                 : normalizedScenePath;
             if (string.IsNullOrWhiteSpace(sceneIdentity))
@@ -131,7 +132,7 @@ namespace Immersive.Framework.ContentFlow
                 throw new System.ArgumentException("Route primary scene content identity requires a scene name or scene path.", nameof(sceneName));
             }
 
-            var contentId = $"primary-scene:{sceneIdentity}";
+            string contentId = $"primary-scene:{sceneIdentity}";
             var identity = FrameworkContentIdentity.FromOwnerValue(
                 FrameworkContentScope.Route,
                 FrameworkContentKind.Scene,
@@ -160,17 +161,17 @@ namespace Immersive.Framework.ContentFlow
             string reason,
             string message)
         {
-            var normalizedObjectName = Normalize(objectName);
-            var normalizedSceneName = Normalize(sceneName);
+            string normalizedObjectName = Normalize(objectName);
+            string normalizedSceneName = Normalize(sceneName);
             if (string.IsNullOrWhiteSpace(normalizedObjectName))
             {
                 throw new System.ArgumentException("Activity scene-authored binding content identity requires an object name.", nameof(objectName));
             }
 
-            var sceneSegment = !string.IsNullOrWhiteSpace(normalizedSceneName)
+            string sceneSegment = !string.IsNullOrWhiteSpace(normalizedSceneName)
                 ? normalizedSceneName
                 : "unknown-scene";
-            var contentId = $"scene-authored-binding:{sceneSegment}:{normalizedObjectName}";
+            string contentId = $"scene-authored-binding:{sceneSegment}:{normalizedObjectName}";
             var identity = FrameworkContentIdentity.FromOwnerValue(
                 FrameworkContentScope.Activity,
                 FrameworkContentKind.SceneAuthored,
@@ -191,7 +192,7 @@ namespace Immersive.Framework.ContentFlow
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

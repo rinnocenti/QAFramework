@@ -1,8 +1,7 @@
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using Immersive.Framework.ApiStatus;
 using UnityEngine;
-
-namespace Immersive.Framework.ObjectReset
+namespace Immersive.Framework.ObjectReset.Unity
 {
     /// <summary>
     /// Development-only participant used by QA smokes to validate the Unity participant source boundary without adding a physical reset adapter.

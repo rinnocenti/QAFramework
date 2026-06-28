@@ -6,6 +6,7 @@ using Immersive.Framework.ContentFlow;
 using Immersive.Framework.SceneLifecycle;
 using UnityEngine;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -79,7 +80,7 @@ namespace Immersive.Framework.ActivityFlow
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
 
-            var bindings = CollectActivityLocalVisibilityAdapters();
+            IReadOnlyList<ActivityLocalVisibilityAdapter> bindings = CollectActivityLocalVisibilityAdapters();
             if (bindings == null || bindings.Count == 0)
             {
                 return ActivityContentApplyResult.Empty(activeActivity);
@@ -234,8 +235,8 @@ namespace Immersive.Framework.ActivityFlow
                 AddBindings(bindings, SceneScopedComponentQuery.GetComponentsInRoutePrimaryScene<ActivityLocalVisibilityAdapter>(route));
             }
 
-            var activityOwnedScenes = _discoveryScope.ActivityOwnedScenes;
-            for (var i = 0; i < activityOwnedScenes.Count; i++)
+            IReadOnlyList<ActivityContentDiscoveryScene> activityOwnedScenes = _discoveryScope.ActivityOwnedScenes;
+            for (int i = 0; i < activityOwnedScenes.Count; i++)
             {
                 var scene = activityOwnedScenes[i];
                 if (!AddSceneKey(scannedSceneKeys, scene.ScenePath, scene.SceneName))
@@ -262,7 +263,7 @@ namespace Immersive.Framework.ActivityFlow
                 return;
             }
 
-            for (var i = 0; i < discovered.Count; i++)
+            for (int i = 0; i < discovered.Count; i++)
             {
                 if (discovered[i] != null)
                 {
@@ -278,7 +279,7 @@ namespace Immersive.Framework.ActivityFlow
                 return false;
             }
 
-            var sceneKey = !string.IsNullOrWhiteSpace(scenePath)
+            string sceneKey = !string.IsNullOrWhiteSpace(scenePath)
                 ? scenePath.Trim()
                 : !string.IsNullOrWhiteSpace(sceneName) ? sceneName.Trim() : string.Empty;
             return !string.IsNullOrWhiteSpace(sceneKey) && sceneKeys.Add(sceneKey);
@@ -406,7 +407,7 @@ namespace Immersive.Framework.ActivityFlow
             Exception exception)
         {
             string receiverType = receiver != null ? receiver.GetType().FullName : "<missing>";
-            string activityName = activity != null ? activity.ActivityName : "<none>";
+            string activityName = activity.ToDiagnosticText(x => x.ActivityName);
             string exceptionType = exception != null ? exception.GetType().Name : "<unknown>";
             string exceptionMessage = exception != null ? exception.Message : string.Empty;
 
@@ -417,12 +418,12 @@ namespace Immersive.Framework.ActivityFlow
 
         private static string NormalizeSource(string source)
         {
-            return string.IsNullOrWhiteSpace(source) ? "Unknown" : source.Trim();
+            return source.NormalizeTextOrFallback("Unknown");
         }
 
         private static string NormalizeReason(string reason)
         {
-            return string.IsNullOrWhiteSpace(reason) ? "None" : reason.Trim();
+            return reason.NormalizeTextOrFallback("None");
         }
         private static string ResolveAction(bool shouldBeActive, bool wasActive, bool changed)
         {
@@ -465,7 +466,7 @@ namespace Immersive.Framework.ActivityFlow
                 return string.Empty;
             }
 
-            string activeActivityName = activeActivity != null ? activeActivity.ActivityName : "<none>";
+            string activeActivityName = activeActivity.ToDiagnosticText(x => x.ActivityName);
             string details = $"Activity Local Visibility Adapter diagnostics. activeActivity='{FormatValue(activeActivityName)}' observations=[{string.Join("; ", observedBindings)}]";
             if (omittedObservationCount > 0)
             {

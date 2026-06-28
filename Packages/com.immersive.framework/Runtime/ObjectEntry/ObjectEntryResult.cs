@@ -23,7 +23,7 @@ namespace Immersive.Framework.ObjectEntry
 
             Descriptor = descriptor;
             Status = status;
-            Issues = issues == null ? EmptyIssues : issues.ToArray();
+            Issues = issues?.ToArray() ?? EmptyIssues;
         }
 
         public ObjectEntryDescriptor Descriptor { get; }
@@ -32,7 +32,7 @@ namespace Immersive.Framework.ObjectEntry
 
         public IReadOnlyList<ObjectEntryIssue> Issues { get; }
 
-        public bool Succeeded => Status == ObjectEntryResultStatus.Accepted || Status == ObjectEntryResultStatus.AcceptedWithWarnings;
+        public bool Succeeded => Status is ObjectEntryResultStatus.Accepted or ObjectEntryResultStatus.AcceptedWithWarnings;
 
         public bool Failed => Status == ObjectEntryResultStatus.Rejected;
 

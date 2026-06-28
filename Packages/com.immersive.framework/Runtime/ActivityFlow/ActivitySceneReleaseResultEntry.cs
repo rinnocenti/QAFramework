@@ -2,6 +2,7 @@ using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentFlow;
 using Immersive.Framework.SceneLifecycle;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -45,8 +46,7 @@ namespace Immersive.Framework.ActivityFlow
 
         public bool Unloaded => Status == ActivitySceneReleaseEntryStatus.Unloaded;
 
-        public bool Skipped => Status == ActivitySceneReleaseEntryStatus.SkippedKeepOnActivityChange
-            || Status == ActivitySceneReleaseEntryStatus.SkippedNotLoaded;
+        public bool Skipped => Status is ActivitySceneReleaseEntryStatus.SkippedKeepOnActivityChange or ActivitySceneReleaseEntryStatus.SkippedNotLoaded;
 
         public bool Failed => Status == ActivitySceneReleaseEntryStatus.Failed;
 
@@ -54,15 +54,15 @@ namespace Immersive.Framework.ActivityFlow
 
         public string ToDiagnosticString()
         {
-            var scene = !string.IsNullOrWhiteSpace(SceneName) ? SceneName : ScenePath;
+            string scene = !string.IsNullOrWhiteSpace(SceneName) ? SceneName : ScenePath;
             if (string.IsNullOrWhiteSpace(scene))
             {
                 scene = "<missing>";
             }
 
-            var identity = ContentIdentity.IsValid ? ContentIdentity.StableText : "<missing>";
-            var contentId = !string.IsNullOrWhiteSpace(ContentId) ? ContentId : "<missing>";
-            var message = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
+            string identity = ContentIdentity.IsValid ? ContentIdentity.StableText : "<missing>";
+            string contentId = ContentId.ToDiagnosticText("<missing>");
+            string message = Message.ToDiagnosticText();
             return $"identity='{identity}' id='{contentId}' scene='{scene}' requiredness='{Requiredness}' releasePolicy='{ReleasePolicy}' status='{Status}' blocksRelease='{BlocksRelease}' message='{message}'";
         }
 
@@ -110,7 +110,7 @@ namespace Immersive.Framework.ActivityFlow
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

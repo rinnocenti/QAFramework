@@ -47,7 +47,7 @@ namespace Immersive.Framework.Loading
         {
             unchecked
             {
-                return (Weight.GetHashCode() * 397) ^ Progress.GetHashCode();
+                return Weight.GetHashCode() * 397 ^ Progress.GetHashCode();
             }
         }
 

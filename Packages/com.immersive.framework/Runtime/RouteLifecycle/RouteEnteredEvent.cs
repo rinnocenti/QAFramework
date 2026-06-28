@@ -1,6 +1,7 @@
 using Immersive.Foundation.Events;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -11,8 +12,8 @@ namespace Immersive.Framework.RouteLifecycle
         {
             Route = route;
             PreviousRoute = previousRoute;
-            Source = string.IsNullOrWhiteSpace(source) ? "Unknown" : source.Trim();
-            Reason = string.IsNullOrWhiteSpace(reason) ? "None" : reason.Trim();
+            Source = source.NormalizeTextOrFallback("Unknown");
+            Reason = reason.NormalizeTextOrFallback("None");
         }
 
         public RouteAsset Route { get; }

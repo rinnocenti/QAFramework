@@ -68,9 +68,9 @@ namespace Immersive.Framework.ObjectReset
         {
             unchecked
             {
-                var hashCode = Participant != null ? Participant.GetHashCode() : 0;
-                hashCode = (hashCode * 397) ^ Descriptor.GetHashCode();
-                hashCode = (hashCode * 397) ^ SourceIndex;
+                int hashCode = Participant != null ? Participant.GetHashCode() : 0;
+                hashCode = hashCode * 397 ^ Descriptor.GetHashCode();
+                hashCode = hashCode * 397 ^ SourceIndex;
                 return hashCode;
             }
         }

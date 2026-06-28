@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.ObjectEntry;
 using UnityEngine;
-
-namespace Immersive.Framework.ObjectReset
+namespace Immersive.Framework.ObjectReset.Unity
 {
     /// <summary>
     /// API status: Experimental. Explicit Unity-side source for Object Reset participants.
@@ -26,7 +25,7 @@ namespace Immersive.Framework.ObjectReset
 
         public bool RegisterOnEnable => registerOnEnable;
 
-        public int AuthoredParticipantCount => participants != null ? participants.Length : 0;
+        public int AuthoredParticipantCount => participants?.Length ?? 0;
 
         public bool IsRegistered => _registeredHost != null && !ReferenceEquals(_registeredHost, null);
 
@@ -70,7 +69,7 @@ namespace Immersive.Framework.ObjectReset
                 return false;
             }
 
-            var cleared = _registeredHost.ClearObjectResetParticipantSource(this);
+            bool cleared = _registeredHost.ClearObjectResetParticipantSource(this);
             _registeredHost = null;
             return cleared;
         }
@@ -85,7 +84,7 @@ namespace Immersive.Framework.ObjectReset
             }
 
             var resolved = new List<IObjectResetParticipant>(participants.Length);
-            for (var i = 0; i < participants.Length; i++)
+            for (int i = 0; i < participants.Length; i++)
             {
                 var participant = participants[i];
                 if (participant == null)

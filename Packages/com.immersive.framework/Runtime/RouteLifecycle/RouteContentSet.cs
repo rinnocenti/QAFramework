@@ -29,14 +29,14 @@ namespace Immersive.Framework.RouteLifecycle
 
             if (entries == null || entries.Count == 0)
             {
-                this._entries = Array.Empty<RouteContentEntry>();
+                _entries = Array.Empty<RouteContentEntry>();
                 return;
             }
 
-            this._entries = new RouteContentEntry[entries.Count];
-            for (var i = 0; i < entries.Count; i++)
+            _entries = new RouteContentEntry[entries.Count];
+            for (int i = 0; i < entries.Count; i++)
             {
-                this._entries[i] = entries[i];
+                _entries[i] = entries[i];
             }
         }
 
@@ -71,7 +71,7 @@ namespace Immersive.Framework.RouteLifecycle
                         : "Route Content Set is empty.";
                 }
 
-                var planMessage = ContentPlan.HasProfile ? $" {ContentPlan.ToDiagnosticString()}" : string.Empty;
+                string planMessage = ContentPlan.HasProfile ? $" {ContentPlan.ToDiagnosticString()}" : string.Empty;
                 return $"Route Content Set registered {Count} handle(s). registered='{RegisteredCount}' owned='{OwnedCount}' diagnosticOnly='{DiagnosticOnlyCount}' {ContentSet.ToDiagnosticString()}.{planMessage}";
             }
         }
@@ -87,7 +87,7 @@ namespace Immersive.Framework.RouteLifecycle
 
                 var builder = new StringBuilder();
                 builder.Append($"Route Content Set ownership registered='{RegisteredCount}' owned='{OwnedCount}' diagnosticOnly='{DiagnosticOnlyCount}' details=[");
-                for (var i = 0; i < Entries.Count; i++)
+                for (int i = 0; i < Entries.Count; i++)
                 {
                     if (i > 0)
                     {
@@ -104,8 +104,8 @@ namespace Immersive.Framework.RouteLifecycle
 
         public static RouteContentSet Empty(RouteAsset route)
         {
-            var ownerName = route != null ? route.RouteName : string.Empty;
-            var ownerId = CreateRouteOwnerId(route);
+            string ownerName = route != null ? route.RouteName : string.Empty;
+            string ownerId = CreateRouteOwnerId(route);
             return new RouteContentSet(
                 route,
                 FrameworkContentSet.Empty(FrameworkContentScope.Route, ownerId, ownerName),
@@ -125,7 +125,7 @@ namespace Immersive.Framework.RouteLifecycle
                 return Empty(route);
             }
 
-            var ownerId = CreateRouteOwnerId(route);
+            string ownerId = CreateRouteOwnerId(route);
             var handle = FrameworkContentHandle.RoutePrimaryScene(
                 ownerId,
                 route.RouteName,
@@ -156,11 +156,11 @@ namespace Immersive.Framework.RouteLifecycle
                 return Empty(route);
             }
 
-            var ownerId = CreateRouteOwnerId(route);
+            string ownerId = CreateRouteOwnerId(route);
             var handles = new List<FrameworkContentHandle>(compositionResult.LoadedCount);
             var entries = new List<RouteContentEntry>(compositionResult.LoadedCount);
 
-            for (var i = 0; i < compositionResult.Entries.Count; i++)
+            for (int i = 0; i < compositionResult.Entries.Count; i++)
             {
                 var resultEntry = compositionResult.Entries[i];
                 if (!resultEntry.Loaded || !resultEntry.ContentIdentity.IsValid)
@@ -212,7 +212,7 @@ namespace Immersive.Framework.RouteLifecycle
             }
 
             var releaseEntries = new List<ContentReleasePlanEntry>(Entries.Count);
-            for (var i = 0; i < Entries.Count; i++)
+            for (int i = 0; i < Entries.Count; i++)
             {
                 var entry = Entries[i];
                 var releaseOwnership = ToReleaseOwnership(entry.Ownership);
@@ -326,8 +326,8 @@ namespace Immersive.Framework.RouteLifecycle
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < _entries.Length; i++)
+            int count = 0;
+            for (int i = 0; i < _entries.Length; i++)
             {
                 if (_entries[i].Ownership == ownership)
                 {

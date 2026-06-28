@@ -1,63 +1,101 @@
-# F28-ADR-INPUT-001 — InputMode and Adapter Boundary
+# F28-ADR-PLAN-001 — Roadmap Reconciliation and Adapter Module Spine
 
-Status: Proposed / planning gate
-Phase: F28 — InputMode and Adapter Boundary Reorganization
-Type: Framework Core / Unity Adapter Boundary / Input
+Status: Proposed / planning gate  
+Phase: F28 — Roadmap Reconciliation and Adapter Module Spine  
+Type: Framework Planning / Adapter Module Boundary / Input Positioning
 
 ## Context
 
-F27 validated Pause UIGlobal surface and PauseToggle input. During the next attempted step, the design started pushing Gate checks into individual input consumers.
+F27 validated the deferred Pause UIGlobal surface and the narrow PauseToggle input path. The next attempted direction pushed Gate checks into individual input consumers.
 
-That direction was rejected because the framework has not yet settled PlayerInput ownership, InputMode semantics or adapter boundaries.
+That direction was rejected because it treated a missing ownership problem as a local input-consumer problem. The framework still needs a clear completion map for adapter modules, Player/Actor ownership, Unity Input target ownership, InputMode semantics and Pause integration.
+
+The current baseline is frozen at F27D. F27E is cancelled.
 
 ## Decision
 
-InputMode must be planned before additional Pause/Input runtime wiring.
+F28 is not an InputMode implementation phase.
 
-The canonical shape is:
+F28 is the roadmap correction phase that defines the adapter/module spine from the stable framework core to future product-facing modules.
 
-```text
-PauseRuntime
-  state/result owner
-
-InputMode contract/runtime
-  typed mode owner
-
-Unity Input System adapter
-  applies mode to concrete Unity input targets
-
-Player/Actor/Input adapter modules
-  provide targets and gameplay consumption later
-
-Gate
-  passive admission/hard-lock/safety language
-```
-
-## Accepted Rules
-
-- `InputMode` is a typed contract, not an action-map string.
-- Unity action-map names are adapter configuration, not framework identity.
-- Pause may request an InputMode change, but Pause must not own PlayerInput.
-- InputMode may apply Unity Input System effects, but it must not own Route/Activity lifecycle.
-- Gate must not become a component blocker.
-- Gate must not become a mandatory check in every normal input consumer just to make Pause work.
-- Adapter modules consume framework contracts; they do not redefine Pause, Gate, Route or Activity ownership.
-
-## Rejected Direction
+The canonical ordering is:
 
 ```text
-Pause -> Gate -> every input consumer checks Gate
+Framework lifecycle core
+  -> Unity build surface evidence
+  -> adapter/module ownership map
+  -> Player/Actor/Input target ownership
+  -> typed InputMode semantics
+  -> Pause requests InputMode
+  -> later Camera/Audio/Save/RuntimeSpawned/Gameplay adapters
 ```
 
-This scatters Pause behavior across consumers and hides the missing InputMode boundary.
+Runtime implementation resumes only after this planning phase identifies the next concrete owner, dependency chain, package/asset placement and smoke target.
 
-## Preferred Pause Direction
+## Positive Scope
+
+F28 owns these planning outputs:
+
+```text
+completion dependency map
+adapter module taxonomy
+module placement rules
+PlayerInput ownership decision path
+InputMode position in the module graph
+Pause/InputMode integration plan
+next implementation phase entry criteria
+```
+
+## Canonical Tracks
+
+| Track | Owns |
+|---|---|
+| Framework Core / Contracts | Existing lifecycle contracts, typed identities, state, diagnostics, policies and request/result language. |
+| Unity Build Surface | Minimal Unity scenes, surfaces and QA wiring that prove framework contracts. |
+| Adapter Modules | Optional modules that connect product/gameplay systems to framework contracts without redefining them. |
+| Project Assets | Game-specific prefabs, scenes, UI art, player prefabs and concrete product configuration. |
+| External Packages | Unity official modules, optional packages, third-party tools and project-specific assets consumed by adapters. |
+
+## Adapter Module Families
+
+F28 recognizes these future families as separate lanes:
+
+```text
+Player / Actor
+Unity Input
+InputMode
+Pause Integration
+Camera
+Audio
+Save / Progression
+Runtime Spawned / Pooling
+Gameplay Capabilities
+```
+
+Each family must declare owner, dependency order and placement before implementation.
+
+## InputMode Position
+
+InputMode remains a required future boundary, but it is downstream of Player/Input ownership decisions.
+
+Candidate modes:
+
+```text
+Gameplay
+PauseOverlay
+FrontendMenu
+InputLocked
+```
+
+`InputMode` is typed framework language. Unity action-map names are adapter configuration.
+
+## Pause Direction
+
+The accepted direction remains:
 
 ```text
 Running:
   InputMode = Gameplay
-  Gameplay input is available
-  UI may be available by policy
 
 Paused:
   InputMode = PauseOverlay
@@ -66,40 +104,38 @@ Paused:
   gameplay command maps do not drive gameplay
 ```
 
-`Time.timeScale` remains a later freeze policy and does not replace InputMode.
+Pause may request a mode change after InputMode exists. Pause does not own `PlayerInput`, action-map strings or player lifecycle.
 
-## NewScripts Reference
+## Gate Position
 
-The old project shows a useful separation:
+Gate remains passive admission and hard-lock language.
 
-```text
-SessionActivityPauseToggleInputAdapter
-  narrow PauseToggle input signal
-
-InputModeService
-  typed mode requests and action-map application
-
-ADR-0007
-  Gate/InputMode execute effects; they do not decide lifecycle
-```
-
-The framework should bring the boundary, not copy the old service shape directly.
-
-## Open Questions Before Runtime
-
-F28A must answer:
+Gate should be used for:
 
 ```text
-who supplies PlayerInput targets
-whether PlayerInput belongs to project, player adapter module or framework surface
-whether InputMode is core-only state first or Unity-applied immediately
-how UI input stays active during PauseOverlay
-how multiple players/slots are represented later
-what diagnostics prove mode application without gameplay dependencies
+admission diagnostics
+request guards
+exceptional blocks
+stale/foreign/in-flight safety checks
 ```
+
+Gate is not the normal implementation path for pausing ordinary gameplay input.
 
 ## Consequences
 
-F27E input-consumer Gate wiring is cancelled.
+- F27E remains cancelled.
+- The next cut is documentation/planning, not contracts/runtime.
+- Adapter module work is treated as a progressive roadmap lane, not as a single input patch.
+- Player/Input ownership must be decided before Pause drives action-map behavior.
+- Camera, Audio, Save, RuntimeSpawned and Gameplay adapters must not be pulled into core as side effects of solving Pause/Input.
 
-F28 begins with audit and plan correction. Runtime work resumes only after PlayerInput ownership and adapter placement are explicit.
+## F28 Cut Order
+
+| Cut | Name | Output |
+|---|---|---|
+| F28A | Frozen Baseline Reconciliation | Authoritative read of package docs, project docs, QA assets and the cancelled F27E path. |
+| F28B | Completion Dependency Map | Ordered dependency graph for remaining product-completion tracks. |
+| F28C | Adapter Module Taxonomy | Module families, owner kind, placement rule and dependency category. |
+| F28D | Player / Actor / Input Ownership Plan | Player object, `PlayerInput`, player/actor adapter placement and first target proof. |
+| F28E | InputMode and Pause Integration Plan | Typed InputMode semantics and Pause-driven mode requests after ownership is clear. |
+| F28F | Next Implementation Closeout | Next code phase, entry criteria, smoke target and file placement rules. |

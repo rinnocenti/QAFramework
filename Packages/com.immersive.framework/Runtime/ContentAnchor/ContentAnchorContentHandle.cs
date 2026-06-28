@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.RuntimeContent;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ContentAnchor
 {
@@ -67,7 +68,7 @@ namespace Immersive.Framework.ContentAnchor
 
         public ContentAnchorId AnchorId => Anchor.AnchorId;
 
-        public RuntimeContentIdentity RuntimeIdentity => RuntimeHandle != null ? RuntimeHandle.Identity : default(RuntimeContentIdentity);
+        public RuntimeContentIdentity RuntimeIdentity => RuntimeHandle?.Identity ?? default(RuntimeContentIdentity);
 
         public RuntimeContentOwner RuntimeOwner => Request.RuntimeOwner;
 
@@ -104,11 +105,11 @@ namespace Immersive.Framework.ContentAnchor
         {
             unchecked
             {
-                var hashCode = Request.GetHashCode();
-                hashCode = (hashCode * 397) ^ Anchor.GetHashCode();
-                hashCode = (hashCode * 397) ^ (RuntimeHandle != null ? RuntimeHandle.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = Request.GetHashCode();
+                hashCode = hashCode * 397 ^ Anchor.GetHashCode();
+                hashCode = hashCode * 397 ^ (RuntimeHandle != null ? RuntimeHandle.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 return hashCode;
             }
         }
@@ -120,9 +121,9 @@ namespace Immersive.Framework.ContentAnchor
 
         public string ToDiagnosticString()
         {
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            var runtimeHandleText = RuntimeHandle != null ? RuntimeHandle.ToDiagnosticString() : "<none>";
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string runtimeHandleText = RuntimeHandle != null ? RuntimeHandle.ToDiagnosticString() : "<none>";
             return $"binding='{StableText}' anchor='{Anchor.StableText}' anchorKind='{AnchorKind}' runtimeIdentity='{RuntimeIdentity.StableText}' runtimeOwner='{RuntimeOwner.StableText}' runtimeScope='{RuntimeScope}' runtimeHandle={runtimeHandleText} source='{sourceText}' reason='{reasonText}'";
         }
 
@@ -148,7 +149,7 @@ namespace Immersive.Framework.ContentAnchor
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

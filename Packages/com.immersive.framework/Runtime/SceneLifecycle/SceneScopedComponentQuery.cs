@@ -126,7 +126,7 @@ namespace Immersive.Framework.SceneLifecycle
                 return;
             }
 
-            var roots = scene.GetRootGameObjects();
+            GameObject[] roots = scene.GetRootGameObjects();
             if (roots == null || roots.Length == 0)
             {
                 return;
@@ -140,7 +140,7 @@ namespace Immersive.Framework.SceneLifecycle
                     continue;
                 }
 
-                var found = root.GetComponentsInChildren<T>(true);
+                T[] found = root.GetComponentsInChildren<T>(true);
                 if (found == null || found.Length == 0)
                 {
                     continue;

@@ -18,12 +18,12 @@ namespace Immersive.Framework.Gate
         {
             if (blockers == null || blockers.Count == 0)
             {
-                this._blockers = Array.Empty<GateBlocker>();
+                _blockers = Array.Empty<GateBlocker>();
                 return;
             }
 
             var copy = new GateBlocker[blockers.Count];
-            for (var i = 0; i < blockers.Count; i++)
+            for (int i = 0; i < blockers.Count; i++)
             {
                 if (!blockers[i].IsValid)
                 {
@@ -33,7 +33,7 @@ namespace Immersive.Framework.Gate
                 copy[i] = blockers[i];
             }
 
-            this._blockers = copy;
+            _blockers = copy;
         }
 
         public IReadOnlyList<GateBlocker> Blockers => _blockers ?? Array.Empty<GateBlocker>();
@@ -51,9 +51,9 @@ namespace Immersive.Framework.Gate
                 return 0;
             }
 
-            var count = 0;
-            var items = Blockers;
-            for (var i = 0; i < items.Count; i++)
+            int count = 0;
+            IReadOnlyList<GateBlocker> items = Blockers;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (items[i].Scope == scope)
                 {
@@ -71,9 +71,9 @@ namespace Immersive.Framework.Gate
                 return 0;
             }
 
-            var count = 0;
-            var items = Blockers;
-            for (var i = 0; i < items.Count; i++)
+            int count = 0;
+            IReadOnlyList<GateBlocker> items = Blockers;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (items[i].Domain == domain)
                 {
@@ -96,8 +96,8 @@ namespace Immersive.Framework.Gate
                 return false;
             }
 
-            var items = Blockers;
-            for (var i = 0; i < items.Count; i++)
+            IReadOnlyList<GateBlocker> items = Blockers;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (items[i].Blocks(scope, domain, owner))
                 {
@@ -124,8 +124,8 @@ namespace Immersive.Framework.Gate
             }
 
             var matches = new List<GateBlocker>();
-            var items = Blockers;
-            for (var i = 0; i < items.Count; i++)
+            IReadOnlyList<GateBlocker> items = Blockers;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (items[i].Blocks(scope, domain, owner))
                 {
@@ -182,7 +182,7 @@ namespace Immersive.Framework.Gate
                     new[] { "Gate domain must be explicit." });
             }
 
-            var blocking = GetBlockingBlockers(safeScope, safeDomain, owner);
+            IReadOnlyList<GateBlocker> blocking = GetBlockingBlockers(safeScope, safeDomain, owner);
             if (blocking.Count == 0)
             {
                 var decision = GateDecision.Allowed(

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Immersive.Framework.ApiStatus;
-using Immersive.Framework.RuntimeContent;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -16,7 +16,7 @@ namespace Immersive.Framework.ActivityFlow
         private readonly ActivityContentExecutionParticipantEntry[] _entries;
         private readonly ActivityContentExecutionParticipantCollectionIssue[] _issues;
 
-        public ActivityContentExecutionParticipantCollection(IReadOnlyList<IActivityContentExecutionParticipant> participants)
+        private ActivityContentExecutionParticipantCollection(IReadOnlyList<IActivityContentExecutionParticipant> participants)
         {
             if (participants == null || participants.Count == 0)
             {
@@ -29,7 +29,7 @@ namespace Immersive.Framework.ActivityFlow
             var detectedIssues = new List<ActivityContentExecutionParticipantCollectionIssue>();
             var contentIdKeys = new HashSet<string>(StringComparer.Ordinal);
 
-            for (var i = 0; i < participants.Count; i++)
+            for (int i = 0; i < participants.Count; i++)
             {
                 var participant = participants[i];
                 if (participant == null)
@@ -55,8 +55,8 @@ namespace Immersive.Framework.ActivityFlow
                     continue;
                 }
 
-                var contentIdKey = descriptor.ContentId.StableText;
-                if (contentIdKeys.Contains(contentIdKey))
+                string contentIdKey = descriptor.ContentId.StableText;
+                if (!contentIdKeys.Add(contentIdKey))
                 {
                     detectedIssues.Add(new ActivityContentExecutionParticipantCollectionIssue(
                         ActivityContentExecutionParticipantCollectionIssueKind.DuplicateContentId,
@@ -67,7 +67,6 @@ namespace Immersive.Framework.ActivityFlow
                     continue;
                 }
 
-                contentIdKeys.Add(contentIdKey);
                 acceptedEntries.Add(new ActivityContentExecutionParticipantEntry(participant, descriptor, i));
             }
 
@@ -77,7 +76,7 @@ namespace Immersive.Framework.ActivityFlow
             }
             else
             {
-                var orderedEntries = acceptedEntries.ToArray();
+                ActivityContentExecutionParticipantEntry[] orderedEntries = acceptedEntries.ToArray();
                 Array.Sort(orderedEntries, CompareEntries);
                 _entries = orderedEntries;
             }
@@ -87,9 +86,9 @@ namespace Immersive.Framework.ActivityFlow
                 : detectedIssues.ToArray();
         }
 
-        public IReadOnlyList<ActivityContentExecutionParticipantEntry> Entries => _entries ?? Array.Empty<ActivityContentExecutionParticipantEntry>();
+        private IReadOnlyList<ActivityContentExecutionParticipantEntry> Entries => _entries ?? Array.Empty<ActivityContentExecutionParticipantEntry>();
 
-        public IReadOnlyList<ActivityContentExecutionParticipantCollectionIssue> Issues => _issues ?? Array.Empty<ActivityContentExecutionParticipantCollectionIssue>();
+        private IReadOnlyList<ActivityContentExecutionParticipantCollectionIssue> Issues => _issues ?? Array.Empty<ActivityContentExecutionParticipantCollectionIssue>();
 
         public int Count => Entries.Count;
 
@@ -97,66 +96,21 @@ namespace Immersive.Framework.ActivityFlow
 
         public bool HasParticipants => Count > 0;
 
-        public bool IsEmpty => Count == 0;
-
         public bool HasIssues => IssueCount > 0;
 
-        public int RequiredCount => CountByRequiredness(ActivityContentExecutionRequiredness.Required);
+        private int RequiredCount => CountByRequiredness(ActivityContentExecutionRequiredness.Required);
 
-        public int OptionalCount => CountByRequiredness(ActivityContentExecutionRequiredness.Optional);
+        private int OptionalCount => CountByRequiredness(ActivityContentExecutionRequiredness.Optional);
 
         public int EnterCount => CountByPhase(ActivityContentExecutionPhase.Enter);
 
         public int ExitCount => CountByPhase(ActivityContentExecutionPhase.Exit);
 
-        public int NullParticipantIssueCount => CountIssuesByKind(ActivityContentExecutionParticipantCollectionIssueKind.NullParticipant);
+        private int NullParticipantIssueCount => CountIssuesByKind(ActivityContentExecutionParticipantCollectionIssueKind.NullParticipant);
 
-        public int InvalidDescriptorIssueCount => CountIssuesByKind(ActivityContentExecutionParticipantCollectionIssueKind.InvalidDescriptor);
+        private int InvalidDescriptorIssueCount => CountIssuesByKind(ActivityContentExecutionParticipantCollectionIssueKind.InvalidDescriptor);
 
-        public int DuplicateContentIdIssueCount => CountIssuesByKind(ActivityContentExecutionParticipantCollectionIssueKind.DuplicateContentId);
-
-        public bool Contains(RuntimeContentId contentId)
-        {
-            return TryGetEntry(contentId, out _);
-        }
-
-        public bool TryGetEntry(RuntimeContentId contentId, out ActivityContentExecutionParticipantEntry entry)
-        {
-            if (!contentId.IsValid || !HasParticipants)
-            {
-                entry = default;
-                return false;
-            }
-
-            var items = Entries;
-            for (var i = 0; i < items.Count; i++)
-            {
-                if (items[i].ContentId.Equals(contentId))
-                {
-                    entry = items[i];
-                    return true;
-                }
-            }
-
-            entry = default;
-            return false;
-        }
-
-        public ActivityContentExecutionParticipantEntry[] SnapshotEntries()
-        {
-            if (!HasParticipants)
-            {
-                return Array.Empty<ActivityContentExecutionParticipantEntry>();
-            }
-
-            var snapshot = new ActivityContentExecutionParticipantEntry[Count];
-            for (var i = 0; i < Count; i++)
-            {
-                snapshot[i] = Entries[i];
-            }
-
-            return snapshot;
-        }
+        private int DuplicateContentIdIssueCount => CountIssuesByKind(ActivityContentExecutionParticipantCollectionIssueKind.DuplicateContentId);
 
         public ActivityContentExecutionParticipantEntry[] SnapshotEntriesForPhase(ActivityContentExecutionPhase phase)
         {
@@ -168,8 +122,8 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var selected = new List<ActivityContentExecutionParticipantEntry>();
-            var items = Entries;
-            for (var i = 0; i < items.Count; i++)
+            IReadOnlyList<ActivityContentExecutionParticipantEntry> items = Entries;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (items[i].SupportsPhase(phase))
                 {
@@ -180,39 +134,6 @@ namespace Immersive.Framework.ActivityFlow
             return selected.Count == 0 ? Array.Empty<ActivityContentExecutionParticipantEntry>() : selected.ToArray();
         }
 
-        public ActivityContentExecutionParticipantDescriptor[] SnapshotDescriptors()
-        {
-            if (!HasParticipants)
-            {
-                return Array.Empty<ActivityContentExecutionParticipantDescriptor>();
-            }
-
-            var snapshot = new ActivityContentExecutionParticipantDescriptor[Count];
-            for (var i = 0; i < Count; i++)
-            {
-                snapshot[i] = Entries[i].Descriptor;
-            }
-
-            return snapshot;
-        }
-
-        public ActivityContentExecutionParticipantDescriptor[] SnapshotDescriptorsForPhase(ActivityContentExecutionPhase phase)
-        {
-            var phaseEntries = SnapshotEntriesForPhase(phase);
-            if (phaseEntries.Length == 0)
-            {
-                return Array.Empty<ActivityContentExecutionParticipantDescriptor>();
-            }
-
-            var descriptors = new ActivityContentExecutionParticipantDescriptor[phaseEntries.Length];
-            for (var i = 0; i < phaseEntries.Length; i++)
-            {
-                descriptors[i] = phaseEntries[i].Descriptor;
-            }
-
-            return descriptors;
-        }
-
         public ActivityContentExecutionParticipantCollectionIssue[] SnapshotIssues()
         {
             if (!HasIssues)
@@ -221,7 +142,7 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var snapshot = new ActivityContentExecutionParticipantCollectionIssue[IssueCount];
-            for (var i = 0; i < IssueCount; i++)
+            for (int i = 0; i < IssueCount; i++)
             {
                 snapshot[i] = Issues[i];
             }
@@ -238,8 +159,8 @@ namespace Immersive.Framework.ActivityFlow
         {
             var builder = new StringBuilder();
             builder.Append($"Activity Content Execution Participant Collection count='{Count}' required='{RequiredCount}' optional='{OptionalCount}' enter='{EnterCount}' exit='{ExitCount}' issues='{IssueCount}' nullParticipants='{NullParticipantIssueCount}' invalidDescriptors='{InvalidDescriptorIssueCount}' duplicateContentIds='{DuplicateContentIdIssueCount}' entries=[");
-            var items = Entries;
-            for (var i = 0; i < items.Count; i++)
+            IReadOnlyList<ActivityContentExecutionParticipantEntry> items = Entries;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (i > 0)
                 {
@@ -250,8 +171,8 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             builder.Append("] issues=[");
-            var issueItems = Issues;
-            for (var i = 0; i < issueItems.Count; i++)
+            IReadOnlyList<ActivityContentExecutionParticipantCollectionIssue> issueItems = Issues;
+            for (int i = 0; i < issueItems.Count; i++)
             {
                 if (i > 0)
                 {
@@ -282,17 +203,9 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            var items = Entries;
-            for (var i = 0; i < items.Count; i++)
-            {
-                if (items[i].Requiredness == requiredness)
-                {
-                    count++;
-                }
-            }
+            IReadOnlyList<ActivityContentExecutionParticipantEntry> items = Entries;
 
-            return count;
+            return items.Count(t => t.Requiredness == requiredness);
         }
 
         private int CountByPhase(ActivityContentExecutionPhase phase)
@@ -302,9 +215,9 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            var items = Entries;
-            for (var i = 0; i < items.Count; i++)
+            int count = 0;
+            IReadOnlyList<ActivityContentExecutionParticipantEntry> items = Entries;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (items[i].SupportsPhase(phase))
                 {
@@ -322,44 +235,28 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            var items = Issues;
-            for (var i = 0; i < items.Count; i++)
-            {
-                if (items[i].Kind == kind)
-                {
-                    count++;
-                }
-            }
+            IReadOnlyList<ActivityContentExecutionParticipantCollectionIssue> items = Issues;
 
-            return count;
+            return items.Count(t => t.Kind == kind);
         }
 
         private static int CompareEntries(ActivityContentExecutionParticipantEntry left, ActivityContentExecutionParticipantEntry right)
         {
-            var orderCompare = left.Order.CompareTo(right.Order);
+            int orderCompare = left.Order.CompareTo(right.Order);
             if (orderCompare != 0)
             {
                 return orderCompare;
             }
 
-            var indexCompare = left.SourceIndex.CompareTo(right.SourceIndex);
-            if (indexCompare != 0)
-            {
-                return indexCompare;
-            }
+            int indexCompare = left.SourceIndex.CompareTo(right.SourceIndex);
+            return indexCompare != 0 ? indexCompare : string.Compare(left.ContentId.StableText, right.ContentId.StableText, StringComparison.Ordinal);
 
-            return string.Compare(left.ContentId.StableText, right.ContentId.StableText, StringComparison.Ordinal);
         }
 
         private static string CreateIssueKey(ActivityContentExecutionParticipantDescriptor descriptor, int index)
         {
-            if (descriptor.ContentId.IsValid)
-            {
-                return descriptor.ContentId.StableText;
-            }
+            return descriptor.ContentId.IsValid ? descriptor.ContentId.StableText : $"index:{index}";
 
-            return $"index:{index}";
         }
 
         private static void ValidatePhase(ActivityContentExecutionPhase phase)

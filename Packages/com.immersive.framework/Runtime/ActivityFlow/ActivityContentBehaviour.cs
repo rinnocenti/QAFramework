@@ -1,4 +1,3 @@
-using Immersive.Framework.Authoring;
 using UnityEngine;
 using Immersive.Framework.ApiStatus;
 
@@ -12,40 +11,15 @@ namespace Immersive.Framework.ActivityFlow
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     public abstract class ActivityContentBehaviour : MonoBehaviour, IActivityContentLifecycleReceiver
     {
-        public bool IsActivityContentActive { get; private set; }
-
-        public bool HasActivityContentContext { get; private set; }
-
-        public ActivityContentLifecycleContext LastActivityContentContext { get; private set; }
-
-        public ActivityAsset ActiveActivity => IsActivityContentActive
-            ? LastActivityContentContext.Activity
-            : null;
-
-        public ActivityLocalVisibilityAdapter ActivityLocalVisibilityAdapter => LastActivityContentContext.Binding;
-
-        public string LifecycleSource => HasActivityContentContext
-            ? LastActivityContentContext.Source
-            : string.Empty;
-
-        public string LifecycleReason => HasActivityContentContext
-            ? LastActivityContentContext.Reason
-            : string.Empty;
 
         void IActivityContentLifecycleReceiver.OnActivityContentEntered(ActivityContentLifecycleContext context)
         {
-            HasActivityContentContext = true;
-            LastActivityContentContext = context;
-            IsActivityContentActive = true;
 
             OnActivityContentEntered(context);
         }
 
         void IActivityContentLifecycleReceiver.OnActivityContentExited(ActivityContentLifecycleContext context)
         {
-            HasActivityContentContext = true;
-            LastActivityContentContext = context;
-            IsActivityContentActive = false;
 
             OnActivityContentExited(context);
         }

@@ -6,6 +6,7 @@ using Immersive.Framework.Diagnostics;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.ObjectEntry;
 using UnityEngine;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ObjectReset
 {
@@ -106,11 +107,11 @@ namespace Immersive.Framework.ObjectReset
         {
             EnsureLogger();
 
-            var resolvedReason = ResolveReason();
+            string resolvedReason = ResolveReason();
 
             if (_requestInFlight)
             {
-                var message = "Object Reset ignored. This Object Reset Trigger already has a request in flight.";
+                string message = "Object Reset ignored. This Object Reset Trigger already has a request in flight.";
                 _logger.Warning(message);
                 PublishCompleted(FlowRequestOutcome.Ignored, resolvedReason, message, default, false);
                 return;
@@ -118,16 +119,16 @@ namespace Immersive.Framework.ObjectReset
 
             if (!FrameworkRuntimeHost.TryGetCurrent(out var runtimeHost))
             {
-                var message = "Object Reset failed. Application Runtime is unavailable.";
+                string message = "Object Reset failed. Application Runtime is unavailable.";
                 _logger.Error(message);
                 PublishCompleted(FlowRequestOutcome.Failed, resolvedReason, message, default, false);
                 return;
             }
 
-            var idText = ResolveObjectEntryIdText();
+            string idText = ResolveObjectEntryIdText();
             if (string.IsNullOrWhiteSpace(idText))
             {
-                var message = "Object Reset failed. Object Entry Id is missing.";
+                string message = "Object Reset failed. Object Entry Id is missing.";
                 _logger.Error(message);
                 PublishCompleted(FlowRequestOutcome.Failed, resolvedReason, message, default, false);
                 return;
@@ -140,7 +141,7 @@ namespace Immersive.Framework.ObjectReset
             }
             catch (ArgumentException exception)
             {
-                var message = $"Object Reset failed. Object Entry Id is invalid. {exception.Message}";
+                string message = $"Object Reset failed. Object Entry Id is invalid. {exception.Message}";
                 _logger.Error(message);
                 PublishCompleted(FlowRequestOutcome.Failed, resolvedReason, message, default, false);
                 return;
@@ -148,7 +149,7 @@ namespace Immersive.Framework.ObjectReset
 
             if (!runtimeHost.TryGetObjectEntryRuntimeContextSnapshot(out var snapshot) || snapshot == null || !snapshot.IsAvailable)
             {
-                var message = "Object Reset failed. Current Object Entry runtime context snapshot is unavailable.";
+                string message = "Object Reset failed. Current Object Entry runtime context snapshot is unavailable.";
                 _logger.Error(message);
                 PublishCompleted(FlowRequestOutcome.Failed, resolvedReason, message, default, false);
                 return;
@@ -156,7 +157,7 @@ namespace Immersive.Framework.ObjectReset
 
             if (!snapshot.TryGet(id, out var descriptor))
             {
-                var message = $"Object Reset failed. Object Entry target was not found in the current snapshot. objectEntry='{id.StableText}'.";
+                string message = $"Object Reset failed. Object Entry target was not found in the current snapshot. objectEntry='{id.StableText}'.";
                 _logger.Error(message);
                 PublishCompleted(FlowRequestOutcome.Failed, resolvedReason, message, default, false);
                 return;
@@ -171,9 +172,9 @@ namespace Immersive.Framework.ObjectReset
                     DefaultSource,
                     resolvedReason);
             }
-            catch (Exception exception) when (exception is ArgumentException || exception is ArgumentOutOfRangeException)
+            catch (Exception exception) when (exception is ArgumentException or ArgumentOutOfRangeException)
             {
-                var message = $"Object Reset failed. Request could not be created. {exception.Message}";
+                string message = $"Object Reset failed. Request could not be created. {exception.Message}";
                 _logger.Error(message);
                 PublishCompleted(FlowRequestOutcome.Failed, resolvedReason, message, default, false);
                 return;
@@ -225,7 +226,7 @@ namespace Immersive.Framework.ObjectReset
 
         private string ResolveReason()
         {
-            return string.IsNullOrWhiteSpace(reason) ? DefaultReason : reason.Trim();
+            return reason.NormalizeTextOrFallback(DefaultReason);
         }
 
         private string ResolveObjectEntryIdText()
@@ -235,12 +236,12 @@ namespace Immersive.Framework.ObjectReset
                 return targetDeclaration.ObjectEntryIdText.Trim();
             }
 
-            return string.IsNullOrWhiteSpace(objectEntryId) ? string.Empty : objectEntryId.Trim();
+            return objectEntryId.NormalizeText();
         }
 
         private void PublishSubmitted(string resolvedReason)
         {
-            var message = $"Object Reset submitted. source='{DefaultSource}' reason='{resolvedReason}' objectEntry='{ResolveObjectEntryIdText()}'.";
+            string message = $"Object Reset submitted. source='{DefaultSource}' reason='{resolvedReason}' objectEntry='{ResolveObjectEntryIdText()}'.";
             SetRequestState(FlowRequestEventPhase.Submitted, FlowRequestOutcome.Submitted, resolvedReason, message, default, false);
 
             _requestEvents.Publish(new ObjectResetTriggerEvent(

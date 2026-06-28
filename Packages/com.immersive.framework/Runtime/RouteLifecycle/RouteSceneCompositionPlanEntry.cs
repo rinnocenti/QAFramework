@@ -1,6 +1,7 @@
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentFlow;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -71,14 +72,14 @@ namespace Immersive.Framework.RouteLifecycle
 
         public string ToDiagnosticString()
         {
-            var scene = !string.IsNullOrWhiteSpace(SceneName) ? SceneName : ScenePath;
+            string scene = !string.IsNullOrWhiteSpace(SceneName) ? SceneName : ScenePath;
             if (string.IsNullOrWhiteSpace(scene))
             {
                 scene = "<missing>";
             }
 
-            var identity = HasContentIdentity ? ContentIdentity.StableText : "<missing>";
-            var contentId = !string.IsNullOrWhiteSpace(ContentId) ? ContentId : "<missing>";
+            string identity = HasContentIdentity ? ContentIdentity.StableText : "<missing>";
+            string contentId = ContentId.ToDiagnosticText("<missing>");
             return $"identity='{identity}' id='{contentId}' scene='{scene}' role='{SceneRole}' requiredness='{Requiredness}' ownership='{Ownership}' loadMode='{LoadMode}' order='{ExecutionOrder}' explicitId='{HasExplicitContentId}' executionReady='{IsExecutionReady}'";
         }
 
@@ -89,10 +90,10 @@ namespace Immersive.Framework.RouteLifecycle
                 return MissingPrimary();
             }
 
-            var sceneName = Normalize(route.PrimarySceneName);
-            var scenePath = Normalize(route.PrimaryScenePath);
-            var sceneIdentity = !string.IsNullOrWhiteSpace(sceneName) ? sceneName : scenePath;
-            var contentId = $"primary-scene:{sceneIdentity}";
+            string sceneName = Normalize(route.PrimarySceneName);
+            string scenePath = Normalize(route.PrimaryScenePath);
+            string sceneIdentity = !string.IsNullOrWhiteSpace(sceneName) ? sceneName : scenePath;
+            string contentId = $"primary-scene:{sceneIdentity}";
             var identity = FrameworkContentIdentity.FromOwnerValue(
                 FrameworkContentScope.Route,
                 FrameworkContentKind.Scene,
@@ -117,11 +118,11 @@ namespace Immersive.Framework.RouteLifecycle
             int declarationIndex,
             string routeOwnerId)
         {
-            var explicitContentId = entry != null ? Normalize(entry.ExplicitContentId) : string.Empty;
-            var sceneName = entry != null ? Normalize(entry.SceneName) : string.Empty;
-            var scenePath = entry != null ? Normalize(entry.ScenePath) : string.Empty;
-            var requiredness = entry != null ? entry.Requiredness : FrameworkContentRequiredness.Optional;
-            var hasExplicitContentId = !string.IsNullOrWhiteSpace(explicitContentId);
+            string explicitContentId = entry != null ? Normalize(entry.ExplicitContentId) : string.Empty;
+            string sceneName = entry != null ? Normalize(entry.SceneName) : string.Empty;
+            string scenePath = entry != null ? Normalize(entry.ScenePath) : string.Empty;
+            var requiredness = entry?.Requiredness ?? FrameworkContentRequiredness.Optional;
+            bool hasExplicitContentId = !string.IsNullOrWhiteSpace(explicitContentId);
             FrameworkContentIdentity identity = default;
             if (hasExplicitContentId)
             {
@@ -162,7 +163,7 @@ namespace Immersive.Framework.RouteLifecycle
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

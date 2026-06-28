@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -10,7 +11,7 @@ namespace Immersive.Framework.ActivityFlow
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F10K Activity Content Execution participant source result; source diagnostics only.")]
     public readonly struct ActivityContentExecutionParticipantSourceResult : IEquatable<ActivityContentExecutionParticipantSourceResult>
     {
-        public ActivityContentExecutionParticipantSourceResult(
+        private ActivityContentExecutionParticipantSourceResult(
             ActivityContentExecutionParticipantSourceRequest request,
             ActivityContentExecutionParticipantCollection collection,
             ActivityContentExecutionParticipantSourceStatus status,
@@ -27,39 +28,31 @@ namespace Immersive.Framework.ActivityFlow
             Request = request;
             Collection = collection;
             Status = status;
-            Source = Normalize(source);
-            Reason = Normalize(reason);
-            Message = Normalize(message);
+            Source = source.NormalizeText();
+            Reason = reason.NormalizeText();
+            Message = message.NormalizeText();
         }
 
-        public ActivityContentExecutionParticipantSourceRequest Request { get; }
+        private ActivityContentExecutionParticipantSourceRequest Request { get; }
 
         public ActivityContentExecutionParticipantCollection Collection { get; }
 
-        public ActivityContentExecutionParticipantSourceStatus Status { get; }
+        private ActivityContentExecutionParticipantSourceStatus Status { get; }
 
-        public string Source { get; }
+        private string Source { get; }
 
-        public string Reason { get; }
+        private string Reason { get; }
 
-        public string Message { get; }
+        private string Message { get; }
 
         public bool Executed => Status != ActivityContentExecutionParticipantSourceStatus.None
             && Status != ActivityContentExecutionParticipantSourceStatus.Unknown;
 
-        public bool Succeeded => Status == ActivityContentExecutionParticipantSourceStatus.Succeeded
-            || Status == ActivityContentExecutionParticipantSourceStatus.SucceededNoParticipants
-            || Status == ActivityContentExecutionParticipantSourceStatus.SucceededWithIssues;
-
-        public bool Failed => Status == ActivityContentExecutionParticipantSourceStatus.Failed
-            || Status == ActivityContentExecutionParticipantSourceStatus.FailedException
-            || Status == ActivityContentExecutionParticipantSourceStatus.RejectedInvalidRequest;
-
-        public bool HasParticipants => Collection.HasParticipants;
+        public bool Failed => Status is ActivityContentExecutionParticipantSourceStatus.Failed or ActivityContentExecutionParticipantSourceStatus.FailedException or ActivityContentExecutionParticipantSourceStatus.RejectedInvalidRequest;
 
         public bool HasIssues => Collection.HasIssues || Failed;
 
-        public int ParticipantCount => Collection.Count;
+        private int ParticipantCount => Collection.Count;
 
         public int IssueCount => Collection.IssueCount + (Failed ? 1 : 0);
 
@@ -85,13 +78,13 @@ namespace Immersive.Framework.ActivityFlow
         {
             unchecked
             {
-                var hashCode = Request.GetHashCode();
-                hashCode = (hashCode * 397) ^ Collection.Count;
-                hashCode = (hashCode * 397) ^ Collection.IssueCount;
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = Request.GetHashCode();
+                hashCode = hashCode * 397 ^ Collection.Count;
+                hashCode = hashCode * 397 ^ Collection.IssueCount;
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -103,9 +96,9 @@ namespace Immersive.Framework.ActivityFlow
 
         public string ToDiagnosticString()
         {
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            var messageText = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string messageText = Message.ToDiagnosticText();
             return $"status='{Status}' participants='{ParticipantCount}' issues='{IssueCount}' request=({Request.ToDiagnosticString()}) source='{sourceText}' reason='{reasonText}' message='{messageText}'";
         }
 
@@ -182,7 +175,7 @@ namespace Immersive.Framework.ActivityFlow
             string source,
             string reason)
         {
-            var message = exception == null
+            string message = exception == null
                 ? "Activity content execution participant source failed with an unknown exception."
                 : $"Activity content execution participant source threw '{exception.GetType().Name}': {exception.Message}";
 
@@ -205,11 +198,6 @@ namespace Immersive.Framework.ActivityFlow
             return collection.HasParticipants
                 ? ActivityContentExecutionParticipantSourceStatus.Succeeded
                 : ActivityContentExecutionParticipantSourceStatus.SucceededNoParticipants;
-        }
-
-        private static string Normalize(string value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
         }
     }
 }

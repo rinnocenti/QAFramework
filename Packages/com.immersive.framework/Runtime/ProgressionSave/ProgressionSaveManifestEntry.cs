@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ProgressionSave
 {
@@ -105,8 +106,8 @@ namespace Immersive.Framework.ProgressionSave
             && UpdatedUtcTicks >= CreatedUtcTicks
             && PayloadFormat != ProgressionSavePayloadFormat.Unknown
             && PayloadByteCount >= 0
-            && ((PayloadFormat == ProgressionSavePayloadFormat.Empty && PayloadByteCount == 0)
-                || (PayloadFormat != ProgressionSavePayloadFormat.Empty && PayloadByteCount > 0));
+            && (PayloadFormat == ProgressionSavePayloadFormat.Empty && PayloadByteCount == 0
+                || PayloadFormat != ProgressionSavePayloadFormat.Empty && PayloadByteCount > 0);
 
         public bool MatchesSlot(ProgressionSaveSlotId slotId)
         {
@@ -135,15 +136,15 @@ namespace Immersive.Framework.ProgressionSave
         {
             unchecked
             {
-                var hashCode = SlotId.GetHashCode();
-                hashCode = (hashCode * 397) ^ RecordId.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(DisplayName ?? string.Empty);
-                hashCode = (hashCode * 397) ^ CreatedUtcTicks.GetHashCode();
-                hashCode = (hashCode * 397) ^ UpdatedUtcTicks.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)PayloadFormat;
-                hashCode = (hashCode * 397) ^ PayloadByteCount;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = SlotId.GetHashCode();
+                hashCode = hashCode * 397 ^ RecordId.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(DisplayName ?? string.Empty);
+                hashCode = hashCode * 397 ^ CreatedUtcTicks.GetHashCode();
+                hashCode = hashCode * 397 ^ UpdatedUtcTicks.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)PayloadFormat;
+                hashCode = hashCode * 397 ^ PayloadByteCount;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 return hashCode;
             }
         }
@@ -155,9 +156,9 @@ namespace Immersive.Framework.ProgressionSave
 
         public string ToDiagnosticString()
         {
-            var displayNameText = HasDisplayName ? DisplayName : "<none>";
-            var sourceText = HasSource ? Source : "<none>";
-            var reasonText = HasReason ? Reason : "<none>";
+            string displayNameText = HasDisplayName ? DisplayName : "<none>";
+            string sourceText = HasSource ? Source : "<none>";
+            string reasonText = HasReason ? Reason : "<none>";
             return $"slot='{SlotId.StableText}' record='{RecordId.StableText}' displayName='{displayNameText}' createdUtcTicks='{CreatedUtcTicks}' updatedUtcTicks='{UpdatedUtcTicks}' payloadFormat='{PayloadFormat}' payloadBytes='{PayloadByteCount}' source='{sourceText}' reason='{reasonText}'";
         }
 
@@ -186,7 +187,7 @@ namespace Immersive.Framework.ProgressionSave
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

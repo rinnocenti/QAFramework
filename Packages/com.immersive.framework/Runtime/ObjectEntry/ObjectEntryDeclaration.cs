@@ -99,7 +99,7 @@ namespace Immersive.Framework.ObjectEntry
                         : (FrameworkIdentityKey?)null);
                 return true;
             }
-            catch (Exception exception) when (exception is ArgumentException || exception is ArgumentOutOfRangeException)
+            catch (Exception exception) when (exception is ArgumentException or ArgumentOutOfRangeException)
             {
                 issue = exception.Message;
                 return false;
@@ -108,7 +108,7 @@ namespace Immersive.Framework.ObjectEntry
 
         public ObjectEntryDescriptor CreateDescriptor()
         {
-            if (TryCreateDescriptor(out var descriptor, out var issue))
+            if (TryCreateDescriptor(out var descriptor, out string issue))
             {
                 return descriptor;
             }
@@ -158,7 +158,7 @@ namespace Immersive.Framework.ObjectEntry
                     ownerIdentity);
                 return true;
             }
-            catch (Exception exception) when (exception is ArgumentException || exception is ArgumentOutOfRangeException)
+            catch (Exception exception) when (exception is ArgumentException or ArgumentOutOfRangeException)
             {
                 issue = exception.Message;
                 return false;

@@ -1,3 +1,4 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Threading.Tasks;
@@ -24,16 +25,16 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source) ? nameof(LoadingReadinessQaSmokeRunner) : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(LoadingReadinessQaSmokeRunner));
 
             try
             {
-                var contractsPassed = ValidateContracts(logger, normalizedSource);
-                var waitingPassed = ValidateWaitingObservation(logger, normalizedSource);
-                var readyPassed = ValidateReadyObservation(logger, normalizedSource);
-                var blockedPassed = ValidateBlockedObservation(logger, normalizedSource);
-                var failedPassed = ValidateFailedObservation(logger, normalizedSource);
-                var boundaryPassed = ValidateBoundary(logger);
+                bool contractsPassed = ValidateContracts(logger, normalizedSource);
+                bool waitingPassed = ValidateWaitingObservation(logger, normalizedSource);
+                bool readyPassed = ValidateReadyObservation(logger, normalizedSource);
+                bool blockedPassed = ValidateBlockedObservation(logger, normalizedSource);
+                bool failedPassed = ValidateFailedObservation(logger, normalizedSource);
+                bool boundaryPassed = ValidateBoundary(logger);
 
                 return Task.FromResult(contractsPassed
                     && waitingPassed
@@ -67,7 +68,7 @@ namespace Immersive.Framework.Diagnostics
                 "contracts",
                 "passive readiness contract");
 
-            var passed = operationId.Domain == FrameworkIdentityDomain.Loading
+            bool passed = operationId.Domain == FrameworkIdentityDomain.Loading
                 && observationId.Domain == FrameworkIdentityDomain.Loading
                 && observation.IsValid
                 && observation.IsWaiting
@@ -102,7 +103,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.readiness.waiting",
                 "Waiting for content readiness observation.");
 
-            var passed = observation.Status == LoadingReadinessStatus.Waiting
+            bool passed = observation.Status == LoadingReadinessStatus.Waiting
                 && observation.IsWaiting
                 && observation.BlocksCompletion
                 && !observation.IsTerminal
@@ -133,7 +134,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.readiness.ready",
                 "Readiness observed as ready.");
 
-            var passed = observation.Status == LoadingReadinessStatus.Ready
+            bool passed = observation.Status == LoadingReadinessStatus.Ready
                 && observation.IsReady
                 && observation.IsTerminal
                 && !observation.BlocksCompletion
@@ -163,7 +164,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.readiness.blocked",
                 "Required readiness is blocked.");
 
-            var passed = observation.Status == LoadingReadinessStatus.Blocked
+            bool passed = observation.Status == LoadingReadinessStatus.Blocked
                 && observation.IsBlocked
                 && observation.BlocksCompletion
                 && observation.IsTerminal
@@ -194,7 +195,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.readiness.failed",
                 "Readiness observation failed.");
 
-            var passed = observation.Status == LoadingReadinessStatus.Failed
+            bool passed = observation.Status == LoadingReadinessStatus.Failed
                 && observation.Failed
                 && observation.IsTerminal
                 && !observation.IsReady
@@ -216,7 +217,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidateBoundary(FrameworkLogger logger)
         {
-            var passed = true;
+            bool passed = true;
             LogStep(
                 logger,
                 "canonical-boundary",
@@ -250,7 +251,7 @@ namespace Immersive.Framework.Diagnostics
             var merged = new LogField[rest.Length + 2];
             merged[0] = first;
             merged[1] = second;
-            for (var i = 0; i < rest.Length; i++)
+            for (int i = 0; i < rest.Length; i++)
             {
                 merged[i + 2] = rest[i];
             }

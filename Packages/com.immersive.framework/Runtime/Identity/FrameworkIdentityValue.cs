@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Identity
 {
@@ -19,7 +20,7 @@ namespace Immersive.Framework.Identity
                 throw new ArgumentException("Framework identity value cannot be null, empty or whitespace.", nameof(value));
             }
 
-            _value = value.Trim();
+            _value = value.NormalizeText();
         }
 
         public string Value => _value ?? string.Empty;

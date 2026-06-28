@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Transition
 {
@@ -113,15 +114,15 @@ namespace Immersive.Framework.Transition
         {
             unchecked
             {
-                var hashCode = OperationId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Scope;
-                hashCode = (hashCode * 397) ^ (int)Phase;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
-                hashCode = (hashCode * 397) ^ (FromRoute != null ? FromRoute.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (ToRoute != null ? ToRoute.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (FromActivity != null ? FromActivity.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (ToActivity != null ? ToActivity.GetHashCode() : 0);
+                int hashCode = OperationId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Scope;
+                hashCode = hashCode * 397 ^ (int)Phase;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                hashCode = hashCode * 397 ^ (FromRoute != null ? FromRoute.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ (ToRoute != null ? ToRoute.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ (FromActivity != null ? FromActivity.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ (ToActivity != null ? ToActivity.GetHashCode() : 0);
                 return hashCode;
             }
         }
@@ -177,7 +178,7 @@ namespace Immersive.Framework.Transition
 
         private static string Normalize(string value, string fallback)
         {
-            return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+            return value.NormalizeTextOrFallback(fallback);
         }
 
         private static string RouteName(RouteAsset route)

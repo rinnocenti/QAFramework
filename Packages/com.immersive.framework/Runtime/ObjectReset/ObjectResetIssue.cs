@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ObjectReset
 {
@@ -23,7 +24,7 @@ namespace Immersive.Framework.ObjectReset
 
             Severity = severity;
             Kind = kind;
-            Message = string.IsNullOrWhiteSpace(message) ? kind.ToString() : message.Trim();
+            Message = message.NormalizeTextOrFallback(kind.ToString());
         }
 
         public ObjectResetIssueSeverity Severity { get; }
@@ -50,9 +51,9 @@ namespace Immersive.Framework.ObjectReset
         {
             unchecked
             {
-                var hashCode = (int)Severity;
-                hashCode = (hashCode * 397) ^ (int)Kind;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = (int)Severity;
+                hashCode = hashCode * 397 ^ (int)Kind;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }

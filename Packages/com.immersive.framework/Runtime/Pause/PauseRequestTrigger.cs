@@ -3,6 +3,7 @@ using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Diagnostics;
 using Immersive.Framework.GameFlow;
 using UnityEngine;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Pause
 {
@@ -85,11 +86,11 @@ namespace Immersive.Framework.Pause
         private void Submit(PauseRequestKind kind, string fallbackReason)
         {
             EnsureLogger();
-            var resolvedReason = ResolveReason(fallbackReason);
+            string resolvedReason = ResolveReason(fallbackReason);
 
             if (!FrameworkRuntimeHost.TryGetCurrent(out var runtimeHost))
             {
-                var message = "Pause Request failed. Application Runtime is unavailable.";
+                string message = "Pause Request failed. Application Runtime is unavailable.";
                 _logger.Error(message);
                 SetLast(FlowRequestOutcome.Failed, PauseRequestStatus.Failed, PauseState.Unknown, PauseState.Unknown, resolvedReason, message);
                 return;
@@ -102,7 +103,7 @@ namespace Immersive.Framework.Pause
             }
             catch (System.Exception exception)
             {
-                var message = $"Pause Request failed. {exception.Message}";
+                string message = $"Pause Request failed. {exception.Message}";
                 _logger.Error(message, exception);
                 SetLast(FlowRequestOutcome.Failed, PauseRequestStatus.Failed, PauseState.Unknown, PauseState.Unknown, resolvedReason, message);
                 return;
@@ -121,7 +122,7 @@ namespace Immersive.Framework.Pause
 
         private string ResolveReason(string fallbackReason)
         {
-            return string.IsNullOrWhiteSpace(reason) ? fallbackReason : reason.Trim();
+            return reason.NormalizeTextOrFallback(fallbackReason);
         }
 
         private void SetLast(

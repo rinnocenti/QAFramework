@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RuntimeContent
 {
@@ -70,28 +71,19 @@ namespace Immersive.Framework.RuntimeContent
 
         public string Message { get; }
 
-        public bool Applied => Status == RuntimeRootRegistryOperationStatus.RootCreated
-            || Status == RuntimeRootRegistryOperationStatus.RootRemoved
-            || Status == RuntimeRootRegistryOperationStatus.HandleRegistered
-            || Status == RuntimeRootRegistryOperationStatus.HandleUnregistered;
+        public bool Applied => Status is RuntimeRootRegistryOperationStatus.RootCreated or RuntimeRootRegistryOperationStatus.RootRemoved or RuntimeRootRegistryOperationStatus.HandleRegistered or RuntimeRootRegistryOperationStatus.HandleUnregistered;
 
-        public bool Ignored => Status == RuntimeRootRegistryOperationStatus.RootAlreadyExists
-            || Status == RuntimeRootRegistryOperationStatus.RootMissing
-            || Status == RuntimeRootRegistryOperationStatus.HandleAlreadyRegistered
-            || Status == RuntimeRootRegistryOperationStatus.HandleMissing;
+        public bool Ignored => Status is RuntimeRootRegistryOperationStatus.RootAlreadyExists or RuntimeRootRegistryOperationStatus.RootMissing or RuntimeRootRegistryOperationStatus.HandleAlreadyRegistered or RuntimeRootRegistryOperationStatus.HandleMissing;
 
-        public bool Rejected => Status == RuntimeRootRegistryOperationStatus.RejectedMissingRoot
-            || Status == RuntimeRootRegistryOperationStatus.RejectedMismatchedOwner
-            || Status == RuntimeRootRegistryOperationStatus.RejectedDuplicateHandle
-            || Status == RuntimeRootRegistryOperationStatus.RejectedRootHasHandles;
+        public bool Rejected => Status is RuntimeRootRegistryOperationStatus.RejectedMissingRoot or RuntimeRootRegistryOperationStatus.RejectedMismatchedOwner or RuntimeRootRegistryOperationStatus.RejectedDuplicateHandle or RuntimeRootRegistryOperationStatus.RejectedRootHasHandles;
 
         public string ToDiagnosticString()
         {
-            var identityText = HasIdentity ? Identity.StableText : "<none>";
-            var contentIdText = HasIdentity ? ContentId.StableText : "<none>";
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            var messageText = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
+            string identityText = HasIdentity ? Identity.StableText : "<none>";
+            string contentIdText = HasIdentity ? ContentId.StableText : "<none>";
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string messageText = Message.ToDiagnosticText();
 
             return $"owner='{Owner.StableText}' scope='{Scope}' identity='{identityText}' contentId='{contentIdText}' status='{Status}' source='{sourceText}' reason='{reasonText}' message='{messageText}'";
         }
@@ -337,7 +329,7 @@ namespace Immersive.Framework.RuntimeContent
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

@@ -9,12 +9,7 @@ namespace Immersive.Framework.ActivityFlow
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     internal readonly struct ActivityContentApplyResult
     {
-        public ActivityContentApplyResult(
-            ActivityAsset activeActivity,
-            int bindingCount,
-            int activatedCount,
-            int deactivatedCount,
-            int unchangedCount,
+        private ActivityContentApplyResult(int bindingCount,
             int missingActivityCount,
             ActivityContentSet activityContentSet,
             ActivityContentLifecycleResult lifecycleResult,
@@ -22,11 +17,7 @@ namespace Immersive.Framework.ActivityFlow
             string detailMessage,
             string warningMessage)
         {
-            ActiveActivity = activeActivity;
             BindingCount = bindingCount;
-            ActivatedCount = activatedCount;
-            DeactivatedCount = deactivatedCount;
-            UnchangedCount = unchangedCount;
             MissingActivityCount = missingActivityCount;
             ActivityContentSet = activityContentSet;
             LifecycleResult = lifecycleResult;
@@ -35,15 +26,7 @@ namespace Immersive.Framework.ActivityFlow
             WarningMessage = warningMessage ?? string.Empty;
         }
 
-        public ActivityAsset ActiveActivity { get; }
-
         public int BindingCount { get; }
-
-        public int ActivatedCount { get; }
-
-        public int DeactivatedCount { get; }
-
-        public int UnchangedCount { get; }
 
         public int MissingActivityCount { get; }
 
@@ -53,8 +36,6 @@ namespace Immersive.Framework.ActivityFlow
 
         public int ActivityContentCount => ActivityContentSet.Count;
 
-        public bool HasActivityContent => ActivityContentSet.HasContent;
-
         public string Message { get; }
 
         public string DetailMessage { get; }
@@ -62,8 +43,6 @@ namespace Immersive.Framework.ActivityFlow
         public string WarningMessage { get; }
 
         public bool HasBindings => BindingCount > 0;
-
-        public bool HasLifecycleResult => LifecycleResult.Executed;
 
         public bool HasLifecycleFailures => LifecycleResult.HasFailures;
 
@@ -73,12 +52,7 @@ namespace Immersive.Framework.ActivityFlow
 
         public static ActivityContentApplyResult Empty(ActivityAsset activeActivity = null)
         {
-            return new ActivityContentApplyResult(
-                activeActivity,
-                0,
-                0,
-                0,
-                0,
+            return new ActivityContentApplyResult(0,
                 0,
                 ActivityContentSet.Empty(activeActivity),
                 ActivityContentLifecycleResult.Skipped(null, activeActivity, "Unknown", "None"),
@@ -119,12 +93,7 @@ namespace Immersive.Framework.ActivityFlow
                 message += $" missingActivity='{missingActivityCount}'.";
             }
 
-            return new ActivityContentApplyResult(
-                activeActivity,
-                bindingCount,
-                activatedCount,
-                deactivatedCount,
-                unchangedCount,
+            return new ActivityContentApplyResult(bindingCount,
                 missingActivityCount,
                 activityContentSet,
                 lifecycleResult,

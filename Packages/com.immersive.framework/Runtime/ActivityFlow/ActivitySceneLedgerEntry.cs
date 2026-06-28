@@ -1,5 +1,6 @@
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -73,12 +74,12 @@ namespace Immersive.Framework.ActivityFlow
 
         internal string ToDiagnosticString()
         {
-            var routeInstanceId = !string.IsNullOrWhiteSpace(RouteInstanceId) ? RouteInstanceId : "<missing>";
-            var route = !string.IsNullOrWhiteSpace(RouteName) ? RouteName : "<none>";
-            var activity = !string.IsNullOrWhiteSpace(ActivityId) ? ActivityId : "<none>";
-            var identity = !string.IsNullOrWhiteSpace(ContentIdentity) ? ContentIdentity : "<missing>";
-            var contentId = !string.IsNullOrWhiteSpace(ContentId) ? ContentId : "<missing>";
-            var scene = !string.IsNullOrWhiteSpace(SceneName) ? SceneName : ScenePath;
+            string routeInstanceId = RouteInstanceId.ToDiagnosticText("<missing>");
+            string route = RouteName.ToDiagnosticText();
+            string activity = ActivityId.ToDiagnosticText();
+            string identity = ContentIdentity.ToDiagnosticText("<missing>");
+            string contentId = ContentId.ToDiagnosticText("<missing>");
+            string scene = !string.IsNullOrWhiteSpace(SceneName) ? SceneName : ScenePath;
             if (string.IsNullOrWhiteSpace(scene))
             {
                 scene = "<missing>";
@@ -89,7 +90,7 @@ namespace Immersive.Framework.ActivityFlow
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

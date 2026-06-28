@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ProgressionSave
 {
@@ -17,10 +18,10 @@ namespace Immersive.Framework.ProgressionSave
         {
             ValidateTicks(updatedUtcTicks, nameof(updatedUtcTicks));
 
-            var copiedEntries = CopyEntries(entries);
+            ProgressionSaveManifestEntry[] copiedEntries = CopyEntries(entries);
             EnsureUniqueSlots(copiedEntries);
 
-            this._entries = copiedEntries;
+            _entries = copiedEntries;
             UpdatedUtcTicks = updatedUtcTicks;
             Source = Normalize(source);
         }
@@ -43,14 +44,14 @@ namespace Immersive.Framework.ProgressionSave
 
         public ProgressionSaveManifestEntry[] ToEntryArray()
         {
-            var source = Entries;
+            IReadOnlyList<ProgressionSaveManifestEntry> source = Entries;
             if (source.Count == 0)
             {
                 return Array.Empty<ProgressionSaveManifestEntry>();
             }
 
             var copy = new ProgressionSaveManifestEntry[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 copy[i] = source[i];
             }
@@ -71,8 +72,8 @@ namespace Immersive.Framework.ProgressionSave
                 return false;
             }
 
-            var source = Entries;
-            for (var i = 0; i < source.Count; i++)
+            IReadOnlyList<ProgressionSaveManifestEntry> source = Entries;
+            for (int i = 0; i < source.Count; i++)
             {
                 if (source[i].SlotId == slotId)
                 {
@@ -94,11 +95,11 @@ namespace Immersive.Framework.ProgressionSave
 
             ValidateTicks(updatedUtcTicks, nameof(updatedUtcTicks));
 
-            var current = Entries;
-            var replaced = false;
+            IReadOnlyList<ProgressionSaveManifestEntry> current = Entries;
+            bool replaced = false;
             var output = new List<ProgressionSaveManifestEntry>(current.Count + 1);
 
-            for (var i = 0; i < current.Count; i++)
+            for (int i = 0; i < current.Count; i++)
             {
                 if (current[i].SlotId == entry.SlotId)
                 {
@@ -128,10 +129,10 @@ namespace Immersive.Framework.ProgressionSave
 
             ValidateTicks(updatedUtcTicks, nameof(updatedUtcTicks));
 
-            var current = Entries;
+            IReadOnlyList<ProgressionSaveManifestEntry> current = Entries;
             var output = new List<ProgressionSaveManifestEntry>(current.Count);
 
-            for (var i = 0; i < current.Count; i++)
+            for (int i = 0; i < current.Count; i++)
             {
                 if (current[i].SlotId != slotId)
                 {
@@ -158,13 +159,13 @@ namespace Immersive.Framework.ProgressionSave
         {
             unchecked
             {
-                var hashCode = UpdatedUtcTicks.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                int hashCode = UpdatedUtcTicks.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
 
-                var source = Entries;
-                for (var i = 0; i < source.Count; i++)
+                IReadOnlyList<ProgressionSaveManifestEntry> source = Entries;
+                for (int i = 0; i < source.Count; i++)
                 {
-                    hashCode = (hashCode * 397) ^ source[i].GetHashCode();
+                    hashCode = hashCode * 397 ^ source[i].GetHashCode();
                 }
 
                 return hashCode;
@@ -178,7 +179,7 @@ namespace Immersive.Framework.ProgressionSave
 
         public string ToDiagnosticString()
         {
-            var sourceText = HasSource ? Source : "<none>";
+            string sourceText = HasSource ? Source : "<none>";
             return $"entries='{Count}' updatedUtcTicks='{UpdatedUtcTicks}' source='{sourceText}'";
         }
 
@@ -205,7 +206,7 @@ namespace Immersive.Framework.ProgressionSave
             }
 
             var copy = new ProgressionSaveManifestEntry[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 if (!source[i].IsValid)
                 {
@@ -220,9 +221,9 @@ namespace Immersive.Framework.ProgressionSave
 
         private static void EnsureUniqueSlots(IReadOnlyList<ProgressionSaveManifestEntry> source)
         {
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
-                for (var j = i + 1; j < source.Count; j++)
+                for (int j = i + 1; j < source.Count; j++)
                 {
                     if (source[i].SlotId == source[j].SlotId)
                     {
@@ -239,14 +240,14 @@ namespace Immersive.Framework.ProgressionSave
                 return false;
             }
 
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 if (!source[i].IsValid)
                 {
                     return false;
                 }
 
-                for (var j = i + 1; j < source.Count; j++)
+                for (int j = i + 1; j < source.Count; j++)
                 {
                     if (source[i].SlotId == source[j].SlotId)
                     {
@@ -270,7 +271,7 @@ namespace Immersive.Framework.ProgressionSave
                 return false;
             }
 
-            for (var i = 0; i < left.Count; i++)
+            for (int i = 0; i < left.Count; i++)
             {
                 if (left[i] != right[i])
                 {
@@ -296,7 +297,7 @@ namespace Immersive.Framework.ProgressionSave
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

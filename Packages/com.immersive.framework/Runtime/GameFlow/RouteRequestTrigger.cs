@@ -70,11 +70,11 @@ namespace Immersive.Framework.GameFlow
         {
             EnsureLogger();
 
-            var resolvedReason = ResolveReason();
+            string resolvedReason = ResolveReason();
 
             if (_requestInFlight)
             {
-                var message = "Route Request ignored. This Route Request Trigger already has a request in flight.";
+                string message = "Route Request ignored. This Route Request Trigger already has a request in flight.";
                 _logger.Warning(message);
                 PublishCompleted(FlowRequestOutcome.Ignored, resolvedReason, message);
                 return;
@@ -82,7 +82,7 @@ namespace Immersive.Framework.GameFlow
 
             if (targetRoute == null)
             {
-                var message = "Route Request failed. Target Route is missing.";
+                string message = "Route Request failed. Target Route is missing.";
                 _logger.Error(message);
                 PublishCompleted(FlowRequestOutcome.Failed, resolvedReason, message);
                 return;
@@ -137,7 +137,7 @@ namespace Immersive.Framework.GameFlow
 
         private void PublishSubmitted(string resolvedReason)
         {
-            var message = $"Route Request submitted. source='{DefaultSource}' reason='{resolvedReason}'.";
+            string message = $"Route Request submitted. source='{DefaultSource}' reason='{resolvedReason}'.";
             SetRequestState(FlowRequestEventPhase.Submitted, FlowRequestOutcome.Submitted, resolvedReason, message);
 
             _requestEvents.Publish(new RouteRequestTriggerEvent(

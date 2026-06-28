@@ -20,7 +20,7 @@ namespace Immersive.Framework.Loading
                 throw new ArgumentOutOfRangeException(nameof(normalizedValue), normalizedValue, "Loading progress must be a finite normalized value.");
             }
 
-            if (normalizedValue < 0f || normalizedValue > 1f)
+            if (normalizedValue is < 0f or > 1f)
             {
                 throw new ArgumentOutOfRangeException(nameof(normalizedValue), normalizedValue, "Loading progress must be between 0 and 1 inclusive.");
             }

@@ -1,9 +1,9 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 using Immersive.Framework.ObjectEntry;
 using UnityEngine;
-
-namespace Immersive.Framework.ObjectReset
+namespace Immersive.Framework.ObjectReset.Unity
 {
     /// <summary>
     /// API status: Experimental. Unity-side base class for Object Reset participants.
@@ -41,7 +41,7 @@ namespace Immersive.Framework.ObjectReset
 
         public ObjectResetParticipantDescriptor GetObjectResetDescriptor()
         {
-            if (TryCreateObjectResetDescriptor(out var descriptor, out var issue))
+            if (TryCreateObjectResetDescriptor(out var descriptor, out string issue))
             {
                 return descriptor;
             }
@@ -92,7 +92,7 @@ namespace Immersive.Framework.ObjectReset
                     ResolveReason());
                 return true;
             }
-            catch (Exception exception) when (exception is ArgumentException || exception is ArgumentOutOfRangeException)
+            catch (Exception exception) when (exception is ArgumentException or ArgumentOutOfRangeException)
             {
                 issue = exception.Message;
                 return false;
@@ -149,12 +149,12 @@ namespace Immersive.Framework.ObjectReset
 
         private string ResolveSource()
         {
-            return string.IsNullOrWhiteSpace(source) ? nameof(ObjectResetUnityParticipantBehaviour) : source.Trim();
+            return source.NormalizeTextOrFallback(nameof(ObjectResetUnityParticipantBehaviour));
         }
 
         private string ResolveReason()
         {
-            return string.IsNullOrWhiteSpace(reason) ? "unity-object-reset-participant" : reason.Trim();
+            return reason.NormalizeTextOrFallback("unity-object-reset-participant");
         }
     }
 }

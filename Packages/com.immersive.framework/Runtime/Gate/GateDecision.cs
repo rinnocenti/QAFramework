@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Identity;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Gate
 {
@@ -68,12 +69,7 @@ namespace Immersive.Framework.Gate
 
         public bool IsQueued => Status == GateDecisionStatus.Queued;
 
-        public bool IsRejected => Status == GateDecisionStatus.RejectedInvalidRequest
-            || Status == GateDecisionStatus.RejectedInvalidScope
-            || Status == GateDecisionStatus.RejectedInvalidDomain
-            || Status == GateDecisionStatus.RejectedStale
-            || Status == GateDecisionStatus.RejectedForeign
-            || Status == GateDecisionStatus.RejectedPolicyMissing;
+        public bool IsRejected => Status is GateDecisionStatus.RejectedInvalidRequest or GateDecisionStatus.RejectedInvalidScope or GateDecisionStatus.RejectedInvalidDomain or GateDecisionStatus.RejectedStale or GateDecisionStatus.RejectedForeign or GateDecisionStatus.RejectedPolicyMissing;
 
         public bool HasOwner => Owner.IsValid;
 
@@ -110,14 +106,14 @@ namespace Immersive.Framework.Gate
         {
             unchecked
             {
-                var hashCode = (int)Status;
-                hashCode = (hashCode * 397) ^ (int)Scope;
-                hashCode = (hashCode * 397) ^ (int)Domain;
-                hashCode = (hashCode * 397) ^ Owner.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Subject ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(PolicySource ?? string.Empty);
+                int hashCode = (int)Status;
+                hashCode = hashCode * 397 ^ (int)Scope;
+                hashCode = hashCode * 397 ^ (int)Domain;
+                hashCode = hashCode * 397 ^ Owner.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Subject ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(PolicySource ?? string.Empty);
                 return hashCode;
             }
         }
@@ -129,11 +125,11 @@ namespace Immersive.Framework.Gate
 
         public string ToDiagnosticString()
         {
-            var ownerText = HasOwner ? Owner.StableText : "<none>";
-            var subjectText = !string.IsNullOrWhiteSpace(Subject) ? Subject : "<none>";
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            var policySourceText = !string.IsNullOrWhiteSpace(PolicySource) ? PolicySource : "<none>";
+            string ownerText = HasOwner ? Owner.StableText : "<none>";
+            string subjectText = Subject.ToDiagnosticText();
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string policySourceText = PolicySource.ToDiagnosticText();
             return $"status='{Status}' scope='{Scope}' domain='{Domain}' owner='{ownerText}' subject='{subjectText}' source='{sourceText}' reason='{reasonText}' policySource='{policySourceText}'";
         }
 
@@ -207,10 +203,7 @@ namespace Immersive.Framework.Gate
             string reason,
             string policySource)
         {
-            if (status == GateDecisionStatus.Allowed
-                || status == GateDecisionStatus.Blocked
-                || status == GateDecisionStatus.Queued
-                || status == GateDecisionStatus.Unknown)
+            if (status is GateDecisionStatus.Allowed or GateDecisionStatus.Blocked or GateDecisionStatus.Queued or GateDecisionStatus.Unknown)
             {
                 throw new ArgumentOutOfRangeException(nameof(status), status, "Rejected Gate decision requires a rejected status.");
             }
@@ -238,7 +231,7 @@ namespace Immersive.Framework.Gate
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

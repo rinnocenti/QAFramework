@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Immersive.Framework.ApiStatus;
 using UnityEngine;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ProgressionSave
 {
@@ -42,10 +43,10 @@ namespace Immersive.Framework.ProgressionSave
                 throw new ArgumentException("JSON Progression Save store requires a valid backend id.", nameof(backendId));
             }
 
-            this._rootDirectory = Path.GetFullPath(rootDirectory.Trim());
-            this._slotDirectory = Path.Combine(this._rootDirectory, SlotDirectoryName);
-            this._manifestPath = Path.Combine(this._rootDirectory, ManifestFileName);
-            this._backendId = backendId;
+            _rootDirectory = Path.GetFullPath(rootDirectory.Trim());
+            _slotDirectory = Path.Combine(_rootDirectory, SlotDirectoryName);
+            _manifestPath = Path.Combine(_rootDirectory, ManifestFileName);
+            _backendId = backendId;
         }
 
         public ProgressionSaveBackendId BackendId => _backendId;
@@ -58,7 +59,7 @@ namespace Immersive.Framework.ProgressionSave
 
         public static JsonProgressionSaveStore CreateDefault(string productName)
         {
-            var normalizedProductName = string.IsNullOrWhiteSpace(productName) ? "Application" : productName.Trim();
+            string normalizedProductName = productName.NormalizeTextOrFallback("Application");
             return new JsonProgressionSaveStore(
                 Path.Combine(Application.persistentDataPath, "ImmersiveFramework", "ProgressionSave", MakeSafePathSegment(normalizedProductName)));
         }
@@ -72,7 +73,7 @@ namespace Immersive.Framework.ProgressionSave
                     return ProgressionSaveManifestReadResult.Missing("Progression Save manifest file is missing.");
                 }
 
-                var json = File.ReadAllText(_manifestPath, Encoding.UTF8);
+                string json = File.ReadAllText(_manifestPath, Encoding.UTF8);
                 if (string.IsNullOrWhiteSpace(json))
                 {
                     return ProgressionSaveManifestReadResult.Corrupt("Progression Save manifest file is empty.");
@@ -109,7 +110,7 @@ namespace Immersive.Framework.ProgressionSave
             {
                 EnsureDirectories();
                 var dto = FromManifest(manifest);
-                var json = JsonUtility.ToJson(dto, prettyPrint: true);
+                string json = JsonUtility.ToJson(dto, prettyPrint: true);
                 File.WriteAllText(_manifestPath, json, Encoding.UTF8);
                 return ProgressionSaveManifestWriteResult.WrittenResult("Progression Save manifest written through JSON backend.");
             }
@@ -131,7 +132,7 @@ namespace Immersive.Framework.ProgressionSave
                 throw new ArgumentException("Progression Save read requires a valid slot id.", nameof(slotId));
             }
 
-            var path = ToPhysicalSlotPath(slotId);
+            string path = ToPhysicalSlotPath(slotId);
             try
             {
                 if (!File.Exists(path))
@@ -139,7 +140,7 @@ namespace Immersive.Framework.ProgressionSave
                     return ProgressionSaveReadResult.Missing(slotId, "Progression Save slot file is missing.");
                 }
 
-                var json = File.ReadAllText(path, Encoding.UTF8);
+                string json = File.ReadAllText(path, Encoding.UTF8);
                 if (string.IsNullOrWhiteSpace(json))
                 {
                     return ProgressionSaveReadResult.Corrupt(slotId, "Progression Save slot file is empty.");
@@ -177,7 +178,7 @@ namespace Immersive.Framework.ProgressionSave
                 EnsureDirectories();
 
                 var dto = FromRecord(record);
-                var json = JsonUtility.ToJson(dto, prettyPrint: true);
+                string json = JsonUtility.ToJson(dto, prettyPrint: true);
                 File.WriteAllText(ToPhysicalSlotPath(record.SlotId), json, Encoding.UTF8);
 
                 var manifestRead = ReadManifest();
@@ -219,14 +220,14 @@ namespace Immersive.Framework.ProgressionSave
 
             try
             {
-                var path = ToPhysicalSlotPath(slotId);
-                var hadSlotFile = File.Exists(path);
+                string path = ToPhysicalSlotPath(slotId);
+                bool hadSlotFile = File.Exists(path);
                 if (hadSlotFile)
                 {
                     File.Delete(path);
                 }
 
-                var manifestHadSlot = false;
+                bool manifestHadSlot = false;
                 var manifestRead = ReadManifest();
                 if (manifestRead.HasManifest)
                 {
@@ -288,9 +289,9 @@ namespace Immersive.Framework.ProgressionSave
 
         private static ProgressionSaveManifest ToManifest(ManifestDto dto)
         {
-            var dtoEntries = dto.entries ?? Array.Empty<ManifestEntryDto>();
+            ManifestEntryDto[] dtoEntries = dto.entries ?? Array.Empty<ManifestEntryDto>();
             var entries = new ProgressionSaveManifestEntry[dtoEntries.Length];
-            for (var i = 0; i < dtoEntries.Length; i++)
+            for (int i = 0; i < dtoEntries.Length; i++)
             {
                 entries[i] = ToManifestEntry(dtoEntries[i]);
             }
@@ -300,9 +301,9 @@ namespace Immersive.Framework.ProgressionSave
 
         private static ManifestDto FromManifest(ProgressionSaveManifest manifest)
         {
-            var entries = manifest.Entries;
+            IReadOnlyList<ProgressionSaveManifestEntry> entries = manifest.Entries;
             var dtoEntries = new ManifestEntryDto[entries.Count];
-            for (var i = 0; i < entries.Count; i++)
+            for (int i = 0; i < entries.Count; i++)
             {
                 dtoEntries[i] = FromManifestEntry(entries[i]);
             }
@@ -416,19 +417,19 @@ namespace Immersive.Framework.ProgressionSave
 
         private static string ToSlotFileName(ProgressionSaveSlotId slotId)
         {
-            var stableText = slotId.StableText;
+            string stableText = slotId.StableText;
             return $"{MakeSafePathSegment(stableText)}-{ComputeSha256Hex(stableText).Substring(0, 12)}.json";
         }
 
         private static string MakeSafePathSegment(string value)
         {
-            var normalized = string.IsNullOrWhiteSpace(value) ? "empty" : value.Trim();
-            var invalid = Path.GetInvalidFileNameChars();
+            string normalized = value.NormalizeTextOrFallback("empty");
+            char[] invalid = Path.GetInvalidFileNameChars();
             var builder = new StringBuilder(normalized.Length);
-            for (var i = 0; i < normalized.Length; i++)
+            for (int i = 0; i < normalized.Length; i++)
             {
-                var current = normalized[i];
-                var valid = char.IsLetterOrDigit(current) || current == '-' || current == '_' || current == '.';
+                char current = normalized[i];
+                bool valid = char.IsLetterOrDigit(current) || current == '-' || current == '_' || current == '.';
                 if (valid && Array.IndexOf(invalid, current) < 0)
                 {
                     builder.Append(current);
@@ -446,10 +447,10 @@ namespace Immersive.Framework.ProgressionSave
         {
             using (var sha = SHA256.Create())
             {
-                var bytes = Encoding.UTF8.GetBytes(value ?? string.Empty);
-                var hash = sha.ComputeHash(bytes);
+                byte[] bytes = Encoding.UTF8.GetBytes(value ?? string.Empty);
+                byte[] hash = sha.ComputeHash(bytes);
                 var builder = new StringBuilder(hash.Length * 2);
-                for (var i = 0; i < hash.Length; i++)
+                for (int i = 0; i < hash.Length; i++)
                 {
                     builder.Append(hash[i].ToString("x2"));
                 }

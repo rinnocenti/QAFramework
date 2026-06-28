@@ -1,3 +1,4 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Threading.Tasks;
@@ -27,9 +28,7 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source)
-                ? nameof(TransitionEffectUnityFadeCurtainQaSmokeRunner)
-                : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(TransitionEffectUnityFadeCurtainQaSmokeRunner));
 
             GameObject surfaceRoot = null;
             GameObject missingSurfaceRoot = null;
@@ -41,14 +40,14 @@ namespace Immersive.Framework.Diagnostics
                 var canvasGroup = surfaceRoot.AddComponent<CanvasGroup>();
                 var adapter = surfaceRoot.AddComponent<UnityFadeCurtainEffectAdapter>();
 
-                var adapterCreated = ValidateAdapterCreated(logger, adapter, canvasGroup);
-                var visibleApplied = ValidateVisibleState(logger, adapter, canvasGroup, surfaceRoot, operationId, normalizedSource);
-                var hiddenApplied = ValidateHiddenState(logger, adapter, canvasGroup, surfaceRoot, operationId, normalizedSource);
+                bool adapterCreated = ValidateAdapterCreated(logger, adapter, canvasGroup);
+                bool visibleApplied = ValidateVisibleState(logger, adapter, canvasGroup, surfaceRoot, operationId, normalizedSource);
+                bool hiddenApplied = ValidateHiddenState(logger, adapter, canvasGroup, surfaceRoot, operationId, normalizedSource);
 
                 missingSurfaceRoot = new GameObject("QA_TransitionEffect_UnityFadeCurtain_MissingSurface");
                 var missingAdapter = missingSurfaceRoot.AddComponent<UnityFadeCurtainEffectAdapter>();
-                var missingSurface = ValidateMissingSurface(logger, missingAdapter, operationId, normalizedSource);
-                var unsupportedOptional = ValidateUnsupportedOptionalKind(logger, adapter, operationId, normalizedSource);
+                bool missingSurface = ValidateMissingSurface(logger, missingAdapter, operationId, normalizedSource);
+                bool unsupportedOptional = ValidateUnsupportedOptionalKind(logger, adapter, operationId, normalizedSource);
 
                 return Task.FromResult(adapterCreated && visibleApplied && hiddenApplied && missingSurface && unsupportedOptional);
             }
@@ -61,7 +60,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidateAdapterCreated(FrameworkLogger logger, UnityFadeCurtainEffectAdapter adapter, CanvasGroup canvasGroup)
         {
-            var passed = adapter != null
+            bool passed = adapter != null
                 && canvasGroup != null
                 && adapter.Supports(TransitionEffectKind.Fade)
                 && !adapter.Supports(TransitionEffectKind.LoadingScreen)
@@ -101,7 +100,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.transition-effect.unity-fade-curtain.visible");
 
             var result = adapter.Execute(request);
-            var passed = result.Succeeded
+            bool passed = result.Succeeded
                 && result.Completed
                 && !result.BlocksTransition
                 && surfaceRoot.activeSelf
@@ -132,7 +131,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.transition-effect.unity-fade-curtain.hidden");
 
             var result = adapter.Execute(request);
-            var passed = result.Succeeded
+            bool passed = result.Succeeded
                 && result.Completed
                 && !result.BlocksTransition
                 && !surfaceRoot.activeSelf
@@ -161,7 +160,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.transition-effect.unity-fade-curtain.missing-surface");
 
             var result = adapter.Execute(request);
-            var passed = result.Failed
+            bool passed = result.Failed
                 && !result.Completed
                 && result.BlocksTransition
                 && result.IssueCount == 1
@@ -187,7 +186,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.transition-effect.unity-fade-curtain.unsupported-optional-kind");
 
             var result = adapter.Execute(request);
-            var passed = result.Rejected
+            bool passed = result.Rejected
                 && !result.Completed
                 && !result.BlocksTransition
                 && result.IssueCount == 1;

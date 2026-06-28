@@ -19,19 +19,19 @@ namespace Immersive.Framework.LocalContribution
         {
             if (handles == null || handles.Count == 0)
             {
-                this._handles = Array.Empty<LocalContributionHandle>();
+                _handles = Array.Empty<LocalContributionHandle>();
                 return;
             }
 
-            this._handles = new LocalContributionHandle[handles.Count];
-            for (var i = 0; i < handles.Count; i++)
+            _handles = new LocalContributionHandle[handles.Count];
+            for (int i = 0; i < handles.Count; i++)
             {
                 if (!handles[i].IsValid)
                 {
                     throw new ArgumentException("Local contribution set cannot contain invalid handles.", nameof(handles));
                 }
 
-                this._handles[i] = handles[i];
+                _handles[i] = handles[i];
             }
         }
 
@@ -67,9 +67,9 @@ namespace Immersive.Framework.LocalContribution
                 return 0;
             }
 
-            var count = 0;
-            var items = Handles;
-            for (var i = 0; i < items.Count; i++)
+            int count = 0;
+            IReadOnlyList<LocalContributionHandle> items = Handles;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (items[i].Identity.ContentScope == contentScope)
                 {
@@ -87,9 +87,9 @@ namespace Immersive.Framework.LocalContribution
                 return 0;
             }
 
-            var count = 0;
-            var items = Handles;
-            for (var i = 0; i < items.Count; i++)
+            int count = 0;
+            IReadOnlyList<LocalContributionHandle> items = Handles;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (items[i].SourceKind == sourceKind)
                 {
@@ -108,9 +108,9 @@ namespace Immersive.Framework.LocalContribution
             }
 
             var normalized = NormalizeRequiredness(requiredness);
-            var count = 0;
-            var items = Handles;
-            for (var i = 0; i < items.Count; i++)
+            int count = 0;
+            IReadOnlyList<LocalContributionHandle> items = Handles;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (NormalizeRequiredness(items[i].Requiredness) == normalized)
                 {
@@ -134,8 +134,8 @@ namespace Immersive.Framework.LocalContribution
                 return false;
             }
 
-            var items = Handles;
-            for (var i = 0; i < items.Count; i++)
+            IReadOnlyList<LocalContributionHandle> items = Handles;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (items[i].Identity.Equals(identity))
                 {
@@ -199,12 +199,12 @@ namespace Immersive.Framework.LocalContribution
                 return "handles='0'";
             }
 
-            var limit = Math.Max(0, maxHandles);
-            var shown = Math.Min(limit, Count);
+            int limit = Math.Max(0, maxHandles);
+            int shown = Math.Min(limit, Count);
             var builder = new StringBuilder();
             builder.Append($"handles='{Count}' session='{SessionCount}' route='{RouteCount}' activity='{ActivityCount}' routeBindings='{RouteContentBindingCount}' activityAdapters='{ActivityLocalVisibilityAdapterCount}' required='{RequiredCount}' optional='{OptionalCount}' details=[");
 
-            for (var i = 0; i < shown; i++)
+            for (int i = 0; i < shown; i++)
             {
                 if (i > 0)
                 {
@@ -238,8 +238,8 @@ namespace Immersive.Framework.LocalContribution
             }
 
             var matches = new List<LocalContributionHandle>();
-            var items = Handles;
-            for (var i = 0; i < items.Count; i++)
+            IReadOnlyList<LocalContributionHandle> items = Handles;
+            for (int i = 0; i < items.Count; i++)
             {
                 var handle = items[i];
                 if (predicate(handle))

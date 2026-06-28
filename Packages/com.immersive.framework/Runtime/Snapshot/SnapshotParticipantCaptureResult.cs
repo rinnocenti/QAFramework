@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Snapshot
 {
@@ -73,7 +74,7 @@ namespace Immersive.Framework.Snapshot
         public bool IsValid => Descriptor.IsValid
             && Status != SnapshotParticipantResultStatus.Unknown
             && Status != SnapshotParticipantResultStatus.Restored
-            && ((Captured && Envelope.IsValid && Descriptor.SupportsEnvelope(Envelope)) || (!Captured && !Envelope.IsValid));
+            && (Captured && Envelope.IsValid && Descriptor.SupportsEnvelope(Envelope) || !Captured && !Envelope.IsValid);
 
         public bool Equals(SnapshotParticipantCaptureResult other)
         {
@@ -92,10 +93,10 @@ namespace Immersive.Framework.Snapshot
         {
             unchecked
             {
-                var hashCode = Descriptor.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ Envelope.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = Descriptor.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ Envelope.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -107,8 +108,8 @@ namespace Immersive.Framework.Snapshot
 
         public string ToDiagnosticString()
         {
-            var messageText = HasMessage ? Message : "<none>";
-            var envelopeText = HasEnvelope ? Envelope.ToDiagnosticString() : "<none>";
+            string messageText = HasMessage ? Message : "<none>";
+            string envelopeText = HasEnvelope ? Envelope.ToDiagnosticString() : "<none>";
             return $"status='{Status}' blocksSnapshot='{BlocksSnapshot}' message='{messageText}' descriptor=({Descriptor.ToDiagnosticString()}) envelope=({envelopeText})";
         }
 
@@ -166,7 +167,7 @@ namespace Immersive.Framework.Snapshot
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

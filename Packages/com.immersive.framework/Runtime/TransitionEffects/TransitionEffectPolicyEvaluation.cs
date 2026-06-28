@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.TransitionEffects
 {
@@ -30,13 +31,13 @@ namespace Immersive.Framework.TransitionEffects
             }
 
             Plan = plan;
-            PolicySource = string.IsNullOrWhiteSpace(policySource) ? string.Empty : policySource.Trim();
+            PolicySource = policySource.NormalizeText();
             AdapterCount = Math.Max(0, adapterCount);
             MatchedRequestCount = Math.Max(0, matchedRequestCount);
             RequiredAdapterMissingCount = Math.Max(0, requiredAdapterMissingCount);
             OptionalAdapterMissingCount = Math.Max(0, optionalAdapterMissingCount);
             DuplicateEffectIdCount = Math.Max(0, duplicateEffectIdCount);
-            this._issues = CopyIssues(issues);
+            _issues = CopyIssues(issues);
         }
 
         public TransitionEffectPlan Plan { get; }
@@ -61,9 +62,9 @@ namespace Immersive.Framework.TransitionEffects
         {
             get
             {
-                var count = 0;
-                var items = Issues;
-                for (var i = 0; i < items.Count; i++)
+                int count = 0;
+                IReadOnlyList<TransitionEffectPolicyIssue> items = Issues;
+                for (int i = 0; i < items.Count; i++)
                 {
                     if (items[i].BlocksTransition)
                     {
@@ -104,18 +105,18 @@ namespace Immersive.Framework.TransitionEffects
         {
             unchecked
             {
-                var hashCode = Plan.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(PolicySource ?? string.Empty);
-                hashCode = (hashCode * 397) ^ AdapterCount;
-                hashCode = (hashCode * 397) ^ MatchedRequestCount;
-                hashCode = (hashCode * 397) ^ RequiredAdapterMissingCount;
-                hashCode = (hashCode * 397) ^ OptionalAdapterMissingCount;
-                hashCode = (hashCode * 397) ^ DuplicateEffectIdCount;
+                int hashCode = Plan.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(PolicySource ?? string.Empty);
+                hashCode = hashCode * 397 ^ AdapterCount;
+                hashCode = hashCode * 397 ^ MatchedRequestCount;
+                hashCode = hashCode * 397 ^ RequiredAdapterMissingCount;
+                hashCode = hashCode * 397 ^ OptionalAdapterMissingCount;
+                hashCode = hashCode * 397 ^ DuplicateEffectIdCount;
 
-                var issueItems = Issues;
-                for (var i = 0; i < issueItems.Count; i++)
+                IReadOnlyList<TransitionEffectPolicyIssue> issueItems = Issues;
+                for (int i = 0; i < issueItems.Count; i++)
                 {
-                    hashCode = (hashCode * 397) ^ issueItems[i].GetHashCode();
+                    hashCode = hashCode * 397 ^ issueItems[i].GetHashCode();
                 }
 
                 return hashCode;
@@ -130,14 +131,14 @@ namespace Immersive.Framework.TransitionEffects
         public string ToDiagnosticString()
         {
             var builder = new StringBuilder();
-            var sourceText = string.IsNullOrWhiteSpace(PolicySource) ? "<none>" : PolicySource;
+            string sourceText = PolicySource.ToDiagnosticText();
             builder.Append($"operation='{Plan.OperationId.StableText}' transitionKind='{Plan.TransitionKind}' policySource='{sourceText}' allowed='{IsAllowed}' blocksTransition='{BlocksTransition}' adapters='{AdapterCount}' requests='{Plan.RequestCount}' matched='{MatchedRequestCount}' requiredMissing='{RequiredAdapterMissingCount}' optionalMissing='{OptionalAdapterMissingCount}' duplicates='{DuplicateEffectIdCount}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}'");
 
             if (HasIssues)
             {
                 builder.Append(" policyIssues=[");
-                var issueItems = Issues;
-                for (var i = 0; i < issueItems.Count; i++)
+                IReadOnlyList<TransitionEffectPolicyIssue> issueItems = Issues;
+                for (int i = 0; i < issueItems.Count; i++)
                 {
                     if (i > 0)
                     {
@@ -161,7 +162,7 @@ namespace Immersive.Framework.TransitionEffects
             }
 
             var copy = new TransitionEffectPolicyIssue[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 if (!source[i].IsValid)
                 {
@@ -181,7 +182,7 @@ namespace Immersive.Framework.TransitionEffects
                 return false;
             }
 
-            for (var i = 0; i < left.Count; i++)
+            for (int i = 0; i < left.Count; i++)
             {
                 if (!left[i].Equals(right[i]))
                 {

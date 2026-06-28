@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Gate;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Pause
 {
@@ -115,7 +116,7 @@ namespace Immersive.Framework.Pause
 
         private static string Normalize(string value, string fallback)
         {
-            return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+            return value.NormalizeTextOrFallback(fallback);
         }
     }
 }

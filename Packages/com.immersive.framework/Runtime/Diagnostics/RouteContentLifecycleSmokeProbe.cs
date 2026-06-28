@@ -1,3 +1,4 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.RouteLifecycle;
@@ -23,9 +24,7 @@ namespace Immersive.Framework.Diagnostics
         [SerializeField]
         private string probeName = "Route Content Smoke Probe";
 
-        public string ProbeName => string.IsNullOrWhiteSpace(probeName)
-            ? "Route Content Smoke Probe"
-            : probeName.Trim();
+        public string ProbeName => probeName.NormalizeTextOrFallback("Route Content Smoke Probe");
 
         public int EnteredCount { get; private set; }
 
@@ -83,9 +82,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static string FormatValue(string value)
         {
-            return string.IsNullOrWhiteSpace(value)
-                ? "<none>"
-                : value.Trim();
+            return value.NormalizeTextOrFallback("<none>");
         }
     }
 }

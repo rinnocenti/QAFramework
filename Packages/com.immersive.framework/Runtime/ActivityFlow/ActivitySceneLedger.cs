@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -47,13 +48,13 @@ namespace Immersive.Framework.ActivityFlow
             out ActivitySceneLedgerEntry entry)
         {
             entry = default;
-            var normalizedRouteInstanceId = Normalize(routeInstanceId);
+            string normalizedRouteInstanceId = Normalize(routeInstanceId);
             if (activity == null || !planEntry.ContentIdentity.IsValid || string.IsNullOrWhiteSpace(normalizedRouteInstanceId))
             {
                 return false;
             }
 
-            for (var i = _entries.Count - 1; i >= 0; i--)
+            for (int i = _entries.Count - 1; i >= 0; i--)
             {
                 var existing = _entries[i];
                 if (!existing.IsLoaded)
@@ -74,13 +75,13 @@ namespace Immersive.Framework.ActivityFlow
         internal List<ActivitySceneLedgerEntry> CollectLoadedForActivityRouteInstance(ActivityAsset activity, string routeInstanceId)
         {
             var entries = new List<ActivitySceneLedgerEntry>();
-            var normalizedRouteInstanceId = Normalize(routeInstanceId);
+            string normalizedRouteInstanceId = Normalize(routeInstanceId);
             if (activity == null || string.IsNullOrWhiteSpace(normalizedRouteInstanceId))
             {
                 return entries;
             }
 
-            for (var i = 0; i < _entries.Count; i++)
+            for (int i = 0; i < _entries.Count; i++)
             {
                 var entry = _entries[i];
                 if (entry.IsLoaded
@@ -98,13 +99,13 @@ namespace Immersive.Framework.ActivityFlow
         internal List<ActivitySceneLedgerEntry> CollectLoadedForRouteInstance(string routeInstanceId)
         {
             var entries = new List<ActivitySceneLedgerEntry>();
-            var normalizedRouteInstanceId = Normalize(routeInstanceId);
+            string normalizedRouteInstanceId = Normalize(routeInstanceId);
             if (string.IsNullOrWhiteSpace(normalizedRouteInstanceId))
             {
                 return entries;
             }
 
-            for (var i = 0; i < _entries.Count; i++)
+            for (int i = 0; i < _entries.Count; i++)
             {
                 var entry = _entries[i];
                 if (entry.IsLoaded
@@ -130,7 +131,7 @@ namespace Immersive.Framework.ActivityFlow
 
         private void Upsert(ActivitySceneLedgerEntry entry)
         {
-            for (var i = _entries.Count - 1; i >= 0; i--)
+            for (int i = _entries.Count - 1; i >= 0; i--)
             {
                 var existing = _entries[i];
                 if (IsSameEntry(existing, entry.RouteInstanceId, entry.Activity, entry.ContentIdentity))
@@ -145,7 +146,7 @@ namespace Immersive.Framework.ActivityFlow
 
         private void UpdateStatus(ActivitySceneLedgerEntry entry, ActivitySceneLedgerEntryStatus status)
         {
-            for (var i = _entries.Count - 1; i >= 0; i--)
+            for (int i = _entries.Count - 1; i >= 0; i--)
             {
                 var existing = _entries[i];
                 if (IsSameEntry(existing, entry.RouteInstanceId, entry.Activity, entry.ContentIdentity))
@@ -169,8 +170,8 @@ namespace Immersive.Framework.ActivityFlow
 
         private int CountByStatus(ActivitySceneLedgerEntryStatus status)
         {
-            var count = 0;
-            for (var i = 0; i < _entries.Count; i++)
+            int count = 0;
+            for (int i = 0; i < _entries.Count; i++)
             {
                 if (_entries[i].Status == status)
                 {
@@ -183,7 +184,7 @@ namespace Immersive.Framework.ActivityFlow
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

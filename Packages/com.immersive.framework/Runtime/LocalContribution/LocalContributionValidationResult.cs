@@ -22,14 +22,14 @@ namespace Immersive.Framework.LocalContribution
 
             if (issues == null || issues.Count == 0)
             {
-                this._issues = Array.Empty<LocalContributionValidationIssue>();
+                _issues = Array.Empty<LocalContributionValidationIssue>();
                 return;
             }
 
-            this._issues = new LocalContributionValidationIssue[issues.Count];
-            for (var i = 0; i < issues.Count; i++)
+            _issues = new LocalContributionValidationIssue[issues.Count];
+            for (int i = 0; i < issues.Count; i++)
             {
-                this._issues[i] = issues[i];
+                _issues[i] = issues[i];
             }
         }
 
@@ -66,10 +66,10 @@ namespace Immersive.Framework.LocalContribution
                 return builder.ToString();
             }
 
-            var limit = Math.Max(0, maxIssues);
-            var shown = Math.Min(limit, IssueCount);
+            int limit = Math.Max(0, maxIssues);
+            int shown = Math.Min(limit, IssueCount);
             builder.Append(" validationDetails=[");
-            for (var i = 0; i < shown; i++)
+            for (int i = 0; i < shown; i++)
             {
                 if (i > 0)
                 {
@@ -95,9 +95,9 @@ namespace Immersive.Framework.LocalContribution
                 return 0;
             }
 
-            var count = 0;
-            var items = Issues;
-            for (var i = 0; i < items.Count; i++)
+            int count = 0;
+            IReadOnlyList<LocalContributionValidationIssue> items = Issues;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (items[i].Blocking == blocking)
                 {
@@ -115,9 +115,9 @@ namespace Immersive.Framework.LocalContribution
                 return 0;
             }
 
-            var count = 0;
-            var items = Issues;
-            for (var i = 0; i < items.Count; i++)
+            int count = 0;
+            IReadOnlyList<LocalContributionValidationIssue> items = Issues;
+            for (int i = 0; i < items.Count; i++)
             {
                 if (items[i].Kind == kind)
                 {

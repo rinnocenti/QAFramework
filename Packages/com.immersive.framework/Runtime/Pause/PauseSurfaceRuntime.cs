@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Diagnostics;
 using Immersive.Logging.Records;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Pause
 {
@@ -18,7 +19,7 @@ namespace Immersive.Framework.Pause
 
         private PauseSurfaceRuntime(string surfaceLabel, IReadOnlyList<IPauseSurfaceAdapter> adapters)
         {
-            _surfaceLabel = string.IsNullOrWhiteSpace(surfaceLabel) ? "Pause Surface" : surfaceLabel.Trim();
+            _surfaceLabel = surfaceLabel.NormalizeTextOrFallback("Pause Surface");
             _adapters = CopyAdapters(adapters);
         }
 
@@ -38,8 +39,8 @@ namespace Immersive.Framework.Pause
             string sceneLabel)
         {
             logger ??= FrameworkLogger.Create<PauseSurfaceRuntime>();
-            var resolvedSceneLabel = string.IsNullOrWhiteSpace(sceneLabel) ? "UIGlobal Pause Surface" : sceneLabel.Trim();
-            var hasSceneAdapters = sceneAdapters != null && sceneAdapters.Count > 0;
+            string resolvedSceneLabel = sceneLabel.NormalizeTextOrFallback("UIGlobal Pause Surface");
+            bool hasSceneAdapters = sceneAdapters != null && sceneAdapters.Count > 0;
 
             if (!hasSceneAdapters)
             {
@@ -64,12 +65,12 @@ namespace Immersive.Framework.Pause
                 return LastApplicationResult;
             }
 
-            var supportedCount = 0;
-            var appliedCount = 0;
-            var failedCount = 0;
+            int supportedCount = 0;
+            int appliedCount = 0;
+            int failedCount = 0;
             var issues = new List<string>();
 
-            for (var i = 0; i < _adapters.Length; i++)
+            for (int i = 0; i < _adapters.Length; i++)
             {
                 var adapter = _adapters[i];
                 if (adapter == null)
@@ -116,7 +117,7 @@ namespace Immersive.Framework.Pause
             }
 
             var copy = new IPauseSurfaceAdapter[adapters.Count];
-            for (var i = 0; i < adapters.Count; i++)
+            for (int i = 0; i < adapters.Count; i++)
             {
                 copy[i] = adapters[i];
             }
@@ -279,8 +280,8 @@ namespace Immersive.Framework.Pause
                 return Array.Empty<string>();
             }
 
-            var copy = new string[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            string[] copy = new string[source.Count];
+            for (int i = 0; i < source.Count; i++)
             {
                 copy[i] = Normalize(source[i]);
             }
@@ -290,7 +291,7 @@ namespace Immersive.Framework.Pause
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

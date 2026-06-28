@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.RuntimeContent;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -18,7 +20,7 @@ namespace Immersive.Framework.ActivityFlow
         private readonly ActivityContentExecutionRequest[] _requests;
         private readonly ActivityContentExecutionParticipantCollectionIssue[] _collectionIssues;
 
-        public ActivityContentExecutionPhasePlan(
+        private ActivityContentExecutionPhasePlan(
             ActivityContentExecutionPhase phase,
             ActivityAsset activity,
             ActivityAsset previousActivity,
@@ -50,13 +52,13 @@ namespace Immersive.Framework.ActivityFlow
             NextActivity = nextActivity;
             Context = context;
             Status = status;
-            Source = Normalize(source);
-            Reason = Normalize(reason);
-            Message = Normalize(message);
+            Source = source.NormalizeText();
+            Reason = reason.NormalizeText();
+            Message = message.NormalizeText();
 
-            this._entries = CopyEntries(entries);
-            this._requests = CopyRequests(requests, phase);
-            this._collectionIssues = CopyIssues(collectionIssues);
+            _entries = CopyEntries(entries);
+            _requests = CopyRequests(requests, phase);
+            _collectionIssues = CopyIssues(collectionIssues);
         }
 
         public ActivityContentExecutionPhase Phase { get; }
@@ -67,11 +69,9 @@ namespace Immersive.Framework.ActivityFlow
 
         public ActivityAsset NextActivity { get; }
 
-        public RuntimeScopeContext Context { get; }
+        private RuntimeScopeContext Context { get; }
 
-        public RuntimeContentOwner Owner => Context.Owner;
-
-        public RuntimeContentScope Scope => Context.Scope;
+        private RuntimeContentOwner Owner => Context.Owner;
 
         public ActivityContentExecutionPhasePlanStatus Status { get; }
 
@@ -79,58 +79,47 @@ namespace Immersive.Framework.ActivityFlow
 
         public IReadOnlyList<ActivityContentExecutionRequest> Requests => _requests ?? Array.Empty<ActivityContentExecutionRequest>();
 
-        public IReadOnlyList<ActivityContentExecutionParticipantCollectionIssue> CollectionIssues => _collectionIssues ?? Array.Empty<ActivityContentExecutionParticipantCollectionIssue>();
+        private IReadOnlyList<ActivityContentExecutionParticipantCollectionIssue> CollectionIssues => _collectionIssues ?? Array.Empty<ActivityContentExecutionParticipantCollectionIssue>();
 
-        public string Source { get; }
+        private string Source { get; }
 
-        public string Reason { get; }
+        private string Reason { get; }
 
         public string Message { get; }
 
-        public bool IsEnter => Phase == ActivityContentExecutionPhase.Enter;
-
-        public bool IsExit => Phase == ActivityContentExecutionPhase.Exit;
-
-        public bool HasActivity => Activity != null;
-
-        public bool HasContext => Context.IsValid;
-
-        public bool HasEntries => EntryCount > 0;
+        private bool HasEntries => EntryCount > 0;
 
         public bool HasRequests => RequestCount > 0;
 
-        public bool HasCollectionIssues => CollectionIssueCount > 0;
+        private bool HasCollectionIssues => CollectionIssueCount > 0;
 
         public bool Planned => Status == ActivityContentExecutionPhasePlanStatus.Planned;
 
         public bool Skipped => Status == ActivityContentExecutionPhasePlanStatus.SkippedNoParticipants;
 
-        public bool Rejected => Status == ActivityContentExecutionPhasePlanStatus.RejectedInvalidPhase
-            || Status == ActivityContentExecutionPhasePlanStatus.RejectedMissingActivity
-            || Status == ActivityContentExecutionPhasePlanStatus.RejectedInvalidContext
-            || Status == ActivityContentExecutionPhasePlanStatus.RejectedInvalidParticipants;
+        public bool Rejected => Status is ActivityContentExecutionPhasePlanStatus.RejectedInvalidPhase or ActivityContentExecutionPhasePlanStatus.RejectedMissingActivity or ActivityContentExecutionPhasePlanStatus.RejectedInvalidContext or ActivityContentExecutionPhasePlanStatus.RejectedInvalidParticipants;
 
-        public string ActivityName => Activity != null ? Activity.ActivityName : string.Empty;
+        private string ActivityName => Activity != null ? Activity.ActivityName : string.Empty;
 
-        public string PreviousActivityName => PreviousActivity != null ? PreviousActivity.ActivityName : string.Empty;
+        private string PreviousActivityName => PreviousActivity != null ? PreviousActivity.ActivityName : string.Empty;
 
-        public string NextActivityName => NextActivity != null ? NextActivity.ActivityName : string.Empty;
+        private string NextActivityName => NextActivity != null ? NextActivity.ActivityName : string.Empty;
 
-        public int EntryCount => _entries != null ? _entries.Length : 0;
+        private int EntryCount => _entries?.Length ?? 0;
 
-        public int RequestCount => _requests != null ? _requests.Length : 0;
+        public int RequestCount => _requests?.Length ?? 0;
 
-        public int CollectionIssueCount => _collectionIssues != null ? _collectionIssues.Length : 0;
+        private int CollectionIssueCount => _collectionIssues?.Length ?? 0;
 
         public int RequiredCount => CountByRequiredness(ActivityContentExecutionRequiredness.Required);
 
         public int OptionalCount => CountByRequiredness(ActivityContentExecutionRequiredness.Optional);
 
-        public int NullParticipantIssueCount => CountIssuesByKind(ActivityContentExecutionParticipantCollectionIssueKind.NullParticipant);
+        private int NullParticipantIssueCount => CountIssuesByKind(ActivityContentExecutionParticipantCollectionIssueKind.NullParticipant);
 
-        public int InvalidDescriptorIssueCount => CountIssuesByKind(ActivityContentExecutionParticipantCollectionIssueKind.InvalidDescriptor);
+        private int InvalidDescriptorIssueCount => CountIssuesByKind(ActivityContentExecutionParticipantCollectionIssueKind.InvalidDescriptor);
 
-        public int DuplicateContentIdIssueCount => CountIssuesByKind(ActivityContentExecutionParticipantCollectionIssueKind.DuplicateContentId);
+        private int DuplicateContentIdIssueCount => CountIssuesByKind(ActivityContentExecutionParticipantCollectionIssueKind.DuplicateContentId);
 
         public ActivityContentExecutionParticipantEntry[] SnapshotEntries()
         {
@@ -140,41 +129,9 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var snapshot = new ActivityContentExecutionParticipantEntry[EntryCount];
-            for (var i = 0; i < EntryCount; i++)
+            for (int i = 0; i < EntryCount; i++)
             {
                 snapshot[i] = Entries[i];
-            }
-
-            return snapshot;
-        }
-
-        public ActivityContentExecutionRequest[] SnapshotRequests()
-        {
-            if (!HasRequests)
-            {
-                return Array.Empty<ActivityContentExecutionRequest>();
-            }
-
-            var snapshot = new ActivityContentExecutionRequest[RequestCount];
-            for (var i = 0; i < RequestCount; i++)
-            {
-                snapshot[i] = Requests[i];
-            }
-
-            return snapshot;
-        }
-
-        public ActivityContentExecutionParticipantCollectionIssue[] SnapshotCollectionIssues()
-        {
-            if (!HasCollectionIssues)
-            {
-                return Array.Empty<ActivityContentExecutionParticipantCollectionIssue>();
-            }
-
-            var snapshot = new ActivityContentExecutionParticipantCollectionIssue[CollectionIssueCount];
-            for (var i = 0; i < CollectionIssueCount; i++)
-            {
-                snapshot[i] = CollectionIssues[i];
             }
 
             return snapshot;
@@ -198,7 +155,7 @@ namespace Immersive.Framework.ActivityFlow
                 return false;
             }
 
-            for (var i = 0; i < EntryCount; i++)
+            for (int i = 0; i < EntryCount; i++)
             {
                 if (!Entries[i].Equals(other.Entries[i]))
                 {
@@ -206,7 +163,7 @@ namespace Immersive.Framework.ActivityFlow
                 }
             }
 
-            for (var i = 0; i < RequestCount; i++)
+            for (int i = 0; i < RequestCount; i++)
             {
                 if (!Requests[i].Equals(other.Requests[i]))
                 {
@@ -214,7 +171,7 @@ namespace Immersive.Framework.ActivityFlow
                 }
             }
 
-            for (var i = 0; i < CollectionIssueCount; i++)
+            for (int i = 0; i < CollectionIssueCount; i++)
             {
                 if (!CollectionIssues[i].Equals(other.CollectionIssues[i]))
                 {
@@ -234,29 +191,29 @@ namespace Immersive.Framework.ActivityFlow
         {
             unchecked
             {
-                var hashCode = (int)Phase;
-                hashCode = (hashCode * 397) ^ (Activity != null ? Activity.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (PreviousActivity != null ? PreviousActivity.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (NextActivity != null ? NextActivity.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ Context.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = (int)Phase;
+                hashCode = hashCode * 397 ^ (Activity != null ? Activity.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ (PreviousActivity != null ? PreviousActivity.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ (NextActivity != null ? NextActivity.GetHashCode() : 0);
+                hashCode = hashCode * 397 ^ Context.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
 
-                for (var i = 0; i < EntryCount; i++)
+                for (int i = 0; i < EntryCount; i++)
                 {
-                    hashCode = (hashCode * 397) ^ Entries[i].GetHashCode();
+                    hashCode = hashCode * 397 ^ Entries[i].GetHashCode();
                 }
 
-                for (var i = 0; i < RequestCount; i++)
+                for (int i = 0; i < RequestCount; i++)
                 {
-                    hashCode = (hashCode * 397) ^ Requests[i].GetHashCode();
+                    hashCode = hashCode * 397 ^ Requests[i].GetHashCode();
                 }
 
-                for (var i = 0; i < CollectionIssueCount; i++)
+                for (int i = 0; i < CollectionIssueCount; i++)
                 {
-                    hashCode = (hashCode * 397) ^ CollectionIssues[i].GetHashCode();
+                    hashCode = hashCode * 397 ^ CollectionIssues[i].GetHashCode();
                 }
 
                 return hashCode;
@@ -268,17 +225,17 @@ namespace Immersive.Framework.ActivityFlow
             return ToDiagnosticString();
         }
 
-        public string ToDiagnosticString()
+        private string ToDiagnosticString()
         {
-            var activityText = !string.IsNullOrWhiteSpace(ActivityName) ? ActivityName : "<none>";
-            var previousText = !string.IsNullOrWhiteSpace(PreviousActivityName) ? PreviousActivityName : "<none>";
-            var nextText = !string.IsNullOrWhiteSpace(NextActivityName) ? NextActivityName : "<none>";
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            var messageText = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
+            string activityText = ActivityName.ToDiagnosticText();
+            string previousText = PreviousActivityName.ToDiagnosticText();
+            string nextText = NextActivityName.ToDiagnosticText();
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string messageText = Message.ToDiagnosticText();
             var builder = new StringBuilder();
             builder.Append($"Activity Content Execution Phase Plan phase='{Phase}' activity='{activityText}' previousActivity='{previousText}' nextActivity='{nextText}' status='{Status}' requests='{RequestCount}' entries='{EntryCount}' required='{RequiredCount}' optional='{OptionalCount}' collectionIssues='{CollectionIssueCount}' nullParticipants='{NullParticipantIssueCount}' invalidDescriptors='{InvalidDescriptorIssueCount}' duplicateContentIds='{DuplicateContentIdIssueCount}' owner='{Owner.StableText}' source='{sourceText}' reason='{reasonText}' message='{messageText}' entries=[");
-            for (var i = 0; i < Entries.Count; i++)
+            for (int i = 0; i < Entries.Count; i++)
             {
                 if (i > 0)
                 {
@@ -289,7 +246,7 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             builder.Append("] requests=[");
-            for (var i = 0; i < Requests.Count; i++)
+            for (int i = 0; i < Requests.Count; i++)
             {
                 if (i > 0)
                 {
@@ -300,7 +257,7 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             builder.Append("] collectionIssues=[");
-            for (var i = 0; i < CollectionIssues.Count; i++)
+            for (int i = 0; i < CollectionIssues.Count; i++)
             {
                 if (i > 0)
                 {
@@ -380,9 +337,7 @@ namespace Immersive.Framework.ActivityFlow
             string reason,
             string message)
         {
-            if (status == ActivityContentExecutionPhasePlanStatus.Planned
-                || status == ActivityContentExecutionPhasePlanStatus.SkippedNoParticipants
-                || status == ActivityContentExecutionPhasePlanStatus.Unknown)
+            if (status is ActivityContentExecutionPhasePlanStatus.Planned or ActivityContentExecutionPhasePlanStatus.SkippedNoParticipants or ActivityContentExecutionPhasePlanStatus.Unknown)
             {
                 throw new ArgumentException("Rejected Activity content execution phase plan requires a rejected status.", nameof(status));
             }
@@ -419,17 +374,9 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            var items = Requests;
-            for (var i = 0; i < items.Count; i++)
-            {
-                if (items[i].Requiredness == requiredness)
-                {
-                    count++;
-                }
-            }
+            IReadOnlyList<ActivityContentExecutionRequest> items = Requests;
 
-            return count;
+            return items.Count(t => t.Requiredness == requiredness);
         }
 
         private int CountIssuesByKind(ActivityContentExecutionParticipantCollectionIssueKind kind)
@@ -439,17 +386,9 @@ namespace Immersive.Framework.ActivityFlow
                 return 0;
             }
 
-            var count = 0;
-            var items = CollectionIssues;
-            for (var i = 0; i < items.Count; i++)
-            {
-                if (items[i].Kind == kind)
-                {
-                    count++;
-                }
-            }
+            IReadOnlyList<ActivityContentExecutionParticipantCollectionIssue> items = CollectionIssues;
 
-            return count;
+            return items.Count(t => t.Kind == kind);
         }
 
         private static ActivityContentExecutionParticipantEntry[] CopyEntries(IReadOnlyList<ActivityContentExecutionParticipantEntry> source)
@@ -460,7 +399,7 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var copy = new ActivityContentExecutionParticipantEntry[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 if (!source[i].IsValid)
                 {
@@ -481,7 +420,7 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var copy = new ActivityContentExecutionRequest[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 var request = source[i];
                 if (!request.IsValid)
@@ -508,17 +447,12 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             var copy = new ActivityContentExecutionParticipantCollectionIssue[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 copy[i] = source[i];
             }
 
             return copy;
-        }
-
-        private static string Normalize(string value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
         }
     }
 }

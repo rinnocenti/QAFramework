@@ -25,7 +25,7 @@ namespace Immersive.Framework.Pause
                 throw new ArgumentException("Pause input action id must be valid.", nameof(value));
             }
 
-            this._value = value;
+            _value = value;
         }
 
         public FrameworkIdentityDomain Domain => FrameworkIdentityDomain.Pause;

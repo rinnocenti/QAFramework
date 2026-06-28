@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Loading
 {
@@ -43,12 +44,12 @@ namespace Immersive.Framework.Loading
 
             if (steps == null || steps.Count == 0)
             {
-                this._steps = Array.Empty<LoadingStep>();
+                _steps = Array.Empty<LoadingStep>();
             }
             else
             {
-                this._steps = new LoadingStep[steps.Count];
-                for (var i = 0; i < steps.Count; i++)
+                _steps = new LoadingStep[steps.Count];
+                for (int i = 0; i < steps.Count; i++)
                 {
                     var step = steps[i];
                     if (!step.IsValid)
@@ -56,7 +57,7 @@ namespace Immersive.Framework.Loading
                         throw new ArgumentException("Loading progress aggregation cannot contain invalid steps.", nameof(steps));
                     }
 
-                    this._steps[i] = step;
+                    _steps[i] = step;
                 }
             }
         }
@@ -75,18 +76,15 @@ namespace Immersive.Framework.Loading
 
         public string Message { get; }
 
-        public int StepCount => _steps != null ? _steps.Length : 0;
+        public int StepCount => _steps?.Length ?? 0;
 
         public bool HasSteps => StepCount > 0;
 
         public bool IsRunning => Status == LoadingProgressAggregationStatus.Running;
 
-        public bool Completed => Status == LoadingProgressAggregationStatus.Completed
-            || Status == LoadingProgressAggregationStatus.CompletedWithSkippedSteps
-            || Status == LoadingProgressAggregationStatus.NoSteps;
+        public bool Completed => Status is LoadingProgressAggregationStatus.Completed or LoadingProgressAggregationStatus.CompletedWithSkippedSteps or LoadingProgressAggregationStatus.NoSteps;
 
-        public bool Failed => Status == LoadingProgressAggregationStatus.Failed
-            || Status == LoadingProgressAggregationStatus.Canceled;
+        public bool Failed => Status is LoadingProgressAggregationStatus.Failed or LoadingProgressAggregationStatus.Canceled;
 
         public bool IsTerminal => Completed || Failed;
 
@@ -125,7 +123,7 @@ namespace Immersive.Framework.Loading
                 return false;
             }
 
-            for (var i = 0; i < StepCount; i++)
+            for (int i = 0; i < StepCount; i++)
             {
                 if (!Steps[i].Equals(other.Steps[i]))
                 {
@@ -145,16 +143,16 @@ namespace Immersive.Framework.Loading
         {
             unchecked
             {
-                var hashCode = OperationId.GetHashCode();
-                hashCode = (hashCode * 397) ^ Progress.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = OperationId.GetHashCode();
+                hashCode = hashCode * 397 ^ Progress.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
 
-                for (var i = 0; i < StepCount; i++)
+                for (int i = 0; i < StepCount; i++)
                 {
-                    hashCode = (hashCode * 397) ^ Steps[i].GetHashCode();
+                    hashCode = hashCode * 397 ^ Steps[i].GetHashCode();
                 }
 
                 return hashCode;
@@ -168,12 +166,12 @@ namespace Immersive.Framework.Loading
 
         public string ToDiagnosticString()
         {
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            var messageText = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
+            string messageText = Message.ToDiagnosticText();
             var builder = new StringBuilder();
             builder.Append($"Loading Progress Aggregation operation='{OperationId.StableText}' status='{Status}' progress='{Progress.NormalizedValue:0.###}' percent='{Progress.PercentRounded}' steps='{StepCount}' pending='{PendingCount}' running='{RunningCount}' completed='{CompletedCount}' skipped='{SkippedCount}' failed='{FailedCount}' canceled='{CanceledCount}' weightedCompleted='{WeightedCompleted:0.###}' weightedTotal='{WeightedTotal:0.###}' source='{sourceText}' reason='{reasonText}' message='{messageText}' details=[");
-            for (var i = 0; i < Steps.Count; i++)
+            for (int i = 0; i < Steps.Count; i++)
             {
                 if (i > 0)
                 {
@@ -213,9 +211,9 @@ namespace Immersive.Framework.Loading
                 return LoadingProgress.Zero;
             }
 
-            var completed = 0f;
-            var total = 0f;
-            for (var i = 0; i < candidateSteps.Count; i++)
+            float completed = 0f;
+            float total = 0f;
+            for (int i = 0; i < candidateSteps.Count; i++)
             {
                 var step = candidateSteps[i];
                 completed += step.WeightedProgress.WeightedCompleted;
@@ -227,7 +225,7 @@ namespace Immersive.Framework.Loading
                 return LoadingProgress.Zero;
             }
 
-            var normalized = completed / total;
+            float normalized = completed / total;
             if (normalized < 0f)
             {
                 normalized = 0f;
@@ -247,12 +245,12 @@ namespace Immersive.Framework.Loading
                 return LoadingProgressAggregationStatus.NoSteps;
             }
 
-            var hasPendingOrRunning = false;
-            var hasSkipped = false;
-            var hasFailed = false;
-            var hasCanceled = false;
+            bool hasPendingOrRunning = false;
+            bool hasSkipped = false;
+            bool hasFailed = false;
+            bool hasCanceled = false;
 
-            for (var i = 0; i < candidateSteps.Count; i++)
+            for (int i = 0; i < candidateSteps.Count; i++)
             {
                 var status = candidateSteps[i].Status;
                 if (status == LoadingStepStatus.Failed)
@@ -263,7 +261,7 @@ namespace Immersive.Framework.Loading
                 {
                     hasCanceled = true;
                 }
-                else if (status == LoadingStepStatus.Pending || status == LoadingStepStatus.Running)
+                else if (status is LoadingStepStatus.Pending or LoadingStepStatus.Running)
                 {
                     hasPendingOrRunning = true;
                 }
@@ -321,8 +319,8 @@ namespace Immersive.Framework.Loading
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < _steps.Length; i++)
+            int count = 0;
+            for (int i = 0; i < _steps.Length; i++)
             {
                 if (_steps[i].Status == status)
                 {
@@ -340,8 +338,8 @@ namespace Immersive.Framework.Loading
                 return 0f;
             }
 
-            var sum = 0f;
-            for (var i = 0; i < _steps.Length; i++)
+            float sum = 0f;
+            for (int i = 0; i < _steps.Length; i++)
             {
                 sum += _steps[i].WeightedProgress.WeightedCompleted;
             }
@@ -356,8 +354,8 @@ namespace Immersive.Framework.Loading
                 return 0f;
             }
 
-            var sum = 0f;
-            for (var i = 0; i < _steps.Length; i++)
+            float sum = 0f;
+            for (int i = 0; i < _steps.Length; i++)
             {
                 sum += _steps[i].WeightedProgress.WeightedTotal;
             }
@@ -367,7 +365,7 @@ namespace Immersive.Framework.Loading
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

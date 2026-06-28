@@ -1,3 +1,4 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Threading.Tasks;
@@ -30,16 +31,16 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source) ? nameof(SnapshotParticipantQaSmokeRunner) : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(SnapshotParticipantQaSmokeRunner));
 
-            var descriptorPassed = ValidateDescriptorAndContext(logger, normalizedSource, out var descriptor, out var context);
+            bool descriptorPassed = ValidateDescriptorAndContext(logger, normalizedSource, out var descriptor, out var context);
 
             var envelope = default(SnapshotEnvelope);
-            var capturePassed = descriptorPassed && ValidateCapture(logger, descriptor, context, out envelope);
-            var restorePassed = capturePassed && ValidateRestore(logger, descriptor, envelope);
-            var rejectedRestorePassed = capturePassed && ValidateForeignEnvelopeRejected(logger, descriptor, context);
-            var optionalSkipPassed = ValidateOptionalSkip(logger, normalizedSource);
-            var canonicalBoundaryPassed = ValidateCanonicalBoundary(logger);
+            bool capturePassed = descriptorPassed && ValidateCapture(logger, descriptor, context, out envelope);
+            bool restorePassed = capturePassed && ValidateRestore(logger, descriptor, envelope);
+            bool rejectedRestorePassed = capturePassed && ValidateForeignEnvelopeRejected(logger, descriptor, context);
+            bool optionalSkipPassed = ValidateOptionalSkip(logger, normalizedSource);
+            bool canonicalBoundaryPassed = ValidateCanonicalBoundary(logger);
 
             return Task.FromResult(descriptorPassed
                 && capturePassed
@@ -74,7 +75,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "qa.snapshot.capture");
 
-            var passed = descriptor.IsValid
+            bool passed = descriptor.IsValid
                 && context.IsValid
                 && descriptor.IsRequired
                 && descriptor.SupportsCaptureContext(context)
@@ -112,7 +113,7 @@ namespace Immersive.Framework.Diagnostics
             var captureResult = participant.CaptureSnapshot(context);
             envelope = captureResult.Envelope;
 
-            var passed = captureResult.IsValid
+            bool passed = captureResult.IsValid
                 && captureResult.Captured
                 && captureResult.Completed
                 && captureResult.HasEnvelope
@@ -151,7 +152,7 @@ namespace Immersive.Framework.Diagnostics
             var restoreContext = SnapshotRestoreContext.FromEnvelope(envelope, nameof(SnapshotParticipantQaSmokeRunner), "qa.snapshot.restore");
             var restoreResult = participant.RestoreSnapshot(restoreContext);
 
-            var passed = restoreContext.IsValid
+            bool passed = restoreContext.IsValid
                 && restoreContext.Matches(descriptor)
                 && restoreResult.IsValid
                 && restoreResult.Restored
@@ -202,7 +203,7 @@ namespace Immersive.Framework.Diagnostics
                 nameof(SnapshotParticipantQaSmokeRunner),
                 "qa.snapshot.restore.foreign"));
 
-            var passed = foreignEnvelope.IsValid
+            bool passed = foreignEnvelope.IsValid
                 && !descriptor.SupportsEnvelope(foreignEnvelope)
                 && restoreResult.IsValid
                 && restoreResult.Rejected
@@ -239,7 +240,7 @@ namespace Immersive.Framework.Diagnostics
             var captureResult = SnapshotParticipantCaptureResult.SkippedResult(descriptor, "Optional participant skipped synthetically.");
             var restoreResult = SnapshotParticipantRestoreResult.SkippedResult(descriptor, "Optional participant restore skipped synthetically.");
 
-            var passed = descriptor.IsValid
+            bool passed = descriptor.IsValid
                 && descriptor.IsOptional
                 && captureResult.IsValid
                 && captureResult.Skipped
@@ -267,14 +268,14 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidateCanonicalBoundary(FrameworkLogger logger)
         {
-            var canonicalNamespace = typeof(SnapshotEnvelope).Namespace;
-            var diagnosticsSnapshotsOutsideCanonicalNamespace = typeof(PauseSnapshot).Namespace != canonicalNamespace
+            string canonicalNamespace = typeof(SnapshotEnvelope).Namespace;
+            bool diagnosticsSnapshotsOutsideCanonicalNamespace = typeof(PauseSnapshot).Namespace != canonicalNamespace
                 && typeof(GateSnapshot).Namespace != canonicalNamespace
                 && typeof(TransitionSnapshot).Namespace != canonicalNamespace
                 && typeof(TransitionEffectSnapshot).Namespace != canonicalNamespace
                 && typeof(ObjectEntryRuntimeContextSnapshot).Namespace != canonicalNamespace;
 
-            var passed = string.Equals(canonicalNamespace, "Immersive.Framework.Snapshot", StringComparison.Ordinal)
+            bool passed = string.Equals(canonicalNamespace, "Immersive.Framework.Snapshot", StringComparison.Ordinal)
                 && diagnosticsSnapshotsOutsideCanonicalNamespace;
 
             LogStep(
@@ -294,7 +295,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogStep(FrameworkLogger logger, string step, bool passed, LogField[] fields)
         {
-            var allFields = AppendFields(
+            LogField[] allFields = AppendFields(
                 LogFields.Of(
                     LogFields.Field("step", step),
                     LogFields.Field("passed", passed)),
@@ -333,7 +334,7 @@ namespace Immersive.Framework.Diagnostics
                     throw new ArgumentException("Synthetic Snapshot participant requires a valid descriptor.", nameof(descriptor));
                 }
 
-                this._descriptor = descriptor;
+                _descriptor = descriptor;
             }
 
             public SnapshotParticipantDescriptor GetSnapshotDescriptor()

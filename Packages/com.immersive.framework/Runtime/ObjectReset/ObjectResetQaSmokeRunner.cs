@@ -1,3 +1,4 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using Immersive.Framework.Diagnostics;
 using Immersive.Framework.Identity;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.ObjectEntry;
+using Immersive.Framework.ObjectReset.Unity;
 using Immersive.Logging.Records;
 using UnityEngine;
 
@@ -110,17 +112,17 @@ namespace Immersive.Framework.ObjectReset
 
                 var invalidResult = ObjectResetTargetResolver.ResolveTarget(snapshot, default);
 
-                var validResolved = validResult.Succeeded
+                bool validResolved = validResult.Succeeded
                     && validResult.HasResolvedTarget
                     && validResult.ResolvedTarget.Id == activityEntry.Id
                     && validResult.BlockingIssueCount == 0;
-                var missingRejected = missingResult.Status == ObjectResetResultStatus.RejectedTargetNotFound
+                bool missingRejected = missingResult.Status == ObjectResetResultStatus.RejectedTargetNotFound
                     && missingResult.BlockingIssueCount == 1
                     && !missingResult.HasResolvedTarget;
-                var staleRejected = staleResult.Status == ObjectResetResultStatus.RejectedForeignTarget
+                bool staleRejected = staleResult.Status == ObjectResetResultStatus.RejectedForeignTarget
                     && staleResult.BlockingIssueCount == 1
                     && !staleResult.HasResolvedTarget;
-                var invalidRejected = invalidResult.Status == ObjectResetResultStatus.RejectedInvalidRequest
+                bool invalidRejected = invalidResult.Status == ObjectResetResultStatus.RejectedInvalidRequest
                     && invalidResult.BlockingIssueCount == 1
                     && !invalidResult.HasResolvedTarget;
 
@@ -264,7 +266,7 @@ namespace Immersive.Framework.ObjectReset
                     SyntheticObjectResetParticipantMode.Success);
 
                 var participantSource = new SyntheticObjectResetParticipantSource(requiredParticipant, optionalParticipant);
-                var resolvedParticipants = participantSource.ResolveObjectResetParticipants(request, resolution.ResolvedTarget);
+                IReadOnlyList<IObjectResetParticipant> resolvedParticipants = participantSource.ResolveObjectResetParticipants(request, resolution.ResolvedTarget);
 
                 var requiredDescriptor = requiredParticipant.GetObjectResetDescriptor();
                 var optionalDescriptor = optionalParticipant.GetObjectResetDescriptor();
@@ -282,26 +284,26 @@ namespace Immersive.Framework.ObjectReset
                 var skippedResult = optionalParticipant.ResetObject(optionalContext);
                 var failureResult = failureParticipant.ResetObject(failureContext);
 
-                var sourceResolved = resolvedParticipants.Count == 2
+                bool sourceResolved = resolvedParticipants.Count == 2
                     && ReferenceEquals(resolvedParticipants[0], requiredParticipant)
                     && ReferenceEquals(resolvedParticipants[1], optionalParticipant);
-                var requiredSupportsTarget = requiredDescriptor.SupportsResolvedTarget(request, resolution.ResolvedTarget);
-                var optionalSupportsTarget = optionalDescriptor.SupportsResolvedTarget(request, resolution.ResolvedTarget);
-                var foreignRejected = !foreignDescriptor.SupportsResolvedTarget(request, resolution.ResolvedTarget);
-                var entriesValid = requiredEntry.IsValid
+                bool requiredSupportsTarget = requiredDescriptor.SupportsResolvedTarget(request, resolution.ResolvedTarget);
+                bool optionalSupportsTarget = optionalDescriptor.SupportsResolvedTarget(request, resolution.ResolvedTarget);
+                bool foreignRejected = !foreignDescriptor.SupportsResolvedTarget(request, resolution.ResolvedTarget);
+                bool entriesValid = requiredEntry.IsValid
                     && optionalEntry.IsValid
                     && requiredEntry.IsRequired
                     && optionalEntry.IsOptional;
-                var contextsValid = requiredContext.IsValid
+                bool contextsValid = requiredContext.IsValid
                     && optionalContext.IsValid
                     && failureContext.IsValid;
-                var successValid = successResult.Succeeded
+                bool successValid = successResult.Succeeded
                     && !successResult.BlocksReset
                     && successResult.IssueCount == 0;
-                var skippedValid = skippedResult.WasSkipped
+                bool skippedValid = skippedResult.WasSkipped
                     && !skippedResult.BlocksReset
                     && skippedResult.IssueCount == 0;
-                var failureValid = failureResult.Failed
+                bool failureValid = failureResult.Failed
                     && failureResult.BlocksReset
                     && failureResult.IssueCount == 1;
 
@@ -445,23 +447,23 @@ namespace Immersive.Framework.ObjectReset
                 var requiredFailureResult = runtime.Execute(snapshot, request, new SyntheticObjectResetParticipantSource(requiredFailure));
                 var optionalFailureResult = runtime.Execute(snapshot, request, new SyntheticObjectResetParticipantSource(optionalFailure));
 
-                var planOrdered = plan.ParticipantCount == 2
+                bool planOrdered = plan.ParticipantCount == 2
                     && plan.Participants[0].ParticipantId == optionalSkipped.GetObjectResetDescriptor().ParticipantId
                     && plan.Participants[1].ParticipantId == requiredSuccess.GetObjectResetDescriptor().ParticipantId;
-                var successAggregated = successResult.Status == ObjectResetResultStatus.Succeeded
+                bool successAggregated = successResult.Status == ObjectResetResultStatus.Succeeded
                     && successResult.ParticipantCount == 2
                     && successResult.ParticipantSucceededCount == 1
                     && successResult.ParticipantSkippedCount == 1
                     && successResult.ParticipantFailedCount == 0
                     && successResult.BlockingIssueCount == 0;
-                var noParticipantsSucceeded = noParticipantsResult.Status == ObjectResetResultStatus.SucceededNoParticipants
+                bool noParticipantsSucceeded = noParticipantsResult.Status == ObjectResetResultStatus.SucceededNoParticipants
                     && noParticipantsResult.ParticipantCount == 0
                     && noParticipantsResult.BlockingIssueCount == 0;
-                var requiredFailureBlocked = requiredFailureResult.Status == ObjectResetResultStatus.Failed
+                bool requiredFailureBlocked = requiredFailureResult.Status == ObjectResetResultStatus.Failed
                     && requiredFailureResult.ParticipantFailedCount == 1
                     && requiredFailureResult.ParticipantBlockingFailureCount == 1
                     && requiredFailureResult.BlockingIssueCount == 1;
-                var optionalFailureWarned = optionalFailureResult.Status == ObjectResetResultStatus.CompletedWithWarnings
+                bool optionalFailureWarned = optionalFailureResult.Status == ObjectResetResultStatus.CompletedWithWarnings
                     && optionalFailureResult.ParticipantFailedCount == 1
                     && optionalFailureResult.ParticipantBlockingFailureCount == 0
                     && optionalFailureResult.BlockingIssueCount == 0
@@ -552,7 +554,7 @@ namespace Immersive.Framework.ObjectReset
                     return false;
                 }
 
-                var objectEntryId = $"qa.object-reset.host.target.{Guid.NewGuid():N}";
+                string objectEntryId = $"qa.object-reset.host.target.{Guid.NewGuid():N}";
                 qaObject = new GameObject("QA_ObjectResetRuntimeHost_Target");
                 var declaration = qaObject.AddComponent<ObjectEntryDeclaration>();
                 declaration.ConfigureForQa(
@@ -616,20 +618,20 @@ namespace Immersive.Framework.ObjectReset
                     source,
                     "qa.object-reset.runtime-host.missing"));
 
-                var hostSnapshotAvailable = runtimeHost.TryGetObjectEntryRuntimeContextSnapshot(out var hostSnapshot)
+                bool hostSnapshotAvailable = runtimeHost.TryGetObjectEntryRuntimeContextSnapshot(out var hostSnapshot)
                     && hostSnapshot != null
                     && hostSnapshot.IsAvailable;
-                var hostResolvedTarget = successResult.HasResolvedTarget
+                bool hostResolvedTarget = successResult.HasResolvedTarget
                     && successResult.ResolvedTarget.Id == id;
-                var successValid = successResult.Status == ObjectResetResultStatus.Succeeded
+                bool successValid = successResult.Status == ObjectResetResultStatus.Succeeded
                     && successResult.ParticipantCount == 2
                     && successResult.ParticipantSucceededCount == 1
                     && successResult.ParticipantSkippedCount == 1
                     && successResult.BlockingIssueCount == 0;
-                var noParticipantsValid = noParticipantsResult.Status == ObjectResetResultStatus.SucceededNoParticipants
+                bool noParticipantsValid = noParticipantsResult.Status == ObjectResetResultStatus.SucceededNoParticipants
                     && noParticipantsResult.ParticipantCount == 0
                     && noParticipantsResult.BlockingIssueCount == 0;
-                var missingRejected = missingResult.Status == ObjectResetResultStatus.RejectedTargetNotFound
+                bool missingRejected = missingResult.Status == ObjectResetResultStatus.RejectedTargetNotFound
                     && missingResult.BlockingIssueCount == 1;
 
                 if (!hostSnapshotAvailable
@@ -659,7 +661,7 @@ namespace Immersive.Framework.ObjectReset
                         LogFields.Field("step", "runtime-host-integration"),
                         LogFields.Field("source", source),
                         LogFields.Field("hostSnapshotAvailable", hostSnapshotAvailable),
-                        LogFields.Field("snapshotSource", hostSnapshot != null ? hostSnapshot.Source : "<none>"),
+                        LogFields.Field("snapshotSource", hostSnapshot.ToDiagnosticText(x => x.Source)),
                         LogFields.Field("snapshotRevision", runtimeHost.ObjectEntryRuntimeContextRevision),
                         LogFields.Field("objectEntry", id.StableText),
                         LogFields.Field("hostResolvedTarget", hostResolvedTarget),
@@ -722,7 +724,7 @@ namespace Immersive.Framework.ObjectReset
                     return false;
                 }
 
-                var objectEntryId = $"qa.object-reset.trigger.target.{Guid.NewGuid():N}";
+                string objectEntryId = $"qa.object-reset.trigger.target.{Guid.NewGuid():N}";
                 qaObject = new GameObject("QA_ObjectResetTrigger_Target");
                 var declaration = qaObject.AddComponent<ObjectEntryDeclaration>();
                 declaration.ConfigureForQa(
@@ -742,7 +744,7 @@ namespace Immersive.Framework.ObjectReset
                 runtimeHost.SetObjectResetParticipantSource(null);
                 var snapshot = runtimeHost.RefreshObjectEntryRuntimeContextSnapshot($"{source}:object-reset-trigger-smoke");
                 var id = ObjectEntryId.From(objectEntryId);
-                var targetCollected = snapshot != null && snapshot.TryGet(id, out var descriptor);
+                bool targetCollected = snapshot != null && snapshot.TryGet(id, out var descriptor);
                 if (!targetCollected)
                 {
                     logger.Warning(
@@ -756,22 +758,22 @@ namespace Immersive.Framework.ObjectReset
                 }
 
                 trigger.RequestObjectReset();
-                var completed = await WaitForObjectResetTriggerAsync(trigger, 32);
+                bool completed = await WaitForObjectResetTriggerAsync(trigger, 32);
 
-                var requestCompleted = completed
+                bool requestCompleted = completed
                     && !trigger.IsRequestInFlight
                     && trigger.LastEventPhase == FlowRequestEventPhase.Completed;
-                var resultSucceededNoParticipants = trigger.HasLastResult
+                bool resultSucceededNoParticipants = trigger.HasLastResult
                     && trigger.LastResultStatus == ObjectResetResultStatus.SucceededNoParticipants
                     && trigger.LastResultSucceededNoParticipants;
-                var outcomeSucceeded = trigger.LastRequestSucceeded;
-                var participantsValid = trigger.LastParticipantCount == 0
+                bool outcomeSucceeded = trigger.LastRequestSucceeded;
+                bool participantsValid = trigger.LastParticipantCount == 0
                     && trigger.LastSucceededParticipantCount == 0
                     && trigger.LastSkippedParticipantCount == 0
                     && trigger.LastFailedParticipantCount == 0;
-                var issuesValid = trigger.LastBlockingIssueCount == 0
+                bool issuesValid = trigger.LastBlockingIssueCount == 0
                     && trigger.LastNonBlockingIssueCount == 0;
-                var idResolved = string.Equals(trigger.ResolvedAuthoringObjectEntryId, objectEntryId, StringComparison.Ordinal);
+                bool idResolved = string.Equals(trigger.ResolvedAuthoringObjectEntryId, objectEntryId, StringComparison.Ordinal);
 
                 if (!requestCompleted
                     || !targetCollected
@@ -866,7 +868,7 @@ namespace Immersive.Framework.ObjectReset
                     return false;
                 }
 
-                var objectEntryId = $"qa.object-reset.bridge.target.{Guid.NewGuid():N}";
+                string objectEntryId = $"qa.object-reset.bridge.target.{Guid.NewGuid():N}";
                 qaObject = new GameObject("QA_ObjectResetBridge_Target");
                 var declaration = qaObject.AddComponent<ObjectEntryDeclaration>();
                 declaration.ConfigureForQa(
@@ -890,7 +892,7 @@ namespace Immersive.Framework.ObjectReset
                 runtimeHost.SetObjectResetParticipantSource(null);
                 var snapshot = runtimeHost.RefreshObjectEntryRuntimeContextSnapshot($"{source}:object-reset-bridge-smoke");
                 var id = ObjectEntryId.From(objectEntryId);
-                var targetCollected = snapshot != null && snapshot.TryGet(id, out _);
+                bool targetCollected = snapshot != null && snapshot.TryGet(id, out _);
                 if (!targetCollected)
                 {
                     logger.Warning(
@@ -904,16 +906,16 @@ namespace Immersive.Framework.ObjectReset
                 }
 
                 trigger.RequestObjectReset();
-                var completed = await WaitForObjectResetTriggerAsync(trigger, 32);
+                bool completed = await WaitForObjectResetTriggerAsync(trigger, 32);
 
-                var requestCompleted = completed
+                bool requestCompleted = completed
                     && !trigger.IsRequestInFlight
                     && trigger.LastEventPhase == FlowRequestEventPhase.Completed;
-                var resultSucceededNoParticipants = trigger.HasLastResult
+                bool resultSucceededNoParticipants = trigger.HasLastResult
                     && trigger.LastResultStatus == ObjectResetResultStatus.SucceededNoParticipants
                     && trigger.LastResultSucceededNoParticipants;
-                var outcomeSucceeded = trigger.LastRequestSucceeded;
-                var countersValid = counters.submitted == 1
+                bool outcomeSucceeded = trigger.LastRequestSucceeded;
+                bool countersValid = counters.submitted == 1
                     && counters.succeeded == 1
                     && counters.succeededNoParticipants == 1
                     && counters.succeededWithParticipants == 0
@@ -921,7 +923,7 @@ namespace Immersive.Framework.ObjectReset
                     && counters.ignored == 0
                     && counters.failed == 0
                     && counters.completed == 1;
-                var issuesValid = trigger.LastBlockingIssueCount == 0
+                bool issuesValid = trigger.LastBlockingIssueCount == 0
                     && trigger.LastNonBlockingIssueCount == 0;
 
                 if (!requestCompleted
@@ -1025,7 +1027,7 @@ namespace Immersive.Framework.ObjectReset
                     return false;
                 }
 
-                var objectEntryId = $"qa.object-reset.unity-source.target.{Guid.NewGuid():N}";
+                string objectEntryId = $"qa.object-reset.unity-source.target.{Guid.NewGuid():N}";
                 qaObject = new GameObject("QA_ObjectResetUnityParticipantSource_Target");
                 var declaration = qaObject.AddComponent<ObjectEntryDeclaration>();
                 declaration.ConfigureForQa(
@@ -1067,7 +1069,7 @@ namespace Immersive.Framework.ObjectReset
                 var snapshot = runtimeHost.RefreshObjectEntryRuntimeContextSnapshot($"{source}:object-reset-unity-participant-source-smoke");
                 var id = ObjectEntryId.From(objectEntryId);
                 ObjectEntryDescriptor descriptor = default;
-                var targetCollected = snapshot != null && snapshot.TryGet(id, out descriptor);
+                bool targetCollected = snapshot != null && snapshot.TryGet(id, out descriptor);
                 if (!targetCollected)
                 {
                     logger.Warning(
@@ -1084,23 +1086,23 @@ namespace Immersive.Framework.ObjectReset
                     ObjectResetTarget.FromDescriptor(descriptor),
                     source,
                     "qa.object-reset.unity-source.request");
-                var resolvedParticipants = unitySource.ResolveObjectResetParticipants(request, descriptor);
-                var registered = unitySource.RegisterWithCurrentHost()
+                IReadOnlyList<IObjectResetParticipant> resolvedParticipants = unitySource.ResolveObjectResetParticipants(request, descriptor);
+                bool registered = unitySource.RegisterWithCurrentHost()
                     && runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
                 var result = await runtimeHost.RequestObjectResetAsync(request);
 
-                var sourceResolved = resolvedParticipants != null && resolvedParticipants.Count == 2;
-                var resultValid = result.Status == ObjectResetResultStatus.Succeeded
+                bool sourceResolved = resolvedParticipants != null && resolvedParticipants.Count == 2;
+                bool resultValid = result.Status == ObjectResetResultStatus.Succeeded
                     && result.ParticipantCount == 2
                     && result.ParticipantSucceededCount == 1
                     && result.ParticipantSkippedCount == 1
                     && result.ParticipantFailedCount == 0
                     && result.BlockingIssueCount == 0
                     && result.NonBlockingIssueCount == 0;
-                var targetResolved = result.HasResolvedTarget
+                bool targetResolved = result.HasResolvedTarget
                     && result.ResolvedTarget.Id == id
                     && result.ResolvedTarget.HasOwnerIdentity;
-                var cleared = unitySource.ClearRegistration()
+                bool cleared = unitySource.ClearRegistration()
                     && !runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
 
                 if (!targetCollected
@@ -1197,7 +1199,7 @@ namespace Immersive.Framework.ObjectReset
                     return false;
                 }
 
-                var objectEntryId = $"qa.object-reset.transform.target.{Guid.NewGuid():N}";
+                string objectEntryId = $"qa.object-reset.transform.target.{Guid.NewGuid():N}";
                 qaObject = new GameObject("QA_ObjectResetTransform_Target");
                 var declaration = qaObject.AddComponent<ObjectEntryDeclaration>();
                 declaration.ConfigureForQa(
@@ -1246,7 +1248,7 @@ namespace Immersive.Framework.ObjectReset
                 var snapshot = runtimeHost.RefreshObjectEntryRuntimeContextSnapshot($"{source}:object-reset-transform-participant-smoke");
                 var id = ObjectEntryId.From(objectEntryId);
                 ObjectEntryDescriptor descriptor = default;
-                var targetCollected = snapshot != null && snapshot.TryGet(id, out descriptor);
+                bool targetCollected = snapshot != null && snapshot.TryGet(id, out descriptor);
                 if (!targetCollected)
                 {
                     logger.Warning(
@@ -1263,26 +1265,26 @@ namespace Immersive.Framework.ObjectReset
                     ObjectResetTarget.FromDescriptor(descriptor),
                     source,
                     "qa.object-reset.transform.request");
-                var resolvedParticipants = unitySource.ResolveObjectResetParticipants(request, descriptor);
-                var registered = unitySource.RegisterWithCurrentHost()
+                IReadOnlyList<IObjectResetParticipant> resolvedParticipants = unitySource.ResolveObjectResetParticipants(request, descriptor);
+                bool registered = unitySource.RegisterWithCurrentHost()
                     && runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
                 var result = await runtimeHost.RequestObjectResetAsync(request);
 
-                var sourceResolved = resolvedParticipants != null && resolvedParticipants.Count == 1;
-                var targetResolved = result.HasResolvedTarget
+                bool sourceResolved = resolvedParticipants != null && resolvedParticipants.Count == 1;
+                bool targetResolved = result.HasResolvedTarget
                     && result.ResolvedTarget.Id == id
                     && result.ResolvedTarget.HasOwnerIdentity;
-                var transformPositionReset = VectorApproximatelyEqual(qaObject.transform.localPosition, baselineLocalPosition);
-                var transformRotationReset = EulerApproximatelyEqual(qaObject.transform.localEulerAngles, baselineLocalEulerAngles);
-                var transformScaleReset = VectorApproximatelyEqual(qaObject.transform.localScale, baselineLocalScale);
-                var resultValid = result.Status == ObjectResetResultStatus.Succeeded
+                bool transformPositionReset = VectorApproximatelyEqual(qaObject.transform.localPosition, baselineLocalPosition);
+                bool transformRotationReset = EulerApproximatelyEqual(qaObject.transform.localEulerAngles, baselineLocalEulerAngles);
+                bool transformScaleReset = VectorApproximatelyEqual(qaObject.transform.localScale, baselineLocalScale);
+                bool resultValid = result.Status == ObjectResetResultStatus.Succeeded
                     && result.ParticipantCount == 1
                     && result.ParticipantSucceededCount == 1
                     && result.ParticipantSkippedCount == 0
                     && result.ParticipantFailedCount == 0
                     && result.BlockingIssueCount == 0
                     && result.NonBlockingIssueCount == 0;
-                var cleared = unitySource.ClearRegistration()
+                bool cleared = unitySource.ClearRegistration()
                     && !runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
 
                 if (!targetCollected
@@ -1392,7 +1394,7 @@ namespace Immersive.Framework.ObjectReset
                     return false;
                 }
 
-                var objectEntryId = $"qa.object-reset.required-guardrails.target.{Guid.NewGuid():N}";
+                string objectEntryId = $"qa.object-reset.required-guardrails.target.{Guid.NewGuid():N}";
                 qaObject = new GameObject("QA_ObjectResetRequiredGuardrails_Target");
                 var declaration = qaObject.AddComponent<ObjectEntryDeclaration>();
                 declaration.ConfigureForQa(
@@ -1409,7 +1411,7 @@ namespace Immersive.Framework.ObjectReset
                 var snapshot = runtimeHost.RefreshObjectEntryRuntimeContextSnapshot($"{source}:object-reset-required-guardrails-smoke");
                 var id = ObjectEntryId.From(objectEntryId);
                 ObjectEntryDescriptor descriptor = default;
-                var targetCollected = snapshot != null && snapshot.TryGet(id, out descriptor);
+                bool targetCollected = snapshot != null && snapshot.TryGet(id, out descriptor);
                 if (!targetCollected)
                 {
                     logger.Warning(
@@ -1432,7 +1434,7 @@ namespace Immersive.Framework.ObjectReset
                     source,
                     "qa.object-reset.required-guardrails.missing-adapter");
 
-                var registered = unitySource.RegisterWithCurrentHost()
+                bool registered = unitySource.RegisterWithCurrentHost()
                     && runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
                 var missingAdapterResult = await runtimeHost.RequestObjectResetAsync(missingAdapterRequest);
 
@@ -1492,27 +1494,27 @@ namespace Immersive.Framework.ObjectReset
                     "qa.object-reset.required-guardrails.optional-missing-baseline");
                 var optionalMissingBaselineResult = await runtimeHost.RequestObjectResetAsync(optionalMissingBaselineRequest);
 
-                var missingAdapterBlocked = missingAdapterResult.Status == ObjectResetResultStatus.Failed
+                bool missingAdapterBlocked = missingAdapterResult.Status == ObjectResetResultStatus.Failed
                     && missingAdapterResult.ParticipantCount == 0
                     && missingAdapterResult.BlockingIssueCount > 0;
-                var requiredMissingBaselineBlocked = requiredMissingBaselineResult.Status == ObjectResetResultStatus.Failed
+                bool requiredMissingBaselineBlocked = requiredMissingBaselineResult.Status == ObjectResetResultStatus.Failed
                     && requiredMissingBaselineResult.ParticipantCount == 1
                     && requiredMissingBaselineResult.ParticipantFailedCount == 1
                     && requiredMissingBaselineResult.ParticipantBlockingFailureCount == 1
                     && requiredMissingBaselineResult.BlockingIssueCount > 0;
-                var optionalMissingBaselineWarned = optionalMissingBaselineResult.Status == ObjectResetResultStatus.CompletedWithWarnings
+                bool optionalMissingBaselineWarned = optionalMissingBaselineResult.Status == ObjectResetResultStatus.CompletedWithWarnings
                     && optionalMissingBaselineResult.ParticipantCount == 1
                     && optionalMissingBaselineResult.ParticipantFailedCount == 1
                     && optionalMissingBaselineResult.ParticipantBlockingFailureCount == 0
                     && optionalMissingBaselineResult.BlockingIssueCount == 0
                     && optionalMissingBaselineResult.NonBlockingIssueCount > 0;
-                var targetResolved = missingAdapterResult.HasResolvedTarget
+                bool targetResolved = missingAdapterResult.HasResolvedTarget
                     && requiredMissingBaselineResult.HasResolvedTarget
                     && optionalMissingBaselineResult.HasResolvedTarget
                     && missingAdapterResult.ResolvedTarget.Id == id
                     && requiredMissingBaselineResult.ResolvedTarget.Id == id
                     && optionalMissingBaselineResult.ResolvedTarget.Id == id;
-                var cleared = unitySource.ClearRegistration()
+                bool cleared = unitySource.ClearRegistration()
                     && !runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
 
                 if (!targetCollected
@@ -1623,7 +1625,7 @@ namespace Immersive.Framework.ObjectReset
                     return false;
                 }
 
-                var objectEntryId = $"qa.object-reset.unity-adapters.target.{Guid.NewGuid():N}";
+                string objectEntryId = $"qa.object-reset.unity-adapters.target.{Guid.NewGuid():N}";
                 qaObject = new GameObject("QA_ObjectResetUnityAdaptersClosure_Target");
                 var declaration = qaObject.AddComponent<ObjectEntryDeclaration>();
                 declaration.ConfigureForQa(
@@ -1666,7 +1668,7 @@ namespace Immersive.Framework.ObjectReset
                 var snapshot = runtimeHost.RefreshObjectEntryRuntimeContextSnapshot($"{source}:object-reset-unity-adapters-closure-smoke");
                 var id = ObjectEntryId.From(objectEntryId);
                 ObjectEntryDescriptor descriptor = default;
-                var targetCollected = snapshot != null && snapshot.TryGet(id, out descriptor);
+                bool targetCollected = snapshot != null && snapshot.TryGet(id, out descriptor);
                 if (!targetCollected)
                 {
                     logger.Warning(
@@ -1680,7 +1682,7 @@ namespace Immersive.Framework.ObjectReset
                 }
 
                 var target = ObjectResetTarget.FromDescriptor(descriptor);
-                var targetResolved = ObjectResetTargetResolver.ResolveTarget(
+                bool targetResolved = ObjectResetTargetResolver.ResolveTarget(
                     snapshot,
                     ObjectResetRequest.ForTarget(target, source, "qa.object-reset.unity-adapters.target-resolution")).Succeeded;
 
@@ -1689,17 +1691,17 @@ namespace Immersive.Framework.ObjectReset
                 qaObject.transform.localScale = new Vector3(3f, 4f, 5f);
 
                 unitySource.ConfigureForQa(qaRegisterOnEnable: false, transformParticipant);
-                var registered = unitySource.RegisterWithCurrentHost()
+                bool registered = unitySource.RegisterWithCurrentHost()
                     && runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
                 var hostResult = await runtimeHost.RequestObjectResetAsync(ObjectResetRequest.ForTarget(
                     target,
                     source,
                     "qa.object-reset.unity-adapters.transform"));
 
-                var transformPositionReset = VectorApproximatelyEqual(qaObject.transform.localPosition, targetBaselinePosition);
-                var transformRotationReset = EulerApproximatelyEqual(qaObject.transform.localEulerAngles, targetBaselineEuler);
-                var transformScaleReset = VectorApproximatelyEqual(qaObject.transform.localScale, targetBaselineScale);
-                var cleared = unitySource.ClearRegistration()
+                bool transformPositionReset = VectorApproximatelyEqual(qaObject.transform.localPosition, targetBaselinePosition);
+                bool transformRotationReset = EulerApproximatelyEqual(qaObject.transform.localEulerAngles, targetBaselineEuler);
+                bool transformScaleReset = VectorApproximatelyEqual(qaObject.transform.localScale, targetBaselineScale);
+                bool cleared = unitySource.ClearRegistration()
                     && !runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
 
                 var objectResetRuntime = new ObjectResetRuntime();
@@ -1771,28 +1773,28 @@ namespace Immersive.Framework.ObjectReset
                         "qa.object-reset.unity-adapters.optional-missing-baseline"),
                     new SyntheticObjectResetParticipantSource(optionalMissingBaselineParticipant));
 
-                var hostSucceeded = hostResult.Status == ObjectResetResultStatus.Succeeded
+                bool hostSucceeded = hostResult.Status == ObjectResetResultStatus.Succeeded
                     && hostResult.ParticipantCount == 1
                     && hostResult.ParticipantSucceededCount == 1
                     && hostResult.ParticipantFailedCount == 0
                     && hostResult.BlockingIssueCount == 0
                     && hostResult.NonBlockingIssueCount == 0;
-                var missingAdapterBlocked = missingAdapterResult.Status == ObjectResetResultStatus.Failed
+                bool missingAdapterBlocked = missingAdapterResult.Status == ObjectResetResultStatus.Failed
                     && missingAdapterResult.ParticipantCount == 0
                     && missingAdapterResult.BlockingIssueCount > 0;
-                var requiredMissingBaselineBlocked = requiredMissingBaselineResult.Status == ObjectResetResultStatus.Failed
+                bool requiredMissingBaselineBlocked = requiredMissingBaselineResult.Status == ObjectResetResultStatus.Failed
                     && requiredMissingBaselineResult.ParticipantCount == 1
                     && requiredMissingBaselineResult.ParticipantFailedCount == 1
                     && requiredMissingBaselineResult.ParticipantBlockingFailureCount == 1
                     && requiredMissingBaselineResult.BlockingIssueCount > 0;
-                var optionalMissingBaselineWarned = optionalMissingBaselineResult.Status == ObjectResetResultStatus.CompletedWithWarnings
+                bool optionalMissingBaselineWarned = optionalMissingBaselineResult.Status == ObjectResetResultStatus.CompletedWithWarnings
                     && optionalMissingBaselineResult.ParticipantCount == 1
                     && optionalMissingBaselineResult.ParticipantFailedCount == 1
                     && optionalMissingBaselineResult.ParticipantBlockingFailureCount == 0
                     && optionalMissingBaselineResult.BlockingIssueCount == 0
                     && optionalMissingBaselineResult.NonBlockingIssueCount > 0;
-                var transformReset = transformPositionReset && transformRotationReset && transformScaleReset;
-                var closurePassed = targetCollected
+                bool transformReset = transformPositionReset && transformRotationReset && transformScaleReset;
+                bool closurePassed = targetCollected
                     && targetResolved
                     && registered
                     && cleared
@@ -1830,7 +1832,7 @@ namespace Immersive.Framework.ObjectReset
                         LogFields.Field("step", "unity-adapters-closure"),
                         LogFields.Field("source", source),
                         LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
-                        LogFields.Field("snapshotSource", snapshot != null ? snapshot.Source : "<none>"),
+                        LogFields.Field("snapshotSource", snapshot.ToDiagnosticText(x => x.Source)),
                         LogFields.Field("objectEntry", id.StableText),
                         LogFields.Field("targetCollected", targetCollected),
                         LogFields.Field("targetResolved", targetResolved),
@@ -1911,7 +1913,7 @@ namespace Immersive.Framework.ObjectReset
                 var unitySource = sourceObject.AddComponent<ObjectResetUnityParticipantSource>();
                 unitySource.ConfigureForQa(qaRegisterOnEnable: false);
 
-                var inactiveObjectEntryId = $"qa.object-reset.gameobject-active.inactive-target.{Guid.NewGuid():N}";
+                string inactiveObjectEntryId = $"qa.object-reset.gameobject-active.inactive-target.{Guid.NewGuid():N}";
                 inactiveBaselineObject = new GameObject("QA_ObjectResetGameObjectActive_InactiveBaselineTarget");
                 var inactiveDeclaration = inactiveBaselineObject.AddComponent<ObjectEntryDeclaration>();
                 inactiveDeclaration.ConfigureForQa(
@@ -1934,7 +1936,7 @@ namespace Immersive.Framework.ObjectReset
                     qaBaselineConfigured: true,
                     qaBaselineActiveSelf: false);
 
-                var activeObjectEntryId = $"qa.object-reset.gameobject-active.active-target.{Guid.NewGuid():N}";
+                string activeObjectEntryId = $"qa.object-reset.gameobject-active.active-target.{Guid.NewGuid():N}";
                 activeBaselineObject = new GameObject("QA_ObjectResetGameObjectActive_ActiveBaselineTarget");
                 var activeDeclaration = activeBaselineObject.AddComponent<ObjectEntryDeclaration>();
                 activeDeclaration.ConfigureForQa(
@@ -1957,7 +1959,7 @@ namespace Immersive.Framework.ObjectReset
                     qaBaselineConfigured: true,
                     qaBaselineActiveSelf: true);
 
-                var guardrailObjectEntryId = $"qa.object-reset.gameobject-active.guardrails.{Guid.NewGuid():N}";
+                string guardrailObjectEntryId = $"qa.object-reset.gameobject-active.guardrails.{Guid.NewGuid():N}";
                 guardrailObject = new GameObject("QA_ObjectResetGameObjectActive_GuardrailTarget");
                 var guardrailDeclaration = guardrailObject.AddComponent<ObjectEntryDeclaration>();
                 guardrailDeclaration.ConfigureForQa(
@@ -1977,9 +1979,9 @@ namespace Immersive.Framework.ObjectReset
                 ObjectEntryDescriptor inactiveDescriptor = default;
                 ObjectEntryDescriptor activeDescriptor = default;
                 ObjectEntryDescriptor guardrailDescriptor = default;
-                var inactiveTargetCollected = snapshot != null && snapshot.TryGet(inactiveId, out inactiveDescriptor);
-                var activeTargetCollected = snapshot != null && snapshot.TryGet(activeId, out activeDescriptor);
-                var guardrailTargetCollected = snapshot != null && snapshot.TryGet(guardrailId, out guardrailDescriptor);
+                bool inactiveTargetCollected = snapshot != null && snapshot.TryGet(inactiveId, out inactiveDescriptor);
+                bool activeTargetCollected = snapshot != null && snapshot.TryGet(activeId, out activeDescriptor);
+                bool guardrailTargetCollected = snapshot != null && snapshot.TryGet(guardrailId, out guardrailDescriptor);
                 if (!inactiveTargetCollected || !activeTargetCollected || !guardrailTargetCollected)
                 {
                     logger.Warning(
@@ -1998,13 +2000,13 @@ namespace Immersive.Framework.ObjectReset
                 var activeTarget = ObjectResetTarget.FromDescriptor(activeDescriptor);
                 var guardrailTarget = ObjectResetTarget.FromDescriptor(guardrailDescriptor);
 
-                var inactiveTargetResolved = ObjectResetTargetResolver.ResolveTarget(
+                bool inactiveTargetResolved = ObjectResetTargetResolver.ResolveTarget(
                     snapshot,
                     ObjectResetRequest.ForTarget(inactiveTarget, source, "qa.object-reset.gameobject-active.inactive-target-resolution")).Succeeded;
-                var activeTargetResolved = ObjectResetTargetResolver.ResolveTarget(
+                bool activeTargetResolved = ObjectResetTargetResolver.ResolveTarget(
                     snapshot,
                     ObjectResetRequest.ForTarget(activeTarget, source, "qa.object-reset.gameobject-active.active-target-resolution")).Succeeded;
-                var guardrailTargetResolved = ObjectResetTargetResolver.ResolveTarget(
+                bool guardrailTargetResolved = ObjectResetTargetResolver.ResolveTarget(
                     snapshot,
                     ObjectResetRequest.ForTarget(guardrailTarget, source, "qa.object-reset.gameobject-active.guardrail-target-resolution")).Succeeded;
 
@@ -2012,22 +2014,22 @@ namespace Immersive.Framework.ObjectReset
                 activeBaselineObject.SetActive(false);
 
                 unitySource.ConfigureForQa(qaRegisterOnEnable: false, inactiveParticipant, activeParticipant);
-                var registered = unitySource.RegisterWithCurrentHost()
+                bool registered = unitySource.RegisterWithCurrentHost()
                     && runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
 
                 var inactiveBaselineResult = await runtimeHost.RequestObjectResetAsync(ObjectResetRequest.ForTarget(
                     inactiveTarget,
                     source,
                     "qa.object-reset.gameobject-active.inactive-baseline"));
-                var inactiveTargetReset = !inactiveBaselineObject.activeSelf;
+                bool inactiveTargetReset = !inactiveBaselineObject.activeSelf;
 
                 var activeBaselineResult = await runtimeHost.RequestObjectResetAsync(ObjectResetRequest.ForTarget(
                     activeTarget,
                     source,
                     "qa.object-reset.gameobject-active.active-baseline"));
-                var activeTargetReset = activeBaselineObject.activeSelf;
+                bool activeTargetReset = activeBaselineObject.activeSelf;
 
-                var cleared = unitySource.ClearRegistration()
+                bool cleared = unitySource.ClearRegistration()
                     && !runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
 
                 var objectResetRuntime = new ObjectResetRuntime();
@@ -2087,34 +2089,34 @@ namespace Immersive.Framework.ObjectReset
                         "qa.object-reset.gameobject-active.optional-missing-baseline"),
                     new SyntheticObjectResetParticipantSource(optionalMissingBaselineParticipant));
 
-                var inactiveResetSucceeded = inactiveBaselineResult.Status == ObjectResetResultStatus.Succeeded
+                bool inactiveResetSucceeded = inactiveBaselineResult.Status == ObjectResetResultStatus.Succeeded
                     && inactiveBaselineResult.ParticipantCount == 1
                     && inactiveBaselineResult.ParticipantSucceededCount == 1
                     && inactiveBaselineResult.BlockingIssueCount == 0
                     && inactiveBaselineResult.NonBlockingIssueCount == 0
                     && inactiveTargetReset;
-                var activeResetSucceeded = activeBaselineResult.Status == ObjectResetResultStatus.Succeeded
+                bool activeResetSucceeded = activeBaselineResult.Status == ObjectResetResultStatus.Succeeded
                     && activeBaselineResult.ParticipantCount == 1
                     && activeBaselineResult.ParticipantSucceededCount == 1
                     && activeBaselineResult.BlockingIssueCount == 0
                     && activeBaselineResult.NonBlockingIssueCount == 0
                     && activeTargetReset;
-                var missingAdapterBlocked = missingAdapterResult.Status == ObjectResetResultStatus.Failed
+                bool missingAdapterBlocked = missingAdapterResult.Status == ObjectResetResultStatus.Failed
                     && missingAdapterResult.ParticipantCount == 0
                     && missingAdapterResult.BlockingIssueCount > 0;
-                var requiredMissingBaselineBlocked = requiredMissingBaselineResult.Status == ObjectResetResultStatus.Failed
+                bool requiredMissingBaselineBlocked = requiredMissingBaselineResult.Status == ObjectResetResultStatus.Failed
                     && requiredMissingBaselineResult.ParticipantCount == 1
                     && requiredMissingBaselineResult.ParticipantFailedCount == 1
                     && requiredMissingBaselineResult.ParticipantBlockingFailureCount == 1
                     && requiredMissingBaselineResult.BlockingIssueCount > 0;
-                var optionalMissingBaselineWarned = optionalMissingBaselineResult.Status == ObjectResetResultStatus.CompletedWithWarnings
+                bool optionalMissingBaselineWarned = optionalMissingBaselineResult.Status == ObjectResetResultStatus.CompletedWithWarnings
                     && optionalMissingBaselineResult.ParticipantCount == 1
                     && optionalMissingBaselineResult.ParticipantFailedCount == 1
                     && optionalMissingBaselineResult.ParticipantBlockingFailureCount == 0
                     && optionalMissingBaselineResult.BlockingIssueCount == 0
                     && optionalMissingBaselineResult.NonBlockingIssueCount > 0;
 
-                var closurePassed = inactiveTargetCollected
+                bool closurePassed = inactiveTargetCollected
                     && activeTargetCollected
                     && guardrailTargetCollected
                     && inactiveTargetResolved
@@ -2161,7 +2163,7 @@ namespace Immersive.Framework.ObjectReset
                         LogFields.Field("step", "gameobject-active-closure"),
                         LogFields.Field("source", source),
                         LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
-                        LogFields.Field("snapshotSource", snapshot != null ? snapshot.Source : "<none>"),
+                        LogFields.Field("snapshotSource", snapshot.ToDiagnosticText(x => x.Source)),
                         LogFields.Field("inactiveObjectEntry", inactiveId.StableText),
                         LogFields.Field("activeObjectEntry", activeId.StableText),
                         LogFields.Field("inactiveTargetCollected", inactiveTargetCollected),
@@ -2255,7 +2257,7 @@ namespace Immersive.Framework.ObjectReset
                     return false;
                 }
 
-                var objectEntryId = $"qa.object-reset.foundation.target.{Guid.NewGuid():N}";
+                string objectEntryId = $"qa.object-reset.foundation.target.{Guid.NewGuid():N}";
                 qaObject = new GameObject("QA_ObjectResetFoundation_Target");
                 var declaration = qaObject.AddComponent<ObjectEntryDeclaration>();
                 declaration.ConfigureForQa(
@@ -2280,7 +2282,7 @@ namespace Immersive.Framework.ObjectReset
                 var snapshot = runtimeHost.RefreshObjectEntryRuntimeContextSnapshot($"{source}:object-reset-foundation-closure-smoke");
                 var id = ObjectEntryId.From(objectEntryId);
                 ObjectEntryDescriptor descriptor = default;
-                var targetCollected = snapshot != null && snapshot.TryGet(id, out descriptor);
+                bool targetCollected = snapshot != null && snapshot.TryGet(id, out descriptor);
                 if (!targetCollected)
                 {
                     logger.Warning(
@@ -2323,23 +2325,23 @@ namespace Immersive.Framework.ObjectReset
 
                 runtimeHost.SetObjectResetParticipantSource(null);
                 trigger.RequestObjectReset();
-                var triggerCompleted = await WaitForObjectResetTriggerAsync(trigger, 32);
+                bool triggerCompleted = await WaitForObjectResetTriggerAsync(trigger, 32);
 
-                var hostSnapshotAvailable = runtimeHost.TryGetObjectEntryRuntimeContextSnapshot(out var hostSnapshot)
+                bool hostSnapshotAvailable = runtimeHost.TryGetObjectEntryRuntimeContextSnapshot(out var hostSnapshot)
                     && hostSnapshot != null
                     && hostSnapshot.IsAvailable;
-                var targetResolved = targetResolution.Succeeded
+                bool targetResolved = targetResolution.Succeeded
                     && targetResolution.HasResolvedTarget
                     && targetResolution.ResolvedTarget.Id == id
                     && targetResolution.BlockingIssueCount == 0;
-                var hostResultValid = hostResult.Status == ObjectResetResultStatus.Succeeded
+                bool hostResultValid = hostResult.Status == ObjectResetResultStatus.Succeeded
                     && hostResult.ParticipantCount == 2
                     && hostResult.ParticipantSucceededCount == 1
                     && hostResult.ParticipantSkippedCount == 1
                     && hostResult.ParticipantFailedCount == 0
                     && hostResult.BlockingIssueCount == 0
                     && hostResult.NonBlockingIssueCount == 0;
-                var triggerResultValid = triggerCompleted
+                bool triggerResultValid = triggerCompleted
                     && !trigger.IsRequestInFlight
                     && trigger.LastEventPhase == FlowRequestEventPhase.Completed
                     && trigger.LastRequestSucceeded
@@ -2347,7 +2349,7 @@ namespace Immersive.Framework.ObjectReset
                     && trigger.LastParticipantCount == 0
                     && trigger.LastBlockingIssueCount == 0
                     && trigger.LastNonBlockingIssueCount == 0;
-                var bridgeEventsValid = counters.submitted == 1
+                bool bridgeEventsValid = counters.submitted == 1
                     && counters.succeeded == 1
                     && counters.succeededWithParticipants == 0
                     && counters.succeededNoParticipants == 1
@@ -2355,8 +2357,8 @@ namespace Immersive.Framework.ObjectReset
                     && counters.ignored == 0
                     && counters.failed == 0
                     && counters.completed == 1;
-                var blockingIssues = hostResult.BlockingIssueCount + trigger.LastBlockingIssueCount + targetResolution.BlockingIssueCount;
-                var nonBlockingIssues = hostResult.NonBlockingIssueCount + trigger.LastNonBlockingIssueCount + targetResolution.NonBlockingIssueCount;
+                int blockingIssues = hostResult.BlockingIssueCount + trigger.LastBlockingIssueCount + targetResolution.BlockingIssueCount;
+                int nonBlockingIssues = hostResult.NonBlockingIssueCount + trigger.LastNonBlockingIssueCount + targetResolution.NonBlockingIssueCount;
 
                 if (!hostSnapshotAvailable
                     || !targetCollected
@@ -2390,7 +2392,7 @@ namespace Immersive.Framework.ObjectReset
                         LogFields.Field("step", "foundation-closure"),
                         LogFields.Field("source", source),
                         LogFields.Field("snapshotAvailable", hostSnapshotAvailable),
-                        LogFields.Field("snapshotSource", hostSnapshot != null ? hostSnapshot.Source : "<none>"),
+                        LogFields.Field("snapshotSource", hostSnapshot.ToDiagnosticText(x => x.Source)),
                         LogFields.Field("snapshotRevision", runtimeHost.ObjectEntryRuntimeContextRevision),
                         LogFields.Field("objectEntry", id.StableText),
                         LogFields.Field("targetCollected", targetCollected),
@@ -2442,7 +2444,7 @@ namespace Immersive.Framework.ObjectReset
                 return false;
             }
 
-            var iterations = Math.Max(1, maxYields);
+            int iterations = Math.Max(1, maxYields);
             for (int i = 0; i < iterations; i++)
             {
                 await Task.Yield();
@@ -2528,8 +2530,8 @@ namespace Immersive.Framework.ObjectReset
                 ObjectResetParticipantDescriptor descriptor,
                 SyntheticObjectResetParticipantMode mode)
             {
-                this._descriptor = descriptor;
-                this._mode = mode;
+                _descriptor = descriptor;
+                _mode = mode;
             }
 
             public ObjectResetParticipantDescriptor GetObjectResetDescriptor()
@@ -2585,7 +2587,7 @@ namespace Immersive.Framework.ObjectReset
 
             public SyntheticObjectResetParticipantSource(params IObjectResetParticipant[] participants)
             {
-                this._participants = participants ?? Array.Empty<IObjectResetParticipant>();
+                _participants = participants ?? Array.Empty<IObjectResetParticipant>();
             }
 
             public IReadOnlyList<IObjectResetParticipant> ResolveObjectResetParticipants(

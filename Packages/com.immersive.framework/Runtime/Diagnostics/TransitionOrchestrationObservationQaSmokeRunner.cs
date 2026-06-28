@@ -1,3 +1,4 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System.Threading.Tasks;
 using Immersive.Framework.ApiStatus;
@@ -22,14 +23,12 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source)
-                ? nameof(TransitionOrchestrationObservationQaSmokeRunner)
-                : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(TransitionOrchestrationObservationQaSmokeRunner));
 
-            var routePassed = ValidateRouteSwitchObservation(logger, normalizedSource);
-            var activitySwitchPassed = ValidateActivitySwitchObservation(logger, normalizedSource);
-            var activityClearPassed = ValidateActivityClearObservation(logger, normalizedSource);
-            var snapshotPassed = ValidateObservationSnapshot(logger, normalizedSource);
+            bool routePassed = ValidateRouteSwitchObservation(logger, normalizedSource);
+            bool activitySwitchPassed = ValidateActivitySwitchObservation(logger, normalizedSource);
+            bool activityClearPassed = ValidateActivityClearObservation(logger, normalizedSource);
+            bool snapshotPassed = ValidateObservationSnapshot(logger, normalizedSource);
 
             return Task.FromResult(routePassed && activitySwitchPassed && activityClearPassed && snapshotPassed);
         }
@@ -41,7 +40,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "qa.transition.observation.route-switch.plan");
 
-            var observed = new[]
+            TransitionStep[] observed = new[]
             {
                 TransitionStep.Observed(0, TransitionPhase.RequestAdmitted, "request-admitted", "Route request admitted by Gate."),
                 TransitionStep.Observed(10, TransitionPhase.OperationOpened, "operation-opened", "Route transition operation opened."),
@@ -60,7 +59,7 @@ namespace Immersive.Framework.Diagnostics
                 "Route switch orchestration observation succeeded.",
                 observed);
 
-            var passed = plan.IsValid
+            bool passed = plan.IsValid
                 && plan.Kind == TransitionKind.RouteSwitch
                 && plan.StepCount == 10
                 && result.Succeeded
@@ -79,7 +78,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "qa.transition.observation.activity-switch.plan");
 
-            var observed = new[]
+            TransitionStep[] observed = new[]
             {
                 TransitionStep.Observed(0, TransitionPhase.RequestAdmitted, "request-admitted", "Activity request admitted by Gate."),
                 TransitionStep.Observed(10, TransitionPhase.OperationOpened, "operation-opened", "Activity transition operation opened."),
@@ -98,7 +97,7 @@ namespace Immersive.Framework.Diagnostics
                 "Activity switch orchestration observation succeeded.",
                 observed);
 
-            var passed = plan.IsValid
+            bool passed = plan.IsValid
                 && plan.Kind == TransitionKind.ActivitySwitch
                 && plan.StepCount == 10
                 && result.Succeeded
@@ -117,7 +116,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "qa.transition.observation.activity-clear.plan");
 
-            var observed = new[]
+            TransitionStep[] observed = new[]
             {
                 TransitionStep.Observed(0, TransitionPhase.RequestAdmitted, "request-admitted", "Activity clear request admitted by Gate."),
                 TransitionStep.Observed(10, TransitionPhase.OperationOpened, "operation-opened", "Activity clear transition operation opened."),
@@ -135,7 +134,7 @@ namespace Immersive.Framework.Diagnostics
                 "Activity clear orchestration observation succeeded.",
                 observed);
 
-            var passed = plan.IsValid
+            bool passed = plan.IsValid
                 && plan.Kind == TransitionKind.ActivityClear
                 && plan.StepCount == 9
                 && result.Succeeded
@@ -154,7 +153,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "qa.transition.observation.snapshot.plan");
 
-            var observed = new[]
+            TransitionStep[] observed = new[]
             {
                 TransitionStep.Observed(0, TransitionPhase.RequestAdmitted, "request-admitted", "Activity request admitted by Gate."),
                 TransitionStep.Observed(10, TransitionPhase.OperationOpened, "operation-opened", "Activity transition operation opened."),
@@ -175,7 +174,7 @@ namespace Immersive.Framework.Diagnostics
                     "transition.observation.route-activity.narrative"
                 });
 
-            var passed = snapshot.IsValid
+            bool passed = snapshot.IsValid
                 && snapshot.OperationId == result.OperationId
                 && snapshot.Kind == result.Kind
                 && snapshot.CurrentPhase == TransitionPhase.OperationClosed
@@ -195,7 +194,7 @@ namespace Immersive.Framework.Diagnostics
             TransitionPlan plan,
             TransitionResult result)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("operation", plan.OperationId.StableText),
@@ -224,7 +223,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogSnapshotStep(FrameworkLogger logger, string step, bool passed, TransitionSnapshot snapshot)
         {
-            var fields = LogFields.Of(
+            LogField[] fields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed),
                 LogFields.Field("operation", snapshot.OperationId.StableText),

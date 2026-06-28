@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.CycleReset
 {
@@ -60,11 +61,11 @@ namespace Immersive.Framework.CycleReset
         {
             unchecked
             {
-                var hashCode = (int)Kind;
-                hashCode = (hashCode * 397) ^ ParticipantId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)ParticipantScope;
-                hashCode = (hashCode * 397) ^ Blocking.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = (int)Kind;
+                hashCode = hashCode * 397 ^ ParticipantId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)ParticipantScope;
+                hashCode = hashCode * 397 ^ Blocking.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -76,8 +77,8 @@ namespace Immersive.Framework.CycleReset
 
         public string ToDiagnosticString()
         {
-            var participantText = HasParticipantId ? ParticipantId.StableText : "<none>";
-            var messageText = HasMessage ? Message : "<none>";
+            string participantText = HasParticipantId ? ParticipantId.StableText : "<none>";
+            string messageText = HasMessage ? Message : "<none>";
             return $"kind='{Kind}' participantId='{participantText}' participantScope='{ParticipantScope}' blocking='{Blocking}' message='{messageText}'";
         }
 
@@ -111,7 +112,7 @@ namespace Immersive.Framework.CycleReset
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

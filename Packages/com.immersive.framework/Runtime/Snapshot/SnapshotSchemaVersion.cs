@@ -56,9 +56,9 @@ namespace Immersive.Framework.Snapshot
         {
             unchecked
             {
-                var hashCode = Major;
-                hashCode = (hashCode * 397) ^ Minor;
-                hashCode = (hashCode * 397) ^ Patch;
+                int hashCode = Major;
+                hashCode = hashCode * 397 ^ Minor;
+                hashCode = hashCode * 397 ^ Patch;
                 return hashCode;
             }
         }

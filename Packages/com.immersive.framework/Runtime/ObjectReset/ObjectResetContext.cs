@@ -86,9 +86,9 @@ namespace Immersive.Framework.ObjectReset
         {
             unchecked
             {
-                var hashCode = Request.GetHashCode();
-                hashCode = (hashCode * 397) ^ ResolvedTarget.GetHashCode();
-                hashCode = (hashCode * 397) ^ Participant.GetHashCode();
+                int hashCode = Request.GetHashCode();
+                hashCode = hashCode * 397 ^ ResolvedTarget.GetHashCode();
+                hashCode = hashCode * 397 ^ Participant.GetHashCode();
                 return hashCode;
             }
         }

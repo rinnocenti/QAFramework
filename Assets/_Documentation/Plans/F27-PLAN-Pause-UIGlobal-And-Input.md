@@ -84,13 +84,13 @@ Gate is not removed. It is demoted from the main Pause/Input solution to a passi
 
 ## Handoff to F28
 
-F28 owns the reorganization:
+F28 owns the roadmap correction:
 
 ```text
-F28 — InputMode and Adapter Boundary Reorganization
+F28 — Roadmap Reconciliation and Adapter Module Spine
 ```
 
-F28 starts audit-first and must decide PlayerInput ownership before any runtime service applies action maps.
+F28 is documentation-first. It creates the dependency map and adapter/module ownership plan before any runtime service applies action maps.
 
 See:
 

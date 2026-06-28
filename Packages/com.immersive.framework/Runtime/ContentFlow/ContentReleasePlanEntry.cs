@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ContentFlow
 {
@@ -71,13 +72,13 @@ namespace Immersive.Framework.ContentFlow
 
         public string ToDiagnosticString()
         {
-            var message = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
+            string message = Message.ToDiagnosticText();
             return $"action='{Action}' ownership='{Ownership}' releasable='{IsReleasable}' message='{message}' {Handle.ToDiagnosticString()}";
         }
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

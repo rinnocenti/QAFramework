@@ -1,3 +1,4 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Threading.Tasks;
@@ -23,15 +24,15 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source) ? nameof(LoadingResultQaSmokeRunner) : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(LoadingResultQaSmokeRunner));
 
             try
             {
-                var contractsPassed = ValidateContracts(logger, normalizedSource);
-                var successPassed = ValidateSuccessResult(logger, normalizedSource);
-                var waitingPassed = ValidateWaitingReadinessResult(logger, normalizedSource);
-                var failurePassed = ValidateFailureIssueResult(logger, normalizedSource);
-                var boundaryPassed = ValidateBoundary(logger);
+                bool contractsPassed = ValidateContracts(logger, normalizedSource);
+                bool successPassed = ValidateSuccessResult(logger, normalizedSource);
+                bool waitingPassed = ValidateWaitingReadinessResult(logger, normalizedSource);
+                bool failurePassed = ValidateFailureIssueResult(logger, normalizedSource);
+                bool boundaryPassed = ValidateBoundary(logger);
 
                 return Task.FromResult(contractsPassed
                     && successPassed
@@ -76,7 +77,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "contracts");
 
-            var passed = result.IsValid
+            bool passed = result.IsValid
                 && result.Status == LoadingResultStatus.SucceededWithWarnings
                 && result.Succeeded
                 && result.Completed
@@ -131,7 +132,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "success");
 
-            var passed = result.Status == LoadingResultStatus.Succeeded
+            bool passed = result.Status == LoadingResultStatus.Succeeded
                 && result.Succeeded
                 && result.Completed
                 && !result.BlocksCompletion
@@ -183,7 +184,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "waiting");
 
-            var passed = result.Status == LoadingResultStatus.WaitingForReadiness
+            bool passed = result.Status == LoadingResultStatus.WaitingForReadiness
                 && result.WaitingForReadiness
                 && !result.Completed
                 && result.BlocksCompletion
@@ -229,7 +230,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "failure");
 
-            var passed = result.Status == LoadingResultStatus.Failed
+            bool passed = result.Status == LoadingResultStatus.Failed
                 && result.Failed
                 && result.Completed
                 && result.BlocksCompletion
@@ -254,7 +255,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidateBoundary(FrameworkLogger logger)
         {
-            var passed = true;
+            bool passed = true;
             LogStep(
                 logger,
                 "canonical-boundary",
@@ -276,7 +277,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogStep(FrameworkLogger logger, string step, bool passed, LogField[] fields)
         {
-            var stepFields = LogFields.Of(
+            LogField[] stepFields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed));
 

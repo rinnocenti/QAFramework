@@ -1,4 +1,5 @@
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.LocalContribution
 {
@@ -17,10 +18,10 @@ namespace Immersive.Framework.LocalContribution
             string objectName = null)
         {
             Kind = kind;
-            Message = string.IsNullOrWhiteSpace(message) ? "Local contribution discovery issue." : message.Trim();
-            IdentityText = string.IsNullOrWhiteSpace(identityText) ? string.Empty : identityText.Trim();
-            SceneName = string.IsNullOrWhiteSpace(sceneName) ? string.Empty : sceneName.Trim();
-            ObjectName = string.IsNullOrWhiteSpace(objectName) ? string.Empty : objectName.Trim();
+            Message = message.NormalizeTextOrFallback("Local contribution discovery issue.");
+            IdentityText = identityText.NormalizeText();
+            SceneName = sceneName.NormalizeText();
+            ObjectName = objectName.NormalizeText();
         }
 
         public LocalContributionDiscoveryIssueKind Kind { get; }
@@ -35,9 +36,9 @@ namespace Immersive.Framework.LocalContribution
 
         public string ToDiagnosticString()
         {
-            var identity = string.IsNullOrWhiteSpace(IdentityText) ? string.Empty : $" identity='{FormatValue(IdentityText)}'";
-            var scene = string.IsNullOrWhiteSpace(SceneName) ? string.Empty : $" scene='{FormatValue(SceneName)}'";
-            var obj = string.IsNullOrWhiteSpace(ObjectName) ? string.Empty : $" object='{FormatValue(ObjectName)}'";
+            string identity = string.IsNullOrWhiteSpace(IdentityText) ? string.Empty : $" identity='{FormatValue(IdentityText)}'";
+            string scene = string.IsNullOrWhiteSpace(SceneName) ? string.Empty : $" scene='{FormatValue(SceneName)}'";
+            string obj = string.IsNullOrWhiteSpace(ObjectName) ? string.Empty : $" object='{FormatValue(ObjectName)}'";
             return $"kind='{Kind}'{identity}{scene}{obj} message='{FormatValue(Message)}'";
         }
 

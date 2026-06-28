@@ -15,6 +15,8 @@ Read the documentation in this order:
 | Framework Core / Contracts | Defines pure framework language: contracts, identities, state, diagnostics and boundaries. |
 | Unity Build Surface / Lifecycle Wiring | Proves framework contracts through minimal Unity surfaces and lifecycle wiring. |
 | Adapter Modules / Gameplay & Subsystems | Adds optional adapters for gameplay and subsystems without moving them into core. |
+| Project Assets | Keeps concrete game scenes, prefabs, UI art and product configuration outside canonical package contracts. |
+| External Packages | Separates Unity official packages, optional packages, third-party tools and project-specific assets. |
 
 ## Current Phase Map
 
@@ -27,7 +29,7 @@ Read the documentation in this order:
 | F25 | Activity Content Scene Composition | Closed / final docs aligned in F25J |
 | F26 | Activity Scene Discovery Integration / Loading Progress Integration | Closed / loading progress closed through F26F |
 | F27 | Pause UIGlobal Surface, Input Wiring and Gate Reframe | Frozen after F27D / F27E cancelled |
-| F28 | InputMode and Adapter Boundary Reorganization | Planned / audit-first |
+| F28 | Roadmap Reconciliation and Adapter Module Spine | Planned / documentation-first |
 
 ## F23 Boundary
 
@@ -90,20 +92,31 @@ Project plan: `Assets/_Documentation/Plans/F27-PLAN-Pause-UIGlobal-And-Input.md`
 
 Next plan: `Assets/_Documentation/Plans/F28-PLAN-InputMode-And-Adapter-Boundary.md`.
 
-## F28 InputMode and Adapter Boundary
+## F28 Roadmap Reconciliation and Adapter Module Spine
 
-F28 is audit-first. It must answer PlayerInput ownership, typed InputMode semantics and Unity Input System adapter placement before Pause drives action-map behavior.
+F28 is documentation-first. It turns the F27D freeze into an ordered completion roadmap before new runtime work resumes.
 
-The accepted direction is:
+F28 owns the planning spine:
 
 ```text
-PauseRuntime -> InputMode request -> Unity Input adapter applies concrete action-map policy
+frozen framework core
+  -> completion dependency map
+  -> adapter/module ownership map
+  -> ordered implementation tracks
+  -> next runtime cut with clear entry criteria
 ```
 
-The rejected direction is:
+The phase positions InputMode inside the broader adapter graph instead of treating InputMode as the whole next phase. Player/Actor ownership and Unity Input target ownership must be decided before Pause drives action-map behavior.
+
+F28 output:
 
 ```text
-Pause -> Gate -> every ordinary input consumer checks Gate
+F28A baseline reconciliation
+F28B completion dependency map
+F28C adapter module taxonomy
+F28D player/actor/input ownership plan
+F28E InputMode and Pause integration plan
+F28F next implementation closeout
 ```
 
 ADR: `ADRs/F28-ADR-INPUT-001-InputMode-Adapter-Boundary.md`.

@@ -1,4 +1,5 @@
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.LocalContribution
 {
@@ -16,10 +17,10 @@ namespace Immersive.Framework.LocalContribution
             string diagnosticLabel = null)
         {
             Kind = kind;
-            Message = string.IsNullOrWhiteSpace(message) ? "Local contribution validation issue." : message.Trim();
+            Message = message.NormalizeTextOrFallback("Local contribution validation issue.");
             Blocking = blocking;
-            IdentityText = string.IsNullOrWhiteSpace(identityText) ? string.Empty : identityText.Trim();
-            DiagnosticLabel = string.IsNullOrWhiteSpace(diagnosticLabel) ? string.Empty : diagnosticLabel.Trim();
+            IdentityText = identityText.NormalizeText();
+            DiagnosticLabel = diagnosticLabel.NormalizeText();
         }
 
         public LocalContributionValidationIssueKind Kind { get; }
@@ -36,8 +37,8 @@ namespace Immersive.Framework.LocalContribution
 
         public string ToDiagnosticString()
         {
-            var identity = string.IsNullOrWhiteSpace(IdentityText) ? string.Empty : $" identity='{FormatValue(IdentityText)}'";
-            var label = string.IsNullOrWhiteSpace(DiagnosticLabel) ? string.Empty : $" label='{FormatValue(DiagnosticLabel)}'";
+            string identity = string.IsNullOrWhiteSpace(IdentityText) ? string.Empty : $" identity='{FormatValue(IdentityText)}'";
+            string label = string.IsNullOrWhiteSpace(DiagnosticLabel) ? string.Empty : $" label='{FormatValue(DiagnosticLabel)}'";
             return $"kind='{Kind}' severity='{Severity}'{identity}{label} message='{FormatValue(Message)}'";
         }
 

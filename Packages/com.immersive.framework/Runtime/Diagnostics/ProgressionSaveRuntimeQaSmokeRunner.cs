@@ -1,3 +1,4 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.IO;
@@ -27,8 +28,8 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source) ? nameof(ProgressionSaveRuntimeQaSmokeRunner) : source.Trim();
-            var rootDirectory = Path.Combine(Application.temporaryCachePath, "ImmersiveFramework", "Qa", QaRootName);
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(ProgressionSaveRuntimeQaSmokeRunner));
+            string rootDirectory = Path.Combine(Application.temporaryCachePath, "ImmersiveFramework", "Qa", QaRootName);
             var store = new JsonProgressionSaveStore(rootDirectory, ProgressionSaveBackendId.From("json.runtime.qa"));
             var runtime = new ProgressionSaveRuntime(store);
             var primarySlot = ProgressionSaveSlotId.From("qa.runtime.slot.primary");
@@ -39,13 +40,13 @@ namespace Immersive.Framework.Diagnostics
 
             try
             {
-                var contractsPassed = ValidateContracts(logger, normalizedSource, runtime, primarySlot);
-                var savePassed = ValidateManualSave(logger, runtime, primarySlot, out var savedRecord);
-                var loadPassed = ValidateLoad(logger, runtime, primarySlot, savedRecord);
-                var autosaveMomentPassed = ValidateAutosaveMoment(logger, runtime, autosaveSlot);
-                var missingPassed = ValidateMissingLoad(logger, runtime, missingSlot);
-                var deletePassed = ValidateDelete(logger, runtime, primarySlot, autosaveSlot);
-                var boundaryPassed = ValidateBoundary(logger, runtime);
+                bool contractsPassed = ValidateContracts(logger, normalizedSource, runtime, primarySlot);
+                bool savePassed = ValidateManualSave(logger, runtime, primarySlot, out var savedRecord);
+                bool loadPassed = ValidateLoad(logger, runtime, primarySlot, savedRecord);
+                bool autosaveMomentPassed = ValidateAutosaveMoment(logger, runtime, autosaveSlot);
+                bool missingPassed = ValidateMissingLoad(logger, runtime, missingSlot);
+                bool deletePassed = ValidateDelete(logger, runtime, primarySlot, autosaveSlot);
+                bool boundaryPassed = ValidateBoundary(logger, runtime);
 
                 return Task.FromResult(contractsPassed
                     && savePassed
@@ -88,7 +89,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "contracts");
 
-            var passed = runtime.BackendId.StableText == "ProgressionSave:json.runtime.qa"
+            bool passed = runtime.BackendId.StableText == "ProgressionSave:json.runtime.qa"
                 && request.IsValid
                 && request.Kind == ProgressionSaveRequestKind.Save
                 && request.Moment.IsManual
@@ -131,9 +132,9 @@ namespace Immersive.Framework.Diagnostics
 
             var result = runtime.Request(request);
             savedRecord = result.HasRecord ? result.Record : default;
-            var contains = runtime.Store.ContainsSlot(primarySlot);
+            bool contains = runtime.Store.ContainsSlot(primarySlot);
 
-            var passed = result.Status == ProgressionSaveRequestStatus.Saved
+            bool passed = result.Status == ProgressionSaveRequestStatus.Saved
                 && result.Completed
                 && !result.Failed
                 && result.HasRecord
@@ -173,9 +174,9 @@ namespace Immersive.Framework.Diagnostics
                 "manual-load");
 
             var result = runtime.Request(request);
-            var recordMatches = result.HasRecord && savedRecord.IsValid && result.Record == savedRecord;
+            bool recordMatches = result.HasRecord && savedRecord.IsValid && result.Record == savedRecord;
 
-            var passed = result.Status == ProgressionSaveRequestStatus.Loaded
+            bool passed = result.Status == ProgressionSaveRequestStatus.Loaded
                 && result.Completed
                 && !result.Failed
                 && result.HasRecord
@@ -218,7 +219,7 @@ namespace Immersive.Framework.Diagnostics
                 nameof(ProgressionSaveRuntimeQaSmokeRunner),
                 "autosave-verify"));
 
-            var passed = result.Status == ProgressionSaveRequestStatus.Saved
+            bool passed = result.Status == ProgressionSaveRequestStatus.Saved
                 && result.Moment.IsAutosave
                 && result.HasRecord
                 && readBack.Status == ProgressionSaveRequestStatus.Loaded
@@ -254,7 +255,7 @@ namespace Immersive.Framework.Diagnostics
                 "missing-load");
 
             var result = runtime.Request(request);
-            var passed = result.Status == ProgressionSaveRequestStatus.Missing
+            bool passed = result.Status == ProgressionSaveRequestStatus.Missing
                 && result.Completed
                 && !result.Failed
                 && !result.HasRecord;
@@ -305,7 +306,7 @@ namespace Immersive.Framework.Diagnostics
                 nameof(ProgressionSaveRuntimeQaSmokeRunner),
                 "verify-delete-autosave"));
 
-            var passed = primaryDelete.Status == ProgressionSaveRequestStatus.Deleted
+            bool passed = primaryDelete.Status == ProgressionSaveRequestStatus.Deleted
                 && autosaveDelete.Status == ProgressionSaveRequestStatus.Deleted
                 && primaryRead.Status == ProgressionSaveRequestStatus.Missing
                 && autosaveRead.Status == ProgressionSaveRequestStatus.Missing
@@ -329,7 +330,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidateBoundary(FrameworkLogger logger, ProgressionSaveRuntime runtime)
         {
-            var passed = runtime.BackendId.StableText == "ProgressionSave:json.runtime.qa";
+            bool passed = runtime.BackendId.StableText == "ProgressionSave:json.runtime.qa";
 
             LogStep(
                 logger,
@@ -372,7 +373,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static ProgressionSavePayload CreatePayload(string reason)
         {
-            var payloadJson = $"{{\"level\":3,\"reason\":\"{reason}\"}}";
+            string payloadJson = $"{{\"level\":3,\"reason\":\"{reason}\"}}";
             return ProgressionSavePayload.FromBytes(
                 ProgressionSavePayloadFormat.Structured,
                 Encoding.UTF8.GetBytes(payloadJson),
@@ -398,7 +399,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogStep(FrameworkLogger logger, string step, bool passed, LogField[] fields)
         {
-            var allFields = AppendFields(
+            LogField[] allFields = AppendFields(
                 LogFields.Of(
                     LogFields.Field("step", step),
                     LogFields.Field("passed", passed)),

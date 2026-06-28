@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Preferences
 {
@@ -81,7 +82,7 @@ namespace Immersive.Framework.Preferences
         public bool IsValid => Key.IsValid
             && ExpectedKind != PreferenceValueKind.Unknown
             && Status != PreferenceReadStatus.Unknown
-            && ((Found && Value.IsValid && Value.Kind == ExpectedKind) || (!Found && !Value.IsValid));
+            && (Found && Value.IsValid && Value.Kind == ExpectedKind || !Found && !Value.IsValid);
 
         public bool Equals(PreferenceReadResult other)
         {
@@ -101,11 +102,11 @@ namespace Immersive.Framework.Preferences
         {
             unchecked
             {
-                var hashCode = Key.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)ExpectedKind;
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ Value.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = Key.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)ExpectedKind;
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ Value.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -117,8 +118,8 @@ namespace Immersive.Framework.Preferences
 
         public string ToDiagnosticString()
         {
-            var valueText = HasValue ? Value.ToDiagnosticString() : "<none>";
-            var messageText = HasMessage ? Message : "<none>";
+            string valueText = HasValue ? Value.ToDiagnosticString() : "<none>";
+            string messageText = HasMessage ? Message : "<none>";
             return $"key='{Key.StableText}' expectedKind='{ExpectedKind}' status='{Status}' value=({valueText}) message='{messageText}'";
         }
 
@@ -159,7 +160,7 @@ namespace Immersive.Framework.Preferences
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

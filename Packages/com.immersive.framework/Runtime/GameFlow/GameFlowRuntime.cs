@@ -11,6 +11,7 @@ using Immersive.Framework.Gate;
 using Immersive.Framework.Transition;
 using Immersive.Framework.TransitionEffects;
 using Immersive.Framework.Loading;
+using Immersive.Framework.Common;
 using UnityEngine;
 
 namespace Immersive.Framework.GameFlow
@@ -77,8 +78,8 @@ namespace Immersive.Framework.GameFlow
                 previousActivity,
                 targetActivity,
                 visualMode,
-                FrameworkActivityRequestResult.NormalizeSource(source),
-                FrameworkActivityRequestResult.NormalizeReason(reason));
+                source.NormalizeTextOrFallback("Unknown"),
+                reason.NormalizeTextOrFallback("None"));
         }
 
         internal async Task<FrameworkGameFlowStartResult> StartAsync(GameApplicationAsset gameApplication)
@@ -145,8 +146,8 @@ namespace Immersive.Framework.GameFlow
             Func<Awaitable> afterRouteLifecycle,
             IFrameworkLoadingProgressReporter progressReporter)
         {
-            string resolvedSource = FrameworkRouteRequestResult.NormalizeSource(source);
-            string resolvedReason = FrameworkRouteRequestResult.NormalizeReason(reason);
+            string resolvedSource = source.NormalizeTextOrFallback("Unknown");
+            string resolvedReason = reason.NormalizeTextOrFallback("None");
 
             if (targetRoute == null)
             {
@@ -284,8 +285,8 @@ namespace Immersive.Framework.GameFlow
             Func<Awaitable> afterActivityLifecycle,
             IFrameworkLoadingProgressReporter progressReporter)
         {
-            string resolvedSource = FrameworkActivityRequestResult.NormalizeSource(source);
-            string resolvedReason = FrameworkActivityRequestResult.NormalizeReason(reason);
+            string resolvedSource = source.NormalizeTextOrFallback("Unknown");
+            string resolvedReason = reason.NormalizeTextOrFallback("None");
 
             if (targetActivity == null)
             {
@@ -435,8 +436,8 @@ namespace Immersive.Framework.GameFlow
             Func<Awaitable> afterActivityLifecycle,
             IFrameworkLoadingProgressReporter progressReporter)
         {
-            string resolvedSource = FrameworkActivityRequestResult.NormalizeSource(source);
-            string resolvedReason = FrameworkActivityRequestResult.NormalizeReason(reason);
+            string resolvedSource = source.NormalizeTextOrFallback("Unknown");
+            string resolvedReason = reason.NormalizeTextOrFallback("None");
 
             if (!_routeLifecycleRuntime.HasActiveRoute)
             {
@@ -569,7 +570,7 @@ namespace Immersive.Framework.GameFlow
             var gateEvaluation = EvaluateLifecycleRequestAdmission("CycleResetRequest", source, reason);
             if (!gateEvaluation.IsAllowed)
             {
-                var blockedMessage = GateRequestAdmission.FormatBlockedMessage(
+                string blockedMessage = GateRequestAdmission.FormatBlockedMessage(
                     "Cycle Reset Request",
                     gateEvaluation);
 
@@ -694,8 +695,7 @@ namespace Immersive.Framework.GameFlow
 
         private static bool ShouldExecuteActivityTransition(ActivityVisualTransitionMode mode)
         {
-            return mode == ActivityVisualTransitionMode.Fade
-                || mode == ActivityVisualTransitionMode.FadeWithLoading;
+            return mode is ActivityVisualTransitionMode.Fade or ActivityVisualTransitionMode.FadeWithLoading;
         }
 
         private static TransitionResult CreateSkippedActivityTransitionResult(
@@ -724,7 +724,7 @@ namespace Immersive.Framework.GameFlow
 
         private static string BuildSkippedActivityTransitionStepLabel(TransitionRequest request)
         {
-            var phase = request.Phase == TransitionPhase.OperationOpened ? "before" : "after";
+            string phase = request.Phase == TransitionPhase.OperationOpened ? "before" : "after";
             return $"{request.Scope.ToString().ToLowerInvariant()}-{phase}-policy-skip";
         }
 

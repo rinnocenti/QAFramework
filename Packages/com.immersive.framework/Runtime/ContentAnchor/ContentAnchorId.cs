@@ -25,7 +25,7 @@ namespace Immersive.Framework.ContentAnchor
                 throw new ArgumentException("Content Anchor id must be explicit and valid.", nameof(value));
             }
 
-            this._value = value;
+            _value = value;
         }
 
         public FrameworkIdentityDomain Domain => FrameworkIdentityDomain.ContentAnchor;

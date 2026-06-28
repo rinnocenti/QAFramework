@@ -1,5 +1,6 @@
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ContentAnchor
 {
@@ -106,7 +107,7 @@ namespace Immersive.Framework.ContentAnchor
 
         private static string GetRouteName(RouteAsset route)
         {
-            return route != null ? route.RouteName : "<none>";
+            return route.ToDiagnosticText(x => x.RouteName);
         }
     }
 }

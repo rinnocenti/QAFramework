@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Transition;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.TransitionEffects
 {
@@ -34,7 +35,7 @@ namespace Immersive.Framework.TransitionEffects
             Request = request;
             Status = status;
             Message = Normalize(message);
-            this._issues = CopyIssues(issues);
+            _issues = CopyIssues(issues);
         }
 
         public TransitionEffectRequest Request { get; }
@@ -100,14 +101,14 @@ namespace Immersive.Framework.TransitionEffects
         {
             unchecked
             {
-                var hashCode = Request.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = Request.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
 
-                var issueItems = Issues;
-                for (var i = 0; i < issueItems.Count; i++)
+                IReadOnlyList<string> issueItems = Issues;
+                for (int i = 0; i < issueItems.Count; i++)
                 {
-                    hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(issueItems[i] ?? string.Empty);
+                    hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(issueItems[i] ?? string.Empty);
                 }
 
                 return hashCode;
@@ -122,14 +123,14 @@ namespace Immersive.Framework.TransitionEffects
         public string ToDiagnosticString()
         {
             var builder = new StringBuilder();
-            var messageText = string.IsNullOrWhiteSpace(Message) ? "<none>" : Message;
+            string messageText = Message.ToDiagnosticText();
             builder.Append($"effect='{EffectId.StableText}' effectKind='{EffectKind}' requiredness='{Requiredness}' operation='{OperationId.StableText}' transitionKind='{TransitionKind}' phase='{Phase}' status='{Status}' completed='{Completed}' blocksTransition='{BlocksTransition}' issues='{IssueCount}' message='{messageText}'");
 
             if (HasIssues)
             {
                 builder.Append(" issues=[");
-                var issueItems = Issues;
-                for (var i = 0; i < issueItems.Count; i++)
+                IReadOnlyList<string> issueItems = Issues;
+                for (int i = 0; i < issueItems.Count; i++)
                 {
                     if (i > 0)
                     {
@@ -204,8 +205,8 @@ namespace Immersive.Framework.TransitionEffects
                 return Array.Empty<string>();
             }
 
-            var copy = new string[source.Count];
-            for (var i = 0; i < source.Count; i++)
+            string[] copy = new string[source.Count];
+            for (int i = 0; i < source.Count; i++)
             {
                 copy[i] = Normalize(source[i]);
             }
@@ -220,7 +221,7 @@ namespace Immersive.Framework.TransitionEffects
                 return false;
             }
 
-            for (var i = 0; i < left.Count; i++)
+            for (int i = 0; i < left.Count; i++)
             {
                 if (!string.Equals(left[i], right[i], StringComparison.Ordinal))
                 {
@@ -233,7 +234,7 @@ namespace Immersive.Framework.TransitionEffects
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

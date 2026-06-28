@@ -1,6 +1,7 @@
 using Immersive.Framework.ApiStatus;
 using UnityEngine;
 using UnityEngine.UI;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Loading
 {
@@ -70,9 +71,7 @@ namespace Immersive.Framework.Loading
         [HideInInspector]
         [SerializeField] private string lastProgressMessage = string.Empty;
 
-        public string AdapterName => string.IsNullOrWhiteSpace(adapterName)
-            ? nameof(UnityLoadingSurfaceAdapter)
-            : adapterName.Trim();
+        public string AdapterName => adapterName.NormalizeTextOrFallback(nameof(UnityLoadingSurfaceAdapter));
 
         public bool HasCanvasGroup => TryResolveCanvasGroup(out _);
 

@@ -5,6 +5,7 @@ using Immersive.Framework.Loading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.SceneLifecycle
 {
@@ -172,7 +173,7 @@ namespace Immersive.Framework.SceneLifecycle
 
             try
             {
-                var sceneLabel = ResolveSceneLabel(scenePath, sceneName);
+                string sceneLabel = ResolveSceneLabel(scenePath, sceneName);
                 var operation = SceneManager.UnloadSceneAsync(loadedScene);
                 if (operation == null)
                 {
@@ -186,10 +187,10 @@ namespace Immersive.Framework.SceneLifecycle
                     "SceneUnload",
                     $"Unloading Scene '{sceneLabel}'.");
 
-                var lastReportedProgress = 0f;
+                float lastReportedProgress = 0f;
                 while (!operation.isDone)
                 {
-                    var normalizedProgress = NormalizeAsyncOperationProgress(operation.progress, divideByActivationGate: false);
+                    float normalizedProgress = NormalizeAsyncOperationProgress(operation.progress, divideByActivationGate: false);
                     if (ShouldReportProgress(lastReportedProgress, normalizedProgress))
                     {
                         lastReportedProgress = normalizedProgress;
@@ -275,7 +276,7 @@ namespace Immersive.Framework.SceneLifecycle
             Func<string, string, bool, string, SceneLifecycleLoadResult> createLoadedResult,
             IFrameworkLoadingProgressReporter progressReporter)
         {
-            var sceneLabel = ResolveSceneLabel(scenePath, sceneName);
+            string sceneLabel = ResolveSceneLabel(scenePath, sceneName);
             if (!TryGetLoadSceneIdentifier(scenePath, sceneName, out string sceneIdentifier))
             {
                 return SceneLifecycleLoadResult.Failed(
@@ -297,10 +298,10 @@ namespace Immersive.Framework.SceneLifecycle
                     "SceneLoad",
                     $"Loading {sceneRoleLabel} '{sceneLabel}'.");
 
-                var lastReportedProgress = 0f;
+                float lastReportedProgress = 0f;
                 while (!operation.isDone)
                 {
-                    var normalizedProgress = NormalizeAsyncOperationProgress(operation.progress, divideByActivationGate: true);
+                    float normalizedProgress = NormalizeAsyncOperationProgress(operation.progress, divideByActivationGate: true);
                     if (ShouldReportProgress(lastReportedProgress, normalizedProgress))
                     {
                         lastReportedProgress = normalizedProgress;
@@ -350,7 +351,7 @@ namespace Immersive.Framework.SceneLifecycle
                 return 0f;
             }
 
-            var normalized = divideByActivationGate
+            float normalized = divideByActivationGate
                 ? operationProgress / 0.9f
                 : operationProgress;
 
@@ -452,7 +453,7 @@ namespace Immersive.Framework.SceneLifecycle
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
 
         private static bool IsSceneMatch(Scene scene, string scenePath, string sceneName)

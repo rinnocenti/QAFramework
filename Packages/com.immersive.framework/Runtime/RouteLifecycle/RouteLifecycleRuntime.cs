@@ -150,17 +150,17 @@ namespace Immersive.Framework.RouteLifecycle
                     "No previous Route content is active; release plan is empty.");
             var routeContentPlan = RouteContentMaterializationPlan.FromRoute(route);
             var routeSceneCompositionPlan = RouteSceneCompositionPlan.FromRoute(route, source, reason);
-            var activitySceneRouteReleaseCount = _activityFlowRuntime.PreviewActivitySceneReleaseForRouteChangeCount();
-            var routeContentReleaseCount = releasePlan.ReleasableCount;
-            var routeSceneLoadCount = CountRouteSceneCompositionProgressSteps(routeSceneCompositionPlan);
-            var startupActivityProgressCount = startupOperationPreview.IsValid
+            int activitySceneRouteReleaseCount = _activityFlowRuntime.PreviewActivitySceneReleaseForRouteChangeCount();
+            int routeContentReleaseCount = releasePlan.ReleasableCount;
+            int routeSceneLoadCount = CountRouteSceneCompositionProgressSteps(routeSceneCompositionPlan);
+            int startupActivityProgressCount = startupOperationPreview.IsValid
                 ? startupOperationPreview.SceneSideEffectCount
                 : 0;
-            var routeProgressStepCount = activitySceneRouteReleaseCount
+            int routeProgressStepCount = activitySceneRouteReleaseCount
                 + routeContentReleaseCount
                 + routeSceneLoadCount
                 + startupActivityProgressCount;
-            var routeProgressStepIndex = 0;
+            int routeProgressStepIndex = 0;
 
             var routeContentExitResult = _routeContentRuntime.ExitRouteContent(previousRoute, route, source, reason);
             var activitySceneRouteReleaseProgressReporter = FrameworkLoadingProgressReporterUtility.CreateWeightedRangeReporter(
@@ -277,8 +277,8 @@ namespace Immersive.Framework.RouteLifecycle
                 return 0;
             }
 
-            var count = plan.PrimaryScene.IsExecutionReady ? 1 : 0;
-            for (var i = 0; i < plan.AdditionalScenes.Count; i++)
+            int count = plan.PrimaryScene.IsExecutionReady ? 1 : 0;
+            for (int i = 0; i < plan.AdditionalScenes.Count; i++)
             {
                 if (plan.AdditionalScenes[i].IsExecutionReady)
                 {

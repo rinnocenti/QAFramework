@@ -88,10 +88,10 @@ namespace Immersive.Framework.LocalContribution
         {
             unchecked
             {
-                var hashCode = (int)ContentScope;
-                hashCode = (hashCode * 397) ^ ScopeOwner.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)LocalScopeKind;
-                hashCode = (hashCode * 397) ^ LocalId.GetHashCode();
+                int hashCode = (int)ContentScope;
+                hashCode = hashCode * 397 ^ ScopeOwner.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)LocalScopeKind;
+                hashCode = hashCode * 397 ^ LocalId.GetHashCode();
                 return hashCode;
             }
         }
@@ -129,9 +129,7 @@ namespace Immersive.Framework.LocalContribution
 
         public static bool IsSupportedContentScope(FrameworkContentScope contentScope)
         {
-            return contentScope == FrameworkContentScope.Session
-                || contentScope == FrameworkContentScope.Route
-                || contentScope == FrameworkContentScope.Activity;
+            return contentScope is FrameworkContentScope.Session or FrameworkContentScope.Route or FrameworkContentScope.Activity;
         }
 
         public static FrameworkIdentityDomain GetExpectedOwnerDomain(FrameworkContentScope contentScope)

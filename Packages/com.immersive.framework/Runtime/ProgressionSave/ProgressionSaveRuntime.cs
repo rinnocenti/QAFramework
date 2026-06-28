@@ -15,7 +15,7 @@ namespace Immersive.Framework.ProgressionSave
 
         public ProgressionSaveRuntime(IProgressionSaveStore store)
         {
-            this._store = store ?? throw new ArgumentNullException(nameof(store));
+            _store = store ?? throw new ArgumentNullException(nameof(store));
             if (!store.BackendId.IsValid)
             {
                 throw new ArgumentException("Progression Save runtime requires a store with a valid backend id.", nameof(store));
@@ -51,7 +51,7 @@ namespace Immersive.Framework.ProgressionSave
 
         private ProgressionSaveRequestResult ExecuteSave(ProgressionSaveRequest request)
         {
-            var nowTicks = DateTime.UtcNow.Ticks;
+            long nowTicks = DateTime.UtcNow.Ticks;
             var record = new ProgressionSaveSlotRecord(
                 request.SlotId,
                 request.RecordId,

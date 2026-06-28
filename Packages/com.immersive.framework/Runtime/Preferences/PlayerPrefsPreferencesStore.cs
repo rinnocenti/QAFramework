@@ -28,7 +28,7 @@ namespace Immersive.Framework.Preferences
                 throw new ArgumentException("PlayerPrefs Preferences key prefix cannot be null, empty or whitespace.", nameof(keyPrefix));
             }
 
-            this._keyPrefix = keyPrefix.Trim().TrimEnd('.');
+            _keyPrefix = keyPrefix.Trim().TrimEnd('.');
         }
 
         public string KeyPrefix => _keyPrefix;
@@ -44,10 +44,10 @@ namespace Immersive.Framework.Preferences
             EnsureKey(key);
             ValidateKind(expectedKind);
 
-            var valueKey = ToPhysicalValueKey(key);
-            var typeKey = ToPhysicalTypeKey(key);
-            var hasValue = PlayerPrefs.HasKey(valueKey);
-            var hasType = PlayerPrefs.HasKey(typeKey);
+            string valueKey = ToPhysicalValueKey(key);
+            string typeKey = ToPhysicalTypeKey(key);
+            bool hasValue = PlayerPrefs.HasKey(valueKey);
+            bool hasType = PlayerPrefs.HasKey(typeKey);
 
             if (!hasValue && !hasType)
             {
@@ -59,7 +59,7 @@ namespace Immersive.Framework.Preferences
                 return PreferenceReadResult.TypeMismatchResult(key, expectedKind, "Preference key has incomplete PlayerPrefs value/type marker pair.");
             }
 
-            var storedKindText = PlayerPrefs.GetString(typeKey, string.Empty);
+            string storedKindText = PlayerPrefs.GetString(typeKey, string.Empty);
             if (!TryParseKind(storedKindText, out var storedKind))
             {
                 return PreferenceReadResult.TypeMismatchResult(key, expectedKind, "Preference key has an invalid PlayerPrefs type marker.");
@@ -88,8 +88,8 @@ namespace Immersive.Framework.Preferences
                 throw new ArgumentException("Preference write requires a valid value.", nameof(value));
             }
 
-            var valueKey = ToPhysicalValueKey(key);
-            var typeKey = ToPhysicalTypeKey(key);
+            string valueKey = ToPhysicalValueKey(key);
+            string typeKey = ToPhysicalTypeKey(key);
 
             try
             {
@@ -106,10 +106,10 @@ namespace Immersive.Framework.Preferences
         public PreferenceWriteResult Delete(PreferenceKey key)
         {
             EnsureKey(key);
-            var valueKey = ToPhysicalValueKey(key);
-            var typeKey = ToPhysicalTypeKey(key);
-            var hasValue = PlayerPrefs.HasKey(valueKey);
-            var hasType = PlayerPrefs.HasKey(typeKey);
+            string valueKey = ToPhysicalValueKey(key);
+            string typeKey = ToPhysicalTypeKey(key);
+            bool hasValue = PlayerPrefs.HasKey(valueKey);
+            bool hasType = PlayerPrefs.HasKey(typeKey);
 
             if (!hasValue && !hasType)
             {

@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.RuntimeContent;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ActivityFlow
 {
@@ -11,9 +12,8 @@ namespace Immersive.Framework.ActivityFlow
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F10D Activity Content Execution participant descriptor; no discovery runtime or Unity side effects.")]
     public readonly struct ActivityContentExecutionParticipantDescriptor : IEquatable<ActivityContentExecutionParticipantDescriptor>
     {
-        public const int DefaultOrder = 0;
 
-        public ActivityContentExecutionParticipantDescriptor(
+        private ActivityContentExecutionParticipantDescriptor(
             RuntimeContentId contentId,
             ActivityContentExecutionRequiredness requiredness,
             bool supportsEnter,
@@ -44,9 +44,9 @@ namespace Immersive.Framework.ActivityFlow
             SupportsEnter = supportsEnter;
             SupportsExit = supportsExit;
             Order = order;
-            DisplayName = Normalize(displayName);
-            Source = Normalize(source);
-            Reason = Normalize(reason);
+            DisplayName = displayName.NormalizeText();
+            Source = source.NormalizeText();
+            Reason = reason.NormalizeText();
         }
 
         public RuntimeContentId ContentId { get; }
@@ -104,14 +104,14 @@ namespace Immersive.Framework.ActivityFlow
         {
             unchecked
             {
-                var hashCode = ContentId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Requiredness;
-                hashCode = (hashCode * 397) ^ SupportsEnter.GetHashCode();
-                hashCode = (hashCode * 397) ^ SupportsExit.GetHashCode();
-                hashCode = (hashCode * 397) ^ Order;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(DisplayName ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = ContentId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Requiredness;
+                hashCode = hashCode * 397 ^ SupportsEnter.GetHashCode();
+                hashCode = hashCode * 397 ^ SupportsExit.GetHashCode();
+                hashCode = hashCode * 397 ^ Order;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(DisplayName ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 return hashCode;
             }
         }
@@ -123,9 +123,9 @@ namespace Immersive.Framework.ActivityFlow
 
         public string ToDiagnosticString()
         {
-            var displayNameText = !string.IsNullOrWhiteSpace(DisplayName) ? DisplayName : "<none>";
-            var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
+            string displayNameText = DisplayName.ToDiagnosticText();
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
             return $"contentId='{ContentId.StableText}' requiredness='{Requiredness}' supportsEnter='{SupportsEnter}' supportsExit='{SupportsExit}' order='{Order}' displayName='{displayNameText}' source='{sourceText}' reason='{reasonText}'";
         }
 
@@ -177,11 +177,6 @@ namespace Immersive.Framework.ActivityFlow
         public static bool operator !=(ActivityContentExecutionParticipantDescriptor left, ActivityContentExecutionParticipantDescriptor right)
         {
             return !left.Equals(right);
-        }
-
-        private static string Normalize(string value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Pause
 {
@@ -72,12 +73,12 @@ namespace Immersive.Framework.Pause
         {
             unchecked
             {
-                var hashCode = Snapshot.GetHashCode();
-                hashCode = (hashCode * 397) ^ ShouldBeVisible.GetHashCode();
-                hashCode = (hashCode * 397) ^ ContentRequirement.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Title ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Detail ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                int hashCode = Snapshot.GetHashCode();
+                hashCode = hashCode * 397 ^ ShouldBeVisible.GetHashCode();
+                hashCode = hashCode * 397 ^ ContentRequirement.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Title ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Detail ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
                 return hashCode;
             }
         }
@@ -89,9 +90,9 @@ namespace Immersive.Framework.Pause
 
         public string ToDiagnosticString()
         {
-            var titleText = HasTitle ? Title : "<none>";
-            var detailText = HasDetail ? Detail : "<none>";
-            var sourceText = HasSource ? Source : "<none>";
+            string titleText = HasTitle ? Title : "<none>";
+            string detailText = HasDetail ? Detail : "<none>";
+            string sourceText = HasSource ? Source : "<none>";
             return $"state='{Snapshot.State}' visible='{ShouldBeVisible}' hasContentRequirement='{HasContentRequirement}' title='{titleText}' detail='{detailText}' source='{sourceText}'";
         }
 
@@ -128,7 +129,7 @@ namespace Immersive.Framework.Pause
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

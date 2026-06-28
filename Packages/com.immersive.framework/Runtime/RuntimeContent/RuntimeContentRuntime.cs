@@ -531,9 +531,9 @@ namespace Immersive.Framework.RuntimeContent
                 throw new InvalidOperationException("Runtime scope root must exist before scope release can execute.");
             }
 
-            var handles = root.SnapshotHandles();
+            RuntimeContentHandle[] handles = root.SnapshotHandles();
             var results = new RuntimeReleaseResult[handles.Length];
-            for (var i = 0; i < handles.Length; i++)
+            for (int i = 0; i < handles.Length; i++)
             {
                 var request = CreateReleaseRequest(context, handles[i].Identity, policy, source, reason);
                 results[i] = ReleaseHandleLogically(request, source, reason);
@@ -576,7 +576,7 @@ namespace Immersive.Framework.RuntimeContent
             var previousState = handle.State;
             if (handle.IsReleased)
             {
-                var alreadyReleasedUnregistered = UnregisterHandleIfRequired(request, source, reason, out var alreadyReleasedUnregisterFailure);
+                bool alreadyReleasedUnregistered = UnregisterHandleIfRequired(request, source, reason, out RuntimeReleaseResult? alreadyReleasedUnregisterFailure);
                 if (alreadyReleasedUnregisterFailure.HasValue)
                 {
                     return alreadyReleasedUnregisterFailure.Value;
@@ -621,7 +621,7 @@ namespace Immersive.Framework.RuntimeContent
                     markReleasedResult.Message);
             }
 
-            var unregistered = UnregisterHandleIfRequired(request, source, reason, out var unregisterFailure);
+            bool unregistered = UnregisterHandleIfRequired(request, source, reason, out RuntimeReleaseResult? unregisterFailure);
             if (unregisterFailure.HasValue)
             {
                 return unregisterFailure.Value;
@@ -666,8 +666,8 @@ namespace Immersive.Framework.RuntimeContent
                     ? RuntimeReleaseStatus.FailedMissingRoot
                     : RuntimeReleaseStatus.FailedUnregister,
                 handle,
-                handle != null ? handle.State : RuntimeContentState.Unknown,
-                handle != null ? handle.State : RuntimeContentState.Unknown,
+                handle?.State ?? RuntimeContentState.Unknown,
+                handle?.State ?? RuntimeContentState.Unknown,
                 source,
                 reason,
                 unregisterResult.Message);

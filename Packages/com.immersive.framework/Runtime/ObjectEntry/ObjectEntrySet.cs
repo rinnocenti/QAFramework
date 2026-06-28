@@ -16,8 +16,8 @@ namespace Immersive.Framework.ObjectEntry
 
         public ObjectEntrySet(IEnumerable<ObjectEntryDescriptor> entries)
         {
-            var materialized = entries == null ? EmptyEntries : entries.ToArray();
-            var duplicate = materialized.GroupBy(entry => entry.Id).FirstOrDefault(group => group.Count() > 1);
+            IReadOnlyList<ObjectEntryDescriptor> materialized = entries?.ToArray() ?? EmptyEntries;
+            IGrouping<ObjectEntryId, ObjectEntryDescriptor> duplicate = materialized.GroupBy(entry => entry.Id).FirstOrDefault(group => group.Count() > 1);
             if (duplicate != null)
             {
                 throw new ArgumentException($"Object entry set contains duplicate object entry id '{duplicate.Key}'.", nameof(entries));

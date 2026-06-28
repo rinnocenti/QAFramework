@@ -1,4 +1,5 @@
 using System;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ApiStatus
 {
@@ -21,7 +22,7 @@ namespace Immersive.Framework.ApiStatus
         public FrameworkApiStatusAttribute(FrameworkApiStatus status, string note)
         {
             Status = status;
-            Note = string.IsNullOrWhiteSpace(note) ? string.Empty : note.Trim();
+            Note = note.NormalizeText();
         }
 
         public FrameworkApiStatus Status { get; }

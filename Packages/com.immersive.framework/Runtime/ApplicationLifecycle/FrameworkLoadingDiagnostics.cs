@@ -1,5 +1,6 @@
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Loading;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ApplicationLifecycle
 {
@@ -160,10 +161,10 @@ namespace Immersive.Framework.ApplicationLifecycle
             bool progressSupported,
             FrameworkLoadingProgress observedProgress)
         {
-            var blockingIssueCount = beforeResult.BlockingIssueCount + afterResult.BlockingIssueCount;
-            var beforeText = StatusText(beforeResult);
-            var afterText = StatusText(afterResult);
-            var loadingText = DetermineSurfaceLoadingText(beforeResult, afterResult);
+            int blockingIssueCount = beforeResult.BlockingIssueCount + afterResult.BlockingIssueCount;
+            string beforeText = StatusText(beforeResult);
+            string afterText = StatusText(afterResult);
+            string loadingText = DetermineSurfaceLoadingText(beforeResult, afterResult);
             var progress = ResolveObservedProgress(progressSupported, observedProgress);
             return new FrameworkLoadingDiagnostics(
                 loadingText,
@@ -251,7 +252,7 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

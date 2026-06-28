@@ -1,4 +1,5 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+using Immersive.Framework.Common; 
+    #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -62,7 +63,7 @@ namespace Immersive.Framework.CycleReset
 
             try
             {
-                var completed = true;
+                bool completed = true;
 
                 if (runRouteCycleReset)
                 {
@@ -136,7 +137,7 @@ namespace Immersive.Framework.CycleReset
                 return false;
             }
 
-            var completed = true;
+            bool completed = true;
 
             if (runRouteCycleReset)
             {
@@ -203,7 +204,7 @@ namespace Immersive.Framework.CycleReset
                 return false;
             }
 
-            var completed = true;
+            bool completed = true;
 
             if (runRouteCycleReset)
             {
@@ -301,7 +302,7 @@ namespace Immersive.Framework.CycleReset
                     LogFields.Field("step", step),
                     LogFields.Field("scope", result.Request.Scope.ToString()),
                     LogFields.Field("route", result.Request.ActiveRouteName),
-                    LogFields.Field("activity", string.IsNullOrWhiteSpace(result.Request.ActiveActivityName) ? "<none>" : result.Request.ActiveActivityName),
+                    LogFields.Field("activity", result.Request.ActiveActivityName.ToDiagnosticText()),
                     LogFields.Field("includeActiveActivity", result.Request.IncludesActiveActivity),
                     LogFields.Field("resultStatus", result.Status.ToString()),
                     LogFields.Field("participants", result.ParticipantCount),
@@ -379,7 +380,7 @@ namespace Immersive.Framework.CycleReset
         private static async Task<bool> WaitForTriggerCompletion(RouteCycleResetTrigger trigger)
         {
             const int maxYields = 256;
-            for (var i = 0; i < maxYields; i++)
+            for (int i = 0; i < maxYields; i++)
             {
                 await Task.Yield();
                 if (trigger != null && !trigger.IsRequestInFlight && trigger.HasLastResult)
@@ -394,7 +395,7 @@ namespace Immersive.Framework.CycleReset
         private static async Task<bool> WaitForTriggerCompletion(ActivityCycleResetTrigger trigger)
         {
             const int maxYields = 256;
-            for (var i = 0; i < maxYields; i++)
+            for (int i = 0; i < maxYields; i++)
             {
                 await Task.Yield();
                 if (trigger != null && !trigger.IsRequestInFlight && trigger.HasLastResult)
@@ -612,9 +613,9 @@ namespace Immersive.Framework.CycleReset
                 return false;
             }
 
-            var expectedSucceededNoParticipants = result.Status == CycleResetStatus.SucceededNoParticipants ? 1 : 0;
-            var expectedSucceededWithParticipants = result.Status == CycleResetStatus.Succeeded ? 1 : 0;
-            var expectedCompletedWithWarnings = result.CompletedWithWarnings ? 1 : 0;
+            int expectedSucceededNoParticipants = result.Status == CycleResetStatus.SucceededNoParticipants ? 1 : 0;
+            int expectedSucceededWithParticipants = result.Status == CycleResetStatus.Succeeded ? 1 : 0;
+            int expectedCompletedWithWarnings = result.CompletedWithWarnings ? 1 : 0;
 
             if (counters.succeededNoParticipants != expectedSucceededNoParticipants ||
                 counters.succeededWithParticipants != expectedSucceededWithParticipants ||
@@ -749,7 +750,7 @@ namespace Immersive.Framework.CycleReset
 
             public SyntheticCycleResetParticipantSource(string source)
             {
-                this._source = source;
+                _source = source;
             }
 
             public IReadOnlyList<ICycleResetParticipant> ResolveCycleResetParticipants(CycleResetRequest request)
@@ -782,8 +783,8 @@ namespace Immersive.Framework.CycleReset
                 CycleResetParticipantDescriptor descriptor,
                 SyntheticCycleResetParticipantMode mode)
             {
-                this._descriptor = descriptor;
-                this._mode = mode;
+                _descriptor = descriptor;
+                _mode = mode;
             }
 
             public CycleResetParticipantDescriptor GetCycleResetDescriptor()

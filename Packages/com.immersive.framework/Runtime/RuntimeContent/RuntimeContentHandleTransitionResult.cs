@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RuntimeContent
 {
@@ -85,9 +86,9 @@ namespace Immersive.Framework.RuntimeContent
 
         public string ToDiagnosticString()
         {
-            var source = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
-            var reason = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
-            var message = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
+            string source = Source.ToDiagnosticText();
+            string reason = Reason.ToDiagnosticText();
+            string message = Message.ToDiagnosticText();
             return $"identity='{Identity.StableText}' scope='{Scope}' contentId='{ContentId.StableText}' previousState='{PreviousState}' currentState='{CurrentState}' requestedState='{RequestedState}' status='{Status}' source='{source}' reason='{reason}' message='{message}'";
         }
 
@@ -150,7 +151,7 @@ namespace Immersive.Framework.RuntimeContent
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

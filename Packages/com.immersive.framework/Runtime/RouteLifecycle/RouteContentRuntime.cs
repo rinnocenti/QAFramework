@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Diagnostics;
 using Immersive.Framework.SceneLifecycle;
 using UnityEngine;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.RouteLifecycle
 {
@@ -31,7 +33,7 @@ namespace Immersive.Framework.RouteLifecycle
                     resolvedReason);
             }
 
-            var bindings = SceneScopedComponentQuery.GetComponentsInRoutePrimaryScene<RouteContentBinding>(route);
+            IReadOnlyList<RouteContentBinding> bindings = SceneScopedComponentQuery.GetComponentsInRoutePrimaryScene<RouteContentBinding>(route);
             int bindingCount = 0;
             int receiverCount = 0;
             int failedReceiverCount = 0;
@@ -86,7 +88,7 @@ namespace Immersive.Framework.RouteLifecycle
                     resolvedReason);
             }
 
-            var bindings = SceneScopedComponentQuery.GetComponentsInRoutePrimaryScene<RouteContentBinding>(route);
+            IReadOnlyList<RouteContentBinding> bindings = SceneScopedComponentQuery.GetComponentsInRoutePrimaryScene<RouteContentBinding>(route);
             int bindingCount = 0;
             int receiverCount = 0;
             int failedReceiverCount = 0;
@@ -128,12 +130,12 @@ namespace Immersive.Framework.RouteLifecycle
 
         private static string NormalizeSource(string source)
         {
-            return string.IsNullOrWhiteSpace(source) ? "Unknown" : source.Trim();
+            return source.NormalizeTextOrFallback("Unknown");
         }
 
         private static string NormalizeReason(string reason)
         {
-            return string.IsNullOrWhiteSpace(reason) ? "None" : reason.Trim();
+            return reason.NormalizeTextOrFallback("None");
         }
 
         private static bool IsValidBindingForRoute(RouteContentBinding binding, RouteAsset route)
@@ -237,7 +239,7 @@ namespace Immersive.Framework.RouteLifecycle
             Exception exception)
         {
             string receiverType = receiver != null ? receiver.GetType().FullName : "<missing>";
-            string routeName = route != null ? route.RouteName : "<none>";
+            string routeName = route.ToDiagnosticText(x => x.RouteName);
             string exceptionType = exception != null ? exception.GetType().Name : "<unknown>";
             string exceptionMessage = exception != null ? exception.Message : string.Empty;
 

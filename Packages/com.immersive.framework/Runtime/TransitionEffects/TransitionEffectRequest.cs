@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Transition;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.TransitionEffects
 {
@@ -41,7 +42,7 @@ namespace Immersive.Framework.TransitionEffects
                 throw new ArgumentException("Transition Effect request requires a valid Transition operation id.", nameof(operationId));
             }
 
-            if (!Enum.IsDefined(typeof(TransitionKind), transitionKind) || transitionKind == Immersive.Framework.Transition.TransitionKind.Unknown)
+            if (!Enum.IsDefined(typeof(TransitionKind), transitionKind) || transitionKind == TransitionKind.Unknown)
             {
                 throw new ArgumentOutOfRangeException(nameof(transitionKind), transitionKind, "Transition Effect request transition kind must be explicit.");
             }
@@ -85,7 +86,7 @@ namespace Immersive.Framework.TransitionEffects
             && EffectKind != TransitionEffectKind.Unknown
             && Requiredness != TransitionEffectRequiredness.Unknown
             && OperationId.IsValid
-            && TransitionKind != Immersive.Framework.Transition.TransitionKind.Unknown
+            && TransitionKind != TransitionKind.Unknown
             && Phase != TransitionPhase.Unknown;
 
         public bool Equals(TransitionEffectRequest other)
@@ -109,14 +110,14 @@ namespace Immersive.Framework.TransitionEffects
         {
             unchecked
             {
-                var hashCode = EffectId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)EffectKind;
-                hashCode = (hashCode * 397) ^ (int)Requiredness;
-                hashCode = (hashCode * 397) ^ OperationId.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)TransitionKind;
-                hashCode = (hashCode * 397) ^ (int)Phase;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
+                int hashCode = EffectId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)EffectKind;
+                hashCode = hashCode * 397 ^ (int)Requiredness;
+                hashCode = hashCode * 397 ^ OperationId.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)TransitionKind;
+                hashCode = hashCode * 397 ^ (int)Phase;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Source ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Reason ?? string.Empty);
                 return hashCode;
             }
         }
@@ -128,8 +129,8 @@ namespace Immersive.Framework.TransitionEffects
 
         public string ToDiagnosticString()
         {
-            var sourceText = string.IsNullOrWhiteSpace(Source) ? "<none>" : Source;
-            var reasonText = string.IsNullOrWhiteSpace(Reason) ? "<none>" : Reason;
+            string sourceText = Source.ToDiagnosticText();
+            string reasonText = Reason.ToDiagnosticText();
             return $"effect='{EffectId.StableText}' effectKind='{EffectKind}' requiredness='{Requiredness}' operation='{OperationId.StableText}' transitionKind='{TransitionKind}' phase='{Phase}' source='{sourceText}' reason='{reasonText}'";
         }
 
@@ -185,7 +186,7 @@ namespace Immersive.Framework.TransitionEffects
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

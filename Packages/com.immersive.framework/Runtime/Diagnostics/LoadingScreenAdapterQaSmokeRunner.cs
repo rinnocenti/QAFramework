@@ -1,3 +1,4 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Threading.Tasks;
@@ -23,15 +24,15 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source) ? nameof(LoadingScreenAdapterQaSmokeRunner) : source.Trim();
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(LoadingScreenAdapterQaSmokeRunner));
 
             try
             {
-                var contractsPassed = ValidateContracts(logger, normalizedSource);
-                var showUpdateHidePassed = ValidateShowUpdateHide(logger, normalizedSource);
-                var unsupportedPassed = ValidateUnsupportedOperation(logger, normalizedSource);
-                var failurePassed = ValidateAdapterFailure(logger, normalizedSource);
-                var boundaryPassed = ValidateBoundary(logger);
+                bool contractsPassed = ValidateContracts(logger, normalizedSource);
+                bool showUpdateHidePassed = ValidateShowUpdateHide(logger, normalizedSource);
+                bool unsupportedPassed = ValidateUnsupportedOperation(logger, normalizedSource);
+                bool failurePassed = ValidateAdapterFailure(logger, normalizedSource);
+                bool boundaryPassed = ValidateBoundary(logger);
 
                 return Task.FromResult(contractsPassed
                     && showUpdateHidePassed
@@ -68,7 +69,7 @@ namespace Immersive.Framework.Diagnostics
             var adapter = new SyntheticLoadingScreenAdapter("Synthetic Loading Screen Adapter", true, false);
             var result = adapter.Show(presentation);
 
-            var passed = adapter.AdapterName == "Synthetic Loading Screen Adapter"
+            bool passed = adapter.AdapterName == "Synthetic Loading Screen Adapter"
                 && adapter.Supports(operation)
                 && presentation.IsValid
                 && presentation.ShouldBeVisible
@@ -124,7 +125,7 @@ namespace Immersive.Framework.Diagnostics
             var updateResult = adapter.Update(updatePresentation);
             var hideResult = adapter.Hide(hidePresentation);
 
-            var passed = showResult.Succeeded
+            bool passed = showResult.Succeeded
                 && updateResult.Succeeded
                 && hideResult.Succeeded
                 && showResult.Action == LoadingScreenAdapterAction.Show
@@ -173,7 +174,7 @@ namespace Immersive.Framework.Diagnostics
                 source);
             var result = adapter.Show(presentation);
 
-            var passed = !adapter.Supports(operation)
+            bool passed = !adapter.Supports(operation)
                 && result.Rejected
                 && result.IssueCount == 1
                 && !adapter.Visible
@@ -205,7 +206,7 @@ namespace Immersive.Framework.Diagnostics
                 source);
             var result = adapter.Update(presentation);
 
-            var passed = result.Failed
+            bool passed = result.Failed
                 && result.IssueCount == 1
                 && adapter.UpdateCount == 0
                 && !adapter.Visible;
@@ -227,7 +228,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidateBoundary(FrameworkLogger logger)
         {
-            var passed = typeof(ILoadingScreenAdapter).Namespace == "Immersive.Framework.Loading"
+            bool passed = typeof(ILoadingScreenAdapter).Namespace == "Immersive.Framework.Loading"
                 && typeof(LoadingScreenPresentation).Namespace == "Immersive.Framework.Loading"
                 && typeof(LoadingScreenAdapterResult).Namespace == "Immersive.Framework.Loading";
 
@@ -254,7 +255,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogStep(FrameworkLogger logger, string step, bool passed, LogField[] fields)
         {
-            var stepFields = LogFields.Of(
+            LogField[] stepFields = LogFields.Of(
                 LogFields.Field("step", step),
                 LogFields.Field("passed", passed));
 
@@ -280,9 +281,9 @@ namespace Immersive.Framework.Diagnostics
 
             public SyntheticLoadingScreenAdapter(string adapterName, bool supports, bool failUpdate)
             {
-                this._adapterName = string.IsNullOrWhiteSpace(adapterName) ? nameof(SyntheticLoadingScreenAdapter) : adapterName.Trim();
-                this._supports = supports;
-                this._failUpdate = failUpdate;
+                _adapterName = adapterName.NormalizeTextOrFallback(nameof(SyntheticLoadingScreenAdapter));
+                _supports = supports;
+                _failUpdate = failUpdate;
                 LastProgress = LoadingProgress.Zero;
             }
 

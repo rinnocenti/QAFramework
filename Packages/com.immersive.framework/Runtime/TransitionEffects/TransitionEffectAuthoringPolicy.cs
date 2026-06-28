@@ -25,15 +25,15 @@ namespace Immersive.Framework.TransitionEffects
                 throw new ArgumentException("Transition Effect authoring policy requires a valid effect plan.", nameof(plan));
             }
 
-            var adapterCount = CountAdapters(adapters);
-            var matchedRequests = 0;
-            var requiredMissing = 0;
-            var optionalMissing = 0;
-            var duplicateIds = 0;
+            int adapterCount = CountAdapters(adapters);
+            int matchedRequests = 0;
+            int requiredMissing = 0;
+            int optionalMissing = 0;
+            int duplicateIds = 0;
             var issues = new List<TransitionEffectPolicyIssue>();
-            var requests = plan.Requests;
+            IReadOnlyList<TransitionEffectRequest> requests = plan.Requests;
 
-            for (var i = 0; i < requests.Count; i++)
+            for (int i = 0; i < requests.Count; i++)
             {
                 var request = requests[i];
                 if (IsDuplicateEffectId(requests, i))
@@ -79,7 +79,7 @@ namespace Immersive.Framework.TransitionEffects
                 return false;
             }
 
-            for (var i = 0; i < adapters.Count; i++)
+            for (int i = 0; i < adapters.Count; i++)
             {
                 var adapter = adapters[i];
                 if (adapter != null && adapter.Supports(effectKind))
@@ -98,8 +98,8 @@ namespace Immersive.Framework.TransitionEffects
                 return 0;
             }
 
-            var count = 0;
-            for (var i = 0; i < adapters.Count; i++)
+            int count = 0;
+            for (int i = 0; i < adapters.Count; i++)
             {
                 if (adapters[i] != null)
                 {
@@ -113,7 +113,7 @@ namespace Immersive.Framework.TransitionEffects
         private static bool IsDuplicateEffectId(IReadOnlyList<TransitionEffectRequest> requests, int index)
         {
             var current = requests[index];
-            for (var i = 0; i < index; i++)
+            for (int i = 0; i < index; i++)
             {
                 if (requests[i].EffectId == current.EffectId)
                 {

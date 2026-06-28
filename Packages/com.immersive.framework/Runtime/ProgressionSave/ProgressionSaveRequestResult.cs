@@ -1,5 +1,6 @@
 using System;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.ProgressionSave
 {
@@ -32,7 +33,7 @@ namespace Immersive.Framework.ProgressionSave
                 throw new ArgumentException("Progression Save request result requires a valid backend id.", nameof(backendId));
             }
 
-            if ((status == ProgressionSaveRequestStatus.Saved || status == ProgressionSaveRequestStatus.Loaded) && !record.IsValid)
+            if (status is ProgressionSaveRequestStatus.Saved or ProgressionSaveRequestStatus.Loaded && !record.IsValid)
             {
                 throw new ArgumentException("Progression Save saved/loaded request result requires a valid record.", nameof(record));
             }
@@ -74,23 +75,17 @@ namespace Immersive.Framework.ProgressionSave
 
         public bool HasRecord => Record.IsValid;
 
-        public bool Completed => Status == ProgressionSaveRequestStatus.Saved
-            || Status == ProgressionSaveRequestStatus.Loaded
-            || Status == ProgressionSaveRequestStatus.Deleted
-            || Status == ProgressionSaveRequestStatus.Missing;
+        public bool Completed => Status is ProgressionSaveRequestStatus.Saved or ProgressionSaveRequestStatus.Loaded or ProgressionSaveRequestStatus.Deleted or ProgressionSaveRequestStatus.Missing;
 
-        public bool Failed => Status == ProgressionSaveRequestStatus.Rejected
-            || Status == ProgressionSaveRequestStatus.BackendUnavailable
-            || Status == ProgressionSaveRequestStatus.Corrupt
-            || Status == ProgressionSaveRequestStatus.Failed;
+        public bool Failed => Status is ProgressionSaveRequestStatus.Rejected or ProgressionSaveRequestStatus.BackendUnavailable or ProgressionSaveRequestStatus.Corrupt or ProgressionSaveRequestStatus.Failed;
 
         public bool HasMessage => !string.IsNullOrWhiteSpace(Message);
 
         public bool IsValid => Request.IsValid
             && Status != ProgressionSaveRequestStatus.Unknown
             && BackendId.IsValid
-            && ((HasRecord && (Status == ProgressionSaveRequestStatus.Saved || Status == ProgressionSaveRequestStatus.Loaded))
-                || (!HasRecord && Status != ProgressionSaveRequestStatus.Saved && Status != ProgressionSaveRequestStatus.Loaded));
+            && (HasRecord && Status is ProgressionSaveRequestStatus.Saved or ProgressionSaveRequestStatus.Loaded
+                || !HasRecord && Status != ProgressionSaveRequestStatus.Saved && Status != ProgressionSaveRequestStatus.Loaded);
 
         public bool Equals(ProgressionSaveRequestResult other)
         {
@@ -110,11 +105,11 @@ namespace Immersive.Framework.ProgressionSave
         {
             unchecked
             {
-                var hashCode = Request.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Status;
-                hashCode = (hashCode * 397) ^ BackendId.GetHashCode();
-                hashCode = (hashCode * 397) ^ Record.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = Request.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ BackendId.GetHashCode();
+                hashCode = hashCode * 397 ^ Record.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -126,8 +121,8 @@ namespace Immersive.Framework.ProgressionSave
 
         public string ToDiagnosticString()
         {
-            var recordText = HasRecord ? Record.RecordId.StableText : "<none>";
-            var messageText = HasMessage ? Message : "<none>";
+            string recordText = HasRecord ? Record.RecordId.StableText : "<none>";
+            string messageText = HasMessage ? Message : "<none>";
             return $"request='{RequestId.StableText}' kind='{Kind}' slot='{SlotId.StableText}' status='{Status}' completed='{Completed}' failed='{Failed}' backend='{BackendId.StableText}' record='{recordText}' momentKind='{Moment.Kind}' message='{messageText}'";
         }
 
@@ -209,7 +204,7 @@ namespace Immersive.Framework.ProgressionSave
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }

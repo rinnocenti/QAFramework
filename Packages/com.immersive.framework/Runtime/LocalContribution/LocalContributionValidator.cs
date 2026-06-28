@@ -38,8 +38,8 @@ namespace Immersive.Framework.LocalContribution
                 return;
             }
 
-            var issues = discoveryResult.Issues;
-            for (var i = 0; i < issues.Count; i++)
+            IReadOnlyList<LocalContributionDiscoveryIssue> issues = discoveryResult.Issues;
+            for (int i = 0; i < issues.Count; i++)
             {
                 var issue = issues[i];
                 validationIssues.Add(new LocalContributionValidationIssue(
@@ -60,7 +60,7 @@ namespace Immersive.Framework.LocalContribution
                 return;
             }
 
-            for (var i = 0; i < expectedContributions.Count; i++)
+            for (int i = 0; i < expectedContributions.Count; i++)
             {
                 var expected = expectedContributions[i];
                 if (!expected.IsValid)

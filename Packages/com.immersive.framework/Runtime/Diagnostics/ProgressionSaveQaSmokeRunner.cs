@@ -1,3 +1,4 @@
+using Immersive.Framework.Common;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.IO;
@@ -27,8 +28,8 @@ namespace Immersive.Framework.Diagnostics
                 return Task.FromResult(false);
             }
 
-            var normalizedSource = string.IsNullOrWhiteSpace(source) ? nameof(ProgressionSaveQaSmokeRunner) : source.Trim();
-            var rootDirectory = Path.Combine(Application.temporaryCachePath, "ImmersiveFramework", "Qa", QaRootName);
+            string normalizedSource = source.NormalizeTextOrFallback(nameof(ProgressionSaveQaSmokeRunner));
+            string rootDirectory = Path.Combine(Application.temporaryCachePath, "ImmersiveFramework", "Qa", QaRootName);
             var store = new JsonProgressionSaveStore(rootDirectory, ProgressionSaveBackendId.From("json.qa"));
             var primarySlot = ProgressionSaveSlotId.From("qa.slot.primary");
             var missingSlot = ProgressionSaveSlotId.From("qa.slot.missing");
@@ -38,13 +39,13 @@ namespace Immersive.Framework.Diagnostics
 
             try
             {
-                var contractsPassed = ValidateContracts(logger, normalizedSource, store, primarySlot);
-                var missingPassed = ValidateMissing(logger, store, missingSlot);
-                var writeReadPassed = ValidateWriteRead(logger, store, primarySlot, out var record);
-                var manifestPassed = ValidateManifest(logger, store, primarySlot, record);
-                var corruptPassed = ValidateCorruptSlot(logger, store, corruptSlot);
-                var deletePassed = ValidateDelete(logger, store, primarySlot, corruptSlot);
-                var boundaryPassed = ValidateBoundary(logger, store);
+                bool contractsPassed = ValidateContracts(logger, normalizedSource, store, primarySlot);
+                bool missingPassed = ValidateMissing(logger, store, missingSlot);
+                bool writeReadPassed = ValidateWriteRead(logger, store, primarySlot, out var record);
+                bool manifestPassed = ValidateManifest(logger, store, primarySlot, record);
+                bool corruptPassed = ValidateCorruptSlot(logger, store, corruptSlot);
+                bool deletePassed = ValidateDelete(logger, store, primarySlot, corruptSlot);
+                bool boundaryPassed = ValidateBoundary(logger, store);
 
                 return Task.FromResult(contractsPassed
                     && missingPassed
@@ -76,8 +77,8 @@ namespace Immersive.Framework.Diagnostics
             JsonProgressionSaveStore store,
             ProgressionSaveSlotId primarySlot)
         {
-            var physicalPath = store.ToPhysicalSlotPath(primarySlot);
-            var passed = store.BackendId.IsValid
+            string physicalPath = store.ToPhysicalSlotPath(primarySlot);
+            bool passed = store.BackendId.IsValid
                 && store.BackendId.StableText == "ProgressionSave:json.qa"
                 && !string.IsNullOrWhiteSpace(store.RootDirectory)
                 && !string.IsNullOrWhiteSpace(store.SlotDirectory)
@@ -110,7 +111,7 @@ namespace Immersive.Framework.Diagnostics
             var slotRead = store.ReadSlot(missingSlot);
             var delete = store.DeleteSlot(missingSlot);
 
-            var passed = manifestRead.Status == ProgressionSaveReadStatus.Missing
+            bool passed = manifestRead.Status == ProgressionSaveReadStatus.Missing
                 && !manifestRead.HasManifest
                 && slotRead.Status == ProgressionSaveReadStatus.Missing
                 && !slotRead.HasRecord
@@ -139,9 +140,9 @@ namespace Immersive.Framework.Diagnostics
             record = CreateRecord(primarySlot, "qa.record.primary", "QA Primary Slot", "write-read");
             var write = store.WriteSlot(record);
             var read = store.ReadSlot(primarySlot);
-            var contains = store.ContainsSlot(primarySlot);
+            bool contains = store.ContainsSlot(primarySlot);
 
-            var passed = write.Written
+            bool passed = write.Written
                 && read.Status == ProgressionSaveReadStatus.Found
                 && read.HasRecord
                 && read.Record == record
@@ -171,8 +172,8 @@ namespace Immersive.Framework.Diagnostics
         {
             var manifestRead = store.ReadManifest();
             var entry = default(ProgressionSaveManifestEntry);
-            var hasEntry = manifestRead.HasManifest && manifestRead.Manifest.TryGetEntry(primarySlot, out entry);
-            var entryMatchesRecord = hasEntry
+            bool hasEntry = manifestRead.HasManifest && manifestRead.Manifest.TryGetEntry(primarySlot, out entry);
+            bool entryMatchesRecord = hasEntry
                 && entry.RecordId == record.RecordId
                 && entry.PayloadFormat == record.Payload.Format
                 && entry.PayloadByteCount == record.Payload.ByteCount;
@@ -181,7 +182,7 @@ namespace Immersive.Framework.Diagnostics
                 ? store.WriteManifest(manifestRead.Manifest)
                 : ProgressionSaveManifestWriteResult.FailedResult("Manifest was not available for rewrite.");
 
-            var passed = manifestRead.Status == ProgressionSaveReadStatus.Found
+            bool passed = manifestRead.Status == ProgressionSaveReadStatus.Found
                 && manifestRead.HasManifest
                 && manifestRead.Manifest.Count == 1
                 && hasEntry
@@ -212,7 +213,7 @@ namespace Immersive.Framework.Diagnostics
             File.WriteAllText(store.ToPhysicalSlotPath(corruptSlot), "{ not-valid-json", Encoding.UTF8);
 
             var read = store.ReadSlot(corruptSlot);
-            var passed = read.Status == ProgressionSaveReadStatus.Corrupt
+            bool passed = read.Status == ProgressionSaveReadStatus.Corrupt
                 && read.Failed
                 && !read.HasRecord
                 && store.ContainsSlot(corruptSlot);
@@ -240,9 +241,9 @@ namespace Immersive.Framework.Diagnostics
             var corruptDelete = store.DeleteSlot(corruptSlot);
             var primaryRead = store.ReadSlot(primarySlot);
             var manifestRead = store.ReadManifest();
-            var manifestHasPrimary = manifestRead.HasManifest && manifestRead.Manifest.ContainsSlot(primarySlot);
+            bool manifestHasPrimary = manifestRead.HasManifest && manifestRead.Manifest.ContainsSlot(primarySlot);
 
-            var passed = primaryDelete.Status == ProgressionSaveDeleteStatus.Deleted
+            bool passed = primaryDelete.Status == ProgressionSaveDeleteStatus.Deleted
                 && corruptDelete.Status == ProgressionSaveDeleteStatus.Deleted
                 && primaryRead.Status == ProgressionSaveReadStatus.Missing
                 && !store.ContainsSlot(primarySlot)
@@ -270,7 +271,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidateBoundary(FrameworkLogger logger, JsonProgressionSaveStore store)
         {
-            var passed = store.BackendId.StableText == "ProgressionSave:json.qa";
+            bool passed = store.BackendId.StableText == "ProgressionSave:json.qa";
 
             LogStep(
                 logger,
@@ -295,8 +296,8 @@ namespace Immersive.Framework.Diagnostics
             string displayName,
             string reason)
         {
-            var now = DateTime.UtcNow.Ticks;
-            var payloadJson = "{\"level\":2,\"checkpoint\":\"qa\"}";
+            long now = DateTime.UtcNow.Ticks;
+            string payloadJson = "{\"level\":2,\"checkpoint\":\"qa\"}";
             var payload = ProgressionSavePayload.FromBytes(
                 ProgressionSavePayloadFormat.Structured,
                 Encoding.UTF8.GetBytes(payloadJson),
@@ -332,7 +333,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static void LogStep(FrameworkLogger logger, string step, bool passed, LogField[] fields)
         {
-            var allFields = AppendFields(
+            LogField[] allFields = AppendFields(
                 LogFields.Of(
                     LogFields.Field("step", step),
                     LogFields.Field("passed", passed)),

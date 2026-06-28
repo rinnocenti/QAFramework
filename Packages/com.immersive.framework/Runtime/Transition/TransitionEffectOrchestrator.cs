@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Immersive.Framework.ApiStatus;
 using UnityEngine;
 using Immersive.Framework.TransitionEffects;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Transition
 {
@@ -21,7 +22,7 @@ namespace Immersive.Framework.Transition
             IReadOnlyList<ITransitionEffectAdapter> adapters,
             string surfaceLabel)
         {
-            _surfaceLabel = string.IsNullOrWhiteSpace(surfaceLabel) ? "Transition Surface" : surfaceLabel.Trim();
+            _surfaceLabel = surfaceLabel.NormalizeTextOrFallback("Transition Surface");
             _adapters = CopyAdapters(adapters);
         }
 
@@ -43,9 +44,9 @@ namespace Immersive.Framework.Transition
             }
 
             var effectPhase = ResolveEffectPhase(request.Phase);
-            var visibleState = request.Phase == TransitionPhase.OperationOpened;
+            bool visibleState = request.Phase == TransitionPhase.OperationOpened;
             var effectKind = TransitionEffectKind.Fade;
-            var effectId = BuildEffectId(request, visibleState);
+            string effectId = BuildEffectId(request, visibleState);
             var effectRequest = TransitionEffectRequest.Required(
                 effectId,
                 effectKind,
@@ -71,7 +72,7 @@ namespace Immersive.Framework.Transition
                     visibleState ? "visible" : "hidden");
             }
 
-            var matchingAdapters = CollectSupportingAdapters(effectKind);
+            List<ITransitionEffectAdapter> matchingAdapters = CollectSupportingAdapters(effectKind);
             if (matchingAdapters.Count == 0)
             {
                 return BuildFailureResult(
@@ -83,10 +84,10 @@ namespace Immersive.Framework.Transition
             }
 
             var issues = new List<string>();
-            var blockingIssueCount = 0;
-            var warningIssueCount = 0;
+            int blockingIssueCount = 0;
+            int warningIssueCount = 0;
 
-            for (var i = 0; i < matchingAdapters.Count; i++)
+            for (int i = 0; i < matchingAdapters.Count; i++)
             {
                 var adapter = matchingAdapters[i];
                 var result = useAsyncAdapters && adapter is IAsyncTransitionEffectAdapter asyncAdapter
@@ -104,9 +105,9 @@ namespace Immersive.Framework.Transition
 
                 if (result.HasIssues)
                 {
-                    for (var issueIndex = 0; issueIndex < result.Issues.Count; issueIndex++)
+                    for (int issueIndex = 0; issueIndex < result.Issues.Count; issueIndex++)
                     {
-                        var issueText = result.Issues[issueIndex];
+                        string issueText = result.Issues[issueIndex];
                         if (!string.IsNullOrWhiteSpace(issueText))
                         {
                             issues.Add($"{adapter.AdapterName}: {issueText.Trim()}");
@@ -142,7 +143,7 @@ namespace Immersive.Framework.Transition
             var effectStatus = warningIssueCount > 0
                 ? TransitionEffectStatus.CompletedWithWarnings
                 : TransitionEffectStatus.Succeeded;
-            var transitionMessage = warningIssueCount > 0
+            string transitionMessage = warningIssueCount > 0
                 ? "CompletedWithUnitySurfaceWarnings"
                 : "SucceededWithUnitySurface";
             var step = warningIssueCount > 0
@@ -212,7 +213,7 @@ namespace Immersive.Framework.Transition
             string stateLabel)
         {
             var issues = new List<string>(evaluation.IssueCount + 1);
-            for (var i = 0; i < evaluation.Issues.Count; i++)
+            for (int i = 0; i < evaluation.Issues.Count; i++)
             {
                 issues.Add(evaluation.Issues[i].ToDiagnosticString());
             }
@@ -244,7 +245,7 @@ namespace Immersive.Framework.Transition
         private List<ITransitionEffectAdapter> CollectSupportingAdapters(TransitionEffectKind effectKind)
         {
             var supportingAdapters = new List<ITransitionEffectAdapter>();
-            for (var i = 0; i < _adapters.Length; i++)
+            for (int i = 0; i < _adapters.Length; i++)
             {
                 var adapter = _adapters[i];
                 if (adapter != null && adapter.Supports(effectKind))
@@ -258,15 +259,15 @@ namespace Immersive.Framework.Transition
 
         private static string BuildEffectId(TransitionRequest request, bool visibleState)
         {
-            var phaseText = visibleState ? "before" : "after";
-            var scopeText = request.Scope.ToString().ToLowerInvariant();
-            var kindText = request.Kind.ToString().ToLowerInvariant();
+            string phaseText = visibleState ? "before" : "after";
+            string scopeText = request.Scope.ToString().ToLowerInvariant();
+            string kindText = request.Kind.ToString().ToLowerInvariant();
             return $"framework.transition-surface.{scopeText}.{kindText}.{phaseText}.fade";
         }
 
         private static string BuildStepLabel(TransitionRequest request, bool visibleState)
         {
-            var phaseText = visibleState ? "visible" : "hidden";
+            string phaseText = visibleState ? "visible" : "hidden";
             return $"{request.Scope.ToString().ToLowerInvariant()}-{phaseText}";
         }
 
@@ -279,7 +280,7 @@ namespace Immersive.Framework.Transition
 
         private static string BuildFailureMessage(bool visibleState, string message)
         {
-            var phaseText = visibleState ? "visible" : "hidden";
+            string phaseText = visibleState ? "visible" : "hidden";
             return $"{message} Requested state='{phaseText}'.";
         }
 
@@ -291,7 +292,7 @@ namespace Immersive.Framework.Transition
             }
 
             var copy = new ITransitionEffectAdapter[adapters.Count];
-            for (var i = 0; i < adapters.Count; i++)
+            for (int i = 0; i < adapters.Count; i++)
             {
                 copy[i] = adapters[i];
             }

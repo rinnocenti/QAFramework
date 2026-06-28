@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Loading
 {
@@ -34,7 +35,7 @@ namespace Immersive.Framework.Loading
                 throw new ArgumentException("Supported loading progress cannot use the unknown mode.", nameof(mode));
             }
 
-            if ((mode == FrameworkLoadingProgressMode.Unknown || mode == FrameworkLoadingProgressMode.Indeterminate)
+            if (mode is FrameworkLoadingProgressMode.Unknown or FrameworkLoadingProgressMode.Indeterminate
                 && value01 != 0f)
             {
                 throw new ArgumentException("Unknown or indeterminate loading progress cannot carry a normalized value.", nameof(value01));
@@ -74,9 +75,9 @@ namespace Immersive.Framework.Loading
 
         public string PercentText => Percent.ToString(CultureInfo.InvariantCulture);
 
-        public string PhaseText => string.IsNullOrWhiteSpace(Phase) ? "<none>" : Phase;
+        public string PhaseText => Phase.ToDiagnosticText();
 
-        public string MessageText => string.IsNullOrWhiteSpace(Message) ? "<none>" : Message;
+        public string MessageText => Message.ToDiagnosticText();
 
         public bool Equals(FrameworkLoadingProgress other)
         {
@@ -96,11 +97,11 @@ namespace Immersive.Framework.Loading
         {
             unchecked
             {
-                var hashCode = Supported.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Mode;
-                hashCode = (hashCode * 397) ^ Value01.GetHashCode();
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Phase ?? string.Empty);
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                int hashCode = Supported.GetHashCode();
+                hashCode = hashCode * 397 ^ (int)Mode;
+                hashCode = hashCode * 397 ^ Value01.GetHashCode();
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Phase ?? string.Empty);
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
                 return hashCode;
             }
         }
@@ -162,7 +163,7 @@ namespace Immersive.Framework.Loading
 
         private static string Normalize(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+            return value.NormalizeText();
         }
     }
 }
