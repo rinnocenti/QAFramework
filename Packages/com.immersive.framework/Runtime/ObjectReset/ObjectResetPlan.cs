@@ -13,8 +13,8 @@ namespace Immersive.Framework.ObjectReset
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F14D Object Reset deterministic participant plan; no Unity baseline adapter yet.")]
     public sealed class ObjectResetPlan
     {
-        private readonly ObjectResetParticipantEntry[] participants;
-        private readonly ObjectResetIssue[] issues;
+        private readonly ObjectResetParticipantEntry[] _participants;
+        private readonly ObjectResetIssue[] _issues;
 
         public ObjectResetPlan(
             ObjectResetRequest request,
@@ -34,21 +34,21 @@ namespace Immersive.Framework.ObjectReset
 
             Request = request;
             ResolvedTarget = resolvedTarget;
-            this.participants = (participants ?? Array.Empty<ObjectResetParticipantEntry>())
+            this._participants = (participants ?? Array.Empty<ObjectResetParticipantEntry>())
                 .OrderBy(entry => entry.Descriptor.Order)
                 .ThenBy(entry => entry.SourceIndex)
                 .ThenBy(entry => entry.Descriptor.ParticipantId.StableText, StringComparer.Ordinal)
                 .ToArray();
-            this.issues = issues == null ? Array.Empty<ObjectResetIssue>() : issues.ToArray();
+            this._issues = issues == null ? Array.Empty<ObjectResetIssue>() : issues.ToArray();
         }
 
         public ObjectResetRequest Request { get; }
 
         public ObjectEntryDescriptor ResolvedTarget { get; }
 
-        public IReadOnlyList<ObjectResetParticipantEntry> Participants => participants ?? Array.Empty<ObjectResetParticipantEntry>();
+        public IReadOnlyList<ObjectResetParticipantEntry> Participants => _participants ?? Array.Empty<ObjectResetParticipantEntry>();
 
-        public IReadOnlyList<ObjectResetIssue> Issues => issues ?? Array.Empty<ObjectResetIssue>();
+        public IReadOnlyList<ObjectResetIssue> Issues => _issues ?? Array.Empty<ObjectResetIssue>();
 
         public int ParticipantCount => Participants.Count;
 

@@ -12,8 +12,8 @@ namespace Immersive.Framework.Gate
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F17B Gate evaluation result primitive with explicit blockers and facts.")]
     public readonly struct GateEvaluationResult : IEquatable<GateEvaluationResult>
     {
-        private readonly GateBlocker[] blockingBlockers;
-        private readonly string[] facts;
+        private readonly GateBlocker[] _blockingBlockers;
+        private readonly string[] _facts;
 
         public GateEvaluationResult(
             GateDecision decision,
@@ -26,15 +26,15 @@ namespace Immersive.Framework.Gate
             }
 
             Decision = decision;
-            this.blockingBlockers = CopyBlockers(blockingBlockers);
-            this.facts = CopyFacts(facts);
+            this._blockingBlockers = CopyBlockers(blockingBlockers);
+            this._facts = CopyFacts(facts);
         }
 
         public GateDecision Decision { get; }
 
-        public IReadOnlyList<GateBlocker> BlockingBlockers => blockingBlockers ?? Array.Empty<GateBlocker>();
+        public IReadOnlyList<GateBlocker> BlockingBlockers => _blockingBlockers ?? Array.Empty<GateBlocker>();
 
-        public IReadOnlyList<string> Facts => facts ?? Array.Empty<string>();
+        public IReadOnlyList<string> Facts => _facts ?? Array.Empty<string>();
 
         public GateDecisionStatus Status => Decision.Status;
 

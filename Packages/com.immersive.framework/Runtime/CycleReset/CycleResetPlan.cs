@@ -12,8 +12,8 @@ namespace Immersive.Framework.CycleReset
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F11A Cycle Reset passive plan; no execution side effects.")]
     public readonly struct CycleResetPlan : IEquatable<CycleResetPlan>
     {
-        private readonly CycleResetParticipantEntry[] entries;
-        private readonly CycleResetIssue[] issues;
+        private readonly CycleResetParticipantEntry[] _entries;
+        private readonly CycleResetIssue[] _issues;
 
         public CycleResetPlan(
             CycleResetRequest request,
@@ -34,17 +34,17 @@ namespace Immersive.Framework.CycleReset
             Source = Normalize(source);
             Reason = Normalize(reason);
             Message = Normalize(message);
-            this.entries = CopyEntries(entries);
-            this.issues = CopyIssues(issues);
+            this._entries = CopyEntries(entries);
+            this._issues = CopyIssues(issues);
         }
 
         public CycleResetRequest Request { get; }
 
         public CycleResetPlanStatus Status { get; }
 
-        public IReadOnlyList<CycleResetParticipantEntry> Entries => entries ?? Array.Empty<CycleResetParticipantEntry>();
+        public IReadOnlyList<CycleResetParticipantEntry> Entries => _entries ?? Array.Empty<CycleResetParticipantEntry>();
 
-        public IReadOnlyList<CycleResetIssue> Issues => issues ?? Array.Empty<CycleResetIssue>();
+        public IReadOnlyList<CycleResetIssue> Issues => _issues ?? Array.Empty<CycleResetIssue>();
 
         public string Source { get; }
 
@@ -65,9 +65,9 @@ namespace Immersive.Framework.CycleReset
 
         public bool HasIssues => IssueCount > 0;
 
-        public int EntryCount => entries != null ? entries.Length : 0;
+        public int EntryCount => _entries != null ? _entries.Length : 0;
 
-        public int IssueCount => issues != null ? issues.Length : 0;
+        public int IssueCount => _issues != null ? _issues.Length : 0;
 
         public int RouteParticipantCount => CountEntriesByScope(CycleResetScope.Route);
 

@@ -12,8 +12,8 @@ namespace Immersive.Framework.Loading
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F22H Loading result primitive; summary/reporting only.")]
     public readonly struct LoadingResult : IEquatable<LoadingResult>
     {
-        private readonly LoadingReadinessObservation[] readinessObservations;
-        private readonly LoadingIssue[] issues;
+        private readonly LoadingReadinessObservation[] _readinessObservations;
+        private readonly LoadingIssue[] _issues;
 
         public LoadingResult(
             LoadingOperationId operationId,
@@ -42,8 +42,8 @@ namespace Immersive.Framework.Loading
             OperationId = operationId;
             Status = status;
             ProgressAggregation = progressAggregation;
-            this.readinessObservations = CopyReadiness(operationId, readinessObservations);
-            this.issues = CopyIssues(operationId, issues);
+            this._readinessObservations = CopyReadiness(operationId, readinessObservations);
+            this._issues = CopyIssues(operationId, issues);
             Source = Normalize(source);
             Message = Normalize(message);
         }
@@ -54,9 +54,9 @@ namespace Immersive.Framework.Loading
 
         public LoadingProgressAggregationResult ProgressAggregation { get; }
 
-        public IReadOnlyList<LoadingReadinessObservation> ReadinessObservations => readinessObservations ?? Array.Empty<LoadingReadinessObservation>();
+        public IReadOnlyList<LoadingReadinessObservation> ReadinessObservations => _readinessObservations ?? Array.Empty<LoadingReadinessObservation>();
 
-        public IReadOnlyList<LoadingIssue> Issues => issues ?? Array.Empty<LoadingIssue>();
+        public IReadOnlyList<LoadingIssue> Issues => _issues ?? Array.Empty<LoadingIssue>();
 
         public string Source { get; }
 

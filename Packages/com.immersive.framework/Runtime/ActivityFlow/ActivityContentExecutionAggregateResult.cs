@@ -14,7 +14,7 @@ namespace Immersive.Framework.ActivityFlow
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F10C Activity Content Execution aggregate result contract; no execution runtime or Unity side effects.")]
     public readonly struct ActivityContentExecutionAggregateResult : IEquatable<ActivityContentExecutionAggregateResult>
     {
-        private readonly ActivityContentExecutionResult[] results;
+        private readonly ActivityContentExecutionResult[] _results;
 
         public ActivityContentExecutionAggregateResult(
             ActivityContentExecutionPhase phase,
@@ -50,11 +50,11 @@ namespace Immersive.Framework.ActivityFlow
 
             if (results == null || results.Count == 0)
             {
-                this.results = Array.Empty<ActivityContentExecutionResult>();
+                this._results = Array.Empty<ActivityContentExecutionResult>();
             }
             else
             {
-                this.results = new ActivityContentExecutionResult[results.Count];
+                this._results = new ActivityContentExecutionResult[results.Count];
                 for (var i = 0; i < results.Count; i++)
                 {
                     var result = results[i];
@@ -63,7 +63,7 @@ namespace Immersive.Framework.ActivityFlow
                         throw new ArgumentException("All Activity content execution results in an aggregate must use the aggregate phase.", nameof(results));
                     }
 
-                    this.results[i] = result;
+                    this._results[i] = result;
                 }
             }
         }
@@ -78,7 +78,7 @@ namespace Immersive.Framework.ActivityFlow
 
         public ActivityContentExecutionAggregateStatus Status { get; }
 
-        public IReadOnlyList<ActivityContentExecutionResult> Results => results ?? Array.Empty<ActivityContentExecutionResult>();
+        public IReadOnlyList<ActivityContentExecutionResult> Results => _results ?? Array.Empty<ActivityContentExecutionResult>();
 
         public string Source { get; }
 
@@ -98,7 +98,7 @@ namespace Immersive.Framework.ActivityFlow
 
         public string NextActivityName => NextActivity != null ? NextActivity.ActivityName : string.Empty;
 
-        public int ResultCount => results != null ? results.Length : 0;
+        public int ResultCount => _results != null ? _results.Length : 0;
 
         public int RequiredCount => CountByRequiredness(ActivityContentExecutionRequiredness.Required);
 
@@ -383,15 +383,15 @@ namespace Immersive.Framework.ActivityFlow
 
         private int CountByRequiredness(ActivityContentExecutionRequiredness requiredness)
         {
-            if (results == null || results.Length == 0)
+            if (_results == null || _results.Length == 0)
             {
                 return 0;
             }
 
             var count = 0;
-            for (var i = 0; i < results.Length; i++)
+            for (var i = 0; i < _results.Length; i++)
             {
-                if (results[i].Requiredness == requiredness)
+                if (_results[i].Requiredness == requiredness)
                 {
                     count++;
                 }
@@ -402,15 +402,15 @@ namespace Immersive.Framework.ActivityFlow
 
         private int CountSucceeded()
         {
-            if (results == null || results.Length == 0)
+            if (_results == null || _results.Length == 0)
             {
                 return 0;
             }
 
             var count = 0;
-            for (var i = 0; i < results.Length; i++)
+            for (var i = 0; i < _results.Length; i++)
             {
-                if (results[i].Succeeded)
+                if (_results[i].Succeeded)
                 {
                     count++;
                 }
@@ -421,15 +421,15 @@ namespace Immersive.Framework.ActivityFlow
 
         private int CountSkipped()
         {
-            if (results == null || results.Length == 0)
+            if (_results == null || _results.Length == 0)
             {
                 return 0;
             }
 
             var count = 0;
-            for (var i = 0; i < results.Length; i++)
+            for (var i = 0; i < _results.Length; i++)
             {
-                if (results[i].Skipped)
+                if (_results[i].Skipped)
                 {
                     count++;
                 }
@@ -440,15 +440,15 @@ namespace Immersive.Framework.ActivityFlow
 
         private int CountFailed()
         {
-            if (results == null || results.Length == 0)
+            if (_results == null || _results.Length == 0)
             {
                 return 0;
             }
 
             var count = 0;
-            for (var i = 0; i < results.Length; i++)
+            for (var i = 0; i < _results.Length; i++)
             {
-                if (results[i].Failed)
+                if (_results[i].Failed)
                 {
                     count++;
                 }
@@ -459,15 +459,15 @@ namespace Immersive.Framework.ActivityFlow
 
         private int SumBlockingIssues()
         {
-            if (results == null || results.Length == 0)
+            if (_results == null || _results.Length == 0)
             {
                 return 0;
             }
 
             var count = 0;
-            for (var i = 0; i < results.Length; i++)
+            for (var i = 0; i < _results.Length; i++)
             {
-                count += results[i].BlockingIssueCount;
+                count += _results[i].BlockingIssueCount;
             }
 
             return count;
@@ -475,15 +475,15 @@ namespace Immersive.Framework.ActivityFlow
 
         private int SumNonBlockingIssues()
         {
-            if (results == null || results.Length == 0)
+            if (_results == null || _results.Length == 0)
             {
                 return 0;
             }
 
             var count = 0;
-            for (var i = 0; i < results.Length; i++)
+            for (var i = 0; i < _results.Length; i++)
             {
-                count += results[i].NonBlockingIssueCount;
+                count += _results[i].NonBlockingIssueCount;
             }
 
             return count;

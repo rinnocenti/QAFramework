@@ -32,7 +32,7 @@ Do not read F25 adapter work back into F23 or F24. F23 does not build visuals. F
 
 ## 3. Current Phase
 
-F23 is closed.
+F26 is the active documentation phase in the current package state. F24 and F25 are closed; the F26 loading progress thread is closed through F26F.
 
 F23 is intent/requirement-only and owns these canonical Pause contracts:
 
@@ -54,9 +54,7 @@ F23 does not promise or create:
 - `Time.timeScale` policy
 - gameplay adapter
 
-The next phase is F24 - Unity Build Surface / Lifecycle Wiring.
-
-F24B must be the first technical cut because `Transition` exists as language, but `RouteRequestTrigger` / `GameFlow` must pass through a real `TransitionPlan` before curtain, loading screen or pause overlay surfaces are built.
+Historical note: F24 opened Unity Build Surface / Lifecycle Wiring. Its transition/loading surface work is now validated and later F25/F26 cuts build on it.
 
 ## 4. Next Phases
 
@@ -96,6 +94,21 @@ Expected adapter families include:
 - damage
 
 F25 must not create a parallel lifecycle, bypass Gate/Transition/Loading/Pause ownership or redefine Save/Snapshot/Preferences/Progression contracts.
+
+
+### F26 - Activity Scene Discovery and Loading Progress
+
+| Cut | Name | Status |
+|---|---|---|
+| F26A | Activity Scene Discovery Integration | Closed / PASS |
+| F26A1 | Activity Content Execution Diagnostics Clarification | Closed / PASS |
+| F26B | Loading Progress Contract | Closed / PASS |
+| F26C | Loading Surface Progress Bar Receiver | Closed / PASS |
+| F26D | Determinate Loading Progress Source | Closed / PASS |
+| F26E | Aggregated Loading Progress | Closed / PASS |
+| F26F | Loading Progress Polish / Documentation Closeout | Closed / PASS |
+
+Loading progress is now considered closed until a new concrete loading source appears, such as Addressables, asset bundles, remote content or long-running non-scene operations.
 
 ## 5. Tracks
 

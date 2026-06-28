@@ -14,9 +14,9 @@ namespace Immersive.Framework.ActivityFlow
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F10F Activity Content Execution phase plan; no execution runtime or Unity side effects.")]
     public readonly struct ActivityContentExecutionPhasePlan : IEquatable<ActivityContentExecutionPhasePlan>
     {
-        private readonly ActivityContentExecutionParticipantEntry[] entries;
-        private readonly ActivityContentExecutionRequest[] requests;
-        private readonly ActivityContentExecutionParticipantCollectionIssue[] collectionIssues;
+        private readonly ActivityContentExecutionParticipantEntry[] _entries;
+        private readonly ActivityContentExecutionRequest[] _requests;
+        private readonly ActivityContentExecutionParticipantCollectionIssue[] _collectionIssues;
 
         public ActivityContentExecutionPhasePlan(
             ActivityContentExecutionPhase phase,
@@ -54,9 +54,9 @@ namespace Immersive.Framework.ActivityFlow
             Reason = Normalize(reason);
             Message = Normalize(message);
 
-            this.entries = CopyEntries(entries);
-            this.requests = CopyRequests(requests, phase);
-            this.collectionIssues = CopyIssues(collectionIssues);
+            this._entries = CopyEntries(entries);
+            this._requests = CopyRequests(requests, phase);
+            this._collectionIssues = CopyIssues(collectionIssues);
         }
 
         public ActivityContentExecutionPhase Phase { get; }
@@ -75,11 +75,11 @@ namespace Immersive.Framework.ActivityFlow
 
         public ActivityContentExecutionPhasePlanStatus Status { get; }
 
-        public IReadOnlyList<ActivityContentExecutionParticipantEntry> Entries => entries ?? Array.Empty<ActivityContentExecutionParticipantEntry>();
+        public IReadOnlyList<ActivityContentExecutionParticipantEntry> Entries => _entries ?? Array.Empty<ActivityContentExecutionParticipantEntry>();
 
-        public IReadOnlyList<ActivityContentExecutionRequest> Requests => requests ?? Array.Empty<ActivityContentExecutionRequest>();
+        public IReadOnlyList<ActivityContentExecutionRequest> Requests => _requests ?? Array.Empty<ActivityContentExecutionRequest>();
 
-        public IReadOnlyList<ActivityContentExecutionParticipantCollectionIssue> CollectionIssues => collectionIssues ?? Array.Empty<ActivityContentExecutionParticipantCollectionIssue>();
+        public IReadOnlyList<ActivityContentExecutionParticipantCollectionIssue> CollectionIssues => _collectionIssues ?? Array.Empty<ActivityContentExecutionParticipantCollectionIssue>();
 
         public string Source { get; }
 
@@ -116,11 +116,11 @@ namespace Immersive.Framework.ActivityFlow
 
         public string NextActivityName => NextActivity != null ? NextActivity.ActivityName : string.Empty;
 
-        public int EntryCount => entries != null ? entries.Length : 0;
+        public int EntryCount => _entries != null ? _entries.Length : 0;
 
-        public int RequestCount => requests != null ? requests.Length : 0;
+        public int RequestCount => _requests != null ? _requests.Length : 0;
 
-        public int CollectionIssueCount => collectionIssues != null ? collectionIssues.Length : 0;
+        public int CollectionIssueCount => _collectionIssues != null ? _collectionIssues.Length : 0;
 
         public int RequiredCount => CountByRequiredness(ActivityContentExecutionRequiredness.Required);
 

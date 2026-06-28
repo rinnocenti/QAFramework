@@ -14,7 +14,7 @@ namespace Immersive.Framework.Preferences
         public const string DefaultKeyPrefix = "immersive.framework.preferences";
         private const string TypeMarkerSegment = "__type__";
 
-        private readonly string keyPrefix;
+        private readonly string _keyPrefix;
 
         public PlayerPrefsPreferencesStore()
             : this(DefaultKeyPrefix)
@@ -28,10 +28,10 @@ namespace Immersive.Framework.Preferences
                 throw new ArgumentException("PlayerPrefs Preferences key prefix cannot be null, empty or whitespace.", nameof(keyPrefix));
             }
 
-            this.keyPrefix = keyPrefix.Trim().TrimEnd('.');
+            this._keyPrefix = keyPrefix.Trim().TrimEnd('.');
         }
 
-        public string KeyPrefix => keyPrefix;
+        public string KeyPrefix => _keyPrefix;
 
         public bool Contains(PreferenceKey key)
         {
@@ -136,13 +136,13 @@ namespace Immersive.Framework.Preferences
         public string ToPhysicalValueKey(PreferenceKey key)
         {
             EnsureKey(key);
-            return $"{keyPrefix}.{key.Value.Value}";
+            return $"{_keyPrefix}.{key.Value.Value}";
         }
 
         public string ToPhysicalTypeKey(PreferenceKey key)
         {
             EnsureKey(key);
-            return $"{keyPrefix}.{TypeMarkerSegment}.{key.Value.Value}";
+            return $"{_keyPrefix}.{TypeMarkerSegment}.{key.Value.Value}";
         }
 
         private static PreferenceValue ReadValue(string valueKey, PreferenceValueKind kind)

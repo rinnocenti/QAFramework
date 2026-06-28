@@ -11,7 +11,7 @@ namespace Immersive.Framework.Gate
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F17B passive Gate blocker primitive; no runtime manager or service locator.")]
     public readonly struct GateBlocker : IEquatable<GateBlocker>
     {
-        private readonly FrameworkIdentityValue blockerId;
+        private readonly FrameworkIdentityValue _blockerId;
 
         public GateBlocker(
             FrameworkIdentityValue blockerId,
@@ -37,7 +37,7 @@ namespace Immersive.Framework.Gate
                 throw new ArgumentOutOfRangeException(nameof(domain), domain, "Gate blocker domain must be explicit.");
             }
 
-            this.blockerId = blockerId;
+            this._blockerId = blockerId;
             Scope = scope;
             Domain = domain;
             Owner = owner;
@@ -46,7 +46,7 @@ namespace Immersive.Framework.Gate
             PolicySource = Normalize(policySource);
         }
 
-        public FrameworkIdentityValue BlockerId => blockerId;
+        public FrameworkIdentityValue BlockerId => _blockerId;
 
         public GateScope Scope { get; }
 
@@ -60,7 +60,7 @@ namespace Immersive.Framework.Gate
 
         public string PolicySource { get; }
 
-        public bool IsValid => blockerId.IsValid
+        public bool IsValid => _blockerId.IsValid
             && Scope != GateScope.Unknown
             && Domain != GateDomain.Unknown;
 
@@ -69,8 +69,8 @@ namespace Immersive.Framework.Gate
         public string OwnerStableText => HasOwner ? Owner.StableText : string.Empty;
 
         public string StableText => HasOwner
-            ? $"{Scope}:{Domain}:{Owner.StableText}:{blockerId.Value}"
-            : $"{Scope}:{Domain}:<any-owner>:{blockerId.Value}";
+            ? $"{Scope}:{Domain}:{Owner.StableText}:{_blockerId.Value}"
+            : $"{Scope}:{Domain}:<any-owner>:{_blockerId.Value}";
 
         public bool Blocks(GateScope scope, GateDomain domain)
         {
@@ -94,7 +94,7 @@ namespace Immersive.Framework.Gate
 
         public bool Equals(GateBlocker other)
         {
-            return blockerId.Equals(other.blockerId)
+            return _blockerId.Equals(other._blockerId)
                 && Scope == other.Scope
                 && Domain == other.Domain
                 && Owner.Equals(other.Owner)
@@ -112,7 +112,7 @@ namespace Immersive.Framework.Gate
         {
             unchecked
             {
-                var hashCode = blockerId.GetHashCode();
+                var hashCode = _blockerId.GetHashCode();
                 hashCode = (hashCode * 397) ^ (int)Scope;
                 hashCode = (hashCode * 397) ^ (int)Domain;
                 hashCode = (hashCode * 397) ^ Owner.GetHashCode();
@@ -134,7 +134,7 @@ namespace Immersive.Framework.Gate
             var sourceText = string.IsNullOrWhiteSpace(Source) ? "<none>" : Source;
             var reasonText = string.IsNullOrWhiteSpace(Reason) ? "<none>" : Reason;
             var policySourceText = string.IsNullOrWhiteSpace(PolicySource) ? "<none>" : PolicySource;
-            return $"blocker='{blockerId.Value}' scope='{Scope}' domain='{Domain}' owner='{ownerText}' source='{sourceText}' reason='{reasonText}' policySource='{policySourceText}'";
+            return $"blocker='{_blockerId.Value}' scope='{Scope}' domain='{Domain}' owner='{ownerText}' source='{sourceText}' reason='{reasonText}' policySource='{policySourceText}'";
         }
 
         public static GateBlocker ForAnyOwner(

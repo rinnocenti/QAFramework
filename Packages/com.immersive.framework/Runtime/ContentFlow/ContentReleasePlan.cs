@@ -12,7 +12,7 @@ namespace Immersive.Framework.ContentFlow
     [FrameworkApiStatus(FrameworkApiStatus.Internal, "F6F release plan model; execution starts in a later cut.")]
     internal readonly struct ContentReleasePlan
     {
-        private readonly ContentReleasePlanEntry[] entries;
+        private readonly ContentReleasePlanEntry[] _entries;
 
         public ContentReleasePlan(
             FrameworkContentScope scope,
@@ -37,14 +37,14 @@ namespace Immersive.Framework.ContentFlow
 
             if (entries == null || entries.Count == 0)
             {
-                this.entries = Array.Empty<ContentReleasePlanEntry>();
+                this._entries = Array.Empty<ContentReleasePlanEntry>();
             }
             else
             {
-                this.entries = new ContentReleasePlanEntry[entries.Count];
+                this._entries = new ContentReleasePlanEntry[entries.Count];
                 for (var i = 0; i < entries.Count; i++)
                 {
-                    this.entries[i] = entries[i];
+                    this._entries[i] = entries[i];
                 }
             }
         }
@@ -55,7 +55,7 @@ namespace Immersive.Framework.ContentFlow
 
         public string OwnerName { get; }
 
-        public IReadOnlyList<ContentReleasePlanEntry> Entries => entries ?? Array.Empty<ContentReleasePlanEntry>();
+        public IReadOnlyList<ContentReleasePlanEntry> Entries => _entries ?? Array.Empty<ContentReleasePlanEntry>();
 
         public string Source { get; }
 
@@ -63,7 +63,7 @@ namespace Immersive.Framework.ContentFlow
 
         public string Message { get; }
 
-        public int EntryCount => entries != null ? entries.Length : 0;
+        public int EntryCount => _entries != null ? _entries.Length : 0;
 
         public bool IsEmpty => EntryCount == 0;
 
@@ -126,15 +126,15 @@ namespace Immersive.Framework.ContentFlow
 
         private int CountByOwnership(ContentReleaseOwnership ownership)
         {
-            if (entries == null || entries.Length == 0)
+            if (_entries == null || _entries.Length == 0)
             {
                 return 0;
             }
 
             var count = 0;
-            for (var i = 0; i < entries.Length; i++)
+            for (var i = 0; i < _entries.Length; i++)
             {
-                if (entries[i].Ownership == ownership)
+                if (_entries[i].Ownership == ownership)
                 {
                     count++;
                 }
@@ -145,15 +145,15 @@ namespace Immersive.Framework.ContentFlow
 
         private int CountByAction(ContentReleaseAction action)
         {
-            if (entries == null || entries.Length == 0)
+            if (_entries == null || _entries.Length == 0)
             {
                 return 0;
             }
 
             var count = 0;
-            for (var i = 0; i < entries.Length; i++)
+            for (var i = 0; i < _entries.Length; i++)
             {
-                if (entries[i].Action == action)
+                if (_entries[i].Action == action)
                 {
                     count++;
                 }
@@ -164,15 +164,15 @@ namespace Immersive.Framework.ContentFlow
 
         private int CountReleasable()
         {
-            if (entries == null || entries.Length == 0)
+            if (_entries == null || _entries.Length == 0)
             {
                 return 0;
             }
 
             var count = 0;
-            for (var i = 0; i < entries.Length; i++)
+            for (var i = 0; i < _entries.Length; i++)
             {
-                if (entries[i].IsReleasable)
+                if (_entries[i].IsReleasable)
                 {
                     count++;
                 }

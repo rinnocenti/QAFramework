@@ -11,7 +11,7 @@ namespace Immersive.Framework.LocalContribution
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Explicit local content id introduced by F5B.")]
     public readonly struct LocalContentId : IFrameworkIdentity, IEquatable<LocalContentId>
     {
-        private readonly FrameworkIdentityValue value;
+        private readonly FrameworkIdentityValue _value;
 
         public LocalContentId(string value)
             : this(new FrameworkIdentityValue(value))
@@ -25,20 +25,20 @@ namespace Immersive.Framework.LocalContribution
                 throw new ArgumentException("Local content id must be explicit and valid.", nameof(value));
             }
 
-            this.value = value;
+            this._value = value;
         }
 
         public FrameworkIdentityDomain Domain => FrameworkIdentityDomain.Local;
 
-        public FrameworkIdentityValue Value => value;
+        public FrameworkIdentityValue Value => _value;
 
-        public bool IsValid => value.IsValid;
+        public bool IsValid => _value.IsValid;
 
-        public string StableText => value.Value;
+        public string StableText => _value.Value;
 
         public bool Equals(LocalContentId other)
         {
-            return value.Equals(other.value);
+            return _value.Equals(other._value);
         }
 
         public override bool Equals(object obj)
@@ -48,7 +48,7 @@ namespace Immersive.Framework.LocalContribution
 
         public override int GetHashCode()
         {
-            return value.GetHashCode();
+            return _value.GetHashCode();
         }
 
         public override string ToString()

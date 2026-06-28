@@ -12,7 +12,7 @@ namespace Immersive.Framework.Loading
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F22E Loading Screen adapter result boundary; no lifecycle ownership.")]
     public readonly struct LoadingScreenAdapterResult : IEquatable<LoadingScreenAdapterResult>
     {
-        private readonly string[] issues;
+        private readonly string[] _issues;
 
         public LoadingScreenAdapterResult(
             LoadingScreenPresentation presentation,
@@ -42,7 +42,7 @@ namespace Immersive.Framework.Loading
             Status = status;
             AdapterName = Normalize(adapterName);
             Message = Normalize(message);
-            this.issues = CopyIssues(issues);
+            this._issues = CopyIssues(issues);
         }
 
         public LoadingScreenPresentation Presentation { get; }
@@ -57,7 +57,7 @@ namespace Immersive.Framework.Loading
 
         public string Message { get; }
 
-        public IReadOnlyList<string> Issues => issues ?? Array.Empty<string>();
+        public IReadOnlyList<string> Issues => _issues ?? Array.Empty<string>();
 
         public int IssueCount => Issues.Count;
 

@@ -13,7 +13,7 @@ namespace Immersive.Framework.Transition
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F18B passive Transition plan primitive; no runtime execution or visual effects.")]
     public readonly struct TransitionPlan : IEquatable<TransitionPlan>
     {
-        private readonly TransitionStep[] steps;
+        private readonly TransitionStep[] _steps;
 
         public TransitionPlan(
             TransitionOperationId operationId,
@@ -38,7 +38,7 @@ namespace Immersive.Framework.Transition
             Owner = owner;
             Source = Normalize(source);
             Reason = Normalize(reason);
-            this.steps = CopySteps(steps);
+            this._steps = CopySteps(steps);
         }
 
         public TransitionOperationId OperationId { get; }
@@ -51,7 +51,7 @@ namespace Immersive.Framework.Transition
 
         public string Reason { get; }
 
-        public IReadOnlyList<TransitionStep> Steps => steps ?? Array.Empty<TransitionStep>();
+        public IReadOnlyList<TransitionStep> Steps => _steps ?? Array.Empty<TransitionStep>();
 
         public int StepCount => Steps.Count;
 

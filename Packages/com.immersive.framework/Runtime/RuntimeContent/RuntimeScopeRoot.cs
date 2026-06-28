@@ -11,9 +11,9 @@ namespace Immersive.Framework.RuntimeContent
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8F internal logical runtime scope root; no hierarchy object or materialization behavior.")]
     internal sealed class RuntimeScopeRoot
     {
-        private readonly Dictionary<RuntimeContentId, RuntimeContentHandle> handles = new Dictionary<RuntimeContentId, RuntimeContentHandle>();
-        private string source;
-        private string reason;
+        private readonly Dictionary<RuntimeContentId, RuntimeContentHandle> _handles = new Dictionary<RuntimeContentId, RuntimeContentHandle>();
+        private string _source;
+        private string _reason;
 
         public RuntimeScopeRoot(RuntimeContentOwner owner, string source, string reason)
         {
@@ -23,26 +23,26 @@ namespace Immersive.Framework.RuntimeContent
             }
 
             Owner = owner;
-            this.source = Normalize(source);
-            this.reason = Normalize(reason);
+            this._source = Normalize(source);
+            this._reason = Normalize(reason);
         }
 
         public RuntimeContentOwner Owner { get; }
 
         public RuntimeContentScope Scope => Owner.Scope;
 
-        public string Source => source ?? string.Empty;
+        public string Source => _source ?? string.Empty;
 
-        public string Reason => reason ?? string.Empty;
+        public string Reason => _reason ?? string.Empty;
 
-        public int HandleCount => handles.Count;
+        public int HandleCount => _handles.Count;
 
-        public bool HasHandles => handles.Count > 0;
+        public bool HasHandles => _handles.Count > 0;
 
         public RuntimeContentHandle[] SnapshotHandles()
         {
-            var snapshot = new RuntimeContentHandle[handles.Count];
-            handles.Values.CopyTo(snapshot, 0);
+            var snapshot = new RuntimeContentHandle[_handles.Count];
+            _handles.Values.CopyTo(snapshot, 0);
             return snapshot;
         }
 
@@ -56,7 +56,7 @@ namespace Immersive.Framework.RuntimeContent
                 return false;
             }
 
-            return handles.TryGetValue(identity.ContentId, out handle);
+            return _handles.TryGetValue(identity.ContentId, out handle);
         }
 
         public bool TryGetHandle(RuntimeContentId contentId, out RuntimeContentHandle handle)
@@ -66,7 +66,7 @@ namespace Immersive.Framework.RuntimeContent
                 throw new ArgumentException("Runtime content id must be valid.", nameof(contentId));
             }
 
-            return handles.TryGetValue(contentId, out handle);
+            return _handles.TryGetValue(contentId, out handle);
         }
 
         public RuntimeRootRegistryOperationResult RegisterHandle(
@@ -88,7 +88,7 @@ namespace Immersive.Framework.RuntimeContent
                     reason);
             }
 
-            if (handles.TryGetValue(handle.ContentId, out var existingHandle))
+            if (_handles.TryGetValue(handle.ContentId, out var existingHandle))
             {
                 if (ReferenceEquals(existingHandle, handle))
                 {
@@ -106,7 +106,7 @@ namespace Immersive.Framework.RuntimeContent
                     reason);
             }
 
-            handles.Add(handle.ContentId, handle);
+            _handles.Add(handle.ContentId, handle);
             Touch(source, reason);
 
             return RuntimeRootRegistryOperationResult.HandleRegistered(
@@ -132,7 +132,7 @@ namespace Immersive.Framework.RuntimeContent
                     reason);
             }
 
-            if (!handles.TryGetValue(identity.ContentId, out var handle))
+            if (!_handles.TryGetValue(identity.ContentId, out var handle))
             {
                 return RuntimeRootRegistryOperationResult.HandleMissing(
                     this,
@@ -141,7 +141,7 @@ namespace Immersive.Framework.RuntimeContent
                     reason);
             }
 
-            handles.Remove(identity.ContentId);
+            _handles.Remove(identity.ContentId);
             Touch(source, reason);
 
             return RuntimeRootRegistryOperationResult.HandleUnregistered(
@@ -160,8 +160,8 @@ namespace Immersive.Framework.RuntimeContent
 
         private void Touch(string source, string reason)
         {
-            this.source = Normalize(source);
-            this.reason = Normalize(reason);
+            this._source = Normalize(source);
+            this._reason = Normalize(reason);
         }
 
         private static void ValidateIdentity(RuntimeContentIdentity identity)

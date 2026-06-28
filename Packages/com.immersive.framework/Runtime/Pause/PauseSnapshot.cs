@@ -12,8 +12,8 @@ namespace Immersive.Framework.Pause
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F20B passive Pause snapshot primitive; diagnostics only.")]
     public readonly struct PauseSnapshot : IEquatable<PauseSnapshot>
     {
-        private readonly PauseIssue[] issues;
-        private readonly string[] facts;
+        private readonly PauseIssue[] _issues;
+        private readonly string[] _facts;
 
         public PauseSnapshot(
             PauseState state,
@@ -32,8 +32,8 @@ namespace Immersive.Framework.Pause
             LastRequestId = lastRequestId;
             Source = Normalize(source);
             Reason = Normalize(reason);
-            this.issues = CopyIssues(issues);
-            this.facts = CopyFacts(facts);
+            this._issues = CopyIssues(issues);
+            this._facts = CopyFacts(facts);
         }
 
         public PauseState State { get; }
@@ -44,9 +44,9 @@ namespace Immersive.Framework.Pause
 
         public string Reason { get; }
 
-        public IReadOnlyList<PauseIssue> Issues => issues ?? Array.Empty<PauseIssue>();
+        public IReadOnlyList<PauseIssue> Issues => _issues ?? Array.Empty<PauseIssue>();
 
-        public IReadOnlyList<string> Facts => facts ?? Array.Empty<string>();
+        public IReadOnlyList<string> Facts => _facts ?? Array.Empty<string>();
 
         public int IssueCount => Issues.Count;
 

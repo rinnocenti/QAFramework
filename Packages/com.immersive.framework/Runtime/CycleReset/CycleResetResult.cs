@@ -11,8 +11,8 @@ namespace Immersive.Framework.CycleReset
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F11A Cycle Reset aggregate result; diagnostics only.")]
     public readonly struct CycleResetResult : IEquatable<CycleResetResult>
     {
-        private readonly CycleResetParticipantResult[] participantResults;
-        private readonly CycleResetIssue[] issues;
+        private readonly CycleResetParticipantResult[] _participantResults;
+        private readonly CycleResetIssue[] _issues;
 
         public CycleResetResult(
             CycleResetRequest request,
@@ -33,17 +33,17 @@ namespace Immersive.Framework.CycleReset
             Source = Normalize(source);
             Reason = Normalize(reason);
             Message = Normalize(message);
-            this.participantResults = CopyResults(participantResults);
-            this.issues = CopyIssues(issues);
+            this._participantResults = CopyResults(participantResults);
+            this._issues = CopyIssues(issues);
         }
 
         public CycleResetRequest Request { get; }
 
         public CycleResetStatus Status { get; }
 
-        public IReadOnlyList<CycleResetParticipantResult> ParticipantResults => participantResults ?? Array.Empty<CycleResetParticipantResult>();
+        public IReadOnlyList<CycleResetParticipantResult> ParticipantResults => _participantResults ?? Array.Empty<CycleResetParticipantResult>();
 
-        public IReadOnlyList<CycleResetIssue> Issues => issues ?? Array.Empty<CycleResetIssue>();
+        public IReadOnlyList<CycleResetIssue> Issues => _issues ?? Array.Empty<CycleResetIssue>();
 
         public string Source { get; }
 
@@ -60,9 +60,9 @@ namespace Immersive.Framework.CycleReset
             || Status == CycleResetStatus.RejectedInvalidRequest
             || Status == CycleResetStatus.RejectedInvalidPlan;
 
-        public int ParticipantCount => participantResults != null ? participantResults.Length : 0;
+        public int ParticipantCount => _participantResults != null ? _participantResults.Length : 0;
 
-        public int IssueCount => issues != null ? issues.Length : 0;
+        public int IssueCount => _issues != null ? _issues.Length : 0;
 
         public int SucceededCount => CountResults(result => result.Succeeded);
 

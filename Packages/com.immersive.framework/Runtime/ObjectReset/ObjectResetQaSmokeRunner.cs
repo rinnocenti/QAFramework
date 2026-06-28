@@ -913,14 +913,14 @@ namespace Immersive.Framework.ObjectReset
                     && trigger.LastResultStatus == ObjectResetResultStatus.SucceededNoParticipants
                     && trigger.LastResultSucceededNoParticipants;
                 var outcomeSucceeded = trigger.LastRequestSucceeded;
-                var countersValid = counters.Submitted == 1
-                    && counters.Succeeded == 1
-                    && counters.SucceededNoParticipants == 1
-                    && counters.SucceededWithParticipants == 0
-                    && counters.CompletedWithWarnings == 0
-                    && counters.Ignored == 0
-                    && counters.Failed == 0
-                    && counters.Completed == 1;
+                var countersValid = counters.submitted == 1
+                    && counters.succeeded == 1
+                    && counters.succeededNoParticipants == 1
+                    && counters.succeededWithParticipants == 0
+                    && counters.completedWithWarnings == 0
+                    && counters.ignored == 0
+                    && counters.failed == 0
+                    && counters.completed == 1;
                 var issuesValid = trigger.LastBlockingIssueCount == 0
                     && trigger.LastNonBlockingIssueCount == 0;
 
@@ -941,13 +941,13 @@ namespace Immersive.Framework.ObjectReset
                             LogFields.Field("outcomeSucceeded", outcomeSucceeded),
                             LogFields.Field("countersValid", countersValid),
                             LogFields.Field("issuesValid", issuesValid),
-                            LogFields.Field("submitted", counters.Submitted),
-                            LogFields.Field("succeeded", counters.Succeeded),
-                            LogFields.Field("succeededNoParticipants", counters.SucceededNoParticipants),
-                            LogFields.Field("completedWithWarnings", counters.CompletedWithWarnings),
-                            LogFields.Field("ignored", counters.Ignored),
-                            LogFields.Field("failed", counters.Failed),
-                            LogFields.Field("completed", counters.Completed),
+                            LogFields.Field("submitted", counters.submitted),
+                            LogFields.Field("succeeded", counters.succeeded),
+                            LogFields.Field("succeededNoParticipants", counters.succeededNoParticipants),
+                            LogFields.Field("completedWithWarnings", counters.completedWithWarnings),
+                            LogFields.Field("ignored", counters.ignored),
+                            LogFields.Field("failed", counters.failed),
+                            LogFields.Field("completed", counters.completed),
                             LogFields.Field("lastStatus", trigger.LastResultStatus.ToString()),
                             LogFields.Field("lastOutcome", trigger.LastOutcome.ToString())));
                     return false;
@@ -964,14 +964,14 @@ namespace Immersive.Framework.ObjectReset
                         LogFields.Field("requestCompleted", requestCompleted),
                         LogFields.Field("lastOutcome", trigger.LastOutcome.ToString()),
                         LogFields.Field("resultStatus", trigger.LastResultStatus.ToString()),
-                        LogFields.Field("submitted", counters.Submitted),
-                        LogFields.Field("succeeded", counters.Succeeded),
-                        LogFields.Field("succeededWithParticipants", counters.SucceededWithParticipants),
-                        LogFields.Field("succeededNoParticipants", counters.SucceededNoParticipants),
-                        LogFields.Field("completedWithWarnings", counters.CompletedWithWarnings),
-                        LogFields.Field("ignored", counters.Ignored),
-                        LogFields.Field("failed", counters.Failed),
-                        LogFields.Field("completed", counters.Completed),
+                        LogFields.Field("submitted", counters.submitted),
+                        LogFields.Field("succeeded", counters.succeeded),
+                        LogFields.Field("succeededWithParticipants", counters.succeededWithParticipants),
+                        LogFields.Field("succeededNoParticipants", counters.succeededNoParticipants),
+                        LogFields.Field("completedWithWarnings", counters.completedWithWarnings),
+                        LogFields.Field("ignored", counters.ignored),
+                        LogFields.Field("failed", counters.failed),
+                        LogFields.Field("completed", counters.completed),
                         LogFields.Field("blockingIssues", trigger.LastBlockingIssueCount),
                         LogFields.Field("nonBlockingIssues", trigger.LastNonBlockingIssueCount),
                         LogFields.Field("summary", trigger.LastResultSummary)));
@@ -2347,14 +2347,14 @@ namespace Immersive.Framework.ObjectReset
                     && trigger.LastParticipantCount == 0
                     && trigger.LastBlockingIssueCount == 0
                     && trigger.LastNonBlockingIssueCount == 0;
-                var bridgeEventsValid = counters.Submitted == 1
-                    && counters.Succeeded == 1
-                    && counters.SucceededWithParticipants == 0
-                    && counters.SucceededNoParticipants == 1
-                    && counters.CompletedWithWarnings == 0
-                    && counters.Ignored == 0
-                    && counters.Failed == 0
-                    && counters.Completed == 1;
+                var bridgeEventsValid = counters.submitted == 1
+                    && counters.succeeded == 1
+                    && counters.succeededWithParticipants == 0
+                    && counters.succeededNoParticipants == 1
+                    && counters.completedWithWarnings == 0
+                    && counters.ignored == 0
+                    && counters.failed == 0
+                    && counters.completed == 1;
                 var blockingIssues = hostResult.BlockingIssueCount + trigger.LastBlockingIssueCount + targetResolution.BlockingIssueCount;
                 var nonBlockingIssues = hostResult.NonBlockingIssueCount + trigger.LastNonBlockingIssueCount + targetResolution.NonBlockingIssueCount;
 
@@ -2402,10 +2402,10 @@ namespace Immersive.Framework.ObjectReset
                         LogFields.Field("hostParticipantFailed", hostResult.ParticipantFailedCount),
                         LogFields.Field("triggerCompleted", triggerCompleted),
                         LogFields.Field("triggerStatus", trigger.LastResultStatus.ToString()),
-                        LogFields.Field("bridgeSubmitted", counters.Submitted),
-                        LogFields.Field("bridgeSucceeded", counters.Succeeded),
-                        LogFields.Field("bridgeSucceededNoParticipants", counters.SucceededNoParticipants),
-                        LogFields.Field("bridgeCompleted", counters.Completed),
+                        LogFields.Field("bridgeSubmitted", counters.submitted),
+                        LogFields.Field("bridgeSucceeded", counters.succeeded),
+                        LogFields.Field("bridgeSucceededNoParticipants", counters.succeededNoParticipants),
+                        LogFields.Field("bridgeCompleted", counters.completed),
                         LogFields.Field("blockingIssues", blockingIssues),
                         LogFields.Field("nonBlockingIssues", nonBlockingIssues),
                         LogFields.Field("summary", hostResult.ToDiagnosticString())));
@@ -2496,84 +2496,84 @@ namespace Immersive.Framework.ObjectReset
                 return;
             }
 
-            bridge.RequestSubmitted.AddListener(() => counters.Submitted++);
-            bridge.RequestSucceeded.AddListener(() => counters.Succeeded++);
-            bridge.RequestSucceededWithParticipants.AddListener(() => counters.SucceededWithParticipants++);
-            bridge.RequestSucceededNoParticipants.AddListener(() => counters.SucceededNoParticipants++);
-            bridge.RequestCompletedWithWarnings.AddListener(() => counters.CompletedWithWarnings++);
-            bridge.RequestIgnored.AddListener(() => counters.Ignored++);
-            bridge.RequestFailed.AddListener(() => counters.Failed++);
-            bridge.RequestCompleted.AddListener(() => counters.Completed++);
+            bridge.RequestSubmitted.AddListener(() => counters.submitted++);
+            bridge.RequestSucceeded.AddListener(() => counters.succeeded++);
+            bridge.RequestSucceededWithParticipants.AddListener(() => counters.succeededWithParticipants++);
+            bridge.RequestSucceededNoParticipants.AddListener(() => counters.succeededNoParticipants++);
+            bridge.RequestCompletedWithWarnings.AddListener(() => counters.completedWithWarnings++);
+            bridge.RequestIgnored.AddListener(() => counters.ignored++);
+            bridge.RequestFailed.AddListener(() => counters.failed++);
+            bridge.RequestCompleted.AddListener(() => counters.completed++);
         }
 
         private sealed class BridgeEventCounters
         {
-            public int Submitted;
-            public int Succeeded;
-            public int SucceededWithParticipants;
-            public int SucceededNoParticipants;
-            public int CompletedWithWarnings;
-            public int Ignored;
-            public int Failed;
-            public int Completed;
+            public int submitted;
+            public int succeeded;
+            public int succeededWithParticipants;
+            public int succeededNoParticipants;
+            public int completedWithWarnings;
+            public int ignored;
+            public int failed;
+            public int completed;
         }
 
 
         private sealed class SyntheticObjectResetParticipant : IObjectResetParticipant
         {
-            private readonly ObjectResetParticipantDescriptor descriptor;
-            private readonly SyntheticObjectResetParticipantMode mode;
+            private readonly ObjectResetParticipantDescriptor _descriptor;
+            private readonly SyntheticObjectResetParticipantMode _mode;
 
             public SyntheticObjectResetParticipant(
                 ObjectResetParticipantDescriptor descriptor,
                 SyntheticObjectResetParticipantMode mode)
             {
-                this.descriptor = descriptor;
-                this.mode = mode;
+                this._descriptor = descriptor;
+                this._mode = mode;
             }
 
             public ObjectResetParticipantDescriptor GetObjectResetDescriptor()
             {
-                return descriptor;
+                return _descriptor;
             }
 
             public ObjectResetParticipantResult ResetObject(ObjectResetContext context)
             {
-                switch (mode)
+                switch (_mode)
                 {
                     case SyntheticObjectResetParticipantMode.Success:
                         return ObjectResetParticipantResult.Success(
                             context,
-                            descriptor.Source,
-                            descriptor.Reason,
+                            _descriptor.Source,
+                            _descriptor.Reason,
                             "Synthetic Object Reset participant succeeded.");
                     case SyntheticObjectResetParticipantMode.SkippedOptional:
                         return ObjectResetParticipantResult.Skipped(
                             context,
                             ObjectResetParticipantResultStatus.SkippedOptional,
-                            descriptor.Source,
-                            descriptor.Reason,
+                            _descriptor.Source,
+                            _descriptor.Reason,
                             "Synthetic Object Reset participant skipped as optional.");
                     case SyntheticObjectResetParticipantMode.BlockingFailure:
                         return ObjectResetParticipantResult.BlockingFailure(
                             context,
                             1,
-                            descriptor.Source,
-                            descriptor.Reason,
+                            _descriptor.Source,
+                            _descriptor.Reason,
                             "Synthetic Object Reset participant failed as required.");
                     case SyntheticObjectResetParticipantMode.NonBlockingFailure:
                         return ObjectResetParticipantResult.NonBlockingFailure(
                             context,
                             1,
-                            descriptor.Source,
-                            descriptor.Reason,
+                            _descriptor.Source,
+                            _descriptor.Reason,
                             "Synthetic Object Reset participant failed without blocking.");
                     default:
                         return ObjectResetParticipantResult.Failure(
                             context,
                             1,
-                            descriptor.Source,
-                            descriptor.Reason,
+                            _descriptor.Source,
+                            _descriptor.Reason,
                             "Synthetic Object Reset participant failed.");
                 }
             }
@@ -2581,18 +2581,18 @@ namespace Immersive.Framework.ObjectReset
 
         private sealed class SyntheticObjectResetParticipantSource : IObjectResetParticipantSource
         {
-            private readonly IReadOnlyList<IObjectResetParticipant> participants;
+            private readonly IReadOnlyList<IObjectResetParticipant> _participants;
 
             public SyntheticObjectResetParticipantSource(params IObjectResetParticipant[] participants)
             {
-                this.participants = participants ?? Array.Empty<IObjectResetParticipant>();
+                this._participants = participants ?? Array.Empty<IObjectResetParticipant>();
             }
 
             public IReadOnlyList<IObjectResetParticipant> ResolveObjectResetParticipants(
                 ObjectResetRequest request,
                 ObjectEntryDescriptor resolvedTarget)
             {
-                return participants;
+                return _participants;
             }
         }
 

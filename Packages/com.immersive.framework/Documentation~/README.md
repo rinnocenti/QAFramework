@@ -25,7 +25,7 @@ Read the documentation in this order:
 | F23 | Pause Content / Overlay / Input Intent Boundary | Closed |
 | F24 | Unity Build Surface / Lifecycle Wiring | Closed / validated by QA surface |
 | F25 | Activity Content Scene Composition | Closed / final docs aligned in F25J |
-| F26 | Activity Scene Discovery Integration | Open |
+| F26 | Activity Scene Discovery Integration / Loading Progress Integration | Open / loading progress closed through F26F |
 
 ## F23 Boundary
 
@@ -161,9 +161,14 @@ Diagnostic mapping:
 
 `F26B - Loading Progress Contract` adds the internal loading progress model and explicit diagnostics fields for `loadingProgressSupported`, `loadingProgressMode`, `loadingProgressValue`, `loadingProgressPercent`, `loadingProgressPhase` and `loadingProgressMessage`. It does not add a loading bar, does not change the visual LoadingSurface contract, and does not wire real scene loading progress yet.
 
+`F26C - Loading Surface Progress Bar Receiver` wires the Unity loading surface to receive progress requests without inventing a determinate source. The QA surface in `QA_UIGlobal` exposes a progress bar and progress-capable adapters make `LoadingSurfaceRuntime.ProgressSupported` true.
+
 `F26D - Determinate Loading Progress Source` wires concrete `SceneManager.LoadSceneAsync` and `SceneManager.UnloadSceneAsync` progress into the loading surface reporter used by route and activity lifecycle operations. It preserves transition/loading ordering and reports determinate diagnostics only when a real scene operation emits progress.
 
 
 `F26E - Aggregated Loading Progress` maps local SceneLifecycle progress into weighted Route/Activity operation progress. `SceneLifecycleRuntime` still reports concrete scene load/unload progress, while Route/Activity lifecycle owners wrap those reports into `RouteTransition` or `ActivityTransition` aggregate phases so multi-step loading no longer restarts the progress value per scene.
 
 `F25H2 - Activity Scene Ledger Route-Scoped Queries` removes unused route-less loaded-entry collection methods from `ActivitySceneLedger`. Canonical Activity-owned scene ledger reads must include `RouteInstanceId`, preventing future cross-route stale tracking regressions.
+
+
+`F26F - Loading Progress Polish / Documentation Closeout` closes the loading progress thread after F26C-F26E validation. The accepted baseline is: core/lifecycle owns technical progress and diagnostics; visual adapters may smooth the player-facing fill without changing diagnostic values. F26F also renames the QA Activity content scene typo from `AtivityAdditionalConent` to `ActivityAdditionalContent` and records the delete manifest required for zip-based application.

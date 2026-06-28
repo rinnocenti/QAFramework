@@ -11,7 +11,7 @@ namespace Immersive.Framework.RuntimeContent
     [FrameworkApiStatus(FrameworkApiStatus.Internal, "F8H runtime-local transition guard and scoped cancellation; no global provider, threading, materialization or release execution.")]
     internal sealed class RuntimeScopeTransitionGuard
     {
-        private readonly Dictionary<RuntimeContentOwner, ScopeEntry> entries = new Dictionary<RuntimeContentOwner, ScopeEntry>();
+        private readonly Dictionary<RuntimeContentOwner, ScopeEntry> _entries = new Dictionary<RuntimeContentOwner, ScopeEntry>();
 
         public RuntimeScopeTransitionGuardResult OpenScope(
             RuntimeContentOwner owner,
@@ -20,7 +20,7 @@ namespace Immersive.Framework.RuntimeContent
         {
             ValidateOwner(owner);
 
-            if (entries.TryGetValue(owner, out var entry))
+            if (_entries.TryGetValue(owner, out var entry))
             {
                 if (entry.State == RuntimeScopeTransitionState.Active)
                 {
@@ -41,7 +41,7 @@ namespace Immersive.Framework.RuntimeContent
             }
 
             entry = ScopeEntry.Open(owner, source, reason);
-            entries.Add(owner, entry);
+            _entries.Add(owner, entry);
 
             return RuntimeScopeTransitionGuardResult.ScopeOpened(
                 owner,
@@ -57,7 +57,7 @@ namespace Immersive.Framework.RuntimeContent
         {
             ValidateOwner(owner);
 
-            if (!entries.TryGetValue(owner, out var entry))
+            if (!_entries.TryGetValue(owner, out var entry))
             {
                 return RuntimeScopeTransitionGuardResult.RejectedMissingScope(owner, source, reason);
             }
@@ -96,10 +96,10 @@ namespace Immersive.Framework.RuntimeContent
         {
             ValidateOwner(owner);
 
-            if (!entries.TryGetValue(owner, out var entry))
+            if (!_entries.TryGetValue(owner, out var entry))
             {
                 entry = ScopeEntry.Removed(owner, source, reason);
-                entries.Add(owner, entry);
+                _entries.Add(owner, entry);
             }
             else
             {
@@ -120,7 +120,7 @@ namespace Immersive.Framework.RuntimeContent
         {
             ValidateContext(context);
 
-            if (!entries.TryGetValue(context.Owner, out var entry))
+            if (!_entries.TryGetValue(context.Owner, out var entry))
             {
                 return RuntimeScopeTransitionGuardResult.RejectedMissingScope(context.Owner, source, reason);
             }
@@ -178,7 +178,7 @@ namespace Immersive.Framework.RuntimeContent
                     reason);
             }
 
-            if (!entries.TryGetValue(request.Owner, out var entry))
+            if (!_entries.TryGetValue(request.Owner, out var entry))
             {
                 return RuntimeScopeTransitionGuardResult.RejectedMissingScope(request.Owner, source, reason);
             }
@@ -235,8 +235,8 @@ namespace Immersive.Framework.RuntimeContent
 
         private sealed class ScopeEntry
         {
-            private string source;
-            private string reason;
+            private string _source;
+            private string _reason;
 
             private ScopeEntry(
                 RuntimeContentOwner owner,
@@ -248,8 +248,8 @@ namespace Immersive.Framework.RuntimeContent
                 Owner = owner;
                 Version = version;
                 State = state;
-                this.source = Normalize(source);
-                this.reason = Normalize(reason);
+                this._source = Normalize(source);
+                this._reason = Normalize(reason);
             }
 
             public RuntimeContentOwner Owner { get; }
@@ -291,8 +291,8 @@ namespace Immersive.Framework.RuntimeContent
 
             public void Touch(string source, string reason)
             {
-                this.source = Normalize(source);
-                this.reason = Normalize(reason);
+                this._source = Normalize(source);
+                this._reason = Normalize(reason);
             }
 
             public RuntimeScopeCancellationToken ToToken()
@@ -301,8 +301,8 @@ namespace Immersive.Framework.RuntimeContent
                     Owner,
                     Version,
                     State,
-                    source,
-                    reason);
+                    _source,
+                    _reason);
             }
 
             private static string Normalize(string value)

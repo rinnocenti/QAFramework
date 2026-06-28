@@ -324,7 +324,7 @@ namespace Immersive.Framework.Diagnostics
 
         private sealed class SyntheticSnapshotParticipant : ISnapshotParticipant
         {
-            private readonly SnapshotParticipantDescriptor descriptor;
+            private readonly SnapshotParticipantDescriptor _descriptor;
 
             public SyntheticSnapshotParticipant(SnapshotParticipantDescriptor descriptor)
             {
@@ -333,51 +333,51 @@ namespace Immersive.Framework.Diagnostics
                     throw new ArgumentException("Synthetic Snapshot participant requires a valid descriptor.", nameof(descriptor));
                 }
 
-                this.descriptor = descriptor;
+                this._descriptor = descriptor;
             }
 
             public SnapshotParticipantDescriptor GetSnapshotDescriptor()
             {
-                return descriptor;
+                return _descriptor;
             }
 
             public SnapshotParticipantCaptureResult CaptureSnapshot(SnapshotCaptureContext context)
             {
-                if (!descriptor.SupportsCaptureContext(context))
+                if (!_descriptor.SupportsCaptureContext(context))
                 {
                     return SnapshotParticipantCaptureResult.RejectedResult(
-                        descriptor,
+                        _descriptor,
                         "Synthetic participant rejected capture context because scope or owner did not match descriptor.");
                 }
 
                 var envelope = new SnapshotEnvelope(
-                    SnapshotEnvelopeId.From(descriptor.ParticipantId.Value.Value + ".envelope"),
-                    descriptor.Scope,
-                    descriptor.OwnerIdentity,
-                    descriptor.SchemaId,
-                    descriptor.SchemaVersion,
+                    SnapshotEnvelopeId.From(_descriptor.ParticipantId.Value.Value + ".envelope"),
+                    _descriptor.Scope,
+                    _descriptor.OwnerIdentity,
+                    _descriptor.SchemaId,
+                    _descriptor.SchemaVersion,
                     SnapshotPayload.FromText("synthetic snapshot payload", "text/plain"),
                     context.CapturedUtcTicks,
                     context.Source,
                     context.Reason);
 
                 return SnapshotParticipantCaptureResult.CapturedResult(
-                    descriptor,
+                    _descriptor,
                     envelope,
                     "Synthetic participant captured a backend-agnostic envelope.");
             }
 
             public SnapshotParticipantRestoreResult RestoreSnapshot(SnapshotRestoreContext context)
             {
-                if (!context.IsValid || !descriptor.SupportsEnvelope(context.Envelope))
+                if (!context.IsValid || !_descriptor.SupportsEnvelope(context.Envelope))
                 {
                     return SnapshotParticipantRestoreResult.RejectedResult(
-                        descriptor,
+                        _descriptor,
                         "Synthetic participant rejected restore envelope because owner/schema/version did not match descriptor.");
                 }
 
                 return SnapshotParticipantRestoreResult.RestoredResult(
-                    descriptor,
+                    _descriptor,
                     context.Envelope,
                     "Synthetic participant restored from a backend-agnostic envelope.");
             }

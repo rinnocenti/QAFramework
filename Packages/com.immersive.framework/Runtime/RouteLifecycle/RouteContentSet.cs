@@ -15,7 +15,7 @@ namespace Immersive.Framework.RouteLifecycle
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Baseline surface kept for development use until the owning roadmap phase stabilizes it.")]
     internal readonly struct RouteContentSet
     {
-        private readonly RouteContentEntry[] entries;
+        private readonly RouteContentEntry[] _entries;
 
         public RouteContentSet(
             RouteAsset route,
@@ -29,14 +29,14 @@ namespace Immersive.Framework.RouteLifecycle
 
             if (entries == null || entries.Count == 0)
             {
-                this.entries = Array.Empty<RouteContentEntry>();
+                this._entries = Array.Empty<RouteContentEntry>();
                 return;
             }
 
-            this.entries = new RouteContentEntry[entries.Count];
+            this._entries = new RouteContentEntry[entries.Count];
             for (var i = 0; i < entries.Count; i++)
             {
-                this.entries[i] = entries[i];
+                this._entries[i] = entries[i];
             }
         }
 
@@ -46,7 +46,7 @@ namespace Immersive.Framework.RouteLifecycle
 
         public RouteContentMaterializationPlan ContentPlan { get; }
 
-        public IReadOnlyList<RouteContentEntry> Entries => entries ?? Array.Empty<RouteContentEntry>();
+        public IReadOnlyList<RouteContentEntry> Entries => _entries ?? Array.Empty<RouteContentEntry>();
 
         public bool HasContent => ContentSet.HasContent;
 
@@ -321,15 +321,15 @@ namespace Immersive.Framework.RouteLifecycle
 
         private int CountOwnership(RouteContentOwnership ownership)
         {
-            if (entries == null || entries.Length == 0)
+            if (_entries == null || _entries.Length == 0)
             {
                 return 0;
             }
 
             var count = 0;
-            for (var i = 0; i < entries.Length; i++)
+            for (var i = 0; i < _entries.Length; i++)
             {
-                if (entries[i].Ownership == ownership)
+                if (_entries[i].Ownership == ownership)
                 {
                     count++;
                 }

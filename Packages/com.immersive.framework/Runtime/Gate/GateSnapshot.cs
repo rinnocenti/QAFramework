@@ -12,13 +12,13 @@ namespace Immersive.Framework.Gate
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F17B passive Gate snapshot primitive; no runtime registry or flow integration.")]
     public readonly struct GateSnapshot
     {
-        private readonly GateBlocker[] blockers;
+        private readonly GateBlocker[] _blockers;
 
         public GateSnapshot(IReadOnlyList<GateBlocker> blockers)
         {
             if (blockers == null || blockers.Count == 0)
             {
-                this.blockers = Array.Empty<GateBlocker>();
+                this._blockers = Array.Empty<GateBlocker>();
                 return;
             }
 
@@ -33,10 +33,10 @@ namespace Immersive.Framework.Gate
                 copy[i] = blockers[i];
             }
 
-            this.blockers = copy;
+            this._blockers = copy;
         }
 
-        public IReadOnlyList<GateBlocker> Blockers => blockers ?? Array.Empty<GateBlocker>();
+        public IReadOnlyList<GateBlocker> Blockers => _blockers ?? Array.Empty<GateBlocker>();
 
         public int BlockerCount => Blockers.Count;
 

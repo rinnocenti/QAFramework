@@ -12,7 +12,7 @@ namespace Immersive.Framework.ContentFlow
     [FrameworkApiStatus(FrameworkApiStatus.Internal, "F6F release result model; execution starts in a later cut.")]
     internal readonly struct ContentReleaseResult
     {
-        private readonly ContentReleaseResultEntry[] entries;
+        private readonly ContentReleaseResultEntry[] _entries;
 
         public ContentReleaseResult(
             ContentReleasePlan plan,
@@ -37,14 +37,14 @@ namespace Immersive.Framework.ContentFlow
 
             if (entries == null || entries.Count == 0)
             {
-                this.entries = Array.Empty<ContentReleaseResultEntry>();
+                this._entries = Array.Empty<ContentReleaseResultEntry>();
             }
             else
             {
-                this.entries = new ContentReleaseResultEntry[entries.Count];
+                this._entries = new ContentReleaseResultEntry[entries.Count];
                 for (var i = 0; i < entries.Count; i++)
                 {
-                    this.entries[i] = entries[i];
+                    this._entries[i] = entries[i];
                 }
             }
         }
@@ -61,7 +61,7 @@ namespace Immersive.Framework.ContentFlow
 
         public string OwnerName => Plan.OwnerName;
 
-        public IReadOnlyList<ContentReleaseResultEntry> Entries => entries ?? Array.Empty<ContentReleaseResultEntry>();
+        public IReadOnlyList<ContentReleaseResultEntry> Entries => _entries ?? Array.Empty<ContentReleaseResultEntry>();
 
         public string Source { get; }
 
@@ -71,7 +71,7 @@ namespace Immersive.Framework.ContentFlow
 
         public int PlannedCount => Plan.EntryCount;
 
-        public int ResultCount => entries != null ? entries.Length : 0;
+        public int ResultCount => _entries != null ? _entries.Length : 0;
 
         public int ReleasedCount => CountByStatus(ContentReleaseEntryStatus.Released);
 
@@ -146,15 +146,15 @@ namespace Immersive.Framework.ContentFlow
 
         private int CountByStatus(ContentReleaseEntryStatus status)
         {
-            if (entries == null || entries.Length == 0)
+            if (_entries == null || _entries.Length == 0)
             {
                 return 0;
             }
 
             var count = 0;
-            for (var i = 0; i < entries.Length; i++)
+            for (var i = 0; i < _entries.Length; i++)
             {
-                if (entries[i].Status == status)
+                if (_entries[i].Status == status)
                 {
                     count++;
                 }
@@ -165,15 +165,15 @@ namespace Immersive.Framework.ContentFlow
 
         private int CountIssues(bool blockingOnly)
         {
-            if (entries == null || entries.Length == 0)
+            if (_entries == null || _entries.Length == 0)
             {
                 return 0;
             }
 
             var count = 0;
-            for (var i = 0; i < entries.Length; i++)
+            for (var i = 0; i < _entries.Length; i++)
             {
-                var entry = entries[i];
+                var entry = _entries[i];
                 if (blockingOnly)
                 {
                     if (entry.BlockingIssue)

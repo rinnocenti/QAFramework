@@ -11,7 +11,7 @@ namespace Immersive.Framework.ContentFlow
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Minimal typed content id introduced by F1F.")]
     public readonly struct FrameworkContentId : IFrameworkIdentity, IEquatable<FrameworkContentId>
     {
-        private readonly FrameworkIdentityValue value;
+        private readonly FrameworkIdentityValue _value;
 
         public FrameworkContentId(string value)
             : this(new FrameworkIdentityValue(value))
@@ -25,20 +25,20 @@ namespace Immersive.Framework.ContentFlow
                 throw new ArgumentException("Framework content id must be valid.", nameof(value));
             }
 
-            this.value = value;
+            this._value = value;
         }
 
         public FrameworkIdentityDomain Domain => FrameworkIdentityDomain.Content;
 
-        public FrameworkIdentityValue Value => value;
+        public FrameworkIdentityValue Value => _value;
 
-        public bool IsValid => value.IsValid;
+        public bool IsValid => _value.IsValid;
 
-        public string StableText => value.Value;
+        public string StableText => _value.Value;
 
         public bool Equals(FrameworkContentId other)
         {
-            return value.Equals(other.value);
+            return _value.Equals(other._value);
         }
 
         public override bool Equals(object obj)
@@ -48,7 +48,7 @@ namespace Immersive.Framework.ContentFlow
 
         public override int GetHashCode()
         {
-            return value.GetHashCode();
+            return _value.GetHashCode();
         }
 
         public override string ToString()

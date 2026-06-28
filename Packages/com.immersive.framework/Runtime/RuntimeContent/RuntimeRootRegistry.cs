@@ -11,16 +11,16 @@ namespace Immersive.Framework.RuntimeContent
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8F internal minimal runtime root registry; explicit root lifecycle only, no GameObject.Find or fallback creation.")]
     internal sealed class RuntimeRootRegistry
     {
-        private readonly Dictionary<RuntimeContentOwner, RuntimeScopeRoot> roots = new Dictionary<RuntimeContentOwner, RuntimeScopeRoot>();
+        private readonly Dictionary<RuntimeContentOwner, RuntimeScopeRoot> _roots = new Dictionary<RuntimeContentOwner, RuntimeScopeRoot>();
 
-        public int RootCount => roots.Count;
+        public int RootCount => _roots.Count;
 
-        public bool HasRoots => roots.Count > 0;
+        public bool HasRoots => _roots.Count > 0;
 
         public RuntimeScopeRoot[] SnapshotRoots()
         {
-            var snapshot = new RuntimeScopeRoot[roots.Count];
-            roots.Values.CopyTo(snapshot, 0);
+            var snapshot = new RuntimeScopeRoot[_roots.Count];
+            _roots.Values.CopyTo(snapshot, 0);
             return snapshot;
         }
 
@@ -31,7 +31,7 @@ namespace Immersive.Framework.RuntimeContent
         {
             ValidateOwner(owner);
 
-            if (roots.TryGetValue(owner, out var existingRoot))
+            if (_roots.TryGetValue(owner, out var existingRoot))
             {
                 return RuntimeRootRegistryOperationResult.RootAlreadyExists(
                     owner,
@@ -41,7 +41,7 @@ namespace Immersive.Framework.RuntimeContent
             }
 
             var root = new RuntimeScopeRoot(owner, source, reason);
-            roots.Add(owner, root);
+            _roots.Add(owner, root);
 
             return RuntimeRootRegistryOperationResult.RootCreated(
                 owner,
@@ -53,7 +53,7 @@ namespace Immersive.Framework.RuntimeContent
         public bool TryGetRoot(RuntimeContentOwner owner, out RuntimeScopeRoot root)
         {
             ValidateOwner(owner);
-            return roots.TryGetValue(owner, out root);
+            return _roots.TryGetValue(owner, out root);
         }
         public RuntimeRootRegistryOperationResult RemoveRoot(
             RuntimeContentOwner owner,
@@ -62,7 +62,7 @@ namespace Immersive.Framework.RuntimeContent
         {
             ValidateOwner(owner);
 
-            if (!roots.TryGetValue(owner, out var root))
+            if (!_roots.TryGetValue(owner, out var root))
             {
                 return RuntimeRootRegistryOperationResult.RootMissing(owner, source, reason);
             }
@@ -72,7 +72,7 @@ namespace Immersive.Framework.RuntimeContent
                 return RuntimeRootRegistryOperationResult.RejectedRootHasHandles(root, source, reason);
             }
 
-            roots.Remove(owner);
+            _roots.Remove(owner);
             return RuntimeRootRegistryOperationResult.RootRemoved(owner, root, source, reason);
         }
 
@@ -87,7 +87,7 @@ namespace Immersive.Framework.RuntimeContent
                 throw new ArgumentNullException(nameof(handle));
             }
 
-            if (!roots.TryGetValue(handle.Owner, out var root))
+            if (!_roots.TryGetValue(handle.Owner, out var root))
             {
                 return RuntimeRootRegistryOperationResult.RejectedMissingRoot(
                     handle.Owner,
@@ -107,7 +107,7 @@ namespace Immersive.Framework.RuntimeContent
         {
             ValidateIdentity(identity);
 
-            if (!roots.TryGetValue(identity.Owner, out var root))
+            if (!_roots.TryGetValue(identity.Owner, out var root))
             {
                 return RuntimeRootRegistryOperationResult.RejectedMissingRoot(
                     identity.Owner,
@@ -124,7 +124,7 @@ namespace Immersive.Framework.RuntimeContent
         {
             ValidateIdentity(identity);
 
-            if (!roots.TryGetValue(identity.Owner, out var root))
+            if (!_roots.TryGetValue(identity.Owner, out var root))
             {
                 handle = null;
                 return false;
@@ -137,7 +137,7 @@ namespace Immersive.Framework.RuntimeContent
         {
             ValidateOwner(owner);
 
-            if (!roots.TryGetValue(owner, out var root))
+            if (!_roots.TryGetValue(owner, out var root))
             {
                 return new RuntimeContentHandle[0];
             }
@@ -153,7 +153,7 @@ namespace Immersive.Framework.RuntimeContent
             }
 
             var scopedRoots = new List<RuntimeScopeRoot>();
-            foreach (var root in roots.Values)
+            foreach (var root in _roots.Values)
             {
                 if (root.Scope == scope)
                 {

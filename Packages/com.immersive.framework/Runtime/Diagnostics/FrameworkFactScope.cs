@@ -18,6 +18,6 @@ namespace Immersive.Framework.Diagnostics
         ContentAnchor = 6,
         Runtime = 7,
         Validation = 8,
-        QA = 9
+        Qa = 9
     }
 }

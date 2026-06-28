@@ -8,6 +8,7 @@ Workspace isolado para fixtures de QA da etapa F24.
 Scenes/QA_UIGlobal.unity
 Scenes/TransitionRouteA.unity
 Scenes/TransitionRouteB.unity
+Scenes/ActivityAdditionalContent.unity
 Routes/QA_TransitionRouteA.asset
 Routes/QA_TransitionRouteB.asset
 Activities/QA_TransitionActivityA.asset
@@ -151,3 +152,22 @@ loadingProgressMode='Determinate'
 loadingProgressPhase='ActivityTransition'
 loadingProgressPercent='100'
 ```
+
+
+## F26F Loading progress polish / closeout
+
+The QA Activity content scene typo was corrected:
+
+```text
+AtivityAdditionalConent.unity -> ActivityAdditionalContent.unity
+```
+
+`ActivityContentProfile.asset` now points to the corrected scene path and scene name. When applying this change from a zip patch, delete the old typo scene files listed in:
+
+```text
+Assets/_Documentation/Notes/F26F-DELETE-MANIFEST.txt
+```
+
+The corrected scene keeps the original Unity `.meta` GUID so existing references remain stable after cleanup.
+
+F26F also records the final loading progress rule: framework diagnostics report technical progress, while the QA loading adapter may smooth visual fill movement for readability. Smoothing is presentation only and does not change `loadingProgressValue` / `loadingProgressPercent` diagnostics.

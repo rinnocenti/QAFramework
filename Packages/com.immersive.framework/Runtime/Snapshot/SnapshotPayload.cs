@@ -12,7 +12,7 @@ namespace Immersive.Framework.Snapshot
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F21B Snapshot payload primitive; no persistence backend.")]
     public readonly struct SnapshotPayload : IEquatable<SnapshotPayload>
     {
-        private readonly byte[] bytes;
+        private readonly byte[] _bytes;
 
         public SnapshotPayload(SnapshotPayloadFormat format, IReadOnlyList<byte> bytes, string mediaType)
         {
@@ -30,7 +30,7 @@ namespace Immersive.Framework.Snapshot
             }
 
             Format = format;
-            this.bytes = copiedBytes;
+            this._bytes = copiedBytes;
             MediaType = Normalize(mediaType);
         }
 
@@ -38,7 +38,7 @@ namespace Immersive.Framework.Snapshot
 
         public string MediaType { get; }
 
-        public IReadOnlyList<byte> Bytes => bytes ?? Array.Empty<byte>();
+        public IReadOnlyList<byte> Bytes => _bytes ?? Array.Empty<byte>();
 
         public int ByteCount => Bytes.Count;
 

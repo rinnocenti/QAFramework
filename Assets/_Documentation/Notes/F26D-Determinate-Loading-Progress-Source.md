@@ -59,12 +59,9 @@ If a loading surface is shown but no scene operation emits progress, diagnostics
 - No editor-only progress source.
 - No broad migration of the pre-existing lifecycle `Task` return types; this cut only removes the F26D-added `Task` progress bridge and frame wait from the progress reporting path.
 
-## Next Cut
+## Closeout note
 
-The next useful cut is either:
-
-1. progress smoothing / minimum visible duration for the loading bar, or
-2. weighted aggregation across multi-step route/activity operations so multiple loads/releases no longer reset the same bar per scene operation.
+F26D is closed as the determinate source cut. Visual inspection smoothing was added as QA presentation only, and weighted aggregation was completed in F26E. F26F records the final documentation baseline.
 
 
 ## F26D visual inspection correction

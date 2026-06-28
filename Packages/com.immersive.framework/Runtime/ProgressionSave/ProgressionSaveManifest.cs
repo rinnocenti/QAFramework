@@ -11,7 +11,7 @@ namespace Immersive.Framework.ProgressionSave
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F21E Progression Save manifest primitive; metadata only.")]
     public readonly struct ProgressionSaveManifest : IEquatable<ProgressionSaveManifest>
     {
-        private readonly ProgressionSaveManifestEntry[] entries;
+        private readonly ProgressionSaveManifestEntry[] _entries;
 
         public ProgressionSaveManifest(IReadOnlyList<ProgressionSaveManifestEntry> entries, long updatedUtcTicks, string source)
         {
@@ -20,12 +20,12 @@ namespace Immersive.Framework.ProgressionSave
             var copiedEntries = CopyEntries(entries);
             EnsureUniqueSlots(copiedEntries);
 
-            this.entries = copiedEntries;
+            this._entries = copiedEntries;
             UpdatedUtcTicks = updatedUtcTicks;
             Source = Normalize(source);
         }
 
-        public IReadOnlyList<ProgressionSaveManifestEntry> Entries => entries ?? Array.Empty<ProgressionSaveManifestEntry>();
+        public IReadOnlyList<ProgressionSaveManifestEntry> Entries => _entries ?? Array.Empty<ProgressionSaveManifestEntry>();
 
         public int Count => Entries.Count;
 

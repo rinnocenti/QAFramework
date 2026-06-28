@@ -10,29 +10,29 @@ namespace Immersive.Framework.RuntimeContent
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8J internal RuntimeContentRuntime owner; adds logical release request/result execution without physical cleanup.")]
     internal sealed class RuntimeContentRuntime
     {
-        private readonly RuntimeRootRegistry registry;
-        private readonly RuntimeScopeTransitionGuard transitionGuard;
+        private readonly RuntimeRootRegistry _registry;
+        private readonly RuntimeScopeTransitionGuard _transitionGuard;
 
         public RuntimeContentRuntime()
         {
-            registry = new RuntimeRootRegistry();
-            transitionGuard = new RuntimeScopeTransitionGuard();
+            _registry = new RuntimeRootRegistry();
+            _transitionGuard = new RuntimeScopeTransitionGuard();
         }
 
-        public int RootCount => registry.RootCount;
+        public int RootCount => _registry.RootCount;
 
-        public bool HasRoots => registry.HasRoots;
+        public bool HasRoots => _registry.HasRoots;
 
         public RuntimeRootRegistryOperationResult CreateScopeRoot(
             RuntimeContentOwner owner,
             string source,
             string reason)
         {
-            var result = registry.CreateRoot(owner, source, reason);
+            var result = _registry.CreateRoot(owner, source, reason);
 
             if (result.Applied || result.Status == RuntimeRootRegistryOperationStatus.RootAlreadyExists)
             {
-                transitionGuard.OpenScope(owner, source, reason);
+                _transitionGuard.OpenScope(owner, source, reason);
             }
 
             return result;
@@ -45,12 +45,12 @@ namespace Immersive.Framework.RuntimeContent
         {
             ValidateOwner(owner);
 
-            transitionGuard.RequestCancellation(owner, source, reason);
-            var result = registry.RemoveRoot(owner, source, reason);
+            _transitionGuard.RequestCancellation(owner, source, reason);
+            var result = _registry.RemoveRoot(owner, source, reason);
 
             if (result.Applied || result.Status == RuntimeRootRegistryOperationStatus.RootMissing)
             {
-                transitionGuard.MarkRemoved(owner, source, reason);
+                _transitionGuard.MarkRemoved(owner, source, reason);
             }
 
             return result;
@@ -64,7 +64,7 @@ namespace Immersive.Framework.RuntimeContent
         {
             ValidateOwner(owner);
 
-            if (!registry.TryGetRoot(owner, out _))
+            if (!_registry.TryGetRoot(owner, out _))
             {
                 context = default(RuntimeScopeContext);
                 return false;
@@ -76,18 +76,18 @@ namespace Immersive.Framework.RuntimeContent
 
         public RuntimeScopeRoot[] SnapshotRoots()
         {
-            return registry.SnapshotRoots();
+            return _registry.SnapshotRoots();
         }
 
         public RuntimeScopeRoot[] SnapshotRoots(RuntimeContentScope scope)
         {
-            return registry.SnapshotRoots(scope);
+            return _registry.SnapshotRoots(scope);
         }
 
         public RuntimeContentHandle[] SnapshotHandles(RuntimeScopeContext context)
         {
             ValidateContext(context);
-            return registry.SnapshotHandles(context.Owner);
+            return _registry.SnapshotHandles(context.Owner);
         }
 
         public RuntimeRootRegistryOperationResult DeclareHandle(
@@ -133,7 +133,7 @@ namespace Immersive.Framework.RuntimeContent
 
             if (handle.Owner != context.Owner)
             {
-                if (registry.TryGetRoot(context.Owner, out var contextRoot))
+                if (_registry.TryGetRoot(context.Owner, out var contextRoot))
                 {
                     return RuntimeRootRegistryOperationResult.RejectedMismatchedOwner(
                         contextRoot,
@@ -150,7 +150,7 @@ namespace Immersive.Framework.RuntimeContent
                     reason);
             }
 
-            return registry.RegisterHandle(handle, source, reason);
+            return _registry.RegisterHandle(handle, source, reason);
         }
 
         public RuntimeRootRegistryOperationResult UnregisterHandle(
@@ -164,7 +164,7 @@ namespace Immersive.Framework.RuntimeContent
 
             if (identity.Owner != context.Owner)
             {
-                if (registry.TryGetRoot(context.Owner, out var contextRoot))
+                if (_registry.TryGetRoot(context.Owner, out var contextRoot))
                 {
                     return RuntimeRootRegistryOperationResult.RejectedMismatchedOwner(
                         contextRoot,
@@ -181,7 +181,7 @@ namespace Immersive.Framework.RuntimeContent
                     reason);
             }
 
-            return registry.UnregisterHandle(identity, source, reason);
+            return _registry.UnregisterHandle(identity, source, reason);
         }
 
         public bool TryGetHandle(
@@ -198,7 +198,7 @@ namespace Immersive.Framework.RuntimeContent
                 return false;
             }
 
-            return registry.TryGetHandle(identity, out handle);
+            return _registry.TryGetHandle(identity, out handle);
         }
 
         public RuntimeMaterializationRequest CreateMaterializationRequest(
@@ -252,7 +252,7 @@ namespace Immersive.Framework.RuntimeContent
                 throw new ArgumentException("Runtime materialization resource must be valid.", nameof(resource));
             }
 
-            guardResult = transitionGuard.AllowMaterialization(context, source, reason);
+            guardResult = _transitionGuard.AllowMaterialization(context, source, reason);
             if (!guardResult.Allowed)
             {
                 request = default(RuntimeMaterializationRequest);
@@ -296,7 +296,7 @@ namespace Immersive.Framework.RuntimeContent
         {
             ValidateMaterializationRequest(request);
 
-            var guardResult = transitionGuard.ValidateMaterializationRequest(request, source, reason);
+            var guardResult = _transitionGuard.ValidateMaterializationRequest(request, source, reason);
             if (guardResult.Allowed)
             {
                 return RuntimeMaterializationResult.Failure(
@@ -329,7 +329,7 @@ namespace Immersive.Framework.RuntimeContent
             }
 
             var request = materializationResult.Request;
-            var guardResult = transitionGuard.ValidateMaterializationRequest(request, source, reason);
+            var guardResult = _transitionGuard.ValidateMaterializationRequest(request, source, reason);
             if (!guardResult.Allowed)
             {
                 return RuntimeMaterializationResult.Failure(
@@ -401,7 +401,7 @@ namespace Immersive.Framework.RuntimeContent
             out RuntimeScopeTransitionGuardResult guardResult)
         {
             ValidateMaterializationRequest(request);
-            guardResult = transitionGuard.ValidateMaterializationRequest(request, source, reason);
+            guardResult = _transitionGuard.ValidateMaterializationRequest(request, source, reason);
             return guardResult.Allowed;
         }
 
@@ -466,7 +466,7 @@ namespace Immersive.Framework.RuntimeContent
         {
             ValidateReleaseRequest(request);
 
-            if (!registry.TryGetRoot(request.Owner, out _))
+            if (!_registry.TryGetRoot(request.Owner, out _))
             {
                 return RuntimeReleaseResult.Failure(
                     request,
@@ -479,7 +479,7 @@ namespace Immersive.Framework.RuntimeContent
                     "Runtime release failed because the owner root is missing.");
             }
 
-            if (!registry.TryGetHandle(request.Identity, out var handle))
+            if (!_registry.TryGetHandle(request.Identity, out var handle))
             {
                 return RuntimeReleaseResult.Failure(
                     request,
@@ -526,7 +526,7 @@ namespace Immersive.Framework.RuntimeContent
             ValidateContext(context);
             ValidateReleasePolicy(policy);
 
-            if (!registry.TryGetRoot(context.Owner, out var root))
+            if (!_registry.TryGetRoot(context.Owner, out var root))
             {
                 throw new InvalidOperationException("Runtime scope root must exist before scope release can execute.");
             }
@@ -559,7 +559,7 @@ namespace Immersive.Framework.RuntimeContent
 
         public string ToDiagnosticString()
         {
-            return registry.ToDiagnosticString();
+            return _registry.ToDiagnosticString();
         }
 
         private RuntimeReleaseResult ApplyLogicalRelease(
@@ -652,14 +652,14 @@ namespace Immersive.Framework.RuntimeContent
                 return false;
             }
 
-            var unregisterResult = registry.UnregisterHandle(request.Identity, source, reason);
+            var unregisterResult = _registry.UnregisterHandle(request.Identity, source, reason);
             if (unregisterResult.Applied || unregisterResult.Status == RuntimeRootRegistryOperationStatus.HandleMissing)
             {
                 return true;
             }
 
             RuntimeContentHandle handle = null;
-            registry.TryGetHandle(request.Identity, out handle);
+            _registry.TryGetHandle(request.Identity, out handle);
             failure = RuntimeReleaseResult.Failure(
                 request,
                 unregisterResult.Status == RuntimeRootRegistryOperationStatus.RejectedMissingRoot

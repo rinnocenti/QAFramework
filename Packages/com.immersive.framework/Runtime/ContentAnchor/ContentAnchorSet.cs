@@ -13,15 +13,15 @@ namespace Immersive.Framework.ContentAnchor
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Passive Content Anchor Set introduced by F7E.")]
     public readonly struct ContentAnchorSet
     {
-        private readonly ContentAnchorDeclaration[] declarations;
-        private readonly ContentAnchorSetIssue[] issues;
+        private readonly ContentAnchorDeclaration[] _declarations;
+        private readonly ContentAnchorSetIssue[] _issues;
 
         public ContentAnchorSet(IReadOnlyList<ContentAnchorDeclaration> declarations)
         {
             if (declarations == null || declarations.Count == 0)
             {
-                this.declarations = Array.Empty<ContentAnchorDeclaration>();
-                issues = Array.Empty<ContentAnchorSetIssue>();
+                this._declarations = Array.Empty<ContentAnchorDeclaration>();
+                _issues = Array.Empty<ContentAnchorSetIssue>();
                 return;
             }
 
@@ -70,17 +70,17 @@ namespace Immersive.Framework.ContentAnchor
                 uniqueDeclarations.Add(declaration);
             }
 
-            this.declarations = uniqueDeclarations.Count == 0
+            this._declarations = uniqueDeclarations.Count == 0
                 ? Array.Empty<ContentAnchorDeclaration>()
                 : uniqueDeclarations.ToArray();
-            issues = detectedIssues.Count == 0
+            _issues = detectedIssues.Count == 0
                 ? Array.Empty<ContentAnchorSetIssue>()
                 : detectedIssues.ToArray();
         }
 
-        public IReadOnlyList<ContentAnchorDeclaration> Declarations => declarations ?? Array.Empty<ContentAnchorDeclaration>();
+        public IReadOnlyList<ContentAnchorDeclaration> Declarations => _declarations ?? Array.Empty<ContentAnchorDeclaration>();
 
-        public IReadOnlyList<ContentAnchorSetIssue> Issues => issues ?? Array.Empty<ContentAnchorSetIssue>();
+        public IReadOnlyList<ContentAnchorSetIssue> Issues => _issues ?? Array.Empty<ContentAnchorSetIssue>();
 
         public int Count => Declarations.Count;
 

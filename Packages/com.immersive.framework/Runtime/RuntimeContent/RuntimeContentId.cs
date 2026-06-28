@@ -11,7 +11,7 @@ namespace Immersive.Framework.RuntimeContent
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8B typed runtime content id primitive.")]
     public readonly struct RuntimeContentId : IFrameworkIdentity, IEquatable<RuntimeContentId>
     {
-        private readonly FrameworkIdentityValue value;
+        private readonly FrameworkIdentityValue _value;
 
         public RuntimeContentId(string value)
             : this(new FrameworkIdentityValue(value))
@@ -25,20 +25,20 @@ namespace Immersive.Framework.RuntimeContent
                 throw new ArgumentException("Runtime content id must be valid.", nameof(value));
             }
 
-            this.value = value;
+            this._value = value;
         }
 
         public FrameworkIdentityDomain Domain => FrameworkIdentityDomain.Runtime;
 
-        public FrameworkIdentityValue Value => value;
+        public FrameworkIdentityValue Value => _value;
 
-        public bool IsValid => value.IsValid;
+        public bool IsValid => _value.IsValid;
 
-        public string StableText => value.Value;
+        public string StableText => _value.Value;
 
         public bool Equals(RuntimeContentId other)
         {
-            return value.Equals(other.value);
+            return _value.Equals(other._value);
         }
 
         public override bool Equals(object obj)
@@ -48,7 +48,7 @@ namespace Immersive.Framework.RuntimeContent
 
         public override int GetHashCode()
         {
-            return value.GetHashCode();
+            return _value.GetHashCode();
         }
 
         public override string ToString()

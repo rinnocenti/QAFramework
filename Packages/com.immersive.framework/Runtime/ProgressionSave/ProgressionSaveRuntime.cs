@@ -11,20 +11,20 @@ namespace Immersive.Framework.ProgressionSave
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F21G Progression Save explicit runtime request path; store-backed and lifecycle-neutral.")]
     public sealed class ProgressionSaveRuntime
     {
-        private readonly IProgressionSaveStore store;
+        private readonly IProgressionSaveStore _store;
 
         public ProgressionSaveRuntime(IProgressionSaveStore store)
         {
-            this.store = store ?? throw new ArgumentNullException(nameof(store));
+            this._store = store ?? throw new ArgumentNullException(nameof(store));
             if (!store.BackendId.IsValid)
             {
                 throw new ArgumentException("Progression Save runtime requires a store with a valid backend id.", nameof(store));
             }
         }
 
-        public ProgressionSaveBackendId BackendId => store.BackendId;
+        public ProgressionSaveBackendId BackendId => _store.BackendId;
 
-        public IProgressionSaveStore Store => store;
+        public IProgressionSaveStore Store => _store;
 
         public ProgressionSaveRequestResult Request(ProgressionSaveRequest request)
         {
@@ -62,7 +62,7 @@ namespace Immersive.Framework.ProgressionSave
                 request.Source,
                 request.Reason);
 
-            var write = store.WriteSlot(record);
+            var write = _store.WriteSlot(record);
             if (write.Written)
             {
                 return ProgressionSaveRequestResult.Saved(request, BackendId, record, write.Message);
@@ -83,7 +83,7 @@ namespace Immersive.Framework.ProgressionSave
 
         private ProgressionSaveRequestResult ExecuteLoad(ProgressionSaveRequest request)
         {
-            var read = store.ReadSlot(request.SlotId);
+            var read = _store.ReadSlot(request.SlotId);
             if (read.Status == ProgressionSaveReadStatus.Found)
             {
                 return ProgressionSaveRequestResult.Loaded(request, BackendId, read.Record, read.Message);
@@ -114,7 +114,7 @@ namespace Immersive.Framework.ProgressionSave
 
         private ProgressionSaveRequestResult ExecuteDelete(ProgressionSaveRequest request)
         {
-            var delete = store.DeleteSlot(request.SlotId);
+            var delete = _store.DeleteSlot(request.SlotId);
             if (delete.Status == ProgressionSaveDeleteStatus.Deleted)
             {
                 return ProgressionSaveRequestResult.Deleted(request, BackendId, delete.Message);

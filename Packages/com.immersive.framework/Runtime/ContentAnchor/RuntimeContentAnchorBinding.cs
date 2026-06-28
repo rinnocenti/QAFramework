@@ -16,26 +16,26 @@ namespace Immersive.Framework.ContentAnchor
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F9E host-owned RuntimeContentAnchorBinding logical runtime; no physical placement or automatic lifecycle cleanup.")]
     internal sealed class RuntimeContentAnchorBinding
     {
-        private readonly Dictionary<string, ContentAnchorContentHandle> bindings;
+        private readonly Dictionary<string, ContentAnchorContentHandle> _bindings;
 
         public RuntimeContentAnchorBinding()
         {
-            bindings = new Dictionary<string, ContentAnchorContentHandle>(StringComparer.Ordinal);
+            _bindings = new Dictionary<string, ContentAnchorContentHandle>(StringComparer.Ordinal);
         }
 
-        public int BindingCount => bindings.Count;
+        public int BindingCount => _bindings.Count;
 
         public bool HasBindings => BindingCount > 0;
 
         public ContentAnchorContentHandle[] SnapshotBindings()
         {
-            if (bindings.Count == 0)
+            if (_bindings.Count == 0)
             {
                 return Array.Empty<ContentAnchorContentHandle>();
             }
 
-            var results = new ContentAnchorContentHandle[bindings.Count];
-            bindings.Values.CopyTo(results, 0);
+            var results = new ContentAnchorContentHandle[_bindings.Count];
+            _bindings.Values.CopyTo(results, 0);
             return results;
         }
 
@@ -45,7 +45,7 @@ namespace Immersive.Framework.ContentAnchor
         {
             ValidateRequest(request);
 
-            if (bindings.TryGetValue(CreateBindingKey(request), out handle) && handle.IsValid)
+            if (_bindings.TryGetValue(CreateBindingKey(request), out handle) && handle.IsValid)
             {
                 return true;
             }
@@ -122,7 +122,7 @@ namespace Immersive.Framework.ContentAnchor
             }
 
             var bindingKey = CreateBindingKey(request);
-            if (bindings.TryGetValue(bindingKey, out var existingHandle))
+            if (_bindings.TryGetValue(bindingKey, out var existingHandle))
             {
                 return EvaluateExistingBinding(
                     request,
@@ -141,14 +141,14 @@ namespace Immersive.Framework.ContentAnchor
                 reason,
                 "Content Anchor binding succeeded logically.");
 
-            bindings.Add(bindingKey, result.Handle);
+            _bindings.Add(bindingKey, result.Handle);
             return result;
         }
 
         public bool Unbind(ContentAnchorBindingRequest request)
         {
             ValidateRequest(request);
-            return bindings.Remove(CreateBindingKey(request));
+            return _bindings.Remove(CreateBindingKey(request));
         }
 
         public bool Unbind(ContentAnchorContentHandle handle)
@@ -158,7 +158,7 @@ namespace Immersive.Framework.ContentAnchor
                 throw new ArgumentException("Content Anchor binding handle must be valid.", nameof(handle));
             }
 
-            return bindings.Remove(CreateBindingKey(handle.Request));
+            return _bindings.Remove(CreateBindingKey(handle.Request));
         }
 
         public ContentAnchorBindingLifecycleResult UnbindRuntimeContent(
@@ -346,13 +346,13 @@ namespace Immersive.Framework.ContentAnchor
         {
             ValidateIdentity(identity);
 
-            if (bindings.Count == 0)
+            if (_bindings.Count == 0)
             {
                 return 0;
             }
 
             var keys = new List<string>();
-            foreach (var pair in bindings)
+            foreach (var pair in _bindings)
             {
                 if (pair.Value.RuntimeIdentity == identity)
                 {
@@ -367,13 +367,13 @@ namespace Immersive.Framework.ContentAnchor
         {
             ValidateOwner(owner);
 
-            if (bindings.Count == 0)
+            if (_bindings.Count == 0)
             {
                 return 0;
             }
 
             var keys = new List<string>();
-            foreach (var pair in bindings)
+            foreach (var pair in _bindings)
             {
                 if (pair.Value.RuntimeOwner == owner)
                 {
@@ -386,17 +386,17 @@ namespace Immersive.Framework.ContentAnchor
 
         public string ToDiagnosticString()
         {
-            if (bindings.Count == 0)
+            if (_bindings.Count == 0)
             {
                 return "contentAnchorBindings='0'";
             }
 
             var builder = new StringBuilder();
             builder.Append("contentAnchorBindings='");
-            builder.Append(bindings.Count);
+            builder.Append(_bindings.Count);
             builder.Append("'");
 
-            foreach (var binding in bindings.Values)
+            foreach (var binding in _bindings.Values)
             {
                 builder.Append(" [");
                 builder.Append(binding.ToDiagnosticString());
@@ -474,13 +474,13 @@ namespace Immersive.Framework.ContentAnchor
                 throw new ArgumentNullException(nameof(predicate));
             }
 
-            if (bindings.Count == 0)
+            if (_bindings.Count == 0)
             {
                 return 0;
             }
 
             var keys = new List<string>();
-            foreach (var pair in bindings)
+            foreach (var pair in _bindings)
             {
                 if (predicate(pair.Value))
                 {
@@ -498,13 +498,13 @@ namespace Immersive.Framework.ContentAnchor
                 throw new ArgumentNullException(nameof(predicate));
             }
 
-            if (bindings.Count == 0)
+            if (_bindings.Count == 0)
             {
                 return Array.Empty<ContentAnchorContentHandle>();
             }
 
             var results = new List<ContentAnchorContentHandle>();
-            foreach (var binding in bindings.Values)
+            foreach (var binding in _bindings.Values)
             {
                 if (predicate(binding))
                 {
@@ -520,7 +520,7 @@ namespace Immersive.Framework.ContentAnchor
             var removed = 0;
             for (var i = 0; i < keys.Count; i++)
             {
-                if (bindings.Remove(keys[i]))
+                if (_bindings.Remove(keys[i]))
                 {
                     removed++;
                 }

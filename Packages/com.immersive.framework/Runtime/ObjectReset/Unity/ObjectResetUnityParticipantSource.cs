@@ -22,13 +22,13 @@ namespace Immersive.Framework.ObjectReset
         [Header("Participants")]
         [SerializeField] private ObjectResetUnityParticipantBehaviour[] participants = Array.Empty<ObjectResetUnityParticipantBehaviour>();
 
-        private FrameworkRuntimeHost registeredHost;
+        private FrameworkRuntimeHost _registeredHost;
 
         public bool RegisterOnEnable => registerOnEnable;
 
         public int AuthoredParticipantCount => participants != null ? participants.Length : 0;
 
-        public bool IsRegistered => registeredHost != null && !ReferenceEquals(registeredHost, null);
+        public bool IsRegistered => _registeredHost != null && !ReferenceEquals(_registeredHost, null);
 
         private void OnEnable()
         {
@@ -59,19 +59,19 @@ namespace Immersive.Framework.ObjectReset
             }
 
             runtimeHost.SetObjectResetParticipantSource(this);
-            registeredHost = runtimeHost;
+            _registeredHost = runtimeHost;
             return true;
         }
 
         public bool ClearRegistration()
         {
-            if (registeredHost == null)
+            if (_registeredHost == null)
             {
                 return false;
             }
 
-            var cleared = registeredHost.ClearObjectResetParticipantSource(this);
-            registeredHost = null;
+            var cleared = _registeredHost.ClearObjectResetParticipantSource(this);
+            _registeredHost = null;
             return cleared;
         }
 

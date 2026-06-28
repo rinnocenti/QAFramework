@@ -15,8 +15,8 @@ MonoBehaviour:
   profileId: activity.primary.additional
   scenes:
   - contentId: activity.content.sphere
-    scenePath: Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/AtivityAdditionalConent.unity
-    sceneName: AtivityAdditionalConent
+    scenePath: Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/ActivityAdditionalContent.unity
+    sceneName: ActivityAdditionalContent
     requiredness: 0
     loadMode: 0
     releasePolicy: 0

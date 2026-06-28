@@ -12,8 +12,8 @@ namespace Immersive.Framework.Transition
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F18B passive Transition snapshot primitive; diagnostics only.")]
     public readonly struct TransitionSnapshot : IEquatable<TransitionSnapshot>
     {
-        private readonly TransitionStep[] observedSteps;
-        private readonly string[] facts;
+        private readonly TransitionStep[] _observedSteps;
+        private readonly string[] _facts;
 
         public TransitionSnapshot(
             TransitionOperationId operationId,
@@ -51,8 +51,8 @@ namespace Immersive.Framework.Transition
             Status = status;
             Source = Normalize(source);
             Reason = Normalize(reason);
-            this.observedSteps = CopySteps(observedSteps);
-            this.facts = CopyFacts(facts);
+            this._observedSteps = CopySteps(observedSteps);
+            this._facts = CopyFacts(facts);
         }
 
         public TransitionOperationId OperationId { get; }
@@ -67,9 +67,9 @@ namespace Immersive.Framework.Transition
 
         public string Reason { get; }
 
-        public IReadOnlyList<TransitionStep> ObservedSteps => observedSteps ?? Array.Empty<TransitionStep>();
+        public IReadOnlyList<TransitionStep> ObservedSteps => _observedSteps ?? Array.Empty<TransitionStep>();
 
-        public IReadOnlyList<string> Facts => facts ?? Array.Empty<string>();
+        public IReadOnlyList<string> Facts => _facts ?? Array.Empty<string>();
 
         public int ObservedStepCount => ObservedSteps.Count;
 

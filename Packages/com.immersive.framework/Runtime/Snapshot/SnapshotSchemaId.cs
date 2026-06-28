@@ -11,7 +11,7 @@ namespace Immersive.Framework.Snapshot
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F21B Snapshot schema identity primitive; backend-agnostic.")]
     public readonly struct SnapshotSchemaId : IFrameworkIdentity, IEquatable<SnapshotSchemaId>
     {
-        private readonly FrameworkIdentityValue value;
+        private readonly FrameworkIdentityValue _value;
 
         public SnapshotSchemaId(string value)
             : this(new FrameworkIdentityValue(value))
@@ -25,22 +25,22 @@ namespace Immersive.Framework.Snapshot
                 throw new ArgumentException("Snapshot schema id must be valid.", nameof(value));
             }
 
-            this.value = value;
+            this._value = value;
         }
 
         public FrameworkIdentityDomain Domain => FrameworkIdentityDomain.Snapshot;
 
-        public FrameworkIdentityValue Value => value;
+        public FrameworkIdentityValue Value => _value;
 
-        public bool IsValid => value.IsValid;
+        public bool IsValid => _value.IsValid;
 
-        public FrameworkIdentityKey Key => new FrameworkIdentityKey(Domain, value);
+        public FrameworkIdentityKey Key => new FrameworkIdentityKey(Domain, _value);
 
         public string StableText => Key.StableText;
 
         public bool Equals(SnapshotSchemaId other)
         {
-            return value.Equals(other.value);
+            return _value.Equals(other._value);
         }
 
         public override bool Equals(object obj)
@@ -50,7 +50,7 @@ namespace Immersive.Framework.Snapshot
 
         public override int GetHashCode()
         {
-            return value.GetHashCode();
+            return _value.GetHashCode();
         }
 
         public override string ToString()

@@ -2,7 +2,7 @@
 
 ## Status
 
-Implemented as framework/runtime aggregation over the F26D determinate scene-operation progress source.
+Closed / PASS. Implemented as framework/runtime aggregation over the F26D determinate scene-operation progress source.
 
 ## Goal
 
@@ -55,3 +55,8 @@ Lower internal phases may still be visible while nested reporters are executing,
 ## Validation
 
 Use the existing QA transition/loading smoke. The important evidence is that operations with scene side-effects still complete and the final loading diagnostics use an aggregate phase with `Determinate` progress.
+
+
+## Closeout note
+
+F26E is closed after Activity and Route smoke evidence showed final request diagnostics using `ActivityTransition` and `RouteTransition` aggregate phases. F26F records this loading progress thread as closed.

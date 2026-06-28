@@ -13,7 +13,7 @@ namespace Immersive.Framework.TransitionEffects
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F19B passive Transition Effect result; diagnostics only.")]
     public readonly struct TransitionEffectResult : IEquatable<TransitionEffectResult>
     {
-        private readonly string[] issues;
+        private readonly string[] _issues;
 
         public TransitionEffectResult(
             TransitionEffectRequest request,
@@ -34,7 +34,7 @@ namespace Immersive.Framework.TransitionEffects
             Request = request;
             Status = status;
             Message = Normalize(message);
-            this.issues = CopyIssues(issues);
+            this._issues = CopyIssues(issues);
         }
 
         public TransitionEffectRequest Request { get; }
@@ -55,7 +55,7 @@ namespace Immersive.Framework.TransitionEffects
 
         public string Message { get; }
 
-        public IReadOnlyList<string> Issues => issues ?? Array.Empty<string>();
+        public IReadOnlyList<string> Issues => _issues ?? Array.Empty<string>();
 
         public int IssueCount => Issues.Count;
 

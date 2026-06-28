@@ -20,6 +20,7 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 
 - `Plans/F24-PLAN-Unity-Build-Surface.md`
 - `Plans/F25-PLAN-Activity-Content-Scene-Composition.md`
+- `Plans/F26-PLAN-Activity-Discovery-And-Loading-Progress.md`
 
 ### Setup
 
@@ -36,6 +37,10 @@ Loading progress preparation: `Notes/F26C-Loading-Surface-Progress-Bar-Receiver.
 Determinate loading progress source: `Notes/F26D-Determinate-Loading-Progress-Source.md`.
 
 Aggregated loading progress: `Notes/F26E-Aggregated-Loading-Progress.md`.
+
+Loading progress closeout: `Notes/F26F-Loading-Progress-Polish-And-Closeout.md`.
+
+F26F cleanup manifest: `Notes/F26F-DELETE-MANIFEST.txt`.
 
 ## Regras
 

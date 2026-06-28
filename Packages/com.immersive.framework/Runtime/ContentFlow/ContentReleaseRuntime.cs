@@ -13,11 +13,11 @@ namespace Immersive.Framework.ContentFlow
     [FrameworkApiStatus(FrameworkApiStatus.Internal, "F6G release execution for route-owned additive scenes only.")]
     internal sealed class ContentReleaseRuntime
     {
-        private readonly SceneLifecycleRuntime sceneLifecycleRuntime;
+        private readonly SceneLifecycleRuntime _sceneLifecycleRuntime;
 
         internal ContentReleaseRuntime(SceneLifecycleRuntime sceneLifecycleRuntime)
         {
-            this.sceneLifecycleRuntime = sceneLifecycleRuntime ?? throw new System.ArgumentNullException(nameof(sceneLifecycleRuntime));
+            this._sceneLifecycleRuntime = sceneLifecycleRuntime ?? throw new System.ArgumentNullException(nameof(sceneLifecycleRuntime));
         }
 
         internal Task<ContentReleaseResult> ExecuteAsync(ContentReleasePlan plan)
@@ -100,7 +100,7 @@ namespace Immersive.Framework.ContentFlow
             ContentReleasePlanEntry entry,
             IFrameworkLoadingProgressReporter progressReporter)
         {
-            var unloadResult = await sceneLifecycleRuntime.UnloadSceneAsync(
+            var unloadResult = await _sceneLifecycleRuntime.UnloadSceneAsync(
                 entry.ResourceName,
                 entry.ResourcePath,
                 progressReporter);

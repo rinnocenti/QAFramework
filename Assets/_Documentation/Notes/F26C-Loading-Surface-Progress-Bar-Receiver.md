@@ -56,3 +56,8 @@ Request-level diagnostics can now report `loadingProgressSupported='True'` when 
 The next logical cut is to connect a real source, most likely `SceneLifecycleRuntime` load/unload progress, into `LoadingSurfaceRequest.Update(...)` while preserving the current sequence:
 
 `transition fade-in -> loading show/update/hide -> transition fade-out`
+
+
+## Closeout note
+
+F26C is closed as the receiver cut. Later F26D-F26E cuts supply determinate and aggregate progress. F26F records the final rule that this receiver may smooth visual presentation but must not fabricate framework diagnostic progress.

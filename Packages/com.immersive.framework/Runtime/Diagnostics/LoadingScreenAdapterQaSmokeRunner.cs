@@ -274,19 +274,19 @@ namespace Immersive.Framework.Diagnostics
             private const string UnsupportedIssue = "loading-screen-operation-unsupported";
             private const string SyntheticFailureIssue = "loading-screen-synthetic-failure";
 
-            private readonly string adapterName;
-            private readonly bool supports;
-            private readonly bool failUpdate;
+            private readonly string _adapterName;
+            private readonly bool _supports;
+            private readonly bool _failUpdate;
 
             public SyntheticLoadingScreenAdapter(string adapterName, bool supports, bool failUpdate)
             {
-                this.adapterName = string.IsNullOrWhiteSpace(adapterName) ? nameof(SyntheticLoadingScreenAdapter) : adapterName.Trim();
-                this.supports = supports;
-                this.failUpdate = failUpdate;
+                this._adapterName = string.IsNullOrWhiteSpace(adapterName) ? nameof(SyntheticLoadingScreenAdapter) : adapterName.Trim();
+                this._supports = supports;
+                this._failUpdate = failUpdate;
                 LastProgress = LoadingProgress.Zero;
             }
 
-            public string AdapterName => adapterName;
+            public string AdapterName => _adapterName;
 
             public bool Visible { get; private set; }
 
@@ -300,7 +300,7 @@ namespace Immersive.Framework.Diagnostics
 
             public bool Supports(LoadingOperation operation)
             {
-                return supports && operation.IsValid;
+                return _supports && operation.IsValid;
             }
 
             public LoadingScreenAdapterResult Show(LoadingScreenPresentation presentation)
@@ -337,7 +337,7 @@ namespace Immersive.Framework.Diagnostics
                         new[] { UnsupportedIssue });
                 }
 
-                if (failUpdate)
+                if (_failUpdate)
                 {
                     return LoadingScreenAdapterResult.FailedResult(
                         presentation,

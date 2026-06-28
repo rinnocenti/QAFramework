@@ -12,7 +12,7 @@ namespace Immersive.Framework.LocalContribution
     [FrameworkApiStatus(FrameworkApiStatus.Internal, "Local contribution validation result introduced by F5G.")]
     internal readonly struct LocalContributionValidationResult
     {
-        private readonly LocalContributionValidationIssue[] issues;
+        private readonly LocalContributionValidationIssue[] _issues;
 
         public LocalContributionValidationResult(
             LocalContributionSet contributionSet,
@@ -22,20 +22,20 @@ namespace Immersive.Framework.LocalContribution
 
             if (issues == null || issues.Count == 0)
             {
-                this.issues = Array.Empty<LocalContributionValidationIssue>();
+                this._issues = Array.Empty<LocalContributionValidationIssue>();
                 return;
             }
 
-            this.issues = new LocalContributionValidationIssue[issues.Count];
+            this._issues = new LocalContributionValidationIssue[issues.Count];
             for (var i = 0; i < issues.Count; i++)
             {
-                this.issues[i] = issues[i];
+                this._issues[i] = issues[i];
             }
         }
 
         public LocalContributionSet ContributionSet { get; }
 
-        public IReadOnlyList<LocalContributionValidationIssue> Issues => issues ?? Array.Empty<LocalContributionValidationIssue>();
+        public IReadOnlyList<LocalContributionValidationIssue> Issues => _issues ?? Array.Empty<LocalContributionValidationIssue>();
 
         public int IssueCount => Issues.Count;
 

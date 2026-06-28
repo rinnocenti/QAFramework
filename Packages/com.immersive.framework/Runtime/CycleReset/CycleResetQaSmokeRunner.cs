@@ -531,26 +531,26 @@ namespace Immersive.Framework.CycleReset
 
         private static void AttachBridgeCounters(RouteCycleResetTriggerUnityEventBridge bridge, BridgeEventCounters counters)
         {
-            bridge.RequestSubmitted.AddListener(() => counters.Submitted++);
-            bridge.RequestSucceeded.AddListener(() => counters.Succeeded++);
-            bridge.RequestSucceededWithParticipants.AddListener(() => counters.SucceededWithParticipants++);
-            bridge.RequestSucceededNoParticipants.AddListener(() => counters.SucceededNoParticipants++);
-            bridge.RequestCompletedWithWarnings.AddListener(() => counters.CompletedWithWarnings++);
-            bridge.RequestIgnored.AddListener(() => counters.Ignored++);
-            bridge.RequestFailed.AddListener(() => counters.Failed++);
-            bridge.RequestCompleted.AddListener(() => counters.Completed++);
+            bridge.RequestSubmitted.AddListener(() => counters.submitted++);
+            bridge.RequestSucceeded.AddListener(() => counters.succeeded++);
+            bridge.RequestSucceededWithParticipants.AddListener(() => counters.succeededWithParticipants++);
+            bridge.RequestSucceededNoParticipants.AddListener(() => counters.succeededNoParticipants++);
+            bridge.RequestCompletedWithWarnings.AddListener(() => counters.completedWithWarnings++);
+            bridge.RequestIgnored.AddListener(() => counters.ignored++);
+            bridge.RequestFailed.AddListener(() => counters.failed++);
+            bridge.RequestCompleted.AddListener(() => counters.completed++);
         }
 
         private static void AttachBridgeCounters(ActivityCycleResetTriggerUnityEventBridge bridge, BridgeEventCounters counters)
         {
-            bridge.RequestSubmitted.AddListener(() => counters.Submitted++);
-            bridge.RequestSucceeded.AddListener(() => counters.Succeeded++);
-            bridge.RequestSucceededWithParticipants.AddListener(() => counters.SucceededWithParticipants++);
-            bridge.RequestSucceededNoParticipants.AddListener(() => counters.SucceededNoParticipants++);
-            bridge.RequestCompletedWithWarnings.AddListener(() => counters.CompletedWithWarnings++);
-            bridge.RequestIgnored.AddListener(() => counters.Ignored++);
-            bridge.RequestFailed.AddListener(() => counters.Failed++);
-            bridge.RequestCompleted.AddListener(() => counters.Completed++);
+            bridge.RequestSubmitted.AddListener(() => counters.submitted++);
+            bridge.RequestSucceeded.AddListener(() => counters.succeeded++);
+            bridge.RequestSucceededWithParticipants.AddListener(() => counters.succeededWithParticipants++);
+            bridge.RequestSucceededNoParticipants.AddListener(() => counters.succeededNoParticipants++);
+            bridge.RequestCompletedWithWarnings.AddListener(() => counters.completedWithWarnings++);
+            bridge.RequestIgnored.AddListener(() => counters.ignored++);
+            bridge.RequestFailed.AddListener(() => counters.failed++);
+            bridge.RequestCompleted.AddListener(() => counters.completed++);
         }
 
         private static bool ValidateRouteBridgeResult(FrameworkLogger logger, RouteCycleResetTrigger trigger, BridgeEventCounters counters, string source)
@@ -606,9 +606,9 @@ namespace Immersive.Framework.CycleReset
             string resultSummary,
             BridgeEventCounters counters)
         {
-            if (counters.Submitted != 1 || counters.Succeeded != 1 || counters.Completed != 1)
+            if (counters.submitted != 1 || counters.succeeded != 1 || counters.completed != 1)
             {
-                logger.Warning($"QA Cycle Reset Bridge Smoke step failed. step='{step}' reason='Bridge did not receive required UnityEvent callbacks' submitted='{counters.Submitted}' succeeded='{counters.Succeeded}' completed='{counters.Completed}'. {resultSummary}");
+                logger.Warning($"QA Cycle Reset Bridge Smoke step failed. step='{step}' reason='Bridge did not receive required UnityEvent callbacks' submitted='{counters.submitted}' succeeded='{counters.succeeded}' completed='{counters.completed}'. {resultSummary}");
                 return false;
             }
 
@@ -616,18 +616,18 @@ namespace Immersive.Framework.CycleReset
             var expectedSucceededWithParticipants = result.Status == CycleResetStatus.Succeeded ? 1 : 0;
             var expectedCompletedWithWarnings = result.CompletedWithWarnings ? 1 : 0;
 
-            if (counters.SucceededNoParticipants != expectedSucceededNoParticipants ||
-                counters.SucceededWithParticipants != expectedSucceededWithParticipants ||
-                counters.CompletedWithWarnings != expectedCompletedWithWarnings ||
-                counters.Ignored != 0 ||
-                counters.Failed != 0)
+            if (counters.succeededNoParticipants != expectedSucceededNoParticipants ||
+                counters.succeededWithParticipants != expectedSucceededWithParticipants ||
+                counters.completedWithWarnings != expectedCompletedWithWarnings ||
+                counters.ignored != 0 ||
+                counters.failed != 0)
             {
                 logger.Warning(
                     $"QA Cycle Reset Bridge Smoke step failed. step='{step}' reason='Bridge UnityEvent callback routing is inconsistent' " +
-                    $"succeededNoParticipants='{counters.SucceededNoParticipants}' expectedSucceededNoParticipants='{expectedSucceededNoParticipants}' " +
-                    $"succeededWithParticipants='{counters.SucceededWithParticipants}' expectedSucceededWithParticipants='{expectedSucceededWithParticipants}' " +
-                    $"completedWithWarnings='{counters.CompletedWithWarnings}' expectedCompletedWithWarnings='{expectedCompletedWithWarnings}' " +
-                    $"ignored='{counters.Ignored}' failed='{counters.Failed}'. {resultSummary}");
+                    $"succeededNoParticipants='{counters.succeededNoParticipants}' expectedSucceededNoParticipants='{expectedSucceededNoParticipants}' " +
+                    $"succeededWithParticipants='{counters.succeededWithParticipants}' expectedSucceededWithParticipants='{expectedSucceededWithParticipants}' " +
+                    $"completedWithWarnings='{counters.completedWithWarnings}' expectedCompletedWithWarnings='{expectedCompletedWithWarnings}' " +
+                    $"ignored='{counters.ignored}' failed='{counters.failed}'. {resultSummary}");
                 return false;
             }
 
@@ -640,14 +640,14 @@ namespace Immersive.Framework.CycleReset
                     LogFields.Field("source", source),
                     LogFields.Field("resultStatus", result.Status.ToString()),
                     LogFields.Field("participants", result.ParticipantCount),
-                    LogFields.Field("submittedEvents", counters.Submitted),
-                    LogFields.Field("succeededEvents", counters.Succeeded),
-                    LogFields.Field("succeededWithParticipantsEvents", counters.SucceededWithParticipants),
-                    LogFields.Field("succeededNoParticipantsEvents", counters.SucceededNoParticipants),
-                    LogFields.Field("completedWithWarningsEvents", counters.CompletedWithWarnings),
-                    LogFields.Field("ignoredEvents", counters.Ignored),
-                    LogFields.Field("failedEvents", counters.Failed),
-                    LogFields.Field("completedEvents", counters.Completed),
+                    LogFields.Field("submittedEvents", counters.submitted),
+                    LogFields.Field("succeededEvents", counters.succeeded),
+                    LogFields.Field("succeededWithParticipantsEvents", counters.succeededWithParticipants),
+                    LogFields.Field("succeededNoParticipantsEvents", counters.succeededNoParticipants),
+                    LogFields.Field("completedWithWarningsEvents", counters.completedWithWarnings),
+                    LogFields.Field("ignoredEvents", counters.ignored),
+                    LogFields.Field("failedEvents", counters.failed),
+                    LogFields.Field("completedEvents", counters.completed),
                     LogFields.Field("blockingIssues", result.BlockingIssueCount),
                     LogFields.Field("nonBlockingIssues", result.NonBlockingIssueCount),
                     LogFields.Field("resultSummary", resultSummary)));
@@ -733,23 +733,23 @@ namespace Immersive.Framework.CycleReset
 
         private sealed class BridgeEventCounters
         {
-            public int Submitted;
-            public int Succeeded;
-            public int SucceededWithParticipants;
-            public int SucceededNoParticipants;
-            public int CompletedWithWarnings;
-            public int Ignored;
-            public int Failed;
-            public int Completed;
+            public int submitted;
+            public int succeeded;
+            public int succeededWithParticipants;
+            public int succeededNoParticipants;
+            public int completedWithWarnings;
+            public int ignored;
+            public int failed;
+            public int completed;
         }
 
         private sealed class SyntheticCycleResetParticipantSource : ICycleResetParticipantSource
         {
-            private readonly string source;
+            private readonly string _source;
 
             public SyntheticCycleResetParticipantSource(string source)
             {
-                this.source = source;
+                this._source = source;
             }
 
             public IReadOnlyList<ICycleResetParticipant> ResolveCycleResetParticipants(CycleResetRequest request)
@@ -761,12 +761,12 @@ namespace Immersive.Framework.CycleReset
 
                 if (request.IsRouteReset)
                 {
-                    return CreateRouteSyntheticParticipants(request, source);
+                    return CreateRouteSyntheticParticipants(request, _source);
                 }
 
                 if (request.IsActivityReset)
                 {
-                    return CreateActivitySyntheticParticipants(source);
+                    return CreateActivitySyntheticParticipants(_source);
                 }
 
                 return Array.Empty<ICycleResetParticipant>();
@@ -775,51 +775,51 @@ namespace Immersive.Framework.CycleReset
 
         private sealed class SyntheticCycleResetParticipant : ICycleResetParticipant
         {
-            private readonly CycleResetParticipantDescriptor descriptor;
-            private readonly SyntheticCycleResetParticipantMode mode;
+            private readonly CycleResetParticipantDescriptor _descriptor;
+            private readonly SyntheticCycleResetParticipantMode _mode;
 
             private SyntheticCycleResetParticipant(
                 CycleResetParticipantDescriptor descriptor,
                 SyntheticCycleResetParticipantMode mode)
             {
-                this.descriptor = descriptor;
-                this.mode = mode;
+                this._descriptor = descriptor;
+                this._mode = mode;
             }
 
             public CycleResetParticipantDescriptor GetCycleResetDescriptor()
             {
-                return descriptor;
+                return _descriptor;
             }
 
             public CycleResetParticipantResult ResetCycle(CycleResetContext context)
             {
-                switch (mode)
+                switch (_mode)
                 {
                     case SyntheticCycleResetParticipantMode.Success:
                         return CycleResetParticipantResult.Success(
                             context,
-                            descriptor.Source,
-                            descriptor.Reason,
+                            _descriptor.Source,
+                            _descriptor.Reason,
                             "Synthetic Cycle Reset participant succeeded.");
 
                     case SyntheticCycleResetParticipantMode.SkippedOptional:
                         return CycleResetParticipantResult.Skipped(
                             context,
                             CycleResetParticipantResultStatus.SkippedOptional,
-                            descriptor.Source,
-                            descriptor.Reason,
+                            _descriptor.Source,
+                            _descriptor.Reason,
                             "Synthetic Cycle Reset participant skipped as optional.");
 
                     case SyntheticCycleResetParticipantMode.Failure:
                         return CycleResetParticipantResult.Failure(
                             context,
                             1,
-                            descriptor.Source,
-                            descriptor.Reason,
+                            _descriptor.Source,
+                            _descriptor.Reason,
                             "Synthetic Cycle Reset participant failed.");
 
                     default:
-                        throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unsupported synthetic Cycle Reset participant mode.");
+                        throw new ArgumentOutOfRangeException(nameof(_mode), _mode, "Unsupported synthetic Cycle Reset participant mode.");
                 }
             }
 

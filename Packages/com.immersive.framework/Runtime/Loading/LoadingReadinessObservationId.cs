@@ -11,7 +11,7 @@ namespace Immersive.Framework.Loading
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F22G Loading readiness observation identity primitive; observation only.")]
     public readonly struct LoadingReadinessObservationId : IFrameworkIdentity, IEquatable<LoadingReadinessObservationId>
     {
-        private readonly FrameworkIdentityValue value;
+        private readonly FrameworkIdentityValue _value;
 
         public LoadingReadinessObservationId(string value)
             : this(new FrameworkIdentityValue(value))
@@ -25,22 +25,22 @@ namespace Immersive.Framework.Loading
                 throw new ArgumentException("Loading readiness observation id must be valid.", nameof(value));
             }
 
-            this.value = value;
+            this._value = value;
         }
 
         public FrameworkIdentityDomain Domain => FrameworkIdentityDomain.Loading;
 
-        public FrameworkIdentityValue Value => value;
+        public FrameworkIdentityValue Value => _value;
 
-        public bool IsValid => value.IsValid;
+        public bool IsValid => _value.IsValid;
 
-        public FrameworkIdentityKey Key => new FrameworkIdentityKey(Domain, value);
+        public FrameworkIdentityKey Key => new FrameworkIdentityKey(Domain, _value);
 
         public string StableText => Key.StableText;
 
         public bool Equals(LoadingReadinessObservationId other)
         {
-            return value.Equals(other.value);
+            return _value.Equals(other._value);
         }
 
         public override bool Equals(object obj)
@@ -50,7 +50,7 @@ namespace Immersive.Framework.Loading
 
         public override int GetHashCode()
         {
-            return value.GetHashCode();
+            return _value.GetHashCode();
         }
 
         public override string ToString()

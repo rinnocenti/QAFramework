@@ -11,7 +11,7 @@ namespace Immersive.Framework.ObjectReset
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F14C typed Object Reset participant identity; no GameObject-name fallback.")]
     public readonly struct ObjectResetParticipantId : IFrameworkIdentity, IEquatable<ObjectResetParticipantId>
     {
-        private readonly FrameworkIdentityValue value;
+        private readonly FrameworkIdentityValue _value;
 
         public ObjectResetParticipantId(string value)
             : this(new FrameworkIdentityValue(value))
@@ -25,20 +25,20 @@ namespace Immersive.Framework.ObjectReset
                 throw new ArgumentException("Object Reset participant id must be valid.", nameof(value));
             }
 
-            this.value = value;
+            this._value = value;
         }
 
         public FrameworkIdentityDomain Domain => FrameworkIdentityDomain.ObjectReset;
 
-        public FrameworkIdentityValue Value => value;
+        public FrameworkIdentityValue Value => _value;
 
-        public bool IsValid => value.IsValid;
+        public bool IsValid => _value.IsValid;
 
-        public string StableText => value.Value;
+        public string StableText => _value.Value;
 
         public bool Equals(ObjectResetParticipantId other)
         {
-            return value.Equals(other.value);
+            return _value.Equals(other._value);
         }
 
         public override bool Equals(object obj)
@@ -48,7 +48,7 @@ namespace Immersive.Framework.ObjectReset
 
         public override int GetHashCode()
         {
-            return value.GetHashCode();
+            return _value.GetHashCode();
         }
 
         public override string ToString()

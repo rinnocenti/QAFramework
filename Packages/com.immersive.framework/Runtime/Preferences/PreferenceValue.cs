@@ -10,10 +10,10 @@ namespace Immersive.Framework.Preferences
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F21D Preferences typed value primitive.")]
     public readonly struct PreferenceValue : IEquatable<PreferenceValue>
     {
-        private readonly string stringValue;
-        private readonly int intValue;
-        private readonly float floatValue;
-        private readonly bool boolValue;
+        private readonly string _stringValue;
+        private readonly int _intValue;
+        private readonly float _floatValue;
+        private readonly bool _boolValue;
 
         private PreferenceValue(
             PreferenceValueKind kind,
@@ -28,10 +28,10 @@ namespace Immersive.Framework.Preferences
             }
 
             Kind = kind;
-            this.stringValue = Normalize(stringValue);
-            this.intValue = intValue;
-            this.floatValue = floatValue;
-            this.boolValue = boolValue;
+            this._stringValue = Normalize(stringValue);
+            this._intValue = intValue;
+            this._floatValue = floatValue;
+            this._boolValue = boolValue;
         }
 
         public PreferenceValueKind Kind { get; }
@@ -43,7 +43,7 @@ namespace Immersive.Framework.Preferences
             get
             {
                 EnsureKind(PreferenceValueKind.String);
-                return stringValue;
+                return _stringValue;
             }
         }
 
@@ -52,7 +52,7 @@ namespace Immersive.Framework.Preferences
             get
             {
                 EnsureKind(PreferenceValueKind.Int);
-                return intValue;
+                return _intValue;
             }
         }
 
@@ -61,7 +61,7 @@ namespace Immersive.Framework.Preferences
             get
             {
                 EnsureKind(PreferenceValueKind.Float);
-                return floatValue;
+                return _floatValue;
             }
         }
 
@@ -70,41 +70,41 @@ namespace Immersive.Framework.Preferences
             get
             {
                 EnsureKind(PreferenceValueKind.Bool);
-                return boolValue;
+                return _boolValue;
             }
         }
 
         public bool TryGetString(out string value)
         {
-            value = Kind == PreferenceValueKind.String ? stringValue : string.Empty;
+            value = Kind == PreferenceValueKind.String ? _stringValue : string.Empty;
             return Kind == PreferenceValueKind.String;
         }
 
         public bool TryGetInt(out int value)
         {
-            value = Kind == PreferenceValueKind.Int ? intValue : 0;
+            value = Kind == PreferenceValueKind.Int ? _intValue : 0;
             return Kind == PreferenceValueKind.Int;
         }
 
         public bool TryGetFloat(out float value)
         {
-            value = Kind == PreferenceValueKind.Float ? floatValue : 0f;
+            value = Kind == PreferenceValueKind.Float ? _floatValue : 0f;
             return Kind == PreferenceValueKind.Float;
         }
 
         public bool TryGetBool(out bool value)
         {
-            value = Kind == PreferenceValueKind.Bool && boolValue;
+            value = Kind == PreferenceValueKind.Bool && _boolValue;
             return Kind == PreferenceValueKind.Bool;
         }
 
         public bool Equals(PreferenceValue other)
         {
             return Kind == other.Kind
-                && string.Equals(stringValue, other.stringValue, StringComparison.Ordinal)
-                && intValue == other.intValue
-                && floatValue.Equals(other.floatValue)
-                && boolValue == other.boolValue;
+                && string.Equals(_stringValue, other._stringValue, StringComparison.Ordinal)
+                && _intValue == other._intValue
+                && _floatValue.Equals(other._floatValue)
+                && _boolValue == other._boolValue;
         }
 
         public override bool Equals(object obj)
@@ -117,10 +117,10 @@ namespace Immersive.Framework.Preferences
             unchecked
             {
                 var hashCode = (int)Kind;
-                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(stringValue ?? string.Empty);
-                hashCode = (hashCode * 397) ^ intValue;
-                hashCode = (hashCode * 397) ^ floatValue.GetHashCode();
-                hashCode = (hashCode * 397) ^ boolValue.GetHashCode();
+                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(_stringValue ?? string.Empty);
+                hashCode = (hashCode * 397) ^ _intValue;
+                hashCode = (hashCode * 397) ^ _floatValue.GetHashCode();
+                hashCode = (hashCode * 397) ^ _boolValue.GetHashCode();
                 return hashCode;
             }
         }
@@ -134,22 +134,22 @@ namespace Immersive.Framework.Preferences
         {
             if (Kind == PreferenceValueKind.String)
             {
-                return $"kind='{Kind}' value='{stringValue}'";
+                return $"kind='{Kind}' value='{_stringValue}'";
             }
 
             if (Kind == PreferenceValueKind.Int)
             {
-                return $"kind='{Kind}' value='{intValue}'";
+                return $"kind='{Kind}' value='{_intValue}'";
             }
 
             if (Kind == PreferenceValueKind.Float)
             {
-                return $"kind='{Kind}' value='{floatValue}'";
+                return $"kind='{Kind}' value='{_floatValue}'";
             }
 
             if (Kind == PreferenceValueKind.Bool)
             {
-                return $"kind='{Kind}' value='{boolValue}'";
+                return $"kind='{Kind}' value='{_boolValue}'";
             }
 
             return "kind='Unknown' value='<invalid>'";

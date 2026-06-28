@@ -48,36 +48,36 @@ namespace Immersive.Framework.Loading
     [FrameworkApiStatus(FrameworkApiStatus.Internal, "F26D loading surface progress reporter.")]
     internal sealed class LoadingSurfaceProgressReporter : IFrameworkLoadingProgressReporter
     {
-        private readonly LoadingSurfaceRuntime loadingSurfaceRuntime;
-        private readonly string title;
-        private readonly string detail;
-        private readonly string source;
-        private readonly string reason;
-        private FrameworkLoadingProgress lastProgress;
-        private bool hasReportedProgress;
+        private readonly LoadingSurfaceRuntime _loadingSurfaceRuntime;
+        private readonly string _title;
+        private readonly string _detail;
+        private readonly string _source;
+        private readonly string _reason;
+        private FrameworkLoadingProgress _lastProgress;
+        private bool _hasReportedProgress;
 
         internal LoadingSurfaceProgressReporter(
             LoadingSurfaceRuntime loadingSurfaceRuntime,
             LoadingSurfaceRequest baseRequest)
         {
-            this.loadingSurfaceRuntime = loadingSurfaceRuntime;
-            title = baseRequest.Title;
-            detail = baseRequest.Detail;
-            source = baseRequest.Source;
-            reason = baseRequest.Reason;
-            lastProgress = FrameworkLoadingProgress.Indeterminate(
+            this._loadingSurfaceRuntime = loadingSurfaceRuntime;
+            _title = baseRequest.Title;
+            _detail = baseRequest.Detail;
+            _source = baseRequest.Source;
+            _reason = baseRequest.Reason;
+            _lastProgress = FrameworkLoadingProgress.Indeterminate(
                 supported: true,
                 phase: "UnitySurface",
                 message: "Loading surface progress reporter is ready and waiting for a determinate source.");
         }
 
-        public bool IsEnabled => loadingSurfaceRuntime != null
-            && loadingSurfaceRuntime.HasVisibleSurface
-            && loadingSurfaceRuntime.ProgressSupported;
+        public bool IsEnabled => _loadingSurfaceRuntime != null
+            && _loadingSurfaceRuntime.HasVisibleSurface
+            && _loadingSurfaceRuntime.ProgressSupported;
 
-        public bool HasReportedProgress => hasReportedProgress;
+        public bool HasReportedProgress => _hasReportedProgress;
 
-        public FrameworkLoadingProgress LastProgress => lastProgress;
+        public FrameworkLoadingProgress LastProgress => _lastProgress;
 
         public async Awaitable ReportAsync(FrameworkLoadingProgress progress)
         {
@@ -86,8 +86,8 @@ namespace Immersive.Framework.Loading
                 return;
             }
 
-            lastProgress = progress;
-            hasReportedProgress = true;
+            _lastProgress = progress;
+            _hasReportedProgress = true;
 
             var progressSupported = progress.Supported && progress.IsDeterminate;
             var surfaceProgress = progressSupported
@@ -95,14 +95,14 @@ namespace Immersive.Framework.Loading
                 : LoadingProgress.Zero;
 
             var request = LoadingSurfaceRequest.Update(
-                title,
-                detail,
-                source,
-                reason,
+                _title,
+                _detail,
+                _source,
+                _reason,
                 surfaceProgress,
                 progressSupported);
 
-            await loadingSurfaceRuntime.UpdateAsync(request);
+            await _loadingSurfaceRuntime.UpdateAsync(request);
         }
     }
 
@@ -192,28 +192,28 @@ namespace Immersive.Framework.Loading
     [FrameworkApiStatus(FrameworkApiStatus.Internal, "F26E phase-remapping loading progress reporter.")]
     internal sealed class FrameworkLoadingProgressPhaseReporter : IFrameworkLoadingProgressReporter
     {
-        private readonly IFrameworkLoadingProgressReporter parent;
-        private readonly string phase;
-        private readonly string messagePrefix;
-        private FrameworkLoadingProgress lastProgress;
-        private bool hasReportedProgress;
+        private readonly IFrameworkLoadingProgressReporter _parent;
+        private readonly string _phase;
+        private readonly string _messagePrefix;
+        private FrameworkLoadingProgress _lastProgress;
+        private bool _hasReportedProgress;
 
         internal FrameworkLoadingProgressPhaseReporter(
             IFrameworkLoadingProgressReporter parent,
             string phase,
             string messagePrefix)
         {
-            this.parent = parent ?? NoOpFrameworkLoadingProgressReporter.Instance;
-            this.phase = NormalizePhase(phase);
-            this.messagePrefix = Normalize(messagePrefix);
-            lastProgress = parent != null ? parent.LastProgress : FrameworkLoadingProgress.Unsupported("NoOp", "No loading progress reporter is active for this operation.");
+            this._parent = parent ?? NoOpFrameworkLoadingProgressReporter.Instance;
+            this._phase = NormalizePhase(phase);
+            this._messagePrefix = Normalize(messagePrefix);
+            _lastProgress = parent != null ? parent.LastProgress : FrameworkLoadingProgress.Unsupported("NoOp", "No loading progress reporter is active for this operation.");
         }
 
-        public bool IsEnabled => parent.IsEnabled;
+        public bool IsEnabled => _parent.IsEnabled;
 
-        public bool HasReportedProgress => hasReportedProgress || parent.HasReportedProgress;
+        public bool HasReportedProgress => _hasReportedProgress || _parent.HasReportedProgress;
 
-        public FrameworkLoadingProgress LastProgress => hasReportedProgress ? lastProgress : parent.LastProgress;
+        public FrameworkLoadingProgress LastProgress => _hasReportedProgress ? _lastProgress : _parent.LastProgress;
 
         public async Awaitable ReportAsync(FrameworkLoadingProgress progress)
         {
@@ -225,29 +225,29 @@ namespace Immersive.Framework.Loading
             var remapped = progress.Supported && progress.IsDeterminate
                 ? FrameworkLoadingProgress.Determinate(
                     progress.Value01,
-                    phase,
+                    _phase,
                     BuildMessage(progress.Message))
                 : FrameworkLoadingProgress.Indeterminate(
                     progress.Supported,
-                    phase,
+                    _phase,
                     BuildMessage(progress.Message));
 
-            lastProgress = remapped;
-            hasReportedProgress = true;
-            await parent.ReportAsync(remapped);
+            _lastProgress = remapped;
+            _hasReportedProgress = true;
+            await _parent.ReportAsync(remapped);
         }
 
         private string BuildMessage(string childMessage)
         {
             childMessage = Normalize(childMessage);
-            if (string.IsNullOrWhiteSpace(messagePrefix))
+            if (string.IsNullOrWhiteSpace(_messagePrefix))
             {
                 return childMessage;
             }
 
             return string.IsNullOrWhiteSpace(childMessage)
-                ? messagePrefix
-                : $"{messagePrefix} {childMessage}";
+                ? _messagePrefix
+                : $"{_messagePrefix} {childMessage}";
         }
 
         private static string NormalizePhase(string value)
@@ -264,13 +264,13 @@ namespace Immersive.Framework.Loading
     [FrameworkApiStatus(FrameworkApiStatus.Internal, "F26E weighted loading progress reporter.")]
     internal sealed class FrameworkLoadingProgressWeightedReporter : IFrameworkLoadingProgressReporter
     {
-        private readonly IFrameworkLoadingProgressReporter parent;
-        private readonly float start01;
-        private readonly float weight01;
-        private readonly string aggregatePhase;
-        private readonly string aggregateMessagePrefix;
-        private FrameworkLoadingProgress lastProgress;
-        private bool hasReportedProgress;
+        private readonly IFrameworkLoadingProgressReporter _parent;
+        private readonly float _start01;
+        private readonly float _weight01;
+        private readonly string _aggregatePhase;
+        private readonly string _aggregateMessagePrefix;
+        private FrameworkLoadingProgress _lastProgress;
+        private bool _hasReportedProgress;
 
         internal FrameworkLoadingProgressWeightedReporter(
             IFrameworkLoadingProgressReporter parent,
@@ -279,19 +279,19 @@ namespace Immersive.Framework.Loading
             string aggregatePhase,
             string aggregateMessagePrefix)
         {
-            this.parent = parent ?? NoOpFrameworkLoadingProgressReporter.Instance;
-            this.start01 = Clamp01(start01);
-            this.weight01 = Clamp01(weight01);
-            this.aggregatePhase = string.IsNullOrWhiteSpace(aggregatePhase) ? "Loading" : aggregatePhase.Trim();
-            this.aggregateMessagePrefix = Normalize(aggregateMessagePrefix);
-            lastProgress = parent != null ? parent.LastProgress : FrameworkLoadingProgress.Unsupported("NoOp", "No loading progress reporter is active for this operation.");
+            this._parent = parent ?? NoOpFrameworkLoadingProgressReporter.Instance;
+            this._start01 = Clamp01(start01);
+            this._weight01 = Clamp01(weight01);
+            this._aggregatePhase = string.IsNullOrWhiteSpace(aggregatePhase) ? "Loading" : aggregatePhase.Trim();
+            this._aggregateMessagePrefix = Normalize(aggregateMessagePrefix);
+            _lastProgress = parent != null ? parent.LastProgress : FrameworkLoadingProgress.Unsupported("NoOp", "No loading progress reporter is active for this operation.");
         }
 
-        public bool IsEnabled => parent.IsEnabled && weight01 > 0f;
+        public bool IsEnabled => _parent.IsEnabled && _weight01 > 0f;
 
-        public bool HasReportedProgress => hasReportedProgress || parent.HasReportedProgress;
+        public bool HasReportedProgress => _hasReportedProgress || _parent.HasReportedProgress;
 
-        public FrameworkLoadingProgress LastProgress => hasReportedProgress ? lastProgress : parent.LastProgress;
+        public FrameworkLoadingProgress LastProgress => _hasReportedProgress ? _lastProgress : _parent.LastProgress;
 
         public async Awaitable ReportAsync(FrameworkLoadingProgress progress)
         {
@@ -301,9 +301,9 @@ namespace Immersive.Framework.Loading
             }
 
             var mapped = MapProgress(progress);
-            lastProgress = mapped;
-            hasReportedProgress = true;
-            await parent.ReportAsync(mapped);
+            _lastProgress = mapped;
+            _hasReportedProgress = true;
+            await _parent.ReportAsync(mapped);
         }
 
         private FrameworkLoadingProgress MapProgress(FrameworkLoadingProgress progress)
@@ -312,28 +312,28 @@ namespace Immersive.Framework.Loading
             {
                 return FrameworkLoadingProgress.Indeterminate(
                     progress.Supported,
-                    aggregatePhase,
+                    _aggregatePhase,
                     BuildMessage(progress.Message));
             }
 
-            var mappedValue = start01 + Clamp01(progress.Value01) * weight01;
+            var mappedValue = _start01 + Clamp01(progress.Value01) * _weight01;
             return FrameworkLoadingProgress.Determinate(
                 Clamp01(mappedValue),
-                aggregatePhase,
+                _aggregatePhase,
                 BuildMessage(progress.Message));
         }
 
         private string BuildMessage(string childMessage)
         {
             childMessage = Normalize(childMessage);
-            if (string.IsNullOrWhiteSpace(aggregateMessagePrefix))
+            if (string.IsNullOrWhiteSpace(_aggregateMessagePrefix))
             {
                 return childMessage;
             }
 
             return string.IsNullOrWhiteSpace(childMessage)
-                ? aggregateMessagePrefix
-                : $"{aggregateMessagePrefix} {childMessage}";
+                ? _aggregateMessagePrefix
+                : $"{_aggregateMessagePrefix} {childMessage}";
         }
 
         private static float Clamp01(float value)

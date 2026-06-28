@@ -11,7 +11,7 @@ namespace Immersive.Framework.LocalContribution
     [FrameworkApiStatus(FrameworkApiStatus.Internal, "Local contribution discovery result introduced by F5D.")]
     internal readonly struct LocalContributionDiscoveryResult
     {
-        private readonly LocalContributionDiscoveryIssue[] issues;
+        private readonly LocalContributionDiscoveryIssue[] _issues;
 
         public LocalContributionDiscoveryResult(
             LocalContributionSet contributionSet,
@@ -21,20 +21,20 @@ namespace Immersive.Framework.LocalContribution
 
             if (issues == null || issues.Count == 0)
             {
-                this.issues = Array.Empty<LocalContributionDiscoveryIssue>();
+                this._issues = Array.Empty<LocalContributionDiscoveryIssue>();
                 return;
             }
 
-            this.issues = new LocalContributionDiscoveryIssue[issues.Count];
+            this._issues = new LocalContributionDiscoveryIssue[issues.Count];
             for (var i = 0; i < issues.Count; i++)
             {
-                this.issues[i] = issues[i];
+                this._issues[i] = issues[i];
             }
         }
 
         public LocalContributionSet ContributionSet { get; }
 
-        public IReadOnlyList<LocalContributionDiscoveryIssue> Issues => issues ?? Array.Empty<LocalContributionDiscoveryIssue>();
+        public IReadOnlyList<LocalContributionDiscoveryIssue> Issues => _issues ?? Array.Empty<LocalContributionDiscoveryIssue>();
 
         public int IssueCount => Issues.Count;
 

@@ -12,7 +12,7 @@ namespace Immersive.Framework.Loading
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F22C Loading progress aggregation result; no execution owner or visual adapter.")]
     public readonly struct LoadingProgressAggregationResult : IEquatable<LoadingProgressAggregationResult>
     {
-        private readonly LoadingStep[] steps;
+        private readonly LoadingStep[] _steps;
 
         public LoadingProgressAggregationResult(
             LoadingOperationId operationId,
@@ -43,11 +43,11 @@ namespace Immersive.Framework.Loading
 
             if (steps == null || steps.Count == 0)
             {
-                this.steps = Array.Empty<LoadingStep>();
+                this._steps = Array.Empty<LoadingStep>();
             }
             else
             {
-                this.steps = new LoadingStep[steps.Count];
+                this._steps = new LoadingStep[steps.Count];
                 for (var i = 0; i < steps.Count; i++)
                 {
                     var step = steps[i];
@@ -56,14 +56,14 @@ namespace Immersive.Framework.Loading
                         throw new ArgumentException("Loading progress aggregation cannot contain invalid steps.", nameof(steps));
                     }
 
-                    this.steps[i] = step;
+                    this._steps[i] = step;
                 }
             }
         }
 
         public LoadingOperationId OperationId { get; }
 
-        public IReadOnlyList<LoadingStep> Steps => steps ?? Array.Empty<LoadingStep>();
+        public IReadOnlyList<LoadingStep> Steps => _steps ?? Array.Empty<LoadingStep>();
 
         public LoadingProgress Progress { get; }
 
@@ -75,7 +75,7 @@ namespace Immersive.Framework.Loading
 
         public string Message { get; }
 
-        public int StepCount => steps != null ? steps.Length : 0;
+        public int StepCount => _steps != null ? _steps.Length : 0;
 
         public bool HasSteps => StepCount > 0;
 
@@ -316,15 +316,15 @@ namespace Immersive.Framework.Loading
 
         private int CountByStatus(LoadingStepStatus status)
         {
-            if (steps == null || steps.Length == 0)
+            if (_steps == null || _steps.Length == 0)
             {
                 return 0;
             }
 
             var count = 0;
-            for (var i = 0; i < steps.Length; i++)
+            for (var i = 0; i < _steps.Length; i++)
             {
-                if (steps[i].Status == status)
+                if (_steps[i].Status == status)
                 {
                     count++;
                 }
@@ -335,15 +335,15 @@ namespace Immersive.Framework.Loading
 
         private float SumWeightedCompleted()
         {
-            if (steps == null || steps.Length == 0)
+            if (_steps == null || _steps.Length == 0)
             {
                 return 0f;
             }
 
             var sum = 0f;
-            for (var i = 0; i < steps.Length; i++)
+            for (var i = 0; i < _steps.Length; i++)
             {
-                sum += steps[i].WeightedProgress.WeightedCompleted;
+                sum += _steps[i].WeightedProgress.WeightedCompleted;
             }
 
             return sum;
@@ -351,15 +351,15 @@ namespace Immersive.Framework.Loading
 
         private float SumWeightedTotal()
         {
-            if (steps == null || steps.Length == 0)
+            if (_steps == null || _steps.Length == 0)
             {
                 return 0f;
             }
 
             var sum = 0f;
-            for (var i = 0; i < steps.Length; i++)
+            for (var i = 0; i < _steps.Length; i++)
             {
-                sum += steps[i].WeightedProgress.WeightedTotal;
+                sum += _steps[i].WeightedProgress.WeightedTotal;
             }
 
             return sum;

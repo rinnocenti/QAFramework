@@ -12,7 +12,7 @@ namespace Immersive.Framework.ProgressionSave
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F21E Progression Save payload primitive; no concrete backend.")]
     public readonly struct ProgressionSavePayload : IEquatable<ProgressionSavePayload>
     {
-        private readonly byte[] bytes;
+        private readonly byte[] _bytes;
 
         public ProgressionSavePayload(ProgressionSavePayloadFormat format, IReadOnlyList<byte> bytes, string mediaType)
         {
@@ -30,7 +30,7 @@ namespace Immersive.Framework.ProgressionSave
             }
 
             Format = format;
-            this.bytes = copiedBytes;
+            this._bytes = copiedBytes;
             MediaType = Normalize(mediaType);
         }
 
@@ -38,7 +38,7 @@ namespace Immersive.Framework.ProgressionSave
 
         public string MediaType { get; }
 
-        public IReadOnlyList<byte> Bytes => bytes ?? Array.Empty<byte>();
+        public IReadOnlyList<byte> Bytes => _bytes ?? Array.Empty<byte>();
 
         public int ByteCount => Bytes.Count;
 

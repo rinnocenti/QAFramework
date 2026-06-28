@@ -20,10 +20,10 @@ namespace Immersive.Framework.ProgressionSave
         internal const string ManifestFileName = "manifest.json";
         internal const string SlotDirectoryName = "slots";
 
-        private readonly ProgressionSaveBackendId backendId;
-        private readonly string rootDirectory;
-        private readonly string slotDirectory;
-        private readonly string manifestPath;
+        private readonly ProgressionSaveBackendId _backendId;
+        private readonly string _rootDirectory;
+        private readonly string _slotDirectory;
+        private readonly string _manifestPath;
 
         public JsonProgressionSaveStore(string rootDirectory)
             : this(rootDirectory, ProgressionSaveBackendId.From(DefaultBackendValue))
@@ -42,19 +42,19 @@ namespace Immersive.Framework.ProgressionSave
                 throw new ArgumentException("JSON Progression Save store requires a valid backend id.", nameof(backendId));
             }
 
-            this.rootDirectory = Path.GetFullPath(rootDirectory.Trim());
-            this.slotDirectory = Path.Combine(this.rootDirectory, SlotDirectoryName);
-            this.manifestPath = Path.Combine(this.rootDirectory, ManifestFileName);
-            this.backendId = backendId;
+            this._rootDirectory = Path.GetFullPath(rootDirectory.Trim());
+            this._slotDirectory = Path.Combine(this._rootDirectory, SlotDirectoryName);
+            this._manifestPath = Path.Combine(this._rootDirectory, ManifestFileName);
+            this._backendId = backendId;
         }
 
-        public ProgressionSaveBackendId BackendId => backendId;
+        public ProgressionSaveBackendId BackendId => _backendId;
 
-        internal string RootDirectory => rootDirectory;
+        internal string RootDirectory => _rootDirectory;
 
-        internal string SlotDirectory => slotDirectory;
+        internal string SlotDirectory => _slotDirectory;
 
-        internal string ManifestPath => manifestPath;
+        internal string ManifestPath => _manifestPath;
 
         public static JsonProgressionSaveStore CreateDefault(string productName)
         {
@@ -67,12 +67,12 @@ namespace Immersive.Framework.ProgressionSave
         {
             try
             {
-                if (!File.Exists(manifestPath))
+                if (!File.Exists(_manifestPath))
                 {
                     return ProgressionSaveManifestReadResult.Missing("Progression Save manifest file is missing.");
                 }
 
-                var json = File.ReadAllText(manifestPath, Encoding.UTF8);
+                var json = File.ReadAllText(_manifestPath, Encoding.UTF8);
                 if (string.IsNullOrWhiteSpace(json))
                 {
                     return ProgressionSaveManifestReadResult.Corrupt("Progression Save manifest file is empty.");
@@ -110,7 +110,7 @@ namespace Immersive.Framework.ProgressionSave
                 EnsureDirectories();
                 var dto = FromManifest(manifest);
                 var json = JsonUtility.ToJson(dto, prettyPrint: true);
-                File.WriteAllText(manifestPath, json, Encoding.UTF8);
+                File.WriteAllText(_manifestPath, json, Encoding.UTF8);
                 return ProgressionSaveManifestWriteResult.WrittenResult("Progression Save manifest written through JSON backend.");
             }
             catch (Exception exception)
@@ -269,21 +269,21 @@ namespace Immersive.Framework.ProgressionSave
                 throw new ArgumentException("Progression Save slot path requires a valid slot id.", nameof(slotId));
             }
 
-            return Path.Combine(slotDirectory, ToSlotFileName(slotId));
+            return Path.Combine(_slotDirectory, ToSlotFileName(slotId));
         }
 
         internal void DeleteStoreData()
         {
-            if (Directory.Exists(rootDirectory))
+            if (Directory.Exists(_rootDirectory))
             {
-                Directory.Delete(rootDirectory, recursive: true);
+                Directory.Delete(_rootDirectory, recursive: true);
             }
         }
 
         private void EnsureDirectories()
         {
-            Directory.CreateDirectory(rootDirectory);
-            Directory.CreateDirectory(slotDirectory);
+            Directory.CreateDirectory(_rootDirectory);
+            Directory.CreateDirectory(_slotDirectory);
         }
 
         private static ProgressionSaveManifest ToManifest(ManifestDto dto)

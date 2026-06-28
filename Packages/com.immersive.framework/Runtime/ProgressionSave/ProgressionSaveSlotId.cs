@@ -11,7 +11,7 @@ namespace Immersive.Framework.ProgressionSave
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F21E Progression Save slot identity primitive; backend-agnostic.")]
     public readonly struct ProgressionSaveSlotId : IFrameworkIdentity, IEquatable<ProgressionSaveSlotId>
     {
-        private readonly FrameworkIdentityValue value;
+        private readonly FrameworkIdentityValue _value;
 
         public ProgressionSaveSlotId(string value)
             : this(new FrameworkIdentityValue(value))
@@ -25,22 +25,22 @@ namespace Immersive.Framework.ProgressionSave
                 throw new ArgumentException("Progression Save slot id must be valid.", nameof(value));
             }
 
-            this.value = value;
+            this._value = value;
         }
 
         public FrameworkIdentityDomain Domain => FrameworkIdentityDomain.ProgressionSave;
 
-        public FrameworkIdentityValue Value => value;
+        public FrameworkIdentityValue Value => _value;
 
-        public bool IsValid => value.IsValid;
+        public bool IsValid => _value.IsValid;
 
-        public FrameworkIdentityKey Key => new FrameworkIdentityKey(Domain, value);
+        public FrameworkIdentityKey Key => new FrameworkIdentityKey(Domain, _value);
 
         public string StableText => Key.StableText;
 
         public bool Equals(ProgressionSaveSlotId other)
         {
-            return value.Equals(other.value);
+            return _value.Equals(other._value);
         }
 
         public override bool Equals(object obj)
@@ -50,7 +50,7 @@ namespace Immersive.Framework.ProgressionSave
 
         public override int GetHashCode()
         {
-            return value.GetHashCode();
+            return _value.GetHashCode();
         }
 
         public override string ToString()

@@ -14,7 +14,7 @@ namespace Immersive.Framework.ActivityFlow
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "Minimal Activity content set introduced by F4B.")]
     internal readonly struct ActivityContentSet
     {
-        private readonly ActivityContentEntry[] entries;
+        private readonly ActivityContentEntry[] _entries;
 
         public ActivityContentSet(
             ActivityAsset activity,
@@ -26,14 +26,14 @@ namespace Immersive.Framework.ActivityFlow
 
             if (entries == null || entries.Count == 0)
             {
-                this.entries = Array.Empty<ActivityContentEntry>();
+                this._entries = Array.Empty<ActivityContentEntry>();
                 return;
             }
 
-            this.entries = new ActivityContentEntry[entries.Count];
+            this._entries = new ActivityContentEntry[entries.Count];
             for (var i = 0; i < entries.Count; i++)
             {
-                this.entries[i] = entries[i];
+                this._entries[i] = entries[i];
             }
         }
 
@@ -41,7 +41,7 @@ namespace Immersive.Framework.ActivityFlow
 
         public FrameworkContentSet ContentSet { get; }
 
-        public IReadOnlyList<ActivityContentEntry> Entries => entries ?? Array.Empty<ActivityContentEntry>();
+        public IReadOnlyList<ActivityContentEntry> Entries => _entries ?? Array.Empty<ActivityContentEntry>();
 
         public bool HasContent => ContentSet.HasContent;
 

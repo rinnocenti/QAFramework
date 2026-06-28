@@ -4738,11 +4738,11 @@ private async void RunNoActivityRouteSmoke()
 
         private sealed class SyntheticActivityContentExecutionParticipantSource : IActivityContentExecutionParticipantSource
         {
-            private readonly ActivityContentExecutionParticipantCollection collection;
+            private readonly ActivityContentExecutionParticipantCollection _collection;
 
             public SyntheticActivityContentExecutionParticipantSource(IReadOnlyList<IActivityContentExecutionParticipant> participants)
             {
-                collection = ActivityContentExecutionParticipantCollection.FromParticipants(participants);
+                _collection = ActivityContentExecutionParticipantCollection.FromParticipants(participants);
             }
 
             public int ResolveCount { get; private set; }
@@ -4761,7 +4761,7 @@ private async void RunNoActivityRouteSmoke()
 
                 return ActivityContentExecutionParticipantSourceResult.FromCollection(
                     request,
-                    collection,
+                    _collection,
                     QaSource,
                     "qa.activity-content-execution-source.synthetic",
                     "Synthetic Activity content execution participant source returned explicit QA participants.");
@@ -4770,25 +4770,25 @@ private async void RunNoActivityRouteSmoke()
 
         private sealed class SyntheticActivityContentExecutionParticipant : IActivityContentExecutionParticipant
         {
-            private readonly ActivityContentExecutionParticipantDescriptor descriptor;
-            private readonly SyntheticActivityContentExecutionParticipantMode mode;
+            private readonly ActivityContentExecutionParticipantDescriptor _descriptor;
+            private readonly SyntheticActivityContentExecutionParticipantMode _mode;
 
             public SyntheticActivityContentExecutionParticipant(
                 ActivityContentExecutionParticipantDescriptor descriptor,
                 SyntheticActivityContentExecutionParticipantMode mode)
             {
-                this.descriptor = descriptor;
-                this.mode = mode;
+                this._descriptor = descriptor;
+                this._mode = mode;
             }
 
             public ActivityContentExecutionParticipantDescriptor GetActivityContentExecutionDescriptor()
             {
-                return descriptor;
+                return _descriptor;
             }
 
             public ActivityContentExecutionResult ExecuteActivityContent(ActivityContentExecutionRequest request)
             {
-                if (!request.ContentId.Equals(descriptor.ContentId))
+                if (!request.ContentId.Equals(_descriptor.ContentId))
                 {
                     return request.IsRequired
                         ? ActivityContentExecutionResult.BlockingFailure(
@@ -4805,7 +4805,7 @@ private async void RunNoActivityRouteSmoke()
                             "Synthetic Activity content execution participant received a request for a different content id.");
                 }
 
-                if (!descriptor.SupportsPhase(request.Phase))
+                if (!_descriptor.SupportsPhase(request.Phase))
                 {
                     return ActivityContentExecutionResult.SkippedResult(
                         request,
@@ -4815,7 +4815,7 @@ private async void RunNoActivityRouteSmoke()
                         "Synthetic Activity content execution participant does not support the requested phase.");
                 }
 
-                return mode == SyntheticActivityContentExecutionParticipantMode.NoOp
+                return _mode == SyntheticActivityContentExecutionParticipantMode.NoOp
                     ? ActivityContentExecutionResult.SucceededNoOp(
                         request,
                         QaSource,

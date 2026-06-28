@@ -13,7 +13,7 @@ namespace Immersive.Framework.TransitionEffects
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F19B passive Transition Effect plan; no adapter execution or authoring policy.")]
     public readonly struct TransitionEffectPlan : IEquatable<TransitionEffectPlan>
     {
-        private readonly TransitionEffectRequest[] requests;
+        private readonly TransitionEffectRequest[] _requests;
 
         public TransitionEffectPlan(
             TransitionOperationId operationId,
@@ -36,7 +36,7 @@ namespace Immersive.Framework.TransitionEffects
             TransitionKind = transitionKind;
             Source = Normalize(source);
             Reason = Normalize(reason);
-            this.requests = CopyRequests(operationId, transitionKind, requests);
+            this._requests = CopyRequests(operationId, transitionKind, requests);
         }
 
         public TransitionOperationId OperationId { get; }
@@ -47,7 +47,7 @@ namespace Immersive.Framework.TransitionEffects
 
         public string Reason { get; }
 
-        public IReadOnlyList<TransitionEffectRequest> Requests => requests ?? Array.Empty<TransitionEffectRequest>();
+        public IReadOnlyList<TransitionEffectRequest> Requests => _requests ?? Array.Empty<TransitionEffectRequest>();
 
         public int RequestCount => Requests.Count;
 

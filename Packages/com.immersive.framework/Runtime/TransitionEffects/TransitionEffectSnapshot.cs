@@ -13,9 +13,9 @@ namespace Immersive.Framework.TransitionEffects
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F19B passive Transition Effect snapshot; diagnostics only.")]
     public readonly struct TransitionEffectSnapshot : IEquatable<TransitionEffectSnapshot>
     {
-        private readonly TransitionEffectRequest[] plannedRequests;
-        private readonly TransitionEffectResult[] observedResults;
-        private readonly string[] facts;
+        private readonly TransitionEffectRequest[] _plannedRequests;
+        private readonly TransitionEffectResult[] _observedResults;
+        private readonly string[] _facts;
 
         public TransitionEffectSnapshot(
             TransitionOperationId operationId,
@@ -54,9 +54,9 @@ namespace Immersive.Framework.TransitionEffects
             Status = status;
             Source = Normalize(source);
             Reason = Normalize(reason);
-            this.plannedRequests = CopyRequests(operationId, transitionKind, plannedRequests);
-            this.observedResults = CopyResults(operationId, transitionKind, observedResults);
-            this.facts = CopyFacts(facts);
+            this._plannedRequests = CopyRequests(operationId, transitionKind, plannedRequests);
+            this._observedResults = CopyResults(operationId, transitionKind, observedResults);
+            this._facts = CopyFacts(facts);
         }
 
         public TransitionOperationId OperationId { get; }
@@ -71,11 +71,11 @@ namespace Immersive.Framework.TransitionEffects
 
         public string Reason { get; }
 
-        public IReadOnlyList<TransitionEffectRequest> PlannedRequests => plannedRequests ?? Array.Empty<TransitionEffectRequest>();
+        public IReadOnlyList<TransitionEffectRequest> PlannedRequests => _plannedRequests ?? Array.Empty<TransitionEffectRequest>();
 
-        public IReadOnlyList<TransitionEffectResult> ObservedResults => observedResults ?? Array.Empty<TransitionEffectResult>();
+        public IReadOnlyList<TransitionEffectResult> ObservedResults => _observedResults ?? Array.Empty<TransitionEffectResult>();
 
-        public IReadOnlyList<string> Facts => facts ?? Array.Empty<string>();
+        public IReadOnlyList<string> Facts => _facts ?? Array.Empty<string>();
 
         public int PlannedRequestCount => PlannedRequests.Count;
 

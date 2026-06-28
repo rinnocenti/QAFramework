@@ -12,26 +12,26 @@ namespace Immersive.Framework.SessionLifecycle
     [FrameworkApiStatus(FrameworkApiStatus.Internal, "Minimal Session content set introduced by F2C.")]
     internal readonly struct SessionContentSet
     {
-        private readonly SessionContentEntry[] entries;
+        private readonly SessionContentEntry[] _entries;
 
         public SessionContentSet(IReadOnlyList<SessionContentEntry> entries)
         {
             if (entries == null || entries.Count == 0)
             {
-                this.entries = Array.Empty<SessionContentEntry>();
+                this._entries = Array.Empty<SessionContentEntry>();
                 return;
             }
 
-            this.entries = new SessionContentEntry[entries.Count];
+            this._entries = new SessionContentEntry[entries.Count];
             for (var i = 0; i < entries.Count; i++)
             {
-                this.entries[i] = entries[i];
+                this._entries[i] = entries[i];
             }
         }
 
-        public IReadOnlyList<SessionContentEntry> Entries => entries ?? Array.Empty<SessionContentEntry>();
+        public IReadOnlyList<SessionContentEntry> Entries => _entries ?? Array.Empty<SessionContentEntry>();
 
-        public int Count => entries != null ? entries.Length : 0;
+        public int Count => _entries != null ? _entries.Length : 0;
 
         public bool IsEmpty => Count == 0;
 
@@ -62,14 +62,14 @@ namespace Immersive.Framework.SessionLifecycle
 
             var builder = new StringBuilder();
             builder.Append($"Session Content Set registered {Count} item(s). registered='{RegisteredCount}' owned='{OwnedCount}' diagnosticOnly='{DiagnosticOnlyCount}' details=[");
-            for (var i = 0; i < entries.Length; i++)
+            for (var i = 0; i < _entries.Length; i++)
             {
                 if (i > 0)
                 {
                     builder.Append(" | ");
                 }
 
-                builder.Append(entries[i].ToDiagnosticString());
+                builder.Append(_entries[i].ToDiagnosticString());
             }
 
             builder.Append("]");
@@ -78,15 +78,15 @@ namespace Immersive.Framework.SessionLifecycle
 
         private int CountOwnership(SessionContentOwnership ownership)
         {
-            if (entries == null || entries.Length == 0)
+            if (_entries == null || _entries.Length == 0)
             {
                 return 0;
             }
 
             var count = 0;
-            for (var i = 0; i < entries.Length; i++)
+            for (var i = 0; i < _entries.Length; i++)
             {
-                if (entries[i].Ownership == ownership)
+                if (_entries[i].Ownership == ownership)
                 {
                     count++;
                 }

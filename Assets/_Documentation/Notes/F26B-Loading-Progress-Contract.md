@@ -63,5 +63,4 @@ Current interpretation:
 - `loadingProgressPhase='...'` names the coarse phase or source of the loading observation.
 - `loadingProgressMessage='...'` explains the current progress state.
 
-F26C or the next loading cut can connect `SceneLifecycleRuntime` to a real progress source.
-F26D or the next loading cut can let `LoadingSurface` consume percent/progress display data.
+Historical note: the remaining work was completed by F26C-F26F. F26C connected the loading surface receiver, F26D connected real scene-operation progress, F26E aggregated Route/Activity progress and F26F closed the documentation/QA polish thread.

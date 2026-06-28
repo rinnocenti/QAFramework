@@ -13,17 +13,17 @@ namespace Immersive.Framework.LocalContribution
     [FrameworkApiStatus(FrameworkApiStatus.Internal, "Local contribution set introduced by F5D, consolidated in F5E, and carrying requiredness metadata from F5F; scoped consumers come later.")]
     internal readonly struct LocalContributionSet
     {
-        private readonly LocalContributionHandle[] handles;
+        private readonly LocalContributionHandle[] _handles;
 
         public LocalContributionSet(IReadOnlyList<LocalContributionHandle> handles)
         {
             if (handles == null || handles.Count == 0)
             {
-                this.handles = Array.Empty<LocalContributionHandle>();
+                this._handles = Array.Empty<LocalContributionHandle>();
                 return;
             }
 
-            this.handles = new LocalContributionHandle[handles.Count];
+            this._handles = new LocalContributionHandle[handles.Count];
             for (var i = 0; i < handles.Count; i++)
             {
                 if (!handles[i].IsValid)
@@ -31,11 +31,11 @@ namespace Immersive.Framework.LocalContribution
                     throw new ArgumentException("Local contribution set cannot contain invalid handles.", nameof(handles));
                 }
 
-                this.handles[i] = handles[i];
+                this._handles[i] = handles[i];
             }
         }
 
-        public IReadOnlyList<LocalContributionHandle> Handles => handles ?? Array.Empty<LocalContributionHandle>();
+        public IReadOnlyList<LocalContributionHandle> Handles => _handles ?? Array.Empty<LocalContributionHandle>();
 
         public int Count => Handles.Count;
 

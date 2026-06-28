@@ -13,15 +13,15 @@ namespace Immersive.Framework.ActivityFlow
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F10E Activity Content Execution participant collection and ordering model; no discovery runtime or Unity side effects.")]
     public readonly struct ActivityContentExecutionParticipantCollection
     {
-        private readonly ActivityContentExecutionParticipantEntry[] entries;
-        private readonly ActivityContentExecutionParticipantCollectionIssue[] issues;
+        private readonly ActivityContentExecutionParticipantEntry[] _entries;
+        private readonly ActivityContentExecutionParticipantCollectionIssue[] _issues;
 
         public ActivityContentExecutionParticipantCollection(IReadOnlyList<IActivityContentExecutionParticipant> participants)
         {
             if (participants == null || participants.Count == 0)
             {
-                entries = Array.Empty<ActivityContentExecutionParticipantEntry>();
-                issues = Array.Empty<ActivityContentExecutionParticipantCollectionIssue>();
+                _entries = Array.Empty<ActivityContentExecutionParticipantEntry>();
+                _issues = Array.Empty<ActivityContentExecutionParticipantCollectionIssue>();
                 return;
             }
 
@@ -73,23 +73,23 @@ namespace Immersive.Framework.ActivityFlow
 
             if (acceptedEntries.Count == 0)
             {
-                entries = Array.Empty<ActivityContentExecutionParticipantEntry>();
+                _entries = Array.Empty<ActivityContentExecutionParticipantEntry>();
             }
             else
             {
                 var orderedEntries = acceptedEntries.ToArray();
                 Array.Sort(orderedEntries, CompareEntries);
-                entries = orderedEntries;
+                _entries = orderedEntries;
             }
 
-            issues = detectedIssues.Count == 0
+            _issues = detectedIssues.Count == 0
                 ? Array.Empty<ActivityContentExecutionParticipantCollectionIssue>()
                 : detectedIssues.ToArray();
         }
 
-        public IReadOnlyList<ActivityContentExecutionParticipantEntry> Entries => entries ?? Array.Empty<ActivityContentExecutionParticipantEntry>();
+        public IReadOnlyList<ActivityContentExecutionParticipantEntry> Entries => _entries ?? Array.Empty<ActivityContentExecutionParticipantEntry>();
 
-        public IReadOnlyList<ActivityContentExecutionParticipantCollectionIssue> Issues => issues ?? Array.Empty<ActivityContentExecutionParticipantCollectionIssue>();
+        public IReadOnlyList<ActivityContentExecutionParticipantCollectionIssue> Issues => _issues ?? Array.Empty<ActivityContentExecutionParticipantCollectionIssue>();
 
         public int Count => Entries.Count;
 

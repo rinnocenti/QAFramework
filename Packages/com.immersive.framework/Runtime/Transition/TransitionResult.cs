@@ -13,13 +13,13 @@ namespace Immersive.Framework.Transition
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F18B passive Transition result primitive; diagnostics only.")]
     public readonly struct TransitionResult : IEquatable<TransitionResult>
     {
-        private readonly TransitionStep[] observedSteps;
-        private readonly string[] issues;
-        private readonly TransitionEffectKind effectKind;
-        private readonly TransitionEffectStatus effectStatus;
-        private readonly int effectAdapterCount;
-        private readonly string visualText;
-        private readonly int effectBlockingIssueCount;
+        private readonly TransitionStep[] _observedSteps;
+        private readonly string[] _issues;
+        private readonly TransitionEffectKind _effectKind;
+        private readonly TransitionEffectStatus _effectStatus;
+        private readonly int _effectAdapterCount;
+        private readonly string _visualText;
+        private readonly int _effectBlockingIssueCount;
 
         public TransitionResult(
             TransitionOperationId operationId,
@@ -57,13 +57,13 @@ namespace Immersive.Framework.Transition
             Source = Normalize(source);
             Reason = Normalize(reason);
             Message = Normalize(message);
-            this.observedSteps = CopySteps(observedSteps);
-            this.issues = CopyIssues(issues);
-            this.effectKind = effectKind;
-            this.effectStatus = effectStatus;
-            this.effectAdapterCount = Math.Max(0, effectAdapterCount);
-            this.visualText = NormalizeVisual(visualText);
-            this.effectBlockingIssueCount = Math.Max(0, effectBlockingIssueCount);
+            this._observedSteps = CopySteps(observedSteps);
+            this._issues = CopyIssues(issues);
+            this._effectKind = effectKind;
+            this._effectStatus = effectStatus;
+            this._effectAdapterCount = Math.Max(0, effectAdapterCount);
+            this._visualText = NormalizeVisual(visualText);
+            this._effectBlockingIssueCount = Math.Max(0, effectBlockingIssueCount);
         }
 
         public TransitionOperationId OperationId { get; }
@@ -78,23 +78,23 @@ namespace Immersive.Framework.Transition
 
         public string Message { get; }
 
-        public IReadOnlyList<TransitionStep> ObservedSteps => observedSteps ?? Array.Empty<TransitionStep>();
+        public IReadOnlyList<TransitionStep> ObservedSteps => _observedSteps ?? Array.Empty<TransitionStep>();
 
-        public IReadOnlyList<string> Issues => issues ?? Array.Empty<string>();
+        public IReadOnlyList<string> Issues => _issues ?? Array.Empty<string>();
 
         public int ObservedStepCount => ObservedSteps.Count;
 
         public int IssueCount => Issues.Count;
 
-        public TransitionEffectKind EffectKind => effectKind;
+        public TransitionEffectKind EffectKind => _effectKind;
 
-        public TransitionEffectStatus EffectStatus => effectStatus;
+        public TransitionEffectStatus EffectStatus => _effectStatus;
 
-        public int EffectAdapterCount => effectAdapterCount;
+        public int EffectAdapterCount => _effectAdapterCount;
 
-        public string VisualText => visualText;
+        public string VisualText => _visualText;
 
-        public int EffectBlockingIssueCount => effectBlockingIssueCount;
+        public int EffectBlockingIssueCount => _effectBlockingIssueCount;
 
         public int BlockingIssueCount
         {

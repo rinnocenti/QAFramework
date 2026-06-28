@@ -10,14 +10,14 @@ namespace Immersive.Framework.CycleReset
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F11A Cycle Reset policy primitive; no physical reset or gameplay behavior.")]
     public readonly struct CycleResetPolicy : IEquatable<CycleResetPolicy>
     {
-        private readonly bool isDefined;
+        private readonly bool _isDefined;
 
         public CycleResetPolicy(
             bool includeActiveActivity,
             bool allowNoParticipants,
             bool treatOptionalFailuresAsWarnings)
         {
-            isDefined = true;
+            _isDefined = true;
             IncludeActiveActivity = includeActiveActivity;
             AllowNoParticipants = allowNoParticipants;
             TreatOptionalFailuresAsWarnings = treatOptionalFailuresAsWarnings;
@@ -29,11 +29,11 @@ namespace Immersive.Framework.CycleReset
 
         public bool TreatOptionalFailuresAsWarnings { get; }
 
-        public bool IsValid => isDefined;
+        public bool IsValid => _isDefined;
 
         public bool Equals(CycleResetPolicy other)
         {
-            return isDefined == other.isDefined
+            return _isDefined == other._isDefined
                 && IncludeActiveActivity == other.IncludeActiveActivity
                 && AllowNoParticipants == other.AllowNoParticipants
                 && TreatOptionalFailuresAsWarnings == other.TreatOptionalFailuresAsWarnings;
@@ -48,7 +48,7 @@ namespace Immersive.Framework.CycleReset
         {
             unchecked
             {
-                var hashCode = isDefined.GetHashCode();
+                var hashCode = _isDefined.GetHashCode();
                 hashCode = (hashCode * 397) ^ IncludeActiveActivity.GetHashCode();
                 hashCode = (hashCode * 397) ^ AllowNoParticipants.GetHashCode();
                 hashCode = (hashCode * 397) ^ TreatOptionalFailuresAsWarnings.GetHashCode();

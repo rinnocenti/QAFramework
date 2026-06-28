@@ -11,7 +11,7 @@ namespace Immersive.Framework.Preferences
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F21D Preferences key primitive; storage-agnostic.")]
     public readonly struct PreferenceKey : IFrameworkIdentity, IEquatable<PreferenceKey>
     {
-        private readonly FrameworkIdentityValue value;
+        private readonly FrameworkIdentityValue _value;
 
         public PreferenceKey(string value)
             : this(new FrameworkIdentityValue(value))
@@ -25,22 +25,22 @@ namespace Immersive.Framework.Preferences
                 throw new ArgumentException("Preference key value must be valid.", nameof(value));
             }
 
-            this.value = value;
+            this._value = value;
         }
 
         public FrameworkIdentityDomain Domain => FrameworkIdentityDomain.Preferences;
 
-        public FrameworkIdentityValue Value => value;
+        public FrameworkIdentityValue Value => _value;
 
-        public bool IsValid => value.IsValid;
+        public bool IsValid => _value.IsValid;
 
-        public FrameworkIdentityKey Key => new FrameworkIdentityKey(Domain, value);
+        public FrameworkIdentityKey Key => new FrameworkIdentityKey(Domain, _value);
 
         public string StableText => Key.StableText;
 
         public bool Equals(PreferenceKey other)
         {
-            return value.Equals(other.value);
+            return _value.Equals(other._value);
         }
 
         public override bool Equals(object obj)
@@ -50,7 +50,7 @@ namespace Immersive.Framework.Preferences
 
         public override int GetHashCode()
         {
-            return value.GetHashCode();
+            return _value.GetHashCode();
         }
 
         public override string ToString()

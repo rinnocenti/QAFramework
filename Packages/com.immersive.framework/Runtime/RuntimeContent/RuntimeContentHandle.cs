@@ -10,10 +10,10 @@ namespace Immersive.Framework.RuntimeContent
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F8C passive RuntimeContentHandle with release state; no materialization or release execution.")]
     public sealed class RuntimeContentHandle
     {
-        private RuntimeContentState state;
-        private string source;
-        private string reason;
-        private string message;
+        private RuntimeContentState _state;
+        private string _source;
+        private string _reason;
+        private string _message;
 
         public RuntimeContentHandle(
             RuntimeContentIdentity identity,
@@ -30,10 +30,10 @@ namespace Immersive.Framework.RuntimeContent
             ValidateInitialState(initialState);
 
             Identity = identity;
-            state = initialState;
-            this.source = Normalize(source);
-            this.reason = Normalize(reason);
-            this.message = Normalize(message);
+            _state = initialState;
+            this._source = Normalize(source);
+            this._reason = Normalize(reason);
+            this._message = Normalize(message);
         }
 
         public RuntimeContentHandle(RuntimeContentIdentity identity)
@@ -54,41 +54,41 @@ namespace Immersive.Framework.RuntimeContent
 
         public RuntimeContentId ContentId => Identity.ContentId;
 
-        public RuntimeContentState State => state;
+        public RuntimeContentState State => _state;
 
-        public string Source => source ?? string.Empty;
+        public string Source => _source ?? string.Empty;
 
-        public string Reason => reason ?? string.Empty;
+        public string Reason => _reason ?? string.Empty;
 
-        public string Message => message ?? string.Empty;
+        public string Message => _message ?? string.Empty;
 
-        public bool IsDeclared => state == RuntimeContentState.Declared;
+        public bool IsDeclared => _state == RuntimeContentState.Declared;
 
-        public bool IsMaterialized => state == RuntimeContentState.Materialized;
+        public bool IsMaterialized => _state == RuntimeContentState.Materialized;
 
-        public bool IsReleaseRequested => state == RuntimeContentState.ReleaseRequested;
+        public bool IsReleaseRequested => _state == RuntimeContentState.ReleaseRequested;
 
-        public bool IsReleased => state == RuntimeContentState.Released;
+        public bool IsReleased => _state == RuntimeContentState.Released;
 
-        public bool IsReleaseFailed => state == RuntimeContentState.ReleaseFailed;
+        public bool IsReleaseFailed => _state == RuntimeContentState.ReleaseFailed;
 
-        public bool CanRequestRelease => state == RuntimeContentState.Declared
-            || state == RuntimeContentState.Materialized
-            || state == RuntimeContentState.ReleaseFailed;
+        public bool CanRequestRelease => _state == RuntimeContentState.Declared
+            || _state == RuntimeContentState.Materialized
+            || _state == RuntimeContentState.ReleaseFailed;
 
-        public bool CanMarkMaterialized => state == RuntimeContentState.Declared;
+        public bool CanMarkMaterialized => _state == RuntimeContentState.Declared;
 
-        public bool CanMarkReleased => state == RuntimeContentState.ReleaseRequested;
+        public bool CanMarkReleased => _state == RuntimeContentState.ReleaseRequested;
 
-        public bool CanMarkReleaseFailed => state == RuntimeContentState.ReleaseRequested;
+        public bool CanMarkReleaseFailed => _state == RuntimeContentState.ReleaseRequested;
 
         public RuntimeContentHandleTransitionResult MarkMaterialized(string source, string reason)
         {
-            if (state == RuntimeContentState.Materialized)
+            if (_state == RuntimeContentState.Materialized)
             {
                 return RuntimeContentHandleTransitionResult.IgnoredAlreadyInState(
                     Identity,
-                    state,
+                    _state,
                     RuntimeContentState.Materialized,
                     source,
                     reason,
@@ -99,11 +99,11 @@ namespace Immersive.Framework.RuntimeContent
             {
                 return RuntimeContentHandleTransitionResult.RejectedInvalidTransition(
                     Identity,
-                    state,
+                    _state,
                     RuntimeContentState.Materialized,
                     source,
                     reason,
-                    $"Runtime content handle cannot transition from '{state}' to '{RuntimeContentState.Materialized}'.");
+                    $"Runtime content handle cannot transition from '{_state}' to '{RuntimeContentState.Materialized}'.");
             }
 
             return ApplyState(
@@ -115,22 +115,22 @@ namespace Immersive.Framework.RuntimeContent
 
         public RuntimeContentHandleTransitionResult RequestRelease(string source, string reason)
         {
-            if (state == RuntimeContentState.ReleaseRequested)
+            if (_state == RuntimeContentState.ReleaseRequested)
             {
                 return RuntimeContentHandleTransitionResult.IgnoredAlreadyInState(
                     Identity,
-                    state,
+                    _state,
                     RuntimeContentState.ReleaseRequested,
                     source,
                     reason,
                     "Runtime content release was already requested.");
             }
 
-            if (state == RuntimeContentState.Released)
+            if (_state == RuntimeContentState.Released)
             {
                 return RuntimeContentHandleTransitionResult.RejectedInvalidTransition(
                     Identity,
-                    state,
+                    _state,
                     RuntimeContentState.ReleaseRequested,
                     source,
                     reason,
@@ -141,11 +141,11 @@ namespace Immersive.Framework.RuntimeContent
             {
                 return RuntimeContentHandleTransitionResult.RejectedInvalidTransition(
                     Identity,
-                    state,
+                    _state,
                     RuntimeContentState.ReleaseRequested,
                     source,
                     reason,
-                    $"Runtime content handle cannot transition from '{state}' to '{RuntimeContentState.ReleaseRequested}'.");
+                    $"Runtime content handle cannot transition from '{_state}' to '{RuntimeContentState.ReleaseRequested}'.");
             }
 
             return ApplyState(
@@ -157,11 +157,11 @@ namespace Immersive.Framework.RuntimeContent
 
         public RuntimeContentHandleTransitionResult MarkReleased(string source, string reason)
         {
-            if (state == RuntimeContentState.Released)
+            if (_state == RuntimeContentState.Released)
             {
                 return RuntimeContentHandleTransitionResult.IgnoredAlreadyInState(
                     Identity,
-                    state,
+                    _state,
                     RuntimeContentState.Released,
                     source,
                     reason,
@@ -172,11 +172,11 @@ namespace Immersive.Framework.RuntimeContent
             {
                 return RuntimeContentHandleTransitionResult.RejectedInvalidTransition(
                     Identity,
-                    state,
+                    _state,
                     RuntimeContentState.Released,
                     source,
                     reason,
-                    $"Runtime content handle cannot transition from '{state}' to '{RuntimeContentState.Released}' without a release request.");
+                    $"Runtime content handle cannot transition from '{_state}' to '{RuntimeContentState.Released}' without a release request.");
             }
 
             return ApplyState(
@@ -193,13 +193,13 @@ namespace Immersive.Framework.RuntimeContent
             {
                 return RuntimeContentHandleTransitionResult.RejectedInvalidTransition(
                     Identity,
-                    state,
+                    _state,
                     RuntimeContentState.ReleaseFailed,
                     source,
                     reason,
                     !string.IsNullOrWhiteSpace(normalizedFailureMessage)
                         ? normalizedFailureMessage
-                        : $"Runtime content handle cannot transition from '{state}' to '{RuntimeContentState.ReleaseFailed}' without a release request.");
+                        : $"Runtime content handle cannot transition from '{_state}' to '{RuntimeContentState.ReleaseFailed}' without a release request.");
             }
 
             return ApplyState(
@@ -216,7 +216,7 @@ namespace Immersive.Framework.RuntimeContent
             var sourceText = !string.IsNullOrWhiteSpace(Source) ? Source : "<none>";
             var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
             var messageText = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
-            return $"identity='{Identity.StableText}' scope='{Scope}' contentId='{ContentId.StableText}' owner='{Owner.OwnerName}' state='{state}' source='{sourceText}' reason='{reasonText}' message='{messageText}'";
+            return $"identity='{Identity.StableText}' scope='{Scope}' contentId='{ContentId.StableText}' owner='{Owner.OwnerName}' state='{_state}' source='{sourceText}' reason='{reasonText}' message='{messageText}'";
         }
 
         public static RuntimeContentHandle Declared(
@@ -251,19 +251,19 @@ namespace Immersive.Framework.RuntimeContent
             string reason,
             string message)
         {
-            var previousState = state;
-            state = newState;
-            this.source = Normalize(source);
-            this.reason = Normalize(reason);
-            this.message = Normalize(message);
+            var previousState = _state;
+            _state = newState;
+            this._source = Normalize(source);
+            this._reason = Normalize(reason);
+            this._message = Normalize(message);
 
             return RuntimeContentHandleTransitionResult.AppliedResult(
                 Identity,
                 previousState,
-                state,
-                this.source,
-                this.reason,
-                this.message);
+                _state,
+                this._source,
+                this._reason,
+                this._message);
         }
 
         private static void ValidateInitialState(RuntimeContentState initialState)

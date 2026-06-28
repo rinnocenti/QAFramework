@@ -13,8 +13,8 @@ namespace Immersive.Framework.ObjectReset
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F14D Object Reset aggregate result; target resolution and participant aggregation only.")]
     public readonly struct ObjectResetResult : IEquatable<ObjectResetResult>
     {
-        private readonly ObjectResetIssue[] issues;
-        private readonly ObjectResetParticipantResult[] participantResults;
+        private readonly ObjectResetIssue[] _issues;
+        private readonly ObjectResetParticipantResult[] _participantResults;
 
         public ObjectResetResult(
             ObjectResetRequest request,
@@ -52,10 +52,10 @@ namespace Immersive.Framework.ObjectReset
             Status = status;
             ResolvedTarget = resolvedTarget;
             HasResolvedTarget = hasResolvedTarget;
-            this.participantResults = participantResults == null
+            this._participantResults = participantResults == null
                 ? Array.Empty<ObjectResetParticipantResult>()
                 : participantResults.ToArray();
-            this.issues = issues == null ? Array.Empty<ObjectResetIssue>() : issues.ToArray();
+            this._issues = issues == null ? Array.Empty<ObjectResetIssue>() : issues.ToArray();
             Message = string.IsNullOrWhiteSpace(message) ? string.Empty : message.Trim();
         }
 
@@ -67,9 +67,9 @@ namespace Immersive.Framework.ObjectReset
 
         public bool HasResolvedTarget { get; }
 
-        public IReadOnlyList<ObjectResetParticipantResult> ParticipantResults => participantResults ?? Array.Empty<ObjectResetParticipantResult>();
+        public IReadOnlyList<ObjectResetParticipantResult> ParticipantResults => _participantResults ?? Array.Empty<ObjectResetParticipantResult>();
 
-        public IReadOnlyList<ObjectResetIssue> Issues => issues ?? Array.Empty<ObjectResetIssue>();
+        public IReadOnlyList<ObjectResetIssue> Issues => _issues ?? Array.Empty<ObjectResetIssue>();
 
         public string Message { get; }
 

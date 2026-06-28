@@ -12,7 +12,7 @@ namespace Immersive.Framework.TransitionEffects
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F19E Transition Effect policy evaluation; no adapter registry or runtime execution.")]
     public readonly struct TransitionEffectPolicyEvaluation : IEquatable<TransitionEffectPolicyEvaluation>
     {
-        private readonly TransitionEffectPolicyIssue[] issues;
+        private readonly TransitionEffectPolicyIssue[] _issues;
 
         public TransitionEffectPolicyEvaluation(
             TransitionEffectPlan plan,
@@ -36,7 +36,7 @@ namespace Immersive.Framework.TransitionEffects
             RequiredAdapterMissingCount = Math.Max(0, requiredAdapterMissingCount);
             OptionalAdapterMissingCount = Math.Max(0, optionalAdapterMissingCount);
             DuplicateEffectIdCount = Math.Max(0, duplicateEffectIdCount);
-            this.issues = CopyIssues(issues);
+            this._issues = CopyIssues(issues);
         }
 
         public TransitionEffectPlan Plan { get; }
@@ -53,7 +53,7 @@ namespace Immersive.Framework.TransitionEffects
 
         public int DuplicateEffectIdCount { get; }
 
-        public IReadOnlyList<TransitionEffectPolicyIssue> Issues => issues ?? Array.Empty<TransitionEffectPolicyIssue>();
+        public IReadOnlyList<TransitionEffectPolicyIssue> Issues => _issues ?? Array.Empty<TransitionEffectPolicyIssue>();
 
         public int IssueCount => Issues.Count;
 
