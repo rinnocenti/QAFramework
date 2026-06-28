@@ -53,6 +53,8 @@ F27E cancelled / InputMode replan: `Notes/F27E-CANCELLED-Input-Consumers-Gate-Re
 
 F28 roadmap correction: `Plans/F28-PLAN-InputMode-And-Adapter-Boundary.md`.
 
+F28A baseline reconciliation: `Notes/F28A-Frozen-Baseline-Reconciliation.md`.
+
 ## Regras
 
 - Documentação viva do projeto fica em `Assets/_Documentation`.

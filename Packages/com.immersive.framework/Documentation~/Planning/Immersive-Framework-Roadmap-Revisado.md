@@ -59,14 +59,25 @@ F28 is documentation-first. It creates the dependency and ownership map for the 
 
 | Cut | Name | Status | Output |
 |---|---|---|---|
-| F28A | Frozen Baseline Reconciliation | Planned | Authoritative reading of package docs, project docs, QA assets and the cancelled F27E path. |
-| F28B | Completion Dependency Map | Planned | Ordered graph for remaining product-completion tracks. |
+| F28A | Frozen Baseline Reconciliation | Closed / docs-only | Authoritative reading of package docs, project docs, QA assets and the cancelled F27E path. |
+| F28B | Completion Dependency Map | Next | Ordered graph for remaining product-completion tracks. |
 | F28C | Adapter Module Taxonomy | Planned | Module families, owner kind, placement rule and dependency category. |
 | F28D | Player / Actor / Input Ownership Plan | Planned | Player object ownership, `PlayerInput` target ownership and first input target proof. |
 | F28E | InputMode and Pause Integration Plan | Planned | Typed InputMode semantics and Pause-driven mode requests after ownership is clear. |
 | F28F | Next Implementation Closeout | Planned | Next code phase, entry criteria, smoke target and file placement rules. |
 
 F28 output is a clean plan, not runtime contracts.
+
+F28A closure confirms the freeze baseline and source boundary:
+
+```text
+F24-F27 = frozen Unity-facing evidence
+F27E = cancelled
+Assets/ = project-facing operational source
+Packages/com.immersive.framework/ = framework source
+```
+
+F28B now owns the dependency graph; it still does not create runtime contracts.
 
 ### F29 — Adapter Module Foundation
 

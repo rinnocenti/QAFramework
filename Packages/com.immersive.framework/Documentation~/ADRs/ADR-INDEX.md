@@ -52,7 +52,7 @@ Current order:
 | F25 | [Adapter Module Foundation](F25-ADR-ADAPTER-001-Adapter-Module-Foundation.md) | Deferred after Activity scene operation stability |
 | F25R | [Activity Scene Operation Architecture Reset](F25R-ADR-ACTIVITY-001-Activity-Scene-Operation-Architecture-Reset.md) | Accepted / Documentation reset |
 | F27 | [Gate as Capability Admission Boundary](F27-ADR-GATE-INPUT-001-Capability-Gate-Boundary.md) | Accepted / F27D runtime reframe |
-| F28 | [Roadmap Reconciliation and Adapter Module Spine](F28-ADR-INPUT-001-InputMode-Adapter-Boundary.md) | Proposed / planning gate |
+| F28 | [Roadmap Reconciliation and Adapter Module Spine](F28-ADR-INPUT-001-InputMode-Adapter-Boundary.md) | Accepted / F28A baseline closed / planning gate |
 
 ## Boundary Rules
 
@@ -73,6 +73,6 @@ F27E is cancelled. Ordinary input consumers should not each query Gate as the pr
 
 ## F28 roadmap correction
 
-F28 is documentation-first. It turns the F27D freeze into a progressive completion plan: baseline reconciliation, dependency map, adapter module taxonomy, Player/Actor/Input ownership plan, InputMode/Pause integration plan and next implementation closeout.
+F28 is documentation-first. It turns the F27D freeze into a progressive completion plan: baseline reconciliation, dependency map, adapter module taxonomy, Player/Actor/Input ownership plan, InputMode/Pause integration plan and next implementation closeout. F28A is closed as documentation-only baseline reconciliation.
 
 InputMode remains a future boundary, but it is positioned after adapter/module ownership and PlayerInput target ownership are explicit.

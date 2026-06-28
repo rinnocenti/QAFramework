@@ -1,6 +1,6 @@
 # F28-ADR-PLAN-001 — Roadmap Reconciliation and Adapter Module Spine
 
-Status: Proposed / planning gate  
+Status: Accepted / F28A baseline closed / planning gate  
 Phase: F28 — Roadmap Reconciliation and Adapter Module Spine  
 Type: Framework Planning / Adapter Module Boundary / Input Positioning
 
@@ -139,3 +139,19 @@ Gate is not the normal implementation path for pausing ordinary gameplay input.
 | F28D | Player / Actor / Input Ownership Plan | Player object, `PlayerInput`, player/actor adapter placement and first target proof. |
 | F28E | InputMode and Pause Integration Plan | Typed InputMode semantics and Pause-driven mode requests after ownership is clear. |
 | F28F | Next Implementation Closeout | Next code phase, entry criteria, smoke target and file placement rules. |
+
+
+## F28A Closure
+
+F28A closes the frozen baseline reconciliation.
+
+Accepted baseline:
+
+```text
+F24-F27 are frozen evidence.
+F27E is cancelled.
+F28 is roadmap reconciliation before runtime implementation resumes.
+Assets/ and Packages/com.immersive.framework/ are both source-of-truth boundaries for their respective scopes.
+```
+
+F28B is the next cut and must produce a dependency map before any adapter/module implementation starts.

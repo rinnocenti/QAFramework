@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned / documentation-first / no runtime changes
+Active / F28A closed / documentation-first / no runtime changes
 
 ## Purpose
 
@@ -83,12 +83,44 @@ F28 treats adapters as a set of future lanes, not a single InputMode patch.
 
 | Cut | Name | Status | Output |
 |---|---|---|---|
-| F28A | Frozen Baseline Reconciliation | Planned | One authoritative reading of the current frozen baseline, including package docs, project docs, QA assets and the cancelled F27E path. |
-| F28B | Completion Dependency Map | Planned | Ordered dependency graph for the remaining product-completion tracks. Identifies what must precede Player, InputMode, Pause integration, Camera, Audio, Save, RuntimeSpawned and Gameplay. |
+| F28A | Frozen Baseline Reconciliation | Closed / docs-only | One authoritative reading of the current frozen baseline, including package docs, project docs, QA assets and the cancelled F27E path. |
+| F28B | Completion Dependency Map | Next | Ordered dependency graph for the remaining product-completion tracks. Identifies what must precede Player, InputMode, Pause integration, Camera, Audio, Save, RuntimeSpawned and Gameplay. |
 | F28C | Adapter Module Taxonomy | Planned | Defines module families, owner kind, placement rule and dependency category. This is still documentation/plan, not runtime registration. |
 | F28D | Player / Actor / Input Ownership Plan | Planned | Decides the ownership path for `PlayerInput`, player object lifetime, player/actor adapter placement and the first input target proof. |
 | F28E | InputMode and Pause Integration Plan | Planned | Defines typed InputMode semantics and how Pause requests modes after ownership is clear. |
 | F28F | Next Implementation Closeout | Planned | Selects the next code phase and writes entry criteria, smoke target and file placement rules. |
+
+## F28A Closure Result
+
+F28A closes the baseline reading and confirms the active source boundary:
+
+```text
+Assets/ = project-facing operational source
+Packages/com.immersive.framework/ = framework contracts/runtime/source
+```
+
+F24-F27 remain frozen evidence. F27E remains cancelled. Runtime implementation stays frozen until F28F selects one concrete next phase.
+
+Reference note:
+
+```text
+Assets/_Documentation/Notes/F28A-Frozen-Baseline-Reconciliation.md
+```
+
+## F28B Entry Criteria
+
+F28B starts from the F28A baseline and must stay documentation/planning-only.
+
+F28B may produce:
+
+```text
+ordered dependency graph
+blocker map per module family
+first implementation candidates
+stop conditions for premature consumers
+```
+
+F28B must not create runtime code, adapter registries, PlayerInput ownership, InputMode services, action-map switching, QA buttons or new asmdefs.
 
 ## Expected Phase Output
 
