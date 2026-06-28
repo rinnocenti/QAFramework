@@ -38,6 +38,24 @@ namespace Immersive.Framework.ActivityFlow
 
         internal int LedgerStaleCount => _ledger.StaleCount;
 
+        internal ActivityContentDiscoveryScope CreateActivityContentDiscoveryScope(ActivityAsset activity)
+        {
+            return CreateActivityContentDiscoveryScope(activity, null);
+        }
+
+        internal ActivityContentDiscoveryScope CreateActivityContentDiscoveryScope(ActivityAsset firstActivity, ActivityAsset secondActivity)
+        {
+            var scenes = new List<ActivityContentDiscoveryScene>();
+            var sceneKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AddActivityOwnedDiscoveryScenes(firstActivity, scenes, sceneKeys);
+            if (!ReferenceEquals(firstActivity, secondActivity))
+            {
+                AddActivityOwnedDiscoveryScenes(secondActivity, scenes, sceneKeys);
+            }
+
+            return new ActivityContentDiscoveryScope(_currentRoute, _currentRouteInstanceId, scenes);
+        }
+
         internal ActivityOperationPlan CreateActivityOperationPlan(
             ActivityOperationKind operationKind,
             ActivityAsset previousActivity,
@@ -315,6 +333,49 @@ namespace Immersive.Framework.ActivityFlow
                 _currentRoute,
                 activity,
                 entry);
+        }
+
+        private void AddActivityOwnedDiscoveryScenes(
+            ActivityAsset activity,
+            List<ActivityContentDiscoveryScene> scenes,
+            HashSet<string> sceneKeys)
+        {
+            if (activity == null || scenes == null || sceneKeys == null)
+            {
+                return;
+            }
+
+            var records = _ledger.CollectLoadedForActivityRouteInstance(activity, _currentRouteInstanceId);
+            for (var i = 0; i < records.Count; i++)
+            {
+                var record = records[i];
+                if (!_sceneLifecycleRuntime.IsSceneLoaded(record.SceneName, record.ScenePath))
+                {
+                    continue;
+                }
+
+                var sceneKey = CreateSceneKey(record.ScenePath, record.SceneName);
+                if (string.IsNullOrWhiteSpace(sceneKey) || !sceneKeys.Add(sceneKey))
+                {
+                    continue;
+                }
+
+                scenes.Add(new ActivityContentDiscoveryScene(
+                    record.Activity,
+                    record.RouteInstanceId,
+                    record.ScenePath,
+                    record.SceneName));
+            }
+        }
+
+        private static string CreateSceneKey(string scenePath, string sceneName)
+        {
+            if (!string.IsNullOrWhiteSpace(scenePath))
+            {
+                return scenePath.Trim();
+            }
+
+            return string.IsNullOrWhiteSpace(sceneName) ? string.Empty : sceneName.Trim();
         }
 
         private static string Normalize(string value)

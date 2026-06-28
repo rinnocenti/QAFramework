@@ -118,6 +118,7 @@ namespace Immersive.Framework.Bootstrap
                 LogFields.Field("activityContentExecutionBlocksReadiness", activityFlowResult.ActivityContentExecutionResult.BlocksReadiness),
                 LogFields.Field("activityContentAnchors", activityFlowResult.ActivityContentAnchorDiscoveryResult.AnchorCount),
                 LogFields.Field("activityContentAnchorCandidates", activityFlowResult.ActivityContentAnchorDiscoveryResult.CandidateCount),
+                LogFields.Field("activityContentDiscoverySceneRoots", activityFlowResult.ActivityContentAnchorDiscoveryResult.DiscoverySceneRootCount),
                 LogFields.Field("activityContentAnchorIssues", activityFlowResult.ActivityContentAnchorDiscoveryResult.IssueCount),
                 LogFields.Field("activityContentAnchorInvalid", activityFlowResult.ActivityContentAnchorDiscoveryResult.InvalidAuthoringCount),
                 LogFields.Field("activityContentAnchorActivityMismatch", activityFlowResult.ActivityContentAnchorDiscoveryResult.SkippedActivityMismatchCount),

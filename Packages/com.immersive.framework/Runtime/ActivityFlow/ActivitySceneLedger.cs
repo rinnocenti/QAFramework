@@ -85,6 +85,30 @@ namespace Immersive.Framework.ActivityFlow
             return entries;
         }
 
+        internal List<ActivitySceneLedgerEntry> CollectLoadedForActivityRouteInstance(ActivityAsset activity, string routeInstanceId)
+        {
+            var entries = new List<ActivitySceneLedgerEntry>();
+            var normalizedRouteInstanceId = Normalize(routeInstanceId);
+            if (activity == null || string.IsNullOrWhiteSpace(normalizedRouteInstanceId))
+            {
+                return entries;
+            }
+
+            for (var i = 0; i < _entries.Count; i++)
+            {
+                var entry = _entries[i];
+                if (entry.IsLoaded
+                    && entry.Ownership == ActivitySceneLedgerOwnership.Activity
+                    && ReferenceEquals(entry.Activity, activity)
+                    && string.Equals(entry.RouteInstanceId, normalizedRouteInstanceId, StringComparison.Ordinal))
+                {
+                    entries.Add(entry);
+                }
+            }
+
+            return entries;
+        }
+
         internal List<ActivitySceneLedgerEntry> CollectLoaded()
         {
             var entries = new List<ActivitySceneLedgerEntry>();
@@ -152,6 +176,11 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             return count;
+        }
+
+        private static string Normalize(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
         }
     }
 }

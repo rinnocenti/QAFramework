@@ -15,4 +15,5 @@ MonoBehaviour:
   activityName: QA Transition Activity A Alt
   description: Alternate activity used only to validate Activity transition request
     diagnostics inside TransitionRouteA.
-  visualTransitionMode: 10
+  activityContentProfile: {fileID: 0}
+  visualTransitionMode: 20

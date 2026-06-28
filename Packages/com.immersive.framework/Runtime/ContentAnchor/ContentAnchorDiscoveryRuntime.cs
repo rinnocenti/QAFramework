@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.RouteLifecycle;
@@ -111,6 +112,7 @@ namespace Immersive.Framework.ContentAnchor
         internal ActivityContentAnchorDiscoveryResult DiscoverActivityAnchors(
             ActivityAsset activity,
             RouteAsset route,
+            ActivityContentDiscoveryScope discoveryScope,
             string source,
             string reason)
         {
@@ -132,27 +134,98 @@ namespace Immersive.Framework.ContentAnchor
                     "No Route is active; Activity Content Anchor discovery was skipped.");
             }
 
-            var anchors = SceneScopedComponentQuery.GetComponentsInRoutePrimaryScene<ActivityContentAnchor>(route);
-            if (anchors == null || anchors.Count == 0)
+            var declarations = new List<ContentAnchorDeclaration>();
+            var scannedSceneKeys = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
+            var scannedSceneCount = 0;
+            var discoverySceneRootCount = 0;
+            var candidateCount = 0;
+            var skippedActivityMismatchCount = 0;
+            var invalidAuthoringCount = 0;
+
+            if (SceneScopedComponentQuery.TryGetLoadedPrimaryScene(route, out _)
+                && scannedSceneKeys.Add(CreateSceneKey(route.PrimaryScenePath, route.PrimarySceneName)))
+            {
+                scannedSceneCount++;
+                AddActivityAnchorCandidates(
+                    SceneScopedComponentQuery.GetComponentsInRoutePrimaryScene<ActivityContentAnchor>(route),
+                    activity,
+                    declarations,
+                    ref candidateCount,
+                    ref skippedActivityMismatchCount,
+                    ref invalidAuthoringCount);
+            }
+
+            var activityOwnedScenes = discoveryScope.ActivityOwnedScenes;
+            for (var sceneIndex = 0; sceneIndex < activityOwnedScenes.Count; sceneIndex++)
+            {
+                var scene = activityOwnedScenes[sceneIndex];
+                if (!scene.MatchesActivity(activity))
+                {
+                    continue;
+                }
+
+                var sceneKey = CreateSceneKey(scene.ScenePath, scene.SceneName);
+                if (string.IsNullOrWhiteSpace(sceneKey) || !scannedSceneKeys.Add(sceneKey))
+                {
+                    continue;
+                }
+
+                scannedSceneCount++;
+                discoverySceneRootCount++;
+                AddActivityAnchorCandidates(
+                    SceneScopedComponentQuery.GetComponentsInLoadedScene<ActivityContentAnchor>(
+                        scene.ScenePath,
+                        scene.SceneName),
+                    activity,
+                    declarations,
+                    ref candidateCount,
+                    ref skippedActivityMismatchCount,
+                    ref invalidAuthoringCount);
+            }
+
+            if (candidateCount == 0)
             {
                 return new ActivityContentAnchorDiscoveryResult(
                     activity,
                     ContentAnchorSet.Empty(),
-                    0,
+                    scannedSceneCount,
                     0,
                     0,
                     0,
                     0,
                     source,
                     reason,
-                    "No Activity Content Anchor components were found in the active Route primary scene.");
+                    "No Activity Content Anchor components were found in the active Route primary scene or loaded Activity-owned scenes.",
+                    discoverySceneRootCount);
             }
 
-            var declarations = new List<ContentAnchorDeclaration>();
-            var scannedSceneCount = 1;
-            var candidateCount = 0;
-            var skippedActivityMismatchCount = 0;
-            var invalidAuthoringCount = 0;
+            var anchorSet = ContentAnchorSet.FromDeclarations(declarations);
+            return new ActivityContentAnchorDiscoveryResult(
+                activity,
+                anchorSet,
+                scannedSceneCount,
+                candidateCount,
+                declarations.Count,
+                skippedActivityMismatchCount,
+                invalidAuthoringCount,
+                source,
+                reason,
+                "Activity Content Anchor discovery completed for the active Activity in the Route primary scene and loaded Activity-owned scenes.",
+                discoverySceneRootCount);
+        }
+
+        private static void AddActivityAnchorCandidates(
+            IReadOnlyList<ActivityContentAnchor> anchors,
+            ActivityAsset activity,
+            List<ContentAnchorDeclaration> declarations,
+            ref int candidateCount,
+            ref int skippedActivityMismatchCount,
+            ref int invalidAuthoringCount)
+        {
+            if (anchors == null || anchors.Count == 0)
+            {
+                return;
+            }
 
             for (var anchorIndex = 0; anchorIndex < anchors.Count; anchorIndex++)
             {
@@ -177,19 +250,6 @@ namespace Immersive.Framework.ContentAnchor
 
                 declarations.Add(declaration);
             }
-
-            var anchorSet = ContentAnchorSet.FromDeclarations(declarations);
-            return new ActivityContentAnchorDiscoveryResult(
-                activity,
-                anchorSet,
-                scannedSceneCount,
-                candidateCount,
-                declarations.Count,
-                skippedActivityMismatchCount,
-                invalidAuthoringCount,
-                source,
-                reason,
-                "Activity Content Anchor discovery completed for the active Activity in the Route primary scene.");
         }
 
         private static string CreateSceneKey(string scenePath, string sceneName)

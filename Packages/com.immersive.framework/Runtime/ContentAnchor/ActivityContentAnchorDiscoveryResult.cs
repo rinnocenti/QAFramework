@@ -20,7 +20,8 @@ namespace Immersive.Framework.ContentAnchor
             int invalidAuthoringCount,
             string source,
             string reason,
-            string message)
+            string message,
+            int discoverySceneRootCount = 0)
         {
             Activity = activity;
             AnchorSet = anchorSet;
@@ -32,6 +33,7 @@ namespace Immersive.Framework.ContentAnchor
             Source = source ?? string.Empty;
             Reason = reason ?? string.Empty;
             Message = message ?? string.Empty;
+            DiscoverySceneRootCount = discoverySceneRootCount < 0 ? 0 : discoverySceneRootCount;
         }
 
         public ActivityAsset Activity { get; }
@@ -53,6 +55,8 @@ namespace Immersive.Framework.ContentAnchor
         public string Reason { get; }
 
         public string Message { get; }
+
+        public int DiscoverySceneRootCount { get; }
 
         public int AnchorCount => AnchorSet.Count;
 
@@ -82,14 +86,15 @@ namespace Immersive.Framework.ContentAnchor
 
         public string ToDiagnosticString()
         {
-            return $"Activity Content Anchor discovery activity='{GetActivityName(Activity)}' anchors='{AnchorCount}' candidates='{CandidateCount}' accepted='{AcceptedCount}' scenes='{ScannedSceneCount}' required='{RequiredCount}' optional='{OptionalCount}' root='{RootCount}' slot='{SlotCount}' point='{PointCount}' issues='{IssueCount}' invalidAuthoring='{InvalidAuthoringCount}' skippedActivityMismatch='{SkippedActivityMismatchCount}' duplicateIdentity='{DuplicateIdentityCount}' duplicateAnchorId='{DuplicateAnchorIdCount}' message='{Message}'.";
+            return $"Activity Content Anchor discovery activity='{GetActivityName(Activity)}' anchors='{AnchorCount}' candidates='{CandidateCount}' accepted='{AcceptedCount}' scenes='{ScannedSceneCount}' discoverySceneRoots='{DiscoverySceneRootCount}' required='{RequiredCount}' optional='{OptionalCount}' root='{RootCount}' slot='{SlotCount}' point='{PointCount}' issues='{IssueCount}' invalidAuthoring='{InvalidAuthoringCount}' skippedActivityMismatch='{SkippedActivityMismatchCount}' duplicateIdentity='{DuplicateIdentityCount}' duplicateAnchorId='{DuplicateAnchorIdCount}' message='{Message}'.";
         }
 
         public static ActivityContentAnchorDiscoveryResult Empty(
             ActivityAsset activity,
             string source,
             string reason,
-            string message)
+            string message,
+            int discoverySceneRootCount = 0)
         {
             return new ActivityContentAnchorDiscoveryResult(
                 activity,
@@ -101,7 +106,8 @@ namespace Immersive.Framework.ContentAnchor
                 0,
                 source,
                 reason,
-                message);
+                message,
+                discoverySceneRootCount);
         }
 
         private static string GetActivityName(ActivityAsset activity)

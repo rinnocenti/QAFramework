@@ -25,6 +25,7 @@ Read the documentation in this order:
 | F23 | Pause Content / Overlay / Input Intent Boundary | Closed |
 | F24 | Unity Build Surface / Lifecycle Wiring | Closed / validated by QA surface |
 | F25 | Activity Content Scene Composition | Closed / final docs aligned in F25J |
+| F26 | Activity Scene Discovery Integration | Open |
 
 ## F23 Boundary
 
@@ -143,3 +144,7 @@ Follow-up cuts:
 `F25I2 - Loading Skip Diagnostics Refinement` is diagnostics-only. When an Activity operation executes Activity scene load/release without opening LoadingSurface because the authored visual mode is `Seamless` or `Fade`, request logs now report `loading=SkippedByActivityPolicy` instead of `loading=SkippedNoSceneLoad`. No runtime loading, transition or ledger behavior changes.
 
 `F25J - Activity Operation Final Documentation / Matrix Alignment` closes the F25 documentation baseline. Canonical final rule: visual mode selects presentation, not permission to execute Activity scene composition/release. `Seamless` skips TransitionSurface and LoadingSurface, `Fade` uses only TransitionSurface, and `FadeWithLoading` uses TransitionSurface plus LoadingSurface when the operation requests loading presentation. Cleanup of false/legacy trails is deferred to a dedicated Codex audit.
+
+## F26 Activity Scene Discovery Integration
+
+`F26A - Activity Scene Discovery Integration` connects Activity-owned additive scenes loaded by Activity scene composition to Activity content discovery. After composition records loaded scenes in `ActivitySceneLedger`, Activity discovery scans the Route primary scene plus loaded Activity-owned scenes for the current Route instance and Activity. Route-owned discovery remains separate, and `IActivityContentExecutionParticipantSource` remains the explicit source for execution participants.

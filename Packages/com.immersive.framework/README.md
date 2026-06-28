@@ -20,6 +20,7 @@ The package is organized as framework contracts first, Unity build surfaces seco
 | F23 | Pause Content / Overlay / Input Intent Boundary | Closed |
 | F24 | Unity Build Surface / Lifecycle Wiring | Current |
 | F25 | Activity Content Scene Composition | Current after F24 visual policy |
+| F26 | Activity Scene Discovery Integration | Current after F25 consolidation |
 
 ## Tracks
 
@@ -45,6 +46,8 @@ F24 starts with lifecycle wiring before visual loading/pause surfaces. The first
 F25 currently stabilizes Activity Content Scene Composition before broader adapter module work resumes. Adapter module foundation remains deferred until Activity scene operation ownership is stable.
 
 `F25R - Activity Scene Operation Architecture Reset` is the documentary reset for Activity scene loading/release. `F25I1` corrects its early visual-mode constraint: `Seamless + Activity scene side-effect` is valid, but must never auto-open LoadingSurface or silently upgrade to another visual mode.
+
+F26A integrates Activity-owned additive scenes tracked by `ActivitySceneLedger` into Activity content discovery while keeping Route content discovery separate.
 
 ## Anti-Regression Rules
 

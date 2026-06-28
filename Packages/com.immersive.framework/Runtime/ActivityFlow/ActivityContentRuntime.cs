@@ -23,12 +23,22 @@ namespace Immersive.Framework.ActivityFlow
         private ActivityContentApplyResult _lastApplyResult;
         private bool _hasLastApplyResult;
         private RouteAsset _routeScope;
+        private ActivityContentDiscoveryScope _discoveryScope;
 
         internal bool HasLastApplyResult => _hasLastApplyResult;
 
         internal void SetRouteScope(RouteAsset route)
         {
             _routeScope = route;
+        }
+
+        internal void SetDiscoveryScope(ActivityContentDiscoveryScope scope)
+        {
+            _discoveryScope = scope;
+            if (scope.Route != null)
+            {
+                _routeScope = scope.Route;
+            }
         }
 
         internal ActivityContentApplyResult LastApplyResult => _lastApplyResult;
@@ -69,7 +79,7 @@ namespace Immersive.Framework.ActivityFlow
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
 
-            var bindings = SceneScopedComponentQuery.GetComponentsInRoutePrimaryScene<ActivityLocalVisibilityAdapter>(_routeScope);
+            var bindings = CollectActivityLocalVisibilityAdapters();
             if (bindings == null || bindings.Count == 0)
             {
                 return ActivityContentApplyResult.Empty(activeActivity);
@@ -210,6 +220,68 @@ namespace Immersive.Framework.ActivityFlow
                 lifecycleResult,
                 BuildDetailMessage(activeActivity, observedBindings, omittedObservationCount),
                 BuildWarningMessage(warningBindings));
+        }
+
+        private IReadOnlyList<ActivityLocalVisibilityAdapter> CollectActivityLocalVisibilityAdapters()
+        {
+            var bindings = new List<ActivityLocalVisibilityAdapter>();
+            var scannedSceneKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var route = _discoveryScope.Route != null ? _discoveryScope.Route : _routeScope;
+
+            if (route != null)
+            {
+                AddSceneKey(scannedSceneKeys, route.PrimaryScenePath, route.PrimarySceneName);
+                AddBindings(bindings, SceneScopedComponentQuery.GetComponentsInRoutePrimaryScene<ActivityLocalVisibilityAdapter>(route));
+            }
+
+            var activityOwnedScenes = _discoveryScope.ActivityOwnedScenes;
+            for (var i = 0; i < activityOwnedScenes.Count; i++)
+            {
+                var scene = activityOwnedScenes[i];
+                if (!AddSceneKey(scannedSceneKeys, scene.ScenePath, scene.SceneName))
+                {
+                    continue;
+                }
+
+                AddBindings(
+                    bindings,
+                    SceneScopedComponentQuery.GetComponentsInLoadedScene<ActivityLocalVisibilityAdapter>(
+                        scene.ScenePath,
+                        scene.SceneName));
+            }
+
+            return bindings;
+        }
+
+        private static void AddBindings(
+            List<ActivityLocalVisibilityAdapter> bindings,
+            IReadOnlyList<ActivityLocalVisibilityAdapter> discovered)
+        {
+            if (bindings == null || discovered == null || discovered.Count == 0)
+            {
+                return;
+            }
+
+            for (var i = 0; i < discovered.Count; i++)
+            {
+                if (discovered[i] != null)
+                {
+                    bindings.Add(discovered[i]);
+                }
+            }
+        }
+
+        private static bool AddSceneKey(HashSet<string> sceneKeys, string scenePath, string sceneName)
+        {
+            if (sceneKeys == null)
+            {
+                return false;
+            }
+
+            var sceneKey = !string.IsNullOrWhiteSpace(scenePath)
+                ? scenePath.Trim()
+                : !string.IsNullOrWhiteSpace(sceneName) ? sceneName.Trim() : string.Empty;
+            return !string.IsNullOrWhiteSpace(sceneKey) && sceneKeys.Add(sceneKey);
         }
 
         private static ActivityContentEntry CreateActivityContentEntry(

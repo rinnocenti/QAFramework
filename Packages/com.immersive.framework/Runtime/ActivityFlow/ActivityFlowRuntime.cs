@@ -278,6 +278,7 @@ namespace Immersive.Framework.ActivityFlow
             var activityContentAnchorDiscoveryResult = _contentAnchorDiscoveryRuntime.DiscoverActivityAnchors(
                 nextActivity,
                 _currentRoute,
+                _activitySceneCompositionRuntime.CreateActivityContentDiscoveryScope(nextActivity),
                 resolvedSource,
                 resolvedReason);
             var executionResult = ExecuteActivityContentLifecycle(previousActivity, nextActivity, resolvedSource, resolvedReason);
@@ -520,7 +521,9 @@ namespace Immersive.Framework.ActivityFlow
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
 
+            var discoveryScope = _activitySceneCompositionRuntime.CreateActivityContentDiscoveryScope(previousActivity, nextActivity);
             _activityContentRuntime.SetRouteScope(_currentRoute);
+            _activityContentRuntime.SetDiscoveryScope(discoveryScope);
             _activityContentRuntime.ClearLastApplyResult();
             PublishActivityTransition(previousActivity, nextActivity, resolvedSource, resolvedReason);
 
