@@ -148,3 +148,5 @@ Follow-up cuts:
 ## F26 Activity Scene Discovery Integration
 
 `F26A - Activity Scene Discovery Integration` connects Activity-owned additive scenes loaded by Activity scene composition to Activity content discovery. After composition records loaded scenes in `ActivitySceneLedger`, Activity discovery scans the Route primary scene plus loaded Activity-owned scenes for the current Route instance and Activity. Route-owned discovery remains separate, and `IActivityContentExecutionParticipantSource` remains the explicit source for execution participants.
+
+`F26A1 - Activity Content Execution Diagnostics Clarification` keeps the existing `activityContentExecution*` fields for compatibility and adds explicit `activityContentParticipant*` diagnostics. Local Activity content is represented by `activityContentHandles`, `activityContentBindings` and `activityContentLifecycle`; participant execution represents only participants supplied by `IActivityContentExecutionParticipantSource`.

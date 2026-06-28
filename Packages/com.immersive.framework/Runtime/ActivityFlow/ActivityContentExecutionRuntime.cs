@@ -53,7 +53,7 @@ namespace Immersive.Framework.ActivityFlow
                     plan.NextActivity,
                     sourceText,
                     reasonText,
-                    "Activity content execution runtime skipped the phase plan because it has no execution requests.");
+                    "Activity content participant execution runtime skipped the phase plan because it has no participant execution requests.");
             }
 
             if (!plan.Planned)
@@ -149,7 +149,7 @@ namespace Immersive.Framework.ActivityFlow
                 results,
                 sourceText,
                 reasonText,
-                "Activity content execution runtime executed the supplied phase plan.");
+                "Activity content participant execution runtime executed the supplied phase plan.");
         }
 
         private static bool TryGetEntry(

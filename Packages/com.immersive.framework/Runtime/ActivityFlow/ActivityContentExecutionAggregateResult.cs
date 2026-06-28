@@ -208,7 +208,7 @@ namespace Immersive.Framework.ActivityFlow
             var reasonText = !string.IsNullOrWhiteSpace(Reason) ? Reason : "<none>";
             var messageText = !string.IsNullOrWhiteSpace(Message) ? Message : "<none>";
             var builder = new StringBuilder();
-            builder.Append($"Activity Content Execution Aggregate phase='{Phase}' activity='{activityText}' previousActivity='{previousText}' nextActivity='{nextText}' status='{Status}' results='{ResultCount}' required='{RequiredCount}' optional='{OptionalCount}' succeeded='{SucceededCount}' skipped='{SkippedCount}' failed='{FailedCount}' blockingIssues='{BlockingIssueCount}' nonBlockingIssues='{NonBlockingIssueCount}' blocksReadiness='{BlocksReadiness}' source='{sourceText}' reason='{reasonText}' message='{messageText}' details=[");
+            builder.Append($"Activity Content Participant Execution Aggregate phase='{Phase}' activity='{activityText}' previousActivity='{previousText}' nextActivity='{nextText}' status='{Status}' results='{ResultCount}' required='{RequiredCount}' optional='{OptionalCount}' succeeded='{SucceededCount}' skipped='{SkippedCount}' failed='{FailedCount}' blockingIssues='{BlockingIssueCount}' nonBlockingIssues='{NonBlockingIssueCount}' blocksReadiness='{BlocksReadiness}' source='{sourceText}' reason='{reasonText}' message='{messageText}' details=[");
             for (var i = 0; i < Results.Count; i++)
             {
                 if (i > 0)
@@ -264,7 +264,7 @@ namespace Immersive.Framework.ActivityFlow
                 ActivityContentExecutionAggregateStatus.SkippedNoContent,
                 source,
                 reason,
-                string.IsNullOrWhiteSpace(message) ? "Activity content execution aggregate skipped because no content results were provided." : message);
+                string.IsNullOrWhiteSpace(message) ? "Activity content participant execution aggregate skipped because no participant results were provided." : message);
         }
 
         public static ActivityContentExecutionAggregateResult RejectedInvalidResults(
@@ -363,21 +363,21 @@ namespace Immersive.Framework.ActivityFlow
             switch (status)
             {
                 case ActivityContentExecutionAggregateStatus.Succeeded:
-                    return "Activity content execution aggregate succeeded.";
+                    return "Activity content participant execution aggregate succeeded.";
                 case ActivityContentExecutionAggregateStatus.SucceededNoOp:
-                    return "Activity content execution aggregate completed with no operation.";
+                    return "Activity content participant execution aggregate completed with no operation.";
                 case ActivityContentExecutionAggregateStatus.SucceededWithNonBlockingIssues:
-                    return "Activity content execution aggregate succeeded with non-blocking issues.";
+                    return "Activity content participant execution aggregate succeeded with non-blocking issues.";
                 case ActivityContentExecutionAggregateStatus.SkippedNoContent:
-                    return "Activity content execution aggregate skipped because no content was provided.";
+                    return "Activity content participant execution aggregate skipped because no participant results were provided.";
                 case ActivityContentExecutionAggregateStatus.FailedNonBlocking:
-                    return "Activity content execution aggregate failed without blocking readiness.";
+                    return "Activity content participant execution aggregate failed without blocking readiness.";
                 case ActivityContentExecutionAggregateStatus.FailedBlocking:
-                    return "Activity content execution aggregate failed and blocks readiness.";
+                    return "Activity content participant execution aggregate failed and blocks readiness.";
                 case ActivityContentExecutionAggregateStatus.RejectedInvalidResults:
-                    return "Activity content execution aggregate rejected invalid results.";
+                    return "Activity content participant execution aggregate rejected invalid results.";
                 default:
-                    return "Activity content execution aggregate completed.";
+                    return "Activity content participant execution aggregate completed.";
             }
         }
 

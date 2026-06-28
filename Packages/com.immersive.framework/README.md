@@ -47,7 +47,7 @@ F25 currently stabilizes Activity Content Scene Composition before broader adapt
 
 `F25R - Activity Scene Operation Architecture Reset` is the documentary reset for Activity scene loading/release. `F25I1` corrects its early visual-mode constraint: `Seamless + Activity scene side-effect` is valid, but must never auto-open LoadingSurface or silently upgrade to another visual mode.
 
-F26A integrates Activity-owned additive scenes tracked by `ActivitySceneLedger` into Activity content discovery while keeping Route content discovery separate.
+F26A integrates Activity-owned additive scenes tracked by `ActivitySceneLedger` into Activity content discovery while keeping Route content discovery separate. F26A1 clarifies diagnostics: local Activity adapters/handles are reported separately from explicit Activity content participants.
 
 ## Anti-Regression Rules
 

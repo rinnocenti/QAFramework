@@ -1390,6 +1390,9 @@
           <tr><td><code>routeContentHandles</code></td><td>Total de conteúdos registrados na Route</td><td>≥ 1</td></tr>
           <tr><td><code>activity</code></td><td>Nome da Activity ativa</td><td>Nome do seu Activity asset</td></tr>
           <tr><td><code>activityContentHandles</code></td><td>Conteúdos locais registrados para a Activity</td><td>0 ou mais</td></tr>
+          <tr><td><code>activityContentDiscoverySceneRoots</code></td><td>Cenas Activity-owned carregadas pelo ledger e usadas no discovery da Activity</td><td>0 ou mais</td></tr>
+          <tr><td><code>activityContentLifecycle</code></td><td>Enter/Exit de <code>ActivityLocalVisibilityAdapter</code> e receivers locais</td><td><code>Executed</code> quando adapters locais foram processados</td></tr>
+          <tr><td><code>activityContentParticipantExecution</code></td><td>Execucao de participants explicitos, nao de adapters locais</td><td><code>SucceededNoContent</code> se nenhuma source forneceu participants</td></tr>
           <tr><td><code>contentAnchors</code></td><td>Quantidade de Content Anchors descobertos na cena</td><td>0 ou mais</td></tr>
         </tbody>
       </table>
@@ -1792,6 +1795,8 @@ public class MeuParticipant : IActivityContentExecutionParticipant
 }</code></pre>
 
     <h3>Fornecendo Participants ao framework: IActivityContentExecutionParticipantSource</h3>
+    <p>Activity additive scenes podem conter <code>ActivityContentAnchor</code> e <code>ActivityLocalVisibilityAdapter</code>. Quando a cena e carregada por Activity scene composition, o <code>ActivitySceneLedger</code> inclui essa cena no discovery da Activity; ela nao vira Route content.</p>
+    <p><code>activityContentHandles</code>, <code>activityContentBindings</code> e <code>activityContentLifecycle</code> descrevem adapters e handles locais. <code>activityContentParticipantExecution</code> descreve somente participants explicitos.</p>
     <p>O framework não descobre participants por busca de cena. Você precisa implementar um <code>IActivityContentExecutionParticipantSource</code> e registrá-lo no runtime host:</p>
 
     <div class="pre-label">C# — Exemplo de Participant Source</div>
