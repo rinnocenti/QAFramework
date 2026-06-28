@@ -317,7 +317,8 @@ namespace Immersive.Framework.GameFlow
                     "Activity Request blocked by ActivityOperationPlan. " + operationPreview.ToDiagnosticString(),
                     targetActivity,
                     resolvedSource,
-                    resolvedReason);
+                    resolvedReason,
+                    activityTransitionMode);
             }
 
             _activityRequestInFlight = true;
@@ -370,7 +371,8 @@ namespace Immersive.Framework.GameFlow
                         activityFlowResult.Message,
                         targetActivity,
                         resolvedSource,
-                        resolvedReason);
+                        resolvedReason,
+                        activityTransitionMode);
                 }
 
                 return FrameworkActivityRequestResult.SucceededWith(
@@ -441,7 +443,8 @@ namespace Immersive.Framework.GameFlow
                     "Activity Clear blocked by ActivityOperationPlan. " + operationPreview.ToDiagnosticString(),
                     null,
                     resolvedSource,
-                    resolvedReason);
+                    resolvedReason,
+                    activityTransitionMode);
             }
 
             _activityRequestInFlight = true;
@@ -494,7 +497,8 @@ namespace Immersive.Framework.GameFlow
                         activityFlowResult.Message,
                         null,
                         resolvedSource,
-                        resolvedReason);
+                        resolvedReason,
+                        activityTransitionMode);
                 }
 
                 return FrameworkActivityRequestResult.SucceededWith(

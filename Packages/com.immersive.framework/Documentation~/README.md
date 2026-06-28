@@ -100,6 +100,8 @@ Project plan: `Assets/_Documentation/Plans/F25-PLAN-Activity-Content-Scene-Compo
 
 `F25F1 - Activity Operation Runtime Gate` starts consuming the preview plan in Activity request/clear. Blocked plans such as `Seamless + Activity scene side-effect` now fail before transition/loading/lifecycle side-effects, and Activity LoadingSurface is shown only when the valid operation plan requires it.
 
+`F25F2 - Activity Operation Blocked Diagnostics Fix` preserves the resolved operation visual mode in blocked/failed Activity request diagnostics, so a blocked `Fade` plan no longer reports `activityTransitionMode=Seamless` in the final result fields.
+
 ### IF-FW-F25D — Activity Content Release
 
 Activity-owned additive scenes loaded through Activity scene composition are now released on Activity change when their scene entry uses `ReleaseOnActivityChange`.
@@ -123,6 +125,7 @@ Follow-up cuts:
 | F25E | Activity Operation Plan Baseline |
 | F25F | Activity Operation Executor Preview |
 | F25F1 | Activity Operation Runtime Gate |
+| F25F2 | Activity Operation Blocked Diagnostics Fix |
 | F25G | Startup Activity Path Unification |
 | F25H | Activity Scene Ledger |
 | F25I | Validator Guards |

@@ -48,6 +48,7 @@ Activity
 | F25E | Activity Operation Plan Baseline | Add side-effect-free operation plan/result model. |
 | F25F | Activity Operation Executor Preview | Add side-effect-free planner and validation-only executor preview over `ActivityOperationPlan`; runtime execution unchanged. |
 | F25F1 | Activity Operation Runtime Gate | Activity request/clear uses operation preview to block invalid visual/scene side-effect plans before loading/transition/lifecycle execution. |
+| F25F2 | Activity Operation Blocked Diagnostics Fix | Preserve operation visual mode in blocked/failed Activity request diagnostics. |
 | F25G | Startup Activity Path Unification | Route startup Activity uses the same Activity operation path. |
 | F25H | Activity Scene Ledger | Replace loose tracking with route-scoped Activity-owned ledger entries. |
 | F25I | Validator Guards | Block invalid visual/scene side-effect combinations. |
@@ -112,6 +113,14 @@ Runtime rules:
 This guards the F25R invalid behavior: `Seamless + Activity scene side-effect` no longer opens Loading without fade. It is blocked until authoring is explicit, normally `FadeWithLoading` for scene load/release operations.
 
 F25F1 does not unify Route startup Activity yet; that remains F25G.
+
+## IF-FW-F25F2 - Activity operation blocked diagnostics fix
+
+F25F2 keeps F25F1 behavior unchanged and only fixes misleading diagnostics in blocked/failed Activity requests.
+
+When `ActivityOperationPlan` blocks a request with `visualMode=Fade`, the final `FrameworkActivityRequestResult` must also report `activityTransitionMode=Fade`, not the default `Seamless`.
+
+F25F2 does not execute transition, loading, scene load/release or lifecycle side-effects.
 
 ## F25A acceptance
 

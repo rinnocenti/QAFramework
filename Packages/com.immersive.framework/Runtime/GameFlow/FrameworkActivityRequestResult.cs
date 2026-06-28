@@ -57,7 +57,8 @@ namespace Immersive.Framework.GameFlow
             string message,
             ActivityAsset targetActivity = null,
             string source = null,
-            string reason = null)
+            string reason = null,
+            ActivityVisualTransitionMode activityTransitionMode = ActivityVisualTransitionMode.Seamless)
         {
             return new FrameworkActivityRequestResult(
                 FrameworkActivityRequestKind.FailedInvalidConfig,
@@ -65,7 +66,9 @@ namespace Immersive.Framework.GameFlow
                 targetActivity,
                 NormalizeSource(source),
                 NormalizeReason(reason),
-                default);
+                default,
+                default,
+                activityTransitionMode);
         }
 
         public static FrameworkActivityRequestResult FailedRuntimeUnavailable(

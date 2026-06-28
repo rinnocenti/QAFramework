@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.ActivityAsset
   activityName: QA Primary Content Activity
   description: Canonical QA activity with expected content.
-  visualTransitionMode: 0
+  activityContentProfile: {fileID: 0}
+  visualTransitionMode: 20

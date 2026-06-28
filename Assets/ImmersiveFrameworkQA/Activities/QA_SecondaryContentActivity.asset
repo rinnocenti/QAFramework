@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.ActivityAsset
   activityName: QA Secondary Content Activity
   description: Alternate QA activity for switch testing.
-  visualTransitionMode: 0
+  activityContentProfile: {fileID: 0}
+  visualTransitionMode: 20
