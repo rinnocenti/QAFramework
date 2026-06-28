@@ -45,6 +45,8 @@ F26F cleanup manifest: `Notes/F26F-DELETE-MANIFEST.txt`.
 
 Pause UIGlobal surface baseline: `Notes/F27A-Pause-UIGlobal-Surface-Baseline.md`.
 Pause input binding: `Notes/F27B-Pause-Input-Binding.md`.
+Gate / input capability audit: `Notes/F27C-Gate-Input-Capability-Audit.md`.
+Pause capability Gate reframe: `Notes/F27D-Pause-Capability-Gate-Reframe.md`.
 
 ## Regras
 

@@ -7,10 +7,10 @@ namespace Immersive.Framework.Pause
     /// <summary>
     /// API status: Internal. Minimal runtime owner for the logical Pause state.
     /// It applies PauseRequest values to PauseState, refreshes a PauseSnapshot and exposes the derived
-    /// Pause Gate blockers. It does not read input, show UI, own overlays, change Time.timeScale,
-    /// mutate Route/Activity lifecycle or register blockers in a global Gate runtime.
+    /// Pause capability Gate blockers. It does not read input, show UI, own overlays, change Time.timeScale,
+    /// mutate Route/Activity lifecycle, pause components or register blockers in a global Gate runtime.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F20E minimal Pause runtime request path; no input, UI, overlay or Time.timeScale ownership.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Internal, "F27D Pause runtime exposes capability Gate blockers; no input, UI, component or Time.timeScale ownership.")]
     internal sealed class PauseRuntime
     {
         private PauseState _state;

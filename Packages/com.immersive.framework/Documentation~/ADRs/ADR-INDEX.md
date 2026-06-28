@@ -48,6 +48,7 @@ Current order:
 | F24 | [Unity Build Surface / Lifecycle Wiring](F24-ADR-UNITY-BUILD-001-Unity-Build-Surface-Lifecycle-Wiring.md) | Accepted / Planned |
 | F25 | [Adapter Module Foundation](F25-ADR-ADAPTER-001-Adapter-Module-Foundation.md) | Deferred after Activity scene operation stability |
 | F25R | [Activity Scene Operation Architecture Reset](F25R-ADR-ACTIVITY-001-Activity-Scene-Operation-Architecture-Reset.md) | Accepted / Documentation reset |
+| F27 | [Gate as Capability Admission Boundary](F27-ADR-GATE-INPUT-001-Capability-Gate-Boundary.md) | Accepted / F27D runtime reframe |
 
 ## Boundary Rules
 
@@ -58,3 +59,8 @@ Current order:
 - F25R1 is folded into the F25R history record and documents that the planner stays synchronous while the future executor boundary may use `UnityEngine.Awaitable`.
 - Core contracts must not depend on concrete Unity UI, gameplay modules or backend implementations.
 - Adapter modules consume framework contracts; they do not redefine route, activity, transition, pause, loading, save or reset ownership.
+
+
+## F27 Gate/Input correction
+
+F27C accepts that Gate is a capability/admission boundary consumed by input and command adapters. F27D applies that runtime correction: Pause now derives `Input/InputAcceptance` and `Interaction/InteractionAcceptance` blockers, not broad gameplay/component blockers. Gate must not become a component-level pause/blocker system. Pause is a blocker producer; `Time.timeScale` is a separate freeze policy.

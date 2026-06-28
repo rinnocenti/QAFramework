@@ -26,7 +26,7 @@ Read the documentation in this order:
 | F24 | Unity Build Surface / Lifecycle Wiring | Closed / validated by QA surface |
 | F25 | Activity Content Scene Composition | Closed / final docs aligned in F25J |
 | F26 | Activity Scene Discovery Integration / Loading Progress Integration | Closed / loading progress closed through F26F |
-| F27 | Pause UIGlobal Surface and Input Wiring | Open / F27B ready for smoke |
+| F27 | Pause UIGlobal Surface, Input Wiring and Gate Reframe | Open / F27C audit closed |
 
 ## F23 Boundary
 
@@ -185,3 +185,25 @@ Diagnostic mapping:
 
 
 `F26F - Loading Progress Polish / Documentation Closeout` closes the loading progress thread after F26C-F26E validation. The accepted baseline is: core/lifecycle owns technical progress and diagnostics; visual adapters may smooth the player-facing fill without changing diagnostic values. F26F also renames the QA Activity content scene typo from `AtivityAdditionalConent` to `ActivityAdditionalContent` and records the delete manifest required for zip-based application.
+
+
+## F27 Pause UIGlobal / Input / Gate Reframe
+
+`F27A` validates the Pause UIGlobal surface. `F27B` validates the narrow Unity Input System `PauseToggle` adapter. `F27C` audits the Gate/Input boundary and accepts the correction that Gate is capability/admission language, not a component blocker. `F27D` applies that correction in runtime by changing Pause-derived blockers from broad gameplay language to `Input/InputAcceptance` and `Interaction/InteractionAcceptance`.
+
+Canonical F27C rule:
+
+```text
+Pause produces blockers.
+Input and command adapters consume Gate.
+Gameplay components are not paused directly by Gate.
+TimeScale freeze policy is separate.
+```
+
+See:
+
+```text
+ADRs/F27-ADR-GATE-INPUT-001-Capability-Gate-Boundary.md
+Assets/_Documentation/Notes/F27C-Gate-Input-Capability-Audit.md
+Assets/_Documentation/Notes/F27D-Pause-Capability-Gate-Reframe.md
+```

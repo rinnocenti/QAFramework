@@ -5,27 +5,27 @@ using Immersive.Framework.Gate;
 namespace Immersive.Framework.Pause
 {
     /// <summary>
-    /// API status: Experimental. Passive relationship between logical Pause state and Gate blockers.
-    /// This policy describes which Gate blockers a paused framework state would expose. It does not register,
-    /// apply, release or own Gate state, input, UI, overlay or Time.timeScale.
+    /// API status: Experimental. Passive relationship between logical Pause state and Gate capability blockers.
+    /// This policy describes which admission capabilities a paused framework state blocks. It does not register,
+    /// apply, release or own Gate state, input, UI, overlay, component lifecycle or Time.timeScale.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F20D passive Pause-to-Gate blocker policy; no runtime registry or request path.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F27D passive Pause-to-capability Gate policy; no component blocker or input ownership.")]
     public static class PauseGateBlockerPolicy
     {
-        public const string PolicySource = "F20D.PauseGateBlocker";
-        public const string GameplayActionBlockerId = "pause-state-paused-gameplay-action";
+        public const string PolicySource = "F27D.PauseCapabilityGate";
+        public const string InputAcceptanceBlockerId = "pause-state-paused-input-acceptance";
         public const string InteractionAcceptanceBlockerId = "pause-state-paused-interaction-acceptance";
 
-        public static GateBlocker CreateGameplayActionBlocker(PauseSnapshot snapshot, string source, string reason)
+        public static GateBlocker CreateInputAcceptanceBlocker(PauseSnapshot snapshot, string source, string reason)
         {
             ValidatePausedSnapshot(snapshot, nameof(snapshot));
 
             return GateBlocker.ForAnyOwner(
-                GameplayActionBlockerId,
-                GateScope.Gameplay,
-                GateDomain.GameplayAction,
+                InputAcceptanceBlockerId,
+                GateScope.Input,
+                GateDomain.InputAcceptance,
                 NormalizeSource(source),
-                NormalizeReason(reason, snapshot, "Gameplay actions are blocked while Pause state is Paused."),
+                NormalizeReason(reason, snapshot, "Input acceptance is blocked while Pause state is Paused."),
                 PolicySource);
         }
 
@@ -54,8 +54,8 @@ namespace Immersive.Framework.Pause
                 NormalizeSource(source),
                 string.IsNullOrWhiteSpace(reason) ? "pause.gate.snapshot" : reason.Trim(),
                 state == PauseState.Paused
-                    ? new[] { "Pause Gate blocker snapshot created for paused state." }
-                    : new[] { "Pause Gate blocker snapshot released for running state." });
+                    ? new[] { "Pause capability Gate snapshot created for paused state." }
+                    : new[] { "Pause capability Gate snapshot released for running state." });
 
             return CreateSnapshotForPauseSnapshot(pauseSnapshot, source, reason);
         }
@@ -79,7 +79,7 @@ namespace Immersive.Framework.Pause
 
             return new GateSnapshot(new[]
             {
-                CreateGameplayActionBlocker(snapshot, source, reason),
+                CreateInputAcceptanceBlocker(snapshot, source, reason),
                 CreateInteractionAcceptanceBlocker(snapshot, source, reason)
             });
         }

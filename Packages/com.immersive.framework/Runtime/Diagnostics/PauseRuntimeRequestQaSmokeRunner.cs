@@ -33,7 +33,7 @@ namespace Immersive.Framework.Diagnostics
 
             var ensureRunningPassed = EnsureRunning(runtimeHost, logger, normalizedSource);
             var pauseAppliedPassed = ValidatePauseRequestApplied(runtimeHost, logger, normalizedSource);
-            var pausedGatePassed = ValidatePausedGateBlocksGameplay(runtimeHost, logger, normalizedSource);
+            var pausedGatePassed = ValidatePausedGateBlocksInputAcceptance(runtimeHost, logger, normalizedSource);
             var toggleResumePassed = ValidateToggleRequestResumes(runtimeHost, logger, normalizedSource);
             var resumeNoChangePassed = ValidateResumeNoChange(runtimeHost, logger, normalizedSource);
             var runningSnapshotPassed = ValidateRunningSnapshot(runtimeHost, logger, normalizedSource);
@@ -79,7 +79,7 @@ namespace Immersive.Framework.Diagnostics
                 && result.CurrentState == PauseState.Paused
                 && runtimeHost.PauseState == PauseState.Paused
                 && gateSnapshot.BlockerCount == 2
-                && gateSnapshot.IsBlocked(GateScope.Gameplay, GateDomain.GameplayAction)
+                && gateSnapshot.IsBlocked(GateScope.Input, GateDomain.InputAcceptance)
                 && gateSnapshot.IsBlocked(GateScope.Interaction, GateDomain.InteractionAcceptance)
                 && !gateSnapshot.IsBlocked(GateScope.Pause, GateDomain.PauseRequest);
 
@@ -87,14 +87,14 @@ namespace Immersive.Framework.Diagnostics
             return passed;
         }
 
-        private static bool ValidatePausedGateBlocksGameplay(FrameworkRuntimeHost runtimeHost, FrameworkLogger logger, string source)
+        private static bool ValidatePausedGateBlocksInputAcceptance(FrameworkRuntimeHost runtimeHost, FrameworkLogger logger, string source)
         {
             var evaluation = runtimeHost.EvaluatePauseGateAdmission(
-                GateScope.Gameplay,
-                GateDomain.GameplayAction,
-                "GameplayAction",
+                GateScope.Input,
+                GateDomain.InputAcceptance,
+                "InputAcceptance",
                 source,
-                "qa.pause.runtime.evaluate-gameplay");
+                "qa.pause.runtime.evaluate-input");
 
             var passed = runtimeHost.PauseState == PauseState.Paused
                 && evaluation.IsBlocked
@@ -102,7 +102,7 @@ namespace Immersive.Framework.Diagnostics
                 && evaluation.BlockingBlockerCount == 1
                 && evaluation.Decision.PolicySource == PauseGateBlockerPolicy.PolicySource;
 
-            LogGateStep(logger, "paused-gate-blocks-gameplay", runtimeHost, evaluation, passed);
+            LogGateStep(logger, "paused-gate-blocks-input-acceptance", runtimeHost, evaluation, passed);
             return passed;
         }
 
@@ -151,9 +151,9 @@ namespace Immersive.Framework.Diagnostics
             var snapshotAvailable = runtimeHost.TryGetPauseSnapshot(out var snapshot);
             var gateSnapshot = runtimeHost.PauseGateSnapshot;
             var evaluation = runtimeHost.EvaluatePauseGateAdmission(
-                GateScope.Gameplay,
-                GateDomain.GameplayAction,
-                "GameplayAction",
+                GateScope.Input,
+                GateDomain.InputAcceptance,
+                "InputAcceptance",
                 source,
                 "qa.pause.runtime.evaluate-running");
 
@@ -192,8 +192,8 @@ namespace Immersive.Framework.Diagnostics
                 LogFields.Field("ignoredNoChange", result.IgnoredNoChange),
                 LogFields.Field("stateChanged", result.StateChanged),
                 LogFields.Field("gateBlockers", gateSnapshot.BlockerCount),
-                LogFields.Field("blocksGameplay", gateSnapshot.IsBlocked(GateScope.Gameplay, GateDomain.GameplayAction)),
-                LogFields.Field("blocksInteraction", gateSnapshot.IsBlocked(GateScope.Interaction, GateDomain.InteractionAcceptance)),
+                LogFields.Field("blocksInputAcceptance", gateSnapshot.IsBlocked(GateScope.Input, GateDomain.InputAcceptance)),
+                LogFields.Field("blocksInteractionAcceptance", gateSnapshot.IsBlocked(GateScope.Interaction, GateDomain.InteractionAcceptance)),
                 LogFields.Field("blocksPauseRequest", gateSnapshot.IsBlocked(GateScope.Pause, GateDomain.PauseRequest)),
                 LogFields.Field("issues", result.IssueCount),
                 LogFields.Field("blockingIssues", result.BlockingIssueCount));
@@ -256,8 +256,8 @@ namespace Immersive.Framework.Diagnostics
                 LogFields.Field("running", snapshotAvailable && snapshot.IsRunning),
                 LogFields.Field("lastRequest", snapshotAvailable && snapshot.HasLastRequest ? snapshot.LastRequestId.StableText : "<none>"),
                 LogFields.Field("gateBlockers", gateSnapshot.BlockerCount),
-                LogFields.Field("gameplayAdmission", evaluation.Status.ToString()),
-                LogFields.Field("gameplayBlockers", evaluation.BlockingBlockerCount),
+                LogFields.Field("inputAdmission", evaluation.Status.ToString()),
+                LogFields.Field("inputBlockers", evaluation.BlockingBlockerCount),
                 LogFields.Field("facts", snapshotAvailable ? snapshot.FactCount : 0),
                 LogFields.Field("issues", snapshotAvailable ? snapshot.IssueCount : 0),
                 LogFields.Field("blockingIssues", snapshotAvailable ? snapshot.BlockingIssueCount : 0));

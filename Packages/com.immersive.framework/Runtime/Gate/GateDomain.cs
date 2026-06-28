@@ -6,7 +6,7 @@ namespace Immersive.Framework.Gate
     /// API status: Experimental. Explicit admission domain evaluated by Gate.
     /// The domain describes what kind of operation is being admitted, not which object executes it.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F17B Gate domain primitive; request/input/gameplay admission category only.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F27D Gate domain primitive; request/input/capability admission category only.")]
     public enum GateDomain
     {
         /// <summary>Invalid default value. Do not use for canonical Gate evaluations.</summary>
