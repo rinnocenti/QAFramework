@@ -29,7 +29,7 @@ Read the documentation in this order:
 | F25 | Activity Content Scene Composition | Closed / final docs aligned in F25J |
 | F26 | Activity Scene Discovery Integration / Loading Progress Integration | Closed / loading progress closed through F26F |
 | F27 | Pause UIGlobal Surface, Input Wiring and Gate Reframe | Frozen after F27D / F27E cancelled |
-| F28 | Roadmap Reconciliation and Adapter Module Spine | Active / F28A closed / documentation-first |
+| F28 | Roadmap Reconciliation and Adapter Module Spine | Active / F28A-F28B closed / documentation-first |
 
 ## F23 Boundary
 
@@ -112,8 +112,8 @@ F28 output:
 
 ```text
 F28A baseline reconciliation — closed docs-only
-F28B completion dependency map
-F28C adapter module taxonomy
+F28B completion dependency map — closed docs-only
+F28C adapter module taxonomy — next
 F28D player/actor/input ownership plan
 F28E InputMode and Pause integration plan
 F28F next implementation closeout
@@ -122,6 +122,8 @@ F28F next implementation closeout
 ADR: `ADRs/F28-ADR-INPUT-001-InputMode-Adapter-Boundary.md`.
 
 F28A note: `../../Assets/_Documentation/Notes/F28A-Frozen-Baseline-Reconciliation.md`.
+
+F28B note: `../../Assets/_Documentation/Notes/F28B-Completion-Dependency-Map.md`.
 
 ## F25 Activity Content Scene Composition
 

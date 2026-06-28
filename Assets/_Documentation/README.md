@@ -55,6 +55,10 @@ F28 roadmap correction: `Plans/F28-PLAN-InputMode-And-Adapter-Boundary.md`.
 
 F28A baseline reconciliation: `Notes/F28A-Frozen-Baseline-Reconciliation.md`.
 
+F28B completion dependency map: `Notes/F28B-Completion-Dependency-Map.md`.
+
+F28A baseline reconciliation: `Notes/F28A-Frozen-Baseline-Reconciliation.md`.
+
 ## Regras
 
 - Documentação viva do projeto fica em `Assets/_Documentation`.

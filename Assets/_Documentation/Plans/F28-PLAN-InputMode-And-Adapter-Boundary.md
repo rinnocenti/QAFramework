@@ -2,7 +2,7 @@
 
 ## Status
 
-Active / F28A closed / documentation-first / no runtime changes
+Active / F28A-F28B closed / documentation-first / no runtime changes
 
 ## Purpose
 
@@ -84,8 +84,8 @@ F28 treats adapters as a set of future lanes, not a single InputMode patch.
 | Cut | Name | Status | Output |
 |---|---|---|---|
 | F28A | Frozen Baseline Reconciliation | Closed / docs-only | One authoritative reading of the current frozen baseline, including package docs, project docs, QA assets and the cancelled F27E path. |
-| F28B | Completion Dependency Map | Next | Ordered dependency graph for the remaining product-completion tracks. Identifies what must precede Player, InputMode, Pause integration, Camera, Audio, Save, RuntimeSpawned and Gameplay. |
-| F28C | Adapter Module Taxonomy | Planned | Defines module families, owner kind, placement rule and dependency category. This is still documentation/plan, not runtime registration. |
+| F28B | Completion Dependency Map | Closed / docs-only | Ordered dependency graph for the remaining product-completion tracks. Identifies what must precede Player, InputMode, Pause integration, Camera, Audio, Save, RuntimeSpawned and Gameplay. |
+| F28C | Adapter Module Taxonomy | Next | Defines module families, owner kind, placement rule and dependency category. This is still documentation/plan, not runtime registration. |
 | F28D | Player / Actor / Input Ownership Plan | Planned | Decides the ownership path for `PlayerInput`, player object lifetime, player/actor adapter placement and the first input target proof. |
 | F28E | InputMode and Pause Integration Plan | Planned | Defines typed InputMode semantics and how Pause requests modes after ownership is clear. |
 | F28F | Next Implementation Closeout | Planned | Selects the next code phase and writes entry criteria, smoke target and file placement rules. |
@@ -121,6 +121,58 @@ stop conditions for premature consumers
 ```
 
 F28B must not create runtime code, adapter registries, PlayerInput ownership, InputMode services, action-map switching, QA buttons or new asmdefs.
+
+## F28B Closure Result
+
+F28B closes the completion dependency map.
+
+Canonical dependency order:
+
+```text
+F28A frozen baseline
+  -> F28B dependency map
+  -> F28C adapter module taxonomy
+  -> F28D Player / Actor / Unity Input ownership
+  -> F28E InputMode / Pause integration
+  -> F28F next implementation selection
+```
+
+Family-level blockers:
+
+| Family | Must come before implementation |
+|---|---|
+| Player / Actor | RuntimeContent ownership, object entry/reset foundations and adapter placement rules. |
+| Unity Input | Player target ownership and global UI input target ownership. |
+| InputMode | Unity Input target path and typed mode semantics. |
+| Pause Integration | InputMode owner and target split. |
+| Camera | Content Anchor binding, RuntimeContent release ownership and optional player/actor targets. |
+| Audio | Lifecycle consumer boundary and project audio policy split. |
+| Save / Progression | Snapshot/progression ports and backend placement rule. |
+| RuntimeSpawned / Pooling | Runtime roots, handles, release policy and pooling package boundary. |
+| Gameplay Capabilities | Player/Actor and RuntimeSpawned foundations. |
+
+Reference note:
+
+```text
+Assets/_Documentation/Notes/F28B-Completion-Dependency-Map.md
+```
+
+## F28C Entry Criteria
+
+F28C starts from the F28B dependency map.
+
+F28C must define, still without runtime code:
+
+```text
+adapter module owner kinds
+adapter dependency categories
+module placement rules
+which lanes can become package modules
+which lanes stay project-specific assets/config
+which external dependencies are Unity official, optional package, external tool or product asset
+```
+
+F28C must not implement module registration, discovery, PlayerInput ownership, InputMode service, camera/audio/save adapters or gameplay modules.
 
 ## Expected Phase Output
 

@@ -1,6 +1,6 @@
 # F28-ADR-PLAN-001 — Roadmap Reconciliation and Adapter Module Spine
 
-Status: Accepted / F28A baseline closed / planning gate  
+Status: Accepted / F28A-F28B closed / planning gate  
 Phase: F28 — Roadmap Reconciliation and Adapter Module Spine  
 Type: Framework Planning / Adapter Module Boundary / Input Positioning
 
@@ -134,8 +134,8 @@ Gate is not the normal implementation path for pausing ordinary gameplay input.
 | Cut | Name | Output |
 |---|---|---|
 | F28A | Frozen Baseline Reconciliation | Authoritative read of package docs, project docs, QA assets and the cancelled F27E path. |
-| F28B | Completion Dependency Map | Ordered dependency graph for remaining product-completion tracks. |
-| F28C | Adapter Module Taxonomy | Module families, owner kind, placement rule and dependency category. |
+| F28B | Completion Dependency Map | Closed: ordered dependency graph for remaining product-completion tracks. |
+| F28C | Adapter Module Taxonomy | Next: module families, owner kind, placement rule and dependency category. |
 | F28D | Player / Actor / Input Ownership Plan | Player object, `PlayerInput`, player/actor adapter placement and first target proof. |
 | F28E | InputMode and Pause Integration Plan | Typed InputMode semantics and Pause-driven mode requests after ownership is clear. |
 | F28F | Next Implementation Closeout | Next code phase, entry criteria, smoke target and file placement rules. |
@@ -155,3 +155,27 @@ Assets/ and Packages/com.immersive.framework/ are both source-of-truth boundarie
 ```
 
 F28B is the next cut and must produce a dependency map before any adapter/module implementation starts.
+
+## F28B Dependency Decision
+
+F28B closes the completion dependency map.
+
+The accepted order is:
+
+```text
+F28C adapter module taxonomy
+  -> F28D Player / Actor / Unity Input ownership
+  -> F28E InputMode and Pause integration
+  -> F28F next implementation selection
+```
+
+InputMode is explicitly downstream of Unity Input target ownership. Pause integration is explicitly downstream of InputMode.
+
+Camera, Audio, Save / Progression, RuntimeSpawned / Pooling and Gameplay Capabilities are separate adapter lanes. They may be planned in parallel after taxonomy, but implementation must respect their family-specific blockers.
+
+F28B reference:
+
+```text
+Assets/_Documentation/Notes/F28B-Completion-Dependency-Map.md
+```
+

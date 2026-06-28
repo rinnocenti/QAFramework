@@ -60,8 +60,8 @@ F28 is documentation-first. It creates the dependency and ownership map for the 
 | Cut | Name | Status | Output |
 |---|---|---|---|
 | F28A | Frozen Baseline Reconciliation | Closed / docs-only | Authoritative reading of package docs, project docs, QA assets and the cancelled F27E path. |
-| F28B | Completion Dependency Map | Next | Ordered graph for remaining product-completion tracks. |
-| F28C | Adapter Module Taxonomy | Planned | Module families, owner kind, placement rule and dependency category. |
+| F28B | Completion Dependency Map | Closed / docs-only | Ordered graph for remaining product-completion tracks. |
+| F28C | Adapter Module Taxonomy | Next | Module families, owner kind, placement rule and dependency category. |
 | F28D | Player / Actor / Input Ownership Plan | Planned | Player object ownership, `PlayerInput` target ownership and first input target proof. |
 | F28E | InputMode and Pause Integration Plan | Planned | Typed InputMode semantics and Pause-driven mode requests after ownership is clear. |
 | F28F | Next Implementation Closeout | Planned | Next code phase, entry criteria, smoke target and file placement rules. |
@@ -77,7 +77,25 @@ Assets/ = project-facing operational source
 Packages/com.immersive.framework/ = framework source
 ```
 
-F28B now owns the dependency graph; it still does not create runtime contracts.
+F28B closes the dependency graph. It confirms that F28C is the next cut and that implementation remains frozen until adapter taxonomy, ownership and placement rules are accepted.
+
+F28B dependency order:
+
+```text
+adapter module taxonomy
+  -> Player / Actor ownership
+  -> Unity Input target ownership
+  -> InputMode semantics
+  -> Pause requests InputMode
+  -> optional Camera / Audio / Save / RuntimeSpawned lanes
+  -> gameplay modules
+```
+
+F28B reference note:
+
+```text
+Assets/_Documentation/Notes/F28B-Completion-Dependency-Map.md
+```
 
 ### F29 — Adapter Module Foundation
 
