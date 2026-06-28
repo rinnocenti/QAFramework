@@ -137,6 +137,13 @@ namespace Immersive.Framework.RouteLifecycle
             var previousRouteState = _currentRouteState;
             var previousRoute = previousRouteState.Route;
             var previousActivity = _activityFlowRuntime.CurrentActivity;
+            var startupOperationPreview = PreviewRouteStartupActivityOperation(route, previousActivity, source, reason);
+            if (startupOperationPreview.IsBlocked)
+            {
+                return RouteLifecycleStartResult.Failed(
+                    "Route Startup Activity blocked by ActivityOperationPlan. " + startupOperationPreview.ToDiagnosticString());
+            }
+
             var routeContentExitResult = _routeContentRuntime.ExitRouteContent(previousRoute, route, source, reason);
             var activitySceneRouteReleaseResult = await _activityFlowRuntime.ReleaseActivityScenesForRouteChangeAsync(source, reason);
             if (activitySceneRouteReleaseResult.HasBlockingIssues)
@@ -218,6 +225,33 @@ namespace Immersive.Framework.RouteLifecycle
             _currentRouteState = result.RouteState;
             PublishRouteTransition(previousRoute, route, source, reason);
             return result;
+        }
+
+
+        private ActivityOperationResult PreviewRouteStartupActivityOperation(
+            RouteAsset route,
+            ActivityAsset previousActivity,
+            string source,
+            string reason)
+        {
+            if (route == null || !route.HasStartupActivity)
+            {
+                return ActivityOperationResult.NotRequested(source, reason);
+            }
+
+            var startupActivity = route.StartupActivity;
+            return _activityFlowRuntime.PreviewActivityOperation(
+                ActivityOperationKind.RouteStartup,
+                previousActivity,
+                startupActivity,
+                ResolveActivityTransitionMode(startupActivity),
+                source,
+                reason);
+        }
+
+        private static ActivityVisualTransitionMode ResolveActivityTransitionMode(ActivityAsset activity)
+        {
+            return activity != null ? activity.VisualTransitionMode : ActivityVisualTransitionMode.Seamless;
         }
 
         private void PublishRouteTransition(

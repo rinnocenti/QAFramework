@@ -102,6 +102,8 @@ Project plan: `Assets/_Documentation/Plans/F25-PLAN-Activity-Content-Scene-Compo
 
 `F25F2 - Activity Operation Blocked Diagnostics Fix` preserves the resolved operation visual mode in blocked/failed Activity request diagnostics, so a blocked `Fade` plan no longer reports `activityTransitionMode=Seamless` in the final result fields.
 
+`F25G - Startup Activity Path Unification` previews Route startup Activity as `ActivityOperationKind.RouteStartup`, blocks invalid startup plans before Route lifecycle side-effects, carries the operation result into `ActivityFlowStartResult`, and adds Route request diagnostics for startup Activity operation and Activity scene composition/release. Route transition/loading remains the outer visual envelope; no final ledger is introduced yet.
+
 ### IF-FW-F25D — Activity Content Release
 
 Activity-owned additive scenes loaded through Activity scene composition are now released on Activity change when their scene entry uses `ReleaseOnActivityChange`.

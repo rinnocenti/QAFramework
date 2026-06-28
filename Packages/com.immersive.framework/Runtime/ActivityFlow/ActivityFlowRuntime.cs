@@ -137,6 +137,7 @@ namespace Immersive.Framework.ActivityFlow
             var previousActivity = _currentActivityState.Activity;
             if (!route.HasStartupActivity)
             {
+                var operationResult = ActivityOperationResult.NotRequested(resolvedSource, resolvedReason);
                 _currentActivityState = ActivityRuntimeState.None(previousActivity, resolvedSource, resolvedReason);
                 var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, null, resolvedSource, resolvedReason);
                 var executionResult = ExecuteActivityContentLifecycle(previousActivity, null, resolvedSource, resolvedReason);
@@ -149,10 +150,31 @@ namespace Immersive.Framework.ActivityFlow
                     runtimeScopeResult,
                     bindingCleanupResult,
                     ActivityContentAnchorDiscoveryResult.Empty(null, resolvedSource, resolvedReason, "No startup Activity is active; Activity Content Anchor discovery was skipped."),
-                    executionResult));
+                    executionResult,
+                    activityOperationResult: operationResult));
             }
 
-            return StartActivityCoreAsync(route.StartupActivity, previousActivity, resolvedSource, resolvedReason);
+            var startupActivity = route.StartupActivity;
+            var operationPreview = PreviewActivityOperation(
+                ActivityOperationKind.RouteStartup,
+                previousActivity,
+                startupActivity,
+                ResolveActivityTransitionMode(startupActivity),
+                resolvedSource,
+                resolvedReason);
+            if (operationPreview.IsBlocked)
+            {
+                return Task.FromResult(ActivityFlowStartResult.Failed(
+                    "Route Startup Activity blocked by ActivityOperationPlan. " + operationPreview.ToDiagnosticString(),
+                    operationPreview));
+            }
+
+            return StartActivityCoreAsync(
+                startupActivity,
+                previousActivity,
+                resolvedSource,
+                resolvedReason,
+                operationPreview);
         }
 
         internal Task<ActivityFlowStartResult> StartActivityAsync(ActivityAsset activity, string source, string reason)
@@ -218,7 +240,12 @@ namespace Immersive.Framework.ActivityFlow
                 sceneReleaseResult);
         }
 
-        private async Task<ActivityFlowStartResult> StartActivityCoreAsync(ActivityAsset nextActivity, ActivityAsset previousActivity, string source, string reason)
+        private async Task<ActivityFlowStartResult> StartActivityCoreAsync(
+            ActivityAsset nextActivity,
+            ActivityAsset previousActivity,
+            string source,
+            string reason,
+            ActivityOperationResult activityOperationResult = default(ActivityOperationResult))
         {
             string resolvedSource = NormalizeSource(source);
             string resolvedReason = NormalizeReason(reason);
@@ -247,7 +274,7 @@ namespace Immersive.Framework.ActivityFlow
                 _currentActivityState = previousActivity != null
                     ? ActivityRuntimeState.ActiveWith(previousActivity, nextActivity, resolvedSource, resolvedReason)
                     : ActivityRuntimeState.None(nextActivity, resolvedSource, resolvedReason);
-                return ActivityFlowStartResult.Failed(sceneCompositionResult.ToDiagnosticString());
+                return ActivityFlowStartResult.Failed(sceneCompositionResult.ToDiagnosticString(), activityOperationResult);
             }
 
             var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, nextActivity, resolvedSource, resolvedReason);
@@ -271,7 +298,14 @@ namespace Immersive.Framework.ActivityFlow
                 activityContentAnchorDiscoveryResult,
                 executionResult,
                 sceneCompositionResult,
-                sceneReleaseResult);
+                sceneReleaseResult,
+                activityOperationResult);
+        }
+
+
+        private static ActivityVisualTransitionMode ResolveActivityTransitionMode(ActivityAsset activity)
+        {
+            return activity != null ? activity.VisualTransitionMode : ActivityVisualTransitionMode.Seamless;
         }
 
         private Task<ActivitySceneCompositionResult> ExecuteActivitySceneCompositionAsync(

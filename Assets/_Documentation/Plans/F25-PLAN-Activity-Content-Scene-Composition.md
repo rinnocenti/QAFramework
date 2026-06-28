@@ -122,6 +122,20 @@ When `ActivityOperationPlan` blocks a request with `visualMode=Fade`, the final 
 
 F25F2 does not execute transition, loading, scene load/release or lifecycle side-effects.
 
+
+## IF-FW-F25G - Startup Activity path unification
+
+F25G starts applying the same Activity operation path to Route startup Activity.
+
+Runtime rules:
+
+- Route startup Activity is previewed as `ActivityOperationKind.RouteStartup` before Route lifecycle side-effects execute.
+- Blocked startup Activity plans fail the Route start explicitly instead of falling through to an incomplete Activity path.
+- `ActivityFlowRuntime.StartStartupActivityAsync` also previews and carries the operation result into `ActivityFlowStartResult`.
+- Route request diagnostics now report `routeStartupActivityOperation*` and Activity scene composition/release fields for the startup Activity result.
+- F25G does not create a separate Activity transition/loading envelope for startup Activity; Route transition/loading remains the outer visual envelope for Route startup.
+- F25G does not implement the final Activity scene ledger.
+
 ## F25A acceptance
 
 - Activity can reference an Activity Content Profile.
