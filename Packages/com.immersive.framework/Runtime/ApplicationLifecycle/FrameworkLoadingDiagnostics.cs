@@ -9,7 +9,11 @@ namespace Immersive.Framework.ApplicationLifecycle
     [FrameworkApiStatus(FrameworkApiStatus.Internal, "F24D request-level Loading diagnostics.")]
     internal readonly struct FrameworkLoadingDiagnostics
     {
-        private const string IndeterminateProgressText = "Indeterminate";
+        private const string AlreadyLoadedPhase = "AlreadyLoaded";
+        private const string NoSceneLoadPhase = "NoSceneLoad";
+        private const string ActivityPolicyPhase = "ActivityPolicy";
+        private const string NoOpPhase = "NoOp";
+        private const string RequiredSurfacePhase = "RequiredSurface";
         private const string UnitySurfaceText = "UnitySurface";
         private const string NoneText = "None";
         private const string SkippedText = "Skipped";
@@ -19,19 +23,17 @@ namespace Immersive.Framework.ApplicationLifecycle
             string visualText,
             string beforeText,
             string afterText,
-            string progressText,
+            FrameworkLoadingProgress progress,
             int blockingIssueCount,
-            int adapterCount,
-            bool progressSupported)
+            int adapterCount)
         {
             LoadingText = Normalize(loadingText);
             VisualText = Normalize(visualText);
             BeforeText = Normalize(beforeText);
             AfterText = Normalize(afterText);
-            ProgressText = Normalize(progressText);
+            Progress = progress;
             BlockingIssueCount = blockingIssueCount < 0 ? 0 : blockingIssueCount;
             AdapterCount = adapterCount < 0 ? 0 : adapterCount;
-            ProgressSupported = progressSupported;
         }
 
         public string LoadingText { get; }
@@ -42,13 +44,25 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         public string AfterText { get; }
 
-        public string ProgressText { get; }
+        public FrameworkLoadingProgress Progress { get; }
 
         public int BlockingIssueCount { get; }
 
         public int AdapterCount { get; }
 
-        public bool ProgressSupported { get; }
+        public bool ProgressSupported => Progress.Supported;
+
+        public string ProgressModeText => Progress.ModeText;
+
+        public string ProgressValueText => Progress.ValueText;
+
+        public string ProgressPercentText => Progress.PercentText;
+
+        public string ProgressPhaseText => Progress.PhaseText;
+
+        public string ProgressMessageText => Progress.MessageText;
+
+        public string ProgressText => ProgressModeText;
 
         public bool HasDiagnostics => !string.IsNullOrWhiteSpace(LoadingText);
 
@@ -59,10 +73,11 @@ namespace Immersive.Framework.ApplicationLifecycle
                 NoneText,
                 SkippedText,
                 SkippedText,
-                IndeterminateProgressText,
+                FrameworkLoadingProgress.Unsupported(
+                    AlreadyLoadedPhase,
+                    "Loading was skipped because the target is already active."),
                 0,
-                0,
-                false);
+                0);
         }
 
         public static FrameworkLoadingDiagnostics SkippedNoSceneLoad()
@@ -72,10 +87,11 @@ namespace Immersive.Framework.ApplicationLifecycle
                 NoneText,
                 SkippedText,
                 SkippedText,
-                IndeterminateProgressText,
+                FrameworkLoadingProgress.Unsupported(
+                    NoSceneLoadPhase,
+                    "No loading progress source was available because no scene load or release side-effect occurred."),
                 0,
-                0,
-                false);
+                0);
         }
 
         public static FrameworkLoadingDiagnostics SkippedByActivityPolicy()
@@ -85,10 +101,11 @@ namespace Immersive.Framework.ApplicationLifecycle
                 NoneText,
                 SkippedText,
                 SkippedText,
-                IndeterminateProgressText,
+                FrameworkLoadingProgress.Unsupported(
+                    ActivityPolicyPhase,
+                    "Activity loading presentation was skipped by the authored visual policy."),
                 0,
-                0,
-                false);
+                0);
         }
 
         public static FrameworkLoadingDiagnostics SucceededWithNoOp()
@@ -98,10 +115,11 @@ namespace Immersive.Framework.ApplicationLifecycle
                 NoneText,
                 SkippedText,
                 SkippedText,
-                IndeterminateProgressText,
+                FrameworkLoadingProgress.Unsupported(
+                    NoOpPhase,
+                    "Loading completed without an executable loading surface."),
                 0,
-                0,
-                false);
+                0);
         }
 
         public static FrameworkLoadingDiagnostics FailedRequiredUnitySurfaceMissing()
@@ -111,10 +129,11 @@ namespace Immersive.Framework.ApplicationLifecycle
                 NoneText,
                 "Failed",
                 "Failed",
-                IndeterminateProgressText,
+                FrameworkLoadingProgress.Unsupported(
+                    RequiredSurfacePhase,
+                    "Required loading surface configuration is missing."),
                 1,
-                0,
-                false);
+                0);
         }
 
         public static FrameworkLoadingDiagnostics FromUnitySurface(
@@ -127,15 +146,22 @@ namespace Immersive.Framework.ApplicationLifecycle
             var beforeText = StatusText(beforeResult);
             var afterText = StatusText(afterResult);
             var loadingText = DetermineSurfaceLoadingText(beforeResult, afterResult);
+            var progress = progressSupported
+                ? FrameworkLoadingProgress.Indeterminate(
+                    true,
+                    UnitySurfaceText,
+                    "Loading progress support is available but no determinate source is wired in this cut.")
+                : FrameworkLoadingProgress.Unsupported(
+                    UnitySurfaceText,
+                    "Loading surface adapters do not expose progress in this cut.");
             return new FrameworkLoadingDiagnostics(
                 loadingText,
                 UnitySurfaceText,
                 beforeText,
                 afterText,
-                progressSupported ? "Supported" : IndeterminateProgressText,
+                progress,
                 blockingIssueCount,
-                adapterCount,
-                progressSupported);
+                adapterCount);
         }
 
         private static string DetermineSurfaceLoadingText(

@@ -1121,6 +1121,11 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("loadingBlockingIssues", loadingDiagnostics.BlockingIssueCount),
                 LogFields.Field("loadingAdapterCount", loadingDiagnostics.AdapterCount),
                 LogFields.Field("loadingProgressSupported", loadingDiagnostics.ProgressSupported),
+                LogFields.Field("loadingProgressMode", loadingDiagnostics.ProgressModeText),
+                LogFields.Field("loadingProgressValue", loadingDiagnostics.ProgressValueText),
+                LogFields.Field("loadingProgressPercent", loadingDiagnostics.ProgressPercentText),
+                LogFields.Field("loadingProgressPhase", loadingDiagnostics.ProgressPhaseText),
+                LogFields.Field("loadingProgressMessage", loadingDiagnostics.ProgressMessageText),
                 LogFields.Field("loadingProgress", loadingDiagnostics.ProgressText));
         }
 
@@ -1226,6 +1231,11 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("loadingBlockingIssues", loadingDiagnostics.BlockingIssueCount),
                 LogFields.Field("loadingAdapterCount", loadingDiagnostics.AdapterCount),
                 LogFields.Field("loadingProgressSupported", loadingDiagnostics.ProgressSupported),
+                LogFields.Field("loadingProgressMode", loadingDiagnostics.ProgressModeText),
+                LogFields.Field("loadingProgressValue", loadingDiagnostics.ProgressValueText),
+                LogFields.Field("loadingProgressPercent", loadingDiagnostics.ProgressPercentText),
+                LogFields.Field("loadingProgressPhase", loadingDiagnostics.ProgressPhaseText),
+                LogFields.Field("loadingProgressMessage", loadingDiagnostics.ProgressMessageText),
                 LogFields.Field("loadingProgress", loadingDiagnostics.ProgressText));
         }
 
@@ -1239,6 +1249,11 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("loadingBlockingIssues", loadingDiagnostics.BlockingIssueCount),
                 LogFields.Field("loadingAdapterCount", loadingDiagnostics.AdapterCount),
                 LogFields.Field("loadingProgressSupported", loadingDiagnostics.ProgressSupported),
+                LogFields.Field("loadingProgressMode", loadingDiagnostics.ProgressModeText),
+                LogFields.Field("loadingProgressValue", loadingDiagnostics.ProgressValueText),
+                LogFields.Field("loadingProgressPercent", loadingDiagnostics.ProgressPercentText),
+                LogFields.Field("loadingProgressPhase", loadingDiagnostics.ProgressPhaseText),
+                LogFields.Field("loadingProgressMessage", loadingDiagnostics.ProgressMessageText),
                 LogFields.Field("loadingProgress", loadingDiagnostics.ProgressText));
         }
 

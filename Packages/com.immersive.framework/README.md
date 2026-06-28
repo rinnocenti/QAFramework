@@ -49,6 +49,8 @@ F25 currently stabilizes Activity Content Scene Composition before broader adapt
 
 F26A integrates Activity-owned additive scenes tracked by `ActivitySceneLedger` into Activity content discovery while keeping Route content discovery separate. F26A1 clarifies diagnostics: local Activity adapters/handles are reported separately from explicit Activity content participants.
 
+F26B introduces the internal loading progress contract and logging fields without changing LoadingSurface presentation or wiring progress to `SceneManager.LoadSceneAsync` yet. The contract is diagnostic-only for now, and the visual loading path remains unchanged.
+
 ## Anti-Regression Rules
 
 - Snapshot does not know a backend.
