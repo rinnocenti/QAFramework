@@ -25,7 +25,7 @@ namespace Immersive.Framework.ActivityFlow
             ActivityAsset activity,
             ActivitySceneCompositionResultEntry entry)
         {
-            if (activity == null || !entry.Loaded && !entry.AlreadyLoaded)
+            if (activity == null || entry is { Loaded: false, AlreadyLoaded: false })
             {
                 return;
             }
@@ -84,8 +84,7 @@ namespace Immersive.Framework.ActivityFlow
             for (int i = 0; i < _entries.Count; i++)
             {
                 var entry = _entries[i];
-                if (entry.IsLoaded
-                    && entry.Ownership == ActivitySceneLedgerOwnership.Activity
+                if (entry is { IsLoaded: true, Ownership: ActivitySceneLedgerOwnership.Activity }
                     && ReferenceEquals(entry.Activity, activity)
                     && string.Equals(entry.RouteInstanceId, normalizedRouteInstanceId, StringComparison.Ordinal))
                 {
@@ -108,8 +107,7 @@ namespace Immersive.Framework.ActivityFlow
             for (int i = 0; i < _entries.Count; i++)
             {
                 var entry = _entries[i];
-                if (entry.IsLoaded
-                    && entry.Ownership == ActivitySceneLedgerOwnership.Activity
+                if (entry is { IsLoaded: true, Ownership: ActivitySceneLedgerOwnership.Activity }
                     && string.Equals(entry.RouteInstanceId, normalizedRouteInstanceId, StringComparison.Ordinal))
                 {
                     entries.Add(entry);

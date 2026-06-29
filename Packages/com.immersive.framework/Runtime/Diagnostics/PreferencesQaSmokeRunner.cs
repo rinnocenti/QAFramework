@@ -82,8 +82,7 @@ namespace Immersive.Framework.Diagnostics
             var floatValue = PreferenceValue.FromFloat(0.75f);
             var boolValue = PreferenceValue.FromBool(true);
 
-            bool passed = languageKey.IsValid
-                && languageKey.StableText == "Preferences:qa.language"
+            bool passed = languageKey is { IsValid: true, StableText: "Preferences:qa.language" }
                 && stringValue.Kind == PreferenceValueKind.String
                 && intValue.Kind == PreferenceValueKind.Int
                 && floatValue.Kind == PreferenceValueKind.Float
@@ -163,8 +162,7 @@ namespace Immersive.Framework.Diagnostics
             var read = store.Read(missingKey, PreferenceValueKind.String);
             var delete = store.Delete(missingKey);
 
-            bool passed = read.Missing
-                && !read.HasValue
+            bool passed = read is { Missing: true, HasValue: false }
                 && delete.Missing
                 && !store.Contains(missingKey);
 
@@ -189,8 +187,7 @@ namespace Immersive.Framework.Diagnostics
             var read = store.Read(mismatchKey, PreferenceValueKind.Bool);
 
             bool passed = write.Written
-                && read.TypeMismatch
-                && !read.HasValue
+                && read is { TypeMismatch: true, HasValue: false }
                 && store.Contains(mismatchKey);
 
             LogStep(
@@ -216,7 +213,7 @@ namespace Immersive.Framework.Diagnostics
             PlayerPrefs.DeleteKey(store.ToPhysicalTypeKey(orphanKey));
 
             var read = store.Read(orphanKey, PreferenceValueKind.String);
-            bool passed = read.TypeMismatch && !read.HasValue && !store.Contains(orphanKey);
+            bool passed = read is { TypeMismatch: true, HasValue: false } && !store.Contains(orphanKey);
 
             LogStep(
                 logger,

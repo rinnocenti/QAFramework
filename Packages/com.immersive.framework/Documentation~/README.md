@@ -88,7 +88,7 @@ F27A adds a Pause surface adapter boundary, collects `IPauseSurfaceAdapter` from
 
 F27A does not bind keyboard/controller input, does not change `Time.timeScale` and does not own Route/Activity lifecycle.
 
-F27B adds `UnityPauseInputActionAdapter`, a narrow Unity Input System adapter that maps authored `Player/PauseToggle` and `UI/PauseToggle` actions to `PauseRequestKind.Toggle`. It preserves same-frame dedupe and does not own InputMode, PlayerInput, action-map switching or `Time.timeScale`.
+F27B added `UnityPauseInputActionAdapter` as a historical direct Pause InputAction adapter. F33C retires it as an active runtime path because the canonical path must synchronize Pause, InputMode and Unity `PlayerInput`. Use `PauseInputActionRuntimeBridgeTrigger` plus `PauseInputModeUnityPlayerInputRuntimeBridge`.
 
 F27C-F27D reframe Gate away from component blocking, but F27E is cancelled: ordinary input consumers should not each query Gate as the primary Pause/Input strategy. InputMode and adapter ownership must be planned first.
 
@@ -443,7 +443,7 @@ Assets/_Documentation/Notes/F31C-PlayerActor-Session-Input-Reference-Closeout.md
 
 ## F33 Pause Runtime PlayerInput Wiring
 
-F33 starts after F32H. F33A introduces `PauseInputModeUnityPlayerInputRuntimeBridge`, an opt-in Unity component that submits logical Pause requests and applies the resulting InputMode to an explicit `PlayerInput` only after preflight. F33B introduces `PauseInputActionRuntimeBridgeTrigger`, an opt-in Unity `InputAction` trigger for that bridge.
+F33 starts after F32H. F33A introduces `PauseInputModeUnityPlayerInputRuntimeBridge`, an opt-in Unity component that submits logical Pause requests and applies the resulting InputMode to an explicit `PlayerInput` only after preflight. F33B introduces `PauseInputActionRuntimeBridgeTrigger`, an opt-in Unity `InputAction` trigger for that bridge. F33C retires the older direct `UnityPauseInputActionAdapter` as an active runtime path. F33D flattens trigger/bridge diagnostics so smoke logs remain readable.
 
 It is not automatic `FrameworkRuntimeHost` wiring and still does not own `PlayerInputManager`, call `JoinPlayer`, spawn player prefabs, move actors or read gameplay commands.
 
@@ -452,3 +452,7 @@ Project plan: `../../Assets/_Documentation/Plans/F33-PLAN-Pause-Runtime-PlayerIn
 F33A note: `../../Assets/_Documentation/Notes/F33A-Pause-Runtime-PlayerInput-Bridge.md`.
 
 F33B note: `../../Assets/_Documentation/Notes/F33B-Pause-InputAction-Runtime-Bridge-Trigger.md`.
+
+F33C note: `../../Assets/_Documentation/Notes/F33C-Legacy-Pause-InputAction-Adapter-Retirement.md`.
+
+F33D note: `../../Assets/_Documentation/Notes/F33D-Pause-Input-Diagnostics-Flattening.md`.

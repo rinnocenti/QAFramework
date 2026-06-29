@@ -257,7 +257,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                     reason,
                     false,
                     ToSurfaceProgress(loadingProgressReporter.LastProgress),
-                    loadingProgressReporter.HasReportedProgress && loadingProgressReporter.LastProgress.Supported && loadingProgressReporter.LastProgress.IsDeterminate);
+                    loadingProgressReporter.HasReportedProgress && loadingProgressReporter.LastProgress is { Supported: true, IsDeterminate: true });
                 loadingAfterResult = await _loadingSurfaceRuntime.HideAsync(loadingHideRequest);
             }
 
@@ -339,7 +339,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                     reason,
                     false,
                     ToSurfaceProgress(loadingProgressReporter.LastProgress),
-                    loadingProgressReporter.HasReportedProgress && loadingProgressReporter.LastProgress.Supported && loadingProgressReporter.LastProgress.IsDeterminate);
+                    loadingProgressReporter.HasReportedProgress && loadingProgressReporter.LastProgress is { Supported: true, IsDeterminate: true });
                 loadingAfterResult = await _loadingSurfaceRuntime.HideAsync(loadingHideRequest);
             }
 
@@ -413,7 +413,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                     reason,
                     false,
                     ToSurfaceProgress(loadingProgressReporter.LastProgress),
-                    loadingProgressReporter.HasReportedProgress && loadingProgressReporter.LastProgress.Supported && loadingProgressReporter.LastProgress.IsDeterminate);
+                    loadingProgressReporter.HasReportedProgress && loadingProgressReporter.LastProgress is { Supported: true, IsDeterminate: true });
                 loadingAfterResult = await _loadingSurfaceRuntime.HideAsync(loadingHideRequest);
             }
 
@@ -606,8 +606,7 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         private bool ShouldShowLoadingSurface(RouteAsset targetRoute)
         {
-            return _loadingSurfaceRuntime != null
-                && _loadingSurfaceRuntime.HasVisibleSurface
+            return _loadingSurfaceRuntime is { HasVisibleSurface: true }
                 && targetRoute != null;
         }
 
@@ -666,7 +665,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                 source,
                 reason);
 
-            return operationPreview.IsValid && operationPreview.RequiresLoadingSurface;
+            return operationPreview is { IsValid: true, RequiresLoadingSurface: true };
         }
 
         private bool ShouldShowActivityClearLoadingSurface(ActivityAsset previousActivity, string source, string reason)
@@ -689,7 +688,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                 source,
                 reason);
 
-            return operationPreview.IsValid && operationPreview.RequiresLoadingSurface;
+            return operationPreview is { IsValid: true, RequiresLoadingSurface: true };
         }
 
         private static LoadingSurfaceRequest CreateActivityLoadingSurfaceRequest(
@@ -728,7 +727,7 @@ namespace Immersive.Framework.ApplicationLifecycle
 
         private static LoadingProgress ToSurfaceProgress(FrameworkLoadingProgress progress)
         {
-            return progress.Supported && progress.IsDeterminate
+            return progress is { Supported: true, IsDeterminate: true }
                 ? LoadingProgress.FromNormalized(progress.Value01)
                 : LoadingProgress.Zero;
         }
@@ -782,7 +781,7 @@ namespace Immersive.Framework.ApplicationLifecycle
             IReadOnlyList<ITransitionEffectAdapter> sceneAdapters = globalUiSceneRuntime != null
                 ? globalUiSceneRuntime.TransitionAdapters
                 : Array.Empty<ITransitionEffectAdapter>();
-            bool hasSceneAdapters = sceneAdapters != null && sceneAdapters.Count > 0;
+            bool hasSceneAdapters = sceneAdapters is { Count: > 0 };
             string sceneLabel = globalUiSceneRuntime != null && !string.IsNullOrWhiteSpace(globalUiSceneRuntime.Label)
                 ? globalUiSceneRuntime.Label
                 : "UIGlobal Transition Surface";

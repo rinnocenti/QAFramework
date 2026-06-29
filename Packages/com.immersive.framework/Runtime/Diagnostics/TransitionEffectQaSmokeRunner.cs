@@ -78,15 +78,10 @@ namespace Immersive.Framework.Diagnostics
         private static bool ValidateRequest(FrameworkLogger logger, TransitionEffectPlan plan)
         {
             var request = plan.Requests[0];
-            bool passed = request.IsValid
-                && request.EffectId.Domain == FrameworkIdentityDomain.TransitionEffect
+            bool passed = request is { IsValid: true, EffectId: { Domain: FrameworkIdentityDomain.TransitionEffect } }
                 && request.OperationId == plan.OperationId
                 && request.TransitionKind == plan.TransitionKind
-                && request.EffectKind == TransitionEffectKind.Fade
-                && request.Requiredness == TransitionEffectRequiredness.Required
-                && request.Phase == TransitionPhase.GateBlockApplied
-                && request.IsRequired
-                && !request.IsOptional;
+                && request is { EffectKind: TransitionEffectKind.Fade, Requiredness: TransitionEffectRequiredness.Required, Phase: TransitionPhase.GateBlockApplied, IsRequired: true, IsOptional: false };
 
             LogRequestStep(logger, "request", request, passed);
             return passed;
@@ -94,12 +89,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidatePlan(FrameworkLogger logger, TransitionEffectPlan plan)
         {
-            bool passed = plan.IsValid
-                && plan.OperationId.Domain == FrameworkIdentityDomain.Transition
-                && plan.TransitionKind == TransitionKind.RouteSwitch
-                && plan.RequestCount == 2
-                && plan.RequiredRequestCount == 1
-                && plan.OptionalRequestCount == 1
+            bool passed = plan is { IsValid: true, OperationId: { Domain: FrameworkIdentityDomain.Transition }, TransitionKind: TransitionKind.RouteSwitch, RequestCount: 2, RequiredRequestCount: 1, OptionalRequestCount: 1 }
                 && plan.CountByKind(TransitionEffectKind.Fade) == 1
                 && plan.CountByKind(TransitionEffectKind.LoadingScreen) == 1;
 
@@ -111,14 +101,7 @@ namespace Immersive.Framework.Diagnostics
         {
             var request = plan.Requests[0];
             var result = TransitionEffectResult.SucceededResult(request, "Required fade effect completed synthetically.");
-            bool passed = result.IsValid
-                && result.Succeeded
-                && result.Completed
-                && !result.CompletedWithWarnings
-                && !result.Failed
-                && !result.MissingAdapter
-                && !result.BlocksTransition
-                && result.IssueCount == 0
+            bool passed = result is { IsValid: true, Succeeded: true, Completed: true, CompletedWithWarnings: false, Failed: false, MissingAdapter: false, BlocksTransition: false, IssueCount: 0 }
                 && result.OperationId == plan.OperationId
                 && result.TransitionKind == plan.TransitionKind;
 
@@ -130,12 +113,7 @@ namespace Immersive.Framework.Diagnostics
         {
             var request = plan.Requests[1];
             var result = TransitionEffectResult.SkippedResult(request, "Optional loading screen skipped synthetically.");
-            bool passed = result.IsValid
-                && result.Skipped
-                && result.Completed
-                && result.IsOptional
-                && !result.BlocksTransition
-                && result.IssueCount == 0
+            bool passed = result is { IsValid: true, Skipped: true, Completed: true, IsOptional: true, BlocksTransition: false, IssueCount: 0 }
                 && result.OperationId == plan.OperationId
                 && result.TransitionKind == plan.TransitionKind;
 
@@ -156,12 +134,7 @@ namespace Immersive.Framework.Diagnostics
                 "Required fade adapter missing is blocking.",
                 issues);
 
-            bool passed = result.IsValid
-                && result.MissingAdapter
-                && result.IsRequired
-                && result.BlocksTransition
-                && !result.Completed
-                && result.IssueCount == 1
+            bool passed = result is { IsValid: true, MissingAdapter: true, IsRequired: true, BlocksTransition: true, Completed: false, IssueCount: 1 }
                 && result.OperationId == plan.OperationId
                 && result.TransitionKind == plan.TransitionKind;
 
@@ -192,12 +165,7 @@ namespace Immersive.Framework.Diagnostics
             bool passed = snapshot.IsValid
                 && snapshot.OperationId == plan.OperationId
                 && snapshot.TransitionKind == plan.TransitionKind
-                && snapshot.CurrentPhase == TransitionPhase.GateBlockReleased
-                && snapshot.Status == TransitionEffectStatus.Succeeded
-                && snapshot.PlannedRequestCount == 2
-                && snapshot.ObservedResultCount == 2
-                && snapshot.FactCount == 1
-                && snapshot.BlockingIssueCount == 0;
+                && snapshot is { CurrentPhase: TransitionPhase.GateBlockReleased, Status: TransitionEffectStatus.Succeeded, PlannedRequestCount: 2, ObservedResultCount: 2, FactCount: 1, BlockingIssueCount: 0 };
 
             LogSnapshotStep(logger, "snapshot", snapshot, passed);
             return passed;

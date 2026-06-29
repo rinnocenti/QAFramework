@@ -97,11 +97,7 @@ namespace Immersive.Framework.Diagnostics
         {
             InputModeState state = InputModeState.InitialGameplay(source, "qa.inputmode.initial-state");
 
-            bool passed = state.IsValid
-                && state.CurrentKind == InputModeKind.Gameplay
-                && state.Revision == 0
-                && !state.SwitchesActionMaps
-                && !state.AppliesInputBehavior;
+            bool passed = state is { IsValid: true, CurrentKind: InputModeKind.Gameplay, Revision: 0, SwitchesActionMaps: false, AppliesInputBehavior: false };
 
             LogStateStep(logger, "initial-state", passed, state);
             return passed;
@@ -117,8 +113,7 @@ namespace Immersive.Framework.Diagnostics
 
             bool passed = result.Succeeded
                 && result.PreviousState.CurrentKind == InputModeKind.PauseOverlay
-                && result.CurrentState.CurrentKind == InputModeKind.Gameplay
-                && result.CurrentState.Revision == 2
+                && result.CurrentState is { CurrentKind: InputModeKind.Gameplay, Revision: 2 }
                 && result.IssueCount == 0
                 && !result.SwitchesActionMaps
                 && !result.AppliesInputBehavior;
@@ -137,8 +132,7 @@ namespace Immersive.Framework.Diagnostics
 
             bool passed = result.Succeeded
                 && result.PreviousState.CurrentKind == InputModeKind.Gameplay
-                && result.CurrentState.CurrentKind == InputModeKind.PauseOverlay
-                && result.CurrentState.Revision == 1
+                && result.CurrentState is { CurrentKind: InputModeKind.PauseOverlay, Revision: 1 }
                 && result.IssueCount == 0
                 && !result.SwitchesActionMaps
                 && !result.AppliesInputBehavior;
@@ -158,8 +152,7 @@ namespace Immersive.Framework.Diagnostics
             bool passed = result.Ignored
                 && result.Status == InputModeRequestStatus.IgnoredAlreadyInMode
                 && result.PreviousState.CurrentKind == InputModeKind.Gameplay
-                && result.CurrentState.CurrentKind == InputModeKind.Gameplay
-                && result.CurrentState.Revision == 0
+                && result.CurrentState is { CurrentKind: InputModeKind.Gameplay, Revision: 0 }
                 && result.IssueCount == 0
                 && !result.SwitchesActionMaps
                 && !result.AppliesInputBehavior;
@@ -179,8 +172,7 @@ namespace Immersive.Framework.Diagnostics
             bool passed = result.Failed
                 && result.Status == InputModeRequestStatus.FailedInvalidTargetMode
                 && result.PreviousState.CurrentKind == InputModeKind.Gameplay
-                && result.CurrentState.CurrentKind == InputModeKind.Gameplay
-                && result.CurrentState.Revision == 0
+                && result.CurrentState is { CurrentKind: InputModeKind.Gameplay, Revision: 0 }
                 && result.BlockingIssueCount == 1
                 && !result.SwitchesActionMaps
                 && !result.AppliesInputBehavior;
@@ -198,8 +190,7 @@ namespace Immersive.Framework.Diagnostics
                 source);
 
             bool passed = result.Succeeded
-                && !state.SwitchesActionMaps
-                && !state.AppliesInputBehavior
+                && state is { SwitchesActionMaps: false, AppliesInputBehavior: false }
                 && !result.SwitchesActionMaps
                 && !result.AppliesInputBehavior;
 

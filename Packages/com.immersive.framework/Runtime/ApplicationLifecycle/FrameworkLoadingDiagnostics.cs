@@ -209,7 +209,7 @@ namespace Immersive.Framework.ApplicationLifecycle
                     "Loading surface adapters do not expose progress for this operation.");
             }
 
-            if (observedProgress.Supported && observedProgress.IsDeterminate)
+            if (observedProgress is { Supported: true, IsDeterminate: true })
             {
                 return observedProgress;
             }

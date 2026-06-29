@@ -87,10 +87,8 @@ namespace Immersive.Framework.Diagnostics
             bool passed = operationId.IsValid
                 && stepId.IsValid
                 && step.Status == LoadingStepStatus.Completed
-                && aggregation.Status == LoadingProgressAggregationStatus.Completed
-                && aggregation.Progress.IsComplete
-                && operation.Status == LoadingOperationStatus.Completed
-                && operation.Progress.IsComplete;
+                && aggregation is { Status: LoadingProgressAggregationStatus.Completed, Progress: { IsComplete: true } }
+                && operation is { Status: LoadingOperationStatus.Completed, Progress: { IsComplete: true } };
 
             LogStep(
                 logger,
@@ -148,12 +146,8 @@ namespace Immersive.Framework.Diagnostics
 
             bool passed = loadStep.Status == LoadingStepStatus.Completed
                 && unloadStep.Status == LoadingStepStatus.Skipped
-                && aggregation.Status == LoadingProgressAggregationStatus.CompletedWithSkippedSteps
-                && aggregation.Completed
-                && aggregation.HasSkippedSteps
-                && aggregation.Progress.IsComplete
-                && operation.Status == LoadingOperationStatus.Completed
-                && operation.Progress.IsComplete;
+                && aggregation is { Status: LoadingProgressAggregationStatus.CompletedWithSkippedSteps, Completed: true, HasSkippedSteps: true, Progress: { IsComplete: true } }
+                && operation is { Status: LoadingOperationStatus.Completed, Progress: { IsComplete: true } };
 
             LogStep(
                 logger,
@@ -194,11 +188,8 @@ namespace Immersive.Framework.Diagnostics
                 "scene-failure");
 
             bool passed = failedStep.Status == LoadingStepStatus.Failed
-                && aggregation.Status == LoadingProgressAggregationStatus.Failed
-                && aggregation.Failed
-                && !aggregation.Completed
-                && operation.Status == LoadingOperationStatus.Failed
-                && !operation.Progress.IsComplete;
+                && aggregation is { Status: LoadingProgressAggregationStatus.Failed, Failed: true, Completed: false }
+                && operation is { Status: LoadingOperationStatus.Failed, Progress: { IsComplete: false } };
 
             LogStep(
                 logger,
@@ -242,14 +233,8 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "transition-observation");
 
-            bool passed = aggregation.Status == LoadingProgressAggregationStatus.CompletedWithSkippedSteps
-                && aggregation.Completed
-                && aggregation.StepCount == 3
-                && aggregation.CompletedCount == 2
-                && aggregation.SkippedCount == 1
-                && aggregation.Progress.IsComplete
-                && operation.Status == LoadingOperationStatus.Completed
-                && operation.Progress.IsComplete;
+            bool passed = aggregation is { Status: LoadingProgressAggregationStatus.CompletedWithSkippedSteps, Completed: true, StepCount: 3, CompletedCount: 2, SkippedCount: 1, Progress: { IsComplete: true } }
+                && operation is { Status: LoadingOperationStatus.Completed, Progress: { IsComplete: true } };
 
             LogStep(
                 logger,
@@ -296,12 +281,8 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "transition-failure-observation");
 
-            bool passed = aggregation.Status == LoadingProgressAggregationStatus.Failed
-                && aggregation.Failed
-                && aggregation.FailedCount == 1
-                && !aggregation.Completed
-                && operation.Status == LoadingOperationStatus.Failed
-                && !operation.Progress.IsComplete;
+            bool passed = aggregation is { Status: LoadingProgressAggregationStatus.Failed, Failed: true, FailedCount: 1, Completed: false }
+                && operation is { Status: LoadingOperationStatus.Failed, Progress: { IsComplete: false } };
 
             LogStep(
                 logger,

@@ -113,15 +113,10 @@ namespace Immersive.Framework.Diagnostics
             var captureResult = participant.CaptureSnapshot(context);
             envelope = captureResult.Envelope;
 
-            bool passed = captureResult.IsValid
-                && captureResult.Captured
-                && captureResult.Completed
-                && captureResult.HasEnvelope
-                && !captureResult.BlocksSnapshot
+            bool passed = captureResult is { IsValid: true, Captured: true, Completed: true, HasEnvelope: true, BlocksSnapshot: false }
                 && envelope.IsValid
                 && descriptor.SupportsEnvelope(envelope)
-                && envelope.Payload.Format == SnapshotPayloadFormat.Text
-                && envelope.Payload.HasBytes;
+                && envelope.Payload is { Format: SnapshotPayloadFormat.Text, HasBytes: true };
 
             LogStep(
                 logger,
@@ -154,11 +149,7 @@ namespace Immersive.Framework.Diagnostics
 
             bool passed = restoreContext.IsValid
                 && restoreContext.Matches(descriptor)
-                && restoreResult.IsValid
-                && restoreResult.Restored
-                && restoreResult.Completed
-                && restoreResult.HasEnvelope
-                && !restoreResult.BlocksSnapshot
+                && restoreResult is { IsValid: true, Restored: true, Completed: true, HasEnvelope: true, BlocksSnapshot: false }
                 && descriptor.SupportsEnvelope(restoreResult.Envelope);
 
             LogStep(
@@ -205,11 +196,7 @@ namespace Immersive.Framework.Diagnostics
 
             bool passed = foreignEnvelope.IsValid
                 && !descriptor.SupportsEnvelope(foreignEnvelope)
-                && restoreResult.IsValid
-                && restoreResult.Rejected
-                && !restoreResult.Completed
-                && restoreResult.BlocksSnapshot
-                && !restoreResult.HasEnvelope;
+                && restoreResult is { IsValid: true, Rejected: true, Completed: false, BlocksSnapshot: true, HasEnvelope: false };
 
             LogStep(
                 logger,
@@ -240,18 +227,9 @@ namespace Immersive.Framework.Diagnostics
             var captureResult = SnapshotParticipantCaptureResult.SkippedResult(descriptor, "Optional participant skipped synthetically.");
             var restoreResult = SnapshotParticipantRestoreResult.SkippedResult(descriptor, "Optional participant restore skipped synthetically.");
 
-            bool passed = descriptor.IsValid
-                && descriptor.IsOptional
-                && captureResult.IsValid
-                && captureResult.Skipped
-                && captureResult.Completed
-                && !captureResult.BlocksSnapshot
-                && !captureResult.HasEnvelope
-                && restoreResult.IsValid
-                && restoreResult.Skipped
-                && restoreResult.Completed
-                && !restoreResult.BlocksSnapshot
-                && !restoreResult.HasEnvelope;
+            bool passed = descriptor is { IsValid: true, IsOptional: true }
+                && captureResult is { IsValid: true, Skipped: true, Completed: true, BlocksSnapshot: false, HasEnvelope: false }
+                && restoreResult is { IsValid: true, Skipped: true, Completed: true, BlocksSnapshot: false, HasEnvelope: false };
 
             LogStep(
                 logger,

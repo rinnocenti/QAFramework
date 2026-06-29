@@ -72,9 +72,7 @@ namespace Immersive.Framework.Loading
                 message: "Loading surface progress reporter is ready and waiting for a determinate source.");
         }
 
-        public bool IsEnabled => _loadingSurfaceRuntime != null
-            && _loadingSurfaceRuntime.HasVisibleSurface
-            && _loadingSurfaceRuntime.ProgressSupported;
+        public bool IsEnabled => _loadingSurfaceRuntime is { HasVisibleSurface: true, ProgressSupported: true };
 
         public bool HasReportedProgress => _hasReportedProgress;
 
@@ -90,7 +88,7 @@ namespace Immersive.Framework.Loading
             _lastProgress = progress;
             _hasReportedProgress = true;
 
-            bool progressSupported = progress.Supported && progress.IsDeterminate;
+            bool progressSupported = progress is { Supported: true, IsDeterminate: true };
             var surfaceProgress = progressSupported
                 ? LoadingProgress.FromNormalized(progress.Value01)
                 : LoadingProgress.Zero;
@@ -223,7 +221,7 @@ namespace Immersive.Framework.Loading
                 return;
             }
 
-            var remapped = progress.Supported && progress.IsDeterminate
+            var remapped = progress is { Supported: true, IsDeterminate: true }
                 ? FrameworkLoadingProgress.Determinate(
                     progress.Value01,
                     _phase,

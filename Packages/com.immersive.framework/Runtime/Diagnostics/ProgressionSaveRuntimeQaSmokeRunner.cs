@@ -90,9 +90,7 @@ namespace Immersive.Framework.Diagnostics
                 "contracts");
 
             bool passed = runtime.BackendId.StableText == "ProgressionSave:json.runtime.qa"
-                && request.IsValid
-                && request.Kind == ProgressionSaveRequestKind.Save
-                && request.Moment.IsManual
+                && request is { IsValid: true, Kind: ProgressionSaveRequestKind.Save, Moment: { IsManual: true } }
                 && manualMoment.IsManual
                 && autosaveMoment.IsAutosave
                 && request.RequestId.StableText == "ProgressionSave:qa.runtime.request.contracts.save"
@@ -134,10 +132,7 @@ namespace Immersive.Framework.Diagnostics
             savedRecord = result.HasRecord ? result.Record : default;
             bool contains = runtime.Store.ContainsSlot(primarySlot);
 
-            bool passed = result.Status == ProgressionSaveRequestStatus.Saved
-                && result.Completed
-                && !result.Failed
-                && result.HasRecord
+            bool passed = result is { Status: ProgressionSaveRequestStatus.Saved, Completed: true, Failed: false, HasRecord: true }
                 && savedRecord.IsValid
                 && savedRecord.SlotId == primarySlot
                 && savedRecord.RecordId == request.RecordId
@@ -176,10 +171,7 @@ namespace Immersive.Framework.Diagnostics
             var result = runtime.Request(request);
             bool recordMatches = result.HasRecord && savedRecord.IsValid && result.Record == savedRecord;
 
-            bool passed = result.Status == ProgressionSaveRequestStatus.Loaded
-                && result.Completed
-                && !result.Failed
-                && result.HasRecord
+            bool passed = result is { Status: ProgressionSaveRequestStatus.Loaded, Completed: true, Failed: false, HasRecord: true }
                 && recordMatches;
 
             LogStep(
@@ -219,11 +211,8 @@ namespace Immersive.Framework.Diagnostics
                 nameof(ProgressionSaveRuntimeQaSmokeRunner),
                 "autosave-verify"));
 
-            bool passed = result.Status == ProgressionSaveRequestStatus.Saved
-                && result.Moment.IsAutosave
-                && result.HasRecord
-                && readBack.Status == ProgressionSaveRequestStatus.Loaded
-                && readBack.HasRecord
+            bool passed = result is { Status: ProgressionSaveRequestStatus.Saved, Moment: { IsAutosave: true }, HasRecord: true }
+                && readBack is { Status: ProgressionSaveRequestStatus.Loaded, HasRecord: true }
                 && readBack.Record.RecordId == request.RecordId;
 
             LogStep(
@@ -255,10 +244,7 @@ namespace Immersive.Framework.Diagnostics
                 "missing-load");
 
             var result = runtime.Request(request);
-            bool passed = result.Status == ProgressionSaveRequestStatus.Missing
-                && result.Completed
-                && !result.Failed
-                && !result.HasRecord;
+            bool passed = result is { Status: ProgressionSaveRequestStatus.Missing, Completed: true, Failed: false, HasRecord: false };
 
             LogStep(
                 logger,

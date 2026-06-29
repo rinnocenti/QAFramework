@@ -52,12 +52,7 @@ namespace Immersive.Framework.Diagnostics
             TransitionOperationId operationId,
             TransitionKind kind)
         {
-            bool passed = blocker.IsValid
-                && blocker.BlockerId.Value == TransitionGateBlockerPolicy.LifecycleRequestBlockerId
-                && blocker.Scope == GateScope.GameFlow
-                && blocker.Domain == GateDomain.LifecycleRequest
-                && !blocker.HasOwner
-                && blocker.PolicySource == TransitionGateBlockerPolicy.PolicySource
+            bool passed = blocker is { IsValid: true, BlockerId: { Value: TransitionGateBlockerPolicy.LifecycleRequestBlockerId }, Scope: GateScope.GameFlow, Domain: GateDomain.LifecycleRequest, HasOwner: false, PolicySource: TransitionGateBlockerPolicy.PolicySource }
                 && blocker.Blocks(GateScope.GameFlow, GateDomain.LifecycleRequest);
 
             LogBlockerStep(logger, "blocker-created", passed, blocker, operationId, kind);
@@ -85,14 +80,8 @@ namespace Immersive.Framework.Diagnostics
                 "qa.transition.gate-blocker.evaluate-running",
                 TransitionGateBlockerPolicy.PolicySource);
 
-            bool passed = snapshot.HasBlockers
-                && snapshot.BlockerCount == 1
-                && evaluation.IsBlocked
-                && evaluation.BlockingBlockerCount == 1
-                && evaluation.Decision.Status == GateDecisionStatus.Blocked
-                && evaluation.Decision.Scope == GateScope.GameFlow
-                && evaluation.Decision.Domain == GateDomain.LifecycleRequest
-                && evaluation.Decision.PolicySource == TransitionGateBlockerPolicy.PolicySource;
+            bool passed = snapshot is { HasBlockers: true, BlockerCount: 1 }
+                && evaluation is { IsBlocked: true, BlockingBlockerCount: 1, Decision: { Status: GateDecisionStatus.Blocked, Scope: GateScope.GameFlow, Domain: GateDomain.LifecycleRequest, PolicySource: TransitionGateBlockerPolicy.PolicySource } };
 
             LogEvaluationStep(logger, "running-blocks-lifecycle", passed, operationId, kind, evaluation, snapshot.BlockerCount);
             return passed;
@@ -129,12 +118,8 @@ namespace Immersive.Framework.Diagnostics
                 "qa.transition.gate-blocker.evaluate-completed-release",
                 TransitionGateBlockerPolicy.PolicySource);
 
-            bool passed = result.Succeeded
-                && result.Completed
-                && result.ObservedStepCount == 4
-                && result.BlockingIssueCount == 0
-                && releasedEvaluation.IsAllowed
-                && releasedEvaluation.BlockingBlockerCount == 0;
+            bool passed = result is { Succeeded: true, Completed: true, ObservedStepCount: 4, BlockingIssueCount: 0 }
+                && releasedEvaluation is { IsAllowed: true, BlockingBlockerCount: 0 };
 
             LogReleaseStep(logger, "completed-releases-blocker", passed, operationId, kind, result, releasedEvaluation);
             return passed;
@@ -177,13 +162,8 @@ namespace Immersive.Framework.Diagnostics
                 "qa.transition.gate-blocker.evaluate-failed-release",
                 TransitionGateBlockerPolicy.PolicySource);
 
-            bool passed = result.Failed
-                && !result.Completed
-                && result.ObservedStepCount == 4
-                && result.IssueCount == 1
-                && result.BlockingIssueCount == 1
-                && releasedEvaluation.IsAllowed
-                && releasedEvaluation.BlockingBlockerCount == 0;
+            bool passed = result is { Failed: true, Completed: false, ObservedStepCount: 4, IssueCount: 1, BlockingIssueCount: 1 }
+                && releasedEvaluation is { IsAllowed: true, BlockingBlockerCount: 0 };
 
             LogReleaseStep(logger, "failed-releases-blocker", passed, operationId, kind, result, releasedEvaluation);
             return passed;

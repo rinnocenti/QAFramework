@@ -64,11 +64,7 @@ namespace Immersive.Framework.Diagnostics
 
         private static bool ValidatePlan(FrameworkLogger logger, TransitionPlan plan)
         {
-            bool passed = plan.IsValid
-                && plan.Kind == TransitionKind.RouteSwitch
-                && plan.StepCount == 10
-                && !plan.HasOwner
-                && plan.OperationId.Domain == FrameworkIdentityDomain.Transition;
+            bool passed = plan is { IsValid: true, Kind: TransitionKind.RouteSwitch, StepCount: 10, HasOwner: false, OperationId: { Domain: FrameworkIdentityDomain.Transition } };
 
             LogPlanStep(logger, "plan", plan, passed);
             return passed;
@@ -96,16 +92,10 @@ namespace Immersive.Framework.Diagnostics
                 "Transition diagnostics succeeded.",
                 observedSteps);
 
-            bool passed = result.IsValid
-                && result.Succeeded
-                && result.Completed
-                && !result.CompletedWithWarnings
-                && !result.Failed
+            bool passed = result is { IsValid: true, Succeeded: true, Completed: true, CompletedWithWarnings: false, Failed: false }
                 && result.Kind == plan.Kind
                 && result.OperationId == plan.OperationId
-                && result.ObservedStepCount == 4
-                && result.IssueCount == 0
-                && result.BlockingIssueCount == 0;
+                && result is { ObservedStepCount: 4, IssueCount: 0, BlockingIssueCount: 0 };
 
             LogResultStep(logger, "succeeded-result", result, passed);
             return passed;
@@ -136,14 +126,7 @@ namespace Immersive.Framework.Diagnostics
                 observedSteps,
                 issues);
 
-            bool passed = result.IsValid
-                && result.CompletedWithWarnings
-                && result.Completed
-                && !result.Succeeded
-                && !result.Failed
-                && result.ObservedStepCount == 2
-                && result.IssueCount == 1
-                && result.BlockingIssueCount == 0;
+            bool passed = result is { IsValid: true, CompletedWithWarnings: true, Completed: true, Succeeded: false, Failed: false, ObservedStepCount: 2, IssueCount: 1, BlockingIssueCount: 0 };
 
             LogResultStep(logger, "warnings-result", result, passed);
             return passed;
@@ -174,13 +157,7 @@ namespace Immersive.Framework.Diagnostics
                 observedSteps,
                 issues);
 
-            bool passed = result.IsValid
-                && result.Failed
-                && !result.Completed
-                && !result.Succeeded
-                && result.ObservedStepCount == 2
-                && result.IssueCount == 1
-                && result.BlockingIssueCount == 1;
+            bool passed = result is { IsValid: true, Failed: true, Completed: false, Succeeded: false, ObservedStepCount: 2, IssueCount: 1, BlockingIssueCount: 1 };
 
             LogResultStep(logger, "failed-result", result, passed);
             return passed;
@@ -202,11 +179,9 @@ namespace Immersive.Framework.Diagnostics
             bool passed = snapshot.IsValid
                 && snapshot.OperationId == plan.OperationId
                 && snapshot.Kind == plan.Kind
-                && snapshot.CurrentPhase == TransitionPhase.OperationOpened
-                && snapshot.Status == TransitionStatus.Running
+                && snapshot is { CurrentPhase: TransitionPhase.OperationOpened, Status: TransitionStatus.Running }
                 && snapshot.ObservedStepCount == plan.StepCount
-                && snapshot.FactCount == 1
-                && snapshot.BlockingIssueCount == 0;
+                && snapshot is { FactCount: 1, BlockingIssueCount: 0 };
 
             LogSnapshotStep(logger, "snapshot", snapshot, passed);
             return passed;

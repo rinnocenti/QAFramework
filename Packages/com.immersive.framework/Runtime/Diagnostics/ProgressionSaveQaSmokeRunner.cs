@@ -78,8 +78,7 @@ namespace Immersive.Framework.Diagnostics
             ProgressionSaveSlotId primarySlot)
         {
             string physicalPath = store.ToPhysicalSlotPath(primarySlot);
-            bool passed = store.BackendId.IsValid
-                && store.BackendId.StableText == "ProgressionSave:json.qa"
+            bool passed = store.BackendId is { IsValid: true, StableText: "ProgressionSave:json.qa" }
                 && !string.IsNullOrWhiteSpace(store.RootDirectory)
                 && !string.IsNullOrWhiteSpace(store.SlotDirectory)
                 && !string.IsNullOrWhiteSpace(store.ManifestPath)
@@ -111,10 +110,8 @@ namespace Immersive.Framework.Diagnostics
             var slotRead = store.ReadSlot(missingSlot);
             var delete = store.DeleteSlot(missingSlot);
 
-            bool passed = manifestRead.Status == ProgressionSaveReadStatus.Missing
-                && !manifestRead.HasManifest
-                && slotRead.Status == ProgressionSaveReadStatus.Missing
-                && !slotRead.HasRecord
+            bool passed = manifestRead is { Status: ProgressionSaveReadStatus.Missing, HasManifest: false }
+                && slotRead is { Status: ProgressionSaveReadStatus.Missing, HasRecord: false }
                 && delete.Status == ProgressionSaveDeleteStatus.Missing
                 && !store.ContainsSlot(missingSlot);
 
@@ -143,8 +140,7 @@ namespace Immersive.Framework.Diagnostics
             bool contains = store.ContainsSlot(primarySlot);
 
             bool passed = write.Written
-                && read.Status == ProgressionSaveReadStatus.Found
-                && read.HasRecord
+                && read is { Status: ProgressionSaveReadStatus.Found, HasRecord: true }
                 && read.Record == record
                 && contains;
 
@@ -182,9 +178,7 @@ namespace Immersive.Framework.Diagnostics
                 ? store.WriteManifest(manifestRead.Manifest)
                 : ProgressionSaveManifestWriteResult.FailedResult("Manifest was not available for rewrite.");
 
-            bool passed = manifestRead.Status == ProgressionSaveReadStatus.Found
-                && manifestRead.HasManifest
-                && manifestRead.Manifest.Count == 1
+            bool passed = manifestRead is { Status: ProgressionSaveReadStatus.Found, HasManifest: true, Manifest: { Count: 1 } }
                 && hasEntry
                 && entryMatchesRecord
                 && rewrite.Written;
@@ -213,9 +207,7 @@ namespace Immersive.Framework.Diagnostics
             File.WriteAllText(store.ToPhysicalSlotPath(corruptSlot), "{ not-valid-json", Encoding.UTF8);
 
             var read = store.ReadSlot(corruptSlot);
-            bool passed = read.Status == ProgressionSaveReadStatus.Corrupt
-                && read.Failed
-                && !read.HasRecord
+            bool passed = read is { Status: ProgressionSaveReadStatus.Corrupt, Failed: true, HasRecord: false }
                 && store.ContainsSlot(corruptSlot);
 
             LogStep(
@@ -248,8 +240,7 @@ namespace Immersive.Framework.Diagnostics
                 && primaryRead.Status == ProgressionSaveReadStatus.Missing
                 && !store.ContainsSlot(primarySlot)
                 && !store.ContainsSlot(corruptSlot)
-                && manifestRead.Status == ProgressionSaveReadStatus.Found
-                && manifestRead.HasManifest
+                && manifestRead is { Status: ProgressionSaveReadStatus.Found, HasManifest: true }
                 && !manifestHasPrimary;
 
             LogStep(

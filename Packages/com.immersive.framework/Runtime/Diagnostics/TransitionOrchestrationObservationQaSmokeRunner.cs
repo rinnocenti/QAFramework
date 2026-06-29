@@ -59,11 +59,8 @@ namespace Immersive.Framework.Diagnostics
                 "Route switch orchestration observation succeeded.",
                 observed);
 
-            bool passed = plan.IsValid
-                && plan.Kind == TransitionKind.RouteSwitch
-                && plan.StepCount == 10
-                && result.Succeeded
-                && result.Completed
+            bool passed = plan is { IsValid: true, Kind: TransitionKind.RouteSwitch, StepCount: 10 }
+                && result is { Succeeded: true, Completed: true }
                 && result.ObservedStepCount == plan.StepCount
                 && result.BlockingIssueCount == 0;
 
@@ -97,11 +94,8 @@ namespace Immersive.Framework.Diagnostics
                 "Activity switch orchestration observation succeeded.",
                 observed);
 
-            bool passed = plan.IsValid
-                && plan.Kind == TransitionKind.ActivitySwitch
-                && plan.StepCount == 10
-                && result.Succeeded
-                && result.Completed
+            bool passed = plan is { IsValid: true, Kind: TransitionKind.ActivitySwitch, StepCount: 10 }
+                && result is { Succeeded: true, Completed: true }
                 && result.ObservedStepCount == plan.StepCount
                 && result.BlockingIssueCount == 0;
 
@@ -134,11 +128,8 @@ namespace Immersive.Framework.Diagnostics
                 "Activity clear orchestration observation succeeded.",
                 observed);
 
-            bool passed = plan.IsValid
-                && plan.Kind == TransitionKind.ActivityClear
-                && plan.StepCount == 9
-                && result.Succeeded
-                && result.Completed
+            bool passed = plan is { IsValid: true, Kind: TransitionKind.ActivityClear, StepCount: 9 }
+                && result is { Succeeded: true, Completed: true }
                 && result.ObservedStepCount == plan.StepCount
                 && result.BlockingIssueCount == 0;
 
@@ -177,11 +168,9 @@ namespace Immersive.Framework.Diagnostics
             bool passed = snapshot.IsValid
                 && snapshot.OperationId == result.OperationId
                 && snapshot.Kind == result.Kind
-                && snapshot.CurrentPhase == TransitionPhase.OperationClosed
-                && snapshot.Status == TransitionStatus.Succeeded
+                && snapshot is { CurrentPhase: TransitionPhase.OperationClosed, Status: TransitionStatus.Succeeded }
                 && snapshot.ObservedStepCount == result.ObservedStepCount
-                && snapshot.FactCount == 1
-                && snapshot.BlockingIssueCount == 0;
+                && snapshot is { FactCount: 1, BlockingIssueCount: 0 };
 
             LogSnapshotStep(logger, "observation-snapshot", passed, snapshot);
             return passed;

@@ -64,13 +64,13 @@ namespace Immersive.Framework.InputMode
 
         public bool Failed => !Succeeded && !Ignored;
 
-        public bool Applied => PlayerInputApplicationResult != null && PlayerInputApplicationResult.Applied;
+        public bool Applied => PlayerInputApplicationResult is { Applied: true };
 
-        public bool ActivatedPlayerInput => PlayerInputApplicationResult != null && PlayerInputApplicationResult.ActivatedPlayerInput;
+        public bool ActivatedPlayerInput => PlayerInputApplicationResult is { ActivatedPlayerInput: true };
 
-        public bool SelectedActionMap => PlayerInputApplicationResult != null && PlayerInputApplicationResult.SelectedActionMap;
+        public bool SelectedActionMap => PlayerInputApplicationResult is { SelectedActionMap: true };
 
-        public bool DeactivatedPlayerInput => PlayerInputApplicationResult != null && PlayerInputApplicationResult.DeactivatedPlayerInput;
+        public bool DeactivatedPlayerInput => PlayerInputApplicationResult is { DeactivatedPlayerInput: true };
 
         public UnityInputActionMapName AppliedActionMapName => PlayerInputApplicationResult == null
             ? UnityInputActionMapName.From(string.Empty)
@@ -80,9 +80,9 @@ namespace Immersive.Framework.InputMode
             ? InputModeUnityApplicationPlanOperation.NoOperation
             : ApplicationPlanResult.Operation;
 
-        public bool SwitchesActionMaps => PlayerInputApplicationResult != null && PlayerInputApplicationResult.SwitchesActionMaps;
+        public bool SwitchesActionMaps => PlayerInputApplicationResult is { SwitchesActionMaps: true };
 
-        public bool AppliesInputBehavior => PlayerInputApplicationResult != null && PlayerInputApplicationResult.AppliesInputBehavior;
+        public bool AppliesInputBehavior => PlayerInputApplicationResult is { AppliesInputBehavior: true };
 
         public bool CallsPlayerJoin => false;
 

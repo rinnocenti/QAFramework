@@ -40,7 +40,7 @@ namespace Immersive.Framework.ObjectEntry
                 throw new ArgumentOutOfRangeException(nameof(requiredness), requiredness, "Object entry requiredness must be explicit.");
             }
 
-            if (ownerIdentity.HasValue && !ownerIdentity.Value.IsValid)
+            if (ownerIdentity is { IsValid: false })
             {
                 throw new ArgumentException("Owner identity must be valid when provided.", nameof(ownerIdentity));
             }

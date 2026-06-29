@@ -100,9 +100,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.transition-effect.unity-fade-curtain.visible");
 
             var result = adapter.Execute(request);
-            bool passed = result.Succeeded
-                && result.Completed
-                && !result.BlocksTransition
+            bool passed = result is { Succeeded: true, Completed: true, BlocksTransition: false }
                 && surfaceRoot.activeSelf
                 && Approximately(canvasGroup.alpha, 1f)
                 && canvasGroup.blocksRaycasts
@@ -131,9 +129,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.transition-effect.unity-fade-curtain.hidden");
 
             var result = adapter.Execute(request);
-            bool passed = result.Succeeded
-                && result.Completed
-                && !result.BlocksTransition
+            bool passed = result is { Succeeded: true, Completed: true, BlocksTransition: false }
                 && !surfaceRoot.activeSelf
                 && Approximately(canvasGroup.alpha, 0f)
                 && !canvasGroup.blocksRaycasts
@@ -160,10 +156,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.transition-effect.unity-fade-curtain.missing-surface");
 
             var result = adapter.Execute(request);
-            bool passed = result.Failed
-                && !result.Completed
-                && result.BlocksTransition
-                && result.IssueCount == 1
+            bool passed = result is { Failed: true, Completed: false, BlocksTransition: true, IssueCount: 1 }
                 && !adapter.HasCanvasGroup;
 
             LogResultStep(logger, "required-missing-surface-blocks", result, passed, adapter.gameObject, null, adapter);
@@ -186,10 +179,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.transition-effect.unity-fade-curtain.unsupported-optional-kind");
 
             var result = adapter.Execute(request);
-            bool passed = result.Rejected
-                && !result.Completed
-                && !result.BlocksTransition
-                && result.IssueCount == 1;
+            bool passed = result is { Rejected: true, Completed: false, BlocksTransition: false, IssueCount: 1 };
 
             LogResultStep(logger, "optional-unsupported-kind-nonblocking", result, passed, adapter.gameObject, null, adapter);
             return passed;

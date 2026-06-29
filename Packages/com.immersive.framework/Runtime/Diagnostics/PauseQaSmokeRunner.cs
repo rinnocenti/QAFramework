@@ -49,12 +49,7 @@ namespace Immersive.Framework.Diagnostics
         {
             var request = PauseRequest.Pause("qa.pause.diagnostics.pause", source, "qa.pause.request");
             var targetState = PauseRequest.ResolveTargetState(request.Kind, PauseState.Running);
-            bool passed = request.IsValid
-                && request.RequestId.Domain == FrameworkIdentityDomain.Pause
-                && request.Kind == PauseRequestKind.Pause
-                && request.RequestsPause
-                && !request.RequestsResume
-                && !request.RequestsToggle
+            bool passed = request is { IsValid: true, RequestId: { Domain: FrameworkIdentityDomain.Pause }, Kind: PauseRequestKind.Pause, RequestsPause: true, RequestsResume: false, RequestsToggle: false }
                 && targetState == PauseState.Paused;
 
             LogRequestStep(logger, "request", request, PauseState.Running, targetState, passed);
@@ -65,15 +60,7 @@ namespace Immersive.Framework.Diagnostics
         {
             var request = PauseRequest.Pause("qa.pause.diagnostics.pause-applied", source, "qa.pause.apply");
             var result = PauseResult.AppliedResult(request, PauseState.Running, PauseState.Paused, "Pause applied synthetically.");
-            bool passed = result.IsValid
-                && result.Applied
-                && result.Completed
-                && result.StateChanged
-                && result.IsPaused
-                && !result.IsRunning
-                && !result.HasIssues
-                && result.BlockingIssueCount == 0
-                && result.RequestId.Domain == FrameworkIdentityDomain.Pause;
+            bool passed = result is { IsValid: true, Applied: true, Completed: true, StateChanged: true, IsPaused: true, IsRunning: false, HasIssues: false, BlockingIssueCount: 0, RequestId: { Domain: FrameworkIdentityDomain.Pause } };
 
             LogResultStep(logger, "pause-applied-result", result, passed);
             return passed;
@@ -83,15 +70,7 @@ namespace Immersive.Framework.Diagnostics
         {
             var request = PauseRequest.Resume("qa.pause.diagnostics.resume-applied", source, "qa.pause.resume");
             var result = PauseResult.AppliedResult(request, PauseState.Paused, PauseState.Running, "Resume applied synthetically.");
-            bool passed = result.IsValid
-                && result.Applied
-                && result.Completed
-                && result.StateChanged
-                && result.IsRunning
-                && !result.IsPaused
-                && !result.HasIssues
-                && result.BlockingIssueCount == 0
-                && result.RequestId.Domain == FrameworkIdentityDomain.Pause;
+            bool passed = result is { IsValid: true, Applied: true, Completed: true, StateChanged: true, IsRunning: true, IsPaused: false, HasIssues: false, BlockingIssueCount: 0, RequestId: { Domain: FrameworkIdentityDomain.Pause } };
 
             LogResultStep(logger, "resume-applied-result", result, passed);
             return passed;
@@ -102,10 +81,7 @@ namespace Immersive.Framework.Diagnostics
             var request = PauseRequest.Toggle("qa.pause.diagnostics.toggle", source, "qa.pause.toggle");
             var runningTarget = PauseRequest.ResolveTargetState(request.Kind, PauseState.Running);
             var pausedTarget = PauseRequest.ResolveTargetState(request.Kind, PauseState.Paused);
-            bool passed = request.IsValid
-                && request.RequestsToggle
-                && !request.RequestsPause
-                && !request.RequestsResume
+            bool passed = request is { IsValid: true, RequestsToggle: true, RequestsPause: false, RequestsResume: false }
                 && runningTarget == PauseState.Paused
                 && pausedTarget == PauseState.Running;
 
@@ -118,13 +94,7 @@ namespace Immersive.Framework.Diagnostics
         {
             var request = PauseRequest.Pause("qa.pause.diagnostics.ignored-no-change", source, "qa.pause.idempotent");
             var result = PauseResult.IgnoredNoChangeResult(request, PauseState.Paused, "Pause request ignored because the framework is already paused.");
-            bool passed = result.IsValid
-                && result.IgnoredNoChange
-                && result.Completed
-                && !result.StateChanged
-                && result.IsPaused
-                && !result.HasIssues
-                && result.BlockingIssueCount == 0;
+            bool passed = result is { IsValid: true, IgnoredNoChange: true, Completed: true, StateChanged: false, IsPaused: true, HasIssues: false, BlockingIssueCount: 0 };
 
             LogResultStep(logger, "ignored-no-change-result", result, passed);
             return passed;
@@ -143,13 +113,7 @@ namespace Immersive.Framework.Diagnostics
             };
 
             var result = PauseResult.RejectedResult(request, PauseState.Paused, "Resume rejected synthetically.", issues);
-            bool passed = result.IsValid
-                && result.Rejected
-                && !result.Completed
-                && !result.StateChanged
-                && result.IsPaused
-                && result.HasIssues
-                && result.BlockingIssueCount == 1
+            bool passed = result is { IsValid: true, Rejected: true, Completed: false, StateChanged: false, IsPaused: true, HasIssues: true, BlockingIssueCount: 1 }
                 && result.Issues[0].BlocksRequest;
 
             LogResultStep(logger, "rejected-result", result, passed);
@@ -166,14 +130,9 @@ namespace Immersive.Framework.Diagnostics
             };
 
             var snapshot = PauseSnapshot.FromResult(result, facts);
-            bool passed = snapshot.IsValid
-                && snapshot.IsPaused
-                && !snapshot.IsRunning
-                && snapshot.HasLastRequest
+            bool passed = snapshot is { IsValid: true, IsPaused: true, IsRunning: false, HasLastRequest: true }
                 && snapshot.LastRequestId == result.RequestId
-                && snapshot.FactCount == 1
-                && snapshot.IssueCount == 0
-                && snapshot.BlockingIssueCount == 0;
+                && snapshot is { FactCount: 1, IssueCount: 0, BlockingIssueCount: 0 };
 
             LogSnapshotStep(logger, "snapshot", snapshot, passed);
             return passed;

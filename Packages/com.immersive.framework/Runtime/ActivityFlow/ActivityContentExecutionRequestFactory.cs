@@ -108,7 +108,7 @@ namespace Immersive.Framework.ActivityFlow
             }
 
             ActivityContentExecutionParticipantCollectionIssue[] collectionIssues = participants.SnapshotIssues();
-            if (participants.HasIssues && !participants.HasParticipants)
+            if (participants is { HasIssues: true, HasParticipants: false })
             {
                 return ActivityContentExecutionPhasePlan.RejectedResult(
                     phase,

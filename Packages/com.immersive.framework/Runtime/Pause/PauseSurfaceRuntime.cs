@@ -40,7 +40,7 @@ namespace Immersive.Framework.Pause
         {
             logger ??= FrameworkLogger.Create<PauseSurfaceRuntime>();
             string resolvedSceneLabel = sceneLabel.NormalizeTextOrFallback("UIGlobal Pause Surface");
-            bool hasSceneAdapters = sceneAdapters != null && sceneAdapters.Count > 0;
+            bool hasSceneAdapters = sceneAdapters is { Count: > 0 };
 
             if (!hasSceneAdapters)
             {

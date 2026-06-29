@@ -54,9 +54,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.runtime.ensure-running"));
 
             var gateSnapshot = runtimeHost.PauseGateSnapshot;
-            bool passed = result.IsValid
-                && result.Completed
-                && result.IsRunning
+            bool passed = result is { IsValid: true, Completed: true, IsRunning: true }
                 && runtimeHost.PauseState == PauseState.Running
                 && gateSnapshot.IsEmpty;
 
@@ -72,11 +70,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.runtime.pause"));
 
             var gateSnapshot = runtimeHost.PauseGateSnapshot;
-            bool passed = result.Applied
-                && result.Completed
-                && result.StateChanged
-                && result.PreviousState == PauseState.Running
-                && result.CurrentState == PauseState.Paused
+            bool passed = result is { Applied: true, Completed: true, StateChanged: true, PreviousState: PauseState.Running, CurrentState: PauseState.Paused }
                 && runtimeHost.PauseState == PauseState.Paused
                 && gateSnapshot.BlockerCount == 2
                 && gateSnapshot.IsBlocked(GateScope.Input, GateDomain.InputAcceptance)
@@ -97,10 +91,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.runtime.evaluate-input");
 
             bool passed = runtimeHost.PauseState == PauseState.Paused
-                && evaluation.IsBlocked
-                && evaluation.Status == GateDecisionStatus.Blocked
-                && evaluation.BlockingBlockerCount == 1
-                && evaluation.Decision.PolicySource == PauseGateBlockerPolicy.PolicySource;
+                && evaluation is { IsBlocked: true, Status: GateDecisionStatus.Blocked, BlockingBlockerCount: 1, Decision: { PolicySource: PauseGateBlockerPolicy.PolicySource } };
 
             LogGateStep(logger, "paused-gate-blocks-input-acceptance", runtimeHost, evaluation, passed);
             return passed;
@@ -114,11 +105,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.runtime.toggle"));
 
             var gateSnapshot = runtimeHost.PauseGateSnapshot;
-            bool passed = result.Applied
-                && result.Completed
-                && result.StateChanged
-                && result.PreviousState == PauseState.Paused
-                && result.CurrentState == PauseState.Running
+            bool passed = result is { Applied: true, Completed: true, StateChanged: true, PreviousState: PauseState.Paused, CurrentState: PauseState.Running }
                 && runtimeHost.PauseState == PauseState.Running
                 && gateSnapshot.IsEmpty;
 
@@ -134,11 +121,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.runtime.resume-no-change"));
 
             var gateSnapshot = runtimeHost.PauseGateSnapshot;
-            bool passed = result.IgnoredNoChange
-                && result.Completed
-                && !result.StateChanged
-                && result.PreviousState == PauseState.Running
-                && result.CurrentState == PauseState.Running
+            bool passed = result is { IgnoredNoChange: true, Completed: true, StateChanged: false, PreviousState: PauseState.Running, CurrentState: PauseState.Running }
                 && runtimeHost.PauseState == PauseState.Running
                 && gateSnapshot.IsEmpty;
 
@@ -158,13 +141,9 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.runtime.evaluate-running");
 
             bool passed = snapshotAvailable
-                && snapshot.IsRunning
-                && !snapshot.IsPaused
-                && snapshot.HasLastRequest
-                && snapshot.LastRequestId.StableText == "Pause:qa.pause.runtime.resume-no-change"
+                && snapshot is { IsRunning: true, IsPaused: false, HasLastRequest: true, LastRequestId: { StableText: "Pause:qa.pause.runtime.resume-no-change" } }
                 && gateSnapshot.IsEmpty
-                && evaluation.IsAllowed
-                && evaluation.BlockingBlockerCount == 0;
+                && evaluation is { IsAllowed: true, BlockingBlockerCount: 0 };
 
             LogSnapshotStep(logger, "snapshot-running", snapshotAvailable, snapshot, gateSnapshot, evaluation, passed);
             return passed;

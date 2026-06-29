@@ -41,8 +41,7 @@ namespace Immersive.Framework.ObjectEntry
         internal FrameworkIdentityKey ActivityOwnerIdentity { get; }
 
         internal bool HasActiveActivity => Activity != null
-            && ActivityOwnerIdentity.IsValid
-            && ActivityOwnerIdentity.Domain == FrameworkIdentityDomain.Activity;
+            && ActivityOwnerIdentity is { IsValid: true, Domain: FrameworkIdentityDomain.Activity };
 
         internal bool TryValidate(out string issue)
         {

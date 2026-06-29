@@ -70,10 +70,7 @@ namespace Immersive.Framework.Diagnostics
 
             bool passed = operationId.Domain == FrameworkIdentityDomain.Loading
                 && observationId.Domain == FrameworkIdentityDomain.Loading
-                && observation.IsValid
-                && observation.IsWaiting
-                && observation.BlocksCompletion
-                && !observation.IsReady
+                && observation is { IsValid: true, IsWaiting: true, BlocksCompletion: true, IsReady: false }
                 && observation.OperationId == operationId;
 
             LogStep(
@@ -103,11 +100,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.readiness.waiting",
                 "Waiting for content readiness observation.");
 
-            bool passed = observation.Status == LoadingReadinessStatus.Waiting
-                && observation.IsWaiting
-                && observation.BlocksCompletion
-                && !observation.IsTerminal
-                && !observation.IsReady;
+            bool passed = observation is { Status: LoadingReadinessStatus.Waiting, IsWaiting: true, BlocksCompletion: true, IsTerminal: false, IsReady: false };
 
             LogStep(
                 logger,
@@ -134,11 +127,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.readiness.ready",
                 "Readiness observed as ready.");
 
-            bool passed = observation.Status == LoadingReadinessStatus.Ready
-                && observation.IsReady
-                && observation.IsTerminal
-                && !observation.BlocksCompletion
-                && !observation.Failed;
+            bool passed = observation is { Status: LoadingReadinessStatus.Ready, IsReady: true, IsTerminal: true, BlocksCompletion: false, Failed: false };
 
             LogStep(
                 logger,
@@ -164,11 +153,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.readiness.blocked",
                 "Required readiness is blocked.");
 
-            bool passed = observation.Status == LoadingReadinessStatus.Blocked
-                && observation.IsBlocked
-                && observation.BlocksCompletion
-                && observation.IsTerminal
-                && !observation.IsReady;
+            bool passed = observation is { Status: LoadingReadinessStatus.Blocked, IsBlocked: true, BlocksCompletion: true, IsTerminal: true, IsReady: false };
 
             LogStep(
                 logger,
@@ -195,11 +180,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.readiness.failed",
                 "Readiness observation failed.");
 
-            bool passed = observation.Status == LoadingReadinessStatus.Failed
-                && observation.Failed
-                && observation.IsTerminal
-                && !observation.IsReady
-                && !observation.BlocksCompletion;
+            bool passed = observation is { Status: LoadingReadinessStatus.Failed, Failed: true, IsTerminal: true, IsReady: false, BlocksCompletion: false };
 
             LogStep(
                 logger,

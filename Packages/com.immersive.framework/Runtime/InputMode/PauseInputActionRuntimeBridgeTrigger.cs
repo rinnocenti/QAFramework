@@ -181,7 +181,7 @@ namespace Immersive.Framework.InputMode
                 bridgeResult,
                 normalizedSource,
                 normalizedReason,
-                bridgeResult.ToDiagnosticString());
+                $"Pause runtime PlayerInput bridge {bridgeResult.Status}.");
         }
 
         private void SubscribeConfiguredAction()
@@ -239,7 +239,7 @@ namespace Immersive.Framework.InputMode
                 return true;
             }
 
-            PauseInputModeUnityPlayerInputRuntimeBridge[] bridges = FindObjectsByType<PauseInputModeUnityPlayerInputRuntimeBridge>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            PauseInputModeUnityPlayerInputRuntimeBridge[] bridges = FindObjectsByType<PauseInputModeUnityPlayerInputRuntimeBridge>(FindObjectsInactive.Include);
             resolvedBridge = bridges != null && bridges.Length > 0 ? bridges[0] : null;
             return resolvedBridge != null;
         }

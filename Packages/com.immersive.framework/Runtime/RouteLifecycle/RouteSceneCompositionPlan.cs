@@ -183,7 +183,7 @@ namespace Immersive.Framework.RouteLifecycle
             for (int i = 0; i < AdditionalScenes.Count; i++)
             {
                 var entry = AdditionalScenes[i];
-                if (entry.Requiredness == FrameworkContentRequiredness.Required && !entry.IsExecutionReady)
+                if (entry is { Requiredness: FrameworkContentRequiredness.Required, IsExecutionReady: false })
                 {
                     return true;
                 }

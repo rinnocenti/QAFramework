@@ -112,19 +112,12 @@ namespace Immersive.Framework.ObjectReset
 
                 var invalidResult = ObjectResetTargetResolver.ResolveTarget(snapshot, default);
 
-                bool validResolved = validResult.Succeeded
-                    && validResult.HasResolvedTarget
+                bool validResolved = validResult is { Succeeded: true, HasResolvedTarget: true }
                     && validResult.ResolvedTarget.Id == activityEntry.Id
                     && validResult.BlockingIssueCount == 0;
-                bool missingRejected = missingResult.Status == ObjectResetResultStatus.RejectedTargetNotFound
-                    && missingResult.BlockingIssueCount == 1
-                    && !missingResult.HasResolvedTarget;
-                bool staleRejected = staleResult.Status == ObjectResetResultStatus.RejectedForeignTarget
-                    && staleResult.BlockingIssueCount == 1
-                    && !staleResult.HasResolvedTarget;
-                bool invalidRejected = invalidResult.Status == ObjectResetResultStatus.RejectedInvalidRequest
-                    && invalidResult.BlockingIssueCount == 1
-                    && !invalidResult.HasResolvedTarget;
+                bool missingRejected = missingResult is { Status: ObjectResetResultStatus.RejectedTargetNotFound, BlockingIssueCount: 1, HasResolvedTarget: false };
+                bool staleRejected = staleResult is { Status: ObjectResetResultStatus.RejectedForeignTarget, BlockingIssueCount: 1, HasResolvedTarget: false };
+                bool invalidRejected = invalidResult is { Status: ObjectResetResultStatus.RejectedInvalidRequest, BlockingIssueCount: 1, HasResolvedTarget: false };
 
                 if (!validResolved || !missingRejected || !staleRejected || !invalidRejected)
                 {
@@ -297,15 +290,9 @@ namespace Immersive.Framework.ObjectReset
                 bool contextsValid = requiredContext.IsValid
                     && optionalContext.IsValid
                     && failureContext.IsValid;
-                bool successValid = successResult.Succeeded
-                    && !successResult.BlocksReset
-                    && successResult.IssueCount == 0;
-                bool skippedValid = skippedResult.WasSkipped
-                    && !skippedResult.BlocksReset
-                    && skippedResult.IssueCount == 0;
-                bool failureValid = failureResult.Failed
-                    && failureResult.BlocksReset
-                    && failureResult.IssueCount == 1;
+                bool successValid = successResult is { Succeeded: true, BlocksReset: false, IssueCount: 0 };
+                bool skippedValid = skippedResult is { WasSkipped: true, BlocksReset: false, IssueCount: 0 };
+                bool failureValid = failureResult is { Failed: true, BlocksReset: true, IssueCount: 1 };
 
                 if (!sourceResolved
                     || !requiredSupportsTarget
@@ -450,24 +437,10 @@ namespace Immersive.Framework.ObjectReset
                 bool planOrdered = plan.ParticipantCount == 2
                     && plan.Participants[0].ParticipantId == optionalSkipped.GetObjectResetDescriptor().ParticipantId
                     && plan.Participants[1].ParticipantId == requiredSuccess.GetObjectResetDescriptor().ParticipantId;
-                bool successAggregated = successResult.Status == ObjectResetResultStatus.Succeeded
-                    && successResult.ParticipantCount == 2
-                    && successResult.ParticipantSucceededCount == 1
-                    && successResult.ParticipantSkippedCount == 1
-                    && successResult.ParticipantFailedCount == 0
-                    && successResult.BlockingIssueCount == 0;
-                bool noParticipantsSucceeded = noParticipantsResult.Status == ObjectResetResultStatus.SucceededNoParticipants
-                    && noParticipantsResult.ParticipantCount == 0
-                    && noParticipantsResult.BlockingIssueCount == 0;
-                bool requiredFailureBlocked = requiredFailureResult.Status == ObjectResetResultStatus.Failed
-                    && requiredFailureResult.ParticipantFailedCount == 1
-                    && requiredFailureResult.ParticipantBlockingFailureCount == 1
-                    && requiredFailureResult.BlockingIssueCount == 1;
-                bool optionalFailureWarned = optionalFailureResult.Status == ObjectResetResultStatus.CompletedWithWarnings
-                    && optionalFailureResult.ParticipantFailedCount == 1
-                    && optionalFailureResult.ParticipantBlockingFailureCount == 0
-                    && optionalFailureResult.BlockingIssueCount == 0
-                    && optionalFailureResult.NonBlockingIssueCount == 1;
+                bool successAggregated = successResult is { Status: ObjectResetResultStatus.Succeeded, ParticipantCount: 2, ParticipantSucceededCount: 1, ParticipantSkippedCount: 1, ParticipantFailedCount: 0, BlockingIssueCount: 0 };
+                bool noParticipantsSucceeded = noParticipantsResult is { Status: ObjectResetResultStatus.SucceededNoParticipants, ParticipantCount: 0, BlockingIssueCount: 0 };
+                bool requiredFailureBlocked = requiredFailureResult is { Status: ObjectResetResultStatus.Failed, ParticipantFailedCount: 1, ParticipantBlockingFailureCount: 1, BlockingIssueCount: 1 };
+                bool optionalFailureWarned = optionalFailureResult is { Status: ObjectResetResultStatus.CompletedWithWarnings, ParticipantFailedCount: 1, ParticipantBlockingFailureCount: 0, BlockingIssueCount: 0, NonBlockingIssueCount: 1 };
 
                 if (!planOrdered
                     || !successAggregated
@@ -573,7 +546,7 @@ namespace Immersive.Framework.ObjectReset
                         LogFields.Of(
                             LogFields.Field("step", "runtime-host-integration"),
                             LogFields.Field("reason", "target-not-collected"),
-                            LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                            LogFields.Field("snapshotAvailable", snapshot is { IsAvailable: true }),
                             LogFields.Field("objectEntry", objectEntryId)));
                     return false;
                 }
@@ -619,20 +592,12 @@ namespace Immersive.Framework.ObjectReset
                     "qa.object-reset.runtime-host.missing"));
 
                 bool hostSnapshotAvailable = runtimeHost.TryGetObjectEntryRuntimeContextSnapshot(out var hostSnapshot)
-                    && hostSnapshot != null
-                    && hostSnapshot.IsAvailable;
+                    && hostSnapshot is { IsAvailable: true };
                 bool hostResolvedTarget = successResult.HasResolvedTarget
                     && successResult.ResolvedTarget.Id == id;
-                bool successValid = successResult.Status == ObjectResetResultStatus.Succeeded
-                    && successResult.ParticipantCount == 2
-                    && successResult.ParticipantSucceededCount == 1
-                    && successResult.ParticipantSkippedCount == 1
-                    && successResult.BlockingIssueCount == 0;
-                bool noParticipantsValid = noParticipantsResult.Status == ObjectResetResultStatus.SucceededNoParticipants
-                    && noParticipantsResult.ParticipantCount == 0
-                    && noParticipantsResult.BlockingIssueCount == 0;
-                bool missingRejected = missingResult.Status == ObjectResetResultStatus.RejectedTargetNotFound
-                    && missingResult.BlockingIssueCount == 1;
+                bool successValid = successResult is { Status: ObjectResetResultStatus.Succeeded, ParticipantCount: 2, ParticipantSucceededCount: 1, ParticipantSkippedCount: 1, BlockingIssueCount: 0 };
+                bool noParticipantsValid = noParticipantsResult is { Status: ObjectResetResultStatus.SucceededNoParticipants, ParticipantCount: 0, BlockingIssueCount: 0 };
+                bool missingRejected = missingResult is { Status: ObjectResetResultStatus.RejectedTargetNotFound, BlockingIssueCount: 1 };
 
                 if (!hostSnapshotAvailable
                     || !hostResolvedTarget
@@ -752,7 +717,7 @@ namespace Immersive.Framework.ObjectReset
                         LogFields.Of(
                             LogFields.Field("step", "object-reset-trigger"),
                             LogFields.Field("reason", "target-not-collected"),
-                            LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                            LogFields.Field("snapshotAvailable", snapshot is { IsAvailable: true }),
                             LogFields.Field("objectEntry", objectEntryId)));
                     return false;
                 }
@@ -804,7 +769,7 @@ namespace Immersive.Framework.ObjectReset
                     LogFields.Of(
                         LogFields.Field("step", "object-reset-trigger"),
                         LogFields.Field("source", source),
-                        LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                        LogFields.Field("snapshotAvailable", snapshot is { IsAvailable: true }),
                         LogFields.Field("objectEntry", id.StableText),
                         LogFields.Field("targetCollected", targetCollected),
                         LogFields.Field("requestCompleted", requestCompleted),
@@ -900,7 +865,7 @@ namespace Immersive.Framework.ObjectReset
                         LogFields.Of(
                             LogFields.Field("step", "object-reset-bridge"),
                             LogFields.Field("reason", "target-not-collected"),
-                            LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                            LogFields.Field("snapshotAvailable", snapshot is { IsAvailable: true }),
                             LogFields.Field("objectEntry", objectEntryId)));
                     return false;
                 }
@@ -960,7 +925,7 @@ namespace Immersive.Framework.ObjectReset
                     LogFields.Of(
                         LogFields.Field("step", "object-reset-bridge"),
                         LogFields.Field("source", source),
-                        LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                        LogFields.Field("snapshotAvailable", snapshot is { IsAvailable: true }),
                         LogFields.Field("objectEntry", id.StableText),
                         LogFields.Field("targetCollected", targetCollected),
                         LogFields.Field("requestCompleted", requestCompleted),
@@ -1077,7 +1042,7 @@ namespace Immersive.Framework.ObjectReset
                         LogFields.Of(
                             LogFields.Field("step", "unity-participant-source"),
                             LogFields.Field("reason", "target-not-collected"),
-                            LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                            LogFields.Field("snapshotAvailable", snapshot is { IsAvailable: true }),
                             LogFields.Field("objectEntry", objectEntryId)));
                     return false;
                 }
@@ -1091,14 +1056,8 @@ namespace Immersive.Framework.ObjectReset
                     && runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
                 var result = await runtimeHost.RequestObjectResetAsync(request);
 
-                bool sourceResolved = resolvedParticipants != null && resolvedParticipants.Count == 2;
-                bool resultValid = result.Status == ObjectResetResultStatus.Succeeded
-                    && result.ParticipantCount == 2
-                    && result.ParticipantSucceededCount == 1
-                    && result.ParticipantSkippedCount == 1
-                    && result.ParticipantFailedCount == 0
-                    && result.BlockingIssueCount == 0
-                    && result.NonBlockingIssueCount == 0;
+                bool sourceResolved = resolvedParticipants is { Count: 2 };
+                bool resultValid = result is { Status: ObjectResetResultStatus.Succeeded, ParticipantCount: 2, ParticipantSucceededCount: 1, ParticipantSkippedCount: 1, ParticipantFailedCount: 0, BlockingIssueCount: 0, NonBlockingIssueCount: 0 };
                 bool targetResolved = result.HasResolvedTarget
                     && result.ResolvedTarget.Id == id
                     && result.ResolvedTarget.HasOwnerIdentity;
@@ -1133,7 +1092,7 @@ namespace Immersive.Framework.ObjectReset
                     LogFields.Of(
                         LogFields.Field("step", "unity-participant-source"),
                         LogFields.Field("source", source),
-                        LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                        LogFields.Field("snapshotAvailable", snapshot is { IsAvailable: true }),
                         LogFields.Field("objectEntry", id.StableText),
                         LogFields.Field("targetCollected", targetCollected),
                         LogFields.Field("targetResolved", targetResolved),
@@ -1256,7 +1215,7 @@ namespace Immersive.Framework.ObjectReset
                         LogFields.Of(
                             LogFields.Field("step", "transform-participant"),
                             LogFields.Field("reason", "target-not-collected"),
-                            LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                            LogFields.Field("snapshotAvailable", snapshot is { IsAvailable: true }),
                             LogFields.Field("objectEntry", objectEntryId)));
                     return false;
                 }
@@ -1270,20 +1229,14 @@ namespace Immersive.Framework.ObjectReset
                     && runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
                 var result = await runtimeHost.RequestObjectResetAsync(request);
 
-                bool sourceResolved = resolvedParticipants != null && resolvedParticipants.Count == 1;
+                bool sourceResolved = resolvedParticipants is { Count: 1 };
                 bool targetResolved = result.HasResolvedTarget
                     && result.ResolvedTarget.Id == id
                     && result.ResolvedTarget.HasOwnerIdentity;
                 bool transformPositionReset = VectorApproximatelyEqual(qaObject.transform.localPosition, baselineLocalPosition);
                 bool transformRotationReset = EulerApproximatelyEqual(qaObject.transform.localEulerAngles, baselineLocalEulerAngles);
                 bool transformScaleReset = VectorApproximatelyEqual(qaObject.transform.localScale, baselineLocalScale);
-                bool resultValid = result.Status == ObjectResetResultStatus.Succeeded
-                    && result.ParticipantCount == 1
-                    && result.ParticipantSucceededCount == 1
-                    && result.ParticipantSkippedCount == 0
-                    && result.ParticipantFailedCount == 0
-                    && result.BlockingIssueCount == 0
-                    && result.NonBlockingIssueCount == 0;
+                bool resultValid = result is { Status: ObjectResetResultStatus.Succeeded, ParticipantCount: 1, ParticipantSucceededCount: 1, ParticipantSkippedCount: 0, ParticipantFailedCount: 0, BlockingIssueCount: 0, NonBlockingIssueCount: 0 };
                 bool cleared = unitySource.ClearRegistration()
                     && !runtimeHost.IsObjectResetParticipantSourceRegistered(unitySource);
 
@@ -1321,7 +1274,7 @@ namespace Immersive.Framework.ObjectReset
                     LogFields.Of(
                         LogFields.Field("step", "transform-participant"),
                         LogFields.Field("source", source),
-                        LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                        LogFields.Field("snapshotAvailable", snapshot is { IsAvailable: true }),
                         LogFields.Field("objectEntry", id.StableText),
                         LogFields.Field("targetCollected", targetCollected),
                         LogFields.Field("targetResolved", targetResolved),
@@ -1419,7 +1372,7 @@ namespace Immersive.Framework.ObjectReset
                         LogFields.Of(
                             LogFields.Field("step", "required-guardrails"),
                             LogFields.Field("reason", "target-not-collected"),
-                            LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                            LogFields.Field("snapshotAvailable", snapshot is { IsAvailable: true }),
                             LogFields.Field("objectEntry", objectEntryId)));
                     return false;
                 }
@@ -1494,20 +1447,9 @@ namespace Immersive.Framework.ObjectReset
                     "qa.object-reset.required-guardrails.optional-missing-baseline");
                 var optionalMissingBaselineResult = await runtimeHost.RequestObjectResetAsync(optionalMissingBaselineRequest);
 
-                bool missingAdapterBlocked = missingAdapterResult.Status == ObjectResetResultStatus.Failed
-                    && missingAdapterResult.ParticipantCount == 0
-                    && missingAdapterResult.BlockingIssueCount > 0;
-                bool requiredMissingBaselineBlocked = requiredMissingBaselineResult.Status == ObjectResetResultStatus.Failed
-                    && requiredMissingBaselineResult.ParticipantCount == 1
-                    && requiredMissingBaselineResult.ParticipantFailedCount == 1
-                    && requiredMissingBaselineResult.ParticipantBlockingFailureCount == 1
-                    && requiredMissingBaselineResult.BlockingIssueCount > 0;
-                bool optionalMissingBaselineWarned = optionalMissingBaselineResult.Status == ObjectResetResultStatus.CompletedWithWarnings
-                    && optionalMissingBaselineResult.ParticipantCount == 1
-                    && optionalMissingBaselineResult.ParticipantFailedCount == 1
-                    && optionalMissingBaselineResult.ParticipantBlockingFailureCount == 0
-                    && optionalMissingBaselineResult.BlockingIssueCount == 0
-                    && optionalMissingBaselineResult.NonBlockingIssueCount > 0;
+                bool missingAdapterBlocked = missingAdapterResult is { Status: ObjectResetResultStatus.Failed, ParticipantCount: 0, BlockingIssueCount: > 0 };
+                bool requiredMissingBaselineBlocked = requiredMissingBaselineResult is { Status: ObjectResetResultStatus.Failed, ParticipantCount: 1, ParticipantFailedCount: 1, ParticipantBlockingFailureCount: 1, BlockingIssueCount: > 0 };
+                bool optionalMissingBaselineWarned = optionalMissingBaselineResult is { Status: ObjectResetResultStatus.CompletedWithWarnings, ParticipantCount: 1, ParticipantFailedCount: 1, ParticipantBlockingFailureCount: 0, BlockingIssueCount: 0, NonBlockingIssueCount: > 0 };
                 bool targetResolved = missingAdapterResult.HasResolvedTarget
                     && requiredMissingBaselineResult.HasResolvedTarget
                     && optionalMissingBaselineResult.HasResolvedTarget
@@ -1550,7 +1492,7 @@ namespace Immersive.Framework.ObjectReset
                     LogFields.Of(
                         LogFields.Field("step", "required-guardrails"),
                         LogFields.Field("source", source),
-                        LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                        LogFields.Field("snapshotAvailable", snapshot is { IsAvailable: true }),
                         LogFields.Field("objectEntry", id.StableText),
                         LogFields.Field("targetCollected", targetCollected),
                         LogFields.Field("targetResolved", targetResolved),
@@ -1676,7 +1618,7 @@ namespace Immersive.Framework.ObjectReset
                         LogFields.Of(
                             LogFields.Field("step", "unity-adapters-closure"),
                             LogFields.Field("reason", "target-not-collected"),
-                            LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                            LogFields.Field("snapshotAvailable", snapshot is { IsAvailable: true }),
                             LogFields.Field("objectEntry", objectEntryId)));
                     return false;
                 }
@@ -1773,26 +1715,10 @@ namespace Immersive.Framework.ObjectReset
                         "qa.object-reset.unity-adapters.optional-missing-baseline"),
                     new SyntheticObjectResetParticipantSource(optionalMissingBaselineParticipant));
 
-                bool hostSucceeded = hostResult.Status == ObjectResetResultStatus.Succeeded
-                    && hostResult.ParticipantCount == 1
-                    && hostResult.ParticipantSucceededCount == 1
-                    && hostResult.ParticipantFailedCount == 0
-                    && hostResult.BlockingIssueCount == 0
-                    && hostResult.NonBlockingIssueCount == 0;
-                bool missingAdapterBlocked = missingAdapterResult.Status == ObjectResetResultStatus.Failed
-                    && missingAdapterResult.ParticipantCount == 0
-                    && missingAdapterResult.BlockingIssueCount > 0;
-                bool requiredMissingBaselineBlocked = requiredMissingBaselineResult.Status == ObjectResetResultStatus.Failed
-                    && requiredMissingBaselineResult.ParticipantCount == 1
-                    && requiredMissingBaselineResult.ParticipantFailedCount == 1
-                    && requiredMissingBaselineResult.ParticipantBlockingFailureCount == 1
-                    && requiredMissingBaselineResult.BlockingIssueCount > 0;
-                bool optionalMissingBaselineWarned = optionalMissingBaselineResult.Status == ObjectResetResultStatus.CompletedWithWarnings
-                    && optionalMissingBaselineResult.ParticipantCount == 1
-                    && optionalMissingBaselineResult.ParticipantFailedCount == 1
-                    && optionalMissingBaselineResult.ParticipantBlockingFailureCount == 0
-                    && optionalMissingBaselineResult.BlockingIssueCount == 0
-                    && optionalMissingBaselineResult.NonBlockingIssueCount > 0;
+                bool hostSucceeded = hostResult is { Status: ObjectResetResultStatus.Succeeded, ParticipantCount: 1, ParticipantSucceededCount: 1, ParticipantFailedCount: 0, BlockingIssueCount: 0, NonBlockingIssueCount: 0 };
+                bool missingAdapterBlocked = missingAdapterResult is { Status: ObjectResetResultStatus.Failed, ParticipantCount: 0, BlockingIssueCount: > 0 };
+                bool requiredMissingBaselineBlocked = requiredMissingBaselineResult is { Status: ObjectResetResultStatus.Failed, ParticipantCount: 1, ParticipantFailedCount: 1, ParticipantBlockingFailureCount: 1, BlockingIssueCount: > 0 };
+                bool optionalMissingBaselineWarned = optionalMissingBaselineResult is { Status: ObjectResetResultStatus.CompletedWithWarnings, ParticipantCount: 1, ParticipantFailedCount: 1, ParticipantBlockingFailureCount: 0, BlockingIssueCount: 0, NonBlockingIssueCount: > 0 };
                 bool transformReset = transformPositionReset && transformRotationReset && transformScaleReset;
                 bool closurePassed = targetCollected
                     && targetResolved
@@ -1831,7 +1757,7 @@ namespace Immersive.Framework.ObjectReset
                     LogFields.Of(
                         LogFields.Field("step", "unity-adapters-closure"),
                         LogFields.Field("source", source),
-                        LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                        LogFields.Field("snapshotAvailable", snapshot is { IsAvailable: true }),
                         LogFields.Field("snapshotSource", snapshot.ToDiagnosticText(x => x.Source)),
                         LogFields.Field("objectEntry", id.StableText),
                         LogFields.Field("targetCollected", targetCollected),
@@ -1989,7 +1915,7 @@ namespace Immersive.Framework.ObjectReset
                         LogFields.Of(
                             LogFields.Field("step", "gameobject-active-closure"),
                             LogFields.Field("reason", "target-not-collected"),
-                            LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                            LogFields.Field("snapshotAvailable", snapshot is { IsAvailable: true }),
                             LogFields.Field("inactiveTargetCollected", inactiveTargetCollected),
                             LogFields.Field("activeTargetCollected", activeTargetCollected),
                             LogFields.Field("guardrailTargetCollected", guardrailTargetCollected)));
@@ -2089,32 +2015,13 @@ namespace Immersive.Framework.ObjectReset
                         "qa.object-reset.gameobject-active.optional-missing-baseline"),
                     new SyntheticObjectResetParticipantSource(optionalMissingBaselineParticipant));
 
-                bool inactiveResetSucceeded = inactiveBaselineResult.Status == ObjectResetResultStatus.Succeeded
-                    && inactiveBaselineResult.ParticipantCount == 1
-                    && inactiveBaselineResult.ParticipantSucceededCount == 1
-                    && inactiveBaselineResult.BlockingIssueCount == 0
-                    && inactiveBaselineResult.NonBlockingIssueCount == 0
+                bool inactiveResetSucceeded = inactiveBaselineResult is { Status: ObjectResetResultStatus.Succeeded, ParticipantCount: 1, ParticipantSucceededCount: 1, BlockingIssueCount: 0, NonBlockingIssueCount: 0 }
                     && inactiveTargetReset;
-                bool activeResetSucceeded = activeBaselineResult.Status == ObjectResetResultStatus.Succeeded
-                    && activeBaselineResult.ParticipantCount == 1
-                    && activeBaselineResult.ParticipantSucceededCount == 1
-                    && activeBaselineResult.BlockingIssueCount == 0
-                    && activeBaselineResult.NonBlockingIssueCount == 0
+                bool activeResetSucceeded = activeBaselineResult is { Status: ObjectResetResultStatus.Succeeded, ParticipantCount: 1, ParticipantSucceededCount: 1, BlockingIssueCount: 0, NonBlockingIssueCount: 0 }
                     && activeTargetReset;
-                bool missingAdapterBlocked = missingAdapterResult.Status == ObjectResetResultStatus.Failed
-                    && missingAdapterResult.ParticipantCount == 0
-                    && missingAdapterResult.BlockingIssueCount > 0;
-                bool requiredMissingBaselineBlocked = requiredMissingBaselineResult.Status == ObjectResetResultStatus.Failed
-                    && requiredMissingBaselineResult.ParticipantCount == 1
-                    && requiredMissingBaselineResult.ParticipantFailedCount == 1
-                    && requiredMissingBaselineResult.ParticipantBlockingFailureCount == 1
-                    && requiredMissingBaselineResult.BlockingIssueCount > 0;
-                bool optionalMissingBaselineWarned = optionalMissingBaselineResult.Status == ObjectResetResultStatus.CompletedWithWarnings
-                    && optionalMissingBaselineResult.ParticipantCount == 1
-                    && optionalMissingBaselineResult.ParticipantFailedCount == 1
-                    && optionalMissingBaselineResult.ParticipantBlockingFailureCount == 0
-                    && optionalMissingBaselineResult.BlockingIssueCount == 0
-                    && optionalMissingBaselineResult.NonBlockingIssueCount > 0;
+                bool missingAdapterBlocked = missingAdapterResult is { Status: ObjectResetResultStatus.Failed, ParticipantCount: 0, BlockingIssueCount: > 0 };
+                bool requiredMissingBaselineBlocked = requiredMissingBaselineResult is { Status: ObjectResetResultStatus.Failed, ParticipantCount: 1, ParticipantFailedCount: 1, ParticipantBlockingFailureCount: 1, BlockingIssueCount: > 0 };
+                bool optionalMissingBaselineWarned = optionalMissingBaselineResult is { Status: ObjectResetResultStatus.CompletedWithWarnings, ParticipantCount: 1, ParticipantFailedCount: 1, ParticipantBlockingFailureCount: 0, BlockingIssueCount: 0, NonBlockingIssueCount: > 0 };
 
                 bool closurePassed = inactiveTargetCollected
                     && activeTargetCollected
@@ -2162,7 +2069,7 @@ namespace Immersive.Framework.ObjectReset
                     LogFields.Of(
                         LogFields.Field("step", "gameobject-active-closure"),
                         LogFields.Field("source", source),
-                        LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                        LogFields.Field("snapshotAvailable", snapshot is { IsAvailable: true }),
                         LogFields.Field("snapshotSource", snapshot.ToDiagnosticText(x => x.Source)),
                         LogFields.Field("inactiveObjectEntry", inactiveId.StableText),
                         LogFields.Field("activeObjectEntry", activeId.StableText),
@@ -2290,7 +2197,7 @@ namespace Immersive.Framework.ObjectReset
                         LogFields.Of(
                             LogFields.Field("step", "foundation-closure"),
                             LogFields.Field("reason", "target-not-collected"),
-                            LogFields.Field("snapshotAvailable", snapshot != null && snapshot.IsAvailable),
+                            LogFields.Field("snapshotAvailable", snapshot is { IsAvailable: true }),
                             LogFields.Field("objectEntry", objectEntryId)));
                     return false;
                 }
@@ -2328,19 +2235,11 @@ namespace Immersive.Framework.ObjectReset
                 bool triggerCompleted = await WaitForObjectResetTriggerAsync(trigger, 32);
 
                 bool hostSnapshotAvailable = runtimeHost.TryGetObjectEntryRuntimeContextSnapshot(out var hostSnapshot)
-                    && hostSnapshot != null
-                    && hostSnapshot.IsAvailable;
-                bool targetResolved = targetResolution.Succeeded
-                    && targetResolution.HasResolvedTarget
+                    && hostSnapshot is { IsAvailable: true };
+                bool targetResolved = targetResolution is { Succeeded: true, HasResolvedTarget: true }
                     && targetResolution.ResolvedTarget.Id == id
                     && targetResolution.BlockingIssueCount == 0;
-                bool hostResultValid = hostResult.Status == ObjectResetResultStatus.Succeeded
-                    && hostResult.ParticipantCount == 2
-                    && hostResult.ParticipantSucceededCount == 1
-                    && hostResult.ParticipantSkippedCount == 1
-                    && hostResult.ParticipantFailedCount == 0
-                    && hostResult.BlockingIssueCount == 0
-                    && hostResult.NonBlockingIssueCount == 0;
+                bool hostResultValid = hostResult is { Status: ObjectResetResultStatus.Succeeded, ParticipantCount: 2, ParticipantSucceededCount: 1, ParticipantSkippedCount: 1, ParticipantFailedCount: 0, BlockingIssueCount: 0, NonBlockingIssueCount: 0 };
                 bool triggerResultValid = triggerCompleted
                     && !trigger.IsRequestInFlight
                     && trigger.LastEventPhase == FlowRequestEventPhase.Completed

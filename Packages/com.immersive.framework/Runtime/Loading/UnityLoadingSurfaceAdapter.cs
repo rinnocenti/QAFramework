@@ -266,7 +266,7 @@ namespace Immersive.Framework.Loading
 
             SetProgressRootVisible(showProgressRootWhenVisible);
 
-            if (request.HasValue && request.Value.ProgressSupported)
+            if (request is { ProgressSupported: true })
             {
                 ApplyProgressValue(request.Value.Progress.NormalizedValue);
                 lastProgressSupported = true;

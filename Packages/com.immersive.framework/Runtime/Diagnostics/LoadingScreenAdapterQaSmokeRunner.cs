@@ -71,13 +71,8 @@ namespace Immersive.Framework.Diagnostics
 
             bool passed = adapter.AdapterName == "Synthetic Loading Screen Adapter"
                 && adapter.Supports(operation)
-                && presentation.IsValid
-                && presentation.ShouldBeVisible
-                && presentation.Progress.PercentRounded == 25
-                && result.IsValid
-                && result.Action == LoadingScreenAdapterAction.Show
-                && result.Status == LoadingScreenAdapterStatus.Succeeded
-                && result.Completed;
+                && presentation is { IsValid: true, ShouldBeVisible: true, Progress: { PercentRounded: 25 } }
+                && result is { IsValid: true, Action: LoadingScreenAdapterAction.Show, Status: LoadingScreenAdapterStatus.Succeeded, Completed: true };
 
             LogStep(
                 logger,
@@ -175,8 +170,7 @@ namespace Immersive.Framework.Diagnostics
             var result = adapter.Show(presentation);
 
             bool passed = !adapter.Supports(operation)
-                && result.Rejected
-                && result.IssueCount == 1
+                && result is { Rejected: true, IssueCount: 1 }
                 && !adapter.Visible
                 && adapter.ShowCount == 0;
 
@@ -206,8 +200,7 @@ namespace Immersive.Framework.Diagnostics
                 source);
             var result = adapter.Update(presentation);
 
-            bool passed = result.Failed
-                && result.IssueCount == 1
+            bool passed = result is { Failed: true, IssueCount: 1 }
                 && adapter.UpdateCount == 0
                 && !adapter.Visible;
 

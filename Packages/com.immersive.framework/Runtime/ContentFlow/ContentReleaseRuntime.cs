@@ -149,7 +149,7 @@ namespace Immersive.Framework.ContentFlow
 
         private static bool ShouldBlockRelease(ContentReleasePlanEntry entry)
         {
-            return entry.IsOwned && entry.Requiredness == FrameworkContentRequiredness.Required;
+            return entry is { IsOwned: true, Requiredness: FrameworkContentRequiredness.Required };
         }
 
         private static string BuildMessage(

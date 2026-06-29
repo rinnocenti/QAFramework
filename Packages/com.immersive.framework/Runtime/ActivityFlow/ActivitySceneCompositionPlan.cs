@@ -180,7 +180,7 @@ namespace Immersive.Framework.ActivityFlow
             for (int i = 0; i < Scenes.Count; i++)
             {
                 var entry = Scenes[i];
-                if (entry.Requiredness == FrameworkContentRequiredness.Required && !entry.IsExecutionReady)
+                if (entry is { Requiredness: FrameworkContentRequiredness.Required, IsExecutionReady: false })
                 {
                     count++;
                 }

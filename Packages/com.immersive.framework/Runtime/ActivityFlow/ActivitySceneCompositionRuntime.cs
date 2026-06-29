@@ -263,14 +263,14 @@ namespace Immersive.Framework.ActivityFlow
                     planEntry.SceneName,
                     planEntry.ScenePath,
                     sceneProgressReporter);
-                if (unloadResult.Completed && unloadResult.Unloaded)
+                if (unloadResult is { Completed: true, Unloaded: true })
                 {
                     entries.Add(ActivitySceneReleaseResultEntry.UnloadedEntry(planEntry, unloadResult));
                     _ledger.MarkReleased(record);
                     continue;
                 }
 
-                if (unloadResult.Completed && unloadResult.Skipped)
+                if (unloadResult is { Completed: true, Skipped: true })
                 {
                     entries.Add(ActivitySceneReleaseResultEntry.SkippedNotLoadedEntry(planEntry, unloadResult));
                     _ledger.MarkStale(record);
@@ -329,10 +329,7 @@ namespace Immersive.Framework.ActivityFlow
 
         internal static bool ShouldExecute(ActivitySceneCompositionPlan plan)
         {
-            return plan.HasActivity
-                && plan.HasProfile
-                && plan.HasScenes
-                && plan.ExecutionReadySceneCount > 0;
+            return plan is { HasActivity: true, HasProfile: true, HasScenes: true, ExecutionReadySceneCount: > 0 };
         }
 
         private void AddLoadEntries(

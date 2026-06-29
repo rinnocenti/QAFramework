@@ -39,7 +39,7 @@ namespace Immersive.Framework.InputMode
                     UnityInputActionMapName.From(string.Empty),
                     false,
                     false,
-                    actionMapEvidence != null && actionMapEvidence.HasActionAsset,
+                    actionMapEvidence is { HasActionAsset: true },
                     actionMapEvidence == null ? 0 : actionMapEvidence.ActionMapCount,
                     issues,
                     normalizedSource,
@@ -62,7 +62,7 @@ namespace Immersive.Framework.InputMode
                     UnityInputActionMapName.From(string.Empty),
                     false,
                     false,
-                    actionMapEvidence != null && actionMapEvidence.HasActionAsset,
+                    actionMapEvidence is { HasActionAsset: true },
                     actionMapEvidence == null ? 0 : actionMapEvidence.ActionMapCount,
                     issues,
                     normalizedSource,
@@ -77,14 +77,14 @@ namespace Immersive.Framework.InputMode
                     binding.ActionMapName,
                     false,
                     true,
-                    actionMapEvidence != null && actionMapEvidence.HasActionAsset,
+                    actionMapEvidence is { HasActionAsset: true },
                     actionMapEvidence == null ? 0 : actionMapEvidence.ActionMapCount,
                     issues,
                     normalizedSource,
                     reason);
             }
 
-            bool hasActionAsset = actionMapEvidence != null && actionMapEvidence.HasActionAsset;
+            bool hasActionAsset = actionMapEvidence is { HasActionAsset: true };
             bool actionMapAvailable = actionMapEvidence != null && actionMapEvidence.Contains(binding.ActionMapName);
 
             if (!hasActionAsset)

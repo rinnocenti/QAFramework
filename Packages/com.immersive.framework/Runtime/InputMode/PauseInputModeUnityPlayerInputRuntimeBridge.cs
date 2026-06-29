@@ -272,7 +272,7 @@ namespace Immersive.Framework.InputMode
                 applicationResult,
                 normalizedSource,
                 normalizedReason,
-                applicationResult.ToDiagnosticString());
+                $"InputMode PlayerInput application {applicationResult.Status}.");
         }
 
         private InputModeUnityApplicationPlanResult BuildPreflightPlan(

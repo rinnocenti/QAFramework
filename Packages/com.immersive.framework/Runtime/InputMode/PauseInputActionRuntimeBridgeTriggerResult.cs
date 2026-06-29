@@ -155,7 +155,8 @@ namespace Immersive.Framework.InputMode
 
             if (BridgeResult != null)
             {
-                builder.Append(" bridge='").Append(BridgeResult.ToDiagnosticString().ToDiagnosticText()).Append("'");
+                builder.Append(" bridgeStatus='").Append(BridgeResult.Status).Append("'");
+                builder.Append(" bridgePauseStatus='").Append(BridgeResult.PauseStatus).Append("'");
             }
 
             return builder.ToString();

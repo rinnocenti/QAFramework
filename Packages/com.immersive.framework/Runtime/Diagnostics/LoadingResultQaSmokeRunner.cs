@@ -77,16 +77,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "contracts");
 
-            bool passed = result.IsValid
-                && result.Status == LoadingResultStatus.SucceededWithWarnings
-                && result.Succeeded
-                && result.Completed
-                && !result.Failed
-                && !result.BlocksCompletion
-                && result.ReadinessObservationCount == 1
-                && result.IssueCount == 1
-                && result.WarningOrHigherIssueCount == 1
-                && result.BlockingIssueCount == 0;
+            bool passed = result is { IsValid: true, Status: LoadingResultStatus.SucceededWithWarnings, Succeeded: true, Completed: true, Failed: false, BlocksCompletion: false, ReadinessObservationCount: 1, IssueCount: 1, WarningOrHigherIssueCount: 1, BlockingIssueCount: 0 };
 
             LogStep(
                 logger,
@@ -132,13 +123,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "success");
 
-            bool passed = result.Status == LoadingResultStatus.Succeeded
-                && result.Succeeded
-                && result.Completed
-                && !result.BlocksCompletion
-                && result.Progress.PercentRounded == 100
-                && result.ReadyReadinessCount == 1
-                && result.IssueCount == 0;
+            bool passed = result is { Status: LoadingResultStatus.Succeeded, Succeeded: true, Completed: true, BlocksCompletion: false, Progress: { PercentRounded: 100 }, ReadyReadinessCount: 1, IssueCount: 0 };
 
             LogStep(
                 logger,
@@ -184,12 +169,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "waiting");
 
-            bool passed = result.Status == LoadingResultStatus.WaitingForReadiness
-                && result.WaitingForReadiness
-                && !result.Completed
-                && result.BlocksCompletion
-                && result.WaitingReadinessCount == 1
-                && result.BlockingIssueCount == 0;
+            bool passed = result is { Status: LoadingResultStatus.WaitingForReadiness, WaitingForReadiness: true, Completed: false, BlocksCompletion: true, WaitingReadinessCount: 1, BlockingIssueCount: 0 };
 
             LogStep(
                 logger,
@@ -230,13 +210,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "failure");
 
-            bool passed = result.Status == LoadingResultStatus.Failed
-                && result.Failed
-                && result.Completed
-                && result.BlocksCompletion
-                && result.FailedReadinessCount == 1
-                && result.BlockingIssueCount == 1
-                && result.ProgressAggregation.Failed;
+            bool passed = result is { Status: LoadingResultStatus.Failed, Failed: true, Completed: true, BlocksCompletion: true, FailedReadinessCount: 1, BlockingIssueCount: 1, ProgressAggregation: { Failed: true } };
 
             LogStep(
                 logger,

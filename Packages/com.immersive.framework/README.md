@@ -62,3 +62,8 @@ F26B introduces the internal loading progress contract and logging fields withou
 - Loading visual belongs to a later adapter/build surface.
 - Framework contracts must not depend on Unity object names, paths or hidden global state.
 - No implementation, asmdef change or Unity asset belongs in an ADR-only cut.
+
+
+## F33C Pause InputAction adapter retirement
+
+The historical `UnityPauseInputActionAdapter` is retired as an active runtime path. Use `PauseInputActionRuntimeBridgeTrigger` with `PauseInputModeUnityPlayerInputRuntimeBridge` so logical Pause, InputMode and Unity `PlayerInput` remain synchronized.

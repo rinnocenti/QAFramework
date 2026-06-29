@@ -1,6 +1,6 @@
 # F33 — Pause Runtime PlayerInput Wiring
 
-Status: Open. F33A completed pending closeout; F33B adds the opt-in InputAction trigger.
+Status: Open. F33A and F33B implemented; F33C retires the legacy direct Pause InputAction adapter; F33D flattens Pause input diagnostics.
 
 ## Purpose
 
@@ -44,3 +44,19 @@ It creates `PauseInputModeUnityPlayerInputRuntimeBridge`, an opt-in component wi
 F33B — Pause InputAction Runtime Bridge Trigger.
 
 It creates `PauseInputActionRuntimeBridgeTrigger`, an opt-in scene component that validates a configured Unity Input System action, normally `UI/Pause`, and forwards it to the F33A bridge. The trigger does not switch action maps itself, does not own `PlayerInputManager`, does not call `JoinPlayer`, and does not spawn player prefabs.
+
+
+## Third cut
+
+F33C — Legacy Pause InputAction Adapter Retirement.
+
+F33C retires the older F27B `UnityPauseInputActionAdapter` as an active runtime path. That direct adapter submitted Pause requests without guaranteeing the new `InputMode -> PlayerInput` synchronization lane. The class is retained only as an inert migration stub and the canonical authored input path is now `PauseInputActionRuntimeBridgeTrigger` plus `PauseInputModeUnityPlayerInputRuntimeBridge`.
+
+After F33C, a project should not author new scenes with `UnityPauseInputActionAdapter`. Use the F33B trigger instead.
+
+
+## Fourth cut
+
+F33D — Pause Input Diagnostics Flattening.
+
+F33D keeps the F33B/F33C runtime path unchanged and reduces diagnostic nesting. The trigger result no longer embeds the full bridge diagnostic blob, and the bridge result no longer stores the full PlayerInput application diagnostic string as its message.

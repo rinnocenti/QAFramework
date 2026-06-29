@@ -190,7 +190,7 @@ namespace Immersive.Framework.ActivityFlow
 
         private static ActivityContentExecutionParticipantSourceStatus ResolveSuccessStatus(ActivityContentExecutionParticipantCollection collection)
         {
-            if (collection.HasParticipants && collection.HasIssues)
+            if (collection is { HasParticipants: true, HasIssues: true })
             {
                 return ActivityContentExecutionParticipantSourceStatus.SucceededWithIssues;
             }

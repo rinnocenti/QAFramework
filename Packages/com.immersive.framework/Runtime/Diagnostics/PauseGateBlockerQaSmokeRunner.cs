@@ -57,8 +57,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "qa.pause.gate.paused-blockers");
 
-            bool passed = gateSnapshot.HasBlockers
-                && gateSnapshot.BlockerCount == 2
+            bool passed = gateSnapshot is { HasBlockers: true, BlockerCount: 2 }
                 && gateSnapshot.CountByScope(GateScope.Input) == 1
                 && gateSnapshot.CountByScope(GateScope.Interaction) == 1
                 && gateSnapshot.CountByDomain(GateDomain.InputAcceptance) == 1
@@ -90,9 +89,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.gate.evaluate-input",
                 PauseGateBlockerPolicy.PolicySource);
 
-            bool passed = evaluation.IsBlocked
-                && evaluation.Decision.Status == GateDecisionStatus.Blocked
-                && evaluation.BlockingBlockerCount == 1
+            bool passed = evaluation is { IsBlocked: true, Decision: { Status: GateDecisionStatus.Blocked }, BlockingBlockerCount: 1 }
                 && evaluation.BlockingBlockers[0].BlockerId.Value == PauseGateBlockerPolicy.InputAcceptanceBlockerId
                 && evaluation.Decision.PolicySource == PauseGateBlockerPolicy.PolicySource;
 
@@ -119,9 +116,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.gate.evaluate-interaction",
                 PauseGateBlockerPolicy.PolicySource);
 
-            bool passed = evaluation.IsBlocked
-                && evaluation.Decision.Status == GateDecisionStatus.Blocked
-                && evaluation.BlockingBlockerCount == 1
+            bool passed = evaluation is { IsBlocked: true, Decision: { Status: GateDecisionStatus.Blocked }, BlockingBlockerCount: 1 }
                 && evaluation.BlockingBlockers[0].BlockerId.Value == PauseGateBlockerPolicy.InteractionAcceptanceBlockerId
                 && evaluation.Decision.PolicySource == PauseGateBlockerPolicy.PolicySource;
 
@@ -148,11 +143,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.gate.evaluate-pause-request",
                 PauseGateBlockerPolicy.PolicySource);
 
-            bool passed = evaluation.IsAllowed
-                && evaluation.Decision.Status == GateDecisionStatus.Allowed
-                && evaluation.BlockingBlockerCount == 0
-                && evaluation.Decision.Scope == GateScope.Pause
-                && evaluation.Decision.Domain == GateDomain.PauseRequest;
+            bool passed = evaluation is { IsAllowed: true, Decision: { Status: GateDecisionStatus.Allowed, Scope: GateScope.Pause, Domain: GateDomain.PauseRequest }, BlockingBlockerCount: 0 };
 
             LogEvaluationStep(logger, "pause-request-remains-allowed", passed, pausedSnapshot, evaluation, gateSnapshot.BlockerCount);
             return passed;
@@ -180,10 +171,8 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.gate.evaluate-running-release",
                 PauseGateBlockerPolicy.PolicySource);
 
-            bool passed = gateSnapshot.IsEmpty
-                && gateSnapshot.BlockerCount == 0
-                && evaluation.IsAllowed
-                && evaluation.BlockingBlockerCount == 0;
+            bool passed = gateSnapshot is { IsEmpty: true, BlockerCount: 0 }
+                && evaluation is { IsAllowed: true, BlockingBlockerCount: 0 };
 
             LogEvaluationStep(logger, "running-releases-blockers", passed, runningSnapshot, evaluation, gateSnapshot.BlockerCount);
             return passed;
@@ -227,14 +216,10 @@ namespace Immersive.Framework.Diagnostics
                 "qa.pause.gate.evaluate-rejected-resume",
                 PauseGateBlockerPolicy.PolicySource);
 
-            bool passed = result.Rejected
-                && !result.Completed
-                && result.IsPaused
-                && result.BlockingIssueCount == 1
+            bool passed = result is { Rejected: true, Completed: false, IsPaused: true, BlockingIssueCount: 1 }
                 && pausedSnapshot.IsPaused
                 && gateSnapshot.BlockerCount == 2
-                && evaluation.IsBlocked
-                && evaluation.BlockingBlockerCount == 1;
+                && evaluation is { IsBlocked: true, BlockingBlockerCount: 1 };
 
             LogEvaluationStep(logger, "rejected-resume-keeps-blockers", passed, pausedSnapshot, evaluation, gateSnapshot.BlockerCount);
             return passed;

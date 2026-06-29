@@ -56,11 +56,11 @@ namespace Immersive.Framework.RuntimeContent
 
         public bool Executed => HasEnterRootResult || HasExitRootResult || HasContext;
 
-        public bool Rejected => EnterRootResult != null && EnterRootResult.Rejected
-            || ExitRootResult != null && ExitRootResult.Rejected;
+        public bool Rejected => EnterRootResult is { Rejected: true }
+            || ExitRootResult is { Rejected: true };
 
-        public bool Applied => EnterRootResult != null && EnterRootResult.Applied
-            || ExitRootResult != null && ExitRootResult.Applied;
+        public bool Applied => EnterRootResult is { Applied: true }
+            || ExitRootResult is { Applied: true };
 
         public string DiagnosticStatus
         {

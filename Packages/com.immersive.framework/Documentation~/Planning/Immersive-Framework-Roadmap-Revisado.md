@@ -355,4 +355,8 @@ F33A adds `PauseInputModeUnityPlayerInputRuntimeBridge` and `Pause Runtime Playe
 
 F33B adds `PauseInputActionRuntimeBridgeTrigger` and `Pause InputAction Runtime Bridge Trigger Smoke`.
 
+F33C retires the legacy direct Pause InputAction adapter.
+
+F33D flattens Pause input diagnostics so the accepted F33 path remains readable in QA logs.
+
 It remains outside automatic `FrameworkRuntimeHost` registration and does not call `PlayerInputManager.JoinPlayer`, spawn player prefabs, move actors, read gameplay commands or create a framework-owned input manager.

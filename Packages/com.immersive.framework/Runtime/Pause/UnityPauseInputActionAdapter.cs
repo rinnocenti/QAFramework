@@ -10,17 +10,20 @@ using Immersive.Framework.Common;
 namespace Immersive.Framework.Pause
 {
     /// <summary>
-    /// API status: Experimental. Unity Input System adapter that maps authored PauseToggle actions
-    /// to the canonical logical Pause Toggle request. It does not switch action maps, own input modes,
-    /// mutate PlayerInput, change Time.timeScale or own Pause UI.
+    /// API status: Removed. Legacy F27B adapter retained as an inert migration stub only.
+    /// The canonical Pause input path is PauseInputActionRuntimeBridgeTrigger ->
+    /// PauseInputModeUnityPlayerInputRuntimeBridge -> InputMode Unity PlayerInput application.
+    /// This stub deliberately does not subscribe to InputAction callbacks or submit Pause requests.
     /// </summary>
     [DisallowMultipleComponent]
-    [AddComponentMenu("Immersive Framework/Pause/Unity Pause Input Action Adapter")]
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F27B narrow Unity Input System adapter for PauseToggle; no InputMode ownership.")]
+    [AddComponentMenu("Immersive Framework/Removed/Legacy Unity Pause Input Action Adapter")]
+    [FrameworkApiStatus(FrameworkApiStatus.Removed, "F33C retires F27B direct Pause InputAction adapter. Use PauseInputActionRuntimeBridgeTrigger.")]
     public sealed class UnityPauseInputActionAdapter : MonoBehaviour
     {
         private const string DefaultSource = nameof(UnityPauseInputActionAdapter);
         private const string DefaultReasonPrefix = "input_action";
+        private const string RemovedReason = "legacy_pause_input_action_adapter_removed";
+        private const string RemovedMessage = "UnityPauseInputActionAdapter is retired. Use PauseInputActionRuntimeBridgeTrigger with PauseInputModeUnityPlayerInputRuntimeBridge so Pause, InputMode and PlayerInput stay synchronized.";
 
         private FrameworkLogger _logger;
         private InputAction _playerPauseToggleAction;
@@ -49,6 +52,12 @@ namespace Immersive.Framework.Pause
         [SerializeField] private bool logReadyOnEnable = true;
         [SerializeField] private bool logPerformedInput = true;
         [SerializeField] private bool logIgnoredInput = true;
+
+        public bool IsRemovedAdapter => true;
+
+        public string RemovedAdapterReason => RemovedReason;
+
+        public string RemovedAdapterMessage => RemovedMessage;
 
         public InputActionAsset ActionsAsset => actionsAsset;
 
@@ -80,7 +89,7 @@ namespace Immersive.Framework.Pause
         private void OnEnable()
         {
             EnsureLogger();
-            SubscribeResolvedActions();
+            ReportRemovedAdapter();
         }
 
         private void OnDisable()
@@ -97,8 +106,27 @@ namespace Immersive.Framework.Pause
         public void Rebind()
         {
             EnsureLogger();
+            ReportRemovedAdapter();
+        }
+
+
+        private void ReportRemovedAdapter()
+        {
             UnsubscribeResolvedActions();
-            SubscribeResolvedActions();
+            _lastIgnoredReason = RemovedReason;
+            _lastOutcome = FlowRequestOutcome.Failed;
+            _lastStatus = PauseRequestStatus.Failed;
+            _lastPreviousState = PauseState.Unknown;
+            _lastCurrentState = PauseState.Unknown;
+
+            if (logIgnoredInput)
+            {
+                _logger.Warning(
+                    "Legacy Pause Input Action Adapter is removed. "
+                    + $"reason='{RemovedReason}' "
+                    + $"message='{RemovedMessage}' "
+                    + $"source='{DefaultSource}'.");
+            }
         }
 
         private void SubscribeResolvedActions()

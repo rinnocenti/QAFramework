@@ -62,8 +62,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "qa.pause-inputmode.paused-state");
 
-            bool passed = request.IsValid
-                && request.TargetMode == InputModeKind.PauseOverlay
+            bool passed = request is { IsValid: true, TargetMode: InputModeKind.PauseOverlay }
                 && !PauseInputModeRequestMapper.SwitchesActionMaps
                 && !PauseInputModeRequestMapper.AppliesInputBehavior;
 
@@ -78,8 +77,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "qa.pause-inputmode.running-state");
 
-            bool passed = request.IsValid
-                && request.TargetMode == InputModeKind.Gameplay
+            bool passed = request is { IsValid: true, TargetMode: InputModeKind.Gameplay }
                 && !PauseInputModeRequestMapper.SwitchesActionMaps
                 && !PauseInputModeRequestMapper.AppliesInputBehavior;
 
@@ -104,8 +102,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "qa.pause-inputmode.pause-result");
 
-            bool passed = request.IsValid
-                && request.TargetMode == InputModeKind.PauseOverlay
+            bool passed = request is { IsValid: true, TargetMode: InputModeKind.PauseOverlay }
                 && pauseResult.CurrentState == PauseState.Paused
                 && !PauseInputModeRequestMapper.SwitchesActionMaps
                 && !PauseInputModeRequestMapper.AppliesInputBehavior;
@@ -131,8 +128,7 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "qa.pause-inputmode.resume-result");
 
-            bool passed = request.IsValid
-                && request.TargetMode == InputModeKind.Gameplay
+            bool passed = request is { IsValid: true, TargetMode: InputModeKind.Gameplay }
                 && resumeResult.CurrentState == PauseState.Running
                 && !PauseInputModeRequestMapper.SwitchesActionMaps
                 && !PauseInputModeRequestMapper.AppliesInputBehavior;

@@ -59,10 +59,8 @@ namespace Immersive.Framework.Diagnostics
             var requirementId = PauseContentRequirementId.From("qa.pause.requirement.contracts");
             var actionId = PauseInputActionId.From("qa.pause.input.contracts.toggle");
 
-            bool passed = requirementId.IsValid
-                && requirementId.Domain == Identity.FrameworkIdentityDomain.Pause
-                && actionId.IsValid
-                && actionId.Domain == Identity.FrameworkIdentityDomain.Pause
+            bool passed = requirementId is { IsValid: true, Domain: Identity.FrameworkIdentityDomain.Pause }
+                && actionId is { IsValid: true, Domain: Identity.FrameworkIdentityDomain.Pause }
                 && PauseContentRequirementPurpose.PresentationRoot != PauseContentRequirementPurpose.Unknown
                 && PauseInputCommandKind.TogglePause != PauseInputCommandKind.Unknown;
 
@@ -96,15 +94,9 @@ namespace Immersive.Framework.Diagnostics
                 source,
                 "pause content requirement intent");
 
-            bool passed = requirement.IsValid
-                && requirement.IsRequired
-                && requirement.Purpose == PauseContentRequirementPurpose.PresentationRoot
-                && requirement.PauseState == PauseState.Paused
-                && requirement.RuntimeScope == RuntimeContentScope.Activity
+            bool passed = requirement is { IsValid: true, IsRequired: true, Purpose: PauseContentRequirementPurpose.PresentationRoot, PauseState: PauseState.Paused, RuntimeScope: RuntimeContentScope.Activity }
                 && requirement.Owner.Equals(owner)
-                && requirement.AnchorScope == ContentAnchorScope.Activity
-                && requirement.AnchorKind == ContentAnchorKind.Root
-                && requirement.AnchorId.IsValid;
+                && requirement is { AnchorScope: ContentAnchorScope.Activity, AnchorKind: ContentAnchorKind.Root, AnchorId: { IsValid: true } };
 
             LogStep(
                 logger,
@@ -150,13 +142,10 @@ namespace Immersive.Framework.Diagnostics
                 "QA pause presentation intent",
                 source);
 
-            bool passed = presentation.IsValid
-                && presentation.ShouldBeVisible
-                && presentation.HasContentRequirement
+            bool passed = presentation is { IsValid: true, ShouldBeVisible: true, HasContentRequirement: true }
                 && presentation.ContentRequirement.Equals(requirement)
                 && presentation.Snapshot.IsPaused
-                && presentation.HasTitle
-                && presentation.HasDetail;
+                && presentation is { HasTitle: true, HasDetail: true };
 
             LogStep(
                 logger,
@@ -189,12 +178,8 @@ namespace Immersive.Framework.Diagnostics
             var toggleIntent = PauseInputIntent.FromSignal(toggleSignal, source, "toggle pause intent");
             var menuIntent = PauseInputIntent.FromSignal(menuSignal, source, "menu navigation intent");
 
-            bool passed = toggleIntent.IsValid
-                && toggleIntent.IsPauseStateIntent
-                && !toggleIntent.IsMenuIntent
-                && menuIntent.IsValid
-                && !menuIntent.IsPauseStateIntent
-                && menuIntent.IsMenuIntent
+            bool passed = toggleIntent is { IsValid: true, IsPauseStateIntent: true, IsMenuIntent: false }
+                && menuIntent is { IsValid: true, IsPauseStateIntent: false, IsMenuIntent: true }
                 && toggleIntent.CommandKind == PauseInputCommandKind.TogglePause
                 && menuIntent.CommandKind == PauseInputCommandKind.NavigateDown;
 

@@ -90,9 +90,7 @@ namespace Immersive.Framework.Diagnostics
                 && weightedProgress.WeightedCompleted.Equals(1f)
                 && weightedProgress.WeightedTotal.Equals(4f)
                 && result.OperationId == operationId
-                && result.Status == LoadingProgressAggregationStatus.Running
-                && result.StepCount == 1
-                && result.Progress.PercentRounded == 25;
+                && result is { Status: LoadingProgressAggregationStatus.Running, StepCount: 1, Progress: { PercentRounded: 25 } };
 
             LogStep(
                 logger,
@@ -130,15 +128,7 @@ namespace Immersive.Framework.Diagnostics
                 "weighted-running");
 
             float expectedProgress = 0.35f;
-            bool passed = result.Status == LoadingProgressAggregationStatus.Running
-                && result.IsRunning
-                && !result.Completed
-                && !result.Failed
-                && result.BlocksCompletion
-                && result.StepCount == 3
-                && result.CompletedCount == 1
-                && result.RunningCount == 1
-                && result.PendingCount == 1
+            bool passed = result is { Status: LoadingProgressAggregationStatus.Running, IsRunning: true, Completed: false, Failed: false, BlocksCompletion: true, StepCount: 3, CompletedCount: 1, RunningCount: 1, PendingCount: 1 }
                 && NearlyEqual(result.WeightedCompleted, 3.5f)
                 && NearlyEqual(result.WeightedTotal, 10f)
                 && NearlyEqual(result.Progress.NormalizedValue, expectedProgress)
@@ -180,17 +170,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.loading.completed-skipped",
                 "completed-with-skipped");
 
-            bool passed = result.Status == LoadingProgressAggregationStatus.CompletedWithSkippedSteps
-                && result.Completed
-                && result.IsTerminal
-                && !result.Failed
-                && !result.BlocksCompletion
-                && result.StepCount == 3
-                && result.CompletedCount == 2
-                && result.SkippedCount == 1
-                && result.HasSkippedSteps
-                && result.Progress.IsComplete
-                && result.Progress.PercentRounded == 100;
+            bool passed = result is { Status: LoadingProgressAggregationStatus.CompletedWithSkippedSteps, Completed: true, IsTerminal: true, Failed: false, BlocksCompletion: false, StepCount: 3, CompletedCount: 2, SkippedCount: 1, HasSkippedSteps: true, Progress: { IsComplete: true, PercentRounded: 100 } };
 
             LogStep(
                 logger,
@@ -224,12 +204,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.loading.failed",
                 "failed");
 
-            bool passed = result.Status == LoadingProgressAggregationStatus.Failed
-                && result.Failed
-                && result.IsTerminal
-                && !result.Completed
-                && result.FailedCount == 1
-                && result.CompletedCount == 1
+            bool passed = result is { Status: LoadingProgressAggregationStatus.Failed, Failed: true, IsTerminal: true, Completed: false, FailedCount: 1, CompletedCount: 1 }
                 && NearlyEqual(result.WeightedCompleted, 2f)
                 && NearlyEqual(result.WeightedTotal, 5f)
                 && NearlyEqual(result.Progress.NormalizedValue, 0.4f);
@@ -260,11 +235,7 @@ namespace Immersive.Framework.Diagnostics
                 "qa.loading.empty",
                 "empty");
 
-            bool passed = result.Status == LoadingProgressAggregationStatus.NoSteps
-                && result.Completed
-                && result.IsTerminal
-                && !result.HasSteps
-                && result.StepCount == 0
+            bool passed = result is { Status: LoadingProgressAggregationStatus.NoSteps, Completed: true, IsTerminal: true, HasSteps: false, StepCount: 0 }
                 && result.Progress == LoadingProgress.Zero
                 && result.WeightedCompleted.Equals(0f)
                 && result.WeightedTotal.Equals(0f);

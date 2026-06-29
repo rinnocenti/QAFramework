@@ -71,15 +71,7 @@ namespace Immersive.Framework.Diagnostics
                     "qa.transition-effect.policy.required-present"));
 
             var evaluation = TransitionEffectAuthoringPolicy.Evaluate(plan, adapters);
-            bool passed = evaluation.IsValid
-                && evaluation.IsAllowed
-                && !evaluation.BlocksTransition
-                && evaluation.AdapterCount == 1
-                && evaluation.MatchedRequestCount == 1
-                && evaluation.RequiredAdapterMissingCount == 0
-                && evaluation.OptionalAdapterMissingCount == 0
-                && evaluation.DuplicateEffectIdCount == 0
-                && evaluation.IssueCount == 0;
+            bool passed = evaluation is { IsValid: true, IsAllowed: true, BlocksTransition: false, AdapterCount: 1, MatchedRequestCount: 1, RequiredAdapterMissingCount: 0, OptionalAdapterMissingCount: 0, DuplicateEffectIdCount: 0, IssueCount: 0 };
 
             LogEvaluationStep(logger, "required-adapter-present", evaluation, passed);
             return passed;
@@ -103,16 +95,7 @@ namespace Immersive.Framework.Diagnostics
                     "qa.transition-effect.policy.optional-missing"));
 
             var evaluation = TransitionEffectAuthoringPolicy.Evaluate(plan, adapters);
-            bool passed = evaluation.IsValid
-                && evaluation.IsAllowed
-                && !evaluation.BlocksTransition
-                && evaluation.AdapterCount == 1
-                && evaluation.MatchedRequestCount == 0
-                && evaluation.RequiredAdapterMissingCount == 0
-                && evaluation.OptionalAdapterMissingCount == 1
-                && evaluation.DuplicateEffectIdCount == 0
-                && evaluation.IssueCount == 1
-                && evaluation.BlockingIssueCount == 0;
+            bool passed = evaluation is { IsValid: true, IsAllowed: true, BlocksTransition: false, AdapterCount: 1, MatchedRequestCount: 0, RequiredAdapterMissingCount: 0, OptionalAdapterMissingCount: 1, DuplicateEffectIdCount: 0, IssueCount: 1, BlockingIssueCount: 0 };
 
             LogEvaluationStep(logger, "optional-adapter-missing-nonblocking", evaluation, passed);
             return passed;
@@ -136,16 +119,7 @@ namespace Immersive.Framework.Diagnostics
                     "qa.transition-effect.policy.required-missing"));
 
             var evaluation = TransitionEffectAuthoringPolicy.Evaluate(plan, adapters);
-            bool passed = evaluation.IsValid
-                && !evaluation.IsAllowed
-                && evaluation.BlocksTransition
-                && evaluation.AdapterCount == 1
-                && evaluation.MatchedRequestCount == 0
-                && evaluation.RequiredAdapterMissingCount == 1
-                && evaluation.OptionalAdapterMissingCount == 0
-                && evaluation.DuplicateEffectIdCount == 0
-                && evaluation.IssueCount == 1
-                && evaluation.BlockingIssueCount == 1;
+            bool passed = evaluation is { IsValid: true, IsAllowed: false, BlocksTransition: true, AdapterCount: 1, MatchedRequestCount: 0, RequiredAdapterMissingCount: 1, OptionalAdapterMissingCount: 0, DuplicateEffectIdCount: 0, IssueCount: 1, BlockingIssueCount: 1 };
 
             LogEvaluationStep(logger, "required-adapter-missing-blocking", evaluation, passed);
             return passed;
@@ -186,16 +160,7 @@ namespace Immersive.Framework.Diagnostics
                 requests);
 
             var evaluation = TransitionEffectAuthoringPolicy.Evaluate(plan, adapters);
-            bool passed = evaluation.IsValid
-                && !evaluation.IsAllowed
-                && evaluation.BlocksTransition
-                && evaluation.AdapterCount == 1
-                && evaluation.MatchedRequestCount == 2
-                && evaluation.RequiredAdapterMissingCount == 0
-                && evaluation.OptionalAdapterMissingCount == 0
-                && evaluation.DuplicateEffectIdCount == 1
-                && evaluation.IssueCount == 1
-                && evaluation.BlockingIssueCount == 1;
+            bool passed = evaluation is { IsValid: true, IsAllowed: false, BlocksTransition: true, AdapterCount: 1, MatchedRequestCount: 2, RequiredAdapterMissingCount: 0, OptionalAdapterMissingCount: 0, DuplicateEffectIdCount: 1, IssueCount: 1, BlockingIssueCount: 1 };
 
             LogEvaluationStep(logger, "duplicate-effect-id-blocking", evaluation, passed);
             return passed;
@@ -235,16 +200,7 @@ namespace Immersive.Framework.Diagnostics
                 requests);
 
             var evaluation = TransitionEffectAuthoringPolicy.Evaluate(plan, adapters);
-            bool passed = evaluation.IsValid
-                && evaluation.IsAllowed
-                && !evaluation.BlocksTransition
-                && evaluation.AdapterCount == 1
-                && evaluation.MatchedRequestCount == 1
-                && evaluation.RequiredAdapterMissingCount == 0
-                && evaluation.OptionalAdapterMissingCount == 1
-                && evaluation.DuplicateEffectIdCount == 0
-                && evaluation.IssueCount == 1
-                && evaluation.BlockingIssueCount == 0;
+            bool passed = evaluation is { IsValid: true, IsAllowed: true, BlocksTransition: false, AdapterCount: 1, MatchedRequestCount: 1, RequiredAdapterMissingCount: 0, OptionalAdapterMissingCount: 1, DuplicateEffectIdCount: 0, IssueCount: 1, BlockingIssueCount: 0 };
 
             LogEvaluationStep(logger, "mixed-policy-evaluation", evaluation, passed);
             return passed;

@@ -67,17 +67,17 @@ namespace Immersive.Framework.InputMode
             ? UnityInputActionMapName.From(string.Empty)
             : InputModeApplicationResult.AppliedActionMapName;
 
-        public bool Applied => InputModeApplicationResult != null && InputModeApplicationResult.Applied;
+        public bool Applied => InputModeApplicationResult is { Applied: true };
 
-        public bool ActivatedPlayerInput => InputModeApplicationResult != null && InputModeApplicationResult.ActivatedPlayerInput;
+        public bool ActivatedPlayerInput => InputModeApplicationResult is { ActivatedPlayerInput: true };
 
-        public bool SelectedActionMap => InputModeApplicationResult != null && InputModeApplicationResult.SelectedActionMap;
+        public bool SelectedActionMap => InputModeApplicationResult is { SelectedActionMap: true };
 
-        public bool DeactivatedPlayerInput => InputModeApplicationResult != null && InputModeApplicationResult.DeactivatedPlayerInput;
+        public bool DeactivatedPlayerInput => InputModeApplicationResult is { DeactivatedPlayerInput: true };
 
-        public bool SwitchesActionMaps => InputModeApplicationResult != null && InputModeApplicationResult.SwitchesActionMaps;
+        public bool SwitchesActionMaps => InputModeApplicationResult is { SwitchesActionMaps: true };
 
-        public bool AppliesInputBehavior => InputModeApplicationResult != null && InputModeApplicationResult.AppliesInputBehavior;
+        public bool AppliesInputBehavior => InputModeApplicationResult is { AppliesInputBehavior: true };
 
         public bool CallsPlayerJoin => false;
 

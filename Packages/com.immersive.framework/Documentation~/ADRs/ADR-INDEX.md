@@ -16,6 +16,7 @@ Current order:
 10. F30 - InputMode Identity and Request Result Model
 11. F31 - PlayerActor Identity and Unity Input Evidence
 12. F32 - InputMode Unity Adapter Application
+13. F33 - Pause Runtime PlayerInput Wiring
 
 ## Roadmap ADRs
 
@@ -193,3 +194,10 @@ hidden PauseRuntime side effects.
 ```
 
 Reference: `../../../../Assets/_Documentation/Notes/F33A-Pause-Runtime-PlayerInput-Bridge.md`.
+
+
+F33B accepts an opt-in Unity `InputAction` trigger for the F33A bridge. The trigger is the canonical authored Pause input path for Unity Input System actions after F33.
+
+F33C retires the older F27B `UnityPauseInputActionAdapter` as an active runtime path. The class may remain as an inert migration stub, but it must not submit Pause requests directly because that bypasses the accepted `Pause -> InputMode -> PlayerInput` synchronization lane. Reference: `../../../../Assets/_Documentation/Notes/F33C-Legacy-Pause-InputAction-Adapter-Retirement.md`.
+
+F33D flattens Pause input diagnostics. Trigger diagnostics may expose bridge status summary fields, but must not embed a full bridge diagnostic string, and bridge diagnostics must not embed the full PlayerInput application diagnostic string. Reference: `../../../../Assets/_Documentation/Notes/F33D-Pause-Input-Diagnostics-Flattening.md`.

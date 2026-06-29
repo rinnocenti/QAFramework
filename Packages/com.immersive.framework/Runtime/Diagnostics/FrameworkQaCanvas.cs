@@ -2243,18 +2243,9 @@ private async void RunRouteSceneCompositionSmoke()
 
                     shouldRestore = true;
                     var clearExecution = clearResult.ActivityFlowResult.ActivityContentExecutionResult;
-                    bool clearValid = clearExecution.Executed
-                        && clearExecution.Succeeded
-                        && clearExecution.Status == ActivityContentExecutionLifecycleStatus.Succeeded
+                    bool clearValid = clearExecution is { Executed: true, Succeeded: true, Status: ActivityContentExecutionLifecycleStatus.Succeeded }
                         && clearExecution.ParticipantSourceStatus == ActivityContentExecutionParticipantSourceStatus.Succeeded.ToString()
-                        && clearExecution.ParticipantCount == 2
-                        && clearExecution.ExitResult.Status == ActivityContentExecutionAggregateStatus.Succeeded
-                        && clearExecution.ExitRequestCount == 1
-                        && clearExecution.ExitResultCount == 1
-                        && clearExecution.ExitResult.RequiredCount == 1
-                        && clearExecution.ExitResult.OptionalCount == 0
-                        && clearExecution.ExitResult.BlockingIssueCount == 0
-                        && !clearExecution.BlocksReadiness;
+                        && clearExecution is { ParticipantCount: 2, ExitResult: { Status: ActivityContentExecutionAggregateStatus.Succeeded, RequiredCount: 1, OptionalCount: 0, BlockingIssueCount: 0 }, ExitRequestCount: 1, ExitResultCount: 1, BlocksReadiness: false };
 
                     if (!clearValid)
                     {
@@ -2276,18 +2267,9 @@ private async void RunRouteSceneCompositionSmoke()
                     }
 
                     var restoreExecution = restoreResult.ActivityFlowResult.ActivityContentExecutionResult;
-                    bool restoreValid = restoreExecution.Executed
-                        && restoreExecution.Succeeded
-                        && restoreExecution.Status == ActivityContentExecutionLifecycleStatus.Succeeded
+                    bool restoreValid = restoreExecution is { Executed: true, Succeeded: true, Status: ActivityContentExecutionLifecycleStatus.Succeeded }
                         && restoreExecution.ParticipantSourceStatus == ActivityContentExecutionParticipantSourceStatus.Succeeded.ToString()
-                        && restoreExecution.ParticipantCount == 2
-                        && restoreExecution.EnterResult.Status == ActivityContentExecutionAggregateStatus.Succeeded
-                        && restoreExecution.EnterRequestCount == 2
-                        && restoreExecution.EnterResultCount == 2
-                        && restoreExecution.EnterResult.RequiredCount == 1
-                        && restoreExecution.EnterResult.OptionalCount == 1
-                        && restoreExecution.EnterResult.BlockingIssueCount == 0
-                        && !restoreExecution.BlocksReadiness;
+                        && restoreExecution is { ParticipantCount: 2, EnterResult: { Status: ActivityContentExecutionAggregateStatus.Succeeded, RequiredCount: 1, OptionalCount: 1, BlockingIssueCount: 0 }, EnterRequestCount: 2, EnterResultCount: 2, BlocksReadiness: false };
 
                     if (!restoreValid)
                     {
@@ -4063,11 +4045,11 @@ private async void RunNoActivityRouteSmoke()
             }
 
             string reason = string.Empty;
-            if (trigger is RouteCycleResetTrigger routeTrigger && routeTrigger.HasCustomReason)
+            if (trigger is RouteCycleResetTrigger { HasCustomReason: true } routeTrigger)
             {
                 reason = routeTrigger.AuthoringReason;
             }
-            else if (trigger is ActivityCycleResetTrigger activityTrigger && activityTrigger.HasCustomReason)
+            else if (trigger is ActivityCycleResetTrigger { HasCustomReason: true } activityTrigger)
             {
                 reason = activityTrigger.AuthoringReason;
             }

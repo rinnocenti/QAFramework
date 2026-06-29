@@ -100,8 +100,7 @@ namespace Immersive.Framework.Diagnostics
                     && result.SwitchesActionMaps
                     && result.AppliesInputBehavior
                     && result.AppliedActionMapName.ToString() == "Player"
-                    && fixture.PlayerInput.currentActionMap != null
-                    && fixture.PlayerInput.currentActionMap.name == "Player"
+                    && fixture.PlayerInput.currentActionMap is { name: "Player" }
                     && !result.CallsPlayerJoin
                     && !result.SpawnsActor
                     && !result.UsesCustomInputManager;
@@ -128,8 +127,7 @@ namespace Immersive.Framework.Diagnostics
                     && result.SelectedActionMap
                     && result.SwitchesActionMaps
                     && result.AppliedActionMapName.ToString() == "UI"
-                    && fixture.PlayerInput.currentActionMap != null
-                    && fixture.PlayerInput.currentActionMap.name == "UI"
+                    && fixture.PlayerInput.currentActionMap is { name: "UI" }
                     && !result.CallsPlayerJoin
                     && !result.SpawnsActor
                     && !result.UsesCustomInputManager;

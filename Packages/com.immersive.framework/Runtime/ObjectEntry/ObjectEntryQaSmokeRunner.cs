@@ -960,7 +960,7 @@ namespace Immersive.Framework.ObjectEntry
                 return false;
             }
 
-            bool hasDuplicateIssue = result.Issues.Any(issue => issue.Kind == ObjectEntryIssueKind.DuplicateIdentity && issue.IsBlocking);
+            bool hasDuplicateIssue = result.Issues.Any(issue => issue is { Kind: ObjectEntryIssueKind.DuplicateIdentity, IsBlocking: true });
             if (!result.Failed || result.Status != ObjectEntryResultStatus.Rejected || result.BlockingIssueCount == 0 || !hasDuplicateIssue)
             {
                 logger.Warning($"QA Object Entry Declaration Source Smoke step failed. step='declaration-source-duplicate-identity' reason='Duplicate object entry identity was accepted'. {result.ToDiagnosticString()}");

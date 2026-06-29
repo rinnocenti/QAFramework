@@ -86,12 +86,7 @@ namespace Immersive.Framework.Diagnostics
                 cycleResetRequestInFlight: false,
                 objectResetRequestInFlight: false);
 
-            bool passed = evaluation.IsAllowed
-                && evaluation.Status == GateDecisionStatus.Allowed
-                && evaluation.Scope == GateScope.GameFlow
-                && evaluation.Domain == GateDomain.LifecycleRequest
-                && evaluation.BlockingBlockerCount == 0
-                && evaluation.Decision.PolicySource == GateRequestAdmission.PolicySource;
+            bool passed = evaluation is { IsAllowed: true, Status: GateDecisionStatus.Allowed, Scope: GateScope.GameFlow, Domain: GateDomain.LifecycleRequest, BlockingBlockerCount: 0, Decision: { PolicySource: GateRequestAdmission.PolicySource } };
 
             LogStep(logger, "allowed", evaluation, expectedBlockerId: "<none>", blockerMatched: evaluation.BlockingBlockerCount == 0, passed: passed);
             return passed;
@@ -118,11 +113,7 @@ namespace Immersive.Framework.Diagnostics
                 objectResetRequestInFlight);
 
             bool blockerMatched = ContainsBlocker(evaluation, expectedBlockerId);
-            bool passed = evaluation.IsBlocked
-                && evaluation.Status == GateDecisionStatus.Blocked
-                && evaluation.Scope == GateScope.GameFlow
-                && evaluation.Domain == GateDomain.LifecycleRequest
-                && evaluation.BlockingBlockerCount == 1
+            bool passed = evaluation is { IsBlocked: true, Status: GateDecisionStatus.Blocked, Scope: GateScope.GameFlow, Domain: GateDomain.LifecycleRequest, BlockingBlockerCount: 1 }
                 && blockerMatched
                 && evaluation.Decision.PolicySource == GateRequestAdmission.PolicySource;
 

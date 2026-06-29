@@ -58,9 +58,7 @@ namespace Immersive.Framework.Diagnostics
         private static bool ValidateContracts(FrameworkLogger logger, string source)
         {
             var actorId = ActorId.From("qa.actor.player.primary");
-            bool passed = actorId.IsValid
-                && actorId.Domain == FrameworkIdentityDomain.Actor
-                && actorId.StableText == "Actor:qa.actor.player.primary"
+            bool passed = actorId is { IsValid: true, Domain: FrameworkIdentityDomain.Actor, StableText: "Actor:qa.actor.player.primary" }
                 && ActorKind.Player != ActorKind.Unknown;
 
             LogStep(

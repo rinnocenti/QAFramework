@@ -67,7 +67,7 @@ namespace Immersive.Framework.Loading
         {
             logger ??= FrameworkLogger.Create<LoadingSurfaceRuntime>();
             string resolvedSceneLabel = sceneLabel.NormalizeTextOrFallback("UIGlobal Loading Surface");
-            bool hasSceneAdapters = sceneAdapters != null && sceneAdapters.Count > 0;
+            bool hasSceneAdapters = sceneAdapters is { Count: > 0 };
 
             if (!hasSceneAdapters)
             {
@@ -386,8 +386,7 @@ namespace Immersive.Framework.Loading
         {
             for (int i = 0; i < _adapters.Length; i++)
             {
-                if (_adapters[i] is ILoadingSurfaceProgressPresentationAdapter progressAdapter
-                    && progressAdapter.HasProgressPresentation)
+                if (_adapters[i] is ILoadingSurfaceProgressPresentationAdapter { HasProgressPresentation: true })
                 {
                     return true;
                 }

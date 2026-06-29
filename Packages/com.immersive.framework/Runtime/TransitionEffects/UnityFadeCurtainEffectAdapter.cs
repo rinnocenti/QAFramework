@@ -424,7 +424,7 @@ namespace Immersive.Framework.TransitionEffects
 
         private static bool IsCurveUsable(AnimationCurve curve)
         {
-            return curve != null && curve.keys != null && curve.keys.Length > 0;
+            return curve is { keys: { Length: > 0 } };
         }
     }
 }

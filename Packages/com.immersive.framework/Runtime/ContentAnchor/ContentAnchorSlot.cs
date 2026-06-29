@@ -35,7 +35,7 @@ namespace Immersive.Framework.ContentAnchor
 
         public string StableText => Declaration.StableText;
 
-        public bool IsValid => Declaration.IsValid && Declaration.Kind == ContentAnchorKind.Slot;
+        public bool IsValid => Declaration is { IsValid: true, Kind: ContentAnchorKind.Slot };
 
         public bool Equals(ContentAnchorSlot other)
         {

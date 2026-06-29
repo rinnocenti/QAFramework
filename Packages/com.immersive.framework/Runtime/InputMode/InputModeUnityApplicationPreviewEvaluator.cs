@@ -185,19 +185,12 @@ namespace Immersive.Framework.InputMode
 
         private static bool HasRequiredPlayerActor(PlayerActorSet playerActorSet)
         {
-            return playerActorSet != null
-                && playerActorSet.Succeeded
-                && playerActorSet.Count > 0
-                && playerActorSet.PlayerInputEvidenceCount > 0;
+            return playerActorSet is { Succeeded: true, Count: > 0, PlayerInputEvidenceCount: > 0 };
         }
 
         private static bool HasRequiredSessionPlayerInputManager(UnityInputPlayerInputManagerEvidence evidence)
         {
-            return evidence != null
-                && evidence.Succeeded
-                && evidence.SessionScoped
-                && evidence.Required
-                && evidence.ManagerCount == 1;
+            return evidence is { Succeeded: true, SessionScoped: true, Required: true, ManagerCount: 1 };
         }
 
         private static InputModeUnityApplicationPreviewStatus ResolveFailureStatus(InputModeUnityApplicationPreviewIssueKind issueKind)

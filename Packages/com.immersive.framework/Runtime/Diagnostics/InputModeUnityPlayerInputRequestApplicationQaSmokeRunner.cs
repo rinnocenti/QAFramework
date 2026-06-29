@@ -102,8 +102,7 @@ namespace Immersive.Framework.Diagnostics
                     && result.ActivatedPlayerInput
                     && result.SelectedActionMap
                     && result.AppliedActionMapName.ToString() == "Player"
-                    && fixture.PlayerInput.currentActionMap != null
-                    && fixture.PlayerInput.currentActionMap.name == "Player"
+                    && fixture.PlayerInput.currentActionMap is { name: "Player" }
                     && result.SwitchesActionMaps
                     && result.AppliesInputBehavior
                     && !result.CallsPlayerJoin
@@ -134,8 +133,7 @@ namespace Immersive.Framework.Diagnostics
                     && result.ActivatedPlayerInput
                     && result.SelectedActionMap
                     && result.AppliedActionMapName.ToString() == "UI"
-                    && fixture.PlayerInput.currentActionMap != null
-                    && fixture.PlayerInput.currentActionMap.name == "UI"
+                    && fixture.PlayerInput.currentActionMap is { name: "UI" }
                     && result.SwitchesActionMaps
                     && result.AppliesInputBehavior
                     && !result.CallsPlayerJoin
