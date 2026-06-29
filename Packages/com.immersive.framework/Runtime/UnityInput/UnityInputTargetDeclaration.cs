@@ -23,6 +23,8 @@ namespace Immersive.Framework.UnityInput
         [SerializeField] private string displayName = "QA Unity Input Target";
         [Tooltip("Optional evidence reference to Unity's PlayerInput component. The framework does not own or replace PlayerInput.")]
         [SerializeField] private PlayerInput playerInput;
+        [Tooltip("When enabled, validation requires PlayerInput evidence on this declaration. This validates official Unity component presence only; it does not activate input.")]
+        [SerializeField] private bool requirePlayerInputEvidence;
         [Tooltip("Diagnostic reason/source for this declaration.")]
         [SerializeField] private string reason = "unity.input.integration.target.declaration";
 
@@ -34,7 +36,9 @@ namespace Immersive.Framework.UnityInput
 
         public PlayerInput PlayerInput => playerInput;
 
-        public bool HasPlayerInputReference => playerInput != null;
+        public bool HasPlayerInputReference => playerInput != null || GetComponent<PlayerInput>() != null;
+
+        public bool RequiresPlayerInputEvidence => requirePlayerInputEvidence;
 
         public string Reason => reason.NormalizeText();
 
@@ -76,6 +80,7 @@ namespace Immersive.Framework.UnityInput
                     UnityInputTargetId.From(normalizedTargetId),
                     targetRole,
                     HasPlayerInputReference,
+                    RequiresPlayerInputEvidence,
                     DisplayName,
                     gameObject.scene.IsValid() ? gameObject.scene.name : string.Empty,
                     gameObject.name,
@@ -101,12 +106,14 @@ namespace Immersive.Framework.UnityInput
             string id,
             string label,
             PlayerInput inputReference,
-            string declarationReason)
+            string declarationReason,
+            bool requirePlayerInput = false)
         {
             targetRole = role;
             targetId = id.NormalizeText();
             displayName = label.NormalizeTextOrFallback(name);
             playerInput = inputReference;
+            requirePlayerInputEvidence = requirePlayerInput;
             reason = declarationReason.NormalizeText();
         }
 

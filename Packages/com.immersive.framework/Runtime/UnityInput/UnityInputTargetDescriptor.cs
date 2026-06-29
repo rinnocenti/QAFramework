@@ -20,6 +20,29 @@ namespace Immersive.Framework.UnityInput
             string objectName,
             string source,
             string reason)
+            : this(
+                targetId,
+                role,
+                hasPlayerInputReference,
+                false,
+                displayName,
+                sceneName,
+                objectName,
+                source,
+                reason)
+        {
+        }
+
+        public UnityInputTargetDescriptor(
+            UnityInputTargetId targetId,
+            UnityInputTargetRole role,
+            bool hasPlayerInputReference,
+            bool requiresPlayerInputEvidence,
+            string displayName,
+            string sceneName,
+            string objectName,
+            string source,
+            string reason)
         {
             if (!targetId.IsValid)
             {
@@ -34,6 +57,7 @@ namespace Immersive.Framework.UnityInput
             TargetId = targetId;
             Role = role;
             HasPlayerInputReference = hasPlayerInputReference;
+            RequiresPlayerInputEvidence = requiresPlayerInputEvidence;
             DisplayName = displayName.NormalizeTextOrFallback(targetId.StableText);
             SceneName = sceneName.NormalizeText();
             ObjectName = objectName.NormalizeText();
@@ -46,6 +70,8 @@ namespace Immersive.Framework.UnityInput
         public UnityInputTargetRole Role { get; }
 
         public bool HasPlayerInputReference { get; }
+
+        public bool RequiresPlayerInputEvidence { get; }
 
         public string DisplayName { get; }
 
@@ -64,6 +90,7 @@ namespace Immersive.Framework.UnityInput
             return TargetId.Equals(other.TargetId)
                 && Role == other.Role
                 && HasPlayerInputReference == other.HasPlayerInputReference
+                && RequiresPlayerInputEvidence == other.RequiresPlayerInputEvidence
                 && string.Equals(DisplayName, other.DisplayName, StringComparison.Ordinal)
                 && string.Equals(SceneName, other.SceneName, StringComparison.Ordinal)
                 && string.Equals(ObjectName, other.ObjectName, StringComparison.Ordinal)
@@ -83,6 +110,7 @@ namespace Immersive.Framework.UnityInput
                 int hash = TargetId.GetHashCode();
                 hash = (hash * 397) ^ (int)Role;
                 hash = (hash * 397) ^ HasPlayerInputReference.GetHashCode();
+                hash = (hash * 397) ^ RequiresPlayerInputEvidence.GetHashCode();
                 hash = (hash * 397) ^ StringComparer.Ordinal.GetHashCode(DisplayName ?? string.Empty);
                 hash = (hash * 397) ^ StringComparer.Ordinal.GetHashCode(SceneName ?? string.Empty);
                 hash = (hash * 397) ^ StringComparer.Ordinal.GetHashCode(ObjectName ?? string.Empty);

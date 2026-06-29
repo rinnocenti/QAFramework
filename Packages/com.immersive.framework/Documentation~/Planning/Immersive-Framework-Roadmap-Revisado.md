@@ -256,7 +256,7 @@ which ownership decision blocks Camera, Audio, Save, RuntimeSpawned and Gameplay
 F29 as the first post-F28 code phase, proving Unity Input target ownership. F29A closes the declaration and diagnostics proof.
 ```
 
-F28 is complete. F29 is complete. F29 provides target declaration vocabulary, validator, authored QA scene evidence and Unity Input Target Ownership Smoke. F30 is the current InputMode phase. F30A adds passive InputMode identity/state/request/result language and still does not introduce action-map behavior. F30B redirects the phase: Unity `PlayerInput` and `PlayerInputManager` remain the input execution surface; the framework must not create a replacement input manager.
+F28 is complete. F29 is complete. F29 provides target declaration vocabulary, validator, authored QA scene evidence and Unity Input Target Ownership Smoke. F30 is the current InputMode phase. F30A adds passive InputMode identity/state/request/result language and still does not introduce action-map behavior. F30B redirects the phase: Unity `PlayerInput` and `PlayerInputManager` remain the input execution surface; the framework must not create a replacement input manager. F30C validates official component evidence. F30C1 cleans the QA smoke so duplicate PlayerInputManager diagnostics are validated passively without creating real duplicate Unity components.
 
 ## F29 — Unity Input Target Ownership Proof
 
@@ -268,6 +268,7 @@ F28 is complete. F29 is complete. F29 provides target declaration vocabulary, va
 
 - F30A — InputMode Identity / State / Request Result Contracts: closed; adds passive mode/state/request/result contracts and `InputMode Contract Smoke`.
 - F30B — Unity PlayerInput Integration Boundary: closed corrective docs; rejects a framework-owned input manager.
-- F30C — Unity PlayerInput Component Evidence Validation: next.
-- F30D — Pause InputMode Request Boundary: planned.
+- F30C — Unity PlayerInput Component Evidence Validation: PASS by user smoke, with native Unity warning observed in duplicate manager QA step.
+- F30C1 — PlayerInputManager Smoke Warning Cleanup: closed corrective patch; duplicate manager evidence now uses passive counts instead of real duplicate components.
+- F30D — Pause InputMode Request Boundary: next.
 - F30E — Unity Input Adapter Planning Closeout: planned.

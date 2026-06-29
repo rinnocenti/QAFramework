@@ -31,7 +31,7 @@ Read the documentation in this order:
 | F27 | Pause UIGlobal Surface, Input Wiring and Gate Reframe | Frozen after F27D / F27E cancelled |
 | F28 | Roadmap Reconciliation and Adapter Module Spine | Closed / F28A-F28F complete / F29 selected |
 | F29 | Unity Input Target Ownership Proof | Closed / F29A-F29C complete |
-| F30 | InputMode Identity and Request Result Model | Active / F30A closed / F30B corrective boundary closed / F30C next |
+| F30 | InputMode Identity and Request Result Model | Active / F30A-F30C closed / F30C1 corrective smoke cleanup closed / F30D next |
 
 ## F23 Boundary
 

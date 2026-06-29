@@ -411,7 +411,7 @@ namespace Immersive.Framework.Diagnostics
         {
             GUILayout.Space(4f);
             GUILayout.Label("Unity Input Diagnostics", GUI.skin.box);
-            GUILayout.Label("F29 target ownership proof plus F30A passive InputMode contracts. No InputMode owner runtime, action-map switching, PlayerInput ownership, player movement or actor spawning.");
+            GUILayout.Label("F29 target ownership proof, F30A passive InputMode contracts and F30C official PlayerInput/PlayerInputManager evidence. No custom input manager, action-map switching, player movement or actor spawning.");
 
             using (new EditorDisabledScope(_requestInFlight))
             {
@@ -423,6 +423,11 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run InputMode Contract Smoke"))
                 {
                     RunInputModeContractSmoke();
+                }
+
+                if (GUILayout.Button("Run Unity Input Official Component Evidence Smoke"))
+                {
+                    RunUnityInputOfficialComponentEvidenceSmoke();
                 }
             }
         }
@@ -977,6 +982,13 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(InputModeContractQaSmokeRunner.SmokeName, runtimeHost =>
                 InputModeContractQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+
+        private async void RunUnityInputOfficialComponentEvidenceSmoke()
+        {
+            await RunSmokeAsync(UnityInputOfficialComponentEvidenceQaSmokeRunner.SmokeName, runtimeHost =>
+                UnityInputOfficialComponentEvidenceQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
         }
 
         private async void RunSnapshotParticipantDiagnosticsSmoke()

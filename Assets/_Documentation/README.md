@@ -81,6 +81,10 @@ F30A InputMode identity/state/request result contracts: `Notes/F30A-InputMode-Id
 
 F30B Unity PlayerInput integration boundary correction: `Notes/F30B-Unity-PlayerInput-Integration-Boundary.md`.
 
+F30C Unity PlayerInput component evidence validation: `Notes/F30C-Unity-PlayerInput-Component-Evidence-Validation.md`.
+
+F30C1 PlayerInputManager smoke warning cleanup: `Notes/F30C1-PlayerInputManager-Smoke-Warning-Cleanup.md`.
+
 ## Regras
 
 - Documentação viva do projeto fica em `Assets/_Documentation`.
@@ -91,3 +95,4 @@ F30B Unity PlayerInput integration boundary correction: `Notes/F30B-Unity-Player
 - Contratos/core genéricos do framework ficam em `Packages/com.immersive.framework`.
 - Configuração singular de jogo/projeto consumidor fica em `Assets/_Project`.
 - Testes Unity-facing novos devem preferir QA workspace isolado antes de tocar no QA baseline.
+

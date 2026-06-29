@@ -107,3 +107,6 @@ F30 opens as InputMode identity and request/result planning. Reference: `../../.
 F30A closes passive InputMode identity/state/request/result contracts and `InputMode Contract Smoke`. Reference: `../../../../Assets/_Documentation/Notes/F30A-InputMode-Identity-State-Request-Result.md`.
 
 F30B closes a corrective Unity PlayerInput integration boundary. Unity `PlayerInput` and `PlayerInputManager` remain the official input execution components; the framework must not introduce a replacement input manager. Reference: `../../../../Assets/_Documentation/Notes/F30B-Unity-PlayerInput-Integration-Boundary.md`.
+
+- F30C — Unity PlayerInput Component Evidence Validation: implemented as passive evidence validation; no custom input manager.
+- F30C1 — PlayerInputManager Smoke Warning Cleanup: corrects QA duplicate-manager smoke to avoid creating real duplicate Unity `PlayerInputManager` components.

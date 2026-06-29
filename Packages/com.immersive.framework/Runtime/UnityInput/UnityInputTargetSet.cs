@@ -63,6 +63,40 @@ namespace Immersive.Framework.UnityInput
 
         public int GameplayCommandTargetCount => CountRole(UnityInputTargetRole.GameplayCommands);
 
+        public int PlayerInputReferenceCount
+        {
+            get
+            {
+                int count = 0;
+                for (int i = 0; i < _targets.Length; i++)
+                {
+                    if (_targets[i].HasPlayerInputReference)
+                    {
+                        count++;
+                    }
+                }
+
+                return count;
+            }
+        }
+
+        public int RequiredPlayerInputEvidenceCount
+        {
+            get
+            {
+                int count = 0;
+                for (int i = 0; i < _targets.Length; i++)
+                {
+                    if (_targets[i].RequiresPlayerInputEvidence)
+                    {
+                        count++;
+                    }
+                }
+
+                return count;
+            }
+        }
+
         public bool Succeeded => BlockingIssueCount == 0;
 
         public bool Failed => !Succeeded;
@@ -117,6 +151,8 @@ namespace Immersive.Framework.UnityInput
             builder.Append(" blockingIssues='").Append(BlockingIssueCount).Append("'");
             builder.Append(" globalUiPauseTargets='").Append(GlobalUiPauseTargetCount).Append("'");
             builder.Append(" gameplayCommandTargets='").Append(GameplayCommandTargetCount).Append("'");
+            builder.Append(" playerInputReferences='").Append(PlayerInputReferenceCount).Append("'");
+            builder.Append(" requiredPlayerInputEvidence='").Append(RequiredPlayerInputEvidenceCount).Append("'");
             builder.Append(" actionMapSwitching='").Append(SwitchesActionMaps).Append("'");
             for (int i = 0; i < _issues.Length; i++)
             {
@@ -168,6 +204,7 @@ namespace Immersive.Framework.UnityInput
 
             AddRequiredRoleIssues(targets, requiredRoles, issues, normalizedSource);
             AddDuplicateIdIssues(targets, issues, normalizedSource);
+            AddRequiredPlayerInputEvidenceIssues(targets, issues, normalizedSource);
 
             return new UnityInputTargetSet(targets.ToArray(), issues.ToArray(), normalizedSource, reason);
         }
@@ -213,6 +250,29 @@ namespace Immersive.Framework.UnityInput
                         source,
                         "Required Unity Input target role has duplicate declarations."));
                 }
+            }
+        }
+
+
+        private static void AddRequiredPlayerInputEvidenceIssues(
+            IReadOnlyList<UnityInputTargetDescriptor> targets,
+            List<UnityInputTargetSetIssue> issues,
+            string source)
+        {
+            for (int i = 0; i < targets.Count; i++)
+            {
+                UnityInputTargetDescriptor target = targets[i];
+                if (!target.RequiresPlayerInputEvidence || target.HasPlayerInputReference)
+                {
+                    continue;
+                }
+
+                issues.Add(UnityInputTargetSetIssue.BlockingIssue(
+                    UnityInputTargetSetIssueKind.MissingRequiredPlayerInputEvidence,
+                    target.Role,
+                    target.TargetId.StableText,
+                    source,
+                    "Unity Input target requires PlayerInput evidence, but no PlayerInput component/reference was found."));
             }
         }
 

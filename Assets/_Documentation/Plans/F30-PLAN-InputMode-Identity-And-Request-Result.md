@@ -55,8 +55,9 @@ Initial modes accepted from F28E:
 |---|---|---|---|
 | F30A | InputMode Identity / State / Request Result Contracts | Closed / runtime contracts + QA smoke | Passive mode identity, state snapshot, request/result vocabulary and pure smoke. |
 | F30B | Unity PlayerInput Integration Boundary | Closed / corrective docs + safe naming clarification | Redirects F30 away from a framework-owned input manager and toward official Unity Input System integration. |
-| F30C | Unity PlayerInput Component Evidence Validation | Next / runtime diagnostics + QA smoke | Validates declared input targets against official Unity components without action-map switching. |
-| F30D | Pause InputMode Request Boundary | Planned docs/runtime boundary | Defines how Pause may request a mode after Unity component evidence is validated. |
+| F30C | Unity PlayerInput Component Evidence Validation | Closed / runtime diagnostics + QA smoke PASS | Validates declared input targets against official Unity components without action-map switching. |
+| F30C1 | PlayerInputManager Smoke Warning Cleanup | Closed / corrective runtime QA cleanup | Prevents the duplicate PlayerInputManager smoke from creating real duplicate Unity components and emitting native warnings. |
+| F30D | Pause InputMode Request Boundary | Next / docs/runtime boundary | Defines how Pause may request a mode after Unity component evidence is validated. |
 | F30E | Unity Input Adapter Planning Closeout | Docs/QA | Selects whether the next phase connects mode requests to Unity Input System action-map behavior. |
 
 ## F30A Rules
@@ -139,3 +140,16 @@ Unity Input target declarations from F29 remain integration points for official 
 no action-map switching is hidden in contracts or Pause logic;
 next phase explicitly selects a Unity component validation or adapter behavior cut.
 ```
+
+
+## F30C — Unity PlayerInput Component Evidence Validation
+
+Status: Closed / implementation + QA smoke PASS.
+
+## F30C1 — PlayerInputManager Smoke Warning Cleanup
+
+Status: Closed / corrective implementation.
+
+F30C passed, but the duplicate PlayerInputManager step created real `PlayerInputManager` components and triggered Unity's native duplicate warning. F30C1 keeps the same framework diagnostic coverage while changing the QA smoke to validate none/single/duplicate PlayerInputManager cases through passive count-based evidence. The smoke should still report `playerinputmanager-duplicate-blocking passed='True'`, but should no longer emit Unity's native duplicate `PlayerInputManager` warning.
+
+Adds passive evidence validation for official Unity `PlayerInput` and `PlayerInputManager` components. It does not switch action maps, join players, own input, or create gameplay input behavior.
