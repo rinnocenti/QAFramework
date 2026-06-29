@@ -17,6 +17,10 @@ Current order:
 11. F31 - PlayerActor Identity and Unity Input Evidence
 12. F32 - InputMode Unity Adapter Application
 13. F33 - Pause Runtime PlayerInput Wiring
+14. POST-F33-A - Matrix Reconciliation Closeout
+15. POST-F33-B - Officialize/Reclassify F28-F33
+16. F8R-A - RuntimeContent / ContentAnchor Materialization Audit
+17. F8R-B - Runtime Root / Handle / Release Policy
 
 ## Roadmap ADRs
 
@@ -58,6 +62,10 @@ Current order:
 | F25R | [Activity Scene Operation Architecture Reset](F25R-ADR-ACTIVITY-001-Activity-Scene-Operation-Architecture-Reset.md) | Accepted / Documentation reset |
 | F27 | [Gate as Capability Admission Boundary](F27-ADR-GATE-INPUT-001-Capability-Gate-Boundary.md) | Accepted / F27D runtime reframe |
 | F28 | [Roadmap Reconciliation and Adapter Module Spine](F28-ADR-INPUT-001-InputMode-Adapter-Boundary.md) | Accepted / F28A-F28F closed / F29 selected |
+| POST-F33-A | `Assets/_Documentation/Notes/POST-F33-A-Matrix-Reconciliation-Closeout.md` | Accepted / documentation / roadmap governance |
+| POST-F33-B | `Assets/_Documentation/Notes/POST-F33-B-Officialize-Reclassify-F28-F33.md` | Accepted / documentation / roadmap governance |
+| F8R-A | `Assets/_Documentation/Audits/F8R-A-RuntimeContent-ContentAnchor-Materialization-Audit.md` | Draft / audit-only / documentation governance |
+| F8R-B | [Runtime Root / Handle / Release Policy](F8R-B-ADR-Runtime-Root-Handle-Release-Policy.md) | Proposed / RuntimeContent / Materialization Governance |
 
 ## Boundary Rules
 
@@ -205,3 +213,48 @@ F33D flattens Pause input diagnostics. Trigger diagnostics may expose bridge sta
 F33E closes Pause Runtime PlayerInput Wiring. The canonical path is `PauseInputActionRuntimeBridgeTrigger` plus `PauseInputModeUnityPlayerInputRuntimeBridge`; the phase keeps automatic FrameworkRuntimeHost wiring, PlayerInputManager join, player spawn, movement, gameplay command reading and framework-owned input managers out of scope. Reference: `../../../../Assets/_Documentation/Notes/F33E-Pause-Runtime-PlayerInput-Wiring-Closeout.md`.
 
 F33E1 corrects the F33E next-phase wording: F33 closes the Pause input path but does not select or authorize the next implementation phase. Reference: `../../../../Assets/_Documentation/Notes/F33E1-Next-Phase-Selection-Correction.md`.
+
+## POST-F33-A — Matrix Reconciliation Closeout
+
+Scope: documentation / roadmap governance.
+
+Status: Accepted.
+
+POST-F33-A accepts the matrix reconciliation closeout. F28-F33 are official only as controlled anticipation of the Input / Pause / Unity `PlayerInput` axis. F33 remains closed, but it does not select F34, gameplay or any other next feature phase. RuntimeContent, ContentAnchor, materialization, runtime roots, handles and release policy must be re-audited before consumer work resumes.
+
+Reference: `Assets/_Documentation/Notes/POST-F33-A-Matrix-Reconciliation-Closeout.md`.
+
+## POST-F33-B — Officialize/Reclassify F28-F33
+
+Scope: documentation / roadmap governance.
+
+Status: Accepted.
+
+POST-F33-B officially reclassifies F28-F33 against the matrix. F28 is official planning/governance, F29 is official Unity Input target evidence, F30 is official passive InputMode / Pause request language, F31 is official PlayerActor identity and Session PlayerInputManager evidence, F32 is controlled anticipation for the explicit PlayerInput application lane, and F33 is controlled anticipation for opt-in Pause runtime to PlayerInput wiring.
+
+POST-F33-B does not authorize F34/gameplay and does not select camera, audio, save/progression, pooling/runtime-spawned or actor materialization. `F8R-A — RuntimeContent / ContentAnchor Materialization Audit` remains the first technical candidate after this reclassification.
+
+Reference: `Assets/_Documentation/Notes/POST-F33-B-Officialize-Reclassify-F28-F33.md`.
+
+## F8R-A - RuntimeContent / ContentAnchor Materialization Audit
+
+Scope: audit-only / documentation governance.
+
+Status: Draft.
+
+F8R-A records the current package state for RuntimeContent, ContentAnchor, materialization request/result, runtime roots, handles and release policy after POST-F33-B. It does not authorize F34/gameplay or any camera, audio, save/progression, pooling/runtime-spawned or actor materialization implementation.
+
+Reference: `Assets/_Documentation/Audits/F8R-A-RuntimeContent-ContentAnchor-Materialization-Audit.md`.
+
+## F8R-B - Runtime Root / Handle / Release Policy
+
+Scope: RuntimeContent / Materialization Governance.
+
+Status: Proposed.
+
+F8R-B proposes that RuntimeContent core keeps root, handle and release policy as logical framework language. Future Unity adapters may materialize physical objects only after a separate accepted cut; physical root placement, destroy, pooling, scene unload and Addressables release stay outside core.
+
+References:
+
+- `F8R-B-ADR-Runtime-Root-Handle-Release-Policy.md`
+- `Assets/_Documentation/Plans/F8R-B-PLAN-Runtime-Root-Handle-Release-Policy.md`

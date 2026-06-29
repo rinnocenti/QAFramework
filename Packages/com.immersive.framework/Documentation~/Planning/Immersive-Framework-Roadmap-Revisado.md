@@ -36,9 +36,11 @@ Do not read adapter module work backward into earlier phases. F23 does not build
 
 ## 3. Current Phase
 
-F28 is closed. F29, F30 and F31 are also closed; the next input work must start from the accepted F30/F31 boundaries.
+F28-F33 are closed. F28-F33 are official only as controlled anticipation of the Input / Pause / Unity `PlayerInput` axis after the F27D freeze.
 
-The project is back at the F27D freeze. The next step is not another runtime patch. The next step is a positive roadmap correction that explains what the remaining implementation tracks are and in what order they should be built.
+F33 does not select or authorize the next feature or implementation phase. Any prior F34 or gameplay next-phase wording is superseded by `F33E1` and `POST-F33-A`.
+
+`POST-F33-B — Officialize/Reclassify F28-F33` officially reclassifies F28-F33 as documentation-only governance. After that reclassification, the first technical candidate remains `F8R-A — RuntimeContent / ContentAnchor Materialization Audit`, unless the user explicitly selects another axis.
 
 F27E is cancelled because ordinary input consumers should not each query Gate as the primary Pause/Input implementation. That cancellation exposes a larger missing chain:
 
@@ -364,3 +366,45 @@ F33E closes the phase. The canonical authored path is `PauseInputActionRuntimeBr
 It remains outside automatic `FrameworkRuntimeHost` registration and does not call `PlayerInputManager.JoinPlayer`, spawn player prefabs, move actors, read gameplay commands or create a framework-owned input manager.
 
 Next phase after F33 is not selected by this closeout. A later roadmap/plan decision must select the next implementation phase before new work starts.
+
+### POST-F33-A — Matrix Reconciliation Closeout
+
+Status: Accepted / documentation governance.
+
+POST-F33-A closes the matrix reconciliation after F33. It confirms that F33 is closed but does not select F34, gameplay or any other feature phase.
+
+F28-F33 remain official only as controlled anticipation of the Input / Pause / Unity `PlayerInput` axis. They do not close the RuntimeContent, ContentAnchor, materialization, runtime root, runtime handle or release-policy blockers identified by the matrix.
+
+The authorized next steps are:
+
+| Step | Type | Scope |
+|---|---|---|
+| POST-F33-B — Officialize/Reclassify F28-F33 | Docs-only | Reclassify F28-F33 against the matrix before new implementation. |
+| F8R-A — RuntimeContent / ContentAnchor Materialization Audit | Audit-only | Re-evaluate F8/F9 materialization and binding blockers before consumers. |
+
+References:
+
+```text
+Assets/_Documentation/Notes/POST-F33-A-Matrix-Reconciliation-Closeout.md
+Assets/_Documentation/Notes/POST-F33-B-Officialize-Reclassify-F28-F33.md
+Assets/_Documentation/Plans/POST-F33-PLAN-Matrix-Reconciliation.md
+```
+
+### POST-F33-B — Officialize/Reclassify F28-F33
+
+Status: Accepted / documentation governance.
+
+POST-F33-B officially reclassifies F28-F33 against the matrix without reopening those phases for code and without selecting a new implementation phase.
+
+| Phase | Official status | Classification |
+|---|---|---|
+| F28 | Official | Official planning/governance |
+| F29 | Official | Official Unity Input target evidence |
+| F30 | Official | Official passive InputMode / Pause request language |
+| F31 | Official | Official PlayerActor identity and Session PlayerInputManager evidence |
+| F32 | Official closed | Controlled anticipation — explicit PlayerInput application lane |
+| F33 | Official closed | Controlled anticipation — opt-in Pause runtime to PlayerInput wiring |
+
+F34/gameplay remains unauthorized. Camera, audio, save/progression, pooling/runtime-spawned and actor materialization remain unselected.
+
+`F8R-A — RuntimeContent / ContentAnchor Materialization Audit` is the first technical candidate after this reclassification. It remains a candidate, not a selected implementation phase.

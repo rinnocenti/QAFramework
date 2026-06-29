@@ -35,6 +35,10 @@ Read the documentation in this order:
 | F31 | PlayerActor Identity and Unity Input Evidence | Closed / F31A-F31C complete |
 | F32 | InputMode Unity Adapter Application | Closed / F32A-F32H complete |
 | F33 | Pause Runtime PlayerInput Wiring | Closed / F33A-F33E complete |
+| POST-F33-A | Matrix Reconciliation Closeout | Accepted / documentation governance / no next feature selected |
+| POST-F33-B | Officialize/Reclassify F28-F33 | Accepted / documentation governance / F28-F33 reclassified |
+| F8R-A | RuntimeContent / ContentAnchor Materialization Audit | Draft / audit-only / no implementation selected |
+| F8R-B | Runtime Root / Handle / Release Policy Plan | Draft / Plan / ADR proposed / docs-only |
 
 ## F23 Boundary
 
@@ -461,3 +465,24 @@ F33D note: `../../Assets/_Documentation/Notes/F33D-Pause-Input-Diagnostics-Flatt
 F33E closeout note: `../../Assets/_Documentation/Notes/F33E-Pause-Runtime-PlayerInput-Wiring-Closeout.md`.
 
 F33E1 correction note: `../../Assets/_Documentation/Notes/F33E1-Next-Phase-Selection-Correction.md`. F33 is closed, but F33E does not select the following implementation phase.
+
+## POST-F33 Matrix Reconciliation
+
+POST-F33-A closes the matrix reconciliation as documentation / roadmap governance. F33 remains closed, but it does not select F34, gameplay or any other feature phase.
+
+F28-F33 are official only as controlled anticipation of the Input / Pause / Unity `PlayerInput` axis. RuntimeContent, ContentAnchor, materialization, runtime roots, handles and release policy must be re-audited before camera, audio, save/progression, pooling/runtime-spawned, actor materialization or gameplay consumers.
+
+References:
+
+- `Assets/_Documentation/Notes/POST-F33-A-Matrix-Reconciliation-Closeout.md`
+- `Assets/_Documentation/Notes/POST-F33-B-Officialize-Reclassify-F28-F33.md`
+- `Assets/_Documentation/Plans/POST-F33-PLAN-Matrix-Reconciliation.md`
+- `Assets/_Documentation/Audits/F8R-A-RuntimeContent-ContentAnchor-Materialization-Audit.md`
+- `Assets/_Documentation/Plans/F8R-B-PLAN-Runtime-Root-Handle-Release-Policy.md`
+- `Packages/com.immersive.framework/Documentation~/ADRs/F8R-B-ADR-Runtime-Root-Handle-Release-Policy.md`
+
+POST-F33-B officially reclassifies F28-F33: F28-F31 are official planning/evidence/language phases, while F32-F33 are controlled anticipation of the Input / Pause / Unity `PlayerInput` axis with Unity side effects limited to explicit adapters.
+
+F8R-A is the current audit-only RuntimeContent / ContentAnchor materialization state check. It does not authorize F34, gameplay, camera, audio, save/progression, pooling/runtime-spawned or actor materialization.
+
+F8R-B proposes the ownership rule for the next planning decision: RuntimeContent core keeps runtime roots, handles and release policy as logical framework language, while future Unity adapters may own physical materialization only after a separate accepted cut.

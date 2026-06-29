@@ -28,6 +28,8 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Plans/F31-PLAN-PlayerActor-Identity-And-Unity-Input-Evidence.md` — PlayerActor Identity and Unity Input Evidence / closed
 - `Plans/F32-PLAN-InputMode-Unity-Adapter-Application.md` — InputMode Unity Adapter Application / closed
 - `Plans/F33-PLAN-Pause-Runtime-PlayerInput-Wiring.md` — Pause Runtime PlayerInput Wiring / closed
+- `Plans/POST-F33-PLAN-Matrix-Reconciliation.md` — Matrix Reconciliation / accepted; supersedes any post-F33 reading that implied F34 or gameplay selection.
+- `Plans/F8R-B-PLAN-Runtime-Root-Handle-Release-Policy.md` — Runtime Root / Handle / Release Policy planning; docs-only, no materializer implementation selected.
 
 ### Setup
 
@@ -163,3 +165,17 @@ References:
 - `Notes/F33D-Pause-Input-Diagnostics-Flattening.md`
 - `Notes/F33E-Pause-Runtime-PlayerInput-Wiring-Closeout.md`
 - `Notes/F33E1-Next-Phase-Selection-Correction.md` — corrects F33E next-phase wording; F33 does not select the following implementation phase.
+- `Notes/POST-F33-A-Matrix-Reconciliation-Closeout.md` — closes the matrix reconciliation; F33 stays closed, but no F34/gameplay phase is selected.
+- `Notes/POST-F33-B-Officialize-Reclassify-F28-F33.md` — official reclassification of F28-F33 against the matrix; docs-only, no new implementation selected.
+
+## POST-F33 — Matrix Reconciliation
+
+POST-F33-A is accepted as documentation / roadmap governance only. F28-F33 are official as controlled anticipation of the Input / Pause / Unity `PlayerInput` axis, while RuntimeContent, ContentAnchor, materialization, runtime root, handles and release policy remain unresolved blockers before consumers.
+
+References:
+
+- `Notes/POST-F33-A-Matrix-Reconciliation-Closeout.md`
+- `Notes/POST-F33-B-Officialize-Reclassify-F28-F33.md`
+- `Plans/POST-F33-PLAN-Matrix-Reconciliation.md`
+- `Audits/F8R-A-RuntimeContent-ContentAnchor-Materialization-Audit.md` — audit-only RuntimeContent / ContentAnchor materialization state check; no implementation selected.
+- `Plans/F8R-B-PLAN-Runtime-Root-Handle-Release-Policy.md` — draft plan/ADR for logical runtime root, handle and release policy ownership; no physical materializer selected.
