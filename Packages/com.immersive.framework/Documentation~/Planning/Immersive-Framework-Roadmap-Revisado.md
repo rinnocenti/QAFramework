@@ -61,10 +61,10 @@ F28 is documentation-first. It creates the dependency and ownership map for the 
 |---|---|---|---|
 | F28A | Frozen Baseline Reconciliation | Closed / docs-only | Authoritative reading of package docs, project docs, QA assets and the cancelled F27E path. |
 | F28B | Completion Dependency Map | Closed / docs-only | Ordered graph for remaining product-completion tracks. |
-| F28C | Adapter Module Taxonomy | Next | Module families, owner kind, placement rule and dependency category. |
-| F28D | Player / Actor / Input Ownership Plan | Planned | Player object ownership, `PlayerInput` target ownership and first input target proof. |
-| F28E | InputMode and Pause Integration Plan | Planned | Typed InputMode semantics and Pause-driven mode requests after ownership is clear. |
-| F28F | Next Implementation Closeout | Planned | Next code phase, entry criteria, smoke target and file placement rules. |
+| F28C | Adapter Module Taxonomy | Closed / docs-only | Module families, owner kind, placement rule and dependency category. |
+| F28D | Player / Actor / Input Ownership Plan | Closed / docs-only | Player object ownership, `PlayerInput` target ownership and first input target proof. |
+| F28E | InputMode and Pause Integration Plan | Closed / docs-only | Typed InputMode semantics and Pause-driven mode requests after ownership is clear. |
+| F28F | Next Implementation Closeout | Next | Next code phase, entry criteria, smoke target and file placement rules. |
 
 F28 output is a clean plan, not runtime contracts.
 
@@ -77,7 +77,7 @@ Assets/ = project-facing operational source
 Packages/com.immersive.framework/ = framework source
 ```
 
-F28B closes the dependency graph. It confirms that F28C is the next cut and that implementation remains frozen until adapter taxonomy, ownership and placement rules are accepted.
+F28B closes the dependency graph. F28C closes the adapter module taxonomy. F28D closes Player/Actor/Input ownership. F28E closes InputMode/Pause semantics. Implementation remains frozen until F28F selects the next implementation target.
 
 F28B dependency order:
 
@@ -95,6 +95,60 @@ F28B reference note:
 
 ```text
 Assets/_Documentation/Notes/F28B-Completion-Dependency-Map.md
+```
+
+F28C accepted taxonomy:
+
+```text
+module family
+  -> owner kind
+  -> dependency category
+  -> placement rule
+  -> evidence surface
+  -> first proof
+```
+
+F28C separates official Unity packages, optional Immersive packages, external tools, project assets/config, personal assets and QA fixtures. F28D closes Player / Actor / Unity Input ownership. F28E closes typed InputMode and Pause integration semantics.
+
+F28C reference note:
+
+```text
+Assets/_Documentation/Notes/F28C-Adapter-Module-Taxonomy.md
+```
+
+F28D accepted ownership split:
+
+```text
+Project assets own concrete player prefabs and InputActionAssets.
+Unity Input adapter owns translation from Unity Input System targets to framework language.
+Framework Core owns typed InputMode language.
+Pause requests InputMode later; it does not own PlayerInput.
+Runtime-spawned player/actor lifetime is deferred until runtime roots, handles and release policy exist.
+```
+
+F28D reference note:
+
+```text
+Assets/_Documentation/Notes/F28D-Player-Actor-Input-Ownership-Plan.md
+```
+
+F28E accepted InputMode/Pause semantics:
+
+```text
+Gameplay = gameplay command posture
+PauseOverlay = pause UI posture over gameplay
+FrontendMenu = reserved non-gameplay menu posture
+InputLocked = reserved transition/loading/exceptional hard suppression posture
+
+Pause may request Gameplay/PauseOverlay after InputMode exists.
+Pause does not own PlayerInput, action-map names, player lifecycle, movement, Time.timeScale or gameplay adapters.
+UI/Pause input remains available during PauseOverlay; gameplay commands stop driving gameplay.
+```
+
+F28E reference note:
+
+```text
+Assets/_Documentation/Notes/F28E-InputMode-Pause-Integration-Plan.md
 ```
 
 ### F29 — Adapter Module Foundation

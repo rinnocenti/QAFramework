@@ -2,7 +2,7 @@
 
 ## Status
 
-Active / F28A-F28B closed / documentation-first / no runtime changes
+Active / F28A-F28E closed / documentation-first / no runtime changes
 
 ## Purpose
 
@@ -85,10 +85,10 @@ F28 treats adapters as a set of future lanes, not a single InputMode patch.
 |---|---|---|---|
 | F28A | Frozen Baseline Reconciliation | Closed / docs-only | One authoritative reading of the current frozen baseline, including package docs, project docs, QA assets and the cancelled F27E path. |
 | F28B | Completion Dependency Map | Closed / docs-only | Ordered dependency graph for the remaining product-completion tracks. Identifies what must precede Player, InputMode, Pause integration, Camera, Audio, Save, RuntimeSpawned and Gameplay. |
-| F28C | Adapter Module Taxonomy | Next | Defines module families, owner kind, placement rule and dependency category. This is still documentation/plan, not runtime registration. |
-| F28D | Player / Actor / Input Ownership Plan | Planned | Decides the ownership path for `PlayerInput`, player object lifetime, player/actor adapter placement and the first input target proof. |
-| F28E | InputMode and Pause Integration Plan | Planned | Defines typed InputMode semantics and how Pause requests modes after ownership is clear. |
-| F28F | Next Implementation Closeout | Planned | Selects the next code phase and writes entry criteria, smoke target and file placement rules. |
+| F28C | Adapter Module Taxonomy | Closed / docs-only | Defines module families, owner kind, placement rule and dependency category. This is still documentation/plan, not runtime registration. |
+| F28D | Player / Actor / Input Ownership Plan | Closed / docs-only | Decides the ownership path for project player assets, Unity `PlayerInput` targets, player/actor adapter placement and the first input target proof. |
+| F28E | InputMode and Pause Integration Plan | Closed / docs-only | Defines typed InputMode semantics and how Pause requests modes after ownership is clear. |
+| F28F | Next Implementation Closeout | Next | Selects the next code phase and writes entry criteria, smoke target and file placement rules. |
 
 ## F28A Closure Result
 
@@ -157,22 +157,142 @@ Reference note:
 Assets/_Documentation/Notes/F28B-Completion-Dependency-Map.md
 ```
 
-## F28C Entry Criteria
+## F28C Closure Result
 
-F28C starts from the F28B dependency map.
+F28C closes the adapter module taxonomy.
 
-F28C must define, still without runtime code:
+Every future adapter/module cut must declare:
 
 ```text
-adapter module owner kinds
-adapter dependency categories
-module placement rules
-which lanes can become package modules
-which lanes stay project-specific assets/config
-which external dependencies are Unity official, optional package, external tool or product asset
+Family
+Owner kind
+Dependency category
+Placement
+Evidence surface
+First proof
+Blocked by
+Must not touch
 ```
 
-F28C must not implement module registration, discovery, PlayerInput ownership, InputMode service, camera/audio/save adapters or gameplay modules.
+Accepted owner kinds:
+
+| Owner kind | Canonical placement |
+|---|---|
+| Framework Core | `Packages/com.immersive.framework` |
+| Framework Unity Adapter | `Packages/com.immersive.framework` or a separate module if optional. |
+| Optional Immersive Package | `Packages/com.immersive.<module>` |
+| Project Integration | `Assets/_Project` |
+| QA Evidence | `Assets/ImmersiveFrameworkQA` |
+| External Tool Boundary | `Assets/_External` or a declared package dependency. |
+| Sandbox Experiment | `Assets/_Sandbox` |
+
+Accepted dependency categories:
+
+```text
+Framework Core
+Official Unity Package
+Optional Immersive Package
+External Tool
+Project Asset / Config
+Personal Asset
+QA Fixture
+```
+
+Reference note:
+
+```text
+Assets/_Documentation/Notes/F28C-Adapter-Module-Taxonomy.md
+```
+
+## F28D Entry Criteria
+
+F28D starts from the F28C taxonomy and focuses only on Player / Actor / Unity Input ownership.
+
+F28D must answer:
+
+```text
+who owns the player object lifetime;
+where Unity Input System targets live;
+how UI input remains available during pause;
+how gameplay commands are stopped without scattered Gate checks;
+how player/actor participation relates to Activity lifecycle;
+which first proof or smoke validates the ownership path.
+```
+
+## F28D Closure Result
+
+F28D closes the Player / Actor / Unity Input ownership plan.
+
+Accepted ownership split:
+
+| Concern | Owner |
+|---|---|
+| Concrete player prefab, controller, visual and `InputActionAsset` | Project Integration / QA Fixture first |
+| Unity `PlayerInput` or equivalent input target | Unity Input Adapter proof first; project-owned asset later |
+| Typed input language and InputMode names | Framework Core |
+| Unity action-map names | Adapter/project configuration |
+| Pause mode request | Pause Integration, downstream of InputMode |
+| Runtime-spawned player actor lifetime | Deferred until RuntimeContentHandle/runtime root/release policy exist |
+
+Accepted first future proof:
+
+```text
+QA-authored Unity input target proof
+```
+
+That proof validates explicit target ownership and diagnostics for missing/duplicate targets. It must not spawn actors, implement full InputMode, add camera/movement/save ownership or create a gameplay module.
+
+Reference note:
+
+```text
+Assets/_Documentation/Notes/F28D-Player-Actor-Input-Ownership-Plan.md
+```
+
+## F28E Entry Criteria
+
+F28E starts from the F28D ownership split and focuses only on typed InputMode and Pause integration semantics.
+
+F28E must answer:
+
+```text
+which InputMode states exist first;
+which transitions are legal;
+how Pause requests Gameplay/PauseOverlay mode changes;
+how UI input remains available while gameplay commands stop;
+what the next implementation closeout must prove.
+```
+
+F28E must not create runtime code, action-map switching, PlayerInput components, player actor lifecycle, camera follow behavior, movement systems or save/gameplay adapters.
+
+## F28E Closure Result
+
+F28E closes the InputMode and Pause integration plan.
+
+Accepted first mode vocabulary:
+
+| Mode | Meaning |
+|---|---|
+| `Gameplay` | Gameplay command posture. |
+| `PauseOverlay` | Pause UI posture over an existing gameplay route/activity. |
+| `FrontendMenu` | Reserved future non-gameplay menu posture. |
+| `InputLocked` | Reserved future hard suppression posture for transition/loading/exceptional lock states. |
+
+Accepted Pause integration rule:
+
+```text
+Pause may request InputMode changes after InputMode exists.
+Pause does not own PlayerInput, action-map strings, player/actor lifecycle, movement, Time.timeScale, camera, audio, save or gameplay adapters.
+UI/Pause input remains available during PauseOverlay.
+Gameplay command input stops driving gameplay during PauseOverlay.
+```
+
+F28F is now the next cut and must choose one code phase with entry criteria, file placement and smoke target. The preferred first code direction remains a QA-authored Unity input target proof, unless F28F explicitly chooses a smaller core InputMode identity/result model first.
+
+Reference note:
+
+```text
+Assets/_Documentation/Notes/F28E-InputMode-Pause-Integration-Plan.md
+```
 
 ## Expected Phase Output
 

@@ -57,7 +57,11 @@ F28A baseline reconciliation: `Notes/F28A-Frozen-Baseline-Reconciliation.md`.
 
 F28B completion dependency map: `Notes/F28B-Completion-Dependency-Map.md`.
 
-F28A baseline reconciliation: `Notes/F28A-Frozen-Baseline-Reconciliation.md`.
+F28C adapter module taxonomy: `Notes/F28C-Adapter-Module-Taxonomy.md`.
+
+F28D player/actor/input ownership plan: `Notes/F28D-Player-Actor-Input-Ownership-Plan.md`.
+
+F28E InputMode and Pause integration plan: `Notes/F28E-InputMode-Pause-Integration-Plan.md`.
 
 ## Regras
 

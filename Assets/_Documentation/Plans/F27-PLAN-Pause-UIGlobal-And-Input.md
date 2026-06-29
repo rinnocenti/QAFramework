@@ -97,7 +97,7 @@ See:
 ```text
 Assets/_Documentation/Plans/F28-PLAN-InputMode-And-Adapter-Boundary.md
 Packages/com.immersive.framework/Documentation~/ADRs/F28-ADR-INPUT-001-InputMode-Adapter-Boundary.md
-Assets/_Documentation/Notes/F27E-CANCELLED-Input-Consumers-Gate-Replan.md
+Assets/_Documentation/Notes/README.md
 ```
 
 ## Validation preserved

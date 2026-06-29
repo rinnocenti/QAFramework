@@ -30,7 +30,7 @@ The editor installers used to create these fixtures are temporary and can be del
 See:
 
 ```text
-Assets/_Documentation/Notes/F24B1-DELETE-MANIFEST.txt
+Assets/_Documentation/Notes/README.md
 ```
 
 ## Validation target
@@ -166,7 +166,7 @@ AtivityAdditionalConent.unity -> ActivityAdditionalContent.unity
 `ActivityContentProfile.asset` now points to the corrected scene path and scene name. When applying this change from a zip patch, delete the old typo scene files listed in:
 
 ```text
-Assets/_Documentation/Notes/F26F-DELETE-MANIFEST.txt
+Assets/_Documentation/Notes/README.md
 ```
 
 The corrected scene keeps the original Unity `.meta` GUID so existing references remain stable after cleanup.
