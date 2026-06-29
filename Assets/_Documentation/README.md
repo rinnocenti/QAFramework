@@ -30,6 +30,10 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Plans/F33-PLAN-Pause-Runtime-PlayerInput-Wiring.md` — Pause Runtime PlayerInput Wiring / closed
 - `Plans/POST-F33-PLAN-Matrix-Reconciliation.md` — Matrix Reconciliation / accepted; supersedes any post-F33 reading that implied F34 or gameplay selection.
 - `Plans/F8R-B-PLAN-Runtime-Root-Handle-Release-Policy.md` — Runtime Root / Handle / Release Policy planning; docs-only, no materializer implementation selected.
+- `Plans/F8R-C-PLAN-Runtime-Materialization-Adapter-Boundary.md` — Runtime Materialization Adapter Boundary planning; docs-only, no materializer implementation selected.
+- `Plans/F8R-D-PLAN-Physical-Release-Adapter.md` — Physical Release Adapter planning; docs-only, no release adapter implementation selected.
+- `Plans/F9R-A-PLAN-ContentAnchor-Runtime-Binding-Reentry.md` — ContentAnchor Runtime Binding Re-entry draft plan/ADR; docs-only, no physical placement or implementation selected.
+- `Notes/F8R-E-Unity-Prefab-Runtime-Materialization-Adapter-Proof.md` — Unity prefab RuntimeContent materialization adapter proof; first physical adapter implementation and QA smoke.
 
 ### Setup
 
@@ -89,6 +93,14 @@ F30B Unity PlayerInput integration boundary correction: `Notes/F30B-Unity-Player
 F30C Unity PlayerInput component evidence validation: `Notes/F30C-Unity-PlayerInput-Component-Evidence-Validation.md`.
 
 F30C1 PlayerInputManager smoke warning cleanup: `Notes/F30C1-PlayerInputManager-Smoke-Warning-Cleanup.md`.
+
+F8R-B1 Runtime Root / Handle / Release Policy acceptance: `Notes/F8R-B1-Runtime-Root-Handle-Release-Policy-Acceptance.md`.
+
+F8R-C1 Runtime Materialization Adapter Boundary acceptance: `Notes/F8R-C1-Runtime-Materialization-Adapter-Boundary-Acceptance.md`.
+
+F8R-D1 Physical Release Adapter acceptance: `Notes/F8R-D1-Physical-Release-Adapter-Acceptance.md`.
+
+F8R-E Unity Prefab Runtime Materialization Adapter Proof: `Notes/F8R-E-Unity-Prefab-Runtime-Materialization-Adapter-Proof.md`.
 
 ## Regras
 
@@ -178,4 +190,10 @@ References:
 - `Notes/POST-F33-B-Officialize-Reclassify-F28-F33.md`
 - `Plans/POST-F33-PLAN-Matrix-Reconciliation.md`
 - `Audits/F8R-A-RuntimeContent-ContentAnchor-Materialization-Audit.md` — audit-only RuntimeContent / ContentAnchor materialization state check; no implementation selected.
-- `Plans/F8R-B-PLAN-Runtime-Root-Handle-Release-Policy.md` — draft plan/ADR for logical runtime root, handle and release policy ownership; no physical materializer selected.
+- `Plans/F8R-B-PLAN-Runtime-Root-Handle-Release-Policy.md` — accepted plan/ADR for logical runtime root, handle and release policy ownership; no physical materializer selected.
+- `Notes/F8R-B1-Runtime-Root-Handle-Release-Policy-Acceptance.md` — accepts F8R-B ADR as logical ownership baseline; no implementation selected.
+- `Plans/F8R-C-PLAN-Runtime-Materialization-Adapter-Boundary.md` — accepted plan/ADR boundary between pure RuntimeContent core and future physical materialization adapters; no implementation selected.
+- `Notes/F8R-C1-Runtime-Materialization-Adapter-Boundary-Acceptance.md` — accepts F8R-C ADR as materialization adapter boundary baseline; no implementation selected.
+- `Plans/F8R-D-PLAN-Physical-Release-Adapter.md` — accepted plan/ADR boundary for future physical release adapters; no implementation selected.
+- `Notes/F8R-D1-Physical-Release-Adapter-Acceptance.md` — accepts F8R-D ADR as physical release adapter boundary baseline; no implementation selected.
+- `Plans/F9R-A-PLAN-ContentAnchor-Runtime-Binding-Reentry.md` — draft plan/ADR re-entry for logical ContentAnchor runtime binding; no physical placement or implementation selected.

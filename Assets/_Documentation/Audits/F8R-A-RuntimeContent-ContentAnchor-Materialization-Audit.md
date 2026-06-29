@@ -107,7 +107,7 @@ Therefore F8/F9 blockers are partially advanced but not closed. Camera, audio, s
 | F8R-C - Runtime Materialization Adapter Boundary Plan | Plan / ADR | The package has `IRuntimeMaterializationAdapter` but no concrete materializer lane. | Where prefab/materializer code may live and what it may own. | Concrete materialization implementation after approval. | Yes. |
 | F9R-A - ContentAnchor Runtime Binding Re-entry | Audit / plan | Logical binding exists, but physical placement and lifecycle cleanup need accepted semantics. | Anchor placement, binding lifecycle and cleanup boundaries. | Pause content materialization and later consumer attachment. | Yes before code. |
 | F8R-D - Physical Release Adapter Plan | Plan | Current release is logical registry/handle cleanup only. | Destroy/pool/Addressables/scene release policy split. | Runtime-spawned, pooling and asset-backed content. | Yes. |
-| F8R-E - Consumer Admission Gate | Audit / plan | Multiple consumers are blocked by the same unresolved materialization/release boundary. | Explicit criteria for allowing camera/audio/save/gameplay later. | Safer future consumer sequencing. | No code; ADR only if it changes roadmap rules. |
+| F8R-F - Consumer Admission Gate | Audit / plan | Multiple consumers are blocked by the same unresolved materialization/release boundary. | Explicit criteria for allowing camera/audio/save/gameplay later. | Safer future consumer sequencing. | No code; ADR only if it changes roadmap rules. |
 
 ## 10. Recommended Decision Point
 

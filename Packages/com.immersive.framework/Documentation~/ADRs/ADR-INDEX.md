@@ -21,6 +21,9 @@ Current order:
 15. POST-F33-B - Officialize/Reclassify F28-F33
 16. F8R-A - RuntimeContent / ContentAnchor Materialization Audit
 17. F8R-B - Runtime Root / Handle / Release Policy
+18. F8R-C - Runtime Materialization Adapter Boundary
+19. F8R-D - Physical Release Adapter
+20. F9R-A - ContentAnchor Runtime Binding Re-entry
 
 ## Roadmap ADRs
 
@@ -65,7 +68,10 @@ Current order:
 | POST-F33-A | `Assets/_Documentation/Notes/POST-F33-A-Matrix-Reconciliation-Closeout.md` | Accepted / documentation / roadmap governance |
 | POST-F33-B | `Assets/_Documentation/Notes/POST-F33-B-Officialize-Reclassify-F28-F33.md` | Accepted / documentation / roadmap governance |
 | F8R-A | `Assets/_Documentation/Audits/F8R-A-RuntimeContent-ContentAnchor-Materialization-Audit.md` | Draft / audit-only / documentation governance |
-| F8R-B | [Runtime Root / Handle / Release Policy](F8R-B-ADR-Runtime-Root-Handle-Release-Policy.md) | Proposed / RuntimeContent / Materialization Governance |
+| F8R-B | [Runtime Root / Handle / Release Policy](F8R-B-ADR-Runtime-Root-Handle-Release-Policy.md) | Accepted / RuntimeContent / Materialization Governance |
+| F8R-C | [Runtime Materialization Adapter Boundary](F8R-C-ADR-Runtime-Materialization-Adapter-Boundary.md) | Accepted / RuntimeContent / Materialization Adapter Boundary |
+| F8R-D | [Physical Release Adapter](F8R-D-ADR-Physical-Release-Adapter.md) | Accepted / RuntimeContent / Physical Release Adapter Boundary |
+| F9R-A | [ContentAnchor Runtime Binding Re-entry](F9R-A-ADR-ContentAnchor-Runtime-Binding-Reentry.md) | Proposed / ContentAnchor / Runtime Binding / Materialization Governance |
 
 ## Boundary Rules
 
@@ -250,11 +256,53 @@ Reference: `Assets/_Documentation/Audits/F8R-A-RuntimeContent-ContentAnchor-Mate
 
 Scope: RuntimeContent / Materialization Governance.
 
-Status: Proposed.
+Status: Accepted.
 
-F8R-B proposes that RuntimeContent core keeps root, handle and release policy as logical framework language. Future Unity adapters may materialize physical objects only after a separate accepted cut; physical root placement, destroy, pooling, scene unload and Addressables release stay outside core.
+F8R-B accepts that RuntimeContent core keeps root, handle and release policy as logical framework language. Future Unity adapters may materialize physical objects only after a separate accepted cut; physical root placement, destroy, pooling, scene unload and Addressables release stay outside core.
 
 References:
 
 - `F8R-B-ADR-Runtime-Root-Handle-Release-Policy.md`
 - `Assets/_Documentation/Plans/F8R-B-PLAN-Runtime-Root-Handle-Release-Policy.md`
+- `Assets/_Documentation/Notes/F8R-B1-Runtime-Root-Handle-Release-Policy-Acceptance.md`
+
+## F8R-C - Runtime Materialization Adapter Boundary
+
+Scope: RuntimeContent / Materialization Adapter Boundary.
+
+Status: Accepted.
+
+F8R-C accepts the boundary between pure RuntimeContent core and future physical materialization adapters. Pure core keeps request, result, identity, owner, scope, handle state, guards and diagnostics. Future Unity adapters may own physical materialization only after a separate accepted implementation cut, and physical object evidence must not leak into pure core.
+
+References:
+
+- `F8R-C-ADR-Runtime-Materialization-Adapter-Boundary.md`
+- `Assets/_Documentation/Plans/F8R-C-PLAN-Runtime-Materialization-Adapter-Boundary.md`
+- `Assets/_Documentation/Notes/F8R-C1-Runtime-Materialization-Adapter-Boundary-Acceptance.md`
+
+## F8R-D - Physical Release Adapter
+
+Scope: RuntimeContent / Physical Release Adapter Boundary.
+
+Status: Accepted.
+
+F8R-D accepts the boundary between logical RuntimeContent release and future physical cleanup adapters. RuntimeContent core keeps release as request/result/policy language, while Destroy, Pooling return, Addressables release and scene unload remain outside core until a later accepted implementation cut.
+
+References:
+
+- `F8R-D-ADR-Physical-Release-Adapter.md`
+- `Assets/_Documentation/Plans/F8R-D-PLAN-Physical-Release-Adapter.md`
+- `Assets/_Documentation/Notes/F8R-D1-Physical-Release-Adapter-Acceptance.md`
+
+## F9R-A - ContentAnchor Runtime Binding Re-entry
+
+Scope: ContentAnchor / Runtime Binding / Materialization Governance.
+
+Status: Proposed.
+
+F9R-A proposes that ContentAnchor runtime binding remains logical in the core. Binding may associate logical `RuntimeContentIdentity` / `RuntimeContentHandle` with logical ContentAnchor declarations, report diagnostics and clean logical bindings, but physical placement belongs to a future adapter.
+
+References:
+
+- `F9R-A-ADR-ContentAnchor-Runtime-Binding-Reentry.md`
+- `Assets/_Documentation/Plans/F9R-A-PLAN-ContentAnchor-Runtime-Binding-Reentry.md`

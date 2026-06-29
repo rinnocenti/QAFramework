@@ -1,10 +1,18 @@
 # F8R-B — Runtime Root / Handle / Release Policy Plan
 
-Status: Draft / Plan
+Status: Accepted / Plan
 
 Scope: docs-only / Plan / ADR. This cut does not implement runtime behavior, does not create a physical materializer and does not authorize a new implementation phase.
 
 F8R-B is a prerequisite planning cut for future physical materialization. Its purpose is to define ownership semantics for runtime roots, runtime content handles and release policy before any adapter creates, places, destroys, pools or releases physical Unity objects.
+
+## Acceptance Closeout
+
+F8R-B is accepted as the logical ownership baseline for runtime roots, runtime content handles and release policy.
+
+This closes ownership language only. It does not select implementation and does not authorize a physical materializer, physical release adapter, Content Anchor placement, actor spawn, gameplay, camera, audio, save/progression, pooling/runtime-spawned work or F34.
+
+`F8R-C — Runtime Materialization Adapter Boundary Plan`, `F8R-D — Physical Release Adapter Plan` and `F9R-A — ContentAnchor Runtime Binding Re-entry` remain candidates after this acceptance. None of them is selected automatically.
 
 ## 1. F8R-A Baseline
 
@@ -25,9 +33,9 @@ Accepted baseline from `Assets/_Documentation/Audits/F8R-A-RuntimeContent-Conten
 
 F8R-A also concluded that there is no accepted physical prefab materializer, no Unity hierarchy placement, no automatic player/actor spawn, no pooling rent/return, no Addressables load/release, no `Instantiate`, no `Destroy` and no consumer-safe materialization ownership.
 
-## 2. Proposed Decisions
+## 2. Accepted Decisions
 
-| Topic | Proposed decision | Evidence / rationale |
+| Topic | Accepted decision | Evidence / rationale |
 |---|---|---|
 | Logical runtime root vs future physical Unity root | `RuntimeScopeRoot` remains a logical ownership/registry boundary. A future Unity adapter may create or resolve a physical `GameObject` / `Transform` root, but that physical root is not part of RuntimeContent core. | `Packages/com.immersive.framework/Runtime/RuntimeContent/RuntimeScopeRoot.cs` explicitly has no `GameObject`, `Transform`, `Instantiate`, `Destroy` or Content Anchor binding behavior. |
 | Route / Activity / Session ownership | Runtime ownership is scoped by `RuntimeContentOwner` using `Session`, `Route`, `Activity` or `Transient`. Route and Activity runtimes may create logical scope roots for their lifecycle owners; Session ownership remains a distinct owner domain. | `Packages/com.immersive.framework/Runtime/RuntimeContent/RuntimeContentOwner.cs`, `Packages/com.immersive.framework/Runtime/RouteLifecycle/RouteLifecycleRuntime.cs`, `Packages/com.immersive.framework/Runtime/ActivityFlow/ActivityFlowRuntime.cs` |
@@ -119,7 +127,7 @@ Adapters must not:
 
 ## 8. Open Questions
 
-| Question | Why it remains open | Proposed next owner |
+| Question | Why it remains open | Candidate next owner |
 |---|---|---|
 | Should future physical roots be authored, created by adapter, or resolved from existing scene anchors? | `RuntimeScopeRoot` is logical; physical placement is not accepted. | `F8R-C` / `F9R-A` |
 | Should physical release run before or after logical `Released` state is applied? | Current core applies logical release only; adapter orchestration is not implemented. | `F8R-D` |
@@ -139,4 +147,4 @@ These are candidates only. This plan does not select implementation.
 
 ## 10. Decision Point
 
-Accept or revise the proposed F8R-B ownership semantics before any materialization adapter, physical release adapter or Content Anchor physical placement work begins.
+Use the accepted F8R-B ownership semantics as the baseline before any materialization adapter, physical release adapter or Content Anchor physical placement work begins.

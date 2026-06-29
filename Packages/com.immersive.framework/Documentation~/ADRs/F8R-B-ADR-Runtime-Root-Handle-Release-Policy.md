@@ -1,6 +1,6 @@
 # F8R-B — Runtime Root / Handle / Release Policy
 
-Status: Proposed
+Status: Accepted
 
 Scope: RuntimeContent / Materialization Governance.
 

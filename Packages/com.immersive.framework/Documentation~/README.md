@@ -38,7 +38,19 @@ Read the documentation in this order:
 | POST-F33-A | Matrix Reconciliation Closeout | Accepted / documentation governance / no next feature selected |
 | POST-F33-B | Officialize/Reclassify F28-F33 | Accepted / documentation governance / F28-F33 reclassified |
 | F8R-A | RuntimeContent / ContentAnchor Materialization Audit | Draft / audit-only / no implementation selected |
-| F8R-B | Runtime Root / Handle / Release Policy Plan | Draft / Plan / ADR proposed / docs-only |
+| F8R-B | Runtime Root / Handle / Release Policy Plan | Accepted / Plan / ADR / docs-only |
+| F8R-C | Runtime Materialization Adapter Boundary Plan | Accepted / Plan / ADR / docs-only |
+| F8R-D | Physical Release Adapter Plan | Accepted / Plan / ADR / docs-only |
+| F9R-A | ContentAnchor Runtime Binding Re-entry | Draft / Plan / ADR Proposed / docs-only |
+| F8R-E | Unity Prefab Runtime Materialization Adapter Proof | Implemented / first physical adapter proof / QA smoke |
+
+## F8R-E Unity Prefab Runtime Materialization Adapter Proof
+
+F8R-E implements the first explicit Unity physical adapter proof for RuntimeContent. It adds `UnityPrefabRuntimeMaterializationAdapter`, `UnityObjectRuntimeReleaseAdapter`, local adapter-side physical evidence/registry and the QA canvas smoke `Run Runtime Prefab Materialization Smoke`.
+
+F8R-E does not implement ContentAnchor physical placement, Addressables, pooling, scene unload, actor spawn, PlayerInputManager join or gameplay/camera/audio/save consumers.
+
+Project note: `../../Assets/_Documentation/Notes/F8R-E-Unity-Prefab-Runtime-Materialization-Adapter-Proof.md`.
 
 ## F23 Boundary
 
@@ -479,10 +491,25 @@ References:
 - `Assets/_Documentation/Plans/POST-F33-PLAN-Matrix-Reconciliation.md`
 - `Assets/_Documentation/Audits/F8R-A-RuntimeContent-ContentAnchor-Materialization-Audit.md`
 - `Assets/_Documentation/Plans/F8R-B-PLAN-Runtime-Root-Handle-Release-Policy.md`
+- `Assets/_Documentation/Notes/F8R-B1-Runtime-Root-Handle-Release-Policy-Acceptance.md`
 - `Packages/com.immersive.framework/Documentation~/ADRs/F8R-B-ADR-Runtime-Root-Handle-Release-Policy.md`
+- `Assets/_Documentation/Plans/F8R-C-PLAN-Runtime-Materialization-Adapter-Boundary.md`
+- `Assets/_Documentation/Notes/F8R-C1-Runtime-Materialization-Adapter-Boundary-Acceptance.md`
+- `Packages/com.immersive.framework/Documentation~/ADRs/F8R-C-ADR-Runtime-Materialization-Adapter-Boundary.md`
+- `Assets/_Documentation/Plans/F8R-D-PLAN-Physical-Release-Adapter.md`
+- `Assets/_Documentation/Notes/F8R-D1-Physical-Release-Adapter-Acceptance.md`
+- `Packages/com.immersive.framework/Documentation~/ADRs/F8R-D-ADR-Physical-Release-Adapter.md`
+- `Assets/_Documentation/Plans/F9R-A-PLAN-ContentAnchor-Runtime-Binding-Reentry.md`
+- `Packages/com.immersive.framework/Documentation~/ADRs/F9R-A-ADR-ContentAnchor-Runtime-Binding-Reentry.md`
 
 POST-F33-B officially reclassifies F28-F33: F28-F31 are official planning/evidence/language phases, while F32-F33 are controlled anticipation of the Input / Pause / Unity `PlayerInput` axis with Unity side effects limited to explicit adapters.
 
 F8R-A is the current audit-only RuntimeContent / ContentAnchor materialization state check. It does not authorize F34, gameplay, camera, audio, save/progression, pooling/runtime-spawned or actor materialization.
 
-F8R-B proposes the ownership rule for the next planning decision: RuntimeContent core keeps runtime roots, handles and release policy as logical framework language, while future Unity adapters may own physical materialization only after a separate accepted cut.
+F8R-B is accepted as the ownership rule for the next planning decision: RuntimeContent core keeps runtime roots, handles and release policy as logical framework language, while future Unity adapters may own physical materialization only after a separate accepted cut.
+
+F8R-C is accepted as the boundary for a future Unity materialization adapter. It does not implement a materializer and keeps physical object evidence inside the adapter boundary without leaking it into pure RuntimeContent core.
+
+F8R-D is accepted as the boundary for future physical release adapters. It does not implement cleanup and keeps `Destroy`, Pooling return, Addressables release and scene unload outside RuntimeContent core until a later accepted implementation cut.
+
+F9R-A is proposed as the ContentAnchor runtime binding re-entry plan after F8R-B/C/D. It keeps ContentAnchor binding logical: declaration/discovery evidence, binding request/result, logical content handles, diagnostics and logical cleanup only. It does not implement physical placement and does not select materializer, release adapter, camera, audio, save/progression, gameplay, pooling/runtime-spawned, actor materialization or F34.

@@ -574,6 +574,11 @@ namespace Immersive.Framework.Diagnostics
                 {
                     RunRuntimeContentSmoke();
                 }
+
+                if (GUILayout.Button("Run Runtime Prefab Materialization Smoke"))
+                {
+                    RunRuntimePrefabMaterializationSmoke();
+                }
             }
         }
 
@@ -1602,7 +1607,222 @@ private async void RunLocalContributionSmoke()
             return true;
         }
 
-private async void RunRouteSceneCompositionSmoke()
+
+        private async void RunRuntimePrefabMaterializationSmoke()
+        {
+            await RunSmokeAsync("Runtime Prefab Materialization Smoke", runtimeHost =>
+                Task.FromResult(RunRuntimePrefabMaterializationSmokeCore(runtimeHost)));
+        }
+
+        private bool RunRuntimePrefabMaterializationSmokeCore(FrameworkRuntimeHost runtimeHost)
+        {
+            var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+            if (runtimeContentRuntime == null)
+            {
+                _logger.Warning("QA Runtime Prefab Materialization Smoke failed. reason='RuntimeContentRuntime unavailable'.");
+                return false;
+            }
+
+            GameObject template = null;
+            var registry = new UnityRuntimeMaterializedObjectRegistry();
+            RuntimeScopeContext context = default(RuntimeScopeContext);
+            RuntimeMaterializationRequest request = default(RuntimeMaterializationRequest);
+            bool rootCreated = false;
+
+            string ownerId = "qa.runtime-prefab-materialization.smoke." + Guid.NewGuid().ToString("N");
+            var owner = RuntimeContentOwner.Transient(ownerId, "QA Runtime Prefab Materialization Smoke");
+
+            try
+            {
+                var rootCreateResult = runtimeContentRuntime.CreateScopeRoot(
+                    owner,
+                    QaSource,
+                    "qa.runtime-prefab-materialization.root.create");
+                rootCreated = rootCreateResult.Applied || rootCreateResult.Status == RuntimeRootRegistryOperationStatus.RootAlreadyExists;
+                if (!rootCreated)
+                {
+                    _logger.Warning($"QA Runtime Prefab Materialization Smoke step failed. step='root-create' status='{rootCreateResult.Status}' message='{FormatValue(rootCreateResult.Message)}'.");
+                    return false;
+                }
+
+                if (!runtimeContentRuntime.TryCreateScopeContext(
+                        owner,
+                        QaSource,
+                        "qa.runtime-prefab-materialization.context",
+                        out context))
+                {
+                    _logger.Warning("QA Runtime Prefab Materialization Smoke step failed. step='context' reason='Runtime scope context was not created'.");
+                    return false;
+                }
+
+                var resource = RuntimeMaterializationResource.From(
+                    UnityPrefabRuntimeMaterializationAdapter.ResourceType,
+                    "qa.runtime-prefab-materialization.prefab",
+                    "QA Runtime Prefab Materialization Template",
+                    string.Empty);
+
+                if (!runtimeContentRuntime.TryCreateMaterializationRequest(
+                        context,
+                        "qa.runtime-prefab-materialization.handle",
+                        resource,
+                        QaSource,
+                        "qa.runtime-prefab-materialization.request",
+                        out request,
+                        out var requestGuardResult))
+                {
+                    _logger.Warning($"QA Runtime Prefab Materialization Smoke step failed. step='materialization-request' guard='{requestGuardResult.Status}' message='{FormatValue(requestGuardResult.Message)}'.");
+                    return false;
+                }
+
+                var missingPrefabAdapter = new UnityPrefabRuntimeMaterializationAdapter(
+                    null,
+                    registry,
+                    null,
+                    QaSource);
+                var missingPrefabResult = missingPrefabAdapter.Materialize(request);
+                bool missingPrefabBlocked = missingPrefabResult.Failed
+                    && missingPrefabResult.Status == RuntimeMaterializationStatus.FailedMaterializer
+                    && registry.Count == 0;
+                if (!missingPrefabBlocked)
+                {
+                    _logger.Warning($"QA Runtime Prefab Materialization Smoke step failed. step='missing-prefab' status='{missingPrefabResult.Status}' registry='{registry.ToDiagnosticString()}' message='{FormatValue(missingPrefabResult.Message)}'.");
+                    return false;
+                }
+
+                template = new GameObject("QA Runtime Prefab Materialization Template");
+                template.hideFlags = HideFlags.DontSave;
+
+                var materializationAdapter = new UnityPrefabRuntimeMaterializationAdapter(
+                    template,
+                    registry,
+                    null,
+                    QaSource);
+                var materializationResult = materializationAdapter.Materialize(request);
+                if (!materializationResult.Succeeded || !materializationResult.HasHandle || registry.ActiveCount != 1)
+                {
+                    _logger.Warning($"QA Runtime Prefab Materialization Smoke step failed. step='materialize' status='{materializationResult.Status}' hasHandle='{materializationResult.HasHandle}' registry='{registry.ToDiagnosticString()}' message='{FormatValue(materializationResult.Message)}'.");
+                    return false;
+                }
+
+                if (!registry.TryGet(request.Identity, out var evidence) || evidence == null || !evidence.HasLiveInstance)
+                {
+                    _logger.Warning("QA Runtime Prefab Materialization Smoke step failed. step='physical-evidence' reason='Unity physical evidence was not registered'.");
+                    return false;
+                }
+
+                var appliedMaterializationResult = runtimeContentRuntime.ApplyMaterializationResult(
+                    materializationResult,
+                    QaSource,
+                    "qa.runtime-prefab-materialization.apply");
+                if (!appliedMaterializationResult.Succeeded)
+                {
+                    _logger.Warning($"QA Runtime Prefab Materialization Smoke step failed. step='apply-materialization' status='{appliedMaterializationResult.Status}' message='{FormatValue(appliedMaterializationResult.Message)}'.");
+                    return false;
+                }
+
+                if (!runtimeContentRuntime.TryGetHandle(context, request.Identity, out var registeredHandle)
+                    || registeredHandle == null
+                    || !registeredHandle.IsMaterialized)
+                {
+                    _logger.Warning("QA Runtime Prefab Materialization Smoke step failed. step='registered-handle' reason='Materialized handle was not registered in the logical runtime scope root'.");
+                    return false;
+                }
+
+                var duplicateMaterializationResult = materializationAdapter.Materialize(request);
+                bool duplicateBlocked = duplicateMaterializationResult.Failed
+                    && registry.Count == 1
+                    && registry.ActiveCount == 1;
+                if (!duplicateBlocked)
+                {
+                    _logger.Warning($"QA Runtime Prefab Materialization Smoke step failed. step='duplicate-materialization' status='{duplicateMaterializationResult.Status}' registry='{registry.ToDiagnosticString()}' message='{FormatValue(duplicateMaterializationResult.Message)}'.");
+                    return false;
+                }
+
+                var releaseAdapter = new UnityObjectRuntimeReleaseAdapter(registry, QaSource);
+                var releaseRequest = runtimeContentRuntime.CreateReleaseRequest(
+                    context,
+                    request.Identity,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    QaSource,
+                    "qa.runtime-prefab-materialization.release.request");
+                var physicalReleaseResult = releaseAdapter.Release(releaseRequest);
+                if (!physicalReleaseResult.Succeeded || registry.PhysicalReleaseRequestedCount != 1)
+                {
+                    _logger.Warning($"QA Runtime Prefab Materialization Smoke step failed. step='physical-release' status='{physicalReleaseResult.Status}' registry='{registry.ToDiagnosticString()}' message='{FormatValue(physicalReleaseResult.Message)}'.");
+                    return false;
+                }
+
+                var logicalReleaseResult = runtimeContentRuntime.ApplyReleaseResult(
+                    physicalReleaseResult,
+                    QaSource,
+                    "qa.runtime-prefab-materialization.release.logical");
+                if (!logicalReleaseResult.Succeeded || !logicalReleaseResult.HandleUnregistered)
+                {
+                    _logger.Warning($"QA Runtime Prefab Materialization Smoke step failed. step='logical-release' status='{logicalReleaseResult.Status}' unregistered='{logicalReleaseResult.HandleUnregistered}' message='{FormatValue(logicalReleaseResult.Message)}'.");
+                    return false;
+                }
+
+                var doubleReleaseResult = releaseAdapter.Release(releaseRequest);
+                bool doubleReleaseBlocked = doubleReleaseResult.Failed
+                    && doubleReleaseResult.Status == RuntimeReleaseStatus.FailedReleaseAdapter;
+                if (!doubleReleaseBlocked)
+                {
+                    _logger.Warning($"QA Runtime Prefab Materialization Smoke step failed. step='double-release' status='{doubleReleaseResult.Status}' message='{FormatValue(doubleReleaseResult.Message)}'.");
+                    return false;
+                }
+
+                var rootRemoveResult = runtimeContentRuntime.RemoveScopeRoot(
+                    owner,
+                    QaSource,
+                    "qa.runtime-prefab-materialization.root.remove");
+                if (!rootRemoveResult.Applied && rootRemoveResult.Status != RuntimeRootRegistryOperationStatus.RootMissing)
+                {
+                    _logger.Warning($"QA Runtime Prefab Materialization Smoke step failed. step='root-remove' status='{rootRemoveResult.Status}' message='{FormatValue(rootRemoveResult.Message)}'.");
+                    return false;
+                }
+
+                rootCreated = false;
+
+                _logger.Info(
+                    "QA Runtime Prefab Materialization Smoke step completed. "
+                    + $"step='unity-prefab-materialization' passed='True' missingPrefabBlocked='{missingPrefabBlocked}' materialization='{appliedMaterializationResult.Status}' duplicateBlocked='{duplicateBlocked}' physicalRelease='{physicalReleaseResult.Status}' logicalRelease='{logicalReleaseResult.Status}' doubleReleaseBlocked='{doubleReleaseBlocked}' registry='{registry.ToDiagnosticString()}' contentAnchorPlacement='False' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.");
+                return true;
+            }
+            finally
+            {
+                foreach (var entry in registry.Snapshot())
+                {
+                    if (entry != null && entry.HasLiveInstance && !entry.PhysicalReleaseRequested)
+                    {
+                        Object.Destroy(entry.Instance);
+                    }
+                }
+
+                if (template != null)
+                {
+                    Object.Destroy(template);
+                }
+
+                if (rootCreated)
+                {
+                    if (context.IsValid)
+                    {
+                        runtimeContentRuntime.ReleaseScopeLogically(
+                            context,
+                            RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                            QaSource,
+                            "qa.runtime-prefab-materialization.cleanup.scope-release");
+                    }
+
+                    runtimeContentRuntime.RemoveScopeRoot(
+                        owner,
+                        QaSource,
+                        "qa.runtime-prefab-materialization.cleanup.root-remove");
+                }
+            }
+        }
+
+        private async void RunRouteSceneCompositionSmoke()
         {
             string missingTargets = string.Empty;
             AppendMissingQaAsset(ref missingTargets, routeSceneCompositionRoute == null, "Route Scene Composition Route");
