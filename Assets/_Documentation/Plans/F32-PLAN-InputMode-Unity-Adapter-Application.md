@@ -60,7 +60,7 @@ No action-map switching or input behavior.
 
 ### F32C — InputMode Unity Application Plan
 
-Status: Implemented / awaiting smoke.
+Status: Closed / smoke PASS.
 
 Combines the F32A application preview and F32B action-map preview into a dry-run adapter plan:
 
@@ -73,9 +73,18 @@ InputLocked -> LockInput
 
 This is still intent only. No `PlayerInput.SwitchCurrentActionMap`, `PlayerInput.ActivateInput`, `PlayerInput.DeactivateInput`, `PlayerInputManager.JoinPlayer`, actor spawn or movement is allowed.
 
-### F32D — Unity Input Adapter First Side Effect
+### F32D — InputMode Unity PlayerInput Adapter
 
-Only after F32B/F32C, allow a narrow, QA-only side effect if the boundary is stable.
+Status: Implemented / awaiting smoke.
+
+Adds the first explicit Unity PlayerInput side effect:
+
+```text
+SelectActionMap -> PlayerInput.SwitchCurrentActionMap(actionMapName)
+LockInput -> PlayerInput.DeactivateInput()
+```
+
+This is adapter-owned and explicit. It does not own `PlayerInputManager`, call join, spawn actors, move PlayerActor objects or create a custom framework input manager.
 
 ## Guardrails
 

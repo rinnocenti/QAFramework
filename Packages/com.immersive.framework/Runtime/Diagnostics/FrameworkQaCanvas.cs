@@ -459,6 +459,11 @@ namespace Immersive.Framework.Diagnostics
                 {
                     RunInputModeUnityApplicationPlanSmoke();
                 }
+
+                if (GUILayout.Button("Run InputMode Unity PlayerInput Adapter Smoke"))
+                {
+                    RunInputModeUnityPlayerInputAdapterSmoke();
+                }
             }
         }
 
@@ -1055,6 +1060,12 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(InputModeUnityApplicationPlanQaSmokeRunner.SmokeName, runtimeHost =>
                 InputModeUnityApplicationPlanQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunInputModeUnityPlayerInputAdapterSmoke()
+        {
+            await RunSmokeAsync(InputModeUnityPlayerInputAdapterQaSmokeRunner.SmokeName, runtimeHost =>
+                InputModeUnityPlayerInputAdapterQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
         }
 
         private async void RunSnapshotParticipantDiagnosticsSmoke()

@@ -318,3 +318,5 @@ F32A does not switch action maps, activate/deactivate PlayerInput, call PlayerIn
 - F32B — InputMode Unity Action Map Preview: `Assets/_Documentation/Notes/F32B-InputMode-Unity-Action-Map-Preview.md`.
 
 - F32C — InputMode Unity Application Plan: `Assets/_Documentation/Notes/F32C-InputMode-Unity-Application-Plan.md`.
+
+- F32D — InputMode Unity PlayerInput Adapter: first explicit Unity `PlayerInput` adapter side effect; no `PlayerInputManager.JoinPlayer`, actor spawn, movement, or framework input manager.
