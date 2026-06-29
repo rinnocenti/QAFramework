@@ -68,6 +68,8 @@ F28F next implementation closeout: `Notes/F28F-Next-Implementation-Closeout.md`.
 
 F29 Unity Input target ownership proof: `Plans/F29-PLAN-Unity-Input-Target-Ownership-Proof.md`.
 
+F29A Unity Input target declaration proof: `Notes/F29A-Unity-Input-Target-Declaration-Proof.md`.
+
 ## Regras
 
 - Documentação viva do projeto fica em `Assets/_Documentation`.

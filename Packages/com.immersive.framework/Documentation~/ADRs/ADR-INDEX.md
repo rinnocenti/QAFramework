@@ -89,3 +89,8 @@ F28E closes typed InputMode and Pause integration semantics. Reference: `../../.
 ## F28F Closure Note
 
 F28F closes F28 and selects F29 — Unity Input Target Ownership Proof as the first implementation phase after the documentation gate. Reference: `../../../../Assets/_Documentation/Notes/F28F-Next-Implementation-Closeout.md`.
+
+
+## F29 implementation note
+
+F29A is tracked by the project-side plan/note rather than a new ADR: `Assets/_Documentation/Notes/F29A-Unity-Input-Target-Declaration-Proof.md`. It implements declaration-only Unity Input target ownership proof and does not introduce InputMode behavior.

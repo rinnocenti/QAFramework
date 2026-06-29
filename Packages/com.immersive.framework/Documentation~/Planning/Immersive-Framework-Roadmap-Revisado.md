@@ -161,9 +161,9 @@ Expected purpose:
 prove explicit Unity Input target ownership before InputMode behavior or Pause-driven action-map changes are implemented
 ```
 
-F29A should begin with Unity Input target declaration evidence and diagnostics for valid, missing and duplicate target configurations.
+F29A is closed as the Unity Input target declaration proof. It adds passive target role/id/descriptor/set/issue vocabulary, a Unity-facing declaration component, a validator and `Unity Input Target Ownership Smoke` for valid, missing and duplicate target configurations.
 
-F29 must not implement full InputMode, action-map switching, player/actor spawning, camera, audio, save, runtime-spawned gameplay or per-consumer Gate checks.
+F29A does not implement full InputMode, action-map switching, PlayerInput ownership, player movement, player/actor spawning, camera, audio, save, runtime-spawned gameplay or per-consumer Gate checks. F29B may add QA fixture evidence only if the manual Unity validation needs scene/prefab authoring.
 
 Reference plan:
 
@@ -253,7 +253,7 @@ which tracks are core, Unity surface, adapter module, project asset or external 
 which track must be implemented first;
 which ownership decision blocks InputMode;
 which ownership decision blocks Camera, Audio, Save, RuntimeSpawned and Gameplay modules;
-F29 as the first post-F28 code phase, proving Unity Input target ownership.
+F29 as the first post-F28 code phase, proving Unity Input target ownership. F29A closes the declaration and diagnostics proof.
 ```
 
-F28 is complete: F29 now has a positive objective, file placement rules and a Unity Input Target Ownership Smoke target.
+F28 is complete. F29A now provides target declaration vocabulary, validator and Unity Input Target Ownership Smoke. F29B/F29C must close authored evidence and choose the next InputMode phase before any action-map behavior is implemented.

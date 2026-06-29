@@ -46,6 +46,7 @@ namespace Immersive.Framework.Diagnostics
         private bool _showPauseDiagnostics;
         private bool _showSnapshotDiagnostics;
         private bool _showLoadingDiagnostics;
+        private bool _showUnityInputDiagnostics;
         private bool _showRouteContentDiagnostics;
         private bool _showFoundationDiagnostics;
         private bool _showResetObjectDiagnostics;
@@ -294,6 +295,12 @@ namespace Immersive.Framework.Diagnostics
                 DrawPauseDiagnosticSmokeControls();
             }
 
+            _showUnityInputDiagnostics = GUILayout.Toggle(_showUnityInputDiagnostics, "Show Unity Input diagnostics");
+            if (_showUnityInputDiagnostics)
+            {
+                DrawUnityInputDiagnosticSmokeControls();
+            }
+
             _showSnapshotDiagnostics = GUILayout.Toggle(_showSnapshotDiagnostics, "Show Save / Snapshot diagnostics");
             if (_showSnapshotDiagnostics)
             {
@@ -395,6 +402,21 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Pause Boundary Intent Smoke"))
                 {
                     RunPauseBoundaryIntentSmoke();
+                }
+            }
+        }
+
+        private void DrawUnityInputDiagnosticSmokeControls()
+        {
+            GUILayout.Space(4f);
+            GUILayout.Label("Unity Input Diagnostics", GUI.skin.box);
+            GUILayout.Label("F29A target ownership proof. Declaration diagnostics only; no InputMode runtime, action-map switching, PlayerInput ownership, player movement or actor spawning.");
+
+            using (new EditorDisabledScope(_requestInFlight))
+            {
+                if (GUILayout.Button("Run Unity Input Target Ownership Smoke"))
+                {
+                    RunUnityInputTargetOwnershipSmoke();
                 }
             }
         }
@@ -937,6 +959,12 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(PauseBoundaryIntentQaSmokeRunner.SmokeName, runtimeHost =>
                 PauseBoundaryIntentQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunUnityInputTargetOwnershipSmoke()
+        {
+            await RunSmokeAsync(UnityInputTargetOwnershipQaSmokeRunner.SmokeName, runtimeHost =>
+                UnityInputTargetOwnershipQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
         }
 
         private async void RunSnapshotParticipantDiagnosticsSmoke()

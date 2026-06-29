@@ -33,6 +33,7 @@ namespace Immersive.Framework.Identity
         Snapshot = 170,
         Preferences = 180,
         ProgressionSave = 190,
-        Loading = 200
+        Loading = 200,
+        UnityInput = 210
     }
 }

@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned / first implementation phase after F28 / not started
+In progress / F29A closed / pending Unity compile-smoke by user
 
 ## Purpose
 
@@ -51,9 +51,21 @@ The first proof may use QA-authored objects and the current `Assets/InputSystem_
 
 | Cut | Name | Type | Output |
 |---|---|---|---|
-| F29A | Unity Input Target Declaration Proof | Runtime/QA minimal | Target declaration language, diagnostics/result surface and manual QA smoke for valid/missing/duplicate targets. |
+| F29A | Unity Input Target Declaration Proof | Runtime/QA minimal | Closed. Target declaration language, diagnostics/result surface and manual QA smoke for valid/missing/duplicate targets. |
 | F29B | Input Target QA Authoring Fixture | QA assets if needed | Canonical QA target objects or prefab/scene wiring used by the smoke. |
 | F29C | Input Target Closeout | Docs/QA | Confirms target ownership evidence and selects whether F30 starts InputMode identity/result model or action-map adapter proof. |
+
+## F29A Closure
+
+F29A adds the declaration proof under `Packages/com.immersive.framework/Runtime/UnityInput` and the QA smoke runner `UnityInputTargetOwnershipQaSmokeRunner`.
+
+F29A keeps the implementation declaration-only. It proves target ownership diagnostics without reading input, switching action maps, creating InputMode runtime, spawning players/actors or moving project assets into the package.
+
+Reference note:
+
+```text
+Assets/_Documentation/Notes/F29A-Unity-Input-Target-Declaration-Proof.md
+```
 
 ## F29A Rules
 
