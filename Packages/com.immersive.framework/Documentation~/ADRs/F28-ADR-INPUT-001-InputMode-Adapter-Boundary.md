@@ -1,6 +1,6 @@
 # F28-ADR-PLAN-001 — Roadmap Reconciliation and Adapter Module Spine
 
-Status: Accepted / F28A-F28E closed / planning gate  
+Status: Accepted / F28A-F28F closed / F29 selected  
 Phase: F28 — Roadmap Reconciliation and Adapter Module Spine  
 Type: Framework Planning / Adapter Module Boundary / Input Positioning
 
@@ -138,7 +138,7 @@ Gate is not the normal implementation path for pausing ordinary gameplay input.
 | F28C | Adapter Module Taxonomy | Closed: module families, owner kind, placement rule and dependency category. |
 | F28D | Player / Actor / Input Ownership Plan | Closed: player object, `PlayerInput`, player/actor adapter placement and first target proof. |
 | F28E | InputMode and Pause Integration Plan | Closed: typed InputMode semantics and Pause-driven mode requests after ownership is clear. |
-| F28F | Next Implementation Closeout | Next: code phase, entry criteria, smoke target and file placement rules. |
+| F28F | Next Implementation Closeout | Closed: selects F29 — Unity Input Target Ownership Proof as the next code phase. |
 
 
 ## F28A Closure
@@ -249,7 +249,7 @@ Runtime-spawned player/actor lifetime is deferred until RuntimeContentHandle, ru
 
 The first future implementation proof should be a QA-authored Unity input target proof. It should validate explicit target ownership and missing/duplicate target diagnostics before implementing full InputMode or Player/Actor lifecycle.
 
-F28E closes InputMode/Pause semantics without creating runtime code. F28F is the next cut and must choose one implementation phase with entry criteria, file placement and smoke target.
+F28E closes InputMode/Pause semantics without creating runtime code. F28F closes the planning gate and selects F29 — Unity Input Target Ownership Proof as the next implementation phase.
 
 F28D reference:
 
@@ -292,10 +292,48 @@ UI/Pause input remains available during PauseOverlay.
 Gameplay commands stop driving gameplay during PauseOverlay.
 ```
 
-F28F must choose one implementation path. The preferred candidate remains a QA-authored Unity input target proof, unless F28F explicitly chooses a smaller core InputMode identity/result model first.
+F28F chooses F29 — Unity Input Target Ownership Proof as the next implementation path. The first code direction is F29A — Unity Input Target Declaration Proof.
 
 F28E reference:
 
 ```text
 Assets/_Documentation/Notes/F28E-InputMode-Pause-Integration-Plan.md
+```
+
+
+## F28F Closeout Decision
+
+F28F closes the F28 planning gate.
+
+Selected next implementation phase:
+
+```text
+F29 — Unity Input Target Ownership Proof
+```
+
+Selected first implementation cut:
+
+```text
+F29A — Unity Input Target Declaration Proof
+```
+
+F29 is selected because explicit Unity Input target ownership is the missing boundary before InputMode behavior or Pause-driven action-map behavior can be implemented.
+
+F29A must prove:
+
+```text
+valid target set
+missing required target diagnostics
+duplicate target diagnostics
+global UI / Pause intent target separate from gameplay command target
+no action-map switching as part of the proof
+```
+
+F29A must not implement full InputMode, player/actor runtime spawning, movement, camera, audio, save, runtime-spawned gameplay or per-consumer Gate checks.
+
+F28F references:
+
+```text
+Assets/_Documentation/Notes/F28F-Next-Implementation-Closeout.md
+Assets/_Documentation/Plans/F29-PLAN-Unity-Input-Target-Ownership-Proof.md
 ```

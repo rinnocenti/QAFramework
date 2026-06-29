@@ -23,6 +23,7 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Plans/F26-PLAN-Activity-Discovery-And-Loading-Progress.md`
 - `Plans/F27-PLAN-Pause-UIGlobal-And-Input.md`
 - `Plans/F28-PLAN-InputMode-And-Adapter-Boundary.md` — Roadmap Reconciliation and Adapter Module Spine
+- `Plans/F29-PLAN-Unity-Input-Target-Ownership-Proof.md` — Unity Input Target Ownership Proof
 
 ### Setup
 
@@ -62,6 +63,10 @@ F28C adapter module taxonomy: `Notes/F28C-Adapter-Module-Taxonomy.md`.
 F28D player/actor/input ownership plan: `Notes/F28D-Player-Actor-Input-Ownership-Plan.md`.
 
 F28E InputMode and Pause integration plan: `Notes/F28E-InputMode-Pause-Integration-Plan.md`.
+
+F28F next implementation closeout: `Notes/F28F-Next-Implementation-Closeout.md`.
+
+F29 Unity Input target ownership proof: `Plans/F29-PLAN-Unity-Input-Target-Ownership-Proof.md`.
 
 ## Regras
 

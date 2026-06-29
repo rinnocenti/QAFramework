@@ -29,7 +29,8 @@ Read the documentation in this order:
 | F25 | Activity Content Scene Composition | Closed / final docs aligned in F25J |
 | F26 | Activity Scene Discovery Integration / Loading Progress Integration | Closed / loading progress closed through F26F |
 | F27 | Pause UIGlobal Surface, Input Wiring and Gate Reframe | Frozen after F27D / F27E cancelled |
-| F28 | Roadmap Reconciliation and Adapter Module Spine | Active / F28A-F28E closed / documentation-first |
+| F28 | Roadmap Reconciliation and Adapter Module Spine | Closed / F28A-F28F complete / F29 selected |
+| F29 | Unity Input Target Ownership Proof | Planned / first implementation after F28 |
 
 ## F23 Boundary
 
@@ -90,7 +91,7 @@ F27C-F27D reframe Gate away from component blocking, but F27E is cancelled: ordi
 
 Project plan: `Assets/_Documentation/Plans/F27-PLAN-Pause-UIGlobal-And-Input.md`.
 
-Next plan: `Assets/_Documentation/Plans/F28-PLAN-InputMode-And-Adapter-Boundary.md`.
+Next plan: `Assets/_Documentation/Plans/F29-PLAN-Unity-Input-Target-Ownership-Proof.md`.
 
 ## F28 Roadmap Reconciliation and Adapter Module Spine
 
@@ -116,7 +117,7 @@ F28B completion dependency map — closed docs-only
 F28C adapter module taxonomy — closed docs-only
 F28D player/actor/input ownership plan — closed docs-only
 F28E InputMode and Pause integration plan — closed docs-only
-F28F next implementation closeout — next
+F28F next implementation closeout — closed docs-only; selects F29
 ```
 
 ADR: `ADRs/F28-ADR-INPUT-001-InputMode-Adapter-Boundary.md`.
@@ -130,6 +131,25 @@ F28C note: `../../Assets/_Documentation/Notes/F28C-Adapter-Module-Taxonomy.md`.
 F28D note: `../../Assets/_Documentation/Notes/F28D-Player-Actor-Input-Ownership-Plan.md`.
 
 F28E note: `../../Assets/_Documentation/Notes/F28E-InputMode-Pause-Integration-Plan.md`.
+
+F28F note: `../../Assets/_Documentation/Notes/F28F-Next-Implementation-Closeout.md`.
+
+F29 plan: `../../Assets/_Documentation/Plans/F29-PLAN-Unity-Input-Target-Ownership-Proof.md`.
+
+
+## F29 Unity Input Target Ownership Proof
+
+F29 is the first implementation phase selected by F28F.
+
+Purpose:
+
+```text
+prove explicit Unity Input target ownership before InputMode behavior or Pause-driven action-map changes are implemented
+```
+
+F29A should start with Unity Input target declaration evidence and diagnostics for valid, missing and duplicate target configurations. It must not implement full InputMode, action-map switching, player/actor runtime spawning, camera, audio, save or gameplay adapters.
+
+Project plan: `../../Assets/_Documentation/Plans/F29-PLAN-Unity-Input-Target-Ownership-Proof.md`.
 
 ## F25 Activity Content Scene Composition
 

@@ -64,7 +64,7 @@ F28 is documentation-first. It creates the dependency and ownership map for the 
 | F28C | Adapter Module Taxonomy | Closed / docs-only | Module families, owner kind, placement rule and dependency category. |
 | F28D | Player / Actor / Input Ownership Plan | Closed / docs-only | Player object ownership, `PlayerInput` target ownership and first input target proof. |
 | F28E | InputMode and Pause Integration Plan | Closed / docs-only | Typed InputMode semantics and Pause-driven mode requests after ownership is clear. |
-| F28F | Next Implementation Closeout | Next | Next code phase, entry criteria, smoke target and file placement rules. |
+| F28F | Next Implementation Closeout | Closed / docs-only | Selects F29 — Unity Input Target Ownership Proof as the next code phase. |
 
 F28 output is a clean plan, not runtime contracts.
 
@@ -77,7 +77,7 @@ Assets/ = project-facing operational source
 Packages/com.immersive.framework/ = framework source
 ```
 
-F28B closes the dependency graph. F28C closes the adapter module taxonomy. F28D closes Player/Actor/Input ownership. F28E closes InputMode/Pause semantics. Implementation remains frozen until F28F selects the next implementation target.
+F28B closes the dependency graph. F28C closes the adapter module taxonomy. F28D closes Player/Actor/Input ownership. F28E closes InputMode/Pause semantics. F28F closes F28 by selecting F29 — Unity Input Target Ownership Proof as the next implementation phase.
 
 F28B dependency order:
 
@@ -151,19 +151,25 @@ F28E reference note:
 Assets/_Documentation/Notes/F28E-InputMode-Pause-Integration-Plan.md
 ```
 
-### F29 — Adapter Module Foundation
+### F29 — Unity Input Target Ownership Proof
 
-F29 is the likely first implementation phase after F28, only if F28F selects it.
+F29 is the first implementation phase after F28. F28F selects it as the next code phase.
 
 Expected purpose:
 
 ```text
-create minimal adapter module vocabulary
-place adapter module contracts in the correct assembly/package boundary
-prove one adapter family without pulling product behavior into framework core
+prove explicit Unity Input target ownership before InputMode behavior or Pause-driven action-map changes are implemented
 ```
 
-F29 should not start until F28 defines owner kinds, placement rules and dependency categories.
+F29A should begin with Unity Input target declaration evidence and diagnostics for valid, missing and duplicate target configurations.
+
+F29 must not implement full InputMode, action-map switching, player/actor spawning, camera, audio, save, runtime-spawned gameplay or per-consumer Gate checks.
+
+Reference plan:
+
+```text
+Assets/_Documentation/Plans/F29-PLAN-Unity-Input-Target-Ownership-Proof.md
+```
 
 ### F30+ — Product-Facing Module Tracks
 
@@ -247,7 +253,7 @@ which tracks are core, Unity surface, adapter module, project asset or external 
 which track must be implemented first;
 which ownership decision blocks InputMode;
 which ownership decision blocks Camera, Audio, Save, RuntimeSpawned and Gameplay modules;
-what the first post-F28 code cut proves.
+F29 as the first post-F28 code phase, proving Unity Input target ownership.
 ```
 
-F28 is complete only when the next implementation phase has a clear positive objective, file placement rule and smoke target.
+F28 is complete: F29 now has a positive objective, file placement rules and a Unity Input Target Ownership Smoke target.

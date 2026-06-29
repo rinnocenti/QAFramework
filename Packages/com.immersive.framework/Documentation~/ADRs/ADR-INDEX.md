@@ -52,7 +52,7 @@ Current order:
 | F25 | [Adapter Module Foundation](F25-ADR-ADAPTER-001-Adapter-Module-Foundation.md) | Deferred after Activity scene operation stability |
 | F25R | [Activity Scene Operation Architecture Reset](F25R-ADR-ACTIVITY-001-Activity-Scene-Operation-Architecture-Reset.md) | Accepted / Documentation reset |
 | F27 | [Gate as Capability Admission Boundary](F27-ADR-GATE-INPUT-001-Capability-Gate-Boundary.md) | Accepted / F27D runtime reframe |
-| F28 | [Roadmap Reconciliation and Adapter Module Spine](F28-ADR-INPUT-001-InputMode-Adapter-Boundary.md) | Accepted / F28A-F28E closed / planning gate |
+| F28 | [Roadmap Reconciliation and Adapter Module Spine](F28-ADR-INPUT-001-InputMode-Adapter-Boundary.md) | Accepted / F28A-F28F closed / F29 selected |
 
 ## Boundary Rules
 
@@ -73,7 +73,7 @@ F27E is cancelled. Ordinary input consumers should not each query Gate as the pr
 
 ## F28 roadmap correction
 
-F28 is documentation-first. It turns the F27D freeze into a progressive completion plan: baseline reconciliation, dependency map, adapter module taxonomy, Player/Actor/Input ownership plan, InputMode/Pause integration plan and next implementation closeout. F28A is closed as documentation-only baseline reconciliation. F28B is closed as documentation-only completion dependency mapping. F28C is closed as documentation-only adapter module taxonomy. F28D is closed as documentation-only Player/Actor/Input ownership planning. F28E is closed as documentation-only InputMode/Pause integration planning.
+F28 is documentation-first. It turns the F27D freeze into a progressive completion plan: baseline reconciliation, dependency map, adapter module taxonomy, Player/Actor/Input ownership plan, InputMode/Pause integration plan and next implementation closeout. F28A is closed as documentation-only baseline reconciliation. F28B is closed as documentation-only completion dependency mapping. F28C is closed as documentation-only adapter module taxonomy. F28D is closed as documentation-only Player/Actor/Input ownership planning. F28E is closed as documentation-only InputMode/Pause integration planning. F28F is closed as documentation-only next implementation closeout and selects F29 — Unity Input Target Ownership Proof.
 
 InputMode remains a future boundary, but it is positioned after adapter/module ownership, Player/Actor ownership and Unity Input target ownership are explicit.
 
@@ -85,3 +85,7 @@ F28D closes Player / Actor / Unity Input ownership planning. Reference: `../../.
 ## F28E Closure Note
 
 F28E closes typed InputMode and Pause integration semantics. Reference: `../../../../Assets/_Documentation/Notes/F28E-InputMode-Pause-Integration-Plan.md`.
+
+## F28F Closure Note
+
+F28F closes F28 and selects F29 — Unity Input Target Ownership Proof as the first implementation phase after the documentation gate. Reference: `../../../../Assets/_Documentation/Notes/F28F-Next-Implementation-Closeout.md`.
