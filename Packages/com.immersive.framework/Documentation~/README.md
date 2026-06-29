@@ -31,7 +31,7 @@ Read the documentation in this order:
 | F27 | Pause UIGlobal Surface, Input Wiring and Gate Reframe | Frozen after F27D / F27E cancelled |
 | F28 | Roadmap Reconciliation and Adapter Module Spine | Closed / F28A-F28F complete / F29 selected |
 | F29 | Unity Input Target Ownership Proof | Closed / F29A-F29C complete |
-| F30 | InputMode Identity and Request Result Model | Planned / F30A next |
+| F30 | InputMode Identity and Request Result Model | Active / F30A closed / F30B next |
 
 ## F23 Boundary
 
@@ -96,6 +96,8 @@ Current plan: `Assets/_Documentation/Plans/F30-PLAN-InputMode-Identity-And-Reque
 
 F29A adds Unity Input target declaration vocabulary, validator and ownership smoke. F29B adds canonical QA StartupScene declarations and a loaded-scene smoke step. F29C closes the phase and selects F30. F29 remains declaration-only: no InputMode runtime, action-map switching, PlayerInput ownership, player movement or actor spawning.
 
+F30A adds passive InputMode identity/state/request/result contracts and `InputMode Contract Smoke`. F30A still has no InputMode owner runtime, Pause bridge, action-map switching or PlayerInput ownership.
+
 ## F28 Roadmap Reconciliation and Adapter Module Spine
 
 F28 is documentation-first. It turns the F27D freeze into an ordered completion roadmap before new runtime work resumes.
@@ -153,6 +155,31 @@ prove explicit Unity Input target ownership before InputMode behavior or Pause-d
 F29A closes Unity Input target declaration evidence and diagnostics for valid, missing and duplicate target configurations. F29B closes authored QA fixture evidence. F29C must select the next phase. F29 must not implement full InputMode, action-map switching, player/actor runtime spawning, camera, audio, save or gameplay adapters.
 
 Project plan: `../../Assets/_Documentation/Plans/F29-PLAN-Unity-Input-Target-Ownership-Proof.md`.
+
+
+## F30 InputMode Identity and Request Result Model
+
+F30 opens the logical InputMode track after F29 target ownership proof.
+
+F30A creates the passive contract vocabulary:
+
+```text
+InputModeKind
+InputModeId
+InputModeDefinition
+InputModeState
+InputModeRequest
+InputModeRequestResult
+InputModeRequestEvaluator
+```
+
+The F30A smoke is `InputMode Contract Smoke`. It validates initial state, valid mode requests, ignored same-mode requests, invalid request no-side-effects and no action-map switching.
+
+F30A does not create an owner runtime, Pause bridge, PlayerInput ownership, action-map switching or gameplay input behavior.
+
+Project plan: `../../Assets/_Documentation/Plans/F30-PLAN-InputMode-Identity-And-Request-Result.md`.
+
+F30A note: `../../Assets/_Documentation/Notes/F30A-InputMode-Identity-State-Request-Result.md`.
 
 ## F25 Activity Content Scene Composition
 

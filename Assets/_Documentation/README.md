@@ -77,6 +77,8 @@ F29C Input Target closeout: `Notes/F29C-Input-Target-Closeout.md`.
 
 F30 InputMode identity/request result plan: `Plans/F30-PLAN-InputMode-Identity-And-Request-Result.md`.
 
+F30A InputMode identity/state/request result contracts: `Notes/F30A-InputMode-Identity-State-Request-Result.md`.
+
 ## Regras
 
 - Documentação viva do projeto fica em `Assets/_Documentation`.

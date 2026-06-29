@@ -103,3 +103,5 @@ F29C closes Unity Input target ownership proof after synthetic and authored QA s
 ## F30 Planning Note
 
 F30 opens as InputMode identity and request/result planning. Reference: `../../../../Assets/_Documentation/Plans/F30-PLAN-InputMode-Identity-And-Request-Result.md`.
+
+F30A closes passive InputMode identity/state/request/result contracts and `InputMode Contract Smoke`. Reference: `../../../../Assets/_Documentation/Notes/F30A-InputMode-Identity-State-Request-Result.md`.

@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned / selected by F29C.
+Active. F30A closed; F30B is next.
 
 ## Purpose
 
@@ -51,23 +51,23 @@ Initial modes accepted from F28E:
 
 | Cut | Name | Type | Output |
 |---|---|---|---|
-| F30A | InputMode Identity / State / Request Result Contracts | Runtime contracts + QA smoke | Passive mode identity, state snapshot, request/result vocabulary and pure smoke. |
-| F30B | InputMode Owner Preview | Runtime owner + QA smoke | A single owner records current mode and processes requests without Unity action-map switching. |
+| F30A | InputMode Identity / State / Request Result Contracts | Closed / runtime contracts + QA smoke | Passive mode identity, state snapshot, request/result vocabulary and pure smoke. |
+| F30B | InputMode Owner Preview | Next / runtime owner + QA smoke | A single owner records current mode and processes requests without Unity action-map switching. |
 | F30C | Pause InputMode Request Bridge | Runtime integration + QA smoke | Pause requests `PauseOverlay`/`Gameplay` through the mode owner, still without action-map switching. |
 | F30D | Unity Input Adapter Planning Closeout | Docs/QA | Selects whether the next phase connects mode state to Unity Input System action maps or keeps one more preview cut. |
 
 ## F30A Rules
 
-F30A may create:
+F30A created:
 
 ```text
 InputMode identity/type vocabulary;
-InputModeState or equivalent state snapshot;
+InputModeState state snapshot;
 InputModeRequest;
 InputModeRequestResult;
 InputModeRequestStatus;
-InputModeRequestIssue/reason vocabulary if needed;
-pure QA smoke for valid/duplicate/invalid/ignored request behavior.
+InputModeRequestIssue vocabulary;
+pure QA smoke for valid, ignored and invalid request behavior.
 ```
 
 F30A must not create:
@@ -84,7 +84,7 @@ per-consumer Gate query policy.
 
 ## Expected F30A Smoke
 
-Manual smoke concept:
+Manual smoke:
 
 ```text
 InputMode Contract Smoke
@@ -106,6 +106,12 @@ Expected result:
 
 ```text
 pass when typed InputMode requests produce deterministic results without touching Unity Input System behavior.
+```
+
+F30A reference note:
+
+```text
+Assets/_Documentation/Notes/F30A-InputMode-Identity-State-Request-Result.md
 ```
 
 ## Placement

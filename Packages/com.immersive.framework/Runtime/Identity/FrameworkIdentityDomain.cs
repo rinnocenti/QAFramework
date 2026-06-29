@@ -34,6 +34,7 @@ namespace Immersive.Framework.Identity
         Preferences = 180,
         ProgressionSave = 190,
         Loading = 200,
-        UnityInput = 210
+        UnityInput = 210,
+        InputMode = 220
     }
 }
