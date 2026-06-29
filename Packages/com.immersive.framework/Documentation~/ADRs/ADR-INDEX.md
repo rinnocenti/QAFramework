@@ -150,3 +150,20 @@ Reference: `../../../../Assets/_Documentation/Notes/F32A-InputMode-Unity-Applica
 - F32E — InputMode Unity PlayerInput Application: explicit PlayerInput application wrapper that activates PlayerInput before selecting Gameplay/UI action maps, delegates InputLocked to the F32D lock adapter, and still does not own PlayerInputManager, join, spawn or movement. Reference: `../../../../Assets/_Documentation/Notes/F32E-InputMode-Unity-PlayerInput-Application.md`.
 
 - F32F — InputMode Unity PlayerInput Request Application: composed explicit request-to-PlayerInput application path; no PlayerInputManager join/spawn/movement.
+
+
+## F32H Closure Note
+
+F32H closes F32 as the explicit Unity `PlayerInput` application lane for typed `InputMode` requests and completed logical Pause results.
+
+Accepted side effects are limited to explicit `PlayerInput` adapter/application calls:
+
+```text
+ActivateInput()
+SwitchCurrentActionMap(actionMapName)
+DeactivateInput()
+```
+
+F32H explicitly excludes automatic `PauseRuntime` wiring, automatic `FrameworkRuntimeHost` wiring, `PlayerInputManager.JoinPlayer`, player prefab spawn, movement, gameplay command reading and any framework-owned input manager.
+
+Reference: `../../../../Assets/_Documentation/Notes/F32H-InputMode-Unity-PlayerInput-Application-Closeout.md`.

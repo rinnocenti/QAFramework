@@ -1,6 +1,6 @@
 # F32 — InputMode Unity Adapter Application
 
-Status: Open.
+Status: Closed through F32H.
 
 ## Baseline
 
@@ -15,39 +15,37 @@ F31C closed PlayerActor and Session PlayerInputManager as canonical references.
 
 ## Goal
 
-Move from passive `InputModeRequest` semantics to a Unity Input adapter path that can eventually apply modes through official Unity Input System components.
+Move from passive `InputModeRequest` semantics to an explicit Unity `PlayerInput` adapter path that applies modes through official Unity Input System components without turning the framework into an input manager.
 
-The framework must not become an input manager. It must integrate:
+The framework integrates:
 
 ```text
 Unity PlayerInput
-Unity PlayerInputManager
+Unity PlayerInputManager as Session-scoped evidence
 project-owned InputActionAsset/action maps
 framework-owned lifecycle/input mode request language
 ```
 
-## Sequence
+## Closed sequence
 
 ### F32A — InputMode Unity Application Preview
 
 Status: Closed / smoke PASS.
 
-Create a side-effect-free preview evaluator that maps successful logical `InputModeRequestResult` values to required Unity Input evidence:
+Side-effect-free preview of whether a successful `InputModeRequestResult` has enough Unity Input evidence for later application.
 
-- `Gameplay` requires `GameplayCommands` target, `PlayerActor` evidence and Session `PlayerInputManager` evidence.
-- `PauseOverlay` requires the `GlobalUiPause` target only.
-- `FrontendMenu` uses the `GlobalUiPause` target for now.
-- `InputLocked` is accepted as no-target-required preview.
+Rules:
 
-No action-map switching or input behavior.
+- `Gameplay` requires `GameplayCommands`, `PlayerActor` evidence and Session `PlayerInputManager` evidence.
+- `PauseOverlay` requires `GlobalUiPause`.
+- `FrontendMenu` uses `GlobalUiPause` for now.
+- `InputLocked` requires no target.
 
 ### F32B — InputMode Unity Action Map Preview
 
 Status: Closed / smoke PASS.
 
-Defines project-owned Unity action-map evidence and maps typed `InputMode` values to action-map preview names.
-
-Initial QA bindings:
+Defines initial project action-map evidence:
 
 ```text
 Gameplay -> Player
@@ -62,7 +60,7 @@ No action-map switching or input behavior.
 
 Status: Closed / smoke PASS.
 
-Combines the F32A application preview and F32B action-map preview into a dry-run adapter plan:
+Combines F32A and F32B into a dry-run application plan:
 
 ```text
 Gameplay -> SelectActionMap(Player)
@@ -71,40 +69,79 @@ FrontendMenu -> SelectActionMap(UI)
 InputLocked -> LockInput
 ```
 
-This is still intent only. No `PlayerInput.SwitchCurrentActionMap`, `PlayerInput.ActivateInput`, `PlayerInput.DeactivateInput`, `PlayerInputManager.JoinPlayer`, actor spawn or movement is allowed.
+No Unity side effect.
 
 ### F32D — InputMode Unity PlayerInput Adapter
 
 Status: Closed / smoke PASS.
 
-Adds the first explicit Unity PlayerInput side effect:
+First explicit Unity `PlayerInput` side effect:
 
 ```text
 SelectActionMap -> PlayerInput.SwitchCurrentActionMap(actionMapName)
 LockInput -> PlayerInput.DeactivateInput()
 ```
 
-This is adapter-owned and explicit. It does not own `PlayerInputManager`, call join, spawn actors, move PlayerActor objects or create a custom framework input manager.
+No `PlayerInputManager.JoinPlayer`, spawn, movement or custom input manager.
 
 ### F32E — InputMode Unity PlayerInput Application
 
-Status: Implemented / awaiting smoke.
+Status: Closed / smoke PASS.
 
-Adds an explicit PlayerInput application wrapper over the F32C plan and F32D adapter:
+Adds activation semantics over F32D:
 
 ```text
-SelectActionMap -> ActivateInput() then SwitchCurrentActionMap(actionMapName)
-LockInput -> DeactivateInput()
+SelectActionMap -> PlayerInput.ActivateInput() then SwitchCurrentActionMap(actionMapName)
+LockInput -> PlayerInput.DeactivateInput()
 ```
 
-This is the first cut that handles the important unlock path after `InputLocked`: returning to `Gameplay`, `PauseOverlay` or `FrontendMenu` must activate the official Unity `PlayerInput` before selecting the requested action map.
+This handles the unlock path after `InputLocked`.
 
-F32E still does not own `PlayerInputManager`, call join, spawn actors, move PlayerActor objects, read gameplay commands or create a custom framework input manager.
+### F32F — InputMode Unity PlayerInput Request Application
 
-## Guardrails
+Status: Closed / smoke PASS.
 
-- `PlayerInput` remains an official Unity component.
+Composes the full explicit request-to-`PlayerInput` path:
+
+```text
+InputModeState + InputModeRequest
+  -> InputModeRequestEvaluator
+  -> Unity evidence preview
+  -> action-map preview
+  -> application plan
+  -> PlayerInput application
+```
+
+Already-in-mode requests are ignored without side effects. Missing evidence/action-map cases fail before Unity input mutation.
+
+### F32G — Pause InputMode Unity PlayerInput Application
+
+Status: Closed / smoke PASS.
+
+Bridges completed logical `PauseResult` values to explicit `InputMode` request application against one Unity `PlayerInput`.
+
+```text
+Paused  -> PauseOverlay -> UI
+Running -> Gameplay -> Player
+```
+
+No automatic `PauseRuntime` or `FrameworkRuntimeHost` wiring.
+
+### F32H — Closeout
+
+Status: Closed.
+
+Closes F32 and selects a later runtime wiring phase.
+
+Reference: `Assets/_Documentation/Notes/F32H-InputMode-Unity-PlayerInput-Application-Closeout.md`.
+
+## Guardrails preserved
+
+- `PlayerInput` remains the official Unity component being adapted.
 - `PlayerInputManager` remains Session-scoped evidence and Unity authority.
-- `PlayerActor` is the framework-recognized player entity, but movement/spawn stays out.
-- Framework core owns typed `InputMode` language, not Unity action-map strings.
-- Pause may request modes but does not own PlayerInput.
+- The framework does not create a custom input manager.
+- F32 does not call `PlayerInputManager.JoinPlayer`.
+- F32 does not spawn player prefabs.
+- F32 does not move `PlayerActor` objects.
+- F32 does not read gameplay commands.
+- F32 does not wire itself automatically into `PauseRuntime` or `FrameworkRuntimeHost`.

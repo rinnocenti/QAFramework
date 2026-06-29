@@ -33,7 +33,7 @@ Read the documentation in this order:
 | F29 | Unity Input Target Ownership Proof | Closed / F29A-F29C complete |
 | F30 | InputMode Identity and Request Result Model | Closed / F30A-F30E complete |
 | F31 | PlayerActor Identity and Unity Input Evidence | Closed / F31A-F31C complete |
-| F32 | InputMode Unity Adapter Application | Open / F32E application wrapper |
+| F32 | InputMode Unity Adapter Application | Closed / F32A-F32H complete |
 
 ## F23 Boundary
 
@@ -102,6 +102,26 @@ Current closed input plans:
 F29A adds Unity Input target declaration vocabulary, validator and ownership smoke. F29B adds canonical QA StartupScene declarations and a loaded-scene smoke step. F29C closes the phase and selects F30. F29 remains declaration-only: no InputMode runtime, action-map switching, PlayerInput ownership, player movement or actor spawning.
 
 F30 is closed through F30E. It adds passive InputMode identity/state/request/result contracts, Pause-to-InputMode request mapping and the Unity Input boundary correction. Unity `PlayerInput` and `PlayerInputManager` are the official execution components; the framework supplies lifecycle language, validation and adapters, not a replacement input manager. F31 is closed through F31C and adds the canonical PlayerActor plus Session PlayerInputManager references required before later InputMode application.
+
+
+## F32 InputMode Unity Adapter Application
+
+F32 is closed through F32H.
+
+It adds the explicit Unity `PlayerInput` application lane for typed `InputMode` requests:
+
+```text
+Gameplay -> ActivateInput + Player action map
+PauseOverlay -> ActivateInput + UI action map
+FrontendMenu -> ActivateInput + UI action map
+InputLocked -> DeactivateInput
+```
+
+F32 also bridges completed logical `PauseResult` values to the explicit `InputMode -> PlayerInput` path in QA-facing code. It does not automatically wire into `PauseRuntime` or `FrameworkRuntimeHost`.
+
+F32 does not own `PlayerInputManager`, call join, spawn players, move `PlayerActor`, read gameplay commands or create a framework input manager.
+
+Closeout note: `../../Assets/_Documentation/Notes/F32H-InputMode-Unity-PlayerInput-Application-Closeout.md`.
 
 ## F28 Roadmap Reconciliation and Adapter Module Spine
 

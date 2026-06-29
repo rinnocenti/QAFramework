@@ -305,29 +305,44 @@ The next phase may plan Unity `PlayerInput` action-map application, but it must 
 
 ## F32 — InputMode Unity Adapter Application
 
+Status: Closed through F32H.
+
 F32 is the real continuation after F30E/F31C. `F31D — PlayerInput Reference Set` is cancelled and must not be applied or counted.
 
-- F32A — InputMode Unity Application Preview: adds a side-effect-free preview evaluator and QA smoke. It checks whether a successful `InputModeRequestResult` has enough Unity Input evidence for later adapter application.
-- F32B — Unity Action Map Application Boundary: should define where project action-map names live and how an adapter may translate typed `InputMode` values later.
-- F32C — Unity Input Adapter Dry Run: should report adapter intent without side effects.
-- F32D — Unity Input Adapter First Side Effect: only after the boundary and dry run are stable.
+Closed cuts:
 
-F32A does not switch action maps, activate/deactivate PlayerInput, call PlayerInputManager join, spawn a player prefab, move a PlayerActor or create a framework input manager.
+- F32A — InputMode Unity Application Preview: side-effect-free evidence preview.
+- F32B — InputMode Unity Action Map Preview: passive action-map evidence.
+- F32C — InputMode Unity Application Plan: dry-run operation plan.
+- F32D — InputMode Unity PlayerInput Adapter: first explicit `PlayerInput` side effect.
+- F32E — InputMode Unity PlayerInput Application: activation + action-map selection / lock behavior.
+- F32F — InputMode Unity PlayerInput Request Application: composed request-to-`PlayerInput` path.
+- F32G — Pause InputMode Unity PlayerInput Application: completed `PauseResult` to explicit `PlayerInput` application.
+- F32H — closeout: F32 closed; runtime wiring deferred.
 
+Final F32 behavior:
 
-- F32B — InputMode Unity Action Map Preview: `Assets/_Documentation/Notes/F32B-InputMode-Unity-Action-Map-Preview.md`.
+```text
+Gameplay -> ActivateInput + SwitchCurrentActionMap(Player)
+PauseOverlay -> ActivateInput + SwitchCurrentActionMap(UI)
+FrontendMenu -> ActivateInput + SwitchCurrentActionMap(UI)
+InputLocked -> DeactivateInput
+```
 
-- F32C — InputMode Unity Application Plan: `Assets/_Documentation/Notes/F32C-InputMode-Unity-Application-Plan.md`.
+Guardrails:
 
-- F32D — InputMode Unity PlayerInput Adapter: first explicit Unity `PlayerInput` adapter side effect; no `PlayerInputManager.JoinPlayer`, actor spawn, movement, or framework input manager.
+- no framework input manager;
+- no `PlayerInputManager.JoinPlayer`;
+- no player prefab spawn;
+- no PlayerActor movement;
+- no gameplay command reading;
+- no automatic `PauseRuntime` wiring;
+- no automatic `FrameworkRuntimeHost` wiring.
 
-### F32E — InputMode Unity PlayerInput Application
+Next recommended phase:
 
-Status: Implemented / awaiting smoke. Adds explicit PlayerInput application semantics: `SelectActionMap` activates PlayerInput before switching maps; `LockInput` deactivates PlayerInput through the F32D adapter. No PlayerInputManager join, player prefab spawn, movement or custom input manager.
+```text
+F33 — Pause Runtime PlayerInput Wiring
+```
 
-- F32F — InputMode Unity PlayerInput Request Application: composed explicit request-to-PlayerInput application path; no PlayerInputManager join/spawn/movement.
-
-
-### F32G — Pause InputMode Unity PlayerInput Application
-
-Status: implemented as explicit QA-facing bridge. It applies completed `PauseResult` values through InputMode to one Unity `PlayerInput`; no automatic runtime wiring, join, spawn, movement or custom input manager.
+F33 must define runtime ownership and opt-in authoring before connecting the F32 application path to live Pause runtime events.
