@@ -31,7 +31,8 @@ Read the documentation in this order:
 | F27 | Pause UIGlobal Surface, Input Wiring and Gate Reframe | Frozen after F27D / F27E cancelled |
 | F28 | Roadmap Reconciliation and Adapter Module Spine | Closed / F28A-F28F complete / F29 selected |
 | F29 | Unity Input Target Ownership Proof | Closed / F29A-F29C complete |
-| F30 | InputMode Identity and Request Result Model | Active / F30A-F30C closed / F30C1 corrective smoke cleanup closed / F30D next |
+| F30 | InputMode Identity and Request Result Model | Closed / F30A-F30E complete |
+| F31 | PlayerActor Identity and Unity Input Evidence | Closed / F31A-F31C complete |
 
 ## F23 Boundary
 
@@ -92,11 +93,14 @@ F27C-F27D reframe Gate away from component blocking, but F27E is cancelled: ordi
 
 Project plan: `Assets/_Documentation/Plans/F27-PLAN-Pause-UIGlobal-And-Input.md`.
 
-Current plan: `Assets/_Documentation/Plans/F30-PLAN-InputMode-Identity-And-Request-Result.md`.
+Current closed input plans:
+
+- `Assets/_Documentation/Plans/F30-PLAN-InputMode-Identity-And-Request-Result.md`
+- `Assets/_Documentation/Plans/F31-PLAN-PlayerActor-Identity-And-Unity-Input-Evidence.md`
 
 F29A adds Unity Input target declaration vocabulary, validator and ownership smoke. F29B adds canonical QA StartupScene declarations and a loaded-scene smoke step. F29C closes the phase and selects F30. F29 remains declaration-only: no InputMode runtime, action-map switching, PlayerInput ownership, player movement or actor spawning.
 
-F30A adds passive InputMode identity/state/request/result contracts and `InputMode Contract Smoke`. F30A still has no InputMode owner runtime, Pause bridge, action-map switching or PlayerInput ownership. F30B redirects the track: Unity `PlayerInput` and `PlayerInputManager` are the official execution components; the framework supplies lifecycle language, validation and adapters, not a replacement input manager.
+F30 is closed through F30E. It adds passive InputMode identity/state/request/result contracts, Pause-to-InputMode request mapping and the Unity Input boundary correction. Unity `PlayerInput` and `PlayerInputManager` are the official execution components; the framework supplies lifecycle language, validation and adapters, not a replacement input manager. F31 is closed through F31C and adds the canonical PlayerActor plus Session PlayerInputManager references required before later InputMode application.
 
 ## F28 Roadmap Reconciliation and Adapter Module Spine
 
@@ -152,16 +156,18 @@ Purpose:
 prove explicit Unity Input target ownership before InputMode behavior or Pause-driven action-map changes are implemented
 ```
 
-F29A closes Unity Input target declaration evidence and diagnostics for valid, missing and duplicate target configurations. F29B closes authored QA fixture evidence. F29C must select the next phase. F29 must not implement full InputMode, action-map switching, player/actor runtime spawning, camera, audio, save or gameplay adapters.
+F29A closes Unity Input target declaration evidence and diagnostics for valid, missing and duplicate target configurations. F29B closes authored QA fixture evidence. F29C closes the phase and selects F30. F29 must not implement full InputMode, action-map switching, player/actor runtime spawning, camera, audio, save or gameplay adapters.
 
 Project plan: `../../Assets/_Documentation/Plans/F29-PLAN-Unity-Input-Target-Ownership-Proof.md`.
 
 
 ## F30 InputMode Identity and Request Result Model
 
-F30 opens the logical InputMode track after F29 target ownership proof.
+F30 is closed through F30E.
 
-F30A creates the passive contract vocabulary:
+F30 creates passive InputMode vocabulary and request/result diagnostics, validates official Unity Input evidence and maps logical Pause state/result to passive InputMode requests. It does not switch action maps, own Unity input, join players or spawn actors.
+
+Primary artifacts:
 
 ```text
 InputModeKind
@@ -171,19 +177,44 @@ InputModeState
 InputModeRequest
 InputModeRequestResult
 InputModeRequestEvaluator
+PauseInputModeRequestMapper
 ```
 
-The F30A smoke is `InputMode Contract Smoke`. It validates initial state, valid mode requests, ignored same-mode requests, invalid request no-side-effects and no action-map switching.
+Closed smokes:
 
-F30A does not create an owner runtime, Pause bridge, PlayerInput ownership, action-map switching or gameplay input behavior.
-
-F30B rejects a framework-owned input manager and closes the Unity PlayerInput integration boundary. Next implementation should validate evidence around official Unity components (`PlayerInput`, `PlayerInputManager`, UI input module when relevant) before any action-map behavior.
+```text
+InputMode Contract Smoke
+Unity Input Official Component Evidence Smoke
+Pause InputMode Request Boundary Smoke
+```
 
 Project plan: `../../Assets/_Documentation/Plans/F30-PLAN-InputMode-Identity-And-Request-Result.md`.
 
-F30A note: `../../Assets/_Documentation/Notes/F30A-InputMode-Identity-State-Request-Result.md`.
+Closeout note: `../../Assets/_Documentation/Notes/F30E-InputMode-Unity-Input-Boundary-Closeout.md`.
 
-F30B correction note: `../../Assets/_Documentation/Notes/F30B-Unity-PlayerInput-Integration-Boundary.md`.
+## F31 PlayerActor Identity and Unity Input Evidence
+
+F31 is closed through F31C.
+
+F31 adds the canonical references required before later Unity Input application:
+
+```text
+PlayerActor : IActor + PlayerInput evidence
+SessionPlayerInputManagerDeclaration + PlayerInputManager evidence
+```
+
+Closed smokes:
+
+```text
+PlayerActor Identity Smoke
+Session PlayerInputManager Boundary Smoke
+```
+
+F31 does not create movement, join behavior, player prefab spawn, action-map switching or a custom input manager.
+
+Project plan: `../../Assets/_Documentation/Plans/F31-PLAN-PlayerActor-Identity-And-Unity-Input-Evidence.md`.
+
+Closeout note: `../../Assets/_Documentation/Notes/F31C-PlayerActor-Session-Input-Reference-Closeout.md`.
 
 ## F25 Activity Content Scene Composition
 
@@ -312,3 +343,45 @@ Assets/_Documentation/Notes/F27D-Pause-Capability-Gate-Reframe.md
 
 - F29A — Unity Input target declaration proof: PASS by user smoke.
 - F29B — Input target QA authoring fixture: closed as QA scene evidence + loaded-scene smoke step.
+
+
+## F30D — Pause InputMode Request Boundary
+
+F30D closes a passive Pause-to-InputMode request bridge. Pause can now produce a logical `InputModeRequest` for `PauseOverlay` or `Gameplay` through a mapper, but Unity `PlayerInput` / `PlayerInputManager` remain official execution components and no action-map behavior is introduced.
+
+
+## F31 — PlayerActor Identity
+
+- `Assets/_Documentation/Plans/F31-PLAN-PlayerActor-Identity-And-Unity-Input-Evidence.md`
+- `Assets/_Documentation/Notes/F31A-PlayerActor-Identity-PlayerInput-Evidence.md`
+- `Assets/_Documentation/Notes/F31B-Session-PlayerInputManager-Boundary.md`
+
+
+## F30/F31 Input Closeout
+
+F30 is closed as passive InputMode and Unity Input boundary language. F31 is closed as canonical PlayerActor and Session PlayerInputManager reference evidence.
+
+Accepted prerequisites for later Unity Input adapter work:
+
+```text
+UnityInputTargetDeclaration;
+InputModeRequest / InputModeRequestResult;
+PauseInputModeRequestMapper;
+PlayerActor : IActor + PlayerInput evidence;
+SessionPlayerInputManagerDeclaration + PlayerInputManager evidence.
+```
+
+Rejected direction:
+
+```text
+framework-owned input manager;
+hidden action-map switching inside InputMode or Pause;
+Activity-owned canonical PlayerInputManager.
+```
+
+Reference notes:
+
+```text
+Assets/_Documentation/Notes/F30E-InputMode-Unity-Input-Boundary-Closeout.md
+Assets/_Documentation/Notes/F31C-PlayerActor-Session-Input-Reference-Closeout.md
+```

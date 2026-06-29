@@ -411,7 +411,7 @@ namespace Immersive.Framework.Diagnostics
         {
             GUILayout.Space(4f);
             GUILayout.Label("Unity Input Diagnostics", GUI.skin.box);
-            GUILayout.Label("F29 target ownership proof, F30A passive InputMode contracts and F30C official PlayerInput/PlayerInputManager evidence. No custom input manager, action-map switching, player movement or actor spawning.");
+            GUILayout.Label("F29 target ownership proof, F30 passive InputMode/Pause request mapping, and F31 PlayerActor identity evidence. Unity PlayerInput/PlayerInputManager remain the official input components; no custom input manager, action-map switching, movement or actor spawning.");
 
             using (new EditorDisabledScope(_requestInFlight))
             {
@@ -428,6 +428,26 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Unity Input Official Component Evidence Smoke"))
                 {
                     RunUnityInputOfficialComponentEvidenceSmoke();
+                }
+
+                if (GUILayout.Button("Run Session PlayerInputManager Boundary Smoke"))
+                {
+                    RunSessionPlayerInputManagerBoundarySmoke();
+                }
+
+                if (GUILayout.Button("Run Pause InputMode Request Boundary Smoke"))
+                {
+                    RunPauseInputModeRequestBoundarySmoke();
+                }
+
+                if (GUILayout.Button("Run PlayerActor Identity Smoke"))
+                {
+                    RunPlayerActorIdentitySmoke();
+                }
+
+                if (GUILayout.Button("Run InputMode Unity Application Preview Smoke"))
+                {
+                    RunInputModeUnityApplicationPreviewSmoke();
                 }
             }
         }
@@ -989,6 +1009,30 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(UnityInputOfficialComponentEvidenceQaSmokeRunner.SmokeName, runtimeHost =>
                 UnityInputOfficialComponentEvidenceQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunPauseInputModeRequestBoundarySmoke()
+        {
+            await RunSmokeAsync(PauseInputModeRequestBoundaryQaSmokeRunner.SmokeName, runtimeHost =>
+                PauseInputModeRequestBoundaryQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunSessionPlayerInputManagerBoundarySmoke()
+        {
+            await RunSmokeAsync(SessionPlayerInputManagerBoundaryQaSmokeRunner.SmokeName, runtimeHost =>
+                SessionPlayerInputManagerBoundaryQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunPlayerActorIdentitySmoke()
+        {
+            await RunSmokeAsync(PlayerActorIdentityQaSmokeRunner.SmokeName, runtimeHost =>
+                PlayerActorIdentityQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunInputModeUnityApplicationPreviewSmoke()
+        {
+            await RunSmokeAsync(InputModeUnityApplicationPreviewQaSmokeRunner.SmokeName, runtimeHost =>
+                InputModeUnityApplicationPreviewQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
         }
 
         private async void RunSnapshotParticipantDiagnosticsSmoke()

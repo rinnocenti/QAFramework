@@ -41,6 +41,40 @@ namespace Immersive.Framework.UnityInput
             return UnityInputPlayerInputManagerEvidence.FromManagerCount(managerCount, source, reason);
         }
 
+        public static UnityInputPlayerInputManagerEvidence ValidateRequiredSessionPlayerInputManagerEvidence(string source, string reason)
+        {
+            SessionPlayerInputManagerDeclaration[] declarations = Object.FindObjectsByType<SessionPlayerInputManagerDeclaration>(FindObjectsInactive.Include);
+            return ValidateRequiredSessionPlayerInputManagerDeclarations(declarations, source, reason);
+        }
+
+        public static UnityInputPlayerInputManagerEvidence ValidateRequiredSessionPlayerInputManagerDeclarations(
+            IEnumerable<SessionPlayerInputManagerDeclaration> declarations,
+            string source,
+            string reason)
+        {
+            int count = 0;
+            if (declarations != null)
+            {
+                foreach (SessionPlayerInputManagerDeclaration declaration in declarations)
+                {
+                    if (declaration != null && declaration.HasPlayerInputManagerEvidence)
+                    {
+                        count++;
+                    }
+                }
+            }
+
+            return UnityInputPlayerInputManagerEvidence.FromRequiredSessionManagerCount(count, source, reason);
+        }
+
+        public static UnityInputPlayerInputManagerEvidence ValidateRequiredSessionPlayerInputManagerEvidenceCount(
+            int managerCount,
+            string source,
+            string reason)
+        {
+            return UnityInputPlayerInputManagerEvidence.FromRequiredSessionManagerCount(managerCount, source, reason);
+        }
+
         public static UnityInputTargetSet ValidateDeclarations(
             IEnumerable<UnityInputTargetDeclaration> declarations,
             string source,

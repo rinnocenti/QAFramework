@@ -36,7 +36,7 @@ Do not read adapter module work backward into earlier phases. F23 does not build
 
 ## 3. Current Phase
 
-F28 is the current planning phase.
+F28 is closed. F29, F30 and F31 are also closed; the next input work must start from the accepted F30/F31 boundaries.
 
 The project is back at the F27D freeze. The next step is not another runtime patch. The next step is a positive roadmap correction that explains what the remaining implementation tracks are and in what order they should be built.
 
@@ -173,6 +173,9 @@ Assets/_Documentation/Plans/F29-PLAN-Unity-Input-Target-Ownership-Proof.md
 
 ### F30+ — Product-Facing Module Tracks
 
+F30 is closed through F30E. Logical Pause state/result can map to `PauseOverlay` or `Gameplay` `InputModeRequest` values, but F30 still does not own Unity `PlayerInput`, does not own `PlayerInputManager`, does not switch action maps and does not dispatch runtime Pause behavior. F31 is closed through PlayerActor and Session PlayerInputManager reference evidence.
+
+
 The later tracks should be opened incrementally instead of as a single large subsystem pass.
 
 | Track | First dependency | Expected direction |
@@ -256,7 +259,7 @@ which ownership decision blocks Camera, Audio, Save, RuntimeSpawned and Gameplay
 F29 as the first post-F28 code phase, proving Unity Input target ownership. F29A closes the declaration and diagnostics proof.
 ```
 
-F28 is complete. F29 is complete. F29 provides target declaration vocabulary, validator, authored QA scene evidence and Unity Input Target Ownership Smoke. F30 is the current InputMode phase. F30A adds passive InputMode identity/state/request/result language and still does not introduce action-map behavior. F30B redirects the phase: Unity `PlayerInput` and `PlayerInputManager` remain the input execution surface; the framework must not create a replacement input manager. F30C validates official component evidence. F30C1 cleans the QA smoke so duplicate PlayerInputManager diagnostics are validated passively without creating real duplicate Unity components.
+F28, F29, F30 and F31 are complete. F29 provides target declaration vocabulary, validator, authored QA scene evidence and Unity Input Target Ownership Smoke. F30 adds passive InputMode identity/state/request/result language, Pause-to-InputMode request mapping and Unity Input boundary correction. F31 adds canonical PlayerActor and Session PlayerInputManager evidence. No phase here introduces action-map behavior or a framework-owned input manager.
 
 ## F29 — Unity Input Target Ownership Proof
 
@@ -270,5 +273,31 @@ F28 is complete. F29 is complete. F29 provides target declaration vocabulary, va
 - F30B — Unity PlayerInput Integration Boundary: closed corrective docs; rejects a framework-owned input manager.
 - F30C — Unity PlayerInput Component Evidence Validation: PASS by user smoke, with native Unity warning observed in duplicate manager QA step.
 - F30C1 — PlayerInputManager Smoke Warning Cleanup: closed corrective patch; duplicate manager evidence now uses passive counts instead of real duplicate components.
-- F30D — Pause InputMode Request Boundary: next.
-- F30E — Unity Input Adapter Planning Closeout: planned.
+- F30D — Pause InputMode Request Boundary: closed; passive Pause state/result -> InputMode request mapping.
+- F30E — InputMode / Unity Input Boundary Closeout: closed; F30 is complete.
+
+
+## F31 — PlayerActor Identity and Unity Input Evidence
+
+- F31A — PlayerActor Identity and PlayerInput Evidence: closed; introduces minimal actor identity and `PlayerActor : IActor` evidence. A PlayerActor requires Unity `PlayerInput` evidence.
+- F31B — Session PlayerInputManager Boundary: closed; `PlayerInputManager` is Session-scoped Unity integration evidence, not Activity-owned content.
+- F31B1 — Session PlayerInputManager Smoke Warning Fix: closed; removes CS1718 redundant comparison.
+- F31C — PlayerActor / Session Unity Input Reference Closeout: closed; F31 is complete.
+
+F31 does not create a custom input manager, movement, actor spawning, action-map switching, join behavior or player prefab spawn.
+
+
+## F30/F31 closure result
+
+F30 and F31 close the input reference baseline.
+
+Accepted stack for the next input phase:
+
+```text
+F29 UnityInputTargetDeclaration
+F30 InputModeRequest / PauseInputModeRequestMapper
+F31 PlayerActor : IActor + PlayerInput evidence
+F31 SessionPlayerInputManagerDeclaration + PlayerInputManager evidence
+```
+
+The next phase may plan Unity `PlayerInput` action-map application, but it must be an explicit adapter and must not revive a framework-owned input manager.

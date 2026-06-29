@@ -24,7 +24,8 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Plans/F27-PLAN-Pause-UIGlobal-And-Input.md`
 - `Plans/F28-PLAN-InputMode-And-Adapter-Boundary.md` — Roadmap Reconciliation and Adapter Module Spine
 - `Plans/F29-PLAN-Unity-Input-Target-Ownership-Proof.md` — Unity Input Target Ownership Proof
-- `Plans/F30-PLAN-InputMode-Identity-And-Request-Result.md` — InputMode Identity and Request Result Model
+- `Plans/F30-PLAN-InputMode-Identity-And-Request-Result.md` — InputMode Identity and Request Result Model / closed
+- `Plans/F31-PLAN-PlayerActor-Identity-And-Unity-Input-Evidence.md` — PlayerActor Identity and Unity Input Evidence / closed
 
 ### Setup
 
@@ -96,3 +97,30 @@ F30C1 PlayerInputManager smoke warning cleanup: `Notes/F30C1-PlayerInputManager-
 - Configuração singular de jogo/projeto consumidor fica em `Assets/_Project`.
 - Testes Unity-facing novos devem preferir QA workspace isolado antes de tocar no QA baseline.
 
+
+
+## F30D — Pause InputMode Request Boundary
+
+F30D is closed as a passive runtime boundary plus QA smoke. It maps logical Pause `Running`/`Paused` state to `Gameplay`/`PauseOverlay` `InputModeRequest` values without owning Unity `PlayerInput`, `PlayerInputManager` or action-map switching.
+
+Reference: `Notes/F30D-Pause-InputMode-Request-Boundary.md`.
+
+
+## F31 — PlayerActor Identity
+
+- `Assets/_Documentation/Plans/F31-PLAN-PlayerActor-Identity-And-Unity-Input-Evidence.md`
+- `Assets/_Documentation/Notes/F31A-PlayerActor-Identity-PlayerInput-Evidence.md`
+- `Assets/_Documentation/Notes/F31B-Session-PlayerInputManager-Boundary.md`
+
+
+## F30E — InputMode / Unity Input Boundary Closeout
+
+F30 is closed. InputMode remains passive request/result language. Unity `PlayerInput` and `PlayerInputManager` remain official execution components. No action-map switching, join, player spawn or concrete input behavior is hidden in F30.
+
+Reference: `Notes/F30E-InputMode-Unity-Input-Boundary-Closeout.md`.
+
+## F31C — PlayerActor / Session Unity Input Reference Closeout
+
+F31 is closed. The framework now has canonical references for later input work: `PlayerActor : IActor` with required `PlayerInput` evidence, and Session-scoped `PlayerInputManager` evidence.
+
+Reference: `Notes/F31C-PlayerActor-Session-Input-Reference-Closeout.md`.

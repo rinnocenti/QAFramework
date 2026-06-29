@@ -12,6 +12,9 @@ Current order:
 6. F26 - Activity Discovery / Loading Progress Closeout
 7. F27 - Pause UIGlobal / Input / Gate Reframe
 8. F28 - Roadmap Reconciliation and Adapter Module Spine
+9. F29 - Unity Input Target Ownership Proof
+10. F30 - InputMode Identity and Request Result Model
+11. F31 - PlayerActor Identity and Unity Input Evidence
 
 ## Roadmap ADRs
 
@@ -110,3 +113,20 @@ F30B closes a corrective Unity PlayerInput integration boundary. Unity `PlayerIn
 
 - F30C — Unity PlayerInput Component Evidence Validation: implemented as passive evidence validation; no custom input manager.
 - F30C1 — PlayerInputManager Smoke Warning Cleanup: corrects QA duplicate-manager smoke to avoid creating real duplicate Unity `PlayerInputManager` components.
+
+- F30D — Pause InputMode Request Boundary: closes passive mapping from logical Pause state/result to `InputModeRequest` (`Paused` -> `PauseOverlay`, `Running` -> `Gameplay`) without PlayerInput ownership, PlayerInputManager ownership, action-map switching or Pause dispatch. Reference: `../../../../Assets/_Documentation/Notes/F30D-Pause-InputMode-Request-Boundary.md`.
+
+
+## F30E Closure Note
+
+F30 is closed as passive InputMode and Unity Input boundary language. F30 does not introduce a framework input manager, action-map switching, PlayerInput activation/deactivation, player join or actor spawn. Reference: `../../../../Assets/_Documentation/Notes/F30E-InputMode-Unity-Input-Boundary-Closeout.md`.
+
+## F31 — PlayerActor Identity
+
+F31A accepts minimal `IActor` / `PlayerActor` identity and requires Unity `PlayerInput` evidence for PlayerActor declarations.
+
+F31B accepts `PlayerInputManager` as Session-scoped Unity Input integration evidence. It is not Activity-owned and not Route-owned. Activities may consume player actors; the canonical manager belongs to Session evidence.
+
+F31B1 removes the redundant same-variable smoke comparison that produced CS1718.
+
+F31C closes the reference phase. Reference: `../../../../Assets/_Documentation/Notes/F31C-PlayerActor-Session-Input-Reference-Closeout.md`.

@@ -16,15 +16,29 @@ namespace Immersive.Framework.UnityInput
     {
         private readonly UnityInputTargetSetIssue[] _issues;
 
-        private UnityInputPlayerInputManagerEvidence(int managerCount, UnityInputTargetSetIssue[] issues, string source, string reason)
+        private UnityInputPlayerInputManagerEvidence(
+            int managerCount,
+            UnityInputTargetSetIssue[] issues,
+            string source,
+            string reason,
+            UnityInputPlayerInputManagerScope scope,
+            bool required)
         {
             ManagerCount = managerCount < 0 ? 0 : managerCount;
             _issues = issues ?? Array.Empty<UnityInputTargetSetIssue>();
             Source = source.NormalizeTextOrFallback(nameof(UnityInputPlayerInputManagerEvidence));
             Reason = reason.NormalizeText();
+            Scope = scope;
+            Required = required;
         }
 
         public int ManagerCount { get; }
+
+        public UnityInputPlayerInputManagerScope Scope { get; }
+
+        public bool Required { get; }
+
+        public bool SessionScoped => Scope == UnityInputPlayerInputManagerScope.Session;
 
         public IReadOnlyList<UnityInputTargetSetIssue> Issues => _issues;
 
@@ -65,6 +79,8 @@ namespace Immersive.Framework.UnityInput
         {
             var builder = new StringBuilder();
             builder.Append("playerInputManagers='").Append(ManagerCount).Append("'");
+            builder.Append(" scope='").Append(Scope).Append("'");
+            builder.Append(" required='").Append(Required).Append("'");
             builder.Append(" issues='").Append(IssueCount).Append("'");
             builder.Append(" blockingIssues='").Append(BlockingIssueCount).Append("'");
             builder.Append(" actionMapSwitching='").Append(SwitchesActionMaps).Append("'");
@@ -102,9 +118,48 @@ namespace Immersive.Framework.UnityInput
             string source,
             string reason)
         {
+            return FromManagerCount(
+                managerCount,
+                source,
+                reason,
+                UnityInputPlayerInputManagerScope.Unknown,
+                false);
+        }
+
+        public static UnityInputPlayerInputManagerEvidence FromRequiredSessionManagerCount(
+            int managerCount,
+            string source,
+            string reason)
+        {
+            return FromManagerCount(
+                managerCount,
+                source,
+                reason,
+                UnityInputPlayerInputManagerScope.Session,
+                true);
+        }
+
+        private static UnityInputPlayerInputManagerEvidence FromManagerCount(
+            int managerCount,
+            string source,
+            string reason,
+            UnityInputPlayerInputManagerScope scope,
+            bool required)
+        {
             string normalizedSource = source.NormalizeTextOrFallback(nameof(UnityInputPlayerInputManagerEvidence));
             int count = managerCount < 0 ? 0 : managerCount;
             var issues = new List<UnityInputTargetSetIssue>();
+
+            if (required && count == 0)
+            {
+                issues.Add(UnityInputTargetSetIssue.BlockingIssue(
+                    UnityInputTargetSetIssueKind.MissingRequiredPlayerInputManager,
+                    UnityInputTargetRole.Unknown,
+                    string.Empty,
+                    normalizedSource,
+                    "One Session-scoped Unity PlayerInputManager evidence component is required."));
+            }
+
             if (count > 1)
             {
                 issues.Add(UnityInputTargetSetIssue.BlockingIssue(
@@ -112,10 +167,12 @@ namespace Immersive.Framework.UnityInput
                     UnityInputTargetRole.Unknown,
                     string.Empty,
                     normalizedSource,
-                    "Only one Unity PlayerInputManager evidence component is allowed in the current validation scope."));
+                    scope == UnityInputPlayerInputManagerScope.Session
+                        ? "Only one Session-scoped Unity PlayerInputManager evidence component is allowed."
+                        : "Only one Unity PlayerInputManager evidence component is allowed in the current validation scope."));
             }
 
-            return new UnityInputPlayerInputManagerEvidence(count, issues.ToArray(), normalizedSource, reason);
+            return new UnityInputPlayerInputManagerEvidence(count, issues.ToArray(), normalizedSource, reason, scope, required);
         }
     }
 }
