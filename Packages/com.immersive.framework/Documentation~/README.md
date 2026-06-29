@@ -443,10 +443,12 @@ Assets/_Documentation/Notes/F31C-PlayerActor-Session-Input-Reference-Closeout.md
 
 ## F33 Pause Runtime PlayerInput Wiring
 
-F33 starts after F32H. F33A introduces `PauseInputModeUnityPlayerInputRuntimeBridge`, an opt-in Unity component that submits logical Pause requests and applies the resulting InputMode to an explicit `PlayerInput` only after preflight.
+F33 starts after F32H. F33A introduces `PauseInputModeUnityPlayerInputRuntimeBridge`, an opt-in Unity component that submits logical Pause requests and applies the resulting InputMode to an explicit `PlayerInput` only after preflight. F33B introduces `PauseInputActionRuntimeBridgeTrigger`, an opt-in Unity `InputAction` trigger for that bridge.
 
 It is not automatic `FrameworkRuntimeHost` wiring and still does not own `PlayerInputManager`, call `JoinPlayer`, spawn player prefabs, move actors or read gameplay commands.
 
 Project plan: `../../Assets/_Documentation/Plans/F33-PLAN-Pause-Runtime-PlayerInput-Wiring.md`.
 
 F33A note: `../../Assets/_Documentation/Notes/F33A-Pause-Runtime-PlayerInput-Bridge.md`.
+
+F33B note: `../../Assets/_Documentation/Notes/F33B-Pause-InputAction-Runtime-Bridge-Trigger.md`.

@@ -353,4 +353,6 @@ F33 follows F32H. It introduces opt-in runtime wiring from logical Pause request
 
 F33A adds `PauseInputModeUnityPlayerInputRuntimeBridge` and `Pause Runtime PlayerInput Bridge Smoke`.
 
+F33B adds `PauseInputActionRuntimeBridgeTrigger` and `Pause InputAction Runtime Bridge Trigger Smoke`.
+
 It remains outside automatic `FrameworkRuntimeHost` registration and does not call `PlayerInputManager.JoinPlayer`, spawn player prefabs, move actors, read gameplay commands or create a framework-owned input manager.

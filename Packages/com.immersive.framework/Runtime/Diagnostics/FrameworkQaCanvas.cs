@@ -485,6 +485,11 @@ namespace Immersive.Framework.Diagnostics
                 {
                     RunPauseInputModeUnityPlayerInputRuntimeBridgeSmoke();
                 }
+
+                if (GUILayout.Button("Run Pause InputAction Runtime Bridge Trigger Smoke"))
+                {
+                    RunPauseInputActionRuntimeBridgeTriggerSmoke();
+                }
             }
         }
 
@@ -1112,6 +1117,12 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(PauseInputModeUnityPlayerInputRuntimeBridgeQaSmokeRunner.SmokeName, runtimeHost =>
                 PauseInputModeUnityPlayerInputRuntimeBridgeQaSmokeRunner.RunRuntimeBridgeSmokeAsync(runtimeHost, _logger, QaSource));
+        }
+
+        private async void RunPauseInputActionRuntimeBridgeTriggerSmoke()
+        {
+            await RunSmokeAsync(PauseInputActionRuntimeBridgeTriggerQaSmokeRunner.SmokeName, runtimeHost =>
+                PauseInputActionRuntimeBridgeTriggerQaSmokeRunner.RunTriggerSmokeAsync(runtimeHost, _logger, QaSource));
         }
 
         private async void RunSnapshotParticipantDiagnosticsSmoke()

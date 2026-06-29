@@ -151,9 +151,10 @@ Reference: `Plans/F32-PLAN-InputMode-Unity-Adapter-Application.md` and `Notes/F3
 
 ## F33 — Pause Runtime PlayerInput Wiring
 
-F33 starts after F32H. F33A adds an opt-in scene-authored bridge that submits Pause requests and applies the resulting InputMode to an explicit Unity `PlayerInput` after preflight.
+F33 starts after F32H. F33A adds an opt-in scene-authored bridge that submits Pause requests and applies the resulting InputMode to an explicit Unity `PlayerInput` after preflight. F33B adds an opt-in Unity `InputAction` trigger for that bridge.
 
 References:
 
 - `Plans/F33-PLAN-Pause-Runtime-PlayerInput-Wiring.md`
 - `Notes/F33A-Pause-Runtime-PlayerInput-Bridge.md`
+- `Notes/F33B-Pause-InputAction-Runtime-Bridge-Trigger.md`
