@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress / F29A closed / pending Unity compile-smoke by user
+In progress / F29A PASS / F29B closed / pending Unity compile-smoke by user
 
 ## Purpose
 
@@ -52,7 +52,7 @@ The first proof may use QA-authored objects and the current `Assets/InputSystem_
 | Cut | Name | Type | Output |
 |---|---|---|---|
 | F29A | Unity Input Target Declaration Proof | Runtime/QA minimal | Closed. Target declaration language, diagnostics/result surface and manual QA smoke for valid/missing/duplicate targets. |
-| F29B | Input Target QA Authoring Fixture | QA assets if needed | Canonical QA target objects or prefab/scene wiring used by the smoke. |
+| F29B | Input Target QA Authoring Fixture | QA scene + smoke | Closed. Canonical QA StartupScene target declarations and loaded-scene smoke validation. |
 | F29C | Input Target Closeout | Docs/QA | Confirms target ownership evidence and selects whether F30 starts InputMode identity/result model or action-map adapter proof. |
 
 ## F29A Closure
@@ -65,6 +65,19 @@ Reference note:
 
 ```text
 Assets/_Documentation/Notes/F29A-Unity-Input-Target-Declaration-Proof.md
+```
+
+
+## F29B Closure
+
+F29B adds authored QA evidence in the canonical StartupScene. The scene now contains one `UnityInputTargetDeclaration` for `GlobalUiPause` and one for `GameplayCommands`.
+
+The Unity Input Target Ownership Smoke now includes the `loaded-scene-fixture` step, which validates declarations found in loaded scenes.
+
+Reference note:
+
+```text
+Assets/_Documentation/Notes/F29B-Input-Target-QA-Authoring-Fixture.md
 ```
 
 ## F29A Rules
@@ -107,6 +120,7 @@ missing-required-target
 duplicate-target
 global-ui-and-gameplay-target-split
 no-action-map-switching
+loaded-scene-fixture
 ```
 
 Expected result:

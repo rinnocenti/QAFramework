@@ -70,6 +70,8 @@ F29 Unity Input target ownership proof: `Plans/F29-PLAN-Unity-Input-Target-Owner
 
 F29A Unity Input target declaration proof: `Notes/F29A-Unity-Input-Target-Declaration-Proof.md`.
 
+F29B Input Target QA authoring fixture: `Notes/F29B-Input-Target-QA-Authoring-Fixture.md`.
+
 ## Regras
 
 - Documentação viva do projeto fica em `Assets/_Documentation`.

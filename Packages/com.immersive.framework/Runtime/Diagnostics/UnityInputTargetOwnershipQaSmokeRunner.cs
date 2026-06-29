@@ -35,6 +35,7 @@ namespace Immersive.Framework.Diagnostics
                 bool duplicatePassed = ValidateDuplicateTarget(logger, normalizedSource);
                 bool splitPassed = ValidateGlobalUiAndGameplaySplit(logger, normalizedSource);
                 bool noSwitchingPassed = ValidateNoActionMapSwitching(logger, normalizedSource);
+                bool loadedSceneFixturePassed = ValidateLoadedSceneFixture(logger, normalizedSource);
                 bool declarationPassed = ValidateDeclarationComponent(logger, normalizedSource);
 
                 return Task.FromResult(contractsPassed
@@ -43,6 +44,7 @@ namespace Immersive.Framework.Diagnostics
                     && duplicatePassed
                     && splitPassed
                     && noSwitchingPassed
+                    && loadedSceneFixturePassed
                     && declarationPassed);
             }
             catch (Exception exception)
@@ -198,6 +200,44 @@ namespace Immersive.Framework.Diagnostics
                     LogFields.Field("inputBehavior", set.AppliesInputBehavior),
                     LogFields.Field("inputMode", "none"),
                     LogFields.Field("playerActor", "none")));
+
+            return passed;
+        }
+
+        private static bool ValidateLoadedSceneFixture(FrameworkLogger logger, string source)
+        {
+            var set = UnityInputTargetValidator.ValidateLoadedSceneDeclarations(
+                source,
+                "qa.input.target.loaded-scene-fixture");
+
+            bool hasGlobal = set.TryGetSingle(UnityInputTargetRole.GlobalUiPause, out UnityInputTargetDescriptor global);
+            bool hasGameplay = set.TryGetSingle(UnityInputTargetRole.GameplayCommands, out UnityInputTargetDescriptor gameplay);
+            bool passed = set.Succeeded
+                && set.Count == 2
+                && hasGlobal
+                && hasGameplay
+                && global.Role != gameplay.Role
+                && global.TargetId != gameplay.TargetId
+                && !set.SwitchesActionMaps
+                && !set.AppliesInputBehavior;
+
+            LogStep(
+                logger,
+                "loaded-scene-fixture",
+                passed,
+                LogFields.Of(
+                    LogFields.Field("targets", set.Count),
+                    LogFields.Field("issues", set.IssueCount),
+                    LogFields.Field("blockingIssues", set.BlockingIssueCount),
+                    LogFields.Field("globalUiPauseTargets", set.GlobalUiPauseTargetCount),
+                    LogFields.Field("gameplayCommandTargets", set.GameplayCommandTargetCount),
+                    LogFields.Field("globalTarget", hasGlobal ? global.TargetId.StableText : "<missing>"),
+                    LogFields.Field("gameplayTarget", hasGameplay ? gameplay.TargetId.StableText : "<missing>"),
+                    LogFields.Field("globalScene", hasGlobal ? global.SceneName : string.Empty),
+                    LogFields.Field("gameplayScene", hasGameplay ? gameplay.SceneName : string.Empty),
+                    LogFields.Field("actionMapSwitching", set.SwitchesActionMaps),
+                    LogFields.Field("inputBehavior", set.AppliesInputBehavior),
+                    LogFields.Field("diagnostics", set.ToDiagnosticString())));
 
             return passed;
         }

@@ -30,7 +30,7 @@ Read the documentation in this order:
 | F26 | Activity Scene Discovery Integration / Loading Progress Integration | Closed / loading progress closed through F26F |
 | F27 | Pause UIGlobal Surface, Input Wiring and Gate Reframe | Frozen after F27D / F27E cancelled |
 | F28 | Roadmap Reconciliation and Adapter Module Spine | Closed / F28A-F28F complete / F29 selected |
-| F29 | Unity Input Target Ownership Proof | In progress / F29A declaration proof closed |
+| F29 | Unity Input Target Ownership Proof | In progress / F29A PASS / F29B closed / F29C next |
 
 ## F23 Boundary
 
@@ -93,7 +93,7 @@ Project plan: `Assets/_Documentation/Plans/F27-PLAN-Pause-UIGlobal-And-Input.md`
 
 Next plan: `Assets/_Documentation/Plans/F29-PLAN-Unity-Input-Target-Ownership-Proof.md`.
 
-F29A adds Unity Input target declaration vocabulary, validator and ownership smoke. It remains declaration-only: no InputMode runtime, action-map switching, PlayerInput ownership, player movement or actor spawning.
+F29A adds Unity Input target declaration vocabulary, validator and ownership smoke. F29B adds canonical QA StartupScene declarations and a loaded-scene smoke step. The phase remains declaration-only: no InputMode runtime, action-map switching, PlayerInput ownership, player movement or actor spawning.
 
 ## F28 Roadmap Reconciliation and Adapter Module Spine
 
@@ -149,7 +149,7 @@ Purpose:
 prove explicit Unity Input target ownership before InputMode behavior or Pause-driven action-map changes are implemented
 ```
 
-F29A should start with Unity Input target declaration evidence and diagnostics for valid, missing and duplicate target configurations. It must not implement full InputMode, action-map switching, player/actor runtime spawning, camera, audio, save or gameplay adapters.
+F29A closes Unity Input target declaration evidence and diagnostics for valid, missing and duplicate target configurations. F29B closes authored QA fixture evidence. F29C must select the next phase. F29 must not implement full InputMode, action-map switching, player/actor runtime spawning, camera, audio, save or gameplay adapters.
 
 Project plan: `../../Assets/_Documentation/Plans/F29-PLAN-Unity-Input-Target-Ownership-Proof.md`.
 
@@ -275,3 +275,8 @@ ADRs/F27-ADR-GATE-INPUT-001-Capability-Gate-Boundary.md
 Assets/_Documentation/Notes/F27C-Gate-Input-Capability-Audit.md
 Assets/_Documentation/Notes/F27D-Pause-Capability-Gate-Reframe.md
 ```
+
+## Current Planning Status
+
+- F29A — Unity Input target declaration proof: PASS by user smoke.
+- F29B — Input target QA authoring fixture: closed as QA scene evidence + loaded-scene smoke step.
