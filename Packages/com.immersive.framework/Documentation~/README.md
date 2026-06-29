@@ -31,7 +31,7 @@ Read the documentation in this order:
 | F27 | Pause UIGlobal Surface, Input Wiring and Gate Reframe | Frozen after F27D / F27E cancelled |
 | F28 | Roadmap Reconciliation and Adapter Module Spine | Closed / F28A-F28F complete / F29 selected |
 | F29 | Unity Input Target Ownership Proof | Closed / F29A-F29C complete |
-| F30 | InputMode Identity and Request Result Model | Active / F30A closed / F30B next |
+| F30 | InputMode Identity and Request Result Model | Active / F30A closed / F30B corrective boundary closed / F30C next |
 
 ## F23 Boundary
 
@@ -96,7 +96,7 @@ Current plan: `Assets/_Documentation/Plans/F30-PLAN-InputMode-Identity-And-Reque
 
 F29A adds Unity Input target declaration vocabulary, validator and ownership smoke. F29B adds canonical QA StartupScene declarations and a loaded-scene smoke step. F29C closes the phase and selects F30. F29 remains declaration-only: no InputMode runtime, action-map switching, PlayerInput ownership, player movement or actor spawning.
 
-F30A adds passive InputMode identity/state/request/result contracts and `InputMode Contract Smoke`. F30A still has no InputMode owner runtime, Pause bridge, action-map switching or PlayerInput ownership.
+F30A adds passive InputMode identity/state/request/result contracts and `InputMode Contract Smoke`. F30A still has no InputMode owner runtime, Pause bridge, action-map switching or PlayerInput ownership. F30B redirects the track: Unity `PlayerInput` and `PlayerInputManager` are the official execution components; the framework supplies lifecycle language, validation and adapters, not a replacement input manager.
 
 ## F28 Roadmap Reconciliation and Adapter Module Spine
 
@@ -177,9 +177,13 @@ The F30A smoke is `InputMode Contract Smoke`. It validates initial state, valid 
 
 F30A does not create an owner runtime, Pause bridge, PlayerInput ownership, action-map switching or gameplay input behavior.
 
+F30B rejects a framework-owned input manager and closes the Unity PlayerInput integration boundary. Next implementation should validate evidence around official Unity components (`PlayerInput`, `PlayerInputManager`, UI input module when relevant) before any action-map behavior.
+
 Project plan: `../../Assets/_Documentation/Plans/F30-PLAN-InputMode-Identity-And-Request-Result.md`.
 
 F30A note: `../../Assets/_Documentation/Notes/F30A-InputMode-Identity-State-Request-Result.md`.
+
+F30B correction note: `../../Assets/_Documentation/Notes/F30B-Unity-PlayerInput-Integration-Boundary.md`.
 
 ## F25 Activity Content Scene Composition
 

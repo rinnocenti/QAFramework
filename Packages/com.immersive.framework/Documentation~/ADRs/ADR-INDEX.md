@@ -105,3 +105,5 @@ F29C closes Unity Input target ownership proof after synthetic and authored QA s
 F30 opens as InputMode identity and request/result planning. Reference: `../../../../Assets/_Documentation/Plans/F30-PLAN-InputMode-Identity-And-Request-Result.md`.
 
 F30A closes passive InputMode identity/state/request/result contracts and `InputMode Contract Smoke`. Reference: `../../../../Assets/_Documentation/Notes/F30A-InputMode-Identity-State-Request-Result.md`.
+
+F30B closes a corrective Unity PlayerInput integration boundary. Unity `PlayerInput` and `PlayerInputManager` remain the official input execution components; the framework must not introduce a replacement input manager. Reference: `../../../../Assets/_Documentation/Notes/F30B-Unity-PlayerInput-Integration-Boundary.md`.

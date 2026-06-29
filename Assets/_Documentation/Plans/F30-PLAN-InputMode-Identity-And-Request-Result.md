@@ -2,23 +2,25 @@
 
 ## Status
 
-Active. F30A closed; F30B is next.
+Active. F30A closed; F30B corrective boundary closed; F30C is next.
 
 ## Purpose
 
 F30 starts the InputMode track after F29 proved explicit Unity Input target ownership.
 
-The phase defines the framework language for input posture before any Unity Input System action-map switching or PlayerInput ownership is introduced.
+The phase defines the framework language for input posture before any Unity Input System action-map switching is introduced.
+
+F30 does not create a framework input manager. Unity `PlayerInput` and `PlayerInputManager` remain the canonical components for input execution; the framework only contributes lifecycle language, diagnostics and integration boundaries.
 
 F30 answers:
 
 ```text
 which input modes exist first;
 how a mode change is requested;
-which owner records the current mode;
 how requests succeed, fail or get ignored;
-how Pause may request a mode without owning PlayerInput or action-map names;
-which future cut may connect the mode to Unity Input adapters.
+why the framework must not replace Unity `PlayerInput` / `PlayerInputManager`;
+how Pause may request a mode later without owning PlayerInput or action-map names;
+which future cut may validate official Unity Input component evidence.
 ```
 
 ## Starting Point
@@ -52,9 +54,10 @@ Initial modes accepted from F28E:
 | Cut | Name | Type | Output |
 |---|---|---|---|
 | F30A | InputMode Identity / State / Request Result Contracts | Closed / runtime contracts + QA smoke | Passive mode identity, state snapshot, request/result vocabulary and pure smoke. |
-| F30B | InputMode Owner Preview | Next / runtime owner + QA smoke | A single owner records current mode and processes requests without Unity action-map switching. |
-| F30C | Pause InputMode Request Bridge | Runtime integration + QA smoke | Pause requests `PauseOverlay`/`Gameplay` through the mode owner, still without action-map switching. |
-| F30D | Unity Input Adapter Planning Closeout | Docs/QA | Selects whether the next phase connects mode state to Unity Input System action maps or keeps one more preview cut. |
+| F30B | Unity PlayerInput Integration Boundary | Closed / corrective docs + safe naming clarification | Redirects F30 away from a framework-owned input manager and toward official Unity Input System integration. |
+| F30C | Unity PlayerInput Component Evidence Validation | Next / runtime diagnostics + QA smoke | Validates declared input targets against official Unity components without action-map switching. |
+| F30D | Pause InputMode Request Boundary | Planned docs/runtime boundary | Defines how Pause may request a mode after Unity component evidence is validated. |
+| F30E | Unity Input Adapter Planning Closeout | Docs/QA | Selects whether the next phase connects mode requests to Unity Input System action-map behavior. |
 
 ## F30A Rules
 
@@ -119,7 +122,7 @@ Assets/_Documentation/Notes/F30A-InputMode-Identity-State-Request-Result.md
 | Artifact | Placement |
 |---|---|
 | Framework mode identity/result language | `Packages/com.immersive.framework/Runtime/...` |
-| Mode owner preview | `Packages/com.immersive.framework/Runtime/...` only if generic and Unity-safe |
+| Unity Input integration boundary | Documentation first; runtime only when it validates official Unity components |
 | QA smoke runner | `Packages/com.immersive.framework/Runtime/Diagnostics` following existing QA style |
 | Authored QA evidence | `Assets/ImmersiveFrameworkQA` only if a cut explicitly requires scene evidence |
 | Project input assets / action maps | `Assets/_Project` or project-level assets, not framework package core |
@@ -130,9 +133,9 @@ F30 closes only when:
 
 ```text
 InputMode identity and request/result language is stable;
-there is a single clear mode owner;
-Pause can request mode changes through the owner;
-Unity Input target declarations from F29 remain the attachment point for later adapter behavior;
+Unity `PlayerInput` / `PlayerInputManager` remain the execution authority;
+InputMode remains request/result language until an explicit Unity adapter exists;
+Unity Input target declarations from F29 remain integration points for official Unity components;
 no action-map switching is hidden in contracts or Pause logic;
-next phase explicitly selects the Unity Input adapter behavior cut.
+next phase explicitly selects a Unity component validation or adapter behavior cut.
 ```

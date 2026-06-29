@@ -79,6 +79,8 @@ F30 InputMode identity/request result plan: `Plans/F30-PLAN-InputMode-Identity-A
 
 F30A InputMode identity/state/request result contracts: `Notes/F30A-InputMode-Identity-State-Request-Result.md`.
 
+F30B Unity PlayerInput integration boundary correction: `Notes/F30B-Unity-PlayerInput-Integration-Boundary.md`.
+
 ## Regras
 
 - Documentação viva do projeto fica em `Assets/_Documentation`.

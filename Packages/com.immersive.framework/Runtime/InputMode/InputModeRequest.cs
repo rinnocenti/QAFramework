@@ -6,7 +6,7 @@ namespace Immersive.Framework.InputMode
 {
     /// <summary>
     /// API status: Experimental. Passive request to change the logical InputMode posture.
-    /// It is not a Unity action-map command and does not mutate PlayerInput.
+    /// It is not a Unity action-map command, does not mutate PlayerInput and is not a framework input manager.
     /// </summary>
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F30A passive InputMode request.")]
     public readonly struct InputModeRequest : IEquatable<InputModeRequest>

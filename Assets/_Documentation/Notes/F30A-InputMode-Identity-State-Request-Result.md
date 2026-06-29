@@ -156,13 +156,17 @@ camera/audio/save/gameplay adapters
 per-consumer Gate query policy
 ```
 
-## Next cut
+## Next cut correction
 
-F30B should create the first owner preview:
+The original next idea, an `InputModeOwnerPreview`, is rejected before application.
+
+F30B must instead document the Unity PlayerInput integration boundary:
 
 ```text
-single InputMode owner records current state
-requests are processed through that owner
-still no Unity action-map switching
-still no Pause integration
+Unity PlayerInput / PlayerInputManager remain the input execution components
+InputMode stays passive request/result language
+UnityInputTargetDeclaration stays an integration-point declaration
+no framework input manager is introduced
 ```
+
+Reference: `Assets/_Documentation/Notes/F30B-Unity-PlayerInput-Integration-Boundary.md`.

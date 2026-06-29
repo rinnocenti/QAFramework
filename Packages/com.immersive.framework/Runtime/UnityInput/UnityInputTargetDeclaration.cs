@@ -7,19 +7,24 @@ using UnityEngine.InputSystem;
 namespace Immersive.Framework.UnityInput
 {
     /// <summary>
-    /// API status: Experimental. Unity-facing declaration that a scene/authored object is an input target.
-    /// This component is declarative only: it does not enable input, switch action maps, spawn players or bind commands.
+    /// API status: Experimental. Unity-facing declaration that a scene/authored object is an integration point for official Unity Input components.
+    /// This component is declarative only: it does not enable input, switch action maps, spawn players, bind commands or replace PlayerInput/PlayerInputManager.
     /// </summary>
     [DisallowMultipleComponent]
-    [AddComponentMenu("Immersive Framework/Input/Unity Input Target Declaration")]
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F29A Unity Input target declaration component; no InputMode behavior.")]
+    [AddComponentMenu("Immersive Framework/Input/Unity Input Integration Target Declaration")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F29A/F30B Unity Input integration target declaration; no InputMode behavior and no custom input manager.")]
     public sealed class UnityInputTargetDeclaration : MonoBehaviour
     {
+        [Tooltip("Role this authored object plays as a framework-visible Unity Input integration point. This is not an action map name.")]
         [SerializeField] private UnityInputTargetRole targetRole = UnityInputTargetRole.GlobalUiPause;
+        [Tooltip("Stable framework id for this integration point. Do not use GameObject names or scene paths as functional keys.")]
         [SerializeField] private string targetId = "qa.input.target.global-ui-pause";
+        [Tooltip("Human-readable diagnostic label only.")]
         [SerializeField] private string displayName = "QA Unity Input Target";
+        [Tooltip("Optional evidence reference to Unity's PlayerInput component. The framework does not own or replace PlayerInput.")]
         [SerializeField] private PlayerInput playerInput;
-        [SerializeField] private string reason = "unity.input.target.declaration";
+        [Tooltip("Diagnostic reason/source for this declaration.")]
+        [SerializeField] private string reason = "unity.input.integration.target.declaration";
 
         public UnityInputTargetRole TargetRole => targetRole;
 

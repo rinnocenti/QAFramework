@@ -5,8 +5,8 @@ using Immersive.Framework.Common;
 namespace Immersive.Framework.UnityInput
 {
     /// <summary>
-    /// API status: Experimental. Passive description of one declared Unity Input target.
-    /// It records ownership evidence only; it does not enable input, switch action maps or bind gameplay commands.
+    /// API status: Experimental. Passive description of one declared Unity Input integration target.
+    /// It records evidence around official Unity Input components only; it does not enable input, switch action maps, bind gameplay commands or replace PlayerInput/PlayerInputManager.
     /// </summary>
     [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F29A passive Unity Input target descriptor.")]
     public readonly struct UnityInputTargetDescriptor : IEquatable<UnityInputTargetDescriptor>
