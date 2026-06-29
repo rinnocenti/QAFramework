@@ -43,6 +43,18 @@ namespace Immersive.Framework.ContentAnchor
 
         public int PhysicalReleaseRequestedCount => SumPhysicalReleaseRequests();
 
+        public UnityContentAnchorMaterializationBridge[] CopyBridgesForAuthoringValidation()
+        {
+            if (bridges == null || bridges.Length == 0)
+            {
+                return System.Array.Empty<UnityContentAnchorMaterializationBridge>();
+            }
+
+            var copy = new UnityContentAnchorMaterializationBridge[bridges.Length];
+            System.Array.Copy(bridges, copy, bridges.Length);
+            return copy;
+        }
+
         private void Awake()
         {
             _logger = FrameworkLogger.Create<UnityContentAnchorMaterializationBridgeSet>();

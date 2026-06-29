@@ -91,6 +91,36 @@ namespace Immersive.Framework.ContentAnchor
 
         public int PhysicalReleaseRequestedCount => Registry.PhysicalReleaseRequestedCount;
 
+        public bool HasConfiguredPrefab => prefab != null;
+
+        public bool HasConfiguredAnchorTransform => anchorTransform != null;
+
+        public RuntimeContentScope ConfiguredRuntimeScope => runtimeScope;
+
+        public ContentAnchorScope ConfiguredAnchorScope => anchorScope;
+
+        public ContentAnchorKind ConfiguredAnchorKind => anchorKind;
+
+        public ContentAnchorRequiredness ConfiguredAnchorRequiredness => anchorRequiredness;
+
+        public RuntimeReleasePolicy ConfiguredReleasePolicy => releasePolicy;
+
+        public string ConfiguredRuntimeOwnerId => runtimeOwnerId.NormalizeText();
+
+        public string ConfiguredRuntimeOwnerName => runtimeOwnerName.NormalizeText();
+
+        public string ConfiguredAnchorOwnerId => anchorOwnerId.NormalizeText();
+
+        public string ConfiguredAnchorId => anchorId.NormalizeText();
+
+        public string ConfiguredRuntimeContentId => runtimeContentId.NormalizeText();
+
+        public string ConfiguredResourceKey => resourceKey.NormalizeText();
+
+        public string ConfiguredReason => reason.NormalizeText();
+
+        public string AuthoringMaterializationKey => BridgeSetPreflightKey;
+
         internal UnityRuntimeMaterializedObjectRegistry Registry => _registry ??= new UnityRuntimeMaterializedObjectRegistry();
 
         private void Awake()

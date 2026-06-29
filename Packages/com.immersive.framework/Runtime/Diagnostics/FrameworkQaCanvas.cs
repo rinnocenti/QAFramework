@@ -609,6 +609,11 @@ namespace Immersive.Framework.Diagnostics
                 {
                     RunContentAnchorMaterializationBridgeSetPreflightSmoke();
                 }
+
+                if (GUILayout.Button("Run Content Anchor Materialization Authoring Validation Smoke"))
+                {
+                    RunContentAnchorMaterializationAuthoringValidationSmoke();
+                }
             }
         }
 
@@ -3446,6 +3451,183 @@ private async void RunLocalContributionSmoke()
                 if (secondRootCreated)
                 {
                     CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, secondOwner, "preflight.2");
+                }
+            }
+        }
+
+        private async void RunContentAnchorMaterializationAuthoringValidationSmoke()
+        {
+            await RunSmokeAsync("Content Anchor Materialization Authoring Validation Smoke", runtimeHost =>
+                Task.FromResult(RunContentAnchorMaterializationAuthoringValidationSmokeCore(runtimeHost)));
+        }
+
+        private bool RunContentAnchorMaterializationAuthoringValidationSmokeCore(FrameworkRuntimeHost runtimeHost)
+        {
+            GameObject setObject = null;
+            GameObject firstBridgeObject = null;
+            GameObject secondBridgeObject = null;
+            GameObject firstTemplate = null;
+            GameObject secondTemplate = null;
+            GameObject firstAnchorObject = null;
+            GameObject secondAnchorObject = null;
+
+            try
+            {
+                setObject = new GameObject("QA Content Anchor Materialization Authoring Validation Set");
+                setObject.hideFlags = HideFlags.DontSave;
+                var bridgeSet = setObject.AddComponent<UnityContentAnchorMaterializationBridgeSet>();
+
+                firstBridgeObject = new GameObject("QA Content Anchor Materialization Authoring Validation Bridge 1");
+                firstBridgeObject.hideFlags = HideFlags.DontSave;
+                var firstBridge = firstBridgeObject.AddComponent<UnityContentAnchorMaterializationBridge>();
+
+                secondBridgeObject = new GameObject("QA Content Anchor Materialization Authoring Validation Bridge 2");
+                secondBridgeObject.hideFlags = HideFlags.DontSave;
+                var secondBridge = secondBridgeObject.AddComponent<UnityContentAnchorMaterializationBridge>();
+
+                firstTemplate = new GameObject("QA Content Anchor Materialization Authoring Validation Template 1");
+                firstTemplate.hideFlags = HideFlags.DontSave;
+                secondTemplate = new GameObject("QA Content Anchor Materialization Authoring Validation Template 2");
+                secondTemplate.hideFlags = HideFlags.DontSave;
+                firstAnchorObject = new GameObject("QA Content Anchor Materialization Authoring Validation Anchor 1");
+                firstAnchorObject.hideFlags = HideFlags.DontSave;
+                secondAnchorObject = new GameObject("QA Content Anchor Materialization Authoring Validation Anchor 2");
+                secondAnchorObject.hideFlags = HideFlags.DontSave;
+
+                var invalidBridgeResult = UnityContentAnchorMaterializationAuthoringValidator.ValidateBridge(
+                    firstBridge,
+                    "qa.content-anchor-authoring.invalid-bridge");
+                bool invalidBridgeBlocked = invalidBridgeResult.Failed
+                    && invalidBridgeResult.Status == UnityContentAnchorMaterializationAuthoringValidationStatus.FailedBridgeConfiguration
+                    && invalidBridgeResult.MissingPrefabCount == 1
+                    && invalidBridgeResult.MissingAnchorTransformCount == 1
+                    && firstBridge.RegistryCount == 0;
+                if (!invalidBridgeBlocked)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Authoring Validation Smoke step failed. step='invalid-bridge' diagnostics='{invalidBridgeResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                firstBridge.ConfigureForDiagnostics(
+                    firstTemplate,
+                    firstAnchorObject.transform,
+                    RuntimeContentScope.Transient,
+                    "qa.content-anchor-authoring.owner.duplicate",
+                    "QA Content Anchor Materialization Authoring Validation Duplicate Owner",
+                    true,
+                    ContentAnchorScope.Route,
+                    ContentAnchorKind.Slot,
+                    ContentAnchorRequiredness.Required,
+                    "qa.content-anchor-authoring.route.1",
+                    "qa.content-anchor-authoring.anchor.1",
+                    "qa.content-anchor-authoring.content.duplicate",
+                    "qa.content-anchor-authoring.prefab.1",
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    true,
+                    false);
+                secondBridge.ConfigureForDiagnostics(
+                    secondTemplate,
+                    secondAnchorObject.transform,
+                    RuntimeContentScope.Transient,
+                    "qa.content-anchor-authoring.owner.duplicate",
+                    "QA Content Anchor Materialization Authoring Validation Duplicate Owner",
+                    true,
+                    ContentAnchorScope.Route,
+                    ContentAnchorKind.Slot,
+                    ContentAnchorRequiredness.Required,
+                    "qa.content-anchor-authoring.route.2",
+                    "qa.content-anchor-authoring.anchor.2",
+                    "qa.content-anchor-authoring.content.duplicate",
+                    "qa.content-anchor-authoring.prefab.2",
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    true,
+                    false);
+                bridgeSet.ConfigureForDiagnostics(new[] { firstBridge, secondBridge }, false);
+
+                var duplicateKeyResult = UnityContentAnchorMaterializationAuthoringValidator.ValidateBridgeSet(
+                    bridgeSet,
+                    "qa.content-anchor-authoring.duplicate-key");
+                bool duplicateKeyBlocked = duplicateKeyResult.Failed
+                    && duplicateKeyResult.Status == UnityContentAnchorMaterializationAuthoringValidationStatus.FailedBridgeSetConfiguration
+                    && duplicateKeyResult.DuplicateMaterializationKeyCount == 1
+                    && bridgeSet.RegistryEntries == 0
+                    && bridgeSet.RegistryActive == 0;
+                if (!duplicateKeyBlocked)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Authoring Validation Smoke step failed. step='duplicate-key' diagnostics='{duplicateKeyResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                secondBridge.ConfigureForDiagnostics(
+                    secondTemplate,
+                    secondAnchorObject.transform,
+                    RuntimeContentScope.Transient,
+                    "qa.content-anchor-authoring.owner.2",
+                    "QA Content Anchor Materialization Authoring Validation Owner 2",
+                    true,
+                    ContentAnchorScope.Route,
+                    ContentAnchorKind.Slot,
+                    ContentAnchorRequiredness.Required,
+                    "qa.content-anchor-authoring.route.2",
+                    "qa.content-anchor-authoring.anchor.2",
+                    "qa.content-anchor-authoring.content.2",
+                    "qa.content-anchor-authoring.prefab.2",
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    true,
+                    false);
+
+                var validFirstBridgeResult = UnityContentAnchorMaterializationAuthoringValidator.ValidateBridge(
+                    firstBridge,
+                    "qa.content-anchor-authoring.valid-bridge.1");
+                var validSetResult = UnityContentAnchorMaterializationAuthoringValidator.ValidateBridgeSet(
+                    bridgeSet,
+                    "qa.content-anchor-authoring.valid-set");
+                bool validSetSucceeded = validFirstBridgeResult.Succeeded
+                    && validSetResult.Succeeded
+                    && validSetResult.BridgeCount == 2
+                    && validSetResult.BlockingIssueCount == 0
+                    && bridgeSet.RegistryEntries == 0
+                    && bridgeSet.RegistryActive == 0
+                    && bridgeSet.PhysicalReleaseRequestedCount == 0;
+                if (!validSetSucceeded)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Authoring Validation Smoke step failed. step='valid-set' bridge='{validFirstBridgeResult.ToDiagnosticString()}' set='{validSetResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                _logger.Info(
+                    "QA Content Anchor Materialization Authoring Validation Smoke step completed. "
+                    + $"step='unity-content-anchor-materialization-authoring-validation' passed='True' invalidBridgeBlocked='{invalidBridgeBlocked}' duplicateKeyBlocked='{duplicateKeyBlocked}' validBridge='{validFirstBridgeResult.Status}' validSet='{validSetResult.Status}' bridgeCount='{validSetResult.BridgeCount}' blockingIssues='{validSetResult.BlockingIssueCount}' registryEntries='{bridgeSet.RegistryEntries}' registryActive='{bridgeSet.RegistryActive}' physicalReleaseRequests='{bridgeSet.PhysicalReleaseRequestedCount}' authoringValidation='True' batchPreflight='True' noRuntimeSideEffects='True' authoredBridgeSet='True' explicitSubmit='True' automaticLifecycleWiring='False' routeActivityAutoMaterialization='False' contentAnchorPhysicalPlacement='True' bridgeSetCreatesObject='False' bridgeSetDestroysObject='False' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.");
+                return true;
+            }
+            finally
+            {
+                DestroyBridgeSetSmokeObject(firstBridgeObject);
+                DestroyBridgeSetSmokeObject(secondBridgeObject);
+
+                if (firstTemplate != null)
+                {
+                    Object.Destroy(firstTemplate);
+                }
+
+                if (secondTemplate != null)
+                {
+                    Object.Destroy(secondTemplate);
+                }
+
+                if (firstAnchorObject != null)
+                {
+                    Object.Destroy(firstAnchorObject);
+                }
+
+                if (secondAnchorObject != null)
+                {
+                    Object.Destroy(secondAnchorObject);
+                }
+
+                if (setObject != null)
+                {
+                    Object.Destroy(setObject);
                 }
             }
         }

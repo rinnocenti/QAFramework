@@ -59,6 +59,7 @@ namespace Immersive.Framework.Editor.Editor.Validation
                 ValidateOpenSceneRouteContentBindings(report, validationMode);
                 ValidateOpenSceneRouteContentAnchors(report, validationMode);
                 ValidateOpenSceneActivityContentAnchors(report, validationMode);
+                ValidateOpenSceneUnityContentAnchorMaterializationBridges(report, validationMode);
                 ValidateOpenSceneCycleResetTriggers(report, validationMode);
             }
 
@@ -110,6 +111,16 @@ namespace Immersive.Framework.Editor.Editor.Validation
         internal static FrameworkAuthoringValidationReport ValidateActivityContentAnchor(ActivityContentAnchor anchor)
         {
             return ValidateActivityContentAnchor(anchor, FrameworkValidationMode.Standard);
+        }
+
+        internal static FrameworkAuthoringValidationReport ValidateUnityContentAnchorMaterializationBridge(UnityContentAnchorMaterializationBridge bridge)
+        {
+            return ValidateUnityContentAnchorMaterializationBridge(bridge, FrameworkValidationMode.Standard);
+        }
+
+        internal static FrameworkAuthoringValidationReport ValidateUnityContentAnchorMaterializationBridgeSet(UnityContentAnchorMaterializationBridgeSet bridgeSet)
+        {
+            return ValidateUnityContentAnchorMaterializationBridgeSet(bridgeSet, FrameworkValidationMode.Standard);
         }
         internal static FrameworkAuthoringValidationReport ValidateRouteCycleResetTrigger(RouteCycleResetTrigger trigger)
         {
@@ -975,6 +986,143 @@ namespace Immersive.Framework.Editor.Editor.Validation
             return report;
         }
 
+        private static FrameworkAuthoringValidationReport ValidateUnityContentAnchorMaterializationBridge(
+            UnityContentAnchorMaterializationBridge bridge,
+            FrameworkValidationMode validationMode)
+        {
+            var report = new FrameworkAuthoringValidationReport(validationMode);
+            var validation = UnityContentAnchorMaterializationAuthoringValidator.ValidateBridge(
+                bridge,
+                "Unity Content Anchor Materialization Bridge");
+            AddContentAnchorMaterializationAuthoringValidation(report, validation, bridge);
+            return report;
+        }
+
+        private static FrameworkAuthoringValidationReport ValidateUnityContentAnchorMaterializationBridgeSet(
+            UnityContentAnchorMaterializationBridgeSet bridgeSet,
+            FrameworkValidationMode validationMode)
+        {
+            var report = new FrameworkAuthoringValidationReport(validationMode);
+            var validation = UnityContentAnchorMaterializationAuthoringValidator.ValidateBridgeSet(
+                bridgeSet,
+                "Unity Content Anchor Materialization Bridge Set");
+            AddContentAnchorMaterializationAuthoringValidation(report, validation, bridgeSet);
+            return report;
+        }
+
+        private static void AddContentAnchorMaterializationAuthoringValidation(
+            FrameworkAuthoringValidationReport report,
+            UnityContentAnchorMaterializationAuthoringValidationResult validation,
+            Object context)
+        {
+            if (validation == null)
+            {
+                report.AddError("Content Anchor materialization authoring validation produced no result.", context);
+                return;
+            }
+
+            if (validation.Succeeded)
+            {
+                report.AddInfo($"Content Anchor materialization authoring validation passed. {validation.ToDiagnosticString()}", context);
+                return;
+            }
+
+            if (validation.NullBridgeCount > 0)
+            {
+                report.AddError($"Content Anchor materialization authoring has missing bridge references. count='{validation.NullBridgeCount}'.", context);
+            }
+
+            if (validation.DuplicateBridgeCount > 0)
+            {
+                report.AddError($"Content Anchor materialization bridge set references the same bridge more than once. count='{validation.DuplicateBridgeCount}'.", context);
+            }
+
+            if (validation.DuplicateMaterializationKeyCount > 0)
+            {
+                report.AddError($"Content Anchor materialization bridge set has duplicate runtime materialization keys. count='{validation.DuplicateMaterializationKeyCount}'. RuntimeContent identity must be explicit and unique in the set.", context);
+            }
+
+            if (validation.MissingPrefabCount > 0)
+            {
+                report.AddError($"Content Anchor materialization bridge requires an explicit prefab/template. missingPrefabs='{validation.MissingPrefabCount}'.", context);
+            }
+
+            if (validation.MissingAnchorTransformCount > 0)
+            {
+                report.AddError($"Content Anchor materialization bridge requires an explicit anchor Transform. missingAnchorTransforms='{validation.MissingAnchorTransformCount}'.", context);
+            }
+
+            if (validation.InvalidRuntimeScopeCount > 0)
+            {
+                report.AddError($"Content Anchor materialization bridge requires explicit RuntimeContent scope. invalidRuntimeScopes='{validation.InvalidRuntimeScopeCount}'.", context);
+            }
+
+            if (validation.InvalidAnchorScopeCount > 0)
+            {
+                report.AddError($"Content Anchor materialization bridge requires explicit ContentAnchor scope. invalidAnchorScopes='{validation.InvalidAnchorScopeCount}'.", context);
+            }
+
+            if (validation.InvalidAnchorKindCount > 0)
+            {
+                report.AddError($"Content Anchor materialization bridge requires explicit ContentAnchor kind. invalidAnchorKinds='{validation.InvalidAnchorKindCount}'.", context);
+            }
+
+            if (validation.InvalidReleasePolicyCount > 0)
+            {
+                report.AddError($"Content Anchor materialization bridge requires explicit RuntimeContent release policy. invalidReleasePolicies='{validation.InvalidReleasePolicyCount}'.", context);
+            }
+
+            if (validation.MissingRuntimeOwnerIdCount > 0)
+            {
+                report.AddError($"Content Anchor materialization bridge requires explicit Runtime Owner Id. missingRuntimeOwnerIds='{validation.MissingRuntimeOwnerIdCount}'.", context);
+            }
+
+            if (validation.MissingAnchorOwnerIdCount > 0)
+            {
+                report.AddError($"Content Anchor materialization bridge requires explicit Anchor Owner Id. missingAnchorOwnerIds='{validation.MissingAnchorOwnerIdCount}'.", context);
+            }
+
+            if (validation.MissingAnchorIdCount > 0)
+            {
+                report.AddError($"Content Anchor materialization bridge requires explicit Anchor Id. missingAnchorIds='{validation.MissingAnchorIdCount}'.", context);
+            }
+
+            if (validation.MissingRuntimeContentIdCount > 0)
+            {
+                report.AddError($"Content Anchor materialization bridge requires explicit Runtime Content Id. missingRuntimeContentIds='{validation.MissingRuntimeContentIdCount}'.", context);
+            }
+
+            if (validation.MissingResourceKeyCount > 0)
+            {
+                report.AddError($"Content Anchor materialization bridge requires explicit Resource Key. missingResourceKeys='{validation.MissingResourceKeyCount}'.", context);
+            }
+
+            bool hasDetailedIssue = validation.NullBridgeCount > 0
+                || validation.DuplicateBridgeCount > 0
+                || validation.DuplicateMaterializationKeyCount > 0
+                || validation.MissingPrefabCount > 0
+                || validation.MissingAnchorTransformCount > 0
+                || validation.InvalidRuntimeScopeCount > 0
+                || validation.InvalidAnchorScopeCount > 0
+                || validation.InvalidAnchorKindCount > 0
+                || validation.InvalidReleasePolicyCount > 0
+                || validation.MissingRuntimeOwnerIdCount > 0
+                || validation.MissingAnchorOwnerIdCount > 0
+                || validation.MissingAnchorIdCount > 0
+                || validation.MissingRuntimeContentIdCount > 0
+                || validation.MissingResourceKeyCount > 0;
+
+            if (validation.BlockingIssueCount > 0 && !hasDetailedIssue)
+            {
+                report.AddError($"Content Anchor materialization authoring has blocking issues. {validation.ToDiagnosticString()}", context);
+            }
+
+            if (validation.BlockingIssueCount == 0)
+            {
+                report.AddWarning($"Content Anchor materialization authoring validation did not pass cleanly. {validation.ToDiagnosticString()}", context);
+            }
+        }
+
         private static FrameworkAuthoringValidationReport ValidateRouteCycleResetTrigger(
             RouteCycleResetTrigger trigger,
             FrameworkValidationMode validationMode)
@@ -1310,6 +1458,56 @@ namespace Immersive.Framework.Editor.Editor.Validation
             }
 
             ValidateContentAnchorSetIssues(report, declarations, "Activity Content Anchor");
+        }
+
+        private static void ValidateOpenSceneUnityContentAnchorMaterializationBridges(
+            FrameworkAuthoringValidationReport report,
+            FrameworkValidationMode validationMode)
+        {
+            UnityContentAnchorMaterializationBridge[] bridges = Object.FindObjectsByType<UnityContentAnchorMaterializationBridge>(FindObjectsInactive.Include);
+            UnityContentAnchorMaterializationBridgeSet[] bridgeSets = Object.FindObjectsByType<UnityContentAnchorMaterializationBridgeSet>(FindObjectsInactive.Include);
+
+            int bridgeCount = 0;
+            if (bridges != null)
+            {
+                for (int i = 0; i < bridges.Length; i++)
+                {
+                    var bridge = bridges[i];
+                    if (bridge == null || bridge.gameObject == null || !bridge.gameObject.scene.IsValid() || !bridge.gameObject.scene.isLoaded)
+                    {
+                        continue;
+                    }
+
+                    bridgeCount++;
+                    report.AddRange(ValidateUnityContentAnchorMaterializationBridge(bridge, validationMode));
+                }
+            }
+
+            int bridgeSetCount = 0;
+            if (bridgeSets != null)
+            {
+                for (int i = 0; i < bridgeSets.Length; i++)
+                {
+                    var bridgeSet = bridgeSets[i];
+                    if (bridgeSet == null || bridgeSet.gameObject == null || !bridgeSet.gameObject.scene.IsValid() || !bridgeSet.gameObject.scene.isLoaded)
+                    {
+                        continue;
+                    }
+
+                    bridgeSetCount++;
+                    report.AddRange(ValidateUnityContentAnchorMaterializationBridgeSet(bridgeSet, validationMode));
+                }
+            }
+
+            if (bridgeCount == 0 && bridgeSetCount == 0)
+            {
+                report.AddInfo("No Unity Content Anchor Materialization Bridge or Bridge Set components were found in loaded scenes.", null);
+                return;
+            }
+
+            report.AddInfo(
+                $"Unity Content Anchor materialization authoring validation scanned bridges='{bridgeCount}' bridgeSets='{bridgeSetCount}'.",
+                null);
         }
 
         private static void ValidateOpenSceneCycleResetTriggers(
