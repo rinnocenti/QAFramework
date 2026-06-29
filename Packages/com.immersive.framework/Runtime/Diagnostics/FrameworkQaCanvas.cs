@@ -589,6 +589,26 @@ namespace Immersive.Framework.Diagnostics
                 {
                     RunContentAnchorMaterializationPipelineSmoke();
                 }
+
+                if (GUILayout.Button("Run Content Anchor Materialization Scope Release Smoke"))
+                {
+                    RunContentAnchorMaterializationScopeReleaseSmoke();
+                }
+
+                if (GUILayout.Button("Run Content Anchor Materialization Bridge Smoke"))
+                {
+                    RunContentAnchorMaterializationBridgeSmoke();
+                }
+
+                if (GUILayout.Button("Run Content Anchor Materialization Bridge Set Smoke"))
+                {
+                    RunContentAnchorMaterializationBridgeSetSmoke();
+                }
+
+                if (GUILayout.Button("Run Content Anchor Materialization Bridge Set Preflight Smoke"))
+                {
+                    RunContentAnchorMaterializationBridgeSetPreflightSmoke();
+                }
             }
         }
 
@@ -2179,18 +2199,20 @@ private async void RunLocalContributionSmoke()
                     return false;
                 }
 
-                var anchor = ContentAnchorDeclaration.ForRoute(
-                    "qa.content-anchor-pipeline.route",
-                    ContentAnchorKind.Slot,
+                var anchorOwner = ContentAnchorDeclaration.CreateOwnerKey(
+                    ContentAnchorScope.Route,
+                    "qa.content-anchor-pipeline.route");
+                var anchor = ContentAnchorDeclaration.Slot(
+                    anchorOwner,
+                    ContentAnchorScope.Route,
                     "qa.content-anchor-pipeline.anchor",
                     ContentAnchorRequiredness.Required,
-                    QaSource,
-                    "qa.content-anchor-pipeline.anchor");
-                var anchorSet = ContentAnchorSet.Create(
-                    new[] { anchor },
-                    QaSource,
-                    "qa.content-anchor-pipeline.anchor-set");
-                if (!anchorSet.IsValid || anchorSet.AnchorCount != 1 || anchorSet.HasBlockingIssues)
+                    "QA Content Anchor Materialization Pipeline Anchor",
+                    "qa.content-anchor-pipeline.anchor",
+                    string.Empty,
+                    string.Empty);
+                var anchorSet = ContentAnchorSet.FromDeclarations(new[] { anchor });
+                if (!anchorSet.HasAnchors || anchorSet.Count != 1 || anchorSet.HasIssues)
                 {
                     _logger.Warning($"QA Content Anchor Materialization Pipeline Smoke step failed. step='anchor-set' diagnostics='{anchorSet.ToDiagnosticString()}'.");
                     return false;
@@ -2395,6 +2417,1111 @@ private async void RunLocalContributionSmoke()
                         "qa.content-anchor-pipeline.cleanup.root-remove");
                 }
             }
+        }
+
+
+        private async void RunContentAnchorMaterializationScopeReleaseSmoke()
+        {
+            await RunSmokeAsync("Content Anchor Materialization Scope Release Smoke", runtimeHost =>
+                Task.FromResult(RunContentAnchorMaterializationScopeReleaseSmokeCore(runtimeHost)));
+        }
+
+        private bool RunContentAnchorMaterializationScopeReleaseSmokeCore(FrameworkRuntimeHost runtimeHost)
+        {
+            var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+            if (runtimeContentRuntime == null)
+            {
+                _logger.Warning("QA Content Anchor Materialization Scope Release Smoke failed. reason='RuntimeContentRuntime unavailable'.");
+                return false;
+            }
+
+            var registry = new UnityRuntimeMaterializedObjectRegistry();
+            RuntimeScopeContext context = default;
+            RuntimeContentOwner owner = default;
+            ContentAnchorBindingRequest firstBindingRequest = default;
+            ContentAnchorBindingRequest secondBindingRequest = default;
+            GameObject template = null;
+            GameObject anchorObject = null;
+            bool rootCreated = false;
+
+            try
+            {
+                owner = RuntimeContentOwner.Transient(
+                    "qa.content-anchor-scope-release.owner",
+                    "QA Content Anchor Materialization Scope Release Smoke");
+                var rootCreateResult = runtimeContentRuntime.CreateScopeRoot(
+                    owner,
+                    QaSource,
+                    "qa.content-anchor-scope-release.root.create");
+                rootCreated = rootCreateResult.Applied || rootCreateResult.Status == RuntimeRootRegistryOperationStatus.RootAlreadyExists;
+                if (!rootCreated)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Scope Release Smoke step failed. step='root-create' status='{rootCreateResult.Status}' message='{FormatValue(rootCreateResult.Message)}'.");
+                    return false;
+                }
+
+                if (!runtimeContentRuntime.TryCreateScopeContext(
+                        owner,
+                        QaSource,
+                        "qa.content-anchor-scope-release.context",
+                        out context))
+                {
+                    _logger.Warning("QA Content Anchor Materialization Scope Release Smoke step failed. step='context' reason='Runtime scope context was not created'.");
+                    return false;
+                }
+
+                var anchorOwner = ContentAnchorDeclaration.CreateOwnerKey(
+                    ContentAnchorScope.Route,
+                    "qa.content-anchor-scope-release.route");
+                var anchor = ContentAnchorDeclaration.Slot(
+                    anchorOwner,
+                    ContentAnchorScope.Route,
+                    "qa.content-anchor-scope-release.anchor",
+                    ContentAnchorRequiredness.Required,
+                    "QA Content Anchor Materialization Scope Release Anchor",
+                    "qa.content-anchor-scope-release.anchor",
+                    string.Empty,
+                    string.Empty);
+                var anchorSet = ContentAnchorSet.FromDeclarations(new[] { anchor });
+                if (!anchorSet.HasAnchors || anchorSet.Count != 1 || anchorSet.HasIssues)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Scope Release Smoke step failed. step='anchor-set' diagnostics='{anchorSet.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var firstResource = new RuntimeMaterializationResource(
+                    UnityPrefabRuntimeMaterializationAdapter.ResourceType,
+                    "qa.content-anchor-scope-release.prefab.1",
+                    "QA Content Anchor Scope Release Template 1",
+                    string.Empty);
+                firstBindingRequest = ContentAnchorBindingRequest.FromDeclaration(
+                    context,
+                    anchor,
+                    "qa.content-anchor-scope-release.content.1",
+                    firstResource,
+                    QaSource,
+                    "qa.content-anchor-scope-release.binding.request.1");
+
+                var secondResource = new RuntimeMaterializationResource(
+                    UnityPrefabRuntimeMaterializationAdapter.ResourceType,
+                    "qa.content-anchor-scope-release.prefab.2",
+                    "QA Content Anchor Scope Release Template 2",
+                    string.Empty);
+                secondBindingRequest = ContentAnchorBindingRequest.FromDeclaration(
+                    context,
+                    anchor,
+                    "qa.content-anchor-scope-release.content.2",
+                    secondResource,
+                    QaSource,
+                    "qa.content-anchor-scope-release.binding.request.2");
+
+                template = new GameObject("QA Content Anchor Scope Release Template");
+                template.hideFlags = HideFlags.DontSave;
+                anchorObject = new GameObject("QA Content Anchor Scope Release Anchor");
+                anchorObject.hideFlags = HideFlags.DontSave;
+
+                var materializationAdapter = new UnityPrefabRuntimeMaterializationAdapter(
+                    template,
+                    registry,
+                    null,
+                    QaSource);
+                var placementAdapter = new UnityContentAnchorPlacementAdapter(QaSource);
+                var releaseAdapter = new UnityObjectRuntimeReleaseAdapter(registry, QaSource);
+                var materializationPipeline = new UnityContentAnchorMaterializationPipeline(
+                    materializationAdapter,
+                    placementAdapter,
+                    releaseAdapter,
+                    QaSource);
+                var scopeReleasePipeline = new UnityContentAnchorMaterializationScopeReleasePipeline(
+                    releaseAdapter,
+                    QaSource);
+
+                var missingRuntimeHostResult = scopeReleasePipeline.ReleaseScope(
+                    null,
+                    context,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    "qa.content-anchor-scope-release.missing-host");
+                bool missingRuntimeHostBlocked = missingRuntimeHostResult.Failed
+                    && missingRuntimeHostResult.Status == UnityContentAnchorMaterializationScopeReleasePipelineStatus.FailedMissingRuntimeHost
+                    && registry.Count == 0;
+                if (!missingRuntimeHostBlocked)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Scope Release Smoke step failed. step='missing-host' diagnostics='{missingRuntimeHostResult.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var firstPipelineResult = materializationPipeline.MaterializeBindPlace(
+                    runtimeHost,
+                    anchorSet,
+                    firstBindingRequest,
+                    anchorObject.transform,
+                    true,
+                    "qa.content-anchor-scope-release.materialize.1");
+                var secondPipelineResult = materializationPipeline.MaterializeBindPlace(
+                    runtimeHost,
+                    anchorSet,
+                    secondBindingRequest,
+                    anchorObject.transform,
+                    true,
+                    "qa.content-anchor-scope-release.materialize.2");
+                bool materializedScope = firstPipelineResult.Succeeded
+                    && secondPipelineResult.Succeeded
+                    && registry.Count == 2
+                    && registry.ActiveCount == 2
+                    && runtimeContentRuntime.SnapshotHandles(context).Length == 2;
+                if (!materializedScope)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Scope Release Smoke step failed. step='materialize-scope' first='{firstPipelineResult.ToDiagnosticString()}' second='{secondPipelineResult.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var scopeReleaseResult = scopeReleasePipeline.ReleaseScope(
+                    runtimeHost,
+                    context,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    "qa.content-anchor-scope-release.release");
+                bool scopeReleaseSucceeded = scopeReleaseResult.Succeeded
+                    && scopeReleaseResult.Status == UnityContentAnchorMaterializationScopeReleasePipelineStatus.Succeeded
+                    && scopeReleaseResult.MatchedPhysicalEntries == 2
+                    && scopeReleaseResult.PhysicalReleaseRequests == 2
+                    && scopeReleaseResult.LogicalReleaseResults == 2
+                    && scopeReleaseResult.BindingRemovedCount == 2
+                    && registry.Count == 2
+                    && registry.ActiveCount == 0
+                    && registry.PhysicalReleaseRequestedCount == 2
+                    && runtimeContentRuntime.SnapshotHandles(context).Length == 0;
+                if (!scopeReleaseSucceeded)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Scope Release Smoke step failed. step='scope-release' diagnostics='{scopeReleaseResult.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var secondScopeReleaseResult = scopeReleasePipeline.ReleaseScope(
+                    runtimeHost,
+                    context,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    "qa.content-anchor-scope-release.release-again");
+                bool secondScopeReleaseIdempotent = secondScopeReleaseResult.Succeeded
+                    && secondScopeReleaseResult.Status == UnityContentAnchorMaterializationScopeReleasePipelineStatus.SucceededNoContent
+                    && secondScopeReleaseResult.MatchedPhysicalEntries == 2
+                    && secondScopeReleaseResult.PhysicalReleaseRequests == 0
+                    && secondScopeReleaseResult.LogicalReleaseResults == 0
+                    && secondScopeReleaseResult.BindingRemovedCount == 0
+                    && registry.ActiveCount == 0
+                    && runtimeContentRuntime.SnapshotHandles(context).Length == 0;
+                if (!secondScopeReleaseIdempotent)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Scope Release Smoke step failed. step='release-again' diagnostics='{secondScopeReleaseResult.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var rootRemoveResult = runtimeContentRuntime.RemoveScopeRoot(
+                    owner,
+                    QaSource,
+                    "qa.content-anchor-scope-release.root.remove");
+                if (!rootRemoveResult.Applied && rootRemoveResult.Status != RuntimeRootRegistryOperationStatus.RootMissing)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Scope Release Smoke step failed. step='root-remove' status='{rootRemoveResult.Status}' message='{FormatValue(rootRemoveResult.Message)}'.");
+                    return false;
+                }
+
+                rootCreated = false;
+
+                _logger.Info(
+                    "QA Content Anchor Materialization Scope Release Smoke step completed. "
+                    + $"step='unity-content-anchor-materialization-scope-release' passed='True' missingRuntimeHostBlocked='{missingRuntimeHostBlocked}' materializedScope='{materializedScope}' scopeRelease='{scopeReleaseResult.Status}' physicalReleaseRequests='{scopeReleaseResult.PhysicalReleaseRequests}' logicalReleaseResults='{scopeReleaseResult.LogicalReleaseResults}' bindingRemoved='{scopeReleaseResult.BindingRemovedCount}' releaseAgain='{secondScopeReleaseResult.Status}' releaseAgainIdempotent='{secondScopeReleaseIdempotent}' registry='{registry.ToDiagnosticString()}' contentHandles='{runtimeContentRuntime.SnapshotHandles(context).Length}' contentAnchorPhysicalPlacement='True' pipelineMaterializesObject='True' scopeReleasePhysical='True' automaticLifecycleWiring='False' routeActivityAutoMaterialization='False' contentAnchorCreatesObject='False' contentAnchorDestroysObject='False' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.");
+                return true;
+            }
+            finally
+            {
+                foreach (var entry in registry.Snapshot())
+                {
+                    if (entry != null && entry.HasLiveInstance && !entry.PhysicalReleaseRequested)
+                    {
+                        Object.Destroy(entry.Instance);
+                    }
+                }
+
+                if (template != null)
+                {
+                    Object.Destroy(template);
+                }
+
+                if (anchorObject != null)
+                {
+                    Object.Destroy(anchorObject);
+                }
+
+                if (rootCreated)
+                {
+                    if (context.IsValid)
+                    {
+                        if (firstBindingRequest.IsValid)
+                        {
+                            runtimeHost.UnbindContentAnchor(firstBindingRequest);
+                        }
+
+                        if (secondBindingRequest.IsValid)
+                        {
+                            runtimeHost.UnbindContentAnchor(secondBindingRequest);
+                        }
+
+                        runtimeContentRuntime.ReleaseScopeLogically(
+                            context,
+                            RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                            QaSource,
+                            "qa.content-anchor-scope-release.cleanup.scope-release");
+                    }
+
+                    runtimeContentRuntime.RemoveScopeRoot(
+                        owner,
+                        QaSource,
+                        "qa.content-anchor-scope-release.cleanup.root-remove");
+                }
+            }
+        }
+
+
+        private async void RunContentAnchorMaterializationBridgeSmoke()
+        {
+            await RunSmokeAsync("Content Anchor Materialization Bridge Smoke", runtimeHost =>
+                Task.FromResult(RunContentAnchorMaterializationBridgeSmokeCore(runtimeHost)));
+        }
+
+        private bool RunContentAnchorMaterializationBridgeSmokeCore(FrameworkRuntimeHost runtimeHost)
+        {
+            var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+            if (runtimeContentRuntime == null)
+            {
+                _logger.Warning("QA Content Anchor Materialization Bridge Smoke failed. reason='RuntimeContentRuntime unavailable'.");
+                return false;
+            }
+
+            GameObject bridgeObject = null;
+            GameObject template = null;
+            GameObject anchorObject = null;
+            bool rootCreated = false;
+            var owner = RuntimeContentOwner.Transient(
+                "qa.content-anchor-materialization-bridge.owner",
+                "QA Content Anchor Materialization Bridge Smoke");
+
+            try
+            {
+                bridgeObject = new GameObject("QA Content Anchor Materialization Bridge");
+                bridgeObject.hideFlags = HideFlags.DontSave;
+                var bridge = bridgeObject.AddComponent<UnityContentAnchorMaterializationBridge>();
+                anchorObject = new GameObject("QA Content Anchor Materialization Bridge Anchor");
+                anchorObject.hideFlags = HideFlags.DontSave;
+
+                bridge.ConfigureForDiagnostics(
+                    null,
+                    anchorObject.transform,
+                    RuntimeContentScope.Transient,
+                    "qa.content-anchor-materialization-bridge.owner",
+                    "QA Content Anchor Materialization Bridge Smoke",
+                    true,
+                    ContentAnchorScope.Route,
+                    ContentAnchorKind.Slot,
+                    ContentAnchorRequiredness.Required,
+                    "qa.content-anchor-materialization-bridge.route",
+                    "qa.content-anchor-materialization-bridge.anchor",
+                    "qa.content-anchor-materialization-bridge.content",
+                    "qa.content-anchor-materialization-bridge.prefab",
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    true,
+                    false);
+
+                var missingPrefabResult = bridge.SubmitMaterializationForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge.missing-prefab");
+                bool missingPrefabBlocked = missingPrefabResult.Failed
+                    && missingPrefabResult.Status == UnityContentAnchorMaterializationBridgeStatus.FailedConfiguration
+                    && bridge.Registry.Count == 0;
+                if (!missingPrefabBlocked)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Smoke step failed. step='missing-prefab' diagnostics='{missingPrefabResult.ToDiagnosticString()}' registry='{bridge.Registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                template = new GameObject("QA Content Anchor Materialization Bridge Template");
+                template.hideFlags = HideFlags.DontSave;
+                bridge.ConfigureForDiagnostics(
+                    template,
+                    anchorObject.transform,
+                    RuntimeContentScope.Transient,
+                    "qa.content-anchor-materialization-bridge.owner",
+                    "QA Content Anchor Materialization Bridge Smoke",
+                    true,
+                    ContentAnchorScope.Route,
+                    ContentAnchorKind.Slot,
+                    ContentAnchorRequiredness.Required,
+                    "qa.content-anchor-materialization-bridge.route",
+                    "qa.content-anchor-materialization-bridge.anchor",
+                    "qa.content-anchor-materialization-bridge.content",
+                    "qa.content-anchor-materialization-bridge.prefab",
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    true,
+                    false);
+
+                var materializeResult = bridge.SubmitMaterializationForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge.materialize");
+                rootCreated = runtimeContentRuntime.TryCreateScopeContext(
+                    owner,
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge.root-check",
+                    out var context);
+                bool physicalParentApplied = false;
+                foreach (var evidence in bridge.Registry.Snapshot())
+                {
+                    if (evidence != null && evidence.HasLiveInstance && evidence.Instance.transform.parent == anchorObject.transform)
+                    {
+                        physicalParentApplied = true;
+                        break;
+                    }
+                }
+
+                bool materializeSucceeded = materializeResult.Succeeded
+                    && materializeResult.Status == UnityContentAnchorMaterializationBridgeStatus.SucceededMaterialized
+                    && materializeResult.PhysicalPlacementApplied
+                    && physicalParentApplied
+                    && bridge.Registry.Count == 1
+                    && bridge.Registry.ActiveCount == 1
+                    && context.IsValid
+                    && runtimeContentRuntime.SnapshotHandles(context).Length == 1;
+                if (!materializeSucceeded)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Smoke step failed. step='materialize' diagnostics='{materializeResult.ToDiagnosticString()}' registry='{bridge.Registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var duplicateResult = bridge.SubmitMaterializationForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge.duplicate");
+                bool duplicateBlocked = duplicateResult.Failed
+                    && duplicateResult.Status == UnityContentAnchorMaterializationBridgeStatus.FailedMaterializationPipeline
+                    && bridge.Registry.Count == 1
+                    && bridge.Registry.ActiveCount == 1
+                    && runtimeContentRuntime.SnapshotHandles(context).Length == 1;
+                if (!duplicateBlocked)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Smoke step failed. step='duplicate' diagnostics='{duplicateResult.ToDiagnosticString()}' registry='{bridge.Registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var releaseResult = bridge.SubmitScopeReleaseForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge.release");
+                bool releaseSucceeded = releaseResult.Succeeded
+                    && releaseResult.Status == UnityContentAnchorMaterializationBridgeStatus.SucceededReleased
+                    && releaseResult.PhysicalReleaseRequests == 1
+                    && releaseResult.LogicalReleaseResults == 1
+                    && releaseResult.BindingRemovedCount == 1
+                    && bridge.Registry.Count == 1
+                    && bridge.Registry.ActiveCount == 0
+                    && bridge.Registry.PhysicalReleaseRequestedCount == 1
+                    && runtimeContentRuntime.SnapshotHandles(context).Length == 0;
+                if (!releaseSucceeded)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Smoke step failed. step='release' diagnostics='{releaseResult.ToDiagnosticString()}' registry='{bridge.Registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var releaseAgainResult = bridge.SubmitScopeReleaseForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge.release-again");
+                bool releaseAgainIdempotent = releaseAgainResult.Succeeded
+                    && releaseAgainResult.Status == UnityContentAnchorMaterializationBridgeStatus.SucceededReleaseNoContent
+                    && releaseAgainResult.PhysicalReleaseRequests == 0
+                    && releaseAgainResult.LogicalReleaseResults == 0
+                    && releaseAgainResult.BindingRemovedCount == 0
+                    && bridge.Registry.ActiveCount == 0
+                    && runtimeContentRuntime.SnapshotHandles(context).Length == 0;
+                if (!releaseAgainIdempotent)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Smoke step failed. step='release-again' diagnostics='{releaseAgainResult.ToDiagnosticString()}' registry='{bridge.Registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var afterReleaseResult = bridge.SubmitMaterializationForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge.after-release");
+                bool afterReleaseBlocked = afterReleaseResult.Failed
+                    && afterReleaseResult.Status == UnityContentAnchorMaterializationBridgeStatus.FailedMaterializationPipeline
+                    && bridge.Registry.Count == 1
+                    && bridge.Registry.ActiveCount == 0
+                    && runtimeContentRuntime.SnapshotHandles(context).Length == 0;
+                if (!afterReleaseBlocked)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Smoke step failed. step='after-release' diagnostics='{afterReleaseResult.ToDiagnosticString()}' registry='{bridge.Registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var rootRemoveResult = runtimeContentRuntime.RemoveScopeRoot(
+                    owner,
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge.root.remove");
+                if (!rootRemoveResult.Applied && rootRemoveResult.Status != RuntimeRootRegistryOperationStatus.RootMissing)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Smoke step failed. step='root-remove' status='{rootRemoveResult.Status}' message='{FormatValue(rootRemoveResult.Message)}'.");
+                    return false;
+                }
+
+                rootCreated = false;
+
+                _logger.Info(
+                    "QA Content Anchor Materialization Bridge Smoke step completed. "
+                    + $"step='unity-content-anchor-materialization-bridge' passed='True' missingPrefabBlocked='{missingPrefabBlocked}' materialize='{materializeResult.Status}' duplicateBlocked='{duplicateBlocked}' release='{releaseResult.Status}' releaseAgain='{releaseAgainResult.Status}' releaseAgainIdempotent='{releaseAgainIdempotent}' afterReleaseBlocked='{afterReleaseBlocked}' registry='{bridge.Registry.ToDiagnosticString()}' contentHandles='{runtimeContentRuntime.SnapshotHandles(context).Length}' authoredBridge='True' explicitSubmit='True' automaticLifecycleWiring='False' routeActivityAutoMaterialization='False' pipelineMaterializesObject='True' contentAnchorPhysicalPlacement='True' contentAnchorCreatesObject='False' contentAnchorDestroysObject='False' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.");
+                return true;
+            }
+            finally
+            {
+                if (bridgeObject != null)
+                {
+                    var bridge = bridgeObject.GetComponent<UnityContentAnchorMaterializationBridge>();
+                    if (bridge != null)
+                    {
+                        foreach (var entry in bridge.Registry.Snapshot())
+                        {
+                            if (entry != null && entry.HasLiveInstance && !entry.PhysicalReleaseRequested)
+                            {
+                                Object.Destroy(entry.Instance);
+                            }
+                        }
+                    }
+                }
+
+                if (template != null)
+                {
+                    Object.Destroy(template);
+                }
+
+                if (anchorObject != null)
+                {
+                    Object.Destroy(anchorObject);
+                }
+
+                if (bridgeObject != null)
+                {
+                    Object.Destroy(bridgeObject);
+                }
+
+                if (rootCreated)
+                {
+                    if (runtimeContentRuntime.TryCreateScopeContext(
+                            owner,
+                            QaSource,
+                            "qa.content-anchor-materialization-bridge.cleanup.context",
+                            out var cleanupContext))
+                    {
+                        runtimeHost.UnbindContentAnchorRuntimeOwner(
+                            owner,
+                            QaSource,
+                            "qa.content-anchor-materialization-bridge.cleanup.unbind-owner");
+                        runtimeContentRuntime.ReleaseScopeLogically(
+                            cleanupContext,
+                            RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                            QaSource,
+                            "qa.content-anchor-materialization-bridge.cleanup.logical-release");
+                    }
+
+                    runtimeContentRuntime.RemoveScopeRoot(
+                        owner,
+                        QaSource,
+                        "qa.content-anchor-materialization-bridge.cleanup.root-remove");
+                }
+            }
+        }
+
+
+        private async void RunContentAnchorMaterializationBridgeSetSmoke()
+        {
+            await RunSmokeAsync("Content Anchor Materialization Bridge Set Smoke", runtimeHost =>
+                Task.FromResult(RunContentAnchorMaterializationBridgeSetSmokeCore(runtimeHost)));
+        }
+
+        private bool RunContentAnchorMaterializationBridgeSetSmokeCore(FrameworkRuntimeHost runtimeHost)
+        {
+            var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+            if (runtimeContentRuntime == null)
+            {
+                _logger.Warning("QA Content Anchor Materialization Bridge Set Smoke failed. reason='RuntimeContentRuntime unavailable'.");
+                return false;
+            }
+
+            GameObject setObject = null;
+            GameObject firstBridgeObject = null;
+            GameObject secondBridgeObject = null;
+            GameObject firstTemplate = null;
+            GameObject secondTemplate = null;
+            GameObject firstAnchorObject = null;
+            GameObject secondAnchorObject = null;
+            bool firstRootCreated = false;
+            bool secondRootCreated = false;
+            var firstOwner = RuntimeContentOwner.Transient(
+                "qa.content-anchor-materialization-bridge-set.owner.1",
+                "QA Content Anchor Materialization Bridge Set Smoke 1");
+            var secondOwner = RuntimeContentOwner.Transient(
+                "qa.content-anchor-materialization-bridge-set.owner.2",
+                "QA Content Anchor Materialization Bridge Set Smoke 2");
+
+            try
+            {
+                setObject = new GameObject("QA Content Anchor Materialization Bridge Set");
+                setObject.hideFlags = HideFlags.DontSave;
+                var bridgeSet = setObject.AddComponent<UnityContentAnchorMaterializationBridgeSet>();
+
+                var missingBridgesResult = bridgeSet.SubmitMaterializeAllForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set.missing-bridges");
+                bool missingBridgesBlocked = missingBridgesResult.Failed
+                    && missingBridgesResult.Status == UnityContentAnchorMaterializationBridgeSetStatus.FailedNoBridges
+                    && missingBridgesResult.RegistryEntries == 0
+                    && missingBridgesResult.RegistryActive == 0;
+                if (!missingBridgesBlocked)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Set Smoke step failed. step='missing-bridges' diagnostics='{missingBridgesResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                firstBridgeObject = new GameObject("QA Content Anchor Materialization Bridge Set Item 1");
+                firstBridgeObject.hideFlags = HideFlags.DontSave;
+                var firstBridge = firstBridgeObject.AddComponent<UnityContentAnchorMaterializationBridge>();
+                secondBridgeObject = new GameObject("QA Content Anchor Materialization Bridge Set Item 2");
+                secondBridgeObject.hideFlags = HideFlags.DontSave;
+                var secondBridge = secondBridgeObject.AddComponent<UnityContentAnchorMaterializationBridge>();
+
+                firstTemplate = new GameObject("QA Content Anchor Materialization Bridge Set Template 1");
+                firstTemplate.hideFlags = HideFlags.DontSave;
+                secondTemplate = new GameObject("QA Content Anchor Materialization Bridge Set Template 2");
+                secondTemplate.hideFlags = HideFlags.DontSave;
+                firstAnchorObject = new GameObject("QA Content Anchor Materialization Bridge Set Anchor 1");
+                firstAnchorObject.hideFlags = HideFlags.DontSave;
+                secondAnchorObject = new GameObject("QA Content Anchor Materialization Bridge Set Anchor 2");
+                secondAnchorObject.hideFlags = HideFlags.DontSave;
+
+                firstBridge.ConfigureForDiagnostics(
+                    firstTemplate,
+                    firstAnchorObject.transform,
+                    RuntimeContentScope.Transient,
+                    "qa.content-anchor-materialization-bridge-set.owner.1",
+                    "QA Content Anchor Materialization Bridge Set Smoke 1",
+                    true,
+                    ContentAnchorScope.Route,
+                    ContentAnchorKind.Slot,
+                    ContentAnchorRequiredness.Required,
+                    "qa.content-anchor-materialization-bridge-set.route.1",
+                    "qa.content-anchor-materialization-bridge-set.anchor.1",
+                    "qa.content-anchor-materialization-bridge-set.content.1",
+                    "qa.content-anchor-materialization-bridge-set.prefab.1",
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    true,
+                    false);
+                secondBridge.ConfigureForDiagnostics(
+                    secondTemplate,
+                    secondAnchorObject.transform,
+                    RuntimeContentScope.Transient,
+                    "qa.content-anchor-materialization-bridge-set.owner.2",
+                    "QA Content Anchor Materialization Bridge Set Smoke 2",
+                    true,
+                    ContentAnchorScope.Route,
+                    ContentAnchorKind.Slot,
+                    ContentAnchorRequiredness.Required,
+                    "qa.content-anchor-materialization-bridge-set.route.2",
+                    "qa.content-anchor-materialization-bridge-set.anchor.2",
+                    "qa.content-anchor-materialization-bridge-set.content.2",
+                    "qa.content-anchor-materialization-bridge-set.prefab.2",
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    true,
+                    false);
+
+                bridgeSet.ConfigureForDiagnostics(new[] { firstBridge, secondBridge }, false);
+
+                var materializeAllResult = bridgeSet.SubmitMaterializeAllForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set.materialize-all");
+                firstRootCreated = runtimeContentRuntime.TryCreateScopeContext(
+                    firstOwner,
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set.root-check.1",
+                    out var firstContext);
+                secondRootCreated = runtimeContentRuntime.TryCreateScopeContext(
+                    secondOwner,
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set.root-check.2",
+                    out var secondContext);
+
+                bool firstParentApplied = HasParentedLiveInstance(firstBridge, firstAnchorObject.transform);
+                bool secondParentApplied = HasParentedLiveInstance(secondBridge, secondAnchorObject.transform);
+                bool materializedAll = materializeAllResult.Succeeded
+                    && materializeAllResult.Status == UnityContentAnchorMaterializationBridgeSetStatus.SucceededMaterializedAll
+                    && materializeAllResult.BridgeCount == 2
+                    && materializeAllResult.MaterializedCount == 2
+                    && materializeAllResult.RegistryEntries == 2
+                    && materializeAllResult.RegistryActive == 2
+                    && firstParentApplied
+                    && secondParentApplied
+                    && firstContext.IsValid
+                    && secondContext.IsValid
+                    && runtimeContentRuntime.SnapshotHandles(firstContext).Length == 1
+                    && runtimeContentRuntime.SnapshotHandles(secondContext).Length == 1;
+                if (!materializedAll)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Set Smoke step failed. step='materialize-all' diagnostics='{materializeAllResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var duplicateResult = bridgeSet.SubmitMaterializeAllForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set.duplicate");
+                bool duplicateBlocked = duplicateResult.Failed
+                    && duplicateResult.Status == UnityContentAnchorMaterializationBridgeSetStatus.FailedBridgeMaterialization
+                    && bridgeSet.RegistryEntries == 2
+                    && bridgeSet.RegistryActive == 2
+                    && runtimeContentRuntime.SnapshotHandles(firstContext).Length == 1
+                    && runtimeContentRuntime.SnapshotHandles(secondContext).Length == 1;
+                if (!duplicateBlocked)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Set Smoke step failed. step='duplicate' diagnostics='{duplicateResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var releaseAllResult = bridgeSet.SubmitReleaseAllForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set.release-all");
+                bool releaseAllSucceeded = releaseAllResult.Succeeded
+                    && releaseAllResult.Status == UnityContentAnchorMaterializationBridgeSetStatus.SucceededReleasedAll
+                    && releaseAllResult.ReleasedCount == 2
+                    && releaseAllResult.PhysicalReleaseRequests == 2
+                    && releaseAllResult.LogicalReleaseResults == 2
+                    && releaseAllResult.BindingRemovedCount == 2
+                    && releaseAllResult.RegistryEntries == 2
+                    && releaseAllResult.RegistryActive == 0
+                    && runtimeContentRuntime.SnapshotHandles(firstContext).Length == 0
+                    && runtimeContentRuntime.SnapshotHandles(secondContext).Length == 0;
+                if (!releaseAllSucceeded)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Set Smoke step failed. step='release-all' diagnostics='{releaseAllResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var releaseAgainResult = bridgeSet.SubmitReleaseAllForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set.release-again");
+                bool releaseAgainIdempotent = releaseAgainResult.Succeeded
+                    && releaseAgainResult.Status == UnityContentAnchorMaterializationBridgeSetStatus.SucceededReleaseNoContent
+                    && releaseAgainResult.ReleasedCount == 0
+                    && releaseAgainResult.RegistryActive == 0
+                    && runtimeContentRuntime.SnapshotHandles(firstContext).Length == 0
+                    && runtimeContentRuntime.SnapshotHandles(secondContext).Length == 0;
+                if (!releaseAgainIdempotent)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Set Smoke step failed. step='release-again' diagnostics='{releaseAgainResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var afterReleaseResult = bridgeSet.SubmitMaterializeAllForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set.after-release");
+                bool afterReleaseBlocked = afterReleaseResult.Failed
+                    && afterReleaseResult.Status == UnityContentAnchorMaterializationBridgeSetStatus.FailedBridgeMaterialization
+                    && bridgeSet.RegistryEntries == 2
+                    && bridgeSet.RegistryActive == 0
+                    && runtimeContentRuntime.SnapshotHandles(firstContext).Length == 0
+                    && runtimeContentRuntime.SnapshotHandles(secondContext).Length == 0;
+                if (!afterReleaseBlocked)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Set Smoke step failed. step='after-release' diagnostics='{afterReleaseResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var firstRootRemoveResult = runtimeContentRuntime.RemoveScopeRoot(
+                    firstOwner,
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set.root.remove.1");
+                if (!firstRootRemoveResult.Applied && firstRootRemoveResult.Status != RuntimeRootRegistryOperationStatus.RootMissing)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Set Smoke step failed. step='root-remove-1' status='{firstRootRemoveResult.Status}' message='{FormatValue(firstRootRemoveResult.Message)}'.");
+                    return false;
+                }
+
+                var secondRootRemoveResult = runtimeContentRuntime.RemoveScopeRoot(
+                    secondOwner,
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set.root.remove.2");
+                if (!secondRootRemoveResult.Applied && secondRootRemoveResult.Status != RuntimeRootRegistryOperationStatus.RootMissing)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Set Smoke step failed. step='root-remove-2' status='{secondRootRemoveResult.Status}' message='{FormatValue(secondRootRemoveResult.Message)}'.");
+                    return false;
+                }
+
+                firstRootCreated = false;
+                secondRootCreated = false;
+
+                _logger.Info(
+                    "QA Content Anchor Materialization Bridge Set Smoke step completed. "
+                    + $"step='unity-content-anchor-materialization-bridge-set' passed='True' missingBridgesBlocked='{missingBridgesBlocked}' materializeAll='{materializeAllResult.Status}' bridgeCount='{materializeAllResult.BridgeCount}' materialized='{materializeAllResult.MaterializedCount}' duplicateBlocked='{duplicateBlocked}' releaseAll='{releaseAllResult.Status}' released='{releaseAllResult.ReleasedCount}' releaseAgain='{releaseAgainResult.Status}' releaseAgainIdempotent='{releaseAgainIdempotent}' afterReleaseBlocked='{afterReleaseBlocked}' registryEntries='{bridgeSet.RegistryEntries}' registryActive='{bridgeSet.RegistryActive}' physicalReleaseRequests='{bridgeSet.PhysicalReleaseRequestedCount}' contentHandles='{runtimeContentRuntime.SnapshotHandles(firstContext).Length + runtimeContentRuntime.SnapshotHandles(secondContext).Length}' authoredBridgeSet='True' explicitSubmit='True' automaticLifecycleWiring='False' routeActivityAutoMaterialization='False' contentAnchorPhysicalPlacement='True' bridgeSetCreatesObject='False' bridgeSetDestroysObject='False' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.");
+                return true;
+            }
+            finally
+            {
+                DestroyBridgeSetSmokeObject(firstBridgeObject);
+                DestroyBridgeSetSmokeObject(secondBridgeObject);
+
+                if (firstTemplate != null)
+                {
+                    Object.Destroy(firstTemplate);
+                }
+
+                if (secondTemplate != null)
+                {
+                    Object.Destroy(secondTemplate);
+                }
+
+                if (firstAnchorObject != null)
+                {
+                    Object.Destroy(firstAnchorObject);
+                }
+
+                if (secondAnchorObject != null)
+                {
+                    Object.Destroy(secondAnchorObject);
+                }
+
+                if (setObject != null)
+                {
+                    Object.Destroy(setObject);
+                }
+
+                if (firstRootCreated)
+                {
+                    CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, firstOwner, "1");
+                }
+
+                if (secondRootCreated)
+                {
+                    CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, secondOwner, "2");
+                }
+            }
+        }
+
+        private async void RunContentAnchorMaterializationBridgeSetPreflightSmoke()
+        {
+            await RunSmokeAsync("Content Anchor Materialization Bridge Set Preflight Smoke", runtimeHost =>
+                Task.FromResult(RunContentAnchorMaterializationBridgeSetPreflightSmokeCore(runtimeHost)));
+        }
+
+        private bool RunContentAnchorMaterializationBridgeSetPreflightSmokeCore(FrameworkRuntimeHost runtimeHost)
+        {
+            var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+            if (runtimeContentRuntime == null)
+            {
+                _logger.Warning("QA Content Anchor Materialization Bridge Set Preflight Smoke failed. reason='RuntimeContentRuntime unavailable'.");
+                return false;
+            }
+
+            GameObject setObject = null;
+            GameObject firstBridgeObject = null;
+            GameObject secondBridgeObject = null;
+            GameObject firstTemplate = null;
+            GameObject secondTemplate = null;
+            GameObject firstAnchorObject = null;
+            GameObject secondAnchorObject = null;
+            bool firstRootCreated = false;
+            bool secondRootCreated = false;
+            var firstOwner = RuntimeContentOwner.Transient(
+                "qa.content-anchor-materialization-bridge-set-preflight.owner.1",
+                "QA Content Anchor Materialization Bridge Set Preflight Smoke 1");
+            var secondOwner = RuntimeContentOwner.Transient(
+                "qa.content-anchor-materialization-bridge-set-preflight.owner.2",
+                "QA Content Anchor Materialization Bridge Set Preflight Smoke 2");
+
+            try
+            {
+                setObject = new GameObject("QA Content Anchor Materialization Bridge Set Preflight");
+                setObject.hideFlags = HideFlags.DontSave;
+                var bridgeSet = setObject.AddComponent<UnityContentAnchorMaterializationBridgeSet>();
+                firstBridgeObject = new GameObject("QA Content Anchor Materialization Bridge Set Preflight Item 1");
+                firstBridgeObject.hideFlags = HideFlags.DontSave;
+                var firstBridge = firstBridgeObject.AddComponent<UnityContentAnchorMaterializationBridge>();
+                secondBridgeObject = new GameObject("QA Content Anchor Materialization Bridge Set Preflight Item 2");
+                secondBridgeObject.hideFlags = HideFlags.DontSave;
+                var secondBridge = secondBridgeObject.AddComponent<UnityContentAnchorMaterializationBridge>();
+                firstTemplate = new GameObject("QA Content Anchor Materialization Bridge Set Preflight Template 1");
+                firstTemplate.hideFlags = HideFlags.DontSave;
+                secondTemplate = new GameObject("QA Content Anchor Materialization Bridge Set Preflight Template 2");
+                secondTemplate.hideFlags = HideFlags.DontSave;
+                firstAnchorObject = new GameObject("QA Content Anchor Materialization Bridge Set Preflight Anchor 1");
+                firstAnchorObject.hideFlags = HideFlags.DontSave;
+                secondAnchorObject = new GameObject("QA Content Anchor Materialization Bridge Set Preflight Anchor 2");
+                secondAnchorObject.hideFlags = HideFlags.DontSave;
+
+                firstBridge.ConfigureForDiagnostics(
+                    firstTemplate,
+                    firstAnchorObject.transform,
+                    RuntimeContentScope.Transient,
+                    "qa.content-anchor-materialization-bridge-set-preflight.owner.1",
+                    "QA Content Anchor Materialization Bridge Set Preflight Smoke 1",
+                    true,
+                    ContentAnchorScope.Route,
+                    ContentAnchorKind.Slot,
+                    ContentAnchorRequiredness.Required,
+                    "qa.content-anchor-materialization-bridge-set-preflight.route.1",
+                    "qa.content-anchor-materialization-bridge-set-preflight.anchor.1",
+                    "qa.content-anchor-materialization-bridge-set-preflight.content.1",
+                    "qa.content-anchor-materialization-bridge-set-preflight.prefab.1",
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    true,
+                    false);
+                secondBridge.ConfigureForDiagnostics(
+                    null,
+                    secondAnchorObject.transform,
+                    RuntimeContentScope.Transient,
+                    "qa.content-anchor-materialization-bridge-set-preflight.owner.2",
+                    "QA Content Anchor Materialization Bridge Set Preflight Smoke 2",
+                    true,
+                    ContentAnchorScope.Route,
+                    ContentAnchorKind.Slot,
+                    ContentAnchorRequiredness.Required,
+                    "qa.content-anchor-materialization-bridge-set-preflight.route.2",
+                    "qa.content-anchor-materialization-bridge-set-preflight.anchor.2",
+                    "qa.content-anchor-materialization-bridge-set-preflight.content.2",
+                    "qa.content-anchor-materialization-bridge-set-preflight.prefab.2",
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    true,
+                    false);
+                bridgeSet.ConfigureForDiagnostics(new[] { firstBridge, secondBridge }, false);
+
+                var missingPrefabPreflightResult = bridgeSet.SubmitMaterializeAllForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set-preflight.missing-prefab");
+                bool missingPrefabBlockedBeforeSideEffects = missingPrefabPreflightResult.Failed
+                    && missingPrefabPreflightResult.Status == UnityContentAnchorMaterializationBridgeSetStatus.FailedBridgeMaterializationPreflight
+                    && missingPrefabPreflightResult.MaterializedCount == 0
+                    && bridgeSet.RegistryEntries == 0
+                    && bridgeSet.RegistryActive == 0;
+                if (!missingPrefabBlockedBeforeSideEffects)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Set Preflight Smoke step failed. step='missing-prefab-preflight' diagnostics='{missingPrefabPreflightResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                secondBridge.ConfigureForDiagnostics(
+                    secondTemplate,
+                    secondAnchorObject.transform,
+                    RuntimeContentScope.Transient,
+                    "qa.content-anchor-materialization-bridge-set-preflight.owner.1",
+                    "QA Content Anchor Materialization Bridge Set Preflight Smoke Duplicate",
+                    true,
+                    ContentAnchorScope.Route,
+                    ContentAnchorKind.Slot,
+                    ContentAnchorRequiredness.Required,
+                    "qa.content-anchor-materialization-bridge-set-preflight.route.duplicate",
+                    "qa.content-anchor-materialization-bridge-set-preflight.anchor.duplicate",
+                    "qa.content-anchor-materialization-bridge-set-preflight.content.1",
+                    "qa.content-anchor-materialization-bridge-set-preflight.prefab.duplicate",
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    true,
+                    false);
+                var duplicateKeyPreflightResult = bridgeSet.SubmitMaterializeAllForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set-preflight.duplicate-key");
+                bool duplicateKeyBlockedBeforeSideEffects = duplicateKeyPreflightResult.Failed
+                    && duplicateKeyPreflightResult.Status == UnityContentAnchorMaterializationBridgeSetStatus.FailedDuplicateMaterializationKey
+                    && duplicateKeyPreflightResult.MaterializedCount == 0
+                    && bridgeSet.RegistryEntries == 0
+                    && bridgeSet.RegistryActive == 0;
+                if (!duplicateKeyBlockedBeforeSideEffects)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Set Preflight Smoke step failed. step='duplicate-key-preflight' diagnostics='{duplicateKeyPreflightResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                secondBridge.ConfigureForDiagnostics(
+                    secondTemplate,
+                    secondAnchorObject.transform,
+                    RuntimeContentScope.Transient,
+                    "qa.content-anchor-materialization-bridge-set-preflight.owner.2",
+                    "QA Content Anchor Materialization Bridge Set Preflight Smoke 2",
+                    true,
+                    ContentAnchorScope.Route,
+                    ContentAnchorKind.Slot,
+                    ContentAnchorRequiredness.Required,
+                    "qa.content-anchor-materialization-bridge-set-preflight.route.2",
+                    "qa.content-anchor-materialization-bridge-set-preflight.anchor.2",
+                    "qa.content-anchor-materialization-bridge-set-preflight.content.2",
+                    "qa.content-anchor-materialization-bridge-set-preflight.prefab.2",
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    true,
+                    false);
+                var materializeAllResult = bridgeSet.SubmitMaterializeAllForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set-preflight.materialize-all");
+                firstRootCreated = runtimeContentRuntime.TryCreateScopeContext(
+                    firstOwner,
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set-preflight.root-check.1",
+                    out var firstContext);
+                secondRootCreated = runtimeContentRuntime.TryCreateScopeContext(
+                    secondOwner,
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set-preflight.root-check.2",
+                    out var secondContext);
+                bool materializedAllAfterPreflight = materializeAllResult.Succeeded
+                    && materializeAllResult.Status == UnityContentAnchorMaterializationBridgeSetStatus.SucceededMaterializedAll
+                    && materializeAllResult.MaterializedCount == 2
+                    && bridgeSet.RegistryEntries == 2
+                    && bridgeSet.RegistryActive == 2
+                    && runtimeContentRuntime.SnapshotHandles(firstContext).Length == 1
+                    && runtimeContentRuntime.SnapshotHandles(secondContext).Length == 1;
+                if (!materializedAllAfterPreflight)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Set Preflight Smoke step failed. step='materialize-all-after-preflight' diagnostics='{materializeAllResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var releaseAllResult = bridgeSet.SubmitReleaseAllForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set-preflight.release-all");
+                bool releaseAllSucceeded = releaseAllResult.Succeeded
+                    && releaseAllResult.Status == UnityContentAnchorMaterializationBridgeSetStatus.SucceededReleasedAll
+                    && releaseAllResult.ReleasedCount == 2
+                    && releaseAllResult.PhysicalReleaseRequests == 2
+                    && releaseAllResult.LogicalReleaseResults == 2
+                    && releaseAllResult.BindingRemovedCount == 2
+                    && bridgeSet.RegistryActive == 0
+                    && runtimeContentRuntime.SnapshotHandles(firstContext).Length == 0
+                    && runtimeContentRuntime.SnapshotHandles(secondContext).Length == 0;
+                if (!releaseAllSucceeded)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Set Preflight Smoke step failed. step='release-all' diagnostics='{releaseAllResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, firstOwner, "preflight.1");
+                CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, secondOwner, "preflight.2");
+                firstRootCreated = false;
+                secondRootCreated = false;
+
+                _logger.Info(
+                    "QA Content Anchor Materialization Bridge Set Preflight Smoke step completed. "
+                    + $"step='unity-content-anchor-materialization-bridge-set-preflight' passed='True' missingPrefabBlockedBeforeSideEffects='{missingPrefabBlockedBeforeSideEffects}' duplicateKeyBlockedBeforeSideEffects='{duplicateKeyBlockedBeforeSideEffects}' materializeAll='{materializeAllResult.Status}' materialized='{materializeAllResult.MaterializedCount}' releaseAll='{releaseAllResult.Status}' released='{releaseAllResult.ReleasedCount}' registryEntries='{bridgeSet.RegistryEntries}' registryActive='{bridgeSet.RegistryActive}' physicalReleaseRequests='{bridgeSet.PhysicalReleaseRequestedCount}' contentHandles='{runtimeContentRuntime.SnapshotHandles(firstContext).Length + runtimeContentRuntime.SnapshotHandles(secondContext).Length}' batchPreflight='True' partialMaterializationBlocked='True' authoredBridgeSet='True' explicitSubmit='True' automaticLifecycleWiring='False' routeActivityAutoMaterialization='False' contentAnchorPhysicalPlacement='True' bridgeSetCreatesObject='False' bridgeSetDestroysObject='False' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.");
+                return true;
+            }
+            finally
+            {
+                DestroyBridgeSetSmokeObject(firstBridgeObject);
+                DestroyBridgeSetSmokeObject(secondBridgeObject);
+
+                if (firstTemplate != null)
+                {
+                    Object.Destroy(firstTemplate);
+                }
+
+                if (secondTemplate != null)
+                {
+                    Object.Destroy(secondTemplate);
+                }
+
+                if (firstAnchorObject != null)
+                {
+                    Object.Destroy(firstAnchorObject);
+                }
+
+                if (secondAnchorObject != null)
+                {
+                    Object.Destroy(secondAnchorObject);
+                }
+
+                if (setObject != null)
+                {
+                    Object.Destroy(setObject);
+                }
+
+                if (firstRootCreated)
+                {
+                    CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, firstOwner, "preflight.1");
+                }
+
+                if (secondRootCreated)
+                {
+                    CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, secondOwner, "preflight.2");
+                }
+            }
+        }
+
+        private static bool HasParentedLiveInstance(UnityContentAnchorMaterializationBridge bridge, Transform expectedParent)
+        {
+            if (bridge == null || expectedParent == null)
+            {
+                return false;
+            }
+
+            foreach (var evidence in bridge.Registry.Snapshot())
+            {
+                if (evidence != null && evidence.HasLiveInstance && evidence.Instance.transform.parent == expectedParent)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static void DestroyBridgeSetSmokeObject(GameObject bridgeObject)
+        {
+            if (bridgeObject == null)
+            {
+                return;
+            }
+
+            var bridge = bridgeObject.GetComponent<UnityContentAnchorMaterializationBridge>();
+            if (bridge != null)
+            {
+                foreach (var entry in bridge.Registry.Snapshot())
+                {
+                    if (entry != null && entry.HasLiveInstance && !entry.PhysicalReleaseRequested)
+                    {
+                        Object.Destroy(entry.Instance);
+                    }
+                }
+            }
+
+            Object.Destroy(bridgeObject);
+        }
+
+        private static void CleanupBridgeSetSmokeOwner(
+            FrameworkRuntimeHost runtimeHost,
+            RuntimeContentRuntime runtimeContentRuntime,
+            RuntimeContentOwner owner,
+            string suffix)
+        {
+            if (runtimeHost == null || runtimeContentRuntime == null)
+            {
+                return;
+            }
+
+            if (runtimeContentRuntime.TryCreateScopeContext(
+                    owner,
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set.cleanup.context." + suffix,
+                    out var cleanupContext))
+            {
+                runtimeHost.UnbindContentAnchorRuntimeOwner(
+                    owner,
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set.cleanup.unbind-owner." + suffix);
+                runtimeContentRuntime.ReleaseScopeLogically(
+                    cleanupContext,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set.cleanup.logical-release." + suffix);
+            }
+
+            runtimeContentRuntime.RemoveScopeRoot(
+                owner,
+                QaSource,
+                "qa.content-anchor-materialization-bridge-set.cleanup.root-remove." + suffix);
         }
 
         private async void RunRouteSceneCompositionSmoke()

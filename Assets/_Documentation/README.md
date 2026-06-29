@@ -35,6 +35,11 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Plans/F9R-A-PLAN-ContentAnchor-Runtime-Binding-Reentry.md` — ContentAnchor Runtime Binding Re-entry draft plan/ADR; docs-only, no physical placement or implementation selected.
 - `Notes/F8R-E-Unity-Prefab-Runtime-Materialization-Adapter-Proof.md` — Unity prefab RuntimeContent materialization adapter proof; first physical adapter implementation and QA smoke.
 - `Notes/F9R-B-Unity-ContentAnchor-Physical-Placement-Adapter-Proof.md` — Unity ContentAnchor physical placement adapter proof; explicit Transform parenting after logical binding and materialization evidence.
+- `Notes/F9R-C-Unity-ContentAnchor-Materialization-Pipeline-Proof.md` — Unity ContentAnchor materialization pipeline proof; composes materialization, logical binding and placement.
+- `Notes/F9R-D-Unity-ContentAnchor-Materialization-Scope-Release-Proof.md` — Unity ContentAnchor scope release proof; explicit cleanup by runtime owner.
+- `Notes/F9R-E-Unity-ContentAnchor-Materialization-Bridge-Proof.md` — authored opt-in ContentAnchor materialization bridge proof; explicit scene-facing submit/release surface.
+- `Notes/F9R-F-Unity-ContentAnchor-Materialization-Bridge-Set-Proof.md` — authored opt-in ContentAnchor bridge set proof; explicit batch submit/release over multiple bridges.
+- `Notes/F9R-G-Unity-ContentAnchor-Materialization-Bridge-Set-Preflight-Proof.md` — bridge set batch preflight proof; invalid bridge or duplicate materialization key blocks before partial side effects.
 
 ### Setup
 
@@ -42,6 +47,10 @@ Documentos de setup do projeto consumidor.
 
 ### Notes
 - [F9R-C — Unity ContentAnchor Materialization Pipeline Proof](Notes/F9R-C-Unity-ContentAnchor-Materialization-Pipeline-Proof.md)
+- [F9R-D — Unity ContentAnchor Materialization Scope Release Proof](Notes/F9R-D-Unity-ContentAnchor-Materialization-Scope-Release-Proof.md)
+- [F9R-E — Unity ContentAnchor Materialization Bridge Proof](Notes/F9R-E-Unity-ContentAnchor-Materialization-Bridge-Proof.md)
+- [F9R-F — Unity ContentAnchor Materialization Bridge Set Proof](Notes/F9R-F-Unity-ContentAnchor-Materialization-Bridge-Set-Proof.md)
+- [F9R-G — Unity ContentAnchor Materialization Bridge Set Preflight Proof](Notes/F9R-G-Unity-ContentAnchor-Materialization-Bridge-Set-Preflight-Proof.md)
 
 Notas temporárias e achados de auditoria local.
 
@@ -201,3 +210,8 @@ References:
 - `Plans/F8R-D-PLAN-Physical-Release-Adapter.md` — accepted plan/ADR boundary for future physical release adapters; no implementation selected.
 - `Notes/F8R-D1-Physical-Release-Adapter-Acceptance.md` — accepts F8R-D ADR as physical release adapter boundary baseline; no implementation selected.
 - `Plans/F9R-A-PLAN-ContentAnchor-Runtime-Binding-Reentry.md` — draft plan/ADR re-entry for logical ContentAnchor runtime binding; no physical placement or implementation selected.
+
+- `Assets/_Documentation/Notes/F9R-D-Unity-ContentAnchor-Materialization-Scope-Release-Proof.md` — implemented explicit scope release proof for materialized ContentAnchor content.
+- `Assets/_Documentation/Notes/F9R-E-Unity-ContentAnchor-Materialization-Bridge-Proof.md` — implemented authored opt-in bridge over the validated materialization/binding/placement/release path.
+- `Assets/_Documentation/Notes/F9R-F-Unity-ContentAnchor-Materialization-Bridge-Set-Proof.md` — implemented authored opt-in bridge set over multiple explicit bridges.
+- `Assets/_Documentation/Notes/F9R-G-Unity-ContentAnchor-Materialization-Bridge-Set-Preflight-Proof.md` — implemented preflight-before-side-effects for bridge set materialization batches.

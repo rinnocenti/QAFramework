@@ -43,6 +43,12 @@ Read the documentation in this order:
 | F8R-D | Physical Release Adapter Plan | Accepted / Plan / ADR / docs-only |
 | F9R-A | ContentAnchor Runtime Binding Re-entry | Draft / Plan / ADR Proposed / docs-only |
 | F8R-E | Unity Prefab Runtime Materialization Adapter Proof | Implemented / first physical adapter proof / QA smoke |
+| F9R-B | Unity ContentAnchor Physical Placement Adapter Proof | Implemented / physical placement proof / QA smoke |
+| F9R-C | Unity ContentAnchor Materialization Pipeline Proof | Implemented / composition proof / QA smoke |
+| F9R-D | Unity ContentAnchor Materialization Scope Release Proof | Implemented / explicit scope cleanup proof / QA smoke |
+| F9R-E | Unity ContentAnchor Materialization Bridge Proof | Implemented / authored opt-in bridge proof / QA smoke |
+| F9R-F | Unity ContentAnchor Materialization Bridge Set Proof | Implemented / authored opt-in bridge set proof / QA smoke |
+| F9R-G | Unity ContentAnchor Materialization Bridge Set Preflight Proof | Implemented / batch preflight proof / QA smoke |
 
 ## F8R-E Unity Prefab Runtime Materialization Adapter Proof
 
@@ -522,3 +528,23 @@ F9R-B implements an explicit Unity adapter proof that parents an already materia
 ## F9R-C — Unity ContentAnchor Materialization Pipeline Proof
 
 Implemented explicit Unity composition proof for runtime prefab materialization, logical ContentAnchor binding and physical anchor placement. No consumer module or automatic lifecycle wiring is selected by this cut.
+
+- `Assets/_Documentation/Notes/F9R-D-Unity-ContentAnchor-Materialization-Scope-Release-Proof.md` — implemented explicit scope release proof for materialized ContentAnchor content.
+
+## F9R-E — Unity ContentAnchor Materialization Bridge Proof
+
+F9R-E implements an authored, opt-in scene bridge over the validated materialization, logical binding, physical placement and scope release path. It exposes explicit submit/release calls only; it does not add automatic Route/Activity lifecycle wiring or consumer ownership.
+
+- `Assets/_Documentation/Notes/F9R-E-Unity-ContentAnchor-Materialization-Bridge-Proof.md`
+
+## F9R-F — Unity ContentAnchor Materialization Bridge Set Proof
+
+F9R-F implements an authored, opt-in bridge set over multiple `UnityContentAnchorMaterializationBridge` instances. It exposes explicit materialize-all/release-all calls only; it does not add automatic Route/Activity lifecycle wiring or consumer ownership.
+
+- `Assets/_Documentation/Notes/F9R-F-Unity-ContentAnchor-Materialization-Bridge-Set-Proof.md`
+
+## F9R-G — Unity ContentAnchor Materialization Bridge Set Preflight Proof
+
+F9R-G hardens `UnityContentAnchorMaterializationBridgeSet` by validating every authored bridge and duplicate materialization key before any materialization side effect is submitted. It prevents partial batch materialization while preserving explicit submit/release and no automatic lifecycle wiring.
+
+- `Assets/_Documentation/Notes/F9R-G-Unity-ContentAnchor-Materialization-Bridge-Set-Preflight-Proof.md`
