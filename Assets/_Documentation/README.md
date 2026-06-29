@@ -136,3 +136,5 @@ Reference: `Plans/F32-PLAN-InputMode-Unity-Adapter-Application.md` and `Notes/F3
 
 
 - F32B — InputMode Unity Action Map Preview: `Assets/_Documentation/Notes/F32B-InputMode-Unity-Action-Map-Preview.md`.
+
+- `Notes/F32C-InputMode-Unity-Application-Plan.md` — F32C dry-run Unity Input application plan.

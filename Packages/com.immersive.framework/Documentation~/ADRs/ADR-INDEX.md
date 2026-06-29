@@ -142,3 +142,5 @@ F32A accepts a pure InputMode Unity application preview. It consumes `InputModeR
 Reference: `../../../../Assets/_Documentation/Notes/F32A-InputMode-Unity-Application-Preview.md`.
 
 - F32B — InputMode Unity Action Map Preview: passive action-map evidence only; no `PlayerInput.SwitchCurrentActionMap`.
+
+- F32C — InputMode Unity Application Plan: side-effect-free adapter dry run after F32A/F32B.

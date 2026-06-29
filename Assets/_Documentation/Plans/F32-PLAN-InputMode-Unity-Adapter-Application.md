@@ -30,7 +30,7 @@ framework-owned lifecycle/input mode request language
 
 ### F32A — InputMode Unity Application Preview
 
-Status: Closed by patch / awaiting smoke.
+Status: Closed / smoke PASS.
 
 Create a side-effect-free preview evaluator that maps successful logical `InputModeRequestResult` values to required Unity Input evidence:
 
@@ -41,15 +41,37 @@ Create a side-effect-free preview evaluator that maps successful logical `InputM
 
 No action-map switching or input behavior.
 
-### F32B — Unity Action Map Application Boundary
+### F32B — InputMode Unity Action Map Preview
 
-Define where action-map names live and how an adapter may translate framework modes into Unity calls later.
+Status: Closed / smoke PASS.
 
-Must not hard-code project action-map strings in framework core.
+Defines project-owned Unity action-map evidence and maps typed `InputMode` values to action-map preview names.
 
-### F32C — Unity Input Adapter Dry Run
+Initial QA bindings:
 
-Create a dry-run adapter result that reports what would be applied without calling Unity Input behavior.
+```text
+Gameplay -> Player
+PauseOverlay -> UI
+FrontendMenu -> UI
+InputLocked -> no action map required
+```
+
+No action-map switching or input behavior.
+
+### F32C — InputMode Unity Application Plan
+
+Status: Implemented / awaiting smoke.
+
+Combines the F32A application preview and F32B action-map preview into a dry-run adapter plan:
+
+```text
+Gameplay -> SelectActionMap(Player)
+PauseOverlay -> SelectActionMap(UI)
+FrontendMenu -> SelectActionMap(UI)
+InputLocked -> LockInput
+```
+
+This is still intent only. No `PlayerInput.SwitchCurrentActionMap`, `PlayerInput.ActivateInput`, `PlayerInput.DeactivateInput`, `PlayerInputManager.JoinPlayer`, actor spawn or movement is allowed.
 
 ### F32D — Unity Input Adapter First Side Effect
 

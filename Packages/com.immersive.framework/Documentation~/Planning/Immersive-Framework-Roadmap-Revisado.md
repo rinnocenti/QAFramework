@@ -316,3 +316,5 @@ F32A does not switch action maps, activate/deactivate PlayerInput, call PlayerIn
 
 
 - F32B — InputMode Unity Action Map Preview: `Assets/_Documentation/Notes/F32B-InputMode-Unity-Action-Map-Preview.md`.
+
+- F32C — InputMode Unity Application Plan: `Assets/_Documentation/Notes/F32C-InputMode-Unity-Application-Plan.md`.

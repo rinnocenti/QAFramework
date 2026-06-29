@@ -409,3 +409,5 @@ Assets/_Documentation/Notes/F31C-PlayerActor-Session-Input-Reference-Closeout.md
 
 
 - F32B — InputMode Unity Action Map Preview: `Assets/_Documentation/Notes/F32B-InputMode-Unity-Action-Map-Preview.md`.
+
+- F32C — InputMode Unity Application Plan: dry-run adapter plan only; no Unity Input side effects.
