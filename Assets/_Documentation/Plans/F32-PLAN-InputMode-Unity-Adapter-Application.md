@@ -2,6 +2,17 @@
 
 Status: Open.
 
+## Baseline
+
+F32 starts only after:
+
+```text
+F30E closed InputMode as passive request/result language.
+F31C closed PlayerActor and Session PlayerInputManager as canonical references.
+```
+
+`F31D — PlayerInput Reference Set` is cancelled and is not part of the official sequence.
+
 ## Goal
 
 Move from passive `InputModeRequest` semantics to a Unity Input adapter path that can eventually apply modes through official Unity Input System components.
@@ -34,7 +45,7 @@ No action-map switching or input behavior.
 
 Define where action-map names live and how an adapter may translate framework modes into Unity calls later.
 
-Must not hard-code action-map strings in framework core.
+Must not hard-code project action-map strings in framework core.
 
 ### F32C — Unity Input Adapter Dry Run
 

@@ -26,6 +26,7 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Plans/F29-PLAN-Unity-Input-Target-Ownership-Proof.md` — Unity Input Target Ownership Proof
 - `Plans/F30-PLAN-InputMode-Identity-And-Request-Result.md` — InputMode Identity and Request Result Model / closed
 - `Plans/F31-PLAN-PlayerActor-Identity-And-Unity-Input-Evidence.md` — PlayerActor Identity and Unity Input Evidence / closed
+- `Plans/F32-PLAN-InputMode-Unity-Adapter-Application.md` — InputMode Unity Adapter Application / open
 
 ### Setup
 
@@ -124,3 +125,14 @@ Reference: `Notes/F30E-InputMode-Unity-Input-Boundary-Closeout.md`.
 F31 is closed. The framework now has canonical references for later input work: `PlayerActor : IActor` with required `PlayerInput` evidence, and Session-scoped `PlayerInputManager` evidence.
 
 Reference: `Notes/F31C-PlayerActor-Session-Input-Reference-Closeout.md`.
+
+## F32 — InputMode Unity Adapter Application
+
+F32 is the real continuation after F30E/F31C. `F31D — PlayerInput Reference Set` is cancelled and must not be applied or counted.
+
+F32A adds a side-effect-free `InputModeUnityApplicationPreviewEvaluator`. It maps successful logical `InputModeRequestResult` values to already-closed evidence (`UnityInputTargetSet`, `PlayerActorSet`, Session `UnityInputPlayerInputManagerEvidence`) and reports whether a future Unity adapter could apply the requested mode.
+
+Reference: `Plans/F32-PLAN-InputMode-Unity-Adapter-Application.md` and `Notes/F32A-InputMode-Unity-Application-Preview.md`.
+
+
+- F32B — InputMode Unity Action Map Preview: `Assets/_Documentation/Notes/F32B-InputMode-Unity-Action-Map-Preview.md`.

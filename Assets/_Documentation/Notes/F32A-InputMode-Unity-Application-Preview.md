@@ -3,15 +3,28 @@
 Status: Closed by patch / awaiting QA smoke.
 Type: runtime preview + QA smoke.
 
-## Purpose
+## Sequence correction
 
-F32A reconnects the input track after the canonical references introduced by F29-F31:
+F32A is the real continuation after the documented closeouts:
 
 ```text
-SessionPlayerInputManagerDeclaration
-PlayerActorDeclaration : IActor + PlayerInput evidence
-UnityInputTargetDeclaration
-InputModeRequest / PauseInputModeRequestMapper
+F30E — InputMode / Unity Input Boundary Closeout
+F31C — PlayerActor / Session Unity Input Reference Closeout
+F32A — InputMode Unity Application Preview
+```
+
+The previously proposed `F31D — PlayerInput Reference Set` is cancelled and must not be applied or counted.
+
+## Purpose
+
+F32A reconnects the input track after the canonical references closed by F30/F31:
+
+```text
+F30 InputModeRequest / InputModeRequestResult
+F30 PauseInputModeRequestMapper
+F31 PlayerActorDeclaration : IActor + PlayerInput evidence
+F31 SessionPlayerInputManagerDeclaration + PlayerInputManager evidence
+F29/F30 UnityInputTargetDeclaration / UnityInputTargetSet
 ```
 
 The cut answers a narrow question:
@@ -41,7 +54,7 @@ Packages/com.immersive.framework/Runtime/InputMode/InputModeUnityApplicationPrev
 Packages/com.immersive.framework/Runtime/InputMode/InputModeUnityApplicationPreviewEvaluator.cs
 ```
 
-The evaluator consumes existing evidence snapshots:
+The evaluator consumes existing evidence snapshots directly. No aggregate reference set is introduced in F32A.
 
 ```text
 InputModeRequestResult
@@ -82,9 +95,10 @@ move a PlayerActor
 own Unity input
 create a custom input manager
 integrate Pause dispatch with Unity input behavior
+create a new F31 reference aggregation layer
 ```
 
 ## Next cut
 
-F32B should decide the Unity adapter boundary for action-map/application behavior.
-It should still keep action-map names project-owned and Unity-adapter-owned, not framework-core-owned.
+F32B should define the Unity adapter boundary for action-map/application behavior.
+It must keep action-map names project-owned/adapter-owned, not framework-core-owned.

@@ -301,3 +301,18 @@ F31 SessionPlayerInputManagerDeclaration + PlayerInputManager evidence
 ```
 
 The next phase may plan Unity `PlayerInput` action-map application, but it must be an explicit adapter and must not revive a framework-owned input manager.
+
+
+## F32 — InputMode Unity Adapter Application
+
+F32 is the real continuation after F30E/F31C. `F31D — PlayerInput Reference Set` is cancelled and must not be applied or counted.
+
+- F32A — InputMode Unity Application Preview: adds a side-effect-free preview evaluator and QA smoke. It checks whether a successful `InputModeRequestResult` has enough Unity Input evidence for later adapter application.
+- F32B — Unity Action Map Application Boundary: should define where project action-map names live and how an adapter may translate typed `InputMode` values later.
+- F32C — Unity Input Adapter Dry Run: should report adapter intent without side effects.
+- F32D — Unity Input Adapter First Side Effect: only after the boundary and dry run are stable.
+
+F32A does not switch action maps, activate/deactivate PlayerInput, call PlayerInputManager join, spawn a player prefab, move a PlayerActor or create a framework input manager.
+
+
+- F32B — InputMode Unity Action Map Preview: `Assets/_Documentation/Notes/F32B-InputMode-Unity-Action-Map-Preview.md`.

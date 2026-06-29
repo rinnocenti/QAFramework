@@ -15,6 +15,7 @@ Current order:
 9. F29 - Unity Input Target Ownership Proof
 10. F30 - InputMode Identity and Request Result Model
 11. F31 - PlayerActor Identity and Unity Input Evidence
+12. F32 - InputMode Unity Adapter Application
 
 ## Roadmap ADRs
 
@@ -130,3 +131,14 @@ F31B accepts `PlayerInputManager` as Session-scoped Unity Input integration evid
 F31B1 removes the redundant same-variable smoke comparison that produced CS1718.
 
 F31C closes the reference phase. Reference: `../../../../Assets/_Documentation/Notes/F31C-PlayerActor-Session-Input-Reference-Closeout.md`.
+
+
+## F32 — InputMode Unity Adapter Application
+
+F32 starts after F30E/F31C. The cancelled `F31D — PlayerInput Reference Set` is not part of the official sequence.
+
+F32A accepts a pure InputMode Unity application preview. It consumes `InputModeRequestResult`, `UnityInputTargetSet`, `PlayerActorSet` and Session `UnityInputPlayerInputManagerEvidence` directly. It does not introduce action-map switching, PlayerInput activation/deactivation, PlayerInputManager join, actor spawning or a framework-owned input manager.
+
+Reference: `../../../../Assets/_Documentation/Notes/F32A-InputMode-Unity-Application-Preview.md`.
+
+- F32B — InputMode Unity Action Map Preview: passive action-map evidence only; no `PlayerInput.SwitchCurrentActionMap`.

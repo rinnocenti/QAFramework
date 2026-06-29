@@ -33,6 +33,7 @@ Read the documentation in this order:
 | F29 | Unity Input Target Ownership Proof | Closed / F29A-F29C complete |
 | F30 | InputMode Identity and Request Result Model | Closed / F30A-F30E complete |
 | F31 | PlayerActor Identity and Unity Input Evidence | Closed / F31A-F31C complete |
+| F32 | InputMode Unity Adapter Application | Open / F32A preview |
 
 ## F23 Boundary
 
@@ -345,6 +346,26 @@ Assets/_Documentation/Notes/F27D-Pause-Capability-Gate-Reframe.md
 - F29B — Input target QA authoring fixture: closed as QA scene evidence + loaded-scene smoke step.
 
 
+
+## F32 InputMode Unity Adapter Application
+
+F32 starts after F30E/F31C. `F31D — PlayerInput Reference Set` is cancelled and not part of the official sequence.
+
+F32A adds `InputModeUnityApplicationPreviewEvaluator`, a pure preview that checks whether a successful `InputModeRequestResult` has enough Unity Input evidence to be applied later by an adapter:
+
+```text
+Gameplay -> GameplayCommands target + PlayerActor evidence + Session PlayerInputManager evidence
+PauseOverlay -> GlobalUiPause target
+FrontendMenu -> GlobalUiPause target
+InputLocked -> no target required in F32A
+```
+
+F32A does not switch action maps, activate/deactivate `PlayerInput`, call `PlayerInputManager.JoinPlayer`, spawn actors or create a framework input manager.
+
+Project plan: `../../Assets/_Documentation/Plans/F32-PLAN-InputMode-Unity-Adapter-Application.md`.
+
+F32A note: `../../Assets/_Documentation/Notes/F32A-InputMode-Unity-Application-Preview.md`.
+
 ## F30D — Pause InputMode Request Boundary
 
 F30D closes a passive Pause-to-InputMode request bridge. Pause can now produce a logical `InputModeRequest` for `PauseOverlay` or `Gameplay` through a mapper, but Unity `PlayerInput` / `PlayerInputManager` remain official execution components and no action-map behavior is introduced.
@@ -385,3 +406,6 @@ Reference notes:
 Assets/_Documentation/Notes/F30E-InputMode-Unity-Input-Boundary-Closeout.md
 Assets/_Documentation/Notes/F31C-PlayerActor-Session-Input-Reference-Closeout.md
 ```
+
+
+- F32B — InputMode Unity Action Map Preview: `Assets/_Documentation/Notes/F32B-InputMode-Unity-Action-Map-Preview.md`.
