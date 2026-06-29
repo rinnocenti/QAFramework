@@ -326,3 +326,8 @@ F32A does not switch action maps, activate/deactivate PlayerInput, call PlayerIn
 Status: Implemented / awaiting smoke. Adds explicit PlayerInput application semantics: `SelectActionMap` activates PlayerInput before switching maps; `LockInput` deactivates PlayerInput through the F32D adapter. No PlayerInputManager join, player prefab spawn, movement or custom input manager.
 
 - F32F — InputMode Unity PlayerInput Request Application: composed explicit request-to-PlayerInput application path; no PlayerInputManager join/spawn/movement.
+
+
+### F32G — Pause InputMode Unity PlayerInput Application
+
+Status: implemented as explicit QA-facing bridge. It applies completed `PauseResult` values through InputMode to one Unity `PlayerInput`; no automatic runtime wiring, join, spawn, movement or custom input manager.

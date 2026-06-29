@@ -417,3 +417,6 @@ Assets/_Documentation/Notes/F31C-PlayerActor-Session-Input-Reference-Closeout.md
 - F32E — InputMode Unity PlayerInput Application: explicit application wrapper that activates `PlayerInput` before selecting action maps, delegates lock to the F32D adapter, and still never owns `PlayerInputManager`, join, spawn or movement.
 
 - F32F — InputMode Unity PlayerInput Request Application: composed explicit request-to-PlayerInput application path; no PlayerInputManager join/spawn/movement.
+
+
+- F32G: Pause result to explicit Unity PlayerInput application bridge remains QA-facing and is not auto-wired into PauseRuntime/FrameworkRuntimeHost.

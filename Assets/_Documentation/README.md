@@ -144,3 +144,5 @@ Reference: `Plans/F32-PLAN-InputMode-Unity-Adapter-Application.md` and `Notes/F3
 - `Notes/F32E-InputMode-Unity-PlayerInput-Application.md` — F32E explicit PlayerInput application wrapper; activates PlayerInput before selecting action maps and preserves no join/spawn/custom manager guardrails.
 
 - F32F — InputMode Unity PlayerInput Request Application: composed explicit request-to-PlayerInput application path; no PlayerInputManager join/spawn/movement.
+
+- `Notes/F32G-Pause-InputMode-Unity-PlayerInput-Application.md`
