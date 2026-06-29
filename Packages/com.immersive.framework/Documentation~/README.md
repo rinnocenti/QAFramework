@@ -440,3 +440,13 @@ Assets/_Documentation/Notes/F31C-PlayerActor-Session-Input-Reference-Closeout.md
 
 
 - F32G: Pause result to explicit Unity PlayerInput application bridge remains QA-facing and is not auto-wired into PauseRuntime/FrameworkRuntimeHost.
+
+## F33 Pause Runtime PlayerInput Wiring
+
+F33 starts after F32H. F33A introduces `PauseInputModeUnityPlayerInputRuntimeBridge`, an opt-in Unity component that submits logical Pause requests and applies the resulting InputMode to an explicit `PlayerInput` only after preflight.
+
+It is not automatic `FrameworkRuntimeHost` wiring and still does not own `PlayerInputManager`, call `JoinPlayer`, spawn player prefabs, move actors or read gameplay commands.
+
+Project plan: `../../Assets/_Documentation/Plans/F33-PLAN-Pause-Runtime-PlayerInput-Wiring.md`.
+
+F33A note: `../../Assets/_Documentation/Notes/F33A-Pause-Runtime-PlayerInput-Bridge.md`.

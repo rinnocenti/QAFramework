@@ -167,3 +167,29 @@ DeactivateInput()
 F32H explicitly excludes automatic `PauseRuntime` wiring, automatic `FrameworkRuntimeHost` wiring, `PlayerInputManager.JoinPlayer`, player prefab spawn, movement, gameplay command reading and any framework-owned input manager.
 
 Reference: `../../../../Assets/_Documentation/Notes/F32H-InputMode-Unity-PlayerInput-Application-Closeout.md`.
+
+## F33 — Pause Runtime PlayerInput Wiring
+
+F33 starts after F32H. F33A accepts an opt-in scene-authored runtime bridge from logical Pause requests to explicit Unity `PlayerInput` application.
+
+Accepted:
+
+```text
+preflight before Pause state mutation;
+PauseRequest submission through FrameworkRuntimeHost;
+PlayerInput application through the explicit F32 path;
+no automatic host registration.
+```
+
+Rejected:
+
+```text
+framework-owned input manager;
+PlayerInputManager.JoinPlayer;
+player prefab spawn;
+PlayerActor movement;
+gameplay command reading;
+hidden PauseRuntime side effects.
+```
+
+Reference: `../../../../Assets/_Documentation/Notes/F33A-Pause-Runtime-PlayerInput-Bridge.md`.

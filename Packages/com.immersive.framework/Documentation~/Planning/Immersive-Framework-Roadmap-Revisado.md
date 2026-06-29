@@ -346,3 +346,11 @@ F33 — Pause Runtime PlayerInput Wiring
 ```
 
 F33 must define runtime ownership and opt-in authoring before connecting the F32 application path to live Pause runtime events.
+
+### F33 — Pause Runtime PlayerInput Wiring
+
+F33 follows F32H. It introduces opt-in runtime wiring from logical Pause requests to explicit Unity `PlayerInput` application.
+
+F33A adds `PauseInputModeUnityPlayerInputRuntimeBridge` and `Pause Runtime PlayerInput Bridge Smoke`.
+
+It remains outside automatic `FrameworkRuntimeHost` registration and does not call `PlayerInputManager.JoinPlayer`, spawn player prefabs, move actors, read gameplay commands or create a framework-owned input manager.

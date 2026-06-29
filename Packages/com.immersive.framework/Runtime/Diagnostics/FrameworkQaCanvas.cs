@@ -411,7 +411,7 @@ namespace Immersive.Framework.Diagnostics
         {
             GUILayout.Space(4f);
             GUILayout.Label("Unity Input Diagnostics", GUI.skin.box);
-            GUILayout.Label("F29 target ownership proof, F30 passive InputMode/Pause request mapping, F31 PlayerActor/Session references and F32 application/action-map/plan preview. Unity PlayerInput/PlayerInputManager remain the official input components; no custom input manager, action-map switching, movement or actor spawning.");
+            GUILayout.Label("F29 target ownership proof, F30 passive InputMode/Pause request mapping, F31 PlayerActor/Session references and F32 PlayerInput application plus F33 opt-in Pause runtime bridge. Unity PlayerInput/PlayerInputManager remain the official input components; no custom input manager, PlayerInputManager join, movement or actor spawning.");
 
             using (new EditorDisabledScope(_requestInFlight))
             {
@@ -479,6 +479,11 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Pause InputMode Unity PlayerInput Application Smoke"))
                 {
                     RunPauseInputModeUnityPlayerInputApplicationSmoke();
+                }
+
+                if (GUILayout.Button("Run Pause Runtime PlayerInput Bridge Smoke"))
+                {
+                    RunPauseInputModeUnityPlayerInputRuntimeBridgeSmoke();
                 }
             }
         }
@@ -1101,6 +1106,12 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(PauseInputModeUnityPlayerInputApplicationQaSmokeRunner.SmokeName, runtimeHost =>
                 PauseInputModeUnityPlayerInputApplicationQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunPauseInputModeUnityPlayerInputRuntimeBridgeSmoke()
+        {
+            await RunSmokeAsync(PauseInputModeUnityPlayerInputRuntimeBridgeQaSmokeRunner.SmokeName, runtimeHost =>
+                PauseInputModeUnityPlayerInputRuntimeBridgeQaSmokeRunner.RunRuntimeBridgeSmokeAsync(runtimeHost, _logger, QaSource));
         }
 
         private async void RunSnapshotParticipantDiagnosticsSmoke()

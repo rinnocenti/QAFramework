@@ -148,3 +148,12 @@ Reference: `Plans/F32-PLAN-InputMode-Unity-Adapter-Application.md` and `Notes/F3
 - `Notes/F32G-Pause-InputMode-Unity-PlayerInput-Application.md`
 
 - `Notes/F32H-InputMode-Unity-PlayerInput-Application-Closeout.md` — F32H closeout; F32 closed, runtime wiring deferred to a later phase.
+
+## F33 — Pause Runtime PlayerInput Wiring
+
+F33 starts after F32H. F33A adds an opt-in scene-authored bridge that submits Pause requests and applies the resulting InputMode to an explicit Unity `PlayerInput` after preflight.
+
+References:
+
+- `Plans/F33-PLAN-Pause-Runtime-PlayerInput-Wiring.md`
+- `Notes/F33A-Pause-Runtime-PlayerInput-Bridge.md`
