@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress / F29A PASS / F29B closed / pending Unity compile-smoke by user
+Closed / F29A PASS / F29B PASS / F29C closed
 
 ## Purpose
 
@@ -53,7 +53,7 @@ The first proof may use QA-authored objects and the current `Assets/InputSystem_
 |---|---|---|---|
 | F29A | Unity Input Target Declaration Proof | Runtime/QA minimal | Closed. Target declaration language, diagnostics/result surface and manual QA smoke for valid/missing/duplicate targets. |
 | F29B | Input Target QA Authoring Fixture | QA scene + smoke | Closed. Canonical QA StartupScene target declarations and loaded-scene smoke validation. |
-| F29C | Input Target Closeout | Docs/QA | Confirms target ownership evidence and selects whether F30 starts InputMode identity/result model or action-map adapter proof. |
+| F29C | Input Target Closeout | Docs/QA | Closed. Confirms target ownership evidence and selects F30 — InputMode Identity and Request Result Model. |
 
 ## F29A Closure
 
@@ -78,6 +78,23 @@ Reference note:
 
 ```text
 Assets/_Documentation/Notes/F29B-Input-Target-QA-Authoring-Fixture.md
+```
+
+
+## F29C Closure
+
+F29C closes the phase after user smoke validation confirmed the loaded-scene fixture step passes with two targets, zero issues and zero blocking issues.
+
+F29 selects F30 as the next implementation phase:
+
+```text
+F30 — InputMode Identity and Request Result Model
+```
+
+Reference note:
+
+```text
+Assets/_Documentation/Notes/F29C-Input-Target-Closeout.md
 ```
 
 ## F29A Rules
@@ -141,7 +158,7 @@ pass when explicit targets are resolvable and invalid configurations produce blo
 
 ## Closeout Criteria
 
-F29 closes only when:
+F29 is closed because:
 
 ```text
 valid input target ownership is visible in QA;
@@ -151,10 +168,10 @@ no action-map behavior is hidden inside the proof;
 next phase is selected explicitly.
 ```
 
-Probable next phase after F29:
+Selected next phase after F29:
 
 ```text
 F30 — InputMode Identity and Request Result Model
 ```
 
-F30 should not start until F29 target ownership is proven.
+F30 may start with F30A because F29 target ownership is proven by synthetic and authored QA smoke evidence.

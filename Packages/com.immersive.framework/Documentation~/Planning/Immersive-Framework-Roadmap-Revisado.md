@@ -161,9 +161,9 @@ Expected purpose:
 prove explicit Unity Input target ownership before InputMode behavior or Pause-driven action-map changes are implemented
 ```
 
-F29A is closed as the Unity Input target declaration proof. It adds passive target role/id/descriptor/set/issue vocabulary, a Unity-facing declaration component, a validator and `Unity Input Target Ownership Smoke` for valid, missing and duplicate target configurations.
+F29 is closed. F29A added passive target role/id/descriptor/set/issue vocabulary, a Unity-facing declaration component, a validator and `Unity Input Target Ownership Smoke` for valid, missing and duplicate target configurations. F29B closed QA fixture evidence by adding canonical StartupScene declarations and a loaded-scene smoke step. F29C closed the phase after smoke evidence passed and selected F30 — InputMode Identity and Request Result Model.
 
-F29A does not implement full InputMode, action-map switching, PlayerInput ownership, player movement, player/actor spawning, camera, audio, save, runtime-spawned gameplay or per-consumer Gate checks. F29B closes QA fixture evidence by adding canonical StartupScene declarations and a loaded-scene smoke step.
+F29 does not implement full InputMode, action-map switching, PlayerInput ownership, player movement, player/actor spawning, camera, audio, save, runtime-spawned gameplay or per-consumer Gate checks.
 
 Reference plan:
 
@@ -256,10 +256,17 @@ which ownership decision blocks Camera, Audio, Save, RuntimeSpawned and Gameplay
 F29 as the first post-F28 code phase, proving Unity Input target ownership. F29A closes the declaration and diagnostics proof.
 ```
 
-F28 is complete. F29A now provides target declaration vocabulary, validator and Unity Input Target Ownership Smoke. F29B/F29C must close authored evidence and choose the next InputMode phase before any action-map behavior is implemented.
+F28 is complete. F29 is complete. F29 provides target declaration vocabulary, validator, authored QA scene evidence and Unity Input Target Ownership Smoke. F30 is the next InputMode phase and still must not introduce action-map behavior before request/result language exists.
 
 ## F29 — Unity Input Target Ownership Proof
 
 - F29A — Unity Input Target Declaration Proof: PASS by user smoke.
-- F29B — Input Target QA Authoring Fixture: closed; canonical QA StartupScene declarations plus loaded-scene smoke validation.
-- F29C — Input Target Closeout: next.
+- F29B — Input Target QA Authoring Fixture: PASS by user smoke; canonical QA StartupScene declarations plus loaded-scene smoke validation.
+- F29C — Input Target Closeout: closed; selects F30 — InputMode Identity and Request Result Model.
+
+## F30 — InputMode Identity and Request Result Model
+
+- F30A — InputMode Identity / State / Request Result Contracts: next.
+- F30B — InputMode Owner Preview: planned.
+- F30C — Pause InputMode Request Bridge: planned.
+- F30D — Unity Input Adapter Planning Closeout: planned.

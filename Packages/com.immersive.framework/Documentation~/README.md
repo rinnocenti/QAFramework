@@ -30,7 +30,8 @@ Read the documentation in this order:
 | F26 | Activity Scene Discovery Integration / Loading Progress Integration | Closed / loading progress closed through F26F |
 | F27 | Pause UIGlobal Surface, Input Wiring and Gate Reframe | Frozen after F27D / F27E cancelled |
 | F28 | Roadmap Reconciliation and Adapter Module Spine | Closed / F28A-F28F complete / F29 selected |
-| F29 | Unity Input Target Ownership Proof | In progress / F29A PASS / F29B closed / F29C next |
+| F29 | Unity Input Target Ownership Proof | Closed / F29A-F29C complete |
+| F30 | InputMode Identity and Request Result Model | Planned / F30A next |
 
 ## F23 Boundary
 
@@ -91,9 +92,9 @@ F27C-F27D reframe Gate away from component blocking, but F27E is cancelled: ordi
 
 Project plan: `Assets/_Documentation/Plans/F27-PLAN-Pause-UIGlobal-And-Input.md`.
 
-Next plan: `Assets/_Documentation/Plans/F29-PLAN-Unity-Input-Target-Ownership-Proof.md`.
+Current plan: `Assets/_Documentation/Plans/F30-PLAN-InputMode-Identity-And-Request-Result.md`.
 
-F29A adds Unity Input target declaration vocabulary, validator and ownership smoke. F29B adds canonical QA StartupScene declarations and a loaded-scene smoke step. The phase remains declaration-only: no InputMode runtime, action-map switching, PlayerInput ownership, player movement or actor spawning.
+F29A adds Unity Input target declaration vocabulary, validator and ownership smoke. F29B adds canonical QA StartupScene declarations and a loaded-scene smoke step. F29C closes the phase and selects F30. F29 remains declaration-only: no InputMode runtime, action-map switching, PlayerInput ownership, player movement or actor spawning.
 
 ## F28 Roadmap Reconciliation and Adapter Module Spine
 

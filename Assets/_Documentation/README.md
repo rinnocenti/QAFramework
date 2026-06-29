@@ -24,6 +24,7 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Plans/F27-PLAN-Pause-UIGlobal-And-Input.md`
 - `Plans/F28-PLAN-InputMode-And-Adapter-Boundary.md` — Roadmap Reconciliation and Adapter Module Spine
 - `Plans/F29-PLAN-Unity-Input-Target-Ownership-Proof.md` — Unity Input Target Ownership Proof
+- `Plans/F30-PLAN-InputMode-Identity-And-Request-Result.md` — InputMode Identity and Request Result Model
 
 ### Setup
 
@@ -71,6 +72,10 @@ F29 Unity Input target ownership proof: `Plans/F29-PLAN-Unity-Input-Target-Owner
 F29A Unity Input target declaration proof: `Notes/F29A-Unity-Input-Target-Declaration-Proof.md`.
 
 F29B Input Target QA authoring fixture: `Notes/F29B-Input-Target-QA-Authoring-Fixture.md`.
+
+F29C Input Target closeout: `Notes/F29C-Input-Target-Closeout.md`.
+
+F30 InputMode identity/request result plan: `Plans/F30-PLAN-InputMode-Identity-And-Request-Result.md`.
 
 ## Regras
 

@@ -93,4 +93,13 @@ F28F closes F28 and selects F29 — Unity Input Target Ownership Proof as the fi
 
 ## F29 implementation note
 
-F29A is tracked by the project-side plan/note rather than a new ADR: `Assets/_Documentation/Notes/F29A-Unity-Input-Target-Declaration-Proof.md`. It implements declaration-only Unity Input target ownership proof and does not introduce InputMode behavior.
+F29 is tracked by the project-side plan/notes rather than a new ADR. F29A implements declaration-only Unity Input target ownership proof. F29B adds authored QA fixture evidence. F29C closes the phase and selects F30 — InputMode Identity and Request Result Model. F29 does not introduce InputMode behavior, action-map switching or PlayerInput ownership.
+
+
+## F29C Closure Note
+
+F29C closes Unity Input target ownership proof after synthetic and authored QA smoke evidence passed. Reference: `../../../../Assets/_Documentation/Notes/F29C-Input-Target-Closeout.md`.
+
+## F30 Planning Note
+
+F30 opens as InputMode identity and request/result planning. Reference: `../../../../Assets/_Documentation/Plans/F30-PLAN-InputMode-Identity-And-Request-Result.md`.
