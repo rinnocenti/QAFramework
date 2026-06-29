@@ -518,3 +518,7 @@ F9R-A is proposed as the ContentAnchor runtime binding re-entry plan after F8R-B
 ## F9R-B — Unity ContentAnchor Physical Placement Adapter Proof
 
 F9R-B implements an explicit Unity adapter proof that parents an already materialized RuntimeContent instance under an explicit ContentAnchor Transform after logical ContentAnchor binding succeeds. It does not materialize, destroy, pool, use Addressables, spawn actors or implement camera/audio/save/gameplay consumers.
+
+## F9R-C — Unity ContentAnchor Materialization Pipeline Proof
+
+Implemented explicit Unity composition proof for runtime prefab materialization, logical ContentAnchor binding and physical anchor placement. No consumer module or automatic lifecycle wiring is selected by this cut.

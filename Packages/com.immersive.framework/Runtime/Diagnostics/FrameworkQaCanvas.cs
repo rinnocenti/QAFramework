@@ -584,6 +584,11 @@ namespace Immersive.Framework.Diagnostics
                 {
                     RunContentAnchorPhysicalPlacementSmoke();
                 }
+
+                if (GUILayout.Button("Run Content Anchor Materialization Pipeline Smoke"))
+                {
+                    RunContentAnchorMaterializationPipelineSmoke();
+                }
             }
         }
 
@@ -2121,6 +2126,273 @@ private async void RunLocalContributionSmoke()
                         owner,
                         QaSource,
                         "qa.content-anchor-placement.cleanup.root-remove");
+                }
+            }
+        }
+
+        private async void RunContentAnchorMaterializationPipelineSmoke()
+        {
+            await RunSmokeAsync("Content Anchor Materialization Pipeline Smoke", runtimeHost =>
+                Task.FromResult(RunContentAnchorMaterializationPipelineSmokeCore(runtimeHost)));
+        }
+
+        private bool RunContentAnchorMaterializationPipelineSmokeCore(FrameworkRuntimeHost runtimeHost)
+        {
+            var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+            if (runtimeContentRuntime == null)
+            {
+                _logger.Warning("QA Content Anchor Materialization Pipeline Smoke failed. reason='RuntimeContentRuntime unavailable'.");
+                return false;
+            }
+
+            var registry = new UnityRuntimeMaterializedObjectRegistry();
+            RuntimeScopeContext context = default;
+            RuntimeContentOwner owner = default;
+            ContentAnchorBindingRequest bindingRequest = default;
+            GameObject template = null;
+            GameObject anchorObject = null;
+            bool rootCreated = false;
+
+            try
+            {
+                owner = RuntimeContentOwner.Transient(
+                    "qa.content-anchor-pipeline.owner",
+                    "QA Content Anchor Materialization Pipeline Smoke");
+                var rootCreateResult = runtimeContentRuntime.CreateScopeRoot(
+                    owner,
+                    QaSource,
+                    "qa.content-anchor-pipeline.root.create");
+                rootCreated = rootCreateResult.Applied || rootCreateResult.Status == RuntimeRootRegistryOperationStatus.RootAlreadyExists;
+                if (!rootCreated)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Pipeline Smoke step failed. step='root-create' status='{rootCreateResult.Status}' message='{FormatValue(rootCreateResult.Message)}'.");
+                    return false;
+                }
+
+                if (!runtimeContentRuntime.TryCreateScopeContext(
+                        owner,
+                        QaSource,
+                        "qa.content-anchor-pipeline.context",
+                        out context))
+                {
+                    _logger.Warning("QA Content Anchor Materialization Pipeline Smoke step failed. step='context' reason='Runtime scope context was not created'.");
+                    return false;
+                }
+
+                var anchor = ContentAnchorDeclaration.ForRoute(
+                    "qa.content-anchor-pipeline.route",
+                    ContentAnchorKind.Slot,
+                    "qa.content-anchor-pipeline.anchor",
+                    ContentAnchorRequiredness.Required,
+                    QaSource,
+                    "qa.content-anchor-pipeline.anchor");
+                var anchorSet = ContentAnchorSet.Create(
+                    new[] { anchor },
+                    QaSource,
+                    "qa.content-anchor-pipeline.anchor-set");
+                if (!anchorSet.IsValid || anchorSet.AnchorCount != 1 || anchorSet.HasBlockingIssues)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Pipeline Smoke step failed. step='anchor-set' diagnostics='{anchorSet.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var resource = new RuntimeMaterializationResource(
+                    UnityPrefabRuntimeMaterializationAdapter.ResourceType,
+                    "qa.content-anchor-pipeline.prefab",
+                    "QA Content Anchor Materialization Pipeline Template",
+                    string.Empty);
+                bindingRequest = ContentAnchorBindingRequest.FromDeclaration(
+                    context,
+                    anchor,
+                    "qa.content-anchor-pipeline.content",
+                    resource,
+                    QaSource,
+                    "qa.content-anchor-pipeline.binding.request");
+
+                template = new GameObject("QA Content Anchor Materialization Pipeline Template");
+                template.hideFlags = HideFlags.DontSave;
+                anchorObject = new GameObject("QA Content Anchor Materialization Pipeline Anchor");
+                anchorObject.hideFlags = HideFlags.DontSave;
+
+                var materializationAdapter = new UnityPrefabRuntimeMaterializationAdapter(
+                    template,
+                    registry,
+                    null,
+                    QaSource);
+                var placementAdapter = new UnityContentAnchorPlacementAdapter(QaSource);
+                var releaseAdapter = new UnityObjectRuntimeReleaseAdapter(registry, QaSource);
+                var pipeline = new UnityContentAnchorMaterializationPipeline(
+                    materializationAdapter,
+                    placementAdapter,
+                    releaseAdapter,
+                    QaSource);
+
+                var missingAnchorTransformResult = pipeline.MaterializeBindPlace(
+                    runtimeHost,
+                    anchorSet,
+                    bindingRequest,
+                    null,
+                    true,
+                    "qa.content-anchor-pipeline.missing-anchor-transform");
+                bool missingAnchorTransformBlocked = missingAnchorTransformResult.Failed
+                    && missingAnchorTransformResult.Status == UnityContentAnchorMaterializationPipelineStatus.FailedMissingAnchorTransform
+                    && registry.Count == 0
+                    && runtimeContentRuntime.SnapshotHandles(context).Length == 0;
+                if (!missingAnchorTransformBlocked)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Pipeline Smoke step failed. step='missing-anchor-transform' diagnostics='{missingAnchorTransformResult.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var pipelineResult = pipeline.MaterializeBindPlace(
+                    runtimeHost,
+                    anchorSet,
+                    bindingRequest,
+                    anchorObject.transform,
+                    true,
+                    "qa.content-anchor-pipeline.execute");
+                bool pipelineSucceeded = pipelineResult.Succeeded
+                    && pipelineResult.MaterializationResult.Succeeded
+                    && pipelineResult.AppliedMaterializationResult.Succeeded
+                    && pipelineResult.BindingResult.Succeeded
+                    && pipelineResult.PlacementResult.Succeeded
+                    && pipelineResult.PlacementResult.ParentApplied;
+                if (!pipelineSucceeded)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Pipeline Smoke step failed. step='pipeline' diagnostics='{pipelineResult.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                if (!registry.TryGet(bindingRequest.RuntimeIdentity, out var evidence)
+                    || evidence == null
+                    || !evidence.HasLiveInstance
+                    || evidence.Instance.transform.parent != anchorObject.transform)
+                {
+                    _logger.Warning("QA Content Anchor Materialization Pipeline Smoke step failed. step='physical-evidence' reason='Materialized evidence was not parented under the explicit anchor Transform'.");
+                    return false;
+                }
+
+                var duplicateResult = pipeline.MaterializeBindPlace(
+                    runtimeHost,
+                    anchorSet,
+                    bindingRequest,
+                    anchorObject.transform,
+                    true,
+                    "qa.content-anchor-pipeline.duplicate");
+                bool duplicateBlocked = duplicateResult.Failed
+                    && duplicateResult.Status == UnityContentAnchorMaterializationPipelineStatus.FailedMaterialization
+                    && registry.Count == 1
+                    && registry.ActiveCount == 1;
+                if (!duplicateBlocked)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Pipeline Smoke step failed. step='duplicate' diagnostics='{duplicateResult.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                bool logicalUnbind = runtimeHost.UnbindContentAnchor(pipelineResult.BindingResult.Handle);
+                if (!logicalUnbind)
+                {
+                    _logger.Warning("QA Content Anchor Materialization Pipeline Smoke step failed. step='logical-unbind' reason='Logical Content Anchor binding was not removed'.");
+                    return false;
+                }
+
+                var releaseRequest = runtimeContentRuntime.CreateReleaseRequest(
+                    context,
+                    bindingRequest.RuntimeIdentity,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    QaSource,
+                    "qa.content-anchor-pipeline.release.request");
+                var physicalReleaseResult = releaseAdapter.Release(releaseRequest);
+                if (!physicalReleaseResult.Succeeded || registry.PhysicalReleaseRequestedCount != 1)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Pipeline Smoke step failed. step='physical-release' status='{physicalReleaseResult.Status}' registry='{registry.ToDiagnosticString()}' message='{FormatValue(physicalReleaseResult.Message)}'.");
+                    return false;
+                }
+
+                var logicalReleaseResult = runtimeContentRuntime.ApplyReleaseResult(
+                    physicalReleaseResult,
+                    QaSource,
+                    "qa.content-anchor-pipeline.release.logical");
+                if (!logicalReleaseResult.Succeeded || !logicalReleaseResult.HandleUnregistered)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Pipeline Smoke step failed. step='logical-release' status='{logicalReleaseResult.Status}' unregistered='{logicalReleaseResult.HandleUnregistered}' message='{FormatValue(logicalReleaseResult.Message)}'.");
+                    return false;
+                }
+
+                var afterReleaseResult = pipeline.MaterializeBindPlace(
+                    runtimeHost,
+                    anchorSet,
+                    bindingRequest,
+                    anchorObject.transform,
+                    true,
+                    "qa.content-anchor-pipeline.after-release");
+                bool afterReleaseBlocked = afterReleaseResult.Failed
+                    && afterReleaseResult.Status == UnityContentAnchorMaterializationPipelineStatus.FailedMaterialization
+                    && registry.Count == 1
+                    && registry.ActiveCount == 0;
+                if (!afterReleaseBlocked)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Pipeline Smoke step failed. step='after-release' diagnostics='{afterReleaseResult.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var rootRemoveResult = runtimeContentRuntime.RemoveScopeRoot(
+                    owner,
+                    QaSource,
+                    "qa.content-anchor-pipeline.root.remove");
+                if (!rootRemoveResult.Applied && rootRemoveResult.Status != RuntimeRootRegistryOperationStatus.RootMissing)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Pipeline Smoke step failed. step='root-remove' status='{rootRemoveResult.Status}' message='{FormatValue(rootRemoveResult.Message)}'.");
+                    return false;
+                }
+
+                rootCreated = false;
+
+                _logger.Info(
+                    "QA Content Anchor Materialization Pipeline Smoke step completed. "
+                    + $"step='unity-content-anchor-materialization-pipeline' passed='True' missingAnchorTransformBlocked='{missingAnchorTransformBlocked}' pipeline='{pipelineResult.Status}' materialization='{pipelineResult.AppliedMaterializationResult.Status}' logicalBinding='{pipelineResult.BindingResult.Status}' placement='{pipelineResult.PlacementResult.Status}' duplicateBlocked='{duplicateBlocked}' logicalUnbind='{logicalUnbind}' physicalRelease='{physicalReleaseResult.Status}' logicalRelease='{logicalReleaseResult.Status}' afterReleaseBlocked='{afterReleaseBlocked}' registry='{registry.ToDiagnosticString()}' pipelineMaterializesObject='True' contentAnchorCreatesObject='False' contentAnchorDestroysObject='False' contentAnchorPhysicalPlacement='True' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.");
+                return true;
+            }
+            finally
+            {
+                foreach (var entry in registry.Snapshot())
+                {
+                    if (entry != null && entry.HasLiveInstance && !entry.PhysicalReleaseRequested)
+                    {
+                        Object.Destroy(entry.Instance);
+                    }
+                }
+
+                if (template != null)
+                {
+                    Object.Destroy(template);
+                }
+
+                if (anchorObject != null)
+                {
+                    Object.Destroy(anchorObject);
+                }
+
+                if (rootCreated)
+                {
+                    if (context.IsValid)
+                    {
+                        if (bindingRequest.IsValid)
+                        {
+                            runtimeHost.UnbindContentAnchor(bindingRequest);
+                        }
+
+                        runtimeContentRuntime.ReleaseScopeLogically(
+                            context,
+                            RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                            QaSource,
+                            "qa.content-anchor-pipeline.cleanup.scope-release");
+                    }
+
+                    runtimeContentRuntime.RemoveScopeRoot(
+                        owner,
+                        QaSource,
+                        "qa.content-anchor-pipeline.cleanup.root-remove");
                 }
             }
         }

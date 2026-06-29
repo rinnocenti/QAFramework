@@ -41,6 +41,7 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 Documentos de setup do projeto consumidor.
 
 ### Notes
+- [F9R-C — Unity ContentAnchor Materialization Pipeline Proof](Notes/F9R-C-Unity-ContentAnchor-Materialization-Pipeline-Proof.md)
 
 Notas temporárias e achados de auditoria local.
 
