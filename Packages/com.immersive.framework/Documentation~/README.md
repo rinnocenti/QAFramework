@@ -33,7 +33,7 @@ Read the documentation in this order:
 | F29 | Unity Input Target Ownership Proof | Closed / F29A-F29C complete |
 | F30 | InputMode Identity and Request Result Model | Closed / F30A-F30E complete |
 | F31 | PlayerActor Identity and Unity Input Evidence | Closed / F31A-F31C complete |
-| F32 | InputMode Unity Adapter Application | Open / F32A preview |
+| F32 | InputMode Unity Adapter Application | Open / F32E application wrapper |
 
 ## F23 Boundary
 
@@ -413,3 +413,7 @@ Assets/_Documentation/Notes/F31C-PlayerActor-Session-Input-Reference-Closeout.md
 - F32C — InputMode Unity Application Plan: dry-run adapter plan only; no Unity Input side effects.
 
 - F32D — InputMode Unity PlayerInput Adapter: first explicit PlayerInput adapter side effect; `SwitchCurrentActionMap`/`DeactivateInput` only through the adapter, no PlayerInputManager join/spawn/custom manager.
+
+- F32E — InputMode Unity PlayerInput Application: explicit application wrapper that activates `PlayerInput` before selecting action maps, delegates lock to the F32D adapter, and still never owns `PlayerInputManager`, join, spawn or movement.
+
+- F32F — InputMode Unity PlayerInput Request Application: composed explicit request-to-PlayerInput application path; no PlayerInputManager join/spawn/movement.

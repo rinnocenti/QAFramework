@@ -320,3 +320,9 @@ F32A does not switch action maps, activate/deactivate PlayerInput, call PlayerIn
 - F32C — InputMode Unity Application Plan: `Assets/_Documentation/Notes/F32C-InputMode-Unity-Application-Plan.md`.
 
 - F32D — InputMode Unity PlayerInput Adapter: first explicit Unity `PlayerInput` adapter side effect; no `PlayerInputManager.JoinPlayer`, actor spawn, movement, or framework input manager.
+
+### F32E — InputMode Unity PlayerInput Application
+
+Status: Implemented / awaiting smoke. Adds explicit PlayerInput application semantics: `SelectActionMap` activates PlayerInput before switching maps; `LockInput` deactivates PlayerInput through the F32D adapter. No PlayerInputManager join, player prefab spawn, movement or custom input manager.
+
+- F32F — InputMode Unity PlayerInput Request Application: composed explicit request-to-PlayerInput application path; no PlayerInputManager join/spawn/movement.

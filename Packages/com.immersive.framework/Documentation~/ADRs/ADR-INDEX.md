@@ -146,3 +146,7 @@ Reference: `../../../../Assets/_Documentation/Notes/F32A-InputMode-Unity-Applica
 - F32C — InputMode Unity Application Plan: side-effect-free adapter dry run after F32A/F32B.
 
 - F32D note: `Assets/_Documentation/Notes/F32D-InputMode-Unity-PlayerInput-Adapter.md`.
+
+- F32E — InputMode Unity PlayerInput Application: explicit PlayerInput application wrapper that activates PlayerInput before selecting Gameplay/UI action maps, delegates InputLocked to the F32D lock adapter, and still does not own PlayerInputManager, join, spawn or movement. Reference: `../../../../Assets/_Documentation/Notes/F32E-InputMode-Unity-PlayerInput-Application.md`.
+
+- F32F — InputMode Unity PlayerInput Request Application: composed explicit request-to-PlayerInput application path; no PlayerInputManager join/spawn/movement.

@@ -75,7 +75,7 @@ This is still intent only. No `PlayerInput.SwitchCurrentActionMap`, `PlayerInput
 
 ### F32D — InputMode Unity PlayerInput Adapter
 
-Status: Implemented / awaiting smoke.
+Status: Closed / smoke PASS.
 
 Adds the first explicit Unity PlayerInput side effect:
 
@@ -85,6 +85,21 @@ LockInput -> PlayerInput.DeactivateInput()
 ```
 
 This is adapter-owned and explicit. It does not own `PlayerInputManager`, call join, spawn actors, move PlayerActor objects or create a custom framework input manager.
+
+### F32E — InputMode Unity PlayerInput Application
+
+Status: Implemented / awaiting smoke.
+
+Adds an explicit PlayerInput application wrapper over the F32C plan and F32D adapter:
+
+```text
+SelectActionMap -> ActivateInput() then SwitchCurrentActionMap(actionMapName)
+LockInput -> DeactivateInput()
+```
+
+This is the first cut that handles the important unlock path after `InputLocked`: returning to `Gameplay`, `PauseOverlay` or `FrontendMenu` must activate the official Unity `PlayerInput` before selecting the requested action map.
+
+F32E still does not own `PlayerInputManager`, call join, spawn actors, move PlayerActor objects, read gameplay commands or create a custom framework input manager.
 
 ## Guardrails
 

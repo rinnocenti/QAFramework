@@ -464,6 +464,16 @@ namespace Immersive.Framework.Diagnostics
                 {
                     RunInputModeUnityPlayerInputAdapterSmoke();
                 }
+
+                if (GUILayout.Button("Run InputMode Unity PlayerInput Application Smoke"))
+                {
+                    RunInputModeUnityPlayerInputApplicationSmoke();
+                }
+
+                if (GUILayout.Button("Run InputMode Unity PlayerInput Request Application Smoke"))
+                {
+                    RunInputModeUnityPlayerInputRequestApplicationSmoke();
+                }
             }
         }
 
@@ -1066,6 +1076,18 @@ private void DrawRouteRequests()
         {
             await RunSmokeAsync(InputModeUnityPlayerInputAdapterQaSmokeRunner.SmokeName, runtimeHost =>
                 InputModeUnityPlayerInputAdapterQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunInputModeUnityPlayerInputApplicationSmoke()
+        {
+            await RunSmokeAsync(InputModeUnityPlayerInputApplicationQaSmokeRunner.SmokeName, runtimeHost =>
+                InputModeUnityPlayerInputApplicationQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunInputModeUnityPlayerInputRequestApplicationSmoke()
+        {
+            await RunSmokeAsync(InputModeUnityPlayerInputRequestApplicationQaSmokeRunner.SmokeName, runtimeHost =>
+                InputModeUnityPlayerInputRequestApplicationQaSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
         }
 
         private async void RunSnapshotParticipantDiagnosticsSmoke()
