@@ -171,7 +171,7 @@ Reference: `../../../../Assets/_Documentation/Notes/F32H-InputMode-Unity-PlayerI
 
 ## F33 — Pause Runtime PlayerInput Wiring
 
-F33 starts after F32H. F33A accepts an opt-in scene-authored runtime bridge from logical Pause requests to explicit Unity `PlayerInput` application.
+F33 is closed through F33E after F32H. F33A accepts an opt-in scene-authored runtime bridge from logical Pause requests to explicit Unity `PlayerInput` application.
 
 Accepted:
 
@@ -201,3 +201,7 @@ F33B accepts an opt-in Unity `InputAction` trigger for the F33A bridge. The trig
 F33C retires the older F27B `UnityPauseInputActionAdapter` as an active runtime path. The class may remain as an inert migration stub, but it must not submit Pause requests directly because that bypasses the accepted `Pause -> InputMode -> PlayerInput` synchronization lane. Reference: `../../../../Assets/_Documentation/Notes/F33C-Legacy-Pause-InputAction-Adapter-Retirement.md`.
 
 F33D flattens Pause input diagnostics. Trigger diagnostics may expose bridge status summary fields, but must not embed a full bridge diagnostic string, and bridge diagnostics must not embed the full PlayerInput application diagnostic string. Reference: `../../../../Assets/_Documentation/Notes/F33D-Pause-Input-Diagnostics-Flattening.md`.
+
+F33E closes Pause Runtime PlayerInput Wiring. The canonical path is `PauseInputActionRuntimeBridgeTrigger` plus `PauseInputModeUnityPlayerInputRuntimeBridge`; the phase keeps automatic FrameworkRuntimeHost wiring, PlayerInputManager join, player spawn, movement, gameplay command reading and framework-owned input managers out of scope. Reference: `../../../../Assets/_Documentation/Notes/F33E-Pause-Runtime-PlayerInput-Wiring-Closeout.md`.
+
+F33E1 corrects the F33E next-phase wording: F33 closes the Pause input path but does not select or authorize the next implementation phase. Reference: `../../../../Assets/_Documentation/Notes/F33E1-Next-Phase-Selection-Correction.md`.

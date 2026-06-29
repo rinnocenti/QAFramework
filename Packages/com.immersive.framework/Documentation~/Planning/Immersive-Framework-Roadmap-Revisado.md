@@ -339,17 +339,17 @@ Guardrails:
 - no automatic `PauseRuntime` wiring;
 - no automatic `FrameworkRuntimeHost` wiring.
 
-Next recommended phase:
+Selected follow-up phase after F32H:
 
 ```text
 F33 — Pause Runtime PlayerInput Wiring
 ```
 
-F33 must define runtime ownership and opt-in authoring before connecting the F32 application path to live Pause runtime events.
+F33 defines runtime ownership and opt-in authoring before connecting the F32 application path to live Pause runtime events.
 
 ### F33 — Pause Runtime PlayerInput Wiring
 
-F33 follows F32H. It introduces opt-in runtime wiring from logical Pause requests to explicit Unity `PlayerInput` application.
+F33 follows F32H and is closed through F33E. It introduces opt-in runtime wiring from logical Pause requests to explicit Unity `PlayerInput` application.
 
 F33A adds `PauseInputModeUnityPlayerInputRuntimeBridge` and `Pause Runtime PlayerInput Bridge Smoke`.
 
@@ -359,4 +359,8 @@ F33C retires the legacy direct Pause InputAction adapter.
 
 F33D flattens Pause input diagnostics so the accepted F33 path remains readable in QA logs.
 
+F33E closes the phase. The canonical authored path is `PauseInputActionRuntimeBridgeTrigger` -> `PauseInputModeUnityPlayerInputRuntimeBridge` -> `PauseResult` -> `InputMode` -> Unity `PlayerInput`.
+
 It remains outside automatic `FrameworkRuntimeHost` registration and does not call `PlayerInputManager.JoinPlayer`, spawn player prefabs, move actors, read gameplay commands or create a framework-owned input manager.
+
+Next phase after F33 is not selected by this closeout. A later roadmap/plan decision must select the next implementation phase before new work starts.

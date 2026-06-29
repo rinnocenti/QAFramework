@@ -1,6 +1,6 @@
 # F33 — Pause Runtime PlayerInput Wiring
 
-Status: Open. F33A and F33B implemented; F33C retires the legacy direct Pause InputAction adapter; F33D flattens Pause input diagnostics.
+Status: Closed through F33E. F33A-F33D are implemented and F33E closes the phase.
 
 ## Purpose
 
@@ -60,3 +60,31 @@ After F33C, a project should not author new scenes with `UnityPauseInputActionAd
 F33D — Pause Input Diagnostics Flattening.
 
 F33D keeps the F33B/F33C runtime path unchanged and reduces diagnostic nesting. The trigger result no longer embeds the full bridge diagnostic blob, and the bridge result no longer stores the full PlayerInput application diagnostic string as its message.
+
+
+## Closeout
+
+F33E — Pause Runtime PlayerInput Wiring Closeout.
+
+F33 is closed. The canonical authored Pause input path is:
+
+```text
+PauseInputActionRuntimeBridgeTrigger
+  -> PauseInputModeUnityPlayerInputRuntimeBridge
+  -> FrameworkRuntimeHost Pause request
+  -> PauseResult
+  -> InputMode
+  -> Unity PlayerInput
+```
+
+The older `UnityPauseInputActionAdapter` remains retired as an inert migration stub and must not be used for new authoring.
+
+F33 does not introduce automatic `FrameworkRuntimeHost` registration, hidden PauseRuntime observer wiring, `PlayerInputManager.JoinPlayer`, player prefab spawn, PlayerActor movement, gameplay command reading or a framework-owned input manager.
+
+Closeout note: `../Notes/F33E-Pause-Runtime-PlayerInput-Wiring-Closeout.md`.
+
+## Closeout correction
+
+F33E1 corrects the next-phase wording from F33E. F33 is closed, but F33 does not select the following implementation phase. The next phase must be selected from the accepted roadmap/plan in a dedicated planning decision.
+
+Correction note: `../Notes/F33E1-Next-Phase-Selection-Correction.md`.

@@ -27,6 +27,7 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Plans/F30-PLAN-InputMode-Identity-And-Request-Result.md` — InputMode Identity and Request Result Model / closed
 - `Plans/F31-PLAN-PlayerActor-Identity-And-Unity-Input-Evidence.md` — PlayerActor Identity and Unity Input Evidence / closed
 - `Plans/F32-PLAN-InputMode-Unity-Adapter-Application.md` — InputMode Unity Adapter Application / closed
+- `Plans/F33-PLAN-Pause-Runtime-PlayerInput-Wiring.md` — Pause Runtime PlayerInput Wiring / closed
 
 ### Setup
 
@@ -151,7 +152,7 @@ Reference: `Plans/F32-PLAN-InputMode-Unity-Adapter-Application.md` and `Notes/F3
 
 ## F33 — Pause Runtime PlayerInput Wiring
 
-F33 starts after F32H. F33A adds an opt-in scene-authored bridge that submits Pause requests and applies the resulting InputMode to an explicit Unity `PlayerInput` after preflight. F33B adds an opt-in Unity `InputAction` trigger for that bridge. F33C retires the older direct `UnityPauseInputActionAdapter` as an active runtime path. F33D flattens the trigger/bridge diagnostic strings.
+F33 is closed through F33E. It adds the opt-in authored Pause input path: `PauseInputActionRuntimeBridgeTrigger` -> `PauseInputModeUnityPlayerInputRuntimeBridge` -> logical Pause request -> `InputMode` -> explicit Unity `PlayerInput` application. F33C retires the older direct `UnityPauseInputActionAdapter` as an active runtime path, and F33D flattens the trigger/bridge diagnostic strings.
 
 References:
 
@@ -160,3 +161,5 @@ References:
 - `Notes/F33B-Pause-InputAction-Runtime-Bridge-Trigger.md`
 - `Notes/F33C-Legacy-Pause-InputAction-Adapter-Retirement.md`
 - `Notes/F33D-Pause-Input-Diagnostics-Flattening.md`
+- `Notes/F33E-Pause-Runtime-PlayerInput-Wiring-Closeout.md`
+- `Notes/F33E1-Next-Phase-Selection-Correction.md` — corrects F33E next-phase wording; F33 does not select the following implementation phase.

@@ -34,6 +34,7 @@ Read the documentation in this order:
 | F30 | InputMode Identity and Request Result Model | Closed / F30A-F30E complete |
 | F31 | PlayerActor Identity and Unity Input Evidence | Closed / F31A-F31C complete |
 | F32 | InputMode Unity Adapter Application | Closed / F32A-F32H complete |
+| F33 | Pause Runtime PlayerInput Wiring | Closed / F33A-F33E complete |
 
 ## F23 Boundary
 
@@ -443,7 +444,7 @@ Assets/_Documentation/Notes/F31C-PlayerActor-Session-Input-Reference-Closeout.md
 
 ## F33 Pause Runtime PlayerInput Wiring
 
-F33 starts after F32H. F33A introduces `PauseInputModeUnityPlayerInputRuntimeBridge`, an opt-in Unity component that submits logical Pause requests and applies the resulting InputMode to an explicit `PlayerInput` only after preflight. F33B introduces `PauseInputActionRuntimeBridgeTrigger`, an opt-in Unity `InputAction` trigger for that bridge. F33C retires the older direct `UnityPauseInputActionAdapter` as an active runtime path. F33D flattens trigger/bridge diagnostics so smoke logs remain readable.
+F33 is closed through F33E. It introduces the opt-in authored Pause input path from Unity `InputAction` to logical Pause, `InputMode` and explicit Unity `PlayerInput` application. F33C retires the older direct `UnityPauseInputActionAdapter` as an active runtime path. F33D flattens trigger/bridge diagnostics so smoke logs remain readable.
 
 It is not automatic `FrameworkRuntimeHost` wiring and still does not own `PlayerInputManager`, call `JoinPlayer`, spawn player prefabs, move actors or read gameplay commands.
 
@@ -456,3 +457,7 @@ F33B note: `../../Assets/_Documentation/Notes/F33B-Pause-InputAction-Runtime-Bri
 F33C note: `../../Assets/_Documentation/Notes/F33C-Legacy-Pause-InputAction-Adapter-Retirement.md`.
 
 F33D note: `../../Assets/_Documentation/Notes/F33D-Pause-Input-Diagnostics-Flattening.md`.
+
+F33E closeout note: `../../Assets/_Documentation/Notes/F33E-Pause-Runtime-PlayerInput-Wiring-Closeout.md`.
+
+F33E1 correction note: `../../Assets/_Documentation/Notes/F33E1-Next-Phase-Selection-Correction.md`. F33 is closed, but F33E does not select the following implementation phase.
