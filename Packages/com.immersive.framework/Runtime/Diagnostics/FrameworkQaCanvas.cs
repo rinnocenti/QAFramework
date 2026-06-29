@@ -579,6 +579,11 @@ namespace Immersive.Framework.Diagnostics
                 {
                     RunRuntimePrefabMaterializationSmoke();
                 }
+
+                if (GUILayout.Button("Run Content Anchor Physical Placement Smoke"))
+                {
+                    RunContentAnchorPhysicalPlacementSmoke();
+                }
             }
         }
 
@@ -1818,6 +1823,304 @@ private async void RunLocalContributionSmoke()
                         owner,
                         QaSource,
                         "qa.runtime-prefab-materialization.cleanup.root-remove");
+                }
+            }
+        }
+
+
+        private async void RunContentAnchorPhysicalPlacementSmoke()
+        {
+            await RunSmokeAsync("Content Anchor Physical Placement Smoke", runtimeHost =>
+                Task.FromResult(RunContentAnchorPhysicalPlacementSmokeCore(runtimeHost)));
+        }
+
+        private bool RunContentAnchorPhysicalPlacementSmokeCore(FrameworkRuntimeHost runtimeHost)
+        {
+            var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+            if (runtimeContentRuntime == null)
+            {
+                _logger.Warning("QA Content Anchor Physical Placement Smoke failed. reason='RuntimeContentRuntime unavailable'.");
+                return false;
+            }
+
+            var registry = new UnityRuntimeMaterializedObjectRegistry();
+            RuntimeScopeContext context = default;
+            RuntimeContentOwner owner = default;
+            RuntimeMaterializationRequest materializationRequest = default;
+            ContentAnchorBindingRequest bindingRequest = default;
+            GameObject template = null;
+            GameObject anchorObject = null;
+            bool rootCreated = false;
+
+            try
+            {
+                owner = RuntimeContentOwner.Transient(
+                    "qa.content-anchor-placement.owner",
+                    "QA Content Anchor Physical Placement Smoke");
+                var rootCreateResult = runtimeContentRuntime.CreateScopeRoot(
+                    owner,
+                    QaSource,
+                    "qa.content-anchor-placement.root.create");
+                rootCreated = rootCreateResult.Applied || rootCreateResult.Status == RuntimeRootRegistryOperationStatus.RootAlreadyExists;
+                if (!rootCreated)
+                {
+                    _logger.Warning($"QA Content Anchor Physical Placement Smoke step failed. step='root-create' status='{rootCreateResult.Status}' message='{FormatValue(rootCreateResult.Message)}'.");
+                    return false;
+                }
+
+                if (!runtimeContentRuntime.TryCreateScopeContext(
+                        owner,
+                        QaSource,
+                        "qa.content-anchor-placement.context",
+                        out context))
+                {
+                    _logger.Warning("QA Content Anchor Physical Placement Smoke step failed. step='context' reason='Runtime scope context was not created'.");
+                    return false;
+                }
+
+                var anchorOwner = ContentAnchorDeclaration.CreateOwnerKey(
+                    ContentAnchorScope.Local,
+                    "qa.content-anchor-placement.anchor-owner");
+                var anchor = ContentAnchorDeclaration.Slot(
+                    anchorOwner,
+                    ContentAnchorScope.Local,
+                    "qa.content-anchor-placement.slot",
+                    ContentAnchorRequiredness.Optional,
+                    "QA Content Anchor Physical Placement Slot",
+                    "QA smoke anchor for explicit physical placement adapter proof.",
+                    "QA Content Anchor Physical Placement Anchor",
+                    "qa.content-anchor-placement.anchor");
+                var anchorSet = ContentAnchorSet.FromDeclarations(new[] { anchor });
+                if (!anchorSet.HasAnchors || anchorSet.HasIssues)
+                {
+                    _logger.Warning($"QA Content Anchor Physical Placement Smoke step failed. step='anchor-set' diagnostics='{anchorSet.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var resource = RuntimeMaterializationResource.From(
+                    UnityPrefabRuntimeMaterializationAdapter.ResourceType,
+                    "qa.content-anchor-placement.prefab",
+                    "QA Content Anchor Physical Placement Template",
+                    string.Empty);
+
+                if (!runtimeContentRuntime.TryCreateMaterializationRequest(
+                        context,
+                        "qa.content-anchor-placement.content",
+                        resource,
+                        QaSource,
+                        "qa.content-anchor-placement.materialization.request",
+                        out materializationRequest,
+                        out var requestGuardResult))
+                {
+                    _logger.Warning($"QA Content Anchor Physical Placement Smoke step failed. step='materialization-request' guard='{requestGuardResult.Status}' message='{FormatValue(requestGuardResult.Message)}'.");
+                    return false;
+                }
+
+                template = new GameObject("QA Content Anchor Physical Placement Template");
+                template.hideFlags = HideFlags.DontSave;
+                anchorObject = new GameObject("QA Content Anchor Physical Placement Anchor");
+                anchorObject.hideFlags = HideFlags.DontSave;
+
+                var materializationAdapter = new UnityPrefabRuntimeMaterializationAdapter(
+                    template,
+                    registry,
+                    null,
+                    QaSource);
+                var materializationResult = materializationAdapter.Materialize(materializationRequest);
+                if (!materializationResult.Succeeded || !materializationResult.HasHandle || registry.ActiveCount != 1)
+                {
+                    _logger.Warning($"QA Content Anchor Physical Placement Smoke step failed. step='materialize' status='{materializationResult.Status}' hasHandle='{materializationResult.HasHandle}' registry='{registry.ToDiagnosticString()}' message='{FormatValue(materializationResult.Message)}'.");
+                    return false;
+                }
+
+                var appliedMaterializationResult = runtimeContentRuntime.ApplyMaterializationResult(
+                    materializationResult,
+                    QaSource,
+                    "qa.content-anchor-placement.materialization.apply");
+                if (!appliedMaterializationResult.Succeeded)
+                {
+                    _logger.Warning($"QA Content Anchor Physical Placement Smoke step failed. step='apply-materialization' status='{appliedMaterializationResult.Status}' message='{FormatValue(appliedMaterializationResult.Message)}'.");
+                    return false;
+                }
+
+                if (!registry.TryGet(materializationRequest.Identity, out var evidence)
+                    || evidence == null
+                    || !evidence.HasLiveInstance)
+                {
+                    _logger.Warning("QA Content Anchor Physical Placement Smoke step failed. step='physical-evidence' reason='Unity physical evidence was not registered'.");
+                    return false;
+                }
+
+                bindingRequest = ContentAnchorBindingRequest.FromDeclaration(
+                    context,
+                    anchor,
+                    materializationRequest.ContentId,
+                    resource,
+                    QaSource,
+                    "qa.content-anchor-placement.binding.request");
+                var bindingResult = runtimeHost.BindContentAnchor(
+                    anchorSet,
+                    bindingRequest,
+                    QaSource,
+                    "qa.content-anchor-placement.binding.logical");
+                if (!bindingResult.Succeeded || !bindingResult.HasHandle)
+                {
+                    _logger.Warning($"QA Content Anchor Physical Placement Smoke step failed. step='logical-binding' status='{bindingResult.Status}' message='{FormatValue(bindingResult.Message)}'.");
+                    return false;
+                }
+
+                var placementAdapter = new UnityContentAnchorPlacementAdapter(QaSource);
+                var missingAnchorTransformResult = placementAdapter.Place(
+                    bindingResult,
+                    evidence,
+                    null,
+                    true,
+                    "qa.content-anchor-placement.missing-anchor-transform");
+                bool missingAnchorTransformBlocked = missingAnchorTransformResult.Failed
+                    && missingAnchorTransformResult.Status == UnityContentAnchorPlacementStatus.FailedMissingAnchorTransform
+                    && evidence.Instance.transform.parent == null;
+                if (!missingAnchorTransformBlocked)
+                {
+                    _logger.Warning($"QA Content Anchor Physical Placement Smoke step failed. step='missing-anchor-transform' status='{missingAnchorTransformResult.Status}' parent='{FormatValue(evidence.Instance.transform.parent != null ? evidence.Instance.transform.parent.name : string.Empty)}' message='{FormatValue(missingAnchorTransformResult.Message)}'.");
+                    return false;
+                }
+
+                var placementResult = placementAdapter.Place(
+                    bindingResult,
+                    evidence,
+                    anchorObject.transform,
+                    true,
+                    "qa.content-anchor-placement.place");
+                bool placed = placementResult.Succeeded
+                    && placementResult.Status == UnityContentAnchorPlacementStatus.Succeeded
+                    && placementResult.ParentApplied
+                    && evidence.Instance.transform.parent == anchorObject.transform
+                    && evidence.Instance.transform.localPosition == Vector3.zero
+                    && evidence.Instance.transform.localRotation == Quaternion.identity
+                    && evidence.Instance.transform.localScale == Vector3.one;
+                if (!placed)
+                {
+                    _logger.Warning($"QA Content Anchor Physical Placement Smoke step failed. step='place' status='{placementResult.Status}' diagnostics='{placementResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var alreadyPlacedResult = placementAdapter.Place(
+                    bindingResult,
+                    evidence,
+                    anchorObject.transform,
+                    true,
+                    "qa.content-anchor-placement.already-placed");
+                bool alreadyPlaced = alreadyPlacedResult.Succeeded
+                    && alreadyPlacedResult.Status == UnityContentAnchorPlacementStatus.SucceededAlreadyPlaced
+                    && !alreadyPlacedResult.ParentApplied;
+                if (!alreadyPlaced)
+                {
+                    _logger.Warning($"QA Content Anchor Physical Placement Smoke step failed. step='already-placed' status='{alreadyPlacedResult.Status}' diagnostics='{alreadyPlacedResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                bool logicalUnbind = runtimeHost.UnbindContentAnchor(bindingResult.Handle);
+                if (!logicalUnbind)
+                {
+                    _logger.Warning("QA Content Anchor Physical Placement Smoke step failed. step='logical-unbind' reason='Logical Content Anchor binding was not removed'.");
+                    return false;
+                }
+
+                var releaseAdapter = new UnityObjectRuntimeReleaseAdapter(registry, QaSource);
+                var releaseRequest = runtimeContentRuntime.CreateReleaseRequest(
+                    context,
+                    materializationRequest.Identity,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    QaSource,
+                    "qa.content-anchor-placement.release.request");
+                var physicalReleaseResult = releaseAdapter.Release(releaseRequest);
+                if (!physicalReleaseResult.Succeeded || registry.PhysicalReleaseRequestedCount != 1)
+                {
+                    _logger.Warning($"QA Content Anchor Physical Placement Smoke step failed. step='physical-release' status='{physicalReleaseResult.Status}' registry='{registry.ToDiagnosticString()}' message='{FormatValue(physicalReleaseResult.Message)}'.");
+                    return false;
+                }
+
+                var placementAfterReleaseResult = placementAdapter.Place(
+                    bindingResult,
+                    evidence,
+                    anchorObject.transform,
+                    true,
+                    "qa.content-anchor-placement.place-after-release");
+                bool placementAfterReleaseBlocked = placementAfterReleaseResult.Failed
+                    && placementAfterReleaseResult.Status == UnityContentAnchorPlacementStatus.RejectedReleasedPhysicalEvidence;
+                if (!placementAfterReleaseBlocked)
+                {
+                    _logger.Warning($"QA Content Anchor Physical Placement Smoke step failed. step='place-after-release' status='{placementAfterReleaseResult.Status}' diagnostics='{placementAfterReleaseResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var logicalReleaseResult = runtimeContentRuntime.ApplyReleaseResult(
+                    physicalReleaseResult,
+                    QaSource,
+                    "qa.content-anchor-placement.release.logical");
+                if (!logicalReleaseResult.Succeeded || !logicalReleaseResult.HandleUnregistered)
+                {
+                    _logger.Warning($"QA Content Anchor Physical Placement Smoke step failed. step='logical-release' status='{logicalReleaseResult.Status}' unregistered='{logicalReleaseResult.HandleUnregistered}' message='{FormatValue(logicalReleaseResult.Message)}'.");
+                    return false;
+                }
+
+                var rootRemoveResult = runtimeContentRuntime.RemoveScopeRoot(
+                    owner,
+                    QaSource,
+                    "qa.content-anchor-placement.root.remove");
+                if (!rootRemoveResult.Applied && rootRemoveResult.Status != RuntimeRootRegistryOperationStatus.RootMissing)
+                {
+                    _logger.Warning($"QA Content Anchor Physical Placement Smoke step failed. step='root-remove' status='{rootRemoveResult.Status}' message='{FormatValue(rootRemoveResult.Message)}'.");
+                    return false;
+                }
+
+                rootCreated = false;
+
+                _logger.Info(
+                    "QA Content Anchor Physical Placement Smoke step completed. "
+                    + $"step='unity-content-anchor-placement' passed='True' missingAnchorTransformBlocked='{missingAnchorTransformBlocked}' logicalBinding='{bindingResult.Status}' placement='{placementResult.Status}' alreadyPlaced='{alreadyPlaced}' logicalUnbind='{logicalUnbind}' physicalRelease='{physicalReleaseResult.Status}' logicalRelease='{logicalReleaseResult.Status}' placementAfterReleaseBlocked='{placementAfterReleaseBlocked}' registry='{registry.ToDiagnosticString()}' materialization='{appliedMaterializationResult.Status}' contentAnchorPhysicalPlacement='True' contentAnchorCreatesObject='False' contentAnchorDestroysObject='False' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.");
+                return true;
+            }
+            finally
+            {
+                foreach (var entry in registry.Snapshot())
+                {
+                    if (entry != null && entry.HasLiveInstance && !entry.PhysicalReleaseRequested)
+                    {
+                        Object.Destroy(entry.Instance);
+                    }
+                }
+
+                if (template != null)
+                {
+                    Object.Destroy(template);
+                }
+
+                if (anchorObject != null)
+                {
+                    Object.Destroy(anchorObject);
+                }
+
+                if (rootCreated)
+                {
+                    if (context.IsValid)
+                    {
+                        if (bindingRequest.IsValid)
+                        {
+                            runtimeHost.UnbindContentAnchor(bindingRequest);
+                        }
+
+                        runtimeContentRuntime.ReleaseScopeLogically(
+                            context,
+                            RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                            QaSource,
+                            "qa.content-anchor-placement.cleanup.scope-release");
+                    }
+
+                    runtimeContentRuntime.RemoveScopeRoot(
+                        owner,
+                        QaSource,
+                        "qa.content-anchor-placement.cleanup.root-remove");
                 }
             }
         }

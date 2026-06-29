@@ -513,3 +513,8 @@ F8R-C is accepted as the boundary for a future Unity materialization adapter. It
 F8R-D is accepted as the boundary for future physical release adapters. It does not implement cleanup and keeps `Destroy`, Pooling return, Addressables release and scene unload outside RuntimeContent core until a later accepted implementation cut.
 
 F9R-A is proposed as the ContentAnchor runtime binding re-entry plan after F8R-B/C/D. It keeps ContentAnchor binding logical: declaration/discovery evidence, binding request/result, logical content handles, diagnostics and logical cleanup only. It does not implement physical placement and does not select materializer, release adapter, camera, audio, save/progression, gameplay, pooling/runtime-spawned, actor materialization or F34.
+
+
+## F9R-B — Unity ContentAnchor Physical Placement Adapter Proof
+
+F9R-B implements an explicit Unity adapter proof that parents an already materialized RuntimeContent instance under an explicit ContentAnchor Transform after logical ContentAnchor binding succeeds. It does not materialize, destroy, pool, use Addressables, spawn actors or implement camera/audio/save/gameplay consumers.

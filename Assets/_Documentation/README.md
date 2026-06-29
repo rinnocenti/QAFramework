@@ -34,6 +34,7 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Plans/F8R-D-PLAN-Physical-Release-Adapter.md` — Physical Release Adapter planning; docs-only, no release adapter implementation selected.
 - `Plans/F9R-A-PLAN-ContentAnchor-Runtime-Binding-Reentry.md` — ContentAnchor Runtime Binding Re-entry draft plan/ADR; docs-only, no physical placement or implementation selected.
 - `Notes/F8R-E-Unity-Prefab-Runtime-Materialization-Adapter-Proof.md` — Unity prefab RuntimeContent materialization adapter proof; first physical adapter implementation and QA smoke.
+- `Notes/F9R-B-Unity-ContentAnchor-Physical-Placement-Adapter-Proof.md` — Unity ContentAnchor physical placement adapter proof; explicit Transform parenting after logical binding and materialization evidence.
 
 ### Setup
 
@@ -101,6 +102,8 @@ F8R-C1 Runtime Materialization Adapter Boundary acceptance: `Notes/F8R-C1-Runtim
 F8R-D1 Physical Release Adapter acceptance: `Notes/F8R-D1-Physical-Release-Adapter-Acceptance.md`.
 
 F8R-E Unity Prefab Runtime Materialization Adapter Proof: `Notes/F8R-E-Unity-Prefab-Runtime-Materialization-Adapter-Proof.md`.
+
+F9R-B Unity ContentAnchor Physical Placement Adapter Proof: `Notes/F9R-B-Unity-ContentAnchor-Physical-Placement-Adapter-Proof.md`.
 
 ## Regras
 
