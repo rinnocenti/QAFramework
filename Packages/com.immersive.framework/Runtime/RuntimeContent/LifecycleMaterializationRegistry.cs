@@ -1,0 +1,247 @@
+using System;
+using System.Collections.Generic;
+using Immersive.Framework.ApiStatus;
+
+namespace Immersive.Framework.RuntimeContent
+{
+    /// <summary>
+    /// API status: Experimental. Explicit lifecycle-owned registry for materialized runtime content evidence.
+    /// It tracks ownership and release evidence only; it does not instantiate prefabs, destroy objects, pool, unload scenes, bind anchors or wire Route/Activity lifecycle automatically.
+    /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F9R-N minimal lifecycle-owned materialization registry contract; no auto-materialization or auto-release wiring.")]
+    public sealed class LifecycleMaterializationRegistry
+    {
+        private readonly Dictionary<RuntimeContentIdentity, LifecycleMaterializedEntry> _entries;
+
+        public LifecycleMaterializationRegistry()
+        {
+            _entries = new Dictionary<RuntimeContentIdentity, LifecycleMaterializedEntry>();
+        }
+
+        public int Count => _entries.Count;
+
+        public int ActiveCount => CountByState(LifecycleMaterializationEntryState.Active);
+
+        public int ReleaseRequestedCount => CountByState(LifecycleMaterializationEntryState.ReleaseRequested);
+
+        public int ReleasedCount => CountByState(LifecycleMaterializationEntryState.Released);
+
+        public int ReleaseFailedCount => CountByState(LifecycleMaterializationEntryState.ReleaseFailed);
+
+        public bool HasEntries => _entries.Count > 0;
+
+        public LifecycleMaterializationRegistryOperationResult Register(
+            RuntimeContentHandle handle,
+            string source,
+            string reason)
+        {
+            if (handle == null)
+            {
+                throw new ArgumentNullException(nameof(handle));
+            }
+
+            if (!handle.IsMaterialized)
+            {
+                return LifecycleMaterializationRegistryOperationResult.Failure(
+                    handle.Identity,
+                    LifecycleMaterializationRegistryOperationStatus.RejectedInvalidTransition,
+                    null,
+                    source,
+                    reason,
+                    $"Lifecycle materialization registry can only register materialized handles. Current handle state: '{handle.State}'.");
+            }
+
+            if (_entries.TryGetValue(handle.Identity, out var existingEntry))
+            {
+                if (ReferenceEquals(existingEntry.Handle, handle))
+                {
+                    return LifecycleMaterializationRegistryOperationResult.Success(
+                        handle.Identity,
+                        LifecycleMaterializationRegistryOperationStatus.SucceededAlreadyRegistered,
+                        existingEntry,
+                        source,
+                        reason,
+                        "Lifecycle materialization entry was already registered for this handle.");
+                }
+
+                return LifecycleMaterializationRegistryOperationResult.Failure(
+                    handle.Identity,
+                    LifecycleMaterializationRegistryOperationStatus.RejectedDuplicateEntry,
+                    existingEntry,
+                    source,
+                    reason,
+                    "Lifecycle materialization registry rejected a duplicate entry for the same runtime content identity.");
+            }
+
+            var entry = new LifecycleMaterializedEntry(handle, source, reason);
+            _entries.Add(handle.Identity, entry);
+
+            return LifecycleMaterializationRegistryOperationResult.Success(
+                handle.Identity,
+                LifecycleMaterializationRegistryOperationStatus.SucceededRegistered,
+                entry,
+                source,
+                reason,
+                "Lifecycle materialization entry registered.");
+        }
+
+        public LifecycleMaterializationRegistryOperationResult RequestRelease(
+            RuntimeContentIdentity identity,
+            string source,
+            string reason)
+        {
+            if (!TryGetEntry(identity, source, reason, out var entry, out var missingResult))
+            {
+                return missingResult;
+            }
+
+            return entry.RequestRelease(source, reason);
+        }
+
+        public LifecycleMaterializationRegistryOperationResult MarkReleased(
+            RuntimeContentIdentity identity,
+            string source,
+            string reason)
+        {
+            if (!TryGetEntry(identity, source, reason, out var entry, out var missingResult))
+            {
+                return missingResult;
+            }
+
+            return entry.MarkReleased(source, reason);
+        }
+
+        public LifecycleMaterializationRegistryOperationResult MarkReleaseFailed(
+            RuntimeContentIdentity identity,
+            string source,
+            string reason,
+            string message)
+        {
+            if (!TryGetEntry(identity, source, reason, out var entry, out var missingResult))
+            {
+                return missingResult;
+            }
+
+            return entry.MarkReleaseFailed(source, reason, message);
+        }
+
+        public bool TryGet(RuntimeContentIdentity identity, out LifecycleMaterializedEntry entry)
+        {
+            ValidateIdentity(identity);
+            return _entries.TryGetValue(identity, out entry);
+        }
+
+        public bool Contains(RuntimeContentIdentity identity)
+        {
+            ValidateIdentity(identity);
+            return _entries.ContainsKey(identity);
+        }
+
+        public LifecycleMaterializedEntry[] Snapshot()
+        {
+            var snapshot = new LifecycleMaterializedEntry[_entries.Count];
+            _entries.Values.CopyTo(snapshot, 0);
+            return snapshot;
+        }
+
+        public LifecycleMaterializedEntry[] Snapshot(RuntimeContentOwner owner)
+        {
+            ValidateOwner(owner);
+
+            var results = new List<LifecycleMaterializedEntry>();
+            foreach (var entry in _entries.Values)
+            {
+                if (entry.Owner == owner)
+                {
+                    results.Add(entry);
+                }
+            }
+
+            return results.ToArray();
+        }
+
+        public LifecycleMaterializedEntry[] Snapshot(RuntimeContentScope scope)
+        {
+            ValidateScope(scope);
+
+            var results = new List<LifecycleMaterializedEntry>();
+            foreach (var entry in _entries.Values)
+            {
+                if (entry.Scope == scope)
+                {
+                    results.Add(entry);
+                }
+            }
+
+            return results.ToArray();
+        }
+
+        public string ToDiagnosticString()
+        {
+            return $"entries='{Count}' active='{ActiveCount}' releaseRequested='{ReleaseRequestedCount}' released='{ReleasedCount}' releaseFailed='{ReleaseFailedCount}'";
+        }
+
+        private int CountByState(LifecycleMaterializationEntryState state)
+        {
+            int count = 0;
+            foreach (var entry in _entries.Values)
+            {
+                if (entry != null && entry.State == state)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private bool TryGetEntry(
+            RuntimeContentIdentity identity,
+            string source,
+            string reason,
+            out LifecycleMaterializedEntry entry,
+            out LifecycleMaterializationRegistryOperationResult missingResult)
+        {
+            ValidateIdentity(identity);
+
+            if (_entries.TryGetValue(identity, out entry))
+            {
+                missingResult = default(LifecycleMaterializationRegistryOperationResult);
+                return true;
+            }
+
+            missingResult = LifecycleMaterializationRegistryOperationResult.Failure(
+                identity,
+                LifecycleMaterializationRegistryOperationStatus.RejectedMissingEntry,
+                null,
+                source,
+                reason,
+                "Lifecycle materialization registry operation rejected a missing entry.");
+            return false;
+        }
+
+        private static void ValidateIdentity(RuntimeContentIdentity identity)
+        {
+            if (!identity.IsValid)
+            {
+                throw new ArgumentException("Runtime content identity must be valid.", nameof(identity));
+            }
+        }
+
+        private static void ValidateOwner(RuntimeContentOwner owner)
+        {
+            if (!owner.IsValid)
+            {
+                throw new ArgumentException("Runtime content owner must be valid.", nameof(owner));
+            }
+        }
+
+        private static void ValidateScope(RuntimeContentScope scope)
+        {
+            if (!Enum.IsDefined(typeof(RuntimeContentScope), scope) || scope == RuntimeContentScope.Unknown)
+            {
+                throw new ArgumentOutOfRangeException(nameof(scope), scope, "Runtime content scope must be explicit.");
+            }
+        }
+    }
+}

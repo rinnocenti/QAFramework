@@ -575,6 +575,11 @@ namespace Immersive.Framework.Diagnostics
                     RunRuntimeContentSmoke();
                 }
 
+                if (GUILayout.Button("Run Lifecycle Materialization Registry Contract Smoke"))
+                {
+                    RunLifecycleMaterializationRegistryContractSmoke();
+                }
+
                 if (GUILayout.Button("Run Runtime Prefab Materialization Smoke"))
                 {
                     RunRuntimePrefabMaterializationSmoke();
@@ -1657,6 +1662,144 @@ private async void RunLocalContributionSmoke()
             return true;
         }
 
+
+        private async void RunLifecycleMaterializationRegistryContractSmoke()
+        {
+            await RunSmokeAsync("Lifecycle Materialization Registry Contract Smoke", runtimeHost =>
+                Task.FromResult(RunLifecycleMaterializationRegistryContractSmokeCore(runtimeHost)));
+        }
+
+        private bool RunLifecycleMaterializationRegistryContractSmokeCore(FrameworkRuntimeHost runtimeHost)
+        {
+            var registry = new LifecycleMaterializationRegistry();
+            var owner = RuntimeContentOwner.Transient(
+                "qa.lifecycle-materialization-registry.owner",
+                "QA Lifecycle Materialization Registry Contract Smoke");
+            var identity = RuntimeContentIdentity.From(
+                owner,
+                "qa.lifecycle-materialization-registry.content");
+            var handle = RuntimeContentHandle.Materialized(
+                identity,
+                QaSource,
+                "qa.lifecycle-materialization-registry.handle.materialized");
+
+            var registerResult = registry.Register(
+                handle,
+                QaSource,
+                "qa.lifecycle-materialization-registry.register");
+            bool registered = registerResult.Succeeded
+                && registerResult.Status == LifecycleMaterializationRegistryOperationStatus.SucceededRegistered
+                && registerResult.HasEntry
+                && registry.Count == 1
+                && registry.ActiveCount == 1
+                && registry.ReleaseRequestedCount == 0
+                && registry.ReleasedCount == 0
+                && registry.ReleaseFailedCount == 0
+                && registry.Snapshot(owner).Length == 1
+                && registry.Snapshot(RuntimeContentScope.Transient).Length == 1;
+            if (!registered)
+            {
+                _logger.Warning($"QA Lifecycle Materialization Registry Contract Smoke step failed. step='register' diagnostics='{registerResult.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}'.");
+                return false;
+            }
+
+            var duplicateResult = registry.Register(
+                handle,
+                QaSource,
+                "qa.lifecycle-materialization-registry.duplicate");
+            bool duplicateStable = duplicateResult.Succeeded
+                && duplicateResult.Status == LifecycleMaterializationRegistryOperationStatus.SucceededAlreadyRegistered
+                && registry.Count == 1
+                && registry.ActiveCount == 1;
+            if (!duplicateStable)
+            {
+                _logger.Warning($"QA Lifecycle Materialization Registry Contract Smoke step failed. step='duplicate' diagnostics='{duplicateResult.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}'.");
+                return false;
+            }
+
+            var conflictingHandle = RuntimeContentHandle.Materialized(
+                identity,
+                QaSource,
+                "qa.lifecycle-materialization-registry.handle.conflict");
+            var conflictingDuplicateResult = registry.Register(
+                conflictingHandle,
+                QaSource,
+                "qa.lifecycle-materialization-registry.duplicate-conflict");
+            bool conflictingDuplicateRejected = conflictingDuplicateResult.Failed
+                && conflictingDuplicateResult.Status == LifecycleMaterializationRegistryOperationStatus.RejectedDuplicateEntry
+                && registry.Count == 1
+                && registry.ActiveCount == 1;
+            if (!conflictingDuplicateRejected)
+            {
+                _logger.Warning($"QA Lifecycle Materialization Registry Contract Smoke step failed. step='duplicate-conflict' diagnostics='{conflictingDuplicateResult.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}'.");
+                return false;
+            }
+
+            var releaseRequestResult = registry.RequestRelease(
+                identity,
+                QaSource,
+                "qa.lifecycle-materialization-registry.release.request");
+            bool releaseRequested = releaseRequestResult.Succeeded
+                && releaseRequestResult.Status == LifecycleMaterializationRegistryOperationStatus.SucceededReleaseRequested
+                && registry.ActiveCount == 0
+                && registry.ReleaseRequestedCount == 1
+                && registry.ReleasedCount == 0;
+            if (!releaseRequested)
+            {
+                _logger.Warning($"QA Lifecycle Materialization Registry Contract Smoke step failed. step='release-request' diagnostics='{releaseRequestResult.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}'.");
+                return false;
+            }
+
+            var releasedResult = registry.MarkReleased(
+                identity,
+                QaSource,
+                "qa.lifecycle-materialization-registry.release.mark-released");
+            bool released = releasedResult.Succeeded
+                && releasedResult.Status == LifecycleMaterializationRegistryOperationStatus.SucceededReleased
+                && registry.ActiveCount == 0
+                && registry.ReleaseRequestedCount == 0
+                && registry.ReleasedCount == 1
+                && registry.ReleaseFailedCount == 0;
+            if (!released)
+            {
+                _logger.Warning($"QA Lifecycle Materialization Registry Contract Smoke step failed. step='released' diagnostics='{releasedResult.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}'.");
+                return false;
+            }
+
+            var missingIdentity = RuntimeContentIdentity.From(
+                owner,
+                "qa.lifecycle-materialization-registry.missing");
+            var missingReleaseResult = registry.RequestRelease(
+                missingIdentity,
+                QaSource,
+                "qa.lifecycle-materialization-registry.release.missing");
+            bool missingRejected = missingReleaseResult.Failed
+                && missingReleaseResult.Status == LifecycleMaterializationRegistryOperationStatus.RejectedMissingEntry
+                && registry.Count == 1
+                && registry.ReleasedCount == 1;
+            if (!missingRejected)
+            {
+                _logger.Warning($"QA Lifecycle Materialization Registry Contract Smoke step failed. step='missing-release' diagnostics='{missingReleaseResult.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}'.");
+                return false;
+            }
+
+            bool registryOwnsEvidenceOnly = registry.Count == 1
+                && registry.HasEntries
+                && registry.Snapshot().Length == 1
+                && registry.Snapshot(owner).Length == 1
+                && registry.Snapshot(RuntimeContentScope.Route).Length == 0
+                && handle.IsMaterialized;
+            if (!registryOwnsEvidenceOnly)
+            {
+                _logger.Warning($"QA Lifecycle Materialization Registry Contract Smoke step failed. step='evidence-only' registry='{registry.ToDiagnosticString()}' handle='{handle.ToDiagnosticString()}'.");
+                return false;
+            }
+
+            _logger.Info(
+                "QA Lifecycle Materialization Registry Contract Smoke step completed. "
+                + $"step='lifecycle-materialization-registry-contract' passed='True' register='{registerResult.Status}' duplicate='{duplicateResult.Status}' duplicateConflict='{conflictingDuplicateResult.Status}' releaseRequest='{releaseRequestResult.Status}' releaseComplete='{releasedResult.Status}' missingRelease='{missingReleaseResult.Status}' entries='{registry.Count}' active='{registry.ActiveCount}' releaseRequested='{registry.ReleaseRequestedCount}' released='{registry.ReleasedCount}' releaseFailed='{registry.ReleaseFailedCount}' typedIdentity='True' registryOwnsEvidenceOnly='{registryOwnsEvidenceOnly}' physicalRelease='False' logicalRuntimeContentRelease='False' contentAnchorBindingCleanup='False' explicitSubmit='True' automaticLifecycleWiring='False' routeActivityAutoMaterialization='False' routeActivityAutoRelease='False' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.");
+            return true;
+        }
 
         private async void RunRuntimePrefabMaterializationSmoke()
         {

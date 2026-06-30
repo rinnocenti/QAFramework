@@ -72,6 +72,7 @@ The individual note files were collapsed into this archive so the folder stays r
 | F9R-K | Accepted / docs-only | F9R closeout / documentation sync. |
 | F9R-L | Closed / PASS | Partial bridge set materialization rollback proof validated by QA smoke. |
 | F9R-M | Accepted / Plan / docs-only | Lifecycle-owned materialization registry planning baseline; no implementation or lifecycle auto-materialization selected. |
+| F9R-N | Ready for smoke | Minimal lifecycle-owned materialization registry contract proof; registry evidence only, no Route/Activity auto-wiring. |
 
 ## Consolidation Notes
 

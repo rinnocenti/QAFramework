@@ -148,6 +148,8 @@ F9R-L Unity ContentAnchor Materialization Bridge Set Rollback Proof: Closed / PA
 
 F9R-M Lifecycle-Owned Materialization Registry Plan: Accepted / Plan / docs-only, `Plans/F9R-M-PLAN-Lifecycle-Owned-Materialization-Registry.md`.
 
+F9R-N Lifecycle-Owned Materialization Registry Contract Proof: Ready for smoke, `Notes/F9R-N-Lifecycle-Owned-Materialization-Registry-Contract-Proof.md`.
+
 ## Regras
 
 - Documentação viva do projeto fica em `Assets/_Documentation`.

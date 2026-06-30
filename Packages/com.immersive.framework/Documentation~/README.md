@@ -55,6 +55,7 @@ Read the documentation in this order:
 | F9R-K | F9R Closeout / Documentation Sync | Accepted / docs-only |
 | F9R-L | Unity ContentAnchor Materialization Bridge Set Rollback Proof | Closed / PASS |
 | F9R-M | Lifecycle-Owned Materialization Registry Plan | Accepted / Plan / docs-only |
+| F9R-N | Lifecycle-Owned Materialization Registry Contract Proof | Ready for smoke |
 
 ## F8R-E Unity Prefab Runtime Materialization Adapter Proof
 
@@ -602,3 +603,12 @@ auto-release may be planned before auto-materialization
 - `Assets/_Documentation/Plans/F9R-M-PLAN-Lifecycle-Owned-Materialization-Registry.md`
 
 F9R-M does not implement runtime code, editor code, scenes, prefabs, Route/Activity auto-materialization, Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay consumers.
+
+
+## F9R-N — Lifecycle-Owned Materialization Registry Contract Proof
+
+F9R-N adds the minimal `LifecycleMaterializationRegistry` contract and QA smoke for lifecycle-owned materialization evidence. It records typed runtime identity, owner/scope and registry release-state transitions only.
+
+- `Assets/_Documentation/Notes/F9R-N-Lifecycle-Owned-Materialization-Registry-Contract-Proof.md`
+
+F9R-N does not instantiate prefabs, destroy objects, release RuntimeContent handles, remove ContentAnchor bindings, wire Route/Activity lifecycle exit, materialize automatically, auto-release automatically or unlock Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay consumers.

@@ -54,6 +54,7 @@ POST-F33-B keeps F34/gameplay unauthorized. It also keeps camera, audio, save/pr
 | F8R-E — Unity Prefab Runtime Materialization Adapter Proof | Implemented / selected by user | First physical RuntimeContent adapter proof after accepted F8R-B/F8R-C/F8R-D boundaries. | Absence of a concrete Unity prefab materialization proof and physical Destroy release proof. | Future readiness review for materialization/release implementation. Does not unlock consumers by itself. | No new ADR; implements within accepted F8R-C/F8R-D boundaries. |
 | F9R-L — Unity ContentAnchor Materialization Bridge Set Rollback Proof | Closed / PASS | Hardening cut after F8R-F readiness review identified partial batch materialization as a concrete blocker. | Bridge set runtime failure after one or more bridges already materialized. | Safer explicit QA/authored bridge set operation. Does not unlock consumers by itself. | No new ADR; implemented within accepted F8R/F9R boundaries. |
 | F9R-M — Lifecycle-Owned Materialization Registry Plan | Accepted / Plan / docs-only | Planning cut after F9R-L. Defines how lifecycle may own materialization registry/release evidence before any Route/Activity auto-materialization. | Lifecycle exit currently cannot prove physical cleanup of local adapter/bridge registries. | Future minimal lifecycle-owned registry contract proof. Does not unlock consumers by itself. | Plan accepted; implementation remains unselected. |
+| F9R-N — Lifecycle-Owned Materialization Registry Contract Proof | Ready for smoke / implementation selected | Minimal contract implementation after F9R-M. Adds lifecycle-owned registry/entry/result/status contracts and QA smoke. | Missing typed registry contract for lifecycle-owned materialization evidence. | Future explicit bridge registration into lifecycle registry and later release planning. Does not unlock consumers by itself. | No new ADR; implements within accepted F9R-M plan. |
 
 ## Immediate Rule
 
@@ -125,6 +126,15 @@ auto-release may be planned before auto-materialization
 F9R-M does not implement runtime code, editor code, scene changes, Route/Activity auto-materialization, Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay.
 
 Candidate next cuts remain implementation candidates only after explicit selection: minimal lifecycle-owned registry contract proof, explicit bridge registration into lifecycle registry proof, registry scope release smoke, or Route/Activity release integration plan.
+
+
+## F9R-N Implementation Status
+
+`F9R-N - Lifecycle-Owned Materialization Registry Contract Proof` is selected as the minimal implementation after F9R-M.
+
+It adds lifecycle-owned materialization registry contracts and a QA smoke that proves typed registration, duplicate idempotency for the same handle, explicit registry release-state transitions and missing-entry rejection.
+
+F9R-N does not implement bridge/bridge set registration into the lifecycle registry, Route/Activity lifecycle integration, auto-materialization, auto-release, physical release adapter execution, ContentAnchor binding cleanup, Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay.
 
 ## Superseded Prior Reading
 
