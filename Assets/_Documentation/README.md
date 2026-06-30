@@ -71,6 +71,7 @@ Documentos de setup do projeto consumidor.
 - [F9R-P — Lifecycle Materialization Registry Release Plan Proof](Notes/F9R-P-Lifecycle-Materialization-Registry-Release-Plan-Proof.md)
 - [F9R-Q — Lifecycle Materialization Registry Release Execution Proof](Notes/F9R-Q-Lifecycle-Materialization-Registry-Release-Execution-Proof.md)
 - [F9R-R — Route / Activity Exit Auto-Release Decision](Plans/F9R-R-PLAN-Route-Activity-Exit-Auto-Release-Decision.md)
+- [F9R-S — Explicit Composite Lifecycle Release Executor Proof](Notes/F9R-S-Explicit-Composite-Lifecycle-Release-Executor-Proof.md)
 
 Notas temporárias e achados de auditoria local.
 
@@ -164,6 +165,8 @@ F9R-O Bridge Lifecycle Registry Registration Proof: Closed / PASS, `Notes/F9R-O-
 F9R-P Lifecycle Materialization Registry Release Plan Proof: Closed / PASS, `Notes/F9R-P-Lifecycle-Materialization-Registry-Release-Plan-Proof.md`.
 
 F9R-Q Lifecycle Materialization Registry Release Execution Proof: Closed / PASS, `Notes/F9R-Q-Lifecycle-Materialization-Registry-Release-Execution-Proof.md`.
+F9R-R Route/Activity Exit Auto-Release Decision: Accepted / docs-only, `Plans/F9R-R-PLAN-Route-Activity-Exit-Auto-Release-Decision.md`.
+F9R-S Explicit Composite Lifecycle Release Executor Proof: Closed / PASS, `Notes/F9R-S-Explicit-Composite-Lifecycle-Release-Executor-Proof.md`.
 
 ## Regras
 

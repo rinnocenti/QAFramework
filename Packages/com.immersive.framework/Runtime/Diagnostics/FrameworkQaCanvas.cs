@@ -595,6 +595,11 @@ namespace Immersive.Framework.Diagnostics
                     RunLifecycleRegistryReleaseExecutionSmoke();
                 }
 
+                if (GUILayout.Button("Run Composite Lifecycle Release Smoke"))
+                {
+                    RunCompositeLifecycleReleaseSmoke();
+                }
+
                 if (GUILayout.Button("Run Runtime Prefab Materialization Smoke"))
                 {
                     RunRuntimePrefabMaterializationSmoke();
@@ -2494,6 +2499,219 @@ private async void RunLocalContributionSmoke()
                         runtimeContentRuntime,
                         owner,
                         "lifecycle-release-execution");
+                }
+            }
+        }
+
+
+        private async void RunCompositeLifecycleReleaseSmoke()
+        {
+            await RunSmokeAsync("Composite Lifecycle Release Smoke", runtimeHost =>
+                Task.FromResult(RunCompositeLifecycleReleaseSmokeCore(runtimeHost)));
+        }
+
+        private bool RunCompositeLifecycleReleaseSmokeCore(FrameworkRuntimeHost runtimeHost)
+        {
+            var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+            if (runtimeContentRuntime == null)
+            {
+                _logger.Warning("QA Composite Lifecycle Release Smoke failed. reason='RuntimeContentRuntime unavailable'.");
+                return false;
+            }
+
+            var lifecycleRegistry = new LifecycleMaterializationRegistry();
+            GameObject bridgeObject = null;
+            GameObject template = null;
+            GameObject anchorObject = null;
+            RuntimeContentOwner owner = default(RuntimeContentOwner);
+            RuntimeScopeContext context = default(RuntimeScopeContext);
+            bool rootCreated = false;
+
+            string unique = Guid.NewGuid().ToString("N");
+            owner = RuntimeContentOwner.Transient(
+                "qa.composite-lifecycle-release.owner." + unique,
+                "QA Composite Lifecycle Release Smoke Owner");
+
+            try
+            {
+                bridgeObject = new GameObject("QA Composite Lifecycle Release Bridge");
+                bridgeObject.hideFlags = HideFlags.DontSave;
+                var bridge = bridgeObject.AddComponent<UnityContentAnchorMaterializationBridge>();
+
+                template = new GameObject("QA Composite Lifecycle Release Template");
+                template.hideFlags = HideFlags.DontSave;
+                anchorObject = new GameObject("QA Composite Lifecycle Release Anchor");
+                anchorObject.hideFlags = HideFlags.DontSave;
+
+                bridge.ConfigureForDiagnostics(
+                    template,
+                    anchorObject.transform,
+                    RuntimeContentScope.Transient,
+                    owner.OwnerId,
+                    owner.OwnerName,
+                    true,
+                    ContentAnchorScope.Route,
+                    ContentAnchorKind.Slot,
+                    ContentAnchorRequiredness.Required,
+                    "qa.composite-lifecycle-release.route." + unique,
+                    "qa.composite-lifecycle-release.anchor." + unique,
+                    "qa.composite-lifecycle-release.content." + unique,
+                    "qa.composite-lifecycle-release.prefab." + unique,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    true,
+                    false);
+
+                var materialize = bridge.SubmitMaterializationForDiagnostics(
+                    QaSource,
+                    "qa.composite-lifecycle-release.materialize");
+                rootCreated = runtimeContentRuntime.TryCreateScopeContext(
+                    owner,
+                    QaSource,
+                    "qa.composite-lifecycle-release.context",
+                    out context);
+                bool evidenceFound = TryGetSingleActiveMaterializedEvidence(bridge, out var evidence);
+                bool materialized = materialize.Succeeded
+                    && materialize.Status == UnityContentAnchorMaterializationBridgeStatus.SucceededMaterialized
+                    && rootCreated
+                    && context.IsValid
+                    && evidenceFound
+                    && evidence.Handle != null
+                    && evidence.Handle.IsMaterialized
+                    && bridge.Registry.Count == 1
+                    && bridge.Registry.ActiveCount == 1
+                    && bridge.Registry.PhysicalReleaseRequestedCount == 0
+                    && HasParentedLiveInstance(bridge, anchorObject.transform)
+                    && runtimeContentRuntime.SnapshotHandles(context).Length == 1
+                    && runtimeHost.SnapshotContentAnchorBindingsForRuntimeContent(evidence.Handle.Identity).Length == 1;
+                if (!materialized)
+                {
+                    _logger.Warning($"QA Composite Lifecycle Release Smoke step failed. step='materialize' result='{materialize.ToDiagnosticString()}' registry='{bridge.Registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var lifecycleRegister = lifecycleRegistry.Register(
+                    evidence.Handle,
+                    QaSource,
+                    "qa.composite-lifecycle-release.lifecycle-register");
+                bool registered = lifecycleRegister.Succeeded
+                    && lifecycleRegister.Status == LifecycleMaterializationRegistryOperationStatus.SucceededRegistered
+                    && lifecycleRegistry.Count == 1
+                    && lifecycleRegistry.ActiveCount == 1;
+                if (!registered)
+                {
+                    _logger.Warning($"QA Composite Lifecycle Release Smoke step failed. step='lifecycle-register' result='{lifecycleRegister.ToDiagnosticString()}' registry='{lifecycleRegistry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var plan = lifecycleRegistry.CreateReleasePlan(
+                    owner,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    QaSource,
+                    "qa.composite-lifecycle-release.plan");
+                bool planReady = plan.Succeeded
+                    && plan.Status == LifecycleMaterializationReleasePlanStatus.SucceededPlanned
+                    && plan.RequestCount == 1
+                    && plan.ActiveCandidates == 1
+                    && plan.ExecutesRelease == false;
+                if (!planReady)
+                {
+                    _logger.Warning($"QA Composite Lifecycle Release Smoke step failed. step='plan' plan='{plan.ToDiagnosticString()}' lifecycleRegistry='{lifecycleRegistry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var releaseAdapter = new UnityObjectRuntimeReleaseAdapter(bridge.Registry, QaSource);
+                var executor = new UnityContentAnchorCompositeLifecycleReleaseExecutor(
+                    releaseAdapter,
+                    QaSource);
+                var execution = executor.Execute(
+                    runtimeHost,
+                    lifecycleRegistry,
+                    plan,
+                    "qa.composite-lifecycle-release.execute");
+
+                int bindingsAfterRelease = runtimeHost.SnapshotContentAnchorBindingsForRuntimeContent(evidence.Handle.Identity).Length;
+                int handlesAfterRelease = runtimeContentRuntime.SnapshotHandles(context).Length;
+                bool executed = execution.Succeeded
+                    && execution.Status == UnityContentAnchorCompositeLifecycleReleaseStatus.SucceededReleasedAll
+                    && execution.RequestCount == 1
+                    && execution.PhysicalReleaseRequests == 1
+                    && execution.LogicalRuntimeReleaseResults == 1
+                    && execution.BindingCleanupResults == 1
+                    && execution.BindingRemoved == 1
+                    && execution.LifecycleReleaseRequested == 1
+                    && execution.LifecycleReleased == 1
+                    && execution.LifecycleReleaseFailed == 0
+                    && execution.MissingEntries == 0
+                    && execution.PerformsPhysicalRelease
+                    && execution.PerformsLogicalRuntimeContentRelease
+                    && execution.PerformsContentAnchorBindingCleanup
+                    && lifecycleRegistry.Count == 1
+                    && lifecycleRegistry.ActiveCount == 0
+                    && lifecycleRegistry.ReleaseRequestedCount == 0
+                    && lifecycleRegistry.ReleasedCount == 1
+                    && lifecycleRegistry.ReleaseFailedCount == 0
+                    && bridge.Registry.Count == 1
+                    && bridge.Registry.ActiveCount == 0
+                    && bridge.Registry.PhysicalReleaseRequestedCount == 1
+                    && evidence.Handle.IsReleased
+                    && handlesAfterRelease == 0
+                    && bindingsAfterRelease == 0;
+                if (!executed)
+                {
+                    _logger.Warning($"QA Composite Lifecycle Release Smoke step failed. step='execute' execution='{execution.ToDiagnosticString()}' lifecycleRegistry='{lifecycleRegistry.ToDiagnosticString()}' physicalRegistry='{bridge.Registry.ToDiagnosticString()}' handle='{evidence.Handle.ToDiagnosticString()}' bindingsAfterRelease='{bindingsAfterRelease}' handlesAfterRelease='{handlesAfterRelease}'.");
+                    return false;
+                }
+
+                var repeatedPlan = lifecycleRegistry.CreateReleasePlan(
+                    owner,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    QaSource,
+                    "qa.composite-lifecycle-release.plan.repeated");
+                var repeatedExecution = executor.Execute(
+                    runtimeHost,
+                    lifecycleRegistry,
+                    repeatedPlan,
+                    "qa.composite-lifecycle-release.execute.repeated");
+                bool repeatedEmpty = repeatedPlan.Succeeded
+                    && repeatedPlan.Status == LifecycleMaterializationReleasePlanStatus.SucceededEmpty
+                    && repeatedPlan.RequestCount == 0
+                    && repeatedExecution.Succeeded
+                    && repeatedExecution.Status == UnityContentAnchorCompositeLifecycleReleaseStatus.SucceededNoRequests
+                    && repeatedExecution.RequestCount == 0
+                    && lifecycleRegistry.ReleasedCount == 1
+                    && bridge.Registry.ActiveCount == 0
+                    && handlesAfterRelease == 0
+                    && bindingsAfterRelease == 0;
+                if (!repeatedEmpty)
+                {
+                    _logger.Warning($"QA Composite Lifecycle Release Smoke step failed. step='repeated-empty' plan='{repeatedPlan.ToDiagnosticString()}' execution='{repeatedExecution.ToDiagnosticString()}' lifecycleRegistry='{lifecycleRegistry.ToDiagnosticString()}' physicalRegistry='{bridge.Registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                _logger.Info(
+                    "QA Composite Lifecycle Release Smoke step completed. "
+                    + $"step='unity-content-anchor-composite-lifecycle-release' passed='True' materialize='{materialize.Status}' lifecycleRegister='{lifecycleRegister.Status}' plan='{plan.Status}' planRequests='{plan.RequestCount}' execution='{execution.Status}' executedRequests='{execution.RequestCount}' physicalReleaseRequests='{execution.PhysicalReleaseRequests}' logicalRuntimeReleaseResults='{execution.LogicalRuntimeReleaseResults}' bindingCleanupResults='{execution.BindingCleanupResults}' bindingRemoved='{execution.BindingRemoved}' lifecycleReleaseRequested='{execution.LifecycleReleaseRequested}' lifecycleReleased='{execution.LifecycleReleased}' lifecycleReleaseFailed='{execution.LifecycleReleaseFailed}' repeatedPlan='{repeatedPlan.Status}' repeatedExecution='{repeatedExecution.Status}' lifecycleEntries='{lifecycleRegistry.Count}' lifecycleActive='{lifecycleRegistry.ActiveCount}' lifecycleReleasedEntries='{lifecycleRegistry.ReleasedCount}' physicalRegistryEntries='{bridge.Registry.Count}' physicalRegistryActive='{bridge.Registry.ActiveCount}' physicalReleaseRequested='{bridge.Registry.PhysicalReleaseRequestedCount}' runtimeHandles='{handlesAfterRelease}' contentAnchorBindings='{bindingsAfterRelease}' physicalRelease='True' logicalRuntimeContentRelease='True' contentAnchorBindingCleanup='True' compositeReleaseExplicit='True' explicitSubmit='True' automaticLifecycleWiring='False' routeActivityAutoMaterialization='False' routeActivityAutoRelease='False' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.");
+                CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, owner, "composite-lifecycle-release");
+                rootCreated = false;
+                return true;
+            }
+            finally
+            {
+                DestroyBridgeSetSmokeObject(bridgeObject);
+
+                if (template != null)
+                {
+                    Object.Destroy(template);
+                }
+
+                if (anchorObject != null)
+                {
+                    Object.Destroy(anchorObject);
+                }
+
+                if (rootCreated)
+                {
+                    CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, owner, "composite-lifecycle-release");
                 }
             }
         }

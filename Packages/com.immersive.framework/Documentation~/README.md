@@ -711,3 +711,21 @@ QA smoke validated explicit execution with `passed='True'`, `execution='Succeede
 
 F9R-Q does not implement physical release from lifecycle registry, ContentAnchor binding cleanup, Route/Activity lifecycle integration, Route/Activity auto-release, Route/Activity auto-materialization, Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay consumers.
 
+
+
+## F9R-S — Explicit Composite Lifecycle Release Executor Proof
+
+Status: Closed / PASS.
+
+F9R-S adds an explicit composite release executor for lifecycle-registered Unity ContentAnchor materializations. The proof composes physical Unity release request, logical RuntimeContent release, ContentAnchor binding cleanup and LifecycleMaterializationRegistry Released state update.
+
+- `Assets/_Documentation/Notes/F9R-S-Explicit-Composite-Lifecycle-Release-Executor-Proof.md`
+
+F9R-S smoke passed with `execution='SucceededReleasedAll'`, `physicalRelease='True'`, `logicalRuntimeContentRelease='True'`, `contentAnchorBindingCleanup='True'`, `automaticLifecycleWiring='False'`, `routeActivityAutoMaterialization='False'` and `routeActivityAutoRelease='False'`. F9R-S does not wire Route/Activity exit, does not add auto-release, does not add auto-materialization and does not unlock Pause, camera, audio, save/progression, actor, pooling, player join, F34 or gameplay consumers.
+
+
+## F9R-T — QA Canvas Smoke Button Cleanup
+
+Status: Selected next cleanup cut.
+
+Goal: reduce the QA Canvas to useful current smoke buttons and remove or hide obsolete/intermediate buttons already superseded by later proofs. This is a QA tooling cleanup and must not change runtime lifecycle behavior.

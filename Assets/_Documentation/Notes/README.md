@@ -77,6 +77,7 @@ The individual note files were collapsed into this archive so the folder stays r
 | F9R-P | Closed / PASS | Lifecycle materialization registry release plan proof validated by QA smoke; owner/scope plans are query-only and do not execute physical/logical release. |
 | F9R-Q | Closed / PASS | Explicit lifecycle registry release execution proof validated by QA smoke; delegates RuntimeReleaseRequest execution and mirrors results into lifecycle registry state without Route/Activity auto-release. |
 | F9R-R | Accepted / Decision / docs-only | Route/Activity exit auto-release decision; immediate wiring rejected until composite physical release, ContentAnchor cleanup and logical RuntimeContent release are proven together. |
+| F9R-S | Closed / PASS | Explicit composite lifecycle release executor proof validated physical Unity release request, logical RuntimeContent release, ContentAnchor binding cleanup and lifecycle registry Released state update without Route/Activity auto-release wiring. |
 
 ## Consolidation Notes
 

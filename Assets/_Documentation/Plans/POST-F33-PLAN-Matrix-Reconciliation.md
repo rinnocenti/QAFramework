@@ -59,6 +59,7 @@ POST-F33-B keeps F34/gameplay unauthorized. It also keeps camera, audio, save/pr
 | F9R-P — Lifecycle Materialization Registry Release Plan Proof | Closed / PASS | Adds and validates passive owner/scope release plan queries over lifecycle materialization registry entries. | F9R-O registered bridge evidence, but registry could not yet answer what needs release for an owner/scope. | Future explicit scope release execution proof. Does not unlock consumers by itself. | Validated by QA smoke; no new ADR; implemented within accepted F9R-M plan. |
 | F9R-Q — Lifecycle Materialization Registry Release Execution Proof | Closed / PASS | Adds and validates explicit release plan execution through a caller-provided RuntimeReleaseRequest executor. | F9R-P could plan release candidates but could not execute the plan. | Future decision about lifecycle-owned auto-release remains blocked until explicit approval. Does not unlock consumers by itself. | Validated by QA smoke; no new ADR; implemented within accepted F9R-M plan. |
 | F9R-R — Route/Activity Exit Auto-Release Decision | Accepted / Decision / docs-only | Rejects immediate Route/Activity auto-release and selects the composite release gap as the next hardening target. | F9R-Q proved explicit logical release execution but did not prove physical release or ContentAnchor binding cleanup from the lifecycle path. | Future composite lifecycle release executor proof. Does not unlock consumers by itself. | Decision accepted; no runtime/editor changes. |
+| F9R-S — Explicit Composite Lifecycle Release Executor Proof | Closed / PASS | Explicit composite release executor validated physical Unity release request, logical RuntimeContent release, ContentAnchor binding cleanup and lifecycle registry Released state update. | F9R-R selected the composite release gap before Route/Activity auto-release can be reconsidered. | Future decision about Route/Activity auto-release remains blocked until a separate decision selects wiring. | Does not unlock consumers by itself. |
 
 ## Immediate Rule
 
@@ -199,8 +200,31 @@ and only after composite release is proven
 
 F9R-R does not implement runtime code, editor code, scene changes, Route/Activity auto-release, Route/Activity auto-materialization, lifecycle runtime wiring, Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay.
 
-Recommended next cut: `F9R-S - Explicit Composite Lifecycle Release Executor Proof`.
+Recommended next cut: `F9R-T - QA Canvas Smoke Button Cleanup`.
 
 ## Superseded Prior Reading
 
 Any earlier post-F33 wording that selected or implied `F34`, gameplay commands, camera, audio, save/progression, pooling/runtime-spawned or actor materialization is not accepted by this plan unless the user later approves it explicitly.
+
+
+## F9R-S Implementation Status
+
+`F9R-S - Explicit Composite Lifecycle Release Executor Proof` is closed / PASS after compile fix and QA smoke.
+
+The implementation adds an explicit composite release executor that combines:
+
+```text
+physical Unity release request
++ logical RuntimeContent release
++ ContentAnchor binding cleanup
++ lifecycle registry Released state update
+```
+
+This is still QA/explicit submit only. It does not implement Route/Activity lifecycle exit wiring, Route/Activity auto-release, Route/Activity auto-materialization, Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay.
+
+
+## F9R-S Closeout Evidence
+
+F9R-S smoke validated composite release with `passed='True'`, `execution='SucceededReleasedAll'`, `physicalRelease='True'`, `logicalRuntimeContentRelease='True'`, `contentAnchorBindingCleanup='True'`, `automaticLifecycleWiring='False'`, `routeActivityAutoMaterialization='False'` and `routeActivityAutoRelease='False'`.
+
+F9R-S does not unlock consumers and does not authorize Route/Activity exit wiring by itself. The next selected cleanup cut is QA Canvas smoke button curation/removal of obsolete buttons.
