@@ -33,6 +33,7 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Plans/F8R-C-PLAN-Runtime-Materialization-Adapter-Boundary.md` — Runtime Materialization Adapter Boundary planning; docs-only, no materializer implementation selected.
 - `Plans/F8R-D-PLAN-Physical-Release-Adapter.md` — Physical Release Adapter planning; docs-only, no release adapter implementation selected.
 - `Plans/F9R-A-PLAN-ContentAnchor-Runtime-Binding-Reentry.md` — ContentAnchor Runtime Binding Re-entry draft plan/ADR; docs-only, no physical placement or implementation selected.
+- `Plans/F9R-M-PLAN-Lifecycle-Owned-Materialization-Registry.md` — Lifecycle-Owned Materialization Registry planning baseline; docs-only, no lifecycle auto-materialization selected.
 - `Notes/F8R-E-Unity-Prefab-Runtime-Materialization-Adapter-Proof.md` — Unity prefab RuntimeContent materialization adapter proof; first physical adapter implementation and QA smoke.
 - `Notes/F9R-B-Unity-ContentAnchor-Physical-Placement-Adapter-Proof.md` — Unity ContentAnchor physical placement adapter proof; explicit Transform parenting after logical binding and materialization evidence.
 - `Notes/F9R-C-Unity-ContentAnchor-Materialization-Pipeline-Proof.md` — Unity ContentAnchor materialization pipeline proof; composes materialization, logical binding and placement.
@@ -145,6 +146,8 @@ F9R-K F9R Closeout / Documentation Sync: `Notes/F9R-K-F9R-Closeout-Documentation
 
 F9R-L Unity ContentAnchor Materialization Bridge Set Rollback Proof: Closed / PASS, `Notes/F9R-L-Unity-ContentAnchor-Materialization-Bridge-Set-Rollback-Proof.md`.
 
+F9R-M Lifecycle-Owned Materialization Registry Plan: Accepted / Plan / docs-only, `Plans/F9R-M-PLAN-Lifecycle-Owned-Materialization-Registry.md`.
+
 ## Regras
 
 - Documentação viva do projeto fica em `Assets/_Documentation`.
@@ -240,6 +243,7 @@ References:
 - `Plans/F8R-D-PLAN-Physical-Release-Adapter.md` — accepted plan/ADR boundary for future physical release adapters; no implementation selected.
 - `Notes/F8R-D1-Physical-Release-Adapter-Acceptance.md` — accepts F8R-D ADR as physical release adapter boundary baseline; no implementation selected.
 - `Plans/F9R-A-PLAN-ContentAnchor-Runtime-Binding-Reentry.md` — draft plan/ADR re-entry for logical ContentAnchor runtime binding; no physical placement or implementation selected.
+- `Plans/F9R-M-PLAN-Lifecycle-Owned-Materialization-Registry.md` — accepted plan for future lifecycle-owned materialization registry/release ownership; no implementation selected.
 
 - `Assets/_Documentation/Notes/F9R-D-Unity-ContentAnchor-Materialization-Scope-Release-Proof.md` — implemented explicit scope release proof for materialized ContentAnchor content.
 - `Assets/_Documentation/Notes/F9R-E-Unity-ContentAnchor-Materialization-Bridge-Proof.md` — implemented authored opt-in bridge over the validated materialization/binding/placement/release path.

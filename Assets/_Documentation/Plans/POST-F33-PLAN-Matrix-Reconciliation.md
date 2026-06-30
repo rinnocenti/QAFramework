@@ -53,6 +53,7 @@ POST-F33-B keeps F34/gameplay unauthorized. It also keeps camera, audio, save/pr
 | F9R-A — ContentAnchor Runtime Binding Re-entry | Draft / current planning candidate | Candidate after F8R-A/F8R-B/F8R-C/F8R-D clarify runtime handles, release policy, materialization adapter boundaries and physical release boundaries. | ContentAnchor logical binding uncertainty and placement/lifecycle rules. | Future ContentAnchor physical placement planning only after explicit approval. | ADR proposed; no implementation selected. |
 | F8R-E — Unity Prefab Runtime Materialization Adapter Proof | Implemented / selected by user | First physical RuntimeContent adapter proof after accepted F8R-B/F8R-C/F8R-D boundaries. | Absence of a concrete Unity prefab materialization proof and physical Destroy release proof. | Future readiness review for materialization/release implementation. Does not unlock consumers by itself. | No new ADR; implements within accepted F8R-C/F8R-D boundaries. |
 | F9R-L — Unity ContentAnchor Materialization Bridge Set Rollback Proof | Closed / PASS | Hardening cut after F8R-F readiness review identified partial batch materialization as a concrete blocker. | Bridge set runtime failure after one or more bridges already materialized. | Safer explicit QA/authored bridge set operation. Does not unlock consumers by itself. | No new ADR; implemented within accepted F8R/F9R boundaries. |
+| F9R-M — Lifecycle-Owned Materialization Registry Plan | Accepted / Plan / docs-only | Planning cut after F9R-L. Defines how lifecycle may own materialization registry/release evidence before any Route/Activity auto-materialization. | Lifecycle exit currently cannot prove physical cleanup of local adapter/bridge registries. | Future minimal lifecycle-owned registry contract proof. Does not unlock consumers by itself. | Plan accepted; implementation remains unselected. |
 
 ## Immediate Rule
 
@@ -107,6 +108,23 @@ It adds explicit rollback to `UnityContentAnchorMaterializationBridgeSet.Materia
 Smoke closure evidence: the user-provided smoke completed with `passed='True'`, `materializeAll='FailedBridgeMaterializationRolledBack'`, `rollbackReleased='1'`, `failed='1'`, `contentHandles='0'`, `partialMaterializationRolledBack='True'` and `preExistingPreserved='True'`.
 
 F9R-L does not implement lifecycle-owned registries, Route/Activity auto-materialization, F34/gameplay, camera, audio, save/progression, pooling/runtime-spawned, actor materialization or player join. Those remain unselected.
+
+
+## F9R-M Planning Status
+
+`F9R-M - Lifecycle-Owned Materialization Registry Plan` is accepted as a docs-only planning baseline after F9R-L.
+
+It defines that a future lifecycle-owned materialization registry may own release visibility and cleanup authority for materialized Unity adapter entries, while materialization itself remains explicit and unselected.
+
+Accepted planning rule:
+
+```text
+auto-release may be planned before auto-materialization
+```
+
+F9R-M does not implement runtime code, editor code, scene changes, Route/Activity auto-materialization, Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay.
+
+Candidate next cuts remain implementation candidates only after explicit selection: minimal lifecycle-owned registry contract proof, explicit bridge registration into lifecycle registry proof, registry scope release smoke, or Route/Activity release integration plan.
 
 ## Superseded Prior Reading
 

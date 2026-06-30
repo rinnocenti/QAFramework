@@ -71,6 +71,7 @@ The individual note files were collapsed into this archive so the folder stays r
 | F9R-J | Closed / PASS | Query-only diagnostics snapshot proof. |
 | F9R-K | Accepted / docs-only | F9R closeout / documentation sync. |
 | F9R-L | Closed / PASS | Partial bridge set materialization rollback proof validated by QA smoke. |
+| F9R-M | Accepted / Plan / docs-only | Lifecycle-owned materialization registry planning baseline; no implementation or lifecycle auto-materialization selected. |
 
 ## Consolidation Notes
 

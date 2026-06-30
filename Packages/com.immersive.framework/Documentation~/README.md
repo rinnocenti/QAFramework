@@ -54,6 +54,7 @@ Read the documentation in this order:
 | F9R-J | Unity ContentAnchor Materialization Diagnostics Snapshot Proof | Closed / PASS / query-only diagnostics snapshot |
 | F9R-K | F9R Closeout / Documentation Sync | Accepted / docs-only |
 | F9R-L | Unity ContentAnchor Materialization Bridge Set Rollback Proof | Closed / PASS |
+| F9R-M | Lifecycle-Owned Materialization Registry Plan | Accepted / Plan / docs-only |
 
 ## F8R-E Unity Prefab Runtime Materialization Adapter Proof
 
@@ -586,3 +587,18 @@ F9R-L hardens `UnityContentAnchorMaterializationBridgeSet` so that if `Materiali
 
 F9R-L is closed / PASS by user-provided QA smoke. The validated result returned `FailedBridgeMaterializationRolledBack`, released the single partial materialization, preserved the pre-existing active bridge content during rollback, then cleared it through explicit `releaseAll`. It keeps authored opt-in submit/release and does not introduce Route/Activity auto-materialization or lifecycle auto-wiring.
 
+
+
+## F9R-M — Lifecycle-Owned Materialization Registry Plan
+
+F9R-M is accepted as a docs-only planning baseline after F9R-L. It defines that future lifecycle-owned materialization registries may own release visibility and cleanup authority for materialized Unity adapter entries, while materialization remains explicit and unselected.
+
+Planning rule:
+
+```text
+auto-release may be planned before auto-materialization
+```
+
+- `Assets/_Documentation/Plans/F9R-M-PLAN-Lifecycle-Owned-Materialization-Registry.md`
+
+F9R-M does not implement runtime code, editor code, scenes, prefabs, Route/Activity auto-materialization, Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay consumers.
