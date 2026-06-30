@@ -40,10 +40,11 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Notes/F9R-E-Unity-ContentAnchor-Materialization-Bridge-Proof.md` — authored opt-in ContentAnchor materialization bridge proof; explicit scene-facing submit/release surface.
 - `Notes/F9R-F-Unity-ContentAnchor-Materialization-Bridge-Set-Proof.md` — authored opt-in ContentAnchor bridge set proof; explicit batch submit/release over multiple bridges.
 - `Notes/F9R-G-Unity-ContentAnchor-Materialization-Bridge-Set-Preflight-Proof.md` — bridge set batch preflight proof; invalid bridge or duplicate materialization key blocks before partial side effects.
-- `Notes/F9R-H-Unity-ContentAnchor-Materialization-Authoring-Validation-Proof.md` — authored bridge/bridge-set validation proof; keeps materialization opt-in and blocks invalid authoring before runtime submission.
-- `Notes/F9R-I-Unity-ContentAnchor-Materialization-Runtime-Authoring-Gate-Proof.md` — runtime authoring gate proof; bridge set runs the same authoring validator before batch preflight and side effects.
-- `Notes/F9R-J-Unity-ContentAnchor-Materialization-Diagnostics-Snapshot-Proof.md` — query-only bridge-set diagnostics snapshot proof; validated by smoke PASS.
-- `Notes/F9R-K-F9R-Closeout-Documentation-Sync.md` — F9R documentation sync and closeout; docs-only, no new runtime behavior.
+- `Notes/F9R-H-Unity-ContentAnchor-Materialization-Authoring-Validation-Proof.md` — authoring validation proof for bridge and bridge set configuration.
+- `Notes/F9R-I-Unity-ContentAnchor-Materialization-Runtime-Authoring-Gate-Proof.md` — runtime authoring gate proof; invalid authored set is blocked at runtime before materialization.
+- `Notes/F9R-J-Unity-ContentAnchor-Materialization-Diagnostics-Snapshot-Proof.md` — diagnostics snapshot proof; query-only snapshot with no runtime side effects.
+- `Notes/F9R-K-F9R-Closeout-Documentation-Sync.md` — F9R closeout and documentation sync.
+- `Notes/F9R-L-Unity-ContentAnchor-Materialization-Bridge-Set-Rollback-Proof.md` — bridge set partial materialization rollback proof; Closed / PASS.
 
 ### Setup
 
@@ -59,6 +60,7 @@ Documentos de setup do projeto consumidor.
 - [F9R-I — Unity ContentAnchor Materialization Runtime Authoring Gate Proof](Notes/F9R-I-Unity-ContentAnchor-Materialization-Runtime-Authoring-Gate-Proof.md)
 - [F9R-J — Unity ContentAnchor Materialization Diagnostics Snapshot Proof](Notes/F9R-J-Unity-ContentAnchor-Materialization-Diagnostics-Snapshot-Proof.md)
 - [F9R-K — F9R Closeout / Documentation Sync](Notes/F9R-K-F9R-Closeout-Documentation-Sync.md)
+- [F9R-L — Unity ContentAnchor Materialization Bridge Set Rollback Proof](Notes/F9R-L-Unity-ContentAnchor-Materialization-Bridge-Set-Rollback-Proof.md)
 
 Notas temporárias e achados de auditoria local.
 
@@ -122,15 +124,26 @@ F8R-D1 Physical Release Adapter acceptance: `Notes/F8R-D1-Physical-Release-Adapt
 F8R-E Unity Prefab Runtime Materialization Adapter Proof: `Notes/F8R-E-Unity-Prefab-Runtime-Materialization-Adapter-Proof.md`.
 
 F9R-B Unity ContentAnchor Physical Placement Adapter Proof: `Notes/F9R-B-Unity-ContentAnchor-Physical-Placement-Adapter-Proof.md`.
+
 F9R-C Unity ContentAnchor Materialization Pipeline Proof: `Notes/F9R-C-Unity-ContentAnchor-Materialization-Pipeline-Proof.md`.
+
 F9R-D Unity ContentAnchor Materialization Scope Release Proof: `Notes/F9R-D-Unity-ContentAnchor-Materialization-Scope-Release-Proof.md`.
+
 F9R-E Unity ContentAnchor Materialization Bridge Proof: `Notes/F9R-E-Unity-ContentAnchor-Materialization-Bridge-Proof.md`.
+
 F9R-F Unity ContentAnchor Materialization Bridge Set Proof: `Notes/F9R-F-Unity-ContentAnchor-Materialization-Bridge-Set-Proof.md`.
+
 F9R-G Unity ContentAnchor Materialization Bridge Set Preflight Proof: `Notes/F9R-G-Unity-ContentAnchor-Materialization-Bridge-Set-Preflight-Proof.md`.
+
 F9R-H Unity ContentAnchor Materialization Authoring Validation Proof: `Notes/F9R-H-Unity-ContentAnchor-Materialization-Authoring-Validation-Proof.md`.
+
 F9R-I Unity ContentAnchor Materialization Runtime Authoring Gate Proof: `Notes/F9R-I-Unity-ContentAnchor-Materialization-Runtime-Authoring-Gate-Proof.md`.
+
 F9R-J Unity ContentAnchor Materialization Diagnostics Snapshot Proof: `Notes/F9R-J-Unity-ContentAnchor-Materialization-Diagnostics-Snapshot-Proof.md`.
+
 F9R-K F9R Closeout / Documentation Sync: `Notes/F9R-K-F9R-Closeout-Documentation-Sync.md`.
+
+F9R-L Unity ContentAnchor Materialization Bridge Set Rollback Proof: Closed / PASS, `Notes/F9R-L-Unity-ContentAnchor-Materialization-Bridge-Set-Rollback-Proof.md`.
 
 ## Regras
 
@@ -232,7 +245,3 @@ References:
 - `Assets/_Documentation/Notes/F9R-E-Unity-ContentAnchor-Materialization-Bridge-Proof.md` — implemented authored opt-in bridge over the validated materialization/binding/placement/release path.
 - `Assets/_Documentation/Notes/F9R-F-Unity-ContentAnchor-Materialization-Bridge-Set-Proof.md` — implemented authored opt-in bridge set over multiple explicit bridges.
 - `Assets/_Documentation/Notes/F9R-G-Unity-ContentAnchor-Materialization-Bridge-Set-Preflight-Proof.md` — implemented preflight-before-side-effects for bridge set materialization batches.
-- `Assets/_Documentation/Notes/F9R-H-Unity-ContentAnchor-Materialization-Authoring-Validation-Proof.md` — implemented authoring validation for bridge and bridge set surfaces.
-- `Assets/_Documentation/Notes/F9R-I-Unity-ContentAnchor-Materialization-Runtime-Authoring-Gate-Proof.md` — implemented runtime authoring gate before bridge-set preflight/materialization side effects.
-- `Assets/_Documentation/Notes/F9R-J-Unity-ContentAnchor-Materialization-Diagnostics-Snapshot-Proof.md` — closed/PASS query-only diagnostics snapshot proof.
-- `Assets/_Documentation/Notes/F9R-K-F9R-Closeout-Documentation-Sync.md` — documentation sync closeout; selects no new implementation axis.

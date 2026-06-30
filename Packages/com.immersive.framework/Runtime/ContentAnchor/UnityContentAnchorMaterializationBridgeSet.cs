@@ -13,7 +13,7 @@ namespace Immersive.Framework.ContentAnchor
     /// </summary>
     [DisallowMultipleComponent]
     [AddComponentMenu("Immersive Framework/Content Anchor/Unity Content Anchor Materialization Bridge Set")]
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F9R-F authored opt-in ContentAnchor bridge set proof; explicit batch submit/release only, no automatic lifecycle wiring.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F9R-L authored opt-in ContentAnchor bridge set proof; explicit batch submit/release with partial materialization rollback, no automatic lifecycle wiring.")]
     public sealed class UnityContentAnchorMaterializationBridgeSet : MonoBehaviour
     {
         private const string DefaultSource = nameof(UnityContentAnchorMaterializationBridgeSet);
@@ -154,6 +154,7 @@ namespace Immersive.Framework.ContentAnchor
             int materializedCount = 0;
             int failedCount = 0;
             string message = "All authored ContentAnchor materialization bridges were materialized.";
+            var materializedBridges = new List<UnityContentAnchorMaterializationBridge>();
 
             for (int i = 0; i < bridges.Length; i++)
             {
@@ -165,18 +166,50 @@ namespace Immersive.Framework.ContentAnchor
                 {
                     failedCount++;
                     message = result.Message.NormalizeTextOrFallback("A ContentAnchor materialization bridge failed to materialize.");
-                    return CreateResult(
-                        UnityContentAnchorMaterializationBridgeSetStatus.FailedBridgeMaterialization,
-                        "MaterializeAll",
+
+                    if (materializedBridges.Count == 0)
+                    {
+                        return CreateResult(
+                            UnityContentAnchorMaterializationBridgeSetStatus.FailedBridgeMaterialization,
+                            "MaterializeAll",
+                            resolvedSource,
+                            resolvedReason,
+                            message,
+                            materializedCount,
+                            0,
+                            failedCount);
+                    }
+
+                    RollbackMaterializedBridges(
+                        materializedBridges,
                         resolvedSource,
                         resolvedReason,
-                        message,
+                        out int rollbackReleasedCount,
+                        out int rollbackFailedCount,
+                        out string rollbackMessage);
+
+                    failedCount += rollbackFailedCount;
+                    var rollbackStatus = rollbackFailedCount == 0
+                        ? UnityContentAnchorMaterializationBridgeSetStatus.FailedBridgeMaterializationRolledBack
+                        : UnityContentAnchorMaterializationBridgeSetStatus.FailedBridgeMaterializationRollbackFailed;
+                    string rollbackSummary = rollbackMessage.NormalizeTextOrFallback(
+                        rollbackFailedCount == 0
+                            ? "Partial bridge set materialization was rolled back."
+                            : "Partial bridge set materialization rollback failed.");
+
+                    return CreateResult(
+                        rollbackStatus,
+                        "MaterializeAllRollback",
+                        resolvedSource,
+                        resolvedReason,
+                        message + " " + rollbackSummary,
                         materializedCount,
-                        0,
+                        rollbackReleasedCount,
                         failedCount);
                 }
 
                 materializedCount++;
+                materializedBridges.Add(bridge);
             }
 
             return CreateResult(
@@ -250,6 +283,60 @@ namespace Immersive.Framework.ContentAnchor
                 0,
                 releasedCount,
                 failedCount);
+        }
+
+        private void RollbackMaterializedBridges(
+            IReadOnlyList<UnityContentAnchorMaterializationBridge> materializedBridges,
+            string source,
+            string requestReason,
+            out int releasedCount,
+            out int failedCount,
+            out string message)
+        {
+            releasedCount = 0;
+            failedCount = 0;
+            message = string.Empty;
+
+            if (materializedBridges == null || materializedBridges.Count == 0)
+            {
+                message = "No partial ContentAnchor materialization bridge set entries required rollback.";
+                return;
+            }
+
+            for (int i = materializedBridges.Count - 1; i >= 0; i--)
+            {
+                var bridge = materializedBridges[i];
+                if (bridge == null)
+                {
+                    failedCount++;
+                    message = "Content Anchor materialization bridge set rollback encountered a missing bridge reference.";
+                    continue;
+                }
+
+                var rollbackResult = bridge.SubmitScopeReleaseForDiagnostics(
+                    source,
+                    requestReason + ".rollback.bridge." + i);
+                if (!rollbackResult.Succeeded)
+                {
+                    failedCount++;
+                    message = rollbackResult.Message.NormalizeTextOrFallback("A ContentAnchor materialization bridge set rollback release failed.");
+                    continue;
+                }
+
+                if (rollbackResult.Status == UnityContentAnchorMaterializationBridgeStatus.SucceededReleased)
+                {
+                    releasedCount++;
+                }
+            }
+
+            if (failedCount == 0)
+            {
+                message = "Partial ContentAnchor materialization bridge set entries were rolled back.";
+            }
+            else if (string.IsNullOrWhiteSpace(message))
+            {
+                message = "Partial ContentAnchor materialization bridge set rollback failed.";
+            }
         }
 
         private bool TryValidateAuthoringForMaterialization(

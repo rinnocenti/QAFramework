@@ -30,17 +30,6 @@ The snapshot gives QA, Inspector and runtime diagnostics a common read model wit
 - After explicit `ReleaseAll`, snapshot reports the last release status, inactive registry state and physical release request count.
 - Repeated snapshot creation after release remains stable.
 
-
-## Smoke Evidence
-
-Validated with QA Canvas smoke:
-
-```text
-QA Smoke started. name='Content Anchor Materialization Diagnostics Snapshot Smoke'.
-QA Content Anchor Materialization Diagnostics Snapshot Smoke step completed. step='unity-content-anchor-materialization-diagnostics-snapshot' passed='True' initialAuthoring='Succeeded' initialRegistryEntries='0' materializeAll='SucceededMaterializedAll' activeRegistryEntries='2' activeRegistryActive='2' releaseAll='SucceededReleasedAll' releasedRegistryEntries='2' releasedRegistryActive='0' physicalReleaseRequests='2' contentHandles='0' snapshotQueryOnly='True' repeatedSnapshotStable='True' runtimeUsesAuthoringValidation='True' batchPreflight='True' noRuntimeSideEffects='True' authoredBridgeSet='True' explicitSubmit='True' automaticLifecycleWiring='False' routeActivityAutoMaterialization='False' contentAnchorPhysicalPlacement='True' bridgeSetCreatesObject='False' bridgeSetDestroysObject='False' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.
-QA Smoke completed. name='Content Anchor Materialization Diagnostics Snapshot Smoke'.
-```
-
 ## Non-goals
 
 - No automatic lifecycle wiring.
@@ -51,3 +40,23 @@ QA Smoke completed. name='Content Anchor Materialization Diagnostics Snapshot Sm
 - No actor spawn.
 - No `PlayerInputManager.JoinPlayer`.
 - No gameplay/camera/audio/save consumer.
+
+
+## Smoke Evidence
+
+Validated by user-submitted smoke for `Content Anchor Materialization Diagnostics Snapshot Smoke`.
+
+Accepted log fields:
+
+- `passed='True'`
+- `initialAuthoring='Succeeded'`
+- `materializeAll='SucceededMaterializedAll'`
+- `releaseAll='SucceededReleasedAll'`
+- `snapshotQueryOnly='True'`
+- `repeatedSnapshotStable='True'`
+- `runtimeUsesAuthoringValidation='True'`
+- `batchPreflight='True'`
+- `noRuntimeSideEffects='True'`
+- `automaticLifecycleWiring='False'`
+- `routeActivityAutoMaterialization='False'`
+- all consumer flags remained `False`.

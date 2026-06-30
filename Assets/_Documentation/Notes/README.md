@@ -3,26 +3,6 @@
 This folder now consolidates the historical tracking notes for the framework documentation stream.
 The individual note files were collapsed into this archive so the folder stays readable and the record remains searchable by phase.
 
-
-## F8R / F9R RuntimeContent and ContentAnchor Re-entry History
-
-| Note | Status | Summary |
-|---|---|---|
-| F8R-B1 | Accepted / docs-only | Runtime Root / Handle / Release Policy ownership baseline accepted. |
-| F8R-C1 | Accepted / docs-only | Runtime materialization adapter boundary accepted. |
-| F8R-D1 | Accepted / docs-only | Physical release adapter boundary accepted. |
-| F8R-E | Implemented / QA proof | Unity prefab RuntimeContent materialization adapter proof. |
-| F9R-B | Implemented / QA proof | Unity ContentAnchor physical placement adapter proof. |
-| F9R-C | Implemented / QA proof | Unity ContentAnchor materialization pipeline proof. |
-| F9R-D | Implemented / QA proof | Explicit scope release proof for materialized ContentAnchor content. |
-| F9R-E | Implemented / QA proof | Authored opt-in ContentAnchor materialization bridge proof. |
-| F9R-F | Implemented / QA proof | Authored opt-in bridge set proof. |
-| F9R-G | Implemented / QA proof | Bridge set preflight-before-side-effects proof. |
-| F9R-H | Implemented / QA proof | Authoring validation for bridge and bridge set surfaces. |
-| F9R-I | Implemented / QA proof | Runtime authoring gate before bridge set materialization. |
-| F9R-J | Closed / PASS | Query-only diagnostics snapshot proof for bridge set state. |
-| F9R-K | Accepted / docs-only | Documentation sync and closeout; selects no new implementation axis. |
-
 ## F24 Transition / Loading / Surface History
 
 | Note | Status | Summary |
@@ -73,6 +53,24 @@ The individual note files were collapsed into this archive so the folder stays r
 | F28B | Closed / docs-only | Completion dependency map for the remaining implementation tracks. |
 | F28C | Closed / docs-only | Adapter module taxonomy and ownership split. |
 | F28D | Closed / docs-only | Player / Actor / Unity Input ownership plan. |
+
+
+## F8R / F9R RuntimeContent + ContentAnchor Materialization Track
+
+| Note | Status | Summary |
+|---|---|---|
+| F8R-E | Implemented / QA smoke | Unity prefab RuntimeContent materialization adapter proof. |
+| F9R-B | Implemented / QA smoke | Unity ContentAnchor physical placement adapter proof. |
+| F9R-C | Implemented / QA smoke | Materialization + logical binding + physical placement pipeline proof. |
+| F9R-D | Implemented / QA smoke | Explicit scope release proof for materialized ContentAnchor content. |
+| F9R-E | Implemented / QA smoke | Authored opt-in materialization bridge proof. |
+| F9R-F | Implemented / QA smoke | Authored bridge set proof for explicit batch submit/release. |
+| F9R-G | Implemented / QA smoke | Bridge set preflight before batch side effects. |
+| F9R-H | Implemented / QA smoke | Authoring validation proof for bridge/bridge set configuration. |
+| F9R-I | Implemented / QA smoke | Runtime authoring gate proof before materialization. |
+| F9R-J | Closed / PASS | Query-only diagnostics snapshot proof. |
+| F9R-K | Accepted / docs-only | F9R closeout / documentation sync. |
+| F9R-L | Closed / PASS | Partial bridge set materialization rollback proof validated by QA smoke. |
 
 ## Consolidation Notes
 

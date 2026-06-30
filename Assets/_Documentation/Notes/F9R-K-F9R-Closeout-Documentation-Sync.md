@@ -1,51 +1,25 @@
 # F9R-K — F9R Closeout / Documentation Sync
 
-Status: Accepted / Docs-only
+Status: Accepted / docs-only
 
 ## Summary
 
-F9R-K closes the documentation gap after the `IF-FW-F9R-J` smoke PASS.
+F9R-K closes the F9R documentation gap after the authored ContentAnchor materialization proof chain reached `F9R-J`.
 
-The package and project documentation indexes now list the implemented F9R-H, F9R-I and F9R-J notes and mark F9R-J as the current closed/PASS runtime proof.
+This cut updates indexes and traceability language only. It does not change runtime, editor, scenes, prefabs, asmdefs or package metadata.
 
-This cut does not change runtime code, editor code, assets, scenes, prefabs, asmdefs or package metadata.
+## Closed Sequence
 
-## Updated Files
+- F9R-B — Unity ContentAnchor physical placement adapter proof.
+- F9R-C — Unity ContentAnchor materialization pipeline proof.
+- F9R-D — Unity ContentAnchor materialization scope release proof.
+- F9R-E — authored ContentAnchor materialization bridge proof.
+- F9R-F — authored bridge set proof.
+- F9R-G — bridge set preflight proof.
+- F9R-H — authoring validation proof.
+- F9R-I — runtime authoring gate proof.
+- F9R-J — diagnostics snapshot proof / PASS.
 
-- `Assets/_Documentation/README.md`
-- `Assets/_Documentation/Notes/README.md`
-- `Assets/_Documentation/Notes/F9R-J-Unity-ContentAnchor-Materialization-Diagnostics-Snapshot-Proof.md`
-- `Assets/_Documentation/Plans/POST-F33-PLAN-Matrix-Reconciliation.md`
-- `Packages/com.immersive.framework/Documentation~/README.md`
+## Boundary
 
-## Closure State
-
-F9R-J is accepted as CLOSED / PASS from the `Content Anchor Materialization Diagnostics Snapshot Smoke`.
-
-Confirmed boundaries remain unchanged:
-
-- bridge and bridge set are authored opt-in;
-- materialization and release are explicit;
-- diagnostics snapshot is query-only;
-- authoring validation is reused by the runtime gate;
-- batch preflight remains before materialization side effects;
-- no Route/Activity auto-materialization;
-- no automatic lifecycle wiring;
-- no Addressables;
-- no pooling;
-- no actor spawn;
-- no `PlayerInputManager.JoinPlayer`;
-- no gameplay, camera, audio, save or progression consumer.
-
-## Next Phase Rule
-
-F9R-K selects no new implementation axis.
-
-The next implementation phase must be selected from the accepted roadmap/plan. F34/gameplay, camera, audio, save/progression consumers, pooling/runtime-spawned consumers and actor materialization remain unauthorized by this closeout.
-
-Allowed future discussion may resume only from an accepted axis such as:
-
-- Input ownership continuation;
-- Snapshot/save model continuation;
-- Pause as consumer continuation;
-- or another explicitly accepted roadmap cut.
+F9R-K does not select F10, F34, gameplay, camera, audio, save/progression, actor materialization, pooling/runtime-spawned, player join or Route/Activity auto-materialization.

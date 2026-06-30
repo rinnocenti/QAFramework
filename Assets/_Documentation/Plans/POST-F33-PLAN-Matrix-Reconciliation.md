@@ -52,16 +52,7 @@ POST-F33-B keeps F34/gameplay unauthorized. It also keeps camera, audio, save/pr
 | F8R-D — Physical Release Adapter Plan | Plan / accepted planning baseline | Candidate after F8R-C/C1 accepted the materialization adapter boundary. | Missing boundary for Destroy, pool return, Addressables release, scene unload and project-owned cleanup policy outside RuntimeContent core. | F9R-A binding re-entry and eventual materializer/release adapter implementation only after explicit approval. | ADR accepted; no implementation selected. |
 | F9R-A — ContentAnchor Runtime Binding Re-entry | Draft / current planning candidate | Candidate after F8R-A/F8R-B/F8R-C/F8R-D clarify runtime handles, release policy, materialization adapter boundaries and physical release boundaries. | ContentAnchor logical binding uncertainty and placement/lifecycle rules. | Future ContentAnchor physical placement planning only after explicit approval. | ADR proposed; no implementation selected. |
 | F8R-E — Unity Prefab Runtime Materialization Adapter Proof | Implemented / selected by user | First physical RuntimeContent adapter proof after accepted F8R-B/F8R-C/F8R-D boundaries. | Absence of a concrete Unity prefab materialization proof and physical Destroy release proof. | Future readiness review for materialization/release implementation. Does not unlock consumers by itself. | No new ADR; implements within accepted F8R-C/F8R-D boundaries. |
-| F9R-B — Unity ContentAnchor Physical Placement Adapter Proof | Implemented / selected by user | First explicit Unity ContentAnchor physical placement proof after logical binding/materialization boundaries. | Missing adapter-side physical placement evidence. | Bridge and bridge-set proofs only after explicit selection. Does not unlock consumers by itself. | No new ADR; implements within accepted F9R-A/F8R-C/F8R-D boundaries. |
-| F9R-C — Unity ContentAnchor Materialization Pipeline Proof | Implemented / selected by user | Composes materialization, logical binding and physical placement. | Missing explicit composition proof. | Explicit release and bridge proofs only after explicit selection. Does not unlock consumers by itself. | No new ADR. |
-| F9R-D — Unity ContentAnchor Materialization Scope Release Proof | Implemented / selected by user | Adds explicit cleanup by runtime owner for materialized ContentAnchor content. | Missing scope release proof. | Authored bridge proofs only after explicit selection. Does not unlock consumers by itself. | No new ADR. |
-| F9R-E — Unity ContentAnchor Materialization Bridge Proof | Implemented / selected by user | Adds authored opt-in submit/release bridge over the validated path. | Missing scene-facing explicit bridge. | Bridge set proof only after explicit selection. Does not unlock Route/Activity auto-materialization. | No new ADR. |
-| F9R-F — Unity ContentAnchor Materialization Bridge Set Proof | Implemented / selected by user | Adds authored opt-in multi-bridge batch submit/release. | Missing explicit batch bridge. | Preflight/validation hardening only after explicit selection. Does not unlock lifecycle wiring. | No new ADR. |
-| F9R-G — Unity ContentAnchor Materialization Bridge Set Preflight Proof | Implemented / selected by user | Adds preflight-before-side-effects for bridge-set batches. | Partial batch materialization risk. | Authoring validation gate only after explicit selection. Does not unlock lifecycle wiring. | No new ADR. |
-| F9R-H — Unity ContentAnchor Materialization Authoring Validation Proof | Implemented / selected by user | Adds authoring validation for bridge and bridge set surfaces. | Invalid authored configuration before runtime submission. | Runtime authoring gate only after explicit selection. Does not unlock lifecycle wiring. | No new ADR. |
-| F9R-I — Unity ContentAnchor Materialization Runtime Authoring Gate Proof | Implemented / selected by user | Reuses authoring validation as bridge-set runtime gate before preflight and side effects. | Runtime submission bypassing authoring validation. | Diagnostics snapshot proof only after explicit selection. Does not unlock lifecycle wiring. | No new ADR. |
-| F9R-J — Unity ContentAnchor Materialization Diagnostics Snapshot Proof | Closed / PASS / selected by user | Adds query-only diagnostics snapshot for authored bridge-set state. | Missing common read model for QA/Inspector/runtime diagnostics. | F9R closeout only. Does not select F10, F34 or consumers. | No new ADR. |
-| F9R-K — F9R Closeout / Documentation Sync | Accepted / docs-only | Synchronizes project/package docs with F9R-H/F9R-I/F9R-J and records F9R-J PASS. | Documentation drift after F9R-J. | No implementation axis selected. | No code; no ADR. |
+| F9R-L — Unity ContentAnchor Materialization Bridge Set Rollback Proof | Closed / PASS | Hardening cut after F8R-F readiness review identified partial batch materialization as a concrete blocker. | Bridge set runtime failure after one or more bridges already materialized. | Safer explicit QA/authored bridge set operation. Does not unlock consumers by itself. | No new ADR; implemented within accepted F8R/F9R boundaries. |
 
 ## Immediate Rule
 
@@ -105,29 +96,17 @@ It adds Unity adapter-side prefab/template instantiation, adapter-side physical 
 
 F8R-E does not implement ContentAnchor physical placement, Addressables, pooling, scene unload, actor spawn, PlayerInputManager join, gameplay, camera, audio or save consumers. Those remain unselected.
 
-## F9R-B through F9R-J Implementation Status
+## F9R-L Implementation Status
 
-F9R-B through F9R-J are implemented/closed as explicitly selected RuntimeContent + ContentAnchor materialization and diagnostics proofs.
+`F9R-L - Unity ContentAnchor Materialization Bridge Set Rollback Proof` is closed / PASS as a hardening cut after the materialization/release readiness review.
 
-Closed sequence:
+It adds explicit rollback to `UnityContentAnchorMaterializationBridgeSet.MaterializeAll`: if a later bridge fails after earlier bridges succeeded, the set releases the already materialized partial batch in reverse order and returns an explicit rollback status.
 
-| Phase | Status | Result |
-|---|---|---|
-| F9R-B | Implemented | Physical placement adapter proof. |
-| F9R-C | Implemented | Materialization + logical binding + physical placement pipeline proof. |
-| F9R-D | Implemented | Explicit scope release proof. |
-| F9R-E | Implemented | Authored opt-in bridge proof. |
-| F9R-F | Implemented | Authored opt-in bridge set proof. |
-| F9R-G | Implemented | Bridge set preflight proof. |
-| F9R-H | Implemented | Authoring validation proof. |
-| F9R-I | Implemented | Runtime authoring gate proof. |
-| F9R-J | Closed / PASS | Query-only diagnostics snapshot smoke PASS. |
 
-F9R-B through F9R-J do not implement automatic lifecycle wiring, Route/Activity auto-materialization, Addressables, pooling, actor spawn, PlayerInputManager join, gameplay, camera, audio, save/progression consumers or F34.
 
-## F9R-K Closeout Status
+Smoke closure evidence: the user-provided smoke completed with `passed='True'`, `materializeAll='FailedBridgeMaterializationRolledBack'`, `rollbackReleased='1'`, `failed='1'`, `contentHandles='0'`, `partialMaterializationRolledBack='True'` and `preExistingPreserved='True'`.
 
-`F9R-K - F9R Closeout / Documentation Sync` is accepted as docs-only. It synchronizes indexes and records F9R-J smoke PASS. It selects no new implementation axis.
+F9R-L does not implement lifecycle-owned registries, Route/Activity auto-materialization, F34/gameplay, camera, audio, save/progression, pooling/runtime-spawned, actor materialization or player join. Those remain unselected.
 
 ## Superseded Prior Reading
 

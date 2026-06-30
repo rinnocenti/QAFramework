@@ -610,6 +610,11 @@ namespace Immersive.Framework.Diagnostics
                     RunContentAnchorMaterializationBridgeSetPreflightSmoke();
                 }
 
+                if (GUILayout.Button("Run Content Anchor Materialization Bridge Set Rollback Smoke"))
+                {
+                    RunContentAnchorMaterializationBridgeSetRollbackSmoke();
+                }
+
                 if (GUILayout.Button("Run Content Anchor Materialization Authoring Validation Smoke"))
                 {
                     RunContentAnchorMaterializationAuthoringValidationSmoke();
@@ -3461,6 +3466,225 @@ private async void RunLocalContributionSmoke()
                 if (secondRootCreated)
                 {
                     CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, secondOwner, "preflight.2");
+                }
+            }
+        }
+
+        private async void RunContentAnchorMaterializationBridgeSetRollbackSmoke()
+        {
+            await RunSmokeAsync("Content Anchor Materialization Bridge Set Rollback Smoke", runtimeHost =>
+                Task.FromResult(RunContentAnchorMaterializationBridgeSetRollbackSmokeCore(runtimeHost)));
+        }
+
+        private bool RunContentAnchorMaterializationBridgeSetRollbackSmokeCore(FrameworkRuntimeHost runtimeHost)
+        {
+            var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+            if (runtimeContentRuntime == null)
+            {
+                _logger.Warning("QA Content Anchor Materialization Bridge Set Rollback Smoke failed. reason='RuntimeContentRuntime unavailable'.");
+                return false;
+            }
+
+            GameObject setObject = null;
+            GameObject firstBridgeObject = null;
+            GameObject secondBridgeObject = null;
+            GameObject firstTemplate = null;
+            GameObject secondTemplate = null;
+            GameObject firstAnchorObject = null;
+            GameObject secondAnchorObject = null;
+            bool firstRootCreated = false;
+            bool secondRootCreated = false;
+            var firstOwner = RuntimeContentOwner.Transient(
+                "qa.content-anchor-materialization-bridge-set-rollback.owner.1",
+                "QA Content Anchor Materialization Bridge Set Rollback Smoke 1");
+            var secondOwner = RuntimeContentOwner.Transient(
+                "qa.content-anchor-materialization-bridge-set-rollback.owner.2",
+                "QA Content Anchor Materialization Bridge Set Rollback Smoke 2");
+
+            try
+            {
+                setObject = new GameObject("QA Content Anchor Materialization Bridge Set Rollback");
+                setObject.hideFlags = HideFlags.DontSave;
+                var bridgeSet = setObject.AddComponent<UnityContentAnchorMaterializationBridgeSet>();
+                firstBridgeObject = new GameObject("QA Content Anchor Materialization Bridge Set Rollback Item 1");
+                firstBridgeObject.hideFlags = HideFlags.DontSave;
+                var firstBridge = firstBridgeObject.AddComponent<UnityContentAnchorMaterializationBridge>();
+                secondBridgeObject = new GameObject("QA Content Anchor Materialization Bridge Set Rollback Item 2");
+                secondBridgeObject.hideFlags = HideFlags.DontSave;
+                var secondBridge = secondBridgeObject.AddComponent<UnityContentAnchorMaterializationBridge>();
+                firstTemplate = new GameObject("QA Content Anchor Materialization Bridge Set Rollback Template 1");
+                firstTemplate.hideFlags = HideFlags.DontSave;
+                secondTemplate = new GameObject("QA Content Anchor Materialization Bridge Set Rollback Template 2");
+                secondTemplate.hideFlags = HideFlags.DontSave;
+                firstAnchorObject = new GameObject("QA Content Anchor Materialization Bridge Set Rollback Anchor 1");
+                firstAnchorObject.hideFlags = HideFlags.DontSave;
+                secondAnchorObject = new GameObject("QA Content Anchor Materialization Bridge Set Rollback Anchor 2");
+                secondAnchorObject.hideFlags = HideFlags.DontSave;
+
+                firstBridge.ConfigureForDiagnostics(
+                    firstTemplate,
+                    firstAnchorObject.transform,
+                    RuntimeContentScope.Transient,
+                    "qa.content-anchor-materialization-bridge-set-rollback.owner.1",
+                    "QA Content Anchor Materialization Bridge Set Rollback Smoke 1",
+                    true,
+                    ContentAnchorScope.Route,
+                    ContentAnchorKind.Slot,
+                    ContentAnchorRequiredness.Required,
+                    "qa.content-anchor-materialization-bridge-set-rollback.route.1",
+                    "qa.content-anchor-materialization-bridge-set-rollback.anchor.1",
+                    "qa.content-anchor-materialization-bridge-set-rollback.content.1",
+                    "qa.content-anchor-materialization-bridge-set-rollback.prefab.1",
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    true,
+                    false);
+                secondBridge.ConfigureForDiagnostics(
+                    secondTemplate,
+                    secondAnchorObject.transform,
+                    RuntimeContentScope.Transient,
+                    "qa.content-anchor-materialization-bridge-set-rollback.owner.2",
+                    "QA Content Anchor Materialization Bridge Set Rollback Smoke 2",
+                    true,
+                    ContentAnchorScope.Route,
+                    ContentAnchorKind.Slot,
+                    ContentAnchorRequiredness.Required,
+                    "qa.content-anchor-materialization-bridge-set-rollback.route.2",
+                    "qa.content-anchor-materialization-bridge-set-rollback.anchor.2",
+                    "qa.content-anchor-materialization-bridge-set-rollback.content.2",
+                    "qa.content-anchor-materialization-bridge-set-rollback.prefab.2",
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    true,
+                    false);
+                bridgeSet.ConfigureForDiagnostics(new[] { firstBridge, secondBridge }, false);
+
+                var preExistingMaterializationResult = secondBridge.SubmitMaterializationForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set-rollback.preexisting-materialize");
+                secondRootCreated = runtimeContentRuntime.TryCreateScopeContext(
+                    secondOwner,
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set-rollback.context.preexisting",
+                    out var secondContext);
+                bool preExistingPrepared = preExistingMaterializationResult.Succeeded
+                    && preExistingMaterializationResult.Status == UnityContentAnchorMaterializationBridgeStatus.SucceededMaterialized
+                    && secondContext.IsValid
+                    && secondBridge.RegistryActiveCount == 1
+                    && runtimeContentRuntime.SnapshotHandles(secondContext).Length == 1
+                    && HasParentedLiveInstance(secondBridge, secondAnchorObject.transform);
+                if (!preExistingPrepared)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Set Rollback Smoke step failed. step='preexisting-materialize' diagnostics='{preExistingMaterializationResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var rollbackResult = bridgeSet.SubmitMaterializeAllForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set-rollback.materialize-all");
+                firstRootCreated = runtimeContentRuntime.TryCreateScopeContext(
+                    firstOwner,
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set-rollback.context.1",
+                    out var firstContext);
+                runtimeContentRuntime.TryCreateScopeContext(
+                    secondOwner,
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set-rollback.context.2",
+                    out secondContext);
+
+                int firstHandleCountAfterRollback = firstContext.IsValid
+                    ? runtimeContentRuntime.SnapshotHandles(firstContext).Length
+                    : -1;
+                int secondHandleCountAfterRollback = secondContext.IsValid
+                    ? runtimeContentRuntime.SnapshotHandles(secondContext).Length
+                    : -1;
+                bool rollbackRequestedPhysicalRelease = firstBridge.PhysicalReleaseRequestedCount == 1;
+                bool firstLogicalStateRolledBack = firstContext.IsValid
+                    && firstBridge.RegistryCount == 1
+                    && firstBridge.RegistryActiveCount == 0
+                    && firstHandleCountAfterRollback == 0;
+                bool preExistingPreserved = secondContext.IsValid
+                    && secondBridge.RegistryCount == 1
+                    && secondBridge.RegistryActiveCount == 1
+                    && HasParentedLiveInstance(secondBridge, secondAnchorObject.transform)
+                    && secondHandleCountAfterRollback == 1;
+                bool partialMaterializationRolledBack = rollbackResult.Failed
+                    && rollbackResult.Status == UnityContentAnchorMaterializationBridgeSetStatus.FailedBridgeMaterializationRolledBack
+                    && rollbackResult.MaterializedCount == 1
+                    && rollbackResult.ReleasedCount == 1
+                    && rollbackResult.FailedCount == 1
+                    && rollbackRequestedPhysicalRelease
+                    && firstLogicalStateRolledBack
+                    && preExistingPreserved;
+                if (!partialMaterializationRolledBack)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Set Rollback Smoke step failed. step='rollback' diagnostics='{rollbackResult.ToDiagnosticString()}' firstRegistry='{firstBridge.Registry.ToDiagnosticString()}' secondRegistry='{secondBridge.Registry.ToDiagnosticString()}' firstHandleCount='{firstHandleCountAfterRollback}' secondHandleCount='{secondHandleCountAfterRollback}' rollbackRequestedPhysicalRelease='{rollbackRequestedPhysicalRelease}' firstLogicalStateRolledBack='{firstLogicalStateRolledBack}' preExistingPreserved='{preExistingPreserved}'.");
+                    return false;
+                }
+
+                var releaseAllResult = bridgeSet.SubmitReleaseAllForDiagnostics(
+                    QaSource,
+                    "qa.content-anchor-materialization-bridge-set-rollback.release-all");
+                bool releaseAllSucceeded = releaseAllResult.Succeeded
+                    && releaseAllResult.Status == UnityContentAnchorMaterializationBridgeSetStatus.SucceededReleasedAll
+                    && releaseAllResult.ReleasedCount == 1
+                    && firstBridge.RegistryActiveCount == 0
+                    && secondBridge.RegistryActiveCount == 0
+                    && runtimeContentRuntime.SnapshotHandles(firstContext).Length == 0
+                    && runtimeContentRuntime.SnapshotHandles(secondContext).Length == 0;
+                if (!releaseAllSucceeded)
+                {
+                    _logger.Warning($"QA Content Anchor Materialization Bridge Set Rollback Smoke step failed. step='release-all' diagnostics='{releaseAllResult.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, firstOwner, "rollback.1");
+                CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, secondOwner, "rollback.2");
+                firstRootCreated = false;
+                secondRootCreated = false;
+
+                _logger.Info(
+                    "QA Content Anchor Materialization Bridge Set Rollback Smoke step completed. "
+                    + $"step='unity-content-anchor-materialization-bridge-set-rollback' passed='True' preExisting='{preExistingMaterializationResult.Status}' materializeAll='{rollbackResult.Status}' materialized='{rollbackResult.MaterializedCount}' rollbackReleased='{rollbackResult.ReleasedCount}' failed='{rollbackResult.FailedCount}' firstRegistryEntries='{firstBridge.RegistryCount}' firstRegistryActive='{firstBridge.RegistryActiveCount}' secondRegistryEntries='{secondBridge.RegistryCount}' secondRegistryActive='{secondBridge.RegistryActiveCount}' releaseAll='{releaseAllResult.Status}' released='{releaseAllResult.ReleasedCount}' contentHandles='{runtimeContentRuntime.SnapshotHandles(firstContext).Length + runtimeContentRuntime.SnapshotHandles(secondContext).Length}' rollbackAttempted='True' rollbackRequestedPhysicalRelease='{rollbackRequestedPhysicalRelease}' firstLogicalStateRolledBack='{firstLogicalStateRolledBack}' partialMaterializationRolledBack='{partialMaterializationRolledBack}' preExistingPreserved='{preExistingPreserved}' authoredBridgeSet='True' explicitSubmit='True' automaticLifecycleWiring='False' routeActivityAutoMaterialization='False' contentAnchorPhysicalPlacement='True' bridgeSetCreatesObject='False' bridgeSetDestroysObject='False' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.");
+                return true;
+            }
+            finally
+            {
+                DestroyBridgeSetSmokeObject(firstBridgeObject);
+                DestroyBridgeSetSmokeObject(secondBridgeObject);
+
+                if (firstTemplate != null)
+                {
+                    Object.Destroy(firstTemplate);
+                }
+
+                if (secondTemplate != null)
+                {
+                    Object.Destroy(secondTemplate);
+                }
+
+                if (firstAnchorObject != null)
+                {
+                    Object.Destroy(firstAnchorObject);
+                }
+
+                if (secondAnchorObject != null)
+                {
+                    Object.Destroy(secondAnchorObject);
+                }
+
+                if (setObject != null)
+                {
+                    Object.Destroy(setObject);
+                }
+
+                if (firstRootCreated)
+                {
+                    CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, firstOwner, "rollback.1");
+                }
+
+                if (secondRootCreated)
+                {
+                    CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, secondOwner, "rollback.2");
                 }
             }
         }

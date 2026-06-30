@@ -51,8 +51,9 @@ Read the documentation in this order:
 | F9R-G | Unity ContentAnchor Materialization Bridge Set Preflight Proof | Implemented / batch preflight proof / QA smoke |
 | F9R-H | Unity ContentAnchor Materialization Authoring Validation Proof | Implemented / authoring validation proof / QA smoke |
 | F9R-I | Unity ContentAnchor Materialization Runtime Authoring Gate Proof | Implemented / runtime authoring gate proof / QA smoke |
-| F9R-J | Unity ContentAnchor Materialization Diagnostics Snapshot Proof | Closed / PASS / query-only diagnostics snapshot smoke |
-| F9R-K | F9R Closeout / Documentation Sync | Accepted / docs-only / no implementation axis selected |
+| F9R-J | Unity ContentAnchor Materialization Diagnostics Snapshot Proof | Closed / PASS / query-only diagnostics snapshot |
+| F9R-K | F9R Closeout / Documentation Sync | Accepted / docs-only |
+| F9R-L | Unity ContentAnchor Materialization Bridge Set Rollback Proof | Closed / PASS |
 
 ## F8R-E Unity Prefab Runtime Materialization Adapter Proof
 
@@ -555,24 +556,33 @@ F9R-G hardens `UnityContentAnchorMaterializationBridgeSet` by validating every a
 
 ## F9R-H — Unity ContentAnchor Materialization Authoring Validation Proof
 
-F9R-H validates authored bridge and bridge-set configuration before runtime submission. It keeps the bridge model opt-in and reports explicit guardrails for no lifecycle auto-wiring and no Route/Activity auto-materialization.
+F9R-H adds authoring validation for bridge and bridge set configuration before explicit materialization calls. It remains a validation proof, not lifecycle wiring.
 
 - `Assets/_Documentation/Notes/F9R-H-Unity-ContentAnchor-Materialization-Authoring-Validation-Proof.md`
 
 ## F9R-I — Unity ContentAnchor Materialization Runtime Authoring Gate Proof
 
-F9R-I makes the bridge set run the same authoring validator as a runtime gate before batch preflight and before materialization side effects. Invalid authoring attempts create no registry entries, live objects or physical release requests.
+F9R-I applies the authoring validation gate at runtime before bridge set materialization. Invalid authored sets fail before materialization side effects.
 
 - `Assets/_Documentation/Notes/F9R-I-Unity-ContentAnchor-Materialization-Runtime-Authoring-Gate-Proof.md`
 
 ## F9R-J — Unity ContentAnchor Materialization Diagnostics Snapshot Proof
 
-F9R-J adds a query-only diagnostics snapshot for authored bridge-set state. The smoke passed with stable repeated snapshots, explicit materialize/release, no runtime side effects from querying and no Route/Activity auto-materialization.
+F9R-J adds a query-only diagnostics snapshot for authored bridge sets. The snapshot does not materialize, release, bind, place or mutate Unity objects. The user-submitted smoke closed this cut as PASS.
 
 - `Assets/_Documentation/Notes/F9R-J-Unity-ContentAnchor-Materialization-Diagnostics-Snapshot-Proof.md`
 
 ## F9R-K — F9R Closeout / Documentation Sync
 
-F9R-K synchronizes the project and package documentation after F9R-J PASS. It is docs-only and selects no new implementation axis.
+F9R-K synchronizes the F9R documentation after F9R-J. It is docs-only and does not select F10, F34, gameplay or consumers.
 
 - `Assets/_Documentation/Notes/F9R-K-F9R-Closeout-Documentation-Sync.md`
+
+## F9R-L — Unity ContentAnchor Materialization Bridge Set Rollback Proof
+
+F9R-L hardens `UnityContentAnchorMaterializationBridgeSet` so that if `MaterializeAll` succeeds for one or more bridges and a later bridge fails, the bridge set explicitly releases the already materialized partial batch. This prevents partial active batch state while preserving authored opt-in submit/release and no automatic lifecycle wiring.
+
+- `Assets/_Documentation/Notes/F9R-L-Unity-ContentAnchor-Materialization-Bridge-Set-Rollback-Proof.md`
+
+F9R-L is closed / PASS by user-provided QA smoke. The validated result returned `FailedBridgeMaterializationRolledBack`, released the single partial materialization, preserved the pre-existing active bridge content during rollback, then cleared it through explicit `releaseAll`. It keeps authored opt-in submit/release and does not introduce Route/Activity auto-materialization or lifecycle auto-wiring.
+
