@@ -51,6 +51,7 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Notes/F9R-O-Bridge-Lifecycle-Registry-Registration-Proof.md` — explicit bridge lifecycle registry registration proof; Closed / PASS.
 - `Notes/F9R-P-Lifecycle-Materialization-Registry-Release-Plan-Proof.md` — lifecycle materialization registry release plan proof; Closed / PASS.
 - `Notes/F9R-T-QA-Canvas-Smoke-Button-Cleanup.md` — QA Canvas smoke button cleanup; obsolete/intermediate buttons removed from visible panel.
+- `Notes/F9R-U-F9R-Closure-Next-Axis-Decision.md` — F9R closure and next-axis decision boundary; no new technical axis selected.
 
 ### Setup
 
@@ -74,6 +75,7 @@ Documentos de setup do projeto consumidor.
 - [F9R-R — Route / Activity Exit Auto-Release Decision](Plans/F9R-R-PLAN-Route-Activity-Exit-Auto-Release-Decision.md)
 - [F9R-S — Explicit Composite Lifecycle Release Executor Proof](Notes/F9R-S-Explicit-Composite-Lifecycle-Release-Executor-Proof.md)
 - [F9R-T — QA Canvas Smoke Button Cleanup](Notes/F9R-T-QA-Canvas-Smoke-Button-Cleanup.md)
+- [F9R-U — F9R Closure / Next Axis Decision](Notes/F9R-U-F9R-Closure-Next-Axis-Decision.md)
 
 Notas temporárias e achados de auditoria local.
 
@@ -170,6 +172,8 @@ F9R-Q Lifecycle Materialization Registry Release Execution Proof: Closed / PASS,
 F9R-R Route/Activity Exit Auto-Release Decision: Accepted / docs-only, `Plans/F9R-R-PLAN-Route-Activity-Exit-Auto-Release-Decision.md`.
 F9R-S Explicit Composite Lifecycle Release Executor Proof: Closed / PASS, `Notes/F9R-S-Explicit-Composite-Lifecycle-Release-Executor-Proof.md`.
 F9R-T QA Canvas Smoke Button Cleanup: Closed / PASS, `Notes/F9R-T-QA-Canvas-Smoke-Button-Cleanup.md`.
+
+F9R-U F9R Closure / Next Axis Decision: Closed / docs-only, `Notes/F9R-U-F9R-Closure-Next-Axis-Decision.md`. F9R track closed; no next technical axis selected by this cut.
 
 ## Regras
 

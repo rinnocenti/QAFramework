@@ -79,6 +79,7 @@ The individual note files were collapsed into this archive so the folder stays r
 | F9R-R | Accepted / Decision / docs-only | Route/Activity exit auto-release decision; immediate wiring rejected until composite physical release, ContentAnchor cleanup and logical RuntimeContent release are proven together. |
 | F9R-S | Closed / PASS | Explicit composite lifecycle release executor proof validated physical Unity release request, logical RuntimeContent release, ContentAnchor binding cleanup and lifecycle registry Released state update without Route/Activity auto-release wiring. |
 | F9R-T | Closed / PASS | QA Canvas smoke button cleanup removed obsolete, intermediate and superseded buttons from the visible panel while keeping the current terminal smoke surface. Standard Smoke and Composite Lifecycle Release Smoke passed after cleanup. |
+| F9R-U | Closed / docs-only | F9R closure and next-axis decision boundary; F9R track closed, no next technical axis selected by this cut. |
 
 ## Consolidation Notes
 

@@ -62,6 +62,7 @@ Read the documentation in this order:
 | F9R-R | Route/Activity Exit Auto-Release Decision | Accepted / Decision / docs-only |
 | F9R-S | Explicit Composite Lifecycle Release Executor Proof | Closed / PASS |
 | F9R-T | QA Canvas Smoke Button Cleanup | Closed / PASS |
+| F9R-U | F9R Closure / Next Axis Decision | Closed / docs-only |
 
 ## F8R-E Unity Prefab Runtime Materialization Adapter Proof
 
@@ -737,3 +738,15 @@ Project note: `../../Assets/_Documentation/Notes/F9R-T-QA-Canvas-Smoke-Button-Cl
 Validation evidence: Standard Smoke completed and Composite Lifecycle Release Smoke completed with `passed='True'`, `physicalRelease='True'`, `logicalRuntimeContentRelease='True'`, `contentAnchorBindingCleanup='True'`, `automaticLifecycleWiring='False'`, `routeActivityAutoMaterialization='False'` and `routeActivityAutoRelease='False'`.
 
 F9R-T did not change runtime lifecycle behavior, did not implement Route/Activity auto-release, did not implement Route/Activity auto-materialization and did not unlock Pause, Camera, Audio, Save, Actor, Pooling, PlayerJoin, F34 or gameplay consumers.
+
+## F9R-U — F9R Closure / Next Axis Decision
+
+Status: Closed / docs-only.
+
+F9R-U closes the F9R RuntimeContent + ContentAnchor materialization/release hardening track after the QA Canvas cleanup and terminal validation smokes.
+
+Project note: `../../Assets/_Documentation/Notes/F9R-U-F9R-Closure-Next-Axis-Decision.md`.
+
+Decision: no next technical axis is selected by F9R-U. Future F10 Pause, F10 Snapshot/Save, F10 Input ownership, Route/Activity auto-release wiring, F34/gameplay and any consumer implementation require explicit future selection from the existing plan.
+
+F9R-U does not change runtime code, editor code, scenes, prefabs, asmdefs or package metadata. It does not implement Route/Activity auto-release, Route/Activity auto-materialization or any consumer.
