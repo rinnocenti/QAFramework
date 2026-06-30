@@ -372,17 +372,94 @@ The visual surface shows/hides the resident UI.
 
 The runtime-materialized F10E path remains valid as an optional/advanced capability for modular, route-specific, activity-specific, streamed or QA-only Pause visuals.
 
-Next candidate: `F10G - Pause UIGlobal Resident Surface Proof`.
+Current closure: `F10G - Pause UIGlobal Resident Surface Proof` closed / PASS.
 
 
 ## F10G Implementation Status
 
-`F10G - Pause UIGlobal Resident Surface Proof` is ready for smoke.
+`F10G - Pause UIGlobal Resident Surface Proof` is closed / PASS.
 
-F10G corrects the Pause presentation track toward the production-facing default: Pause UI is resident in `UIGlobal` and shown/hidden through a Unity surface adapter.
+F10G corrected and validated the Pause presentation track toward the production-facing default: Pause UI is resident in `UIGlobal` and shown/hidden through a Unity surface adapter.
 
 It adds `UnityPauseResidentSurfaceAdapter`, a concrete `IPauseSurfaceAdapter` implementation that applies logical `PauseSnapshot` state to an already-authored GameObject/CanvasGroup hierarchy.
 
 F10G moves the visible Pause/F10 QA surface to the resident UIGlobal path. F10B-F10E remain valid as optional/advanced materialization infrastructure, but they are not the canonical product path for a standard Pause menu.
 
 F10G does not instantiate Pause UI, execute ContentAnchor binding, use RuntimeContent materialization, change InputMode, change PlayerInput, change Time.timeScale, wire Route/Activity lifecycle, enable Route/Activity auto-materialization, enable Route/Activity auto-release or select Camera, Audio, Save, Actor, Pooling, PlayerJoin, F34 or gameplay.
+
+
+## F10G Closeout
+
+`F10G - Pause UIGlobal Resident Surface Proof` is closed / PASS.
+
+Smoke evidence validated the canonical resident `UIGlobal` Pause path:
+
+```text
+surfaceRuntime='Succeeded'
+adapterCount='1'
+initialHidden='True'
+pausedVisible='True'
+resumedHidden='True'
+canonicalResidentUIGlobalSurface='True'
+materialization='False'
+contentAnchorBinding='False'
+inputModeChange='False'
+timeScalePolicy='False'
+automaticLifecycleWiring='False'
+routeActivityAutoMaterialization='False'
+routeActivityAutoRelease='False'
+```
+
+The production-facing Pause track should continue from the resident surface path. F10E-style materialization remains valid infrastructure but is not the canonical Pause presentation model.
+
+
+## F10H Implementation Status
+
+`F10H - Pause Logical Toggle Resident Surface Proof` is closed / PASS.
+
+F10H validates the production-facing Pause path after F10G:
+
+```text
+FrameworkRuntimeHost.RequestPause(Toggle)
+  -> PauseRuntime updates logical state
+  -> PauseSnapshot is applied to resident UIGlobal Pause surface
+  -> UnityPauseResidentSurfaceAdapter shows/hides the existing panel
+```
+
+F10H replaces the visible Pause/F10 QA path with the logical toggle resident surface smoke. F10G remains the adapter proof; F10H proves the logical Pause request can drive the resident surface.
+
+F10H does not instantiate Pause UI, execute ContentAnchor binding, use RuntimeContent materialization, change InputMode, change PlayerInput, change Time.timeScale, wire Route/Activity lifecycle, enable Route/Activity auto-materialization, enable Route/Activity auto-release or select Camera, Audio, Save, Actor, Pooling, PlayerJoin, F34 or gameplay.
+
+
+## F10H Closeout
+
+`F10H - Pause Logical Toggle Resident Surface Proof` is closed / PASS.
+
+Validated smoke fields:
+
+```text
+initialResume='IgnoredNoChange'
+pauseRequest='Applied'
+resumeRequest='Applied'
+pausedState='Paused'
+resumedState='Running'
+surfaceRuntime='Succeeded'
+adapterCount='1'
+initialHidden='True'
+pausedVisible='True'
+resumedHidden='True'
+logicalToggleApplied='True'
+residentSurfaceAppliedFromPauseSnapshot='True'
+canonicalResidentUIGlobalSurface='True'
+materialization='False'
+contentAnchorBinding='False'
+inputModeChange='False'
+timeScalePolicy='False'
+automaticLifecycleWiring='False'
+routeActivityAutoMaterialization='False'
+routeActivityAutoRelease='False'
+```
+
+Interpretation: Pause now has a production-facing resident `UIGlobal` visual path driven by logical Pause requests. F10H does not configure the project-level `UIGlobal` scene in `GameApplication`; the smoke used an explicit QA resident surface.
+
+Next candidate: `F10I - Pause Time / Gate Policy Decision`, or another explicitly selected Pause production concern.

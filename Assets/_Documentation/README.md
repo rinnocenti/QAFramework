@@ -58,7 +58,7 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Notes/F10C-Pause-ContentAnchor-Binding-Request-Proof.md` — Pause ContentAnchor binding request proof; Closed / PASS, request-only derivation validated.
 - `Notes/F10D-Pause-ContentAnchor-Binding-Execution-Proof.md` — Pause ContentAnchor binding execution proof; Closed / PASS, explicit logical binding validated.
 - `Notes/F10E-Pause-Visual-Materialization-Proof.md` — Pause visual materialization proof; Closed / PASS, explicit prefab instantiation and placement under ContentAnchor; capability proof, not mandatory product path.
-- `Notes/F10G-Pause-UIGlobal-Resident-Surface-Proof.md` — Pause UIGlobal resident surface proof; Ready for smoke, canonical production-facing Pause surface path.
+- `Notes/F10G-Pause-UIGlobal-Resident-Surface-Proof.md` — Pause UIGlobal resident surface proof; Closed / PASS, canonical production-facing Pause surface path validated.
 
 ### Setup
 
@@ -90,6 +90,7 @@ Documentos de setup do projeto consumidor.
 - [F10E — Pause Visual Materialization Proof](Notes/F10E-Pause-Visual-Materialization-Proof.md)
 - [F10F — Pause Presentation Model Decision](Plans/F10F-PLAN-Pause-Presentation-Model-Decision.md)
 - [F10G — Pause UIGlobal Resident Surface Proof](Notes/F10G-Pause-UIGlobal-Resident-Surface-Proof.md)
+- [F10H — Pause Logical Toggle Resident Surface Proof](Notes/F10H-Pause-Logical-Toggle-Resident-Surface-Proof.md)
 
 Notas temporárias e achados de auditoria local.
 
@@ -201,7 +202,7 @@ F10E Pause Visual Materialization Proof: Closed / PASS, `Notes/F10E-Pause-Visual
 
 F10F Pause Presentation Model Decision: Accepted / docs-only, `Plans/F10F-PLAN-Pause-Presentation-Model-Decision.md`. Canonical product Pause presentation should be resident in UIGlobal; runtime materialization remains optional/advanced.
 
-F10G Pause UIGlobal Resident Surface Proof: Ready for smoke, `Notes/F10G-Pause-UIGlobal-Resident-Surface-Proof.md`. Adds `UnityPauseResidentSurfaceAdapter` for the canonical resident UIGlobal Pause path; visible Pause QA now targets this path, with no materialization, ContentAnchor binding, InputMode or Time.timeScale changes.
+F10G Pause UIGlobal Resident Surface Proof: Closed / PASS, `Notes/F10G-Pause-UIGlobal-Resident-Surface-Proof.md`. Validated `UnityPauseResidentSurfaceAdapter` for the canonical resident UIGlobal Pause path; visible Pause QA targets this path, with no materialization, ContentAnchor binding, InputMode or Time.timeScale changes.
 
 ## Regras
 
@@ -304,3 +305,7 @@ References:
 - `Assets/_Documentation/Notes/F9R-E-Unity-ContentAnchor-Materialization-Bridge-Proof.md` — implemented authored opt-in bridge over the validated materialization/binding/placement/release path.
 - `Assets/_Documentation/Notes/F9R-F-Unity-ContentAnchor-Materialization-Bridge-Set-Proof.md` — implemented authored opt-in bridge set over multiple explicit bridges.
 - `Assets/_Documentation/Notes/F9R-G-Unity-ContentAnchor-Materialization-Bridge-Set-Preflight-Proof.md` — implemented preflight-before-side-effects for bridge set materialization batches.
+
+## F10H Pause Logical Toggle Resident Surface Proof
+
+F10H is ready for smoke. It validates logical Pause requests driving the resident UIGlobal surface through Pause snapshots, without materialization, ContentAnchor binding, InputMode or Time.timeScale.

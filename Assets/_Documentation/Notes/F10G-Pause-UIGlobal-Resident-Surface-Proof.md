@@ -1,6 +1,6 @@
 # F10G — Pause UIGlobal Resident Surface Proof
 
-Status: Ready for smoke.
+Status: Closed / PASS.
 
 ## Purpose
 
@@ -34,25 +34,35 @@ The adapter shows/hides an already-authored surface from `PauseSnapshot` state. 
 
 ## QA smoke
 
-New smoke button:
+Validated smoke button:
 
 ```text
 Run Pause UIGlobal Resident Surface Smoke
 ```
 
-Expected successful fields:
+Validated successful fields:
 
 ```text
 step='pause-uiglobal-resident-surface'
 passed='True'
 surfaceRuntime='Succeeded'
 adapterCount='1'
+supportedAdapters='1'
+appliedAdapters='1'
 initialHidden='True'
 pausedVisible='True'
 resumedHidden='True'
+rootActiveWhenPaused='True'
+rootInactiveWhenRunning='True'
+canvasAlphaPaused='1,00'
+blocksRaycastsWhenPaused='True'
+interactableWhenPaused='True'
 canonicalResidentUIGlobalSurface='True'
 materialization='False'
 contentAnchorBinding='False'
+physicalRelease='False'
+logicalRuntimeContentRelease='False'
+contentAnchorBindingCleanup='False'
 inputModeChange='False'
 timeScalePolicy='False'
 automaticLifecycleWiring='False'
@@ -78,3 +88,12 @@ F10G does not implement:
 For a normal game Pause menu, use the resident `UIGlobal` path. Place the pause panel in `UIGlobal`, add `UnityPauseResidentSurfaceAdapter`, and let the framework apply logical Pause snapshots to that resident surface.
 
 Use F10E-style materialization only when the project explicitly needs modular, route-specific, streamed, DLC-like, skin-swapped or QA-only Pause presentation.
+
+
+## Closeout evidence
+
+F10G smoke was executed twice and both runs passed. The resident `UIGlobal` surface was resolved from the QA scene with one adapter. The smoke validated hidden -> paused visible -> resumed hidden transitions, CanvasGroup interactive state while paused, and preserved all expected non-goals: no materialization, no ContentAnchor binding, no InputMode mutation, no `Time.timeScale` policy, no automatic lifecycle wiring, no Route/Activity auto-materialization and no Route/Activity auto-release.
+
+## Closure
+
+F10G closes the production-facing Pause presentation surface proof. The next Pause cut should not return to the materialized path unless a future optional/advanced requirement explicitly selects it. The next production-facing step is Pause logical toggle/integration against the resident surface, while keeping InputMode and timeScale as separate future decisions.

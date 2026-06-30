@@ -331,9 +331,9 @@ namespace Immersive.Framework.Diagnostics
 
             using (new EditorDisabledScope(_requestInFlight))
             {
-                if (GUILayout.Button("Run Pause UIGlobal Resident Surface Smoke"))
+                if (GUILayout.Button("Run Pause Logical Toggle Resident Surface Smoke"))
                 {
-                    RunPauseUIGlobalResidentSurfaceSmoke();
+                    RunPauseLogicalToggleResidentSurfaceSmoke();
                 }
             }
         }
@@ -1400,6 +1400,186 @@ private async void RunLocalContributionSmoke()
                 "QA Lifecycle Materialization Registry Contract Smoke step completed. "
                 + $"step='lifecycle-materialization-registry-contract' passed='True' register='{registerResult.Status}' duplicate='{duplicateResult.Status}' duplicateConflict='{conflictingDuplicateResult.Status}' releaseRequest='{releaseRequestResult.Status}' releaseComplete='{releasedResult.Status}' missingRelease='{missingReleaseResult.Status}' entries='{registry.Count}' active='{registry.ActiveCount}' releaseRequested='{registry.ReleaseRequestedCount}' released='{registry.ReleasedCount}' releaseFailed='{registry.ReleaseFailedCount}' typedIdentity='True' registryOwnsEvidenceOnly='{registryOwnsEvidenceOnly}' physicalRelease='False' logicalRuntimeContentRelease='False' contentAnchorBindingCleanup='False' explicitSubmit='True' automaticLifecycleWiring='False' routeActivityAutoMaterialization='False' routeActivityAutoRelease='False' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.");
             return true;
+        }
+
+        private async void RunPauseLogicalToggleResidentSurfaceSmoke()
+        {
+            await RunSmokeAsync("Pause Logical Toggle Resident Surface Smoke", runtimeHost =>
+            {
+                GameObject surfaceObject = null;
+
+                try
+                {
+                    surfaceObject = new GameObject("QA Pause Logical Toggle Resident Surface");
+                    var canvasGroup = surfaceObject.AddComponent<CanvasGroup>();
+                    var adapter = surfaceObject.AddComponent<UnityPauseResidentSurfaceAdapter>();
+                    var surfaceRuntime = PauseSurfaceRuntime.Create(
+                        _logger,
+                        new IPauseSurfaceAdapter[] { adapter },
+                        "QA Pause Logical Toggle Resident Surface");
+
+                    var initialResumeResult = runtimeHost.RequestPause(
+                        PauseRequestKind.Resume,
+                        QaSource,
+                        "qa.pause-logical-toggle-resident-surface.initial-resume");
+                    if (!runtimeHost.TryGetPauseSnapshot(out var initialSnapshot))
+                    {
+                        _logger.Warning("QA Pause Logical Toggle Resident Surface Smoke step failed. step='snapshot-initial' reason='Pause snapshot unavailable'.");
+                        return Task.FromResult(false);
+                    }
+
+                    var initialSurfaceResult = surfaceRuntime.ApplySnapshot(
+                        initialSnapshot,
+                        QaSource,
+                        "qa.pause-logical-toggle-resident-surface.initial-hidden");
+                    bool initialHidden = initialSnapshot.IsRunning
+                        && !surfaceObject.activeSelf
+                        && Math.Abs(canvasGroup.alpha) <= 0.0001f
+                        && !canvasGroup.blocksRaycasts
+                        && !canvasGroup.interactable;
+
+                    var pauseResult = runtimeHost.RequestPause(
+                        PauseRequestKind.Toggle,
+                        QaSource,
+                        "qa.pause-logical-toggle-resident-surface.toggle-pause");
+                    if (!runtimeHost.TryGetPauseSnapshot(out var pausedSnapshot))
+                    {
+                        _logger.Warning("QA Pause Logical Toggle Resident Surface Smoke step failed. step='snapshot-paused' reason='Pause snapshot unavailable'.");
+                        return Task.FromResult(false);
+                    }
+
+                    var pausedSurfaceResult = surfaceRuntime.ApplySnapshot(
+                        pausedSnapshot,
+                        QaSource,
+                        "qa.pause-logical-toggle-resident-surface.show");
+                    bool pausedVisible = pauseResult.Applied
+                        && pausedSnapshot.IsPaused
+                        && surfaceObject.activeSelf
+                        && adapter.IsVisible
+                        && adapter.LastAppliedState == PauseState.Paused
+                        && Math.Abs(canvasGroup.alpha - 1f) <= 0.0001f
+                        && canvasGroup.blocksRaycasts
+                        && canvasGroup.interactable;
+
+                    bool rootActiveWhenPaused = surfaceObject.activeSelf;
+                    float pausedAlpha = canvasGroup.alpha;
+                    bool pausedBlocksRaycasts = canvasGroup.blocksRaycasts;
+                    bool pausedInteractable = canvasGroup.interactable;
+
+                    var resumeResult = runtimeHost.RequestPause(
+                        PauseRequestKind.Toggle,
+                        QaSource,
+                        "qa.pause-logical-toggle-resident-surface.toggle-resume");
+                    if (!runtimeHost.TryGetPauseSnapshot(out var resumedSnapshot))
+                    {
+                        _logger.Warning("QA Pause Logical Toggle Resident Surface Smoke step failed. step='snapshot-resumed' reason='Pause snapshot unavailable'.");
+                        return Task.FromResult(false);
+                    }
+
+                    var resumedSurfaceResult = surfaceRuntime.ApplySnapshot(
+                        resumedSnapshot,
+                        QaSource,
+                        "qa.pause-logical-toggle-resident-surface.hide");
+                    bool resumedHidden = resumeResult.Applied
+                        && resumedSnapshot.IsRunning
+                        && !surfaceObject.activeSelf
+                        && !adapter.IsVisible
+                        && adapter.LastAppliedState == PauseState.Running
+                        && Math.Abs(canvasGroup.alpha) <= 0.0001f
+                        && !canvasGroup.blocksRaycasts
+                        && !canvasGroup.interactable;
+
+                    bool logicalToggleApplied = pauseResult.Applied
+                        && resumeResult.Applied
+                        && pauseResult.CurrentState == PauseState.Paused
+                        && resumeResult.CurrentState == PauseState.Running;
+                    bool residentSurfaceAppliedFromPauseSnapshot = pausedSurfaceResult.Succeeded
+                        && resumedSurfaceResult.Succeeded
+                        && pausedSurfaceResult.Snapshot.IsPaused
+                        && resumedSurfaceResult.Snapshot.IsRunning;
+                    bool passed = surfaceRuntime.HasVisibleSurface
+                        && surfaceRuntime.AdapterCount == 1
+                        && initialSurfaceResult.Succeeded
+                        && initialHidden
+                        && pausedVisible
+                        && resumedHidden
+                        && logicalToggleApplied
+                        && residentSurfaceAppliedFromPauseSnapshot;
+
+                    if (!passed)
+                    {
+                        _logger.Warning(
+                            $"QA Pause Logical Toggle Resident Surface Smoke step failed. step='pause-logical-toggle-resident-surface' initialResume='{initialResumeResult.Status}' pause='{pauseResult.Status}' resume='{resumeResult.Status}' initialSurface='{initialSurfaceResult.StatusText}' pausedSurface='{pausedSurfaceResult.StatusText}' resumedSurface='{resumedSurfaceResult.StatusText}' initialHidden='{initialHidden}' pausedVisible='{pausedVisible}' resumedHidden='{resumedHidden}' logicalToggleApplied='{logicalToggleApplied}' residentSurfaceAppliedFromPauseSnapshot='{residentSurfaceAppliedFromPauseSnapshot}'.");
+                        return Task.FromResult(false);
+                    }
+
+                    _logger.Info(
+                        "QA Pause Logical Toggle Resident Surface Smoke step completed. ",
+                        LogFields.Of(
+                            LogFields.Field("step", "pause-logical-toggle-resident-surface"),
+                            LogFields.Field("passed", true),
+                            LogFields.Field("initialResume", initialResumeResult.Status.ToString()),
+                            LogFields.Field("pauseRequest", pauseResult.Status.ToString()),
+                            LogFields.Field("resumeRequest", resumeResult.Status.ToString()),
+                            LogFields.Field("previousState", pauseResult.PreviousState.ToString()),
+                            LogFields.Field("pausedState", pauseResult.CurrentState.ToString()),
+                            LogFields.Field("resumedState", resumeResult.CurrentState.ToString()),
+                            LogFields.Field("surfaceRuntime", pausedSurfaceResult.StatusText),
+                            LogFields.Field("adapterCount", surfaceRuntime.AdapterCount),
+                            LogFields.Field("supportedAdapters", pausedSurfaceResult.SupportedAdapterCount),
+                            LogFields.Field("appliedAdapters", pausedSurfaceResult.AppliedAdapterCount),
+                            LogFields.Field("initialHidden", initialHidden),
+                            LogFields.Field("pausedVisible", pausedVisible),
+                            LogFields.Field("resumedHidden", resumedHidden),
+                            LogFields.Field("logicalToggleApplied", logicalToggleApplied),
+                            LogFields.Field("residentSurfaceAppliedFromPauseSnapshot", residentSurfaceAppliedFromPauseSnapshot),
+                            LogFields.Field("rootActiveWhenPaused", pausedVisible && rootActiveWhenPaused),
+                            LogFields.Field("rootInactiveWhenRunning", resumedHidden && !surfaceObject.activeSelf),
+                            LogFields.Field("canvasAlphaPaused", pausedAlpha.ToString("0.00")),
+                            LogFields.Field("blocksRaycastsWhenPaused", pausedVisible && pausedBlocksRaycasts),
+                            LogFields.Field("interactableWhenPaused", pausedVisible && pausedInteractable),
+                            LogFields.Field("canonicalResidentUIGlobalSurface", true),
+                            LogFields.Field("materialization", false),
+                            LogFields.Field("contentAnchorBinding", false),
+                            LogFields.Field("physicalRelease", false),
+                            LogFields.Field("logicalRuntimeContentRelease", false),
+                            LogFields.Field("contentAnchorBindingCleanup", false),
+                            LogFields.Field("inputModeChange", false),
+                            LogFields.Field("timeScalePolicy", false),
+                            LogFields.Field("explicitSubmit", true),
+                            LogFields.Field("automaticLifecycleWiring", false),
+                            LogFields.Field("routeActivityAutoMaterialization", false),
+                            LogFields.Field("routeActivityAutoRelease", false),
+                            LogFields.Field("addressables", false),
+                            LogFields.Field("pooling", false),
+                            LogFields.Field("actorSpawn", false),
+                            LogFields.Field("playerJoin", false),
+                            LogFields.Field("gameplayConsumer", false),
+                            LogFields.Field("cameraConsumer", false),
+                            LogFields.Field("audioConsumer", false),
+                            LogFields.Field("saveConsumer", false)));
+                    return Task.FromResult(true);
+                }
+                finally
+                {
+                    try
+                    {
+                        runtimeHost.RequestPause(
+                            PauseRequestKind.Resume,
+                            QaSource,
+                            "qa.pause-logical-toggle-resident-surface.cleanup-resume");
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.Warning($"QA Pause Logical Toggle Resident Surface Smoke cleanup warning. reason='{FormatValue(exception.Message)}'.");
+                    }
+
+                    if (surfaceObject != null)
+                    {
+                        Object.Destroy(surfaceObject);
+                    }
+                }
+            });
         }
 
         private async void RunPauseUIGlobalResidentSurfaceSmoke()

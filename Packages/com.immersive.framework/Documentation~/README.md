@@ -69,7 +69,8 @@ Read the documentation in this order:
 | F10D | Pause ContentAnchor Binding Execution Proof | Closed / PASS |
 | F10E | Pause Visual Materialization Proof | Closed / PASS |
 | F10F | Pause Presentation Model Decision | Accepted / Decision / docs-only |
-| F10G | Pause UIGlobal Resident Surface Proof | Ready for smoke |
+| F10G | Pause UIGlobal Resident Surface Proof | Closed / PASS |
+| F10H | Pause Logical Toggle Resident Surface Proof | Closed / PASS |
 
 ## F8R-E Unity Prefab Runtime Materialization Adapter Proof
 
@@ -144,9 +145,9 @@ Project plan: `../../Assets/_Documentation/Plans/F10F-PLAN-Pause-Presentation-Mo
 
 ## F10G Pause UIGlobal Resident Surface Proof
 
-Status: Ready for smoke.
+Status: Closed / PASS.
 
-F10G adds the concrete resident UIGlobal Pause surface adapter:
+F10G adds and validates the concrete resident UIGlobal Pause surface adapter:
 
 ```text
 UnityPauseResidentSurfaceAdapter : MonoBehaviour, IPauseSurfaceAdapter
@@ -159,6 +160,8 @@ Guide: `Guides/F10G-Pause-UIGlobal-Resident-Surface-Usage.md`.
 Project note: `../../Assets/_Documentation/Notes/F10G-Pause-UIGlobal-Resident-Surface-Proof.md`.
 
 F10G does not instantiate Pause UI, execute ContentAnchor binding, use RuntimeContent materialization, change InputMode, read PlayerInput, change Time.timeScale, wire Route/Activity lifecycle, enable auto-release or enable auto-materialization.
+
+F10G smoke validated `passed=True`, `surfaceRuntime=Succeeded`, `adapterCount=1`, `initialHidden=True`, `pausedVisible=True`, `resumedHidden=True`, `canonicalResidentUIGlobalSurface=True`, `materialization=False`, `contentAnchorBinding=False`, `inputModeChange=False`, `timeScalePolicy=False`, `automaticLifecycleWiring=False`, `routeActivityAutoMaterialization=False` and `routeActivityAutoRelease=False`.
 
 
 ## F9R-Q Lifecycle Materialization Registry Release Execution Proof
@@ -860,3 +863,52 @@ F10B adds the first passive authored contract for Pause visual presentation as a
 Project note: `../../Assets/_Documentation/Notes/F10B-Pause-Visual-Surface-Authoring-Contract-Proof.md`.
 
 F10B does not materialize Pause UI, execute ContentAnchor binding, change InputMode, change PlayerInput, change Time.timeScale, wire Route/Activity lifecycle, enable auto-release, enable auto-materialization or unlock camera, audio, save/progression, actor, pooling, PlayerJoin, F34 or gameplay consumers. F10B smoke validated `passed=True`, `validContract=True`, `invalidRejected=True`, `passiveAuthoringOnly=True` and preserved `materialization=False`, `inputModeChange=False`, `timeScalePolicy=False`, `automaticLifecycleWiring=False`, `routeActivityAutoMaterialization=False` and `routeActivityAutoRelease=False`.
+
+
+## F10H Pause Logical Toggle Resident Surface Proof
+
+F10H is ready for smoke. It validates that logical Pause requests can drive the resident UIGlobal Pause surface.
+
+Runtime flow:
+
+```text
+FrameworkRuntimeHost.RequestPause(Toggle)
+  -> PauseRuntime updates state
+  -> PauseSnapshot is applied to PauseSurfaceRuntime
+  -> UnityPauseResidentSurfaceAdapter shows/hides an existing UIGlobal panel
+```
+
+F10H does not instantiate Pause UI, execute ContentAnchor binding, use RuntimeContent materialization, change InputMode, read PlayerInput, change Time.timeScale, wire Route/Activity lifecycle, enable auto-release or enable auto-materialization.
+
+Guide: `Guides/F10H-Pause-Logical-Toggle-Resident-Surface-Usage.md`.
+
+Project note: `../../Assets/_Documentation/Notes/F10H-Pause-Logical-Toggle-Resident-Surface-Proof.md`.
+
+## F10H Closeout
+
+F10H is closed / PASS. Smoke evidence validated logical Pause requests driving the resident `UIGlobal` surface through `PauseSnapshot` application:
+
+```text
+pauseRequest='Applied'
+resumeRequest='Applied'
+pausedState='Paused'
+resumedState='Running'
+surfaceRuntime='Succeeded'
+adapterCount='1'
+initialHidden='True'
+pausedVisible='True'
+resumedHidden='True'
+logicalToggleApplied='True'
+residentSurfaceAppliedFromPauseSnapshot='True'
+canonicalResidentUIGlobalSurface='True'
+materialization='False'
+contentAnchorBinding='False'
+inputModeChange='False'
+timeScalePolicy='False'
+automaticLifecycleWiring='False'
+routeActivityAutoMaterialization='False'
+routeActivityAutoRelease='False'
+```
+
+The smoke uses a QA-created resident surface because the project-level `UIGlobal` scene is not yet configured in the current `GameApplication` setup. This is acceptable for F10H; project-level UIGlobal configuration remains a later setup/integration concern.
+

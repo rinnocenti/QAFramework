@@ -86,7 +86,8 @@ The individual note files were collapsed into this archive so the folder stays r
 | F10D | Closed / PASS | Pause ContentAnchor binding execution proof validated explicit logical binding only, no visual materialization/input/timeScale/lifecycle wiring. |
 | F10E | Closed / PASS | Pause visual materialization proof validated explicit prefab instantiation, logical RuntimeContent materialization, ContentAnchor binding and physical placement under anchor Transform; proves capability but not mandatory Pause product architecture. |
 | F10F | Accepted / Decision / docs-only | Pause presentation model decision: resident UIGlobal surface is the canonical default for normal Pause UI; runtime materialized surface remains an optional/advanced path. |
-| F10G | Ready for smoke | Pause UIGlobal resident surface proof adds the canonical production-facing resident Pause surface adapter and moves visible Pause QA to the resident path; no materialization, ContentAnchor binding, InputMode or Time.timeScale. |
+| F10G | Closed / PASS | Pause UIGlobal resident surface proof validated the canonical production-facing resident Pause surface adapter in UIGlobal; no materialization, ContentAnchor binding, InputMode or Time.timeScale. |
+| F10H | Closed / PASS | Pause logical toggle to resident surface proof validated logical Pause requests driving the resident UIGlobal surface through Pause snapshots; no InputMode, Time.timeScale, materialization or ContentAnchor binding. |
 
 ## Consolidation Notes
 
