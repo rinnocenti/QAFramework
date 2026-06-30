@@ -66,7 +66,10 @@ Read the documentation in this order:
 | F10A | Pause ContentAnchor Consumer Re-entry Plan | Accepted / Plan / docs-only |
 | F10B | Pause Visual Surface Authoring Contract Proof | Closed / PASS |
 | F10C | Pause ContentAnchor Binding Request Proof | Closed / PASS |
-| F10D | Pause ContentAnchor Binding Execution Proof | Ready for smoke |
+| F10D | Pause ContentAnchor Binding Execution Proof | Closed / PASS |
+| F10E | Pause Visual Materialization Proof | Closed / PASS |
+| F10F | Pause Presentation Model Decision | Accepted / Decision / docs-only |
+| F10G | Pause UIGlobal Resident Surface Proof | Ready for smoke |
 
 ## F8R-E Unity Prefab Runtime Materialization Adapter Proof
 
@@ -93,15 +96,70 @@ Project note: `../../Assets/_Documentation/Notes/F10C-Pause-ContentAnchor-Bindin
 
 ## F10D Pause ContentAnchor Binding Execution Proof
 
-F10D is ready for smoke. It executes the logical binding request produced by F10C against a valid `ContentAnchorSet` and a logical `RuntimeContent` scope.
+F10D is closed / PASS. It executes the logical binding request produced by F10C against a valid `ContentAnchorSet` and a logical `RuntimeContent` scope.
 
 The cut adds `PauseVisualSurfaceBindingExecutor`, `PauseVisualSurfaceBindingExecutionResult` and `PauseVisualSurfaceBindingExecutionStatus`. The executor declares a logical RuntimeContent handle and binds it through the host-owned ContentAnchor binding runtime.
+
+F10D smoke validated `passed=True`, `bindingExecution=SucceededBound`, `binding=Succeeded`, `runtimeHandleDeclaration=HandleRegistered`, `bindingCountIncreased=True`, `runtimeHandleRegistered=True`, `requestMatchesPauseContract=True`, `requestMatchesAnchorRequirement=True` and `bindingMatchesAnchor=True`.
 
 F10D remains binding-only: it does not instantiate the Pause visual prefab, move transforms, perform physical placement, change InputMode, change Time.timeScale, wire Route/Activity lifecycle, enable auto-release or enable auto-materialization.
 
 Guide: `Guides/F10D-Pause-ContentAnchor-Binding-Execution-Usage.md`.
 
 Project note: `../../Assets/_Documentation/Notes/F10D-Pause-ContentAnchor-Binding-Execution-Proof.md`.
+
+## F10E Pause Visual Materialization Proof
+
+F10E is closed / PASS. It materializes the authored Pause visual surface explicitly through the RuntimeContent + ContentAnchor pipeline.
+
+The proof creates a visual prefab instance, applies RuntimeContent materialization, binds it to the requested ContentAnchor and parents the instance under the explicit anchor Transform.
+
+F10E smoke validated `materialization=SucceededMaterialized`, `pipeline=Succeeded`, `physicalPlacementApplied=True`, `visualInstanceParented=True`, `runtimeHandleMaterialized=True`, `smokeCleanupPhysicalRelease=True`, `smokeCleanupLogicalRuntimeContentRelease=True` and `smokeCleanupContentAnchorBindingCleanup=True`, while preserving `inputModeChange=False`, `timeScalePolicy=False`, `automaticLifecycleWiring=False`, `routeActivityAutoMaterialization=False` and `routeActivityAutoRelease=False`.
+
+F10E is a capability proof, not a product mandate. It proves Pause can be materialized through RuntimeContent + ContentAnchor when needed, but it does not decide that standard Pause UI should be spawned.
+
+F10E does not toggle Pause, change InputMode, change PlayerInput, change Time.timeScale, wire Route/Activity lifecycle, enable auto-materialization or enable auto-release.
+
+Guide: `Guides/F10E-Pause-Visual-Materialization-Usage.md`.
+
+Project note: `../../Assets/_Documentation/Notes/F10E-Pause-Visual-Materialization-Proof.md`.
+
+## F10F Pause Presentation Model Decision
+
+F10F is accepted / Decision / docs-only.
+
+Decision: standard Pause presentation should use a resident Pause surface in the canonical UIGlobal scene.
+
+```text
+UIGlobal scene
+  -> resident Pause visual surface
+  -> show/hide on logical Pause presentation requests
+```
+
+Runtime materialization remains a supported optional path for modular, streamed, route-specific, activity-specific or QA-only Pause visuals.
+
+Guide: `Guides/F10F-Pause-Presentation-Model-Usage.md`.
+
+Project plan: `../../Assets/_Documentation/Plans/F10F-PLAN-Pause-Presentation-Model-Decision.md`.
+
+## F10G Pause UIGlobal Resident Surface Proof
+
+Status: Ready for smoke.
+
+F10G adds the concrete resident UIGlobal Pause surface adapter:
+
+```text
+UnityPauseResidentSurfaceAdapter : MonoBehaviour, IPauseSurfaceAdapter
+```
+
+This is the production-facing default Pause presentation path. The Pause UI is authored directly in the canonical `UIGlobal` scene and the adapter shows/hides that resident hierarchy from logical `PauseSnapshot` state.
+
+Guide: `Guides/F10G-Pause-UIGlobal-Resident-Surface-Usage.md`.
+
+Project note: `../../Assets/_Documentation/Notes/F10G-Pause-UIGlobal-Resident-Surface-Proof.md`.
+
+F10G does not instantiate Pause UI, execute ContentAnchor binding, use RuntimeContent materialization, change InputMode, read PlayerInput, change Time.timeScale, wire Route/Activity lifecycle, enable auto-release or enable auto-materialization.
+
 
 ## F9R-Q Lifecycle Materialization Registry Release Execution Proof
 

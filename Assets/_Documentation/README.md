@@ -36,6 +36,7 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Plans/F9R-M-PLAN-Lifecycle-Owned-Materialization-Registry.md` — Lifecycle-Owned Materialization Registry planning baseline; docs-only, no lifecycle auto-materialization selected.
 - `Plans/F9R-R-PLAN-Route-Activity-Exit-Auto-Release-Decision.md` — Route/Activity exit auto-release decision; immediate wiring rejected, composite release gap selected.
 - `Plans/F10A-PLAN-Pause-ContentAnchor-Consumer-Reentry.md` — Pause ContentAnchor consumer re-entry plan; selected next axis after F9R, docs-only.
+- `Plans/F10F-PLAN-Pause-Presentation-Model-Decision.md` — Pause presentation model decision; resident UIGlobal surface selected as canonical default, materialized path kept optional.
 - `Notes/F8R-E-Unity-Prefab-Runtime-Materialization-Adapter-Proof.md` — Unity prefab RuntimeContent materialization adapter proof; first physical adapter implementation and QA smoke.
 - `Notes/F9R-B-Unity-ContentAnchor-Physical-Placement-Adapter-Proof.md` — Unity ContentAnchor physical placement adapter proof; explicit Transform parenting after logical binding and materialization evidence.
 - `Notes/F9R-C-Unity-ContentAnchor-Materialization-Pipeline-Proof.md` — Unity ContentAnchor materialization pipeline proof; composes materialization, logical binding and placement.
@@ -55,7 +56,9 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Notes/F9R-U-F9R-Closure-Next-Axis-Decision.md` — F9R closure and next-axis decision boundary; no new technical axis selected.
 - `Notes/F10B-Pause-Visual-Surface-Authoring-Contract-Proof.md` — Pause visual surface authoring contract proof; Closed / PASS.
 - `Notes/F10C-Pause-ContentAnchor-Binding-Request-Proof.md` — Pause ContentAnchor binding request proof; Closed / PASS, request-only derivation validated.
-- `Notes/F10D-Pause-ContentAnchor-Binding-Execution-Proof.md` — Pause ContentAnchor binding execution proof; Ready for smoke, logical binding only.
+- `Notes/F10D-Pause-ContentAnchor-Binding-Execution-Proof.md` — Pause ContentAnchor binding execution proof; Closed / PASS, explicit logical binding validated.
+- `Notes/F10E-Pause-Visual-Materialization-Proof.md` — Pause visual materialization proof; Closed / PASS, explicit prefab instantiation and placement under ContentAnchor; capability proof, not mandatory product path.
+- `Notes/F10G-Pause-UIGlobal-Resident-Surface-Proof.md` — Pause UIGlobal resident surface proof; Ready for smoke, canonical production-facing Pause surface path.
 
 ### Setup
 
@@ -84,6 +87,9 @@ Documentos de setup do projeto consumidor.
 - [F10B — Pause Visual Surface Authoring Contract Proof](Notes/F10B-Pause-Visual-Surface-Authoring-Contract-Proof.md)
 - [F10C — Pause ContentAnchor Binding Request Proof](Notes/F10C-Pause-ContentAnchor-Binding-Request-Proof.md)
 - [F10D — Pause ContentAnchor Binding Execution Proof](Notes/F10D-Pause-ContentAnchor-Binding-Execution-Proof.md)
+- [F10E — Pause Visual Materialization Proof](Notes/F10E-Pause-Visual-Materialization-Proof.md)
+- [F10F — Pause Presentation Model Decision](Plans/F10F-PLAN-Pause-Presentation-Model-Decision.md)
+- [F10G — Pause UIGlobal Resident Surface Proof](Notes/F10G-Pause-UIGlobal-Resident-Surface-Proof.md)
 
 Notas temporárias e achados de auditoria local.
 
@@ -189,7 +195,13 @@ F10B Pause Visual Surface Authoring Contract Proof: Closed / PASS, `Notes/F10B-P
 
 F10C Pause ContentAnchor Binding Request Proof: Closed / PASS, `Notes/F10C-Pause-ContentAnchor-Binding-Request-Proof.md`. Validated request-only conversion from Pause visual surface contract to ContentAnchorBindingRequest, including canonical anchor owner; no binding execution, materialization, input, timeScale or lifecycle auto-wiring.
 
-F10D Pause ContentAnchor Binding Execution Proof: Ready for smoke, `Notes/F10D-Pause-ContentAnchor-Binding-Execution-Proof.md`. Adds explicit logical binding execution for Pause visual surface contracts; still no visual materialization, input, timeScale or lifecycle auto-wiring.
+F10D Pause ContentAnchor Binding Execution Proof: Closed / PASS, `Notes/F10D-Pause-ContentAnchor-Binding-Execution-Proof.md`. Adds explicit logical binding execution for Pause visual surface contracts; still no visual materialization, input, timeScale or lifecycle auto-wiring.
+
+F10E Pause Visual Materialization Proof: Closed / PASS, `Notes/F10E-Pause-Visual-Materialization-Proof.md`. Proves that Pause visual content can be explicitly prefab-materialized into a ContentAnchor and cleaned up; it does not decide that standard Pause UI must be spawned.
+
+F10F Pause Presentation Model Decision: Accepted / docs-only, `Plans/F10F-PLAN-Pause-Presentation-Model-Decision.md`. Canonical product Pause presentation should be resident in UIGlobal; runtime materialization remains optional/advanced.
+
+F10G Pause UIGlobal Resident Surface Proof: Ready for smoke, `Notes/F10G-Pause-UIGlobal-Resident-Surface-Proof.md`. Adds `UnityPauseResidentSurfaceAdapter` for the canonical resident UIGlobal Pause path; visible Pause QA now targets this path, with no materialization, ContentAnchor binding, InputMode or Time.timeScale changes.
 
 ## Regras
 

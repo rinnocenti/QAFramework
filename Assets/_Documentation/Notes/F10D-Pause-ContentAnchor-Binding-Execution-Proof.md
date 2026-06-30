@@ -1,6 +1,6 @@
 # F10D — Pause ContentAnchor Binding Execution Proof
 
-Status: Ready for smoke
+Status: Closed / PASS
 
 ## Purpose
 
@@ -104,3 +104,38 @@ Pause visual RuntimeContent identity is bound to an authored ContentAnchor ident
 ```
 
 The actual visual object still does not exist yet. That belongs to a later visual materialization cut.
+
+## Smoke result
+
+User-submitted QA smoke closed F10D as PASS.
+
+Validated diagnostic evidence:
+
+```text
+QA Pause Content Anchor Binding Execution Smoke step completed.
+step='pause-content-anchor-binding-execution'
+passed='True'
+bindingExecution='SucceededBound'
+binding='Succeeded'
+runtimeHandleDeclaration='HandleRegistered'
+bindingCountIncreased='True'
+runtimeHandleRegistered='True'
+requestMatchesPauseContract='True'
+requestMatchesAnchorRequirement='True'
+bindingMatchesAnchor='True'
+requestOnly='False'
+bindingExecutionOnly='True'
+bindingCleanup='True'
+smokeCleanupLogicalRuntimeContentRelease='True'
+logicalRuntimeContentRelease='False'
+materialization='False'
+physicalRelease='False'
+contentAnchorBindingCleanup='False'
+inputModeChange='False'
+timeScalePolicy='False'
+automaticLifecycleWiring='False'
+routeActivityAutoMaterialization='False'
+routeActivityAutoRelease='False'
+```
+
+Interpretation: the Pause visual surface can execute a logical ContentAnchor binding explicitly. The cleanup fields are QA smoke cleanup only and do not represent lifecycle auto-wiring.

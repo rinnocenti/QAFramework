@@ -327,23 +327,13 @@ namespace Immersive.Framework.Diagnostics
         {
             GUILayout.Space(8f);
             GUILayout.Label("Pause / F10 Diagnostics", GUI.skin.box);
-            GUILayout.Label("Current Pause consumer authoring/request proofs only. Visual materialization, input, Time.timeScale and lifecycle integration remain out of scope.");
+            GUILayout.Label("Canonical Pause path: resident UIGlobal surface. Materialized Pause proofs remain optional/advanced and are no longer exposed here.");
 
             using (new EditorDisabledScope(_requestInFlight))
             {
-                if (GUILayout.Button("Run Pause Visual Surface Authoring Contract Smoke"))
+                if (GUILayout.Button("Run Pause UIGlobal Resident Surface Smoke"))
                 {
-                    RunPauseVisualSurfaceAuthoringContractSmoke();
-                }
-
-                if (GUILayout.Button("Run Pause Content Anchor Binding Request Smoke"))
-                {
-                    RunPauseContentAnchorBindingRequestSmoke();
-                }
-
-                if (GUILayout.Button("Run Pause Content Anchor Binding Execution Smoke"))
-                {
-                    RunPauseContentAnchorBindingExecutionSmoke();
+                    RunPauseUIGlobalResidentSurfaceSmoke();
                 }
             }
         }
@@ -1412,6 +1402,130 @@ private async void RunLocalContributionSmoke()
             return true;
         }
 
+        private async void RunPauseUIGlobalResidentSurfaceSmoke()
+        {
+            await RunSmokeAsync("Pause UIGlobal Resident Surface Smoke", runtimeHost =>
+            {
+                GameObject surfaceObject = null;
+
+                try
+                {
+                    surfaceObject = new GameObject("QA Pause UIGlobal Resident Surface");
+                    var canvasGroup = surfaceObject.AddComponent<CanvasGroup>();
+                    var adapter = surfaceObject.AddComponent<UnityPauseResidentSurfaceAdapter>();
+                    var surfaceRuntime = PauseSurfaceRuntime.Create(
+                        _logger,
+                        new IPauseSurfaceAdapter[] { adapter },
+                        "QA UIGlobal Resident Surface");
+
+                    var runningSnapshot = PauseSnapshot.FromState(
+                        PauseState.Running,
+                        QaSource,
+                        "qa.pause-resident-surface.running",
+                        new[] { "QA running snapshot for resident Pause surface." });
+                    var pausedSnapshot = PauseSnapshot.FromState(
+                        PauseState.Paused,
+                        QaSource,
+                        "qa.pause-resident-surface.paused",
+                        new[] { "QA paused snapshot for resident Pause surface." });
+                    var resumeSnapshot = PauseSnapshot.FromState(
+                        PauseState.Running,
+                        QaSource,
+                        "qa.pause-resident-surface.resume",
+                        new[] { "QA resume snapshot for resident Pause surface." });
+
+                    var initialResult = surfaceRuntime.ApplySnapshot(runningSnapshot, QaSource, "qa.pause-resident-surface.initial-hidden");
+                    bool initialHidden = !surfaceObject.activeSelf
+                        && Math.Abs(canvasGroup.alpha) <= 0.0001f
+                        && !canvasGroup.blocksRaycasts
+                        && !canvasGroup.interactable;
+
+                    var pausedResult = surfaceRuntime.ApplySnapshot(pausedSnapshot, QaSource, "qa.pause-resident-surface.show");
+                    bool pausedVisible = surfaceObject.activeSelf
+                        && adapter.IsVisible
+                        && adapter.LastAppliedState == PauseState.Paused
+                        && Math.Abs(canvasGroup.alpha - 1f) <= 0.0001f
+                        && canvasGroup.blocksRaycasts
+                        && canvasGroup.interactable;
+
+                    bool rootActiveWhenPaused = surfaceObject.activeSelf;
+                    float pausedAlpha = canvasGroup.alpha;
+                    bool pausedBlocksRaycasts = canvasGroup.blocksRaycasts;
+                    bool pausedInteractable = canvasGroup.interactable;
+
+                    var resumeResult = surfaceRuntime.ApplySnapshot(resumeSnapshot, QaSource, "qa.pause-resident-surface.hide");
+                    bool resumedHidden = !surfaceObject.activeSelf
+                        && !adapter.IsVisible
+                        && adapter.LastAppliedState == PauseState.Running
+                        && Math.Abs(canvasGroup.alpha) <= 0.0001f
+                        && !canvasGroup.blocksRaycasts
+                        && !canvasGroup.interactable;
+
+                    bool passed = surfaceRuntime.HasVisibleSurface
+                        && surfaceRuntime.AdapterCount == 1
+                        && initialResult.Succeeded
+                        && pausedResult.Succeeded
+                        && resumeResult.Succeeded
+                        && initialHidden
+                        && pausedVisible
+                        && resumedHidden;
+
+                    if (!passed)
+                    {
+                        _logger.Warning(
+                            $"QA Pause UIGlobal Resident Surface Smoke step failed. step='pause-uiglobal-resident-surface' initial='{initialResult.StatusText}' paused='{pausedResult.StatusText}' resume='{resumeResult.StatusText}' initialHidden='{initialHidden}' pausedVisible='{pausedVisible}' resumedHidden='{resumedHidden}' adapterCount='{surfaceRuntime.AdapterCount}' hasSurface='{surfaceRuntime.HasVisibleSurface}'.");
+                        return Task.FromResult(false);
+                    }
+
+                    _logger.Info(
+                        "QA Pause UIGlobal Resident Surface Smoke step completed. ",
+                        LogFields.Of(
+                            LogFields.Field("step", "pause-uiglobal-resident-surface"),
+                            LogFields.Field("passed", true),
+                            LogFields.Field("surfaceRuntime", pausedResult.StatusText),
+                            LogFields.Field("adapterCount", surfaceRuntime.AdapterCount),
+                            LogFields.Field("supportedAdapters", pausedResult.SupportedAdapterCount),
+                            LogFields.Field("appliedAdapters", pausedResult.AppliedAdapterCount),
+                            LogFields.Field("initialHidden", initialHidden),
+                            LogFields.Field("pausedVisible", pausedVisible),
+                            LogFields.Field("resumedHidden", resumedHidden),
+                            LogFields.Field("rootActiveWhenPaused", pausedVisible && rootActiveWhenPaused),
+                            LogFields.Field("rootInactiveWhenRunning", resumedHidden && !surfaceObject.activeSelf),
+                            LogFields.Field("canvasAlphaPaused", pausedAlpha.ToString("0.00")),
+                            LogFields.Field("blocksRaycastsWhenPaused", pausedVisible && pausedBlocksRaycasts),
+                            LogFields.Field("interactableWhenPaused", pausedVisible && pausedInteractable),
+                            LogFields.Field("canonicalResidentUIGlobalSurface", true),
+                            LogFields.Field("materialization", false),
+                            LogFields.Field("contentAnchorBinding", false),
+                            LogFields.Field("physicalRelease", false),
+                            LogFields.Field("logicalRuntimeContentRelease", false),
+                            LogFields.Field("contentAnchorBindingCleanup", false),
+                            LogFields.Field("inputModeChange", false),
+                            LogFields.Field("timeScalePolicy", false),
+                            LogFields.Field("explicitSubmit", true),
+                            LogFields.Field("automaticLifecycleWiring", false),
+                            LogFields.Field("routeActivityAutoMaterialization", false),
+                            LogFields.Field("routeActivityAutoRelease", false),
+                            LogFields.Field("addressables", false),
+                            LogFields.Field("pooling", false),
+                            LogFields.Field("actorSpawn", false),
+                            LogFields.Field("playerJoin", false),
+                            LogFields.Field("gameplayConsumer", false),
+                            LogFields.Field("cameraConsumer", false),
+                            LogFields.Field("audioConsumer", false),
+                            LogFields.Field("saveConsumer", false)));
+                    return Task.FromResult(true);
+                }
+                finally
+                {
+                    if (surfaceObject != null)
+                    {
+                        Object.Destroy(surfaceObject);
+                    }
+                }
+            });
+        }
+
         private async void RunPauseVisualSurfaceAuthoringContractSmoke()
         {
             await RunSmokeAsync("Pause Visual Surface Authoring Contract Smoke", runtimeHost =>
@@ -1946,6 +2060,292 @@ private async void RunLocalContributionSmoke()
                 }
             });
         }
+
+
+        private async void RunPauseVisualMaterializationSmoke()
+        {
+            await RunSmokeAsync("Pause Visual Materialization Smoke", runtimeHost =>
+            {
+                var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+                if (runtimeContentRuntime == null)
+                {
+                    _logger.Warning("QA Pause Visual Materialization Smoke failed. reason='RuntimeContentRuntime unavailable'.");
+                    return Task.FromResult(false);
+                }
+
+                int initialBindingCount = runtimeHost.ContentAnchorBindingCount;
+                var physicalRegistry = new UnityRuntimeMaterializedObjectRegistry();
+                GameObject authoringObject = null;
+                GameObject visualPrefab = null;
+                GameObject anchorObject = null;
+                RuntimeContentOwner runtimeOwner = default;
+                RuntimeScopeContext runtimeContext = default;
+                bool rootCreated = false;
+                bool cleanupExecuted = false;
+
+                try
+                {
+                    string unique = Guid.NewGuid().ToString("N");
+                    visualPrefab = new GameObject("QA Pause Visual Materialization Prefab");
+                    visualPrefab.hideFlags = HideFlags.DontSave;
+                    authoringObject = new GameObject("QA Pause Visual Materialization Authoring");
+                    authoringObject.hideFlags = HideFlags.DontSave;
+                    anchorObject = new GameObject("QA Pause Visual Materialization Anchor");
+                    anchorObject.hideFlags = HideFlags.DontSave;
+
+                    var authoring = authoringObject.AddComponent<PauseVisualSurfaceAuthoring>();
+                    authoring.ConfigureForDiagnostics(
+                        visualPrefab,
+                        PauseVisualSurfaceKind.OverlayRoot,
+                        PauseState.Paused,
+                        RuntimeContentScope.Transient,
+                        "qa.pause.visual-materialization.owner." + unique,
+                        "QA Pause Visual Materialization Owner",
+                        ContentAnchorScope.Local,
+                        ContentAnchorKind.Root,
+                        ContentAnchorRequiredness.Required,
+                        "qa.pause.visual-materialization.anchor-owner." + unique,
+                        "qa.pause.visual-materialization.overlay." + unique,
+                        "qa.pause.visual-materialization.content." + unique,
+                        "qa.pause.visual-materialization.prefab." + unique,
+                        RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                        true);
+
+                    bool contractCreated = authoring.TryCreateContract(out var contract, out var contractMessage);
+                    if (!contractCreated)
+                    {
+                        _logger.Warning($"QA Pause Visual Materialization Smoke step failed. step='contract' reason='{FormatValue(contractMessage)}'.");
+                        return Task.FromResult(false);
+                    }
+
+                    runtimeOwner = contract.RuntimeOwner;
+                    var rootResult = runtimeContentRuntime.CreateScopeRoot(
+                        runtimeOwner,
+                        QaSource,
+                        "qa.pause.visual-materialization.root");
+                    rootCreated = rootResult.Applied || rootResult.Status == RuntimeRootRegistryOperationStatus.RootAlreadyExists;
+                    if (!rootCreated || !runtimeContentRuntime.TryCreateScopeContext(
+                            runtimeOwner,
+                            QaSource,
+                            "qa.pause.visual-materialization.context",
+                            out runtimeContext))
+                    {
+                        _logger.Warning($"QA Pause Visual Materialization Smoke step failed. step='root' root='{rootResult.Status}' rootCreated='{rootCreated}'.");
+                        return Task.FromResult(false);
+                    }
+
+                    var anchor = new ContentAnchorDeclaration(
+                        contract.AnchorOwner,
+                        contract.AnchorScope,
+                        contract.AnchorKind,
+                        contract.AnchorId,
+                        contract.ContentRequirement.Requiredness,
+                        "QA Pause Visual Materialization Anchor",
+                        "Synthetic anchor for Pause visual materialization smoke.",
+                        "qa.pause.visual-materialization.anchor",
+                        string.Empty);
+                    var anchorSet = new ContentAnchorSet(new[] { anchor });
+                    if (!anchorSet.HasAnchors || anchorSet.HasIssues)
+                    {
+                        _logger.Warning($"QA Pause Visual Materialization Smoke step failed. step='anchor-set' diagnostics='{anchorSet.ToDiagnosticString()}'.");
+                        return Task.FromResult(false);
+                    }
+
+                    var materializationResult = PauseVisualSurfaceMaterializationExecutor.Execute(
+                        contract,
+                        anchorSet,
+                        anchorObject.transform,
+                        runtimeContext,
+                        runtimeHost,
+                        physicalRegistry,
+                        QaSource,
+                        "qa.pause.visual-materialization.execute");
+
+                    bool pipelineSucceeded = materializationResult.Succeeded
+                        && materializationResult.PipelineResult.Succeeded;
+                    bool logicalBinding = pipelineSucceeded
+                        && materializationResult.PipelineResult.BindingResult.Succeeded
+                        && materializationResult.PipelineResult.BindingResult.HasHandle;
+                    bool physicalPlacementApplied = materializationResult.PhysicalPlacementApplied;
+                    bool physicalEvidenceRecorded = physicalRegistry.TryGet(contract.RuntimeIdentity, out var evidence)
+                        && evidence != null
+                        && evidence.HasLiveInstance
+                        && !evidence.PhysicalReleaseRequested;
+                    bool visualInstanceParented = physicalEvidenceRecorded
+                        && evidence.Instance.transform.parent == anchorObject.transform;
+                    bool runtimeHandleMaterialized = runtimeContentRuntime.TryGetHandle(
+                            runtimeContext,
+                            contract.RuntimeIdentity,
+                            out var registeredHandle)
+                        && registeredHandle != null
+                        && registeredHandle.IsMaterialized
+                        && !registeredHandle.IsReleased;
+                    bool bindingCountIncreased = runtimeHost.ContentAnchorBindingCount == initialBindingCount + 1;
+                    bool requestMatchesPauseContract = materializationResult.RequestCreated
+                        && materializationResult.Request.RuntimeOwner == contract.RuntimeOwner
+                        && materializationResult.Request.RuntimeScope == contract.RuntimeScope
+                        && materializationResult.Request.RuntimeContentId == contract.RuntimeContentId
+                        && materializationResult.Request.RuntimeIdentity == contract.RuntimeIdentity
+                        && materializationResult.Request.Resource == contract.Resource;
+                    bool bindingMatchesAnchor = logicalBinding
+                        && materializationResult.PipelineResult.BindingResult.Anchor == anchor
+                        && materializationResult.PipelineResult.BindingResult.Handle.Anchor == anchor;
+
+                    var releaseAdapter = new UnityObjectRuntimeReleaseAdapter(
+                        physicalRegistry,
+                        QaSource);
+                    var releasePipeline = new UnityContentAnchorMaterializationScopeReleasePipeline(
+                        releaseAdapter,
+                        QaSource);
+                    var cleanupResult = releasePipeline.ReleaseScope(
+                        runtimeHost,
+                        runtimeContext,
+                        contract.ReleasePolicy,
+                        "qa.pause.visual-materialization.cleanup.explicit-release");
+                    cleanupExecuted = true;
+
+                    bool cleanupSucceeded = cleanupResult.Succeeded
+                        && cleanupResult.PhysicalReleaseRequests == 1
+                        && cleanupResult.LogicalReleaseResults == 1
+                        && cleanupResult.BindingRemovedCount == 1
+                        && physicalRegistry.ActiveCount == 0
+                        && runtimeHost.ContentAnchorBindingCount == initialBindingCount
+                        && runtimeContentRuntime.SnapshotHandles(runtimeContext).Length == 0;
+                    bool passed = pipelineSucceeded
+                        && logicalBinding
+                        && physicalPlacementApplied
+                        && physicalEvidenceRecorded
+                        && visualInstanceParented
+                        && runtimeHandleMaterialized
+                        && bindingCountIncreased
+                        && requestMatchesPauseContract
+                        && bindingMatchesAnchor
+                        && cleanupSucceeded;
+
+                    if (!passed)
+                    {
+                        _logger.Warning(
+                            $"QA Pause Visual Materialization Smoke step failed. step='pause-visual-materialization' materialization='{materializationResult.ToDiagnosticString()}' cleanup='{cleanupResult.ToDiagnosticString()}' physicalEvidenceRecorded='{physicalEvidenceRecorded}' visualInstanceParented='{visualInstanceParented}' runtimeHandleMaterialized='{runtimeHandleMaterialized}' bindingCountIncreased='{bindingCountIncreased}' requestMatchesPauseContract='{requestMatchesPauseContract}' bindingMatchesAnchor='{bindingMatchesAnchor}' cleanupSucceeded='{cleanupSucceeded}'.");
+                        return Task.FromResult(false);
+                    }
+
+                    _logger.Info(
+                        "QA Pause Visual Materialization Smoke step completed. ",
+                        LogFields.Of(
+                            LogFields.Field("step", "pause-visual-materialization"),
+                            LogFields.Field("passed", true),
+                            LogFields.Field("contract", contractCreated),
+                            LogFields.Field("root", rootResult.Status.ToString()),
+                            LogFields.Field("materialization", materializationResult.Status.ToString()),
+                            LogFields.Field("pipeline", materializationResult.PipelineResult.Status.ToString()),
+                            LogFields.Field("binding", materializationResult.PipelineResult.BindingResult.Status.ToString()),
+                            LogFields.Field("materialized", materializationResult.PipelineResult.MaterializationResult.Status.ToString()),
+                            LogFields.Field("appliedMaterialization", materializationResult.PipelineResult.AppliedMaterializationResult.Status.ToString()),
+                            LogFields.Field("runtimeScope", materializationResult.Request.RuntimeScope.ToString()),
+                            LogFields.Field("runtimeOwner", materializationResult.Request.RuntimeOwner.StableText),
+                            LogFields.Field("runtimeContentId", materializationResult.Request.RuntimeContentId.StableText),
+                            LogFields.Field("runtimeIdentity", materializationResult.Request.RuntimeIdentity.StableText),
+                            LogFields.Field("anchorScope", materializationResult.Request.AnchorScope.ToString()),
+                            LogFields.Field("anchorOwner", materializationResult.Request.AnchorOwner.StableText),
+                            LogFields.Field("anchorKind", materializationResult.Request.AnchorKind.ToString()),
+                            LogFields.Field("anchorId", materializationResult.Request.AnchorId.StableText),
+                            LogFields.Field("bindingCountIncreased", bindingCountIncreased),
+                            LogFields.Field("runtimeHandleMaterialized", runtimeHandleMaterialized),
+                            LogFields.Field("requestMatchesPauseContract", requestMatchesPauseContract),
+                            LogFields.Field("bindingMatchesAnchor", bindingMatchesAnchor),
+                            LogFields.Field("physicalEvidenceRecorded", physicalEvidenceRecorded),
+                            LogFields.Field("physicalPlacementApplied", physicalPlacementApplied),
+                            LogFields.Field("visualInstanceParented", visualInstanceParented),
+                            LogFields.Field("physicalRegistryEntries", physicalRegistry.Count),
+                            LogFields.Field("physicalRegistryActive", physicalRegistry.ActiveCount),
+                            LogFields.Field("physicalReleaseRequested", physicalRegistry.PhysicalReleaseRequestedCount),
+                            LogFields.Field("contentAnchorBindings", runtimeHost.ContentAnchorBindingCount),
+                            LogFields.Field("runtimeHandles", runtimeContentRuntime.SnapshotHandles(runtimeContext).Length),
+                            LogFields.Field("smokeCleanup", cleanupResult.Status.ToString()),
+                            LogFields.Field("smokeCleanupPhysicalRelease", cleanupResult.PhysicalReleaseRequests == 1),
+                            LogFields.Field("smokeCleanupLogicalRuntimeContentRelease", cleanupResult.LogicalReleaseResults == 1),
+                            LogFields.Field("smokeCleanupContentAnchorBindingCleanup", cleanupResult.BindingRemovedCount == 1),
+                            LogFields.Field("explicitSubmit", true),
+                            LogFields.Field("requestOnly", false),
+                            LogFields.Field("bindingExecutionOnly", false),
+                            LogFields.Field("visualMaterialization", true),
+                            LogFields.Field("materializationExplicit", true),
+                            LogFields.Field("physicalRelease", false),
+                            LogFields.Field("logicalRuntimeContentRelease", false),
+                            LogFields.Field("contentAnchorBindingCleanup", false),
+                            LogFields.Field("inputModeChange", false),
+                            LogFields.Field("timeScalePolicy", false),
+                            LogFields.Field("automaticLifecycleWiring", false),
+                            LogFields.Field("routeActivityAutoMaterialization", false),
+                            LogFields.Field("routeActivityAutoRelease", false),
+                            LogFields.Field("addressables", false),
+                            LogFields.Field("pooling", false),
+                            LogFields.Field("actorSpawn", false),
+                            LogFields.Field("playerJoin", false),
+                            LogFields.Field("gameplayConsumer", false),
+                            LogFields.Field("cameraConsumer", false),
+                            LogFields.Field("audioConsumer", false),
+                            LogFields.Field("saveConsumer", false)));
+                    return Task.FromResult(true);
+                }
+                finally
+                {
+                    if (!cleanupExecuted)
+                    {
+                        foreach (var entry in physicalRegistry.Snapshot())
+                        {
+                            if (entry != null && entry.HasLiveInstance && !entry.PhysicalReleaseRequested)
+                            {
+                                Object.Destroy(entry.Instance);
+                            }
+                        }
+
+                        if (runtimeContext.IsValid)
+                        {
+                            runtimeHost.UnbindContentAnchorRuntimeOwner(
+                                runtimeContext.Owner,
+                                QaSource,
+                                "qa.pause.visual-materialization.cleanup.remaining-bindings");
+
+                            RuntimeContentHandle[] remainingHandles = runtimeContentRuntime.SnapshotHandles(runtimeContext);
+                            for (int i = 0; i < remainingHandles.Length; i++)
+                            {
+                                runtimeContentRuntime.ReleaseHandleLogically(
+                                    runtimeContext,
+                                    remainingHandles[i].Identity,
+                                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                                    QaSource,
+                                    "qa.pause.visual-materialization.cleanup.remaining-handles");
+                            }
+                        }
+                    }
+
+                    if (rootCreated && runtimeOwner.IsValid)
+                    {
+                        runtimeContentRuntime.RemoveScopeRoot(
+                            runtimeOwner,
+                            QaSource,
+                            "qa.pause.visual-materialization.cleanup.root");
+                    }
+
+                    if (authoringObject != null)
+                    {
+                        Object.Destroy(authoringObject);
+                    }
+
+                    if (visualPrefab != null)
+                    {
+                        Object.Destroy(visualPrefab);
+                    }
+
+                    if (anchorObject != null)
+                    {
+                        Object.Destroy(anchorObject);
+                    }
+                }
+            });
+        }
+
 
         private async void RunBridgeLifecycleRegistryRegistrationSmoke()
         {

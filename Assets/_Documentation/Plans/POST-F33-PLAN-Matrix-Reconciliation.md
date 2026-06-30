@@ -316,7 +316,7 @@ Usage guide: `Packages/com.immersive.framework/Documentation~/Guides/F10C-Pause-
 
 ## F10D Implementation Status
 
-`F10D - Pause ContentAnchor Binding Execution Proof` is ready for smoke.
+`F10D - Pause ContentAnchor Binding Execution Proof` is closed / PASS.
 
 It executes the binding request produced by F10C explicitly and logically:
 
@@ -330,4 +330,59 @@ PauseVisualSurfaceContract
 
 F10D does not instantiate Pause UI, move transforms, execute physical placement, perform physical release, toggle Pause, change InputMode, change PlayerInput, change Time.timeScale, wire Route/Activity lifecycle, enable Route/Activity auto-release, enable Route/Activity auto-materialization or select Camera, Audio, Save, Actor, Pooling, PlayerJoin, F34 or gameplay.
 
-Expected validation: `Run Pause Content Anchor Binding Execution Smoke`.
+Validated by `Run Pause Content Anchor Binding Execution Smoke`: `passed=True`, `bindingExecution=SucceededBound`, `binding=Succeeded`, `runtimeHandleDeclaration=HandleRegistered`, `bindingCountIncreased=True`, `runtimeHandleRegistered=True`, `requestMatchesPauseContract=True`, `requestMatchesAnchorRequirement=True`, `bindingMatchesAnchor=True`, while preserving `materialization=False`, `inputModeChange=False`, `timeScalePolicy=False`, `automaticLifecycleWiring=False`, `routeActivityAutoMaterialization=False` and `routeActivityAutoRelease=False`.
+
+Next candidate: `F10E - Pause Visual Materialization Proof`.
+
+## F10E Implementation Status
+
+`F10E - Pause Visual Materialization Proof` is closed / PASS.
+
+It materializes the visual Pause surface explicitly through the already-proven RuntimeContent + ContentAnchor pipeline:
+
+```text
+PauseVisualSurfaceContract
+  -> ContentAnchorBindingRequest
+  -> RuntimeContent materialization request
+  -> Unity prefab instantiation
+  -> logical RuntimeContent materialized handle
+  -> ContentAnchor binding
+  -> physical placement under the anchor Transform
+```
+
+F10E adds `PauseVisualSurfaceMaterializationExecutor`, `PauseVisualSurfaceMaterializationResult` and `PauseVisualSurfaceMaterializationStatus`.
+
+F10E smoke validated `passed=True`, `materialization=SucceededMaterialized`, `pipeline=Succeeded`, `binding=Succeeded`, `materialized=Succeeded`, `appliedMaterialization=Succeeded`, `runtimeHandleMaterialized=True`, `physicalPlacementApplied=True`, `visualInstanceParented=True`, `smokeCleanupPhysicalRelease=True`, `smokeCleanupLogicalRuntimeContentRelease=True` and `smokeCleanupContentAnchorBindingCleanup=True`, while preserving `inputModeChange=False`, `timeScalePolicy=False`, `automaticLifecycleWiring=False`, `routeActivityAutoMaterialization=False` and `routeActivityAutoRelease=False`.
+
+F10E is a capability proof. It proves that Pause can use RuntimeContent + ContentAnchor materialization safely. It does not decide that a normal Pause menu must be runtime-spawned.
+
+F10E remains explicit QA/user-submitted materialization only. It does not toggle Pause, change InputMode, change PlayerInput, change Time.timeScale, wire Route/Activity lifecycle, enable Route/Activity auto-materialization, enable Route/Activity auto-release or select Camera, Audio, Save, Actor, Pooling, PlayerJoin, F34 or gameplay.
+
+## F10F Decision Status
+
+`F10F - Pause Presentation Model Decision` is accepted / docs-only.
+
+Decision: the canonical product path for the standard Pause menu should be a resident UIGlobal Pause surface.
+
+```text
+UIGlobal scene owns the concrete Pause visual hierarchy.
+Pause logic requests presentation changes.
+The visual surface shows/hides the resident UI.
+```
+
+The runtime-materialized F10E path remains valid as an optional/advanced capability for modular, route-specific, activity-specific, streamed or QA-only Pause visuals.
+
+Next candidate: `F10G - Pause UIGlobal Resident Surface Proof`.
+
+
+## F10G Implementation Status
+
+`F10G - Pause UIGlobal Resident Surface Proof` is ready for smoke.
+
+F10G corrects the Pause presentation track toward the production-facing default: Pause UI is resident in `UIGlobal` and shown/hidden through a Unity surface adapter.
+
+It adds `UnityPauseResidentSurfaceAdapter`, a concrete `IPauseSurfaceAdapter` implementation that applies logical `PauseSnapshot` state to an already-authored GameObject/CanvasGroup hierarchy.
+
+F10G moves the visible Pause/F10 QA surface to the resident UIGlobal path. F10B-F10E remain valid as optional/advanced materialization infrastructure, but they are not the canonical product path for a standard Pause menu.
+
+F10G does not instantiate Pause UI, execute ContentAnchor binding, use RuntimeContent materialization, change InputMode, change PlayerInput, change Time.timeScale, wire Route/Activity lifecycle, enable Route/Activity auto-materialization, enable Route/Activity auto-release or select Camera, Audio, Save, Actor, Pooling, PlayerJoin, F34 or gameplay.
