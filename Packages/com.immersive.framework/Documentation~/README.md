@@ -768,8 +768,8 @@ F10A does not change runtime code, editor code, scenes, prefabs, asmdefs or pack
 
 Status: Ready for smoke.
 
-F10B adds the first passive authored contract for Pause visual presentation as a ContentAnchor/RuntimeContent consumer. It introduces `PauseVisualSurfaceAuthoring`, `PauseVisualSurfaceContract` and `PauseVisualSurfaceKind`, plus a QA smoke that validates valid/invalid authoring without runtime side effects.
+F10B adds the first passive authored contract for Pause visual presentation as a ContentAnchor/RuntimeContent consumer. It introduces `PauseVisualSurfaceAuthoring`, `PauseVisualSurfaceContract` and `PauseVisualSurfaceKind`, plus a QA smoke that validated valid/invalid authoring without runtime side effects. Status: Closed / PASS.
 
 Project note: `../../Assets/_Documentation/Notes/F10B-Pause-Visual-Surface-Authoring-Contract-Proof.md`.
 
-F10B does not materialize Pause UI, execute ContentAnchor binding, change InputMode, change PlayerInput, change Time.timeScale, wire Route/Activity lifecycle, enable auto-release, enable auto-materialization or unlock camera, audio, save/progression, actor, pooling, PlayerJoin, F34 or gameplay consumers.
+F10B does not materialize Pause UI, execute ContentAnchor binding, change InputMode, change PlayerInput, change Time.timeScale, wire Route/Activity lifecycle, enable auto-release, enable auto-materialization or unlock camera, audio, save/progression, actor, pooling, PlayerJoin, F34 or gameplay consumers. F10B smoke validated `passed=True`, `validContract=True`, `invalidRejected=True`, `passiveAuthoringOnly=True` and preserved `materialization=False`, `inputModeChange=False`, `timeScalePolicy=False`, `automaticLifecycleWiring=False`, `routeActivityAutoMaterialization=False` and `routeActivityAutoRelease=False`.

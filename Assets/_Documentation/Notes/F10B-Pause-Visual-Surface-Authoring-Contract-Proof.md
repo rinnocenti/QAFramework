@@ -1,6 +1,6 @@
 # IF-FW-F10B — Pause Visual Surface Authoring Contract Proof
 
-Status: Ready for smoke.
+Status: Closed / PASS.
 
 ## Intent
 
@@ -93,6 +93,50 @@ automaticLifecycleWiring='False'
 routeActivityAutoMaterialization='False'
 routeActivityAutoRelease='False'
 ```
+
+## Smoke result
+
+Validated by QA smoke.
+
+Observed completion fields:
+
+```text
+QA Pause Visual Surface Authoring Contract Smoke step completed.
+step='pause-visual-surface-authoring-contract'
+passed='True'
+validContract='True'
+invalidRejected='True'
+surfaceKind='OverlayRoot'
+pauseState='Paused'
+requirementPurpose='PresentationRoot'
+runtimeScope='Transient'
+anchorScope='Local'
+anchorKind='Root'
+requiredness='Required'
+prefabRecorded='True'
+resourceRecorded='True'
+passiveAuthoringOnly='True'
+pauseConsumerSelected='True'
+materialization='False'
+physicalRelease='False'
+logicalRuntimeContentRelease='False'
+contentAnchorBindingCleanup='False'
+inputModeChange='False'
+timeScalePolicy='False'
+automaticLifecycleWiring='False'
+routeActivityAutoMaterialization='False'
+routeActivityAutoRelease='False'
+addressables='False'
+pooling='False'
+actorSpawn='False'
+playerJoin='False'
+gameplayConsumer='False'
+cameraConsumer='False'
+audioConsumer='False'
+saveConsumer='False'
+```
+
+Conclusion: the authored Pause visual surface contract is valid as passive consumer data and does not perform materialization or lifecycle side effects.
 
 ## Next cut
 

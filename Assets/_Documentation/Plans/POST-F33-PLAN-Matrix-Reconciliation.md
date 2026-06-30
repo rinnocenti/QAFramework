@@ -272,7 +272,7 @@ Project plan: `Plans/F10A-PLAN-Pause-ContentAnchor-Consumer-Reentry.md`.
 
 ## F10B Implementation Status
 
-`F10B - Pause Visual Surface Authoring Contract Proof` is implemented and ready for smoke as the first Pause consumer contract after F10A.
+`F10B - Pause Visual Surface Authoring Contract Proof` is closed / PASS as the first Pause consumer contract after F10A.
 
 It adds a passive authored contract for a future Pause visual surface:
 
@@ -286,4 +286,6 @@ PauseVisualSurfaceAuthoring
 
 F10B deliberately does not materialize Pause UI, bind ContentAnchors, register lifecycle materialization entries, release RuntimeContent, clean bindings, change InputMode, change Time.timeScale, wire Route/Activity lifecycle, enable auto-release, enable auto-materialization or select gameplay/F34.
 
-Next candidate after smoke PASS: `F10C - Pause ContentAnchor Binding Request Proof`.
+F10B smoke validated `passed=True`, `validContract=True`, `invalidRejected=True`, `prefabRecorded=True`, `resourceRecorded=True`, `pauseConsumerSelected=True`, while keeping `materialization=False`, `inputModeChange=False`, `timeScalePolicy=False`, `automaticLifecycleWiring=False`, `routeActivityAutoMaterialization=False` and `routeActivityAutoRelease=False`.
+
+Next candidate: `F10C - Pause ContentAnchor Binding Request Proof`.

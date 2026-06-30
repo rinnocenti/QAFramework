@@ -179,7 +179,7 @@ F9R-U F9R Closure / Next Axis Decision: Closed / docs-only, `Notes/F9R-U-F9R-Clo
 
 F10A Pause ContentAnchor Consumer Re-entry Plan: Accepted / Plan / docs-only, `Plans/F10A-PLAN-Pause-ContentAnchor-Consumer-Reentry.md`. Pause is selected as the next explicit consumer axis after F9R; no implementation is selected by F10A.
 
-F10B Pause Visual Surface Authoring Contract Proof: Ready for smoke, `Notes/F10B-Pause-Visual-Surface-Authoring-Contract-Proof.md`. Adds passive Pause visual authoring contract and QA smoke; no materialization, input, timeScale or lifecycle auto-wiring.
+F10B Pause Visual Surface Authoring Contract Proof: Closed / PASS, `Notes/F10B-Pause-Visual-Surface-Authoring-Contract-Proof.md`. Validated passive Pause visual authoring contract and QA smoke; no materialization, input, timeScale or lifecycle auto-wiring.
 
 ## Regras
 
