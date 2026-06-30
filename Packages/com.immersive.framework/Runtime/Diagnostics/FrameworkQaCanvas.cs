@@ -15,6 +15,7 @@ using Immersive.Framework.CycleReset;
 using Immersive.Framework.ObjectEntry;
 using Immersive.Framework.ObjectReset;
 using Immersive.Framework.InputMode;
+using Immersive.Framework.Pause;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
@@ -278,6 +279,7 @@ namespace Immersive.Framework.Diagnostics
 
             DrawRouteContentSmokeControls();
             DrawFoundationDiagnosticSmokeControls();
+            DrawPauseConsumerSmokeControls();
         }
 
 
@@ -316,6 +318,22 @@ namespace Immersive.Framework.Diagnostics
                 if (GUILayout.Button("Run Composite Lifecycle Release Smoke"))
                 {
                     RunCompositeLifecycleReleaseSmoke();
+                }
+            }
+        }
+
+
+        private void DrawPauseConsumerSmokeControls()
+        {
+            GUILayout.Space(8f);
+            GUILayout.Label("Pause / F10 Diagnostics", GUI.skin.box);
+            GUILayout.Label("Current Pause consumer authoring proofs only. Visual materialization, input, Time.timeScale and lifecycle integration remain out of scope.");
+
+            using (new EditorDisabledScope(_requestInFlight))
+            {
+                if (GUILayout.Button("Run Pause Visual Surface Authoring Contract Smoke"))
+                {
+                    RunPauseVisualSurfaceAuthoringContractSmoke();
                 }
             }
         }
@@ -1382,6 +1400,153 @@ private async void RunLocalContributionSmoke()
                 "QA Lifecycle Materialization Registry Contract Smoke step completed. "
                 + $"step='lifecycle-materialization-registry-contract' passed='True' register='{registerResult.Status}' duplicate='{duplicateResult.Status}' duplicateConflict='{conflictingDuplicateResult.Status}' releaseRequest='{releaseRequestResult.Status}' releaseComplete='{releasedResult.Status}' missingRelease='{missingReleaseResult.Status}' entries='{registry.Count}' active='{registry.ActiveCount}' releaseRequested='{registry.ReleaseRequestedCount}' released='{registry.ReleasedCount}' releaseFailed='{registry.ReleaseFailedCount}' typedIdentity='True' registryOwnsEvidenceOnly='{registryOwnsEvidenceOnly}' physicalRelease='False' logicalRuntimeContentRelease='False' contentAnchorBindingCleanup='False' explicitSubmit='True' automaticLifecycleWiring='False' routeActivityAutoMaterialization='False' routeActivityAutoRelease='False' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.");
             return true;
+        }
+
+        private async void RunPauseVisualSurfaceAuthoringContractSmoke()
+        {
+            await RunSmokeAsync("Pause Visual Surface Authoring Contract Smoke", runtimeHost =>
+            {
+                int initialBindingCount = runtimeHost.ContentAnchorBindingCount;
+                int initialRuntimeRootCount = runtimeHost.RuntimeContentRuntime != null ? runtimeHost.RuntimeContentRuntime.RootCount : -1;
+                GameObject validObject = null;
+                GameObject invalidObject = null;
+                GameObject visualPrefab = null;
+
+                try
+                {
+                    visualPrefab = new GameObject("QA Pause Visual Surface Prefab");
+                    validObject = new GameObject("QA Pause Visual Surface Authoring");
+                    invalidObject = new GameObject("QA Invalid Pause Visual Surface Authoring");
+
+                    var validAuthoring = validObject.AddComponent<PauseVisualSurfaceAuthoring>();
+                    validAuthoring.ConfigureForDiagnostics(
+                        visualPrefab,
+                        PauseVisualSurfaceKind.OverlayRoot,
+                        PauseState.Paused,
+                        RuntimeContentScope.Transient,
+                        "qa.pause.visual.owner",
+                        "QA Pause Visual Surface Owner",
+                        ContentAnchorScope.Local,
+                        ContentAnchorKind.Root,
+                        ContentAnchorRequiredness.Required,
+                        "qa.pause.visual.anchor-owner",
+                        "qa.pause.visual.overlay",
+                        "qa.pause.visual.content",
+                        "qa.pause.visual.prefab",
+                        RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                        true);
+
+                    var invalidAuthoring = invalidObject.AddComponent<PauseVisualSurfaceAuthoring>();
+                    invalidAuthoring.ConfigureForDiagnostics(
+                        null,
+                        PauseVisualSurfaceKind.OverlayRoot,
+                        PauseState.Paused,
+                        RuntimeContentScope.Transient,
+                        "qa.pause.visual.owner.invalid",
+                        "QA Invalid Pause Visual Surface Owner",
+                        ContentAnchorScope.Local,
+                        ContentAnchorKind.Root,
+                        ContentAnchorRequiredness.Required,
+                        "qa.pause.visual.anchor-owner.invalid",
+                        "qa.pause.visual.overlay.invalid",
+                        "qa.pause.visual.content.invalid",
+                        "qa.pause.visual.prefab.invalid",
+                        RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                        true);
+
+                    bool validCreated = validAuthoring.TryCreateContract(out var contract, out var validMessage);
+                    bool invalidRejected = !invalidAuthoring.TryCreateContract(out _, out var invalidMessage);
+                    bool contractValid = validCreated && contract.IsValid;
+                    bool pauseRequirementValid = contractValid
+                        && contract.ContentRequirement.IsValid
+                        && contract.ContentRequirement.Purpose == PauseContentRequirementPurpose.PresentationRoot
+                        && contract.ContentRequirement.PauseState == PauseState.Paused
+                        && contract.ContentRequirement.Requiredness == ContentAnchorRequiredness.Required;
+                    bool runtimeOwnerValid = contractValid
+                        && contract.RuntimeOwner.IsValid
+                        && contract.RuntimeScope == RuntimeContentScope.Transient
+                        && contract.RuntimeContentId.IsValid;
+                    bool anchorRequirementValid = contractValid
+                        && contract.ContentRequirement.AnchorScope == ContentAnchorScope.Local
+                        && contract.ContentRequirement.AnchorKind == ContentAnchorKind.Root
+                        && contract.ContentRequirement.AnchorId.IsValid;
+                    bool prefabRecorded = contractValid && contract.HasVisualPrefab && ReferenceEquals(contract.VisualPrefab, visualPrefab);
+                    bool resourceRecorded = contractValid && contract.Resource.IsValid && string.Equals(contract.Resource.ResourceKey, "qa.pause.visual.prefab", StringComparison.Ordinal);
+                    int finalBindingCount = runtimeHost.ContentAnchorBindingCount;
+                    int finalRuntimeRootCount = runtimeHost.RuntimeContentRuntime != null ? runtimeHost.RuntimeContentRuntime.RootCount : -1;
+                    bool noRuntimeSideEffects = finalBindingCount == initialBindingCount && finalRuntimeRootCount == initialRuntimeRootCount;
+                    bool passed = validCreated
+                        && invalidRejected
+                        && contractValid
+                        && pauseRequirementValid
+                        && runtimeOwnerValid
+                        && anchorRequirementValid
+                        && prefabRecorded
+                        && resourceRecorded
+                        && noRuntimeSideEffects;
+
+                    if (!passed)
+                    {
+                        _logger.Warning(
+                            $"QA Pause Visual Surface Authoring Contract Smoke step failed. step='pause-visual-surface-authoring-contract' validCreated='{validCreated}' invalidRejected='{invalidRejected}' contractValid='{contractValid}' pauseRequirementValid='{pauseRequirementValid}' runtimeOwnerValid='{runtimeOwnerValid}' anchorRequirementValid='{anchorRequirementValid}' prefabRecorded='{prefabRecorded}' resourceRecorded='{resourceRecorded}' noRuntimeSideEffects='{noRuntimeSideEffects}' validMessage='{FormatValue(validMessage)}' invalidMessage='{FormatValue(invalidMessage)}'.");
+                        return Task.FromResult(false);
+                    }
+
+                    _logger.Info(
+                        "QA Pause Visual Surface Authoring Contract Smoke step completed. ",
+                        LogFields.Of(
+                            LogFields.Field("step", "pause-visual-surface-authoring-contract"),
+                            LogFields.Field("passed", true),
+                            LogFields.Field("validContract", validCreated),
+                            LogFields.Field("invalidRejected", invalidRejected),
+                            LogFields.Field("surfaceKind", contract.SurfaceKind.ToString()),
+                            LogFields.Field("pauseState", contract.ContentRequirement.PauseState.ToString()),
+                            LogFields.Field("requirementPurpose", contract.ContentRequirement.Purpose.ToString()),
+                            LogFields.Field("runtimeScope", contract.RuntimeScope.ToString()),
+                            LogFields.Field("anchorScope", contract.ContentRequirement.AnchorScope.ToString()),
+                            LogFields.Field("anchorKind", contract.ContentRequirement.AnchorKind.ToString()),
+                            LogFields.Field("requiredness", contract.ContentRequirement.Requiredness.ToString()),
+                            LogFields.Field("prefabRecorded", prefabRecorded),
+                            LogFields.Field("resourceRecorded", resourceRecorded),
+                            LogFields.Field("passiveAuthoringOnly", true),
+                            LogFields.Field("pauseConsumerSelected", true),
+                            LogFields.Field("materialization", false),
+                            LogFields.Field("physicalRelease", false),
+                            LogFields.Field("logicalRuntimeContentRelease", false),
+                            LogFields.Field("contentAnchorBindingCleanup", false),
+                            LogFields.Field("inputModeChange", false),
+                            LogFields.Field("timeScalePolicy", false),
+                            LogFields.Field("automaticLifecycleWiring", false),
+                            LogFields.Field("routeActivityAutoMaterialization", false),
+                            LogFields.Field("routeActivityAutoRelease", false),
+                            LogFields.Field("addressables", false),
+                            LogFields.Field("pooling", false),
+                            LogFields.Field("actorSpawn", false),
+                            LogFields.Field("playerJoin", false),
+                            LogFields.Field("gameplayConsumer", false),
+                            LogFields.Field("cameraConsumer", false),
+                            LogFields.Field("audioConsumer", false),
+                            LogFields.Field("saveConsumer", false)));
+                    return Task.FromResult(true);
+                }
+                finally
+                {
+                    if (validObject != null)
+                    {
+                        Object.Destroy(validObject);
+                    }
+
+                    if (invalidObject != null)
+                    {
+                        Object.Destroy(invalidObject);
+                    }
+
+                    if (visualPrefab != null)
+                    {
+                        Object.Destroy(visualPrefab);
+                    }
+                }
+            });
         }
 
         private async void RunBridgeLifecycleRegistryRegistrationSmoke()

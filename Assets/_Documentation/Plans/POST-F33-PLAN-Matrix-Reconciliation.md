@@ -248,3 +248,42 @@ F9R-T does not change runtime lifecycle behavior and does not implement Route/Ac
 F9R-U closes the F9R RuntimeContent + ContentAnchor materialization/release hardening track. The accepted terminal evidence is Standard Smoke plus Composite Lifecycle Release Smoke after QA Canvas cleanup, with composite release preserving `physicalRelease='True'`, `logicalRuntimeContentRelease='True'`, `contentAnchorBindingCleanup='True'`, `automaticLifecycleWiring='False'`, `routeActivityAutoMaterialization='False'` and `routeActivityAutoRelease='False'`.
 
 F9R-U does not select the next technical axis. F10 Pause, F10 Snapshot/Save, F10 Input ownership, Route/Activity auto-release wiring, F34/gameplay and any consumer implementation require explicit future selection from the plan.
+
+
+## F10A Selected Axis Status
+
+`F10A - Pause ContentAnchor Consumer Re-entry Plan` is accepted / docs-only after F9R-U.
+
+This is the first explicit next-axis selection after the F9R materialization/release closure. It selects Pause as the next consumer family because logical Pause already exists and the runtime still reports visual Pause as explicit NoOp when no Pause surface is configured.
+
+F10A re-enters Pause through the now-proven F9R chain:
+
+```text
+ContentAnchor
++ RuntimeContent materialization
++ explicit bridge/bridge set
++ lifecycle registry
++ composite release
+```
+
+F10A does not implement runtime code, editor code, scenes, prefabs, asmdefs, package metadata or QA buttons. It does not implement Pause visual materialization, Pause visual release, Pause binding request execution, InputMode changes, PlayerInput changes, Time.timeScale policy, Route/Activity auto-release, Route/Activity auto-materialization, lifecycle exit wiring, F34/gameplay, camera, audio, save/progression, actor, pooling or PlayerJoin consumers.
+
+Project plan: `Plans/F10A-PLAN-Pause-ContentAnchor-Consumer-Reentry.md`.
+
+## F10B Implementation Status
+
+`F10B - Pause Visual Surface Authoring Contract Proof` is implemented and ready for smoke as the first Pause consumer contract after F10A.
+
+It adds a passive authored contract for a future Pause visual surface:
+
+```text
+PauseVisualSurfaceAuthoring
+  -> PauseVisualSurfaceContract
+  -> PauseContentRequirement
+  -> RuntimeContent owner/content/resource data
+  -> ContentAnchor requirement data
+```
+
+F10B deliberately does not materialize Pause UI, bind ContentAnchors, register lifecycle materialization entries, release RuntimeContent, clean bindings, change InputMode, change Time.timeScale, wire Route/Activity lifecycle, enable auto-release, enable auto-materialization or select gameplay/F34.
+
+Next candidate after smoke PASS: `F10C - Pause ContentAnchor Binding Request Proof`.

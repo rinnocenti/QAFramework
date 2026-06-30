@@ -35,6 +35,7 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Plans/F9R-A-PLAN-ContentAnchor-Runtime-Binding-Reentry.md` — ContentAnchor Runtime Binding Re-entry draft plan/ADR; docs-only, no physical placement or implementation selected.
 - `Plans/F9R-M-PLAN-Lifecycle-Owned-Materialization-Registry.md` — Lifecycle-Owned Materialization Registry planning baseline; docs-only, no lifecycle auto-materialization selected.
 - `Plans/F9R-R-PLAN-Route-Activity-Exit-Auto-Release-Decision.md` — Route/Activity exit auto-release decision; immediate wiring rejected, composite release gap selected.
+- `Plans/F10A-PLAN-Pause-ContentAnchor-Consumer-Reentry.md` — Pause ContentAnchor consumer re-entry plan; selected next axis after F9R, docs-only.
 - `Notes/F8R-E-Unity-Prefab-Runtime-Materialization-Adapter-Proof.md` — Unity prefab RuntimeContent materialization adapter proof; first physical adapter implementation and QA smoke.
 - `Notes/F9R-B-Unity-ContentAnchor-Physical-Placement-Adapter-Proof.md` — Unity ContentAnchor physical placement adapter proof; explicit Transform parenting after logical binding and materialization evidence.
 - `Notes/F9R-C-Unity-ContentAnchor-Materialization-Pipeline-Proof.md` — Unity ContentAnchor materialization pipeline proof; composes materialization, logical binding and placement.
@@ -76,6 +77,7 @@ Documentos de setup do projeto consumidor.
 - [F9R-S — Explicit Composite Lifecycle Release Executor Proof](Notes/F9R-S-Explicit-Composite-Lifecycle-Release-Executor-Proof.md)
 - [F9R-T — QA Canvas Smoke Button Cleanup](Notes/F9R-T-QA-Canvas-Smoke-Button-Cleanup.md)
 - [F9R-U — F9R Closure / Next Axis Decision](Notes/F9R-U-F9R-Closure-Next-Axis-Decision.md)
+- [F10A — Pause ContentAnchor Consumer Re-entry Plan](Plans/F10A-PLAN-Pause-ContentAnchor-Consumer-Reentry.md)
 
 Notas temporárias e achados de auditoria local.
 
@@ -174,6 +176,10 @@ F9R-S Explicit Composite Lifecycle Release Executor Proof: Closed / PASS, `Notes
 F9R-T QA Canvas Smoke Button Cleanup: Closed / PASS, `Notes/F9R-T-QA-Canvas-Smoke-Button-Cleanup.md`.
 
 F9R-U F9R Closure / Next Axis Decision: Closed / docs-only, `Notes/F9R-U-F9R-Closure-Next-Axis-Decision.md`. F9R track closed; no next technical axis selected by this cut.
+
+F10A Pause ContentAnchor Consumer Re-entry Plan: Accepted / Plan / docs-only, `Plans/F10A-PLAN-Pause-ContentAnchor-Consumer-Reentry.md`. Pause is selected as the next explicit consumer axis after F9R; no implementation is selected by F10A.
+
+F10B Pause Visual Surface Authoring Contract Proof: Ready for smoke, `Notes/F10B-Pause-Visual-Surface-Authoring-Contract-Proof.md`. Adds passive Pause visual authoring contract and QA smoke; no materialization, input, timeScale or lifecycle auto-wiring.
 
 ## Regras
 

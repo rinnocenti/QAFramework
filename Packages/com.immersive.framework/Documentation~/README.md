@@ -63,6 +63,7 @@ Read the documentation in this order:
 | F9R-S | Explicit Composite Lifecycle Release Executor Proof | Closed / PASS |
 | F9R-T | QA Canvas Smoke Button Cleanup | Closed / PASS |
 | F9R-U | F9R Closure / Next Axis Decision | Closed / docs-only |
+| F10A | Pause ContentAnchor Consumer Re-entry Plan | Accepted / Plan / docs-only |
 
 ## F8R-E Unity Prefab Runtime Materialization Adapter Proof
 
@@ -750,3 +751,25 @@ Project note: `../../Assets/_Documentation/Notes/F9R-U-F9R-Closure-Next-Axis-Dec
 Decision: no next technical axis is selected by F9R-U. Future F10 Pause, F10 Snapshot/Save, F10 Input ownership, Route/Activity auto-release wiring, F34/gameplay and any consumer implementation require explicit future selection from the existing plan.
 
 F9R-U does not change runtime code, editor code, scenes, prefabs, asmdefs or package metadata. It does not implement Route/Activity auto-release, Route/Activity auto-materialization or any consumer.
+
+
+## F10A — Pause ContentAnchor Consumer Re-entry Plan
+
+F10A is accepted / docs-only after F9R-U.
+
+It selects Pause as the next explicit consumer axis after the RuntimeContent + ContentAnchor materialization/release closure. Pause re-enters as a ContentAnchor/RuntimeContent consumer, not as a Route owner, Activity owner, generic materialization owner or lifecycle auto-release owner.
+
+Project plan: `../../Assets/_Documentation/Plans/F10A-PLAN-Pause-ContentAnchor-Consumer-Reentry.md`.
+
+F10A does not change runtime code, editor code, scenes, prefabs, asmdefs or package metadata. It does not implement Pause visual materialization, Pause visual release, Pause binding execution, InputMode changes, PlayerInput changes, Time.timeScale policy, Route/Activity auto-release, Route/Activity auto-materialization, lifecycle exit wiring, F34/gameplay, camera, audio, save/progression, actor, pooling or PlayerJoin consumers.
+
+
+## F10B — Pause Visual Surface Authoring Contract Proof
+
+Status: Ready for smoke.
+
+F10B adds the first passive authored contract for Pause visual presentation as a ContentAnchor/RuntimeContent consumer. It introduces `PauseVisualSurfaceAuthoring`, `PauseVisualSurfaceContract` and `PauseVisualSurfaceKind`, plus a QA smoke that validates valid/invalid authoring without runtime side effects.
+
+Project note: `../../Assets/_Documentation/Notes/F10B-Pause-Visual-Surface-Authoring-Contract-Proof.md`.
+
+F10B does not materialize Pause UI, execute ContentAnchor binding, change InputMode, change PlayerInput, change Time.timeScale, wire Route/Activity lifecycle, enable auto-release, enable auto-materialization or unlock camera, audio, save/progression, actor, pooling, PlayerJoin, F34 or gameplay consumers.

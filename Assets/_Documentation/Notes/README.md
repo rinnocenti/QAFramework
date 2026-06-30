@@ -80,6 +80,8 @@ The individual note files were collapsed into this archive so the folder stays r
 | F9R-S | Closed / PASS | Explicit composite lifecycle release executor proof validated physical Unity release request, logical RuntimeContent release, ContentAnchor binding cleanup and lifecycle registry Released state update without Route/Activity auto-release wiring. |
 | F9R-T | Closed / PASS | QA Canvas smoke button cleanup removed obsolete, intermediate and superseded buttons from the visible panel while keeping the current terminal smoke surface. Standard Smoke and Composite Lifecycle Release Smoke passed after cleanup. |
 | F9R-U | Closed / docs-only | F9R closure and next-axis decision boundary; F9R track closed, no next technical axis selected by this cut. |
+| F10A | Accepted / Plan / docs-only | Pause ContentAnchor consumer re-entry plan; selects Pause as the next explicit consumer axis after F9R without implementation. |
+| F10B | Ready for smoke | Pause visual surface authoring contract proof; passive authored consumer data only, no visual materialization or lifecycle wiring. |
 
 ## Consolidation Notes
 
