@@ -60,6 +60,7 @@ POST-F33-B keeps F34/gameplay unauthorized. It also keeps camera, audio, save/pr
 | F9R-Q — Lifecycle Materialization Registry Release Execution Proof | Closed / PASS | Adds and validates explicit release plan execution through a caller-provided RuntimeReleaseRequest executor. | F9R-P could plan release candidates but could not execute the plan. | Future decision about lifecycle-owned auto-release remains blocked until explicit approval. Does not unlock consumers by itself. | Validated by QA smoke; no new ADR; implemented within accepted F9R-M plan. |
 | F9R-R — Route/Activity Exit Auto-Release Decision | Accepted / Decision / docs-only | Rejects immediate Route/Activity auto-release and selects the composite release gap as the next hardening target. | F9R-Q proved explicit logical release execution but did not prove physical release or ContentAnchor binding cleanup from the lifecycle path. | Future composite lifecycle release executor proof. Does not unlock consumers by itself. | Decision accepted; no runtime/editor changes. |
 | F9R-S — Explicit Composite Lifecycle Release Executor Proof | Closed / PASS | Explicit composite release executor validated physical Unity release request, logical RuntimeContent release, ContentAnchor binding cleanup and lifecycle registry Released state update. | F9R-R selected the composite release gap before Route/Activity auto-release can be reconsidered. | Future decision about Route/Activity auto-release remains blocked until a separate decision selects wiring. | Does not unlock consumers by itself. |
+| F9R-T — QA Canvas Smoke Button Cleanup | Closed / PASS | Removed obsolete/intermediate/superseded QA smoke buttons from `FrameworkQaCanvas`; kept only current baseline, route/content and terminal F9R proof buttons. | F9R-S closed the composite release proof and the QA panel still exposed many historical buttons. | Cleaner manual QA surface validated by Standard Smoke and Composite Lifecycle Release Smoke. Does not unlock consumers by itself. | Runtime lifecycle behavior unchanged; no Route/Activity auto-release or auto-materialization. |
 
 ## Immediate Rule
 
@@ -200,7 +201,7 @@ and only after composite release is proven
 
 F9R-R does not implement runtime code, editor code, scene changes, Route/Activity auto-release, Route/Activity auto-materialization, lifecycle runtime wiring, Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay.
 
-Recommended next cut: `F9R-T - QA Canvas Smoke Button Cleanup`.
+F9R-T is closed. Recommended next cut: `F9R-U - F9R Closure / Next Axis Decision`.
 
 ## Superseded Prior Reading
 
@@ -228,3 +229,11 @@ This is still QA/explicit submit only. It does not implement Route/Activity life
 F9R-S smoke validated composite release with `passed='True'`, `execution='SucceededReleasedAll'`, `physicalRelease='True'`, `logicalRuntimeContentRelease='True'`, `contentAnchorBindingCleanup='True'`, `automaticLifecycleWiring='False'`, `routeActivityAutoMaterialization='False'` and `routeActivityAutoRelease='False'`.
 
 F9R-S does not unlock consumers and does not authorize Route/Activity exit wiring by itself. The next selected cleanup cut is QA Canvas smoke button curation/removal of obsolete buttons.
+
+## F9R-T Implementation Status
+
+`F9R-T - QA Canvas Smoke Button Cleanup` is ready for compile / QA panel inspection after F9R-S closeout.
+
+The cut removes visible QA buttons for obsolete diagnostic families, optional/edge smokes, route/content intermediate smokes and F9R intermediate materialization/registry proofs. It keeps the current useful smoke surface: Standard, Activity Baseline, authoring validation, reset scenario, route scene composition, route release, Content Anchor diagnostics, Activity Content Anchor diagnostics, Activity Content Execution Participant Source, Local Contribution, Runtime Content, Content Anchor Materialization Diagnostics Snapshot, Bridge Set Rollback and Composite Lifecycle Release.
+
+F9R-T does not change runtime lifecycle behavior and does not implement Route/Activity auto-release, Route/Activity auto-materialization, lifecycle exit wiring, Pause, Camera, Audio, Save, Actor, Pooling, PlayerJoin, F34 or gameplay consumers.

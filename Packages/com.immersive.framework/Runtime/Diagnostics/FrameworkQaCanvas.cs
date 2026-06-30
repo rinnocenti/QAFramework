@@ -43,14 +43,6 @@ namespace Immersive.Framework.Diagnostics
         private int _windowId;
         private bool _requestInFlight;
         private bool _showAdvancedControls;
-        private bool _showTransitionEffectDiagnostics;
-        private bool _showPauseDiagnostics;
-        private bool _showSnapshotDiagnostics;
-        private bool _showLoadingDiagnostics;
-        private bool _showUnityInputDiagnostics;
-        private bool _showRouteContentDiagnostics;
-        private bool _showFoundationDiagnostics;
-        private bool _showResetObjectDiagnostics;
         private Vector2 _scroll;
 
         [Header("Display")]
@@ -281,287 +273,23 @@ namespace Immersive.Framework.Diagnostics
         private void DrawDiagnosticSmokeControls()
         {
             GUILayout.Space(8f);
-            GUILayout.Label("Phase Diagnostics", GUI.skin.box);
-            GUILayout.Label("Open only the diagnostic family needed for the current cut.");
+            GUILayout.Label("Current Diagnostics", GUI.skin.box);
+            GUILayout.Label("Curated QA surface. Deprecated, intermediate and superseded smoke buttons were removed from the panel; their runner methods remain available in code history/tests if needed.");
 
-            _showTransitionEffectDiagnostics = GUILayout.Toggle(_showTransitionEffectDiagnostics, "Show Gate / Transition / Effect diagnostics");
-            if (_showTransitionEffectDiagnostics)
-            {
-                DrawTransitionEffectDiagnosticSmokeControls();
-            }
-
-            _showPauseDiagnostics = GUILayout.Toggle(_showPauseDiagnostics, "Show Pause diagnostics");
-            if (_showPauseDiagnostics)
-            {
-                DrawPauseDiagnosticSmokeControls();
-            }
-
-            _showUnityInputDiagnostics = GUILayout.Toggle(_showUnityInputDiagnostics, "Show Unity Input diagnostics");
-            if (_showUnityInputDiagnostics)
-            {
-                DrawUnityInputDiagnosticSmokeControls();
-            }
-
-            _showSnapshotDiagnostics = GUILayout.Toggle(_showSnapshotDiagnostics, "Show Save / Snapshot diagnostics");
-            if (_showSnapshotDiagnostics)
-            {
-                DrawSnapshotDiagnosticSmokeControls();
-            }
-
-            _showLoadingDiagnostics = GUILayout.Toggle(_showLoadingDiagnostics, "Show Loading diagnostics");
-            if (_showLoadingDiagnostics)
-            {
-                DrawLoadingDiagnosticSmokeControls();
-            }
-
-            _showRouteContentDiagnostics = GUILayout.Toggle(_showRouteContentDiagnostics, "Show Route / Content diagnostics");
-            if (_showRouteContentDiagnostics)
-            {
-                DrawRouteContentSmokeControls();
-            }
-
-            _showFoundationDiagnostics = GUILayout.Toggle(_showFoundationDiagnostics, "Show Foundation diagnostics");
-            if (_showFoundationDiagnostics)
-            {
-                DrawFoundationDiagnosticSmokeControls();
-            }
-
-            _showResetObjectDiagnostics = GUILayout.Toggle(_showResetObjectDiagnostics, "Show Reset / Object diagnostics");
-            if (_showResetObjectDiagnostics)
-            {
-                DrawResetObjectDiagnosticSmokeControls();
-            }
+            DrawRouteContentSmokeControls();
+            DrawFoundationDiagnosticSmokeControls();
         }
 
-        private void DrawTransitionEffectDiagnosticSmokeControls()
-        {
-            GUILayout.Space(4f);
-            GUILayout.Label("Gate / Transition / Effect Diagnostics", GUI.skin.box);
-
-            using (new EditorDisabledScope(_requestInFlight))
-            {
-                if (GUILayout.Button("Run Gate Admission Diagnostics Smoke"))
-                {
-                    RunGateAdmissionDiagnosticsSmoke();
-                }
-
-                if (GUILayout.Button("Run Transition Diagnostics Smoke"))
-                {
-                    RunTransitionDiagnosticsSmoke();
-                }
-
-                if (GUILayout.Button("Run Transition Gate Blocker Smoke"))
-                {
-                    RunTransitionGateBlockerSmoke();
-                }
-
-                if (GUILayout.Button("Run Transition Orchestration Observation Smoke"))
-                {
-                    RunTransitionOrchestrationObservationSmoke();
-                }
-
-                if (GUILayout.Button("Run Transition Effect Diagnostics Smoke"))
-                {
-                    RunTransitionEffectDiagnosticsSmoke();
-                }
-
-                if (GUILayout.Button("Run Unity Fade Curtain Effect Adapter Smoke"))
-                {
-                    RunUnityFadeCurtainEffectAdapterSmoke();
-                }
-
-                if (GUILayout.Button("Run Transition Effect Policy Guardrails Smoke"))
-                {
-                    RunTransitionEffectPolicyGuardrailsSmoke();
-                }
-            }
-        }
-
-        private void DrawPauseDiagnosticSmokeControls()
-        {
-            GUILayout.Space(4f);
-            GUILayout.Label("Pause Diagnostics", GUI.skin.box);
-            GUILayout.Label("F20 diagnostics plus F23 intent-only boundaries. No input adapter, overlay adapter, UI, Time.timeScale changes or Unity Build materialization.");
-
-            using (new EditorDisabledScope(_requestInFlight))
-            {
-                if (GUILayout.Button("Run Pause Diagnostics Smoke"))
-                {
-                    RunPauseDiagnosticsSmoke();
-                }
-
-                if (GUILayout.Button("Run Pause Gate Blocker Smoke"))
-                {
-                    RunPauseGateBlockerSmoke();
-                }
-
-                if (GUILayout.Button("Run Pause Runtime Request Smoke"))
-                {
-                    RunPauseRuntimeRequestSmoke();
-                }
-
-                if (GUILayout.Button("Run Pause Boundary Intent Smoke"))
-                {
-                    RunPauseBoundaryIntentSmoke();
-                }
-            }
-        }
-
-        private void DrawUnityInputDiagnosticSmokeControls()
-        {
-            GUILayout.Space(4f);
-            GUILayout.Label("Unity Input Diagnostics", GUI.skin.box);
-            GUILayout.Label("F29 target ownership proof, F30 passive InputMode/Pause request mapping, F31 PlayerActor/Session references and F32 PlayerInput application plus F33 opt-in Pause runtime bridge. Unity PlayerInput/PlayerInputManager remain the official input components; no custom input manager, PlayerInputManager join, movement or actor spawning.");
-
-            using (new EditorDisabledScope(_requestInFlight))
-            {
-                if (GUILayout.Button("Run Unity Input Target Ownership Smoke"))
-                {
-                    RunUnityInputTargetOwnershipSmoke();
-                }
-
-                if (GUILayout.Button("Run InputMode Contract Smoke"))
-                {
-                    RunInputModeContractSmoke();
-                }
-
-                if (GUILayout.Button("Run Unity Input Official Component Evidence Smoke"))
-                {
-                    RunUnityInputOfficialComponentEvidenceSmoke();
-                }
-
-                if (GUILayout.Button("Run Session PlayerInputManager Boundary Smoke"))
-                {
-                    RunSessionPlayerInputManagerBoundarySmoke();
-                }
-
-                if (GUILayout.Button("Run Pause InputMode Request Boundary Smoke"))
-                {
-                    RunPauseInputModeRequestBoundarySmoke();
-                }
-
-                if (GUILayout.Button("Run PlayerActor Identity Smoke"))
-                {
-                    RunPlayerActorIdentitySmoke();
-                }
-
-                if (GUILayout.Button("Run InputMode Unity Application Preview Smoke"))
-                {
-                    RunInputModeUnityApplicationPreviewSmoke();
-                }
-
-                if (GUILayout.Button("Run InputMode Unity Action Map Preview Smoke"))
-                {
-                    RunInputModeUnityActionMapPreviewSmoke();
-                }
-
-                if (GUILayout.Button("Run InputMode Unity Application Plan Smoke"))
-                {
-                    RunInputModeUnityApplicationPlanSmoke();
-                }
-
-                if (GUILayout.Button("Run InputMode Unity PlayerInput Adapter Smoke"))
-                {
-                    RunInputModeUnityPlayerInputAdapterSmoke();
-                }
-
-                if (GUILayout.Button("Run InputMode Unity PlayerInput Application Smoke"))
-                {
-                    RunInputModeUnityPlayerInputApplicationSmoke();
-                }
-
-                if (GUILayout.Button("Run InputMode Unity PlayerInput Request Application Smoke"))
-                {
-                    RunInputModeUnityPlayerInputRequestApplicationSmoke();
-                }
 
 
-                if (GUILayout.Button("Run Pause InputMode Unity PlayerInput Application Smoke"))
-                {
-                    RunPauseInputModeUnityPlayerInputApplicationSmoke();
-                }
 
-                if (GUILayout.Button("Run Pause Runtime PlayerInput Bridge Smoke"))
-                {
-                    RunPauseInputModeUnityPlayerInputRuntimeBridgeSmoke();
-                }
 
-                if (GUILayout.Button("Run Pause InputAction Runtime Bridge Trigger Smoke"))
-                {
-                    RunPauseInputActionRuntimeBridgeTriggerSmoke();
-                }
-            }
-        }
-
-        private void DrawSnapshotDiagnosticSmokeControls()
-        {
-            GUILayout.Space(4f);
-            GUILayout.Label("Save / Snapshot Diagnostics", GUI.skin.box);
-            GUILayout.Label("F21 diagnostics. Snapshot has no backend. Preferences may use PlayerPrefs only through the Preferences adapter. Progression Save uses an explicit request runtime over IProgressionSaveStore; no UI or autosave scheduler.");
-
-            using (new EditorDisabledScope(_requestInFlight))
-            {
-                if (GUILayout.Button("Run Snapshot Participant Diagnostics Smoke"))
-                {
-                    RunSnapshotParticipantDiagnosticsSmoke();
-                }
-
-                if (GUILayout.Button("Run Preferences Store Diagnostics Smoke"))
-                {
-                    RunPreferencesStoreDiagnosticsSmoke();
-                }
-
-                if (GUILayout.Button("Run Progression Save JSON Backend Smoke"))
-                {
-                    RunProgressionSaveJsonBackendSmoke();
-                }
-
-                if (GUILayout.Button("Run Progression Save Runtime Request Smoke"))
-                {
-                    RunProgressionSaveRuntimeRequestSmoke();
-                }
-            }
-        }
-
-        private void DrawLoadingDiagnosticSmokeControls()
-        {
-            GUILayout.Space(4f);
-            GUILayout.Label("Loading Diagnostics", GUI.skin.box);
-            GUILayout.Label("F22 diagnostics. Aggregates passive LoadingStep progress, observes SceneLifecycle/Transition results, validates readiness observations, validates result/issue summaries and validates loading screen adapter contracts. No SceneLifecycle execution, Transition execution, UI prefab, fade, curtain or readiness mutation.");
-
-            using (new EditorDisabledScope(_requestInFlight))
-            {
-                if (GUILayout.Button("Run Loading Progress Aggregation Smoke"))
-                {
-                    RunLoadingProgressAggregationSmoke();
-                }
-
-                if (GUILayout.Button("Run Loading Observation Adapter Smoke"))
-                {
-                    RunLoadingObservationAdapterSmoke();
-                }
-
-                if (GUILayout.Button("Run Loading Readiness Observation Smoke"))
-                {
-                    RunLoadingReadinessObservationSmoke();
-                }
-
-                if (GUILayout.Button("Run Loading Result and Issue Smoke"))
-                {
-                    RunLoadingResultAndIssueSmoke();
-                }
-
-                if (GUILayout.Button("Run Loading Screen Adapter Boundary Smoke"))
-                {
-                    RunLoadingScreenAdapterBoundarySmoke();
-                }
-            }
-        }
 
         private void DrawFoundationDiagnosticSmokeControls()
         {
             GUILayout.Space(4f);
-            GUILayout.Label("Foundation Diagnostics", GUI.skin.box);
+            GUILayout.Label("Foundation / F9R Diagnostics", GUI.skin.box);
+            GUILayout.Label("Only current terminal proofs are exposed. Earlier F9R contract, placement, pipeline, bridge, preflight, gate and registry proof buttons were removed after being superseded.");
 
             using (new EditorDisabledScope(_requestInFlight))
             {
@@ -575,64 +303,9 @@ namespace Immersive.Framework.Diagnostics
                     RunRuntimeContentSmoke();
                 }
 
-                if (GUILayout.Button("Run Lifecycle Materialization Registry Contract Smoke"))
+                if (GUILayout.Button("Run Content Anchor Materialization Diagnostics Snapshot Smoke"))
                 {
-                    RunLifecycleMaterializationRegistryContractSmoke();
-                }
-
-                if (GUILayout.Button("Run Bridge Lifecycle Registry Registration Smoke"))
-                {
-                    RunBridgeLifecycleRegistryRegistrationSmoke();
-                }
-
-                if (GUILayout.Button("Run Lifecycle Registry Release Plan Smoke"))
-                {
-                    RunLifecycleRegistryReleasePlanSmoke();
-                }
-
-                if (GUILayout.Button("Run Lifecycle Registry Release Execution Smoke"))
-                {
-                    RunLifecycleRegistryReleaseExecutionSmoke();
-                }
-
-                if (GUILayout.Button("Run Composite Lifecycle Release Smoke"))
-                {
-                    RunCompositeLifecycleReleaseSmoke();
-                }
-
-                if (GUILayout.Button("Run Runtime Prefab Materialization Smoke"))
-                {
-                    RunRuntimePrefabMaterializationSmoke();
-                }
-
-                if (GUILayout.Button("Run Content Anchor Physical Placement Smoke"))
-                {
-                    RunContentAnchorPhysicalPlacementSmoke();
-                }
-
-                if (GUILayout.Button("Run Content Anchor Materialization Pipeline Smoke"))
-                {
-                    RunContentAnchorMaterializationPipelineSmoke();
-                }
-
-                if (GUILayout.Button("Run Content Anchor Materialization Scope Release Smoke"))
-                {
-                    RunContentAnchorMaterializationScopeReleaseSmoke();
-                }
-
-                if (GUILayout.Button("Run Content Anchor Materialization Bridge Smoke"))
-                {
-                    RunContentAnchorMaterializationBridgeSmoke();
-                }
-
-                if (GUILayout.Button("Run Content Anchor Materialization Bridge Set Smoke"))
-                {
-                    RunContentAnchorMaterializationBridgeSetSmoke();
-                }
-
-                if (GUILayout.Button("Run Content Anchor Materialization Bridge Set Preflight Smoke"))
-                {
-                    RunContentAnchorMaterializationBridgeSetPreflightSmoke();
+                    RunContentAnchorMaterializationDiagnosticsSnapshotSmoke();
                 }
 
                 if (GUILayout.Button("Run Content Anchor Materialization Bridge Set Rollback Smoke"))
@@ -640,72 +313,19 @@ namespace Immersive.Framework.Diagnostics
                     RunContentAnchorMaterializationBridgeSetRollbackSmoke();
                 }
 
-                if (GUILayout.Button("Run Content Anchor Materialization Authoring Validation Smoke"))
+                if (GUILayout.Button("Run Composite Lifecycle Release Smoke"))
                 {
-                    RunContentAnchorMaterializationAuthoringValidationSmoke();
-                }
-
-                if (GUILayout.Button("Run Content Anchor Materialization Runtime Authoring Gate Smoke"))
-                {
-                    RunContentAnchorMaterializationRuntimeAuthoringGateSmoke();
-                }
-
-                if (GUILayout.Button("Run Content Anchor Materialization Diagnostics Snapshot Smoke"))
-                {
-                    RunContentAnchorMaterializationDiagnosticsSnapshotSmoke();
+                    RunCompositeLifecycleReleaseSmoke();
                 }
             }
         }
 
-        private void DrawResetObjectDiagnosticSmokeControls()
-        {
-            GUILayout.Space(4f);
-            GUILayout.Label("Reset / Object Diagnostics", GUI.skin.box);
-
-            using (new EditorDisabledScope(_requestInFlight))
-            {
-                if (GUILayout.Button("Run Cycle Reset Runtime Host Smoke"))
-                {
-                    RunCycleResetRuntimeHostSmoke();
-                }
-
-                if (GUILayout.Button("Run Cycle Reset Trigger Smoke"))
-                {
-                    RunCycleResetTriggerSmoke();
-                }
-
-                if (GUILayout.Button("Run Cycle Reset Bridge Smoke"))
-                {
-                    RunCycleResetBridgeSmoke();
-                }
-
-                if (GUILayout.Button("Run Object Entry Foundation Closure Smoke"))
-                {
-                    RunObjectEntryFoundationClosureSmoke();
-                }
-
-                if (GUILayout.Button("Run Object Reset Foundation Closure Smoke"))
-                {
-                    RunObjectResetFoundationClosureSmoke();
-                }
-
-                if (GUILayout.Button("Run Object Reset Unity Adapters Closure Smoke"))
-                {
-                    RunObjectResetUnityAdaptersClosureSmoke();
-                }
-
-                if (GUILayout.Button("Run Object Reset GameObject Active Closure Smoke"))
-                {
-                    RunObjectResetGameObjectActiveClosureSmoke();
-                }
-            }
-        }
 
         private void DrawRouteContentSmokeControls()
         {
             GUILayout.Space(8f);
-            GUILayout.Label("Route Content Smokes", GUI.skin.box);
-            GUILayout.Label("Current route-content validation path: composition, release and Content Anchor diagnostics.");
+            GUILayout.Label("Route / Content Diagnostics", GUI.skin.box);
+            GUILayout.Label("Current route/content validation path only. Positive, binding-only and cleanup-only intermediate buttons were removed from the panel.");
 
             using (new EditorDisabledScope(_requestInFlight))
             {
@@ -729,39 +349,9 @@ namespace Immersive.Framework.Diagnostics
                     RunActivityContentAnchorDiagnosticsSmoke();
                 }
 
-                if (GUILayout.Button("Run Activity Content Anchor Positive Smoke"))
-                {
-                    RunActivityContentAnchorPositiveSmoke();
-                }
-
-                if (GUILayout.Button("Run Activity Content Anchor Binding Smoke"))
-                {
-                    RunActivityContentAnchorBindingSmoke();
-                }
-
-                if (GUILayout.Button("Run Activity Content Execution Runtime Smoke"))
-                {
-                    RunActivityContentExecutionRuntimeSmoke();
-                }
-
-                if (GUILayout.Button("Run Activity Content Execution Lifecycle Transition Smoke"))
-                {
-                    RunActivityContentExecutionLifecycleTransitionSmoke();
-                }
-
                 if (GUILayout.Button("Run Activity Content Execution Participant Source Smoke"))
                 {
                     RunActivityContentExecutionParticipantSourceSmoke();
-                }
-
-                if (GUILayout.Button("Run Content Anchor Binding Smoke"))
-                {
-                    RunContentAnchorBindingSmoke();
-                }
-
-                if (GUILayout.Button("Run Content Anchor Binding Cleanup Smoke"))
-                {
-                    RunContentAnchorBindingCleanupSmoke();
                 }
             }
         }
@@ -776,7 +366,6 @@ namespace Immersive.Framework.Diagnostics
             }
 
             DrawBaselineResetDiagnostics();
-            DrawOptionalSmokeControls();
             DrawRouteRequests();
             DrawActivityRequests();
         }
@@ -799,33 +388,7 @@ namespace Immersive.Framework.Diagnostics
             GUILayout.Label($"Reset Reason: {ResolveReason(resetReason, "qa.reset")}");
         }
 
-        private void DrawOptionalSmokeControls()
-        {
-            GUILayout.Space(8f);
-            GUILayout.Label("Optional / Edge Smokes", GUI.skin.box);
-            GUILayout.Label($"No-Activity Route: {GetAssetName(noActivityRoute, "<none>")}");
-            GUILayout.Label($"No-Content Activity: {GetAssetName(noContentActivity, "<none>")}");
-
-            using (new EditorDisabledScope(_requestInFlight))
-            {
-                if (GUILayout.Button("Run No-Activity Route Smoke"))
-                {
-                    RunNoActivityRouteSmoke();
-                }
-
-                if (GUILayout.Button("Run No-Content Activity Smoke"))
-                {
-                    RunNoContentActivitySmoke();
-                }
-
-                if (GUILayout.Button("Run Negative Smoke"))
-                {
-                    RunNegativeSmoke();
-                }
-            }
-        }
-
-private void DrawRouteRequests()
+        private void DrawRouteRequests()
         {
             GUILayout.Space(8f);
             GUILayout.Label("Route Requests", GUI.skin.box);

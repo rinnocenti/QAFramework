@@ -50,6 +50,7 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Notes/F9R-N-Lifecycle-Owned-Materialization-Registry-Contract-Proof.md` — lifecycle-owned materialization registry contract proof; Closed / PASS.
 - `Notes/F9R-O-Bridge-Lifecycle-Registry-Registration-Proof.md` — explicit bridge lifecycle registry registration proof; Closed / PASS.
 - `Notes/F9R-P-Lifecycle-Materialization-Registry-Release-Plan-Proof.md` — lifecycle materialization registry release plan proof; Closed / PASS.
+- `Notes/F9R-T-QA-Canvas-Smoke-Button-Cleanup.md` — QA Canvas smoke button cleanup; obsolete/intermediate buttons removed from visible panel.
 
 ### Setup
 
@@ -72,6 +73,7 @@ Documentos de setup do projeto consumidor.
 - [F9R-Q — Lifecycle Materialization Registry Release Execution Proof](Notes/F9R-Q-Lifecycle-Materialization-Registry-Release-Execution-Proof.md)
 - [F9R-R — Route / Activity Exit Auto-Release Decision](Plans/F9R-R-PLAN-Route-Activity-Exit-Auto-Release-Decision.md)
 - [F9R-S — Explicit Composite Lifecycle Release Executor Proof](Notes/F9R-S-Explicit-Composite-Lifecycle-Release-Executor-Proof.md)
+- [F9R-T — QA Canvas Smoke Button Cleanup](Notes/F9R-T-QA-Canvas-Smoke-Button-Cleanup.md)
 
 Notas temporárias e achados de auditoria local.
 
@@ -167,6 +169,7 @@ F9R-P Lifecycle Materialization Registry Release Plan Proof: Closed / PASS, `Not
 F9R-Q Lifecycle Materialization Registry Release Execution Proof: Closed / PASS, `Notes/F9R-Q-Lifecycle-Materialization-Registry-Release-Execution-Proof.md`.
 F9R-R Route/Activity Exit Auto-Release Decision: Accepted / docs-only, `Plans/F9R-R-PLAN-Route-Activity-Exit-Auto-Release-Decision.md`.
 F9R-S Explicit Composite Lifecycle Release Executor Proof: Closed / PASS, `Notes/F9R-S-Explicit-Composite-Lifecycle-Release-Executor-Proof.md`.
+F9R-T QA Canvas Smoke Button Cleanup: Closed / PASS, `Notes/F9R-T-QA-Canvas-Smoke-Button-Cleanup.md`.
 
 ## Regras
 

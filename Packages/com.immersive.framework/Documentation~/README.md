@@ -60,6 +60,8 @@ Read the documentation in this order:
 | F9R-P | Lifecycle Materialization Registry Release Plan Proof | Closed / PASS |
 | F9R-Q | Lifecycle Materialization Registry Release Execution Proof | Closed / PASS |
 | F9R-R | Route/Activity Exit Auto-Release Decision | Accepted / Decision / docs-only |
+| F9R-S | Explicit Composite Lifecycle Release Executor Proof | Closed / PASS |
+| F9R-T | QA Canvas Smoke Button Cleanup | Closed / PASS |
 
 ## F8R-E Unity Prefab Runtime Materialization Adapter Proof
 
@@ -726,6 +728,12 @@ F9R-S smoke passed with `execution='SucceededReleasedAll'`, `physicalRelease='Tr
 
 ## F9R-T — QA Canvas Smoke Button Cleanup
 
-Status: Selected next cleanup cut.
+Status: Closed / PASS.
 
-Goal: reduce the QA Canvas to useful current smoke buttons and remove or hide obsolete/intermediate buttons already superseded by later proofs. This is a QA tooling cleanup and must not change runtime lifecycle behavior.
+F9R-T removed obsolete, intermediate and superseded smoke buttons from the visible `FrameworkQaCanvas` panel instead of only hiding them behind diagnostic toggles. The visible QA surface is reduced to core baseline buttons, current route/content diagnostics and terminal F9R materialization/release proofs.
+
+Project note: `../../Assets/_Documentation/Notes/F9R-T-QA-Canvas-Smoke-Button-Cleanup.md`.
+
+Validation evidence: Standard Smoke completed and Composite Lifecycle Release Smoke completed with `passed='True'`, `physicalRelease='True'`, `logicalRuntimeContentRelease='True'`, `contentAnchorBindingCleanup='True'`, `automaticLifecycleWiring='False'`, `routeActivityAutoMaterialization='False'` and `routeActivityAutoRelease='False'`.
+
+F9R-T did not change runtime lifecycle behavior, did not implement Route/Activity auto-release, did not implement Route/Activity auto-materialization and did not unlock Pause, Camera, Audio, Save, Actor, Pooling, PlayerJoin, F34 or gameplay consumers.
