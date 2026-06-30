@@ -73,7 +73,8 @@ The individual note files were collapsed into this archive so the folder stays r
 | F9R-L | Closed / PASS | Partial bridge set materialization rollback proof validated by QA smoke. |
 | F9R-M | Accepted / Plan / docs-only | Lifecycle-owned materialization registry planning baseline; no implementation or lifecycle auto-materialization selected. |
 | F9R-N | Closed / PASS | Minimal lifecycle-owned materialization registry contract proof validated by QA smoke; registry evidence only, no Route/Activity auto-wiring. |
-| F9R-O | Ready for smoke | Explicit bridge set materialization handles can be registered into a lifecycle-owned registry; no lifecycle physical/logical release or Route/Activity wiring. |
+| F9R-O | Closed / PASS | Explicit bridge set materialization handles were registered into a lifecycle-owned registry; lifecycle registry remains evidence-only and no Route/Activity wiring was introduced. |
+| F9R-P | Closed / PASS | Lifecycle materialization registry release plan proof validated by QA smoke; owner/scope plans are query-only and do not execute physical/logical release. |
 
 ## Consolidation Notes
 

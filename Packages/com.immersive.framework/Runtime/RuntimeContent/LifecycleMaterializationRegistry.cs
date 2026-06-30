@@ -125,6 +125,45 @@ namespace Immersive.Framework.RuntimeContent
             return entry.MarkReleaseFailed(source, reason, message);
         }
 
+
+        public LifecycleMaterializationReleasePlan CreateReleasePlan(
+            RuntimeContentOwner owner,
+            RuntimeReleasePolicy policy,
+            string source,
+            string reason)
+        {
+            ValidateOwner(owner);
+            ValidateReleasePolicy(policy);
+
+            return CreateReleasePlanCore(
+                LifecycleMaterializationReleasePlanTargetKind.Owner,
+                owner.Scope,
+                owner,
+                policy,
+                source,
+                reason,
+                entry => entry.Owner == owner);
+        }
+
+        public LifecycleMaterializationReleasePlan CreateReleasePlan(
+            RuntimeContentScope scope,
+            RuntimeReleasePolicy policy,
+            string source,
+            string reason)
+        {
+            ValidateScope(scope);
+            ValidateReleasePolicy(policy);
+
+            return CreateReleasePlanCore(
+                LifecycleMaterializationReleasePlanTargetKind.Scope,
+                scope,
+                default(RuntimeContentOwner),
+                policy,
+                source,
+                reason,
+                entry => entry.Scope == scope);
+        }
+
         public bool TryGet(RuntimeContentIdentity identity, out LifecycleMaterializedEntry entry)
         {
             ValidateIdentity(identity);
@@ -181,6 +220,98 @@ namespace Immersive.Framework.RuntimeContent
             return $"entries='{Count}' active='{ActiveCount}' releaseRequested='{ReleaseRequestedCount}' released='{ReleasedCount}' releaseFailed='{ReleaseFailedCount}'";
         }
 
+
+        private LifecycleMaterializationReleasePlan CreateReleasePlanCore(
+            LifecycleMaterializationReleasePlanTargetKind targetKind,
+            RuntimeContentScope scope,
+            RuntimeContentOwner owner,
+            RuntimeReleasePolicy policy,
+            string source,
+            string reason,
+            Func<LifecycleMaterializedEntry, bool> predicate)
+        {
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
+            int totalEntries = 0;
+            int activeCandidates = 0;
+            int releaseFailedCandidates = 0;
+            int skippedReleaseRequested = 0;
+            int skippedReleased = 0;
+            var requests = new List<RuntimeReleaseRequest>();
+
+            foreach (var entry in _entries.Values)
+            {
+                if (entry == null || !predicate(entry))
+                {
+                    continue;
+                }
+
+                totalEntries++;
+
+                if (entry.IsActive)
+                {
+                    activeCandidates++;
+                    requests.Add(CreateReleaseRequest(entry, policy, source, reason));
+                    continue;
+                }
+
+                if (entry.IsReleaseFailed)
+                {
+                    releaseFailedCandidates++;
+                    requests.Add(CreateReleaseRequest(entry, policy, source, reason));
+                    continue;
+                }
+
+                if (entry.IsReleaseRequested)
+                {
+                    skippedReleaseRequested++;
+                    continue;
+                }
+
+                if (entry.IsReleased)
+                {
+                    skippedReleased++;
+                }
+            }
+
+            string message = requests.Count > 0
+                ? "Lifecycle materialization release plan created."
+                : "Lifecycle materialization release plan query found no release candidates.";
+
+            return new LifecycleMaterializationReleasePlan(
+                targetKind,
+                scope,
+                owner,
+                policy,
+                requests.ToArray(),
+                totalEntries,
+                activeCandidates,
+                releaseFailedCandidates,
+                skippedReleaseRequested,
+                skippedReleased,
+                source,
+                reason,
+                message);
+        }
+
+        private static RuntimeReleaseRequest CreateReleaseRequest(
+            LifecycleMaterializedEntry entry,
+            RuntimeReleasePolicy policy,
+            string source,
+            string reason)
+        {
+            var context = new RuntimeScopeContext(entry.Owner, source, reason);
+            return new RuntimeReleaseRequest(
+                context,
+                entry.Identity,
+                policy,
+                source,
+                reason);
+        }
+
         private int CountByState(LifecycleMaterializationEntryState state)
         {
             int count = 0;
@@ -218,6 +349,15 @@ namespace Immersive.Framework.RuntimeContent
                 reason,
                 "Lifecycle materialization registry operation rejected a missing entry.");
             return false;
+        }
+
+
+        private static void ValidateReleasePolicy(RuntimeReleasePolicy policy)
+        {
+            if (!Enum.IsDefined(typeof(RuntimeReleasePolicy), policy) || policy == RuntimeReleasePolicy.Unknown)
+            {
+                throw new ArgumentOutOfRangeException(nameof(policy), policy, "Runtime release policy must be explicit.");
+            }
         }
 
         private static void ValidateIdentity(RuntimeContentIdentity identity)

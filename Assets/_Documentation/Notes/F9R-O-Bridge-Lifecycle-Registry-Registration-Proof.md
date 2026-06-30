@@ -1,6 +1,6 @@
 # F9R-O — Bridge Lifecycle Registry Registration Proof
 
-Status: Ready for smoke  
+Status: Closed / PASS  
 Type: Runtime QA proof / hardening  
 Scope: RuntimeContent + ContentAnchor materialization evidence  
 Package area: `Packages/com.immersive.framework`
@@ -30,7 +30,7 @@ The smoke creates two authored bridge fixtures, materializes them explicitly thr
 
 ## Validated behavior
 
-The smoke is expected to validate:
+The QA smoke validated:
 
 - bridge set materialization remains explicit;
 - lifecycle registry registration remains explicit;
@@ -74,6 +74,49 @@ routeActivityAutoMaterialization='False'
 routeActivityAutoRelease='False'
 ```
 
+## Smoke closure evidence
+
+User-provided QA smoke completed with:
+
+```text
+passed='True'
+materializeAll='SucceededMaterializedAll'
+materialized='2'
+lifecycleRegisterFirst='SucceededRegistered'
+lifecycleRegisterSecond='SucceededRegistered'
+duplicateRegister='SucceededAlreadyRegistered'
+lifecycleEntries='2'
+lifecycleActive='2'
+lifecycleReleaseRequested='0'
+lifecycleReleased='0'
+bridgeReleaseAll='SucceededReleasedAll'
+bridgeReleased='2'
+bridgeRegistryActive='0'
+bridgePhysicalReleaseRequests='2'
+contentHandles='0'
+bridgeSetMaterializationExplicit='True'
+lifecycleRegistrationExplicit='True'
+duplicateRegistrationStable='True'
+lifecycleRegistryEvidenceOnly='True'
+lifecycleRegistryPhysicalRelease='False'
+lifecycleRegistryLogicalRuntimeContentRelease='False'
+lifecycleRegistryContentAnchorBindingCleanup='False'
+bridgeExplicitRelease='True'
+automaticLifecycleWiring='False'
+routeActivityAutoMaterialization='False'
+routeActivityAutoRelease='False'
+```
+
+Closeout reading:
+
+- bridge set materialization remained explicit;
+- lifecycle registry registration remained explicit;
+- real bridge-created handles crossed into the lifecycle registry;
+- duplicate registration remained idempotent;
+- bridge release cleaned bridge/runtime physical-logical state explicitly;
+- lifecycle registry remained evidence-only and did not execute cleanup;
+- no Route/Activity auto-materialization or auto-release was introduced.
+
 ## Explicit non-goals
 
 F9R-O does not implement:
@@ -96,7 +139,7 @@ This is still not lifecycle ownership execution. It is the narrow proof that mat
 
 ## Next candidate
 
-The next safe candidate after smoke PASS is:
+The next safe candidate after this PASS is:
 
 ```text
 F9R-P — Lifecycle Registry Release Plan Proof

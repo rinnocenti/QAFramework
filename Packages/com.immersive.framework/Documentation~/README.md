@@ -56,7 +56,8 @@ Read the documentation in this order:
 | F9R-L | Unity ContentAnchor Materialization Bridge Set Rollback Proof | Closed / PASS |
 | F9R-M | Lifecycle-Owned Materialization Registry Plan | Accepted / Plan / docs-only |
 | F9R-N | Lifecycle-Owned Materialization Registry Contract Proof | Closed / PASS |
-| F9R-O | Bridge Lifecycle Registry Registration Proof | Ready for smoke |
+| F9R-O | Bridge Lifecycle Registry Registration Proof | Closed / PASS |
+| F9R-P | Lifecycle Materialization Registry Release Plan Proof | Closed / PASS |
 
 ## F8R-E Unity Prefab Runtime Materialization Adapter Proof
 
@@ -618,7 +619,7 @@ F9R-N does not instantiate prefabs, destroy objects, release RuntimeContent hand
 
 ## F9R-O — Bridge Lifecycle Registry Registration Proof
 
-F9R-O adds a QA proof that explicitly materialized `UnityContentAnchorMaterializationBridgeSet` handles can be registered into the lifecycle-owned `LifecycleMaterializationRegistry` introduced by F9R-N.
+F9R-O adds and closes a QA proof that explicitly materialized `UnityContentAnchorMaterializationBridgeSet` handles can be registered into the lifecycle-owned `LifecycleMaterializationRegistry` introduced by F9R-N.
 
 The proof path is explicit only:
 
@@ -629,7 +630,30 @@ authored bridge set MaterializeAll
   -> explicit LifecycleMaterializationRegistry.Register
 ```
 
+F9R-O is closed / PASS by user-provided QA smoke. The validated result materialized two bridge entries, registered both materialized handles into the lifecycle registry, accepted idempotent duplicate registration, kept lifecycle release counters at zero, released the bridge set explicitly, cleared content handles and preserved all guards: no physical release from lifecycle registry, no logical RuntimeContent release from lifecycle registry, no ContentAnchor binding cleanup, no Route/Activity auto-materialization and no Route/Activity auto-release.
+
 - `Assets/_Documentation/Notes/F9R-O-Bridge-Lifecycle-Registry-Registration-Proof.md`
 
 F9R-O does not implement Route/Activity lifecycle integration, auto-materialization, auto-release, lifecycle release planning, physical release from lifecycle registry, logical RuntimeContent release from lifecycle registry, ContentAnchor binding cleanup from lifecycle registry, Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay consumers.
+
+
+## F9R-P — Lifecycle Materialization Registry Release Plan Proof
+
+Status: Closed / PASS.
+
+F9R-P adds a passive release plan contract for the lifecycle-owned `LifecycleMaterializationRegistry`.
+
+The proof path is query-only:
+
+```text
+registered lifecycle materialization evidence
+  -> owner or scope release plan query
+  -> RuntimeReleaseRequest[] candidates
+```
+
+F9R-P plans release candidates for entries in `Active` or `ReleaseFailed` state, and skips entries already `ReleaseRequested` or `Released`.
+
+- `Assets/_Documentation/Notes/F9R-P-Lifecycle-Materialization-Registry-Release-Plan-Proof.md`
+
+F9R-P does not execute physical release, logical RuntimeContent release, ContentAnchor binding cleanup, lifecycle release execution, Route/Activity lifecycle integration, auto-release, auto-materialization, Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay consumers.
 
