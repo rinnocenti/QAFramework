@@ -38,6 +38,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             EditorGUILayout.PropertyField(_logResults, new GUIContent("Log Results", "Logs explicit materialize/release results from this component."));
 
             DrawValidationReport();
+            DrawDiagnosticsSnapshot();
 
             EditorGUILayout.Space(6);
             EditorGUILayout.HelpBox(
@@ -45,6 +46,36 @@ namespace Immersive.Framework.Editor.Editor.Authoring
                 MessageType.None);
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+
+        private void DrawDiagnosticsSnapshot()
+        {
+            if (serializedObject.isEditingMultipleObjects)
+            {
+                return;
+            }
+
+            var bridgeSet = target as UnityContentAnchorMaterializationBridgeSet;
+            if (bridgeSet == null)
+            {
+                return;
+            }
+
+            EditorGUILayout.Space(6);
+            EditorGUILayout.LabelField("Runtime Diagnostics Snapshot", EditorStyles.boldLabel);
+            var snapshot = bridgeSet.CreateDiagnosticsSnapshot();
+            EditorGUILayout.LabelField("Bridge Count", snapshot.BridgeCount.ToString());
+            EditorGUILayout.LabelField("Authoring Status", snapshot.AuthoringStatus.ToString());
+            EditorGUILayout.LabelField("Registry Entries", snapshot.RegistryEntries.ToString());
+            EditorGUILayout.LabelField("Registry Active", snapshot.RegistryActive.ToString());
+            EditorGUILayout.LabelField("Physical Release Requests", snapshot.PhysicalReleaseRequests.ToString());
+            EditorGUILayout.LabelField("Content Handles", snapshot.ContentHandleCount.ToString());
+            EditorGUILayout.LabelField("Last Materialize All", snapshot.LastMaterializeAllStatus.ToString());
+            EditorGUILayout.LabelField("Last Release All", snapshot.LastReleaseAllStatus.ToString());
+            EditorGUILayout.HelpBox(
+                "Snapshot is query-only. It does not materialize, release, bind, place or mutate Unity objects.",
+                MessageType.None);
         }
 
         private void DrawValidationReport()

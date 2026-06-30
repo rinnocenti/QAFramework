@@ -16,6 +16,7 @@ namespace Immersive.Framework.ContentAnchor
         FailedNoBridges = 100,
         FailedNullBridge = 110,
         FailedDuplicateBridge = 120,
+        FailedAuthoringValidation = 122,
         FailedBridgeMaterializationPreflight = 125,
         FailedDuplicateMaterializationKey = 126,
         FailedBridgeMaterialization = 130,

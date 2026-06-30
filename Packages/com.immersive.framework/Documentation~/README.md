@@ -49,6 +49,10 @@ Read the documentation in this order:
 | F9R-E | Unity ContentAnchor Materialization Bridge Proof | Implemented / authored opt-in bridge proof / QA smoke |
 | F9R-F | Unity ContentAnchor Materialization Bridge Set Proof | Implemented / authored opt-in bridge set proof / QA smoke |
 | F9R-G | Unity ContentAnchor Materialization Bridge Set Preflight Proof | Implemented / batch preflight proof / QA smoke |
+| F9R-H | Unity ContentAnchor Materialization Authoring Validation Proof | Implemented / authoring validation proof / QA smoke |
+| F9R-I | Unity ContentAnchor Materialization Runtime Authoring Gate Proof | Implemented / runtime authoring gate proof / QA smoke |
+| F9R-J | Unity ContentAnchor Materialization Diagnostics Snapshot Proof | Closed / PASS / query-only diagnostics snapshot smoke |
+| F9R-K | F9R Closeout / Documentation Sync | Accepted / docs-only / no implementation axis selected |
 
 ## F8R-E Unity Prefab Runtime Materialization Adapter Proof
 
@@ -548,3 +552,27 @@ F9R-F implements an authored, opt-in bridge set over multiple `UnityContentAncho
 F9R-G hardens `UnityContentAnchorMaterializationBridgeSet` by validating every authored bridge and duplicate materialization key before any materialization side effect is submitted. It prevents partial batch materialization while preserving explicit submit/release and no automatic lifecycle wiring.
 
 - `Assets/_Documentation/Notes/F9R-G-Unity-ContentAnchor-Materialization-Bridge-Set-Preflight-Proof.md`
+
+## F9R-H — Unity ContentAnchor Materialization Authoring Validation Proof
+
+F9R-H validates authored bridge and bridge-set configuration before runtime submission. It keeps the bridge model opt-in and reports explicit guardrails for no lifecycle auto-wiring and no Route/Activity auto-materialization.
+
+- `Assets/_Documentation/Notes/F9R-H-Unity-ContentAnchor-Materialization-Authoring-Validation-Proof.md`
+
+## F9R-I — Unity ContentAnchor Materialization Runtime Authoring Gate Proof
+
+F9R-I makes the bridge set run the same authoring validator as a runtime gate before batch preflight and before materialization side effects. Invalid authoring attempts create no registry entries, live objects or physical release requests.
+
+- `Assets/_Documentation/Notes/F9R-I-Unity-ContentAnchor-Materialization-Runtime-Authoring-Gate-Proof.md`
+
+## F9R-J — Unity ContentAnchor Materialization Diagnostics Snapshot Proof
+
+F9R-J adds a query-only diagnostics snapshot for authored bridge-set state. The smoke passed with stable repeated snapshots, explicit materialize/release, no runtime side effects from querying and no Route/Activity auto-materialization.
+
+- `Assets/_Documentation/Notes/F9R-J-Unity-ContentAnchor-Materialization-Diagnostics-Snapshot-Proof.md`
+
+## F9R-K — F9R Closeout / Documentation Sync
+
+F9R-K synchronizes the project and package documentation after F9R-J PASS. It is docs-only and selects no new implementation axis.
+
+- `Assets/_Documentation/Notes/F9R-K-F9R-Closeout-Documentation-Sync.md`

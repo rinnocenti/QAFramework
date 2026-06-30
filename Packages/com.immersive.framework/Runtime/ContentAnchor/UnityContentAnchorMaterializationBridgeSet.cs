@@ -43,6 +43,16 @@ namespace Immersive.Framework.ContentAnchor
 
         public int PhysicalReleaseRequestedCount => SumPhysicalReleaseRequests();
 
+        public UnityContentAnchorMaterializationBridgeSetDiagnosticsSnapshot CreateDiagnosticsSnapshot()
+        {
+            return CreateDiagnosticsSnapshot(DefaultSource);
+        }
+
+        internal UnityContentAnchorMaterializationBridgeSetDiagnosticsSnapshot CreateDiagnosticsSnapshotForDiagnostics(string source)
+        {
+            return CreateDiagnosticsSnapshot(source);
+        }
+
         public UnityContentAnchorMaterializationBridge[] CopyBridgesForAuthoringValidation()
         {
             if (bridges == null || bridges.Length == 0)
@@ -74,6 +84,23 @@ namespace Immersive.Framework.ContentAnchor
             LogResult("Content Anchor Materialization Bridge Set release completed.", _lastReleaseAllResult);
         }
 
+        [ContextMenu("Immersive Framework/Content Anchor/Log Bridge Set Diagnostics Snapshot")]
+        public void LogDiagnosticsSnapshot()
+        {
+            var snapshot = CreateDiagnosticsSnapshot(DefaultSource);
+            EnsureLogger();
+            _logger.Info(
+                "Content Anchor Materialization Bridge Set diagnostics snapshot created.",
+                LogFields.Of(
+                    LogFields.Field("bridgeCount", snapshot.BridgeCount),
+                    LogFields.Field("registryEntries", snapshot.RegistryEntries),
+                    LogFields.Field("registryActive", snapshot.RegistryActive),
+                    LogFields.Field("physicalReleaseRequests", snapshot.PhysicalReleaseRequests),
+                    LogFields.Field("contentHandles", snapshot.ContentHandleCount),
+                    LogFields.Field("authoringStatus", snapshot.AuthoringStatus.ToString()),
+                    LogFields.Field("diagnostics", snapshot.ToDiagnosticString())));
+        }
+
         internal void ConfigureForDiagnostics(UnityContentAnchorMaterializationBridge[] configuredBridges, bool configuredLogResults)
         {
             bridges = configuredBridges ?? System.Array.Empty<UnityContentAnchorMaterializationBridge>();
@@ -92,6 +119,18 @@ namespace Immersive.Framework.ContentAnchor
             return _lastReleaseAllResult;
         }
 
+        private UnityContentAnchorMaterializationBridgeSetDiagnosticsSnapshot CreateDiagnosticsSnapshot(string source)
+        {
+            string resolvedSource = source.NormalizeTextOrFallback(DefaultSource);
+            var validation = UnityContentAnchorMaterializationAuthoringValidator.ValidateBridgeSet(
+                this,
+                "DiagnosticsSnapshot");
+            return UnityContentAnchorMaterializationBridgeSetDiagnosticsSnapshot.Create(
+                resolvedSource,
+                this,
+                validation);
+        }
+
         private UnityContentAnchorMaterializationBridgeSetResult SubmitMaterializeAll(string source, string requestReason)
         {
             string resolvedSource = source.NormalizeTextOrFallback(DefaultSource);
@@ -100,6 +139,11 @@ namespace Immersive.Framework.ContentAnchor
             if (!TryValidateBridges(resolvedSource, resolvedReason, out var failure))
             {
                 return failure;
+            }
+
+            if (!TryValidateAuthoringForMaterialization(resolvedSource, resolvedReason, out var authoringFailure))
+            {
+                return authoringFailure;
             }
 
             if (!TryPreflightMaterializeAll(resolvedSource, resolvedReason, out var preflightFailure))
@@ -206,6 +250,32 @@ namespace Immersive.Framework.ContentAnchor
                 0,
                 releasedCount,
                 failedCount);
+        }
+
+        private bool TryValidateAuthoringForMaterialization(
+            string source,
+            string requestReason,
+            out UnityContentAnchorMaterializationBridgeSetResult failure)
+        {
+            failure = null;
+            var validation = UnityContentAnchorMaterializationAuthoringValidator.ValidateBridgeSet(
+                this,
+                "RuntimeMaterializeAll");
+            if (validation.Succeeded)
+            {
+                return true;
+            }
+
+            failure = CreateResult(
+                UnityContentAnchorMaterializationBridgeSetStatus.FailedAuthoringValidation,
+                "AuthoringValidation",
+                source,
+                requestReason,
+                validation.ToDiagnosticString(),
+                0,
+                0,
+                validation.BlockingIssueCount > 0 ? validation.BlockingIssueCount : 1);
+            return false;
         }
 
         private bool TryPreflightMaterializeAll(
