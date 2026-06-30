@@ -312,3 +312,22 @@ F10C does not execute logical binding, materialize a prefab, place transforms, r
 Next candidate: `F10D - Pause ContentAnchor Binding Execution Proof`.
 
 Usage guide: `Packages/com.immersive.framework/Documentation~/Guides/F10C-Pause-ContentAnchor-Binding-Usage.md`.
+
+
+## F10D Implementation Status
+
+`F10D - Pause ContentAnchor Binding Execution Proof` is ready for smoke.
+
+It executes the binding request produced by F10C explicitly and logically:
+
+```text
+PauseVisualSurfaceContract
+  -> ContentAnchorBindingRequest
+  -> logical RuntimeContent handle declaration
+  -> FrameworkRuntimeHost.BindContentAnchor
+  -> ContentAnchorContentHandle
+```
+
+F10D does not instantiate Pause UI, move transforms, execute physical placement, perform physical release, toggle Pause, change InputMode, change PlayerInput, change Time.timeScale, wire Route/Activity lifecycle, enable Route/Activity auto-release, enable Route/Activity auto-materialization or select Camera, Audio, Save, Actor, Pooling, PlayerJoin, F34 or gameplay.
+
+Expected validation: `Run Pause Content Anchor Binding Execution Smoke`.

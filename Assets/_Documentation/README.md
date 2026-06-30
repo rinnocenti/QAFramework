@@ -55,6 +55,7 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Notes/F9R-U-F9R-Closure-Next-Axis-Decision.md` — F9R closure and next-axis decision boundary; no new technical axis selected.
 - `Notes/F10B-Pause-Visual-Surface-Authoring-Contract-Proof.md` — Pause visual surface authoring contract proof; Closed / PASS.
 - `Notes/F10C-Pause-ContentAnchor-Binding-Request-Proof.md` — Pause ContentAnchor binding request proof; Closed / PASS, request-only derivation validated.
+- `Notes/F10D-Pause-ContentAnchor-Binding-Execution-Proof.md` — Pause ContentAnchor binding execution proof; Ready for smoke, logical binding only.
 
 ### Setup
 
@@ -82,6 +83,7 @@ Documentos de setup do projeto consumidor.
 - [F10A — Pause ContentAnchor Consumer Re-entry Plan](Plans/F10A-PLAN-Pause-ContentAnchor-Consumer-Reentry.md)
 - [F10B — Pause Visual Surface Authoring Contract Proof](Notes/F10B-Pause-Visual-Surface-Authoring-Contract-Proof.md)
 - [F10C — Pause ContentAnchor Binding Request Proof](Notes/F10C-Pause-ContentAnchor-Binding-Request-Proof.md)
+- [F10D — Pause ContentAnchor Binding Execution Proof](Notes/F10D-Pause-ContentAnchor-Binding-Execution-Proof.md)
 
 Notas temporárias e achados de auditoria local.
 
@@ -186,6 +188,8 @@ F10A Pause ContentAnchor Consumer Re-entry Plan: Accepted / Plan / docs-only, `P
 F10B Pause Visual Surface Authoring Contract Proof: Closed / PASS, `Notes/F10B-Pause-Visual-Surface-Authoring-Contract-Proof.md`. Validated passive Pause visual authoring contract and QA smoke; no materialization, input, timeScale or lifecycle auto-wiring.
 
 F10C Pause ContentAnchor Binding Request Proof: Closed / PASS, `Notes/F10C-Pause-ContentAnchor-Binding-Request-Proof.md`. Validated request-only conversion from Pause visual surface contract to ContentAnchorBindingRequest, including canonical anchor owner; no binding execution, materialization, input, timeScale or lifecycle auto-wiring.
+
+F10D Pause ContentAnchor Binding Execution Proof: Ready for smoke, `Notes/F10D-Pause-ContentAnchor-Binding-Execution-Proof.md`. Adds explicit logical binding execution for Pause visual surface contracts; still no visual materialization, input, timeScale or lifecycle auto-wiring.
 
 ## Regras
 

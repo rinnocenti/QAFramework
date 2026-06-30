@@ -66,6 +66,7 @@ Read the documentation in this order:
 | F10A | Pause ContentAnchor Consumer Re-entry Plan | Accepted / Plan / docs-only |
 | F10B | Pause Visual Surface Authoring Contract Proof | Closed / PASS |
 | F10C | Pause ContentAnchor Binding Request Proof | Closed / PASS |
+| F10D | Pause ContentAnchor Binding Execution Proof | Ready for smoke |
 
 ## F8R-E Unity Prefab Runtime Materialization Adapter Proof
 
@@ -88,6 +89,19 @@ F10C remains request-only: it does not execute binding, materialize Pause UI, ch
 Guide: `Guides/F10C-Pause-ContentAnchor-Binding-Usage.md`.
 
 Project note: `../../Assets/_Documentation/Notes/F10C-Pause-ContentAnchor-Binding-Request-Proof.md`.
+
+
+## F10D Pause ContentAnchor Binding Execution Proof
+
+F10D is ready for smoke. It executes the logical binding request produced by F10C against a valid `ContentAnchorSet` and a logical `RuntimeContent` scope.
+
+The cut adds `PauseVisualSurfaceBindingExecutor`, `PauseVisualSurfaceBindingExecutionResult` and `PauseVisualSurfaceBindingExecutionStatus`. The executor declares a logical RuntimeContent handle and binds it through the host-owned ContentAnchor binding runtime.
+
+F10D remains binding-only: it does not instantiate the Pause visual prefab, move transforms, perform physical placement, change InputMode, change Time.timeScale, wire Route/Activity lifecycle, enable auto-release or enable auto-materialization.
+
+Guide: `Guides/F10D-Pause-ContentAnchor-Binding-Execution-Usage.md`.
+
+Project note: `../../Assets/_Documentation/Notes/F10D-Pause-ContentAnchor-Binding-Execution-Proof.md`.
 
 ## F9R-Q Lifecycle Materialization Registry Release Execution Proof
 

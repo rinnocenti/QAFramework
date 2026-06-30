@@ -340,6 +340,11 @@ namespace Immersive.Framework.Diagnostics
                 {
                     RunPauseContentAnchorBindingRequestSmoke();
                 }
+
+                if (GUILayout.Button("Run Pause Content Anchor Binding Execution Smoke"))
+                {
+                    RunPauseContentAnchorBindingExecutionSmoke();
+                }
             }
         }
 
@@ -1700,6 +1705,235 @@ private async void RunLocalContributionSmoke()
                 }
                 finally
                 {
+                    if (authoringObject != null)
+                    {
+                        Object.Destroy(authoringObject);
+                    }
+
+                    if (visualPrefab != null)
+                    {
+                        Object.Destroy(visualPrefab);
+                    }
+                }
+            });
+        }
+
+
+        private async void RunPauseContentAnchorBindingExecutionSmoke()
+        {
+            await RunSmokeAsync("Pause Content Anchor Binding Execution Smoke", runtimeHost =>
+            {
+                var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+                if (runtimeContentRuntime == null)
+                {
+                    _logger.Warning("QA Pause Content Anchor Binding Execution Smoke failed. reason='RuntimeContentRuntime unavailable'.");
+                    return Task.FromResult(false);
+                }
+
+                int initialBindingCount = runtimeHost.ContentAnchorBindingCount;
+                int initialRuntimeRootCount = runtimeContentRuntime.RootCount;
+                GameObject authoringObject = null;
+                GameObject visualPrefab = null;
+                RuntimeContentOwner runtimeOwner = default(RuntimeContentOwner);
+                RuntimeScopeContext runtimeContext = default(RuntimeScopeContext);
+                bool rootCreated = false;
+
+                try
+                {
+                    string unique = Guid.NewGuid().ToString("N");
+                    visualPrefab = new GameObject("QA Pause Binding Execution Prefab");
+                    authoringObject = new GameObject("QA Pause Binding Execution Authoring");
+
+                    var authoring = authoringObject.AddComponent<PauseVisualSurfaceAuthoring>();
+                    authoring.ConfigureForDiagnostics(
+                        visualPrefab,
+                        PauseVisualSurfaceKind.OverlayRoot,
+                        PauseState.Paused,
+                        RuntimeContentScope.Transient,
+                        "qa.pause.binding-execution.owner." + unique,
+                        "QA Pause Binding Execution Owner",
+                        ContentAnchorScope.Local,
+                        ContentAnchorKind.Root,
+                        ContentAnchorRequiredness.Required,
+                        "qa.pause.binding-execution.anchor-owner." + unique,
+                        "qa.pause.binding-execution.overlay." + unique,
+                        "qa.pause.binding-execution.content." + unique,
+                        "qa.pause.binding-execution.prefab." + unique,
+                        RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                        true);
+
+                    bool contractCreated = authoring.TryCreateContract(out var contract, out var contractMessage);
+                    if (!contractCreated)
+                    {
+                        _logger.Warning($"QA Pause Content Anchor Binding Execution Smoke step failed. step='contract' reason='{FormatValue(contractMessage)}'.");
+                        return Task.FromResult(false);
+                    }
+
+                    runtimeOwner = contract.RuntimeOwner;
+                    var rootResult = runtimeContentRuntime.CreateScopeRoot(
+                        runtimeOwner,
+                        QaSource,
+                        "qa.pause.content-anchor.binding-execution.root");
+                    rootCreated = rootResult.Applied || rootResult.Status == RuntimeRootRegistryOperationStatus.RootAlreadyExists;
+                    if (!rootCreated || !runtimeContentRuntime.TryCreateScopeContext(
+                            runtimeOwner,
+                            QaSource,
+                            "qa.pause.content-anchor.binding-execution.context",
+                            out runtimeContext))
+                    {
+                        _logger.Warning($"QA Pause Content Anchor Binding Execution Smoke step failed. step='root' root='{rootResult.Status}' rootCreated='{rootCreated}'.");
+                        return Task.FromResult(false);
+                    }
+
+                    var anchor = new ContentAnchorDeclaration(
+                        contract.AnchorOwner,
+                        contract.AnchorScope,
+                        contract.AnchorKind,
+                        contract.AnchorId,
+                        contract.ContentRequirement.Requiredness,
+                        "QA Pause Binding Execution Anchor",
+                        "Synthetic anchor for Pause ContentAnchor binding execution smoke.",
+                        "qa.pause.binding-execution.anchor",
+                        string.Empty);
+                    var anchorSet = new ContentAnchorSet(new[] { anchor });
+
+                    var executionResult = PauseVisualSurfaceBindingExecutor.Execute(
+                        contract,
+                        anchorSet,
+                        runtimeContext,
+                        runtimeHost,
+                        QaSource,
+                        "qa.pause.content-anchor.binding-execution.execute");
+
+                    bool bindingExecuted = executionResult.Succeeded
+                        && executionResult.BindingResult.Succeeded
+                        && executionResult.BindingResult.HasHandle;
+                    bool handleDeclared = executionResult.RuntimeHandleDeclared
+                        && executionResult.RuntimeHandleDeclaration != null
+                        && executionResult.RuntimeHandleDeclaration.Status == RuntimeRootRegistryOperationStatus.HandleRegistered;
+                    bool bindingCountIncreased = runtimeHost.ContentAnchorBindingCount == initialBindingCount + 1;
+                    bool runtimeHandleRegistered = runtimeContentRuntime.TryGetHandle(
+                        runtimeContext,
+                        contract.RuntimeIdentity,
+                        out var registeredHandle)
+                        && registeredHandle != null
+                        && registeredHandle.Identity == contract.RuntimeIdentity
+                        && !registeredHandle.IsReleased;
+                    bool requestMatchesPauseContract = executionResult.RequestCreated
+                        && executionResult.Request.RuntimeOwner == contract.RuntimeOwner
+                        && executionResult.Request.RuntimeScope == contract.RuntimeScope
+                        && executionResult.Request.RuntimeContentId == contract.RuntimeContentId
+                        && executionResult.Request.RuntimeIdentity == contract.RuntimeIdentity
+                        && executionResult.Request.Resource == contract.Resource;
+                    bool requestMatchesAnchorRequirement = executionResult.RequestCreated
+                        && executionResult.Request.AnchorScope == contract.AnchorScope
+                        && executionResult.Request.AnchorOwner == contract.AnchorOwner
+                        && executionResult.Request.AnchorKind == contract.AnchorKind
+                        && executionResult.Request.AnchorId == contract.AnchorId;
+                    bool bindingMatchesAnchor = bindingExecuted
+                        && executionResult.BindingResult.Anchor == anchor
+                        && executionResult.BindingResult.Handle.Anchor == anchor;
+                    bool passed = bindingExecuted
+                        && handleDeclared
+                        && bindingCountIncreased
+                        && runtimeHandleRegistered
+                        && requestMatchesPauseContract
+                        && requestMatchesAnchorRequirement
+                        && bindingMatchesAnchor;
+
+                    bool unbound = false;
+                    bool logicalReleased = false;
+                    if (bindingExecuted)
+                    {
+                        unbound = runtimeHost.UnbindContentAnchor(executionResult.BindingResult.Handle);
+                        var releaseResult = runtimeContentRuntime.ReleaseHandleLogically(
+                            runtimeContext,
+                            contract.RuntimeIdentity,
+                            contract.ReleasePolicy,
+                            QaSource,
+                            "qa.pause.content-anchor.binding-execution.cleanup.logical-release");
+                        logicalReleased = releaseResult.Succeeded && releaseResult.HandleUnregistered;
+                    }
+
+                    if (!passed || !unbound || !logicalReleased)
+                    {
+                        _logger.Warning(
+                            $"QA Pause Content Anchor Binding Execution Smoke step failed. step='pause-content-anchor-binding-execution' execution='{executionResult.ToDiagnosticString()}' bindingExecuted='{bindingExecuted}' handleDeclared='{handleDeclared}' bindingCountIncreased='{bindingCountIncreased}' runtimeHandleRegistered='{runtimeHandleRegistered}' requestMatchesPauseContract='{requestMatchesPauseContract}' requestMatchesAnchorRequirement='{requestMatchesAnchorRequirement}' bindingMatchesAnchor='{bindingMatchesAnchor}' unbound='{unbound}' logicalReleased='{logicalReleased}'.");
+                        return Task.FromResult(false);
+                    }
+
+                    _logger.Info(
+                        "QA Pause Content Anchor Binding Execution Smoke step completed. ",
+                        LogFields.Of(
+                            LogFields.Field("step", "pause-content-anchor-binding-execution"),
+                            LogFields.Field("passed", true),
+                            LogFields.Field("contract", contractCreated),
+                            LogFields.Field("root", rootResult.Status.ToString()),
+                            LogFields.Field("bindingExecution", executionResult.Status.ToString()),
+                            LogFields.Field("binding", executionResult.BindingResult.Status.ToString()),
+                            LogFields.Field("runtimeHandleDeclaration", executionResult.RuntimeHandleDeclaration.Status.ToString()),
+                            LogFields.Field("runtimeScope", executionResult.Request.RuntimeScope.ToString()),
+                            LogFields.Field("runtimeOwner", executionResult.Request.RuntimeOwner.StableText),
+                            LogFields.Field("runtimeContentId", executionResult.Request.RuntimeContentId.StableText),
+                            LogFields.Field("runtimeIdentity", executionResult.Request.RuntimeIdentity.StableText),
+                            LogFields.Field("anchorScope", executionResult.Request.AnchorScope.ToString()),
+                            LogFields.Field("anchorOwner", executionResult.Request.AnchorOwner.StableText),
+                            LogFields.Field("anchorKind", executionResult.Request.AnchorKind.ToString()),
+                            LogFields.Field("anchorId", executionResult.Request.AnchorId.StableText),
+                            LogFields.Field("bindingCountIncreased", bindingCountIncreased),
+                            LogFields.Field("runtimeHandleRegistered", runtimeHandleRegistered),
+                            LogFields.Field("requestMatchesPauseContract", requestMatchesPauseContract),
+                            LogFields.Field("requestMatchesAnchorRequirement", requestMatchesAnchorRequirement),
+                            LogFields.Field("bindingMatchesAnchor", bindingMatchesAnchor),
+                            LogFields.Field("explicitSubmit", true),
+                            LogFields.Field("requestOnly", false),
+                            LogFields.Field("bindingExecutionOnly", true),
+                            LogFields.Field("bindingCleanup", unbound),
+                            LogFields.Field("smokeCleanupLogicalRuntimeContentRelease", logicalReleased),
+                            LogFields.Field("logicalRuntimeContentRelease", false),
+                            LogFields.Field("materialization", false),
+                            LogFields.Field("physicalRelease", false),
+                            LogFields.Field("contentAnchorBindingCleanup", false),
+                            LogFields.Field("inputModeChange", false),
+                            LogFields.Field("timeScalePolicy", false),
+                            LogFields.Field("automaticLifecycleWiring", false),
+                            LogFields.Field("routeActivityAutoMaterialization", false),
+                            LogFields.Field("routeActivityAutoRelease", false),
+                            LogFields.Field("addressables", false),
+                            LogFields.Field("pooling", false),
+                            LogFields.Field("actorSpawn", false),
+                            LogFields.Field("playerJoin", false),
+                            LogFields.Field("gameplayConsumer", false),
+                            LogFields.Field("cameraConsumer", false),
+                            LogFields.Field("audioConsumer", false),
+                            LogFields.Field("saveConsumer", false)));
+                    return Task.FromResult(true);
+                }
+                finally
+                {
+                    if (rootCreated && runtimeOwner.IsValid)
+                    {
+                        RuntimeContentHandle[] remainingHandles = Array.Empty<RuntimeContentHandle>();
+                        if (runtimeContext.IsValid)
+                        {
+                            remainingHandles = runtimeContentRuntime.SnapshotHandles(runtimeContext);
+                            for (int i = 0; i < remainingHandles.Length; i++)
+                            {
+                                runtimeContentRuntime.ReleaseHandleLogically(
+                                    runtimeContext,
+                                    remainingHandles[i].Identity,
+                                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                                    QaSource,
+                                    "qa.pause.content-anchor.binding-execution.cleanup.remaining");
+                            }
+                        }
+
+                        runtimeContentRuntime.RemoveScopeRoot(
+                            runtimeOwner,
+                            QaSource,
+                            "qa.pause.content-anchor.binding-execution.cleanup.root");
+                    }
+
                     if (authoringObject != null)
                     {
                         Object.Destroy(authoringObject);
