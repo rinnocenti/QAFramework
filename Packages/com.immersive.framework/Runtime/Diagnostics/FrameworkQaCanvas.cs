@@ -580,6 +580,11 @@ namespace Immersive.Framework.Diagnostics
                     RunLifecycleMaterializationRegistryContractSmoke();
                 }
 
+                if (GUILayout.Button("Run Bridge Lifecycle Registry Registration Smoke"))
+                {
+                    RunBridgeLifecycleRegistryRegistrationSmoke();
+                }
+
                 if (GUILayout.Button("Run Runtime Prefab Materialization Smoke"))
                 {
                     RunRuntimePrefabMaterializationSmoke();
@@ -1799,6 +1804,264 @@ private async void RunLocalContributionSmoke()
                 "QA Lifecycle Materialization Registry Contract Smoke step completed. "
                 + $"step='lifecycle-materialization-registry-contract' passed='True' register='{registerResult.Status}' duplicate='{duplicateResult.Status}' duplicateConflict='{conflictingDuplicateResult.Status}' releaseRequest='{releaseRequestResult.Status}' releaseComplete='{releasedResult.Status}' missingRelease='{missingReleaseResult.Status}' entries='{registry.Count}' active='{registry.ActiveCount}' releaseRequested='{registry.ReleaseRequestedCount}' released='{registry.ReleasedCount}' releaseFailed='{registry.ReleaseFailedCount}' typedIdentity='True' registryOwnsEvidenceOnly='{registryOwnsEvidenceOnly}' physicalRelease='False' logicalRuntimeContentRelease='False' contentAnchorBindingCleanup='False' explicitSubmit='True' automaticLifecycleWiring='False' routeActivityAutoMaterialization='False' routeActivityAutoRelease='False' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.");
             return true;
+        }
+
+        private async void RunBridgeLifecycleRegistryRegistrationSmoke()
+        {
+            await RunSmokeAsync("Bridge Lifecycle Registry Registration Smoke", runtimeHost =>
+                Task.FromResult(RunBridgeLifecycleRegistryRegistrationSmokeCore(runtimeHost)));
+        }
+
+        private bool RunBridgeLifecycleRegistryRegistrationSmokeCore(FrameworkRuntimeHost runtimeHost)
+        {
+            var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+            if (runtimeContentRuntime == null)
+            {
+                _logger.Warning("QA Bridge Lifecycle Registry Registration Smoke failed. reason='RuntimeContentRuntime unavailable'.");
+                return false;
+            }
+
+            var lifecycleRegistry = new LifecycleMaterializationRegistry();
+            GameObject setObject = null;
+            GameObject firstBridgeObject = null;
+            GameObject secondBridgeObject = null;
+            GameObject firstTemplate = null;
+            GameObject secondTemplate = null;
+            GameObject firstAnchorObject = null;
+            GameObject secondAnchorObject = null;
+            RuntimeContentOwner firstOwner = default(RuntimeContentOwner);
+            RuntimeContentOwner secondOwner = default(RuntimeContentOwner);
+            bool firstRootCreated = false;
+            bool secondRootCreated = false;
+
+            string unique = Guid.NewGuid().ToString("N");
+            firstOwner = RuntimeContentOwner.Transient(
+                "qa.bridge-lifecycle-registry-registration.owner.1." + unique,
+                "QA Bridge Lifecycle Registry Registration Smoke 1");
+            secondOwner = RuntimeContentOwner.Transient(
+                "qa.bridge-lifecycle-registry-registration.owner.2." + unique,
+                "QA Bridge Lifecycle Registry Registration Smoke 2");
+
+            try
+            {
+                setObject = new GameObject("QA Bridge Lifecycle Registry Registration Bridge Set");
+                setObject.hideFlags = HideFlags.DontSave;
+                var bridgeSet = setObject.AddComponent<UnityContentAnchorMaterializationBridgeSet>();
+
+                firstBridgeObject = new GameObject("QA Bridge Lifecycle Registry Registration Item 1");
+                firstBridgeObject.hideFlags = HideFlags.DontSave;
+                var firstBridge = firstBridgeObject.AddComponent<UnityContentAnchorMaterializationBridge>();
+                secondBridgeObject = new GameObject("QA Bridge Lifecycle Registry Registration Item 2");
+                secondBridgeObject.hideFlags = HideFlags.DontSave;
+                var secondBridge = secondBridgeObject.AddComponent<UnityContentAnchorMaterializationBridge>();
+
+                firstTemplate = new GameObject("QA Bridge Lifecycle Registry Registration Template 1");
+                firstTemplate.hideFlags = HideFlags.DontSave;
+                secondTemplate = new GameObject("QA Bridge Lifecycle Registry Registration Template 2");
+                secondTemplate.hideFlags = HideFlags.DontSave;
+                firstAnchorObject = new GameObject("QA Bridge Lifecycle Registry Registration Anchor 1");
+                firstAnchorObject.hideFlags = HideFlags.DontSave;
+                secondAnchorObject = new GameObject("QA Bridge Lifecycle Registry Registration Anchor 2");
+                secondAnchorObject.hideFlags = HideFlags.DontSave;
+
+                firstBridge.ConfigureForDiagnostics(
+                    firstTemplate,
+                    firstAnchorObject.transform,
+                    RuntimeContentScope.Transient,
+                    firstOwner.OwnerId,
+                    firstOwner.OwnerName,
+                    true,
+                    ContentAnchorScope.Route,
+                    ContentAnchorKind.Slot,
+                    ContentAnchorRequiredness.Required,
+                    "qa.bridge-lifecycle-registry-registration.route.1." + unique,
+                    "qa.bridge-lifecycle-registry-registration.anchor.1." + unique,
+                    "qa.bridge-lifecycle-registry-registration.content.1." + unique,
+                    "qa.bridge-lifecycle-registry-registration.prefab.1." + unique,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    true,
+                    false);
+                secondBridge.ConfigureForDiagnostics(
+                    secondTemplate,
+                    secondAnchorObject.transform,
+                    RuntimeContentScope.Transient,
+                    secondOwner.OwnerId,
+                    secondOwner.OwnerName,
+                    true,
+                    ContentAnchorScope.Route,
+                    ContentAnchorKind.Slot,
+                    ContentAnchorRequiredness.Required,
+                    "qa.bridge-lifecycle-registry-registration.route.2." + unique,
+                    "qa.bridge-lifecycle-registry-registration.anchor.2." + unique,
+                    "qa.bridge-lifecycle-registry-registration.content.2." + unique,
+                    "qa.bridge-lifecycle-registry-registration.prefab.2." + unique,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    true,
+                    false);
+                bridgeSet.ConfigureForDiagnostics(new[] { firstBridge, secondBridge }, false);
+
+                var materializeAllResult = bridgeSet.SubmitMaterializeAllForDiagnostics(
+                    QaSource,
+                    "qa.bridge-lifecycle-registry-registration.materialize-all");
+                firstRootCreated = runtimeContentRuntime.TryCreateScopeContext(
+                    firstOwner,
+                    QaSource,
+                    "qa.bridge-lifecycle-registry-registration.context.1",
+                    out var firstContext);
+                secondRootCreated = runtimeContentRuntime.TryCreateScopeContext(
+                    secondOwner,
+                    QaSource,
+                    "qa.bridge-lifecycle-registry-registration.context.2",
+                    out var secondContext);
+
+                bool firstEvidenceFound = TryGetSingleActiveMaterializedEvidence(firstBridge, out var firstEvidence);
+                bool secondEvidenceFound = TryGetSingleActiveMaterializedEvidence(secondBridge, out var secondEvidence);
+                bool materializedExplicitly = materializeAllResult.Succeeded
+                    && materializeAllResult.Status == UnityContentAnchorMaterializationBridgeSetStatus.SucceededMaterializedAll
+                    && materializeAllResult.MaterializedCount == 2
+                    && bridgeSet.RegistryEntries == 2
+                    && bridgeSet.RegistryActive == 2
+                    && firstRootCreated
+                    && secondRootCreated
+                    && firstContext.IsValid
+                    && secondContext.IsValid
+                    && firstEvidenceFound
+                    && secondEvidenceFound
+                    && firstEvidence.Handle != null
+                    && secondEvidence.Handle != null
+                    && firstEvidence.Handle.IsMaterialized
+                    && secondEvidence.Handle.IsMaterialized
+                    && HasParentedLiveInstance(firstBridge, firstAnchorObject.transform)
+                    && HasParentedLiveInstance(secondBridge, secondAnchorObject.transform)
+                    && runtimeContentRuntime.SnapshotHandles(firstContext).Length == 1
+                    && runtimeContentRuntime.SnapshotHandles(secondContext).Length == 1;
+                if (!materializedExplicitly)
+                {
+                    _logger.Warning($"QA Bridge Lifecycle Registry Registration Smoke step failed. step='materialize-all' diagnostics='{materializeAllResult.ToDiagnosticString()}' firstRegistry='{firstBridge.Registry.ToDiagnosticString()}' secondRegistry='{secondBridge.Registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var firstRegisterResult = lifecycleRegistry.Register(
+                    firstEvidence.Handle,
+                    QaSource,
+                    "qa.bridge-lifecycle-registry-registration.register.1");
+                var secondRegisterResult = lifecycleRegistry.Register(
+                    secondEvidence.Handle,
+                    QaSource,
+                    "qa.bridge-lifecycle-registry-registration.register.2");
+                bool registeredIntoLifecycleRegistry = firstRegisterResult.Succeeded
+                    && firstRegisterResult.Status == LifecycleMaterializationRegistryOperationStatus.SucceededRegistered
+                    && secondRegisterResult.Succeeded
+                    && secondRegisterResult.Status == LifecycleMaterializationRegistryOperationStatus.SucceededRegistered
+                    && lifecycleRegistry.Count == 2
+                    && lifecycleRegistry.ActiveCount == 2
+                    && lifecycleRegistry.ReleaseRequestedCount == 0
+                    && lifecycleRegistry.ReleasedCount == 0
+                    && lifecycleRegistry.ReleaseFailedCount == 0
+                    && lifecycleRegistry.Snapshot(firstOwner).Length == 1
+                    && lifecycleRegistry.Snapshot(secondOwner).Length == 1
+                    && lifecycleRegistry.Snapshot(RuntimeContentScope.Transient).Length == 2;
+                if (!registeredIntoLifecycleRegistry)
+                {
+                    _logger.Warning($"QA Bridge Lifecycle Registry Registration Smoke step failed. step='lifecycle-register' first='{firstRegisterResult.ToDiagnosticString()}' second='{secondRegisterResult.ToDiagnosticString()}' lifecycleRegistry='{lifecycleRegistry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var duplicateRegisterResult = lifecycleRegistry.Register(
+                    firstEvidence.Handle,
+                    QaSource,
+                    "qa.bridge-lifecycle-registry-registration.register.duplicate");
+                bool duplicateRegistrationStable = duplicateRegisterResult.Succeeded
+                    && duplicateRegisterResult.Status == LifecycleMaterializationRegistryOperationStatus.SucceededAlreadyRegistered
+                    && lifecycleRegistry.Count == 2
+                    && lifecycleRegistry.ActiveCount == 2;
+                if (!duplicateRegistrationStable)
+                {
+                    _logger.Warning($"QA Bridge Lifecycle Registry Registration Smoke step failed. step='duplicate-lifecycle-register' duplicate='{duplicateRegisterResult.ToDiagnosticString()}' lifecycleRegistry='{lifecycleRegistry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var releaseAllResult = bridgeSet.SubmitReleaseAllForDiagnostics(
+                    QaSource,
+                    "qa.bridge-lifecycle-registry-registration.release-all");
+                int contentHandlesAfterRelease = runtimeContentRuntime.SnapshotHandles(firstContext).Length
+                    + runtimeContentRuntime.SnapshotHandles(secondContext).Length;
+                bool explicitBridgeReleaseSucceeded = releaseAllResult.Succeeded
+                    && releaseAllResult.Status == UnityContentAnchorMaterializationBridgeSetStatus.SucceededReleasedAll
+                    && releaseAllResult.ReleasedCount == 2
+                    && bridgeSet.RegistryEntries == 2
+                    && bridgeSet.RegistryActive == 0
+                    && bridgeSet.PhysicalReleaseRequestedCount == 2
+                    && contentHandlesAfterRelease == 0;
+                if (!explicitBridgeReleaseSucceeded)
+                {
+                    _logger.Warning($"QA Bridge Lifecycle Registry Registration Smoke step failed. step='explicit-bridge-release' diagnostics='{releaseAllResult.ToDiagnosticString()}' lifecycleRegistry='{lifecycleRegistry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                bool lifecycleRegistryEvidenceOnly = lifecycleRegistry.Count == 2
+                    && lifecycleRegistry.ActiveCount == 2
+                    && lifecycleRegistry.ReleaseRequestedCount == 0
+                    && lifecycleRegistry.ReleasedCount == 0
+                    && lifecycleRegistry.ReleaseFailedCount == 0
+                    && firstEvidence.Handle.IsReleased
+                    && secondEvidence.Handle.IsReleased;
+                if (!lifecycleRegistryEvidenceOnly)
+                {
+                    _logger.Warning($"QA Bridge Lifecycle Registry Registration Smoke step failed. step='registry-evidence-only' lifecycleRegistry='{lifecycleRegistry.ToDiagnosticString()}' firstHandle='{firstEvidence.Handle.ToDiagnosticString()}' secondHandle='{secondEvidence.Handle.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, firstOwner, "lifecycle-registry-registration.1");
+                CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, secondOwner, "lifecycle-registry-registration.2");
+                firstRootCreated = false;
+                secondRootCreated = false;
+
+                _logger.Info(
+                    "QA Bridge Lifecycle Registry Registration Smoke step completed. "
+                    + $"step='unity-content-anchor-bridge-lifecycle-registry-registration' passed='True' materializeAll='{materializeAllResult.Status}' materialized='{materializeAllResult.MaterializedCount}' lifecycleRegisterFirst='{firstRegisterResult.Status}' lifecycleRegisterSecond='{secondRegisterResult.Status}' duplicateRegister='{duplicateRegisterResult.Status}' lifecycleEntries='{lifecycleRegistry.Count}' lifecycleActive='{lifecycleRegistry.ActiveCount}' lifecycleReleaseRequested='{lifecycleRegistry.ReleaseRequestedCount}' lifecycleReleased='{lifecycleRegistry.ReleasedCount}' bridgeReleaseAll='{releaseAllResult.Status}' bridgeReleased='{releaseAllResult.ReleasedCount}' bridgeRegistryEntries='{bridgeSet.RegistryEntries}' bridgeRegistryActive='{bridgeSet.RegistryActive}' bridgePhysicalReleaseRequests='{bridgeSet.PhysicalReleaseRequestedCount}' contentHandles='{contentHandlesAfterRelease}' bridgeSetMaterializationExplicit='{materializedExplicitly}' lifecycleRegistrationExplicit='{registeredIntoLifecycleRegistry}' duplicateRegistrationStable='{duplicateRegistrationStable}' lifecycleRegistryEvidenceOnly='{lifecycleRegistryEvidenceOnly}' lifecycleRegistryPhysicalRelease='False' lifecycleRegistryLogicalRuntimeContentRelease='False' lifecycleRegistryContentAnchorBindingCleanup='False' bridgeExplicitRelease='True' automaticLifecycleWiring='False' routeActivityAutoMaterialization='False' routeActivityAutoRelease='False' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.");
+                return true;
+            }
+            finally
+            {
+                DestroyBridgeSetSmokeObject(firstBridgeObject);
+                DestroyBridgeSetSmokeObject(secondBridgeObject);
+
+                if (setObject != null)
+                {
+                    Object.Destroy(setObject);
+                }
+
+                if (firstTemplate != null)
+                {
+                    Object.Destroy(firstTemplate);
+                }
+
+                if (secondTemplate != null)
+                {
+                    Object.Destroy(secondTemplate);
+                }
+
+                if (firstAnchorObject != null)
+                {
+                    Object.Destroy(firstAnchorObject);
+                }
+
+                if (secondAnchorObject != null)
+                {
+                    Object.Destroy(secondAnchorObject);
+                }
+
+                if (firstRootCreated)
+                {
+                    CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, firstOwner, "lifecycle-registry-registration.1");
+                }
+
+                if (secondRootCreated)
+                {
+                    CleanupBridgeSetSmokeOwner(runtimeHost, runtimeContentRuntime, secondOwner, "lifecycle-registry-registration.2");
+                }
+            }
         }
 
         private async void RunRuntimePrefabMaterializationSmoke()
@@ -4398,6 +4661,31 @@ private async void RunLocalContributionSmoke()
                     Object.Destroy(setObject);
                 }
             }
+        }
+
+        private static bool TryGetSingleActiveMaterializedEvidence(
+            UnityContentAnchorMaterializationBridge bridge,
+            out UnityRuntimeMaterializedObjectEvidence evidence)
+        {
+            evidence = null;
+            if (bridge == null)
+            {
+                return false;
+            }
+
+            int activeCount = 0;
+            foreach (var entry in bridge.Registry.Snapshot())
+            {
+                if (entry == null || !entry.HasLiveInstance || entry.PhysicalReleaseRequested || entry.Handle == null || !entry.Handle.IsMaterialized)
+                {
+                    continue;
+                }
+
+                evidence = entry;
+                activeCount++;
+            }
+
+            return activeCount == 1 && evidence != null;
         }
 
         private static bool HasParentedLiveInstance(UnityContentAnchorMaterializationBridge bridge, Transform expectedParent)

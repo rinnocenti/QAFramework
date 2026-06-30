@@ -46,6 +46,8 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Notes/F9R-J-Unity-ContentAnchor-Materialization-Diagnostics-Snapshot-Proof.md` — diagnostics snapshot proof; query-only snapshot with no runtime side effects.
 - `Notes/F9R-K-F9R-Closeout-Documentation-Sync.md` — F9R closeout and documentation sync.
 - `Notes/F9R-L-Unity-ContentAnchor-Materialization-Bridge-Set-Rollback-Proof.md` — bridge set partial materialization rollback proof; Closed / PASS.
+- `Notes/F9R-N-Lifecycle-Owned-Materialization-Registry-Contract-Proof.md` — lifecycle-owned materialization registry contract proof; Closed / PASS.
+- `Notes/F9R-O-Bridge-Lifecycle-Registry-Registration-Proof.md` — explicit bridge lifecycle registry registration proof; Ready for smoke.
 
 ### Setup
 
@@ -62,6 +64,8 @@ Documentos de setup do projeto consumidor.
 - [F9R-J — Unity ContentAnchor Materialization Diagnostics Snapshot Proof](Notes/F9R-J-Unity-ContentAnchor-Materialization-Diagnostics-Snapshot-Proof.md)
 - [F9R-K — F9R Closeout / Documentation Sync](Notes/F9R-K-F9R-Closeout-Documentation-Sync.md)
 - [F9R-L — Unity ContentAnchor Materialization Bridge Set Rollback Proof](Notes/F9R-L-Unity-ContentAnchor-Materialization-Bridge-Set-Rollback-Proof.md)
+- [F9R-N — Lifecycle-Owned Materialization Registry Contract Proof](Notes/F9R-N-Lifecycle-Owned-Materialization-Registry-Contract-Proof.md)
+- [F9R-O — Bridge Lifecycle Registry Registration Proof](Notes/F9R-O-Bridge-Lifecycle-Registry-Registration-Proof.md)
 
 Notas temporárias e achados de auditoria local.
 
@@ -148,7 +152,9 @@ F9R-L Unity ContentAnchor Materialization Bridge Set Rollback Proof: Closed / PA
 
 F9R-M Lifecycle-Owned Materialization Registry Plan: Accepted / Plan / docs-only, `Plans/F9R-M-PLAN-Lifecycle-Owned-Materialization-Registry.md`.
 
-F9R-N Lifecycle-Owned Materialization Registry Contract Proof: Ready for smoke, `Notes/F9R-N-Lifecycle-Owned-Materialization-Registry-Contract-Proof.md`.
+F9R-N Lifecycle-Owned Materialization Registry Contract Proof: Closed / PASS, `Notes/F9R-N-Lifecycle-Owned-Materialization-Registry-Contract-Proof.md`.
+
+F9R-O Bridge Lifecycle Registry Registration Proof: Ready for smoke, `Notes/F9R-O-Bridge-Lifecycle-Registry-Registration-Proof.md`.
 
 ## Regras
 
