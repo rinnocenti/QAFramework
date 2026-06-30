@@ -15,9 +15,15 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `ADRs/F24-ADR-UNITY-001-Implementation-Tracks.md`
 - `ADRs/F24-ADR-UNITY-002-Implementation-Workflow-And-QA-Workspace.md`
 - `ADRs/F24-ADR-UNITY-003-Project-And-Framework-Source-Boundary.md`
+- `ADRs/FXX-ADR-ARCH-0001-Architecture-Consolidation-Governance.md` - ARCH-0 Architecture Consolidation Governance; docs-only, no implementation selected.
+
+### Audits
+
+- `Audits/FXX-AUDIT-General-Architecture-Pattern-Review.md` - General Architecture Pattern Review feeding the ARCH consolidation roadmap.
 
 ### Plans
 
+- `Plans/FXX-PLAN-Architecture-Consolidation-Roadmap.md` - ARCH-0 roadmap for Architecture Consolidation Track; docs-only, internal/additive/smoke-parity governance.
 - `Plans/F24-PLAN-Unity-Build-Surface.md`
 - `Plans/F25-PLAN-Activity-Content-Scene-Composition.md`
 - `Plans/F26-PLAN-Activity-Discovery-And-Loading-Progress.md`

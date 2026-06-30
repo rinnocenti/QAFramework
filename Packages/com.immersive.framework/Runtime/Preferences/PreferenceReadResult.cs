@@ -23,15 +23,9 @@ namespace Immersive.Framework.Preferences
                 throw new ArgumentException("Preference read result requires a valid key.", nameof(key));
             }
 
-            if (!Enum.IsDefined(typeof(PreferenceValueKind), expectedKind) || expectedKind == PreferenceValueKind.Unknown)
-            {
-                throw new ArgumentOutOfRangeException(nameof(expectedKind), expectedKind, "Preference read expected kind must be explicit.");
-            }
+            FrameworkEnumValidation.ThrowIfUndefinedOr(expectedKind, PreferenceValueKind.Unknown, nameof(expectedKind), "Preference read expected kind must be explicit.");
 
-            if (!Enum.IsDefined(typeof(PreferenceReadStatus), status) || status == PreferenceReadStatus.Unknown)
-            {
-                throw new ArgumentOutOfRangeException(nameof(status), status, "Preference read status must be explicit.");
-            }
+            FrameworkEnumValidation.ThrowIfUndefinedOr(status, PreferenceReadStatus.Unknown, nameof(status), "Preference read status must be explicit.");
 
             if (status == PreferenceReadStatus.Found)
             {
@@ -80,8 +74,8 @@ namespace Immersive.Framework.Preferences
         public bool HasMessage => !string.IsNullOrWhiteSpace(Message);
 
         public bool IsValid => Key.IsValid
-            && ExpectedKind != PreferenceValueKind.Unknown
-            && Status != PreferenceReadStatus.Unknown
+            && FrameworkEnumValidation.IsDefinedAndNot(ExpectedKind, PreferenceValueKind.Unknown)
+            && FrameworkEnumValidation.IsDefinedAndNot(Status, PreferenceReadStatus.Unknown)
             && (Found && Value.IsValid && Value.Kind == ExpectedKind || !Found && !Value.IsValid);
 
         public bool Equals(PreferenceReadResult other)

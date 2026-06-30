@@ -56,7 +56,7 @@ namespace Immersive.Framework.ActivityFlow
             Reason = reason.NormalizeText();
             Message = message.NormalizeText();
 
-            _entries = CopyEntries(entries);
+            _entries = FrameworkCollectionCopy.ToArrayOrEmpty(entries);
             _requests = CopyRequests(requests, phase);
             _collectionIssues = CopyIssues(collectionIssues);
         }
@@ -75,11 +75,11 @@ namespace Immersive.Framework.ActivityFlow
 
         public ActivityContentExecutionPhasePlanStatus Status { get; }
 
-        public IReadOnlyList<ActivityContentExecutionParticipantEntry> Entries => _entries ?? Array.Empty<ActivityContentExecutionParticipantEntry>();
+        public IReadOnlyList<ActivityContentExecutionParticipantEntry> Entries => FrameworkCollectionCopy.IsNullOrEmpty(_entries) ? Array.Empty<ActivityContentExecutionParticipantEntry>() : _entries;
 
-        public IReadOnlyList<ActivityContentExecutionRequest> Requests => _requests ?? Array.Empty<ActivityContentExecutionRequest>();
+        public IReadOnlyList<ActivityContentExecutionRequest> Requests => FrameworkCollectionCopy.IsNullOrEmpty(_requests) ? Array.Empty<ActivityContentExecutionRequest>() : _requests;
 
-        private IReadOnlyList<ActivityContentExecutionParticipantCollectionIssue> CollectionIssues => _collectionIssues ?? Array.Empty<ActivityContentExecutionParticipantCollectionIssue>();
+        private IReadOnlyList<ActivityContentExecutionParticipantCollectionIssue> CollectionIssues => FrameworkCollectionCopy.IsNullOrEmpty(_collectionIssues) ? Array.Empty<ActivityContentExecutionParticipantCollectionIssue>() : _collectionIssues;
 
         private string Source { get; }
 
@@ -123,18 +123,7 @@ namespace Immersive.Framework.ActivityFlow
 
         public ActivityContentExecutionParticipantEntry[] SnapshotEntries()
         {
-            if (!HasEntries)
-            {
-                return Array.Empty<ActivityContentExecutionParticipantEntry>();
-            }
-
-            var snapshot = new ActivityContentExecutionParticipantEntry[EntryCount];
-            for (int i = 0; i < EntryCount; i++)
-            {
-                snapshot[i] = Entries[i];
-            }
-
-            return snapshot;
+            return FrameworkCollectionCopy.ToArrayOrEmpty(Entries);
         }
 
         public bool Equals(ActivityContentExecutionPhasePlan other)
@@ -393,20 +382,13 @@ namespace Immersive.Framework.ActivityFlow
 
         private static ActivityContentExecutionParticipantEntry[] CopyEntries(IReadOnlyList<ActivityContentExecutionParticipantEntry> source)
         {
-            if (source == null || source.Count == 0)
+            var copy = FrameworkCollectionCopy.ToArrayOrEmpty(source);
+            for (int i = 0; i < copy.Length; i++)
             {
-                return Array.Empty<ActivityContentExecutionParticipantEntry>();
-            }
-
-            var copy = new ActivityContentExecutionParticipantEntry[source.Count];
-            for (int i = 0; i < source.Count; i++)
-            {
-                if (!source[i].IsValid)
+                if (!copy[i].IsValid)
                 {
                     throw new ArgumentException("Activity content execution phase plan entries must be valid.", nameof(source));
                 }
-
-                copy[i] = source[i];
             }
 
             return copy;
@@ -414,15 +396,10 @@ namespace Immersive.Framework.ActivityFlow
 
         private static ActivityContentExecutionRequest[] CopyRequests(IReadOnlyList<ActivityContentExecutionRequest> source, ActivityContentExecutionPhase phase)
         {
-            if (source == null || source.Count == 0)
+            var copy = FrameworkCollectionCopy.ToArrayOrEmpty(source);
+            for (int i = 0; i < copy.Length; i++)
             {
-                return Array.Empty<ActivityContentExecutionRequest>();
-            }
-
-            var copy = new ActivityContentExecutionRequest[source.Count];
-            for (int i = 0; i < source.Count; i++)
-            {
-                var request = source[i];
+                var request = copy[i];
                 if (!request.IsValid)
                 {
                     throw new ArgumentException("Activity content execution phase plan requests must be valid.", nameof(source));
@@ -432,7 +409,6 @@ namespace Immersive.Framework.ActivityFlow
                 {
                     throw new ArgumentException("Activity content execution phase plan requests must match the plan phase.", nameof(source));
                 }
-
                 copy[i] = request;
             }
 

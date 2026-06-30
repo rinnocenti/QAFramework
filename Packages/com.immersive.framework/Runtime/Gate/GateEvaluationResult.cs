@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 
 namespace Immersive.Framework.Gate
 {
@@ -50,13 +51,13 @@ namespace Immersive.Framework.Gate
 
         public bool IsRejected => Decision.IsRejected;
 
-        public int BlockingBlockerCount => BlockingBlockers.Count;
+        public int BlockingBlockerCount => FrameworkIssueCounting.Count(BlockingBlockers);
 
-        public int FactCount => Facts.Count;
+        public int FactCount => FrameworkIssueCounting.Count(Facts);
 
-        public bool HasBlockingBlockers => BlockingBlockerCount > 0;
+        public bool HasBlockingBlockers => FrameworkIssueCounting.HasAny(BlockingBlockers);
 
-        public bool HasFacts => FactCount > 0;
+        public bool HasFacts => FrameworkIssueCounting.HasAny(Facts);
 
         public bool IsValid => Decision.IsValid;
 

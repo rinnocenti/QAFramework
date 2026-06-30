@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 using Immersive.Framework.Identity;
 
 namespace Immersive.Framework.Gate
@@ -16,27 +17,23 @@ namespace Immersive.Framework.Gate
 
         public GateSnapshot(IReadOnlyList<GateBlocker> blockers)
         {
-            if (blockers == null || blockers.Count == 0)
+            if (FrameworkCollectionCopy.IsNullOrEmpty(blockers))
             {
                 _blockers = Array.Empty<GateBlocker>();
                 return;
             }
 
-            var copy = new GateBlocker[blockers.Count];
-            for (int i = 0; i < blockers.Count; i++)
+            _blockers = FrameworkCollectionCopy.ToArrayOrEmpty(blockers);
+            for (int i = 0; i < _blockers.Length; i++)
             {
-                if (!blockers[i].IsValid)
+                if (!_blockers[i].IsValid)
                 {
                     throw new ArgumentException("Gate snapshot cannot contain invalid blockers.", nameof(blockers));
                 }
-
-                copy[i] = blockers[i];
             }
-
-            _blockers = copy;
         }
 
-        public IReadOnlyList<GateBlocker> Blockers => _blockers ?? Array.Empty<GateBlocker>();
+        public IReadOnlyList<GateBlocker> Blockers => FrameworkCollectionCopy.IsNullOrEmpty(_blockers) ? Array.Empty<GateBlocker>() : _blockers;
 
         public int BlockerCount => Blockers.Count;
 

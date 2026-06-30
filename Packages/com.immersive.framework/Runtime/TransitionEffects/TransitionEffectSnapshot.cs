@@ -34,20 +34,11 @@ namespace Immersive.Framework.TransitionEffects
                 throw new ArgumentException("Transition Effect snapshot requires a valid operation id.", nameof(operationId));
             }
 
-            if (!Enum.IsDefined(typeof(TransitionKind), transitionKind) || transitionKind == TransitionKind.Unknown)
-            {
-                throw new ArgumentOutOfRangeException(nameof(transitionKind), transitionKind, "Transition Effect snapshot transition kind must be explicit.");
-            }
+            FrameworkEnumValidation.ThrowIfUndefinedOr(transitionKind, TransitionKind.Unknown, nameof(transitionKind), "Transition Effect snapshot transition kind must be explicit.");
 
-            if (!Enum.IsDefined(typeof(TransitionPhase), currentPhase) || currentPhase == TransitionPhase.Unknown)
-            {
-                throw new ArgumentOutOfRangeException(nameof(currentPhase), currentPhase, "Transition Effect snapshot phase must be explicit.");
-            }
+            FrameworkEnumValidation.ThrowIfUndefinedOr(currentPhase, TransitionPhase.Unknown, nameof(currentPhase), "Transition Effect snapshot phase must be explicit.");
 
-            if (!Enum.IsDefined(typeof(TransitionEffectStatus), status) || status == TransitionEffectStatus.Unknown)
-            {
-                throw new ArgumentOutOfRangeException(nameof(status), status, "Transition Effect snapshot status must be explicit.");
-            }
+            FrameworkEnumValidation.ThrowIfUndefinedOr(status, TransitionEffectStatus.Unknown, nameof(status), "Transition Effect snapshot status must be explicit.");
 
             OperationId = operationId;
             TransitionKind = transitionKind;
@@ -109,9 +100,9 @@ namespace Immersive.Framework.TransitionEffects
         public bool HasFacts => FactCount > 0;
 
         public bool IsValid => OperationId.IsValid
-            && TransitionKind != TransitionKind.Unknown
-            && CurrentPhase != TransitionPhase.Unknown
-            && Status != TransitionEffectStatus.Unknown;
+            && FrameworkEnumValidation.IsDefinedAndNot(TransitionKind, TransitionKind.Unknown)
+            && FrameworkEnumValidation.IsDefinedAndNot(CurrentPhase, TransitionPhase.Unknown)
+            && FrameworkEnumValidation.IsDefinedAndNot(Status, TransitionEffectStatus.Unknown);
 
         public bool Equals(TransitionEffectSnapshot other)
         {

@@ -398,22 +398,12 @@ namespace Immersive.Framework.ActivityFlow
 
         private int SumBlockingIssues()
         {
-            if (_results == null || _results.Length == 0)
-            {
-                return 0;
-            }
-
-            return _results.Sum(t => t.BlockingIssueCount);
+            return FrameworkIssueCounting.Sum(_results, t => t.BlockingIssueCount);
         }
 
         private int SumNonBlockingIssues()
         {
-            if (_results == null || _results.Length == 0)
-            {
-                return 0;
-            }
-
-            return _results.Sum(t => t.NonBlockingIssueCount);
+            return FrameworkIssueCounting.Sum(_results, t => t.NonBlockingIssueCount);
         }
     }
 }

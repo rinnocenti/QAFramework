@@ -142,33 +142,30 @@ namespace Immersive.Framework.InputMode
 
         private int SumIssues(bool blockingOnly)
         {
-            int count = 0;
-            if (InputModeRequestResult != null)
+            if (blockingOnly)
             {
-                count += blockingOnly ? InputModeRequestResult.BlockingIssueCount : InputModeRequestResult.IssueCount;
+                return FrameworkIssueCounting.Sum(
+                    new[]
+                    {
+                        InputModeRequestResult == null ? 0 : InputModeRequestResult.BlockingIssueCount,
+                        ApplicationPreviewResult == null ? 0 : ApplicationPreviewResult.BlockingIssueCount,
+                        ActionMapPreviewResult == null ? 0 : ActionMapPreviewResult.BlockingIssueCount,
+                        ApplicationPlanResult == null ? 0 : ApplicationPlanResult.BlockingIssueCount,
+                        PlayerInputApplicationResult == null ? 0 : PlayerInputApplicationResult.BlockingIssueCount
+                    },
+                    value => value);
             }
 
-            if (ApplicationPreviewResult != null)
-            {
-                count += blockingOnly ? ApplicationPreviewResult.BlockingIssueCount : ApplicationPreviewResult.IssueCount;
-            }
-
-            if (ActionMapPreviewResult != null)
-            {
-                count += blockingOnly ? ActionMapPreviewResult.BlockingIssueCount : ActionMapPreviewResult.IssueCount;
-            }
-
-            if (ApplicationPlanResult != null)
-            {
-                count += blockingOnly ? ApplicationPlanResult.BlockingIssueCount : ApplicationPlanResult.IssueCount;
-            }
-
-            if (PlayerInputApplicationResult != null)
-            {
-                count += blockingOnly ? PlayerInputApplicationResult.BlockingIssueCount : PlayerInputApplicationResult.IssueCount;
-            }
-
-            return count;
+            return FrameworkIssueCounting.Sum(
+                new[]
+                {
+                    InputModeRequestResult == null ? 0 : InputModeRequestResult.IssueCount,
+                    ApplicationPreviewResult == null ? 0 : ApplicationPreviewResult.IssueCount,
+                    ActionMapPreviewResult == null ? 0 : ActionMapPreviewResult.IssueCount,
+                    ApplicationPlanResult == null ? 0 : ApplicationPlanResult.IssueCount,
+                    PlayerInputApplicationResult == null ? 0 : PlayerInputApplicationResult.IssueCount
+                },
+                value => value);
         }
     }
 }

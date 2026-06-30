@@ -60,29 +60,19 @@ namespace Immersive.Framework.Pause
 
         public IReadOnlyList<PauseIssue> Issues => _issues ?? Array.Empty<PauseIssue>();
 
-        public int IssueCount => Issues.Count;
+        public int IssueCount => FrameworkIssueCounting.Count(Issues);
 
         public int BlockingIssueCount
         {
             get
             {
-                int count = 0;
-                IReadOnlyList<PauseIssue> items = Issues;
-                for (int i = 0; i < items.Count; i++)
-                {
-                    if (items[i].BlocksRequest)
-                    {
-                        count++;
-                    }
-                }
-
-                return count;
+                return FrameworkIssueCounting.CountWhere(Issues, issue => issue.BlocksRequest);
             }
         }
 
-        public bool HasIssues => IssueCount > 0;
+        public bool HasIssues => FrameworkIssueCounting.HasAny(Issues);
 
-        public bool HasBlockingIssues => BlockingIssueCount > 0;
+        public bool HasBlockingIssues => FrameworkIssueCounting.HasAnyWhere(Issues, issue => issue.BlocksRequest);
 
         public bool Applied => Status == PauseRequestStatus.Applied;
 

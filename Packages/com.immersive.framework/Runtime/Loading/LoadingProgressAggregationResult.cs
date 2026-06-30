@@ -42,29 +42,20 @@ namespace Immersive.Framework.Loading
             Reason = Normalize(reason);
             Message = Normalize(message);
 
-            if (steps == null || steps.Count == 0)
+            _steps = FrameworkCollectionCopy.ToArrayOrEmpty(steps);
+            for (int i = 0; i < _steps.Length; i++)
             {
-                _steps = Array.Empty<LoadingStep>();
-            }
-            else
-            {
-                _steps = new LoadingStep[steps.Count];
-                for (int i = 0; i < steps.Count; i++)
+                var step = _steps[i];
+                if (!step.IsValid)
                 {
-                    var step = steps[i];
-                    if (!step.IsValid)
-                    {
-                        throw new ArgumentException("Loading progress aggregation cannot contain invalid steps.", nameof(steps));
-                    }
-
-                    _steps[i] = step;
+                    throw new ArgumentException("Loading progress aggregation cannot contain invalid steps.", nameof(steps));
                 }
             }
         }
 
         public LoadingOperationId OperationId { get; }
 
-        public IReadOnlyList<LoadingStep> Steps => _steps ?? Array.Empty<LoadingStep>();
+        public IReadOnlyList<LoadingStep> Steps => FrameworkCollectionCopy.IsNullOrEmpty(_steps) ? Array.Empty<LoadingStep>() : _steps;
 
         public LoadingProgress Progress { get; }
 
@@ -314,7 +305,7 @@ namespace Immersive.Framework.Loading
 
         private int CountByStatus(LoadingStepStatus status)
         {
-            if (_steps == null || _steps.Length == 0)
+            if (FrameworkCollectionCopy.IsNullOrEmpty(_steps))
             {
                 return 0;
             }
@@ -333,7 +324,7 @@ namespace Immersive.Framework.Loading
 
         private float SumWeightedCompleted()
         {
-            if (_steps == null || _steps.Length == 0)
+            if (FrameworkCollectionCopy.IsNullOrEmpty(_steps))
             {
                 return 0f;
             }
@@ -349,7 +340,7 @@ namespace Immersive.Framework.Loading
 
         private float SumWeightedTotal()
         {
-            if (_steps == null || _steps.Length == 0)
+            if (FrameworkCollectionCopy.IsNullOrEmpty(_steps))
             {
                 return 0f;
             }

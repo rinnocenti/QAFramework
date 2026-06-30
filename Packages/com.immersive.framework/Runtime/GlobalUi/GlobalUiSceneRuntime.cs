@@ -6,9 +6,9 @@ using Immersive.Framework.Diagnostics;
 using Immersive.Framework.Loading;
 using Immersive.Framework.Pause;
 using Immersive.Framework.TransitionEffects;
+using Immersive.Framework.Common;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Immersive.Framework.Common;
 
 namespace Immersive.Framework.GlobalUi
 {
@@ -20,9 +20,9 @@ namespace Immersive.Framework.GlobalUi
     [FrameworkApiStatus(FrameworkApiStatus.Internal, "F24E canonical UIGlobal scene loader; scene-authored visual surfaces only.")]
     internal sealed class GlobalUiSceneRuntime
     {
-        private readonly List<ITransitionEffectAdapter> _transitionAdapters;
-        private readonly List<ILoadingSurfaceAdapter> _loadingAdapters;
-        private readonly List<IPauseSurfaceAdapter> _pauseAdapters;
+        private readonly ITransitionEffectAdapter[] _transitionAdapters;
+        private readonly ILoadingSurfaceAdapter[] _loadingAdapters;
+        private readonly IPauseSurfaceAdapter[] _pauseAdapters;
 
         private GlobalUiSceneRuntime(
             GlobalUiScenePolicy policy,
@@ -42,9 +42,9 @@ namespace Immersive.Framework.GlobalUi
             SceneName = Normalize(sceneName);
             Label = label.NormalizeTextOrFallback("UIGlobal");
             PersistedRootCount = persistedRoots?.Count ?? 0;
-            _transitionAdapters = Copy(transitionAdapters);
-            _loadingAdapters = Copy(loadingAdapters);
-            _pauseAdapters = Copy(pauseAdapters);
+            _transitionAdapters = FrameworkCollectionCopy.ToArrayOrEmpty(transitionAdapters);
+            _loadingAdapters = FrameworkCollectionCopy.ToArrayOrEmpty(loadingAdapters);
+            _pauseAdapters = FrameworkCollectionCopy.ToArrayOrEmpty(pauseAdapters);
             HasBlockingConfigurationIssue = hasBlockingConfigurationIssue;
             BlockingConfigurationMessage = Normalize(blockingConfigurationMessage);
             Message = Normalize(message);
@@ -55,9 +55,9 @@ namespace Immersive.Framework.GlobalUi
         public string SceneName { get; }
         public string Label { get; }
         public int PersistedRootCount { get; }
-        public int TransitionAdapterCount => _transitionAdapters.Count;
-        public int LoadingAdapterCount => _loadingAdapters.Count;
-        public int PauseAdapterCount => _pauseAdapters.Count;
+        public int TransitionAdapterCount => _transitionAdapters.Length;
+        public int LoadingAdapterCount => _loadingAdapters.Length;
+        public int PauseAdapterCount => _pauseAdapters.Length;
         public bool HasBlockingConfigurationIssue { get; }
         public string BlockingConfigurationMessage { get; }
         public string Message { get; }
@@ -271,16 +271,6 @@ namespace Immersive.Framework.GlobalUi
             }
 
             return adapters;
-        }
-
-        private static List<T> Copy<T>(IReadOnlyList<T> source)
-        {
-            if (source == null || source.Count == 0)
-            {
-                return new List<T>();
-            }
-
-            return new List<T>(source);
         }
 
         private static string BuildBlockingMessageIfRequired(

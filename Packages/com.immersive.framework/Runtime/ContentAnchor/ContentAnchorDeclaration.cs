@@ -29,25 +29,16 @@ namespace Immersive.Framework.ContentAnchor
                 throw new ArgumentException("Content Anchor declaration owner must be explicit and valid.", nameof(owner));
             }
 
-            if (scope == ContentAnchorScope.Unknown)
-            {
-                throw new ArgumentOutOfRangeException(nameof(scope), scope, "Content Anchor declaration scope must be explicit.");
-            }
+            FrameworkEnumValidation.ThrowIfUndefinedOr(scope, ContentAnchorScope.Unknown, nameof(scope), "Content Anchor declaration scope must be explicit.");
 
-            if (kind == ContentAnchorKind.Unknown)
-            {
-                throw new ArgumentOutOfRangeException(nameof(kind), kind, "Content Anchor declaration kind must be explicit.");
-            }
+            FrameworkEnumValidation.ThrowIfUndefinedOr(kind, ContentAnchorKind.Unknown, nameof(kind), "Content Anchor declaration kind must be explicit.");
 
             if (!anchorId.IsValid)
             {
                 throw new ArgumentException("Content Anchor declaration id must be explicit and valid.", nameof(anchorId));
             }
 
-            if (!Enum.IsDefined(typeof(ContentAnchorRequiredness), requiredness))
-            {
-                throw new ArgumentOutOfRangeException(nameof(requiredness), requiredness, "Content Anchor declaration requiredness must be defined.");
-            }
+            FrameworkEnumValidation.ThrowIfUndefined(requiredness, nameof(requiredness), "Content Anchor declaration requiredness must be defined.");
 
             Owner = owner;
             Scope = scope;
@@ -79,8 +70,8 @@ namespace Immersive.Framework.ContentAnchor
         public string ResourcePath { get; }
 
         public bool IsValid => Owner.IsValid
-            && Scope != ContentAnchorScope.Unknown
-            && Kind != ContentAnchorKind.Unknown
+            && FrameworkEnumValidation.IsDefinedAndNot(Scope, ContentAnchorScope.Unknown)
+            && FrameworkEnumValidation.IsDefinedAndNot(Kind, ContentAnchorKind.Unknown)
             && AnchorId.IsValid;
 
         public bool IsRequired => Requiredness == ContentAnchorRequiredness.Required;

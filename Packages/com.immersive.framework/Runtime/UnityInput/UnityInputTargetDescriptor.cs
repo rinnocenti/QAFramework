@@ -49,10 +49,7 @@ namespace Immersive.Framework.UnityInput
                 throw new ArgumentException("Unity Input target descriptor requires a valid target id.", nameof(targetId));
             }
 
-            if (!Enum.IsDefined(typeof(UnityInputTargetRole), role) || role == UnityInputTargetRole.Unknown)
-            {
-                throw new ArgumentOutOfRangeException(nameof(role), role, "Unity Input target descriptor role must be explicit.");
-            }
+            FrameworkEnumValidation.ThrowIfUndefinedOr(role, UnityInputTargetRole.Unknown, nameof(role), "Unity Input target descriptor role must be explicit.");
 
             TargetId = targetId;
             Role = role;
@@ -83,7 +80,7 @@ namespace Immersive.Framework.UnityInput
 
         public string Reason { get; }
 
-        public bool IsValid => TargetId.IsValid && Role != UnityInputTargetRole.Unknown;
+        public bool IsValid => TargetId.IsValid && FrameworkEnumValidation.IsDefinedAndNot(Role, UnityInputTargetRole.Unknown);
 
         public bool Equals(UnityInputTargetDescriptor other)
         {
