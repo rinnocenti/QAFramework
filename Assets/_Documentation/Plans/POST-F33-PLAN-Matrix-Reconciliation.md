@@ -58,6 +58,7 @@ POST-F33-B keeps F34/gameplay unauthorized. It also keeps camera, audio, save/pr
 | F9R-O — Bridge Lifecycle Registry Registration Proof | Closed / PASS | Explicit bridge set materialization handles were registered into the lifecycle-owned registry. | F9R-N used synthetic handles only; bridge-created handles were not yet proven as lifecycle registry evidence. | Future release plan proof. Does not unlock consumers by itself. | Validated by QA smoke; no new ADR; implemented within accepted F9R-M plan. |
 | F9R-P — Lifecycle Materialization Registry Release Plan Proof | Closed / PASS | Adds and validates passive owner/scope release plan queries over lifecycle materialization registry entries. | F9R-O registered bridge evidence, but registry could not yet answer what needs release for an owner/scope. | Future explicit scope release execution proof. Does not unlock consumers by itself. | Validated by QA smoke; no new ADR; implemented within accepted F9R-M plan. |
 | F9R-Q — Lifecycle Materialization Registry Release Execution Proof | Closed / PASS | Adds and validates explicit release plan execution through a caller-provided RuntimeReleaseRequest executor. | F9R-P could plan release candidates but could not execute the plan. | Future decision about lifecycle-owned auto-release remains blocked until explicit approval. Does not unlock consumers by itself. | Validated by QA smoke; no new ADR; implemented within accepted F9R-M plan. |
+| F9R-R — Route/Activity Exit Auto-Release Decision | Accepted / Decision / docs-only | Rejects immediate Route/Activity auto-release and selects the composite release gap as the next hardening target. | F9R-Q proved explicit logical release execution but did not prove physical release or ContentAnchor binding cleanup from the lifecycle path. | Future composite lifecycle release executor proof. Does not unlock consumers by itself. | Decision accepted; no runtime/editor changes. |
 
 ## Immediate Rule
 
@@ -177,7 +178,28 @@ F9R-Q QA smoke validated plan execution, delegated logical RuntimeContent releas
 
 F9R-Q does not implement Route/Activity lifecycle integration, auto-materialization, auto-release, physical release adapter execution from lifecycle registry, ContentAnchor binding cleanup from lifecycle registry, Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay.
 
-Candidate next cut: `F9R-R - Route/Activity Exit Auto-Release Decision`. It remains unselected until explicitly requested.
+F9R-R has been selected as a docs-only decision and accepted. Immediate Route/Activity exit auto-release remains rejected.
+
+
+## F9R-R Decision Status
+
+`F9R-R - Route/Activity Exit Auto-Release Decision` is accepted as a docs-only decision after F9R-Q.
+
+Decision: Route/Activity exit auto-release is not approved for immediate wiring.
+
+Reason: F9R-Q proves explicit release plan execution through a caller-provided `RuntimeReleaseRequest` executor, but it intentionally leaves `physicalRelease='False'` and `contentAnchorBindingCleanup='False'`. Route/Activity exit cannot report cleanup success until logical RuntimeContent release, ContentAnchor binding cleanup and physical adapter/bridge release evidence are proven as one composite release path.
+
+Accepted rule:
+
+```text
+auto-release may come before auto-materialization
+but only for explicitly registered lifecycle-owned materialization entries
+and only after composite release is proven
+```
+
+F9R-R does not implement runtime code, editor code, scene changes, Route/Activity auto-release, Route/Activity auto-materialization, lifecycle runtime wiring, Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay.
+
+Recommended next cut: `F9R-S - Explicit Composite Lifecycle Release Executor Proof`.
 
 ## Superseded Prior Reading
 

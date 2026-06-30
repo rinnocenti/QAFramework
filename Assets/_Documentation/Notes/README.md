@@ -76,6 +76,7 @@ The individual note files were collapsed into this archive so the folder stays r
 | F9R-O | Closed / PASS | Explicit bridge set materialization handles were registered into a lifecycle-owned registry; lifecycle registry remains evidence-only and no Route/Activity wiring was introduced. |
 | F9R-P | Closed / PASS | Lifecycle materialization registry release plan proof validated by QA smoke; owner/scope plans are query-only and do not execute physical/logical release. |
 | F9R-Q | Closed / PASS | Explicit lifecycle registry release execution proof validated by QA smoke; delegates RuntimeReleaseRequest execution and mirrors results into lifecycle registry state without Route/Activity auto-release. |
+| F9R-R | Accepted / Decision / docs-only | Route/Activity exit auto-release decision; immediate wiring rejected until composite physical release, ContentAnchor cleanup and logical RuntimeContent release are proven together. |
 
 ## Consolidation Notes
 

@@ -58,6 +58,8 @@ Read the documentation in this order:
 | F9R-N | Lifecycle-Owned Materialization Registry Contract Proof | Closed / PASS |
 | F9R-O | Bridge Lifecycle Registry Registration Proof | Closed / PASS |
 | F9R-P | Lifecycle Materialization Registry Release Plan Proof | Closed / PASS |
+| F9R-Q | Lifecycle Materialization Registry Release Execution Proof | Closed / PASS |
+| F9R-R | Route/Activity Exit Auto-Release Decision | Accepted / Decision / docs-only |
 
 ## F8R-E Unity Prefab Runtime Materialization Adapter Proof
 
@@ -66,6 +68,35 @@ F8R-E implements the first explicit Unity physical adapter proof for RuntimeCont
 F8R-E does not implement ContentAnchor physical placement, Addressables, pooling, scene unload, actor spawn, PlayerInputManager join or gameplay/camera/audio/save consumers.
 
 Project note: `../../Assets/_Documentation/Notes/F8R-E-Unity-Prefab-Runtime-Materialization-Adapter-Proof.md`.
+
+
+## F9R-Q Lifecycle Materialization Registry Release Execution Proof
+
+F9R-Q is closed / PASS.
+
+It validates explicit lifecycle registry release execution through a caller-provided `RuntimeReleaseRequest` executor. It proves logical RuntimeContent release and lifecycle registry state update, while intentionally leaving physical release, ContentAnchor binding cleanup and Route/Activity auto-release disabled.
+
+Project note: `../../Assets/_Documentation/Notes/F9R-Q-Lifecycle-Materialization-Registry-Release-Execution-Proof.md`.
+
+## F9R-R Route/Activity Exit Auto-Release Decision
+
+F9R-R is accepted as a docs-only decision.
+
+Decision: immediate Route/Activity exit auto-release is rejected.
+
+Reason: the framework has proven lifecycle registry registration, release planning and explicit logical release execution, but has not yet proven a composite lifecycle path that performs physical adapter/bridge release, ContentAnchor binding cleanup and RuntimeContent logical release together.
+
+Accepted rule:
+
+```text
+auto-release may come before auto-materialization
+but only for explicitly registered lifecycle-owned materialization entries
+and only after composite release is proven
+```
+
+F9R-R does not implement runtime code, editor code, lifecycle wiring, Route/Activity auto-release, Route/Activity auto-materialization or any consumer.
+
+Project plan: `../../Assets/_Documentation/Plans/F9R-R-PLAN-Route-Activity-Exit-Auto-Release-Decision.md`.
 
 ## F23 Boundary
 
