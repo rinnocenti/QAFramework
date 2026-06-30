@@ -590,6 +590,11 @@ namespace Immersive.Framework.Diagnostics
                     RunLifecycleRegistryReleasePlanSmoke();
                 }
 
+                if (GUILayout.Button("Run Lifecycle Registry Release Execution Smoke"))
+                {
+                    RunLifecycleRegistryReleaseExecutionSmoke();
+                }
+
                 if (GUILayout.Button("Run Runtime Prefab Materialization Smoke"))
                 {
                     RunRuntimePrefabMaterializationSmoke();
@@ -2294,6 +2299,203 @@ private async void RunLocalContributionSmoke()
                 "QA Lifecycle Registry Release Plan Smoke step completed. "
                 + $"step='lifecycle-materialization-registry-release-plan' passed='True' ownerPlan='{ownerPlan.Status}' ownerRequests='{ownerPlan.RequestCount}' ownerTotalEntries='{ownerPlan.TotalEntries}' ownerActiveCandidates='{ownerPlan.ActiveCandidates}' ownerReleaseFailedCandidates='{ownerPlan.ReleaseFailedCandidates}' ownerSkippedReleaseRequested='{ownerPlan.SkippedReleaseRequested}' ownerSkippedReleased='{ownerPlan.SkippedReleased}' repeatedPlanStable='{repeatedPlanStable}' scopePlan='{scopePlan.Status}' scopeRequests='{scopePlan.RequestCount}' scopeTotalEntries='{scopePlan.TotalEntries}' scopeActiveCandidates='{scopePlan.ActiveCandidates}' scopeReleaseFailedCandidates='{scopePlan.ReleaseFailedCandidates}' scopeSkippedReleaseRequested='{scopePlan.SkippedReleaseRequested}' scopeSkippedReleased='{scopePlan.SkippedReleased}' emptyPlan='{emptyPlan.Status}' emptyRequests='{emptyPlan.RequestCount}' entries='{registry.Count}' active='{registry.ActiveCount}' releaseRequested='{registry.ReleaseRequestedCount}' released='{registry.ReleasedCount}' releaseFailed='{registry.ReleaseFailedCount}' releasePlanQueryOnly='True' releaseExecution='False' physicalRelease='False' logicalRuntimeContentRelease='False' contentAnchorBindingCleanup='False' explicitSubmit='True' automaticLifecycleWiring='False' routeActivityAutoMaterialization='False' routeActivityAutoRelease='False' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.");
             return true;
+        }
+
+        private async void RunLifecycleRegistryReleaseExecutionSmoke()
+        {
+            await RunSmokeAsync("Lifecycle Registry Release Execution Smoke", runtimeHost =>
+                Task.FromResult(RunLifecycleRegistryReleaseExecutionSmokeCore(runtimeHost)));
+        }
+
+        private bool RunLifecycleRegistryReleaseExecutionSmokeCore(FrameworkRuntimeHost runtimeHost)
+        {
+            var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
+            if (runtimeContentRuntime == null)
+            {
+                _logger.Warning("QA Lifecycle Registry Release Execution Smoke failed. reason='RuntimeContentRuntime unavailable'.");
+                return false;
+            }
+
+            var registry = new LifecycleMaterializationRegistry();
+            RuntimeContentOwner owner = default(RuntimeContentOwner);
+            RuntimeScopeContext context = default(RuntimeScopeContext);
+            bool rootCreated = false;
+
+            string unique = Guid.NewGuid().ToString("N");
+            owner = RuntimeContentOwner.Transient(
+                "qa.lifecycle-release-execution.owner." + unique,
+                "QA Lifecycle Registry Release Execution Smoke Owner");
+
+            try
+            {
+                var createRoot = runtimeContentRuntime.CreateScopeRoot(
+                    owner,
+                    QaSource,
+                    "qa.lifecycle-release-execution.root.create");
+                rootCreated = createRoot.Applied || createRoot.Status == RuntimeRootRegistryOperationStatus.RootAlreadyExists;
+                bool contextCreated = runtimeContentRuntime.TryCreateScopeContext(
+                    owner,
+                    QaSource,
+                    "qa.lifecycle-release-execution.context",
+                    out context);
+                if (!rootCreated || !contextCreated || !context.IsValid)
+                {
+                    _logger.Warning($"QA Lifecycle Registry Release Execution Smoke step failed. step='scope' root='{createRoot.ToDiagnosticString()}' contextValid='{context.IsValid}'.");
+                    return false;
+                }
+
+                var firstIdentity = context.CreateIdentity(RuntimeContentId.From("qa.lifecycle-release-execution.content.1"));
+                var secondIdentity = context.CreateIdentity(RuntimeContentId.From("qa.lifecycle-release-execution.content.2"));
+                var firstHandle = RuntimeContentHandle.Materialized(
+                    firstIdentity,
+                    QaSource,
+                    "qa.lifecycle-release-execution.handle.1");
+                var secondHandle = RuntimeContentHandle.Materialized(
+                    secondIdentity,
+                    QaSource,
+                    "qa.lifecycle-release-execution.handle.2");
+
+                var firstRuntimeRegister = runtimeContentRuntime.RegisterHandle(
+                    context,
+                    firstHandle,
+                    QaSource,
+                    "qa.lifecycle-release-execution.runtime-register.1");
+                var secondRuntimeRegister = runtimeContentRuntime.RegisterHandle(
+                    context,
+                    secondHandle,
+                    QaSource,
+                    "qa.lifecycle-release-execution.runtime-register.2");
+                var firstLifecycleRegister = registry.Register(
+                    firstHandle,
+                    QaSource,
+                    "qa.lifecycle-release-execution.lifecycle-register.1");
+                var secondLifecycleRegister = registry.Register(
+                    secondHandle,
+                    QaSource,
+                    "qa.lifecycle-release-execution.lifecycle-register.2");
+                bool registered = firstRuntimeRegister.Applied
+                    && secondRuntimeRegister.Applied
+                    && firstLifecycleRegister.Succeeded
+                    && secondLifecycleRegister.Succeeded
+                    && runtimeContentRuntime.SnapshotHandles(context).Length == 2
+                    && registry.Count == 2
+                    && registry.ActiveCount == 2
+                    && firstHandle.IsMaterialized
+                    && secondHandle.IsMaterialized;
+                if (!registered)
+                {
+                    _logger.Warning($"QA Lifecycle Registry Release Execution Smoke step failed. step='register' firstRuntime='{firstRuntimeRegister.ToDiagnosticString()}' secondRuntime='{secondRuntimeRegister.ToDiagnosticString()}' firstLifecycle='{firstLifecycleRegister.ToDiagnosticString()}' secondLifecycle='{secondLifecycleRegister.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var plan = registry.CreateReleasePlan(
+                    owner,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    QaSource,
+                    "qa.lifecycle-release-execution.plan");
+                bool planReady = plan.Succeeded
+                    && plan.Status == LifecycleMaterializationReleasePlanStatus.SucceededPlanned
+                    && plan.RequestCount == 2
+                    && plan.ActiveCandidates == 2
+                    && plan.ReleaseFailedCandidates == 0
+                    && plan.SkippedReleaseRequested == 0
+                    && plan.SkippedReleased == 0
+                    && plan.ExecutesRelease == false;
+                if (!planReady)
+                {
+                    _logger.Warning($"QA Lifecycle Registry Release Execution Smoke step failed. step='plan' plan='{plan.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var execution = registry.ExecuteReleasePlan(
+                    plan,
+                    request => runtimeContentRuntime.ReleaseHandleLogically(
+                        request,
+                        QaSource,
+                        "qa.lifecycle-release-execution.execute.logical-release"),
+                    QaSource,
+                    "qa.lifecycle-release-execution.execute");
+                bool executed = execution.Succeeded
+                    && execution.Status == LifecycleMaterializationReleaseExecutionStatus.SucceededReleasedAll
+                    && execution.RequestCount == 2
+                    && execution.ReleaseRequested == 2
+                    && execution.Released == 2
+                    && execution.ReleaseFailed == 0
+                    && execution.MissingEntries == 0
+                    && execution.ReleaseResultCount == 2
+                    && execution.RegistryResultCount == 4
+                    && execution.ExecutesRelease
+                    && execution.PerformsLogicalRuntimeContentRelease
+                    && !execution.PerformsPhysicalRelease
+                    && !execution.PerformsContentAnchorBindingCleanup
+                    && registry.Count == 2
+                    && registry.ActiveCount == 0
+                    && registry.ReleaseRequestedCount == 0
+                    && registry.ReleasedCount == 2
+                    && registry.ReleaseFailedCount == 0
+                    && firstHandle.IsReleased
+                    && secondHandle.IsReleased
+                    && runtimeContentRuntime.SnapshotHandles(context).Length == 0;
+                if (!executed)
+                {
+                    _logger.Warning($"QA Lifecycle Registry Release Execution Smoke step failed. step='execute' execution='{execution.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}' firstHandle='{firstHandle.ToDiagnosticString()}' secondHandle='{secondHandle.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                var repeatedPlan = registry.CreateReleasePlan(
+                    owner,
+                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                    QaSource,
+                    "qa.lifecycle-release-execution.plan.repeated");
+                var repeatedExecution = registry.ExecuteReleasePlan(
+                    repeatedPlan,
+                    request => runtimeContentRuntime.ReleaseHandleLogically(
+                        request,
+                        QaSource,
+                        "qa.lifecycle-release-execution.execute.repeated"),
+                    QaSource,
+                    "qa.lifecycle-release-execution.execute.repeated");
+                bool repeatedEmpty = repeatedPlan.Succeeded
+                    && repeatedPlan.Status == LifecycleMaterializationReleasePlanStatus.SucceededEmpty
+                    && repeatedPlan.RequestCount == 0
+                    && repeatedExecution.Succeeded
+                    && repeatedExecution.Status == LifecycleMaterializationReleaseExecutionStatus.SucceededNoRequests
+                    && repeatedExecution.RequestCount == 0
+                    && repeatedExecution.ReleaseResultCount == 0
+                    && registry.ReleasedCount == 2
+                    && runtimeContentRuntime.SnapshotHandles(context).Length == 0;
+                if (!repeatedEmpty)
+                {
+                    _logger.Warning($"QA Lifecycle Registry Release Execution Smoke step failed. step='repeated-empty' plan='{repeatedPlan.ToDiagnosticString()}' execution='{repeatedExecution.ToDiagnosticString()}' registry='{registry.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                bool boundariesPreserved = execution.PerformsPhysicalRelease == false
+                    && execution.PerformsContentAnchorBindingCleanup == false
+                    && repeatedExecution.PerformsPhysicalRelease == false
+                    && repeatedExecution.PerformsContentAnchorBindingCleanup == false;
+                if (!boundariesPreserved)
+                {
+                    _logger.Warning($"QA Lifecycle Registry Release Execution Smoke step failed. step='boundaries' execution='{execution.ToDiagnosticString()}' repeated='{repeatedExecution.ToDiagnosticString()}'.");
+                    return false;
+                }
+
+                _logger.Info(
+                    "QA Lifecycle Registry Release Execution Smoke step completed. "
+                    + $"step='lifecycle-materialization-registry-release-execution' passed='True' plan='{plan.Status}' planRequests='{plan.RequestCount}' execution='{execution.Status}' executedRequests='{execution.RequestCount}' releaseRequested='{execution.ReleaseRequested}' released='{execution.Released}' releaseFailed='{execution.ReleaseFailed}' missingEntries='{execution.MissingEntries}' releaseResults='{execution.ReleaseResultCount}' registryResults='{execution.RegistryResultCount}' repeatedPlan='{repeatedPlan.Status}' repeatedExecution='{repeatedExecution.Status}' repeatedRequests='{repeatedExecution.RequestCount}' entries='{registry.Count}' active='{registry.ActiveCount}' registryReleaseRequested='{registry.ReleaseRequestedCount}' registryReleased='{registry.ReleasedCount}' registryReleaseFailed='{registry.ReleaseFailedCount}' runtimeHandles='{runtimeContentRuntime.SnapshotHandles(context).Length}' firstHandleReleased='{firstHandle.IsReleased}' secondHandleReleased='{secondHandle.IsReleased}' explicitSubmit='True' releaseExecution='True' physicalRelease='False' logicalRuntimeContentRelease='True' contentAnchorBindingCleanup='False' automaticLifecycleWiring='False' routeActivityAutoMaterialization='False' routeActivityAutoRelease='False' addressables='False' pooling='False' actorSpawn='False' playerJoin='False' gameplayConsumer='False' cameraConsumer='False' audioConsumer='False' saveConsumer='False'.");
+                return true;
+            }
+            finally
+            {
+                if (rootCreated && owner.IsValid)
+                {
+                    CleanupBridgeSetSmokeOwner(
+                        runtimeHost,
+                        runtimeContentRuntime,
+                        owner,
+                        "lifecycle-release-execution");
+                }
+            }
         }
 
         private async void RunRuntimePrefabMaterializationSmoke()

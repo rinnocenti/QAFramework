@@ -657,3 +657,26 @@ F9R-P plans release candidates for entries in `Active` or `ReleaseFailed` state,
 
 F9R-P does not execute physical release, logical RuntimeContent release, ContentAnchor binding cleanup, lifecycle release execution, Route/Activity lifecycle integration, auto-release, auto-materialization, Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay consumers.
 
+
+## F9R-Q — Lifecycle Materialization Registry Release Execution Proof
+
+Status: Closed / PASS.
+
+F9R-Q adds explicit lifecycle-owned release plan execution. The registry receives a `LifecycleMaterializationReleasePlan` and a caller-provided runtime release executor, delegates each `RuntimeReleaseRequest`, and mirrors success/failure back into lifecycle registry entry state.
+
+The proof path is explicit only:
+
+```text
+registered lifecycle materialization evidence
+  -> owner release plan query
+  -> explicit ExecuteReleasePlan
+  -> delegated RuntimeReleaseRequest executor
+  -> lifecycle registry Released / ReleaseFailed state
+```
+
+- `Assets/_Documentation/Notes/F9R-Q-Lifecycle-Materialization-Registry-Release-Execution-Proof.md`
+
+QA smoke validated explicit execution with `passed='True'`, `execution='SucceededReleasedAll'`, `executedRequests='2'`, `released='2'`, `runtimeHandles='0'`, `logicalRuntimeContentRelease='True'`, `physicalRelease='False'`, `contentAnchorBindingCleanup='False'`, `automaticLifecycleWiring='False'`, `routeActivityAutoMaterialization='False'` and `routeActivityAutoRelease='False'`.
+
+F9R-Q does not implement physical release from lifecycle registry, ContentAnchor binding cleanup, Route/Activity lifecycle integration, Route/Activity auto-release, Route/Activity auto-materialization, Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay consumers.
+

@@ -164,6 +164,133 @@ namespace Immersive.Framework.RuntimeContent
                 entry => entry.Scope == scope);
         }
 
+
+        public LifecycleMaterializationReleaseExecutionResult ExecuteReleasePlan(
+            LifecycleMaterializationReleasePlan plan,
+            Func<RuntimeReleaseRequest, RuntimeReleaseResult> releaseExecutor,
+            string source,
+            string reason)
+        {
+            if (!IsReleasePlanValid(plan))
+            {
+                return LifecycleMaterializationReleaseExecutionResult.InvalidPlan(
+                    plan,
+                    source,
+                    reason,
+                    "Lifecycle materialization release execution rejected an invalid or non-successful release plan.");
+            }
+
+            if (releaseExecutor == null)
+            {
+                throw new ArgumentNullException(nameof(releaseExecutor));
+            }
+
+            if (!plan.HasRequests)
+            {
+                return new LifecycleMaterializationReleaseExecutionResult(
+                    plan,
+                    LifecycleMaterializationReleaseExecutionStatus.SucceededNoRequests,
+                    Array.Empty<RuntimeReleaseResult>(),
+                    Array.Empty<LifecycleMaterializationRegistryOperationResult>(),
+                    0,
+                    0,
+                    0,
+                    0,
+                    source,
+                    reason,
+                    "Lifecycle materialization release execution skipped an empty release plan.");
+            }
+
+            var releaseResults = new List<RuntimeReleaseResult>();
+            var registryResults = new List<LifecycleMaterializationRegistryOperationResult>();
+            int releaseRequested = 0;
+            int released = 0;
+            int releaseFailed = 0;
+            int missingEntries = 0;
+
+            RuntimeReleaseRequest[] requests = plan.SnapshotRequests();
+            for (int i = 0; i < requests.Length; i++)
+            {
+                RuntimeReleaseRequest request = requests[i];
+                var requestResult = RequestRelease(
+                    request.Identity,
+                    source,
+                    reason);
+                registryResults.Add(requestResult);
+
+                if (requestResult.Failed)
+                {
+                    if (requestResult.Status == LifecycleMaterializationRegistryOperationStatus.RejectedMissingEntry)
+                    {
+                        missingEntries++;
+                    }
+
+                    releaseFailed++;
+                    continue;
+                }
+
+                releaseRequested++;
+
+                RuntimeReleaseResult releaseResult = ExecuteReleaseRequest(
+                    request,
+                    releaseExecutor,
+                    source,
+                    reason);
+                releaseResults.Add(releaseResult);
+
+                LifecycleMaterializationRegistryOperationResult registryResult;
+                if (releaseResult.Succeeded)
+                {
+                    registryResult = MarkReleased(
+                        request.Identity,
+                        source,
+                        reason);
+                    if (registryResult.Succeeded)
+                    {
+                        released++;
+                    }
+                    else
+                    {
+                        releaseFailed++;
+                    }
+                }
+                else
+                {
+                    registryResult = MarkReleaseFailed(
+                        request.Identity,
+                        source,
+                        reason,
+                        releaseResult.Message);
+                    releaseFailed++;
+                }
+
+                registryResults.Add(registryResult);
+            }
+
+            var status = releaseFailed == 0
+                && missingEntries == 0
+                && released == requests.Length
+                ? LifecycleMaterializationReleaseExecutionStatus.SucceededReleasedAll
+                : LifecycleMaterializationReleaseExecutionStatus.FailedPartialRelease;
+
+            string message = status == LifecycleMaterializationReleaseExecutionStatus.SucceededReleasedAll
+                ? "Lifecycle materialization release plan executed explicitly and all entries were marked released."
+                : "Lifecycle materialization release plan execution completed with one or more failures.";
+
+            return new LifecycleMaterializationReleaseExecutionResult(
+                plan,
+                status,
+                releaseResults.ToArray(),
+                registryResults.ToArray(),
+                releaseRequested,
+                released,
+                releaseFailed,
+                missingEntries,
+                source,
+                reason,
+                message);
+        }
+
         public bool TryGet(RuntimeContentIdentity identity, out LifecycleMaterializedEntry entry)
         {
             ValidateIdentity(identity);
@@ -310,6 +437,53 @@ namespace Immersive.Framework.RuntimeContent
                 policy,
                 source,
                 reason);
+        }
+
+
+        private static RuntimeReleaseResult ExecuteReleaseRequest(
+            RuntimeReleaseRequest request,
+            Func<RuntimeReleaseRequest, RuntimeReleaseResult> releaseExecutor,
+            string source,
+            string reason)
+        {
+            try
+            {
+                var releaseResult = releaseExecutor(request);
+                if (!releaseResult.Request.IsValid || releaseResult.Identity != request.Identity)
+                {
+                    return RuntimeReleaseResult.Failure(
+                        request,
+                        RuntimeReleaseStatus.FailedInvalidRequest,
+                        null,
+                        RuntimeContentState.Unknown,
+                        RuntimeContentState.Unknown,
+                        source,
+                        reason,
+                        "Lifecycle materialization release executor returned an invalid or mismatched runtime release result.");
+                }
+
+                return releaseResult;
+            }
+            catch (Exception exception)
+            {
+                return RuntimeReleaseResult.AdapterFailure(
+                    request,
+                    source,
+                    reason,
+                    $"Lifecycle materialization release executor threw exception='{exception.GetType().Name}' message='{exception.Message}'.");
+            }
+        }
+
+        private static bool IsReleasePlanValid(LifecycleMaterializationReleasePlan plan)
+        {
+            return plan.Succeeded
+                && Enum.IsDefined(typeof(LifecycleMaterializationReleasePlanTargetKind), plan.TargetKind)
+                && plan.TargetKind != LifecycleMaterializationReleasePlanTargetKind.Unknown
+                && Enum.IsDefined(typeof(RuntimeContentScope), plan.Scope)
+                && plan.Scope != RuntimeContentScope.Unknown
+                && Enum.IsDefined(typeof(RuntimeReleasePolicy), plan.Policy)
+                && plan.Policy != RuntimeReleasePolicy.Unknown
+                && plan.RequestCount == plan.ActiveCandidates + plan.ReleaseFailedCandidates;
         }
 
         private int CountByState(LifecycleMaterializationEntryState state)

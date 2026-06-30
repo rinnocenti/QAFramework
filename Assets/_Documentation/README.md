@@ -68,6 +68,7 @@ Documentos de setup do projeto consumidor.
 - [F9R-N — Lifecycle-Owned Materialization Registry Contract Proof](Notes/F9R-N-Lifecycle-Owned-Materialization-Registry-Contract-Proof.md)
 - [F9R-O — Bridge Lifecycle Registry Registration Proof](Notes/F9R-O-Bridge-Lifecycle-Registry-Registration-Proof.md)
 - [F9R-P — Lifecycle Materialization Registry Release Plan Proof](Notes/F9R-P-Lifecycle-Materialization-Registry-Release-Plan-Proof.md)
+- [F9R-Q — Lifecycle Materialization Registry Release Execution Proof](Notes/F9R-Q-Lifecycle-Materialization-Registry-Release-Execution-Proof.md)
 
 Notas temporárias e achados de auditoria local.
 
@@ -159,6 +160,8 @@ F9R-N Lifecycle-Owned Materialization Registry Contract Proof: Closed / PASS, `N
 F9R-O Bridge Lifecycle Registry Registration Proof: Closed / PASS, `Notes/F9R-O-Bridge-Lifecycle-Registry-Registration-Proof.md`.
 
 F9R-P Lifecycle Materialization Registry Release Plan Proof: Closed / PASS, `Notes/F9R-P-Lifecycle-Materialization-Registry-Release-Plan-Proof.md`.
+
+F9R-Q Lifecycle Materialization Registry Release Execution Proof: Closed / PASS, `Notes/F9R-Q-Lifecycle-Materialization-Registry-Release-Execution-Proof.md`.
 
 ## Regras
 

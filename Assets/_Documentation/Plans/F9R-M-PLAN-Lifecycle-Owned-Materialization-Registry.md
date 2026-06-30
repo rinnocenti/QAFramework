@@ -133,8 +133,9 @@ F9R-M does not select implementation automatically. If selected explicitly later
 |---|---|---|
 | F9R-N — Lifecycle-Owned Registry Contract Proof | Runtime implementation proof | Add a minimal registry contract/result model without Route/Activity auto-wiring. |
 | F9R-O — Explicit Bridge Registration Into Lifecycle Registry Proof | Runtime/QA proof | Let explicit bridge materialization register entries into a lifecycle-owned registry while preserving explicit submit/release. |
-| F9R-P — Lifecycle Registry Scope Release Smoke | Runtime/QA proof | Prove registry-owned release by owner/scope with no auto-materialization. |
-| F9R-Q — Route/Activity Release Integration Plan | Plan / ADR | Decide whether lifecycle exit may call registry release before logical root removal. |
+| F9R-P — Lifecycle Registry Release Plan Proof | Runtime/QA proof | Prove passive owner/scope release plan queries with no release execution. |
+| F9R-Q — Lifecycle Registry Release Execution Proof | Runtime/QA proof | Prove explicit execution of a release plan through a caller-provided runtime release executor. |
+| F9R-R — Route/Activity Exit Auto-Release Decision | Plan / ADR | Decide whether lifecycle exit may call registry release before logical root removal. |
 
 ## Decision
 

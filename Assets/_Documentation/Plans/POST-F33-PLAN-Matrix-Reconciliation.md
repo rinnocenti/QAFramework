@@ -57,6 +57,7 @@ POST-F33-B keeps F34/gameplay unauthorized. It also keeps camera, audio, save/pr
 | F9R-N — Lifecycle-Owned Materialization Registry Contract Proof | Closed / PASS | Minimal contract implementation after F9R-M. Adds lifecycle-owned registry/entry/result/status contracts and QA smoke. | Missing typed registry contract for lifecycle-owned materialization evidence. | Future explicit bridge registration into lifecycle registry and later release planning. Does not unlock consumers by itself. | Validated by QA smoke; no new ADR; implemented within accepted F9R-M plan. |
 | F9R-O — Bridge Lifecycle Registry Registration Proof | Closed / PASS | Explicit bridge set materialization handles were registered into the lifecycle-owned registry. | F9R-N used synthetic handles only; bridge-created handles were not yet proven as lifecycle registry evidence. | Future release plan proof. Does not unlock consumers by itself. | Validated by QA smoke; no new ADR; implemented within accepted F9R-M plan. |
 | F9R-P — Lifecycle Materialization Registry Release Plan Proof | Closed / PASS | Adds and validates passive owner/scope release plan queries over lifecycle materialization registry entries. | F9R-O registered bridge evidence, but registry could not yet answer what needs release for an owner/scope. | Future explicit scope release execution proof. Does not unlock consumers by itself. | Validated by QA smoke; no new ADR; implemented within accepted F9R-M plan. |
+| F9R-Q — Lifecycle Materialization Registry Release Execution Proof | Closed / PASS | Adds and validates explicit release plan execution through a caller-provided RuntimeReleaseRequest executor. | F9R-P could plan release candidates but could not execute the plan. | Future decision about lifecycle-owned auto-release remains blocked until explicit approval. Does not unlock consumers by itself. | Validated by QA smoke; no new ADR; implemented within accepted F9R-M plan. |
 
 ## Immediate Rule
 
@@ -166,7 +167,17 @@ F9R-P QA smoke validated owner-targeted plan generation, scope-targeted plan gen
 
 F9R-P does not implement Route/Activity lifecycle integration, auto-materialization, auto-release, lifecycle release execution, physical release adapter execution from lifecycle registry, logical RuntimeContent release from lifecycle registry, ContentAnchor binding cleanup from lifecycle registry, Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay.
 
-Candidate next cut: `F9R-Q - Explicit Lifecycle Registry Release Execution Proof`. It remains unselected until explicitly requested.
+## F9R-Q Implementation Status
+
+`F9R-Q - Lifecycle Materialization Registry Release Execution Proof` is closed / PASS as the implementation after F9R-P.
+
+It adds explicit execution of a `LifecycleMaterializationReleasePlan` through a caller-provided runtime release executor. The registry requests release on lifecycle entries, delegates `RuntimeReleaseRequest` execution, then records `Released` or `ReleaseFailed` state based on the delegated result.
+
+F9R-Q QA smoke validated plan execution, delegated logical RuntimeContent release, lifecycle entry state update, stable repeated empty planning/execution and all no-physical-release/no-binding-cleanup/no-auto-wiring/no-consumer guards. The smoke completed with `passed='True'`, `execution='SucceededReleasedAll'`, `executedRequests='2'`, `released='2'`, `runtimeHandles='0'`, `firstHandleReleased='True'`, `secondHandleReleased='True'`, `logicalRuntimeContentRelease='True'`, `physicalRelease='False'`, `contentAnchorBindingCleanup='False'`, `automaticLifecycleWiring='False'`, `routeActivityAutoMaterialization='False'` and `routeActivityAutoRelease='False'`.
+
+F9R-Q does not implement Route/Activity lifecycle integration, auto-materialization, auto-release, physical release adapter execution from lifecycle registry, ContentAnchor binding cleanup from lifecycle registry, Pause, camera, audio, save/progression, pooling/runtime-spawned, actor materialization, player join, F34 or gameplay.
+
+Candidate next cut: `F9R-R - Route/Activity Exit Auto-Release Decision`. It remains unselected until explicitly requested.
 
 ## Superseded Prior Reading
 
