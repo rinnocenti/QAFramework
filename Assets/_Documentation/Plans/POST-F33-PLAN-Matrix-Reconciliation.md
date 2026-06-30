@@ -289,3 +289,26 @@ F10B deliberately does not materialize Pause UI, bind ContentAnchors, register l
 F10B smoke validated `passed=True`, `validContract=True`, `invalidRejected=True`, `prefabRecorded=True`, `resourceRecorded=True`, `pauseConsumerSelected=True`, while keeping `materialization=False`, `inputModeChange=False`, `timeScalePolicy=False`, `automaticLifecycleWiring=False`, `routeActivityAutoMaterialization=False` and `routeActivityAutoRelease=False`.
 
 Next candidate: `F10C - Pause ContentAnchor Binding Request Proof`.
+
+
+## F10C Implementation Status
+
+`F10C - Pause ContentAnchor Binding Request Proof` is closed / PASS as the next implementation after F10B.
+
+It extends the Pause visual surface contract so the contract now carries the canonical `ContentAnchor` owner in addition to anchor scope, kind and id. This is required because a binding target is not complete without owner identity.
+
+F10C adds request-only conversion from `PauseVisualSurfaceContract` to `ContentAnchorBindingRequest` through `PauseVisualSurfaceBindingRequestFactory`. The resulting request correlates:
+
+```text
+Pause visual RuntimeContent identity
++ Pause visual resource descriptor
++ ContentAnchor scope/owner/kind/id
+```
+
+F10C smoke validated `passed=True`, `bindingRequest=SucceededCreated`, `mismatchedContext=RejectedMismatchedRuntimeOwner`, `anchorOwnerRecorded=True`, `requestMatchesPauseContract=True` and `requestMatchesAnchorRequirement=True`, while preserving `bindingExecution=False`, `materialization=False`, `inputModeChange=False`, `timeScalePolicy=False`, `automaticLifecycleWiring=False`, `routeActivityAutoMaterialization=False` and `routeActivityAutoRelease=False`.
+
+F10C does not execute logical binding, materialize a prefab, place transforms, register lifecycle materialization, release content, clean bindings, mutate InputMode, change PlayerInput, change Time.timeScale, wire Route/Activity lifecycle, enable auto-release, enable auto-materialization or select gameplay/F34.
+
+Next candidate: `F10D - Pause ContentAnchor Binding Execution Proof`.
+
+Usage guide: `Packages/com.immersive.framework/Documentation~/Guides/F10C-Pause-ContentAnchor-Binding-Usage.md`.

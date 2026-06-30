@@ -9,12 +9,12 @@ namespace Immersive.Framework.Pause
 {
     /// <summary>
     /// API status: Experimental. Authored Pause visual surface contract.
-    /// This component declares the data a future Pause visual consumer may use to request ContentAnchor materialization.
+    /// This component declares the data a future Pause visual consumer may use to request ContentAnchor binding/materialization.
     /// It does not materialize, bind, register, release, listen to Pause input, change Time.timeScale or control Route/Activity lifecycle.
     /// </summary>
     [DisallowMultipleComponent]
     [AddComponentMenu("Immersive Framework/Pause/Pause Visual Surface Authoring")]
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F10B Pause visual surface authoring contract; explicit consumer data only.")]
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F10C Pause visual surface authoring contract; records anchor owner for binding request derivation.")]
     public sealed class PauseVisualSurfaceAuthoring : MonoBehaviour
     {
         private const string DefaultSurfaceId = "pause.visual.surface";
@@ -234,6 +234,7 @@ namespace Immersive.Framework.Pause
                 surfaceKind,
                 visualPrefab,
                 requirement,
+                ContentAnchorDeclaration.CreateOwnerKey(anchorScope, AnchorOwnerId),
                 owner,
                 RuntimeContentId.From(RuntimeContentIdText),
                 resource,

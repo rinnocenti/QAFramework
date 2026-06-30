@@ -64,6 +64,8 @@ Read the documentation in this order:
 | F9R-T | QA Canvas Smoke Button Cleanup | Closed / PASS |
 | F9R-U | F9R Closure / Next Axis Decision | Closed / docs-only |
 | F10A | Pause ContentAnchor Consumer Re-entry Plan | Accepted / Plan / docs-only |
+| F10B | Pause Visual Surface Authoring Contract Proof | Closed / PASS |
+| F10C | Pause ContentAnchor Binding Request Proof | Closed / PASS |
 
 ## F8R-E Unity Prefab Runtime Materialization Adapter Proof
 
@@ -73,6 +75,19 @@ F8R-E does not implement ContentAnchor physical placement, Addressables, pooling
 
 Project note: `../../Assets/_Documentation/Notes/F8R-E-Unity-Prefab-Runtime-Materialization-Adapter-Proof.md`.
 
+
+
+## F10C Pause ContentAnchor Binding Request Proof
+
+F10C is closed / PASS. It converts the passive Pause visual surface contract into an explicit `ContentAnchorBindingRequest`. The cut adds the missing `ContentAnchor` owner to the Pause visual surface contract because a binding target requires scope, owner, kind and anchor id.
+
+F10C smoke validated `passed=True`, `bindingRequest=SucceededCreated`, `mismatchedContext=RejectedMismatchedRuntimeOwner`, `anchorOwnerRecorded=True`, `requestOnly=True`, `bindingExecution=False`, `materialization=False`, `inputModeChange=False`, `timeScalePolicy=False`, `automaticLifecycleWiring=False`, `routeActivityAutoMaterialization=False` and `routeActivityAutoRelease=False`.
+
+F10C remains request-only: it does not execute binding, materialize Pause UI, change InputMode, change Time.timeScale, wire Route/Activity lifecycle, enable auto-release or enable auto-materialization.
+
+Guide: `Guides/F10C-Pause-ContentAnchor-Binding-Usage.md`.
+
+Project note: `../../Assets/_Documentation/Notes/F10C-Pause-ContentAnchor-Binding-Request-Proof.md`.
 
 ## F9R-Q Lifecycle Materialization Registry Release Execution Proof
 

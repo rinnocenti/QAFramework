@@ -57,14 +57,14 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
             EditorGUILayout.LabelField("Pause Visual Surface Authoring", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "Declares a passive Pause visual surface contract for a future ContentAnchor consumer. It does not materialize UI, bind anchors, subscribe to Pause input, change InputMode, change Time.timeScale or control Route/Activity lifecycle.",
+                "Declares a passive Pause visual surface contract and binding-request source for a future ContentAnchor consumer. It does not materialize UI, execute binding, subscribe to Pause input, change InputMode, change Time.timeScale or control Route/Activity lifecycle.",
                 MessageType.Info);
 
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Pause Visual Surface", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_surfaceId, new GUIContent("Surface Id", "Stable Pause visual surface id. GameObject names are diagnostics only."));
             EditorGUILayout.PropertyField(_surfaceKind, new GUIContent("Surface Kind", "OverlayRoot or MenuRoot. Unknown is invalid."));
-            EditorGUILayout.PropertyField(_pauseState, new GUIContent("Pause State", "F10B supports only the Paused visual state."));
+            EditorGUILayout.PropertyField(_pauseState, new GUIContent("Pause State", "The current Pause visual consumer path supports only the Paused visual state."));
             EditorGUILayout.PropertyField(_visualPrefab, new GUIContent("Visual Prefab", "Explicit future visual prefab/template. Required, but not instantiated by this component."));
             EditorGUILayout.PropertyField(_resetLocalTransform, new GUIContent("Reset Local Transform", "Authoring preference for the future placement request."));
 
@@ -79,10 +79,10 @@ namespace Immersive.Framework.Editor.Editor.Authoring
 
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("Content Anchor Requirement", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(_anchorScope, new GUIContent("Anchor Scope", "ContentAnchor scope to request in a later cut."));
+            EditorGUILayout.PropertyField(_anchorScope, new GUIContent("Anchor Scope", "ContentAnchor scope targeted by the derived binding request."));
             EditorGUILayout.PropertyField(_anchorKind, new GUIContent("Anchor Kind", "Root, Slot or Point. Unknown is invalid."));
             EditorGUILayout.PropertyField(_requiredness, new GUIContent("Requiredness", "Required/Optional policy for the future Pause visual anchor request."));
-            EditorGUILayout.PropertyField(_anchorOwnerId, new GUIContent("Anchor Owner Id", "Explicit ContentAnchor owner id."));
+            EditorGUILayout.PropertyField(_anchorOwnerId, new GUIContent("Anchor Owner Id", "Explicit ContentAnchor owner id. Required by F10C binding request derivation; anchor id alone is not enough."));
             EditorGUILayout.PropertyField(_anchorId, new GUIContent("Anchor Id", "Explicit ContentAnchor id."));
 
             EditorGUILayout.Space(6);
@@ -119,7 +119,7 @@ namespace Immersive.Framework.Editor.Editor.Authoring
             EditorGUILayout.LabelField("Authoring Contract", EditorStyles.boldLabel);
             if (authoring.TryCreateContract(out var contract, out var message))
             {
-                EditorGUILayout.HelpBox("Pause visual surface contract is valid. It remains passive until a later cut explicitly consumes it.", MessageType.Info);
+                EditorGUILayout.HelpBox("Pause visual surface contract is valid. F10C can derive a ContentAnchor binding request from it, but binding/materialization still require explicit later execution.", MessageType.Info);
                 EditorGUILayout.HelpBox(contract.ToDiagnosticString(), MessageType.None);
                 return;
             }

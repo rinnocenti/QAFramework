@@ -327,13 +327,18 @@ namespace Immersive.Framework.Diagnostics
         {
             GUILayout.Space(8f);
             GUILayout.Label("Pause / F10 Diagnostics", GUI.skin.box);
-            GUILayout.Label("Current Pause consumer authoring proofs only. Visual materialization, input, Time.timeScale and lifecycle integration remain out of scope.");
+            GUILayout.Label("Current Pause consumer authoring/request proofs only. Visual materialization, input, Time.timeScale and lifecycle integration remain out of scope.");
 
             using (new EditorDisabledScope(_requestInFlight))
             {
                 if (GUILayout.Button("Run Pause Visual Surface Authoring Contract Smoke"))
                 {
                     RunPauseVisualSurfaceAuthoringContractSmoke();
+                }
+
+                if (GUILayout.Button("Run Pause Content Anchor Binding Request Smoke"))
+                {
+                    RunPauseContentAnchorBindingRequestSmoke();
                 }
             }
         }
@@ -1539,6 +1544,165 @@ private async void RunLocalContributionSmoke()
                     if (invalidObject != null)
                     {
                         Object.Destroy(invalidObject);
+                    }
+
+                    if (visualPrefab != null)
+                    {
+                        Object.Destroy(visualPrefab);
+                    }
+                }
+            });
+        }
+
+        private async void RunPauseContentAnchorBindingRequestSmoke()
+        {
+            await RunSmokeAsync("Pause Content Anchor Binding Request Smoke", runtimeHost =>
+            {
+                int initialBindingCount = runtimeHost.ContentAnchorBindingCount;
+                int initialRuntimeRootCount = runtimeHost.RuntimeContentRuntime != null ? runtimeHost.RuntimeContentRuntime.RootCount : -1;
+                GameObject authoringObject = null;
+                GameObject visualPrefab = null;
+
+                try
+                {
+                    visualPrefab = new GameObject("QA Pause Binding Request Prefab");
+                    authoringObject = new GameObject("QA Pause Binding Request Authoring");
+
+                    var authoring = authoringObject.AddComponent<PauseVisualSurfaceAuthoring>();
+                    authoring.ConfigureForDiagnostics(
+                        visualPrefab,
+                        PauseVisualSurfaceKind.OverlayRoot,
+                        PauseState.Paused,
+                        RuntimeContentScope.Transient,
+                        "qa.pause.binding-request.owner",
+                        "QA Pause Binding Request Owner",
+                        ContentAnchorScope.Local,
+                        ContentAnchorKind.Root,
+                        ContentAnchorRequiredness.Required,
+                        "qa.pause.binding-request.anchor-owner",
+                        "qa.pause.binding-request.overlay",
+                        "qa.pause.binding-request.content",
+                        "qa.pause.binding-request.prefab",
+                        RuntimeReleasePolicy.MarkReleasedAndUnregister,
+                        true);
+
+                    bool contractCreated = authoring.TryCreateContract(out var contract, out var contractMessage);
+                    var requestResult = contractCreated
+                        ? PauseVisualSurfaceBindingRequestFactory.Create(
+                            contract,
+                            QaSource,
+                            "qa.pause.content-anchor.binding-request")
+                        : PauseVisualSurfaceBindingRequestResult.Failure(
+                            PauseVisualSurfaceBindingRequestStatus.RejectedInvalidContract,
+                            contract,
+                            QaSource,
+                            "qa.pause.content-anchor.binding-request",
+                            contractMessage);
+
+                    var mismatchedContext = new RuntimeScopeContext(
+                        RuntimeContentOwner.Transient(
+                            "qa.pause.binding-request.other-owner",
+                            "QA Pause Binding Request Other Owner"),
+                        QaSource,
+                        "qa.pause.content-anchor.binding-request.mismatch");
+                    var mismatchedResult = contractCreated
+                        ? PauseVisualSurfaceBindingRequestFactory.Create(
+                            contract,
+                            mismatchedContext,
+                            QaSource,
+                            "qa.pause.content-anchor.binding-request.mismatch")
+                        : PauseVisualSurfaceBindingRequestResult.Failure(
+                            PauseVisualSurfaceBindingRequestStatus.RejectedInvalidContract,
+                            contract,
+                            QaSource,
+                            "qa.pause.content-anchor.binding-request.mismatch",
+                            contractMessage);
+
+                    bool requestCreated = requestResult.Succeeded && requestResult.HasRequest;
+                    var request = requestResult.Request;
+                    bool requestMatchesPauseContract = requestCreated
+                        && request.RuntimeOwner == contract.RuntimeOwner
+                        && request.RuntimeScope == contract.RuntimeScope
+                        && request.RuntimeContentId == contract.RuntimeContentId
+                        && request.RuntimeIdentity == contract.RuntimeIdentity
+                        && request.Resource == contract.Resource;
+                    bool requestMatchesAnchorRequirement = requestCreated
+                        && request.AnchorScope == contract.AnchorScope
+                        && request.AnchorOwner == contract.AnchorOwner
+                        && request.AnchorKind == contract.AnchorKind
+                        && request.AnchorId == contract.AnchorId;
+                    bool anchorOwnerRecorded = contractCreated
+                        && contract.AnchorOwner.IsValid
+                        && requestCreated
+                        && request.AnchorOwner == contract.AnchorOwner;
+                    bool mismatchedContextRejected = mismatchedResult.Status == PauseVisualSurfaceBindingRequestStatus.RejectedMismatchedRuntimeOwner;
+                    int finalBindingCount = runtimeHost.ContentAnchorBindingCount;
+                    int finalRuntimeRootCount = runtimeHost.RuntimeContentRuntime != null ? runtimeHost.RuntimeContentRuntime.RootCount : -1;
+                    bool noRuntimeSideEffects = finalBindingCount == initialBindingCount
+                        && finalRuntimeRootCount == initialRuntimeRootCount;
+                    bool passed = contractCreated
+                        && requestCreated
+                        && requestMatchesPauseContract
+                        && requestMatchesAnchorRequirement
+                        && anchorOwnerRecorded
+                        && mismatchedContextRejected
+                        && noRuntimeSideEffects;
+
+                    if (!passed)
+                    {
+                        _logger.Warning(
+                            $"QA Pause Content Anchor Binding Request Smoke step failed. step='pause-content-anchor-binding-request' contractCreated='{contractCreated}' request='{requestResult.ToDiagnosticString()}' mismatch='{mismatchedResult.ToDiagnosticString()}' requestMatchesPauseContract='{requestMatchesPauseContract}' requestMatchesAnchorRequirement='{requestMatchesAnchorRequirement}' anchorOwnerRecorded='{anchorOwnerRecorded}' mismatchedContextRejected='{mismatchedContextRejected}' noRuntimeSideEffects='{noRuntimeSideEffects}'.");
+                        return Task.FromResult(false);
+                    }
+
+                    _logger.Info(
+                        "QA Pause Content Anchor Binding Request Smoke step completed. ",
+                        LogFields.Of(
+                            LogFields.Field("step", "pause-content-anchor-binding-request"),
+                            LogFields.Field("passed", true),
+                            LogFields.Field("contract", contractCreated),
+                            LogFields.Field("bindingRequest", requestResult.Status.ToString()),
+                            LogFields.Field("mismatchedContext", mismatchedResult.Status.ToString()),
+                            LogFields.Field("runtimeScope", request.RuntimeScope.ToString()),
+                            LogFields.Field("runtimeOwner", request.RuntimeOwner.StableText),
+                            LogFields.Field("runtimeContentId", request.RuntimeContentId.StableText),
+                            LogFields.Field("runtimeIdentity", request.RuntimeIdentity.StableText),
+                            LogFields.Field("anchorScope", request.AnchorScope.ToString()),
+                            LogFields.Field("anchorOwner", request.AnchorOwner.StableText),
+                            LogFields.Field("anchorKind", request.AnchorKind.ToString()),
+                            LogFields.Field("anchorId", request.AnchorId.StableText),
+                            LogFields.Field("resourceRecorded", request.Resource.IsValid),
+                            LogFields.Field("requestMatchesPauseContract", requestMatchesPauseContract),
+                            LogFields.Field("requestMatchesAnchorRequirement", requestMatchesAnchorRequirement),
+                            LogFields.Field("anchorOwnerRecorded", anchorOwnerRecorded),
+                            LogFields.Field("mismatchedContextRejected", mismatchedContextRejected),
+                            LogFields.Field("requestOnly", true),
+                            LogFields.Field("bindingExecution", false),
+                            LogFields.Field("materialization", false),
+                            LogFields.Field("physicalRelease", false),
+                            LogFields.Field("logicalRuntimeContentRelease", false),
+                            LogFields.Field("contentAnchorBindingCleanup", false),
+                            LogFields.Field("inputModeChange", false),
+                            LogFields.Field("timeScalePolicy", false),
+                            LogFields.Field("explicitSubmit", true),
+                            LogFields.Field("automaticLifecycleWiring", false),
+                            LogFields.Field("routeActivityAutoMaterialization", false),
+                            LogFields.Field("routeActivityAutoRelease", false),
+                            LogFields.Field("addressables", false),
+                            LogFields.Field("pooling", false),
+                            LogFields.Field("actorSpawn", false),
+                            LogFields.Field("playerJoin", false),
+                            LogFields.Field("gameplayConsumer", false),
+                            LogFields.Field("cameraConsumer", false),
+                            LogFields.Field("audioConsumer", false),
+                            LogFields.Field("saveConsumer", false)));
+                    return Task.FromResult(true);
+                }
+                finally
+                {
+                    if (authoringObject != null)
+                    {
+                        Object.Destroy(authoringObject);
                     }
 
                     if (visualPrefab != null)

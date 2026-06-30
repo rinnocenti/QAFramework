@@ -53,6 +53,8 @@ A partir de F24, a fonte operacional deve ser lida por fronteira:
 - `Notes/F9R-P-Lifecycle-Materialization-Registry-Release-Plan-Proof.md` — lifecycle materialization registry release plan proof; Closed / PASS.
 - `Notes/F9R-T-QA-Canvas-Smoke-Button-Cleanup.md` — QA Canvas smoke button cleanup; obsolete/intermediate buttons removed from visible panel.
 - `Notes/F9R-U-F9R-Closure-Next-Axis-Decision.md` — F9R closure and next-axis decision boundary; no new technical axis selected.
+- `Notes/F10B-Pause-Visual-Surface-Authoring-Contract-Proof.md` — Pause visual surface authoring contract proof; Closed / PASS.
+- `Notes/F10C-Pause-ContentAnchor-Binding-Request-Proof.md` — Pause ContentAnchor binding request proof; Closed / PASS, request-only derivation validated.
 
 ### Setup
 
@@ -78,6 +80,8 @@ Documentos de setup do projeto consumidor.
 - [F9R-T — QA Canvas Smoke Button Cleanup](Notes/F9R-T-QA-Canvas-Smoke-Button-Cleanup.md)
 - [F9R-U — F9R Closure / Next Axis Decision](Notes/F9R-U-F9R-Closure-Next-Axis-Decision.md)
 - [F10A — Pause ContentAnchor Consumer Re-entry Plan](Plans/F10A-PLAN-Pause-ContentAnchor-Consumer-Reentry.md)
+- [F10B — Pause Visual Surface Authoring Contract Proof](Notes/F10B-Pause-Visual-Surface-Authoring-Contract-Proof.md)
+- [F10C — Pause ContentAnchor Binding Request Proof](Notes/F10C-Pause-ContentAnchor-Binding-Request-Proof.md)
 
 Notas temporárias e achados de auditoria local.
 
@@ -180,6 +184,8 @@ F9R-U F9R Closure / Next Axis Decision: Closed / docs-only, `Notes/F9R-U-F9R-Clo
 F10A Pause ContentAnchor Consumer Re-entry Plan: Accepted / Plan / docs-only, `Plans/F10A-PLAN-Pause-ContentAnchor-Consumer-Reentry.md`. Pause is selected as the next explicit consumer axis after F9R; no implementation is selected by F10A.
 
 F10B Pause Visual Surface Authoring Contract Proof: Closed / PASS, `Notes/F10B-Pause-Visual-Surface-Authoring-Contract-Proof.md`. Validated passive Pause visual authoring contract and QA smoke; no materialization, input, timeScale or lifecycle auto-wiring.
+
+F10C Pause ContentAnchor Binding Request Proof: Closed / PASS, `Notes/F10C-Pause-ContentAnchor-Binding-Request-Proof.md`. Validated request-only conversion from Pause visual surface contract to ContentAnchorBindingRequest, including canonical anchor owner; no binding execution, materialization, input, timeScale or lifecycle auto-wiring.
 
 ## Regras
 

@@ -82,6 +82,7 @@ The individual note files were collapsed into this archive so the folder stays r
 | F9R-U | Closed / docs-only | F9R closure and next-axis decision boundary; F9R track closed, no next technical axis selected by this cut. |
 | F10A | Accepted / Plan / docs-only | Pause ContentAnchor consumer re-entry plan; selects Pause as the next explicit consumer axis after F9R without implementation. |
 | F10B | Closed / PASS | Pause visual surface authoring contract proof validated passive authored consumer data only, with no visual materialization, input/timeScale mutation or lifecycle wiring. |
+| F10C | Closed / PASS | Pause ContentAnchor binding request proof validated request derivation from the authored contract, including canonical anchor owner, without executing binding, materialization, input/timeScale mutation or lifecycle wiring. |
 
 ## Consolidation Notes
 
