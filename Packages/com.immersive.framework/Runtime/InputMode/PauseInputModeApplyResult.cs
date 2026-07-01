@@ -7,43 +7,43 @@ using Immersive.Framework.UnityInput;
 namespace Immersive.Framework.InputMode
 {
     /// <summary>
-    /// API status: Experimental. Result produced by the explicit opt-in Pause runtime to Unity PlayerInput bridge.
-    /// The result records Pause runtime wiring and PlayerInput application, but never reports PlayerInputManager join/spawn ownership.
+    /// API status: Experimental. Aggregated result for the Pause/InputMode apply boundary.
+    /// It preserves the original Pause, preflight and PlayerInput application evidence.
     /// </summary>
-    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F33A opt-in Pause runtime PlayerInput wiring result.")]
-    public sealed class PauseInputModeUnityPlayerInputRuntimeBridgeResult
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F38 aggregated Pause/InputMode apply result.")]
+    public sealed class PauseInputModeApplyResult
     {
-        public PauseInputModeUnityPlayerInputRuntimeBridgeResult(
+        internal PauseInputModeApplyResult(
             PauseInputModeUnityPlayerInputRuntimeBridgeStatus status,
+            PauseInputModeApplyStage failedStage,
             PauseRequestKind requestKind,
             PauseState previousPauseState,
             PauseState targetPauseState,
             PauseResult pauseResult,
             InputModeUnityApplicationPlanResult preflightPlanResult,
             PauseInputModeUnityPlayerInputApplicationResult applicationResult,
+            UnityInputActionMapName previousActionMapName,
             string source,
             string reason,
-            string message,
-            PauseInputModeApplyStage failedStage = PauseInputModeApplyStage.Unknown,
-            PauseInputModeApplyResult applyResult = null)
+            string message)
         {
             Status = status;
+            FailedStage = failedStage;
             RequestKind = requestKind;
             PreviousPauseState = previousPauseState;
             TargetPauseState = targetPauseState;
             PauseResult = pauseResult;
             PreflightPlanResult = preflightPlanResult;
             ApplicationResult = applicationResult;
-            Source = source.NormalizeTextOrFallback(nameof(PauseInputModeUnityPlayerInputRuntimeBridgeResult));
+            PreviousActionMapName = previousActionMapName;
+            Source = source.NormalizeTextOrFallback(nameof(PauseInputModeApplyResult));
             Reason = reason.NormalizeText();
             Message = message.NormalizeText();
-            FailedStage = failedStage == PauseInputModeApplyStage.Unknown
-                ? ResolveFailedStage(status)
-                : failedStage;
-            ApplyResult = applyResult;
         }
 
         public PauseInputModeUnityPlayerInputRuntimeBridgeStatus Status { get; }
+
+        public PauseInputModeApplyStage FailedStage { get; }
 
         public PauseRequestKind RequestKind { get; }
 
@@ -57,23 +57,19 @@ namespace Immersive.Framework.InputMode
 
         public PauseInputModeUnityPlayerInputApplicationResult ApplicationResult { get; }
 
+        public UnityInputActionMapName PreviousActionMapName { get; }
+
         public string Source { get; }
 
         public string Reason { get; }
 
         public string Message { get; }
 
-        public PauseInputModeApplyStage FailedStage { get; }
-
-        public PauseInputModeApplyResult ApplyResult { get; }
-
         public bool Succeeded => Status == PauseInputModeUnityPlayerInputRuntimeBridgeStatus.Succeeded;
 
         public bool Ignored => Status == PauseInputModeUnityPlayerInputRuntimeBridgeStatus.IgnoredInputModeRequest;
 
         public bool Failed => !Succeeded && !Ignored;
-
-        public bool PauseRuntimeWiring => Status != PauseInputModeUnityPlayerInputRuntimeBridgeStatus.FailedRuntimeUnavailable;
 
         public bool PauseRequestSubmitted => PauseResult.IsValid;
 
@@ -118,13 +114,7 @@ namespace Immersive.Framework.InputMode
             ? UnityInputActionMapName.From(string.Empty)
             : ApplicationResult.AppliedActionMapName;
 
-        public UnityInputActionMapName PreviousActionMapName => ApplyResult == null
-            ? UnityInputActionMapName.From(string.Empty)
-            : ApplyResult.PreviousActionMapName;
-
-        public InputModeUnityPlayerInputAdapterResult AdapterResult => ApplyResult == null
-            ? ApplicationResult?.InputModeApplicationResult?.PlayerInputApplicationResult?.AdapterResult
-            : ApplyResult.AdapterResult;
+        public InputModeUnityPlayerInputAdapterResult AdapterResult => ApplicationResult?.InputModeApplicationResult?.PlayerInputApplicationResult?.AdapterResult;
 
         public bool Applied => ApplicationResult is { Applied: true };
 
@@ -137,6 +127,9 @@ namespace Immersive.Framework.InputMode
         public bool SwitchesActionMaps => ApplicationResult is { SwitchesActionMaps: true };
 
         public bool AppliesInputBehavior => ApplicationResult is { AppliesInputBehavior: true };
+
+        public bool PauseRuntimeWiring => FailedStage != PauseInputModeApplyStage.MissingRuntimeHost
+            && FailedStage != PauseInputModeApplyStage.MissingPauseRuntime;
 
         public bool CallsPlayerJoin => false;
 
@@ -180,17 +173,34 @@ namespace Immersive.Framework.InputMode
             }
         }
 
+        public PauseInputModeUnityPlayerInputRuntimeBridgeResult ToRuntimeBridgeResult()
+        {
+            return new PauseInputModeUnityPlayerInputRuntimeBridgeResult(
+                Status,
+                RequestKind,
+                PreviousPauseState,
+                TargetPauseState,
+                PauseResult,
+                PreflightPlanResult,
+                ApplicationResult,
+                Source,
+                Reason,
+                Message,
+                FailedStage,
+                this);
+        }
+
         public string ToDiagnosticString()
         {
             var builder = new StringBuilder();
             builder.Append("status='").Append(Status).Append("'");
+            builder.Append(" failedStage='").Append(FailedStage).Append("'");
             builder.Append(" requestKind='").Append(RequestKind).Append("'");
             builder.Append(" previousPauseState='").Append(PreviousPauseState).Append("'");
             builder.Append(" targetPauseState='").Append(TargetPauseState).Append("'");
             builder.Append(" currentPauseState='").Append(CurrentPauseState).Append("'");
             builder.Append(" pauseStatus='").Append(PauseStatus).Append("'");
             builder.Append(" pauseRequestSubmitted='").Append(PauseRequestSubmitted).Append("'");
-            builder.Append(" failedStage='").Append(FailedStage).Append("'");
             builder.Append(" requestedMode='").Append(RequestedMode).Append("'");
             builder.Append(" operation='").Append(Operation).Append("'");
             builder.Append(" previousActionMap='").Append(PreviousActionMapName).Append("'");
@@ -226,28 +236,6 @@ namespace Immersive.Framework.InputMode
                     return InputModeKind.PauseOverlay;
                 default:
                     return InputModeKind.Unknown;
-            }
-        }
-
-        private static PauseInputModeApplyStage ResolveFailedStage(PauseInputModeUnityPlayerInputRuntimeBridgeStatus status)
-        {
-            switch (status)
-            {
-                case PauseInputModeUnityPlayerInputRuntimeBridgeStatus.Succeeded:
-                case PauseInputModeUnityPlayerInputRuntimeBridgeStatus.IgnoredInputModeRequest:
-                    return PauseInputModeApplyStage.None;
-                case PauseInputModeUnityPlayerInputRuntimeBridgeStatus.FailedRuntimeUnavailable:
-                    return PauseInputModeApplyStage.MissingRuntimeHost;
-                case PauseInputModeUnityPlayerInputRuntimeBridgeStatus.FailedConfiguration:
-                    return PauseInputModeApplyStage.InvalidRequest;
-                case PauseInputModeUnityPlayerInputRuntimeBridgeStatus.FailedPreflight:
-                    return PauseInputModeApplyStage.PreflightRejected;
-                case PauseInputModeUnityPlayerInputRuntimeBridgeStatus.FailedPauseRequest:
-                    return PauseInputModeApplyStage.PauseRequestFailed;
-                case PauseInputModeUnityPlayerInputRuntimeBridgeStatus.FailedInputModePlayerInputApplication:
-                    return PauseInputModeApplyStage.AdapterApplyFailed;
-                default:
-                    return PauseInputModeApplyStage.Unknown;
             }
         }
     }

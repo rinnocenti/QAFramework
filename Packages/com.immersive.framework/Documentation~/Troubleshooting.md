@@ -6,6 +6,19 @@ Use this page when package setup or QA smokes do not behave as expected.
 
 Use `Documentation~/README.md` as the package documentation entry point. Old `ADRs/`, `Planning/` and phase `Guides/` are historical source material, not primary package usage docs.
 
+## Surface or adapter aggregate fails
+
+Check the aggregate diagnostics before changing setup:
+
+- domain `status`.
+- `failedStage`, when present.
+- `adapterResult` or the named original subsystem result.
+- `blockingIssues` and non-blocking issues.
+- `source`, `reason` and the short message.
+- whether the result applied the required side effect or explicitly skipped/no-oped by policy.
+
+Do not treat `Unknown`, `NotRequested` or an unexecuted stage as success. Required missing capability is a failure; optional no-op must say why it was skipped.
+
 ## UIGlobal scene does not load
 
 Check:
@@ -23,9 +36,12 @@ Check:
 
 - `UnityLoadingSurfaceAdapter` exists in `UIGlobal`.
 - The Game Application actually loads `UIGlobal`.
-- Loading smoke logs report adapter count and readiness/progress results.
+- Loading diagnostics report `loadingBefore`, `loadingAfter`, `loadingAdapterCount`, `loadingBlockingIssues`, `loadingProgressSupported` and `loadingProgressMode`.
+- The adapter result reports the local status, adapter name, request, issues and blocking issue count.
 
 Loading is not the same as transition fade. A fade curtain does not replace a loading surface.
+
+If Loading is optional or no surface is configured, an explicit skipped/no-op result is expected. If the project requires Loading, missing surface capability should appear as a visible failure/blocking issue.
 
 ## Transition surface missing
 

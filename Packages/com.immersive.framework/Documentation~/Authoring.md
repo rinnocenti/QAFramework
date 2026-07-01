@@ -13,6 +13,17 @@ Bridge, Adapter, Validator/Evidence and Consumer are separate responsibilities.
 
 A bridge should not execute multi-stage orchestration, own rollback, discover services implicitly or hide failed side effects behind fallback behavior.
 
+## Adapter authoring pattern
+
+Use Loading as the reference for new Surface/Adapter authoring:
+
+- Define the domain Surface request/result/status before adding a Unity component.
+- Make the adapter execute one local side effect, such as changing a CanvasGroup, GameObject active state, image, progress widget or another explicit subsystem.
+- Return explicit domain adapter evidence for success, skipped/no-op, unsupported request and local failure.
+- Keep lifecycle, route/activity ownership, policy decisions and multi-step orchestration outside the adapter.
+- Do not silently replace missing required references. Required missing configuration must fail visibly.
+- Do not create a shared `IFrameworkAdapter`, `FrameworkSurface`, universal status enum or generic result container for authoring convenience.
+
 ## Game Application asset
 
 Use `GameApplicationAsset` as the root application asset.

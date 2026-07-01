@@ -8,7 +8,23 @@ Loading, Transition and Pause are current runtime-facing surfaces. A Surface is 
 
 Adapters execute local side effects and return evidence. They do not decide lifecycle, route/activity ownership or cross-domain policy. Multi-step orchestration belongs in explicit runtime services.
 
+When a Surface or service aggregates adapters or subsystem results, its diagnostics must preserve the boundary-local failed stage, original subsystem evidence, adapter result when present, blocking issues and explicit optional/no-op reason. Surface success must mean that required side effects were applied, or that the operation was explicitly skipped by declared optional/no-op policy.
+
 `UIGlobal` is a runtime surface host/consumer for app/session scoped presentation. It is not a universal manager.
+
+## Surface Adapter Contract Pattern
+
+Surface/Adapter extensibility uses domain contract patterns, not a general Surface layer.
+
+Loading is the current reference pattern:
+
+- The Surface defines Loading intent, availability, request data, result semantics, optional/no-op behavior and diagnostics.
+- The Adapter executes one local Unity side effect and returns `LoadingSurfaceResult` evidence.
+- The runtime boundary uses explicit adapters, aggregates results, reports required missing capability and keeps optional no-op explicit.
+- Consumers pass source/reason diagnostics and handle absence or failure explicitly.
+- QA evidence should assert status, blocking issues, adapter count, progress support, side effects and no-op/failure causes.
+
+Do not copy Loading status values into unrelated domains. A new Surface/Adapter should define its own domain request, result and status language.
 
 ## Game Application
 

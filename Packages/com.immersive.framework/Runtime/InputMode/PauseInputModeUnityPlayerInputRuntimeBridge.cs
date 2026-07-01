@@ -99,9 +99,12 @@ namespace Immersive.Framework.InputMode
                     "Pause InputMode PlayerInput Runtime Bridge completed.",
                     Logging.Records.LogFields.Of(
                         Logging.Records.LogFields.Field("status", _lastResult.Status.ToString()),
+                        Logging.Records.LogFields.Field("failedStage", _lastResult.FailedStage.ToString()),
                         Logging.Records.LogFields.Field("pauseStatus", _lastResult.PauseStatus.ToString()),
                         Logging.Records.LogFields.Field("requestedMode", _lastResult.RequestedMode.ToString()),
                         Logging.Records.LogFields.Field("operation", _lastResult.Operation.ToString()),
+                        Logging.Records.LogFields.Field("previousActionMap", _lastResult.PreviousActionMapName.ToString()),
+                        Logging.Records.LogFields.Field("appliedActionMap", _lastResult.AppliedActionMapName.ToString()),
                         Logging.Records.LogFields.Field("actionMapSwitching", _lastResult.SwitchesActionMaps),
                         Logging.Records.LogFields.Field("inputBehavior", _lastResult.AppliesInputBehavior),
                         Logging.Records.LogFields.Field("pauseRuntimeWiring", _lastResult.PauseRuntimeWiring),
@@ -148,278 +151,48 @@ namespace Immersive.Framework.InputMode
             string normalizedSource = source.NormalizeTextOrFallback(DefaultSource);
             string normalizedReason = requestReason.NormalizeTextOrFallback(ResolveReason("pause.inputmode.playerinput.runtime.bridge"));
 
-            if (!FrameworkRuntimeHost.TryGetCurrent(out var runtimeHost))
-            {
-                return CreateResult(
-                    PauseInputModeUnityPlayerInputRuntimeBridgeStatus.FailedRuntimeUnavailable,
-                    kind,
-                    PauseState.Unknown,
-                    PauseState.Unknown,
-                    default,
-                    null,
-                    null,
-                    normalizedSource,
-                    normalizedReason,
-                    "FrameworkRuntimeHost is unavailable.");
-            }
-
-            if (!runtimeHost.TryGetPauseSnapshot(out PauseSnapshot pauseSnapshot) || pauseSnapshot.State == PauseState.Unknown)
-            {
-                return CreateResult(
-                    PauseInputModeUnityPlayerInputRuntimeBridgeStatus.FailedRuntimeUnavailable,
-                    kind,
-                    PauseState.Unknown,
-                    PauseState.Unknown,
-                    default,
-                    null,
-                    null,
-                    normalizedSource,
-                    normalizedReason,
-                    "Pause runtime snapshot is unavailable.");
-            }
-
-            if (!TryResolveReferences(normalizedSource, normalizedReason, out ResolvedReferences references, out string configurationMessage))
-            {
-                return CreateResult(
-                    PauseInputModeUnityPlayerInputRuntimeBridgeStatus.FailedConfiguration,
-                    kind,
-                    pauseSnapshot.State,
-                    PauseState.Unknown,
-                    default,
-                    null,
-                    null,
-                    normalizedSource,
-                    normalizedReason,
-                    configurationMessage);
-            }
-
+            FrameworkRuntimeHost.TryGetCurrent(out var runtimeHost);
+            ResolvedReferences references = ResolveReferences(normalizedSource, normalizedReason);
             _requestSequence++;
             string requestId = $"pause.inputmode.playerinput.runtime.bridge.{_requestSequence}";
-            PauseRequest request = CreatePauseRequest(kind, requestId, normalizedSource, normalizedReason);
-            PauseState targetPauseState = PauseRequest.ResolveTargetState(kind, pauseSnapshot.State);
-            PauseResult anticipatedPauseResult = targetPauseState == pauseSnapshot.State
-                ? PauseResult.IgnoredNoChangeResult(request, pauseSnapshot.State, "Pause runtime PlayerInput bridge preflight detected no Pause state change.")
-                : PauseResult.AppliedResult(request, pauseSnapshot.State, targetPauseState, "Pause runtime PlayerInput bridge preflight detected a Pause state change.");
 
-            InputModeState currentInputModeState = CreateInputModeStateForPauseState(pauseSnapshot.State, normalizedSource, normalizedReason);
-            InputModeUnityApplicationPlanResult preflightPlan = BuildPreflightPlan(
-                anticipatedPauseResult,
-                currentInputModeState,
-                references,
-                normalizedSource,
-                normalizedReason);
-
-            if (preflightPlan != null && preflightPlan.Failed)
-            {
-                return CreateResult(
-                    PauseInputModeUnityPlayerInputRuntimeBridgeStatus.FailedPreflight,
-                    kind,
-                    pauseSnapshot.State,
-                    targetPauseState,
-                    default,
-                    preflightPlan,
-                    null,
-                    normalizedSource,
-                    normalizedReason,
-                    "Pause runtime PlayerInput bridge preflight failed before submitting the Pause request.");
-            }
-
-            PauseResult pauseResult;
-            try
-            {
-                pauseResult = runtimeHost.RequestPause(request);
-            }
-            catch (Exception exception)
-            {
-                return CreateResult(
-                    PauseInputModeUnityPlayerInputRuntimeBridgeStatus.FailedPauseRequest,
-                    kind,
-                    pauseSnapshot.State,
-                    targetPauseState,
-                    default,
-                    preflightPlan,
-                    null,
-                    normalizedSource,
-                    normalizedReason,
-                    exception.Message);
-            }
-
-            PauseInputModeUnityPlayerInputApplicationResult applicationResult = PauseInputModeUnityPlayerInputApplication.Apply(
-                pauseResult,
-                currentInputModeState,
-                references.TargetSet,
-                references.PlayerActorSet,
-                references.SessionPlayerInputManagerEvidence,
-                references.ActionMapEvidence,
-                references.ActionMapBindings,
-                references.PlayerInput,
-                normalizedSource,
-                normalizedReason);
-
-            PauseInputModeUnityPlayerInputRuntimeBridgeStatus status = applicationResult.Succeeded
-                ? PauseInputModeUnityPlayerInputRuntimeBridgeStatus.Succeeded
-                : applicationResult.Ignored
-                    ? PauseInputModeUnityPlayerInputRuntimeBridgeStatus.IgnoredInputModeRequest
-                    : PauseInputModeUnityPlayerInputRuntimeBridgeStatus.FailedInputModePlayerInputApplication;
-
-            return CreateResult(
-                status,
+            var request = new PauseInputModeApplyRequest(
+                runtimeHost,
                 kind,
-                pauseSnapshot.State,
-                targetPauseState,
-                pauseResult,
-                preflightPlan,
-                applicationResult,
-                normalizedSource,
-                normalizedReason,
-                $"InputMode PlayerInput application {applicationResult.Status}.");
-        }
-
-        private InputModeUnityApplicationPlanResult BuildPreflightPlan(
-            PauseResult anticipatedPauseResult,
-            InputModeState currentInputModeState,
-            ResolvedReferences references,
-            string source,
-            string requestReason)
-        {
-            InputModeRequest inputModeRequest = PauseInputModeRequestMapper.CreateRequest(
-                anticipatedPauseResult,
-                source,
-                requestReason.NormalizeTextOrFallback("pause-inputmode-playerinput-runtime-bridge-preflight"));
-
-            InputModeRequestResult requestPreview = InputModeRequestEvaluator.Preview(currentInputModeState, inputModeRequest, source);
-            if (requestPreview.Ignored)
-            {
-                return null;
-            }
-
-            if (!requestPreview.Succeeded)
-            {
-                return new InputModeUnityApplicationPlanResult(
-                    InputModeUnityApplicationPlanStatus.FailedPreviewMismatch,
-                    inputModeRequest.TargetMode,
-                    InputModeUnityApplicationPlanOperation.NoOperation,
-                    UnityInputTargetRole.Unknown,
-                    UnityInputActionMapName.From(string.Empty),
-                    false,
-                    false,
-                    false,
-                    false,
-                    new[]
-                    {
-                        InputModeUnityApplicationPlanIssue.BlockingIssue(
-                            InputModeUnityApplicationPlanIssueKind.PreviewModeMismatch,
-                            inputModeRequest.TargetMode,
-                            UnityInputActionMapName.From(string.Empty),
-                            source,
-                            "InputMode request preflight did not succeed.")
-                    },
-                    source,
-                    requestReason);
-            }
-
-            InputModeUnityApplicationPreviewResult applicationPreview = InputModeUnityApplicationPreviewEvaluator.Preview(
-                requestPreview,
+                requestId,
+                references.PlayerInput,
                 references.TargetSet,
                 references.PlayerActorSet,
                 references.SessionPlayerInputManagerEvidence,
-                source,
-                requestReason);
-            if (!applicationPreview.Succeeded)
-            {
-                return new InputModeUnityApplicationPlanResult(
-                    InputModeUnityApplicationPlanStatus.FailedApplicationPreview,
-                    inputModeRequest.TargetMode,
-                    InputModeUnityApplicationPlanOperation.NoOperation,
-                    applicationPreview.TargetRole,
-                    UnityInputActionMapName.From(string.Empty),
-                    false,
-                    false,
-                    applicationPreview.PlayerActorRequired,
-                    applicationPreview.SessionPlayerInputManagerRequired,
-                    new[]
-                    {
-                        InputModeUnityApplicationPlanIssue.BlockingIssue(
-                            InputModeUnityApplicationPlanIssueKind.ApplicationPreviewNotSucceeded,
-                            inputModeRequest.TargetMode,
-                            UnityInputActionMapName.From(string.Empty),
-                            source,
-                            "InputMode Unity application preflight did not succeed.")
-                    },
-                    source,
-                    requestReason);
-            }
-
-            InputModeUnityActionMapPreviewResult actionMapPreview = InputModeUnityActionMapPreviewEvaluator.Preview(
-                applicationPreview,
                 references.ActionMapEvidence,
                 references.ActionMapBindings,
-                source,
-                requestReason);
-            if (!actionMapPreview.Succeeded)
-            {
-                return new InputModeUnityApplicationPlanResult(
-                    InputModeUnityApplicationPlanStatus.FailedActionMapPreview,
-                    inputModeRequest.TargetMode,
-                    InputModeUnityApplicationPlanOperation.NoOperation,
-                    applicationPreview.TargetRole,
-                    actionMapPreview.ActionMapName,
-                    actionMapPreview.ActionMapRequired,
-                    actionMapPreview.ActionMapAvailable,
-                    applicationPreview.PlayerActorRequired,
-                    applicationPreview.SessionPlayerInputManagerRequired,
-                    new[]
-                    {
-                        InputModeUnityApplicationPlanIssue.BlockingIssue(
-                            InputModeUnityApplicationPlanIssueKind.ActionMapPreviewNotSucceeded,
-                            inputModeRequest.TargetMode,
-                            actionMapPreview.ActionMapName,
-                            source,
-                            "InputMode Unity action map preflight did not succeed.")
-                    },
-                    source,
-                    requestReason);
-            }
+                requireSessionPlayerInputManagerEvidence,
+                normalizedSource,
+                normalizedReason);
 
-            return InputModeUnityApplicationPlanEvaluator.BuildPlan(applicationPreview, actionMapPreview, source, requestReason);
+            var service = new PauseInputModeApplyService();
+            PauseInputModeApplyResult result = service.Apply(request);
+            return result.ToRuntimeBridgeResult();
         }
 
-        private bool TryResolveReferences(string source, string requestReason, out ResolvedReferences references, out string message)
+        private ResolvedReferences ResolveReferences(string source, string requestReason)
         {
-            references = default;
-            message = string.Empty;
-
             PlayerInput resolvedPlayerInput = ResolvePlayerInput();
-            if (resolvedPlayerInput == null)
-            {
-                message = "Pause InputMode PlayerInput runtime bridge requires an explicit PlayerInput or a PlayerActor with PlayerInput evidence.";
-                return false;
-            }
-
-            if (resolvedPlayerInput.actions == null)
-            {
-                message = "Pause InputMode PlayerInput runtime bridge requires PlayerInput.actions before applying InputMode.";
-                return false;
-            }
-
             UnityInputTargetSet targetSet = ResolveTargetSet(source, requestReason);
             PlayerActorSet playerActorSet = ResolvePlayerActorSet(source, requestReason);
             UnityInputPlayerInputManagerEvidence sessionEvidence = ResolveSessionPlayerInputManagerEvidence(source, requestReason);
+            UnityInputActionMapEvidence actionMapEvidence = UnityInputActionMapEvidence.FromInputActionAsset(
+                resolvedPlayerInput == null ? null : resolvedPlayerInput.actions,
+                source,
+                requestReason);
 
-            if (requireSessionPlayerInputManagerEvidence && !sessionEvidence.Succeeded)
-            {
-                message = sessionEvidence.ToDiagnosticString();
-                return false;
-            }
-
-            references = new ResolvedReferences(
+            return new ResolvedReferences(
                 resolvedPlayerInput,
                 targetSet,
                 playerActorSet,
                 sessionEvidence,
-                UnityInputActionMapEvidence.FromInputActionAsset(resolvedPlayerInput.actions, source, requestReason),
+                actionMapEvidence,
                 CreateActionMapBindings(source, requestReason));
-            return true;
         }
 
         private UnityInputTargetSet ResolveTargetSet(string source, string requestReason)
@@ -507,69 +280,6 @@ namespace Immersive.Framework.InputMode
                 new InputModeUnityActionMapBinding(InputModeKind.FrontendMenu, UnityInputActionMapName.From(UiActionMapName), true),
                 new InputModeUnityActionMapBinding(InputModeKind.InputLocked, UnityInputActionMapName.From(string.Empty), false)
             };
-        }
-
-        private static PauseRequest CreatePauseRequest(PauseRequestKind kind, string requestId, string source, string requestReason)
-        {
-            switch (kind)
-            {
-                case PauseRequestKind.Pause:
-                    return PauseRequest.Pause(requestId, source, requestReason);
-                case PauseRequestKind.Resume:
-                    return PauseRequest.Resume(requestId, source, requestReason);
-                case PauseRequestKind.Toggle:
-                    return PauseRequest.Toggle(requestId, source, requestReason);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(kind), kind, "Pause runtime PlayerInput bridge request kind must be explicit.");
-            }
-        }
-
-        private static InputModeState CreateInputModeStateForPauseState(PauseState pauseState, string source, string requestReason)
-        {
-            InputModeKind mode = MapPauseStateToInputMode(pauseState);
-            return new InputModeState(
-                InputModeDefinitions.FromKind(mode, source, requestReason),
-                mode == InputModeKind.Gameplay ? 0 : 1,
-                source,
-                requestReason);
-        }
-
-        private static InputModeKind MapPauseStateToInputMode(PauseState state)
-        {
-            switch (state)
-            {
-                case PauseState.Running:
-                    return InputModeKind.Gameplay;
-                case PauseState.Paused:
-                    return InputModeKind.PauseOverlay;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(state), state, "Pause runtime PlayerInput bridge requires an explicit Pause state.");
-            }
-        }
-
-        private PauseInputModeUnityPlayerInputRuntimeBridgeResult CreateResult(
-            PauseInputModeUnityPlayerInputRuntimeBridgeStatus status,
-            PauseRequestKind kind,
-            PauseState previousPauseState,
-            PauseState targetPauseState,
-            PauseResult pauseResult,
-            InputModeUnityApplicationPlanResult preflightPlanResult,
-            PauseInputModeUnityPlayerInputApplicationResult applicationResult,
-            string source,
-            string requestReason,
-            string message)
-        {
-            return new PauseInputModeUnityPlayerInputRuntimeBridgeResult(
-                status,
-                kind,
-                previousPauseState,
-                targetPauseState,
-                pauseResult,
-                preflightPlanResult,
-                applicationResult,
-                source,
-                requestReason,
-                message);
         }
 
         private string ResolveReason(string fallbackReason)
