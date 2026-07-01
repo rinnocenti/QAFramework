@@ -359,13 +359,13 @@ namespace Immersive.Framework.ContentAnchor
                 resolvedSource);
             var releaseAdapter = new UnityObjectRuntimeReleaseAdapter(Registry, resolvedSource);
             var placementAdapter = new UnityContentAnchorPlacementAdapter(resolvedSource);
-            var pipeline = new UnityContentAnchorMaterializationPipeline(
+            var service = new ContentAnchorMaterializationService(
                 materializationAdapter,
                 placementAdapter,
                 releaseAdapter,
                 resolvedSource);
 
-            var pipelineResult = pipeline.MaterializeBindPlace(
+            var materializationResult = service.MaterializeBindPlace(
                 runtimeHost,
                 anchorSet,
                 bindingRequest,
@@ -373,22 +373,22 @@ namespace Immersive.Framework.ContentAnchor
                 resetLocalTransform,
                 resolvedReason);
 
-            if (!pipelineResult.Succeeded)
+            if (!materializationResult.Succeeded)
             {
-                return UnityContentAnchorMaterializationBridgeResult.FromMaterialization(
+                return FromMaterialization(
                     UnityContentAnchorMaterializationBridgeStatus.FailedMaterializationPipeline,
-                    pipelineResult,
+                    materializationResult,
                     Registry.Count,
                     Registry.ActiveCount,
                     CountHandles(runtimeHost, context),
                     resolvedSource,
                     resolvedReason,
-                    pipelineResult.Message);
+                    materializationResult.Message);
             }
 
-            return UnityContentAnchorMaterializationBridgeResult.FromMaterialization(
+            return FromMaterialization(
                 UnityContentAnchorMaterializationBridgeStatus.SucceededMaterialized,
-                pipelineResult,
+                materializationResult,
                 Registry.Count,
                 Registry.ActiveCount,
                 CountHandles(runtimeHost, context),
@@ -668,6 +668,30 @@ namespace Immersive.Framework.ContentAnchor
             }
 
             return runtimeHost.RuntimeContentRuntime.SnapshotHandles(context).Length;
+        }
+
+        private UnityContentAnchorMaterializationBridgeResult FromMaterialization(
+            UnityContentAnchorMaterializationBridgeStatus status,
+            ContentAnchorMaterializationResult materializationResult,
+            int registryEntries,
+            int registryActive,
+            int contentHandleCount,
+            string source,
+            string requestReason,
+            string message)
+        {
+            var pipelineStatus = UnityContentAnchorMaterializationPipeline.MapStatus(materializationResult.FailedStage);
+            return UnityContentAnchorMaterializationBridgeResult.FromMaterialization(
+                status,
+                pipelineStatus.ToString(),
+                materializationResult.HasMaterializationResult,
+                materializationResult.PhysicalPlacementApplied,
+                registryEntries,
+                registryActive,
+                contentHandleCount,
+                source,
+                requestReason,
+                message);
         }
 
         private UnityContentAnchorMaterializationBridgeResult Failure(

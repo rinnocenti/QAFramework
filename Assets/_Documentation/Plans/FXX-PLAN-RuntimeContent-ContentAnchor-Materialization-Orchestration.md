@@ -1,6 +1,6 @@
 # FXX-PLAN — RuntimeContent / ContentAnchor Materialization Orchestration
 
-Status: Closed / MAT-3  
+Status: Closed / MAT-4
 Scope: implementation plan for `FXX-ADR-CONSOLIDATION-002`.  
 Prerequisite: ADR accepted.
 
@@ -271,4 +271,4 @@ Task 1: audit-only / no code changes / produce exact cut list and risk notes.
 Task 2: after review, implement MAT-B only.
 ```
 
-Do not ask Codex to implement the whole plan in one prompt.
+MAT-4 superseded the earlier task split by explicit implementation request. It extracted `ContentAnchorMaterializationService`, migrated the bridge to the service, kept the pipeline as a compatibility wrapper, and preserved existing bridge result diagnostics.

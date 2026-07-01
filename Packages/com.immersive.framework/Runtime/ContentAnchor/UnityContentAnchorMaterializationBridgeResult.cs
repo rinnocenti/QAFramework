@@ -197,6 +197,48 @@ namespace Immersive.Framework.ContentAnchor
                 false);
         }
 
+        internal static UnityContentAnchorMaterializationBridgeResult FromMaterialization(
+            UnityContentAnchorMaterializationBridgeStatus status,
+            string pipelineStatus,
+            bool materializationAttempted,
+            bool physicalPlacementApplied,
+            int registryEntries,
+            int registryActive,
+            int contentHandleCount,
+            string source,
+            string reason,
+            string message)
+        {
+            return new UnityContentAnchorMaterializationBridgeResult(
+                status,
+                "Materialize",
+                source,
+                reason,
+                message,
+                pipelineStatus,
+                string.Empty,
+                registryEntries,
+                registryActive,
+                0,
+                0,
+                0,
+                contentHandleCount,
+                materializationAttempted,
+                physicalPlacementApplied,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false);
+        }
+
         internal static UnityContentAnchorMaterializationBridgeResult FromScopeRelease(
             UnityContentAnchorMaterializationBridgeStatus status,
             string releaseStatus,

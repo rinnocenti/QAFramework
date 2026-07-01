@@ -1,0 +1,91 @@
+# Troubleshooting
+
+Use this page when package setup or QA smokes do not behave as expected.
+
+## Package docs point to old roadmap or ADRs
+
+Use `Documentation~/README.md` as the package documentation entry point. Old `ADRs/`, `Planning/` and phase `Guides/` are historical source material, not primary package usage docs.
+
+## UIGlobal scene does not load
+
+Check:
+
+- `GameApplicationAsset` has `UIGlobal` policy set correctly.
+- The `UIGlobal` scene path/name is assigned when policy is required.
+- The scene is included in Build Settings.
+- Required Loading, Transition and Pause adapters exist in the scene when the project expects them.
+
+If the policy is not configured, explicit no-op visual behavior is expected.
+
+## Loading surface missing
+
+Check:
+
+- `UnityLoadingSurfaceAdapter` exists in `UIGlobal`.
+- The Game Application actually loads `UIGlobal`.
+- Loading smoke logs report adapter count and readiness/progress results.
+
+Loading is not the same as transition fade. A fade curtain does not replace a loading surface.
+
+## Transition surface missing
+
+Check:
+
+- `UnityFadeCurtainEffectAdapter` or another transition effect adapter exists in `UIGlobal`.
+- Transition smokes report the expected transition/effect result.
+- Route/activity visual policy is configured to request the transition where expected.
+
+## Pause surface does not show
+
+Check:
+
+- The Pause panel is resident in `UIGlobal`.
+- `UnityPauseResidentSurfaceAdapter` points at the correct hierarchy.
+- Pause runtime request smoke passes.
+- Pause surface smoke reports the adapter count and visible/hidden state transitions.
+
+## Pause input changes Pause but not PlayerInput
+
+Use the supported bridge path:
+
+```text
+PauseInputActionRuntimeBridgeTrigger
+  -> PauseInputModeUnityPlayerInputRuntimeBridge
+  -> PauseResult
+  -> InputMode request
+  -> Unity PlayerInput application
+```
+
+Check:
+
+- The trigger has action evidence.
+- The trigger resolves an explicit runtime bridge.
+- The runtime bridge has a valid `PlayerInput`.
+- The InputMode action map bindings match the project's Unity Input action maps.
+
+Do not add new usage of the retired direct Pause input adapter. It is historical and should not be used for active setup.
+
+## RuntimeContent materializes but ContentAnchor placement fails
+
+Check:
+
+- RuntimeContent materialization result succeeded.
+- The ContentAnchor declaration exists for the same owner/scope.
+- The logical ContentAnchor binding succeeded.
+- The Unity placement adapter/service has valid physical evidence.
+- Release/rollback logs show whether physical or logical cleanup ran.
+
+## ContentAnchor bridge set partially materializes
+
+Check bridge set diagnostics before materialization:
+
+- duplicate keys
+- invalid authored bridge configuration
+- missing runtime/anchor/adapter references
+- pre-existing active bridge state
+
+Bridge sets should roll back partial batch materialization when a later bridge fails.
+
+## QA Canvas does not show an old smoke button
+
+The QA Canvas should expose current validation buttons. Historical proof buttons may have been removed from the visible primary QA surface. Use the current smoke groups in `QA-Smokes.md`.

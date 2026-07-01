@@ -2,7 +2,7 @@
 
 Status: Proposed / docs-only roadmap
 Scope: planning for the Architecture Consolidation Track.
-Last updated: 2026-06-30
+Last updated: 2026-07-01
 
 This roadmap does not implement code. It organizes accepted and candidate consolidation work into tracks. Every future implementation must be internal, additive and smoke-parity driven.
 
@@ -10,27 +10,49 @@ This roadmap does not implement code. It organizes accepted and candidate consol
 
 ```text
 Assets/_Documentation/Audits/FXX-AUDIT-General-Architecture-Pattern-Review.md
+Assets/_Documentation/Plans/FXX-PLAN-General-Architecture-Pattern-Review.REVISED.md
+Assets/_Documentation/Audits/FXX-AUDIT-Common-Internal-Mechanics-Repetition-Inventory.md
 Packages/com.immersive.framework/Documentation~/ADRs/FXX-ADR-CONSOLIDATION-001-Participant-And-Flow-Pattern-Consolidation.md
 Assets/_Documentation/Plans/FXX-PLAN-Participant-And-Flow-Pattern-Consolidation.md
 Assets/_Documentation/ADRs/FXX-ADR-CONSOLIDATION-002-RuntimeContent-ContentAnchor-Materialization-Orchestration.md
 Assets/_Documentation/Plans/FXX-PLAN-RuntimeContent-ContentAnchor-Materialization-Orchestration.md
+Assets/_Documentation/Closeouts/FXX-CLOSEOUT-COMMON-E-Common-Internal-Mechanics-Track-Closeout.md
+Assets/_Documentation/Closeouts/FXX-CLOSEOUT-CONS-F-Participant-Consolidation-Track-Closeout.md
+Assets/_Documentation/Closeouts/FXX-CLOSEOUT-LIFECYCLE-F-Scope-Tail-Closeout.md
+Assets/_Documentation/Closeouts/FXX-CLOSEOUT-MAT-3-Materialization-Release-Ownership-Closeout.md
+Assets/_Documentation/Closeouts/FXX-CLOSEOUT-MAT-4-ContentAnchorMaterializationService-Extraction.md
+Assets/_Documentation/Closeouts/FXX-CLOSEOUT-PAUSE-2-Pause-InputMode-Closeout.md
 ```
 
 ## 2. Track order
 
 | Order | Track | Current status | Reason for order |
 |---:|---|---|---|
-| 1 | Common internal mechanics | Candidate foundation | Enables small shared mechanics without domain migration. |
-| 2 | Participant consolidation | Planned pilot | Already has ADR/plan; pilots with `CycleReset` and `ObjectReset`. |
-| 3 | Route/Activity lifecycle operation kernel | Closed | Highest-scoring non-seed lifecycle mirror. |
-| 4 | RuntimeContent/ContentAnchor materialization service | Closed / MAT-3 | Already has ADR/plan; real side effects required small cuts and are now documented closed. |
-| 5 | Pause/InputMode apply boundary | Audit/ADR needed | Thick bridge with logical + Unity side effects. |
+| 1 | Common internal mechanics | Closed / bounded helpers | Helper track closed; `OperationResult<TStatus>` and result/status container work remain out of scope. |
+| 2 | Participant consolidation | Closed / bounded pilots | `CycleReset` and `ObjectReset` pilots closed; `Snapshot` and `ActivityContentExecution` migrations remain out of scope. |
+| 3 | Route/Activity lifecycle operation kernel | Partial / Scope Tail closed | Scope Tail is closed; broader Operation Kernel work remains pending. |
+| 4 | RuntimeContent/ContentAnchor materialization service | Partial / helpers closed, service pending | Release/cleanup helpers are closed; MaterializationService remains pending acceptance/Unity parity as the track gate. |
+| 5 | Pause/InputMode apply boundary | Partial / legacy QA cleanup closed | Legacy QA cleanup is closed; the actual Apply boundary remains pending. |
 | 6 | GameFlow lifecycle request envelope | Audit/ADR needed | Coordinator pressure; should follow lifecycle kernel analysis. |
 | 7 | Status mapping policy | Audit/table needed | Cross-cutting diagnostic policy after concrete tracks expose mappings. |
 | 8 | Flow trigger helper | Deferred helper | Lower risk if kept non-MonoBehaviour; follows participant closeout. |
 | 9 | Pause visual consumer readiness | Decision note | Prevents expansion before a real consumer is selected. |
 
-## 3. Global rules for all tracks
+## 3. Reconciled execution board
+
+| Original track | Planned status | Executed cuts | Real status | Real coverage | Pending | Next gate |
+|---|---|---|---|---|---|---|
+| Common internal mechanics | Candidate foundation with COMMON-A through COMMON-E | COMMON-B enum/status validation, COMMON-C defensive copy, COMMON-D issue counting, COMMON-E closeout | Closed / bounded | Internal mechanical helpers only: enum validation, collection copy, issue counting | `OperationResult<TStatus>` / result-status container remains blocked outside this track | No next implementation gate; only reopen with separate ADR for result/status container |
+| Participant consolidation | Planned pilot with CycleReset and ObjectReset | CONS-A primitives, CONS-B executor, CONS-C CycleReset pilot, CONS-D ObjectReset pilot, CONS-F closeout | Closed / bounded | Common participant executor proven for `CycleReset` and `ObjectReset` only | `Snapshot`, `ActivityContentExecution`, `LocalContribution` and flow triggers remain outside | No expansion without a new ADR/cut |
+| Route/Activity lifecycle operation kernel | LIFECYCLE-A through LIFECYCLE-F shared kernel | LIFECYCLE-C/C1/D/E/F Scope Tail shell and Route/Activity tail pilots | Partial | Scope Tail closed: cleanup previous owner bindings, remove previous scope root, merge final `RuntimeScopeLifecycleResult` | Broader Operation Kernel remains: scene composition, content dispatch/apply, discovery, readiness, ledger, progress budgeting | `LIFECYCLE-KERNEL-REMAINING` decision gate |
+| RuntimeContent/ContentAnchor materialization service | MAT-A through MAT-G service extraction and bridge migration | MAT-1 release execution helper, MAT-2 binding cleanup helper, MAT-3 helper closeout; MAT-4 record exists as pending validation/acceptance | Partial | Release/Cleanup helpers closed; materialization service direction remains governed by ADR CONSOLIDATION-002 | MaterializationService acceptance, Unity parity, bridge/pipeline responsibility closure, RuntimeContentRuntime split decision | `MAT-SERVICE` gate |
+| Pause/InputMode apply boundary | INPUT-APPLY-A through INPUT-APPLY-E apply boundary | PAUSE-1 retired adapter QA cleanup, PAUSE-2 QA/documentation closeout | Partial | Legacy QA warning cleanup closed and current QA path documented | Real Apply boundary remains: failure-state table, ADR, internal apply service, bridge delegation | `INPUT-APPLY` boundary gate |
+| GameFlow lifecycle request envelope | Audit/ADR needed | None in this roadmap track | Pending | No envelope extraction | Gate admission, in-flight state, transition before/after wrapping, request result envelope | `GAMEFLOW` envelope gate |
+| Status mapping policy | Audit/table needed | None in this roadmap track | Pending | No policy table accepted | Mapping inventory across Loading, Transition, InputMode, Pause and aggregate wrappers | `STATUS` mapping gate |
+| Flow trigger helper | Deferred helper | CONS-E0 risk note only, no helper | Pending | No implementation; serialization risk recognized | Non-MonoBehaviour state/event helper design and serialization safety gate | `FLOWTRIGGER` helper gate |
+| Pause visual consumer readiness | Decision note | None in this roadmap track | Pending | No readiness decision | Resident UI vs materialized UI decision, consumer inventory, API readiness classification | `PAUSEVIS` readiness gate |
+
+## 4. Global rules for all tracks
 
 ```text
 No runtime implementation in this roadmap cut.
@@ -44,7 +66,7 @@ No hidden fallback.
 Implementation, when later approved, must be internal, additive and smoke-parity driven.
 ```
 
-## 4. Track 1 - Common internal mechanics
+## 5. Track 1 - Common internal mechanics
 
 ### Objective
 
@@ -105,7 +127,7 @@ New Common helper smoke.
 Existing affected module smokes only when a module adopts a helper.
 ```
 
-## 5. Track 2 - Participant consolidation
+## 6. Track 2 - Participant consolidation
 
 ### Objective
 
@@ -171,7 +193,7 @@ RouteCycleResetTrigger smoke
 ActivityCycleResetTrigger smoke
 ```
 
-## 6. Track 3 - Route/Activity lifecycle operation kernel
+## 7. Track 3 - Route/Activity lifecycle operation kernel
 
 ### Objective
 
@@ -236,7 +258,16 @@ Activity Content Anchor diagnostics
 Local Contribution smoke when Activity discovery is touched
 ```
 
-## 7. Track 4 - RuntimeContent/ContentAnchor materialization service
+### Reconciled status
+
+```text
+Scope Tail: closed.
+Operation Kernel: remaining work pending.
+```
+
+The completed LIFECYCLE cuts only cover the mechanical scope tail. They do not close the original Route/Activity lifecycle operation kernel candidate from the general architecture audit.
+
+## 8. Track 4 - RuntimeContent/ContentAnchor materialization service
 
 ### Objective
 
@@ -304,7 +335,16 @@ Bridge Set Rollback Smoke
 Composite Lifecycle Release Smoke
 ```
 
-## 8. Track 5 - Pause/InputMode apply boundary
+### Reconciled status
+
+```text
+Release/Cleanup helpers: closed.
+MaterializationService: pending acceptance / Unity parity.
+```
+
+MAT-1 and MAT-2 closed helper-level release and cleanup ownership. They did not, by themselves, close ADR CONSOLIDATION-002. Any local service extraction remains pending until materialization smoke parity and bridge/pipeline responsibility closure are accepted.
+
+## 9. Track 5 - Pause/InputMode apply boundary
 
 ### Objective
 
@@ -368,7 +408,22 @@ PauseInputModeUnityPlayerInputRuntimeBridgeQaSmokeRunner
 PauseInputActionRuntimeBridgeTriggerQaSmokeRunner
 ```
 
-## 9. Track 6 - GameFlow lifecycle request envelope
+### Closeout
+
+```text
+FXX-CLOSEOUT-PAUSE-2-Pause-InputMode-Closeout.md
+```
+
+### Reconciled status
+
+```text
+Legacy QA cleanup: closed.
+Apply boundary: pending.
+```
+
+PAUSE-1 and PAUSE-2 close warning cleanup and QA documentation alignment. They do not close the planned non-MonoBehaviour Pause/InputMode apply boundary.
+
+## 10. Track 6 - GameFlow lifecycle request envelope
 
 ### Objective
 
@@ -432,7 +487,7 @@ Activity request trigger smoke
 CycleResetQaSmokeRunner
 ```
 
-## 10. Track 7 - Status mapping policy
+## 11. Track 7 - Status mapping policy
 
 ### Objective
 
@@ -491,7 +546,7 @@ InputModeContractQaSmokeRunner
 PauseInputModeUnityPlayerInputRuntimeBridgeQaSmokeRunner
 ```
 
-## 11. Track 8 - Flow trigger helper
+## 12. Track 8 - Flow trigger helper
 
 ### Objective
 
@@ -551,7 +606,7 @@ PauseRequestTrigger smoke if adopted later
 UnityEvent bridge smokes if present
 ```
 
-## 12. Track 9 - Pause visual consumer readiness
+## 13. Track 9 - Pause visual consumer readiness
 
 ### Objective
 
@@ -610,21 +665,18 @@ Pause Resident Surface smoke
 Pause Logical Toggle Resident Surface smoke
 ```
 
-## 13. Roadmap decision gates
+## 14. Roadmap decision gates
 
-| Gate | Decision |
-|---|---|
-| After COMMON-A | Which helpers have at least two concrete identical uses? |
-| After CONS-F | Continue Participant migration to Snapshot/ActivityContentExecution or stop? |
-| After LIFECYCLE-B | Is a shared kernel justified, or are Route/Activity differences too large? |
-| After MAT-D | Does the old pipeline remain useful behind the service? |
-| After INPUT-APPLY-B | Is a transactional apply boundary required before refactor? |
-| After GAMEFLOW-B | Should GameFlow wait for lifecycle kernel extraction first? |
-| After STATUS-A | Which mappings are policy and which are domain-specific? |
-| After FLOWTRIGGER-A | Is helper extraction safe without serialized field movement? |
-| After PAUSEVIS-C | Is Pause visual default resident, materialized, or still undecided? |
+| Order | Gate | Decision |
+|---:|---|---|
+| 1 | `LIFECYCLE-KERNEL-REMAINING` or `MAT-SERVICE` | Choose whether to finish the broader Route/Activity operation kernel or accept/validate the MaterializationService boundary next. |
+| 2 | `INPUT-APPLY` boundary | Decide failure-state table, ADR and non-MonoBehaviour apply service before more Pause/InputMode bridge work. |
+| 3 | `GAMEFLOW` envelope | Decide whether `GameFlowRuntime` gets an internal request envelope after lifecycle/materialization pressure is resolved. |
+| 4 | `STATUS` mapping | Inventory mappings and define policy for preserving original subsystem failures. |
+| 5 | `FLOWTRIGGER` helper | Decide whether helper extraction is safe without serialized field movement. |
+| 6 | `PAUSEVIS` readiness | Decide resident UI vs materialized UI and classify current Pause visual APIs. |
 
-## 14. Manual validation policy
+## 15. Manual validation policy
 
 This roadmap is documentation-only, so no Unity compile/import/smoke was run for this cut.
 

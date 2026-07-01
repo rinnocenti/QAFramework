@@ -44,307 +44,79 @@ namespace Immersive.Framework.ContentAnchor
             bool resetLocalTransform,
             string reason)
         {
-            if (!bindingRequest.IsValid)
-            {
-                throw new ArgumentException("Content Anchor materialization pipeline requires a valid binding request.", nameof(bindingRequest));
-            }
-
-            if (runtimeHost == null)
-            {
-                return Failure(
-                    bindingRequest,
-                    UnityContentAnchorMaterializationPipelineStatus.FailedMissingRuntimeHost,
-                    default(RuntimeMaterializationResult),
-                    default(RuntimeMaterializationResult),
-                    default(ContentAnchorBindingResult),
-                    default(UnityContentAnchorPlacementResult),
-                    default(RuntimeReleaseResult),
-                    default(RuntimeReleaseResult),
-                    false,
-                    false,
-                    reason,
-                    "Content Anchor materialization pipeline requires an explicit FrameworkRuntimeHost.");
-            }
-
-            var runtimeContentRuntime = runtimeHost.RuntimeContentRuntime;
-            if (runtimeContentRuntime == null)
-            {
-                return Failure(
-                    bindingRequest,
-                    UnityContentAnchorMaterializationPipelineStatus.FailedMissingRuntimeContentRuntime,
-                    default(RuntimeMaterializationResult),
-                    default(RuntimeMaterializationResult),
-                    default(ContentAnchorBindingResult),
-                    default(UnityContentAnchorPlacementResult),
-                    default(RuntimeReleaseResult),
-                    default(RuntimeReleaseResult),
-                    false,
-                    false,
-                    reason,
-                    "Content Anchor materialization pipeline requires RuntimeContentRuntime.");
-            }
-
-            if (anchorTransform == null)
-            {
-                return Failure(
-                    bindingRequest,
-                    UnityContentAnchorMaterializationPipelineStatus.FailedMissingAnchorTransform,
-                    default(RuntimeMaterializationResult),
-                    default(RuntimeMaterializationResult),
-                    default(ContentAnchorBindingResult),
-                    default(UnityContentAnchorPlacementResult),
-                    default(RuntimeReleaseResult),
-                    default(RuntimeReleaseResult),
-                    false,
-                    false,
-                    reason,
-                    "Content Anchor materialization pipeline requires an explicit anchor Transform before materialization side effects.");
-            }
-
-            if (!runtimeContentRuntime.TryCreateMaterializationRequest(
-                    bindingRequest.RuntimeContext,
-                    bindingRequest.RuntimeContentId,
-                    bindingRequest.Resource,
-                    _source,
-                    reason,
-                    out var materializationRequest,
-                    out var guardResult))
-            {
-                return Failure(
-                    bindingRequest,
-                    UnityContentAnchorMaterializationPipelineStatus.FailedMaterializationRequest,
-                    default(RuntimeMaterializationResult),
-                    default(RuntimeMaterializationResult),
-                    default(ContentAnchorBindingResult),
-                    default(UnityContentAnchorPlacementResult),
-                    default(RuntimeReleaseResult),
-                    default(RuntimeReleaseResult),
-                    false,
-                    false,
-                    reason,
-                    guardResult.Message);
-            }
-
-            var materializationResult = _materializationAdapter.Materialize(materializationRequest);
-            if (!materializationResult.Succeeded)
-            {
-                return Failure(
-                    bindingRequest,
-                    UnityContentAnchorMaterializationPipelineStatus.FailedMaterialization,
-                    materializationResult,
-                    default(RuntimeMaterializationResult),
-                    default(ContentAnchorBindingResult),
-                    default(UnityContentAnchorPlacementResult),
-                    default(RuntimeReleaseResult),
-                    default(RuntimeReleaseResult),
-                    false,
-                    false,
-                    reason,
-                    materializationResult.Message);
-            }
-
-            var appliedMaterializationResult = runtimeContentRuntime.ApplyMaterializationResult(
-                materializationResult,
-                _source,
-                reason);
-            if (!appliedMaterializationResult.Succeeded)
-            {
-                var rollback = RollbackPhysicalAndLogical(
-                    runtimeContentRuntime,
-                    materializationRequest,
-                    false,
-                    runtimeHost,
-                    default(ContentAnchorBindingResult),
-                    reason);
-                return Failure(
-                    bindingRequest,
-                    UnityContentAnchorMaterializationPipelineStatus.FailedMaterializationApply,
-                    materializationResult,
-                    appliedMaterializationResult,
-                    default(ContentAnchorBindingResult),
-                    default(UnityContentAnchorPlacementResult),
-                    rollback.PhysicalReleaseResult,
-                    rollback.LogicalReleaseResult,
-                    rollback.Attempted,
-                    rollback.Succeeded,
-                    reason,
-                    appliedMaterializationResult.Message);
-            }
-
-            if (!_materializationAdapter.Registry.TryGet(materializationRequest.Identity, out var evidence)
-                || evidence == null
-                || !evidence.HasLiveInstance)
-            {
-                var releaseExecution = ContentAnchorReleaseExecution.Execute(
-                    runtimeContentRuntime,
-                    _releaseAdapter,
-                    materializationRequest,
-                    RuntimeReleasePolicy.MarkReleasedAndUnregister,
-                    _source,
-                    reason);
-                return Failure(
-                    bindingRequest,
-                    UnityContentAnchorMaterializationPipelineStatus.FailedMissingPhysicalEvidence,
-                    materializationResult,
-                    appliedMaterializationResult,
-                    default(ContentAnchorBindingResult),
-                    default(UnityContentAnchorPlacementResult),
-                    releaseExecution.PhysicalReleaseResult,
-                    releaseExecution.LogicalReleaseResult,
-                    true,
-                    releaseExecution.Succeeded,
-                    reason,
-                    "Content Anchor materialization pipeline failed because physical materialization evidence was not available after successful materialization.");
-            }
-
-            var bindingResult = runtimeHost.BindContentAnchor(
+            var service = new ContentAnchorMaterializationService(
+                _materializationAdapter,
+                _placementAdapter,
+                _releaseAdapter,
+                _source);
+            var result = service.MaterializeBindPlace(
+                runtimeHost,
                 anchorSet,
                 bindingRequest,
-                _source,
-                reason);
-            if (!bindingResult.Succeeded)
-            {
-                var rollback = RollbackPhysicalAndLogical(
-                    runtimeContentRuntime,
-                    materializationRequest,
-                    false,
-                    runtimeHost,
-                    bindingResult,
-                    reason);
-                return Failure(
-                    bindingRequest,
-                    UnityContentAnchorMaterializationPipelineStatus.FailedLogicalBinding,
-                    materializationResult,
-                    appliedMaterializationResult,
-                    bindingResult,
-                    default(UnityContentAnchorPlacementResult),
-                    rollback.PhysicalReleaseResult,
-                    rollback.LogicalReleaseResult,
-                    rollback.Attempted,
-                    rollback.Succeeded,
-                    reason,
-                    bindingResult.Message);
-            }
-
-            var placementResult = _placementAdapter.Place(
-                bindingResult,
-                evidence,
                 anchorTransform,
                 resetLocalTransform,
                 reason);
-            if (!placementResult.Succeeded)
-            {
-                var rollback = RollbackPhysicalAndLogical(
-                    runtimeContentRuntime,
-                    materializationRequest,
-                    true,
-                    runtimeHost,
-                    bindingResult,
-                    reason);
-                return Failure(
-                    bindingRequest,
-                    UnityContentAnchorMaterializationPipelineStatus.FailedPhysicalPlacement,
-                    materializationResult,
-                    appliedMaterializationResult,
-                    bindingResult,
-                    placementResult,
-                    rollback.PhysicalReleaseResult,
-                    rollback.LogicalReleaseResult,
-                    rollback.Attempted,
-                    rollback.Succeeded,
-                    reason,
-                    placementResult.Message);
-            }
-
-            return UnityContentAnchorMaterializationPipelineResult.Success(
-                bindingRequest,
-                materializationResult,
-                appliedMaterializationResult,
-                bindingResult,
-                placementResult,
-                _source,
-                reason,
-                "Content Anchor materialization pipeline materialized, logically bound and physically placed runtime content.");
+            return ToPipelineResult(result);
         }
 
-        private RollbackResult RollbackPhysicalAndLogical(
-            RuntimeContentRuntime runtimeContentRuntime,
-            RuntimeMaterializationRequest materializationRequest,
-            bool shouldUnbind,
-            FrameworkRuntimeHost runtimeHost,
-            ContentAnchorBindingResult bindingResult,
-            string reason)
+        private UnityContentAnchorMaterializationPipelineResult ToPipelineResult(ContentAnchorMaterializationResult result)
         {
-            if (shouldUnbind && bindingResult.HasHandle)
+            if (result.Succeeded)
             {
-                runtimeHost.UnbindContentAnchor(bindingResult.Handle);
+                return UnityContentAnchorMaterializationPipelineResult.Success(
+                    result.Request,
+                    result.MaterializationResult,
+                    result.AppliedMaterializationResult,
+                    result.BindingResult,
+                    result.PlacementResult,
+                    result.Source,
+                    result.Reason,
+                    "Content Anchor materialization pipeline materialized, logically bound and physically placed runtime content.");
             }
 
-            var releaseExecution = ContentAnchorReleaseExecution.Execute(
-                runtimeContentRuntime,
-                _releaseAdapter,
-                materializationRequest,
-                RuntimeReleasePolicy.MarkReleasedAndUnregister,
-                _source,
-                reason);
-            return new RollbackResult(
-                true,
-                releaseExecution.Succeeded,
-                releaseExecution.PhysicalReleaseResult,
-                releaseExecution.LogicalReleaseResult);
-        }
-
-        private UnityContentAnchorMaterializationPipelineResult Failure(
-            ContentAnchorBindingRequest request,
-            UnityContentAnchorMaterializationPipelineStatus status,
-            RuntimeMaterializationResult materializationResult,
-            RuntimeMaterializationResult appliedMaterializationResult,
-            ContentAnchorBindingResult bindingResult,
-            UnityContentAnchorPlacementResult placementResult,
-            RuntimeReleaseResult rollbackPhysicalReleaseResult,
-            RuntimeReleaseResult rollbackLogicalReleaseResult,
-            bool rollbackAttempted,
-            bool rollbackSucceeded,
-            string reason,
-            string message)
-        {
             return UnityContentAnchorMaterializationPipelineResult.Failure(
-                request,
-                status,
-                materializationResult,
-                appliedMaterializationResult,
-                bindingResult,
-                placementResult,
-                rollbackPhysicalReleaseResult,
-                rollbackLogicalReleaseResult,
-                rollbackAttempted,
-                rollbackSucceeded,
-                _source,
-                reason,
-                message);
+                result.Request,
+                MapStatus(result.FailedStage),
+                result.MaterializationResult,
+                result.AppliedMaterializationResult,
+                result.BindingResult,
+                result.PlacementResult,
+                result.RollbackResult.PhysicalReleaseResult,
+                result.RollbackResult.LogicalReleaseResult,
+                result.RollbackResult.Attempted,
+                result.RollbackResult.Succeeded,
+                result.Source,
+                result.Reason,
+                result.Message);
         }
 
-        private readonly struct RollbackResult
+        internal static UnityContentAnchorMaterializationPipelineStatus MapStatus(ContentAnchorMaterializationStage failedStage)
         {
-            public RollbackResult(
-                bool attempted,
-                bool succeeded,
-                RuntimeReleaseResult physicalReleaseResult,
-                RuntimeReleaseResult logicalReleaseResult)
+            switch (failedStage)
             {
-                Attempted = attempted;
-                Succeeded = succeeded;
-                PhysicalReleaseResult = physicalReleaseResult;
-                LogicalReleaseResult = logicalReleaseResult;
+                case ContentAnchorMaterializationStage.None:
+                    return UnityContentAnchorMaterializationPipelineStatus.Succeeded;
+                case ContentAnchorMaterializationStage.RuntimeHost:
+                    return UnityContentAnchorMaterializationPipelineStatus.FailedMissingRuntimeHost;
+                case ContentAnchorMaterializationStage.RuntimeContentRuntime:
+                    return UnityContentAnchorMaterializationPipelineStatus.FailedMissingRuntimeContentRuntime;
+                case ContentAnchorMaterializationStage.AnchorTransform:
+                    return UnityContentAnchorMaterializationPipelineStatus.FailedMissingAnchorTransform;
+                case ContentAnchorMaterializationStage.MaterializationRequest:
+                    return UnityContentAnchorMaterializationPipelineStatus.FailedMaterializationRequest;
+                case ContentAnchorMaterializationStage.PhysicalMaterialization:
+                    return UnityContentAnchorMaterializationPipelineStatus.FailedMaterialization;
+                case ContentAnchorMaterializationStage.RuntimeContentApply:
+                    return UnityContentAnchorMaterializationPipelineStatus.FailedMaterializationApply;
+                case ContentAnchorMaterializationStage.MaterializedEvidence:
+                    return UnityContentAnchorMaterializationPipelineStatus.FailedMissingPhysicalEvidence;
+                case ContentAnchorMaterializationStage.LogicalBinding:
+                    return UnityContentAnchorMaterializationPipelineStatus.FailedLogicalBinding;
+                case ContentAnchorMaterializationStage.PhysicalPlacement:
+                    return UnityContentAnchorMaterializationPipelineStatus.FailedPhysicalPlacement;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(failedStage), failedStage, "Content Anchor materialization failed stage must be explicit.");
             }
-
-            public bool Attempted { get; }
-
-            public bool Succeeded { get; }
-
-            public RuntimeReleaseResult PhysicalReleaseResult { get; }
-
-            public RuntimeReleaseResult LogicalReleaseResult { get; }
         }
     }
 }

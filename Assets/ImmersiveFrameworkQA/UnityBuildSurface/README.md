@@ -208,8 +208,13 @@ This is still QA surface validation only. It does not bind keyboard/controller i
 
 ## F27B Pause Input Binding
 
-`QA_UIGlobal` now includes `UnityPauseInputActionAdapter` configured with `Assets/InputSystem_Actions.inputactions`.
+The canonical authored Pause input path for `QA_UIGlobal` is now:
+
+```text
+PauseInputActionRuntimeBridgeTrigger
+  -> PauseInputModeUnityPlayerInputRuntimeBridge
+```
 
 The QA input asset has `PauseToggle` in both `Player` and `UI` maps. Default bindings are Escape and Gamepad Start.
 
-This adapter is intentionally narrow: it converts input to `PauseRequestKind.Toggle` and does not switch action maps or own InputMode policy.
+This bridge path is intentionally narrow: it validates the explicit Unity input evidence, forwards the Pause request and keeps Pause, InputMode and PlayerInput synchronized without owning InputMode policy or player join/spawn behavior.
