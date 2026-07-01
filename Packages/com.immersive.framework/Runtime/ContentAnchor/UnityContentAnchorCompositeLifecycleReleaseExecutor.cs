@@ -165,7 +165,13 @@ namespace Immersive.Framework.ContentAnchor
 
                 lifecycleReleaseRequested++;
 
-                RuntimeReleaseResult physicalRelease = _releaseAdapter.Release(request);
+                var releaseExecution = ContentAnchorReleaseExecution.Execute(
+                    runtimeContentRuntime,
+                    _releaseAdapter,
+                    request,
+                    _source,
+                    resolvedReason + ".logical-release." + i);
+                RuntimeReleaseResult physicalRelease = releaseExecution.PhysicalReleaseResult;
                 if (!physicalRelease.Succeeded)
                 {
                     lifecycleRegistry.MarkReleaseFailed(
@@ -193,10 +199,7 @@ namespace Immersive.Framework.ContentAnchor
 
                 physicalReleaseRequests++;
 
-                RuntimeReleaseResult logicalRelease = runtimeContentRuntime.ApplyReleaseResult(
-                    physicalRelease,
-                    _source,
-                    resolvedReason + ".logical-release." + i);
+                RuntimeReleaseResult logicalRelease = releaseExecution.LogicalReleaseResult;
                 if (!logicalRelease.Succeeded)
                 {
                     lifecycleRegistry.MarkReleaseFailed(

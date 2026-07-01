@@ -761,18 +761,14 @@ namespace Immersive.Framework.ActivityFlow
 
         private ContentAnchorBindingLifecycleResult CleanupPreviousActivityContentAnchorBindings(ActivityAsset previousActivity, ActivityAsset nextActivity, string source, string reason)
         {
-            if (previousActivity == null || ReferenceEquals(previousActivity, nextActivity))
-            {
-                return default(ContentAnchorBindingLifecycleResult);
-            }
-
-            var owner = CreateActivityOwner(previousActivity);
-            if (nextActivity != null && owner == CreateActivityOwner(nextActivity))
-            {
-                return default(ContentAnchorBindingLifecycleResult);
-            }
-
-            return _contentAnchorBindingRuntime.UnbindRuntimeOwner(owner, source, reason);
+            var previousOwner = previousActivity != null ? CreateActivityOwner(previousActivity) : default(RuntimeContentOwner);
+            var nextOwner = nextActivity != null ? CreateActivityOwner(nextActivity) : default(RuntimeContentOwner);
+            return ContentAnchorBindingCleanup.CleanupPreviousRuntimeOwner(
+                _contentAnchorBindingRuntime,
+                previousOwner,
+                nextOwner,
+                source,
+                reason);
         }
 
         private RuntimeRootRegistryOperationResult RemovePreviousActivityScopeRoot(ActivityAsset previousActivity, ActivityAsset nextActivity, string source, string reason)

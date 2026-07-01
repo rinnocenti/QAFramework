@@ -512,18 +512,14 @@ namespace Immersive.Framework.RouteLifecycle
 
         private ContentAnchorBindingLifecycleResult CleanupPreviousRouteContentAnchorBindings(RouteAsset previousRoute, RouteAsset nextRoute, string source, string reason)
         {
-            if (previousRoute == null || ReferenceEquals(previousRoute, nextRoute))
-            {
-                return default(ContentAnchorBindingLifecycleResult);
-            }
-
-            var owner = CreateRouteOwner(previousRoute);
-            if (nextRoute != null && owner == CreateRouteOwner(nextRoute))
-            {
-                return default(ContentAnchorBindingLifecycleResult);
-            }
-
-            return _contentAnchorBindingRuntime.UnbindRuntimeOwner(owner, source, reason);
+            var previousOwner = previousRoute != null ? CreateRouteOwner(previousRoute) : default(RuntimeContentOwner);
+            var nextOwner = nextRoute != null ? CreateRouteOwner(nextRoute) : default(RuntimeContentOwner);
+            return ContentAnchorBindingCleanup.CleanupPreviousRuntimeOwner(
+                _contentAnchorBindingRuntime,
+                previousOwner,
+                nextOwner,
+                source,
+                reason);
         }
 
         private RuntimeRootRegistryOperationResult RemovePreviousRouteScopeRoot(RouteAsset previousRoute, RouteAsset nextRoute, string source, string reason)

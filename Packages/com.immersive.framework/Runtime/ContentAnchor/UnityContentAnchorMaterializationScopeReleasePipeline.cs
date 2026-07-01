@@ -110,14 +110,16 @@ namespace Immersive.Framework.ContentAnchor
                     continue;
                 }
 
-                var releaseRequest = runtimeContentRuntime.CreateReleaseRequest(
+                var releaseExecution = ContentAnchorReleaseExecution.Execute(
+                    runtimeContentRuntime,
+                    _releaseAdapter,
                     context,
                     evidence.Identity,
                     releasePolicy,
                     _source,
                     normalizedReason);
 
-                lastPhysicalReleaseResult = _releaseAdapter.Release(releaseRequest);
+                lastPhysicalReleaseResult = releaseExecution.PhysicalReleaseResult;
                 if (!lastPhysicalReleaseResult.Succeeded)
                 {
                     return Failure(
@@ -138,10 +140,7 @@ namespace Immersive.Framework.ContentAnchor
 
                 physicalReleaseRequests++;
 
-                lastLogicalReleaseResult = runtimeContentRuntime.ApplyReleaseResult(
-                    lastPhysicalReleaseResult,
-                    _source,
-                    normalizedReason);
+                lastLogicalReleaseResult = releaseExecution.LogicalReleaseResult;
                 if (!lastLogicalReleaseResult.Succeeded)
                 {
                     return Failure(

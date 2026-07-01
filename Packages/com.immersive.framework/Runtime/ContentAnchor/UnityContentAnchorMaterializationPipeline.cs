@@ -175,14 +175,13 @@ namespace Immersive.Framework.ContentAnchor
                 || evidence == null
                 || !evidence.HasLiveInstance)
             {
-                var releaseRequest = runtimeContentRuntime.CreateReleaseRequest(
-                    materializationRequest.Context,
-                    materializationRequest.Identity,
+                var releaseExecution = ContentAnchorReleaseExecution.Execute(
+                    runtimeContentRuntime,
+                    _releaseAdapter,
+                    materializationRequest,
                     RuntimeReleasePolicy.MarkReleasedAndUnregister,
                     _source,
                     reason);
-                var physicalReleaseResult = _releaseAdapter.Release(releaseRequest);
-                var logicalReleaseResult = runtimeContentRuntime.ApplyReleaseResult(physicalReleaseResult, _source, reason);
                 return Failure(
                     bindingRequest,
                     UnityContentAnchorMaterializationPipelineStatus.FailedMissingPhysicalEvidence,
@@ -190,10 +189,10 @@ namespace Immersive.Framework.ContentAnchor
                     appliedMaterializationResult,
                     default(ContentAnchorBindingResult),
                     default(UnityContentAnchorPlacementResult),
-                    physicalReleaseResult,
-                    logicalReleaseResult,
+                    releaseExecution.PhysicalReleaseResult,
+                    releaseExecution.LogicalReleaseResult,
                     true,
-                    physicalReleaseResult.Succeeded && logicalReleaseResult.Succeeded,
+                    releaseExecution.Succeeded,
                     reason,
                     "Content Anchor materialization pipeline failed because physical materialization evidence was not available after successful materialization.");
             }
@@ -281,31 +280,18 @@ namespace Immersive.Framework.ContentAnchor
                 runtimeHost.UnbindContentAnchor(bindingResult.Handle);
             }
 
-            var releaseRequest = runtimeContentRuntime.CreateReleaseRequest(
-                materializationRequest.Context,
-                materializationRequest.Identity,
+            var releaseExecution = ContentAnchorReleaseExecution.Execute(
+                runtimeContentRuntime,
+                _releaseAdapter,
+                materializationRequest,
                 RuntimeReleasePolicy.MarkReleasedAndUnregister,
-                _source,
-                reason);
-            var physicalReleaseResult = _releaseAdapter.Release(releaseRequest);
-            if (!physicalReleaseResult.Succeeded)
-            {
-                return new RollbackResult(
-                    true,
-                    false,
-                    physicalReleaseResult,
-                    default(RuntimeReleaseResult));
-            }
-
-            var logicalReleaseResult = runtimeContentRuntime.ApplyReleaseResult(
-                physicalReleaseResult,
                 _source,
                 reason);
             return new RollbackResult(
                 true,
-                logicalReleaseResult.Succeeded,
-                physicalReleaseResult,
-                logicalReleaseResult);
+                releaseExecution.Succeeded,
+                releaseExecution.PhysicalReleaseResult,
+                releaseExecution.LogicalReleaseResult);
         }
 
         private UnityContentAnchorMaterializationPipelineResult Failure(
