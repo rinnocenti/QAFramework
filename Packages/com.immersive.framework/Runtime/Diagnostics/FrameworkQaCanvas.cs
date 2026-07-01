@@ -400,13 +400,23 @@ namespace Immersive.Framework.Diagnostics
         {
             GUILayout.Space(8f);
             GUILayout.Label("Pause / F10 Diagnostics", GUI.skin.box);
-            GUILayout.Label("Canonical Pause path: resident UIGlobal surface. Materialized Pause proofs remain optional/advanced and are no longer exposed here.");
+            GUILayout.Label("Canonical Pause path: resident UIGlobal surface. Current Pause/InputMode bridge proofs are exposed below for QA alignment.");
 
             using (new EditorDisabledScope(_requestInFlight))
             {
                 if (GUILayout.Button("Run Pause Logical Toggle Resident Surface Smoke"))
                 {
                     RunPauseLogicalToggleResidentSurfaceSmoke();
+                }
+
+                if (GUILayout.Button("Run Pause Runtime PlayerInput Bridge Smoke"))
+                {
+                    RunPauseInputModeUnityPlayerInputRuntimeBridgeSmoke();
+                }
+
+                if (GUILayout.Button("Run Pause InputAction Bridge Trigger Smoke"))
+                {
+                    RunPauseInputActionRuntimeBridgeTriggerSmoke();
                 }
             }
         }

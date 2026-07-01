@@ -1,6 +1,6 @@
 # FXX-PLAN — RuntimeContent / ContentAnchor Materialization Orchestration
 
-Status: Closed / MAT-1  
+Status: Closed / MAT-3  
 Scope: implementation plan for `FXX-ADR-CONSOLIDATION-002`.  
 Prerequisite: ADR accepted.
 

@@ -133,7 +133,6 @@ GameObject:
   - component: {fileID: 6601282513635099963}
   - component: {fileID: 7727001000000000001}
   - component: {fileID: 7727001000000000002}
-  - component: {fileID: 7727001000000000003}
   m_Layer: 5
   m_Name: UIGlobal Transition Curtain Surface
   m_TagString: Untagged
@@ -940,25 +939,3 @@ MonoBehaviour:
   lastState: 0
   lastPaused: 0
   lastReason:
---- !u!114 &7727001000000000003
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3216439661792465728}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d596d6704c2843d9b0769c1bb7e543d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Pause.UnityPauseInputActionAdapter
-  actionsAsset: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  playerActionMapName: Player
-  uiActionMapName: UI
-  pauseToggleActionName: PauseToggle
-  enableResolvedActionsOnEnable: 1
-  requirePlayerAction: 1
-  requireUiAction: 1
-  logReadyOnEnable: 1
-  logPerformedInput: 1
-  logIgnoredInput: 1

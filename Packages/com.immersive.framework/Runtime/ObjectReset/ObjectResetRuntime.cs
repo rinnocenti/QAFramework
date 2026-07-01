@@ -1,5 +1,4 @@
 using System;
-using System;
 using System.Collections.Generic;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Common;
@@ -366,11 +365,6 @@ namespace Immersive.Framework.ObjectReset
             if (result.Requiredness != entry.Requiredness)
             {
                 return "Object Reset participant returned a result with different requiredness.";
-            }
-
-            if (!result.IsValid)
-            {
-                return "Object Reset participant returned an invalid result.";
             }
 
             return "Object Reset participant returned an invalid result.";
