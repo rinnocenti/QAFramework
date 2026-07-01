@@ -72,6 +72,7 @@ namespace Immersive.Framework.CycleReset
 
             var results = new List<CycleResetParticipantResult>(plan.EntryCount);
             var executionIssues = new List<CycleResetIssue>(plan.SnapshotIssues());
+            var executionEntries = new List<ParticipantExecutionEntry<CycleResetParticipantInvocation>>(plan.EntryCount);
             IReadOnlyList<CycleResetParticipantEntry> entries = plan.Entries;
 
             for (int i = 0; i < entries.Count; i++)
@@ -97,33 +98,22 @@ namespace Immersive.Framework.CycleReset
                     continue;
                 }
 
-                try
-                {
-                    var context = new CycleResetContext(plan.Request, entry.Descriptor);
-                    var result = entry.Participant.ResetCycle(context);
-                    if (!IsValidResultForEntry(result, entry, plan.Request, out string invalidResultMessage))
-                    {
-                        results.Add(CreateFailure(entry, plan.Request, sourceText, reasonText, invalidResultMessage));
-                        executionIssues.Add(CreateResultIssue(entry, invalidResultMessage));
-                        continue;
-                    }
+                executionEntries.Add(CreateExecutionEntry(entry, plan.Request, executionEntries.Count));
+            }
 
-                    results.Add(result);
-                    if (result.Failed)
-                    {
-                        executionIssues.Add(CreateFailureIssue(result));
-                    }
-                }
-                catch (Exception exception)
-                {
-                    string message = $"Cycle Reset participant threw an exception: {exception.GetType().Name}.";
-                    results.Add(CreateFailure(entry, plan.Request, sourceText, reasonText, message));
-                    executionIssues.Add(CycleResetIssue.BlockingIssue(
-                        CycleResetIssueKind.ParticipantException,
-                        entry.ParticipantId,
-                        entry.ParticipantScope,
-                        message));
-                }
+            if (executionEntries.Count > 0)
+            {
+                _ = ParticipantExecutor.Execute<CycleResetParticipantInvocation, CycleResetParticipantResult>(
+                    sourceText,
+                    reasonText,
+                    executionEntries,
+                    InvokeParticipant,
+                    IsResultValid,
+                    IsResultSuccessful,
+                    IsResultBlocking,
+                    GetIssueCount,
+                    CreateExceptionIssue,
+                    CreateInvalidResultIssue);
             }
 
             return CycleResetResult.FromResults(
@@ -133,6 +123,85 @@ namespace Immersive.Framework.CycleReset
                 sourceText,
                 reasonText,
                 "Cycle Reset runtime executed the supplied plan.");
+
+            ParticipantExecutionEntry<CycleResetParticipantInvocation> CreateExecutionEntry(
+                CycleResetParticipantEntry entry,
+                CycleResetRequest request,
+                int order)
+            {
+                return new ParticipantExecutionEntry<CycleResetParticipantInvocation>(
+                    new CycleResetParticipantInvocation(entry, request),
+                    ToParticipantRequiredness(entry.Requiredness),
+                    order,
+                    entry.SourceIndex,
+                    string.IsNullOrWhiteSpace(entry.DisplayName) ? entry.ParticipantId.StableText : entry.DisplayName);
+            }
+
+            CycleResetParticipantResult InvokeParticipant(CycleResetParticipantInvocation participant)
+            {
+                var context = new CycleResetContext(participant.Request, participant.Entry.Descriptor);
+                return participant.Entry.Participant.ResetCycle(context);
+            }
+
+            bool IsResultValid(ParticipantExecutionEntry<CycleResetParticipantInvocation> entry, CycleResetParticipantResult result)
+            {
+                return IsValidResultForEntry(result, entry.Participant.Entry, plan.Request, out _);
+            }
+
+            bool IsResultSuccessful(ParticipantExecutionEntry<CycleResetParticipantInvocation> entry, CycleResetParticipantResult result)
+            {
+                results.Add(result);
+                if (result.Failed)
+                {
+                    executionIssues.Add(CreateFailureIssue(result));
+                }
+
+                return result.Succeeded || result.WasSkipped;
+            }
+
+            bool IsResultBlocking(ParticipantExecutionEntry<CycleResetParticipantInvocation> entry, CycleResetParticipantResult result)
+            {
+                return result.BlocksReset;
+            }
+
+            int GetIssueCount(ParticipantExecutionEntry<CycleResetParticipantInvocation> entry, CycleResetParticipantResult result)
+            {
+                return result.IssueCount;
+            }
+
+            ParticipantExecutionIssue CreateExceptionIssue(ParticipantExecutionEntry<CycleResetParticipantInvocation> entry, Exception exception)
+            {
+                string message = $"Cycle Reset participant threw an exception: {exception.GetType().Name}.";
+                results.Add(CreateFailure(entry.Participant.Entry, plan.Request, sourceText, reasonText, message));
+                executionIssues.Add(CycleResetIssue.BlockingIssue(
+                    CycleResetIssueKind.ParticipantException,
+                    entry.Participant.Entry.ParticipantId,
+                    entry.Participant.Entry.ParticipantScope,
+                    message));
+
+                return new ParticipantExecutionIssue(
+                    ParticipantExecutionIssueSeverity.Error,
+                    entry.Label,
+                    sourceText,
+                    reasonText,
+                    message,
+                    1);
+            }
+
+            ParticipantExecutionIssue CreateInvalidResultIssue(ParticipantExecutionEntry<CycleResetParticipantInvocation> entry, CycleResetParticipantResult result)
+            {
+                string invalidResultMessage = GetInvalidResultMessage(result, entry.Participant.Entry, plan.Request);
+                results.Add(CreateFailure(entry.Participant.Entry, plan.Request, sourceText, reasonText, invalidResultMessage));
+                executionIssues.Add(CreateResultIssue(entry.Participant.Entry, invalidResultMessage));
+
+                return new ParticipantExecutionIssue(
+                    entry.Participant.Entry.IsRequired ? ParticipantExecutionIssueSeverity.Error : ParticipantExecutionIssueSeverity.Warning,
+                    entry.Label,
+                    sourceText,
+                    reasonText,
+                    invalidResultMessage,
+                    1);
+            }
         }
 
         private static CycleResetParticipantResult CreateFailure(
@@ -176,6 +245,19 @@ namespace Immersive.Framework.CycleReset
                     result.Message);
         }
 
+        private static ParticipantRequiredness ToParticipantRequiredness(CycleResetParticipantRequiredness requiredness)
+        {
+            switch (requiredness)
+            {
+                case CycleResetParticipantRequiredness.Required:
+                    return ParticipantRequiredness.Required;
+                case CycleResetParticipantRequiredness.Optional:
+                    return ParticipantRequiredness.Optional;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(requiredness), requiredness, "Cycle Reset participant requiredness must be explicit.");
+            }
+        }
+
         private static bool IsValidResultForEntry(
             CycleResetParticipantResult result,
             CycleResetParticipantEntry entry,
@@ -216,9 +298,55 @@ namespace Immersive.Framework.CycleReset
             return true;
         }
 
+        private static string GetInvalidResultMessage(
+            CycleResetParticipantResult result,
+            CycleResetParticipantEntry entry,
+            CycleResetRequest request)
+        {
+            if (!result.IsValid)
+            {
+                return "Cycle Reset participant returned an invalid result.";
+            }
+
+            if (!result.Request.Equals(request))
+            {
+                return "Cycle Reset participant returned a result for a different request.";
+            }
+
+            if (!result.ParticipantId.Equals(entry.ParticipantId))
+            {
+                return "Cycle Reset participant returned a result for a different participant id.";
+            }
+
+            if (result.ParticipantScope != entry.ParticipantScope)
+            {
+                return "Cycle Reset participant returned a result for a different participant scope.";
+            }
+
+            if (result.Requiredness != entry.Requiredness)
+            {
+                return "Cycle Reset participant returned a result with different requiredness.";
+            }
+
+            return string.Empty;
+        }
+
         private static string Normalize(string value)
         {
             return value.NormalizeText();
+        }
+
+        private sealed class CycleResetParticipantInvocation
+        {
+            internal CycleResetParticipantInvocation(CycleResetParticipantEntry entry, CycleResetRequest request)
+            {
+                Entry = entry;
+                Request = request;
+            }
+
+            internal CycleResetParticipantEntry Entry { get; }
+
+            internal CycleResetRequest Request { get; }
         }
     }
 }

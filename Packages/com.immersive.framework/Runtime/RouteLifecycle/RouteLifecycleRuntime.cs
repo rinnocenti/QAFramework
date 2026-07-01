@@ -8,6 +8,7 @@ using Immersive.Framework.SceneLifecycle;
 using Immersive.Framework.ContentFlow;
 using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 using Immersive.Framework.RuntimeContent;
 using Immersive.Framework.CycleReset;
 using Immersive.Framework.Loading;
@@ -238,15 +239,23 @@ namespace Immersive.Framework.RouteLifecycle
                 return RouteLifecycleStartResult.Failed(activityFlowResult.Message);
             }
 
-            var routeBindingCleanupResult = CleanupPreviousRouteContentAnchorBindings(previousRoute, route, source, reason);
-            var runtimeRouteExitResult = RemovePreviousRouteScopeRoot(previousRoute, route, source, reason);
-            var runtimeRouteScopeResult = MergeRouteScopeResults(
-                runtimeRouteEnterResult,
-                runtimeRouteExitResult,
-                route,
-                previousRoute,
+            var currentRouteOwner = runtimeRouteEnterResult.Owner;
+            var previousRouteOwner = previousRoute != null
+                ? CreateRouteOwner(previousRoute)
+                : default(RuntimeContentOwner);
+            var routeScopeTailRequest = new FrameworkScopeTailOperationRequest(
+                currentRouteOwner,
+                previousRouteOwner,
+                runtimeRouteEnterResult.EnterRootResult,
+                runtimeRouteEnterResult.Context,
+                _runtimeContentRuntime.RootCount,
                 source,
-                reason);
+                reason,
+                () => _runtimeContentRuntime.RootCount);
+            var routeScopeTailResult = FrameworkScopeTailOperationExecutor.Execute(
+                routeScopeTailRequest,
+                cleanupRequest => CleanupPreviousRouteContentAnchorBindings(previousRoute, route, cleanupRequest.Source, cleanupRequest.Reason),
+                removeRequest => RemovePreviousRouteScopeRoot(previousRoute, route, removeRequest.Source, removeRequest.Reason));
 
             var result = RouteLifecycleStartResult.StartedWith(
                 route,
@@ -261,8 +270,8 @@ namespace Immersive.Framework.RouteLifecycle
                 activityFlowResult,
                 source,
                 reason,
-                runtimeRouteScopeResult,
-                routeBindingCleanupResult,
+                routeScopeTailResult.ScopeResult,
+                routeScopeTailResult.BindingCleanupResult,
                 activitySceneRouteReleaseResult);
             _currentRouteState = result.RouteState;
             PublishRouteTransition(previousRoute, route, source, reason);
@@ -517,30 +526,20 @@ namespace Immersive.Framework.RouteLifecycle
             return _contentAnchorBindingRuntime.UnbindRuntimeOwner(owner, source, reason);
         }
 
-        private RuntimeScopeLifecycleResult RemovePreviousRouteScopeRoot(RouteAsset previousRoute, RouteAsset nextRoute, string source, string reason)
+        private RuntimeRootRegistryOperationResult RemovePreviousRouteScopeRoot(RouteAsset previousRoute, RouteAsset nextRoute, string source, string reason)
         {
             if (previousRoute == null || ReferenceEquals(previousRoute, nextRoute))
             {
-                return RuntimeScopeLifecycleResult.None(RuntimeContentScope.Route, source, reason);
+                throw new InvalidOperationException("Route scope root removal is only valid for a distinct previous Route.");
             }
 
             var owner = CreateRouteOwner(previousRoute);
             if (nextRoute != null && owner == CreateRouteOwner(nextRoute))
             {
-                return RuntimeScopeLifecycleResult.None(RuntimeContentScope.Route, source, reason);
+                throw new InvalidOperationException("Route scope root removal is only valid for a distinct previous Route.");
             }
 
-            var exitResult = _runtimeContentRuntime.RemoveScopeRoot(owner, source, reason);
-
-            return new RuntimeScopeLifecycleResult(
-                RuntimeContentScope.Route,
-                owner,
-                null,
-                exitResult,
-                default(RuntimeScopeContext),
-                _runtimeContentRuntime.RootCount,
-                source,
-                reason);
+            return _runtimeContentRuntime.RemoveScopeRoot(owner, source, reason);
         }
 
         private RuntimeScopeLifecycleResult MergeRouteScopeResults(

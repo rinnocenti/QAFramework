@@ -22,7 +22,7 @@ Assets/_Documentation/Plans/FXX-PLAN-RuntimeContent-ContentAnchor-Materializatio
 |---:|---|---|---|
 | 1 | Common internal mechanics | Candidate foundation | Enables small shared mechanics without domain migration. |
 | 2 | Participant consolidation | Planned pilot | Already has ADR/plan; pilots with `CycleReset` and `ObjectReset`. |
-| 3 | Route/Activity lifecycle operation kernel | Audit/ADR needed | Highest-scoring non-seed lifecycle mirror. |
+| 3 | Route/Activity lifecycle operation kernel | Closed | Highest-scoring non-seed lifecycle mirror. |
 | 4 | RuntimeContent/ContentAnchor materialization service | Planned candidate | Already has ADR/plan; real side effects require small cuts. |
 | 5 | Pause/InputMode apply boundary | Audit/ADR needed | Thick bridge with logical + Unity side effects. |
 | 6 | GameFlow lifecycle request envelope | Audit/ADR needed | Coordinator pressure; should follow lifecycle kernel analysis. |
@@ -638,4 +638,3 @@ Manual Inspector check when a MonoBehaviour wrapper is touched, even if fields a
 ```
 
 Do not claim PASS from static checks alone.
-

@@ -1,7 +1,8 @@
 using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using Immersive.Framework.ApiStatus;
+using Immersive.Framework.Common;
 using Immersive.Framework.ObjectEntry;
 
 namespace Immersive.Framework.ObjectReset
@@ -36,6 +37,8 @@ namespace Immersive.Framework.ObjectReset
             ObjectResetRequest request,
             IObjectResetParticipantSource participantSource)
         {
+            string sourceText = Normalize(snapshot == null ? null : snapshot.Source);
+            string reasonText = Normalize(request.Reason);
             var targetResolution = ObjectResetTargetResolver.ResolveTarget(snapshot, request);
             if (!targetResolution.Succeeded || !targetResolution.HasResolvedTarget)
             {
@@ -70,50 +73,41 @@ namespace Immersive.Framework.ObjectReset
             }
 
             var issues = new List<ObjectResetIssue>(plan.SnapshotIssues());
-            var participantResults = new List<ObjectResetParticipantResult>();
+            var participantResults = new List<ObjectResetParticipantResult>(plan.ParticipantCount);
+            var executionEntries = new List<ParticipantExecutionEntry<ObjectResetParticipantInvocation>>(plan.ParticipantCount);
+            var state = new ObjectResetExecutionState(
+                request,
+                targetResolution.ResolvedTarget,
+                issues,
+                participantResults);
 
-            foreach (var entry in plan.Participants)
+            for (int i = 0; i < plan.Participants.Count; i++)
             {
-                var context = new ObjectResetContext(request, targetResolution.ResolvedTarget, entry.Descriptor);
-                ObjectResetParticipantResult participantResult;
-                try
-                {
-                    participantResult = entry.Participant.ResetObject(context);
-                }
-                catch (Exception exception)
-                {
-                    participantResult = entry.IsRequired
-                        ? ObjectResetParticipantResult.BlockingFailure(
-                            context,
-                            1,
-                            entry.Descriptor.Source,
-                            entry.Descriptor.Reason,
-                            $"Required Object Reset participant threw: {exception.Message}")
-                        : ObjectResetParticipantResult.NonBlockingFailure(
-                            context,
-                            1,
-                            entry.Descriptor.Source,
-                            entry.Descriptor.Reason,
-                            $"Optional Object Reset participant threw: {exception.Message}");
-                }
+                var entry = plan.Participants[i];
+                executionEntries.Add(CreateExecutionEntry(entry, request, targetResolution.ResolvedTarget));
+            }
 
-                participantResults.Add(participantResult);
+            _ = ParticipantExecutor.Execute<ObjectResetParticipantInvocation, ObjectResetParticipantResult>(
+                sourceText,
+                reasonText,
+                executionEntries,
+                InvokeParticipant,
+                (entry, result) => IsResultValid(entry, result),
+                (entry, result) => IsResultSuccessful(state, entry, result),
+                (entry, result) => IsResultBlocking(entry, result),
+                (entry, result) => GetIssueCount(entry, result),
+                (entry, exception) => CreateExceptionIssue(state, entry, exception),
+                (entry, result) => CreateInvalidResultIssue(state, entry, result));
 
-                if (participantResult.BlocksReset)
+            int blockingIssues = 0;
+            for (int i = 0; i < issues.Count; i++)
+            {
+                if (issues[i].IsBlocking)
                 {
-                    issues.Add(ObjectResetIssue.Error(
-                        ObjectResetIssueKind.RequiredParticipantFailed,
-                        $"Required Object Reset participant '{participantResult.ParticipantId.StableText}' blocked reset with status '{participantResult.Status}'."));
-                }
-                else if (participantResult.Failed)
-                {
-                    issues.Add(ObjectResetIssue.Warning(
-                        ObjectResetIssueKind.OptionalParticipantFailed,
-                        $"Optional Object Reset participant '{participantResult.ParticipantId.StableText}' failed without blocking reset with status '{participantResult.Status}'."));
+                    blockingIssues++;
                 }
             }
 
-            int blockingIssues = issues.Count(issue => issue.IsBlocking);
             int nonBlockingIssues = issues.Count - blockingIssues;
             var status = blockingIssues > 0
                 ? ObjectResetResultStatus.Failed
@@ -135,6 +129,256 @@ namespace Immersive.Framework.ObjectReset
                 participantResults,
                 issues,
                 message);
+        }
+
+        private static ParticipantExecutionEntry<ObjectResetParticipantInvocation> CreateExecutionEntry(
+            ObjectResetParticipantEntry entry,
+            ObjectResetRequest request,
+            ObjectEntryDescriptor resolvedTarget)
+        {
+            return new ParticipantExecutionEntry<ObjectResetParticipantInvocation>(
+                new ObjectResetParticipantInvocation(entry, request, resolvedTarget),
+                ToParticipantRequiredness(entry.Requiredness),
+                entry.Order,
+                entry.SourceIndex,
+                entry.ParticipantId.StableText);
+        }
+
+        private static ObjectResetParticipantResult InvokeParticipant(ObjectResetParticipantInvocation participant)
+        {
+            var context = new ObjectResetContext(participant.Request, participant.ResolvedTarget, participant.Entry.Descriptor);
+            return participant.Entry.Participant.ResetObject(context);
+        }
+
+        private static bool IsResultValid(
+            ParticipantExecutionEntry<ObjectResetParticipantInvocation> entry,
+            ObjectResetParticipantResult result)
+        {
+            return IsValidResultForEntry(result, entry.Participant.Entry, entry.Participant.Request, entry.Participant.ResolvedTarget, out _);
+        }
+
+        private static bool IsResultSuccessful(
+            ObjectResetExecutionState state,
+            ParticipantExecutionEntry<ObjectResetParticipantInvocation> entry,
+            ObjectResetParticipantResult result)
+        {
+            state.ParticipantResults.Add(result);
+            if (result.Failed)
+            {
+                state.Issues.Add(CreateFailureIssue(result));
+            }
+
+            return result.Succeeded || result.WasSkipped;
+        }
+
+        private static bool IsResultBlocking(
+            ParticipantExecutionEntry<ObjectResetParticipantInvocation> entry,
+            ObjectResetParticipantResult result)
+        {
+            return result.BlocksReset;
+        }
+
+        private static int GetIssueCount(
+            ParticipantExecutionEntry<ObjectResetParticipantInvocation> entry,
+            ObjectResetParticipantResult result)
+        {
+            return result.IssueCount;
+        }
+
+        private static ParticipantExecutionIssue CreateExceptionIssue(
+            ObjectResetExecutionState state,
+            ParticipantExecutionEntry<ObjectResetParticipantInvocation> entry,
+            Exception exception)
+        {
+            string message = entry.Participant.Entry.IsRequired
+                ? $"Required Object Reset participant threw: {exception.Message}"
+                : $"Optional Object Reset participant threw: {exception.Message}";
+            ObjectResetParticipantResult participantResult = CreateFailure(
+                entry.Participant.Entry,
+                entry.Participant.Request,
+                entry.Participant.ResolvedTarget,
+                entry.Participant.Entry.Descriptor.Source,
+                entry.Participant.Entry.Descriptor.Reason,
+                1,
+                message);
+            state.ParticipantResults.Add(participantResult);
+            state.Issues.Add(CreateFailureIssue(participantResult));
+
+            return CreateExecutionIssue(entry, participantResult);
+        }
+
+        private static ParticipantExecutionIssue CreateInvalidResultIssue(
+            ObjectResetExecutionState state,
+            ParticipantExecutionEntry<ObjectResetParticipantInvocation> entry,
+            ObjectResetParticipantResult result)
+        {
+            string message = GetInvalidResultMessage(result, entry.Participant.Entry, entry.Participant.Request, entry.Participant.ResolvedTarget);
+            ObjectResetParticipantResult participantResult = CreateFailure(
+                entry.Participant.Entry,
+                entry.Participant.Request,
+                entry.Participant.ResolvedTarget,
+                entry.Participant.Entry.Descriptor.Source,
+                entry.Participant.Entry.Descriptor.Reason,
+                Math.Max(1, result.IssueCount),
+                message);
+            state.ParticipantResults.Add(participantResult);
+            state.Issues.Add(CreateFailureIssue(participantResult));
+
+            return CreateExecutionIssue(entry, participantResult);
+        }
+
+        private static ParticipantExecutionIssue CreateExecutionIssue(
+            ParticipantExecutionEntry<ObjectResetParticipantInvocation> entry,
+            ObjectResetParticipantResult participantResult)
+        {
+            return new ParticipantExecutionIssue(
+                participantResult.BlocksReset ? ParticipantExecutionIssueSeverity.Error : ParticipantExecutionIssueSeverity.Warning,
+                entry.Label,
+                participantResult.Source,
+                participantResult.Reason,
+                participantResult.Message,
+                Math.Max(1, participantResult.IssueCount));
+        }
+
+        private static ObjectResetParticipantResult CreateFailure(
+            ObjectResetParticipantEntry entry,
+            ObjectResetRequest request,
+            ObjectEntryDescriptor resolvedTarget,
+            string source,
+            string reason,
+            int issueCount,
+            string message)
+        {
+            var context = new ObjectResetContext(request, resolvedTarget, entry.Descriptor);
+            return ObjectResetParticipantResult.Failure(context, issueCount, source, reason, message);
+        }
+
+        private static ObjectResetIssue CreateFailureIssue(ObjectResetParticipantResult participantResult)
+        {
+            return participantResult.BlocksReset
+                ? ObjectResetIssue.Error(
+                    ObjectResetIssueKind.RequiredParticipantFailed,
+                    $"Required Object Reset participant '{participantResult.ParticipantId.StableText}' blocked reset with status '{participantResult.Status}'.")
+                : ObjectResetIssue.Warning(
+                    ObjectResetIssueKind.OptionalParticipantFailed,
+                    $"Optional Object Reset participant '{participantResult.ParticipantId.StableText}' failed without blocking reset with status '{participantResult.Status}'.");
+        }
+
+        private static ParticipantRequiredness ToParticipantRequiredness(ObjectResetParticipantRequiredness requiredness)
+        {
+            switch (requiredness)
+            {
+                case ObjectResetParticipantRequiredness.Required:
+                    return ParticipantRequiredness.Required;
+                case ObjectResetParticipantRequiredness.Optional:
+                    return ParticipantRequiredness.Optional;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(requiredness), requiredness, "Object Reset participant requiredness must be explicit.");
+            }
+        }
+
+        private static bool IsValidResultForEntry(
+            ObjectResetParticipantResult result,
+            ObjectResetParticipantEntry entry,
+            ObjectResetRequest request,
+            ObjectEntryDescriptor resolvedTarget,
+            out string message)
+        {
+            if (!Enum.IsDefined(typeof(ObjectResetParticipantResultStatus), result.Status)
+                || result.Status == ObjectResetParticipantResultStatus.Unknown)
+            {
+                message = "Object Reset participant returned a result with an undefined status.";
+                return false;
+            }
+
+            if (!result.Request.Equals(request))
+            {
+                message = "Object Reset participant returned a result for a different request.";
+                return false;
+            }
+
+            if (!result.ResolvedTarget.Equals(resolvedTarget))
+            {
+                message = "Object Reset participant returned a result for a different resolved target.";
+                return false;
+            }
+
+            if (!result.ParticipantId.Equals(entry.ParticipantId))
+            {
+                message = "Object Reset participant returned a result for a different participant id.";
+                return false;
+            }
+
+            if (result.Target != entry.Target)
+            {
+                message = "Object Reset participant returned a result for a different participant target.";
+                return false;
+            }
+
+            if (result.Requiredness != entry.Requiredness)
+            {
+                message = "Object Reset participant returned a result with different requiredness.";
+                return false;
+            }
+
+            if (!result.IsValid)
+            {
+                message = "Object Reset participant returned an invalid result.";
+                return false;
+            }
+
+            message = string.Empty;
+            return true;
+        }
+
+        private static string GetInvalidResultMessage(
+            ObjectResetParticipantResult result,
+            ObjectResetParticipantEntry entry,
+            ObjectResetRequest request,
+            ObjectEntryDescriptor resolvedTarget)
+        {
+            if (!Enum.IsDefined(typeof(ObjectResetParticipantResultStatus), result.Status)
+                || result.Status == ObjectResetParticipantResultStatus.Unknown)
+            {
+                return "Object Reset participant returned a result with an undefined status.";
+            }
+
+            if (!result.Request.Equals(request))
+            {
+                return "Object Reset participant returned a result for a different request.";
+            }
+
+            if (!result.ResolvedTarget.Equals(resolvedTarget))
+            {
+                return "Object Reset participant returned a result for a different resolved target.";
+            }
+
+            if (!result.ParticipantId.Equals(entry.ParticipantId))
+            {
+                return "Object Reset participant returned a result for a different participant id.";
+            }
+
+            if (result.Target != entry.Target)
+            {
+                return "Object Reset participant returned a result for a different participant target.";
+            }
+
+            if (result.Requiredness != entry.Requiredness)
+            {
+                return "Object Reset participant returned a result with different requiredness.";
+            }
+
+            if (!result.IsValid)
+            {
+                return "Object Reset participant returned an invalid result.";
+            }
+
+            return "Object Reset participant returned an invalid result.";
+        }
+
+        private static string Normalize(string value)
+        {
+            return value.NormalizeText();
         }
 
         private ObjectResetPlan BuildPlan(
@@ -224,6 +468,48 @@ namespace Immersive.Framework.ObjectReset
                 resolvedTarget,
                 entries,
                 issues);
+        }
+
+        private sealed class ObjectResetParticipantInvocation
+        {
+            internal ObjectResetParticipantInvocation(
+                ObjectResetParticipantEntry entry,
+                ObjectResetRequest request,
+                ObjectEntryDescriptor resolvedTarget)
+            {
+                Entry = entry;
+                Request = request;
+                ResolvedTarget = resolvedTarget;
+            }
+
+            internal ObjectResetParticipantEntry Entry { get; }
+
+            internal ObjectResetRequest Request { get; }
+
+            internal ObjectEntryDescriptor ResolvedTarget { get; }
+        }
+
+        private sealed class ObjectResetExecutionState
+        {
+            internal ObjectResetExecutionState(
+                ObjectResetRequest request,
+                ObjectEntryDescriptor resolvedTarget,
+                List<ObjectResetIssue> issues,
+                List<ObjectResetParticipantResult> participantResults)
+            {
+                Request = request;
+                ResolvedTarget = resolvedTarget;
+                Issues = issues;
+                ParticipantResults = participantResults;
+            }
+
+            internal ObjectResetRequest Request { get; }
+
+            internal ObjectEntryDescriptor ResolvedTarget { get; }
+
+            internal List<ObjectResetIssue> Issues { get; }
+
+            internal List<ObjectResetParticipantResult> ParticipantResults { get; }
         }
     }
 }

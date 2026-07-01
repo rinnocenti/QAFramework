@@ -426,6 +426,15 @@ namespace Immersive.Framework.ObjectReset
                         source,
                         "qa.object-reset.runtime-executor.optional-failure"),
                     SyntheticObjectResetParticipantMode.NonBlockingFailure);
+                var invalidResult = new SyntheticObjectResetParticipant(
+                    ObjectResetParticipantDescriptor.Required(
+                        ObjectResetParticipantId.From("qa.object-reset.runtime.invalid-result"),
+                        request.Target,
+                        50,
+                        "QA Runtime Invalid Result Object Reset Participant",
+                        source,
+                        "qa.object-reset.runtime-executor.invalid-result"),
+                    SyntheticObjectResetParticipantMode.InvalidResult);
 
                 var successSource = new SyntheticObjectResetParticipantSource(requiredSuccess, optionalSkipped);
                 var plan = runtime.BuildPlan(snapshot, request, successSource);
@@ -433,6 +442,7 @@ namespace Immersive.Framework.ObjectReset
                 var noParticipantsResult = runtime.Execute(snapshot, request, new SyntheticObjectResetParticipantSource());
                 var requiredFailureResult = runtime.Execute(snapshot, request, new SyntheticObjectResetParticipantSource(requiredFailure));
                 var optionalFailureResult = runtime.Execute(snapshot, request, new SyntheticObjectResetParticipantSource(optionalFailure));
+                var invalidResultResult = runtime.Execute(snapshot, request, new SyntheticObjectResetParticipantSource(invalidResult));
 
                 bool planOrdered = plan.ParticipantCount == 2
                     && plan.Participants[0].ParticipantId == optionalSkipped.GetObjectResetDescriptor().ParticipantId
@@ -441,12 +451,14 @@ namespace Immersive.Framework.ObjectReset
                 bool noParticipantsSucceeded = noParticipantsResult is { Status: ObjectResetResultStatus.SucceededNoParticipants, ParticipantCount: 0, BlockingIssueCount: 0 };
                 bool requiredFailureBlocked = requiredFailureResult is { Status: ObjectResetResultStatus.Failed, ParticipantFailedCount: 1, ParticipantBlockingFailureCount: 1, BlockingIssueCount: 1 };
                 bool optionalFailureWarned = optionalFailureResult is { Status: ObjectResetResultStatus.CompletedWithWarnings, ParticipantFailedCount: 1, ParticipantBlockingFailureCount: 0, BlockingIssueCount: 0, NonBlockingIssueCount: 1 };
+                bool invalidResultBlocked = invalidResultResult is { Status: ObjectResetResultStatus.Failed, ParticipantFailedCount: 1, ParticipantBlockingFailureCount: 1, BlockingIssueCount: 1 };
 
                 if (!planOrdered
                     || !successAggregated
                     || !noParticipantsSucceeded
                     || !requiredFailureBlocked
-                    || !optionalFailureWarned)
+                    || !optionalFailureWarned
+                    || !invalidResultBlocked)
                 {
                     logger.Warning(
                         "QA Object Reset Runtime Executor Smoke step failed.",
@@ -457,10 +469,12 @@ namespace Immersive.Framework.ObjectReset
                             LogFields.Field("noParticipantsSucceeded", noParticipantsSucceeded),
                             LogFields.Field("requiredFailureBlocked", requiredFailureBlocked),
                             LogFields.Field("optionalFailureWarned", optionalFailureWarned),
+                            LogFields.Field("invalidResultBlocked", invalidResultBlocked),
                             LogFields.Field("successStatus", successResult.Status.ToString()),
                             LogFields.Field("noParticipantsStatus", noParticipantsResult.Status.ToString()),
                             LogFields.Field("requiredFailureStatus", requiredFailureResult.Status.ToString()),
-                            LogFields.Field("optionalFailureStatus", optionalFailureResult.Status.ToString())));
+                            LogFields.Field("optionalFailureStatus", optionalFailureResult.Status.ToString()),
+                            LogFields.Field("invalidResultStatus", invalidResultResult.Status.ToString())));
                     return Task.FromResult(false);
                 }
 
@@ -484,6 +498,8 @@ namespace Immersive.Framework.ObjectReset
                         LogFields.Field("requiredFailureBlocks", requiredFailureResult.BlockingIssueCount),
                         LogFields.Field("optionalFailureStatus", optionalFailureResult.Status.ToString()),
                         LogFields.Field("optionalFailureWarnings", optionalFailureResult.NonBlockingIssueCount),
+                        LogFields.Field("invalidResultStatus", invalidResultResult.Status.ToString()),
+                        LogFields.Field("invalidResultBlockingIssues", invalidResultResult.BlockingIssueCount),
                         LogFields.Field("blockingIssues", successResult.BlockingIssueCount),
                         LogFields.Field("nonBlockingIssues", successResult.NonBlockingIssueCount),
                         LogFields.Field("summary", successResult.ToDiagnosticString())));
@@ -2469,6 +2485,8 @@ namespace Immersive.Framework.ObjectReset
                             _descriptor.Source,
                             _descriptor.Reason,
                             "Synthetic Object Reset participant failed without blocking.");
+                    case SyntheticObjectResetParticipantMode.InvalidResult:
+                        return default(ObjectResetParticipantResult);
                     default:
                         return ObjectResetParticipantResult.Failure(
                             context,
@@ -2502,7 +2520,8 @@ namespace Immersive.Framework.ObjectReset
             Success = 0,
             SkippedOptional = 1,
             BlockingFailure = 2,
-            NonBlockingFailure = 3
+            NonBlockingFailure = 3,
+            InvalidResult = 4
         }
     }
 }

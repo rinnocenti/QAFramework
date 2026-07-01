@@ -149,14 +149,41 @@ namespace Immersive.Framework.ActivityFlow
                 _currentActivityState = ActivityRuntimeState.None(previousActivity, resolvedSource, resolvedReason);
                 var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, null, resolvedSource, resolvedReason);
                 var executionResult = ExecuteActivityContentLifecycle(previousActivity, null, resolvedSource, resolvedReason);
-                var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, null, resolvedSource, resolvedReason);
-                var runtimeScopeResult = RemovePreviousActivityScopeRoot(previousActivity, null, resolvedSource, resolvedReason);
+                if (previousActivity == null)
+                {
+                    var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, null, resolvedSource, resolvedReason);
+                    var runtimeScopeResult = RuntimeScopeLifecycleResult.None(RuntimeContentScope.Activity, resolvedSource, resolvedReason);
+                    return Task.FromResult(ActivityFlowStartResult.SkippedNoStartupActivity(
+                        _currentActivityState,
+                        previousActivity,
+                        contentResult,
+                        runtimeScopeResult,
+                        bindingCleanupResult,
+                        ActivityContentAnchorDiscoveryResult.Empty(null, resolvedSource, resolvedReason, "No startup Activity is active; Activity Content Anchor discovery was skipped."),
+                        executionResult,
+                        activityOperationResult: operationResult,
+                        activitySceneLedgerSnapshot: CreateActivitySceneLedgerSnapshot()));
+                }
+
+                var activityScopeTailRequest = new FrameworkScopeTailOperationRequest(
+                    default(RuntimeContentOwner),
+                    CreateActivityOwner(previousActivity),
+                    null,
+                    default(RuntimeScopeContext),
+                    _runtimeContentRuntime.RootCount,
+                    resolvedSource,
+                    resolvedReason,
+                    () => _runtimeContentRuntime.RootCount);
+                var activityScopeTailResult = FrameworkScopeTailOperationExecutor.Execute(
+                    activityScopeTailRequest,
+                    cleanupRequest => CleanupPreviousActivityContentAnchorBindings(previousActivity, null, cleanupRequest.Source, cleanupRequest.Reason),
+                    removeRequest => RemovePreviousActivityScopeRoot(previousActivity, null, removeRequest.Source, removeRequest.Reason));
                 return Task.FromResult(ActivityFlowStartResult.SkippedNoStartupActivity(
                     _currentActivityState,
                     previousActivity,
                     contentResult,
-                    runtimeScopeResult,
-                    bindingCleanupResult,
+                    activityScopeTailResult.ScopeResult,
+                    activityScopeTailResult.BindingCleanupResult,
                     ActivityContentAnchorDiscoveryResult.Empty(null, resolvedSource, resolvedReason, "No startup Activity is active; Activity Content Anchor discovery was skipped."),
                     executionResult,
                     activityOperationResult: operationResult,
@@ -271,8 +298,20 @@ namespace Immersive.Framework.ActivityFlow
             var contentResult = ApplyActivityContentThroughLifecycleEvents(previousActivity, null, resolvedSource, resolvedReason);
             var executionResult = ExecuteActivityContentLifecycle(previousActivity, null, resolvedSource, resolvedReason);
             var sceneCompositionResult = CreateActivitySceneCompositionResult(null, resolvedSource, resolvedReason);
-            var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, null, resolvedSource, resolvedReason);
             int releaseCount = PreviewActivitySceneReleaseForActivityChangeCount(previousActivity);
+            var activityScopeTailRequest = new FrameworkScopeTailOperationRequest(
+                default(RuntimeContentOwner),
+                CreateActivityOwner(previousActivity),
+                null,
+                default(RuntimeScopeContext),
+                _runtimeContentRuntime.RootCount,
+                resolvedSource,
+                resolvedReason,
+                () => _runtimeContentRuntime.RootCount);
+            var activityScopeTailResult = FrameworkScopeTailOperationExecutor.Execute(
+                activityScopeTailRequest,
+                cleanupRequest => CleanupPreviousActivityContentAnchorBindings(previousActivity, null, cleanupRequest.Source, cleanupRequest.Reason),
+                removeRequest => RemovePreviousActivityScopeRoot(previousActivity, null, removeRequest.Source, removeRequest.Reason));
             var sceneReleaseProgressReporter = FrameworkLoadingProgressReporterUtility.CreateWeightedRangeReporter(
                 progressReporter,
                 0,
@@ -285,13 +324,12 @@ namespace Immersive.Framework.ActivityFlow
                 progressReporter,
                 "ActivityTransition",
                 "Activity transition loading progress completed.");
-            var runtimeScopeResult = RemovePreviousActivityScopeRoot(previousActivity, null, resolvedSource, resolvedReason);
             return ActivityFlowStartResult.ClearedByRequest(
                 _currentActivityState,
                 previousActivity,
                 contentResult,
-                runtimeScopeResult,
-                bindingCleanupResult,
+                activityScopeTailResult.ScopeResult,
+                activityScopeTailResult.BindingCleanupResult,
                 ActivityContentAnchorDiscoveryResult.Empty(null, resolvedSource, resolvedReason, "Activity was cleared; Activity Content Anchor discovery was skipped."),
                 executionResult,
                 sceneCompositionResult,
@@ -327,6 +365,15 @@ namespace Immersive.Framework.ActivityFlow
 
             var runtimeEnterResult = CreateActivityScopeRoot(nextActivity, resolvedSource, resolvedReason);
             _currentActivityState = ActivityRuntimeState.ActiveWith(nextActivity, previousActivity, resolvedSource, resolvedReason);
+            var activityScopeTailRequest = new FrameworkScopeTailOperationRequest(
+                runtimeEnterResult.Owner,
+                previousActivity != null ? CreateActivityOwner(previousActivity) : default(RuntimeContentOwner),
+                runtimeEnterResult.EnterRootResult,
+                runtimeEnterResult.Context,
+                _runtimeContentRuntime.RootCount,
+                resolvedSource,
+                resolvedReason,
+                () => _runtimeContentRuntime.RootCount);
             var resolvedProgressReporter = progressReporter ?? NoOpFrameworkLoadingProgressReporter.Instance;
             var operationForProgress = ResolveActivityOperationForProgress(
                 activityOperationResult,
@@ -362,7 +409,10 @@ namespace Immersive.Framework.ActivityFlow
                 resolvedSource,
                 resolvedReason);
             var executionResult = ExecuteActivityContentLifecycle(previousActivity, nextActivity, resolvedSource, resolvedReason);
-            var bindingCleanupResult = CleanupPreviousActivityContentAnchorBindings(previousActivity, nextActivity, resolvedSource, resolvedReason);
+            var activityScopeTailResult = FrameworkScopeTailOperationExecutor.Execute(
+                activityScopeTailRequest,
+                cleanupRequest => CleanupPreviousActivityContentAnchorBindings(previousActivity, nextActivity, cleanupRequest.Source, cleanupRequest.Reason),
+                removeRequest => RemovePreviousActivityScopeRoot(previousActivity, nextActivity, removeRequest.Source, removeRequest.Reason));
             var sceneReleaseProgressReporter = FrameworkLoadingProgressReporterUtility.CreateWeightedRangeReporter(
                 resolvedProgressReporter,
                 loadProgressCount,
@@ -375,15 +425,13 @@ namespace Immersive.Framework.ActivityFlow
                 resolvedProgressReporter,
                 "ActivityTransition",
                 "Activity transition loading progress completed.");
-            var runtimeExitResult = RemovePreviousActivityScopeRoot(previousActivity, nextActivity, resolvedSource, resolvedReason);
-            var runtimeScopeResult = MergeActivityScopeResults(runtimeEnterResult, runtimeExitResult, nextActivity, previousActivity, resolvedSource, resolvedReason);
 
             return ActivityFlowStartResult.StartedWith(
                 _currentActivityState,
                 previousActivity,
                 contentResult,
-                runtimeScopeResult,
-                bindingCleanupResult,
+                activityScopeTailResult.ScopeResult,
+                activityScopeTailResult.BindingCleanupResult,
                 activityContentAnchorDiscoveryResult,
                 executionResult,
                 sceneCompositionResult,
@@ -727,30 +775,20 @@ namespace Immersive.Framework.ActivityFlow
             return _contentAnchorBindingRuntime.UnbindRuntimeOwner(owner, source, reason);
         }
 
-        private RuntimeScopeLifecycleResult RemovePreviousActivityScopeRoot(ActivityAsset previousActivity, ActivityAsset nextActivity, string source, string reason)
+        private RuntimeRootRegistryOperationResult RemovePreviousActivityScopeRoot(ActivityAsset previousActivity, ActivityAsset nextActivity, string source, string reason)
         {
             if (previousActivity == null || ReferenceEquals(previousActivity, nextActivity))
             {
-                return RuntimeScopeLifecycleResult.None(RuntimeContentScope.Activity, source, reason);
+                return null;
             }
 
             var owner = CreateActivityOwner(previousActivity);
             if (nextActivity != null && owner == CreateActivityOwner(nextActivity))
             {
-                return RuntimeScopeLifecycleResult.None(RuntimeContentScope.Activity, source, reason);
+                return null;
             }
 
-            var exitResult = _runtimeContentRuntime.RemoveScopeRoot(owner, source, reason);
-
-            return new RuntimeScopeLifecycleResult(
-                RuntimeContentScope.Activity,
-                owner,
-                null,
-                exitResult,
-                default(RuntimeScopeContext),
-                _runtimeContentRuntime.RootCount,
-                source,
-                reason);
+            return _runtimeContentRuntime.RemoveScopeRoot(owner, source, reason);
         }
 
         private RuntimeScopeLifecycleResult MergeActivityScopeResults(

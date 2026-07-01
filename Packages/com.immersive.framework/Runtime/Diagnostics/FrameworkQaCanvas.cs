@@ -277,9 +277,82 @@ namespace Immersive.Framework.Diagnostics
             GUILayout.Label("Current Diagnostics", GUI.skin.box);
             GUILayout.Label("Curated QA surface. Deprecated, intermediate and superseded smoke buttons were removed from the panel; their runner methods remain available in code history/tests if needed.");
 
+            DrawLifecycleTailSmokeControls();
+            DrawParticipantConsolidationSmokeControls();
             DrawRouteContentSmokeControls();
             DrawFoundationDiagnosticSmokeControls();
             DrawPauseConsumerSmokeControls();
+        }
+
+        private void DrawLifecycleTailSmokeControls()
+        {
+            GUILayout.Space(8f);
+            GUILayout.Label("Lifecycle Tail Diagnostics", GUI.skin.box);
+            GUILayout.Label("Internal scope tail shell smoke for the Route/Activity lifecycle seam.");
+
+            using (new EditorDisabledScope(_requestInFlight))
+            {
+                if (GUILayout.Button("Run Scope Tail Operation Synthetic Smoke"))
+                {
+                    RunScopeTailOperationSyntheticSmoke();
+                }
+            }
+        }
+
+
+        private void DrawParticipantConsolidationSmokeControls()
+        {
+            GUILayout.Space(8f);
+            GUILayout.Label("Participant / CONS Diagnostics", GUI.skin.box);
+            GUILayout.Label("Validation surface for the ParticipantExecutor pilot. Use before closing CONS-F.");
+
+            using (new EditorDisabledScope(_requestInFlight))
+            {
+                if (GUILayout.Button("Run Participant Executor Synthetic Smoke"))
+                {
+                    RunParticipantExecutorSyntheticSmoke();
+                }
+
+                if (GUILayout.Button("Run Cycle Reset Runtime Host Smoke"))
+                {
+                    RunCycleResetRuntimeHostSmoke();
+                }
+
+                if (GUILayout.Button("Run Cycle Reset Trigger Smoke"))
+                {
+                    RunCycleResetTriggerSmoke();
+                }
+
+                if (GUILayout.Button("Run Cycle Reset Bridge Smoke"))
+                {
+                    RunCycleResetBridgeSmoke();
+                }
+
+                if (GUILayout.Button("Run Object Reset Runtime Executor Smoke"))
+                {
+                    RunObjectResetRuntimeExecutorSmoke();
+                }
+
+                if (GUILayout.Button("Run Object Reset Runtime Host Integration Smoke"))
+                {
+                    RunObjectResetRuntimeHostIntegrationSmoke();
+                }
+
+                if (GUILayout.Button("Run Object Reset Trigger Smoke"))
+                {
+                    RunObjectResetTriggerSmoke();
+                }
+
+                if (GUILayout.Button("Run Object Reset Bridge Smoke"))
+                {
+                    RunObjectResetBridgeSmoke();
+                }
+
+                if (GUILayout.Button("Run Object Reset Foundation Closure Smoke"))
+                {
+                    RunObjectResetFoundationClosureSmoke();
+                }
+            }
         }
 
 
@@ -628,6 +701,19 @@ namespace Immersive.Framework.Diagnostics
             }
         }
 
+
+        private async void RunParticipantExecutorSyntheticSmoke()
+        {
+            await RunSmokeAsync(ParticipantExecutorSyntheticSmokeRunner.SmokeName, runtimeHost =>
+                ParticipantExecutorSyntheticSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunScopeTailOperationSyntheticSmoke()
+        {
+            await RunSmokeAsync(ScopeTailOperationSyntheticSmokeRunner.SmokeName, runtimeHost =>
+                ScopeTailOperationSyntheticSmokeRunner.RunDiagnosticsSmokeAsync(_logger, QaSource));
+        }
+
         private async void RunGateAdmissionDiagnosticsSmoke()
         {
             await RunSmokeAsync(GateAdmissionQaSmokeRunner.SmokeName, runtimeHost =>
@@ -881,6 +967,31 @@ namespace Immersive.Framework.Diagnostics
         {
             await RunSmokeAsync(ObjectEntryQaSmokeRunner.FoundationClosureSmokeName, runtimeHost =>
                 ObjectEntryQaSmokeRunner.RunFoundationClosureSmokeAsync(runtimeHost, _logger, QaSource));
+        }
+
+
+        private async void RunObjectResetRuntimeExecutorSmoke()
+        {
+            await RunSmokeAsync(ObjectResetQaSmokeRunner.RuntimeExecutorSmokeName, runtimeHost =>
+                ObjectResetQaSmokeRunner.RunRuntimeExecutorSmokeAsync(_logger, QaSource));
+        }
+
+        private async void RunObjectResetRuntimeHostIntegrationSmoke()
+        {
+            await RunSmokeAsync(ObjectResetQaSmokeRunner.RuntimeHostIntegrationSmokeName, runtimeHost =>
+                ObjectResetQaSmokeRunner.RunRuntimeHostIntegrationSmokeAsync(runtimeHost, _logger, QaSource));
+        }
+
+        private async void RunObjectResetTriggerSmoke()
+        {
+            await RunSmokeAsync(ObjectResetQaSmokeRunner.TriggerSmokeName, runtimeHost =>
+                ObjectResetQaSmokeRunner.RunTriggerSmokeAsync(runtimeHost, _logger, QaSource));
+        }
+
+        private async void RunObjectResetBridgeSmoke()
+        {
+            await RunSmokeAsync(ObjectResetQaSmokeRunner.BridgeSmokeName, runtimeHost =>
+                ObjectResetQaSmokeRunner.RunBridgeSmokeAsync(runtimeHost, _logger, QaSource));
         }
 
         private async void RunObjectResetFoundationClosureSmoke()
