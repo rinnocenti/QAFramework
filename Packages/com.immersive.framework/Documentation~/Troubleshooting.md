@@ -123,6 +123,8 @@ Check:
 - Transition smokes report the expected transition/effect result.
 - Route/activity visual policy is configured to request the transition where expected.
 
+F53 selects Transition as the next hardening track, but the stronger contract is still pending F54. Until then, use the existing Route/Activity `transition*` and `transitionEffect*` diagnostics, Transition result text, effect adapter count and Transition smoke output as the source of truth. Missing F54 contract language is not by itself a runtime bug.
+
 ## Pause surface does not show
 
 Check:

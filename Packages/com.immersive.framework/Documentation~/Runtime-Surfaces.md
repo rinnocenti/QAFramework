@@ -26,6 +26,8 @@ Loading is the current reference pattern:
 
 Do not copy Loading status values into unrelated domains. A new Surface/Adapter should define its own domain request, result and status language.
 
+F53 selects Transition Surface / Effects Hardening as the next contract-first track. Until F54 accepts that contract, Transition is selected for hardening but not upgraded to the Loading reference/pilot status.
+
 ## Game Application
 
 `GameApplicationAsset` is the project-authored application root. It selects the startup route and controls whether a canonical app/session scoped `UIGlobal` scene is loaded.
@@ -90,6 +92,8 @@ Transition runtime surfaces include:
 - `UnityFadeCurtainEffectAdapter`
 
 Transition controls the visual envelope around route/activity operations; it is not a loading screen by itself.
+
+Current Transition status: selected next hardening track, contract pending. Use existing Route/Activity `transition*` and `transitionEffect*` diagnostics plus Transition smoke results as the source of truth until the F54 contract defines stronger surface/effect evidence language.
 
 ## Pause
 

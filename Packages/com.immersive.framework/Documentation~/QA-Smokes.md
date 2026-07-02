@@ -35,6 +35,8 @@ F51 migrates `RouteRequestTrigger` and `ActivityRequestTrigger` local state/diag
 
 F52 is a decision-only GameFlow request API cut. It keeps `FrameworkRuntimeHost` as the current request API boundary and does not add public/internal GameFlow request API, runtime code or smoke buttons. No Unity smoke is required for F52. Future runtime API work must rerun Unity import/compile and the affected Route/Activity smoke group.
 
+F53 is a decision-only architecture consolidation next-track cut. It selects Transition Surface / Effects Hardening as the next track and does not add runtime code, public API, serialized assets or smoke buttons. No Unity smoke is required for F53. Future Transition contract/runtime cuts should use Unity import/compile plus the affected Route/Activity and Transition smoke groups: Standard Smoke, Activity Baseline Smoke, Route Scene Composition Smoke, Route Release Smoke, Transition Smoke, Transition Effect Smoke, Transition Effect Unity Fade Curtain Smoke and Transition Gate Blocker Smoke.
+
 ## QA Canvas expectations
 
 `FrameworkQaCanvas` should expose current validation buttons, not every historical proof. Obsolete intermediate buttons should remain out of the visible primary QA path unless a future diagnostics mode intentionally restores them.
