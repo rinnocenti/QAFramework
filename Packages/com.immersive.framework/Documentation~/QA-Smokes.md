@@ -27,6 +27,12 @@ F46 is a decision-only lifecycle readiness cut. There is no direct F46 smoke but
 
 F47 is an ADR-only GameFlow request envelope boundary cut. F48 implements the first passive runtime diagnostics shell and does not add a smoke button. Validate F48 with Unity import/compile, Standard Smoke and the existing Route/Activity lifecycle smokes, then inspect Route and Activity request logs for `gameFlowEnvelope*` alongside preserved `lifecycleOperation*`, `lifecycleContent*`, `lifecycleReadiness*` and `loadingAdapterEvidence*`.
 
+F49 is a decision-only ownership cut. It keeps envelope creation as `FrameworkRuntimeHost` diagnostics projection and does not require a new smoke beyond the F48 owner-validated baseline.
+
+F50 is a decision-only Route/Activity trigger migration ADR. It approves local FlowTrigger helper adoption but does not change runtime, logs, serialized fields or smoke buttons. No new smoke is required for F50.
+
+F51 migrates `RouteRequestTrigger` and `ActivityRequestTrigger` local state/diagnostics to the existing FlowTrigger helper without changing request semantics or adding smoke buttons. Validate F51 with Unity import/compile, Standard Smoke, Activity Baseline Smoke, Route Scene Composition Smoke, Route Release Smoke when present, Composite Lifecycle Release Smoke when present, Activity Content Anchor Diagnostics Smoke when present and Content Anchor Diagnostics Smoke when present. Pause/InputMode smokes are required only if the shared FlowTrigger helper changes.
+
 ## QA Canvas expectations
 
 `FrameworkQaCanvas` should expose current validation buttons, not every historical proof. Obsolete intermediate buttons should remain out of the visible primary QA path unless a future diagnostics mode intentionally restores them.

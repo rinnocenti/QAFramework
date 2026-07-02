@@ -2,6 +2,7 @@ using System;
 using Immersive.Foundation.Events;
 using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Common.FlowTriggers;
 using Immersive.Framework.Diagnostics;
 using UnityEngine;
 using Immersive.Framework.ApiStatus;
@@ -21,12 +22,9 @@ namespace Immersive.Framework.GameFlow
         private const string DefaultSource = nameof(RouteRequestTrigger);
 
         private readonly EventBus<RouteRequestTriggerEvent> _requestEvents = new EventBus<RouteRequestTriggerEvent>();
+        private readonly FrameworkFlowTriggerState _triggerState = new FrameworkFlowTriggerState();
         private FrameworkLogger _logger;
         private bool _requestInFlight;
-        private FlowRequestEventPhase _lastEventPhase = FlowRequestEventPhase.Completed;
-        private FlowRequestOutcome _lastOutcome = FlowRequestOutcome.None;
-        private string _lastReason = string.Empty;
-        private string _lastMessage = string.Empty;
 
         [Header("Route")]
         [SerializeField] private RouteAsset targetRoute;
@@ -42,19 +40,19 @@ namespace Immersive.Framework.GameFlow
 
         public bool IsRequestInFlight => _requestInFlight;
 
-        public FlowRequestEventPhase LastEventPhase => _lastEventPhase;
+        public FlowRequestEventPhase LastEventPhase => ToFlowRequestEventPhase(_triggerState.LastPhase);
 
-        public FlowRequestOutcome LastOutcome => _lastOutcome;
+        public FlowRequestOutcome LastOutcome => ToFlowRequestOutcome(_triggerState.LastOutcome);
 
-        public string LastReason => _lastReason;
+        public string LastReason => _triggerState.LastReason;
 
-        public string LastMessage => _lastMessage;
+        public string LastMessage => _triggerState.LastMessage;
 
-        public bool LastRequestSucceeded => _lastOutcome == FlowRequestOutcome.Succeeded;
+        public bool LastRequestSucceeded => _triggerState.LastSucceeded;
 
-        public bool LastRequestIgnored => _lastOutcome == FlowRequestOutcome.Ignored;
+        public bool LastRequestIgnored => _triggerState.LastIgnored;
 
-        public bool LastRequestFailed => _lastOutcome == FlowRequestOutcome.Failed;
+        public bool LastRequestFailed => _triggerState.LastFailed;
 
         public IEventBinding SubscribeRequestEvents(Action<RouteRequestTriggerEvent> handler)
         {
@@ -170,10 +168,36 @@ namespace Immersive.Framework.GameFlow
             string resolvedReason,
             string message)
         {
-            _lastEventPhase = phase;
-            _lastOutcome = outcome;
-            _lastReason = resolvedReason ?? string.Empty;
-            _lastMessage = message ?? string.Empty;
+            if (phase == FlowRequestEventPhase.Submitted)
+            {
+                _triggerState.Begin(DefaultSource, resolvedReason, message);
+                return;
+            }
+
+            switch (outcome)
+            {
+                case FlowRequestOutcome.Succeeded:
+                    _triggerState.CompleteSucceeded(DefaultSource, resolvedReason, message, 0, 0);
+                    break;
+                case FlowRequestOutcome.Ignored:
+                    _triggerState.CompleteIgnored(DefaultSource, resolvedReason, message, 0, 0);
+                    break;
+                case FlowRequestOutcome.Failed:
+                    _triggerState.CompleteFailed(DefaultSource, resolvedReason, message, 0, 0);
+                    break;
+                default:
+                    _triggerState.Complete(
+                        outcome.ToString(),
+                        false,
+                        false,
+                        false,
+                        DefaultSource,
+                        resolvedReason,
+                        message,
+                        0,
+                        0);
+                    break;
+            }
         }
 
         private static FlowRequestOutcome MapOutcome(FrameworkRouteRequestKind resultKind)
@@ -188,6 +212,38 @@ namespace Immersive.Framework.GameFlow
                 default:
                     return FlowRequestOutcome.Failed;
             }
+        }
+
+        private static FlowRequestEventPhase ToFlowRequestEventPhase(string phase)
+        {
+            return string.Equals(phase, FrameworkFlowTriggerState.PhaseSubmitted, StringComparison.Ordinal)
+                ? FlowRequestEventPhase.Submitted
+                : FlowRequestEventPhase.Completed;
+        }
+
+        private static FlowRequestOutcome ToFlowRequestOutcome(string outcome)
+        {
+            if (string.Equals(outcome, FrameworkFlowTriggerState.OutcomeSucceeded, StringComparison.Ordinal))
+            {
+                return FlowRequestOutcome.Succeeded;
+            }
+
+            if (string.Equals(outcome, FrameworkFlowTriggerState.OutcomeIgnored, StringComparison.Ordinal))
+            {
+                return FlowRequestOutcome.Ignored;
+            }
+
+            if (string.Equals(outcome, FrameworkFlowTriggerState.OutcomeFailed, StringComparison.Ordinal))
+            {
+                return FlowRequestOutcome.Failed;
+            }
+
+            if (string.Equals(outcome, FrameworkFlowTriggerState.OutcomeSubmitted, StringComparison.Ordinal))
+            {
+                return FlowRequestOutcome.Submitted;
+            }
+
+            return FlowRequestOutcome.None;
         }
     }
 }

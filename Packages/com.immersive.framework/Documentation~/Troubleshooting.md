@@ -56,7 +56,7 @@ Route request logs use `lifecycleContent*` for Route content enter/exit evidence
 
 These lifecycle fields are diagnostics, not policy. A deferred content dispatch kernel, readiness kernel or orchestration kernel is not a bug by itself. Treat it as a bug only when an existing Route/Activity result contradicts the projected evidence, hides a blocking issue, or reports success for an unexecuted required step.
 
-F48 adds a passive GameFlow request envelope diagnostics shell. When troubleshooting current GameFlow requests, read the Route/Activity domain result first, then use `gameFlowEnvelope*` as the request-level summary. The envelope fields should agree with the existing `kind`, target/source/reason, lifecycle and Loading diagnostics; they do not replace domain statuses.
+F48 adds a passive GameFlow request envelope diagnostics shell. F49 keeps envelope creation as `FrameworkRuntimeHost` log projection, not as stored state in `GameFlowRuntime` request results. When troubleshooting current GameFlow requests, read the Route/Activity domain result first, then use `gameFlowEnvelope*` as the request-level summary. The envelope fields should agree with the existing `kind`, target/source/reason, lifecycle and Loading diagnostics; they do not replace domain statuses.
 
 Key envelope fields:
 
@@ -173,7 +173,7 @@ The shared FlowTrigger helper only records local bookkeeping. It does not prove 
 
 For Route or Activity trigger issues, inspect the domain request result and lifecycle logs. For Pause InputAction trigger issues, inspect action evidence first, then the Pause/InputMode bridge result.
 
-Route and Activity triggers have not been migrated to the shared FlowTrigger helper. Their local diagnostics remain valid, but future migration is gated by a later GameFlow ownership/trigger decision.
+Route and Activity triggers use the shared FlowTrigger helper for local phase/outcome/reason/message and succeeded/ignored/failed diagnostics. Their in-flight guard, target selection, Activity clear semantics, request policy and domain result mapping remain local. Request logs still come from `FrameworkRuntimeHost`, and `gameFlowEnvelope*` remains host projection.
 
 ## RuntimeContent materializes but ContentAnchor placement fails
 

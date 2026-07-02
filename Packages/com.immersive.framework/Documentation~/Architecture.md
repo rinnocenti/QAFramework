@@ -45,7 +45,9 @@ Route and Activity request logs also project lifecycle-local operation evidence 
 
 F45 adds lifecycle-local content/readiness evidence projection to those request logs through `lifecycleContent*` and `lifecycleReadiness*` fields. The projection is observational: Route, ActivityFlow, RuntimeContent and ContentAnchor keep their execution and domain status ownership. It does not create a content dispatch kernel or readiness kernel.
 
-F44, F45 and F46 close the initial lifecycle evidence stabilization. F47 accepts GameFlow request envelope as a request/diagnostics boundary. F48 adds the first internal passive runtime shell and projects `gameFlowEnvelope*` fields into Route and Activity request logs. The shell summarizes existing evidence only: it does not execute flow, decide policy, replace Route/Activity results, migrate triggers or change Route, Activity, Scene, Content, Loading or Transition ownership.
+F44, F45 and F46 close the initial lifecycle evidence stabilization. F47 accepts GameFlow request envelope as a request/diagnostics boundary. F48 adds the first internal passive runtime shell and projects `gameFlowEnvelope*` fields into Route and Activity request logs. F49 keeps envelope creation as `FrameworkRuntimeHost` diagnostics projection because that owner already has Route/Activity domain results, lifecycle projections and Loading diagnostics at log time. The shell summarizes existing evidence only: it does not execute flow, decide policy, replace Route/Activity results, migrate triggers or change Route, Activity, Scene, Content, Loading or Transition ownership.
+
+F50 approves Route/Activity trigger migration to the shared FlowTrigger helper for local state and diagnostics only. F51 implements that migration in `RouteRequestTrigger` and `ActivityRequestTrigger`: last phase/outcome/reason/message and succeeded/ignored/failed flags are helper-backed, while target selection, Activity clear semantics, local result mapping and `FrameworkRuntimeHost` request entry points remain trigger-owned. `gameFlowEnvelope*` ownership stays in `FrameworkRuntimeHost`.
 
 ## Current boundary rules
 
