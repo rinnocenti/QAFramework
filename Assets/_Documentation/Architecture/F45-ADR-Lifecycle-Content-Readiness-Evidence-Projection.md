@@ -1,6 +1,6 @@
 # F45-ADR-Lifecycle-Content-Readiness-Evidence-Projection
 
-Status: Implemented locally / pending Unity validation
+Status: Closed / content-readiness evidence projection owner-validated
 Last updated: 2026-07-02
 Supersedes: none
 Superseded by: none
@@ -75,20 +75,21 @@ Activity request logs project Activity content participant/lifecycle evidence in
 
 ## Validation
 
-Static validation is required for F45. Unity validation remains pending because runtime C# changed and Unity must refresh/import the package.
+F45 is owner-validated. Validation covered Unity import/compile through the user-run Editor workflow and the available QA smokes:
 
-Manual validation after import/compile:
+1. Standard Smoke.
+2. Activity Baseline Smoke.
+3. Route Scene Composition Smoke.
+4. Route Release Smoke.
+5. Composite Lifecycle Release Smoke.
+6. Activity Content Anchor Diagnostics Smoke.
 
-1. Unity import/compile.
-2. Standard Smoke.
-3. Activity Baseline Smoke.
-4. Route Scene Composition Smoke.
-5. Route Release Smoke, if available in the current QA Canvas.
-6. Activity Content Anchor Diagnostics Smoke, if available in the current QA Canvas.
-7. Composite Lifecycle Release Smoke, if available in the current QA Canvas.
-8. Inspect real Route Request completed logs for `lifecycleOperation*`, `lifecycleContent*`, `lifecycleReadiness*` and preserved `loadingAdapterEvidence*`.
-9. Inspect real Activity Request completed logs for `lifecycleOperation*`, `lifecycleContent*`, `lifecycleReadiness*` and ActivityClear readiness `None`.
+Validation confirmed real Route Request completed logs include `lifecycleOperation*`, `lifecycleContent*`, `lifecycleReadiness*` and preserved `loadingAdapterEvidence*` fields.
+
+Validation also confirmed real Activity Request completed logs include `lifecycleOperation*`, `lifecycleContent*` and `lifecycleReadiness*`, including ActivityClear readiness `None` without inventing an active Activity.
 
 ## Next Gate
 
-F45 does not close all lifecycle kernel work. Remaining candidates are content dispatch kernel, readiness kernel, full orchestration kernel and GameFlow envelope. The next gate should be `LIFECYCLE-KERNEL-3` if another safe evidence/kernel cut remains before GameFlow; otherwise GameFlow needs a separate ADR justification.
+F45 does not close all lifecycle kernel work by itself. F46 subsequently accepted that initial lifecycle evidence stabilization is closed for now and classified content dispatch kernel, readiness kernel and full orchestration kernel as deferred.
+
+The active next gate is `F47 - GAMEFLOW-ADR-1 - GameFlow Request Envelope Boundary`.

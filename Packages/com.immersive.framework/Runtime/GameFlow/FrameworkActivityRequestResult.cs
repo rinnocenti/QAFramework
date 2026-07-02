@@ -21,7 +21,8 @@ namespace Immersive.Framework.GameFlow
             string reason,
             ActivityFlowStartResult activityFlowResult,
             FrameworkTransitionDiagnostics transitionDiagnostics = default,
-            ActivityVisualTransitionMode activityTransitionMode = ActivityVisualTransitionMode.Seamless)
+            ActivityVisualTransitionMode activityTransitionMode = ActivityVisualTransitionMode.Seamless,
+            GameFlowRequestOperationKind operationKind = GameFlowRequestOperationKind.Activity)
         {
             Kind = kind;
             Message = message.NormalizeText();
@@ -32,6 +33,7 @@ namespace Immersive.Framework.GameFlow
             TransitionDiagnostics = transitionDiagnostics;
             ActivityTransitionMode = NormalizeActivityTransitionMode(activityTransitionMode);
             ActivityLoadingMode = DetermineActivityLoadingMode(ActivityFlowResult, ActivityTransitionMode);
+            OperationKind = NormalizeOperationKind(operationKind);
         }
 
         public FrameworkActivityRequestKind Kind { get; }
@@ -52,6 +54,8 @@ namespace Immersive.Framework.GameFlow
 
         internal string ActivityLoadingMode { get; }
 
+        internal GameFlowRequestOperationKind OperationKind { get; }
+
         public bool Succeeded => Kind == FrameworkActivityRequestKind.Succeeded;
 
         public static FrameworkActivityRequestResult FailedInvalidConfig(
@@ -59,7 +63,8 @@ namespace Immersive.Framework.GameFlow
             ActivityAsset targetActivity = null,
             string source = null,
             string reason = null,
-            ActivityVisualTransitionMode activityTransitionMode = ActivityVisualTransitionMode.Seamless)
+            ActivityVisualTransitionMode activityTransitionMode = ActivityVisualTransitionMode.Seamless,
+            GameFlowRequestOperationKind operationKind = GameFlowRequestOperationKind.Activity)
         {
             return new FrameworkActivityRequestResult(
                 FrameworkActivityRequestKind.FailedInvalidConfig,
@@ -69,7 +74,8 @@ namespace Immersive.Framework.GameFlow
                 reason,
                 default,
                 default,
-                activityTransitionMode);
+                activityTransitionMode,
+                operationKind);
         }
 
         public static FrameworkActivityRequestResult FailedRuntimeUnavailable(
@@ -120,7 +126,8 @@ namespace Immersive.Framework.GameFlow
             ActivityAsset targetActivity,
             string source,
             string reason,
-            GateEvaluationResult gateEvaluation)
+            GateEvaluationResult gateEvaluation,
+            GameFlowRequestOperationKind operationKind = GameFlowRequestOperationKind.Activity)
         {
             string activityName = targetActivity.ToDiagnosticText(x => x.ActivityName);
             return new FrameworkActivityRequestResult(
@@ -129,7 +136,10 @@ namespace Immersive.Framework.GameFlow
                 targetActivity,
                 source,
                 reason,
-                default);
+                default,
+                default,
+                ActivityVisualTransitionMode.Seamless,
+                operationKind);
         }
 
         public static FrameworkActivityRequestResult IgnoredNoActiveActivity(
@@ -142,7 +152,10 @@ namespace Immersive.Framework.GameFlow
                 null,
                 source.NormalizeTextOrFallback("Unknown"),
                 reason.NormalizeTextOrFallback("None"),
-                default);
+                default,
+                default,
+                ActivityVisualTransitionMode.Seamless,
+                GameFlowRequestOperationKind.ActivityClear);
         }
 
         internal static FrameworkActivityRequestResult SucceededWith(
@@ -161,7 +174,18 @@ namespace Immersive.Framework.GameFlow
                 reason,
                 activityFlowResult,
                 transitionDiagnostics,
-                activityTransitionMode);
+                activityTransitionMode,
+                targetActivity == null ? GameFlowRequestOperationKind.ActivityClear : GameFlowRequestOperationKind.Activity);
+        }
+
+        private static GameFlowRequestOperationKind NormalizeOperationKind(GameFlowRequestOperationKind operationKind)
+        {
+            if (operationKind == GameFlowRequestOperationKind.ActivityClear)
+            {
+                return GameFlowRequestOperationKind.ActivityClear;
+            }
+
+            return GameFlowRequestOperationKind.Activity;
         }
 
         private static ActivityVisualTransitionMode NormalizeActivityTransitionMode(ActivityVisualTransitionMode mode)

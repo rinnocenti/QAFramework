@@ -445,7 +445,9 @@ namespace Immersive.Framework.GameFlow
                     "Activity Request failed. No active Route is available.",
                     null,
                     resolvedSource,
-                    resolvedReason);
+                    resolvedReason,
+                    ActivityVisualTransitionMode.Seamless,
+                    GameFlowRequestOperationKind.ActivityClear);
             }
 
             var gateEvaluation = EvaluateLifecycleRequestAdmission("ClearActivityRequest", resolvedSource, resolvedReason);
@@ -455,7 +457,8 @@ namespace Immersive.Framework.GameFlow
                     null,
                     resolvedSource,
                     resolvedReason,
-                    gateEvaluation);
+                    gateEvaluation,
+                    GameFlowRequestOperationKind.ActivityClear);
             }
 
             if (!_routeLifecycleRuntime.HasActiveActivity)
@@ -480,7 +483,8 @@ namespace Immersive.Framework.GameFlow
                     null,
                     resolvedSource,
                     resolvedReason,
-                    activityTransitionMode);
+                    activityTransitionMode,
+                    GameFlowRequestOperationKind.ActivityClear);
             }
 
             _activityRequestInFlight = true;
@@ -534,7 +538,8 @@ namespace Immersive.Framework.GameFlow
                         null,
                         resolvedSource,
                         resolvedReason,
-                        activityTransitionMode);
+                        activityTransitionMode,
+                        GameFlowRequestOperationKind.ActivityClear);
                 }
 
                 return FrameworkActivityRequestResult.SucceededWith(
