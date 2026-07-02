@@ -19,6 +19,21 @@ Check the aggregate diagnostics before changing setup:
 
 Do not treat `Unknown`, `NotRequested` or an unexecuted stage as success. Required missing capability is a failure; optional no-op must say why it was skipped.
 
+## Route or Activity request stage is unclear
+
+For Route and Activity request logs, read the domain status first, then use `lifecycleOperation*` to locate the stage evidence:
+
+- `lifecycleOperationStages`
+- `lifecycleOperationBlockingIssues`
+- `lifecycleOperationIssues`
+- `lifecycleOperationSideEffects`
+- `lifecycleOperationFailedStages`
+- `lifecycleOperationSkippedStages`
+- `lifecycleOperationStageNames`
+- `lifecycleOperationStageStatuses`
+
+These fields are a lifecycle-local projection over existing Route/Activity evidence. They help locate transition, loading, scene composition/release, content, runtime scope, readiness and ledger evidence, but they do not replace the original Route/Activity/Scene/Content statuses.
+
 ## UIGlobal scene does not load
 
 Check:

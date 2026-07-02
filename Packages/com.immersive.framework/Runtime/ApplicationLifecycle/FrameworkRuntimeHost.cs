@@ -22,6 +22,7 @@ using Immersive.Framework.Pause;
 using Immersive.Framework.Transition;
 using Immersive.Framework.TransitionEffects;
 using Immersive.Framework.Common;
+using Immersive.Framework.Common.LifecycleOperations;
 
 namespace Immersive.Framework.ApplicationLifecycle
 {
@@ -1101,11 +1102,22 @@ namespace Immersive.Framework.ApplicationLifecycle
             RouteLifecycleStartResult routeLifecycle = result.RouteLifecycleResult;
             ActivityFlowStartResult activityFlow = routeLifecycle.ActivityFlowResult;
             ActivityContentApplyResult activityContent = activityFlow.ActivityContentResult;
+            FrameworkLifecycleOperationEvidence lifecycleOperation = BuildRouteLifecycleOperationEvidence(result, loadingDiagnostics);
 
             return LogFields.Of(
                 LogFields.Field("kind", result.Kind),
                 LogFields.Field("source", result.Source),
                 LogFields.Field("reason", result.Reason),
+                LogFields.Field("lifecycleOperationKind", lifecycleOperation.OperationKindText),
+                LogFields.Field("lifecycleOperationStages", lifecycleOperation.StageCount),
+                LogFields.Field("lifecycleOperationBlockingIssues", lifecycleOperation.BlockingIssueCount),
+                LogFields.Field("lifecycleOperationIssues", lifecycleOperation.IssueCount),
+                LogFields.Field("lifecycleOperationSideEffects", lifecycleOperation.SideEffectCount),
+                LogFields.Field("lifecycleOperationFailedStages", lifecycleOperation.FailedStageCount),
+                LogFields.Field("lifecycleOperationSkippedStages", lifecycleOperation.SkippedStageCount),
+                LogFields.Field("lifecycleOperationStageNames", lifecycleOperation.StageNamesText),
+                LogFields.Field("lifecycleOperationStageStatuses", lifecycleOperation.StageStatusesText),
+                LogFields.Field("lifecycleOperationDiagnostics", lifecycleOperation.DiagnosticText),
                 LogFields.Field("transition", result.TransitionDiagnostics.TransitionText),
                 LogFields.Field("transitionScope", result.TransitionDiagnostics.ScopeText),
                 LogFields.Field("transitionBefore", result.TransitionDiagnostics.BeforeText),
@@ -1254,11 +1266,22 @@ namespace Immersive.Framework.ApplicationLifecycle
             ActivityFlowStartResult activityFlow = result.ActivityFlowResult;
             ActivityContentApplyResult activityContent = activityFlow.ActivityContentResult;
             ActivityContentLifecycleResult lifecycle = activityContent.LifecycleResult;
+            FrameworkLifecycleOperationEvidence lifecycleOperation = BuildActivityLifecycleOperationEvidence(result, loadingDiagnostics);
 
             return LogFields.Of(
                 LogFields.Field("kind", result.Kind),
                 LogFields.Field("source", result.Source),
                 LogFields.Field("reason", result.Reason),
+                LogFields.Field("lifecycleOperationKind", lifecycleOperation.OperationKindText),
+                LogFields.Field("lifecycleOperationStages", lifecycleOperation.StageCount),
+                LogFields.Field("lifecycleOperationBlockingIssues", lifecycleOperation.BlockingIssueCount),
+                LogFields.Field("lifecycleOperationIssues", lifecycleOperation.IssueCount),
+                LogFields.Field("lifecycleOperationSideEffects", lifecycleOperation.SideEffectCount),
+                LogFields.Field("lifecycleOperationFailedStages", lifecycleOperation.FailedStageCount),
+                LogFields.Field("lifecycleOperationSkippedStages", lifecycleOperation.SkippedStageCount),
+                LogFields.Field("lifecycleOperationStageNames", lifecycleOperation.StageNamesText),
+                LogFields.Field("lifecycleOperationStageStatuses", lifecycleOperation.StageStatusesText),
+                LogFields.Field("lifecycleOperationDiagnostics", lifecycleOperation.DiagnosticText),
                 LogFields.Field("transition", result.TransitionDiagnostics.TransitionText),
                 LogFields.Field("transitionScope", result.TransitionDiagnostics.ScopeText),
                 LogFields.Field("transitionBefore", result.TransitionDiagnostics.BeforeText),
@@ -1363,6 +1386,355 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("loadingProgressPhase", loadingDiagnostics.ProgressPhaseText),
                 LogFields.Field("loadingProgressMessage", loadingDiagnostics.ProgressMessageText),
                 LogFields.Field("loadingProgress", loadingDiagnostics.ProgressText));
+        }
+
+        private static FrameworkLifecycleOperationEvidence BuildRouteLifecycleOperationEvidence(
+            FrameworkRouteRequestResult result,
+            FrameworkLoadingDiagnostics loadingDiagnostics)
+        {
+            RouteLifecycleStartResult routeLifecycle = result.RouteLifecycleResult;
+            ActivityFlowStartResult activityFlow = routeLifecycle.ActivityFlowResult;
+            var builder = new FrameworkLifecycleOperationEvidenceBuilder(
+                FrameworkLifecycleOperationKind.Route,
+                result.Source,
+                result.Reason);
+
+            AddTransitionStages(builder, result.TransitionDiagnostics, result.Source, result.Reason);
+            AddLoadingStages(builder, loadingDiagnostics, result.Source, result.Reason);
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.RouteExit,
+                routeLifecycle.RouteExitResult.DiagnosticStatus,
+                routeLifecycle.RouteExitResult.Source,
+                routeLifecycle.RouteExitResult.Reason,
+                0,
+                0,
+                routeLifecycle.RouteExitResult.Completed,
+                false,
+                !routeLifecycle.RouteExitResult.Completed,
+                routeLifecycle.RouteExitResult.Message);
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.RuntimeScopeExit,
+                routeLifecycle.RuntimeRouteScopeResult.ExitStatus,
+                routeLifecycle.RuntimeRouteScopeResult.Source,
+                routeLifecycle.RuntimeRouteScopeResult.Reason,
+                0,
+                0,
+                routeLifecycle.RuntimeRouteScopeResult.HasExitRootResult,
+                routeLifecycle.RuntimeRouteScopeResult.Rejected && routeLifecycle.RuntimeRouteScopeResult.HasExitRootResult,
+                !routeLifecycle.RuntimeRouteScopeResult.HasExitRootResult,
+                routeLifecycle.RuntimeRouteScopeResult.ToDiagnosticString());
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.RouteRelease,
+                routeLifecycle.ContentReleaseResult.Status.ToString(),
+                result.Source,
+                result.Reason,
+                routeLifecycle.ContentReleaseResult.IssueCount,
+                routeLifecycle.ContentReleaseResult.BlockingIssueCount,
+                routeLifecycle.ContentReleaseResult.ReleasedCount > 0,
+                routeLifecycle.ContentReleaseResult.Failed,
+                routeLifecycle.ContentReleaseResult.NotExecuted || routeLifecycle.ContentReleaseResult.SkippedCount > 0 && routeLifecycle.ContentReleaseResult.ReleasedCount == 0,
+                routeLifecycle.ContentReleaseResult.Message);
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.ActivitySceneRelease,
+                routeLifecycle.ActivitySceneRouteReleaseResult.DiagnosticStatus,
+                result.Source,
+                result.Reason,
+                routeLifecycle.ActivitySceneRouteReleaseResult.BlockingIssueCount,
+                routeLifecycle.ActivitySceneRouteReleaseResult.BlockingIssueCount,
+                routeLifecycle.ActivitySceneRouteReleaseResult.SideEffectsExecuted,
+                routeLifecycle.ActivitySceneRouteReleaseResult.FailedSceneCount > 0,
+                !routeLifecycle.ActivitySceneRouteReleaseResult.Executed || routeLifecycle.ActivitySceneRouteReleaseResult.SkippedSceneCount > 0 && routeLifecycle.ActivitySceneRouteReleaseResult.ReleasedSceneCount == 0,
+                routeLifecycle.ActivitySceneRouteReleaseResult.Message);
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.ContentExit,
+                routeLifecycle.RouteContentExitResult.DiagnosticStatus,
+                result.Source,
+                result.Reason,
+                routeLifecycle.RouteContentExitResult.FailedReceiverCount,
+                routeLifecycle.RouteContentExitResult.FailedReceiverCount,
+                routeLifecycle.RouteContentExitResult.Executed,
+                routeLifecycle.RouteContentExitResult.HasFailures,
+                !routeLifecycle.RouteContentExitResult.Executed,
+                "Route content exit lifecycle callbacks.");
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.SceneComposition,
+                routeLifecycle.RouteSceneCompositionResult.Status.ToString(),
+                result.Source,
+                result.Reason,
+                routeLifecycle.RouteSceneCompositionResult.IssueCount,
+                routeLifecycle.RouteSceneCompositionResult.BlockingIssueCount,
+                routeLifecycle.RouteSceneCompositionResult.LoadedCount > 0,
+                routeLifecycle.RouteSceneCompositionResult.Failed,
+                routeLifecycle.RouteSceneCompositionResult.NotExecuted || routeLifecycle.RouteSceneCompositionResult.SkippedCount > 0 && routeLifecycle.RouteSceneCompositionResult.LoadedCount == 0,
+                routeLifecycle.RouteSceneCompositionResult.Message);
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.ContentAnchorBindingCleanup,
+                routeLifecycle.RouteContentAnchorBindingCleanupResult.DiagnosticStatus,
+                result.Source,
+                result.Reason,
+                0,
+                0,
+                routeLifecycle.RouteContentAnchorBindingCleanupResult.RemovedAny,
+                false,
+                !routeLifecycle.RouteContentAnchorBindingCleanupResult.Executed,
+                routeLifecycle.RouteContentAnchorBindingCleanupResult.Message);
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.RuntimeScopeEnter,
+                routeLifecycle.RuntimeRouteScopeResult.EnterStatus,
+                routeLifecycle.RuntimeRouteScopeResult.Source,
+                routeLifecycle.RuntimeRouteScopeResult.Reason,
+                0,
+                0,
+                routeLifecycle.RuntimeRouteScopeResult.HasEnterRootResult || routeLifecycle.RuntimeRouteScopeResult.HasContext,
+                routeLifecycle.RuntimeRouteScopeResult.Rejected && routeLifecycle.RuntimeRouteScopeResult.HasEnterRootResult,
+                !routeLifecycle.RuntimeRouteScopeResult.HasEnterRootResult && !routeLifecycle.RuntimeRouteScopeResult.HasContext,
+                routeLifecycle.RuntimeRouteScopeResult.ToDiagnosticString());
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.ContentEnter,
+                routeLifecycle.RouteContentEnterResult.DiagnosticStatus,
+                result.Source,
+                result.Reason,
+                routeLifecycle.RouteContentEnterResult.FailedReceiverCount,
+                routeLifecycle.RouteContentEnterResult.FailedReceiverCount,
+                routeLifecycle.RouteContentEnterResult.Executed,
+                routeLifecycle.RouteContentEnterResult.HasFailures,
+                !routeLifecycle.RouteContentEnterResult.Executed,
+                "Route content enter lifecycle callbacks.");
+
+            AddActivityFlowStages(builder, activityFlow, result.Source, result.Reason);
+            return builder.Build();
+        }
+
+        private static FrameworkLifecycleOperationEvidence BuildActivityLifecycleOperationEvidence(
+            FrameworkActivityRequestResult result,
+            FrameworkLoadingDiagnostics loadingDiagnostics)
+        {
+            var builder = new FrameworkLifecycleOperationEvidenceBuilder(
+                result.TargetActivity == null ? FrameworkLifecycleOperationKind.ActivityClear : FrameworkLifecycleOperationKind.Activity,
+                result.Source,
+                result.Reason);
+
+            AddTransitionStages(builder, result.TransitionDiagnostics, result.Source, result.Reason);
+            AddLoadingStages(builder, loadingDiagnostics, result.Source, result.Reason);
+            AddActivityFlowStages(builder, result.ActivityFlowResult, result.Source, result.Reason);
+            return builder.Build();
+        }
+
+        private static void AddTransitionStages(
+            FrameworkLifecycleOperationEvidenceBuilder builder,
+            FrameworkTransitionDiagnostics transitionDiagnostics,
+            string source,
+            string reason)
+        {
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.TransitionBefore,
+                transitionDiagnostics.BeforeText,
+                source,
+                reason,
+                0,
+                0,
+                false,
+                false,
+                StatusIndicatesSkipped(transitionDiagnostics.BeforeText),
+                "Transition before request projection.");
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.TransitionAfter,
+                transitionDiagnostics.AfterText,
+                source,
+                reason,
+                transitionDiagnostics.BlockingIssueCount,
+                transitionDiagnostics.BlockingIssueCount,
+                transitionDiagnostics.EffectAdapterCount > 0,
+                transitionDiagnostics.BlockingIssueCount > 0,
+                StatusIndicatesSkipped(transitionDiagnostics.AfterText),
+                "Transition after request projection.");
+        }
+
+        private static void AddLoadingStages(
+            FrameworkLifecycleOperationEvidenceBuilder builder,
+            FrameworkLoadingDiagnostics loadingDiagnostics,
+            string source,
+            string reason)
+        {
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.LoadingBefore,
+                loadingDiagnostics.BeforeText,
+                source,
+                reason,
+                0,
+                0,
+                false,
+                false,
+                StatusIndicatesSkipped(loadingDiagnostics.BeforeText),
+                loadingDiagnostics.ProgressMessageText);
+
+            int issueCount = Math.Max(loadingDiagnostics.AdapterEvidenceIssueCount, loadingDiagnostics.BlockingIssueCount);
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.LoadingAfter,
+                loadingDiagnostics.AfterText,
+                source,
+                reason,
+                issueCount,
+                loadingDiagnostics.BlockingIssueCount,
+                loadingDiagnostics.AppliedAdapterEvidenceCount > 0,
+                loadingDiagnostics.BlockingIssueCount > 0,
+                StatusIndicatesSkipped(loadingDiagnostics.AfterText),
+                loadingDiagnostics.ProgressMessageText,
+                $"adapterEvidence='{loadingDiagnostics.AdapterEvidenceCount}' adapterStatuses='{loadingDiagnostics.AdapterEvidenceStatusesText}'");
+        }
+
+        private static void AddActivityFlowStages(
+            FrameworkLifecycleOperationEvidenceBuilder builder,
+            ActivityFlowStartResult activityFlow,
+            string source,
+            string reason)
+        {
+            ActivityContentApplyResult activityContent = activityFlow.ActivityContentResult;
+            ActivityContentLifecycleResult lifecycle = activityContent.LifecycleResult;
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.RuntimeScopeExit,
+                activityFlow.RuntimeActivityScopeResult.ExitStatus,
+                activityFlow.RuntimeActivityScopeResult.Source,
+                activityFlow.RuntimeActivityScopeResult.Reason,
+                0,
+                0,
+                activityFlow.RuntimeActivityScopeResult.HasExitRootResult,
+                activityFlow.RuntimeActivityScopeResult.Rejected && activityFlow.RuntimeActivityScopeResult.HasExitRootResult,
+                !activityFlow.RuntimeActivityScopeResult.HasExitRootResult,
+                activityFlow.RuntimeActivityScopeResult.ToDiagnosticString());
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.ActivitySceneRelease,
+                activityFlow.ActivitySceneReleaseResult.DiagnosticStatus,
+                source,
+                reason,
+                activityFlow.ActivitySceneReleaseResult.BlockingIssueCount,
+                activityFlow.ActivitySceneReleaseResult.BlockingIssueCount,
+                activityFlow.ActivitySceneReleaseResult.SideEffectsExecuted,
+                activityFlow.ActivitySceneReleaseResult.FailedSceneCount > 0,
+                !activityFlow.ActivitySceneReleaseResult.Executed || activityFlow.ActivitySceneReleaseResult.SkippedSceneCount > 0 && activityFlow.ActivitySceneReleaseResult.ReleasedSceneCount == 0,
+                activityFlow.ActivitySceneReleaseResult.Message);
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.ContentAnchorBindingCleanup,
+                activityFlow.ActivityContentAnchorBindingCleanupResult.DiagnosticStatus,
+                source,
+                reason,
+                0,
+                0,
+                activityFlow.ActivityContentAnchorBindingCleanupResult.RemovedAny,
+                false,
+                !activityFlow.ActivityContentAnchorBindingCleanupResult.Executed,
+                activityFlow.ActivityContentAnchorBindingCleanupResult.Message);
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.ActivityContentExecution,
+                activityFlow.ActivityContentExecutionResult.DiagnosticStatus,
+                source,
+                reason,
+                activityFlow.ActivityContentExecutionResult.BlockingIssueCount + activityFlow.ActivityContentExecutionResult.ParticipantSourceIssueCount,
+                activityFlow.ActivityContentExecutionResult.BlockingIssueCount,
+                activityFlow.ActivityContentExecutionResult.EnterResultCount > 0 || activityFlow.ActivityContentExecutionResult.ExitResultCount > 0,
+                activityFlow.ActivityContentExecutionResult.BlocksReadiness,
+                !activityFlow.ActivityContentExecutionResult.Executed,
+                activityFlow.ActivityContentExecutionResult.ToDiagnosticString());
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.ContentExit,
+                $"{lifecycle.DiagnosticStatus}:Exit",
+                source,
+                reason,
+                lifecycle.ExitFailedReceiverCount,
+                lifecycle.ExitFailedReceiverCount,
+                lifecycle.Executed && lifecycle.ExitBindingCount > 0,
+                lifecycle.ExitFailedReceiverCount > 0,
+                !lifecycle.Executed,
+                "Activity content exit lifecycle callbacks.");
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.ActivitySceneComposition,
+                activityFlow.ActivitySceneCompositionResult.DiagnosticStatus,
+                source,
+                reason,
+                activityFlow.ActivitySceneCompositionResult.BlockingIssueCount,
+                activityFlow.ActivitySceneCompositionResult.BlockingIssueCount,
+                activityFlow.ActivitySceneCompositionResult.SideEffectsExecuted,
+                activityFlow.ActivitySceneCompositionResult.FailedSceneCount > 0,
+                !activityFlow.ActivitySceneCompositionResult.Executed || activityFlow.ActivitySceneCompositionResult.SkippedSceneCount > 0 && activityFlow.ActivitySceneCompositionResult.LoadedSceneCount == 0,
+                activityFlow.ActivitySceneCompositionResult.Message);
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.RuntimeScopeEnter,
+                activityFlow.RuntimeActivityScopeResult.EnterStatus,
+                activityFlow.RuntimeActivityScopeResult.Source,
+                activityFlow.RuntimeActivityScopeResult.Reason,
+                0,
+                0,
+                activityFlow.RuntimeActivityScopeResult.HasEnterRootResult || activityFlow.RuntimeActivityScopeResult.HasContext,
+                activityFlow.RuntimeActivityScopeResult.Rejected && activityFlow.RuntimeActivityScopeResult.HasEnterRootResult,
+                !activityFlow.RuntimeActivityScopeResult.HasEnterRootResult && !activityFlow.RuntimeActivityScopeResult.HasContext,
+                activityFlow.RuntimeActivityScopeResult.ToDiagnosticString());
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.ContentEnter,
+                $"{lifecycle.DiagnosticStatus}:Enter",
+                source,
+                reason,
+                lifecycle.EnterFailedReceiverCount,
+                lifecycle.EnterFailedReceiverCount,
+                lifecycle.Executed && lifecycle.EnterBindingCount > 0,
+                lifecycle.EnterFailedReceiverCount > 0,
+                !lifecycle.Executed,
+                "Activity content enter lifecycle callbacks.");
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.Readiness,
+                activityFlow.ActivityReadinessState.DiagnosticStatus,
+                source,
+                reason,
+                activityFlow.ActivityReadinessState.BlockingIssueCount,
+                activityFlow.ActivityReadinessState.BlockingIssueCount,
+                false,
+                activityFlow.ActivityReadinessState.HasBlockingIssues,
+                activityFlow.ActivityReadinessState.IsNone,
+                activityFlow.ActivityReadinessState.DiagnosticReason);
+
+            builder.AddStage(
+                FrameworkLifecycleOperationStage.ActivitySceneLedger,
+                activityFlow.ActivitySceneLedgerSnapshot.DiagnosticStatus,
+                source,
+                reason,
+                activityFlow.ActivitySceneLedgerSnapshot.StaleCount,
+                0,
+                false,
+                false,
+                activityFlow.ActivitySceneLedgerSnapshot.EntryCount == 0,
+                $"entries='{activityFlow.ActivitySceneLedgerSnapshot.EntryCount}' loaded='{activityFlow.ActivitySceneLedgerSnapshot.LoadedCount}' released='{activityFlow.ActivitySceneLedgerSnapshot.ReleasedCount}' stale='{activityFlow.ActivitySceneLedgerSnapshot.StaleCount}'.");
+        }
+
+        private static bool StatusIndicatesSkipped(string statusText)
+        {
+            if (string.IsNullOrWhiteSpace(statusText))
+            {
+                return true;
+            }
+
+            return statusText.IndexOf("Skipped", StringComparison.OrdinalIgnoreCase) >= 0
+                || statusText.IndexOf("NoOp", StringComparison.OrdinalIgnoreCase) >= 0
+                || statusText.IndexOf("NotRequested", StringComparison.OrdinalIgnoreCase) >= 0
+                || statusText.IndexOf("NotExecuted", StringComparison.OrdinalIgnoreCase) >= 0
+                || string.Equals(statusText, "None", StringComparison.OrdinalIgnoreCase);
         }
 
         private LogField[] BuildLoadingFields(FrameworkLoadingDiagnostics loadingDiagnostics)

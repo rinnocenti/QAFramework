@@ -40,6 +40,7 @@ Route baseline:
 - route lifecycle runtime
 - route content bindings and lifecycle receivers
 - route content scene composition
+- lifecycle operation evidence projection in request logs
 
 Activity baseline:
 
@@ -48,8 +49,11 @@ Activity baseline:
 - activity content lifecycle receivers
 - activity content scene composition/release
 - activity operation planning and execution
+- lifecycle operation evidence projection in request logs
 
 Route owns top-level navigation. Activity owns the active unit inside the route. Activity content does not replace route lifecycle.
+
+The shared `lifecycleOperation*` projection is lifecycle-local diagnostics. It does not create a Surface layer, does not introduce a GameFlow request envelope and does not replace Route/Activity domain statuses.
 
 ## UIGlobal
 

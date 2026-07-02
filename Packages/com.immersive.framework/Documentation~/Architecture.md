@@ -41,6 +41,8 @@ This model guides development language and ownership. It does not authorize broa
 | RuntimeContent | Runtime content runtime, handles and release requests | Logical content identity, handle state, materialization/release request language and lifecycle registry evidence. |
 | ContentAnchor | ContentAnchor declarations, binding runtime and Unity adapters | Logical anchor declarations/bindings plus explicit Unity materialization, placement and release helpers. |
 
+Route and Activity request logs also project lifecycle-local operation evidence through `lifecycleOperation*` fields. This is a diagnostic ledger over existing Route/Activity evidence; it is not a GameFlow envelope and does not replace Route or Activity result/status types.
+
 ## Current boundary rules
 
 - `GameApplicationAsset` is the authoring root for app startup and `UIGlobal` policy.
