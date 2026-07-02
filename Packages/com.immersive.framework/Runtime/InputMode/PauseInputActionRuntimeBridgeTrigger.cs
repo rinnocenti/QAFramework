@@ -1,5 +1,6 @@
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Common;
+using Immersive.Framework.Common.FlowTriggers;
 using Immersive.Framework.Diagnostics;
 using Immersive.Framework.Pause;
 using Immersive.Logging.Records;
@@ -22,6 +23,7 @@ namespace Immersive.Framework.InputMode
 
         private FrameworkLogger _logger;
         private InputAction _subscribedAction;
+        private readonly FrameworkFlowTriggerState _triggerState = new FrameworkFlowTriggerState();
         private PauseInputActionRuntimeBridgeTriggerResult _lastResult;
 
         [Header("Bridge")]
@@ -127,8 +129,8 @@ namespace Immersive.Framework.InputMode
 
         private PauseInputActionRuntimeBridgeTriggerResult SubmitInternal(string source, string requestReason)
         {
-            string normalizedSource = source.NormalizeTextOrFallback(DefaultSource);
-            string normalizedReason = requestReason.NormalizeTextOrFallback(ResolveReason("pause.input.action.runtime.bridge.trigger"));
+            string normalizedSource = FrameworkFlowTriggerDiagnostics.NormalizeSource(source, DefaultSource);
+            string normalizedReason = FrameworkFlowTriggerDiagnostics.NormalizeReason(requestReason, ResolveReason("pause.input.action.runtime.bridge.trigger"));
             string resolvedMapName = ActionMapName;
             string resolvedActionName = ActionName;
 
@@ -321,7 +323,7 @@ namespace Immersive.Framework.InputMode
             string requestReason,
             string message)
         {
-            return new PauseInputActionRuntimeBridgeTriggerResult(
+            var result = new PauseInputActionRuntimeBridgeTriggerResult(
                 status,
                 requestKind,
                 resolvedActionMapName,
@@ -333,6 +335,8 @@ namespace Immersive.Framework.InputMode
                 source,
                 requestReason,
                 message);
+            RecordResult(result);
+            return result;
         }
 
         private string ResolveReason(string fallbackReason)
@@ -366,7 +370,52 @@ namespace Immersive.Framework.InputMode
                     LogFields.Field("inputBehavior", _lastResult.AppliesInputBehavior),
                     LogFields.Field("playerJoin", _lastResult.CallsPlayerJoin),
                     LogFields.Field("actorSpawning", _lastResult.SpawnsActor),
+                    LogFields.Field("triggerOutcome", _triggerState.LastOutcome),
+                    LogFields.Field("triggerBlockingIssues", _triggerState.LastBlockingIssueCount),
                     LogFields.Field("diagnostics", _lastResult.ToDiagnosticString())));
+        }
+
+        private void RecordResult(PauseInputActionRuntimeBridgeTriggerResult result)
+        {
+            if (result == null)
+            {
+                _triggerState.CompleteFailed(
+                    DefaultSource,
+                    ResolveReason("pause.input.action.runtime.bridge.trigger"),
+                    "Pause InputAction runtime bridge trigger did not produce a result.",
+                    1,
+                    1);
+                return;
+            }
+
+            if (result.Succeeded)
+            {
+                _triggerState.CompleteSucceeded(
+                    result.Source,
+                    result.Reason,
+                    result.Message,
+                    result.IssueCount,
+                    result.BlockingIssueCount);
+                return;
+            }
+
+            if (result.Ignored)
+            {
+                _triggerState.CompleteIgnored(
+                    result.Source,
+                    result.Reason,
+                    result.Message,
+                    result.IssueCount,
+                    result.BlockingIssueCount);
+                return;
+            }
+
+            _triggerState.CompleteFailed(
+                result.Source,
+                result.Reason,
+                result.Message,
+                result.IssueCount,
+                result.BlockingIssueCount);
         }
     }
 }

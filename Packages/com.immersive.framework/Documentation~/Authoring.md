@@ -82,7 +82,11 @@ Standard Pause presentation:
 2. Add `UnityPauseResidentSurfaceAdapter`.
 3. Let logical Pause state show/hide that resident hierarchy.
 
-Optional modular Pause content may use RuntimeContent + ContentAnchor materialization, but it is not the default production path.
+`UnityPauseResidentSurfaceAdapter` is the supported authoring path for current Pause presentation.
+
+Pause visual/materialization through `PauseVisualSurfaceAuthoring`, RuntimeContent and ContentAnchor is experimental/frozen. It is useful as explicit evidence and QA proof material, but it is not the default production path and should not be used to define new Surface/Adapter contracts yet.
+
+Do not use Pause visual authoring to decide InputMode, `Time.timeScale`, route/activity lifecycle, player spawning, actor spawning or global UI creation.
 
 ## Pause input authoring
 
@@ -96,6 +100,21 @@ Wire the trigger to the Unity Input System action evidence and to the runtime br
 This bridge is an authoring/runtime wrapper for the current Pause input path. Do not copy it as the pattern for new adapters; future runtime work must keep multi-stage apply orchestration in a non-MonoBehaviour boundary and keep `PlayerInput` side effects behind an explicit adapter.
 
 Do not author new direct Pause input through the retired adapter path.
+
+## Trigger authoring
+
+Triggers are scene-authored wrappers for explicit submission. They may read Inspector fields, validate local authoring evidence, call one domain boundary and expose last-result diagnostics.
+
+The shared FlowTrigger helper is not a base trigger, not a `MonoBehaviour`, not a request envelope and not a domain policy layer. It only stores local submission state, source/reason/message and issue counts for triggers that opt in.
+
+Domain logic stays in the trigger or the owning domain:
+
+- Route triggers choose route requests.
+- Activity triggers choose activity requests.
+- Pause triggers choose Pause intent.
+- Pause InputAction triggers validate action evidence and delegate to the Pause/InputMode bridge.
+
+Do not use the helper to create a universal trigger, event bus, command bus, lifecycle dispatcher or fallback path.
 
 ## RuntimeContent and ContentAnchor authoring
 

@@ -55,10 +55,17 @@ Check:
 
 Check:
 
+- Logical Pause state first: `PauseRuntime` should report a valid paused snapshot after the request.
 - The Pause panel is resident in `UIGlobal`.
 - `UnityPauseResidentSurfaceAdapter` points at the correct hierarchy.
 - Pause runtime request smoke passes.
-- Pause surface smoke reports the adapter count and visible/hidden state transitions.
+- Pause surface diagnostics report adapter count, supported adapters, applied adapters, failed adapters and visible/hidden state transitions.
+
+If no Pause resident adapter is configured, visual presentation should be explicit skipped/no-op behavior while logical Pause remains available. If a project declares Pause visual presentation as required in a future cut, missing visual capability must fail visibly.
+
+RuntimeContent/ContentAnchor Pause visual materialization is experimental/frozen. Treat materialization smokes as QA evidence only, not proof that a product/runtime Pause visual consumer is ready.
+
+Pause visual is separate from InputMode apply. A visible Pause panel does not prove Unity `PlayerInput` action-map application, and a successful InputMode apply does not prove visual materialization readiness.
 
 ## Pause input changes Pause but not PlayerInput
 
@@ -80,6 +87,21 @@ Check:
 - The InputMode action map bindings match the project's Unity Input action maps.
 
 Do not add new usage of the retired direct Pause input adapter. It is historical and should not be used for active setup.
+
+## Trigger diagnostics look wrong
+
+Check the trigger's local diagnostics before changing domain setup:
+
+- `source`
+- `reason`
+- submitted/completed state
+- ignored/failed/succeeded outcome
+- blocking issue count
+- domain result or bridge result
+
+The shared FlowTrigger helper only records local bookkeeping. It does not prove that the domain request is valid, does not choose route/activity/Pause policy and does not apply `PlayerInput`.
+
+For Route or Activity trigger issues, inspect the domain request result and lifecycle logs. For Pause InputAction trigger issues, inspect action evidence first, then the Pause/InputMode bridge result.
 
 ## RuntimeContent materializes but ContentAnchor placement fails
 

@@ -1,6 +1,7 @@
 using System.Text;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Common;
+using Immersive.Framework.Common.FlowTriggers;
 using Immersive.Framework.Pause;
 using Immersive.Framework.UnityInput;
 
@@ -125,38 +126,38 @@ namespace Immersive.Framework.InputMode
         public string ToDiagnosticString()
         {
             var builder = new StringBuilder();
-            builder.Append("status='").Append(Status).Append("'");
-            builder.Append(" requestKind='").Append(RequestKind).Append("'");
-            builder.Append(" actionMap='").Append(ActionMapName.ToDiagnosticText()).Append("'");
-            builder.Append(" action='").Append(ActionName.ToDiagnosticText()).Append("'");
-            builder.Append(" actionEvidenceRequired='").Append(ActionEvidenceRequired).Append("'");
-            builder.Append(" actionResolved='").Append(ActionResolved).Append("'");
-            builder.Append(" bridgeSubmitted='").Append(BridgeSubmitted).Append("'");
-            builder.Append(" requestedMode='").Append(RequestedMode).Append("'");
-            builder.Append(" operation='").Append(Operation).Append("'");
-            builder.Append(" appliedActionMap='").Append(AppliedActionMapName).Append("'");
-            builder.Append(" applied='").Append(Applied).Append("'");
-            builder.Append(" activatedPlayerInput='").Append(ActivatedPlayerInput).Append("'");
-            builder.Append(" selectedActionMap='").Append(SelectedActionMap).Append("'");
-            builder.Append(" deactivatedPlayerInput='").Append(DeactivatedPlayerInput).Append("'");
-            builder.Append(" issues='").Append(IssueCount).Append("'");
-            builder.Append(" blockingIssues='").Append(BlockingIssueCount).Append("'");
-            builder.Append(" actionMapSwitching='").Append(SwitchesActionMaps).Append("'");
-            builder.Append(" inputBehavior='").Append(AppliesInputBehavior).Append("'");
-            builder.Append(" pauseRuntimeWiring='").Append(PauseRuntimeWiring).Append("'");
-            builder.Append(" playerJoin='").Append(CallsPlayerJoin).Append("'");
-            builder.Append(" actorSpawning='").Append(SpawnsActor).Append("'");
-            builder.Append(" customInputManager='").Append(UsesCustomInputManager).Append("'");
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "status", Status);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "requestKind", RequestKind);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "actionMap", ActionMapName);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "action", ActionName);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "actionEvidenceRequired", ActionEvidenceRequired);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "actionResolved", ActionResolved);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "bridgeSubmitted", BridgeSubmitted);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "requestedMode", RequestedMode);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "operation", Operation);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "appliedActionMap", AppliedActionMapName);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "applied", Applied);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "activatedPlayerInput", ActivatedPlayerInput);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "selectedActionMap", SelectedActionMap);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "deactivatedPlayerInput", DeactivatedPlayerInput);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "issues", IssueCount);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "blockingIssues", BlockingIssueCount);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "actionMapSwitching", SwitchesActionMaps);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "inputBehavior", AppliesInputBehavior);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "pauseRuntimeWiring", PauseRuntimeWiring);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "playerJoin", CallsPlayerJoin);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "actorSpawning", SpawnsActor);
+            FrameworkFlowTriggerDiagnostics.AppendField(builder, "customInputManager", UsesCustomInputManager);
 
             if (!string.IsNullOrWhiteSpace(Message))
             {
-                builder.Append(" message='").Append(Message.ToDiagnosticText()).Append("'");
+                FrameworkFlowTriggerDiagnostics.AppendField(builder, "message", Message);
             }
 
             if (BridgeResult != null)
             {
-                builder.Append(" bridgeStatus='").Append(BridgeResult.Status).Append("'");
-                builder.Append(" bridgePauseStatus='").Append(BridgeResult.PauseStatus).Append("'");
+                FrameworkFlowTriggerDiagnostics.AppendField(builder, "bridgeStatus", BridgeResult.Status);
+                FrameworkFlowTriggerDiagnostics.AppendField(builder, "bridgePauseStatus", BridgeResult.PauseStatus);
             }
 
             return builder.ToString();

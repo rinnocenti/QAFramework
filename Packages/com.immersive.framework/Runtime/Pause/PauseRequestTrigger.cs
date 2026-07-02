@@ -1,5 +1,6 @@
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.ApplicationLifecycle;
+using Immersive.Framework.Common.FlowTriggers;
 using Immersive.Framework.Diagnostics;
 using Immersive.Framework.GameFlow;
 using UnityEngine;
@@ -19,17 +20,15 @@ namespace Immersive.Framework.Pause
         private const string DefaultSource = nameof(PauseRequestTrigger);
 
         private FrameworkLogger _logger;
-        private FlowRequestOutcome _lastOutcome = FlowRequestOutcome.None;
+        private readonly FrameworkFlowTriggerState _triggerState = new FrameworkFlowTriggerState();
         private PauseRequestStatus _lastStatus = PauseRequestStatus.Unknown;
         private PauseState _lastPreviousState = PauseState.Unknown;
         private PauseState _lastCurrentState = PauseState.Unknown;
-        private string _lastReason = string.Empty;
-        private string _lastMessage = string.Empty;
 
         [Header("Request")]
         [SerializeField] private string reason = "qa.pause.toggle";
 
-        public FlowRequestOutcome LastOutcome => _lastOutcome;
+        public FlowRequestOutcome LastOutcome => ToFlowRequestOutcome(_triggerState.LastOutcome);
 
         public PauseRequestStatus LastStatus => _lastStatus;
 
@@ -37,15 +36,15 @@ namespace Immersive.Framework.Pause
 
         public PauseState LastCurrentState => _lastCurrentState;
 
-        public string LastReason => _lastReason;
+        public string LastReason => _triggerState.LastReason;
 
-        public string LastMessage => _lastMessage;
+        public string LastMessage => _triggerState.LastMessage;
 
-        public bool LastRequestSucceeded => _lastOutcome == FlowRequestOutcome.Succeeded;
+        public bool LastRequestSucceeded => _triggerState.LastSucceeded;
 
-        public bool LastRequestIgnored => _lastOutcome == FlowRequestOutcome.Ignored;
+        public bool LastRequestIgnored => _triggerState.LastIgnored;
 
-        public bool LastRequestFailed => _lastOutcome == FlowRequestOutcome.Failed;
+        public bool LastRequestFailed => _triggerState.LastFailed;
 
         public bool IsPaused => TryGetPauseSnapshot(out var snapshot) && snapshot.IsPaused;
 
@@ -92,7 +91,7 @@ namespace Immersive.Framework.Pause
             {
                 string message = "Pause Request failed. Application Runtime is unavailable.";
                 _logger.Error(message);
-                SetLast(FlowRequestOutcome.Failed, PauseRequestStatus.Failed, PauseState.Unknown, PauseState.Unknown, resolvedReason, message);
+                SetLast(FlowRequestOutcome.Failed, PauseRequestStatus.Failed, PauseState.Unknown, PauseState.Unknown, resolvedReason, message, 1, 1);
                 return;
             }
 
@@ -105,11 +104,19 @@ namespace Immersive.Framework.Pause
             {
                 string message = $"Pause Request failed. {exception.Message}";
                 _logger.Error(message, exception);
-                SetLast(FlowRequestOutcome.Failed, PauseRequestStatus.Failed, PauseState.Unknown, PauseState.Unknown, resolvedReason, message);
+                SetLast(FlowRequestOutcome.Failed, PauseRequestStatus.Failed, PauseState.Unknown, PauseState.Unknown, resolvedReason, message, 1, 1);
                 return;
             }
 
-            SetLast(MapOutcome(result), result.Status, result.PreviousState, result.CurrentState, resolvedReason, result.Message);
+            SetLast(
+                MapOutcome(result),
+                result.Status,
+                result.PreviousState,
+                result.CurrentState,
+                resolvedReason,
+                result.Message,
+                result.IssueCount,
+                result.BlockingIssueCount);
         }
 
         private void EnsureLogger()
@@ -131,14 +138,37 @@ namespace Immersive.Framework.Pause
             PauseState previousState,
             PauseState currentState,
             string resolvedReason,
-            string message)
+            string message,
+            int issueCount,
+            int blockingIssueCount)
         {
-            _lastOutcome = outcome;
             _lastStatus = status;
             _lastPreviousState = previousState;
             _lastCurrentState = currentState;
-            _lastReason = resolvedReason ?? string.Empty;
-            _lastMessage = message ?? string.Empty;
+            switch (outcome)
+            {
+                case FlowRequestOutcome.Succeeded:
+                    _triggerState.CompleteSucceeded(DefaultSource, resolvedReason, message, issueCount, blockingIssueCount);
+                    break;
+                case FlowRequestOutcome.Ignored:
+                    _triggerState.CompleteIgnored(DefaultSource, resolvedReason, message, issueCount, blockingIssueCount);
+                    break;
+                case FlowRequestOutcome.Failed:
+                    _triggerState.CompleteFailed(DefaultSource, resolvedReason, message, issueCount, blockingIssueCount);
+                    break;
+                default:
+                    _triggerState.Complete(
+                        outcome.ToString(),
+                        false,
+                        false,
+                        false,
+                        DefaultSource,
+                        resolvedReason,
+                        message,
+                        issueCount,
+                        blockingIssueCount);
+                    break;
+            }
         }
 
         private static FlowRequestOutcome MapOutcome(PauseResult result)
@@ -154,6 +184,31 @@ namespace Immersive.Framework.Pause
             }
 
             return FlowRequestOutcome.Failed;
+        }
+
+        private static FlowRequestOutcome ToFlowRequestOutcome(string outcome)
+        {
+            if (string.Equals(outcome, FrameworkFlowTriggerState.OutcomeSucceeded, System.StringComparison.Ordinal))
+            {
+                return FlowRequestOutcome.Succeeded;
+            }
+
+            if (string.Equals(outcome, FrameworkFlowTriggerState.OutcomeIgnored, System.StringComparison.Ordinal))
+            {
+                return FlowRequestOutcome.Ignored;
+            }
+
+            if (string.Equals(outcome, FrameworkFlowTriggerState.OutcomeFailed, System.StringComparison.Ordinal))
+            {
+                return FlowRequestOutcome.Failed;
+            }
+
+            if (string.Equals(outcome, FrameworkFlowTriggerState.OutcomeSubmitted, System.StringComparison.Ordinal))
+            {
+                return FlowRequestOutcome.Submitted;
+            }
+
+            return FlowRequestOutcome.None;
         }
     }
 }

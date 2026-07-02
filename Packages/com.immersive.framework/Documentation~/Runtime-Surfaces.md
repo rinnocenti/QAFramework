@@ -96,6 +96,15 @@ Pause runtime surfaces include:
 
 The production-facing default is a resident Pause panel in `UIGlobal` that is shown/hidden from logical Pause state.
 
+Current Pause presentation status:
+
+- Logical Pause is owned by `PauseRuntime`; it changes Pause state and Gate evidence only.
+- Pause resident surface is the supported presentation path for current runtime use.
+- Pause visual/materialization through RuntimeContent + ContentAnchor is experimental/frozen and must not be treated as a broad Surface or Adapter contract.
+- InputMode apply is a separate boundary; it synchronizes Pause intent with Unity `PlayerInput` and does not own visual presentation.
+
+`IPauseSurfaceAdapter` currently applies a snapshot through `void Apply(PauseSnapshot)`. That is sufficient for the resident-only scope, but it is not strong enough evidence for promoting Pause visual/materialization to a broader Surface contract.
+
 ## Pause input and InputMode
 
 Current Pause input path:
