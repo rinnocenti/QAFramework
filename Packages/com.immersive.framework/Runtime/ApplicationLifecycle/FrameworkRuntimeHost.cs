@@ -1103,6 +1103,8 @@ namespace Immersive.Framework.ApplicationLifecycle
             ActivityFlowStartResult activityFlow = routeLifecycle.ActivityFlowResult;
             ActivityContentApplyResult activityContent = activityFlow.ActivityContentResult;
             FrameworkLifecycleOperationEvidence lifecycleOperation = BuildRouteLifecycleOperationEvidence(result, loadingDiagnostics);
+            FrameworkLifecycleContentEvidence lifecycleContent = BuildRouteLifecycleContentEvidence(routeLifecycle, result.Source, result.Reason);
+            FrameworkLifecycleReadinessEvidence lifecycleReadiness = BuildActivityLifecycleReadinessEvidence(activityFlow, result.Source, result.Reason);
 
             return LogFields.Of(
                 LogFields.Field("kind", result.Kind),
@@ -1118,6 +1120,21 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("lifecycleOperationStageNames", lifecycleOperation.StageNamesText),
                 LogFields.Field("lifecycleOperationStageStatuses", lifecycleOperation.StageStatusesText),
                 LogFields.Field("lifecycleOperationDiagnostics", lifecycleOperation.DiagnosticText),
+                LogFields.Field("lifecycleContentStatus", lifecycleContent.Status),
+                LogFields.Field("lifecycleContentEnter", lifecycleContent.EnterStatus),
+                LogFields.Field("lifecycleContentExit", lifecycleContent.ExitStatus),
+                LogFields.Field("lifecycleContentEnterRequests", lifecycleContent.EnterRequestCount),
+                LogFields.Field("lifecycleContentExitRequests", lifecycleContent.ExitRequestCount),
+                LogFields.Field("lifecycleContentParticipants", lifecycleContent.ParticipantCount),
+                LogFields.Field("lifecycleContentParticipantSource", lifecycleContent.ParticipantSourceStatus),
+                LogFields.Field("lifecycleContentBlockingIssues", lifecycleContent.BlockingIssueCount),
+                LogFields.Field("lifecycleContentBlocksReadiness", lifecycleContent.BlocksReadiness),
+                LogFields.Field("lifecycleContentHandles", lifecycleContent.ContentHandleCount),
+                LogFields.Field("lifecycleContentDiagnostics", lifecycleContent.DiagnosticText),
+                LogFields.Field("lifecycleReadiness", lifecycleReadiness.Status),
+                LogFields.Field("lifecycleReadinessReason", lifecycleReadiness.Reason),
+                LogFields.Field("lifecycleReadinessIssues", lifecycleReadiness.IssueCount),
+                LogFields.Field("lifecycleReadinessBlockedByContent", lifecycleReadiness.BlockedByContent),
                 LogFields.Field("transition", result.TransitionDiagnostics.TransitionText),
                 LogFields.Field("transitionScope", result.TransitionDiagnostics.ScopeText),
                 LogFields.Field("transitionBefore", result.TransitionDiagnostics.BeforeText),
@@ -1267,6 +1284,8 @@ namespace Immersive.Framework.ApplicationLifecycle
             ActivityContentApplyResult activityContent = activityFlow.ActivityContentResult;
             ActivityContentLifecycleResult lifecycle = activityContent.LifecycleResult;
             FrameworkLifecycleOperationEvidence lifecycleOperation = BuildActivityLifecycleOperationEvidence(result, loadingDiagnostics);
+            FrameworkLifecycleContentEvidence lifecycleContent = BuildActivityLifecycleContentEvidence(activityFlow, result.Source, result.Reason);
+            FrameworkLifecycleReadinessEvidence lifecycleReadiness = BuildActivityLifecycleReadinessEvidence(activityFlow, result.Source, result.Reason);
 
             return LogFields.Of(
                 LogFields.Field("kind", result.Kind),
@@ -1282,6 +1301,21 @@ namespace Immersive.Framework.ApplicationLifecycle
                 LogFields.Field("lifecycleOperationStageNames", lifecycleOperation.StageNamesText),
                 LogFields.Field("lifecycleOperationStageStatuses", lifecycleOperation.StageStatusesText),
                 LogFields.Field("lifecycleOperationDiagnostics", lifecycleOperation.DiagnosticText),
+                LogFields.Field("lifecycleContentStatus", lifecycleContent.Status),
+                LogFields.Field("lifecycleContentEnter", lifecycleContent.EnterStatus),
+                LogFields.Field("lifecycleContentExit", lifecycleContent.ExitStatus),
+                LogFields.Field("lifecycleContentEnterRequests", lifecycleContent.EnterRequestCount),
+                LogFields.Field("lifecycleContentExitRequests", lifecycleContent.ExitRequestCount),
+                LogFields.Field("lifecycleContentParticipants", lifecycleContent.ParticipantCount),
+                LogFields.Field("lifecycleContentParticipantSource", lifecycleContent.ParticipantSourceStatus),
+                LogFields.Field("lifecycleContentBlockingIssues", lifecycleContent.BlockingIssueCount),
+                LogFields.Field("lifecycleContentBlocksReadiness", lifecycleContent.BlocksReadiness),
+                LogFields.Field("lifecycleContentHandles", lifecycleContent.ContentHandleCount),
+                LogFields.Field("lifecycleContentDiagnostics", lifecycleContent.DiagnosticText),
+                LogFields.Field("lifecycleReadiness", lifecycleReadiness.Status),
+                LogFields.Field("lifecycleReadinessReason", lifecycleReadiness.Reason),
+                LogFields.Field("lifecycleReadinessIssues", lifecycleReadiness.IssueCount),
+                LogFields.Field("lifecycleReadinessBlockedByContent", lifecycleReadiness.BlockedByContent),
                 LogFields.Field("transition", result.TransitionDiagnostics.TransitionText),
                 LogFields.Field("transitionScope", result.TransitionDiagnostics.ScopeText),
                 LogFields.Field("transitionBefore", result.TransitionDiagnostics.BeforeText),
@@ -1452,7 +1486,10 @@ namespace Immersive.Framework.ApplicationLifecycle
 
             builder.AddStage(
                 FrameworkLifecycleOperationStage.ContentExit,
-                routeLifecycle.RouteContentExitResult.DiagnosticStatus,
+                FrameworkLifecycleContentEvidenceProjection.BuildStageStatus(
+                    routeLifecycle.RouteContentExitResult.DiagnosticStatus,
+                    routeLifecycle.RouteContentExitResult.BindingCount,
+                    routeLifecycle.RouteContentExitResult.FailedReceiverCount),
                 result.Source,
                 result.Reason,
                 routeLifecycle.RouteContentExitResult.FailedReceiverCount,
@@ -1500,7 +1537,10 @@ namespace Immersive.Framework.ApplicationLifecycle
 
             builder.AddStage(
                 FrameworkLifecycleOperationStage.ContentEnter,
-                routeLifecycle.RouteContentEnterResult.DiagnosticStatus,
+                FrameworkLifecycleContentEvidenceProjection.BuildStageStatus(
+                    routeLifecycle.RouteContentEnterResult.DiagnosticStatus,
+                    routeLifecycle.RouteContentEnterResult.BindingCount,
+                    routeLifecycle.RouteContentEnterResult.FailedReceiverCount),
                 result.Source,
                 result.Reason,
                 routeLifecycle.RouteContentEnterResult.FailedReceiverCount,
@@ -1512,6 +1552,76 @@ namespace Immersive.Framework.ApplicationLifecycle
 
             AddActivityFlowStages(builder, activityFlow, result.Source, result.Reason);
             return builder.Build();
+        }
+
+        private static FrameworkLifecycleContentEvidence BuildRouteLifecycleContentEvidence(
+            RouteLifecycleStartResult routeLifecycle,
+            string source,
+            string reason)
+        {
+            int blockingIssues = routeLifecycle.RouteContentEnterResult.FailedReceiverCount
+                + routeLifecycle.RouteContentExitResult.FailedReceiverCount;
+            string status = blockingIssues > 0
+                ? "Failed"
+                : routeLifecycle.RouteContentEnterResult.Executed || routeLifecycle.RouteContentExitResult.Executed
+                    ? "Executed"
+                    : "Skipped";
+
+            return new FrameworkLifecycleContentEvidence(
+                status,
+                routeLifecycle.RouteContentEnterResult.DiagnosticStatus,
+                routeLifecycle.RouteContentExitResult.DiagnosticStatus,
+                routeLifecycle.RouteContentEnterResult.BindingCount,
+                routeLifecycle.RouteContentExitResult.BindingCount,
+                0,
+                "None",
+                blockingIssues,
+                blockingIssues,
+                false,
+                routeLifecycle.RouteContentSet.Count,
+                source,
+                reason);
+        }
+
+        private static FrameworkLifecycleContentEvidence BuildActivityLifecycleContentEvidence(
+            ActivityFlowStartResult activityFlow,
+            string source,
+            string reason)
+        {
+            ActivityContentApplyResult activityContent = activityFlow.ActivityContentResult;
+            ActivityContentExecutionLifecycleResult execution = activityFlow.ActivityContentExecutionResult;
+            int issueCount = execution.BlockingIssueCount + execution.ParticipantSourceIssueCount;
+
+            return new FrameworkLifecycleContentEvidence(
+                execution.DiagnosticStatus,
+                execution.EnterResult.Status.ToString(),
+                execution.ExitResult.Status.ToString(),
+                execution.EnterRequestCount,
+                execution.ExitRequestCount,
+                execution.ParticipantCount,
+                execution.ParticipantSourceStatus,
+                issueCount,
+                execution.BlockingIssueCount,
+                execution.BlocksReadiness,
+                activityContent.ActivityContentCount,
+                source,
+                reason);
+        }
+
+        private static FrameworkLifecycleReadinessEvidence BuildActivityLifecycleReadinessEvidence(
+            ActivityFlowStartResult activityFlow,
+            string source,
+            string reason)
+        {
+            bool blockedByContent = activityFlow.ActivityContentExecutionResult.BlocksReadiness
+                || activityFlow.ActivityContentResult.HasLifecycleFailures;
+            return new FrameworkLifecycleReadinessEvidence(
+                activityFlow.ActivityReadinessState.DiagnosticStatus,
+                activityFlow.ActivityReadinessState.DiagnosticReason,
+                activityFlow.ActivityReadinessState.BlockingIssueCount,
+                blockedByContent,
+                source,
+                reason);
         }
 
         private static FrameworkLifecycleOperationEvidence BuildActivityLifecycleOperationEvidence(
@@ -1640,7 +1750,10 @@ namespace Immersive.Framework.ApplicationLifecycle
 
             builder.AddStage(
                 FrameworkLifecycleOperationStage.ActivityContentExecution,
-                activityFlow.ActivityContentExecutionResult.DiagnosticStatus,
+                FrameworkLifecycleContentEvidenceProjection.BuildStageStatus(
+                    activityFlow.ActivityContentExecutionResult.DiagnosticStatus,
+                    activityFlow.ActivityContentExecutionResult.EnterRequestCount + activityFlow.ActivityContentExecutionResult.ExitRequestCount,
+                    activityFlow.ActivityContentExecutionResult.BlockingIssueCount),
                 source,
                 reason,
                 activityFlow.ActivityContentExecutionResult.BlockingIssueCount + activityFlow.ActivityContentExecutionResult.ParticipantSourceIssueCount,
@@ -1652,7 +1765,10 @@ namespace Immersive.Framework.ApplicationLifecycle
 
             builder.AddStage(
                 FrameworkLifecycleOperationStage.ContentExit,
-                $"{lifecycle.DiagnosticStatus}:Exit",
+                FrameworkLifecycleContentEvidenceProjection.BuildStageStatus(
+                    lifecycle.DiagnosticStatus,
+                    lifecycle.ExitBindingCount,
+                    lifecycle.ExitFailedReceiverCount),
                 source,
                 reason,
                 lifecycle.ExitFailedReceiverCount,
@@ -1688,7 +1804,10 @@ namespace Immersive.Framework.ApplicationLifecycle
 
             builder.AddStage(
                 FrameworkLifecycleOperationStage.ContentEnter,
-                $"{lifecycle.DiagnosticStatus}:Enter",
+                FrameworkLifecycleContentEvidenceProjection.BuildStageStatus(
+                    lifecycle.DiagnosticStatus,
+                    lifecycle.EnterBindingCount,
+                    lifecycle.EnterFailedReceiverCount),
                 source,
                 reason,
                 lifecycle.EnterFailedReceiverCount,
@@ -1700,7 +1819,8 @@ namespace Immersive.Framework.ApplicationLifecycle
 
             builder.AddStage(
                 FrameworkLifecycleOperationStage.Readiness,
-                activityFlow.ActivityReadinessState.DiagnosticStatus,
+                FrameworkLifecycleReadinessEvidenceProjection.BuildStageStatus(
+                    BuildActivityLifecycleReadinessEvidence(activityFlow, source, reason)),
                 source,
                 reason,
                 activityFlow.ActivityReadinessState.BlockingIssueCount,

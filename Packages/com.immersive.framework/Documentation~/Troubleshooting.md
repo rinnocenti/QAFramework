@@ -34,6 +34,28 @@ For Route and Activity request logs, read the domain status first, then use `lif
 
 These fields are a lifecycle-local projection over existing Route/Activity evidence. They help locate transition, loading, scene composition/release, content, runtime scope, readiness and ledger evidence, but they do not replace the original Route/Activity/Scene/Content statuses.
 
+For content/readiness questions, read the dedicated F45 projections after the domain status:
+
+- `lifecycleContentStatus`
+- `lifecycleContentEnter`
+- `lifecycleContentExit`
+- `lifecycleContentEnterRequests`
+- `lifecycleContentExitRequests`
+- `lifecycleContentParticipants`
+- `lifecycleContentParticipantSource`
+- `lifecycleContentBlockingIssues`
+- `lifecycleContentBlocksReadiness`
+- `lifecycleContentHandles`
+- `lifecycleContentDiagnostics`
+- `lifecycleReadiness`
+- `lifecycleReadinessReason`
+- `lifecycleReadinessIssues`
+- `lifecycleReadinessBlockedByContent`
+
+Route request logs use `lifecycleContent*` for Route content enter/exit evidence and `lifecycleReadiness*` for the resulting startup Activity readiness when available. Activity request logs use `lifecycleContent*` for Activity content participant/lifecycle evidence and `lifecycleReadiness*` for Activity readiness. Older domain fields such as `activityContentExecution*`, `activityContentParticipant*`, `routeContentEnterReceivers`, `routeContentExitReceivers`, `activityReadiness*` and `activityContentHandles` remain valid and should be used when deeper domain detail is needed.
+
+These lifecycle fields are diagnostics, not policy. A deferred content dispatch kernel, readiness kernel or orchestration kernel is not a bug by itself. Treat it as a bug only when an existing Route/Activity result contradicts the projected evidence, hides a blocking issue, or reports success for an unexecuted required step.
+
 ## UIGlobal scene does not load
 
 Check:

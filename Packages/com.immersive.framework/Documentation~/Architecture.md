@@ -43,6 +43,10 @@ This model guides development language and ownership. It does not authorize broa
 
 Route and Activity request logs also project lifecycle-local operation evidence through `lifecycleOperation*` fields. This is a diagnostic ledger over existing Route/Activity evidence; it is not a GameFlow envelope and does not replace Route or Activity result/status types.
 
+F45 adds lifecycle-local content/readiness evidence projection to those request logs through `lifecycleContent*` and `lifecycleReadiness*` fields. The projection is observational: Route, ActivityFlow, RuntimeContent and ContentAnchor keep their execution and domain status ownership. It does not create a content dispatch kernel or readiness kernel.
+
+F44, F45 and F46 close the initial lifecycle evidence stabilization. GameFlow is still not implemented as a request envelope. The next GameFlow work may use the existing Route/Activity evidence fields as ADR input, but must define its own boundary before implementation.
+
 ## Current boundary rules
 
 - `GameApplicationAsset` is the authoring root for app startup and `UIGlobal` policy.

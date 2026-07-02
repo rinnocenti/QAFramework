@@ -14,7 +14,7 @@ The package exposes QA smoke runners through `FrameworkQaCanvas` and internal di
 | Area | Relevant smokes |
 | --- | --- |
 | Standard package health | Standard Smoke |
-| Route/Activity lifecycle | Activity Baseline Smoke, Route Scene Composition Smoke, Route Release Smoke, Composite Lifecycle Release Smoke, Scope Tail Operation Synthetic Smoke. No direct lifecycle operation evidence smoke button exists; validate `lifecycleOperation*` through Standard/Route/Activity logs. |
+| Route/Activity lifecycle | Activity Baseline Smoke, Route Scene Composition Smoke, Route Release Smoke, Composite Lifecycle Release Smoke, Scope Tail Operation Synthetic Smoke. No direct lifecycle operation evidence smoke button exists; validate `lifecycleOperation*`, `lifecycleContent*` and `lifecycleReadiness*` through Standard/Route/Activity logs. |
 | Loading | Loading Result Smoke, Loading Readiness Smoke, Loading Progress Smoke, Loading Screen Adapter Smoke. Loading Result Smoke also validates `LoadingSurfaceAdapterEvidence` count, names/statuses, applied/skipped/failed counts, blocking issue count, progress support and explicit no-op/failure evidence. |
 | Transition | Transition Smoke, Transition Effect Smoke, Transition Effect Unity Fade Curtain Smoke, Transition Gate Blocker Smoke |
 | Pause | Pause Smoke, Pause Runtime Request Smoke, Pause Gate Blocker Smoke |
@@ -22,6 +22,8 @@ The package exposes QA smoke runners through `FrameworkQaCanvas` and internal di
 | InputMode | InputMode Contract Smoke, Unity Input Official Component Evidence Smoke, InputMode Unity PlayerInput application smokes |
 | RuntimeContent / ContentAnchor | Runtime prefab materialization, Content Anchor diagnostics, Activity Content Anchor diagnostics, composite lifecycle release/materialization smokes |
 | Reset/Object/Cycle | CycleReset and ObjectReset QA smoke runners when those surfaces change |
+
+F46 is a decision-only lifecycle readiness cut. There is no direct F46 smoke button. Use the existing Route/Activity lifecycle smokes and request logs when validating later lifecycle evidence changes.
 
 ## QA Canvas expectations
 
