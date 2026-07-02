@@ -88,6 +88,8 @@ Key envelope fields:
 
 Use `lifecycleOperation*`, `lifecycleContent*`, `lifecycleReadiness*` and `loadingAdapterEvidence*` for detailed evidence. Treat a mismatch between envelope summary and existing domain fields as a diagnostics bug, not as permission to change Route/Activity behavior.
 
+Current Route/Activity requests should enter through the supported host boundary: scene-authored triggers or QA/runtime callers resolve `FrameworkRuntimeHost` and call its Route/Activity request methods. `GameFlowRuntime` and `GameFlowRequestEnvelope` are internal implementation details. `gameFlowEnvelope*` fields are diagnostics, not a request API.
+
 ## UIGlobal scene does not load
 
 Check:

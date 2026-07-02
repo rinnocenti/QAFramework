@@ -49,6 +49,8 @@ F44, F45 and F46 close the initial lifecycle evidence stabilization. F47 accepts
 
 F50 approves Route/Activity trigger migration to the shared FlowTrigger helper for local state and diagnostics only. F51 implements that migration in `RouteRequestTrigger` and `ActivityRequestTrigger`: last phase/outcome/reason/message and succeeded/ignored/failed flags are helper-backed, while target selection, Activity clear semantics, local result mapping and `FrameworkRuntimeHost` request entry points remain trigger-owned. `gameFlowEnvelope*` ownership stays in `FrameworkRuntimeHost`.
 
+F52 keeps `FrameworkRuntimeHost` as the current Route/Activity request API boundary. No public or internal GameFlow request API is introduced now. `GameFlowRuntime` remains internal execution/admission runtime, and `GameFlowRequestEnvelope` remains internal passive diagnostics rather than a public request object.
+
 ## Current boundary rules
 
 - `GameApplicationAsset` is the authoring root for app startup and `UIGlobal` policy.

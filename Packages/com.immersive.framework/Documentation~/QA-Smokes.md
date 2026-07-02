@@ -33,6 +33,8 @@ F50 is a decision-only Route/Activity trigger migration ADR. It approves local F
 
 F51 migrates `RouteRequestTrigger` and `ActivityRequestTrigger` local state/diagnostics to the existing FlowTrigger helper without changing request semantics or adding smoke buttons. Validate F51 with Unity import/compile, Standard Smoke, Activity Baseline Smoke, Route Scene Composition Smoke, Route Release Smoke when present, Composite Lifecycle Release Smoke when present, Activity Content Anchor Diagnostics Smoke when present and Content Anchor Diagnostics Smoke when present. Pause/InputMode smokes are required only if the shared FlowTrigger helper changes.
 
+F52 is a decision-only GameFlow request API cut. It keeps `FrameworkRuntimeHost` as the current request API boundary and does not add public/internal GameFlow request API, runtime code or smoke buttons. No Unity smoke is required for F52. Future runtime API work must rerun Unity import/compile and the affected Route/Activity smoke group.
+
 ## QA Canvas expectations
 
 `FrameworkQaCanvas` should expose current validation buttons, not every historical proof. Obsolete intermediate buttons should remain out of the visible primary QA path unless a future diagnostics mode intentionally restores them.
