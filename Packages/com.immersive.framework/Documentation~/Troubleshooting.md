@@ -37,7 +37,8 @@ Check:
 - `UnityLoadingSurfaceAdapter` exists in `UIGlobal`.
 - The Game Application actually loads `UIGlobal`.
 - Loading diagnostics report `loadingBefore`, `loadingAfter`, `loadingAdapterCount`, `loadingBlockingIssues`, `loadingProgressSupported` and `loadingProgressMode`.
-- The adapter result reports the local status, adapter name, request, issues and blocking issue count.
+- The aggregate surface result and request-level route/activity Loading diagnostics report `adapterEvidence`, `adapterEvidenceApplied`, `adapterEvidenceSkipped`, `adapterEvidenceFailed` and `adapterEvidenceBlockingIssues`.
+- Each adapter evidence entry reports adapter name, status, applied/skipped/failed state, issue count, blocking issue count and message.
 
 Loading is not the same as transition fade. A fade curtain does not replace a loading surface.
 

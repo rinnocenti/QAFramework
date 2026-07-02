@@ -20,9 +20,9 @@ Loading is the current reference pattern:
 
 - The Surface defines Loading intent, availability, request data, result semantics, optional/no-op behavior and diagnostics.
 - The Adapter executes one local Unity side effect and returns `LoadingSurfaceResult` evidence.
-- The runtime boundary uses explicit adapters, aggregates results, reports required missing capability and keeps optional no-op explicit.
+- The runtime boundary uses explicit adapters, aggregates results, preserves `LoadingSurfaceAdapterEvidence`, reports required missing capability and keeps optional/no-op explicit.
 - Consumers pass source/reason diagnostics and handle absence or failure explicitly.
-- QA evidence should assert status, blocking issues, adapter count, progress support, side effects and no-op/failure causes.
+- QA evidence should assert status, blocking issues, adapter evidence count/names/statuses, progress support, side effects and no-op/failure causes.
 
 Do not copy Loading status values into unrelated domains. A new Surface/Adapter should define its own domain request, result and status language.
 
@@ -68,9 +68,12 @@ Loading runtime surfaces include:
 - `UnityLoadingSurfaceAdapter`
 - `ILoadingSurfaceAdapter`
 - `ILoadingSurfaceProgressPresentationAdapter`
+- `LoadingSurfaceAdapterEvidence`
 - loading result/readiness/progress contracts
 
 Loading presentation is separate from transition effects.
+
+Aggregate `LoadingSurfaceResult` diagnostics preserve named adapter evidence for applied, skipped and failed adapters. Consumers should read the evidence collection or diagnostic fields instead of parsing adapter-prefixed issue text.
 
 ## Transition
 

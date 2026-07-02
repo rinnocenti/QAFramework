@@ -1,3 +1,4 @@
+using System.Text;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Loading;
 using Immersive.Framework.Common;
@@ -26,7 +27,15 @@ namespace Immersive.Framework.ApplicationLifecycle
             string afterText,
             FrameworkLoadingProgress progress,
             int blockingIssueCount,
-            int adapterCount)
+            int adapterCount,
+            int adapterEvidenceCount = 0,
+            int appliedAdapterEvidenceCount = 0,
+            int skippedAdapterEvidenceCount = 0,
+            int failedAdapterEvidenceCount = 0,
+            int adapterEvidenceIssueCount = 0,
+            int adapterEvidenceBlockingIssueCount = 0,
+            string adapterEvidenceNamesText = NoneText,
+            string adapterEvidenceStatusesText = NoneText)
         {
             LoadingText = Normalize(loadingText);
             VisualText = Normalize(visualText);
@@ -35,6 +44,14 @@ namespace Immersive.Framework.ApplicationLifecycle
             Progress = progress;
             BlockingIssueCount = blockingIssueCount < 0 ? 0 : blockingIssueCount;
             AdapterCount = adapterCount < 0 ? 0 : adapterCount;
+            AdapterEvidenceCount = adapterEvidenceCount < 0 ? 0 : adapterEvidenceCount;
+            AppliedAdapterEvidenceCount = appliedAdapterEvidenceCount < 0 ? 0 : appliedAdapterEvidenceCount;
+            SkippedAdapterEvidenceCount = skippedAdapterEvidenceCount < 0 ? 0 : skippedAdapterEvidenceCount;
+            FailedAdapterEvidenceCount = failedAdapterEvidenceCount < 0 ? 0 : failedAdapterEvidenceCount;
+            AdapterEvidenceIssueCount = adapterEvidenceIssueCount < 0 ? 0 : adapterEvidenceIssueCount;
+            AdapterEvidenceBlockingIssueCount = adapterEvidenceBlockingIssueCount < 0 ? 0 : adapterEvidenceBlockingIssueCount;
+            AdapterEvidenceNamesText = Normalize(adapterEvidenceNamesText).NormalizeTextOrFallback(NoneText);
+            AdapterEvidenceStatusesText = Normalize(adapterEvidenceStatusesText).NormalizeTextOrFallback(NoneText);
         }
 
         public string LoadingText { get; }
@@ -50,6 +67,24 @@ namespace Immersive.Framework.ApplicationLifecycle
         public int BlockingIssueCount { get; }
 
         public int AdapterCount { get; }
+
+        public int AdapterEvidenceCount { get; }
+
+        public int AppliedAdapterEvidenceCount { get; }
+
+        public int SkippedAdapterEvidenceCount { get; }
+
+        public int FailedAdapterEvidenceCount { get; }
+
+        public int AdapterEvidenceIssueCount { get; }
+
+        public int AdapterEvidenceBlockingIssueCount { get; }
+
+        public string AdapterEvidenceNamesText { get; }
+
+        public string AdapterEvidenceStatusesText { get; }
+
+        public bool HasAdapterEvidence => AdapterEvidenceCount > 0;
 
         public bool ProgressSupported => Progress.Supported;
 
@@ -173,7 +208,15 @@ namespace Immersive.Framework.ApplicationLifecycle
                 afterText,
                 progress,
                 blockingIssueCount,
-                adapterCount);
+                adapterCount,
+                beforeResult.AdapterEvidenceCount + afterResult.AdapterEvidenceCount,
+                beforeResult.AppliedAdapterEvidenceCount + afterResult.AppliedAdapterEvidenceCount,
+                beforeResult.SkippedAdapterEvidenceCount + afterResult.SkippedAdapterEvidenceCount,
+                beforeResult.FailedAdapterEvidenceCount + afterResult.FailedAdapterEvidenceCount,
+                beforeResult.AdapterEvidenceIssueCount + afterResult.AdapterEvidenceIssueCount,
+                beforeResult.AdapterEvidenceBlockingIssueCount + afterResult.AdapterEvidenceBlockingIssueCount,
+                BuildAdapterEvidenceNamesText(beforeResult, afterResult),
+                BuildAdapterEvidenceStatusesText(beforeResult, afterResult));
         }
 
         private static string DetermineSurfaceLoadingText(
@@ -196,6 +239,55 @@ namespace Immersive.Framework.ApplicationLifecycle
             }
 
             return "SucceededWithUnitySurface";
+        }
+
+        private static string BuildAdapterEvidenceNamesText(
+            LoadingSurfaceResult beforeResult,
+            LoadingSurfaceResult afterResult)
+        {
+            var builder = new StringBuilder();
+            AppendAdapterEvidenceNames(builder, beforeResult);
+            AppendAdapterEvidenceNames(builder, afterResult);
+            return builder.Length > 0 ? builder.ToString() : NoneText;
+        }
+
+        private static string BuildAdapterEvidenceStatusesText(
+            LoadingSurfaceResult beforeResult,
+            LoadingSurfaceResult afterResult)
+        {
+            var builder = new StringBuilder();
+            AppendAdapterEvidenceStatuses(builder, beforeResult);
+            AppendAdapterEvidenceStatuses(builder, afterResult);
+            return builder.Length > 0 ? builder.ToString() : NoneText;
+        }
+
+        private static void AppendAdapterEvidenceNames(StringBuilder builder, LoadingSurfaceResult result)
+        {
+            for (int i = 0; i < result.AdapterEvidence.Count; i++)
+            {
+                AppendSeparator(builder);
+                builder.Append(result.AdapterEvidence[i].AdapterName.ToDiagnosticText());
+            }
+        }
+
+        private static void AppendAdapterEvidenceStatuses(StringBuilder builder, LoadingSurfaceResult result)
+        {
+            for (int i = 0; i < result.AdapterEvidence.Count; i++)
+            {
+                LoadingSurfaceAdapterEvidence evidence = result.AdapterEvidence[i];
+                AppendSeparator(builder);
+                builder.Append(evidence.AdapterName.ToDiagnosticText());
+                builder.Append(':');
+                builder.Append(evidence.Status);
+            }
+        }
+
+        private static void AppendSeparator(StringBuilder builder)
+        {
+            if (builder.Length > 0)
+            {
+                builder.Append("; ");
+            }
         }
 
         private static FrameworkLoadingProgress ResolveObservedProgress(

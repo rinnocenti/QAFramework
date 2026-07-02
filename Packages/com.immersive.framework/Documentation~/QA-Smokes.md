@@ -15,7 +15,7 @@ The package exposes QA smoke runners through `FrameworkQaCanvas` and internal di
 | --- | --- |
 | Standard package health | Standard Smoke |
 | Route/Activity lifecycle | Composite Lifecycle Release Smoke, route/activity diagnostics smokes |
-| Loading | Loading Result Smoke, Loading Readiness Smoke, Loading Progress Smoke, Loading Screen Adapter Smoke |
+| Loading | Loading Result Smoke, Loading Readiness Smoke, Loading Progress Smoke, Loading Screen Adapter Smoke. Loading Result Smoke also validates `LoadingSurfaceAdapterEvidence` count, names/statuses, applied/skipped/failed counts, blocking issue count, progress support and explicit no-op/failure evidence. |
 | Transition | Transition Smoke, Transition Effect Smoke, Transition Effect Unity Fade Curtain Smoke, Transition Gate Blocker Smoke |
 | Pause | Pause Smoke, Pause Runtime Request Smoke, Pause Gate Blocker Smoke |
 | Pause input | Pause InputMode Request Boundary Smoke, Pause InputMode Unity PlayerInput Runtime Bridge Smoke, Pause InputAction Runtime Bridge Trigger Smoke |

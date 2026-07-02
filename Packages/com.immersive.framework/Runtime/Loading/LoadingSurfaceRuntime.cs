@@ -157,13 +157,16 @@ namespace Immersive.Framework.Loading
             List<ILoadingSurfaceAdapter> matchingAdapters = CollectSupportingAdapters(request);
             if (matchingAdapters.Count == 0)
             {
+                var adapterEvidence = BuildUnsupportedAdapterEvidence(request);
                 return LoadingSurfaceResult.SkippedResult(
                     request,
                     _surfaceLabel,
-                    $"Loading surface '{_surfaceLabel}' has no adapters that can handle action '{request.Action}'.");
+                    $"Loading surface '{_surfaceLabel}' has no adapters that can handle action '{request.Action}'.",
+                    adapterEvidence);
             }
 
             var issues = new List<string>();
+            var adapterEvidenceList = new List<LoadingSurfaceAdapterEvidence>(matchingAdapters.Count);
             int blockingIssueCount = 0;
             int warningIssueCount = 0;
 
@@ -171,6 +174,7 @@ namespace Immersive.Framework.Loading
             {
                 var adapter = matchingAdapters[i];
                 var result = ExecuteAdapter(adapter, request, expectedAction);
+                adapterEvidenceList.Add(LoadingSurfaceAdapterEvidence.FromResult(result));
                 if (result.Failed || result.Rejected)
                 {
                     blockingIssueCount++;
@@ -201,7 +205,8 @@ namespace Immersive.Framework.Loading
                     request,
                     _surfaceLabel,
                     $"Loading surface '{_surfaceLabel}' adapter execution failed.",
-                    issues);
+                    issues,
+                    adapterEvidenceList);
             }
 
             if (warningIssueCount > 0)
@@ -210,13 +215,15 @@ namespace Immersive.Framework.Loading
                     request,
                     _surfaceLabel,
                     $"Loading surface '{_surfaceLabel}' completed with warnings.",
-                    issues);
+                    issues,
+                    adapterEvidenceList);
             }
 
             return LoadingSurfaceResult.SucceededResult(
                 request,
                 _surfaceLabel,
-                $"Loading surface '{_surfaceLabel}' completed successfully.");
+                $"Loading surface '{_surfaceLabel}' completed successfully.",
+                adapterEvidenceList);
         }
 
         private async Awaitable<LoadingSurfaceResult> ExecuteAsync(LoadingSurfaceRequest request, LoadingSurfaceAction expectedAction)
@@ -252,13 +259,16 @@ namespace Immersive.Framework.Loading
             List<ILoadingSurfaceAdapter> matchingAdapters = CollectSupportingAdapters(request);
             if (matchingAdapters.Count == 0)
             {
+                var adapterEvidence = BuildUnsupportedAdapterEvidence(request);
                 return LoadingSurfaceResult.SkippedResult(
                     request,
                     _surfaceLabel,
-                    $"Loading surface '{_surfaceLabel}' has no adapters that can handle action '{request.Action}'.");
+                    $"Loading surface '{_surfaceLabel}' has no adapters that can handle action '{request.Action}'.",
+                    adapterEvidence);
             }
 
             var issues = new List<string>();
+            var adapterEvidenceList = new List<LoadingSurfaceAdapterEvidence>(matchingAdapters.Count);
             int blockingIssueCount = 0;
             int warningIssueCount = 0;
 
@@ -266,6 +276,7 @@ namespace Immersive.Framework.Loading
             {
                 var adapter = matchingAdapters[i];
                 var result = await ExecuteAdapterAsync(adapter, request, expectedAction);
+                adapterEvidenceList.Add(LoadingSurfaceAdapterEvidence.FromResult(result));
                 if (result.Failed || result.Rejected)
                 {
                     blockingIssueCount++;
@@ -296,7 +307,8 @@ namespace Immersive.Framework.Loading
                     request,
                     _surfaceLabel,
                     $"Loading surface '{_surfaceLabel}' adapter execution failed.",
-                    issues);
+                    issues,
+                    adapterEvidenceList);
             }
 
             if (warningIssueCount > 0)
@@ -305,13 +317,15 @@ namespace Immersive.Framework.Loading
                     request,
                     _surfaceLabel,
                     $"Loading surface '{_surfaceLabel}' completed with warnings.",
-                    issues);
+                    issues,
+                    adapterEvidenceList);
             }
 
             return LoadingSurfaceResult.SucceededResult(
                 request,
                 _surfaceLabel,
-                $"Loading surface '{_surfaceLabel}' completed successfully.");
+                $"Loading surface '{_surfaceLabel}' completed successfully.",
+                adapterEvidenceList);
         }
 
         private LoadingSurfaceResult ExecuteAdapter(
@@ -365,14 +379,18 @@ namespace Immersive.Framework.Loading
 
         private LoadingSurfaceResult ExecuteNoOp(LoadingSurfaceRequest request, LoadingSurfaceAction expectedAction)
         {
+            LoadingSurfaceResult result;
             switch (expectedAction)
             {
                 case LoadingSurfaceAction.Show:
-                    return NoOpLoadingSurfaceAdapter.Instance.Show(request);
+                    result = NoOpLoadingSurfaceAdapter.Instance.Show(request);
+                    break;
                 case LoadingSurfaceAction.Update:
-                    return NoOpLoadingSurfaceAdapter.Instance.Update(request);
+                    result = NoOpLoadingSurfaceAdapter.Instance.Update(request);
+                    break;
                 case LoadingSurfaceAction.Hide:
-                    return NoOpLoadingSurfaceAdapter.Instance.Hide(request);
+                    result = NoOpLoadingSurfaceAdapter.Instance.Hide(request);
+                    break;
                 default:
                     return LoadingSurfaceResult.RejectedResult(
                         request,
@@ -380,6 +398,13 @@ namespace Immersive.Framework.Loading
                         $"Unsupported loading surface action '{expectedAction}'.",
                         new[] { "loading-surface-action-unsupported" });
             }
+
+            var adapterEvidence = new[] { LoadingSurfaceAdapterEvidence.FromResult(result) };
+            return LoadingSurfaceResult.SkippedResult(
+                request,
+                _surfaceLabel,
+                result.Message,
+                adapterEvidence);
         }
 
         private bool HasProgressPresentationAdapter()
@@ -408,6 +433,29 @@ namespace Immersive.Framework.Loading
             }
 
             return supportingAdapters;
+        }
+
+        private LoadingSurfaceAdapterEvidence[] BuildUnsupportedAdapterEvidence(LoadingSurfaceRequest request)
+        {
+            if (_adapters.Length == 0)
+            {
+                return Array.Empty<LoadingSurfaceAdapterEvidence>();
+            }
+
+            var evidence = new LoadingSurfaceAdapterEvidence[_adapters.Length];
+            for (int i = 0; i < _adapters.Length; i++)
+            {
+                ILoadingSurfaceAdapter adapter = _adapters[i];
+                string adapterName = adapter?.AdapterName ?? "Unknown Loading Surface Adapter";
+                evidence[i] = new LoadingSurfaceAdapterEvidence(
+                    adapterName,
+                    LoadingSurfaceResultStatus.Skipped,
+                    0,
+                    0,
+                    $"Adapter '{adapterName.NormalizeTextOrFallback("Unknown Loading Surface Adapter")}' does not support action '{request.Action}'.");
+            }
+
+            return evidence;
         }
 
         private static ILoadingSurfaceAdapter[] CopyAdapters(IReadOnlyList<ILoadingSurfaceAdapter> adapters)

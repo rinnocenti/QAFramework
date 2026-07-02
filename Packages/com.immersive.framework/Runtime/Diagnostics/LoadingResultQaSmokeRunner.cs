@@ -32,12 +32,14 @@ namespace Immersive.Framework.Diagnostics
                 bool successPassed = ValidateSuccessResult(logger, normalizedSource);
                 bool waitingPassed = ValidateWaitingReadinessResult(logger, normalizedSource);
                 bool failurePassed = ValidateFailureIssueResult(logger, normalizedSource);
+                bool surfaceEvidencePassed = ValidateSurfaceAdapterEvidenceResult(logger, normalizedSource);
                 bool boundaryPassed = ValidateBoundary(logger);
 
                 return Task.FromResult(contractsPassed
                     && successPassed
                     && waitingPassed
                     && failurePassed
+                    && surfaceEvidencePassed
                     && boundaryPassed);
             }
             catch (Exception exception)
@@ -223,6 +225,68 @@ namespace Immersive.Framework.Diagnostics
                     LogFields.Field("failedReadiness", result.FailedReadinessCount),
                     LogFields.Field("blockingIssues", result.BlockingIssueCount),
                     LogFields.Field("blocksCompletion", result.BlocksCompletion)));
+
+            return passed;
+        }
+
+        private static bool ValidateSurfaceAdapterEvidenceResult(FrameworkLogger logger, string source)
+        {
+            var request = LoadingSurfaceRequest.Show(
+                "Loading QA",
+                "Surface evidence",
+                source,
+                "qa.surface.evidence",
+                LoadingProgress.FromNormalized(0.5f),
+                progressSupported: true);
+            var visibleEvidence = new LoadingSurfaceAdapterEvidence(
+                "QA Loading Surface Adapter",
+                LoadingSurfaceResultStatus.Succeeded,
+                0,
+                0,
+                "Visible loading state applied.");
+            var skippedEvidence = new LoadingSurfaceAdapterEvidence(
+                "Optional Loading Surface Adapter",
+                LoadingSurfaceResultStatus.Skipped,
+                0,
+                0,
+                "Optional adapter skipped.");
+            var failedEvidence = new LoadingSurfaceAdapterEvidence(
+                "Failing Loading Surface Adapter",
+                LoadingSurfaceResultStatus.Failed,
+                1,
+                1,
+                "Required adapter failed.");
+            var result = LoadingSurfaceResult.FailedResult(
+                request,
+                "QA Aggregate Loading Surface",
+                "Aggregate loading surface failed.",
+                new[] { "Failing Loading Surface Adapter: missing-canvas-group" },
+                new[] { visibleEvidence, skippedEvidence, failedEvidence });
+
+            bool passed = result is { Failed: true, HasAdapterEvidence: true, AdapterEvidenceCount: 3, AppliedAdapterEvidenceCount: 1, SkippedAdapterEvidenceCount: 1, FailedAdapterEvidenceCount: 1, AdapterEvidenceIssueCount: 1, AdapterEvidenceBlockingIssueCount: 1, ProgressSupported: true }
+                && result.AdapterEvidence[0].Applied
+                && result.AdapterEvidence[1].Skipped
+                && result.AdapterEvidence[2].Failed
+                && result.ToDiagnosticString().Contains("adapterEvidence='3'", StringComparison.Ordinal)
+                && result.ToDiagnosticString().Contains("QA Loading Surface Adapter", StringComparison.Ordinal);
+
+            LogStep(
+                logger,
+                "surface-adapter-evidence",
+                passed,
+                LogFields.Of(
+                    LogFields.Field("status", result.Status.ToString()),
+                    LogFields.Field("loadingAdapterEvidenceCount", result.AdapterEvidenceCount),
+                    LogFields.Field("loadingAdapterEvidenceApplied", result.AppliedAdapterEvidenceCount),
+                    LogFields.Field("loadingAdapterEvidenceSkipped", result.SkippedAdapterEvidenceCount),
+                    LogFields.Field("loadingAdapterEvidenceFailed", result.FailedAdapterEvidenceCount),
+                    LogFields.Field("loadingAdapterEvidenceIssues", result.AdapterEvidenceIssueCount),
+                    LogFields.Field("loadingAdapterEvidenceBlockingIssues", result.AdapterEvidenceBlockingIssueCount),
+                    LogFields.Field("loadingAdapterEvidenceNames", "QA Loading Surface Adapter; Optional Loading Surface Adapter; Failing Loading Surface Adapter"),
+                    LogFields.Field("loadingAdapterEvidenceStatuses", "Succeeded; Skipped; Failed"),
+                    LogFields.Field("loadingProgressSupported", result.ProgressSupported),
+                    LogFields.Field("loadingProgressMode", result.ProgressSupported ? "request-progress" : "unsupported"),
+                    LogFields.Field("loadingNoOp", false)));
 
             return passed;
         }

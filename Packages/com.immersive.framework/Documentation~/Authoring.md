@@ -19,7 +19,7 @@ Use Loading as the reference for new Surface/Adapter authoring:
 
 - Define the domain Surface request/result/status before adding a Unity component.
 - Make the adapter execute one local side effect, such as changing a CanvasGroup, GameObject active state, image, progress widget or another explicit subsystem.
-- Return explicit domain adapter evidence for success, skipped/no-op, unsupported request and local failure.
+- Return explicit domain adapter evidence for success, skipped/no-op, unsupported request and local failure. In Loading, aggregate `LoadingSurfaceResult` exposes `LoadingSurfaceAdapterEvidence` so consumers can inspect adapter names, statuses, applied/skipped/failed counts, issue counts and blocking issue counts without parsing issue text.
 - Keep lifecycle, route/activity ownership, policy decisions and multi-step orchestration outside the adapter.
 - Do not silently replace missing required references. Required missing configuration must fail visibly.
 - Do not create a shared `IFrameworkAdapter`, `FrameworkSurface`, universal status enum or generic result container for authoring convenience.

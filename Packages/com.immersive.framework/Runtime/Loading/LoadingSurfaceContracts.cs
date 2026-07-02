@@ -274,6 +274,120 @@ namespace Immersive.Framework.Loading
     }
 
     /// <summary>
+    /// API status: Experimental. Domain-specific evidence for one loading surface adapter result.
+    /// It is intentionally local to Loading and does not define a shared adapter abstraction.
+    /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F43 Loading surface adapter evidence for aggregate diagnostics.")]
+    public readonly struct LoadingSurfaceAdapterEvidence : IEquatable<LoadingSurfaceAdapterEvidence>
+    {
+        public LoadingSurfaceAdapterEvidence(
+            string adapterName,
+            LoadingSurfaceResultStatus status,
+            int issueCount,
+            int blockingIssueCount,
+            string message)
+        {
+            if (!Enum.IsDefined(typeof(LoadingSurfaceResultStatus), status) || status == LoadingSurfaceResultStatus.Unknown)
+            {
+                throw new ArgumentOutOfRangeException(nameof(status), status, "Loading surface adapter evidence status must be explicit.");
+            }
+
+            AdapterName = Normalize(adapterName);
+            Status = status;
+            IssueCount = Math.Max(0, issueCount);
+            BlockingIssueCount = Math.Max(0, blockingIssueCount);
+            Message = Normalize(message);
+        }
+
+        public string AdapterName { get; }
+
+        public LoadingSurfaceResultStatus Status { get; }
+
+        public bool Applied => Status is LoadingSurfaceResultStatus.Succeeded or LoadingSurfaceResultStatus.SucceededWithWarnings;
+
+        public bool Skipped => Status == LoadingSurfaceResultStatus.Skipped;
+
+        public bool Failed => Status is LoadingSurfaceResultStatus.Failed or LoadingSurfaceResultStatus.Rejected;
+
+        public int IssueCount { get; }
+
+        public int BlockingIssueCount { get; }
+
+        public string Message { get; }
+
+        public bool HasIssues => IssueCount > 0;
+
+        public bool HasBlockingIssues => BlockingIssueCount > 0;
+
+        public bool Equals(LoadingSurfaceAdapterEvidence other)
+        {
+            return string.Equals(AdapterName, other.AdapterName, StringComparison.Ordinal)
+                && Status == other.Status
+                && IssueCount == other.IssueCount
+                && BlockingIssueCount == other.BlockingIssueCount
+                && string.Equals(Message, other.Message, StringComparison.Ordinal);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is LoadingSurfaceAdapterEvidence other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = StringComparer.Ordinal.GetHashCode(AdapterName ?? string.Empty);
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ IssueCount;
+                hashCode = hashCode * 397 ^ BlockingIssueCount;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                return hashCode;
+            }
+        }
+
+        public override string ToString()
+        {
+            return ToDiagnosticString();
+        }
+
+        public string ToDiagnosticString()
+        {
+            return $"adapter='{AdapterName.ToDiagnosticText()}' status='{Status}' applied='{Applied}' skipped='{Skipped}' failed='{Failed}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' message='{Message.ToDiagnosticText()}'";
+        }
+
+        public static LoadingSurfaceAdapterEvidence FromResult(LoadingSurfaceResult result)
+        {
+            if (!result.IsValid)
+            {
+                throw new ArgumentException("Loading surface adapter evidence requires a valid result.", nameof(result));
+            }
+
+            return new LoadingSurfaceAdapterEvidence(
+                result.AdapterName,
+                result.Status,
+                result.IssueCount,
+                result.BlockingIssueCount,
+                result.Message);
+        }
+
+        public static bool operator ==(LoadingSurfaceAdapterEvidence left, LoadingSurfaceAdapterEvidence right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(LoadingSurfaceAdapterEvidence left, LoadingSurfaceAdapterEvidence right)
+        {
+            return !left.Equals(right);
+        }
+
+        private static string Normalize(string value)
+        {
+            return value.NormalizeText();
+        }
+    }
+
+    /// <summary>
     /// API status: Experimental. Explicit result for one loading surface adapter action.
     /// It reports visual adapter outcome only; it does not block or own SceneLifecycle, RouteLifecycle or ActivityFlow.
     /// </summary>
@@ -281,6 +395,7 @@ namespace Immersive.Framework.Loading
     public readonly struct LoadingSurfaceResult : IEquatable<LoadingSurfaceResult>
     {
         private readonly string[] _issues;
+        private readonly LoadingSurfaceAdapterEvidence[] _adapterEvidence;
 
         public LoadingSurfaceResult(
             LoadingSurfaceRequest request,
@@ -288,6 +403,17 @@ namespace Immersive.Framework.Loading
             string adapterName,
             string message,
             IReadOnlyList<string> issues)
+            : this(request, status, adapterName, message, issues, Array.Empty<LoadingSurfaceAdapterEvidence>())
+        {
+        }
+
+        public LoadingSurfaceResult(
+            LoadingSurfaceRequest request,
+            LoadingSurfaceResultStatus status,
+            string adapterName,
+            string message,
+            IReadOnlyList<string> issues,
+            IReadOnlyList<LoadingSurfaceAdapterEvidence> adapterEvidence)
         {
             if (!request.IsValid)
             {
@@ -304,6 +430,7 @@ namespace Immersive.Framework.Loading
             AdapterName = Normalize(adapterName);
             Message = Normalize(message);
             _issues = CopyIssues(issues);
+            _adapterEvidence = CopyAdapterEvidence(adapterEvidence);
         }
 
         public LoadingSurfaceRequest Request { get; }
@@ -334,6 +461,22 @@ namespace Immersive.Framework.Loading
 
         public int IssueCount => Issues.Count;
 
+        public IReadOnlyList<LoadingSurfaceAdapterEvidence> AdapterEvidence => _adapterEvidence ?? Array.Empty<LoadingSurfaceAdapterEvidence>();
+
+        public int AdapterEvidenceCount => AdapterEvidence.Count;
+
+        public int AppliedAdapterEvidenceCount => CountAdapterEvidenceApplied();
+
+        public int SkippedAdapterEvidenceCount => CountAdapterEvidenceSkipped();
+
+        public int FailedAdapterEvidenceCount => CountAdapterEvidenceFailed();
+
+        public int AdapterEvidenceIssueCount => CountAdapterEvidenceIssues();
+
+        public int AdapterEvidenceBlockingIssueCount => CountAdapterEvidenceBlockingIssues();
+
+        public bool HasAdapterEvidence => AdapterEvidenceCount > 0;
+
         public int BlockingIssueCount => Status is LoadingSurfaceResultStatus.Failed or LoadingSurfaceResultStatus.Rejected
             ? Math.Max(1, IssueCount)
             : 0;
@@ -360,7 +503,8 @@ namespace Immersive.Framework.Loading
                 && Status == other.Status
                 && string.Equals(AdapterName, other.AdapterName, StringComparison.Ordinal)
                 && string.Equals(Message, other.Message, StringComparison.Ordinal)
-                && SequenceEquals(Issues, other.Issues);
+                && SequenceEquals(Issues, other.Issues)
+                && SequenceEquals(AdapterEvidence, other.AdapterEvidence);
         }
 
         public override bool Equals(object obj)
@@ -381,6 +525,11 @@ namespace Immersive.Framework.Loading
                     hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Issues[i] ?? string.Empty);
                 }
 
+                for (int i = 0; i < AdapterEvidence.Count; i++)
+                {
+                    hashCode = hashCode * 397 ^ AdapterEvidence[i].GetHashCode();
+                }
+
                 return hashCode;
             }
         }
@@ -395,7 +544,7 @@ namespace Immersive.Framework.Loading
             string adapterText = AdapterName.ToDiagnosticText();
             string messageText = Message.ToDiagnosticText();
             var builder = new StringBuilder();
-            builder.Append($"adapter='{adapterText}' action='{Action}' status='{Status}' visible='{ShouldBeVisible}' progressSupported='{ProgressSupported}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' message='{messageText}' request=({Request.ToDiagnosticString()})");
+            builder.Append($"adapter='{adapterText}' action='{Action}' status='{Status}' visible='{ShouldBeVisible}' progressSupported='{ProgressSupported}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' adapterEvidence='{AdapterEvidenceCount}' adapterEvidenceApplied='{AppliedAdapterEvidenceCount}' adapterEvidenceSkipped='{SkippedAdapterEvidenceCount}' adapterEvidenceFailed='{FailedAdapterEvidenceCount}' adapterEvidenceBlockingIssues='{AdapterEvidenceBlockingIssueCount}' message='{messageText}' request=({Request.ToDiagnosticString()})");
             if (HasIssues)
             {
                 builder.Append(" issues=[");
@@ -412,6 +561,22 @@ namespace Immersive.Framework.Loading
                 builder.Append(']');
             }
 
+            if (HasAdapterEvidence)
+            {
+                builder.Append(" adapterEvidence=[");
+                for (int i = 0; i < AdapterEvidence.Count; i++)
+                {
+                    if (i > 0)
+                    {
+                        builder.Append("; ");
+                    }
+
+                    builder.Append(AdapterEvidence[i].ToDiagnosticString());
+                }
+
+                builder.Append(']');
+            }
+
             return builder.ToString();
         }
 
@@ -423,6 +588,15 @@ namespace Immersive.Framework.Loading
             return new LoadingSurfaceResult(request, LoadingSurfaceResultStatus.Succeeded, adapterName, message, Array.Empty<string>());
         }
 
+        public static LoadingSurfaceResult SucceededResult(
+            LoadingSurfaceRequest request,
+            string adapterName,
+            string message,
+            IReadOnlyList<LoadingSurfaceAdapterEvidence> adapterEvidence)
+        {
+            return new LoadingSurfaceResult(request, LoadingSurfaceResultStatus.Succeeded, adapterName, message, Array.Empty<string>(), adapterEvidence);
+        }
+
         public static LoadingSurfaceResult SucceededWithWarningsResult(
             LoadingSurfaceRequest request,
             string adapterName,
@@ -432,12 +606,31 @@ namespace Immersive.Framework.Loading
             return new LoadingSurfaceResult(request, LoadingSurfaceResultStatus.SucceededWithWarnings, adapterName, message, issues);
         }
 
+        public static LoadingSurfaceResult SucceededWithWarningsResult(
+            LoadingSurfaceRequest request,
+            string adapterName,
+            string message,
+            IReadOnlyList<string> issues,
+            IReadOnlyList<LoadingSurfaceAdapterEvidence> adapterEvidence)
+        {
+            return new LoadingSurfaceResult(request, LoadingSurfaceResultStatus.SucceededWithWarnings, adapterName, message, issues, adapterEvidence);
+        }
+
         public static LoadingSurfaceResult SkippedResult(
             LoadingSurfaceRequest request,
             string adapterName,
             string message)
         {
             return new LoadingSurfaceResult(request, LoadingSurfaceResultStatus.Skipped, adapterName, message, Array.Empty<string>());
+        }
+
+        public static LoadingSurfaceResult SkippedResult(
+            LoadingSurfaceRequest request,
+            string adapterName,
+            string message,
+            IReadOnlyList<LoadingSurfaceAdapterEvidence> adapterEvidence)
+        {
+            return new LoadingSurfaceResult(request, LoadingSurfaceResultStatus.Skipped, adapterName, message, Array.Empty<string>(), adapterEvidence);
         }
 
         public static LoadingSurfaceResult FailedResult(
@@ -449,6 +642,16 @@ namespace Immersive.Framework.Loading
             return new LoadingSurfaceResult(request, LoadingSurfaceResultStatus.Failed, adapterName, message, issues);
         }
 
+        public static LoadingSurfaceResult FailedResult(
+            LoadingSurfaceRequest request,
+            string adapterName,
+            string message,
+            IReadOnlyList<string> issues,
+            IReadOnlyList<LoadingSurfaceAdapterEvidence> adapterEvidence)
+        {
+            return new LoadingSurfaceResult(request, LoadingSurfaceResultStatus.Failed, adapterName, message, issues, adapterEvidence);
+        }
+
         public static LoadingSurfaceResult RejectedResult(
             LoadingSurfaceRequest request,
             string adapterName,
@@ -456,6 +659,16 @@ namespace Immersive.Framework.Loading
             IReadOnlyList<string> issues)
         {
             return new LoadingSurfaceResult(request, LoadingSurfaceResultStatus.Rejected, adapterName, message, issues);
+        }
+
+        public static LoadingSurfaceResult RejectedResult(
+            LoadingSurfaceRequest request,
+            string adapterName,
+            string message,
+            IReadOnlyList<string> issues,
+            IReadOnlyList<LoadingSurfaceAdapterEvidence> adapterEvidence)
+        {
+            return new LoadingSurfaceResult(request, LoadingSurfaceResultStatus.Rejected, adapterName, message, issues, adapterEvidence);
         }
 
         public static bool operator ==(LoadingSurfaceResult left, LoadingSurfaceResult right)
@@ -484,6 +697,27 @@ namespace Immersive.Framework.Loading
             return copy;
         }
 
+        private static LoadingSurfaceAdapterEvidence[] CopyAdapterEvidence(IReadOnlyList<LoadingSurfaceAdapterEvidence> source)
+        {
+            if (source == null || source.Count == 0)
+            {
+                return Array.Empty<LoadingSurfaceAdapterEvidence>();
+            }
+
+            var copy = new LoadingSurfaceAdapterEvidence[source.Count];
+            for (int i = 0; i < source.Count; i++)
+            {
+                if (!Enum.IsDefined(typeof(LoadingSurfaceResultStatus), source[i].Status) || source[i].Status == LoadingSurfaceResultStatus.Unknown)
+                {
+                    throw new ArgumentException("Loading surface adapter evidence status must be explicit.", nameof(source));
+                }
+
+                copy[i] = source[i];
+            }
+
+            return copy;
+        }
+
         private static bool SequenceEquals(IReadOnlyList<string> left, IReadOnlyList<string> right)
         {
             if (left.Count != right.Count)
@@ -500,6 +734,88 @@ namespace Immersive.Framework.Loading
             }
 
             return true;
+        }
+
+        private static bool SequenceEquals(IReadOnlyList<LoadingSurfaceAdapterEvidence> left, IReadOnlyList<LoadingSurfaceAdapterEvidence> right)
+        {
+            if (left.Count != right.Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < left.Count; i++)
+            {
+                if (!left[i].Equals(right[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private int CountAdapterEvidenceApplied()
+        {
+            int count = 0;
+            for (int i = 0; i < AdapterEvidence.Count; i++)
+            {
+                if (AdapterEvidence[i].Applied)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private int CountAdapterEvidenceSkipped()
+        {
+            int count = 0;
+            for (int i = 0; i < AdapterEvidence.Count; i++)
+            {
+                if (AdapterEvidence[i].Skipped)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private int CountAdapterEvidenceFailed()
+        {
+            int count = 0;
+            for (int i = 0; i < AdapterEvidence.Count; i++)
+            {
+                if (AdapterEvidence[i].Failed)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private int CountAdapterEvidenceIssues()
+        {
+            int count = 0;
+            for (int i = 0; i < AdapterEvidence.Count; i++)
+            {
+                count += AdapterEvidence[i].IssueCount;
+            }
+
+            return count;
+        }
+
+        private int CountAdapterEvidenceBlockingIssues()
+        {
+            int count = 0;
+            for (int i = 0; i < AdapterEvidence.Count; i++)
+            {
+                count += AdapterEvidence[i].BlockingIssueCount;
+            }
+
+            return count;
         }
 
         private static string Normalize(string value)
