@@ -27,6 +27,10 @@ namespace Immersive.Framework.Editor.Editor.Validation
 
         internal int InfoCount { get; private set; }
 
+        internal int OptionalSkipCount { get; private set; }
+
+        internal int TotalIssueCount => _issues.Count;
+
         internal bool IsValid => ErrorCount == 0;
 
         internal bool HasIssues => _issues.Count > 0;
@@ -46,6 +50,11 @@ namespace Immersive.Framework.Editor.Editor.Validation
             Add(FrameworkAuthoringValidationSeverity.Info, message, context);
         }
 
+        internal void AddOptionalSkip(string message, Object context)
+        {
+            Add(FrameworkAuthoringValidationSeverity.Info, message, context, true);
+        }
+
         internal void AddRange(FrameworkAuthoringValidationReport other)
         {
             if (other == null)
@@ -57,12 +66,26 @@ namespace Immersive.Framework.Editor.Editor.Validation
             for (int i = 0; i < issues.Count; i++)
             {
                 var issue = issues[i];
-                Add(issue.Severity, issue.Message, issue.Context);
+                Add(issue.Severity, issue.Message, issue.Context, issue.IsOptionalSkip);
             }
         }
 
         private void Add(FrameworkAuthoringValidationSeverity severity, string message, Object context)
         {
+            Add(severity, message, context, false);
+        }
+
+        private void Add(
+            FrameworkAuthoringValidationSeverity severity,
+            string message,
+            Object context,
+            bool isOptionalSkip)
+        {
+            if (isOptionalSkip)
+            {
+                OptionalSkipCount++;
+            }
+
             if (severity == FrameworkAuthoringValidationSeverity.Info &&
                 !FrameworkValidationModePolicy.IncludeInfoDiagnostics(ValidationMode))
             {
@@ -70,7 +93,7 @@ namespace Immersive.Framework.Editor.Editor.Validation
             }
 
             var resolvedSeverity = ResolveSeverity(severity);
-            _issues.Add(new FrameworkAuthoringValidationIssue(resolvedSeverity, message, context));
+            _issues.Add(new FrameworkAuthoringValidationIssue(resolvedSeverity, message, context, isOptionalSkip));
 
             switch (resolvedSeverity)
             {

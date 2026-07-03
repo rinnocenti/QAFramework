@@ -1,11 +1,14 @@
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Bootstrap;
+using Immersive.Framework.Editor.Editor.Validation;
 using UnityEditor;
 using UnityEngine;
 namespace Immersive.Framework.Editor.Editor.Settings
 {
     internal static class ImmersiveFrameworkSettingsProvider
     {
+        private static FrameworkAuthoringValidationReport _lastModelReadinessReport;
+
         [SettingsProvider]
         public static SettingsProvider CreateProvider()
         {
@@ -95,10 +98,41 @@ namespace Immersive.Framework.Editor.Editor.Settings
             DrawBootStatus(settings);
 
             EditorGUILayout.Space(8);
+            DrawModelReadiness(settings);
+
+            EditorGUILayout.Space(8);
             DrawConfigurationFiles(loggingConfig.objectReferenceValue);
 
             EditorGUILayout.Space(8);
             DrawCurrentScope();
+        }
+
+        private static void DrawModelReadiness(ImmersiveFrameworkSettingsAsset settings)
+        {
+            EditorGUILayout.LabelField("Model Readiness", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                "Runs the F58 Editor-only readiness check for the minimum 1.0 authoring model. The check reports issues only; it does not create assets, modify settings or apply fallback.",
+                MessageType.None);
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Run Model Readiness Check"))
+                {
+                    _lastModelReadinessReport = FrameworkAuthoringModelReadinessValidator.ValidateProjectReadiness(settings, true);
+                    FrameworkAuthoringValidationGui.LogReport("Model Readiness", _lastModelReadinessReport);
+                }
+
+                using (new EditorGUI.DisabledScope(_lastModelReadinessReport == null))
+                {
+                    if (GUILayout.Button("Log Last Report"))
+                    {
+                        FrameworkAuthoringValidationGui.LogReport("Model Readiness", _lastModelReadinessReport);
+                    }
+                }
+            }
+
+            FrameworkAuthoringValidationGui.DrawSummary(_lastModelReadinessReport);
+            FrameworkAuthoringValidationGui.DrawIssues(_lastModelReadinessReport, false);
         }
 
         private static void DrawLoggingSettings(SerializedProperty loggingConfig)

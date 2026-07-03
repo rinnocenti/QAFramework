@@ -43,6 +43,10 @@ F55 adds Transition runtime evidence and additive Route/Activity log fields; it 
 
 F56 is a documentation-only first practical flow authoring cut. It creates no runtime code, serialized assets, scenes, prefabs or QA Canvas buttons, so no Unity smoke is required for the cut itself. A project following the guide should validate with Unity import/compile, Standard Smoke, Activity Baseline Smoke, Route Scene Composition Smoke, Route Release Smoke and the Transition smoke group, then inspect Route/Activity logs for `transition*` and `transitionEffectAdapterEvidence*` fields.
 
+F57 is an ADR-only Model/Authorship boundary cut. It creates no runtime code, editor code, serialized assets, scenes, prefabs or QA Canvas buttons, so no Unity smoke is required for the cut itself.
+
+F58 adds Editor-only Model Readiness validation and a Project Settings entry point. Validate F58 with Unity import/compile, then run Project Settings > Immersive Framework > Model Readiness > `Run Model Readiness Check`. Runtime smokes are not required by F58 unless a later fix touches runtime paths; if that happens, run Standard Smoke, Activity Baseline Smoke and Route Scene Composition Smoke.
+
 ## QA Canvas expectations
 
 `FrameworkQaCanvas` should expose current validation buttons, not every historical proof. Obsolete intermediate buttons should remain out of the visible primary QA path unless a future diagnostics mode intentionally restores them.

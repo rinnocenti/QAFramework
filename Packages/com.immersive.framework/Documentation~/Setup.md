@@ -50,6 +50,20 @@ Route changes may use Transition and Loading surfaces. Activity changes may requ
 
 FIRSTGAME setup is deferred until minimal authoring validation/project readiness is consolidated. Before treating a project as package-ready, validate that the active Game Application, routes, scenes, expected `UIGlobal` adapters and optional content/anchor declarations are explicit and build-loadable.
 
+## Model readiness check
+
+Use Project Settings > Immersive Framework > Model Readiness > `Run Model Readiness Check` after wiring the baseline.
+
+The check is Editor-only and non-destructive. It reports:
+
+- `totalIssues`
+- `errors` as blocking issues
+- `warnings`
+- `info`
+- `optionalSkips`
+
+It does not create assets, assign scenes, change Build Settings or add adapters. Fix blocking issues in the owning asset or scene, then rerun the check.
+
 ## Pause input baseline
 
 Use this path for authored Pause input:

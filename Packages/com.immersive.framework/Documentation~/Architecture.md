@@ -83,6 +83,24 @@ The minimum 1.0 Model is:
 
 Runtime executes, model describes, Unity adapters apply local Unity-side effects, and bridges connect Inspector/authorship to explicit runtime boundaries. Missing required authoring must be validation evidence, not silent fallback.
 
+## Model readiness validation
+
+Model readiness is Editor-only and belongs to framework authoring/validation tooling, not runtime execution.
+
+`FrameworkAuthoringModelReadinessValidator` consolidates existing authoring validation and adds package-readiness checks for the minimum 1.0 Model:
+
+- active Game Application;
+- Startup Route;
+- Validation Mode and `UIGlobal` policy;
+- route/activity scenes in Build Settings;
+- required `UIGlobal` scene in Build Settings;
+- expected Transition and Loading adapters in `UIGlobal`;
+- resident Pause adapter evidence as optional unless a future serialized policy makes it required;
+- route/activity content profile scene readiness;
+- existing Content Anchor/materialization bridge validation when open-scene validation is included.
+
+The validator reports issues, warnings, info and optional skips. It does not create assets, modify Project Settings, edit Build Settings, add adapters, create fallback or alter runtime behavior.
+
 ## Internal history
 
 Historical ADRs, old roadmaps and phase notes remain under `ADRs/`, `Planning/` and `Guides/` for deep reference only. They are not the active package architecture model.

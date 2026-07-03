@@ -39,6 +39,27 @@ Author:
 
 The Game Application is the place to configure app/session visual surface availability, not individual gameplay objects.
 
+## Model 1.0 readiness checklist
+
+Run Project Settings > Immersive Framework > Model Readiness > `Run Model Readiness Check` before treating a consumer project as package-ready.
+
+Minimum checklist:
+
+- Active Game Application is assigned in Project Settings.
+- Game Application has a Startup Route.
+- Validation Mode is a known value.
+- `UIGlobal` policy is explicit.
+- Required `UIGlobal` scene is assigned and included in Build Settings.
+- Required `UIGlobal` scene has Transition and Loading adapters.
+- Resident Pause adapter is present when the project expects shared Pause presentation.
+- Startup Route has a Primary Scene included in Build Settings.
+- Route Content Profile scenes are valid and build-loadable when assigned.
+- Startup Activity is assigned when the route needs one.
+- Activity Content Profile scenes are valid and build-loadable when assigned.
+- Content Anchors and materialization bridges validate through the existing open-scene validation path when those paths are used.
+
+Blocking readiness issues must be fixed explicitly. Optional absence should remain an explicit skip/info diagnostic, not fallback behavior.
+
 ## Route authoring
 
 Use `RouteAsset` for route-level navigation.

@@ -22,7 +22,7 @@ namespace Immersive.Framework.Editor.Editor.Validation
                     : MessageType.Info;
 
             EditorGUILayout.HelpBox(
-                $"Authoring Validation: mode='{report.ValidationMode}' errors='{report.ErrorCount}' warnings='{report.WarningCount}' info='{report.InfoCount}'.",
+                $"Authoring Validation: mode='{report.ValidationMode}' totalIssues='{report.TotalIssueCount}' errors='{report.ErrorCount}' warnings='{report.WarningCount}' info='{report.InfoCount}' optionalSkips='{report.OptionalSkipCount}'.",
                 messageType);
         }
 
@@ -70,9 +70,11 @@ namespace Immersive.Framework.Editor.Editor.Validation
             LogField[] summaryFields = LogFields.Of(
                 LogFields.Field("scope", title),
                 LogFields.Field("mode", report.ValidationMode),
+                LogFields.Field("totalIssues", report.TotalIssueCount),
                 LogFields.Field("errors", report.ErrorCount),
                 LogFields.Field("warnings", report.WarningCount),
-                LogFields.Field("info", report.InfoCount));
+                LogFields.Field("info", report.InfoCount),
+                LogFields.Field("optionalSkips", report.OptionalSkipCount));
 
             if (report.ErrorCount > 0)
             {

@@ -101,6 +101,30 @@ Check:
 
 If the policy is not configured, explicit no-op visual behavior is expected.
 
+## Model Readiness reports blocking issues
+
+Run the check from Project Settings > Immersive Framework > Model Readiness.
+
+Interpret the counters this way:
+
+- `errors`: blocking issues for package readiness.
+- `warnings`: non-blocking drift or policy mismatch that should be reviewed.
+- `optionalSkips`: intentionally absent optional model pieces, such as no Startup Activity on a menu route or no resident Pause adapter when no Pause-required policy exists.
+- `info`: evidence and summary messages.
+
+Do not fix readiness failures by adding fallback code. Fix the owning authoring asset, scene, Build Settings entry or adapter setup.
+
+Common readiness blockers:
+
+- Active Game Application missing.
+- Startup Route missing.
+- Route Primary Scene missing or outside Build Settings.
+- Required `UIGlobal` scene missing or outside Build Settings.
+- Required `UIGlobal` scene missing Transition or Loading adapters.
+- Content profile scene entries missing, invalid or not build-loadable.
+
+Pause resident adapter absence is currently reported as an optional skip unless the project has an explicit product requirement for shared Pause presentation. There is no serialized Pause-required policy in the Model 1.0 boundary.
+
 ## Loading surface missing
 
 Check:
