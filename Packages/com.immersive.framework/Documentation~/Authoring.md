@@ -2,6 +2,8 @@
 
 This page describes the current authoring model for Unity users.
 
+Model/Authorship in this package means the minimal authored data that describes the game to the framework. It does not mean gameplay domain model, save model, actor model, inventory, entity system or a generic model API.
+
 ## Extension authoring boundaries
 
 Bridge, Adapter, Validator/Evidence and Consumer are separate responsibilities.
@@ -31,6 +33,7 @@ Use `GameApplicationAsset` as the root application asset.
 Author:
 
 - Startup route.
+- Validation mode.
 - `UIGlobal` scene policy.
 - `UIGlobal` scene reference when required.
 
@@ -39,6 +42,12 @@ The Game Application is the place to configure app/session visual surface availa
 ## Route authoring
 
 Use `RouteAsset` for route-level navigation.
+
+Author:
+
+- Primary scene.
+- Optional startup activity.
+- Optional Route Content Profile when route-owned additive content scenes are required.
 
 Route content can use:
 
@@ -52,6 +61,12 @@ Route-owned content should not own global Pause, Loading or Transition presentat
 ## Activity authoring
 
 Use `ActivityAsset` for activity-level flow inside a route.
+
+Author:
+
+- Activity name.
+- Optional Activity Content Profile when activity-owned scene/content composition is required.
+- Activity visual transition mode.
 
 Activity content can use:
 
@@ -73,6 +88,8 @@ A canonical `UIGlobal` scene may contain:
 - Pause input bridge objects, when the project wants shared Pause input wiring
 
 Keep the scene focused on app/session shared presentation. Do not put route-specific gameplay content in `UIGlobal`.
+
+Treat `UIGlobal` as the current Surface Model host for shared Loading, Transition and resident Pause configuration. Do not use it as a universal UI manager, service locator or gameplay object registry.
 
 ## Pause authoring
 
@@ -127,3 +144,5 @@ For materialized content:
 5. Use explicit release/composite release paths for cleanup.
 
 Materialization is explicit. Route/Activity auto-materialization is not a package usage assumption.
+
+For the minimum 1.0 authoring model, include Content/Anchor configuration only where existing route/activity content profiles, anchors or materialization bridges are actually used. Do not expand materialization consumers as part of basic setup.

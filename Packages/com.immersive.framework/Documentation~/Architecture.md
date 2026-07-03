@@ -69,6 +69,20 @@ F55 hardens Transition runtime evidence locally. Transition results now preserve
 - RuntimeContent handles are logical state, not Unity object references.
 - ContentAnchor binding is logical; physical placement belongs to Unity ContentAnchor adapters/services.
 
+## Minimum authoring model
+
+The package-level Model is the authored data/configuration a consumer project creates so the framework can run. It is not a gameplay model, save model, actor model, inventory, entity system or generic model registry.
+
+The minimum 1.0 Model is:
+
+- Game Application Model: `GameApplicationAsset` defines startup route, validation mode and `UIGlobal` scene policy.
+- Route Model: `RouteAsset` defines route identity, primary scene, optional startup activity and optional route content profile.
+- Activity Model: `ActivityAsset` defines activity identity, optional activity content profile and activity visual transition mode.
+- Surface Model: existing Loading, Transition and Pause configuration through `UIGlobal` and concrete adapters; this is not a generic Surface layer.
+- Content/Anchor Model: existing route/activity content profiles and `RouteContentAnchor` / `ActivityContentAnchor` declarations when those paths are used.
+
+Runtime executes, model describes, Unity adapters apply local Unity-side effects, and bridges connect Inspector/authorship to explicit runtime boundaries. Missing required authoring must be validation evidence, not silent fallback.
+
 ## Internal history
 
 Historical ADRs, old roadmaps and phase notes remain under `ADRs/`, `Planning/` and `Guides/` for deep reference only. They are not the active package architecture model.

@@ -41,6 +41,8 @@ F54 is a decision-only Transition Surface / Effects Contract cut. It accepts the
 
 F55 adds Transition runtime evidence and additive Route/Activity log fields; it does not add smoke buttons. Validate F55 after Unity import/compile with Standard Smoke, Activity Baseline Smoke, Route Scene Composition Smoke, Route Release Smoke and Composite Lifecycle Release Smoke when available. Also inspect Route/Activity logs for preserved `transition*` fields plus `transitionEffectAdapterEvidence*` fields. Transition-specific smokes remain useful evidence but no new smoke is required by F55.
 
+F56 is a documentation-only first practical flow authoring cut. It creates no runtime code, serialized assets, scenes, prefabs or QA Canvas buttons, so no Unity smoke is required for the cut itself. A project following the guide should validate with Unity import/compile, Standard Smoke, Activity Baseline Smoke, Route Scene Composition Smoke, Route Release Smoke and the Transition smoke group, then inspect Route/Activity logs for `transition*` and `transitionEffectAdapterEvidence*` fields.
+
 ## QA Canvas expectations
 
 `FrameworkQaCanvas` should expose current validation buttons, not every historical proof. Obsolete intermediate buttons should remain out of the visible primary QA path unless a future diagnostics mode intentionally restores them.

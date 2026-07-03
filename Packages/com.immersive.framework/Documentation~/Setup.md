@@ -16,6 +16,7 @@ The framework package should be installed as a Unity package. Do not copy old pr
 Create a `GameApplicationAsset` and assign:
 
 - Startup route: a `RouteAsset`.
+- Validation mode: `Strict`, `Standard` or `Release` according to the project's readiness policy.
 - `UIGlobal` scene policy: `NoneConfigured` for explicit no-op visuals, or `Required` when shared visual surfaces must be loaded before the startup route.
 - `UIGlobal` scene path/name when the policy requires it.
 
@@ -34,15 +35,20 @@ Common contents:
 
 If the policy is `Required`, missing adapters can block startup diagnostics. If the policy is not configured, the framework keeps explicit no-op visual behavior.
 
+For the minimum Model boundary, `UIGlobal` is the shared Surface Model host. It should contain expected shared adapters only; route/activity gameplay content belongs in route/activity scenes.
+
 ## Route and Activity baseline
 
 Create route and activity assets:
 
 - `RouteAsset` for top-level route selection.
+- Primary scene on each route that should load content.
 - `ActivityAsset` for route-owned activity selection.
 - Optional route/activity content profiles when the project uses additive content scenes.
 
 Route changes may use Transition and Loading surfaces. Activity changes may request visual wrapping depending on the authored activity visual transition mode.
+
+FIRSTGAME setup is deferred until minimal authoring validation/project readiness is consolidated. Before treating a project as package-ready, validate that the active Game Application, routes, scenes, expected `UIGlobal` adapters and optional content/anchor declarations are explicit and build-loadable.
 
 ## Pause input baseline
 

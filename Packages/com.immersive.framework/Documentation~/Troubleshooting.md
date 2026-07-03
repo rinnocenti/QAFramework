@@ -120,6 +120,7 @@ If Loading is optional or no surface is configured, an explicit skipped/no-op re
 Check:
 
 - `UnityFadeCurtainEffectAdapter` or another transition effect adapter exists in `UIGlobal`.
+- `GameApplicationAsset` is configured to load the canonical `UIGlobal` scene when the flow depends on shared Transition.
 - Transition smokes report the expected transition/effect result.
 - Route/activity visual policy is configured to request the transition where expected.
 
@@ -148,6 +149,10 @@ Then inspect the F55 additive fields:
 - `transitionEffectAdapterEvidenceStatuses`
 
 If these fields expose missing required adapters, blocking issues, failed effect status or a required visual surface missing message, treat that as Transition setup/evidence to investigate.
+
+For first playable flow setup, use `Documentation~/Guides/First-Practical-Flow-Transition.md`. In that flow, expected healthy evidence for one fade adapter is usually `transitionEffectAdapterCount='1'`, `transitionEffectAdapterEvidenceCount='2'`, `transitionEffectAdapterEvidenceFailed='0'` and `transitionEffectAdapterEvidenceStatuses='Succeeded, Succeeded'`.
+
+If Loading works but Transition does not, keep the domains separate: `UnityLoadingSurfaceAdapter` proves Loading presentation only. It does not prove that `UnityFadeCurtainEffectAdapter` or another `ITransitionEffectAdapter` exists.
 
 ## Pause surface does not show
 
