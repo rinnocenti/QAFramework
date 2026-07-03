@@ -237,4 +237,134 @@ namespace Immersive.Framework.TransitionEffects
             return value.NormalizeText();
         }
     }
+
+    /// <summary>
+    /// API status: Experimental. Named evidence for one Transition Effect adapter execution.
+    /// This is Transition-specific diagnostics, not a generic adapter result contract.
+    /// </summary>
+    [FrameworkApiStatus(FrameworkApiStatus.Experimental, "F55 Transition Effect adapter evidence; domain-specific diagnostics.")]
+    internal readonly struct TransitionEffectAdapterEvidence : IEquatable<TransitionEffectAdapterEvidence>
+    {
+        public TransitionEffectAdapterEvidence(
+            string adapterName,
+            TransitionEffectStatus status,
+            int issueCount,
+            int blockingIssueCount,
+            string message)
+        {
+            if (!Enum.IsDefined(typeof(TransitionEffectStatus), status) || status == TransitionEffectStatus.Unknown)
+            {
+                throw new ArgumentOutOfRangeException(nameof(status), status, "Transition Effect adapter evidence status must be explicit.");
+            }
+
+            AdapterName = adapterName.NormalizeTextOrFallback("Transition Effect Adapter");
+            Status = status;
+            IssueCount = Math.Max(0, issueCount);
+            BlockingIssueCount = Math.Max(0, blockingIssueCount);
+            Message = message.NormalizeText();
+        }
+
+        public string AdapterName { get; }
+
+        public TransitionEffectStatus Status { get; }
+
+        public int IssueCount { get; }
+
+        public int BlockingIssueCount { get; }
+
+        public string Message { get; }
+
+        public bool Applied => Status == TransitionEffectStatus.Succeeded
+            || Status == TransitionEffectStatus.CompletedWithWarnings;
+
+        public bool Skipped => Status == TransitionEffectStatus.Skipped;
+
+        public bool Failed => Status == TransitionEffectStatus.Failed
+            || Status == TransitionEffectStatus.Rejected
+            || Status == TransitionEffectStatus.MissingAdapter;
+
+        public bool HasBlockingIssues => BlockingIssueCount > 0;
+
+        public bool Equals(TransitionEffectAdapterEvidence other)
+        {
+            return string.Equals(AdapterName, other.AdapterName, StringComparison.Ordinal)
+                && Status == other.Status
+                && IssueCount == other.IssueCount
+                && BlockingIssueCount == other.BlockingIssueCount
+                && string.Equals(Message, other.Message, StringComparison.Ordinal);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is TransitionEffectAdapterEvidence other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = StringComparer.Ordinal.GetHashCode(AdapterName ?? string.Empty);
+                hashCode = hashCode * 397 ^ (int)Status;
+                hashCode = hashCode * 397 ^ IssueCount;
+                hashCode = hashCode * 397 ^ BlockingIssueCount;
+                hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(Message ?? string.Empty);
+                return hashCode;
+            }
+        }
+
+        public override string ToString()
+        {
+            return ToDiagnosticString();
+        }
+
+        public string ToDiagnosticString()
+        {
+            string messageText = Message.ToDiagnosticText();
+            return $"adapter='{AdapterName}' status='{Status}' applied='{Applied}' skipped='{Skipped}' failed='{Failed}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' message='{messageText}'";
+        }
+
+        public static TransitionEffectAdapterEvidence FromResult(
+            string adapterName,
+            TransitionEffectResult result)
+        {
+            if (!result.IsValid)
+            {
+                throw new ArgumentException("Transition Effect adapter evidence requires a valid result.", nameof(result));
+            }
+
+            int blockingIssueCount = result.BlocksTransition
+                ? Math.Max(1, result.IssueCount)
+                : 0;
+            return new TransitionEffectAdapterEvidence(
+                adapterName,
+                result.Status,
+                result.IssueCount,
+                blockingIssueCount,
+                result.Message);
+        }
+
+        public static TransitionEffectAdapterEvidence MissingAdapter(
+            string adapterName,
+            int issueCount,
+            int blockingIssueCount,
+            string message)
+        {
+            return new TransitionEffectAdapterEvidence(
+                adapterName,
+                TransitionEffectStatus.MissingAdapter,
+                issueCount,
+                Math.Max(1, blockingIssueCount),
+                message);
+        }
+
+        public static bool operator ==(TransitionEffectAdapterEvidence left, TransitionEffectAdapterEvidence right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(TransitionEffectAdapterEvidence left, TransitionEffectAdapterEvidence right)
+        {
+            return !left.Equals(right);
+        }
+    }
 }

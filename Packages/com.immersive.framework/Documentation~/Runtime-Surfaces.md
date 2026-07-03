@@ -26,7 +26,7 @@ Loading is the current reference pattern:
 
 Do not copy Loading status values into unrelated domains. A new Surface/Adapter should define its own domain request, result and status language.
 
-F53 selects Transition Surface / Effects Hardening as the next contract-first track. F54 accepts the Transition Surface / Effects Contract. Transition is contract-accepted but still pending runtime evidence hardening; it is not a broad Surface layer and it is not upgraded to the Loading reference/pilot status.
+F53 selects Transition Surface / Effects Hardening as the next contract-first track. F54 accepts the Transition Surface / Effects Contract. F55 hardens Transition runtime evidence locally. Transition is not a broad Surface layer and it is not upgraded to the Loading reference/pilot status.
 
 ## Game Application
 
@@ -93,7 +93,7 @@ Transition runtime surfaces include:
 
 Transition controls the visual envelope around route/activity operations; it is not a loading screen by itself.
 
-Current Transition status: contract accepted, runtime evidence hardening pending.
+Current Transition status: runtime evidence hardening implemented locally, pending Unity validation.
 
 Contract definitions:
 
@@ -103,7 +103,7 @@ Contract definitions:
 - Transition Consumer: `FrameworkRuntimeHost` / Route/Activity request execution.
 - Transition Host: `UIGlobal` or another explicit visual surface host, not a universal manager.
 
-Use existing Route/Activity `transition*` and `transitionEffect*` diagnostics plus Transition smoke results as the source of truth until F55 adds stronger aggregate adapter evidence if needed.
+Transition results preserve named internal `TransitionEffectAdapterEvidence` for called or missing required effect adapters. Route/Activity logs project `transitionEffectAdapterEvidenceCount`, applied/skipped/failed counts, blocking issue count, names and statuses while preserving existing `transition*` and `transitionEffect*` fields.
 
 ## Pause
 

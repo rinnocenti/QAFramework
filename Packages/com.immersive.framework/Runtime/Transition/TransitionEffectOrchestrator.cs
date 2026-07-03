@@ -84,6 +84,7 @@ namespace Immersive.Framework.Transition
             }
 
             var issues = new List<string>();
+            var adapterEvidence = new List<TransitionEffectAdapterEvidence>(matchingAdapters.Count);
             int blockingIssueCount = 0;
             int warningIssueCount = 0;
 
@@ -93,6 +94,7 @@ namespace Immersive.Framework.Transition
                 var result = useAsyncAdapters && adapter is IAsyncTransitionEffectAdapter asyncAdapter
                     ? await asyncAdapter.ExecuteAsync(effectRequest)
                     : adapter.Execute(effectRequest);
+                adapterEvidence.Add(TransitionEffectAdapterEvidence.FromResult(adapter.AdapterName, result));
 
                 if (result.BlocksTransition)
                 {
@@ -137,7 +139,8 @@ namespace Immersive.Framework.Transition
                     TransitionEffectStatus.Failed,
                     matchingAdapters.Count,
                     "UnitySurface",
-                    blockingIssueCount);
+                    blockingIssueCount)
+                    .WithEffectAdapterEvidence(adapterEvidence);
             }
 
             var effectStatus = warningIssueCount > 0
@@ -172,7 +175,8 @@ namespace Immersive.Framework.Transition
                     effectStatus,
                     matchingAdapters.Count,
                     "UnitySurface",
-                    blockingIssueCount);
+                    blockingIssueCount)
+                    .WithEffectAdapterEvidence(adapterEvidence);
             }
 
             return TransitionResult.SucceededResult(
@@ -186,7 +190,8 @@ namespace Immersive.Framework.Transition
                 effectStatus,
                 matchingAdapters.Count,
                 "UnitySurface",
-                blockingIssueCount);
+                blockingIssueCount)
+                .WithEffectAdapterEvidence(adapterEvidence);
         }
 
         private static TransitionPhase ResolveEffectPhase(TransitionPhase transitionPhase)
@@ -219,6 +224,14 @@ namespace Immersive.Framework.Transition
             }
 
             issues.Add($"Surface '{_surfaceLabel}' could not apply the Transition surface while requested for {stateLabel}.");
+            var adapterEvidence = new[]
+            {
+                TransitionEffectAdapterEvidence.MissingAdapter(
+                    _surfaceLabel,
+                    issues.Count,
+                    Math.Max(1, evaluation.BlockingIssueCount),
+                    message)
+            };
 
             return TransitionResult.FailedResult(
                 request.OperationId,
@@ -239,7 +252,8 @@ namespace Immersive.Framework.Transition
                 TransitionEffectStatus.MissingAdapter,
                 0,
                 "RequiredSurfaceMissing",
-                Math.Max(1, evaluation.BlockingIssueCount));
+                Math.Max(1, evaluation.BlockingIssueCount))
+                .WithEffectAdapterEvidence(adapterEvidence);
         }
 
         private List<ITransitionEffectAdapter> CollectSupportingAdapters(TransitionEffectKind effectKind)

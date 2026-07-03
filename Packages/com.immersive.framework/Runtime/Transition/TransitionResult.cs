@@ -21,6 +21,7 @@ namespace Immersive.Framework.Transition
         private readonly int _effectAdapterCount;
         private readonly string _visualText;
         private readonly int _effectBlockingIssueCount;
+        private readonly TransitionEffectAdapterEvidence[] _effectAdapterEvidence;
 
         public TransitionResult(
             TransitionOperationId operationId,
@@ -36,6 +37,39 @@ namespace Immersive.Framework.Transition
             int effectAdapterCount = 0,
             string visualText = "NoneConfigured",
             int effectBlockingIssueCount = 0)
+            : this(
+                operationId,
+                kind,
+                status,
+                source,
+                reason,
+                message,
+                observedSteps,
+                issues,
+                effectKind,
+                effectStatus,
+                effectAdapterCount,
+                visualText,
+                effectBlockingIssueCount,
+                null)
+        {
+        }
+
+        private TransitionResult(
+            TransitionOperationId operationId,
+            TransitionKind kind,
+            TransitionStatus status,
+            string source,
+            string reason,
+            string message,
+            IReadOnlyList<TransitionStep> observedSteps,
+            IReadOnlyList<string> issues,
+            TransitionEffectKind effectKind,
+            TransitionEffectStatus effectStatus,
+            int effectAdapterCount,
+            string visualText,
+            int effectBlockingIssueCount,
+            IReadOnlyList<TransitionEffectAdapterEvidence> effectAdapterEvidence)
         {
             if (!operationId.IsValid)
             {
@@ -65,6 +99,7 @@ namespace Immersive.Framework.Transition
             _effectAdapterCount = Math.Max(0, effectAdapterCount);
             _visualText = NormalizeVisual(visualText);
             _effectBlockingIssueCount = Math.Max(0, effectBlockingIssueCount);
+            _effectAdapterEvidence = CopyAdapterEvidence(effectAdapterEvidence);
         }
 
         public TransitionOperationId OperationId { get; }
@@ -97,6 +132,21 @@ namespace Immersive.Framework.Transition
 
         public int EffectBlockingIssueCount => _effectBlockingIssueCount;
 
+        internal IReadOnlyList<TransitionEffectAdapterEvidence> EffectAdapterEvidence =>
+            _effectAdapterEvidence ?? Array.Empty<TransitionEffectAdapterEvidence>();
+
+        internal int EffectAdapterEvidenceCount => EffectAdapterEvidence.Count;
+
+        internal int AppliedEffectAdapterEvidenceCount => CountEffectAdapterEvidenceApplied();
+
+        internal int SkippedEffectAdapterEvidenceCount => CountEffectAdapterEvidenceSkipped();
+
+        internal int FailedEffectAdapterEvidenceCount => CountEffectAdapterEvidenceFailed();
+
+        internal int EffectAdapterEvidenceBlockingIssueCount => CountEffectAdapterEvidenceBlockingIssues();
+
+        internal bool HasEffectAdapterEvidence => EffectAdapterEvidenceCount > 0;
+
         public int BlockingIssueCount
         {
             get
@@ -122,6 +172,7 @@ namespace Immersive.Framework.Transition
         public bool HasEffectDiagnostics => EffectKind != TransitionEffectKind.Unknown
             || EffectStatus != TransitionEffectStatus.Skipped
             || EffectAdapterCount > 0
+            || EffectAdapterEvidenceCount > 0
             || EffectBlockingIssueCount > 0
             || !string.Equals(VisualText, "NoneConfigured", StringComparison.Ordinal);
 
@@ -153,7 +204,8 @@ namespace Immersive.Framework.Transition
                 && EffectStatus == other.EffectStatus
                 && EffectAdapterCount == other.EffectAdapterCount
                 && string.Equals(VisualText, other.VisualText, StringComparison.Ordinal)
-                && EffectBlockingIssueCount == other.EffectBlockingIssueCount;
+                && EffectBlockingIssueCount == other.EffectBlockingIssueCount
+                && SequenceEquals(EffectAdapterEvidence, other.EffectAdapterEvidence);
         }
 
         public override bool Equals(object obj)
@@ -176,6 +228,11 @@ namespace Immersive.Framework.Transition
                 hashCode = hashCode * 397 ^ EffectAdapterCount;
                 hashCode = hashCode * 397 ^ StringComparer.Ordinal.GetHashCode(VisualText ?? string.Empty);
                 hashCode = hashCode * 397 ^ EffectBlockingIssueCount;
+                IReadOnlyList<TransitionEffectAdapterEvidence> adapterEvidence = EffectAdapterEvidence;
+                for (int i = 0; i < adapterEvidence.Count; i++)
+                {
+                    hashCode = hashCode * 397 ^ adapterEvidence[i].GetHashCode();
+                }
 
                 IReadOnlyList<TransitionStep> steps = ObservedSteps;
                 for (int i = 0; i < steps.Count; i++)
@@ -206,7 +263,7 @@ namespace Immersive.Framework.Transition
             string messageText = Message.ToDiagnosticText();
             string effectText = EffectKind != TransitionEffectKind.Unknown ? EffectKind.ToString() : VisualText;
             builder.Append(
-                $"operation='{OperationId.StableText}' kind='{Kind}' status='{Status}' source='{sourceText}' reason='{reasonText}' observedSteps='{ObservedStepCount}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' message='{messageText}' effectKind='{effectText}' effectStatus='{EffectStatus}' effectAdapters='{EffectAdapterCount}' visual='{VisualText}' effectBlockingIssues='{EffectBlockingIssueCount}'");
+                $"operation='{OperationId.StableText}' kind='{Kind}' status='{Status}' source='{sourceText}' reason='{reasonText}' observedSteps='{ObservedStepCount}' issues='{IssueCount}' blockingIssues='{BlockingIssueCount}' message='{messageText}' effectKind='{effectText}' effectStatus='{EffectStatus}' effectAdapters='{EffectAdapterCount}' visual='{VisualText}' effectBlockingIssues='{EffectBlockingIssueCount}' effectAdapterEvidence='{EffectAdapterEvidenceCount}' effectAdapterEvidenceApplied='{AppliedEffectAdapterEvidenceCount}' effectAdapterEvidenceSkipped='{SkippedEffectAdapterEvidenceCount}' effectAdapterEvidenceFailed='{FailedEffectAdapterEvidenceCount}' effectAdapterEvidenceBlockingIssues='{EffectAdapterEvidenceBlockingIssueCount}'");
 
             if (HasObservedSteps)
             {
@@ -237,6 +294,23 @@ namespace Immersive.Framework.Transition
                     }
 
                     builder.Append(issueItems[i]);
+                }
+
+                builder.Append(']');
+            }
+
+            if (HasEffectAdapterEvidence)
+            {
+                builder.Append(" effectAdapterEvidence=[");
+                IReadOnlyList<TransitionEffectAdapterEvidence> adapterEvidence = EffectAdapterEvidence;
+                for (int i = 0; i < adapterEvidence.Count; i++)
+                {
+                    if (i > 0)
+                    {
+                        builder.Append("; ");
+                    }
+
+                    builder.Append(adapterEvidence[i].ToDiagnosticString());
                 }
 
                 builder.Append(']');
@@ -393,6 +467,26 @@ namespace Immersive.Framework.Transition
                 effectBlockingIssueCount);
         }
 
+        internal TransitionResult WithEffectAdapterEvidence(
+            IReadOnlyList<TransitionEffectAdapterEvidence> effectAdapterEvidence)
+        {
+            return new TransitionResult(
+                OperationId,
+                Kind,
+                Status,
+                Source,
+                Reason,
+                Message,
+                ObservedSteps,
+                Issues,
+                EffectKind,
+                EffectStatus,
+                EffectAdapterCount,
+                VisualText,
+                EffectBlockingIssueCount,
+                effectAdapterEvidence);
+        }
+
         public static bool operator ==(TransitionResult left, TransitionResult right)
         {
             return left.Equals(right);
@@ -445,6 +539,23 @@ namespace Immersive.Framework.Transition
             return copy.Count == 0 ? Array.Empty<string>() : copy.ToArray();
         }
 
+        private static TransitionEffectAdapterEvidence[] CopyAdapterEvidence(
+            IReadOnlyList<TransitionEffectAdapterEvidence> source)
+        {
+            if (source == null || source.Count == 0)
+            {
+                return Array.Empty<TransitionEffectAdapterEvidence>();
+            }
+
+            var copy = new TransitionEffectAdapterEvidence[source.Count];
+            for (int i = 0; i < source.Count; i++)
+            {
+                copy[i] = source[i];
+            }
+
+            return copy;
+        }
+
         private static bool SequenceEquals<T>(IReadOnlyList<T> left, IReadOnlyList<T> right)
         {
             if (left.Count != right.Count)
@@ -462,6 +573,63 @@ namespace Immersive.Framework.Transition
             }
 
             return true;
+        }
+
+        private int CountEffectAdapterEvidenceApplied()
+        {
+            int count = 0;
+            IReadOnlyList<TransitionEffectAdapterEvidence> adapterEvidence = EffectAdapterEvidence;
+            for (int i = 0; i < adapterEvidence.Count; i++)
+            {
+                if (adapterEvidence[i].Applied)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private int CountEffectAdapterEvidenceSkipped()
+        {
+            int count = 0;
+            IReadOnlyList<TransitionEffectAdapterEvidence> adapterEvidence = EffectAdapterEvidence;
+            for (int i = 0; i < adapterEvidence.Count; i++)
+            {
+                if (adapterEvidence[i].Skipped)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private int CountEffectAdapterEvidenceFailed()
+        {
+            int count = 0;
+            IReadOnlyList<TransitionEffectAdapterEvidence> adapterEvidence = EffectAdapterEvidence;
+            for (int i = 0; i < adapterEvidence.Count; i++)
+            {
+                if (adapterEvidence[i].Failed)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private int CountEffectAdapterEvidenceBlockingIssues()
+        {
+            int count = 0;
+            IReadOnlyList<TransitionEffectAdapterEvidence> adapterEvidence = EffectAdapterEvidence;
+            for (int i = 0; i < adapterEvidence.Count; i++)
+            {
+                count += adapterEvidence[i].BlockingIssueCount;
+            }
+
+            return count;
         }
 
         private static string Normalize(string value)

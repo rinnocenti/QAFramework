@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Immersive.Framework.ApiStatus;
 using Immersive.Framework.Transition;
 using Immersive.Framework.TransitionEffects;
@@ -65,6 +66,34 @@ namespace Immersive.Framework.GameFlow
         public int EffectAdapterCount => HasDiagnostics
             ? Math.Max(BeforeResult.EffectAdapterCount, AfterResult.EffectAdapterCount)
             : 0;
+
+        public int EffectAdapterEvidenceCount => HasDiagnostics
+            ? BeforeResult.EffectAdapterEvidenceCount + AfterResult.EffectAdapterEvidenceCount
+            : 0;
+
+        public int AppliedEffectAdapterEvidenceCount => HasDiagnostics
+            ? BeforeResult.AppliedEffectAdapterEvidenceCount + AfterResult.AppliedEffectAdapterEvidenceCount
+            : 0;
+
+        public int SkippedEffectAdapterEvidenceCount => HasDiagnostics
+            ? BeforeResult.SkippedEffectAdapterEvidenceCount + AfterResult.SkippedEffectAdapterEvidenceCount
+            : 0;
+
+        public int FailedEffectAdapterEvidenceCount => HasDiagnostics
+            ? BeforeResult.FailedEffectAdapterEvidenceCount + AfterResult.FailedEffectAdapterEvidenceCount
+            : 0;
+
+        public int EffectAdapterEvidenceBlockingIssueCount => HasDiagnostics
+            ? BeforeResult.EffectAdapterEvidenceBlockingIssueCount + AfterResult.EffectAdapterEvidenceBlockingIssueCount
+            : 0;
+
+        public string EffectAdapterEvidenceNamesText => HasDiagnostics
+            ? FormatAdapterEvidenceNames()
+            : "<none>";
+
+        public string EffectAdapterEvidenceStatusesText => HasDiagnostics
+            ? FormatAdapterEvidenceStatuses()
+            : "<none>";
 
         public string TransitionText
         {
@@ -187,6 +216,51 @@ namespace Immersive.Framework.GameFlow
         private static string FormatEffectStatus(TransitionResult result)
         {
             return result.EffectStatus.ToString();
+        }
+
+        private string FormatAdapterEvidenceNames()
+        {
+            return FormatAdapterEvidence(item => item.AdapterName);
+        }
+
+        private string FormatAdapterEvidenceStatuses()
+        {
+            return FormatAdapterEvidence(item => item.Status.ToString());
+        }
+
+        private string FormatAdapterEvidence(Func<TransitionEffectAdapterEvidence, string> selector)
+        {
+            var builder = new StringBuilder();
+            AppendAdapterEvidence(builder, BeforeResult, selector);
+            AppendAdapterEvidence(builder, AfterResult, selector);
+            return builder.Length > 0 ? builder.ToString() : "<none>";
+        }
+
+        private static void AppendAdapterEvidence(
+            StringBuilder builder,
+            TransitionResult result,
+            Func<TransitionEffectAdapterEvidence, string> selector)
+        {
+            if (!result.IsValid || result.EffectAdapterEvidenceCount == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < result.EffectAdapterEvidence.Count; i++)
+            {
+                string value = selector(result.EffectAdapterEvidence[i]);
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    continue;
+                }
+
+                if (builder.Length > 0)
+                {
+                    builder.Append(", ");
+                }
+
+                builder.Append(value);
+            }
         }
     }
 }
