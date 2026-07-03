@@ -123,7 +123,21 @@ Check:
 - Transition smokes report the expected transition/effect result.
 - Route/activity visual policy is configured to request the transition where expected.
 
-F53 selects Transition as the next hardening track, but the stronger contract is still pending F54. Until then, use the existing Route/Activity `transition*` and `transitionEffect*` diagnostics, Transition result text, effect adapter count and Transition smoke output as the source of truth. Missing F54 contract language is not by itself a runtime bug.
+F54 accepts the Transition Surface / Effects Contract, but runtime evidence hardening is still pending F55. Today, diagnose Transition through the existing Route/Activity fields:
+
+- `transition`
+- `transitionScope`
+- `transitionBefore`
+- `transitionAfter`
+- `transitionBlockingIssues`
+- `transitionVisual`
+- `transitionEffect`
+- `transitionEffectBefore`
+- `transitionEffectAfter`
+- `transitionEffectBlockingIssues`
+- `transitionEffectAdapterCount`
+
+If these fields expose missing required adapters, blocking issues, failed effect status or a required visual surface missing message, treat that as Transition setup/evidence to investigate. F55 may add named aggregate adapter evidence, but its absence is not by itself a runtime bug.
 
 ## Pause surface does not show
 

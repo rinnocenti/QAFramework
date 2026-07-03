@@ -53,12 +53,15 @@ F52 keeps `FrameworkRuntimeHost` as the current Route/Activity request API bound
 
 F53 closes GameFlow as the active architecture axis for now and selects Transition Surface / Effects Hardening as the next practical track toward a first usable game flow. Transition is selected because Route/Activity requests already project transition diagnostics and `UIGlobal` already hosts transition effect adapters. This does not create a broad Surface layer, does not reopen GameFlow API design and does not promote Pause visual materialization. Loading remains the bounded reference pattern for future contract/evidence questions.
 
+F54 accepts the Transition Surface / Effects Contract. Transition is the visual envelope before/after Route/Activity operations; Transition Effects are concrete visual operations such as fade/curtain/blackout; Transition Effect Adapters execute Unity-side visual side effects and return local evidence. `FrameworkRuntimeHost` / Route/Activity request execution is the current consumer, `UIGlobal` is the explicit host for effect adapters, and Loading remains separate from Transition because Loading communicates progress/readiness rather than visual coverage.
+
 ## Current boundary rules
 
 - `GameApplicationAsset` is the authoring root for app startup and `UIGlobal` policy.
 - Route owns route lifecycle; Activity owns activity lifecycle below the active route.
 - `UIGlobal` owns shared visual surfaces; route/activity content should not own global Pause, Loading or Transition surfaces.
 - Loading is not a fade effect. Transition effects and Loading surfaces are separate runtime surfaces.
+- Transition Effect Adapters return effect-local evidence; future Transition hardening may add named aggregate adapter evidence without creating a universal adapter/result type.
 - Pause presentation is resident by default. RuntimeContent + ContentAnchor materialization remains available for explicit modular content paths.
 - Pause input must synchronize logical Pause, `InputMode` and Unity `PlayerInput` through the runtime bridge path.
 - RuntimeContent handles are logical state, not Unity object references.
