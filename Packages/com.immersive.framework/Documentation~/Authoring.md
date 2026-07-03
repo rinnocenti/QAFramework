@@ -4,6 +4,8 @@ This page describes the current authoring model for Unity users.
 
 Model/Authorship in this package means the minimal authored data that describes the game to the framework. It does not mean gameplay domain model, save model, actor model, inventory, entity system or a generic model API.
 
+When consuming the framework as a Git package, create these authoring assets in the consumer project. Do not copy QA scenes, prefabs, `ProjectSettings` or old project assets into the package.
+
 ## Extension authoring boundaries
 
 Bridge, Adapter, Validator/Evidence and Consumer are separate responsibilities.

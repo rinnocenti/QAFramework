@@ -8,8 +8,41 @@ Use this page to wire the current package baseline in a Unity project.
 
 - `com.immersive.foundation`
 - `com.immersive.logging`
+- `com.unity.inputsystem`
 
 The framework package should be installed as a Unity package. Do not copy old project assets, scenes or `ProjectSettings` into the package.
+
+## Install from Git package
+
+Package version: `1.0.0-preview.1`
+
+Recommended tag after validation: `v1.0.0-preview.1`
+
+Install private Immersive sibling packages in the consumer project's `Packages/manifest.json` before installing `com.immersive.framework`, unless those packages are available from a scoped registry.
+
+Example consumer manifest entries:
+
+```json
+{
+  "dependencies": {
+    "com.immersive.foundation": "https://github.com/ImmersiveGames/com.immersive.foundation.git#v1.0.0-preview.1",
+    "com.immersive.logging": "https://github.com/ImmersiveGames/com.immersive.logging.git#v1.0.0-preview.1",
+    "com.immersive.framework": "https://github.com/ImmersiveGames/com.immersive.framework.git#v1.0.0-preview.1"
+  }
+}
+```
+
+Unity package manifests do not support Git URLs as transitive dependencies. Do not put Git URLs in `com.immersive.framework/package.json`; install private sibling packages directly in the consumer project or publish them through a compatible registry.
+
+Package Manager flow:
+
+1. Add `com.immersive.foundation` from Git URL/tag or registry.
+2. Add `com.immersive.logging` from Git URL/tag or registry.
+3. Add `com.immersive.framework` from Git URL/tag.
+4. Let Unity resolve and update `Packages/packages-lock.json`.
+5. Run Unity import/compile.
+6. Configure Model 1.0 authoring assets.
+7. Run Project Settings > Immersive Framework > Model Readiness > `Run Model Readiness Check`.
 
 ## Game Application
 

@@ -47,6 +47,10 @@ F57 is an ADR-only Model/Authorship boundary cut. It creates no runtime code, ed
 
 F58 adds Editor-only Model Readiness validation and a Project Settings entry point. Validate F58 with Unity import/compile, then run Project Settings > Immersive Framework > Model Readiness > `Run Model Readiness Check`. Runtime smokes are not required by F58 unless a later fix touches runtime paths; if that happens, run Standard Smoke, Activity Baseline Smoke and Route Scene Composition Smoke.
 
+F59 prepares Git package readiness. Validate F59 with `package.json` JSON validation, Unity import/compile in the current project, and Model Readiness with zero blocking issues. Runtime smokes are required only if a runtime, asmdef or package-boundary fix changes runtime behavior.
+
+F60 synchronizes the package into the dedicated source repository at `https://github.com/ImmersiveGames/com.immersive.framework`. Validate F60 with package-root structure checks, `package.json` JSON validation, forbidden project artifact scans, path scans, `git diff --check` in the package repository and a clear package repository `git status`. Clean consumer install validation remains the next gate before tagging.
+
 ## QA Canvas expectations
 
 `FrameworkQaCanvas` should expose current validation buttons, not every historical proof. Obsolete intermediate buttons should remain out of the visible primary QA path unless a future diagnostics mode intentionally restores them.

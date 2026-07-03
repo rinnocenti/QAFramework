@@ -6,6 +6,32 @@ Use this page when package setup or QA smokes do not behave as expected.
 
 Use `Documentation~/README.md` as the package documentation entry point. Old `ADRs/`, `Planning/` and phase `Guides/` are historical source material, not primary package usage docs.
 
+## Git package install fails
+
+Check:
+
+- Git is installed and available to Unity.
+- The Git URL is reachable from the consumer machine.
+- The requested tag exists, for example `v1.0.0-preview.1` after release validation.
+- `com.immersive.foundation` and `com.immersive.logging` are installed directly in the consumer project when they are private Git packages.
+- `com.immersive.framework/package.json` does not contain Git URLs as package dependencies.
+- `Packages/packages-lock.json` is not pinning an older or missing revision.
+- The consumer project has `com.unity.inputsystem` resolved.
+
+If a private sibling package is missing, add it to the consumer project's `Packages/manifest.json` or configure a scoped registry that provides the required version. Do not solve this by adding a Git URL inside the framework package manifest.
+
+## Package dependency does not resolve
+
+`com.immersive.framework` declares package/version dependencies. Unity can resolve them from a registry or from packages already installed in the consumer project.
+
+For private Git siblings, install in this order:
+
+1. `com.immersive.foundation`
+2. `com.immersive.logging`
+3. `com.immersive.framework`
+
+If Unity still resolves an older revision, delete or regenerate the consumer project's `Packages/packages-lock.json` after confirming the manifest points at the intended tags.
+
 ## Surface or adapter aggregate fails
 
 Check the aggregate diagnostics before changing setup:
@@ -122,6 +148,7 @@ Common readiness blockers:
 - Required `UIGlobal` scene missing or outside Build Settings.
 - Required `UIGlobal` scene missing Transition or Loading adapters.
 - Content profile scene entries missing, invalid or not build-loadable.
+- Private package dependency missing after Git install.
 
 Pause resident adapter absence is currently reported as an optional skip unless the project has an explicit product requirement for shared Pause presentation. There is no serialized Pause-required policy in the Model 1.0 boundary.
 

@@ -1,14 +1,15 @@
 {
   "name": "com.immersive.framework",
-  "version": "0.1.1",
+  "version": "1.0.0-preview.1",
   "displayName": "Immersive Framework",
-  "description": "Minimal lifecycle framework bootstrap for Immersive games. Development package; expands incrementally by architectural cuts.",
+  "description": "Immersive Framework runtime, authoring, diagnostics and validation surfaces for Unity projects.",
   "unity": "6000.0",
   "author": {
     "name": "Immersive Games"
   },
   "dependencies": {
-    "com.immersive.foundation": "https://github.com/ImmersiveGames/com.immersive.foundation.git",
-    "com.immersive.logging": "https://github.com/ImmersiveGames/com.immersive.logging.git#main"
+    "com.immersive.foundation": "1.0.0-preview.1",
+    "com.immersive.logging": "1.0.0-preview.1",
+    "com.unity.inputsystem": "1.19.0"
   }
 }
