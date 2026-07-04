@@ -8,6 +8,23 @@ Root canonico de QA:
 Assets/ImmersiveFrameworkQA/
 ```
 
+Estrutura canonica do QA Project:
+
+```text
+Assets/ImmersiveFrameworkQA/
+  README.md
+  Documentation/
+  Scenes/
+  GameApplications/
+  Routes/
+  Activities/
+  Prefabs/
+  Materials/
+  Scripts/
+  UI/
+  SmokeData/
+```
+
 A documentacao canonica do framework fica no package:
 
 ```text
@@ -15,6 +32,8 @@ Packages/com.immersive.framework/Documentation~/
 ```
 
 Este README descreve apenas o uso local do projeto QA.
+
+O package `com.immersive.framework` continua sendo o dono de documentacao canonica, ADRs, roadmap e guias oficiais. Este projeto pode manter relatorios locais de QA, mas nao deve ser o registro canonico da arquitetura do framework.
 
 ## Proposito
 
@@ -24,6 +43,8 @@ Este README descreve apenas o uso local do projeto QA.
 - validar regressao sem depender de um jogo real.
 
 O QA pode usar nomes como `QA_`, `Smoke`, `Probe` e `Synthetic` quando eles representam um cenario tecnico.
+
+FIRSTGAME nao deve entrar neste projeto. Assets de jogo final, scripts de gameplay final e fluxos jogaveis reais pertencem ao consumidor FIRSTGAME, nao ao QA sintetico.
 
 ## Onde ficam os smokes
 
@@ -38,6 +59,8 @@ Superficie atual principal:
 ```text
 Assets/ImmersiveFrameworkQA/UnityBuildSurface/
 ```
+
+`UnityBuildSurface/` permanece como superficie QA existente ate uma migracao futura decidir se seus assets devem ser promovidos para as pastas canonicas de topo.
 
 O `Active Game Application` normal do projeto deve permanecer apontado para o asset usado pelo cenario em validacao. Se uma cena QA dedicada usa `ActivityContentBinding`, os bindings devem apontar para activities QA, nao para assets finais de FIRSTGAME.
 
@@ -96,6 +119,13 @@ Se esses campos estiverem vazios, o Canvas tenta voltar para o `Startup Route` d
 - documentacao historica/canonica do framework;
 - sistemas de gameplay que nao existem para validar o framework.
 
+## Documentation Policy
+
+- documentacao canonica do framework fica no package `Packages/com.immersive.framework/Documentation~/`;
+- este projeto mantem so documentacao operacional de QA;
+- documentacao legada em `Assets/_Documentation` nao deve voltar;
+- novos smokes devem ser documentados em `Assets/ImmersiveFrameworkQA/Documentation`.
+
 ## Diferenca para FIRSTGAME
 
 ```text
@@ -104,3 +134,9 @@ FIRSTGAME prova que o framework e utilizavel para iniciar um jogo real minimo.
 ```
 
 Se um arquivo deixar de ser probe/smoke e virar exemplo final de jogo, ele deve migrar para FIRSTGAME por um corte proprio e com cuidado de serializacao Unity.
+
+## Legados pendentes
+
+- `Assets/_Project/` ainda existe como legado/pending migration do QA Project. Nao remover sem validar referencias Unity.
+- `Assets/_Documentation/` foi removido em `POST-RESET-B5 - QA Legacy Documentation Removal` e nao deve ser recriado.
+- Assets serializados devem migrar por Unity Editor em `POST-RESET-B6 - QA Asset Migration To ImmersiveFrameworkQA`.

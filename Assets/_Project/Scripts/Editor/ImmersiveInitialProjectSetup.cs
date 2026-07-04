@@ -20,7 +20,6 @@ namespace Project.Editor._Project.Scripts.Editor
         private const string ProjectRootFolder = "Assets/_Project";
         private const string ExternalRootFolder = "Assets/_External";
         private const string SandboxRootFolder = "Assets/_Sandbox";
-        private const string DocumentationRootFolder = "Assets/_Documentation";
 
         private static readonly string[] InitialFolders =
         {
@@ -54,12 +53,7 @@ namespace Project.Editor._Project.Scripts.Editor
             SandboxRootFolder + "/Scenes",
             SandboxRootFolder + "/Prefabs",
             SandboxRootFolder + "/Materials",
-            SandboxRootFolder + "/ScriptableObjects",
-
-            DocumentationRootFolder,
-            DocumentationRootFolder + "/ADRs",
-            DocumentationRootFolder + "/Notes",
-            DocumentationRootFolder + "/Setup"
+            SandboxRootFolder + "/ScriptableObjects"
         };
 
         private static readonly PackageSpec[] UnityCorePackages =

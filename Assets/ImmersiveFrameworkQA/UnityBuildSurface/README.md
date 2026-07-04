@@ -27,11 +27,7 @@ Scripts/Runtime/QaPauseSurfaceAdapter.cs
 
 The editor installers used to create these fixtures are temporary and can be deleted after validation.
 
-See:
-
-```text
-Assets/_Documentation/Notes/README.md
-```
+Historical setup notes were removed from the QA Project legacy documentation root in `POST-RESET-B5`. Keep future operational notes in `Assets/ImmersiveFrameworkQA/Documentation`.
 
 ## Validation target
 
@@ -166,7 +162,8 @@ AtivityAdditionalConent.unity -> ActivityAdditionalContent.unity
 `ActivityContentProfile.asset` now points to the corrected scene path and scene name. When applying this change from a zip patch, delete the old typo scene files listed in:
 
 ```text
-Assets/_Documentation/Notes/README.md
+AtivityAdditionalConent.unity
+AtivityAdditionalConent.unity.meta
 ```
 
 The corrected scene keeps the original Unity `.meta` GUID so existing references remain stable after cleanup.
