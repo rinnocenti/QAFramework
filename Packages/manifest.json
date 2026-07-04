@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "com.immersive.foundation": "https://github.com/ImmersiveGames/com.immersive.foundation.git",
+    "com.immersive.framework": "file:C:/Projetos/ImmersivePackages/com.immersive.framework",
     "com.immersive.logging": "https://github.com/ImmersiveGames/com.immersive.logging.git",
     "com.unity.addressables": "3.1.0",
     "com.unity.ai.assistant": "2.13.0-pre.2",

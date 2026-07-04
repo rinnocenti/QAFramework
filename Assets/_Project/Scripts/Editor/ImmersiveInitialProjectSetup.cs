@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using UnityEngine;
-namespace Project.Editor
+namespace Project.Editor._Project.Scripts.Editor
 {
     /// <summary>
     /// Setup inicial do projeto consumidor.
@@ -78,9 +78,10 @@ namespace Project.Editor
 
         private static readonly PackageSpec[] ImmersiveCorePackages =
         {
-            new("immersive.foundation", "Immersive Foundation", "https://github.com/ImmersiveGames/com.immersive.foundation.git#v0.1.0", "com.immersive.foundation"),
-            new("immersive.logging", "Immersive Logging", "https://github.com/ImmersiveGames/com.immersive.logging.git#v0.1.0", "com.immersive.logging"),
-            new("immersive.pooling", "Immersive Pooling", "https://github.com/ImmersiveGames/com.immersive.pooling.git#v0.1.0", "com.immersive.pooling")
+            new("immersive.foundation", "Immersive Foundation", "https://github.com/ImmersiveGames/com.immersive.foundation.git", "com.immersive.foundation"),
+            new("immersive.logging", "Immersive Logging", "https://github.com/ImmersiveGames/com.immersive.logging.git", "com.immersive.logging"),
+            new("immersive.framework", "Immersive Framework", "https://github.com/ImmersiveGames/com.immersive.framework.git", "com.immersive.framework"),
+            new("immersive.pooling", "Immersive Pooling", "https://github.com/ImmersiveGames/com.immersive.pooling.git", "com.immersive.pooling")
         };
 
         private static readonly PackageSpec[] OptionalUnityPackages =
