@@ -135,8 +135,10 @@ FIRSTGAME prova que o framework e utilizavel para iniciar um jogo real minimo.
 
 Se um arquivo deixar de ser probe/smoke e virar exemplo final de jogo, ele deve migrar para FIRSTGAME por um corte proprio e com cuidado de serializacao Unity.
 
-## Legados pendentes
+## Separation State
 
-- `Assets/_Project/` ainda existe como legado/pending migration do QA Project. Nao remover sem validar referencias Unity.
-- `Assets/_Documentation/` foi removido em `POST-RESET-B5 - QA Legacy Documentation Removal` e nao deve ser recriado.
-- Assets serializados devem migrar por Unity Editor em `POST-RESET-B6 - QA Asset Migration To ImmersiveFrameworkQA`.
+`Assets/_Project` foi removido do QA Project apos a migracao controlada B6B-B6F.
+
+`Assets/_Documentation` foi removido em `POST-RESET-B5 - QA Legacy Documentation Removal` e nao deve ser recriado.
+
+Novos assets, smokes e notas operacionais QA devem permanecer sob `Assets/ImmersiveFrameworkQA/`.
