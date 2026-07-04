@@ -1,16 +1,58 @@
-# Immersive Framework QA Assets
+# Immersive Framework QA Project
 
-Esta pasta contem assets de QA manual para os smokes do Immersive Framework.
+Este projeto prova que o framework funciona tecnicamente. Ele nao e FIRSTGAME e nao deve virar exemplo de jogo final.
 
-Esses assets nao sao assets de producao.
-Eles existem apenas para gerar logs padronizados durante validacao manual e desenvolvimento.
+Root canonico de QA:
 
-A documentacao principal do projeto fica em `Assets/_Documentation/README.md`; esta pasta continua sendo somente superficie de QA.
+```text
+Assets/ImmersiveFrameworkQA/
+```
 
-O `Active Game Application` normal do projeto deve permanecer apontado para o `Game Application` do projeto, nao para um asset QA.
-Se voce criar uma cena QA dedicada, os `ActivityContentBinding` dessa cena devem apontar para activities QA, nao para activities de gameplay. A `StartupScene` do projeto permanece como cena normal de produto/dev.
+A documentacao canonica do framework fica no package:
 
-Papeis de teste:
+```text
+Packages/com.immersive.framework/Documentation~/
+```
+
+Este README descreve apenas o uso local do projeto QA.
+
+## Proposito
+
+- concentrar smokes sinteticos;
+- manter cenas artificiais de validacao;
+- guardar probes tecnicos, casos negativos e botoes QA;
+- validar regressao sem depender de um jogo real.
+
+O QA pode usar nomes como `QA_`, `Smoke`, `Probe` e `Synthetic` quando eles representam um cenario tecnico.
+
+## Onde ficam os smokes
+
+Smokes e superficies QA devem ficar sob:
+
+```text
+Assets/ImmersiveFrameworkQA/
+```
+
+Superficie atual principal:
+
+```text
+Assets/ImmersiveFrameworkQA/UnityBuildSurface/
+```
+
+O `Active Game Application` normal do projeto deve permanecer apontado para o asset usado pelo cenario em validacao. Se uma cena QA dedicada usa `ActivityContentBinding`, os bindings devem apontar para activities QA, nao para assets finais de FIRSTGAME.
+
+## Cenas principais
+
+- `Scenes/StartupScene.unity`
+- `Scenes/SecondScene.unity`
+- `Scenes/AdditionalRouteScene.unity`
+- `UnityBuildSurface/Scenes/UnityBuildSurfaceQA.unity`
+- `UnityBuildSurface/Scenes/QA_UIGlobal.unity`
+- `UnityBuildSurface/Scenes/TransitionRouteA.unity`
+- `UnityBuildSurface/Scenes/TransitionRouteB.unity`
+- `UnityBuildSurface/Scenes/ActivityAdditionalContent.unity`
+
+## Papeis de teste
 
 - `QA_CanonicalRoute`
 - `QA_AlternateRoute`
@@ -20,9 +62,6 @@ Papeis de teste:
 - `QA_NoContentActivity`
 
 Esses nomes representam papeis de teste, nao nomes de gameplay.
-
-Use estes assets como referencia dedicada do `FrameworkQaCanvas`.
-
 
 ## Smokes recomendados
 
@@ -35,9 +74,7 @@ Configure o `FrameworkQaCanvas` com estes papeis semanticos:
 - Secondary Activity: `QA_SecondaryContentActivity`
 - No-Content Activity: `QA_NoContentActivity`
 
-Esses campos sao alvos de cenario. Eles nao devem substituir o `Active Game Application` normal do projeto.
-
-O smoke de Activity Content positivo so deve ser usado em uma cena QA ou em uma cena que tenha `ActivityContentBinding` apontando explicitamente para uma Activity QA. Em cenas normais, e esperado que uma Activity QA sem binding correspondente deixe o conteudo inativo.
+O smoke de Activity Content positivo so deve ser usado em uma cena QA ou em uma cena que tenha `ActivityContentBinding` apontando explicitamente para uma Activity QA.
 
 ## Reset baseline
 
@@ -49,5 +86,21 @@ O reset pode usar campos explicitos no Canvas:
 - Reset Activity
 - Reset Reason
 
-Se esses campos estiverem vazios, o Canvas tenta voltar para o `Startup Route` do `Active Game Application` normal do projeto e para a `Startup Activity` dessa rota. Assim os smokes podem ser repetidos no mesmo Play Mode sem transformar os assets QA em boot paralelo.
+Se esses campos estiverem vazios, o Canvas tenta voltar para o `Startup Route` do `Active Game Application` normal do projeto e para a `Startup Activity` dessa rota.
 
+## O que nao deve entrar aqui
+
+- assets finais de FIRSTGAME;
+- scripts de jogo final;
+- cenas jogaveis usadas como produto;
+- documentacao historica/canonica do framework;
+- sistemas de gameplay que nao existem para validar o framework.
+
+## Diferenca para FIRSTGAME
+
+```text
+QA prova comportamento tecnico com cenarios sinteticos.
+FIRSTGAME prova que o framework e utilizavel para iniciar um jogo real minimo.
+```
+
+Se um arquivo deixar de ser probe/smoke e virar exemplo final de jogo, ele deve migrar para FIRSTGAME por um corte proprio e com cuidado de serializacao Unity.
