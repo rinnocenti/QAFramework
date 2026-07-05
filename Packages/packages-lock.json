@@ -4,7 +4,9 @@
       "version": "file:C:/Projetos/ImmersivePackages/com.immersive.audio",
       "depth": 0,
       "source": "local",
-      "dependencies": {}
+      "dependencies": {
+        "com.immersive.pooling": "0.2.0"
+      }
     },
     "com.immersive.foundation": {
       "version": "https://github.com/ImmersiveGames/com.immersive.foundation.git",

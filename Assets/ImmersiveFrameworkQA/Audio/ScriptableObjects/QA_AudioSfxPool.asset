@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13b2f53632894f2a9e57f5741b4c686a, type: 3}
+  m_Name: QA_AudioSfxPool
+  m_EditorClassIdentifier: Immersive.Pooling.Unity::Immersive.Pooling.Unity.Authoring.PoolDefinitionAsset
+  prefab: {fileID: 9117079885268695664, guid: 40aef4bde9d90b84fa74246a73a86872, type: 3}
+  poolLabel: QA Audio SFX
+  initialCapacity: 2
+  maxSize: 8
+  canExpand: 1
+  prewarmOnRegister: 1
+  lifetimeScope: 0
+  registrationMode: 0
+  autoReturnSeconds: 0

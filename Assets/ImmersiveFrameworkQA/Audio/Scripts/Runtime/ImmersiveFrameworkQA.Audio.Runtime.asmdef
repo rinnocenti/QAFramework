@@ -1,0 +1,19 @@
+{
+  "name": "ImmersiveFrameworkQA.Audio.Runtime",
+  "rootNamespace": "ImmersiveFrameworkQA.Audio",
+  "references": [
+    "Immersive.Audio.Runtime",
+    "Immersive.Audio.Unity",
+    "Immersive.Pooling.Runtime",
+    "Immersive.Pooling.Unity"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
