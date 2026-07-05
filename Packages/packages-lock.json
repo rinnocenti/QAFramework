@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.immersive.audio": {
+      "version": "file:C:/Projetos/ImmersivePackages/com.immersive.audio",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.immersive.foundation": {
       "version": "https://github.com/ImmersiveGames/com.immersive.foundation.git",
       "depth": 0,
@@ -23,6 +29,12 @@
       "source": "git",
       "dependencies": {},
       "hash": "dd8fc203c8704cf627ea060952e5c0dba9648408"
+    },
+    "com.immersive.pooling": {
+      "version": "file:C:/Projetos/ImmersivePackages/com.immersive.pooling",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",

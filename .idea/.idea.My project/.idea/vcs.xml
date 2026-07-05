@@ -3,6 +3,7 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../ImmersivePackages/com.immersive.framework" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../ImmersivePackages/com.immersive.pooling" vcs="Git" />
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
   </component>
 </project>
