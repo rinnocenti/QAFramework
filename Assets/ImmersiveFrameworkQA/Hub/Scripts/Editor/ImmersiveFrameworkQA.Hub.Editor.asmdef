@@ -1,0 +1,20 @@
+{
+  "name": "ImmersiveFrameworkQA.Hub.Editor",
+  "rootNamespace": "ImmersiveFrameworkQA.Hub.Editor",
+  "references": [
+    "ImmersiveFrameworkQA.Hub.Runtime",
+    "ImmersiveFrameworkQA.Player.Runtime",
+    "Immersive.Framework.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

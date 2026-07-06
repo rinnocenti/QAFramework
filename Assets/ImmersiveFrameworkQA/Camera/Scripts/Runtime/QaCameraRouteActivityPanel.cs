@@ -24,13 +24,10 @@ namespace ImmersiveFrameworkQA.Camera
         [SerializeField] private ActivityRequestTrigger routeFallbackActivityTrigger;
         [SerializeField] private ActivityRequestTrigger clearActivityTrigger;
 
-        [Header("Related Panels")]
-        [SerializeField] private GameObject[] relatedPanelObjects = Array.Empty<GameObject>();
-        [SerializeField] private bool closeRelatedPanelsOnStart = true;
-
         [Header("Panel")]
         [SerializeField] private string title = "QA Camera Route/Activity";
         [SerializeField] private bool showPanel = true;
+        [SerializeField] private bool restrictToCameraScene = true;
         [SerializeField] private Rect panelRect = new Rect(16f, 16f, 640f, 700f);
         [SerializeField] private Vector2 minimumPanelSize = new Vector2(420f, 360f);
         [SerializeField] private float scrollContentWidth = 590f;
@@ -40,7 +37,6 @@ namespace ImmersiveFrameworkQA.Camera
         private bool showExpectedFlow = true;
         private bool showDirectorDiagnostics = true;
         private bool showTriggerDiagnostics = true;
-        private bool showRelatedPanels;
         private string lastManualAction = "Camera QA panel ready.";
 
         public void Configure(
@@ -49,28 +45,8 @@ namespace ImmersiveFrameworkQA.Camera
             ActivityRequestTrigger nextSecondaryActivityTrigger,
             ActivityRequestTrigger nextRouteFallbackActivityTrigger,
             ActivityRequestTrigger nextClearActivityTrigger,
-            string nextTitle)
-        {
-            Configure(
-                nextOtherRouteTrigger,
-                nextPrimaryActivityTrigger,
-                nextSecondaryActivityTrigger,
-                nextRouteFallbackActivityTrigger,
-                nextClearActivityTrigger,
-                nextTitle,
-                null,
-                Array.Empty<GameObject>());
-        }
-
-        public void Configure(
-            RouteRequestTrigger nextOtherRouteTrigger,
-            ActivityRequestTrigger nextPrimaryActivityTrigger,
-            ActivityRequestTrigger nextSecondaryActivityTrigger,
-            ActivityRequestTrigger nextRouteFallbackActivityTrigger,
-            ActivityRequestTrigger nextClearActivityTrigger,
             string nextTitle,
-            QaCameraDirector nextDirector,
-            GameObject[] nextRelatedPanelObjects)
+            QaCameraDirector nextDirector)
         {
             otherRouteTrigger = nextOtherRouteTrigger;
             primaryActivityTrigger = nextPrimaryActivityTrigger;
@@ -79,7 +55,6 @@ namespace ImmersiveFrameworkQA.Camera
             clearActivityTrigger = nextClearActivityTrigger;
             title = string.IsNullOrWhiteSpace(nextTitle) ? "QA Camera Route/Activity" : nextTitle;
             director = nextDirector;
-            relatedPanelObjects = nextRelatedPanelObjects ?? Array.Empty<GameObject>();
         }
 
 
@@ -88,25 +63,6 @@ namespace ImmersiveFrameworkQA.Camera
             panelRect = nextPanelRect;
             minimumPanelSize = nextMinimumPanelSize;
             scrollContentWidth = Mathf.Max(320f, nextScrollContentWidth);
-        }
-
-        public void CloseRelatedPanels()
-        {
-            if (relatedPanelObjects == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < relatedPanelObjects.Length; i++)
-            {
-                GameObject panel = relatedPanelObjects[i];
-                if (panel == null || ReferenceEquals(panel, gameObject))
-                {
-                    continue;
-                }
-
-                panel.SetActive(false);
-            }
         }
 
         [ContextMenu("Request Other Route")]
@@ -162,14 +118,6 @@ namespace ImmersiveFrameworkQA.Camera
             clearActivityTrigger.ClearActivity();
         }
 
-        private void Start()
-        {
-            if (closeRelatedPanelsOnStart)
-            {
-                CloseRelatedPanels();
-            }
-        }
-
         private void RequestActivity(ActivityRequestTrigger trigger, string label, string expectation)
         {
             if (trigger == null)
@@ -192,40 +140,52 @@ namespace ImmersiveFrameworkQA.Camera
 
         private void OnGUI()
         {
-            if (!showPanel)
+            if (!showPanel || !ShouldDrawForCurrentScene())
             {
                 return;
             }
 
-            panelRect.width = Mathf.Max(panelRect.width, minimumPanelSize.x);
-            panelRect.height = Mathf.Max(panelRect.height, minimumPanelSize.y);
+            panelRect = ClampToScreen(panelRect);
+            panelRect = ClampToScreen(GUI.Window(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this), panelRect, DrawWindow, title));
+            GUI.enabled = true;
+        }
 
-            GUILayout.BeginArea(panelRect, GUI.skin.window);
+        private bool ShouldDrawForCurrentScene()
+        {
+            return !restrictToCameraScene
+                || gameObject.scene.path.StartsWith("Assets/ImmersiveFrameworkQA/Camera/Scenes/", StringComparison.Ordinal);
+        }
+
+        private void DrawWindow(int windowId)
+        {
             DrawHeader();
 
-            scroll = GUILayout.BeginScrollView(scroll, GUILayout.Width(panelRect.width - 12f), GUILayout.Height(panelRect.height - 64f));
+            scroll = GUILayout.BeginScrollView(scroll, GUILayout.Width(panelRect.width - 12f), GUILayout.Height(panelRect.height - 76f));
             GUILayout.BeginVertical(GUILayout.Width(scrollContentWidth));
 
             DrawFoldout("Smoke Navigation", ref showSmokeNavigation, DrawSmokeNavigation);
             DrawFoldout("Expected Flow", ref showExpectedFlow, DrawExpectedFlow);
             DrawFoldout("Director Diagnostics", ref showDirectorDiagnostics, DrawDirectorDiagnostics);
             DrawFoldout("Trigger Diagnostics", ref showTriggerDiagnostics, DrawTriggerDiagnostics);
-            DrawFoldout("Other QA Panels", ref showRelatedPanels, DrawRelatedPanels);
 
             GUILayout.EndVertical();
             GUILayout.EndScrollView();
-            GUILayout.EndArea();
-            GUI.enabled = true;
+            GUI.DragWindow(new Rect(0f, 0f, 10000f, 24f));
+        }
+
+        private Rect ClampToScreen(Rect rect)
+        {
+            float width = Mathf.Max(rect.width, minimumPanelSize.x);
+            float height = Mathf.Max(rect.height, minimumPanelSize.y);
+            float maxX = Mathf.Max(0f, Screen.width - width);
+            float maxY = Mathf.Max(0f, Screen.height - height);
+            return new Rect(Mathf.Clamp(rect.x, 0f, maxX), Mathf.Clamp(rect.y, 0f, maxY), width, height);
         }
 
         private void DrawHeader()
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label(title, GUI.skin.label, GUILayout.ExpandWidth(true));
-            if (GUILayout.Button("Close Others", GUILayout.Width(96f)))
-            {
-                CloseRelatedPanels();
-            }
             GUILayout.EndHorizontal();
 
             GUILayout.Label($"Last Action: {lastManualAction}");
@@ -295,44 +255,6 @@ namespace ImmersiveFrameworkQA.Camera
             DrawActivityStatus("Secondary", secondaryActivityTrigger);
             DrawActivityStatus("Route Fallback", routeFallbackActivityTrigger);
             DrawActivityStatus("Clear", clearActivityTrigger);
-        }
-
-        private void DrawRelatedPanels()
-        {
-            if (relatedPanelObjects == null || relatedPanelObjects.Length == 0)
-            {
-                GUILayout.Label("No related QA panels were linked by the configurator.");
-                GUILayout.Label("This is valid for isolated Camera QA scenes.");
-                return;
-            }
-
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Close All Related Panels", GUILayout.Height(28f)))
-            {
-                CloseRelatedPanels();
-            }
-            if (GUILayout.Button("Open All Related Panels", GUILayout.Height(28f)))
-            {
-                SetRelatedPanelsActive(true);
-            }
-            GUILayout.EndHorizontal();
-
-            for (int i = 0; i < relatedPanelObjects.Length; i++)
-            {
-                GameObject relatedPanel = relatedPanelObjects[i];
-                if (relatedPanel == null || ReferenceEquals(relatedPanel, gameObject))
-                {
-                    continue;
-                }
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label($"{relatedPanel.name}: {(relatedPanel.activeSelf ? "Open" : "Closed")}", GUILayout.ExpandWidth(true));
-                if (GUILayout.Button(relatedPanel.activeSelf ? "Close" : "Open", GUILayout.Width(80f)))
-                {
-                    relatedPanel.SetActive(!relatedPanel.activeSelf);
-                }
-                GUILayout.EndHorizontal();
-            }
         }
 
         private static void DrawFoldout(string label, ref bool expanded, Action draw)
@@ -425,25 +347,6 @@ namespace ImmersiveFrameworkQA.Camera
         private static string FormatActivityTarget(ActivityRequestTrigger trigger)
         {
             return trigger != null && trigger.TargetActivity != null ? trigger.TargetActivity.ActivityName : "<missing>";
-        }
-
-        private void SetRelatedPanelsActive(bool isActive)
-        {
-            if (relatedPanelObjects == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < relatedPanelObjects.Length; i++)
-            {
-                GameObject relatedPanel = relatedPanelObjects[i];
-                if (relatedPanel == null || ReferenceEquals(relatedPanel, gameObject))
-                {
-                    continue;
-                }
-
-                relatedPanel.SetActive(isActive);
-            }
         }
 
         private string FormatEffectiveCamera()

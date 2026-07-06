@@ -377,19 +377,21 @@ namespace ImmersiveFrameworkQA.Audio
 
         private void OnGUI()
         {
-            Rect viewport = GetVisiblePanelRect();
+            panelRect = ClampPanelRect(panelRect);
+            panelRect = ClampPanelRect(GUI.Window(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this), panelRect, DrawWindow, "Immersive Audio QA"));
+        }
 
-            GUILayout.BeginArea(viewport, GUI.skin.window);
+        private void DrawWindow(int windowId)
+        {
             scroll = GUILayout.BeginScrollView(
                 scroll,
                 true,
                 true,
-                GUILayout.Width(Mathf.Max(minimumPanelSize.x, viewport.width - 10f)),
-                GUILayout.Height(Mathf.Max(minimumPanelSize.y, viewport.height - 28f)));
+                GUILayout.Width(Mathf.Max(minimumPanelSize.x, panelRect.width - 10f)),
+                GUILayout.Height(Mathf.Max(minimumPanelSize.y, panelRect.height - 48f)));
 
-            GUILayout.BeginVertical(GUILayout.Width(Mathf.Max(scrollContentWidth, viewport.width - 42f)));
+            GUILayout.BeginVertical(GUILayout.Width(Mathf.Max(scrollContentWidth, panelRect.width - 42f)));
 
-            GUILayout.Label("Immersive Audio QA", GUI.skin.label);
             GUILayout.Space(8f);
             DrawStatusLine("Last Result", lastResult);
             DrawStatusLine("Last Passed", lastPassed.ToString());
@@ -498,15 +500,17 @@ namespace ImmersiveFrameworkQA.Audio
 
             GUILayout.EndVertical();
             GUILayout.EndScrollView();
-            GUILayout.EndArea();
+            GUI.DragWindow(new Rect(0f, 0f, 10000f, 24f));
         }
 
-        private Rect GetVisiblePanelRect()
+        private Rect ClampPanelRect(Rect rect)
         {
-            float x = Mathf.Clamp(panelRect.x, 0f, Mathf.Max(0f, Screen.width - minimumPanelSize.x));
-            float y = Mathf.Clamp(panelRect.y, 0f, Mathf.Max(0f, Screen.height - minimumPanelSize.y));
-            float width = Mathf.Clamp(panelRect.width, minimumPanelSize.x, Mathf.Max(minimumPanelSize.x, Screen.width - x - 12f));
-            float height = Mathf.Clamp(panelRect.height, minimumPanelSize.y, Mathf.Max(minimumPanelSize.y, Screen.height - y - 12f));
+            float width = Mathf.Max(minimumPanelSize.x, rect.width);
+            float height = Mathf.Max(minimumPanelSize.y, rect.height);
+            float maxX = Mathf.Max(0f, Screen.width - width);
+            float maxY = Mathf.Max(0f, Screen.height - height);
+            float x = Mathf.Clamp(rect.x, 0f, maxX);
+            float y = Mathf.Clamp(rect.y, 0f, maxY);
 
             return new Rect(x, y, width, height);
         }

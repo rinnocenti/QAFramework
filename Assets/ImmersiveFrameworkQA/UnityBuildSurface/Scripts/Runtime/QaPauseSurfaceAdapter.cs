@@ -83,8 +83,11 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
                 return;
             }
 
-            GUILayout.BeginArea(overlayRect, GUI.skin.box);
-            GUILayout.Label(title, GUI.skin.label);
+            overlayRect = ClampToScreen(GUI.Window(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this), overlayRect, DrawWindow, title));
+        }
+
+        private void DrawWindow(int windowId)
+        {
             GUILayout.Label(lastPaused ? pausedLabel : runningLabel, GUI.skin.label);
 
             if (!string.IsNullOrWhiteSpace(lastReason))
@@ -97,7 +100,16 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
                 DrawControls();
             }
 
-            GUILayout.EndArea();
+            GUI.DragWindow(new Rect(0f, 0f, 10000f, 24f));
+        }
+
+        private static Rect ClampToScreen(Rect rect)
+        {
+            float width = Mathf.Max(280f, rect.width);
+            float height = Mathf.Max(120f, rect.height);
+            float maxX = Mathf.Max(0f, Screen.width - width);
+            float maxY = Mathf.Max(0f, Screen.height - height);
+            return new Rect(Mathf.Clamp(rect.x, 0f, maxX), Mathf.Clamp(rect.y, 0f, maxY), width, height);
         }
 
         private void DrawControls()

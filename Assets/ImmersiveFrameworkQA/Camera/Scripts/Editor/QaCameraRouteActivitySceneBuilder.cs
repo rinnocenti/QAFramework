@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
@@ -13,25 +12,25 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 {
     /// <summary>
     /// Editor-only, idempotent setup for the QA Route/Activity camera cut.
-    /// This configures QA fixtures under Assets/ImmersiveFrameworkQA, not FIRSTGAME/_Project assets.
+    /// This configures synthetic QA fixtures under Assets/ImmersiveFrameworkQA.
     /// </summary>
     public static class QaCameraRouteActivitySceneBuilder
     {
-        private const string StartupScenePath = "Assets/ImmersiveFrameworkQA/Scenes/StartupScene.unity";
-        private const string AlternateScenePath = "Assets/ImmersiveFrameworkQA/Scenes/SecondScene.unity";
+        private const string CameraRouteScenePath = "Assets/ImmersiveFrameworkQA/Camera/Scenes/QA_Camera.unity";
+        private const string AlternateScenePath = "Assets/ImmersiveFrameworkQA/Camera/Scenes/QA_CameraRouteB.unity";
 
-        private const string CanonicalRoutePath = "Assets/ImmersiveFrameworkQA/Routes/QA_CanonicalRoute.asset";
-        private const string AlternateRoutePath = "Assets/ImmersiveFrameworkQA/Routes/QA_AlternateRoute.asset";
+        private const string CanonicalRoutePath = "Assets/ImmersiveFrameworkQA/Camera/Routes/QA_CameraRoute.asset";
+        private const string AlternateRoutePath = "Assets/ImmersiveFrameworkQA/Camera/Routes/QA_CameraRouteB.asset";
 
-        private const string PrimaryActivityPath = "Assets/ImmersiveFrameworkQA/Activities/QA_PrimaryContentActivity.asset";
-        private const string SecondaryActivityPath = "Assets/ImmersiveFrameworkQA/Activities/QA_SecondaryContentActivity.asset";
-        private const string FallbackActivityPath = "Assets/ImmersiveFrameworkQA/Activities/QA_NoContentActivity.asset";
+        private const string PrimaryActivityPath = "Assets/ImmersiveFrameworkQA/Camera/Activities/QA_CameraActivity.asset";
+        private const string SecondaryActivityPath = "Assets/ImmersiveFrameworkQA/Camera/Activities/QA_CameraActivityB.asset";
+        private const string FallbackActivityPath = "Assets/ImmersiveFrameworkQA/Camera/Activities/QA_CameraNoContentActivity.asset";
 
         [MenuItem("Immersive Framework QA/Camera/Configure Route-Activity Camera QA")]
         public static void ConfigureRouteActivityCameraQa()
         {
             bool canonicalConfigured = ConfigureScene(
-                StartupScenePath,
+                CameraRouteScenePath,
                 "Canonical",
                 CanonicalRoutePath,
                 AlternateRoutePath,
@@ -93,7 +92,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             Vector3 activityRigPosition,
             Quaternion activityRigRotation)
         {
-            Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            scene.name = System.IO.Path.GetFileNameWithoutExtension(scenePath);
 
             // Reload ScriptableObject references after each scene open. This avoids stale UnityEngine.Object
             // wrappers when the builder configures multiple scenes in one editor command.
@@ -118,6 +118,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             GameObject mainCamera = EnsureMainCamera(scene, mainCameraPosition, mainCameraRotation);
             UnityEngine.Camera operationalCamera = EnsureComponent<UnityEngine.Camera>(mainCamera);
             CinemachineBrain brain = EnsureComponent<CinemachineBrain>(mainCamera);
+            EnsureDirectionalLight(scene, label == "Alternate" ? "QA_Camera_Light_Alternate" : "QA_Camera_Light_Canonical");
 
             GameObject target = EnsureTarget(scene, $"QA_Camera_Target_{label}", new Vector3(label == "Alternate" ? 6f : 0f, 1f, 0f));
             GameObject anchorsObject = EnsureRoot(scene, $"QA_Camera_Anchors_{label}");
@@ -310,8 +311,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 null,
                 $"qa.camera.activity.{label.ToLowerInvariant()}.clear");
 
-            GameObject[] relatedPanels = FindRelatedPanelObjects(scene, panelObject);
-
             panel.Configure(
                 routeTrigger,
                 primaryTrigger,
@@ -319,44 +318,10 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 fallbackTrigger,
                 clearTrigger,
                 $"QA Camera {label}",
-                director,
-                relatedPanels);
+                director);
             panel.ConfigureLayout(new Rect(16f, 16f, 660f, 720f), new Vector2(460f, 420f), 610f);
-            panel.CloseRelatedPanels();
 
             EditorUtility.SetDirty(panel);
-        }
-
-        private static GameObject[] FindRelatedPanelObjects(Scene scene, GameObject cameraPanelObject)
-        {
-            List<GameObject> panels = new List<GameObject>();
-
-            foreach (GameObject root in scene.GetRootGameObjects())
-            {
-                CollectRelatedPanelObjects(root.transform, cameraPanelObject, panels);
-            }
-
-            return panels.ToArray();
-        }
-
-        private static void CollectRelatedPanelObjects(Transform current, GameObject cameraPanelObject, List<GameObject> panels)
-        {
-            if (current == null)
-            {
-                return;
-            }
-
-            GameObject currentObject = current.gameObject;
-            if (!ReferenceEquals(currentObject, cameraPanelObject)
-                && currentObject.name.IndexOf("Panel", System.StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                panels.Add(currentObject);
-            }
-
-            for (int i = 0; i < current.childCount; i++)
-            {
-                CollectRelatedPanelObjects(current.GetChild(i), cameraPanelObject, panels);
-            }
         }
 
         private static RouteRequestTrigger EnsureRouteTrigger(Scene scene, Transform parent, string name, RouteAsset targetRoute, string reason)
@@ -400,6 +365,15 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             cameraObject.tag = "MainCamera";
             cameraObject.transform.SetPositionAndRotation(position, rotation);
             return cameraObject;
+        }
+
+        private static void EnsureDirectionalLight(Scene scene, string name)
+        {
+            GameObject lightObject = EnsureRoot(scene, name);
+            Light light = EnsureComponent<Light>(lightObject);
+            light.type = LightType.Directional;
+            light.intensity = 1f;
+            lightObject.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
         }
 
         private static GameObject EnsureTarget(Scene scene, string name, Vector3 position)

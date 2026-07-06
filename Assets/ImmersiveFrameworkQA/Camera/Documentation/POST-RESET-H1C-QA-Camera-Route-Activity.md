@@ -59,9 +59,8 @@ Added panel sections:
 - Expected Flow
 - Director Diagnostics
 - Trigger Diagnostics
-- Other QA Panels
 
-The panel now shows the current effective camera rig, source, priority, route rig, activity rig, retained rig, active policy, and trigger outcomes. The configurator links the `QaCameraDirector` to the panel and closes other discovered QA panel GameObjects by default so the camera smoke starts with one focused panel.
+The panel now shows the current effective camera rig, source, priority, route rig, activity rig, retained rig, active policy, and trigger outcomes. The configurator links the `QaCameraDirector` to the panel and keeps the Camera QA panel focused on Camera-only route/activity controls.
 
 ## Update — POST-RESET-H1F
 

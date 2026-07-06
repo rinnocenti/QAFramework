@@ -13,11 +13,15 @@ Estrutura canonica do QA Project:
 ```text
 Assets/ImmersiveFrameworkQA/
   README.md
+  Hub/
   Documentation/
-  Scenes/
+  Lifecycle/
+  Player/
+  Camera/
+  Pooling/
+  Audio/
+  UnityBuildSurface/
   GameApplications/
-  Routes/
-  Activities/
   Prefabs/
   Materials/
   Scripts/
@@ -54,10 +58,25 @@ Smokes e superficies QA devem ficar sob:
 Assets/ImmersiveFrameworkQA/
 ```
 
-Superficie atual principal:
+Entrada atual do QA Harness:
 
 ```text
+GameApplications/GameApplication.asset
+  -> Hub/Routes/QA_HubRoute.asset
+  -> Hub/Scenes/QA_Hub.unity
+```
+
+O Hub e uma cena sintetica de navegacao. Ele nao usa `SceneManager.LoadScene` como navegacao canonica; seus botoes usam `RouteRequestTrigger` para solicitar troca de rota pelo framework.
+
+Superficies QA existentes:
+
+```text
+Assets/ImmersiveFrameworkQA/Lifecycle/
 Assets/ImmersiveFrameworkQA/UnityBuildSurface/
+Assets/ImmersiveFrameworkQA/Camera/
+Assets/ImmersiveFrameworkQA/Pooling/
+Assets/ImmersiveFrameworkQA/Audio/
+Assets/ImmersiveFrameworkQA/Player/
 ```
 
 `UnityBuildSurface/` permanece como superficie QA existente ate uma migracao futura decidir se seus assets devem ser promovidos para as pastas canonicas de topo.
@@ -66,36 +85,48 @@ O `Active Game Application` normal do projeto deve permanecer apontado para o as
 
 ## Cenas principais
 
-- `Scenes/StartupScene.unity`
-- `Scenes/SecondScene.unity`
-- `Scenes/AdditionalRouteScene.unity`
+- `Hub/Scenes/QA_Hub.unity`
+- `Lifecycle/Scenes/QA_LifecycleRouteA.unity`
+- `Lifecycle/Scenes/QA_LifecycleRouteB.unity`
+- `Lifecycle/Scenes/QA_LifecycleAdditional.unity`
+- `Camera/Scenes/QA_Camera.unity`
+- `Camera/Scenes/QA_CameraRouteB.unity`
 - `UnityBuildSurface/Scenes/UnityBuildSurfaceQA.unity`
 - `UnityBuildSurface/Scenes/QA_UIGlobal.unity`
 - `UnityBuildSurface/Scenes/TransitionRouteA.unity`
 - `UnityBuildSurface/Scenes/TransitionRouteB.unity`
 - `UnityBuildSurface/Scenes/ActivityAdditionalContent.unity`
+- `Pooling/Scenes/QA_Pooling.unity`
+- `Audio/Scenes/QA_Audio.unity`
+- `Player/Scenes/QA_PlayerIdentity.unity`
+
+`Player/Scenes/QA_PlayerIdentity.unity` e placeholder sintetico: nao contem `PlayerSlot`, `ActorRegistry`, Actor runtime, FIRSTGAME ou gameplay real.
+
+`Camera/Scenes/QA_Camera.unity` e `Camera/Scenes/QA_CameraRouteB.unity` pertencem ao modulo Camera. Camera QA nao usa cenas de Lifecycle como backend.
 
 ## Papeis de teste
 
-- `QA_CanonicalRoute`
-- `QA_AlternateRoute`
-- `QA_NoActivityRoute`
-- `QA_PrimaryContentActivity`
-- `QA_SecondaryContentActivity`
-- `QA_NoContentActivity`
+- `Hub/Routes/QA_HubRoute`
+- `Lifecycle/Routes/QA_LifecycleRouteA`
+- `Lifecycle/Routes/QA_LifecycleRouteB`
+- `Camera/Routes/QA_CameraRoute`
+- `Pooling/Routes/QA_PoolingRoute`
+- `Audio/Routes/QA_AudioRoute`
+- `UnityBuildSurface/Routes/QA_UnityBuildSurfaceRoute`
+- `Player/Routes/QA_PlayerIdentityRoute`
 
 Esses nomes representam papeis de teste, nao nomes de gameplay.
 
 ## Smokes recomendados
 
-Configure o `FrameworkQaCanvas` com estes papeis semanticos:
+Use o Hub para navegar entre as superficies QA:
 
-- Canonical Route: `QA_CanonicalRoute`
-- Alternate Route: `QA_AlternateRoute`
-- No-Activity Route: `QA_NoActivityRoute`
-- Primary Activity: `QA_PrimaryContentActivity`
-- Secondary Activity: `QA_SecondaryContentActivity`
-- No-Content Activity: `QA_NoContentActivity`
+- Lifecycle / Core Flow QA
+- Unity Build Surface QA
+- Camera QA
+- Pooling QA
+- Audio QA
+- Player Identity QA
 
 O smoke de Activity Content positivo so deve ser usado em uma cena QA ou em uma cena que tenha `ActivityContentBinding` apontando explicitamente para uma Activity QA.
 
@@ -137,7 +168,7 @@ Se um arquivo deixar de ser probe/smoke e virar exemplo final de jogo, ele deve 
 
 ## Separation State
 
-`Assets/_Project` foi removido do QA Project apos a migracao controlada B6B-B6F.
+`Assets/_Project` nao e root canonico do QA Harness. Se existir no projeto local com scripts `FirstGame...`, trate como residuo/reference-only fora do QA canonico; novos smokes e cenas nao devem depender dele.
 
 `Assets/_Documentation` foi removido em `POST-RESET-B5 - QA Legacy Documentation Removal` e nao deve ser recriado.
 

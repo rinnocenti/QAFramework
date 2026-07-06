@@ -52,9 +52,11 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
                 return;
             }
 
-            GUILayout.BeginArea(panelRect, GUI.skin.box);
-            GUILayout.Label(title, GUI.skin.label);
+            panelRect = ClampToScreen(GUI.Window(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this), panelRect, DrawWindow, title));
+        }
 
+        private void DrawWindow(int windowId)
+        {
             GUI.enabled = routeRequestTrigger != null && !routeRequestTrigger.IsRequestInFlight;
             if (GUILayout.Button(buttonLabel, GUILayout.Height(36f)))
             {
@@ -76,7 +78,16 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
                 }
             }
 
-            GUILayout.EndArea();
+            GUI.DragWindow(new Rect(0f, 0f, 10000f, 24f));
+        }
+
+        private static Rect ClampToScreen(Rect rect)
+        {
+            float width = Mathf.Max(240f, rect.width);
+            float height = Mathf.Max(100f, rect.height);
+            float maxX = Mathf.Max(0f, Screen.width - width);
+            float maxY = Mathf.Max(0f, Screen.height - height);
+            return new Rect(Mathf.Clamp(rect.x, 0f, maxX), Mathf.Clamp(rect.y, 0f, maxY), width, height);
         }
     }
 }

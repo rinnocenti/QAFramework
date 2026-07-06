@@ -15,7 +15,7 @@ MonoBehaviour:
   profileId: route.primary.additional
   additionalScenes:
   - contentId: scene.additive.scene01
-    scenePath: Assets/ImmersiveFrameworkQA/Scenes/AdditionalRouteScene.unity
-    sceneName: AdditionalRouteScene
+    scenePath: Assets/ImmersiveFrameworkQA/Lifecycle/Scenes/QA_LifecycleAdditional.unity
+    sceneName: QA_LifecycleAdditional
     requiredness: 10
   description: Cena aditiva
