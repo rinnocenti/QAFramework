@@ -6,6 +6,7 @@ using Immersive.Framework.GameFlow;
 using Immersive.Framework.PlayerSlots;
 using Immersive.Framework.Reset;
 using Immersive.Framework.Reset.Unity;
+using Immersive.Framework.UnityInput;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -22,7 +23,7 @@ namespace ImmersiveFrameworkQA.Player
         [SerializeField] private Text resultText;
         [SerializeField] private RouteRequestTrigger backToHubTrigger;
 
-        private string _lastResult = "Idle. Run an Actor, PlayerSlot, or Reset Bridge QA probe.";
+        private string _lastResult = "Idle. Run an Actor, PlayerSlot, Reset Bridge, or Gate Bridge QA probe.";
         private bool _lastPassed;
         private int _passCount;
         private int _failCount;
@@ -201,6 +202,66 @@ namespace ImmersiveFrameworkQA.Player
             };
 
             SetResetBridgeResult(FormatAggregateResult("Run All Actor + PlayerSlot + Reset Bridge QA", results));
+        }
+
+        [ContextMenu("PlayerInput Gate Slot Bridge QA/Run Legacy PlayerInput Gate QA")]
+        public void RunLegacyPlayerInputGateQa()
+        {
+            SetPlayerInputGateSlotBridgeResult(RunLegacyPlayerInputGateCheck());
+        }
+
+        [ContextMenu("PlayerInput Gate Slot Bridge QA/Run SourceSlot PlayerInput Gate QA")]
+        public void RunSourceSlotPlayerInputGateQa()
+        {
+            SetPlayerInputGateSlotBridgeResult(RunSourceSlotPlayerInputGateCheck());
+        }
+
+        [ContextMenu("PlayerInput Gate Slot Bridge QA/Run Invalid SourceSlot PlayerInput Gate QA")]
+        public void RunInvalidSourceSlotPlayerInputGateQa()
+        {
+            SetPlayerInputGateSlotBridgeResult(RunInvalidSourceSlotPlayerInputGateCheck());
+        }
+
+        [ContextMenu("PlayerInput Gate Slot Bridge QA/Run Missing PlayerInput Gate QA")]
+        public void RunMissingPlayerInputGateQa()
+        {
+            SetPlayerInputGateSlotBridgeResult(RunMissingPlayerInputGateCheck());
+        }
+
+        [ContextMenu("PlayerInput Gate Slot Bridge QA/Run All PlayerInput Gate Slot Bridge QA")]
+        public void RunAllPlayerInputGateSlotBridgeQa()
+        {
+            SetPlayerInputGateSlotBridgeResult(RunAllPlayerInputGateSlotBridgeChecks());
+        }
+
+        [ContextMenu("PlayerInput Gate Slot Bridge QA/Run All Actor + PlayerSlot + Reset + Gate Bridge QA")]
+        public void RunAllActorPlayerSlotResetAndGateBridgeQa()
+        {
+            QaCheckResult[] results =
+            {
+                RunValidActorCheck(),
+                RunInvalidActorIdCheck(),
+                RunDuplicateActorIdCheck(),
+                RunPlayerActorCheck(),
+                RunUnknownRoleCheck(),
+                RunValidPlayerSlotCheck(),
+                RunInvalidPlayerSlotIdCheck(),
+                RunDuplicatePlayerSlotIdCheck(),
+                RunValidOccupancyCheck(),
+                RunMissingOccupiedActorCheck(),
+                RunInvalidOccupiedActorIdCheck(),
+                RunDuplicateOccupancyCheck(),
+                RunAuthoredTextResetSubjectBridgeCheck(),
+                RunActorSourceResetSubjectBridgeCheck(),
+                RunRuntimePrefixResetSubjectBridgeCheck(),
+                RunInvalidActorSourceResetSubjectBridgeCheck(),
+                RunLegacyPlayerInputGateCheck(),
+                RunSourceSlotPlayerInputGateCheck(),
+                RunInvalidSourceSlotPlayerInputGateCheck(),
+                RunMissingPlayerInputGateCheck()
+            };
+
+            SetPlayerInputGateSlotBridgeResult(FormatAggregateResult("Run All Actor + PlayerSlot + Reset + Gate Bridge QA", results));
         }
 
 
@@ -814,6 +875,170 @@ namespace ImmersiveFrameworkQA.Player
             return FormatAggregateResult("Run All Reset Bridge QA", results);
         }
 
+        private QaCheckResult RunLegacyPlayerInputGateCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_PlayerInputGate_Legacy");
+            try
+            {
+                UnityPlayerInputGateAdapter adapter = CreatePlayerInputGateAdapter(
+                    root,
+                    "Legacy PlayerInput Gate Adapter",
+                    true,
+                    null);
+
+                PlayerInput input = adapter.GetComponent<PlayerInput>();
+                bool applyCompleted = TryApplyCurrentGate(adapter, out string applyIssue);
+                bool passed = applyCompleted
+                    && adapter.SourceSlot == null
+                    && !adapter.HasSourceSlot
+                    && string.IsNullOrEmpty(adapter.SourceSlotIdText)
+                    && adapter.PlayerInput == input
+                    && IsAppliedGateStatus(adapter.LastStatus);
+
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "Legacy PlayerInput Gate QA PASS. sourceSlot is empty, PlayerInput resolves from same GameObject, status='" + adapter.LastStatus + "'."
+                        : "Legacy PlayerInput Gate QA failed. sourceSlot='" + SourceSlotText(adapter) + "' hasSourceSlot='" + adapter.HasSourceSlot + "' playerInputResolved='" + (adapter.PlayerInput == input) + "' status='" + adapter.LastStatus + "' issue='" + applyIssue + "'.");
+            }
+            catch (Exception exception)
+            {
+                return new QaCheckResult(false, "Legacy PlayerInput Gate QA threw exception: " + exception.GetType().Name + " " + exception.Message);
+            }
+            finally
+            {
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunSourceSlotPlayerInputGateCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_PlayerInputGate_SourceSlot");
+            try
+            {
+                PlayerSlotDeclaration slot = CreatePlayerSlot(root, "SourceSlot Gate PlayerSlot", "player.1", null);
+                UnityPlayerInputGateAdapter adapter = CreatePlayerInputGateAdapter(
+                    root,
+                    "SourceSlot PlayerInput Gate Adapter",
+                    true,
+                    slot);
+
+                PlayerInput input = adapter.GetComponent<PlayerInput>();
+                bool applyCompleted = TryApplyCurrentGate(adapter, out string applyIssue);
+                bool passed = applyCompleted
+                    && adapter.SourceSlot == slot
+                    && adapter.HasSourceSlot
+                    && string.Equals(adapter.SourceSlotIdText, "player.1", StringComparison.Ordinal)
+                    && adapter.PlayerInput == input
+                    && IsAppliedGateStatus(adapter.LastStatus);
+
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "SourceSlot PlayerInput Gate QA PASS. sourceSlot resolves playerSlotId='player.1' while PlayerInput remains the operational target; status='" + adapter.LastStatus + "'."
+                        : "SourceSlot PlayerInput Gate QA failed. sourceSlot='" + SourceSlotText(adapter) + "' sourceSlotId='" + adapter.SourceSlotIdText + "' playerInputResolved='" + (adapter.PlayerInput == input) + "' status='" + adapter.LastStatus + "' issue='" + applyIssue + "'.");
+            }
+            catch (Exception exception)
+            {
+                return new QaCheckResult(false, "SourceSlot PlayerInput Gate QA threw exception: " + exception.GetType().Name + " " + exception.Message);
+            }
+            finally
+            {
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunInvalidSourceSlotPlayerInputGateCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_PlayerInputGate_InvalidSourceSlot");
+            try
+            {
+                PlayerSlotDeclaration slot = CreatePlayerSlot(root, "Invalid SourceSlot Gate PlayerSlot", string.Empty, null);
+                UnityPlayerInputGateAdapter adapter = CreatePlayerInputGateAdapter(
+                    root,
+                    "Invalid SourceSlot PlayerInput Gate Adapter",
+                    true,
+                    slot);
+
+                PlayerInput input = adapter.GetComponent<PlayerInput>();
+                string slotIdText = adapter.SourceSlotIdText;
+                bool applyCompleted = TryApplyCurrentGate(adapter, out string applyIssue);
+                bool passed = applyCompleted
+                    && adapter.SourceSlot == slot
+                    && adapter.HasSourceSlot
+                    && slotIdText.StartsWith("<invalid:", StringComparison.Ordinal)
+                    && adapter.PlayerInput == input
+                    && IsAppliedGateStatus(adapter.LastStatus);
+
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "Invalid SourceSlot PlayerInput Gate QA PASS. invalid sourceSlot produced controlled diagnostic '" + slotIdText + "' and PlayerInput stayed operational; status='" + adapter.LastStatus + "'."
+                        : "Invalid SourceSlot PlayerInput Gate QA failed. sourceSlot='" + SourceSlotText(adapter) + "' sourceSlotId='" + slotIdText + "' playerInputResolved='" + (adapter.PlayerInput == input) + "' status='" + adapter.LastStatus + "' issue='" + applyIssue + "'.");
+            }
+            catch (Exception exception)
+            {
+                return new QaCheckResult(false, "Invalid SourceSlot PlayerInput Gate QA threw exception: " + exception.GetType().Name + " " + exception.Message);
+            }
+            finally
+            {
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunMissingPlayerInputGateCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_PlayerInputGate_MissingPlayerInput");
+            try
+            {
+                PlayerSlotDeclaration slot = CreatePlayerSlot(root, "Missing PlayerInput Gate PlayerSlot", "player.1", null);
+                UnityPlayerInputGateAdapter adapter = CreatePlayerInputGateAdapter(
+                    root,
+                    "Missing PlayerInput Gate Adapter",
+                    false,
+                    slot);
+
+                bool applyCompleted = TryApplyCurrentGate(adapter, out string applyIssue);
+                bool sourceSlotDidNotMaskMissingInput = adapter.PlayerInput == null;
+                bool statusIsExpected = IsAppliedGateStatus(adapter.LastStatus)
+                    || string.Equals(adapter.LastStatus, "SkippedMissingPlayerInput", StringComparison.Ordinal)
+                    || string.Equals(adapter.LastStatus, "ReleasedMissingPlayerInput", StringComparison.Ordinal);
+                bool passed = applyCompleted
+                    && adapter.SourceSlot == slot
+                    && adapter.HasSourceSlot
+                    && string.Equals(adapter.SourceSlotIdText, "player.1", StringComparison.Ordinal)
+                    && sourceSlotDidNotMaskMissingInput
+                    && statusIsExpected;
+
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "Missing PlayerInput Gate QA PASS. sourceSlot is diagnostic only and did not mask missing PlayerInput; status='" + adapter.LastStatus + "'. Block/release behavior depends on an active runtime Gate blocker."
+                        : "Missing PlayerInput Gate QA failed. sourceSlot='" + SourceSlotText(adapter) + "' playerInputIsNull='" + sourceSlotDidNotMaskMissingInput + "' status='" + adapter.LastStatus + "' issue='" + applyIssue + "'.");
+            }
+            catch (Exception exception)
+            {
+                return new QaCheckResult(false, "Missing PlayerInput Gate QA threw exception: " + exception.GetType().Name + " " + exception.Message);
+            }
+            finally
+            {
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunAllPlayerInputGateSlotBridgeChecks()
+        {
+            QaCheckResult[] results =
+            {
+                RunLegacyPlayerInputGateCheck(),
+                RunSourceSlotPlayerInputGateCheck(),
+                RunInvalidSourceSlotPlayerInputGateCheck(),
+                RunMissingPlayerInputGateCheck()
+            };
+
+            return FormatAggregateResult("Run All PlayerInput Gate Slot Bridge QA", results);
+        }
+
         private static ActorDeclaration CreateActor(
             GameObject root,
             string displayName,
@@ -865,6 +1090,68 @@ namespace ImmersiveFrameworkQA.Player
             SetPrivateField(occupancy, "displayName", displayName);
             SetPrivateField(occupancy, "reason", "qa.player-slot.occupancy.synthetic");
             return occupancy;
+        }
+
+        private static UnityPlayerInputGateAdapter CreatePlayerInputGateAdapter(
+            GameObject root,
+            string displayName,
+            bool addPlayerInput,
+            PlayerSlotDeclaration sourceSlot)
+        {
+            GameObject adapterObject = new GameObject(displayName);
+            adapterObject.transform.SetParent(root.transform, false);
+
+            if (addPlayerInput)
+            {
+                adapterObject.AddComponent<PlayerInput>();
+            }
+
+            UnityPlayerInputGateAdapter adapter = adapterObject.AddComponent<UnityPlayerInputGateAdapter>();
+            SetPrivateField(adapter, "sourceSlot", sourceSlot);
+            SetPrivateField(adapter, "blockMode", UnityPlayerInputGateBlockMode.DeactivatePlayerInput);
+            SetPrivateField(adapter, "applyOnEnable", false);
+            SetPrivateField(adapter, "logStateChanges", false);
+            SetPrivateField(adapter, "logMissingRuntimeOnce", false);
+            SetPrivateField(adapter, "logMissingTargetOnce", false);
+            return adapter;
+        }
+
+        private static bool TryApplyCurrentGate(UnityPlayerInputGateAdapter adapter, out string issue)
+        {
+            issue = string.Empty;
+            if (adapter == null)
+            {
+                issue = "adapter is null";
+                return false;
+            }
+
+            try
+            {
+                adapter.ApplyCurrentGate();
+                return true;
+            }
+            catch (Exception exception)
+            {
+                issue = "EXCEPTION " + exception.GetType().Name + ": " + exception.Message;
+                return false;
+            }
+        }
+
+        private static bool IsAppliedGateStatus(string status)
+        {
+            return !string.IsNullOrWhiteSpace(status)
+                && !string.Equals(status, "NotApplied", StringComparison.Ordinal);
+        }
+
+        private static string SourceSlotText(UnityPlayerInputGateAdapter adapter)
+        {
+            if (adapter == null)
+            {
+                return "<null-adapter>";
+            }
+
+            PlayerSlotDeclaration sourceSlot = adapter.SourceSlot;
+            return sourceSlot != null ? sourceSlot.name : "<none>";
         }
 
 
@@ -1092,6 +1379,11 @@ namespace ImmersiveFrameworkQA.Player
             SetResult(result, "[QA_RESET_BRIDGE]");
         }
 
+        private void SetPlayerInputGateSlotBridgeResult(QaCheckResult result)
+        {
+            SetResult(result, "[QA_PLAYER_INPUT_GATE_SLOT_BRIDGE]");
+        }
+
         private void SetResult(QaCheckResult result, string logPrefix)
         {
             _lastPassed = result.Passed;
@@ -1114,7 +1406,7 @@ namespace ImmersiveFrameworkQA.Player
 
         private void RefreshTexts()
         {
-            string summary = $"Actor + PlayerSlot + Reset Bridge QA | passes={_passCount} failures={_failCount}";
+            string summary = $"Actor + PlayerSlot + Reset + Gate Bridge QA | passes={_passCount} failures={_failCount}";
             if (summaryText != null)
             {
                 summaryText.text = summary;
@@ -1245,6 +1537,38 @@ namespace ImmersiveFrameworkQA.Player
             if (GUILayout.Button("Run All Actor + PlayerSlot + Reset Bridge QA", GUILayout.Height(36f)))
             {
                 RunAllActorPlayerSlotAndResetBridgeQa();
+            }
+
+            GUILayout.Space(8f);
+            GUILayout.Label("PlayerInput Gate Slot Bridge");
+            if (GUILayout.Button("Run Legacy PlayerInput Gate QA", GUILayout.Height(32f)))
+            {
+                RunLegacyPlayerInputGateQa();
+            }
+
+            if (GUILayout.Button("Run SourceSlot PlayerInput Gate QA", GUILayout.Height(32f)))
+            {
+                RunSourceSlotPlayerInputGateQa();
+            }
+
+            if (GUILayout.Button("Run Invalid SourceSlot PlayerInput Gate QA", GUILayout.Height(32f)))
+            {
+                RunInvalidSourceSlotPlayerInputGateQa();
+            }
+
+            if (GUILayout.Button("Run Missing PlayerInput Gate QA", GUILayout.Height(32f)))
+            {
+                RunMissingPlayerInputGateQa();
+            }
+
+            if (GUILayout.Button("Run All PlayerInput Gate Slot Bridge QA", GUILayout.Height(36f)))
+            {
+                RunAllPlayerInputGateSlotBridgeQa();
+            }
+
+            if (GUILayout.Button("Run All Actor + PlayerSlot + Reset + Gate Bridge QA", GUILayout.Height(36f)))
+            {
+                RunAllActorPlayerSlotResetAndGateBridgeQa();
             }
 
             GUILayout.EndScrollView();

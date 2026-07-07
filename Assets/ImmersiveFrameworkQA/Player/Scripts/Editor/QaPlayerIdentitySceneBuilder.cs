@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace ImmersiveFrameworkQA.Player.Editor
 {
     /// <summary>
-    /// Editor-only deterministic builder for the synthetic Actor, PlayerSlot and Reset Bridge QA scene.
+    /// Editor-only deterministic builder for the synthetic Actor, PlayerSlot, Reset Bridge and Gate Bridge QA scene.
     /// </summary>
     public static class QaPlayerIdentitySceneBuilder
     {
@@ -58,7 +58,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             Text summary = CreateText(
                 canvas.transform,
                 "QA_PlayerIdentitySummary",
-                "Actor + PlayerSlot + Reset Bridge QA | passes=0 failures=0",
+                "Actor + PlayerSlot + Reset + Gate Bridge QA | passes=0 failures=0",
                 new Vector2(0f, 260f),
                 new Vector2(900f, 64f),
                 30);
@@ -66,7 +66,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             Text result = CreateText(
                 canvas.transform,
                 "QA_PlayerIdentityResult",
-                "Idle. Run an Actor, PlayerSlot, or Reset Bridge QA probe.",
+                "Idle. Run an Actor, PlayerSlot, Reset Bridge, or Gate Bridge QA probe.",
                 new Vector2(0f, 125f),
                 new Vector2(900f, 180f),
                 22);
