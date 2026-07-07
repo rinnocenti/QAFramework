@@ -3,6 +3,8 @@
   "rootNamespace": "ImmersiveFrameworkQA.Audio.Editor",
   "references": [
     "ImmersiveFrameworkQA.Audio.Runtime",
+    "Immersive.Framework.Runtime",
+    "Immersive.Framework.Audio",
     "Immersive.Audio.Runtime",
     "Immersive.Audio.Unity",
     "Immersive.Pooling.Runtime",
