@@ -506,7 +506,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Actor Identity QA | passes=0 failures=0
+  m_Text: Actor + PlayerSlot Identity QA | passes=0 failures=0
 --- !u!222 &1153369119
 CanvasRenderer:
   m_ObjectHideFlags: 0

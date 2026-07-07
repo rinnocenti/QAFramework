@@ -58,7 +58,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             Text summary = CreateText(
                 canvas.transform,
                 "QA_PlayerIdentitySummary",
-                "Actor Identity QA | passes=0 failures=0",
+                "Actor + PlayerSlot Identity QA | passes=0 failures=0",
                 new Vector2(0f, 260f),
                 new Vector2(900f, 64f),
                 30);

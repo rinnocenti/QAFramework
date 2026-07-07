@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text;
 using Immersive.Framework.Actors;
 using Immersive.Framework.GameFlow;
+using Immersive.Framework.PlayerSlots;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -23,6 +24,7 @@ namespace ImmersiveFrameworkQA.Player
         private bool _lastPassed;
         private int _passCount;
         private int _failCount;
+        private Vector2 _scrollPosition;
 
         [ContextMenu("Actor Identity QA/Run Valid Actor QA")]
         public void RunValidActorQa()
@@ -72,6 +74,76 @@ namespace ImmersiveFrameworkQA.Player
             }
 
             SetResult(new QaCheckResult(passed, builder.ToString().TrimEnd()));
+        }
+
+        [ContextMenu("PlayerSlot QA/Run Valid PlayerSlot QA")]
+        public void RunValidPlayerSlotQa()
+        {
+            SetPlayerSlotResult(RunValidPlayerSlotCheck());
+        }
+
+        [ContextMenu("PlayerSlot QA/Run Invalid PlayerSlotId QA")]
+        public void RunInvalidPlayerSlotIdQa()
+        {
+            SetPlayerSlotResult(RunInvalidPlayerSlotIdCheck());
+        }
+
+        [ContextMenu("PlayerSlot QA/Run Duplicate PlayerSlotId QA")]
+        public void RunDuplicatePlayerSlotIdQa()
+        {
+            SetPlayerSlotResult(RunDuplicatePlayerSlotIdCheck());
+        }
+
+        [ContextMenu("PlayerSlot QA/Run Valid Occupancy QA")]
+        public void RunValidOccupancyQa()
+        {
+            SetPlayerSlotResult(RunValidOccupancyCheck());
+        }
+
+        [ContextMenu("PlayerSlot QA/Run Missing Occupied Actor QA")]
+        public void RunMissingOccupiedActorQa()
+        {
+            SetPlayerSlotResult(RunMissingOccupiedActorCheck());
+        }
+
+        [ContextMenu("PlayerSlot QA/Run Invalid Occupied ActorId QA")]
+        public void RunInvalidOccupiedActorIdQa()
+        {
+            SetPlayerSlotResult(RunInvalidOccupiedActorIdCheck());
+        }
+
+        [ContextMenu("PlayerSlot QA/Run Duplicate Occupancy QA")]
+        public void RunDuplicateOccupancyQa()
+        {
+            SetPlayerSlotResult(RunDuplicateOccupancyCheck());
+        }
+
+        [ContextMenu("PlayerSlot QA/Run All PlayerSlot QA")]
+        public void RunAllPlayerSlotQa()
+        {
+            SetPlayerSlotResult(RunAllPlayerSlotChecks());
+        }
+
+        [ContextMenu("PlayerSlot QA/Run All Actor + PlayerSlot QA")]
+        public void RunAllActorAndPlayerSlotQa()
+        {
+            QaCheckResult[] results =
+            {
+                RunValidActorCheck(),
+                RunInvalidActorIdCheck(),
+                RunDuplicateActorIdCheck(),
+                RunPlayerActorCheck(),
+                RunUnknownRoleCheck(),
+                RunValidPlayerSlotCheck(),
+                RunInvalidPlayerSlotIdCheck(),
+                RunDuplicatePlayerSlotIdCheck(),
+                RunValidOccupancyCheck(),
+                RunMissingOccupiedActorCheck(),
+                RunInvalidOccupiedActorIdCheck(),
+                RunDuplicateOccupancyCheck()
+            };
+
+            SetPlayerSlotResult(FormatAggregateResult("Run All Actor + PlayerSlot QA", results));
         }
 
         public void BackToQaHub()
@@ -271,6 +343,239 @@ namespace ImmersiveFrameworkQA.Player
             }
         }
 
+        private QaCheckResult RunValidPlayerSlotCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_PlayerSlot_ValidDeclaration");
+            try
+            {
+                PlayerSlotDeclaration slot = CreatePlayerSlot(root, "Valid PlayerSlot", "player.1", null);
+                PlayerSlotSet set = PlayerSlotValidator.ValidateDeclarations(
+                    new[] { slot },
+                    Array.Empty<PlayerSlotOccupancy>(),
+                    nameof(QaPlayerIdentityPanel),
+                    "qa.player-slot.valid-declaration");
+
+                bool passed = set.Succeeded
+                    && set.Count == 1
+                    && set.PlayerInputEvidenceCount == 0
+                    && !set.RequiresPlayerInput;
+
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "Valid PlayerSlot Declaration PASS. PlayerSlotDeclaration validates without PlayerInput."
+                        : "Valid PlayerSlot Declaration failed. " + set.ToDiagnosticString());
+            }
+            finally
+            {
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunInvalidPlayerSlotIdCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_PlayerSlot_InvalidEmptySlotId");
+            try
+            {
+                PlayerSlotDeclaration slot = CreatePlayerSlot(root, "Invalid Empty PlayerSlotId", string.Empty, null);
+                PlayerSlotSet set = PlayerSlotValidator.ValidateDeclarations(
+                    new[] { slot },
+                    Array.Empty<PlayerSlotOccupancy>(),
+                    nameof(QaPlayerIdentityPanel),
+                    "qa.player-slot.invalid-empty-slot-id");
+
+                bool passed = set.Failed && ContainsIssue(set, PlayerSlotSetIssueKind.InvalidPlayerSlotId, blocking: true);
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "Invalid Empty PlayerSlotId PASS. Validator emitted blocking InvalidPlayerSlotId."
+                        : "Invalid Empty PlayerSlotId failed. " + set.ToDiagnosticString());
+            }
+            finally
+            {
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunDuplicatePlayerSlotIdCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_PlayerSlot_DuplicateSlotId");
+            try
+            {
+                PlayerSlotDeclaration first = CreatePlayerSlot(root, "Duplicate PlayerSlot A", "player.1", null);
+                PlayerSlotDeclaration second = CreatePlayerSlot(root, "Duplicate PlayerSlot B", "player.1", null);
+                PlayerSlotSet set = PlayerSlotValidator.ValidateDeclarations(
+                    new[] { first, second },
+                    Array.Empty<PlayerSlotOccupancy>(),
+                    nameof(QaPlayerIdentityPanel),
+                    "qa.player-slot.duplicate-slot-id");
+
+                bool passed = set.Failed && ContainsIssue(set, PlayerSlotSetIssueKind.DuplicatePlayerSlotId, blocking: true);
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "Duplicate PlayerSlotId PASS. Validator emitted blocking DuplicatePlayerSlotId."
+                        : "Duplicate PlayerSlotId failed. " + set.ToDiagnosticString());
+            }
+            finally
+            {
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunValidOccupancyCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_PlayerSlot_ValidOccupancy");
+            try
+            {
+                ActorDeclaration actor = CreateActor(
+                    root,
+                    "Valid Occupied Actor",
+                    "qa.actor.player.slot.valid",
+                    ActorKind.Player,
+                    ActorRole.Protagonist);
+
+                PlayerSlotDeclaration slot = CreatePlayerSlot(root, "Valid Occupancy PlayerSlot", "player.1", null);
+                PlayerSlotOccupancy occupancy = CreateOccupancy(root, "Valid PlayerSlot Occupancy", "player.1", actor, string.Empty);
+
+                PlayerSlotSet set = PlayerSlotValidator.ValidateDeclarations(
+                    new[] { slot },
+                    new[] { occupancy },
+                    nameof(QaPlayerIdentityPanel),
+                    "qa.player-slot.valid-occupancy");
+
+                bool passed = set.Succeeded
+                    && set.Count == 1
+                    && set.OccupancyCount == 1;
+
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "Valid PlayerSlot Occupancy PASS. PlayerSlotId resolves to ActorDeclaration ActorId."
+                        : "Valid PlayerSlot Occupancy failed. " + set.ToDiagnosticString());
+            }
+            finally
+            {
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunMissingOccupiedActorCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_PlayerSlot_MissingOccupiedActor");
+            try
+            {
+                PlayerSlotOccupancy occupancy = CreateOccupancy(root, "Missing Occupied Actor", "player.1", null, string.Empty);
+                PlayerSlotSet set = PlayerSlotValidator.ValidateDeclarations(
+                    Array.Empty<PlayerSlotDeclaration>(),
+                    new[] { occupancy },
+                    nameof(QaPlayerIdentityPanel),
+                    "qa.player-slot.missing-occupied-actor");
+
+                bool passed = set.Failed && ContainsIssue(set, PlayerSlotSetIssueKind.MissingOccupiedActor, blocking: true);
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "Missing Occupied Actor PASS. Validator emitted blocking MissingOccupiedActor."
+                        : "Missing Occupied Actor failed. " + set.ToDiagnosticString());
+            }
+            finally
+            {
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunInvalidOccupiedActorIdCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_PlayerSlot_InvalidOccupiedActorId");
+            try
+            {
+                ActorDeclaration invalidActor = CreateActor(
+                    root,
+                    "Invalid Occupied ActorId",
+                    string.Empty,
+                    ActorKind.Player,
+                    ActorRole.Protagonist);
+
+                PlayerSlotOccupancy occupancy = CreateOccupancy(root, "Invalid Occupied ActorId Occupancy", "player.1", invalidActor, string.Empty);
+                PlayerSlotSet set = PlayerSlotValidator.ValidateDeclarations(
+                    Array.Empty<PlayerSlotDeclaration>(),
+                    new[] { occupancy },
+                    nameof(QaPlayerIdentityPanel),
+                    "qa.player-slot.invalid-occupied-actor-id");
+
+                bool hasInvalidActorId = ContainsIssue(set, PlayerSlotSetIssueKind.InvalidOccupiedActorId, blocking: true);
+                bool hasMissingActor = ContainsIssue(set, PlayerSlotSetIssueKind.MissingOccupiedActor, blocking: true);
+                bool passed = set.Failed && (hasInvalidActorId || hasMissingActor);
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "Invalid Occupied ActorId PASS. Validator emitted: " + GetIssueKinds(set)
+                        : "Invalid Occupied ActorId failed. " + set.ToDiagnosticString());
+            }
+            finally
+            {
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunDuplicateOccupancyCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_PlayerSlot_DuplicateOccupancy");
+            try
+            {
+                ActorDeclaration firstActor = CreateActor(
+                    root,
+                    "Duplicate Occupancy Actor A",
+                    "qa.actor.player.slot.duplicate.a",
+                    ActorKind.Player,
+                    ActorRole.Protagonist);
+
+                ActorDeclaration secondActor = CreateActor(
+                    root,
+                    "Duplicate Occupancy Actor B",
+                    "qa.actor.player.slot.duplicate.b",
+                    ActorKind.NonPlayer,
+                    ActorRole.Ally);
+
+                PlayerSlotOccupancy first = CreateOccupancy(root, "Duplicate Occupancy A", "player.1", firstActor, string.Empty);
+                PlayerSlotOccupancy second = CreateOccupancy(root, "Duplicate Occupancy B", "player.1", secondActor, string.Empty);
+
+                PlayerSlotSet set = PlayerSlotValidator.ValidateDeclarations(
+                    Array.Empty<PlayerSlotDeclaration>(),
+                    new[] { first, second },
+                    nameof(QaPlayerIdentityPanel),
+                    "qa.player-slot.duplicate-occupancy");
+
+                bool passed = set.Failed && ContainsIssue(set, PlayerSlotSetIssueKind.DuplicatePlayerSlotOccupancy, blocking: true);
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "Duplicate PlayerSlot Occupancy PASS. Validator emitted blocking DuplicatePlayerSlotOccupancy."
+                        : "Duplicate PlayerSlot Occupancy failed. " + set.ToDiagnosticString());
+            }
+            finally
+            {
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunAllPlayerSlotChecks()
+        {
+            QaCheckResult[] results =
+            {
+                RunValidPlayerSlotCheck(),
+                RunInvalidPlayerSlotIdCheck(),
+                RunDuplicatePlayerSlotIdCheck(),
+                RunValidOccupancyCheck(),
+                RunMissingOccupiedActorCheck(),
+                RunInvalidOccupiedActorIdCheck(),
+                RunDuplicateOccupancyCheck()
+            };
+
+            return FormatAggregateResult("Run All PlayerSlot QA", results);
+        }
+
         private static ActorDeclaration CreateActor(
             GameObject root,
             string displayName,
@@ -287,6 +592,41 @@ namespace ImmersiveFrameworkQA.Player
             SetPrivateField(declaration, "displayName", displayName);
             SetPrivateField(declaration, "reason", "qa.actor.identity.synthetic");
             return declaration;
+        }
+
+        private static PlayerSlotDeclaration CreatePlayerSlot(
+            GameObject root,
+            string displayName,
+            string slotId,
+            PlayerInput inputEvidence)
+        {
+            GameObject slotObject = new GameObject(displayName);
+            slotObject.transform.SetParent(root.transform, false);
+            PlayerSlotDeclaration declaration = slotObject.AddComponent<PlayerSlotDeclaration>();
+            SetPrivateField(declaration, "slotId", slotId);
+            SetPrivateField(declaration, "displayName", displayName);
+            SetPrivateField(declaration, "playerInput", inputEvidence);
+            SetPrivateField(declaration, "reason", "qa.player-slot.synthetic");
+            return declaration;
+        }
+
+        private static PlayerSlotOccupancy CreateOccupancy(
+            GameObject root,
+            string displayName,
+            string slotId,
+            ActorDeclaration actorDeclaration,
+            string occupiedActorId)
+        {
+            GameObject occupancyObject = new GameObject(displayName);
+            occupancyObject.transform.SetParent(root.transform, false);
+            PlayerSlotOccupancy occupancy = occupancyObject.AddComponent<PlayerSlotOccupancy>();
+            SetPrivateField(occupancy, "slotDeclaration", (PlayerSlotDeclaration)null);
+            SetPrivateField(occupancy, "slotId", slotId);
+            SetPrivateField(occupancy, "actorDeclaration", actorDeclaration);
+            SetPrivateField(occupancy, "occupiedActorId", occupiedActorId);
+            SetPrivateField(occupancy, "displayName", displayName);
+            SetPrivateField(occupancy, "reason", "qa.player-slot.occupancy.synthetic");
+            return occupancy;
         }
 
         private static bool ContainsIssue(ActorSet set, ActorSetIssueKind kind, bool blocking)
@@ -306,6 +646,63 @@ namespace ImmersiveFrameworkQA.Player
             }
 
             return false;
+        }
+
+        private static bool ContainsIssue(PlayerSlotSet set, PlayerSlotSetIssueKind kind, bool blocking)
+        {
+            if (set == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < set.Issues.Count; i++)
+            {
+                PlayerSlotSetIssue issue = set.Issues[i];
+                if (issue.Kind == kind && issue.Blocking == blocking)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static string GetIssueKinds(PlayerSlotSet set)
+        {
+            if (set == null || set.Issues.Count == 0)
+            {
+                return "<none>";
+            }
+
+            var builder = new StringBuilder();
+            for (int i = 0; i < set.Issues.Count; i++)
+            {
+                if (i > 0)
+                {
+                    builder.Append(", ");
+                }
+
+                builder.Append(set.Issues[i].Kind);
+                builder.Append(set.Issues[i].Blocking ? " blocking" : " non-blocking");
+            }
+
+            return builder.ToString();
+        }
+
+        private static QaCheckResult FormatAggregateResult(string title, QaCheckResult[] results)
+        {
+            bool passed = true;
+            var builder = new StringBuilder();
+            builder.AppendLine(title);
+            for (int i = 0; i < results.Length; i++)
+            {
+                passed &= results[i].Passed;
+                builder.Append(results[i].Passed ? "PASS" : "FAIL");
+                builder.Append(" - ");
+                builder.AppendLine(results[i].Message);
+            }
+
+            return new QaCheckResult(passed, builder.ToString().TrimEnd());
         }
 
         private static GameObject CreateSyntheticRoot(string name)
@@ -345,18 +742,29 @@ namespace ImmersiveFrameworkQA.Player
 
         private void SetResult(QaCheckResult result)
         {
+            SetResult(result, "[QA_ACTOR_IDENTITY]");
+        }
+
+        private void SetPlayerSlotResult(QaCheckResult result)
+        {
+            SetResult(result, "[QA_PLAYER_SLOT]");
+        }
+
+        private void SetResult(QaCheckResult result, string logPrefix)
+        {
             _lastPassed = result.Passed;
             _lastResult = result.Message;
+            string prefix = string.IsNullOrWhiteSpace(logPrefix) ? "[QA_PLAYER_IDENTITY]" : logPrefix;
 
             if (result.Passed)
             {
                 _passCount++;
-                Debug.Log("[QA_ACTOR_IDENTITY] " + result.Message, this);
+                Debug.Log(prefix + " " + result.Message, this);
             }
             else
             {
                 _failCount++;
-                Debug.LogWarning("[QA_ACTOR_IDENTITY] " + result.Message, this);
+                Debug.LogWarning(prefix + " " + result.Message, this);
             }
 
             RefreshTexts();
@@ -364,7 +772,7 @@ namespace ImmersiveFrameworkQA.Player
 
         private void RefreshTexts()
         {
-            string summary = $"Actor Identity QA | passes={_passCount} failures={_failCount}";
+            string summary = $"Actor + PlayerSlot Identity QA | passes={_passCount} failures={_failCount}";
             if (summaryText != null)
             {
                 summaryText.text = summary;
@@ -390,6 +798,9 @@ namespace ImmersiveFrameworkQA.Player
             GUILayout.TextArea(_lastResult, GUILayout.MinHeight(120f));
             GUILayout.Space(8f);
 
+            _scrollPosition = GUILayout.BeginScrollView(_scrollPosition, GUILayout.Height(Mathf.Max(260f, panelRect.height - 190f)));
+
+            GUILayout.Label("Actor Identity");
             if (GUILayout.Button("Run Valid Actor QA", GUILayout.Height(32f)))
             {
                 RunValidActorQa();
@@ -414,6 +825,55 @@ namespace ImmersiveFrameworkQA.Player
             {
                 RunAllActorIdentityQa();
             }
+
+            GUILayout.Space(8f);
+            GUILayout.Label("PlayerSlot Identity");
+            if (GUILayout.Button("Run Valid PlayerSlot QA", GUILayout.Height(32f)))
+            {
+                RunValidPlayerSlotQa();
+            }
+
+            if (GUILayout.Button("Run Invalid PlayerSlotId QA", GUILayout.Height(32f)))
+            {
+                RunInvalidPlayerSlotIdQa();
+            }
+
+            if (GUILayout.Button("Run Duplicate PlayerSlotId QA", GUILayout.Height(32f)))
+            {
+                RunDuplicatePlayerSlotIdQa();
+            }
+
+            if (GUILayout.Button("Run Valid Occupancy QA", GUILayout.Height(32f)))
+            {
+                RunValidOccupancyQa();
+            }
+
+            if (GUILayout.Button("Run Missing Occupied Actor QA", GUILayout.Height(32f)))
+            {
+                RunMissingOccupiedActorQa();
+            }
+
+            if (GUILayout.Button("Run Invalid Occupied ActorId QA", GUILayout.Height(32f)))
+            {
+                RunInvalidOccupiedActorIdQa();
+            }
+
+            if (GUILayout.Button("Run Duplicate Occupancy QA", GUILayout.Height(32f)))
+            {
+                RunDuplicateOccupancyQa();
+            }
+
+            if (GUILayout.Button("Run All PlayerSlot QA", GUILayout.Height(36f)))
+            {
+                RunAllPlayerSlotQa();
+            }
+
+            if (GUILayout.Button("Run All Actor + PlayerSlot QA", GUILayout.Height(36f)))
+            {
+                RunAllActorAndPlayerSlotQa();
+            }
+
+            GUILayout.EndScrollView();
 
             GUILayout.Space(8f);
             GUI.enabled = backToHubTrigger != null;
