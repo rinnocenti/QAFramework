@@ -100,8 +100,10 @@ O `Active Game Application` normal do projeto deve permanecer apontado para o as
 - `Audio/Scenes/QA_FrameworkBgm.unity`
 - `Audio/Scenes/QA_FrameworkBgmRouteB.unity`
 - `Player/Scenes/QA_PlayerIdentity.unity`
+- `Player/Scenes/QA_PlayerSlotWiring.unity`
 
 `Player/Scenes/QA_PlayerIdentity.unity` e placeholder sintetico: nao contem `PlayerSlot`, `ActorRegistry`, Actor runtime, FIRSTGAME ou gameplay real.
+`Player/Scenes/QA_PlayerSlotWiring.unity` prova o wiring canonico F48C de `PlayerInput`, `PlayerSlotDeclaration`, `PlayerActorDeclaration`, `PlayerSlotOccupancy`, `UnityPlayerInputGateAdapter.sourceSlot` e `UnityResetSubjectAdapter.sourcePlayerActor`.
 
 `Camera/Scenes/QA_Camera.unity` e `Camera/Scenes/QA_CameraRouteB.unity` pertencem ao modulo Camera. Camera QA nao usa cenas de Lifecycle como backend.
 
@@ -128,6 +130,7 @@ Use o Hub para navegar entre as superficies QA:
 - Pooling QA
 - Framework BGM QA
 - Player Identity QA
+- F48C PlayerSlot Wiring QA
 
 O smoke de Activity Content positivo so deve ser usado em uma cena QA ou em uma cena que tenha `ActivityContentBinding` apontando explicitamente para uma Activity QA.
 
