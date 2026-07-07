@@ -277,6 +277,7 @@ MonoBehaviour:
     routeRequestTrigger: {fileID: 987650002}
   title: QA Navigation
   showPanel: 1
+  restrictToActiveScene: 1
   panelRect:
     serializedVersion: 2
     x: 16

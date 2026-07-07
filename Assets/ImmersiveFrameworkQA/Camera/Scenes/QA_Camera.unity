@@ -250,10 +250,9 @@ MonoBehaviour:
   secondaryActivityTrigger: {fileID: 196021480}
   routeFallbackActivityTrigger: {fileID: 1841745538}
   clearActivityTrigger: {fileID: 1961462976}
-  relatedPanelObjects: []
-  closeRelatedPanelsOnStart: 1
   title: QA Camera Canonical
   showPanel: 1
+  restrictToCameraScene: 1
   panelRect:
     serializedVersion: 2
     x: 16
@@ -529,18 +528,6 @@ MonoBehaviour:
   setRigActiveState: 1
   rigApplier: {fileID: 374803799}
   logTransitions: 1
---- !u!114 &374803799
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 374803794}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6b00bd2bc2764a0a951760ca6da056ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Camera.Cinemachine::Immersive.Framework.Camera.Cinemachine.FrameworkCinemachineRigApplier
 --- !u!114 &374803796
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -587,6 +574,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &374803799
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 374803794}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b00bd2bc2764a0a951760ca6da056ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Camera.Cinemachine::Immersive.Framework.Camera.Cinemachine.FrameworkCinemachineRigApplier
 --- !u!1 &455472097
 GameObject:
   m_ObjectHideFlags: 0
@@ -1566,6 +1565,7 @@ MonoBehaviour:
     routeRequestTrigger: {fileID: 987650002}
   title: QA Navigation
   showPanel: 1
+  restrictToActiveScene: 1
   panelRect:
     serializedVersion: 2
     x: 16

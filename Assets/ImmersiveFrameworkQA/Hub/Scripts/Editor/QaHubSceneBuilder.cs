@@ -28,8 +28,9 @@ namespace ImmersiveFrameworkQA.Hub.Editor
         private const string CameraSceneBPath = Root + "/Camera/Scenes/QA_CameraRouteB.unity";
         private const string PoolingRoutePath = Root + "/Pooling/Routes/QA_PoolingRoute.asset";
         private const string PoolingScenePath = Root + "/Pooling/Scenes/QA_Pooling.unity";
-        private const string AudioRoutePath = Root + "/Audio/Routes/QA_AudioRoute.asset";
-        private const string AudioScenePath = Root + "/Audio/Scenes/QA_Audio.unity";
+        private const string FrameworkBgmRoutePath = Root + "/Audio/Routes/QA_FrameworkBgmRoute.asset";
+        private const string FrameworkBgmScenePath = Root + "/Audio/Scenes/QA_FrameworkBgm.unity";
+        private const string FrameworkBgmRouteBScenePath = Root + "/Audio/Scenes/QA_FrameworkBgmRouteB.unity";
         private const string PlayerIdentityRoutePath = PlayerRoot + "/Routes/QA_PlayerIdentityRoute.asset";
 
         private static readonly HubTarget[] Targets =
@@ -38,7 +39,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             new HubTarget("Unity Build Surface QA", UnityBuildSurfaceRoutePath),
             new HubTarget("Camera QA", CameraRoutePath),
             new HubTarget("Pooling QA", PoolingRoutePath),
-            new HubTarget("Audio QA", AudioRoutePath),
+            new HubTarget("Framework BGM QA", FrameworkBgmRoutePath),
             new HubTarget("Player Identity QA", PlayerIdentityRoutePath)
         };
 
@@ -53,7 +54,8 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             ConfigureBackToHubPanelInScene(CameraScenePath, new Rect(16f, 620f, 360f, 92f));
             ConfigureBackToHubPanelInScene(CameraSceneBPath, new Rect(16f, 620f, 360f, 92f));
             ConfigureBackToHubPanelInScene(PoolingScenePath, new Rect(500f, 16f, 360f, 92f));
-            ConfigureBackToHubPanelInScene(AudioScenePath, new Rect(590f, 16f, 360f, 92f));
+            ConfigureBackToHubPanelInScene(FrameworkBgmScenePath, new Rect(590f, 16f, 360f, 92f));
+            ConfigureBackToHubPanelInScene(FrameworkBgmRouteBScenePath, new Rect(590f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(UnityBuildSurfaceScenePath, new Rect(16f, 140f, 360f, 92f));
 
             AssetDatabase.SaveAssets();

@@ -97,7 +97,8 @@ O `Active Game Application` normal do projeto deve permanecer apontado para o as
 - `UnityBuildSurface/Scenes/TransitionRouteB.unity`
 - `UnityBuildSurface/Scenes/ActivityAdditionalContent.unity`
 - `Pooling/Scenes/QA_Pooling.unity`
-- `Audio/Scenes/QA_Audio.unity`
+- `Audio/Scenes/QA_FrameworkBgm.unity`
+- `Audio/Scenes/QA_FrameworkBgmRouteB.unity`
 - `Player/Scenes/QA_PlayerIdentity.unity`
 
 `Player/Scenes/QA_PlayerIdentity.unity` e placeholder sintetico: nao contem `PlayerSlot`, `ActorRegistry`, Actor runtime, FIRSTGAME ou gameplay real.
@@ -111,7 +112,7 @@ O `Active Game Application` normal do projeto deve permanecer apontado para o as
 - `Lifecycle/Routes/QA_LifecycleRouteB`
 - `Camera/Routes/QA_CameraRoute`
 - `Pooling/Routes/QA_PoolingRoute`
-- `Audio/Routes/QA_AudioRoute`
+- `Audio/Routes/QA_FrameworkBgmRoute`
 - `UnityBuildSurface/Routes/QA_UnityBuildSurfaceRoute`
 - `Player/Routes/QA_PlayerIdentityRoute`
 
@@ -125,7 +126,7 @@ Use o Hub para navegar entre as superficies QA:
 - Unity Build Surface QA
 - Camera QA
 - Pooling QA
-- Audio QA
+- Framework BGM QA
 - Player Identity QA
 
 O smoke de Activity Content positivo so deve ser usado em uma cena QA ou em uma cena que tenha `ActivityContentBinding` apontando explicitamente para uma Activity QA.

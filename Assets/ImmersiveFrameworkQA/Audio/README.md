@@ -1,32 +1,35 @@
 # Audio QA Harness
 
-This QA area validates `com.immersive.audio` as an independent package consumer.
+This QA area has two separate scopes:
 
-It does not validate gameplay and does not require `FrameworkRuntimeHost`. The framework boot may be skipped when the scene is played in `Current Scene Only` mode.
+- `QA_FrameworkBgm` is the canonical framework QA route for the optional `Immersive.Framework.Audio` adapter.
+- `QA_Audio` is the lower-level package smoke for `com.immersive.audio` primitives.
 
-## Canonical Flow
+## Canonical Framework BGM Flow
 
-Use this flow:
+Use this flow for F47D+ validation:
+
+```text
+1. Immersive Framework QA > Audio > Configure Framework BGM Route-Activity QA
+2. Immersive Framework QA > Hub > Create or Refresh Hub and Player QA Scenes
+3. Open Assets/ImmersiveFrameworkQA/Hub/Scenes/QA_Hub.unity
+4. Enter Play Mode through the framework QA flow
+5. Click Framework BGM QA in the Hub
+6. Use the QA Framework BGM panel buttons from top to bottom
+7. Watch [FRAMEWORK_BGM] logs and panel diagnostics
+```
+
+The create/refresh command also ensures generated WAV clips and assigns them to positive cues. The separate `Immersive Framework QA > Audio > Repair Generated Audio Clips` menu remains available as a maintenance tool, but it is not a required setup step.
+
+## Direct Audio Package Flow
+
+Use this only when validating `com.immersive.audio` primitives directly:
 
 ```text
 1. Immersive Framework QA > Audio > Create or Refresh Audio QA Scene
 2. Open Assets/ImmersiveFrameworkQA/Audio/Scenes/QA_Audio.unity
 3. Enter Play Mode
 4. Run All Audio Smokes
-```
-
-The create/refresh command also ensures generated WAV clips and assigns them to positive cues. The separate `Immersive Framework QA > Audio > Repair Generated Audio Clips` menu remains available as a maintenance tool, but it is not a required setup step.
-
-## Framework BGM Route/Activity Flow
-
-Use this flow to validate the optional `Immersive.Framework.Audio` adapter:
-
-```text
-1. Immersive Framework QA > Audio > Configure Framework BGM Route-Activity QA
-2. Open Assets/ImmersiveFrameworkQA/Audio/Scenes/QA_FrameworkBgm.unity
-3. Enter Play Mode through the framework QA flow
-4. Use the QA Framework BGM panel buttons from top to bottom
-5. Watch [FRAMEWORK_BGM] logs and panel diagnostics
 ```
 
 The Framework BGM fixture uses official components only:
