@@ -32,6 +32,8 @@ namespace ImmersiveFrameworkQA.Hub.Editor
         private const string FrameworkBgmScenePath = Root + "/Audio/Scenes/QA_FrameworkBgm.unity";
         private const string FrameworkBgmRouteBScenePath = Root + "/Audio/Scenes/QA_FrameworkBgmRouteB.unity";
         private const string PlayerIdentityRoutePath = PlayerRoot + "/Routes/QA_PlayerIdentityRoute.asset";
+        private const string PlayerSlotWiringRoutePath = PlayerRoot + "/Routes/QA_PlayerSlotWiringRoute.asset";
+        private const string PlayerSlotWiringScenePath = PlayerRoot + "/Scenes/QA_PlayerSlotWiring.unity";
 
         private static readonly HubTarget[] Targets =
         {
@@ -40,15 +42,17 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             new HubTarget("Camera QA", CameraRoutePath),
             new HubTarget("Pooling QA", PoolingRoutePath),
             new HubTarget("Framework BGM QA", FrameworkBgmRoutePath),
-            new HubTarget("Player Identity QA", PlayerIdentityRoutePath)
+            new HubTarget("Player Identity QA", PlayerIdentityRoutePath),
+            new HubTarget("Player Slot Wiring QA", PlayerSlotWiringRoutePath, "qa.hub.route.player_slot_wiring_qa")
         };
 
         [MenuItem("Immersive Framework QA/Hub/Create or Refresh Hub and Player QA Scenes")]
         public static void CreateOrRefreshHubAndPlayerScenes()
         {
             EnsureFolders();
-            CreateHubScene();
             CreatePlayerIdentityScene();
+            CreatePlayerSlotWiringScene();
+            CreateHubScene();
             ConfigureBackToHubPanelInScene(LifecycleSceneAPath, new Rect(16f, 620f, 360f, 92f));
             ConfigureBackToHubPanelInScene(LifecycleSceneBPath, new Rect(16f, 620f, 360f, 92f));
             ConfigureBackToHubPanelInScene(CameraScenePath, new Rect(16f, 620f, 360f, 92f));
@@ -57,10 +61,11 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             ConfigureBackToHubPanelInScene(FrameworkBgmScenePath, new Rect(590f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(FrameworkBgmRouteBScenePath, new Rect(590f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(UnityBuildSurfaceScenePath, new Rect(16f, 140f, 360f, 92f));
+            ConfigureBackToHubPanelInScene(PlayerSlotWiringScenePath, new Rect(16f, 16f, 360f, 92f));
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[QA_HUB] Hub and Player Identity QA scenes created or refreshed.");
+            Debug.Log("[QA_HUB] Hub and Player QA scenes created or refreshed.");
         }
 
         private static void EnsureFolders()
@@ -139,6 +144,11 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             QaPlayerIdentitySceneBuilder.CreateOrRefreshPlayerIdentityScene();
         }
 
+        private static void CreatePlayerSlotWiringScene()
+        {
+            QaPlayerSlotWiringSceneBuilder.CreateOrRefreshPlayerSlotWiringScene();
+        }
+
         private static void CreateCamera(string name, Color backgroundColor)
         {
             GameObject cameraObject = new GameObject(name);
@@ -171,7 +181,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
 
             SerializedObject serialized = new SerializedObject(trigger);
             serialized.FindProperty("targetRoute").objectReferenceValue = route;
-            serialized.FindProperty("reason").stringValue = "qa.hub.route." + SanitizeName(target.Label).ToLowerInvariant();
+            serialized.FindProperty("reason").stringValue = target.GetReason();
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(trigger);
             return trigger;
@@ -258,14 +268,23 @@ namespace ImmersiveFrameworkQA.Hub.Editor
 
         private readonly struct HubTarget
         {
-            public HubTarget(string label, string routePath)
+            public HubTarget(string label, string routePath, string reason = null)
             {
                 Label = label;
                 RoutePath = routePath;
+                Reason = reason;
             }
 
             public string Label { get; }
             public string RoutePath { get; }
+            public string Reason { get; }
+
+            public string GetReason()
+            {
+                return string.IsNullOrWhiteSpace(Reason)
+                    ? "qa.hub.route." + SanitizeName(Label).ToLowerInvariant()
+                    : Reason;
+            }
         }
     }
 }

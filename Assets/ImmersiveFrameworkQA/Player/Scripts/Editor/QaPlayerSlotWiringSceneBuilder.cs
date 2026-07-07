@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using Immersive.Framework.Actors;
+using Immersive.Framework.Authoring;
+using Immersive.Framework.GameFlow;
 using Immersive.Framework.PlayerSlots;
 using Immersive.Framework.Reset;
 using Immersive.Framework.Reset.Unity;
@@ -19,12 +21,24 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private const string Root = "Assets/ImmersiveFrameworkQA/Player";
         private const string ScenePath = Root + "/Scenes/QA_PlayerSlotWiring.unity";
         private const string InputActionsPath = Root + "/Input/QA_PlayerSlotWiring_InputActions.asset";
+        private const string RoutePath = Root + "/Routes/QA_PlayerSlotWiringRoute.asset";
+        private const string ActivityPath = Root + "/Activities/QA_PlayerSlotWiringActivity.asset";
 
         [MenuItem("Immersive Framework QA/Player/Create or Refresh F48C PlayerSlot Wiring QA Scene")]
         public static void CreateOrRefreshPlayerSlotWiringScene()
         {
             EnsureFolders();
             InputActionAsset inputActions = EnsureInputActions();
+            ActivityAsset activity = CreateActivityAsset(
+                ActivityPath,
+                "QA PlayerSlot Wiring Activity",
+                "F48C PlayerSlot wiring QA activity.");
+            CreateRouteAsset(
+                RoutePath,
+                "QA PlayerSlot Wiring Route",
+                ScenePath,
+                "F48C PlayerSlot wiring QA route.",
+                activity);
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             scene.name = "QA_PlayerSlotWiring";
@@ -172,6 +186,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             EnsureFolder("Assets/ImmersiveFrameworkQA", "Player");
             EnsureFolder(Root, "Scenes");
             EnsureFolder(Root, "Input");
+            EnsureFolder(Root, "Routes");
+            EnsureFolder(Root, "Activities");
             EnsureFolder(Root, "Scripts");
             EnsureFolder(Root + "/Scripts", "Runtime");
             EnsureFolder(Root + "/Scripts", "Editor");
@@ -184,6 +200,56 @@ namespace ImmersiveFrameworkQA.Player.Editor
             {
                 AssetDatabase.CreateFolder(parent, child);
             }
+        }
+
+        private static RouteAsset CreateRouteAsset(string assetPath, string routeName, string scenePath, string description, ActivityAsset startupActivity)
+        {
+            RouteAsset asset = LoadOrCreate<RouteAsset>(assetPath);
+            SerializedObject serialized = new SerializedObject(asset);
+            SetSerialized(serialized, "routeName", routeName);
+            SetSerialized(serialized, "primaryScenePath", scenePath);
+            SetSerialized(serialized, "primarySceneName", Path.GetFileNameWithoutExtension(scenePath));
+            SetSerialized(serialized, "startupActivity", startupActivity);
+            SetSerialized(serialized, "description", description);
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(asset);
+            return asset;
+        }
+
+        private static ActivityAsset CreateActivityAsset(string assetPath, string activityName, string description)
+        {
+            ActivityAsset asset = LoadOrCreate<ActivityAsset>(assetPath);
+            SerializedObject serialized = new SerializedObject(asset);
+            SetSerialized(serialized, "activityName", activityName);
+            SetSerialized(serialized, "description", description);
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(asset);
+            return asset;
+        }
+
+        private static T LoadOrCreate<T>(string assetPath) where T : ScriptableObject
+        {
+            T existing = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            T asset = ScriptableObject.CreateInstance<T>();
+            AssetDatabase.CreateAsset(asset, assetPath);
+            return asset;
+        }
+
+        private static void SetSerialized(SerializedObject serialized, string propertyName, UnityEngine.Object value)
+        {
+            SerializedProperty property = FindProperty(serialized, propertyName);
+            property.objectReferenceValue = value;
+        }
+
+        private static void SetSerialized(SerializedObject serialized, string propertyName, string value)
+        {
+            SerializedProperty property = FindProperty(serialized, propertyName);
+            property.stringValue = value ?? string.Empty;
         }
 
         private static void SetString(Component component, string propertyName, string value)
@@ -242,6 +308,23 @@ namespace ImmersiveFrameworkQA.Player.Editor
             if (property == null)
             {
                 throw new InvalidOperationException($"Serialized property '{propertyName}' was not found on {component.GetType().Name}.");
+            }
+
+            return property;
+        }
+
+        private static SerializedProperty FindProperty(SerializedObject serialized, string propertyName)
+        {
+            if (serialized == null)
+            {
+                throw new ArgumentNullException(nameof(serialized));
+            }
+
+            SerializedProperty property = serialized.FindProperty(propertyName);
+            if (property == null)
+            {
+                string targetName = serialized.targetObject != null ? serialized.targetObject.GetType().Name : "<null>";
+                throw new InvalidOperationException($"Serialized property '{propertyName}' was not found on {targetName}.");
             }
 
             return property;

@@ -53,6 +53,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/ImmersiveFrameworkQA/Audio/Scenes/QA_FrameworkBgmRouteB.unity
     guid: 349abd4719c1dc44b8abb49c4c441880
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerSlotWiring.unity
+    guid: 243709a4e08f6474b90e9a988470d3d3
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

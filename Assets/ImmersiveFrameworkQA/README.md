@@ -117,6 +117,7 @@ O `Active Game Application` normal do projeto deve permanecer apontado para o as
 - `Audio/Routes/QA_FrameworkBgmRoute`
 - `UnityBuildSurface/Routes/QA_UnityBuildSurfaceRoute`
 - `Player/Routes/QA_PlayerIdentityRoute`
+- `Player/Routes/QA_PlayerSlotWiringRoute`
 
 Esses nomes representam papeis de teste, nao nomes de gameplay.
 
@@ -130,9 +131,22 @@ Use o Hub para navegar entre as superficies QA:
 - Pooling QA
 - Framework BGM QA
 - Player Identity QA
-- F48C PlayerSlot Wiring QA
+- Player Slot Wiring QA
 
 O smoke de Activity Content positivo so deve ser usado em uma cena QA ou em uma cena que tenha `ActivityContentBinding` apontando explicitamente para uma Activity QA.
+
+## F48C PlayerSlot Wiring QA
+
+Fluxo canonico:
+
+1. Rodar `Immersive Framework QA > Player > Create or Refresh F48C PlayerSlot Wiring QA Scene`.
+2. Rodar `Immersive Framework QA > Hub > Create or Refresh Hub and Player QA Scenes`.
+3. Abrir `Hub/Scenes/QA_Hub.unity`.
+4. Entrar em Play.
+5. Clicar `Player Slot Wiring QA`.
+6. Conferir logs `[F48C_PLAYER_SLOT_WIRING_QA]`.
+
+Nao use `Current Scene Only` como caminho canonico deste smoke. A fixture F48C precisa entrar pelo fluxo normal do framework para usar `FrameworkRuntimeHost`.
 
 ## Reset baseline
 
