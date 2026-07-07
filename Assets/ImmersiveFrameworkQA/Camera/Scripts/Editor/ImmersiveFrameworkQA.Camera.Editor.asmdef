@@ -4,6 +4,7 @@
   "references": [
     "ImmersiveFrameworkQA.Camera.Runtime",
     "Immersive.Framework.Runtime",
+    "Immersive.Framework.Camera.Cinemachine",
     "Unity.Cinemachine"
   ],
   "includePlatforms": [

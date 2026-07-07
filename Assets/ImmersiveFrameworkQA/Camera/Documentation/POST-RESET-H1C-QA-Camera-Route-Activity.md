@@ -6,10 +6,11 @@ This cut corrects the target of the first camera workstream: camera validation s
 
 - `ImmersiveFrameworkQA.Camera.Runtime`
 - `ImmersiveFrameworkQA.Camera.Editor`
-- `QaCameraDirector`
-- `QaRouteCameraBinding`
-- `QaActivityCameraBinding`
-- `QaCameraAnchorHost`
+- `FrameworkCameraDirector`
+- `FrameworkRouteCameraBinding`
+- `FrameworkActivityCameraBinding`
+- `FrameworkCameraAnchorHost`
+- `FrameworkCinemachineRigApplier`
 - `QaCameraRouteActivityPanel`
 - `QaCameraRouteActivitySceneBuilder`
 
@@ -60,7 +61,19 @@ Added panel sections:
 - Director Diagnostics
 - Trigger Diagnostics
 
-The panel now shows the current effective camera rig, source, priority, route rig, activity rig, retained rig, active policy, and trigger outcomes. The configurator links the `QaCameraDirector` to the panel and keeps the Camera QA panel focused on Camera-only route/activity controls.
+The panel now shows the current effective camera rig, source, priority, route rig, activity rig, retained rig, active policy, and trigger outcomes. The configurator links the `FrameworkCameraDirector` to the panel and keeps the Camera QA panel focused on Camera-only route/activity controls.
+
+## Update - F46D
+
+The QA Camera smoke now consumes the official framework camera components directly:
+
+- `FrameworkCameraDirector`
+- `FrameworkRouteCameraBinding`
+- `FrameworkActivityCameraBinding`
+- `FrameworkCameraAnchorHost`
+- `FrameworkCinemachineRigApplier`
+
+The previous QA-only camera director, route binding, activity binding, anchor host, and activity camera policy were removed so the QA scene validates the package surface instead of duplicate QA runtime logic.
 
 ## Update — POST-RESET-H1F
 

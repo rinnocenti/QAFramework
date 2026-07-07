@@ -2,8 +2,7 @@
   "name": "ImmersiveFrameworkQA.Camera.Runtime",
   "rootNamespace": "ImmersiveFrameworkQA.Camera",
   "references": [
-    "Immersive.Framework.Runtime",
-    "Unity.Cinemachine"
+    "Immersive.Framework.Runtime"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

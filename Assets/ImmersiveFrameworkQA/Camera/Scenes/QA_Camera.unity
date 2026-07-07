@@ -470,9 +470,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 328499226}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6709e6610d2048baa9c3ca2f18d2cc3b, type: 3}
+  m_Script: {fileID: 11500000, guid: e070a4b770b14d9bb0cf658fb5a30173, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: ImmersiveFrameworkQA.Camera.Runtime::ImmersiveFrameworkQA.Camera.QaCameraAnchorHost
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.FrameworkCameraAnchorHost
   trackingTarget: {fileID: 785582426}
   lookAtTarget: {fileID: 785582426}
 --- !u!4 &328499228
@@ -501,6 +501,7 @@ GameObject:
   - component: {fileID: 374803798}
   - component: {fileID: 374803797}
   - component: {fileID: 374803795}
+  - component: {fileID: 374803799}
   - component: {fileID: 374803796}
   m_Layer: 0
   m_Name: QA_CameraRoot_Canonical
@@ -518,15 +519,28 @@ MonoBehaviour:
   m_GameObject: {fileID: 374803794}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4f46ce77d87487eb86155ac7ae4d7ec, type: 3}
+  m_Script: {fileID: 11500000, guid: bd366fd4ae22408caa7a98a8369e28a4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: ImmersiveFrameworkQA.Camera.Runtime::ImmersiveFrameworkQA.Camera.QaCameraDirector
-  operationalCamera: {fileID: 211823765}
-  cinemachineBrain: {fileID: 211823764}
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.FrameworkCameraDirector
   defaultCameraRig: {fileID: 1905949025}
+  defaultAnchors: {fileID: 328499227}
   routePriority: 20
   activityPriority: 100
+  setRigActiveState: 1
+  rigApplier: {fileID: 374803799}
   logTransitions: 1
+--- !u!114 &374803799
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 374803794}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b00bd2bc2764a0a951760ca6da056ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Camera.Cinemachine::Immersive.Framework.Camera.Cinemachine.FrameworkCinemachineRigApplier
 --- !u!114 &374803796
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -536,9 +550,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 374803794}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ecdf707b3a1b49978015d5fff0436667, type: 3}
+  m_Script: {fileID: 11500000, guid: 5135a38f2e374489a8f050b06202a348, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: ImmersiveFrameworkQA.Camera.Runtime::ImmersiveFrameworkQA.Camera.QaRouteCameraBinding
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.FrameworkRouteCameraBinding
   routeCameraRig: {fileID: 1905949025}
   routeAnchors: {fileID: 328499227}
   director: {fileID: 374803795}
@@ -854,9 +868,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 623394880}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8b485d6975f542358bbfbc3287890b6f, type: 3}
+  m_Script: {fileID: 11500000, guid: e71c46c946434d719dd5e84ea24f3f5a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: ImmersiveFrameworkQA.Camera.Runtime::ImmersiveFrameworkQA.Camera.QaActivityCameraBinding
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.FrameworkActivityCameraBinding
   assignedActivity: {fileID: 11400000, guid: c8cd17ebcd7447b4bac5a93a578469dc, type: 2}
   activityCameraRig: {fileID: 0}
   policy: 1
@@ -1660,9 +1674,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1444132433}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8b485d6975f542358bbfbc3287890b6f, type: 3}
+  m_Script: {fileID: 11500000, guid: e71c46c946434d719dd5e84ea24f3f5a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: ImmersiveFrameworkQA.Camera.Runtime::ImmersiveFrameworkQA.Camera.QaActivityCameraBinding
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.FrameworkActivityCameraBinding
   assignedActivity: {fileID: 11400000, guid: 785b279a258246e0a0d98342b2dfac9d, type: 2}
   activityCameraRig: {fileID: 0}
   policy: 2
@@ -1932,9 +1946,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1640796491}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8b485d6975f542358bbfbc3287890b6f, type: 3}
+  m_Script: {fileID: 11500000, guid: e71c46c946434d719dd5e84ea24f3f5a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: ImmersiveFrameworkQA.Camera.Runtime::ImmersiveFrameworkQA.Camera.QaActivityCameraBinding
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.FrameworkActivityCameraBinding
   assignedActivity: {fileID: 11400000, guid: 5adec5cded614ccfa35228ece876af92, type: 2}
   activityCameraRig: {fileID: 988864848}
   policy: 1

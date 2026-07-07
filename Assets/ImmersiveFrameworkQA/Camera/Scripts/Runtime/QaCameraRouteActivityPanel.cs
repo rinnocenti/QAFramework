@@ -1,4 +1,5 @@
 using System;
+using Immersive.Framework.Camera;
 using Immersive.Framework.GameFlow;
 using UnityEngine;
 
@@ -13,7 +14,7 @@ namespace ImmersiveFrameworkQA.Camera
     public sealed class QaCameraRouteActivityPanel : MonoBehaviour
     {
         [Header("Runtime")]
-        [SerializeField] private QaCameraDirector director;
+        [SerializeField] private FrameworkCameraDirector director;
 
         [Header("Route")]
         [SerializeField] private RouteRequestTrigger otherRouteTrigger;
@@ -46,7 +47,7 @@ namespace ImmersiveFrameworkQA.Camera
             ActivityRequestTrigger nextRouteFallbackActivityTrigger,
             ActivityRequestTrigger nextClearActivityTrigger,
             string nextTitle,
-            QaCameraDirector nextDirector)
+            FrameworkCameraDirector nextDirector)
         {
             otherRouteTrigger = nextOtherRouteTrigger;
             primaryActivityTrigger = nextPrimaryActivityTrigger;
@@ -238,12 +239,12 @@ namespace ImmersiveFrameworkQA.Camera
                 return;
             }
 
-            GUILayout.Label($"Effective Rig: {director.CurrentEffectiveRigName}");
-            GUILayout.Label($"Effective Source: {director.CurrentEffectiveSource}");
-            GUILayout.Label($"Effective Priority: {director.CurrentEffectivePriority}");
-            GUILayout.Label($"Route Rig: {director.CurrentRouteRigName}");
-            GUILayout.Label($"Activity Rig: {director.CurrentActivityRigName}");
-            GUILayout.Label($"Retained Activity Rig: {director.RetainedActivityRigName}");
+            GUILayout.Label($"Effective Rig: {FormatEffectiveCamera()}");
+            GUILayout.Label($"Effective Source: {FormatEffectiveSource()}");
+            GUILayout.Label($"Effective Priority: {FormatEffectivePriority()}");
+            GUILayout.Label($"Route Rig: {FormatRig(director.CurrentRouteRig)}");
+            GUILayout.Label($"Activity Rig: {FormatRig(director.CurrentActivityRig)}");
+            GUILayout.Label($"Retained Activity Rig: {FormatRig(director.RetainedActivityRigForCurrentRoute)}");
             GUILayout.Label($"Activity Binding Active: {director.HasActiveActivityCameraBinding}");
             GUILayout.Label($"Activity Policy: {director.CurrentActivityPolicy}");
         }
@@ -351,17 +352,45 @@ namespace ImmersiveFrameworkQA.Camera
 
         private string FormatEffectiveCamera()
         {
-            return director != null ? director.CurrentEffectiveRigName : "<director-missing>";
+            if (director == null)
+            {
+                return "<director-missing>";
+            }
+
+            FrameworkCameraRigDescriptor descriptor = director.CurrentEffectiveDescriptor;
+            return descriptor.IsValid ? descriptor.RigName : FormatRig(director.CurrentEffectiveRig);
         }
 
         private string FormatEffectiveSource()
         {
-            return director != null ? director.CurrentEffectiveSource : "<none>";
+            if (director == null)
+            {
+                return "<none>";
+            }
+
+            FrameworkCameraRigDescriptor descriptor = director.CurrentEffectiveDescriptor;
+            return descriptor.IsValid ? descriptor.Role.ToString() : "<none>";
+        }
+
+        private string FormatEffectivePriority()
+        {
+            if (director == null)
+            {
+                return "<none>";
+            }
+
+            FrameworkCameraRigDescriptor descriptor = director.CurrentEffectiveDescriptor;
+            return descriptor.IsValid ? descriptor.Priority.Priority.ToString() : "<none>";
         }
 
         private void SetManualAction(string message)
         {
             lastManualAction = string.IsNullOrWhiteSpace(message) ? "<none>" : message;
+        }
+
+        private static string FormatRig(GameObject rig)
+        {
+            return rig != null ? rig.name : "<none>";
         }
     }
 }

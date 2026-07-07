@@ -1,5 +1,7 @@
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Camera;
+using Immersive.Framework.Camera.Cinemachine;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.RouteLifecycle;
 using Unity.Cinemachine;
@@ -116,20 +118,21 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             }
 
             GameObject mainCamera = EnsureMainCamera(scene, mainCameraPosition, mainCameraRotation);
-            UnityEngine.Camera operationalCamera = EnsureComponent<UnityEngine.Camera>(mainCamera);
-            CinemachineBrain brain = EnsureComponent<CinemachineBrain>(mainCamera);
+            EnsureComponent<UnityEngine.Camera>(mainCamera);
+            EnsureComponent<CinemachineBrain>(mainCamera);
             EnsureDirectionalLight(scene, label == "Alternate" ? "QA_Camera_Light_Alternate" : "QA_Camera_Light_Canonical");
 
             GameObject target = EnsureTarget(scene, $"QA_Camera_Target_{label}", new Vector3(label == "Alternate" ? 6f : 0f, 1f, 0f));
             GameObject anchorsObject = EnsureRoot(scene, $"QA_Camera_Anchors_{label}");
-            QaCameraAnchorHost anchors = EnsureComponent<QaCameraAnchorHost>(anchorsObject);
+            FrameworkCameraAnchorHost anchors = EnsureComponent<FrameworkCameraAnchorHost>(anchorsObject);
             SetSerialized(anchors, "trackingTarget", target.transform);
             SetSerialized(anchors, "lookAtTarget", target.transform);
 
             GameObject root = EnsureRoot(scene, $"QA_CameraRoot_{label}");
             RouteContentBinding routeContentBinding = EnsureComponent<RouteContentBinding>(root);
-            QaCameraDirector director = EnsureComponent<QaCameraDirector>(root);
-            QaRouteCameraBinding routeCameraBinding = EnsureComponent<QaRouteCameraBinding>(root);
+            FrameworkCameraDirector director = EnsureComponent<FrameworkCameraDirector>(root);
+            FrameworkCinemachineRigApplier rigApplier = EnsureComponent<FrameworkCinemachineRigApplier>(root);
+            FrameworkRouteCameraBinding routeCameraBinding = EnsureComponent<FrameworkRouteCameraBinding>(root);
 
             GameObject routeRig = EnsureCinemachineRig(scene, $"QA_Camera_RouteRig_{label}", routeRigPosition, routeRigRotation);
             GameObject startupActivityRig = EnsureCinemachineRig(scene, $"QA_Camera_StartupActivityRig_{label}", activityRigPosition, activityRigRotation);
@@ -138,14 +141,15 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             SetSerialized(routeContentBinding, "localContentId", $"qa-camera-route-{label.ToLowerInvariant()}");
             SetSerialized(routeContentBinding, "requiredness", 10);
 
-            SetSerialized(director, "operationalCamera", operationalCamera);
-            SetSerialized(director, "cinemachineBrain", brain);
             SetSerialized(director, "defaultCameraRig", routeRig);
+            SetSerialized(director, "defaultAnchors", anchors);
             SetSerialized(director, "routePriority", 20);
             SetSerialized(director, "activityPriority", 100);
+            SetSerialized(director, "setRigActiveState", true);
+            SetSerialized(director, "rigApplier", rigApplier);
             SetSerialized(director, "logTransitions", true);
 
-            QaActivityCameraBinding startupBinding;
+            FrameworkActivityCameraBinding startupBinding;
             if (ReferenceEquals(startupActivity, primaryActivity))
             {
                 startupBinding = EnsureActivityBinding(
@@ -153,7 +157,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                     $"QA_Camera_Activity_Primary_{label}",
                     primaryActivity,
                     startupActivityOwnsCamera ? startupActivityRig : null,
-                    QaActivityCameraPolicy.UseOwnOrKeepPreviousActivity,
+                    FrameworkCameraActivityPolicy.UseOwnOrRetainActivityUntilRouteExit,
                     anchors,
                     director,
                     "primary");
@@ -163,7 +167,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                     $"QA_Camera_Activity_Secondary_{label}",
                     secondaryActivity,
                     null,
-                    QaActivityCameraPolicy.UseOwnOrKeepPreviousActivity,
+                    FrameworkCameraActivityPolicy.UseOwnOrRetainActivityUntilRouteExit,
                     anchors,
                     director,
                     "secondary");
@@ -175,7 +179,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                     $"QA_Camera_Activity_Primary_{label}",
                     primaryActivity,
                     null,
-                    QaActivityCameraPolicy.UseOwnOrKeepPreviousActivity,
+                    FrameworkCameraActivityPolicy.UseOwnOrRetainActivityUntilRouteExit,
                     anchors,
                     director,
                     "primary");
@@ -185,7 +189,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                     $"QA_Camera_Activity_Secondary_{label}",
                     secondaryActivity,
                     startupActivityOwnsCamera ? startupActivityRig : null,
-                    QaActivityCameraPolicy.UseOwnOrKeepPreviousActivity,
+                    FrameworkCameraActivityPolicy.UseOwnOrRetainActivityUntilRouteExit,
                     anchors,
                     director,
                     "secondary");
@@ -196,7 +200,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 $"QA_Camera_Activity_RouteFallback_{label}",
                 fallbackActivity,
                 null,
-                QaActivityCameraPolicy.UseRoute,
+                FrameworkCameraActivityPolicy.UseRoute,
                 anchors,
                 director,
                 "route-fallback");
@@ -219,27 +223,27 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 director);
 
             bool valid = ValidateObjectReference(routeContentBinding, "route", activeRoute, $"RouteContentBinding route on 'QA_CameraRoot_{label}'")
-                & ValidateObjectReference(routeCameraBinding, "routeCameraRig", routeRig, $"QaRouteCameraBinding routeCameraRig on 'QA_CameraRoot_{label}'")
-                & ValidateObjectReference(routeCameraBinding, "startupActivityCameraBinding", startupBinding, $"QaRouteCameraBinding startupActivityCameraBinding on 'QA_CameraRoot_{label}'");
+                & ValidateObjectReference(routeCameraBinding, "routeCameraRig", routeRig, $"FrameworkRouteCameraBinding routeCameraRig on 'QA_CameraRoot_{label}'")
+                & ValidateObjectReference(routeCameraBinding, "startupActivityCameraBinding", startupBinding, $"FrameworkRouteCameraBinding startupActivityCameraBinding on 'QA_CameraRoot_{label}'");
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             return valid;
         }
 
-        private static QaActivityCameraBinding EnsureActivityBinding(
+        private static FrameworkActivityCameraBinding EnsureActivityBinding(
             Scene scene,
             string rootName,
             ActivityAsset activity,
             GameObject rig,
-            QaActivityCameraPolicy policy,
-            QaCameraAnchorHost anchors,
-            QaCameraDirector director,
+            FrameworkCameraActivityPolicy policy,
+            FrameworkCameraAnchorHost anchors,
+            FrameworkCameraDirector director,
             string contentIdSuffix)
         {
             GameObject root = EnsureRoot(scene, rootName);
             ActivityLocalVisibilityAdapter contentBinding = EnsureComponent<ActivityLocalVisibilityAdapter>(root);
-            QaActivityCameraBinding cameraBinding = EnsureComponent<QaActivityCameraBinding>(root);
+            FrameworkActivityCameraBinding cameraBinding = EnsureComponent<FrameworkActivityCameraBinding>(root);
 
             SetSerialized(contentBinding, "activity", activity);
             SetSerialized(contentBinding, "localContentId", $"qa-camera-activity-{contentIdSuffix}-{scene.name.ToLowerInvariant()}");
@@ -260,7 +264,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 cameraBinding,
                 "assignedActivity",
                 activity,
-                $"QaActivityCameraBinding assignedActivity on '{rootName}'");
+                $"FrameworkActivityCameraBinding assignedActivity on '{rootName}'");
             return cameraBinding;
         }
 
@@ -271,7 +275,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             ActivityAsset primaryActivity,
             ActivityAsset secondaryActivity,
             ActivityAsset fallbackActivity,
-            QaCameraDirector director)
+            FrameworkCameraDirector director)
         {
             GameObject panelObject = EnsureRoot(scene, $"QA_CameraPanel_{label}");
             QaCameraRouteActivityPanel panel = EnsureComponent<QaCameraRouteActivityPanel>(panelObject);
