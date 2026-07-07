@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace ImmersiveFrameworkQA.Player.Editor
 {
     /// <summary>
-    /// Editor-only deterministic builder for the synthetic Actor Identity QA scene.
+    /// Editor-only deterministic builder for the synthetic Actor, PlayerSlot and Reset Bridge QA scene.
     /// </summary>
     public static class QaPlayerIdentitySceneBuilder
     {
@@ -26,7 +26,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             CreateScene();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[QA_ACTOR_IDENTITY_SETUP] Player Identity QA scene created or refreshed at '" + ScenePath + "'.");
+            Debug.Log("[QA_PLAYER_IDENTITY_SETUP] Player Identity QA scene created or refreshed at '" + ScenePath + "'.");
         }
 
         private static void EnsureFolders()
@@ -58,7 +58,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             Text summary = CreateText(
                 canvas.transform,
                 "QA_PlayerIdentitySummary",
-                "Actor + PlayerSlot Identity QA | passes=0 failures=0",
+                "Actor + PlayerSlot + Reset Bridge QA | passes=0 failures=0",
                 new Vector2(0f, 260f),
                 new Vector2(900f, 64f),
                 30);
@@ -66,7 +66,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             Text result = CreateText(
                 canvas.transform,
                 "QA_PlayerIdentityResult",
-                "Idle. Run an Actor Identity QA probe.",
+                "Idle. Run an Actor, PlayerSlot, or Reset Bridge QA probe.",
                 new Vector2(0f, 125f),
                 new Vector2(900f, 180f),
                 22);
@@ -143,7 +143,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             Object hubRoute = AssetDatabase.LoadAssetAtPath<Object>(HubRoutePath);
             if (hubRoute == null)
             {
-                Debug.LogError("[QA_ACTOR_IDENTITY_SETUP] Hub route asset not found. path='" + HubRoutePath + "'.", triggerObject);
+                Debug.LogError("[QA_PLAYER_IDENTITY_SETUP] Hub route asset not found. path='" + HubRoutePath + "'.", triggerObject);
             }
 
             SerializedObject serialized = new SerializedObject(trigger);

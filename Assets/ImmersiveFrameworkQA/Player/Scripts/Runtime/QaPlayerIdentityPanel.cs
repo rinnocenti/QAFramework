@@ -4,6 +4,8 @@ using System.Text;
 using Immersive.Framework.Actors;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.PlayerSlots;
+using Immersive.Framework.Reset;
+using Immersive.Framework.Reset.Unity;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -20,7 +22,7 @@ namespace ImmersiveFrameworkQA.Player
         [SerializeField] private Text resultText;
         [SerializeField] private RouteRequestTrigger backToHubTrigger;
 
-        private string _lastResult = "Idle. Run an Actor Identity QA probe.";
+        private string _lastResult = "Idle. Run an Actor, PlayerSlot, or Reset Bridge QA probe.";
         private bool _lastPassed;
         private int _passCount;
         private int _failCount;
@@ -145,6 +147,62 @@ namespace ImmersiveFrameworkQA.Player
 
             SetPlayerSlotResult(FormatAggregateResult("Run All Actor + PlayerSlot QA", results));
         }
+        [ContextMenu("Reset Bridge QA/Run AuthoredText Reset Subject QA")]
+        public void RunAuthoredTextResetSubjectBridgeQa()
+        {
+            SetResetBridgeResult(RunAuthoredTextResetSubjectBridgeCheck());
+        }
+
+        [ContextMenu("Reset Bridge QA/Run Actor Source Reset Subject QA")]
+        public void RunActorSourceResetSubjectBridgeQa()
+        {
+            SetResetBridgeResult(RunActorSourceResetSubjectBridgeCheck());
+        }
+
+        [ContextMenu("Reset Bridge QA/Run Runtime Prefix Reset Subject QA")]
+        public void RunRuntimePrefixResetSubjectBridgeQa()
+        {
+            SetResetBridgeResult(RunRuntimePrefixResetSubjectBridgeCheck());
+        }
+
+        [ContextMenu("Reset Bridge QA/Run Invalid Actor Source Reset Subject QA")]
+        public void RunInvalidActorSourceResetSubjectBridgeQa()
+        {
+            SetResetBridgeResult(RunInvalidActorSourceResetSubjectBridgeCheck());
+        }
+
+        [ContextMenu("Reset Bridge QA/Run All Reset Bridge QA")]
+        public void RunAllResetBridgeQa()
+        {
+            SetResetBridgeResult(RunAllResetBridgeChecks());
+        }
+
+        [ContextMenu("Reset Bridge QA/Run All Actor + PlayerSlot + Reset Bridge QA")]
+        public void RunAllActorPlayerSlotAndResetBridgeQa()
+        {
+            QaCheckResult[] results =
+            {
+                RunValidActorCheck(),
+                RunInvalidActorIdCheck(),
+                RunDuplicateActorIdCheck(),
+                RunPlayerActorCheck(),
+                RunUnknownRoleCheck(),
+                RunValidPlayerSlotCheck(),
+                RunInvalidPlayerSlotIdCheck(),
+                RunDuplicatePlayerSlotIdCheck(),
+                RunValidOccupancyCheck(),
+                RunMissingOccupiedActorCheck(),
+                RunInvalidOccupiedActorIdCheck(),
+                RunDuplicateOccupancyCheck(),
+                RunAuthoredTextResetSubjectBridgeCheck(),
+                RunActorSourceResetSubjectBridgeCheck(),
+                RunRuntimePrefixResetSubjectBridgeCheck(),
+                RunInvalidActorSourceResetSubjectBridgeCheck()
+            };
+
+            SetResetBridgeResult(FormatAggregateResult("Run All Actor + PlayerSlot + Reset Bridge QA", results));
+        }
+
 
         public void BackToQaHub()
         {
@@ -576,6 +634,186 @@ namespace ImmersiveFrameworkQA.Player
             return FormatAggregateResult("Run All PlayerSlot QA", results);
         }
 
+        private QaCheckResult RunAuthoredTextResetSubjectBridgeCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_ResetBridge_AuthoredText");
+            try
+            {
+                const string expectedSubjectId = "qa.reset.bridge.authored-text";
+                UnityResetSubjectAdapter adapter = CreateResetSubjectAdapter(
+                    root,
+                    "AuthoredText Reset Subject Adapter",
+                    UnityResetSubjectIdGenerationMode.AuthoredStableId,
+                    expectedSubjectId,
+                    string.Empty,
+                    ResetSubjectScope.Activity,
+                    null);
+
+                bool registered = TryRegisterResetSubject(adapter, "qa.reset-bridge.authored-text", out string registrationIssue);
+                bool passed = registered
+                    && adapter.IsRegistered
+                    && adapter.SubjectId.IsValid
+                    && string.Equals(adapter.SubjectId.StableText, expectedSubjectId, StringComparison.Ordinal);
+
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "AuthoredText Reset Subject Bridge PASS. Legacy subjectId path still registers expected ResetSubjectId."
+                        : "AuthoredText Reset Subject Bridge failed. registered='" + registered + "' subjectId='" + ResolveAdapterSubjectIdText(adapter) + "' expected='" + expectedSubjectId + "' issue='" + registrationIssue + "'.");
+            }
+            finally
+            {
+                ClearResetSubjectAdapters(root, "qa.reset-bridge.authored-text.cleanup");
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunActorSourceResetSubjectBridgeCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_ResetBridge_ActorSource");
+            try
+            {
+                ActorDeclaration actor = CreateActor(
+                    root,
+                    "Reset Bridge Source Actor",
+                    "qa.actor.reset.bridge",
+                    ActorKind.Player,
+                    ActorRole.Protagonist);
+
+                string expectedSubjectId = actor.ActorId.StableText;
+                UnityResetSubjectAdapter adapter = CreateResetSubjectAdapter(
+                    root,
+                    "ActorSource Reset Subject Adapter",
+                    UnityResetSubjectIdGenerationMode.AuthoredStableId,
+                    "qa.reset.bridge.should-not-win",
+                    string.Empty,
+                    ResetSubjectScope.Activity,
+                    actor);
+
+                bool registered = TryRegisterResetSubject(adapter, "qa.reset-bridge.actor-source", out string registrationIssue);
+                bool passed = registered
+                    && adapter.IsRegistered
+                    && adapter.SubjectId.IsValid
+                    && string.Equals(adapter.SubjectId.StableText, expectedSubjectId, StringComparison.Ordinal);
+
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "Actor Source Reset Subject Bridge PASS. sourceActor ActorId won over authored text."
+                        : "Actor Source Reset Subject Bridge failed. registered='" + registered + "' subjectId='" + ResolveAdapterSubjectIdText(adapter) + "' expectedActorId='" + expectedSubjectId + "' issue='" + registrationIssue + "'.");
+            }
+            catch (Exception exception)
+            {
+                return new QaCheckResult(false, "Actor Source Reset Subject Bridge threw exception: " + exception.GetType().Name + " " + exception.Message);
+            }
+            finally
+            {
+                ClearResetSubjectAdapters(root, "qa.reset-bridge.actor-source.cleanup");
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunRuntimePrefixResetSubjectBridgeCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_ResetBridge_RuntimePrefix");
+            try
+            {
+                ActorDeclaration actor = CreateActor(
+                    root,
+                    "Runtime Prefix Ignored Actor",
+                    "qa.actor.reset.runtime-prefix-ignored",
+                    ActorKind.Player,
+                    ActorRole.Protagonist);
+
+                UnityResetSubjectAdapter adapter = CreateResetSubjectAdapter(
+                    root,
+                    "RuntimePrefix Reset Subject Adapter",
+                    UnityResetSubjectIdGenerationMode.RuntimeInstanceId,
+                    "qa.reset.bridge.should-not-win-runtime",
+                    "qa.reset.bridge.runtime",
+                    ResetSubjectScope.Activity,
+                    actor);
+
+                bool registered = TryRegisterResetSubject(adapter, "qa.reset-bridge.runtime-prefix", out string registrationIssue);
+                string resolvedSubjectId = ResolveAdapterSubjectIdText(adapter);
+                bool passed = registered
+                    && adapter.IsRegistered
+                    && adapter.SubjectId.IsValid
+                    && !string.Equals(resolvedSubjectId, actor.ActorId.StableText, StringComparison.Ordinal)
+                    && resolvedSubjectId.IndexOf("qa.reset.bridge.runtime", StringComparison.Ordinal) >= 0;
+
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "RuntimePrefix Reset Subject Bridge PASS. RuntimeInstanceId ignored sourceActor and used runtime prefix."
+                        : "RuntimePrefix Reset Subject Bridge failed. registered='" + registered + "' subjectId='" + resolvedSubjectId + "' actorId='" + actor.ActorId.StableText + "' issue='" + registrationIssue + "'.");
+            }
+            catch (Exception exception)
+            {
+                return new QaCheckResult(false, "RuntimePrefix Reset Subject Bridge threw exception: " + exception.GetType().Name + " " + exception.Message);
+            }
+            finally
+            {
+                ClearResetSubjectAdapters(root, "qa.reset-bridge.runtime-prefix.cleanup");
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunInvalidActorSourceResetSubjectBridgeCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_ResetBridge_InvalidActorSource");
+            try
+            {
+                ActorDeclaration invalidActor = CreateActor(
+                    root,
+                    "Invalid Reset Bridge Source Actor",
+                    string.Empty,
+                    ActorKind.Player,
+                    ActorRole.Protagonist);
+
+                UnityResetSubjectAdapter adapter = CreateResetSubjectAdapter(
+                    root,
+                    "InvalidActorSource Reset Subject Adapter",
+                    UnityResetSubjectIdGenerationMode.AuthoredStableId,
+                    "qa.reset.bridge.should-not-win-invalid-actor",
+                    string.Empty,
+                    ResetSubjectScope.Activity,
+                    invalidActor);
+
+                bool registered = TryRegisterResetSubject(adapter, "qa.reset-bridge.invalid-actor-source", out string registrationIssue);
+                bool exceptionCaptured = registrationIssue.StartsWith("EXCEPTION ", StringComparison.Ordinal);
+                bool passed = !registered && !adapter.IsRegistered && !exceptionCaptured;
+
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "Invalid Actor Source Reset Subject Bridge PASS. Invalid sourceActor was rejected without exception or registration."
+                        : "Invalid Actor Source Reset Subject Bridge failed. registered='" + registered + "' isRegistered='" + adapter.IsRegistered + "' subjectId='" + ResolveAdapterSubjectIdText(adapter) + "' issue='" + registrationIssue + "'.");
+            }
+            catch (Exception exception)
+            {
+                return new QaCheckResult(false, "Invalid Actor Source Reset Subject Bridge threw exception instead of controlled rejection: " + exception.GetType().Name + " " + exception.Message);
+            }
+            finally
+            {
+                ClearResetSubjectAdapters(root, "qa.reset-bridge.invalid-actor-source.cleanup");
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunAllResetBridgeChecks()
+        {
+            QaCheckResult[] results =
+            {
+                RunAuthoredTextResetSubjectBridgeCheck(),
+                RunActorSourceResetSubjectBridgeCheck(),
+                RunRuntimePrefixResetSubjectBridgeCheck(),
+                RunInvalidActorSourceResetSubjectBridgeCheck()
+            };
+
+            return FormatAggregateResult("Run All Reset Bridge QA", results);
+        }
+
         private static ActorDeclaration CreateActor(
             GameObject root,
             string displayName,
@@ -627,6 +865,105 @@ namespace ImmersiveFrameworkQA.Player
             SetPrivateField(occupancy, "displayName", displayName);
             SetPrivateField(occupancy, "reason", "qa.player-slot.occupancy.synthetic");
             return occupancy;
+        }
+
+
+        private static UnityResetSubjectAdapter CreateResetSubjectAdapter(
+            GameObject root,
+            string displayName,
+            UnityResetSubjectIdGenerationMode idGeneration,
+            string subjectId,
+            string runtimeSubjectIdPrefix,
+            ResetSubjectScope scope,
+            ActorDeclaration sourceActor)
+        {
+            GameObject adapterObject = new GameObject(displayName);
+            adapterObject.transform.SetParent(root.transform, false);
+            UnityResetSubjectAdapter adapter = adapterObject.AddComponent<UnityResetSubjectAdapter>();
+            SetPrivateField(adapter, "registerOnEnable", false);
+            SetPrivateField(adapter, "unregisterOnDisable", true);
+            SetPrivateField(adapter, "retryUntilRuntimeAvailable", false);
+            SetPrivateField(adapter, "idGeneration", idGeneration);
+            SetPrivateField(adapter, "subjectId", subjectId);
+            SetPrivateField(adapter, "runtimeSubjectIdPrefix", runtimeSubjectIdPrefix);
+            SetPrivateField(adapter, "scope", scope);
+            SetPrivateField(adapter, "displayName", displayName);
+            SetPrivateField(adapter, "diagnosticTag", "qa.reset-bridge");
+            SetPrivateField(adapter, "participantDiscovery", UnityResetParticipantDiscoveryMode.SameGameObject);
+            SetPrivateField(adapter, "includeInactiveParticipants", true);
+            SetPrivateField(adapter, "includeUnityResettableComponents", false);
+            SetPrivateField(adapter, "sourceActor", sourceActor);
+            return adapter;
+        }
+
+        private static bool TryRegisterResetSubject(UnityResetSubjectAdapter adapter, string reason, out string issue)
+        {
+            issue = string.Empty;
+            if (adapter == null)
+            {
+                issue = "adapter is null";
+                return false;
+            }
+
+            try
+            {
+                bool registered = adapter.RegisterWithCurrentHost(reason);
+                if (!registered)
+                {
+                    issue = "RegisterWithCurrentHost returned false. Check FrameworkRuntimeHost/Reset owner and adapter warning logs.";
+                }
+
+                return registered;
+            }
+            catch (Exception exception)
+            {
+                issue = "EXCEPTION " + exception.GetType().Name + ": " + exception.Message;
+                return false;
+            }
+        }
+
+        private static void ClearResetSubjectAdapters(GameObject root, string reason)
+        {
+            if (root == null)
+            {
+                return;
+            }
+
+            UnityResetSubjectAdapter[] adapters = root.GetComponentsInChildren<UnityResetSubjectAdapter>(true);
+            for (int i = 0; i < adapters.Length; i++)
+            {
+                UnityResetSubjectAdapter adapter = adapters[i];
+                if (adapter == null)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    adapter.ClearRegistration(reason);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogWarning("[QA_RESET_BRIDGE] Cleanup failed for reset subject adapter. error='" + exception.Message + "'.", adapter);
+                }
+            }
+        }
+
+        private static string ResolveAdapterSubjectIdText(UnityResetSubjectAdapter adapter)
+        {
+            if (adapter == null)
+            {
+                return "<null-adapter>";
+            }
+
+            try
+            {
+                return adapter.SubjectId.IsValid ? adapter.SubjectId.StableText : "<invalid-subject-id>";
+            }
+            catch (Exception exception)
+            {
+                return "<subject-id-error:" + exception.GetType().Name + ">";
+            }
         }
 
         private static bool ContainsIssue(ActorSet set, ActorSetIssueKind kind, bool blocking)
@@ -750,6 +1087,11 @@ namespace ImmersiveFrameworkQA.Player
             SetResult(result, "[QA_PLAYER_SLOT]");
         }
 
+        private void SetResetBridgeResult(QaCheckResult result)
+        {
+            SetResult(result, "[QA_RESET_BRIDGE]");
+        }
+
         private void SetResult(QaCheckResult result, string logPrefix)
         {
             _lastPassed = result.Passed;
@@ -772,7 +1114,7 @@ namespace ImmersiveFrameworkQA.Player
 
         private void RefreshTexts()
         {
-            string summary = $"Actor + PlayerSlot Identity QA | passes={_passCount} failures={_failCount}";
+            string summary = $"Actor + PlayerSlot + Reset Bridge QA | passes={_passCount} failures={_failCount}";
             if (summaryText != null)
             {
                 summaryText.text = summary;
@@ -871,6 +1213,38 @@ namespace ImmersiveFrameworkQA.Player
             if (GUILayout.Button("Run All Actor + PlayerSlot QA", GUILayout.Height(36f)))
             {
                 RunAllActorAndPlayerSlotQa();
+            }
+
+            GUILayout.Space(8f);
+            GUILayout.Label("Reset ActorId Bridge");
+            if (GUILayout.Button("Run AuthoredText Reset Subject QA", GUILayout.Height(32f)))
+            {
+                RunAuthoredTextResetSubjectBridgeQa();
+            }
+
+            if (GUILayout.Button("Run Actor Source Reset Subject QA", GUILayout.Height(32f)))
+            {
+                RunActorSourceResetSubjectBridgeQa();
+            }
+
+            if (GUILayout.Button("Run Runtime Prefix Reset Subject QA", GUILayout.Height(32f)))
+            {
+                RunRuntimePrefixResetSubjectBridgeQa();
+            }
+
+            if (GUILayout.Button("Run Invalid Actor Source Reset Subject QA", GUILayout.Height(32f)))
+            {
+                RunInvalidActorSourceResetSubjectBridgeQa();
+            }
+
+            if (GUILayout.Button("Run All Reset Bridge QA", GUILayout.Height(36f)))
+            {
+                RunAllResetBridgeQa();
+            }
+
+            if (GUILayout.Button("Run All Actor + PlayerSlot + Reset Bridge QA", GUILayout.Height(36f)))
+            {
+                RunAllActorPlayerSlotAndResetBridgeQa();
             }
 
             GUILayout.EndScrollView();
