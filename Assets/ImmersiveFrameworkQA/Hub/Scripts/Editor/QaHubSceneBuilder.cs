@@ -1,7 +1,7 @@
 using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using ImmersiveFrameworkQA.Hub;
-using ImmersiveFrameworkQA.Player;
+using ImmersiveFrameworkQA.Player.Editor;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -15,7 +15,6 @@ namespace ImmersiveFrameworkQA.Hub.Editor
         private const string HubRoot = Root + "/Hub";
         private const string HubScenes = HubRoot + "/Scenes";
         private const string PlayerRoot = Root + "/Player";
-        private const string PlayerScenes = PlayerRoot + "/Scenes";
 
         private const string HubScenePath = HubScenes + "/QA_Hub.unity";
         private const string HubRoutePath = HubRoot + "/Routes/QA_HubRoute.asset";
@@ -32,7 +31,6 @@ namespace ImmersiveFrameworkQA.Hub.Editor
         private const string AudioRoutePath = Root + "/Audio/Routes/QA_AudioRoute.asset";
         private const string AudioScenePath = Root + "/Audio/Scenes/QA_Audio.unity";
         private const string PlayerIdentityRoutePath = PlayerRoot + "/Routes/QA_PlayerIdentityRoute.asset";
-        private const string PlayerIdentityScenePath = PlayerScenes + "/QA_PlayerIdentity.unity";
 
         private static readonly HubTarget[] Targets =
         {
@@ -136,16 +134,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
 
         private static void CreatePlayerIdentityScene()
         {
-            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            scene.name = "QA_PlayerIdentity";
-
-            CreateCamera("QA_PlayerIdentityCamera", new Color(0.06f, 0.055f, 0.045f, 1f));
-
-            Canvas canvas = CreateCanvas("QA_PlayerIdentityCanvas");
-            canvas.gameObject.AddComponent<QaPlayerIdentityPlaceholderPanel>();
-            CreateBackToHubPanel(canvas.transform, new Rect(16f, 220f, 360f, 92f));
-
-            EditorSceneManager.SaveScene(scene, PlayerIdentityScenePath);
+            QaPlayerIdentitySceneBuilder.CreateOrRefreshPlayerIdentityScene();
         }
 
         private static void CreateCamera(string name, Color backgroundColor)
