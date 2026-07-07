@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text;
 using Immersive.Framework.Actors;
 using Immersive.Framework.GameFlow;
+using Immersive.Framework.InputMode;
 using Immersive.Framework.PlayerSlots;
 using Immersive.Framework.Reset;
 using Immersive.Framework.Reset.Unity;
@@ -23,7 +24,7 @@ namespace ImmersiveFrameworkQA.Player
         [SerializeField] private Text resultText;
         [SerializeField] private RouteRequestTrigger backToHubTrigger;
 
-        private string _lastResult = "Idle. Run an Actor, PlayerSlot, Reset Bridge, or Gate Bridge QA probe.";
+        private string _lastResult = "Idle. Run an Actor, PlayerSlot, Reset Bridge, Gate Bridge, or Pause InputMode Bridge QA probe.";
         private bool _lastPassed;
         private int _passCount;
         private int _failCount;
@@ -264,6 +265,70 @@ namespace ImmersiveFrameworkQA.Player
             SetPlayerInputGateSlotBridgeResult(FormatAggregateResult("Run All Actor + PlayerSlot + Reset + Gate Bridge QA", results));
         }
 
+
+        [ContextMenu("Pause InputMode Slot Bridge QA/Run Legacy Pause InputMode Slot QA")]
+        public void RunLegacyPauseInputModeSlotQa()
+        {
+            SetPauseInputModeSlotBridgeResult(RunLegacyPauseInputModeSlotCheck());
+        }
+
+        [ContextMenu("Pause InputMode Slot Bridge QA/Run SourceSlot Pause InputMode Slot QA")]
+        public void RunSourceSlotPauseInputModeSlotQa()
+        {
+            SetPauseInputModeSlotBridgeResult(RunSourceSlotPauseInputModeSlotCheck());
+        }
+
+        [ContextMenu("Pause InputMode Slot Bridge QA/Run Invalid SourceSlot Pause InputMode Slot QA")]
+        public void RunInvalidSourceSlotPauseInputModeSlotQa()
+        {
+            SetPauseInputModeSlotBridgeResult(RunInvalidSourceSlotPauseInputModeSlotCheck());
+        }
+
+        [ContextMenu("Pause InputMode Slot Bridge QA/Run Missing PlayerInput Pause InputMode Slot QA")]
+        public void RunMissingPlayerInputPauseInputModeSlotQa()
+        {
+            SetPauseInputModeSlotBridgeResult(RunMissingPlayerInputPauseInputModeSlotCheck());
+        }
+
+        [ContextMenu("Pause InputMode Slot Bridge QA/Run All Pause InputMode Slot Bridge QA")]
+        public void RunAllPauseInputModeSlotBridgeQa()
+        {
+            SetPauseInputModeSlotBridgeResult(RunAllPauseInputModeSlotBridgeChecks());
+        }
+
+        [ContextMenu("Pause InputMode Slot Bridge QA/Run All Actor + PlayerSlot + Reset + Gate + PauseInputMode Bridge QA")]
+        public void RunAllActorPlayerSlotResetGateAndPauseInputModeBridgeQa()
+        {
+            QaCheckResult[] results =
+            {
+                RunValidActorCheck(),
+                RunInvalidActorIdCheck(),
+                RunDuplicateActorIdCheck(),
+                RunPlayerActorCheck(),
+                RunUnknownRoleCheck(),
+                RunValidPlayerSlotCheck(),
+                RunInvalidPlayerSlotIdCheck(),
+                RunDuplicatePlayerSlotIdCheck(),
+                RunValidOccupancyCheck(),
+                RunMissingOccupiedActorCheck(),
+                RunInvalidOccupiedActorIdCheck(),
+                RunDuplicateOccupancyCheck(),
+                RunAuthoredTextResetSubjectBridgeCheck(),
+                RunActorSourceResetSubjectBridgeCheck(),
+                RunRuntimePrefixResetSubjectBridgeCheck(),
+                RunInvalidActorSourceResetSubjectBridgeCheck(),
+                RunLegacyPlayerInputGateCheck(),
+                RunSourceSlotPlayerInputGateCheck(),
+                RunInvalidSourceSlotPlayerInputGateCheck(),
+                RunMissingPlayerInputGateCheck(),
+                RunLegacyPauseInputModeSlotCheck(),
+                RunSourceSlotPauseInputModeSlotCheck(),
+                RunInvalidSourceSlotPauseInputModeSlotCheck(),
+                RunMissingPlayerInputPauseInputModeSlotCheck()
+            };
+
+            SetPauseInputModeSlotBridgeResult(FormatAggregateResult("Run All Actor + PlayerSlot + Reset + Gate + PauseInputMode Bridge QA", results));
+        }
 
         public void BackToQaHub()
         {
@@ -1039,6 +1104,170 @@ namespace ImmersiveFrameworkQA.Player
             return FormatAggregateResult("Run All PlayerInput Gate Slot Bridge QA", results);
         }
 
+        private QaCheckResult RunLegacyPauseInputModeSlotCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_PauseInputMode_Legacy");
+            try
+            {
+                PauseInputModeUnityPlayerInputRuntimeBridge bridge = CreatePauseInputModeBridge(
+                    root,
+                    "Legacy Pause InputMode Bridge",
+                    true,
+                    null);
+
+                PlayerInput input = bridge.PlayerInput;
+                bool submitCompleted = TrySubmitPauseInputModeBridge(bridge, out string submitIssue);
+                bool passed = submitCompleted
+                    && bridge.SourceSlot == null
+                    && !bridge.HasSourceSlot
+                    && IsNoneSlotText(bridge.SourceSlotIdText)
+                    && input != null
+                    && bridge.PlayerInput == input
+                    && bridge.HasLastResult;
+
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "Legacy Pause InputMode Slot QA PASS. sourceSlot is empty, PlayerInput remains the operational target; result='" + PauseInputModeResultText(bridge) + "'."
+                        : "Legacy Pause InputMode Slot QA failed. sourceSlot='" + SourceSlotText(bridge) + "' hasSourceSlot='" + bridge.HasSourceSlot + "' playerInputPresent='" + (bridge.PlayerInput != null) + "' result='" + PauseInputModeResultText(bridge) + "' issue='" + submitIssue + "'.");
+            }
+            catch (Exception exception)
+            {
+                return new QaCheckResult(false, "Legacy Pause InputMode Slot QA threw exception: " + exception.GetType().Name + " " + exception.Message);
+            }
+            finally
+            {
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunSourceSlotPauseInputModeSlotCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_PauseInputMode_SourceSlot");
+            try
+            {
+                PlayerSlotDeclaration slot = CreatePlayerSlot(root, "SourceSlot Pause InputMode PlayerSlot", "player.1", null);
+                PauseInputModeUnityPlayerInputRuntimeBridge bridge = CreatePauseInputModeBridge(
+                    root,
+                    "SourceSlot Pause InputMode Bridge",
+                    true,
+                    slot);
+
+                PlayerInput input = bridge.PlayerInput;
+                bool submitCompleted = TrySubmitPauseInputModeBridge(bridge, out string submitIssue);
+                bool passed = submitCompleted
+                    && bridge.SourceSlot == slot
+                    && bridge.HasSourceSlot
+                    && IsPlayerOneSlotText(bridge.SourceSlotIdText)
+                    && input != null
+                    && bridge.PlayerInput == input
+                    && bridge.HasLastResult;
+
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "SourceSlot Pause InputMode Slot QA PASS. sourceSlot resolves playerSlotId='" + bridge.SourceSlotIdText + "' while PlayerInput remains the operational target; result='" + PauseInputModeResultText(bridge) + "'."
+                        : "SourceSlot Pause InputMode Slot QA failed. sourceSlot='" + SourceSlotText(bridge) + "' sourceSlotId='" + bridge.SourceSlotIdText + "' playerInputPresent='" + (bridge.PlayerInput != null) + "' result='" + PauseInputModeResultText(bridge) + "' issue='" + submitIssue + "'.");
+            }
+            catch (Exception exception)
+            {
+                return new QaCheckResult(false, "SourceSlot Pause InputMode Slot QA threw exception: " + exception.GetType().Name + " " + exception.Message);
+            }
+            finally
+            {
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunInvalidSourceSlotPauseInputModeSlotCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_PauseInputMode_InvalidSourceSlot");
+            try
+            {
+                PlayerSlotDeclaration slot = CreatePlayerSlot(root, "Invalid SourceSlot Pause InputMode PlayerSlot", string.Empty, null);
+                PauseInputModeUnityPlayerInputRuntimeBridge bridge = CreatePauseInputModeBridge(
+                    root,
+                    "Invalid SourceSlot Pause InputMode Bridge",
+                    true,
+                    slot);
+
+                PlayerInput input = bridge.PlayerInput;
+                string slotIdText = bridge.SourceSlotIdText;
+                bool submitCompleted = TrySubmitPauseInputModeBridge(bridge, out string submitIssue);
+                bool passed = submitCompleted
+                    && bridge.SourceSlot == slot
+                    && bridge.HasSourceSlot
+                    && slotIdText.StartsWith("<invalid:", StringComparison.Ordinal)
+                    && input != null
+                    && bridge.PlayerInput == input
+                    && bridge.HasLastResult;
+
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "Invalid SourceSlot Pause InputMode Slot QA PASS. invalid sourceSlot produced controlled diagnostic '" + slotIdText + "' and PlayerInput stayed operational; result='" + PauseInputModeResultText(bridge) + "'."
+                        : "Invalid SourceSlot Pause InputMode Slot QA failed. sourceSlot='" + SourceSlotText(bridge) + "' sourceSlotId='" + slotIdText + "' playerInputPresent='" + (bridge.PlayerInput != null) + "' result='" + PauseInputModeResultText(bridge) + "' issue='" + submitIssue + "'.");
+            }
+            catch (Exception exception)
+            {
+                return new QaCheckResult(false, "Invalid SourceSlot Pause InputMode Slot QA threw exception: " + exception.GetType().Name + " " + exception.Message);
+            }
+            finally
+            {
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunMissingPlayerInputPauseInputModeSlotCheck()
+        {
+            GameObject root = CreateSyntheticRoot("QA_PauseInputMode_MissingPlayerInput");
+            try
+            {
+                PlayerSlotDeclaration slot = CreatePlayerSlot(root, "Missing PlayerInput Pause InputMode PlayerSlot", "player.1", null);
+                PauseInputModeUnityPlayerInputRuntimeBridge bridge = CreatePauseInputModeBridge(
+                    root,
+                    "Missing PlayerInput Pause InputMode Bridge",
+                    false,
+                    slot);
+
+                bool submitCompleted = TrySubmitPauseInputModeBridge(bridge, out string submitIssue);
+                bool sourceSlotDidNotMaskMissingInput = bridge.PlayerInput == null;
+                bool passed = submitCompleted
+                    && bridge.SourceSlot == slot
+                    && bridge.HasSourceSlot
+                    && IsPlayerOneSlotText(bridge.SourceSlotIdText)
+                    && sourceSlotDidNotMaskMissingInput
+                    && bridge.HasLastResult;
+
+                return new QaCheckResult(
+                    passed,
+                    passed
+                        ? "Missing PlayerInput Pause InputMode Slot QA PASS. sourceSlot='" + bridge.SourceSlotIdText + "' is diagnostic only and did not mask missing PlayerInput; result='" + PauseInputModeResultText(bridge) + "'."
+                        : "Missing PlayerInput Pause InputMode Slot QA failed. sourceSlot='" + SourceSlotText(bridge) + "' playerInputIsNull='" + sourceSlotDidNotMaskMissingInput + "' result='" + PauseInputModeResultText(bridge) + "' issue='" + submitIssue + "'.");
+            }
+            catch (Exception exception)
+            {
+                return new QaCheckResult(false, "Missing PlayerInput Pause InputMode Slot QA threw exception: " + exception.GetType().Name + " " + exception.Message);
+            }
+            finally
+            {
+                DestroySyntheticRoot(root);
+            }
+        }
+
+        private QaCheckResult RunAllPauseInputModeSlotBridgeChecks()
+        {
+            QaCheckResult[] results =
+            {
+                RunLegacyPauseInputModeSlotCheck(),
+                RunSourceSlotPauseInputModeSlotCheck(),
+                RunInvalidSourceSlotPauseInputModeSlotCheck(),
+                RunMissingPlayerInputPauseInputModeSlotCheck()
+            };
+
+            return FormatAggregateResult("Run All Pause InputMode Slot Bridge QA", results);
+        }
+
         private static ActorDeclaration CreateActor(
             GameObject root,
             string displayName,
@@ -1154,6 +1383,96 @@ namespace ImmersiveFrameworkQA.Player
             return sourceSlot != null ? sourceSlot.name : "<none>";
         }
 
+
+        private static string SourceSlotText(PauseInputModeUnityPlayerInputRuntimeBridge bridge)
+        {
+            if (bridge == null)
+            {
+                return "<null-bridge>";
+            }
+
+            PlayerSlotDeclaration sourceSlot = bridge.SourceSlot;
+            return sourceSlot != null ? sourceSlot.name : "<none>";
+        }
+
+        private static PauseInputModeUnityPlayerInputRuntimeBridge CreatePauseInputModeBridge(
+            GameObject root,
+            string displayName,
+            bool addPlayerInput,
+            PlayerSlotDeclaration sourceSlot)
+        {
+            GameObject bridgeObject = new GameObject(displayName);
+            bridgeObject.transform.SetParent(root.transform, false);
+
+            PlayerInput input = addPlayerInput ? bridgeObject.AddComponent<PlayerInput>() : null;
+            PauseInputModeUnityPlayerInputRuntimeBridge bridge = bridgeObject.AddComponent<PauseInputModeUnityPlayerInputRuntimeBridge>();
+            SetPrivateField(bridge, "playerInput", input);
+            SetPrivateField(bridge, "sourceSlot", sourceSlot);
+            SetPrivateField(bridge, "unityInputTargets", Array.Empty<UnityInputTargetDeclaration>());
+            SetPrivateField(bridge, "playerActors", Array.Empty<PlayerActorDeclaration>());
+            SetPrivateField(bridge, "sessionPlayerInputManagers", Array.Empty<SessionPlayerInputManagerDeclaration>());
+            SetPrivateField(bridge, "autoDiscoverMissingReferences", false);
+            SetPrivateField(bridge, "requireSessionPlayerInputManagerEvidence", false);
+            SetPrivateField(bridge, "gameplayActionMapName", "Player");
+            SetPrivateField(bridge, "uiActionMapName", "UI");
+            SetPrivateField(bridge, "reason", "qa.pause-inputmode.slot-bridge");
+            SetPrivateField(bridge, "logResults", false);
+            return bridge;
+        }
+
+        private static bool TrySubmitPauseInputModeBridge(PauseInputModeUnityPlayerInputRuntimeBridge bridge, out string issue)
+        {
+            issue = string.Empty;
+            if (bridge == null)
+            {
+                issue = "bridge is null";
+                return false;
+            }
+
+            try
+            {
+                bridge.RequestPause();
+                if (!bridge.HasLastResult)
+                {
+                    issue = "RequestPause completed without LastResult.";
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception exception)
+            {
+                issue = "EXCEPTION " + exception.GetType().Name + ": " + exception.Message;
+                return false;
+            }
+        }
+
+        private static string PauseInputModeResultText(PauseInputModeUnityPlayerInputRuntimeBridge bridge)
+        {
+            if (bridge == null)
+            {
+                return "<null-bridge>";
+            }
+
+            if (!bridge.HasLastResult || bridge.LastResult == null)
+            {
+                return "<none>";
+            }
+
+            return bridge.LastResult.Status.ToString();
+        }
+
+        private static bool IsNoneSlotText(string value)
+        {
+            return string.IsNullOrEmpty(value)
+                || string.Equals(value, "<none>", StringComparison.Ordinal);
+        }
+
+        private static bool IsPlayerOneSlotText(string value)
+        {
+            return string.Equals(value, "player.1", StringComparison.Ordinal)
+                || string.Equals(value, "PlayerSlot:player.1", StringComparison.Ordinal);
+        }
 
         private static UnityResetSubjectAdapter CreateResetSubjectAdapter(
             GameObject root,
@@ -1384,6 +1703,11 @@ namespace ImmersiveFrameworkQA.Player
             SetResult(result, "[QA_PLAYER_INPUT_GATE_SLOT_BRIDGE]");
         }
 
+        private void SetPauseInputModeSlotBridgeResult(QaCheckResult result)
+        {
+            SetResult(result, "[QA_PAUSE_INPUTMODE_SLOT_BRIDGE]");
+        }
+
         private void SetResult(QaCheckResult result, string logPrefix)
         {
             _lastPassed = result.Passed;
@@ -1406,7 +1730,7 @@ namespace ImmersiveFrameworkQA.Player
 
         private void RefreshTexts()
         {
-            string summary = $"Actor + PlayerSlot + Reset + Gate Bridge QA | passes={_passCount} failures={_failCount}";
+            string summary = $"Actor + PlayerSlot + Reset + Gate + PauseInputMode Bridge QA | passes={_passCount} failures={_failCount}";
             if (summaryText != null)
             {
                 summaryText.text = summary;
@@ -1569,6 +1893,38 @@ namespace ImmersiveFrameworkQA.Player
             if (GUILayout.Button("Run All Actor + PlayerSlot + Reset + Gate Bridge QA", GUILayout.Height(36f)))
             {
                 RunAllActorPlayerSlotResetAndGateBridgeQa();
+            }
+
+            GUILayout.Space(8f);
+            GUILayout.Label("Pause InputMode Slot Bridge");
+            if (GUILayout.Button("Run Legacy Pause InputMode Slot QA", GUILayout.Height(32f)))
+            {
+                RunLegacyPauseInputModeSlotQa();
+            }
+
+            if (GUILayout.Button("Run SourceSlot Pause InputMode Slot QA", GUILayout.Height(32f)))
+            {
+                RunSourceSlotPauseInputModeSlotQa();
+            }
+
+            if (GUILayout.Button("Run Invalid SourceSlot Pause InputMode Slot QA", GUILayout.Height(32f)))
+            {
+                RunInvalidSourceSlotPauseInputModeSlotQa();
+            }
+
+            if (GUILayout.Button("Run Missing PlayerInput Pause InputMode Slot QA", GUILayout.Height(32f)))
+            {
+                RunMissingPlayerInputPauseInputModeSlotQa();
+            }
+
+            if (GUILayout.Button("Run All Pause InputMode Slot Bridge QA", GUILayout.Height(36f)))
+            {
+                RunAllPauseInputModeSlotBridgeQa();
+            }
+
+            if (GUILayout.Button("Run All Actor + PlayerSlot + Reset + Gate + PauseInputMode Bridge QA", GUILayout.Height(36f)))
+            {
+                RunAllActorPlayerSlotResetGateAndPauseInputModeBridgeQa();
             }
 
             GUILayout.EndScrollView();
