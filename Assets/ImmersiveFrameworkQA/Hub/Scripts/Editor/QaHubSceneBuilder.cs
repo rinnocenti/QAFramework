@@ -1,12 +1,14 @@
 using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using ImmersiveFrameworkQA.Actors.Editor;
+using ImmersiveFrameworkQA.Hub;
 using ImmersiveFrameworkQA.Player.Editor;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-namespace ImmersiveFrameworkQA.Hub.Editor.ImmersiveFrameworkQA.Hub.Scripts.Editor
+
+namespace ImmersiveFrameworkQA.Hub.Editor
 {
     public static class QaHubSceneBuilder
     {
@@ -33,6 +35,8 @@ namespace ImmersiveFrameworkQA.Hub.Editor.ImmersiveFrameworkQA.Hub.Scripts.Edito
         private const string FrameworkBgmRouteBScenePath = Root + "/Audio/Scenes/QA_FrameworkBgmRouteB.unity";
         private const string ActorReadinessRoutePath = ActorRoot + "/Routes/QA_ActorReadinessRoute.asset";
         private const string ActorReadinessScenePath = ActorRoot + "/Scenes/QA_ActorReadiness.unity";
+        private const string ActorReadinessBehaviourRoutePath = ActorRoot + "/Routes/QA_ActorReadinessBehaviourRoute.asset";
+        private const string ActorReadinessBehaviourScenePath = ActorRoot + "/Scenes/QA_ActorReadinessBehaviour.unity";
         private const string PlayerIdentityRoutePath = PlayerRoot + "/Routes/QA_PlayerIdentityRoute.asset";
         private const string PlayerSlotWiringRoutePath = PlayerRoot + "/Routes/QA_PlayerSlotWiringRoute.asset";
         private const string PlayerSlotWiringScenePath = PlayerRoot + "/Scenes/QA_PlayerSlotWiring.unity";
@@ -45,6 +49,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor.ImmersiveFrameworkQA.Hub.Scripts.Edito
             new HubTarget("Pooling QA", PoolingRoutePath),
             new HubTarget("Framework BGM QA", FrameworkBgmRoutePath),
             new HubTarget("Actor Readiness QA", ActorReadinessRoutePath, "qa.hub.route.actor_readiness_qa"),
+            new HubTarget("Actor Readiness Behaviour QA", ActorReadinessBehaviourRoutePath, "qa.hub.route.actor_readiness_behaviour_qa"),
             new HubTarget("Player Identity QA", PlayerIdentityRoutePath),
             new HubTarget("Player Slot Wiring QA", PlayerSlotWiringRoutePath, "qa.hub.route.player_slot_wiring_qa")
         };
@@ -54,6 +59,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor.ImmersiveFrameworkQA.Hub.Scripts.Edito
         {
             EnsureFolders();
             CreateActorReadinessScene();
+            CreateActorReadinessBehaviourScene();
             CreatePlayerIdentityScene();
             CreatePlayerSlotWiringScene();
             CreateHubScene();
@@ -66,6 +72,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor.ImmersiveFrameworkQA.Hub.Scripts.Edito
             ConfigureBackToHubPanelInScene(FrameworkBgmRouteBScenePath, new Rect(590f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(UnityBuildSurfaceScenePath, new Rect(16f, 140f, 360f, 92f));
             ConfigureBackToHubPanelInScene(ActorReadinessScenePath, new Rect(16f, 16f, 360f, 92f));
+            ConfigureBackToHubPanelInScene(ActorReadinessBehaviourScenePath, new Rect(16f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(PlayerSlotWiringScenePath, new Rect(16f, 16f, 360f, 92f));
 
             AssetDatabase.SaveAssets();
@@ -154,6 +161,11 @@ namespace ImmersiveFrameworkQA.Hub.Editor.ImmersiveFrameworkQA.Hub.Scripts.Edito
         private static void CreateActorReadinessScene()
         {
             QaActorReadinessSceneBuilder.CreateOrRefreshActorReadinessScene();
+        }
+
+        private static void CreateActorReadinessBehaviourScene()
+        {
+            QaActorReadinessBehaviourSceneBuilder.CreateOrRefreshActorReadinessBehaviourScene();
         }
 
         private static void CreatePlayerIdentityScene()

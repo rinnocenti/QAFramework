@@ -51,6 +51,9 @@ EditorBuildSettings:
     path: Assets/ImmersiveFrameworkQA/Audio/Scenes/QA_FrameworkBgm.unity
     guid: da79d51e86b8e0b4896cd5274fbf91cb
   - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Actors/Scenes/QA_ActorReadiness.unity
+    guid: d8bc536db32fccd4b9c0d14508d869fc
+  - enabled: 1
     path: Assets/ImmersiveFrameworkQA/Audio/Scenes/QA_FrameworkBgmRouteB.unity
     guid: 349abd4719c1dc44b8abb49c4c441880
   - enabled: 1
