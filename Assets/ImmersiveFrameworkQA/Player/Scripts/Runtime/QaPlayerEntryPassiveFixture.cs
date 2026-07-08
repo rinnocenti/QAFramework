@@ -60,11 +60,7 @@ namespace ImmersiveFrameworkQA.Player
             var entry = new PlayerEntry(slotId, actorId, "qa.player-entry.configured");
             PlayerEntrySnapshot snapshot = entry.CreateSnapshot();
 
-            bool passed = snapshot.State == PlayerEntryState.Configured
-                && snapshot.PlayerSlotId.Value.Value == ExpectedSlotId
-                && snapshot.ActorId.Value.Value == ExpectedActorId
-                && !snapshot.IsActorReadyForView
-                && !snapshot.IsActorReadyForControl;
+            bool passed = snapshot is { State: PlayerEntryState.Configured, PlayerSlotId: { Value: { Value: ExpectedSlotId } }, ActorId: { Value: { Value: ExpectedActorId } }, IsActorReadyForView: false, IsActorReadyForControl: false };
 
             LogStep("Configured", passed, snapshot);
             return passed;
@@ -82,10 +78,7 @@ namespace ImmersiveFrameworkQA.Player
                 "qa.player-entry.actor-ready");
             PlayerEntrySnapshot snapshot = entry.CreateSnapshot();
 
-            bool passed = snapshot.State == PlayerEntryState.ActorReady
-                && snapshot.IsActorReady
-                && snapshot.IsActorReadyForView
-                && !snapshot.IsActorReadyForControl;
+            bool passed = snapshot is { State: PlayerEntryState.ActorReady, IsActorReady: true, IsActorReadyForView: true, IsActorReadyForControl: false };
 
             LogStep("ActorReady", passed, snapshot);
             return passed;
@@ -103,10 +96,7 @@ namespace ImmersiveFrameworkQA.Player
                 "qa.player-entry.active");
             PlayerEntrySnapshot snapshot = entry.CreateSnapshot();
 
-            bool passed = snapshot.State == PlayerEntryState.Active
-                && snapshot.IsActive
-                && snapshot.IsActorReadyForView
-                && snapshot.IsActorReadyForControl;
+            bool passed = snapshot is { State: PlayerEntryState.Active, IsActive: true, IsActorReadyForView: true, IsActorReadyForControl: true };
 
             LogStep("Active with control evidence", passed, snapshot);
             return passed;
@@ -124,10 +114,8 @@ namespace ImmersiveFrameworkQA.Player
             PlayerEntrySnapshot originalSnapshot = entry.CreateSnapshot();
             PlayerEntrySnapshot readySnapshot = readyEntry.CreateSnapshot();
 
-            bool passed = originalSnapshot.State == PlayerEntryState.Configured
-                && !originalSnapshot.IsActorReadyForView
-                && readySnapshot.State == PlayerEntryState.ActorReady
-                && readySnapshot.IsActorReadyForView
+            bool passed = originalSnapshot is { State: PlayerEntryState.Configured, IsActorReadyForView: false }
+                && readySnapshot is { State: PlayerEntryState.ActorReady, IsActorReadyForView: true }
                 && !ReferenceEquals(entry, readyEntry);
 
             LogStep("Immutable WithActorReadiness/WithState", passed, readySnapshot);
@@ -172,8 +160,7 @@ namespace ImmersiveFrameworkQA.Player
 
             PlayerEntrySnapshot snapshot = suspended.CreateSnapshot();
             bool passed = rejectedMissingReason
-                && snapshot.IsSuspended
-                && snapshot.SuspensionReason == "qa.player-entry.suspended.explicit-reason";
+                && snapshot is { IsSuspended: true, SuspensionReason: "qa.player-entry.suspended.explicit-reason" };
 
             LogStep("Suspended requires reason", passed, snapshot);
             return passed;
@@ -185,9 +172,7 @@ namespace ImmersiveFrameworkQA.Player
                 .Released("qa.player-entry.released");
             PlayerEntrySnapshot snapshot = entry.CreateSnapshot();
 
-            bool passed = snapshot.State == PlayerEntryState.Released
-                && snapshot.IsReleased
-                && !snapshot.IsConfigured;
+            bool passed = snapshot is { State: PlayerEntryState.Released, IsReleased: true, IsConfigured: false };
 
             LogStep("Released", passed, snapshot);
             return passed;
