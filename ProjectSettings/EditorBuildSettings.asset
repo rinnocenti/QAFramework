@@ -51,6 +51,9 @@ EditorBuildSettings:
     path: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerViewPassive.unity
     guid: 61d73cd65ddfd284c8e1b9cc42c0eb7a
   - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerControlPassive.unity
+    guid: 72c6d9ba717464a4f9ff05220e9f9116
+  - enabled: 1
     path: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerTopologyPassive.unity
     guid: b8237b600e13b0f4383854208f491362
   - enabled: 1
