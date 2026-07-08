@@ -6,8 +6,7 @@ using Immersive.Pooling.Unity.Contracts;
 using Immersive.Pooling.Unity.Hosts;
 using Immersive.Pooling.Unity.Runtime;
 using UnityEngine;
-
-namespace ImmersiveFrameworkQA.Pooling
+namespace ImmersiveFrameworkQA.Pooling.ImmersiveFrameworkQA.Pooling.Scripts.Runtime
 {
     /// <summary>
     /// QA-only IMGUI panel for synthetic validation of com.immersive.pooling.
@@ -382,7 +381,7 @@ namespace ImmersiveFrameworkQA.Pooling
 
         private string GetCallbacksSummary()
         {
-            var probes = FindObjectsOfType<PoolingQaCallbackProbe>(true);
+            var probes = FindObjectsByType<PoolingQaCallbackProbe>(FindObjectsInactive.Include);
             var created = 0;
             var taken = 0;
             var returned = 0;

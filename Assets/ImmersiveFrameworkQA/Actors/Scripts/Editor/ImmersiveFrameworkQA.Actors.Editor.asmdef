@@ -1,12 +1,9 @@
 {
-  "name": "ImmersiveFrameworkQA.Hub.Editor",
-  "rootNamespace": "ImmersiveFrameworkQA.Hub.Editor",
+  "name": "ImmersiveFrameworkQA.Actors.Editor",
+  "rootNamespace": "ImmersiveFrameworkQA.Actors.Editor",
   "references": [
-    "ImmersiveFrameworkQA.Hub.Runtime",
     "ImmersiveFrameworkQA.Actors.Runtime",
-    "ImmersiveFrameworkQA.Actors.Editor",
-    "ImmersiveFrameworkQA.Player.Runtime",
-    "ImmersiveFrameworkQA.Player.Editor",
+    "ImmersiveFrameworkQA.Hub.Runtime",
     "Immersive.Framework.Runtime"
   ],
   "includePlatforms": [

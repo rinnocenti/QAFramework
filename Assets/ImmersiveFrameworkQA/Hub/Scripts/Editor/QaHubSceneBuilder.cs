@@ -1,19 +1,19 @@
 using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
-using ImmersiveFrameworkQA.Hub;
+using ImmersiveFrameworkQA.Actors.Editor;
 using ImmersiveFrameworkQA.Player.Editor;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
-namespace ImmersiveFrameworkQA.Hub.Editor
+namespace ImmersiveFrameworkQA.Hub.Editor.ImmersiveFrameworkQA.Hub.Scripts.Editor
 {
     public static class QaHubSceneBuilder
     {
         private const string Root = "Assets/ImmersiveFrameworkQA";
         private const string HubRoot = Root + "/Hub";
         private const string HubScenes = HubRoot + "/Scenes";
+        private const string ActorRoot = Root + "/Actors";
         private const string PlayerRoot = Root + "/Player";
 
         private const string HubScenePath = HubScenes + "/QA_Hub.unity";
@@ -31,6 +31,8 @@ namespace ImmersiveFrameworkQA.Hub.Editor
         private const string FrameworkBgmRoutePath = Root + "/Audio/Routes/QA_FrameworkBgmRoute.asset";
         private const string FrameworkBgmScenePath = Root + "/Audio/Scenes/QA_FrameworkBgm.unity";
         private const string FrameworkBgmRouteBScenePath = Root + "/Audio/Scenes/QA_FrameworkBgmRouteB.unity";
+        private const string ActorReadinessRoutePath = ActorRoot + "/Routes/QA_ActorReadinessRoute.asset";
+        private const string ActorReadinessScenePath = ActorRoot + "/Scenes/QA_ActorReadiness.unity";
         private const string PlayerIdentityRoutePath = PlayerRoot + "/Routes/QA_PlayerIdentityRoute.asset";
         private const string PlayerSlotWiringRoutePath = PlayerRoot + "/Routes/QA_PlayerSlotWiringRoute.asset";
         private const string PlayerSlotWiringScenePath = PlayerRoot + "/Scenes/QA_PlayerSlotWiring.unity";
@@ -42,6 +44,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             new HubTarget("Camera QA", CameraRoutePath),
             new HubTarget("Pooling QA", PoolingRoutePath),
             new HubTarget("Framework BGM QA", FrameworkBgmRoutePath),
+            new HubTarget("Actor Readiness QA", ActorReadinessRoutePath, "qa.hub.route.actor_readiness_qa"),
             new HubTarget("Player Identity QA", PlayerIdentityRoutePath),
             new HubTarget("Player Slot Wiring QA", PlayerSlotWiringRoutePath, "qa.hub.route.player_slot_wiring_qa")
         };
@@ -50,6 +53,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
         public static void CreateOrRefreshHubAndPlayerScenes()
         {
             EnsureFolders();
+            CreateActorReadinessScene();
             CreatePlayerIdentityScene();
             CreatePlayerSlotWiringScene();
             CreateHubScene();
@@ -61,11 +65,12 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             ConfigureBackToHubPanelInScene(FrameworkBgmScenePath, new Rect(590f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(FrameworkBgmRouteBScenePath, new Rect(590f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(UnityBuildSurfaceScenePath, new Rect(16f, 140f, 360f, 92f));
+            ConfigureBackToHubPanelInScene(ActorReadinessScenePath, new Rect(16f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(PlayerSlotWiringScenePath, new Rect(16f, 16f, 360f, 92f));
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[QA_HUB] Hub and Player QA scenes created or refreshed.");
+            Debug.Log("[QA_HUB] Hub, Actor and Player QA scenes created or refreshed.");
         }
 
         private static void EnsureFolders()
@@ -99,6 +104,13 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             EnsureFolder(Root + "/UnityBuildSurface", "Scenes");
             EnsureFolder(Root + "/UnityBuildSurface", "Routes");
             EnsureFolder(Root + "/UnityBuildSurface", "Activities");
+            EnsureFolder(Root, "Actors");
+            EnsureFolder(ActorRoot, "Scenes");
+            EnsureFolder(ActorRoot, "Routes");
+            EnsureFolder(ActorRoot, "Activities");
+            EnsureFolder(ActorRoot, "Scripts");
+            EnsureFolder(ActorRoot + "/Scripts", "Runtime");
+            EnsureFolder(ActorRoot + "/Scripts", "Editor");
             EnsureFolder(Root, "Player");
             EnsureFolder(PlayerRoot, "Scenes");
             EnsureFolder(PlayerRoot, "Routes");
@@ -137,6 +149,11 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             panel.Configure(entries, "Immersive Framework QA Hub");
 
             EditorSceneManager.SaveScene(scene, HubScenePath);
+        }
+
+        private static void CreateActorReadinessScene()
+        {
+            QaActorReadinessSceneBuilder.CreateOrRefreshActorReadinessScene();
         }
 
         private static void CreatePlayerIdentityScene()
