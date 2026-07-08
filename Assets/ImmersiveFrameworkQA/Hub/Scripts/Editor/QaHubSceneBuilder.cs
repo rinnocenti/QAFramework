@@ -55,6 +55,8 @@ namespace ImmersiveFrameworkQA.Hub.Editor
         private const string PlayerBindingReadinessScenePath = PlayerRoot + "/Scenes/QA_PlayerBindingReadiness.unity";
         private const string PlayerBindingDiagnosticsRoutePath = PlayerRoot + "/Routes/QA_PlayerBindingDiagnosticsRoute.asset";
         private const string PlayerBindingDiagnosticsScenePath = PlayerRoot + "/Scenes/QA_PlayerBindingDiagnostics.unity";
+        private const string PlayerBindingAuthoringValidatorRoutePath = PlayerRoot + "/Routes/QA_PlayerBindingAuthoringValidatorRoute.asset";
+        private const string PlayerBindingAuthoringValidatorScenePath = PlayerRoot + "/Scenes/QA_PlayerBindingAuthoringValidator.unity";
         private const string PlayerIdentityRoutePath = PlayerRoot + "/Routes/QA_PlayerIdentityRoute.asset";
         private const string PlayerSlotWiringRoutePath = PlayerRoot + "/Routes/QA_PlayerSlotWiringRoute.asset";
         private const string PlayerSlotWiringScenePath = PlayerRoot + "/Scenes/QA_PlayerSlotWiring.unity";
@@ -77,6 +79,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             new HubTarget("PlayerControl Topology QA", PlayerControlTopologyRoutePath, "qa.hub.route.player_control_topology_qa"),
             new HubTarget("Player Binding Readiness QA", PlayerBindingReadinessRoutePath, "qa.hub.route.player_binding_readiness_qa"),
             new HubTarget("Player Binding Diagnostics QA", PlayerBindingDiagnosticsRoutePath, "qa.hub.route.player_binding_diagnostics_qa"),
+            new HubTarget("Player Binding Authoring Validator QA", PlayerBindingAuthoringValidatorRoutePath, "qa.hub.route.player_binding_authoring_validator_qa"),
             new HubTarget("Player Identity QA", PlayerIdentityRoutePath),
             new HubTarget("Player Slot Wiring QA", PlayerSlotWiringRoutePath, "qa.hub.route.player_slot_wiring_qa")
         };
@@ -96,6 +99,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             CreatePlayerControlTopologyScene();
             CreatePlayerBindingReadinessScene();
             CreatePlayerBindingDiagnosticsScene();
+            CreatePlayerBindingAuthoringValidatorScene();
             CreatePlayerIdentityScene();
             CreatePlayerSlotWiringScene();
             CreateHubScene();
@@ -118,6 +122,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             ConfigureBackToHubPanelInScene(PlayerControlTopologyScenePath, new Rect(16f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(PlayerBindingReadinessScenePath, new Rect(16f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(PlayerBindingDiagnosticsScenePath, new Rect(16f, 16f, 360f, 92f));
+            ConfigureBackToHubPanelInScene(PlayerBindingAuthoringValidatorScenePath, new Rect(16f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(PlayerSlotWiringScenePath, new Rect(16f, 16f, 360f, 92f));
 
             AssetDatabase.SaveAssets();
@@ -256,6 +261,11 @@ namespace ImmersiveFrameworkQA.Hub.Editor
         private static void CreatePlayerBindingDiagnosticsScene()
         {
             QaPlayerBindingDiagnosticsSceneBuilder.CreateOrRefreshPlayerBindingDiagnosticsScene();
+        }
+
+        private static void CreatePlayerBindingAuthoringValidatorScene()
+        {
+            QaPlayerBindingAuthoringValidatorSceneBuilder.CreateOrRefreshPlayerBindingAuthoringValidatorScene();
         }
 
         private static void CreatePlayerIdentityScene()
