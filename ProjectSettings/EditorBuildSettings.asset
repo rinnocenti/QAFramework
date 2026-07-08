@@ -6,16 +6,56 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 99c9720ab356a0642a771bea13969a05
+    path: Assets/ImmersiveFrameworkQA/Hub/Scenes/QA_Hub.unity
+    guid: 6b147dffd5d34b829cbc106eaf0d3241
   - enabled: 1
-    path: Assets/Scenes/StartupScene.unity
+    path: Assets/ImmersiveFrameworkQA/Lifecycle/Scenes/QA_LifecycleRouteA.unity
     guid: 1a736d916781e6a48b19fb84d972e950
   - enabled: 1
-    path: Assets/Scenes/SecoundScene.unity
+    path: Assets/ImmersiveFrameworkQA/Lifecycle/Scenes/QA_LifecycleRouteB.unity
     guid: 9e3f6145372bbd043a88d9f68791f17d
   - enabled: 1
-    path: Assets/Scenes/AdditionalRouteScene.unity
+    path: Assets/ImmersiveFrameworkQA/Lifecycle/Scenes/QA_LifecycleAdditional.unity
     guid: 9c623bdd65250ac448fa366920252c4d
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Camera/Scenes/QA_Camera.unity
+    guid: 7189d5319b414582b69dc96c02869467
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Camera/Scenes/QA_CameraRouteB.unity
+    guid: 83230fb0c04d46f8b5f25fe8f77c0cdb
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Pooling/Scenes/QA_Pooling.unity
+    guid: 16e3639e993acc54eb5e7acdff17aac9
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Audio/Scenes/QA_Audio.unity
+    guid: 9684257fd57f08b4c8e9b791f777f86e
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerIdentity.unity
+    guid: 30d44e51b2454521863a0d8d1b38164c
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/UnityBuildSurfaceQA.unity
+    guid: 7fc16f205d0638d4ba745b0819fd9c51
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/TransitionRouteA.unity
+    guid: d6bb51a224660fe4c98a40a08366682a
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/TransitionRouteB.unity
+    guid: 23a97001965f2814682a8a2569165e80
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/QA_UIGlobal.unity
+    guid: 5e4fdcb5ba8c4bd1b7f24e0000000001
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/ActivityAdditionalContent.unity
+    guid: 7acb79f5951d9e345b0127d25017ef4a
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Audio/Scenes/QA_FrameworkBgm.unity
+    guid: da79d51e86b8e0b4896cd5274fbf91cb
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Audio/Scenes/QA_FrameworkBgmRouteB.unity
+    guid: 349abd4719c1dc44b8abb49c4c441880
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerSlotWiring.unity
+    guid: 243709a4e08f6474b90e9a988470d3d3
   m_configObjects:
+    com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

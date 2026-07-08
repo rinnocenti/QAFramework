@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13b2f53632894f2a9e57f5741b4c686a, type: 3}
+  m_Name: QA_LimitedCubePool
+  m_EditorClassIdentifier: Immersive.Pooling.Unity::Immersive.Pooling.Unity.Authoring.PoolDefinitionAsset
+  prefab: {fileID: 2193624870504368295, guid: 4f51b20592043f24c87597d2f032d456, type: 3}
+  poolLabel: qa.limited-cube.pool
+  initialCapacity: 2
+  maxSize: 2
+  canExpand: 0
+  prewarmOnRegister: 0
+  lifetimeScope: 0
+  registrationMode: 0
+  autoReturnSeconds: 0

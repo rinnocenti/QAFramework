@@ -1,8 +1,14 @@
 {
     "name": "Project.Editor",
     "rootNamespace": "Project.Editor",
-    "references": ["Project.Runtime"],
-    "includePlatforms": ["Editor"],
+    "references": [
+        "Project.Runtime",
+        "Immersive.Framework.Runtime",
+        "Unity.Cinemachine"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

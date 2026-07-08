@@ -1,9 +1,15 @@
 {
   "dependencies": {
+    "com.immersive.audio": "file:C:/Projetos/ImmersivePackages/com.immersive.audio",
     "com.immersive.foundation": "https://github.com/ImmersiveGames/com.immersive.foundation.git",
+    "com.immersive.framework": "file:C:/Projetos/ImmersivePackages/com.immersive.framework",
     "com.immersive.logging": "https://github.com/ImmersiveGames/com.immersive.logging.git",
+    "com.immersive.pooling": "file:C:/Projetos/ImmersivePackages/com.immersive.pooling",
     "com.unity.addressables": "3.1.0",
+    "com.unity.ai.assistant": "2.13.0-pre.2",
+    "com.unity.ai.inference": "2.6.1",
     "com.unity.ai.navigation": "2.0.13",
+    "com.unity.cinemachine": "3.1.7",
     "com.unity.collab-proxy": "2.12.4",
     "com.unity.ide.rider": "3.0.40",
     "com.unity.ide.visualstudio": "2.0.27",

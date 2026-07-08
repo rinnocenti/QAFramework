@@ -1,0 +1,19 @@
+{
+    "name": "ImmersiveFrameworkQA.UnityBuildSurface.Editor",
+    "rootNamespace": "ImmersiveFrameworkQA.UnityBuildSurface.Editor",
+    "references": [
+        "Immersive.Framework.Runtime",
+        "ImmersiveFrameworkQA.UnityBuildSurface.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

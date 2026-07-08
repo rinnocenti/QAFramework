@@ -1,7 +1,13 @@
 {
     "name": "Project.Runtime",
     "rootNamespace": "Project",
-    "references": [],
+    "references": [
+        "GUID:1f14397897fa70c48994f55dd2f07413",
+        "Unity.InputSystem",
+        "GUID:15084cbee7e653e4092e8b9eb570619a",
+        "GUID:6b45749f64fed1a43a9e2899cedfd06a",
+        "Unity.Cinemachine"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

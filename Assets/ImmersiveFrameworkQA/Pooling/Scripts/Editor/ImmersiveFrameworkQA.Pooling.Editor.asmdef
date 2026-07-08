@@ -1,0 +1,20 @@
+{
+    "name": "ImmersiveFrameworkQA.Pooling.Editor",
+    "rootNamespace": "ImmersiveFrameworkQA.Pooling.Editor",
+    "references": [
+        "ImmersiveFrameworkQA.Pooling.Runtime",
+        "Immersive.Pooling.Unity",
+        "Immersive.Pooling.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
