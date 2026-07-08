@@ -93,6 +93,9 @@ EditorBuildSettings:
     path: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerSlotWiring.unity
     guid: 243709a4e08f6474b90e9a988470d3d3
   - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerViewBindingAdapter.unity
+    guid: 7282092f00d5c9c488320ce0972d9ff4
+  - enabled: 1
     path: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerViewTopology.unity
     guid: ea5110f7b6e3bff4ca05563df0b9ce29
   m_configObjects:
