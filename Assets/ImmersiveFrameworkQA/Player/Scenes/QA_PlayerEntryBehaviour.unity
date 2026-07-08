@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &322617080
+--- !u!1 &666102977
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,8 +127,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 322617082}
-  - component: {fileID: 322617081}
+  - component: {fileID: 666102979}
+  - component: {fileID: 666102978}
   m_Layer: 0
   m_Name: QA_F49E_PlayerEntryBehaviour
   m_TagString: Untagged
@@ -136,29 +136,29 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &322617081
+--- !u!114 &666102978
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 322617080}
+  m_GameObject: {fileID: 666102977}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 560519c6e39046558b88ac1abb8be0f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: ImmersiveFrameworkQA.Player.Runtime::ImmersiveFrameworkQA.Player.QaPlayerEntryBehaviourFixture
-  entryBehaviour: {fileID: 419916960}
-  actorReadinessBehaviour: {fileID: 419916959}
+  entryBehaviour: {fileID: 718809197}
+  actorReadinessBehaviour: {fileID: 718809196}
   runOnStart: 1
   throwOnFailure: 0
---- !u!4 &322617082
+--- !u!4 &666102979
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 322617080}
+  m_GameObject: {fileID: 666102977}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -167,7 +167,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &419916958
+--- !u!1 &718809195
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -175,11 +175,11 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 419916963}
-  - component: {fileID: 419916962}
-  - component: {fileID: 419916961}
-  - component: {fileID: 419916959}
-  - component: {fileID: 419916960}
+  - component: {fileID: 718809200}
+  - component: {fileID: 718809199}
+  - component: {fileID: 718809198}
+  - component: {fileID: 718809196}
+  - component: {fileID: 718809197}
   m_Layer: 0
   m_Name: QA_PlayerEntryBehaviour_Target
   m_TagString: Untagged
@@ -187,13 +187,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &419916959
+--- !u!114 &718809196
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 419916958}
+  m_GameObject: {fileID: 718809195}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7e8a4f6c73a8465cb2a49f6e4c61c91b, type: 3}
@@ -202,37 +202,37 @@ MonoBehaviour:
   initialState: 0
   initialReason: 
   applyInitialStateOnAwake: 1
---- !u!114 &419916960
+--- !u!114 &718809197
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 419916958}
+  m_GameObject: {fileID: 718809195}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cd08086ed61f43eca43c661b4437de5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerEntry.PlayerEntryBehaviour
-  playerSlotDeclaration: {fileID: 419916962}
+  playerSlotDeclaration: {fileID: 718809199}
   playerSlotId: player.1
-  actorDeclaration: {fileID: 419916961}
+  actorDeclaration: {fileID: 718809198}
   playerActorDeclaration: {fileID: 0}
   actorId: qa.player-entry.behaviour.actor
-  actorReadinessBehaviour: {fileID: 419916959}
+  actorReadinessBehaviour: {fileID: 718809196}
   initialActorReadinessState: 0
   initialActorReadinessReason: 
   initialState: 0
   initialSuspensionReason: 
   initialReason: qa.player-entry-behaviour.initial
   rebuildOnAwake: 1
---- !u!114 &419916961
+--- !u!114 &718809198
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 419916958}
+  m_GameObject: {fileID: 718809195}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 948998c06f7b4e4488258471eee4f6e8, type: 3}
@@ -243,13 +243,13 @@ MonoBehaviour:
   actorRole: 50
   displayName: QA PlayerEntry Behaviour Actor
   reason: qa.player-entry-behaviour.actor-declaration
---- !u!114 &419916962
+--- !u!114 &718809199
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 419916958}
+  m_GameObject: {fileID: 718809195}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2c690b91b7ac4cd3aa015da4df9cae9e, type: 3}
@@ -259,13 +259,13 @@ MonoBehaviour:
   displayName: QA PlayerEntry Behaviour Slot
   playerInput: {fileID: 0}
   reason: qa.player-entry-behaviour.slot-declaration
---- !u!4 &419916963
+--- !u!4 &718809200
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 419916958}
+  m_GameObject: {fileID: 718809195}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -274,7 +274,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1327306938
+--- !u!1 &1413532547
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -282,8 +282,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1327306940}
-  - component: {fileID: 1327306939}
+  - component: {fileID: 1413532549}
+  - component: {fileID: 1413532548}
   m_Layer: 0
   m_Name: QA_PlayerEntryBehaviourCamera
   m_TagString: MainCamera
@@ -291,13 +291,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!20 &1327306939
+--- !u!20 &1413532548
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1327306938}
+  m_GameObject: {fileID: 1413532547}
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
@@ -342,13 +342,13 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!4 &1327306940
+--- !u!4 &1413532549
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1327306938}
+  m_GameObject: {fileID: 1413532547}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -10}
@@ -357,7 +357,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1402290343
+--- !u!1 &1725830054
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -365,9 +365,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1402290346}
-  - component: {fileID: 1402290345}
-  - component: {fileID: 1402290344}
+  - component: {fileID: 1725830057}
+  - component: {fileID: 1725830056}
+  - component: {fileID: 1725830055}
   m_Layer: 0
   m_Name: QA_BackToHubNavigation
   m_TagString: Untagged
@@ -375,13 +375,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1402290344
+--- !u!114 &1725830055
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1402290343}
+  m_GameObject: {fileID: 1725830054}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6f6b98ee53b94af8a4663cba085700a8, type: 3}
@@ -389,7 +389,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: ImmersiveFrameworkQA.Hub.Runtime::ImmersiveFrameworkQA.Hub.QaHubPanel
   entries:
   - label: Back to QA Hub
-    routeRequestTrigger: {fileID: 1402290345}
+    routeRequestTrigger: {fileID: 1725830056}
   title: QA Navigation
   showPanel: 1
   restrictToActiveScene: 1
@@ -399,13 +399,13 @@ MonoBehaviour:
     y: 16
     width: 360
     height: 92
---- !u!114 &1402290345
+--- !u!114 &1725830056
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1402290343}
+  m_GameObject: {fileID: 1725830054}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
@@ -413,13 +413,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
   targetRoute: {fileID: 11400000, guid: 1addd390562c4f15a738f4125bb94be8, type: 2}
   reason: qa.route.back-to-hub
---- !u!4 &1402290346
+--- !u!4 &1725830057
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1402290343}
+  m_GameObject: {fileID: 1725830054}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -432,7 +432,7 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1327306940}
-  - {fileID: 419916963}
-  - {fileID: 322617082}
-  - {fileID: 1402290346}
+  - {fileID: 1413532549}
+  - {fileID: 718809200}
+  - {fileID: 666102979}
+  - {fileID: 1725830057}
