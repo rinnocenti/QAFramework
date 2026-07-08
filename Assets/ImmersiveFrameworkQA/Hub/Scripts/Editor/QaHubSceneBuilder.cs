@@ -43,6 +43,8 @@ namespace ImmersiveFrameworkQA.Hub.Editor
         private const string PlayerEntryBehaviourScenePath = PlayerRoot + "/Scenes/QA_PlayerEntryBehaviour.unity";
         private const string PlayerTopologyPassiveRoutePath = PlayerRoot + "/Routes/QA_PlayerTopologyPassiveRoute.asset";
         private const string PlayerTopologyPassiveScenePath = PlayerRoot + "/Scenes/QA_PlayerTopologyPassive.unity";
+        private const string PlayerViewPassiveRoutePath = PlayerRoot + "/Routes/QA_PlayerViewPassiveRoute.asset";
+        private const string PlayerViewPassiveScenePath = PlayerRoot + "/Scenes/QA_PlayerViewPassive.unity";
         private const string PlayerIdentityRoutePath = PlayerRoot + "/Routes/QA_PlayerIdentityRoute.asset";
         private const string PlayerSlotWiringRoutePath = PlayerRoot + "/Routes/QA_PlayerSlotWiringRoute.asset";
         private const string PlayerSlotWiringScenePath = PlayerRoot + "/Scenes/QA_PlayerSlotWiring.unity";
@@ -59,6 +61,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             new HubTarget("PlayerEntry Passive QA", PlayerEntryPassiveRoutePath, "qa.hub.route.player_entry_passive_qa"),
             new HubTarget("PlayerEntry Behaviour QA", PlayerEntryBehaviourRoutePath, "qa.hub.route.player_entry_behaviour_qa"),
             new HubTarget("PlayerTopology Passive QA", PlayerTopologyPassiveRoutePath, "qa.hub.route.player_topology_passive_qa"),
+            new HubTarget("PlayerView Passive QA", PlayerViewPassiveRoutePath, "qa.hub.route.player_view_passive_qa"),
             new HubTarget("Player Identity QA", PlayerIdentityRoutePath),
             new HubTarget("Player Slot Wiring QA", PlayerSlotWiringRoutePath, "qa.hub.route.player_slot_wiring_qa")
         };
@@ -72,6 +75,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             CreatePlayerEntryPassiveScene();
             CreatePlayerEntryBehaviourScene();
             CreatePlayerTopologyPassiveScene();
+            CreatePlayerViewPassiveScene();
             CreatePlayerIdentityScene();
             CreatePlayerSlotWiringScene();
             CreateHubScene();
@@ -88,6 +92,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             ConfigureBackToHubPanelInScene(PlayerEntryPassiveScenePath, new Rect(16f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(PlayerEntryBehaviourScenePath, new Rect(16f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(PlayerTopologyPassiveScenePath, new Rect(16f, 16f, 360f, 92f));
+            ConfigureBackToHubPanelInScene(PlayerViewPassiveScenePath, new Rect(16f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(PlayerSlotWiringScenePath, new Rect(16f, 16f, 360f, 92f));
 
             AssetDatabase.SaveAssets();
@@ -196,6 +201,11 @@ namespace ImmersiveFrameworkQA.Hub.Editor
         private static void CreatePlayerTopologyPassiveScene()
         {
             QaPlayerTopologyPassiveSceneBuilder.CreateOrRefreshPlayerTopologyPassiveScene();
+        }
+
+        private static void CreatePlayerViewPassiveScene()
+        {
+            QaPlayerViewPassiveSceneBuilder.CreateOrRefreshPlayerViewPassiveScene();
         }
 
         private static void CreatePlayerIdentityScene()
