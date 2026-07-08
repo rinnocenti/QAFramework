@@ -50,7 +50,7 @@ Referencias documentais encontradas:
 
 ## Validação textual
 
-Buscas executadas em `C:\Projetos\My project\Assets`:
+Buscas executadas em `C:\Projetos\QAFramework\Assets`:
 
 ```text
 Assets/_Documentation

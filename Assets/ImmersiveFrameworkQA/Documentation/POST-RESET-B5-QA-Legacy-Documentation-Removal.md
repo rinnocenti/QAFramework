@@ -7,7 +7,7 @@ Auditar e remover a pasta legada `Assets/_Documentation` do Framework QA Project
 ## Pasta auditada
 
 ```text
-C:\Projetos\My project\Assets\_Documentation
+C:\Projetos\QAFramework\Assets\_Documentation
 ```
 
 Resultado da auditoria textual:
@@ -231,7 +231,7 @@ Validacao executada:
 - comparacao textual com `com.immersive.framework/Documentation~`;
 - busca inicial por referencias a `Assets/_Documentation`, `_Documentation`, `Documentation~`, `canonical` e `legacy documentation`.
 - verificacao de existencia da pasta apos remocao: `REMOVED`;
-- buscas finais em `C:\Projetos\My project\Assets` para `Assets/_Documentation`, `_Documentation`, `Documentation~`, `canonical` e `legacy documentation`;
+- buscas finais em `C:\Projetos\QAFramework\Assets` para `Assets/_Documentation`, `_Documentation`, `Documentation~`, `canonical` e `legacy documentation`;
 - `git status --short`.
 
 Classificacao dos hits finais:
@@ -278,6 +278,6 @@ Motivo:
 
 Validacao textual:
 
-- `rg -n "Assets/_Documentation" "C:\Projetos\My project\Assets\_Project"` nao encontrou hits apos a correcao;
-- buscas finais em `C:\Projetos\My project\Assets` mantem `Assets/_Documentation` apenas em relatorios/README historicos de remocao;
+- `rg -n "Assets/_Documentation" "C:\Projetos\QAFramework\Assets\_Project"` nao encontrou hits apos a correcao;
+- buscas finais em `C:\Projetos\QAFramework\Assets` mantem `Assets/_Documentation` apenas em relatorios/README historicos de remocao;
 - `Documentation~` aparece apenas como referencia documental ao package.

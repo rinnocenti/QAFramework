@@ -56,7 +56,7 @@ Estado atual:
 - Nenhum MonoBehaviour ou asmdef foi movido.
 - Nenhum arquivo em `Assets/_Project` foi removido.
 - Nenhum arquivo em `Assets/_Documentation` foi removido ou migrado.
-- Nenhum arquivo fora de `C:\Projetos\My project` foi modificado.
+- Nenhum arquivo fora de `C:\Projetos\QAFramework` foi modificado.
 
 ## Assets serializados deferidos
 

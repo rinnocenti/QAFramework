@@ -9,7 +9,7 @@ Este corte nao moveu assets serializados, nao apagou `Assets/_Project` e nao alt
 ## Pasta auditada
 
 ```text
-C:\Projetos\My project\Assets\_Project
+C:\Projetos\QAFramework\Assets\_Project
 ```
 
 ## Sumario
@@ -156,10 +156,10 @@ Executado neste corte:
 - leitura dos `.asset`;
 - leitura do script Editor local;
 - extracao dos GUIDs de `.cs` e `.asset`;
-- busca de cada GUID em `C:\Projetos\My project\Assets`;
+- busca de cada GUID em `C:\Projetos\QAFramework\Assets`;
 - inspecao textual do package para `ImmersiveFrameworkSettings` e `Resources.Load`.
 
-Buscas finais obrigatorias em `C:\Projetos\My project\Assets`:
+Buscas finais obrigatorias em `C:\Projetos\QAFramework\Assets`:
 
 | Busca | Classificacao |
 |---|---|
@@ -190,7 +190,7 @@ Arquivos auditados:
 - `C:\Projetos\ImmersivePackages\com.immersive.framework\Runtime\Authoring\ImmersiveFrameworkSettingsAsset.cs`;
 - `C:\Projetos\ImmersivePackages\com.immersive.framework\Runtime\Bootstrap\ImmersiveFrameworkBootstrap.cs`;
 - `C:\Projetos\ImmersivePackages\com.immersive.framework\Runtime\Diagnostics\FrameworkLogger.cs`;
-- `C:\Projetos\My project\Assets\_Project\Settings\ImmersiveFramework\Resources\ImmersiveFrameworkSettings.asset`.
+- `C:\Projetos\QAFramework\Assets\_Project\Settings\ImmersiveFramework\Resources\ImmersiveFrameworkSettings.asset`.
 
 Referencias removidas ou corrigidas:
 
