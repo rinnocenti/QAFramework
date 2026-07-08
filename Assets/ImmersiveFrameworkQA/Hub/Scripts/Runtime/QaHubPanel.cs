@@ -25,6 +25,10 @@ namespace ImmersiveFrameworkQA.Hub
             public RouteRequestTrigger RouteRequestTrigger => routeRequestTrigger;
         }
 
+        private const float EntryButtonHeight = 34f;
+        private const float MinimumPanelWidth = 240f;
+        private const float MinimumPanelHeight = 120f;
+
         [SerializeField] private QaHubEntry[] entries = Array.Empty<QaHubEntry>();
         [SerializeField] private string title = "Immersive Framework QA Hub";
         [SerializeField] private bool showPanel = true;
@@ -33,6 +37,7 @@ namespace ImmersiveFrameworkQA.Hub
 
         private string lastResult = "Select a QA route.";
         private bool lastResultIsError;
+        private Vector2 scrollPosition;
 
         public void Configure(QaHubEntry[] nextEntries, string nextTitle)
         {
@@ -40,6 +45,7 @@ namespace ImmersiveFrameworkQA.Hub
             title = string.IsNullOrWhiteSpace(nextTitle) ? "Immersive Framework QA Hub" : nextTitle;
             lastResult = "Select a QA route.";
             lastResultIsError = false;
+            scrollPosition = Vector2.zero;
         }
 
         public void RequestRoute(RouteRequestTrigger trigger)
@@ -99,6 +105,7 @@ namespace ImmersiveFrameworkQA.Hub
         {
             GUILayout.Space(8f);
 
+            scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.ExpandHeight(true));
             for (int i = 0; i < entries.Length; i++)
             {
                 QaHubEntry entry = entries[i];
@@ -108,11 +115,13 @@ namespace ImmersiveFrameworkQA.Hub
                     : "Missing Route";
                 string label = string.IsNullOrWhiteSpace(entry.Label) ? fallbackLabel : entry.Label;
                 GUI.enabled = trigger != null && trigger.TargetRoute != null && !trigger.IsRequestInFlight;
-                if (GUILayout.Button(label, GUILayout.Height(34f)))
+                if (GUILayout.Button(label, GUILayout.Height(EntryButtonHeight)))
                 {
                     RequestRoute(trigger);
                 }
             }
+
+            GUILayout.EndScrollView();
 
             GUI.enabled = true;
             GUILayout.Space(8f);
@@ -125,8 +134,8 @@ namespace ImmersiveFrameworkQA.Hub
 
         private static Rect ClampToScreen(Rect rect)
         {
-            float width = Mathf.Max(240f, rect.width);
-            float height = Mathf.Max(120f, rect.height);
+            float width = Mathf.Max(MinimumPanelWidth, rect.width);
+            float height = Mathf.Max(MinimumPanelHeight, rect.height);
             float maxX = Mathf.Max(0f, Screen.width - width);
             float maxY = Mathf.Max(0f, Screen.height - height);
             return new Rect(Mathf.Clamp(rect.x, 0f, maxX), Mathf.Clamp(rect.y, 0f, maxY), width, height);
