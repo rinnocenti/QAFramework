@@ -30,6 +30,9 @@ EditorBuildSettings:
     path: Assets/ImmersiveFrameworkQA/Audio/Scenes/QA_Audio.unity
     guid: 9684257fd57f08b4c8e9b791f777f86e
   - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerViewCameraTargetBinding.unity
+    guid: 9a589ac827f5dac4b9cde50c8e49cba3
+  - enabled: 1
     path: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerIdentity.unity
     guid: 30d44e51b2454521863a0d8d1b38164c
   - enabled: 1

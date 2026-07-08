@@ -63,6 +63,8 @@ namespace ImmersiveFrameworkQA.Hub.Editor
         private const string PlayerViewBindingAdapterScenePath = PlayerRoot + "/Scenes/QA_PlayerViewBindingAdapter.unity";
         private const string PlayerViewCameraTargetBindingRoutePath = PlayerRoot + "/Routes/QA_PlayerViewCameraTargetBindingRoute.asset";
         private const string PlayerViewCameraTargetBindingScenePath = PlayerRoot + "/Scenes/QA_PlayerViewCameraTargetBinding.unity";
+        private const string PlayerViewCameraActivationRoutePath = PlayerRoot + "/Routes/QA_PlayerViewCameraActivationRoute.asset";
+        private const string PlayerViewCameraActivationScenePath = PlayerRoot + "/Scenes/QA_PlayerViewCameraActivation.unity";
         private const string PlayerIdentityRoutePath = PlayerRoot + "/Routes/QA_PlayerIdentityRoute.asset";
         private const string PlayerSlotWiringRoutePath = PlayerRoot + "/Routes/QA_PlayerSlotWiringRoute.asset";
         private const string PlayerSlotWiringScenePath = PlayerRoot + "/Scenes/QA_PlayerSlotWiring.unity";
@@ -89,6 +91,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             new HubTarget("Player Binding Authoring Issue Cleanup QA", PlayerBindingAuthoringIssueCleanupRoutePath, "qa.hub.route.player_binding_authoring_issue_cleanup_qa"),
             new HubTarget("PlayerView Binding Adapter QA", PlayerViewBindingAdapterRoutePath, "qa.hub.route.playerview_binding_adapter_qa"),
             new HubTarget("PlayerView Camera Target Binding QA", PlayerViewCameraTargetBindingRoutePath, "qa.hub.route.playerview_camera_target_binding_qa"),
+            new HubTarget("PlayerView Camera Activation QA", PlayerViewCameraActivationRoutePath, "qa.hub.route.playerview_camera_activation_qa"),
             new HubTarget("Player Identity QA", PlayerIdentityRoutePath),
             new HubTarget("Player Slot Wiring QA", PlayerSlotWiringRoutePath, "qa.hub.route.player_slot_wiring_qa")
         };
@@ -112,6 +115,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             CreatePlayerBindingAuthoringIssueCleanupScene();
             CreatePlayerViewBindingAdapterScene();
             CreatePlayerViewCameraTargetBindingScene();
+            CreatePlayerViewCameraActivationScene();
             CreatePlayerIdentityScene();
             CreatePlayerSlotWiringScene();
             CreateHubScene();
@@ -138,6 +142,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             ConfigureBackToHubPanelInScene(PlayerBindingAuthoringIssueCleanupScenePath, new Rect(16f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(PlayerViewBindingAdapterScenePath, new Rect(16f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(PlayerViewCameraTargetBindingScenePath, new Rect(16f, 16f, 360f, 92f));
+            ConfigureBackToHubPanelInScene(PlayerViewCameraActivationScenePath, new Rect(16f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(PlayerSlotWiringScenePath, new Rect(16f, 16f, 360f, 92f));
 
             AssetDatabase.SaveAssets();
@@ -296,6 +301,11 @@ namespace ImmersiveFrameworkQA.Hub.Editor
         private static void CreatePlayerViewCameraTargetBindingScene()
         {
             QaPlayerViewCameraTargetBindingSceneBuilder.CreateOrRefreshPlayerViewCameraTargetBindingScene();
+        }
+
+        private static void CreatePlayerViewCameraActivationScene()
+        {
+            QaPlayerViewCameraActivationSceneBuilder.CreateOrRefreshPlayerViewCameraActivationScene();
         }
 
         private static void CreatePlayerIdentityScene()
