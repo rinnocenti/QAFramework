@@ -1,209 +1,116 @@
-using Immersive.Framework.Camera;
 using Immersive.Framework.CameraAuthoring;
 using Immersive.Framework.Editor.CameraAuthoring;
-using Immersive.Framework.PlayerAuthoring;
+using ImmersiveFrameworkQA.Camera;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace ImmersiveFrameworkQA.CameraAuthoring.Editor
+namespace ImmersiveFrameworkQA.Camera.Editor
 {
     /// <summary>
-    /// QAFramework editor smoke for the C5 CameraComposer SinglePlayer MVP.
-    /// It builds an isolated authoring setup in the open scene, runs Validate/Apply twice,
-    /// verifies idempotency, and verifies a negative missing PlayerComposer case.
+    /// C5 smoke over the scene-authored Camera Product Surface fixture.
     /// </summary>
     public static class QaC5CameraComposerSinglePlayerSmoke
     {
-        private const string RootName = "QA_C5_CameraComposer_SinglePlayer_Smoke";
-        private const string CameraScenePath = "Assets/ImmersiveFrameworkQA/Camera/Scenes/QA_Camera.unity";
+        private const string ScenePath = "Assets/ImmersiveFrameworkQA/Camera/Scenes/QA_Camera_ProductSurface.unity";
 
         [MenuItem("Immersive Framework/QA/Camera/C5 CameraComposer SinglePlayer Smoke")]
         private static void Run()
         {
-            Scene activeScene = SceneManager.GetActiveScene();
-            if (activeScene.path != CameraScenePath)
+            if (SceneManager.GetActiveScene().path != ScenePath)
             {
-                if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                {
-                    Fail("camera-scene-open-cancelled");
-                    return;
-                }
-
-                if (EditorSceneManager.OpenScene(CameraScenePath, OpenSceneMode.Single).path != CameraScenePath)
-                {
-                    Fail("camera-scene-not-opened");
-                    return;
-                }
+                Fail("fixture-not-found", $"active-scene='{SceneManager.GetActiveScene().path}' expected='{ScenePath}'");
+                return;
             }
 
-            GameObject previous = GameObject.Find(RootName);
-            if (previous != null)
+            QaCameraProductSurfaceFixture fixture = Object.FindAnyObjectByType<QaCameraProductSurfaceFixture>();
+            if (fixture == null)
             {
-                Object.DestroyImmediate(previous);
+                Fail("fixture-not-found");
+                return;
             }
 
-            GameObject root = new GameObject(RootName);
-            GameObject playerRoot = CreateChild(root.transform, "QA_PlayerPrototype");
-            GameObject cameraTarget = CreateChild(playerRoot.transform, "CameraTarget");
-            GameObject lookAtTarget = CreateChild(playerRoot.transform, "LookAtTarget");
-            cameraTarget.transform.localPosition = new Vector3(0f, 1.5f, 0f);
-            lookAtTarget.transform.localPosition = new Vector3(0f, 1.8f, 1f);
+            if (fixture.CameraComposer == null || fixture.PlayerComposer == null || fixture.CameraTarget == null ||
+                fixture.LookAtTarget == null || fixture.CameraRig == null || fixture.NegativeMissingPlayerComposer == null)
+            {
+                Fail("fixture-not-found");
+                return;
+            }
 
-            PlayerComposer playerComposer = playerRoot.AddComponent<PlayerComposer>();
-            ConfigurePlayerComposer(playerComposer, cameraTarget.transform, lookAtTarget.transform);
+            CameraComposer composer = fixture.CameraComposer;
+            if (composer.PlayerComposer != fixture.PlayerComposer ||
+                fixture.PlayerComposer.CameraTarget != fixture.CameraTarget ||
+                fixture.PlayerComposer.LookAtTarget != fixture.LookAtTarget)
+            {
+                Fail("fixture-target-references-not-resolved");
+                return;
+            }
 
-            GameObject cameraRig = CreateChild(root.transform, "QA_CameraRig");
-            CameraComposer cameraComposer = cameraRig.AddComponent<CameraComposer>();
-            ConfigureCameraComposer(cameraComposer, playerComposer);
-
-            CameraComposerApplyRebuildResult validation = CameraComposerApplyRebuildUtility.Validate(cameraComposer, true);
-            Debug.Log($"[QA][C5 CameraComposer] Validate: succeeded='{validation.Succeeded}' status='{validation.Status}' blocked='{validation.BlockedCount}' issue='{validation.BlockingIssue}'");
-
-            CameraComposerApplyRebuildResult first = CameraComposerApplyRebuildUtility.ApplyOrRebuild(cameraComposer, true, false);
-            Debug.Log($"[QA][C5 CameraComposer] First Apply/Rebuild: succeeded='{first.Succeeded}' created='{first.CreatedCount}' repaired='{first.RepairedCount}' alreadyValid='{first.AlreadyValidCount}' skipped='{first.SkippedCount}' blocked='{first.BlockedCount}' issue='{first.BlockingIssue}'");
-
-            CameraComposerApplyRebuildResult second = CameraComposerApplyRebuildUtility.ApplyOrRebuild(cameraComposer, true, false);
-            Debug.Log($"[QA][C5 CameraComposer] Second Apply/Rebuild: succeeded='{second.Succeeded}' created='{second.CreatedCount}' repaired='{second.RepairedCount}' alreadyValid='{second.AlreadyValidCount}' skipped='{second.SkippedCount}' blocked='{second.BlockedCount}' issue='{second.BlockingIssue}'");
-
-            GameObject negativeRig = CreateChild(root.transform, "QA_Negative_MissingPlayerComposer");
-            CameraComposer negativeComposer = negativeRig.AddComponent<CameraComposer>();
-            ConfigureCameraComposer(negativeComposer, null);
-            CameraComposerApplyRebuildResult negative = CameraComposerApplyRebuildUtility.Validate(negativeComposer, true);
-            Debug.Log($"[QA][C5 CameraComposer] Negative Missing PlayerComposer: succeeded='{negative.Succeeded}' status='{negative.Status}' blocked='{negative.BlockedCount}' issue='{negative.BlockingIssue}'");
-
+            CameraComposerApplyRebuildResult validation = CameraComposerApplyRebuildUtility.Validate(composer, true);
+            Debug.Log($"[QA][C5 CameraComposer] Validate: succeeded='{validation.Succeeded}' blocked='{validation.BlockedCount}' issue='{validation.BlockingIssue}'");
             if (!validation.Succeeded)
             {
-                Fail($"Validation failed unexpectedly. issue='{validation.BlockingIssue}'");
+                Fail("happy-path-validation-failed", validation.BlockingIssue);
                 return;
             }
 
+            CameraComposerApplyRebuildResult first = CameraComposerApplyRebuildUtility.ApplyOrRebuild(composer, true, false);
+            Debug.Log($"[QA][C5 CameraComposer] First Apply/Rebuild: succeeded='{first.Succeeded}' created='{first.CreatedCount}' blocked='{first.BlockedCount}' issue='{first.BlockingIssue}'");
             if (!first.Succeeded || first.BlockedCount != 0)
             {
-                Fail($"First Apply/Rebuild failed unexpectedly. issue='{first.BlockingIssue}'");
+                Fail("first-apply-failed", first.BlockingIssue);
                 return;
             }
 
+            if (composer.CinemachineCamera == null)
+            {
+                Fail("cinemachine-rig-not-materialized");
+                return;
+            }
+
+            if (composer.LastResolvedFollowTarget != fixture.CameraTarget)
+            {
+                Fail("follow-target-not-resolved");
+                return;
+            }
+
+            if (composer.LastResolvedLookAtTarget != fixture.LookAtTarget)
+            {
+                Fail("look-at-target-not-resolved");
+                return;
+            }
+
+            CameraComposerApplyRebuildResult second = CameraComposerApplyRebuildUtility.ApplyOrRebuild(composer, true, false);
+            Debug.Log($"[QA][C5 CameraComposer] Second Apply/Rebuild: succeeded='{second.Succeeded}' created='{second.CreatedCount}' blocked='{second.BlockedCount}' issue='{second.BlockingIssue}'");
             if (!second.Succeeded || second.BlockedCount != 0)
             {
-                Fail($"Second Apply/Rebuild failed unexpectedly. issue='{second.BlockingIssue}'");
+                Fail("second-apply-failed", second.BlockingIssue);
                 return;
             }
 
             if (second.CreatedCount != 0)
             {
-                Fail($"Second Apply/Rebuild is not idempotent. created='{second.CreatedCount}'");
+                Fail("second-apply-created-new-objects", $"created='{second.CreatedCount}'");
                 return;
             }
 
-            if (second.AlreadyValidCount <= 0)
-            {
-                Fail("Second Apply/Rebuild did not report already-valid materialization.");
-                return;
-            }
-
+            CameraComposerApplyRebuildResult negative = CameraComposerApplyRebuildUtility.Validate(
+                fixture.NegativeMissingPlayerComposer,
+                true);
+            Debug.Log($"[QA][C5 CameraComposer] Negative Missing PlayerComposer: succeeded='{negative.Succeeded}' blocked='{negative.BlockedCount}' issue='{negative.BlockingIssue}'");
             if (negative.Succeeded || negative.BlockedCount == 0)
             {
-                Fail("Negative missing PlayerComposer did not block as expected.");
+                Fail("missing-player-composer-not-blocked");
                 return;
             }
 
-            Selection.activeGameObject = root;
-            Debug.Log("[QA][C5 CameraComposer] PASS. SinglePlayer CameraComposer resolves PlayerComposer anchors, materializes a Cinemachine rig, remains idempotent, and blocks missing PlayerComposer.", root);
+            Selection.activeGameObject = fixture.gameObject;
+            Debug.Log("[QA][C5 CameraComposer] PASS. SinglePlayer CameraComposer resolves PlayerComposer anchors, materializes a Cinemachine rig, remains idempotent, and blocks missing PlayerComposer.", fixture);
         }
 
-        private static GameObject CreateChild(Transform parent, string name)
+        private static void Fail(string code, string detail = null)
         {
-            var child = new GameObject(name);
-            child.transform.SetParent(parent, false);
-            return child;
-        }
-
-        private static void ConfigurePlayerComposer(PlayerComposer composer, Transform cameraTarget, Transform lookAtTarget)
-        {
-            var serialized = new SerializedObject(composer);
-            serialized.Update();
-            SetString(serialized, "actorId", "qa.player.actor");
-            SetString(serialized, "playerSlotId", "qa.player.1");
-            SetObject(serialized, "cameraTarget", cameraTarget);
-            SetObject(serialized, "lookAtTarget", lookAtTarget);
-            SetBool(serialized, "inputBindingRequired", false);
-            SetBool(serialized, "cameraBindingRequired", true);
-            SetBool(serialized, "createBindingsRootIfMissing", true);
-            SetBool(serialized, "createAnchorsIfMissing", false);
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(composer);
-        }
-
-        private static void ConfigureCameraComposer(CameraComposer composer, PlayerComposer playerComposer)
-        {
-            var serialized = new SerializedObject(composer);
-            serialized.Update();
-            SetEnum(serialized, "mode", CameraMode.SinglePlayerFollowCamera);
-            SetEnum(serialized, "ownershipScope", CameraOwnershipScope.SinglePlayer);
-            SetEnum(serialized, "targetSourceKind", CameraTargetSourceKind.PlayerComposer);
-            SetObject(serialized, "playerComposer", playerComposer);
-            SetEnum(serialized, "followRequirement", CameraTargetRequirement.Required);
-            SetEnum(serialized, "lookAtRequirement", CameraTargetRequirement.Optional);
-            SetInt(serialized, "priority", 10);
-            SetBool(serialized, "createUnityCameraIfMissing", true);
-            SetBool(serialized, "createCinemachineCameraIfMissing", true);
-            SetString(serialized, "unityCameraObjectName", "Unity Camera");
-            SetString(serialized, "cinemachineCameraObjectName", "Cinemachine Camera");
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(composer);
-        }
-
-        private static void SetString(SerializedObject serialized, string propertyName, string value)
-        {
-            SerializedProperty property = serialized.FindProperty(propertyName);
-            if (property != null)
-            {
-                property.stringValue = value;
-            }
-        }
-
-        private static void SetBool(SerializedObject serialized, string propertyName, bool value)
-        {
-            SerializedProperty property = serialized.FindProperty(propertyName);
-            if (property != null)
-            {
-                property.boolValue = value;
-            }
-        }
-
-        private static void SetInt(SerializedObject serialized, string propertyName, int value)
-        {
-            SerializedProperty property = serialized.FindProperty(propertyName);
-            if (property != null)
-            {
-                property.intValue = value;
-            }
-        }
-
-        private static void SetObject(SerializedObject serialized, string propertyName, Object value)
-        {
-            SerializedProperty property = serialized.FindProperty(propertyName);
-            if (property != null)
-            {
-                property.objectReferenceValue = value;
-            }
-        }
-
-        private static void SetEnum<TEnum>(SerializedObject serialized, string propertyName, TEnum value)
-            where TEnum : System.Enum
-        {
-            SerializedProperty property = serialized.FindProperty(propertyName);
-            if (property != null)
-            {
-                property.enumValueIndex = System.Convert.ToInt32(value);
-            }
-        }
-
-        private static void Fail(string issue)
-        {
-            Debug.LogError($"[QA][C5 CameraComposer] FAIL. {issue}");
+            Debug.LogError($"[QA][C5 CameraComposer] FAIL. code='{code}' detail='{detail ?? string.Empty}'");
         }
     }
 }

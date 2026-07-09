@@ -6,7 +6,7 @@ Package dependency: `com.immersive.framework`
 
 ## Purpose
 
-Provide an isolated QAFramework smoke for the C5 CameraComposer SinglePlayer MVP inside the canonical Camera QA scene.
+Provide an isolated QAFramework smoke for the C5 CameraComposer SinglePlayer MVP inside the clean Camera Product Surface scene.
 
 This smoke replaces ad-hoc manual scene setup for the product-surface validation step.
 
@@ -18,10 +18,10 @@ Immersive Framework/QA/Camera/C5 CameraComposer SinglePlayer Smoke
 
 ## What it builds
 
-The smoke opens `Assets/ImmersiveFrameworkQA/Camera/Scenes/QA_Camera.unity` and creates an isolated root there:
+The smoke requires `Assets/ImmersiveFrameworkQA/Camera/Scenes/QA_Camera_ProductSurface.unity` and consumes its serialized fixture:
 
 ```text
-QA_C5_CameraComposer_SinglePlayer_Smoke
+QA_CameraProductSurface_Root
   QA_PlayerPrototype
     CameraTarget
     LookAtTarget
@@ -62,6 +62,6 @@ Missing PlayerComposer blocks explicitly.
 
 This smoke does not validate FIRSTGAME usability. FIRSTGAME proof remains a later consumer-validation cut.
 
-The former `PlayerView Camera Activation QA` flow remains available through its route and scene for compatibility regression, but it is no longer a primary Hub entry because it validates the legacy camera-activation contract rather than the Cinemachine-first Camera Product Surface.
+The former `QA_Camera.unity` / `QA_CameraRouteB.unity` Route/Activity flows and `PlayerView Camera Activation QA` remain available for compatibility regression, but none is a primary Hub entry for the Cinemachine-first Camera Product Surface.
 
 This smoke does not validate multiplayer, RouteCamera, ActivityCamera, PlayerSlot resolution, shared group cameras or spectator/debug cameras.

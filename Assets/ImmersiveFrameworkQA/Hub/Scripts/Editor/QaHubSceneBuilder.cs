@@ -27,6 +27,8 @@ namespace ImmersiveFrameworkQA.Hub.Editor
         private const string UnityBuildSurfaceScenePath = Root + "/UnityBuildSurface/Scenes/UnityBuildSurfaceQA.unity";
         private const string CameraRoutePath = Root + "/Camera/Routes/QA_CameraRoute.asset";
         private const string CameraScenePath = Root + "/Camera/Scenes/QA_Camera.unity";
+        private const string CameraProductSurfaceRoutePath = Root + "/Camera/Routes/QA_CameraProductSurfaceRoute.asset";
+        private const string CameraProductSurfaceScenePath = Root + "/Camera/Scenes/QA_Camera_ProductSurface.unity";
         private const string CameraSceneBPath = Root + "/Camera/Scenes/QA_CameraRouteB.unity";
         private const string PoolingRoutePath = Root + "/Pooling/Routes/QA_PoolingRoute.asset";
         private const string PoolingScenePath = Root + "/Pooling/Scenes/QA_Pooling.unity";
@@ -79,7 +81,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
         {
             new HubTarget("Lifecycle / Core Flow QA", LifecycleRoutePath),
             new HubTarget("Unity Build Surface QA", UnityBuildSurfaceRoutePath),
-            new HubTarget("Camera QA", CameraRoutePath),
+            new HubTarget("Camera Product Surface QA", CameraProductSurfaceRoutePath, "qa.hub.route.camera_product_surface_qa"),
             new HubTarget("Pooling QA", PoolingRoutePath),
             new HubTarget("Framework BGM QA", FrameworkBgmRoutePath),
             new HubTarget("Actor Readiness QA", ActorReadinessRoutePath, "qa.hub.route.actor_readiness_qa"),
@@ -133,6 +135,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             ConfigureBackToHubPanelInScene(LifecycleSceneAPath, new Rect(16f, 620f, 360f, 92f));
             ConfigureBackToHubPanelInScene(LifecycleSceneBPath, new Rect(16f, 620f, 360f, 92f));
             ConfigureBackToHubPanelInScene(CameraScenePath, new Rect(16f, 620f, 360f, 92f));
+            ConfigureBackToHubPanelInScene(CameraProductSurfaceScenePath, new Rect(16f, 620f, 360f, 92f));
             ConfigureBackToHubPanelInScene(CameraSceneBPath, new Rect(16f, 620f, 360f, 92f));
             ConfigureBackToHubPanelInScene(PoolingScenePath, new Rect(500f, 16f, 360f, 92f));
             ConfigureBackToHubPanelInScene(FrameworkBgmScenePath, new Rect(590f, 16f, 360f, 92f));

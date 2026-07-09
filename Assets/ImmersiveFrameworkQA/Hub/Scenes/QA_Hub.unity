@@ -979,7 +979,7 @@ GameObject:
   - component: {fileID: 2010483973}
   - component: {fileID: 2010483972}
   m_Layer: 0
-  m_Name: RouteTrigger_Camera_QA
+  m_Name: RouteTrigger_Camera_Product_Surface_QA
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -997,8 +997,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
-  targetRoute: {fileID: 11400000, guid: e20f2dd3ae844806b30b832c879f2c8c, type: 2}
-  reason: qa.hub.route.camera_qa
+  targetRoute: {fileID: 11400000, guid: 6c8b0f5c9d8a4a7a9d4b8cc3f5e2a901, type: 2}
+  reason: qa.hub.route.camera_product_surface_qa
 --- !u!4 &2010483973
 Transform:
   m_ObjectHideFlags: 0
@@ -1095,7 +1095,7 @@ MonoBehaviour:
     routeRequestTrigger: {fileID: 2012588706}
   - label: Unity Build Surface QA
     routeRequestTrigger: {fileID: 0}
-  - label: Camera QA
+  - label: Camera Product Surface QA
     routeRequestTrigger: {fileID: 2010483972}
   - label: Pooling QA
     routeRequestTrigger: {fileID: 624012292}
