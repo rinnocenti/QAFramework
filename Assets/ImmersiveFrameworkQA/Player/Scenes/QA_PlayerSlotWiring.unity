@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &1333208080
+--- !u!1 &42586699
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,70 +127,116 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1333208083}
-  - component: {fileID: 1333208082}
-  - component: {fileID: 1333208081}
+  - component: {fileID: 42586704}
+  - component: {fileID: 42586702}
+  - component: {fileID: 42586701}
+  - component: {fileID: 42586703}
+  - component: {fileID: 42586700}
   m_Layer: 0
-  m_Name: QA_BackToHubNavigation
+  m_Name: QA_PlayerSlotWiring_Conflict
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1333208081
+--- !u!114 &42586700
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1333208080}
+  m_GameObject: {fileID: 42586699}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6f6b98ee53b94af8a4663cba085700a8, type: 3}
+  m_Script: {fileID: 11500000, guid: 1877c8417aa54150ae23a9e2caf2952f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: ImmersiveFrameworkQA.Hub.Runtime::ImmersiveFrameworkQA.Hub.QaHubPanel
-  entries:
-  - label: Back to QA Hub
-    routeRequestTrigger: {fileID: 1333208082}
-  title: QA Navigation
-  showPanel: 1
-  restrictToActiveScene: 1
-  panelRect:
-    serializedVersion: 2
-    x: 16
-    y: 16
-    width: 360
-    height: 92
---- !u!114 &1333208082
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerSlots.PlayerSlotOccupancy
+  slotDeclaration: {fileID: 1103175981}
+  slotId: 
+  actorDeclaration: {fileID: 42586703}
+  playerActorDeclaration: {fileID: 42586701}
+  occupiedActorId: 
+  displayName: QA Conflicting Occupancy
+  reason: qa.playerslot-wiring.conflict
+--- !u!114 &42586701
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1333208080}
+  m_GameObject: {fileID: 42586699}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
+  m_Script: {fileID: 11500000, guid: 26cc512b3155464caed4dc48a6c9de6d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
-  targetRoute: {fileID: 11400000, guid: 1addd390562c4f15a738f4125bb94be8, type: 2}
-  reason: qa.route.back-to-hub
---- !u!4 &1333208083
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Actors.PlayerActorDeclaration
+  actorId: qa.player.actor
+  displayName: QA Conflict PlayerActor
+  playerInput: {fileID: 42586702}
+  reason: qa.playerslot-wiring.conflict-player-actor
+--- !u!114 &42586702
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 42586699}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.PlayerInput
+  m_Actions: {fileID: 11400000, guid: 9b084c19f07bbcb4a8dfa21611c4a75a, type: 2}
+  m_NotificationBehavior: 0
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents: []
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: Player
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
+--- !u!114 &42586703
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 42586699}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 948998c06f7b4e4488258471eee4f6e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Actors.ActorDeclaration
+  actorId: qa.conflicting.actor
+  actorKind: 20
+  actorRole: 50
+  displayName: QA Conflicting Actor
+  reason: qa.playerslot-wiring.conflict-actor
+--- !u!4 &42586704
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1333208080}
+  m_GameObject: {fileID: 42586699}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 330845337}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1818950481
+--- !u!1 &330845335
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -198,14 +244,73 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1818950484}
-  - component: {fileID: 1818950489}
-  - component: {fileID: 1818950488}
-  - component: {fileID: 1818950487}
-  - component: {fileID: 1818950486}
-  - component: {fileID: 1818950485}
-  - component: {fileID: 1818950482}
-  - component: {fileID: 1818950483}
+  - component: {fileID: 330845337}
+  - component: {fileID: 330845336}
+  m_Layer: 0
+  m_Name: QA_F48C_PlayerSlotWiring
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &330845336
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330845335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed97282f223a84144abf47c2424e964a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ImmersiveFrameworkQA.Player.Runtime::ImmersiveFrameworkQA.Player.QaPlayerSlotWiringFixture
+  playerInput: {fileID: 1103175982}
+  playerSlot: {fileID: 1103175981}
+  playerActor: {fileID: 1103175980}
+  occupancy: {fileID: 1103175979}
+  inputGateAdapter: {fileID: 1103175978}
+  resetSubjectAdapter: {fileID: 1103175975}
+  conflictingOccupancy: {fileID: 42586700}
+  runOnStart: 1
+  applyGateAdapterOnStart: 1
+  registerResetSubjectOnStart: 1
+  retryUntilPassed: 1
+  retryFrameInterval: 30
+  retryAttemptLimit: 20
+--- !u!4 &330845337
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330845335}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1103175977}
+  - {fileID: 42586704}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1103175974
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1103175977}
+  - component: {fileID: 1103175982}
+  - component: {fileID: 1103175981}
+  - component: {fileID: 1103175980}
+  - component: {fileID: 1103175979}
+  - component: {fileID: 1103175978}
+  - component: {fileID: 1103175975}
+  - component: {fileID: 1103175976}
   m_Layer: 0
   m_Name: QA_PlayerSlotWiring_Player
   m_TagString: Untagged
@@ -213,13 +318,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1818950482
+--- !u!114 &1103175975
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1818950481}
+  m_GameObject: {fileID: 1103175974}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 71ee52cb6da64fb691d51a321688c072, type: 3}
@@ -235,17 +340,17 @@ MonoBehaviour:
   displayName: QA Player Reset Subject
   diagnosticTag: QA:F48C:PlayerSlotWiring
   sourceActor: {fileID: 0}
-  sourcePlayerActor: {fileID: 1818950487}
+  sourcePlayerActor: {fileID: 1103175980}
   participantDiscovery: 20
   includeInactiveParticipants: 1
   includeUnityResettableComponents: 1
---- !u!114 &1818950483
+--- !u!114 &1103175976
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1818950481}
+  m_GameObject: {fileID: 1103175974}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c38bb81ea60d475c8bd3479b0ce24e8f, type: 3}
@@ -257,7 +362,7 @@ MonoBehaviour:
   displayName: Transform
   source: UnityTransformResetParticipant
   reason: unity-transform-reset
-  target: {fileID: 1818950484}
+  target: {fileID: 1103175977}
   captureBaselineOnEnable: 1
   resetPosition: 1
   resetRotation: 1
@@ -265,36 +370,36 @@ MonoBehaviour:
   baselineLocalPosition: {x: 0, y: 0, z: 0}
   baselineLocalEulerAngles: {x: -0, y: 0, z: 0}
   baselineLocalScale: {x: 1, y: 1, z: 1}
---- !u!4 &1818950484
+--- !u!4 &1103175977
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1818950481}
+  m_GameObject: {fileID: 1103175974}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2055572142}
+  m_Father: {fileID: 330845337}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1818950485
+--- !u!114 &1103175978
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1818950481}
+  m_GameObject: {fileID: 1103175974}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dcfea0d7cc4144be8c064041108b58b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.UnityInput.UnityPlayerInputGateAdapter
-  playerInput: {fileID: 1818950489}
+  playerInput: {fileID: 1103175982}
   gameplayActionMapName: Player
-  sourceSlot: {fileID: 1818950488}
+  sourceSlot: {fileID: 1103175981}
   blockOnInputAcceptance: 1
   blockOnGameplayAction: 1
   blockMode: 10
@@ -303,32 +408,32 @@ MonoBehaviour:
   logStateChanges: 1
   logMissingRuntimeOnce: 1
   logMissingTargetOnce: 1
---- !u!114 &1818950486
+--- !u!114 &1103175979
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1818950481}
+  m_GameObject: {fileID: 1103175974}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1877c8417aa54150ae23a9e2caf2952f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerSlots.PlayerSlotOccupancy
-  slotDeclaration: {fileID: 1818950488}
+  slotDeclaration: {fileID: 1103175981}
   slotId: 
   actorDeclaration: {fileID: 0}
-  playerActorDeclaration: {fileID: 1818950487}
+  playerActorDeclaration: {fileID: 1103175980}
   occupiedActorId: 
   displayName: QA Player 1 occupies QA Player Actor
   reason: qa.playerslot-wiring.occupancy
---- !u!114 &1818950487
+--- !u!114 &1103175980
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1818950481}
+  m_GameObject: {fileID: 1103175974}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 26cc512b3155464caed4dc48a6c9de6d, type: 3}
@@ -336,15 +441,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Actors.PlayerActorDeclaration
   actorId: qa.player.actor
   displayName: QA Player Actor
-  playerInput: {fileID: 1818950489}
+  playerInput: {fileID: 1103175982}
   reason: qa.playerslot-wiring.player-actor
---- !u!114 &1818950488
+--- !u!114 &1103175981
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1818950481}
+  m_GameObject: {fileID: 1103175974}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2c690b91b7ac4cd3aa015da4df9cae9e, type: 3}
@@ -352,15 +457,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerSlots.PlayerSlotDeclaration
   slotId: player.1
   displayName: QA Player 1
-  playerInput: {fileID: 1818950489}
+  playerInput: {fileID: 1103175982}
   reason: qa.playerslot-wiring.slot
---- !u!114 &1818950489
+--- !u!114 &1103175982
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1818950481}
+  m_GameObject: {fileID: 1103175974}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
@@ -384,7 +489,7 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!1 &1850097412
+--- !u!1 &1397911980
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -392,177 +497,72 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1850097417}
-  - component: {fileID: 1850097415}
-  - component: {fileID: 1850097414}
-  - component: {fileID: 1850097416}
-  - component: {fileID: 1850097413}
+  - component: {fileID: 1397911983}
+  - component: {fileID: 1397911982}
+  - component: {fileID: 1397911981}
   m_Layer: 0
-  m_Name: QA_PlayerSlotWiring_Conflict
+  m_Name: QA_BackToHubNavigation
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1850097413
+--- !u!114 &1397911981
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1850097412}
+  m_GameObject: {fileID: 1397911980}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1877c8417aa54150ae23a9e2caf2952f, type: 3}
+  m_Script: {fileID: 11500000, guid: 6f6b98ee53b94af8a4663cba085700a8, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerSlots.PlayerSlotOccupancy
-  slotDeclaration: {fileID: 1818950488}
-  slotId: 
-  actorDeclaration: {fileID: 1850097416}
-  playerActorDeclaration: {fileID: 1850097414}
-  occupiedActorId: 
-  displayName: QA Conflicting Occupancy
-  reason: qa.playerslot-wiring.conflict
---- !u!114 &1850097414
+  m_EditorClassIdentifier: ImmersiveFrameworkQA.Hub.Runtime::ImmersiveFrameworkQA.Hub.QaHubPanel
+  entries:
+  - label: Back to QA Hub
+    routeRequestTrigger: {fileID: 1397911982}
+  title: QA Navigation
+  showPanel: 1
+  restrictToActiveScene: 1
+  panelRect:
+    serializedVersion: 2
+    x: 16
+    y: 16
+    width: 360
+    height: 92
+--- !u!114 &1397911982
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1850097412}
+  m_GameObject: {fileID: 1397911980}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 26cc512b3155464caed4dc48a6c9de6d, type: 3}
+  m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Actors.PlayerActorDeclaration
-  actorId: qa.player.actor
-  displayName: QA Conflict PlayerActor
-  playerInput: {fileID: 1850097415}
-  reason: qa.playerslot-wiring.conflict-player-actor
---- !u!114 &1850097415
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1850097412}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.PlayerInput
-  m_Actions: {fileID: 11400000, guid: 9b084c19f07bbcb4a8dfa21611c4a75a, type: 2}
-  m_NotificationBehavior: 0
-  m_UIInputModule: {fileID: 0}
-  m_DeviceLostEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_DeviceRegainedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_ControlsChangedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_ActionEvents: []
-  m_NeverAutoSwitchControlSchemes: 0
-  m_DefaultControlScheme: 
-  m_DefaultActionMap: Player
-  m_SplitScreenIndex: -1
-  m_Camera: {fileID: 0}
---- !u!114 &1850097416
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1850097412}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 948998c06f7b4e4488258471eee4f6e8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Actors.ActorDeclaration
-  actorId: qa.conflicting.actor
-  actorKind: 20
-  actorRole: 50
-  displayName: QA Conflicting Actor
-  reason: qa.playerslot-wiring.conflict-actor
---- !u!4 &1850097417
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
+  targetRoute: {fileID: 11400000, guid: 1addd390562c4f15a738f4125bb94be8, type: 2}
+  reason: qa.route.back-to-hub
+--- !u!4 &1397911983
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1850097412}
+  m_GameObject: {fileID: 1397911980}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2055572142}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &2055572140
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2055572142}
-  - component: {fileID: 2055572141}
-  m_Layer: 0
-  m_Name: QA_F48C_PlayerSlotWiring
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2055572141
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2055572140}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ed97282f223a84144abf47c2424e964a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ImmersiveFrameworkQA.Player.Runtime::ImmersiveFrameworkQA.Player.QaPlayerSlotWiringFixture
-  playerInput: {fileID: 1818950489}
-  playerSlot: {fileID: 1818950488}
-  playerActor: {fileID: 1818950487}
-  occupancy: {fileID: 1818950486}
-  inputGateAdapter: {fileID: 1818950485}
-  resetSubjectAdapter: {fileID: 1818950482}
-  conflictingOccupancy: {fileID: 1850097413}
-  runOnStart: 1
-  applyGateAdapterOnStart: 1
-  registerResetSubjectOnStart: 1
-  retryUntilPassed: 1
-  retryFrameInterval: 30
-  retryAttemptLimit: 20
---- !u!4 &2055572142
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2055572140}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1818950484}
-  - {fileID: 1850097417}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 2055572142}
-  - {fileID: 1333208083}
+  - {fileID: 330845337}
+  - {fileID: 1397911983}

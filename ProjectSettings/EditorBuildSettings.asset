@@ -45,6 +45,12 @@ EditorBuildSettings:
     path: Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/TransitionRouteB.unity
     guid: 23a97001965f2814682a8a2569165e80
   - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_UnityPlayerInputBridge.unity
+    guid: c64839e9314b11146903679bf099793e
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_UnityPlayerInputActivation.unity
+    guid: 23e9f109814aa60489ee8cc3d1a43f98
+  - enabled: 1
     path: Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/QA_UIGlobal.unity
     guid: 5e4fdcb5ba8c4bd1b7f24e0000000001
   - enabled: 1
