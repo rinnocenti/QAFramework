@@ -2,6 +2,8 @@
 
 This QA fixture validates synthetic camera Route/Activity behavior inside the QA Harness.
 
+The canonical Camera QA scene is also the destination for the C5 CameraComposer SinglePlayer smoke. Run `Immersive Framework/QA/Camera/C5 CameraComposer SinglePlayer Smoke` after entering this area from the QA Hub. The smoke materializes its isolated PlayerComposer/Cinemachine setup in this scene and is the primary Camera Product Surface proof.
+
 Scope:
 
 - Uses only `Assets/ImmersiveFrameworkQA/Camera` scripts.
@@ -31,6 +33,8 @@ Expected log prefix:
 ```text
 [QA_CAMERA]
 ```
+
+The former PlayerView Camera Activation QA remains a compatibility regression and is intentionally not a primary Hub entry; it validates the legacy `Camera.enabled` adapter contract.
 
 
 ## POST-RESET-H1F smoke panel guardrails

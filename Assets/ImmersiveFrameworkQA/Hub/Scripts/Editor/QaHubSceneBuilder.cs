@@ -97,7 +97,6 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             new HubTarget("Player Binding Authoring Issue Cleanup QA", PlayerBindingAuthoringIssueCleanupRoutePath, "qa.hub.route.player_binding_authoring_issue_cleanup_qa"),
             new HubTarget("PlayerView Binding Adapter QA", PlayerViewBindingAdapterRoutePath, "qa.hub.route.playerview_binding_adapter_qa"),
             new HubTarget("PlayerView Camera Target Binding QA", PlayerViewCameraTargetBindingRoutePath, "qa.hub.route.playerview_camera_target_binding_qa"),
-            new HubTarget("PlayerView Camera Activation QA", PlayerViewCameraActivationRoutePath, "qa.hub.route.playerview_camera_activation_qa"),
             new HubTarget("PlayerControl Binding Adapter QA", PlayerControlBindingAdapterRoutePath, "qa.hub.route.playercontrol_binding_adapter_qa"),
             new HubTarget("Unity PlayerInput Bridge QA", UnityPlayerInputBridgeRoutePath, "qa.hub.route.unity_playerinput_bridge_qa"),
             new HubTarget("Unity PlayerInput Activation QA", UnityPlayerInputActivationRoutePath, "qa.hub.route.unity_playerinput_activation_qa"),
