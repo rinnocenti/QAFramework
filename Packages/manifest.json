@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.immersive.audio": "file:C:/Projetos/ImmersivePackages/com.immersive.audio",
-    "com.immersive.foundation": "https://github.com/ImmersiveGames/com.immersive.foundation.git",
+    "com.immersive.foundation": "file:C:/Projetos/ImmersivePackages/com.immersive.foundation",
     "com.immersive.framework": "file:C:/Projetos/ImmersivePackages/com.immersive.framework",
     "com.immersive.logging": "https://github.com/ImmersiveGames/com.immersive.logging.git",
     "com.immersive.pooling": "file:C:/Projetos/ImmersivePackages/com.immersive.pooling",

@@ -9,11 +9,10 @@
       }
     },
     "com.immersive.foundation": {
-      "version": "https://github.com/ImmersiveGames/com.immersive.foundation.git",
+      "version": "file:C:/Projetos/ImmersivePackages/com.immersive.foundation",
       "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "1116a7c5e3f3b984708b6ab4e6db458e4006d6ea"
+      "source": "local",
+      "dependencies": {}
     },
     "com.immersive.framework": {
       "version": "file:C:/Projetos/ImmersivePackages/com.immersive.framework",
