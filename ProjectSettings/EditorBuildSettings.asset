@@ -113,6 +113,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerViewTopology.unity
     guid: ea5110f7b6e3bff4ca05563df0b9ce29
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/PlayerControl/Scenes/QA_PlayerControlRuntime.unity
+    guid: 95eba9b4247dda349ba33bfb60599569
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerRuntimeBaseline.unity
+    guid: d3433c61f92d63b4883d44264619f8ba
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
