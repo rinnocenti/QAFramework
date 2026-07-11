@@ -119,6 +119,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/ImmersiveFrameworkQA/Camera/Scenes/QA_RouteActivityCameraPublishers.unity
     guid: 7985e9cf800f8be41abaadafbcd60d14
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Camera/Scenes/QA_RouteActivityCameraLifecycleAdapters.unity
+    guid: 186e3508d6a62ed439a3581f5a37c370
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Camera/Scenes/QA_CanonicalCameraBindings.unity
+    guid: f6dffb29fa6303b408008b5bea38a897
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
