@@ -30,8 +30,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             "PlayerSlotOccupancy",
             "PlayerEntryBehaviour",
             "PlayerViewBehaviour",
-            "PlayerControlBehaviour",
-            "FrameworkCameraAnchorHost"
+            "PlayerControlBehaviour"
         };
 
         [MenuItem(MenuPath)]
