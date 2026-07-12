@@ -38,6 +38,7 @@ lower precedence preserves winner
 deterministic equal-precedence tie-breaker
 missing tie-breaker blocked
 duplicate tie-breaker blocked
+stale invalid request pruned explicitly during release
 duplicate request id blocked
 foreign output blocked
 unknown release explicit

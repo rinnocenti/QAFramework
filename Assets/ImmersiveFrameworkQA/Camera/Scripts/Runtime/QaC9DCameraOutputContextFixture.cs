@@ -78,6 +78,7 @@ namespace ImmersiveFrameworkQA.Camera
                 RunForeignOutputBlocked(completed);
                 RunUnknownReleaseExplicit(completed);
                 RunSnapshotOrdering(completed);
+                RunStaleInvalidRequestPrunedOnRelease(completed);
                 AssertCameraStateUnchanged(
                     cameraEnabledBefore,
                     cameraActiveBefore,
@@ -411,6 +412,73 @@ namespace ImmersiveFrameworkQA.Camera
                 "snapshot-ordering",
                 $"ids='{first},{second},{third}' winner='{snapshot.Winner.RequestId}'");
             completed.Add("snapshot-ordering");
+        }
+
+        private void RunStaleInvalidRequestPrunedOnRelease(List<string> completed)
+        {
+            var context = new CameraOutputContext(CameraOutputId.Main);
+
+            CameraRequest validWinner = CreateRequest(
+                "stale-prune-valid",
+                CameraOutputId.Main,
+                100,
+                "valid");
+
+            GameObject staleRigObject =
+                new GameObject("QA_C9D_StaleDestroyedRig");
+            CameraRigComposer staleComposer =
+                staleRigObject.AddComponent<CameraRigComposer>();
+
+            CameraRequestCreateResult staleCreate =
+                CameraRequestCreateResult.Create(
+                    new CameraRequestId("qa.camera.request.c9d.stale-destroyed-rig"),
+                    CameraOutputId.Main,
+                    new CameraRequestOwner(
+                        CameraRequestOwnerKind.Debug,
+                        "qa.owner.c9d.stale-destroyed-rig"),
+                    new CameraRequestLifetime(
+                        CameraRequestLifetimeKind.ExplicitOperation,
+                        "qa.lifetime.c9d.stale-destroyed-rig"),
+                    CameraRigReference.FromComposer(staleComposer),
+                    CameraTargetSourceDescriptor.ExplicitTransform(
+                        explicitTargetSource,
+                        "QA C9D stale destroyed rig target"),
+                    new CameraRequestPolicy(10, "stale"),
+                    CameraRequestReleaseCondition.ExplicitRelease,
+                    nameof(QaC9DCameraOutputContextFixture),
+                    "QA C9D stale destroyed rig request.");
+
+            AssertTrue(staleCreate.IsSucceeded,
+                "Stale destroyed rig request creation failed.");
+            AssertTrue(context.Admit(validWinner).Succeeded,
+                "Valid stale-prune winner admission failed.");
+            AssertTrue(context.Admit(staleCreate.Request).Succeeded,
+                "Future stale request admission failed.");
+
+            DestroyImmediate(staleRigObject);
+
+            CameraOutputContextResult release =
+                context.Release(validWinner.RequestId);
+
+            AssertTrue(release.Succeeded,
+                "Release should succeed after pruning the stale invalid request.");
+            AssertTrue(!context.HasWinner,
+                "Stale invalid request must not become winner.");
+            AssertEqual(0, context.AdmittedRequestCount,
+                "Stale invalid request was not removed from the context.");
+            AssertTrue(release.Issues != null && release.Issues.Length == 1,
+                "Stale pruning must emit one explicit warning.");
+            AssertEqual(
+                "camera.output-context.stale-request-pruned",
+                release.Issues[0].Code,
+                "Stale pruning emitted the wrong issue code.");
+            AssertTrue(!release.Issues[0].IsBlocking,
+                "Stale pruning warning must remain non-blocking.");
+
+            LogStep(
+                "stale-invalid-request-pruned-on-release",
+                release.DiagnosticSummary);
+            completed.Add("stale-invalid-request-pruned-on-release");
         }
 
         private void AssertCameraStateUnchanged(
