@@ -427,14 +427,14 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c0f9d45661d04c3b9e08a2f1b2fea71e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.RouteCameraRequestBinding
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.RouteCameraOverrideBinding
   assignedRoute: {fileID: 11400000, guid: a1feef5f7194a9646aac4f855c9c47fa, type: 2}
   scopeId: qa.route.c9m
   requestId: qa.camera.request.c9m.route
   outputSession: {fileID: 832561496}
   rigComposer: {fileID: 935420780}
   targetSource: {fileID: 1981379609}
-  precedence: 10
+  precedence: 200
   tieBreakerId: route
   logDiagnostics: 1
   lastStatus: NotEntered
@@ -745,14 +745,14 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7af6c9a83680465eb5ef8e90af364c10, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.ActivityCameraRequestBinding
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.ActivityCameraOverrideBinding
   assignedActivity: {fileID: 11400000, guid: 123856e6f006ea94e9e041f237509229, type: 2}
   scopeId: qa.activity.c9m
   requestId: qa.camera.request.c9m.activity
   outputSession: {fileID: 832561496}
   rigComposer: {fileID: 1486092871}
   targetSource: {fileID: 2142201013}
-  precedence: 100
+  precedence: 2000
   tieBreakerId: activity
   logDiagnostics: 1
   lastStatus: NotEntered

@@ -137,8 +137,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             QaC9IRouteExitProbe routeExitProbe =
                 routeRoot.AddComponent<QaC9IRouteExitProbe>();
 
-            RouteCameraRequestBinding routeBinding =
-                routeRoot.AddComponent<RouteCameraRequestBinding>();
+            RouteCameraOverrideBinding routeBinding =
+                routeRoot.AddComponent<RouteCameraOverrideBinding>();
             ConfigureRouteBinding(
                 routeBinding,
                 route,
@@ -154,8 +154,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 new GameObject("QA_C9I_ForeignRouteBinding");
             foreignRouteObject.transform.SetParent(routeRoot.transform, false);
 
-            RouteCameraRequestBinding foreignRouteBinding =
-                foreignRouteObject.AddComponent<RouteCameraRequestBinding>();
+            RouteCameraOverrideBinding foreignRouteBinding =
+                foreignRouteObject.AddComponent<RouteCameraOverrideBinding>();
             ConfigureRouteBinding(
                 foreignRouteBinding,
                 foreignRoute,
@@ -178,8 +178,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             SetObject(activityAdapter, "activity", activity);
             SetString(activityAdapter, "localContentId", "qa.c9i.activity-content");
 
-            ActivityCameraRequestBinding activityBinding =
-                activityRoot.AddComponent<ActivityCameraRequestBinding>();
+            ActivityCameraOverrideBinding activityBinding =
+                activityRoot.AddComponent<ActivityCameraOverrideBinding>();
             ConfigureActivityBinding(
                 activityBinding,
                 activity,
@@ -195,8 +195,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 new GameObject("QA_C9I_MissingScopeActivityBinding");
             missingScopeActivityObject.transform.SetParent(activityRoot.transform, false);
 
-            ActivityCameraRequestBinding missingScopeActivityBinding =
-                missingScopeActivityObject.AddComponent<ActivityCameraRequestBinding>();
+            ActivityCameraOverrideBinding missingScopeActivityBinding =
+                missingScopeActivityObject.AddComponent<ActivityCameraOverrideBinding>();
             ConfigureActivityBinding(
                 missingScopeActivityBinding,
                 activity,
@@ -258,7 +258,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 cameraObject.AddComponent<CinemachineCamera>();
 
             SetObject(composer, "cinemachineCamera", camera);
-            SetBool(composer, "createUnityCameraIfMissing", false);
             SetBool(composer, "createCinemachineCameraIfMissing", false);
             SetBool(composer, "logApplyRebuildDiagnostics", false);
 
@@ -266,7 +265,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         }
 
         private static void ConfigureRouteBinding(
-            RouteCameraRequestBinding binding,
+            RouteCameraOverrideBinding binding,
             RouteAsset route,
             string scopeId,
             string requestId,
@@ -279,7 +278,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             SetObject(binding, "assignedRoute", route);
             SetString(binding, "scopeId", scopeId);
             SetString(binding, "requestId", requestId);
-            SetObject(binding, "outputSession", session);
             SetObject(binding, "rigComposer", composer);
             SetObject(binding, "targetSource", target);
             SetInt(binding, "precedence", precedence);
@@ -288,7 +286,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         }
 
         private static void ConfigureActivityBinding(
-            ActivityCameraRequestBinding binding,
+            ActivityCameraOverrideBinding binding,
             ActivityAsset activity,
             string scopeId,
             string requestId,
@@ -301,7 +299,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             SetObject(binding, "assignedActivity", activity);
             SetString(binding, "scopeId", scopeId);
             SetString(binding, "requestId", requestId);
-            SetObject(binding, "outputSession", session);
             SetObject(binding, "rigComposer", composer);
             SetObject(binding, "targetSource", target);
             SetInt(binding, "precedence", precedence);

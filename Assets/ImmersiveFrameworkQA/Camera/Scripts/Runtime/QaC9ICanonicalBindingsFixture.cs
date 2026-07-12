@@ -15,10 +15,10 @@ namespace ImmersiveFrameworkQA.Camera
         private const string LogPrefix = "[QA][C9I Canonical Camera Bindings]";
 
         [SerializeField] private CameraOutputSessionBinding outputSession;
-        [SerializeField] private RouteCameraRequestBinding routeBinding;
-        [SerializeField] private ActivityCameraRequestBinding activityBinding;
-        [SerializeField] private RouteCameraRequestBinding foreignRouteBinding;
-        [SerializeField] private ActivityCameraRequestBinding missingScopeActivityBinding;
+        [SerializeField] private RouteCameraOverrideBinding routeBinding;
+        [SerializeField] private ActivityCameraOverrideBinding activityBinding;
+        [SerializeField] private RouteCameraOverrideBinding foreignRouteBinding;
+        [SerializeField] private ActivityCameraOverrideBinding missingScopeActivityBinding;
 
         [SerializeField] private CameraRigComposer routeComposer;
         [SerializeField] private CameraRigComposer activityComposer;

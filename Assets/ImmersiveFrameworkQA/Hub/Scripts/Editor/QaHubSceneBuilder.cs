@@ -67,6 +67,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
         private const string PlayerIdentityRoutePath = PlayerRoot + "/Routes/QA_PlayerIdentityRoute.asset";
         private const string PlayerSlotWiringRoutePath = PlayerRoot + "/Routes/QA_PlayerSlotWiringRoute.asset";
         private const string PlayerSlotWiringScenePath = PlayerRoot + "/Scenes/QA_PlayerSlotWiring.unity";
+        private const string CameraOverrideAuthorityRoutePath = Root + "/Camera/Routes/QA_PlayerCameraArbitrationRoute.asset";
 
         private static readonly HubTarget[] Targets =
         {
@@ -92,7 +93,8 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             new HubTarget("Unity PlayerInput Bridge QA", UnityPlayerInputBridgeRoutePath, "qa.hub.route.unity_playerinput_bridge_qa"),
             new HubTarget("Unity PlayerInput Activation QA", UnityPlayerInputActivationRoutePath, "qa.hub.route.unity_playerinput_activation_qa"),
             new HubTarget("Player Identity QA", PlayerIdentityRoutePath),
-            new HubTarget("Player Slot Wiring QA", PlayerSlotWiringRoutePath, "qa.hub.route.player_slot_wiring_qa")
+            new HubTarget("Player Slot Wiring QA", PlayerSlotWiringRoutePath, "qa.hub.route.player_slot_wiring_qa"),
+            new HubTarget("C9R Camera Override Authority", CameraOverrideAuthorityRoutePath, "qa.hub.route.camera_override_authority")
         };
 
         [MenuItem("Immersive Framework QA/Hub/Create or Refresh Hub and Player QA Scenes")]

@@ -233,7 +233,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             var serialized = new SerializedObject(composer);
             serialized.Update();
             SetObject(serialized, "cinemachineCamera", cinemachineCamera);
-            SetBool(serialized, "createUnityCameraIfMissing", false);
             SetBool(serialized, "createCinemachineCameraIfMissing", false);
             SetBool(serialized, "logApplyRebuildDiagnostics", false);
             serialized.ApplyModifiedPropertiesWithoutUndo();
@@ -252,7 +251,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             var serialized = new SerializedObject(composer);
             serialized.Update();
-            SetBool(serialized, "createUnityCameraIfMissing", false);
             SetBool(serialized, "createCinemachineCameraIfMissing", false);
             SetBool(serialized, "logApplyRebuildDiagnostics", false);
             serialized.ApplyModifiedPropertiesWithoutUndo();

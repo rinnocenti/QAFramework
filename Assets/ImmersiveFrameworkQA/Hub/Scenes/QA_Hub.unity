@@ -1753,7 +1753,7 @@ MonoBehaviour:
     routeRequestTrigger: {fileID: 1171894124}
   - label: Camera / C9I Canonical Bindings
     routeRequestTrigger: {fileID: 74667377}
-  - label: Camera / C9L Player Arbitration
+  - label: Camera / C9R Override Authority
     routeRequestTrigger: {fileID: 1371656821}
   - label: Camera / C9M Activity Route Teardown
     routeRequestTrigger: {fileID: 2672511}

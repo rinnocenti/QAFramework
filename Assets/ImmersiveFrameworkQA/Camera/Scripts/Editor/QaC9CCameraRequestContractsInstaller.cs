@@ -382,10 +382,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 CameraTargetRequirement.Optional);
             SetBool(
                 serialized,
-                "createUnityCameraIfMissing",
-                false);
-            SetBool(
-                serialized,
                 "createCinemachineCameraIfMissing",
                 false);
             SetBool(

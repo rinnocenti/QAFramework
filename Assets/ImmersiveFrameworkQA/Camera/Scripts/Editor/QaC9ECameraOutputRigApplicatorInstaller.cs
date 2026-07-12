@@ -238,10 +238,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 cinemachineCamera);
             SetBool(
                 serialized,
-                "createUnityCameraIfMissing",
-                false);
-            SetBool(
-                serialized,
                 "createCinemachineCameraIfMissing",
                 false);
             SetBool(
@@ -264,10 +260,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             var serialized = new SerializedObject(composer);
             serialized.Update();
-            SetBool(
-                serialized,
-                "createUnityCameraIfMissing",
-                false);
             SetBool(
                 serialized,
                 "createCinemachineCameraIfMissing",

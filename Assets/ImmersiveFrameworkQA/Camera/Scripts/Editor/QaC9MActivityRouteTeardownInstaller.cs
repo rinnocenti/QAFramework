@@ -221,8 +221,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 "localContentId",
                 "qa.c9m.route-content");
 
-            RouteCameraRequestBinding routeBinding =
-                routeRoot.AddComponent<RouteCameraRequestBinding>();
+            RouteCameraOverrideBinding routeBinding =
+                routeRoot.AddComponent<RouteCameraOverrideBinding>();
 
             ConfigureRouteBinding(
                 routeBinding,
@@ -251,8 +251,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 "localContentId",
                 "qa.c9m.activity-content");
 
-            ActivityCameraRequestBinding activityBinding =
-                activityRoot.AddComponent<ActivityCameraRequestBinding>();
+            ActivityCameraOverrideBinding activityBinding =
+                activityRoot.AddComponent<ActivityCameraOverrideBinding>();
 
             ConfigureActivityBinding(
                 activityBinding,
@@ -350,7 +350,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         }
 
         private static void ConfigureRouteBinding(
-            RouteCameraRequestBinding binding,
+            RouteCameraOverrideBinding binding,
             RouteAsset route,
             CameraOutputSessionBinding session,
             CameraRigComposer composer,
@@ -370,11 +370,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 binding,
                 "requestId",
                 "qa.camera.request.c9m.route");
-
-            SetObject(
-                binding,
-                "outputSession",
-                session);
 
             SetObject(
                 binding,
@@ -403,7 +398,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         }
 
         private static void ConfigureActivityBinding(
-            ActivityCameraRequestBinding binding,
+            ActivityCameraOverrideBinding binding,
             ActivityAsset activity,
             CameraOutputSessionBinding session,
             CameraRigComposer composer,
@@ -423,11 +418,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 binding,
                 "requestId",
                 "qa.camera.request.c9m.activity");
-
-            SetObject(
-                binding,
-                "outputSession",
-                session);
 
             SetObject(
                 binding,

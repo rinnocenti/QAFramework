@@ -6,7 +6,7 @@ using UnityEngine;
 namespace ImmersiveFrameworkQA.Camera
 {
     [DisallowMultipleComponent]
-    public sealed class QaC9LRouteCompletionCoordinator : MonoBehaviour
+    public sealed class QaC9RCameraOverrideAuthorityLegacyCoordinator : MonoBehaviour
     {
         [SerializeField] private RouteRequestTrigger routeTrigger;
 
@@ -18,7 +18,7 @@ namespace ImmersiveFrameworkQA.Camera
             if (transform.parent != null)
             {
                 Debug.LogError(
-                    "[QA][C9L Player Camera Arbitration] Route completion coordinator must be installed on a root GameObject.",
+                    "[QA][C9R Camera Override Authority] Legacy coordinator must be installed on a root GameObject.",
                     this);
                 return;
             }
@@ -31,7 +31,7 @@ namespace ImmersiveFrameworkQA.Camera
             if (routeTrigger == null)
             {
                 Debug.LogError(
-                    "[QA][C9L Player Camera Arbitration] Route completion coordinator requires an explicit RouteRequestTrigger.",
+                    "[QA][C9R Camera Override Authority] Legacy coordinator requires an explicit RouteRequestTrigger.",
                     this);
                 return;
             }
@@ -58,7 +58,7 @@ namespace ImmersiveFrameworkQA.Camera
             if (!routeEvent.Succeeded)
             {
                 Debug.LogError(
-                    "[QA][C9L Player Camera Arbitration] Route request did not succeed. " +
+                    "[QA][C9R Camera Override Authority] Route request did not succeed. " +
                     $"outcome='{routeEvent.Outcome}' message='{routeEvent.Message}'.",
                     this);
                 Destroy(gameObject);
@@ -75,14 +75,14 @@ namespace ImmersiveFrameworkQA.Camera
 
             while (frames < 600)
             {
-                QaC9LPlayerCameraArbitrationFixture fixture =
-                    FindFirstObjectByType<QaC9LPlayerCameraArbitrationFixture>(
+                QaC9RCameraOverrideAuthorityFixture fixture =
+                    FindFirstObjectByType<QaC9RCameraOverrideAuthorityFixture>(
                         FindObjectsInactive.Include);
 
                 if (fixture != null)
                 {
                     Debug.Log(
-                        "[QA][C9L Player Camera Arbitration] Route request completed; starting smoke.",
+                        "[QA][C9R Camera Override Authority] Route request completed; starting smoke.",
                         fixture);
                     fixture.Begin();
                     Destroy(gameObject);
@@ -94,7 +94,7 @@ namespace ImmersiveFrameworkQA.Camera
             }
 
             Debug.LogError(
-                "[QA][C9L Player Camera Arbitration] Target fixture was not found before timeout.",
+                "[QA][C9R Camera Override Authority] Target fixture was not found before timeout.",
                 this);
             Destroy(gameObject);
         }

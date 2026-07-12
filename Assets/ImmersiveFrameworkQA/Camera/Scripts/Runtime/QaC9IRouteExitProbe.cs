@@ -34,7 +34,7 @@ namespace ImmersiveFrameworkQA.Camera
     [DisallowMultipleComponent]
     public sealed class QaC9IRouteExitProbe : RouteContentBehaviour
     {
-        [SerializeField] private RouteCameraRequestBinding routeBinding;
+        [SerializeField] private RouteCameraOverrideBinding routeBinding;
         [SerializeField] private CameraOutputSessionBinding outputSession;
 
         protected override void OnRouteContentExited(

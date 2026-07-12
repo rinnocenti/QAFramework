@@ -391,7 +391,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c0f9d45661d04c3b9e08a2f1b2fea71e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.RouteCameraRequestBinding
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.RouteCameraOverrideBinding
   assignedRoute: {fileID: 11400000, guid: 3ed84b78dd45aef498835419c4851396, type: 2}
   scopeId: qa.route.c9i.foreign
   requestId: qa.camera.request.c9i.foreign-route
@@ -463,14 +463,14 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7af6c9a83680465eb5ef8e90af364c10, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.ActivityCameraRequestBinding
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.ActivityCameraOverrideBinding
   assignedActivity: {fileID: 11400000, guid: b7e335250c6a1654ab2634031b1cf036, type: 2}
   scopeId: qa.activity.c9i
   requestId: qa.camera.request.c9i.activity
   outputSession: {fileID: 2065916664}
   rigComposer: {fileID: 597086130}
   targetSource: {fileID: 923520565}
-  precedence: 100
+  precedence: 2000
   tieBreakerId: activity
   logDiagnostics: 1
   lastStatus: NotEntered
@@ -694,14 +694,14 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c0f9d45661d04c3b9e08a2f1b2fea71e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.RouteCameraRequestBinding
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.RouteCameraOverrideBinding
   assignedRoute: {fileID: 11400000, guid: 6f672e028e63d59439a242ba4d89ea3c, type: 2}
   scopeId: qa.route.c9i
   requestId: qa.camera.request.c9i.route
   outputSession: {fileID: 2065916664}
   rigComposer: {fileID: 1225915909}
   targetSource: {fileID: 923520565}
-  precedence: 10
+  precedence: 200
   tieBreakerId: route
   logDiagnostics: 1
   lastStatus: NotEntered
@@ -899,7 +899,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7af6c9a83680465eb5ef8e90af364c10, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.ActivityCameraRequestBinding
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.ActivityCameraOverrideBinding
   assignedActivity: {fileID: 11400000, guid: b7e335250c6a1654ab2634031b1cf036, type: 2}
   scopeId: 
   requestId: qa.camera.request.c9i.missing-scope

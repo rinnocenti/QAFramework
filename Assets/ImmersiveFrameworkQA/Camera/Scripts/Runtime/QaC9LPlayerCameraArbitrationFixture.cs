@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using Immersive.Framework.Camera;
 using Immersive.Framework.CameraAuthoring;
 using Immersive.Framework.GameFlow;
@@ -9,382 +8,87 @@ using UnityEngine;
 namespace ImmersiveFrameworkQA.Camera
 {
     [DisallowMultipleComponent]
-    public sealed class QaC9LPlayerCameraArbitrationFixture : MonoBehaviour
+    public sealed class QaC9RCameraOverrideAuthorityFixture : MonoBehaviour, ICameraOutputSessionConsumer, ISessionCameraOverrideConsumer
     {
-        private const string LogPrefix = "[QA][C9L Player Camera Arbitration]";
-
-        [SerializeField] private CameraOutputSessionBinding outputSession;
-        [SerializeField] private RouteCameraRequestBinding routeBinding;
+        private const string LogPrefix = "[QA][C9R Camera Override Authority]";
+        private const int MaxReadinessFrames = 600;
+        [SerializeField] private RouteCameraOverrideBinding routeBinding;
         [SerializeField] private LocalPlayerCameraRequestBinding playerBinding;
-        [SerializeField] private ActivityCameraRequestBinding activityBinding;
-        [SerializeField] private LocalPlayerCameraRequestBinding invalidPlayerBinding;
-
+        [SerializeField] private ActivityCameraOverrideBinding activityBinding;
         [SerializeField] private CameraRigComposer routeComposer;
         [SerializeField] private CameraRigComposer playerComposer;
         [SerializeField] private CameraRigComposer activityComposer;
-
         [SerializeField] private ActivityRequestTrigger activityRequestTrigger;
         [SerializeField] private RouteRequestTrigger backToHubTrigger;
-
         [SerializeField] private bool runOnStart;
         [SerializeField] private bool throwOnFailure;
-
-        [Header("Debug")]
         [SerializeField] private string lastStatus = "NotRun";
         [SerializeField] private string lastFailure;
         [SerializeField] private int completedCaseCount;
+        private CameraOutputSessionBinding outputSession;
+        private SessionCameraOverrideBinding sessionOverride;
+        private bool started;
+        private bool awaitingRouteLifecycleCleanup;
+        private string routeRequestId;
 
-        private readonly List<string> completed = new List<string>();
-        private bool hasStarted;
-
-        public string LastStatus => lastStatus ?? string.Empty;
-        public string LastFailure => lastFailure ?? string.Empty;
-        public int CompletedCaseCount => completedCaseCount;
-
-        private void Start()
-        {
-            if (runOnStart)
-            {
-                Begin();
-            }
-        }
-
-        public void Begin()
-        {
-            if (hasStarted)
-            {
-                return;
-            }
-
-            hasStarted = true;
-            StartCoroutine(Run());
-        }
-
-        [ContextMenu("Run C9L Player Camera Arbitration Proof")]
-        public void RunFromContextMenu()
-        {
-            Begin();
-        }
+        private void Start() { if (runOnStart) Begin(); }
+        [ContextMenu("Run C9R Camera Override Authority Proof")]
+        public void RunFromContextMenu() => Begin();
+        internal void Begin() { if (started) return; started = true; StartCoroutine(Run()); }
 
         private IEnumerator Run()
         {
-            lastStatus = "Running";
-            lastFailure = string.Empty;
-            completedCaseCount = 0;
-            completed.Clear();
-
-            Debug.Log($"{LogPrefix} Smoke started.", this);
-            yield return null;
-
+            lastStatus = "Running"; lastFailure = string.Empty; completedCaseCount = 0;
             try
             {
-                ValidateFixture();
-                AssertInitialActivityWinner();
-                Complete(
-                    "route-player-activity-enter",
-                    $"route='{routeBinding.LastStatus}' player='{playerBinding.LastStatus}' activity='{activityBinding.LastStatus}'");
-
-                AssertInvalidPlayerBindingBlocked();
-                Complete(
-                    "invalid-player-binding-blocked",
-                    $"status='{invalidPlayerBinding.LastStatus}' diagnostic='{invalidPlayerBinding.LastDiagnostic}'");
-
-                activityRequestTrigger.ClearActivity();
+                yield return WaitFor(Readiness, "persistent-output-readiness");
+                Winner(playerBinding.RequestIdText, playerComposer, "player-default"); Complete("player-default");
+                Require(activityBinding.RequestOverride().Succeeded, "Activity request failed."); Winner(activityBinding.RequestIdText, activityComposer, "activity-request"); Complete("activity-request");
+                Require(routeBinding.RequestOverride().Succeeded, "Route request failed."); Winner(routeBinding.RequestIdText, routeComposer, "route-request"); Complete("route-request");
+                Require(sessionOverride.RequestOverride().Succeeded, "Session request failed."); Winner(sessionOverride.RequestIdText, sessionOverride.RigComposer, "session-request"); Complete("session-request");
+                Require(sessionOverride.ReleaseOverride().Succeeded, "Session release failed."); Winner(routeBinding.RequestIdText, routeComposer, "session-release-restores-route"); Complete("session-release-restores-route");
+                Require(routeBinding.ReleaseOverride().Succeeded, "Route release failed."); Winner(activityBinding.RequestIdText, activityComposer, "route-release-restores-activity"); Complete("route-release-restores-activity");
+                Require(activityBinding.ReleaseOverride().Succeeded, "Activity release failed."); Winner(playerBinding.RequestIdText, playerComposer, "activity-release-restores-player"); Complete("activity-release-restores-player");
+                Require(activityBinding.RequestOverride().Succeeded, "First duplicate request failed."); Require(activityBinding.RequestOverride().Operation == CameraOverrideOperationKind.Preserved, "Duplicate request was not preserved."); Winner(activityBinding.RequestIdText, activityComposer, "duplicate-request"); Complete("duplicate-request");
+                Require(activityBinding.ReleaseOverride().Succeeded, "First duplicate release failed."); Require(activityBinding.ReleaseOverride().Operation == CameraOverrideOperationKind.Preserved, "Duplicate release was not preserved."); Winner(playerBinding.RequestIdText, playerComposer, "duplicate-release"); Complete("duplicate-release");
+                Require(activityBinding.RequestOverride().Succeeded, "Activity lifecycle setup failed."); activityRequestTrigger.ClearActivity();
+                yield return WaitFor(() => !activityRequestTrigger.IsRequestInFlight && activityRequestTrigger.LastRequestSucceeded, "activity-clear-request");
+                yield return WaitFor(() => !Context.Contains(new CameraRequestId(activityBinding.RequestIdText)) && IsWinner(playerBinding.RequestIdText), "activity-lifecycle-cleanup"); Complete("activity-lifecycle-cleanup");
+                Require(routeBinding.RequestOverride().Succeeded, "Route lifecycle setup failed."); Winner(routeBinding.RequestIdText, routeComposer, "route-lifecycle-setup");
+                Require(backToHubTrigger != null && backToHubTrigger.TargetRoute != null, "Back-to-Hub trigger is missing.");
+                routeRequestId = routeBinding.RequestIdText; awaitingRouteLifecycleCleanup = true; lastStatus = "WaitingRouteLifecycleCleanup"; backToHubTrigger.RequestRoute(); StartCoroutine(WatchRouteExit());
             }
-            catch (Exception exception)
-            {
-                Fail(exception);
-                yield break;
-            }
-
-            yield return WaitForActivityRequest("initial-clear");
-            if (IsFailed) yield break;
-
-            try
-            {
-                AssertPlayerWinner();
-                Complete(
-                    "activity-exit-restores-player",
-                    $"winner='{outputSession.Context.Winner.RequestId}'");
-
-                bool preserved = playerBinding.SetLocalPlayerEligible(true);
-                AssertTrue(preserved, "Repeated Player eligibility true should be preserved.");
-                AssertEqual("Preserved", playerBinding.LastStatus,
-                    "Repeated Player eligibility did not report Preserved.");
-                Complete(
-                    "player-publish-idempotent",
-                    $"status='{playerBinding.LastStatus}'");
-
-                AssertTrue(playerBinding.SetLocalPlayerEligible(false),
-                    "Player eligibility false failed.");
-                AssertRouteWinner();
-                Complete(
-                    "player-release-restores-route",
-                    $"winner='{outputSession.Context.Winner.RequestId}'");
-
-                bool releasePreserved = playerBinding.SetLocalPlayerEligible(false);
-                AssertTrue(releasePreserved,
-                    "Repeated Player eligibility false should be preserved.");
-                AssertEqual("Preserved", playerBinding.LastStatus,
-                    "Repeated Player release did not report Preserved.");
-                Complete(
-                    "player-release-idempotent",
-                    $"status='{playerBinding.LastStatus}'");
-
-                AssertTrue(playerBinding.SetLocalPlayerEligible(true),
-                    "Player re-eligibility failed.");
-                AssertPlayerWinner();
-                Complete(
-                    "player-reeligible-overrides-route",
-                    $"winner='{outputSession.Context.Winner.RequestId}'");
-
-                activityRequestTrigger.RequestActivity();
-            }
-            catch (Exception exception)
-            {
-                Fail(exception);
-                yield break;
-            }
-
-            yield return WaitForActivityRequest("activity-override");
-            if (IsFailed) yield break;
-
-            try
-            {
-                AssertActivityWinner();
-                Complete(
-                    "activity-overrides-player",
-                    $"winner='{outputSession.Context.Winner.RequestId}'");
-
-                activityRequestTrigger.ClearActivity();
-            }
-            catch (Exception exception)
-            {
-                Fail(exception);
-                yield break;
-            }
-
-            yield return WaitForActivityRequest("activity-release");
-            if (IsFailed) yield break;
-
-            try
-            {
-                AssertPlayerWinner();
-                Complete(
-                    "activity-release-restores-player",
-                    $"winner='{outputSession.Context.Winner.RequestId}'");
-
-                AssertTrue(playerBinding.SetLocalPlayerEligible(false),
-                    "Final Player release failed.");
-                AssertRouteWinner();
-                Complete(
-                    "final-player-release-restores-route",
-                    $"winner='{outputSession.Context.Winner.RequestId}'");
-
-                lastStatus = "Passed";
-                completedCaseCount = completed.Count;
-
-                Debug.Log(
-                    $"{LogPrefix} PASS. status='Passed' cases='{completed.Count}' completed='{string.Join(",", completed)}'.",
-                    this);
-
-                backToHubTrigger.RequestRoute();
-            }
-            catch (Exception exception)
-            {
-                Fail(exception);
-            }
+            catch (Exception exception) { Fail(exception.Message); }
         }
 
-        private bool IsFailed =>
-            string.Equals(lastStatus, "Failed", StringComparison.Ordinal);
-
-        private IEnumerator WaitForActivityRequest(string operation)
+        private IEnumerator WatchRouteExit()
         {
-            int frames = 0;
-
-            while (activityRequestTrigger.IsRequestInFlight && frames < 600)
+            for (int frame = 0; frame < MaxReadinessFrames; frame++)
             {
-                frames++;
+                if (!backToHubTrigger.IsRequestInFlight && backToHubTrigger.LastRequestFailed) { Fail("Route lifecycle cleanup transition failed: " + backToHubTrigger.LastMessage); yield break; }
                 yield return null;
             }
-
-            yield return null;
-            yield return null;
-
-            if (activityRequestTrigger.IsRequestInFlight)
-            {
-                Fail(new InvalidOperationException(
-                    $"Activity request '{operation}' did not complete."));
-                yield break;
-            }
-
-            if (!activityRequestTrigger.LastRequestSucceeded)
-            {
-                Fail(new InvalidOperationException(
-                    $"Activity request '{operation}' failed. message='{activityRequestTrigger.LastMessage}'."));
-            }
+            Fail("Route lifecycle cleanup did not unload the C9R route before timeout. " + State());
         }
 
-        private void ValidateFixture()
+        private void OnDestroy()
         {
-            AssertNotNull(outputSession, "Output session binding is missing.");
-            AssertNotNull(routeBinding, "Route binding is missing.");
-            AssertNotNull(playerBinding, "Player binding is missing.");
-            AssertNotNull(activityBinding, "Activity binding is missing.");
-            AssertNotNull(invalidPlayerBinding, "Invalid Player binding is missing.");
-            AssertNotNull(routeComposer, "Route composer is missing.");
-            AssertNotNull(playerComposer, "Player composer rig is missing.");
-            AssertNotNull(activityComposer, "Activity composer is missing.");
-            AssertNotNull(activityRequestTrigger, "Activity request trigger is missing.");
-            AssertNotNull(backToHubTrigger, "Back-to-Hub trigger is missing.");
-            AssertTrue(outputSession.IsInitialized, "Output session did not initialize.");
+            if (!awaitingRouteLifecycleCleanup || outputSession == null) return;
+            if (outputSession.Context == null || outputSession.Context.Contains(new CameraRequestId(routeRequestId))) { Fail("route-lifecycle-cleanup did not release the Route request. " + State()); return; }
+            Complete("route-lifecycle-cleanup"); lastStatus = "Passed"; Debug.Log($"{LogPrefix} PASS. cases='{completedCaseCount}'.", this);
         }
 
-        private void AssertInitialActivityWinner()
-        {
-            AssertEqual("Published", routeBinding.LastStatus,
-                "Route request was not published.");
-            AssertTrue(routeBinding.IsPublished,
-                "Route binding does not report published state.");
-
-            AssertEqual("Published", playerBinding.LastStatus,
-                "Player request was not published.");
-            AssertTrue(playerBinding.IsPublished,
-                "Player binding does not report published state.");
-            AssertTrue(playerBinding.IsLocallyEligible,
-                "Player binding does not report local eligibility.");
-
-            AssertEqual("Published", activityBinding.LastStatus,
-                "Activity request was not published.");
-            AssertTrue(activityBinding.IsPublished,
-                "Activity binding does not report published state.");
-
-            AssertActivityWinner();
-        }
-
-        private void AssertInvalidPlayerBindingBlocked()
-        {
-            AssertEqual("Blocked", invalidPlayerBinding.LastStatus,
-                "Invalid Player binding was not blocked.");
-            AssertTrue(!invalidPlayerBinding.IsPublished,
-                "Invalid Player binding published unexpectedly.");
-            AssertTrue(
-                invalidPlayerBinding.LastDiagnostic.Contains("eligibility scope"),
-                "Invalid Player binding returned unexpected diagnostic.");
-        }
-
-        private void AssertActivityWinner()
-        {
-            AssertEqual(
-                activityBinding.RequestIdText,
-                outputSession.Context.Winner.RequestId.Value,
-                "Activity request is not winner.");
-            AssertTrue(activityComposer.CinemachineCamera.enabled,
-                "Activity rig is not enabled.");
-            AssertTrue(!playerComposer.CinemachineCamera.enabled,
-                "Player rig remained enabled while Activity owns output.");
-            AssertTrue(!routeComposer.CinemachineCamera.enabled,
-                "Route rig remained enabled while Activity owns output.");
-        }
-
-        private void AssertPlayerWinner()
-        {
-            AssertTrue(playerBinding.IsPublished,
-                "Player request is not published.");
-            AssertTrue(playerBinding.IsLocallyEligible,
-                "Player is not locally eligible.");
-
-            AssertEqual(
-                playerBinding.RequestIdText,
-                outputSession.Context.Winner.RequestId.Value,
-                "Player request is not winner.");
-            AssertTrue(playerComposer.CinemachineCamera.enabled,
-                "Player rig is not enabled.");
-            AssertTrue(!activityComposer.CinemachineCamera.enabled,
-                "Activity rig remained enabled after Activity release.");
-            AssertTrue(!routeComposer.CinemachineCamera.enabled,
-                "Route rig remained enabled while Player owns output.");
-        }
-
-        private void AssertRouteWinner()
-        {
-            AssertTrue(routeBinding.IsPublished,
-                "Route request is not published.");
-            AssertTrue(!playerBinding.IsPublished,
-                "Player request remained published after eligibility release.");
-            AssertTrue(!playerBinding.IsLocallyEligible,
-                "Player remained locally eligible after release.");
-
-            AssertEqual(
-                routeBinding.RequestIdText,
-                outputSession.Context.Winner.RequestId.Value,
-                "Route request is not winner.");
-            AssertTrue(routeComposer.CinemachineCamera.enabled,
-                "Route rig is not enabled.");
-            AssertTrue(!playerComposer.CinemachineCamera.enabled,
-                "Player rig remained enabled after release.");
-            AssertTrue(!activityComposer.CinemachineCamera.enabled,
-                "Activity rig remained enabled unexpectedly.");
-        }
-
-        private void Complete(string step, string evidence)
-        {
-            completed.Add(step);
-            completedCaseCount = completed.Count;
-
-            Debug.Log(
-                $"{LogPrefix} step='{step}' evidence='{Escape(evidence)}'.",
-                this);
-        }
-
-        private void Fail(Exception exception)
-        {
-            lastStatus = "Failed";
-            lastFailure = exception.Message ?? exception.GetType().Name;
-            completedCaseCount = completed.Count;
-
-            Debug.LogError(
-                $"{LogPrefix} FAIL. status='Failed' exception='{exception.GetType().Name}' " +
-                $"message='{Escape(lastFailure)}' completed='{string.Join(",", completed)}'.",
-                this);
-
-            if (throwOnFailure)
-            {
-                throw exception;
-            }
-        }
-
-        private static void AssertTrue(bool condition, string message)
-        {
-            if (!condition)
-            {
-                throw new InvalidOperationException(message);
-            }
-        }
-
-        private static void AssertNotNull(UnityEngine.Object value, string message)
-        {
-            if (value == null)
-            {
-                throw new InvalidOperationException(message);
-            }
-        }
-
-        private static void AssertEqual<T>(T expected, T actual, string message)
-        {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                throw new InvalidOperationException(
-                    $"{message} expected='{expected}' actual='{actual}'.");
-            }
-        }
-
-        private static string Escape(string value)
-        {
-            return (value ?? string.Empty)
-                .Replace("\\", "\\\\")
-                .Replace("'", "\\'");
-        }
+        private bool Readiness() => outputSession != null && outputSession.IsInitialized && sessionOverride != null && sessionOverride.IsOwnerActive && playerBinding != null && playerBinding.IsLocallyEligible && playerBinding.IsPublished && routeBinding != null && activityBinding != null && routeBinding.OutputSession == outputSession && activityBinding.OutputSession == outputSession && Context != null && Context.HasWinner && IsWinner(playerBinding.RequestIdText);
+        private CameraOutputContext Context => outputSession != null ? outputSession.Context : null;
+        private bool IsWinner(string requestId) => Context != null && Context.HasWinner && Context.Winner.RequestId.Value == requestId;
+        private IEnumerator WaitFor(Func<bool> condition, string label) { for (int frame = 0; frame < MaxReadinessFrames; frame++) { if (condition()) yield break; yield return null; } throw new InvalidOperationException($"Timed out waiting for '{label}'. {State()}"); }
+        private void Winner(string requestId, CameraRigComposer rig, string step) { Require(IsWinner(requestId), $"Unexpected winner at '{step}'. {State()}"); Require(rig != null && rig.CinemachineCamera != null && rig.CinemachineCamera.enabled, $"Expected rig is disabled at '{step}'."); }
+        private void Complete(string name) { completedCaseCount++; Debug.Log($"{LogPrefix} case='{name}' status='PASS'.", this); }
+        private void Fail(string reason) { if (lastStatus == "Failed") return; lastStatus = "Failed"; lastFailure = reason; Debug.LogError($"{LogPrefix} FAIL. reason='{reason}'.", this); if (throwOnFailure) throw new InvalidOperationException(reason); }
+        private string State() => $"output='{(outputSession == null ? "<missing>" : outputSession.OutputIdText)}' initialized='{(outputSession != null && outputSession.IsInitialized)}' playerStatus='{(playerBinding == null ? "<missing>" : playerBinding.LastStatus)}' playerEligibility='{(playerBinding != null && playerBinding.IsLocallyEligible)}' playerRequest='{(playerBinding == null ? "<missing>" : playerBinding.RequestIdText)}' playerScope='{(playerBinding == null ? "<missing>" : playerBinding.EligibilityScopeId)}' routeOutputAttached='{(routeBinding != null && routeBinding.OutputSession == outputSession)}' activityOutputAttached='{(activityBinding != null && activityBinding.OutputSession == outputSession)}' requestCount='{(Context == null ? -1 : Context.AdmittedRequestCount)}' winner='{(Context != null && Context.HasWinner ? Context.Winner.RequestId.Value : "<none>")}'.";
+        private static void Require(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
+        void ICameraOutputSessionConsumer.AttachOutputSession(CameraOutputSessionBinding binding) { outputSession = binding; }
+        void ICameraOutputSessionConsumer.DetachOutputSession(string reason) { outputSession = null; }
+        void ISessionCameraOverrideConsumer.AttachSessionCameraOverride(SessionCameraOverrideBinding binding) { sessionOverride = binding; }
     }
 }
