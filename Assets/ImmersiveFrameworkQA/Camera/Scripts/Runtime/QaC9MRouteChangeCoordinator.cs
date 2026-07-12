@@ -10,20 +10,15 @@ namespace ImmersiveFrameworkQA.Camera
         [SerializeField] private QaC9MActivityRouteTeardownProbe teardownProbe;
         [SerializeField] private RouteRequestTrigger backToHubTrigger;
         [SerializeField] private int settleFrames = 2;
-        [SerializeField] private bool runOnStart = true;
 
         [SerializeField, HideInInspector] private string lastStatus = "NotRun";
         [SerializeField, HideInInspector] private string lastDiagnostic = string.Empty;
 
         private bool started;
 
-        private void Start()
-        {
-            if (runOnStart)
-            {
-                Begin();
-            }
-        }
+        public string LastStatus => lastStatus;
+
+        public string LastDiagnostic => lastDiagnostic;
 
         [ContextMenu("Run C9M Route Change")]
         public void Begin()
@@ -83,10 +78,10 @@ namespace ImmersiveFrameworkQA.Camera
         private void Fail(string diagnostic)
         {
             lastStatus = "Failed";
-            lastDiagnostic = diagnostic;
+            lastDiagnostic = diagnostic ?? string.Empty;
 
             Debug.LogError(
-                $"[QA][C9M Activity Route Teardown] {diagnostic}",
+                $"[QA][C9M Activity Route Teardown] {lastDiagnostic}",
                 this);
         }
     }

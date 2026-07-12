@@ -77,7 +77,8 @@ namespace ImmersiveFrameworkQA.Camera
             entered = false;
         }
 
-        private static string ResolveActivityName(ActivityContentLifecycleContext context)
+        private static string ResolveActivityName(
+            ActivityContentLifecycleContext context)
         {
             if (context.Activity != null)
             {
@@ -92,7 +93,10 @@ namespace ImmersiveFrameworkQA.Camera
             return "<none>";
         }
 
-        private void SetDiagnostic(string status, string diagnostic, bool isError)
+        private void SetDiagnostic(
+            string status,
+            string diagnostic,
+            bool isError)
         {
             lastStatus = status;
             lastDiagnostic = diagnostic ?? string.Empty;
