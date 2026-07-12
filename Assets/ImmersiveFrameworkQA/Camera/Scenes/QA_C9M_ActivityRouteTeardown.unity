@@ -900,7 +900,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0f9d45661d04c3b9e08a2f1b2fea71e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.RouteCameraRequestBinding
-  assignedRoute: {fileID: 11400000, guid: 8ee67928cfa62234aa2cbadde2b7f41b, type: 2}
+  assignedRoute: {fileID: 11400000, guid: 86abf60fcd0a2484fb892c7f73ba4444, type: 2}
   scopeId: qa.route.c9l
   requestId: qa.camera.request.c9l.route
   outputSession: {fileID: 1579598382}
@@ -923,7 +923,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f37a6125514e4491a7174d4372fc4c22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.RouteLifecycle.RouteContentBinding
-  route: {fileID: 11400000, guid: 8ee67928cfa62234aa2cbadde2b7f41b, type: 2}
+  route: {fileID: 11400000, guid: 86abf60fcd0a2484fb892c7f73ba4444, type: 2}
   localContentId: qa.c9l.route-content
   requiredness: 10
 --- !u!1 &1891606099
@@ -1001,6 +1001,7 @@ GameObject:
   - component: {fileID: 1894364902}
   - component: {fileID: 1894364901}
   - component: {fileID: 1894364900}
+  - component: {fileID: 1894364904}
   m_Layer: 0
   m_Name: QA_C9L_Controls
   m_TagString: Untagged
@@ -1015,7 +1016,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1894364899}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d572d20624b9458490f40d598c7ccb93, type: 3}
   m_Name: 
@@ -1078,6 +1079,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1894364904
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1894364899}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd9d742dd1594f899c3c2c40d209b8a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Camera.QaC9MRouteChangeCoordinator
+  teardownProbe: {fileID: 2110455965}
+  backToHubTrigger: {fileID: 1894364901}
+  settleFrames: 2
+  runOnStart: 1
+  lastStatus: NotRun
+  lastDiagnostic: 
 --- !u!1 &1922327345
 GameObject:
   m_ObjectHideFlags: 0
