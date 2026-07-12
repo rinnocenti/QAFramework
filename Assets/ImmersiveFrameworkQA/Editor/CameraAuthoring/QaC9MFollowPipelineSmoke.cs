@@ -50,6 +50,9 @@ namespace ImmersiveFrameworkQA.Editor.CameraAuthoring
                     "CinemachineFollow evidence is missing.");
                 Require(composer.CinemachineCamera.Follow == target.transform,
                     "Follow target was not assigned.");
+                Require(
+                    follow.FollowOffset == new Vector3(0f, 6f, -9f),
+                    $"Follow offset was not applied. actual='{follow.FollowOffset}'.");
 
                 CameraRigComposerApplyRebuildResult second =
                     CameraRigComposerApplyRebuildUtility.ApplyOrRebuild(
@@ -66,8 +69,8 @@ namespace ImmersiveFrameworkQA.Editor.CameraAuthoring
                     "Apply/Rebuild created duplicate CinemachineFollow components.");
 
                 Debug.Log(
-                    $"{LogPrefix} PASS. status='Passed' cases='4' " +
-                    "completed='camera-materialized,follow-pipeline-materialized,target-assigned,idempotent'.");
+                    $"{LogPrefix} PASS. status='Passed' cases='5' " +
+                    "completed='camera-materialized,follow-pipeline-materialized,target-assigned,offset-applied,idempotent'.");
             }
             catch (Exception exception)
             {
@@ -103,6 +106,8 @@ namespace ImmersiveFrameworkQA.Editor.CameraAuthoring
                 (int)CameraTargetRequirement.Required;
             serialized.FindProperty("lookAtRequirement").intValue =
                 (int)CameraTargetRequirement.Optional;
+            serialized.FindProperty("followOffset").vector3Value =
+                new Vector3(0f, 6f, -9f);
             serialized.FindProperty("createCinemachineCameraIfMissing").boolValue =
                 true;
             serialized.ApplyModifiedPropertiesWithoutUndo();
