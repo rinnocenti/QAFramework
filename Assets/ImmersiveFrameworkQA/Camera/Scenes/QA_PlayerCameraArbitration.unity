@@ -1120,7 +1120,6 @@ GameObject:
   - component: {fileID: 2110455964}
   - component: {fileID: 2110455963}
   - component: {fileID: 2110455962}
-  - component: {fileID: 2110455965}
   m_Layer: 0
   m_Name: QA_C9L_ActivityContent
   m_TagString: Untagged
@@ -1181,23 +1180,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1794844858}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2110455965
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2110455961}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b8a84484830f47ee9fe3f1c4369f2411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Camera.QaC9MActivityRouteTeardownProbe
-  logDiagnostics: 1
-  entered: 0
-  exitedBeforeDisable: 0
-  lastStatus: NotRun
-  lastDiagnostic: 
 --- !u!1 &2119509558
 GameObject:
   m_ObjectHideFlags: 0
