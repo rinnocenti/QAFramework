@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6d702c1ba364e70ad76a85eb5f1b842, type: 3}
   m_Name: QA_PlayerCameraArbitrationActivity
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.ActivityAsset
-  activityName: QA C9L Player Camera Arbitration Activity
-  description: Activity override used to prove Player restoration.
+  activityName: QA C9R Camera Override Authority Activity
+  description: Explicit Activity override used by the C9R authority proof.
   activityContentProfile: {fileID: 0}
   visualTransitionMode: 0
   transitionGateMode: 10

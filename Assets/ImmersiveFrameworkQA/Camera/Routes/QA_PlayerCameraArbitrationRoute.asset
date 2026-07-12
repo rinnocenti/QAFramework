@@ -12,10 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a35fe899a80d2d64dac72e8bfe3079df, type: 3}
   m_Name: QA_PlayerCameraArbitrationRoute
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.RouteAsset
-  routeName: QA C9L Player Camera Arbitration
+  routeName: QA C9R Camera Override Authority
   primaryScenePath: Assets/ImmersiveFrameworkQA/Camera/Scenes/QA_PlayerCameraArbitration.unity
   primarySceneName: QA_PlayerCameraArbitration
   routeContentProfile: {fileID: 0}
   startupActivity: {fileID: 11400000, guid: 2962537da41ed2b4e9e39ccd28c92f86, type: 2}
   transitionGateMode: 30
-  description: QA route proving Route, Player and Activity camera arbitration.
+  description: C9R authority proof for Player, Activity, Route and Session camera
+    overrides.

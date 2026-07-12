@@ -5,9 +5,18 @@ using UnityEngine;
 
 namespace ImmersiveFrameworkQA.Camera
 {
+    /// <summary>
+    /// Persistent Hub coordinator that starts the C9R authority fixture only
+    /// after the RouteRequestTrigger reports Completed/Succeeded.
+    ///
+    /// The legacy file path is retained to preserve the existing Unity script
+    /// asset, but this coordinator is the canonical C9R start boundary.
+    /// </summary>
     [DisallowMultipleComponent]
     public sealed class QaC9RCameraOverrideAuthorityLegacyCoordinator : MonoBehaviour
     {
+        private const int MaxFixtureLookupFrames = 600;
+
         [SerializeField] private RouteRequestTrigger routeTrigger;
 
         private IEventBinding binding;
@@ -18,7 +27,7 @@ namespace ImmersiveFrameworkQA.Camera
             if (transform.parent != null)
             {
                 Debug.LogError(
-                    "[QA][C9R Camera Override Authority] Legacy coordinator must be installed on a root GameObject.",
+                    "[QA][C9R Camera Override Authority] Route completion coordinator must be installed on a root GameObject.",
                     this);
                 return;
             }
@@ -31,12 +40,13 @@ namespace ImmersiveFrameworkQA.Camera
             if (routeTrigger == null)
             {
                 Debug.LogError(
-                    "[QA][C9R Camera Override Authority] Legacy coordinator requires an explicit RouteRequestTrigger.",
+                    "[QA][C9R Camera Override Authority] Route completion coordinator requires an explicit RouteRequestTrigger.",
                     this);
                 return;
             }
 
-            binding = routeTrigger.SubscribeRequestEvents(HandleRouteRequestEvent);
+            binding = routeTrigger.SubscribeRequestEvents(
+                HandleRouteRequestEvent);
         }
 
         private void OnDisable()
@@ -45,7 +55,8 @@ namespace ImmersiveFrameworkQA.Camera
             binding = null;
         }
 
-        private void HandleRouteRequestEvent(RouteRequestTriggerEvent routeEvent)
+        private void HandleRouteRequestEvent(
+            RouteRequestTriggerEvent routeEvent)
         {
             if (routeEvent == null ||
                 !ReferenceEquals(routeEvent.Trigger, routeTrigger) ||
@@ -71,30 +82,27 @@ namespace ImmersiveFrameworkQA.Camera
 
         private IEnumerator StartFixtureWhenAvailable()
         {
-            int frames = 0;
-
-            while (frames < 600)
+            for (int frame = 0; frame < MaxFixtureLookupFrames; frame++)
             {
                 QaC9RCameraOverrideAuthorityFixture fixture =
-                    FindFirstObjectByType<QaC9RCameraOverrideAuthorityFixture>(
+                    FindAnyObjectByType<QaC9RCameraOverrideAuthorityFixture>(
                         FindObjectsInactive.Include);
 
                 if (fixture != null)
                 {
                     Debug.Log(
-                        "[QA][C9R Camera Override Authority] Route request completed; starting smoke.",
+                        "[QA][C9R Camera Override Authority] Route request completed; starting smoke after transition-gate release.",
                         fixture);
                     fixture.Begin();
                     Destroy(gameObject);
                     yield break;
                 }
 
-                frames++;
                 yield return null;
             }
 
             Debug.LogError(
-                "[QA][C9R Camera Override Authority] Target fixture was not found before timeout.",
+                "[QA][C9R Camera Override Authority] Route request completed but the target fixture was not found before timeout.",
                 this);
             Destroy(gameObject);
         }

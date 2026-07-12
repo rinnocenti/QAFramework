@@ -303,51 +303,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2030906738}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &169647379
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 169647381}
-  - component: {fileID: 169647380}
-  m_Layer: 0
-  m_Name: QA_C9L_RouteCompletionCoordinator
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &169647380
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 169647379}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 96e1da14381b49408cec7cf88f913432, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Camera.QaC9LRouteCompletionCoordinator
-  routeTrigger: {fileID: 1371656821}
---- !u!4 &169647381
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 169647379}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &186321008
 GameObject:
   m_ObjectHideFlags: 0
@@ -668,6 +623,51 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2030906738}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &700267292
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 700267294}
+  - component: {fileID: 700267293}
+  m_Layer: 0
+  m_Name: QA_C9R_RouteCompletionCoordinator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &700267293
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 700267292}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96e1da14381b49408cec7cf88f913432, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Camera.QaC9RCameraOverrideAuthorityLegacyCoordinator
+  routeTrigger: {fileID: 1371656821}
+--- !u!4 &700267294
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 700267292}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &872505432
 GameObject:
@@ -1125,7 +1125,7 @@ GameObject:
   - component: {fileID: 1371656822}
   - component: {fileID: 1371656821}
   m_Layer: 0
-  m_Name: RouteTrigger_Camera_C9L_Player_Arbitration
+  m_Name: RouteTrigger_Camera_C9R_Override_Authority
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1144,7 +1144,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
   targetRoute: {fileID: 11400000, guid: 8ee67928cfa62234aa2cbadde2b7f41b, type: 2}
-  reason: qa.hub.route.camera_player_arbitration
+  reason: qa.hub.route.camera_override_authority
 --- !u!4 &1371656822
 Transform:
   m_ObjectHideFlags: 0
@@ -1753,7 +1753,7 @@ MonoBehaviour:
     routeRequestTrigger: {fileID: 1171894124}
   - label: Camera / C9I Canonical Bindings
     routeRequestTrigger: {fileID: 74667377}
-  - label: Camera / C9R Override Authority
+  - label: C9R Camera Override Authority
     routeRequestTrigger: {fileID: 1371656821}
   - label: Camera / C9M Activity Route Teardown
     routeRequestTrigger: {fileID: 2672511}
@@ -1890,5 +1890,5 @@ SceneRoots:
   - {fileID: 2030906738}
   - {fileID: 186321010}
   - {fileID: 458117315}
-  - {fileID: 169647381}
   - {fileID: 1010431369}
+  - {fileID: 700267294}

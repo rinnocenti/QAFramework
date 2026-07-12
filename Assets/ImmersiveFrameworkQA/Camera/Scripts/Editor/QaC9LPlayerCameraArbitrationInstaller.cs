@@ -30,6 +30,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         private const string HubRoutePath = Root + "/Hub/Routes/QA_HubRoute.asset";
         private const string HubLabel = "C9R Camera Override Authority";
         private const string HubTriggerName = "RouteTrigger_Camera_C9R_Override_Authority";
+        private const string CoordinatorName = "QA_C9R_RouteCompletionCoordinator";
 
         internal static void Install()
         {
@@ -99,7 +100,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             QaC9RCameraOverrideAuthorityFixture fixture = Component<QaC9RCameraOverrideAuthorityFixture>(controls);
             Set(fixture, "routeBinding", routeBinding); Set(fixture, "playerBinding", playerBinding); Set(fixture, "activityBinding", activityBinding);
             Set(fixture, "routeComposer", routeRig); Set(fixture, "playerComposer", playerRig); Set(fixture, "activityComposer", activityRig);
-            Set(fixture, "activityRequestTrigger", activityTrigger); Set(fixture, "backToHubTrigger", backTrigger); Set(fixture, "runOnStart", true); Set(fixture, "throwOnFailure", false);
+            Set(fixture, "activityRequestTrigger", activityTrigger); Set(fixture, "backToHubTrigger", backTrigger); Set(fixture, "throwOnFailure", false);
             EditorSceneManager.SaveScene(scene, ScenePath);
         }
 
@@ -111,7 +112,32 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             triggerObject.name = HubTriggerName; triggerObject.transform.SetParent(panel.transform, false);
             RouteRequestTrigger trigger = Component<RouteRequestTrigger>(triggerObject);
             trigger.TargetRoute = Require<RouteAsset>(RoutePath); Set(trigger, "reason", "qa.hub.route.camera_override_authority");
-            foreach (GameObject root in scene.GetRootGameObjects()) if (root.name == "QA_C9L_RouteCompletionCoordinator" || root.name == "QA_C9R_RouteCompletionCoordinator") UnityEngine.Object.DestroyImmediate(root);
+
+            GameObject coordinatorObject =
+                Find(scene, CoordinatorName) ??
+                Find(scene, "QA_C9L_RouteCompletionCoordinator") ??
+                new GameObject(CoordinatorName);
+            coordinatorObject.name = CoordinatorName;
+            coordinatorObject.transform.SetParent(null, false);
+            SceneManager.MoveGameObjectToScene(coordinatorObject, scene);
+            QaC9RCameraOverrideAuthorityLegacyCoordinator coordinator =
+                Component<QaC9RCameraOverrideAuthorityLegacyCoordinator>(coordinatorObject);
+            Set(coordinator, "routeTrigger", trigger);
+
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                if (root == coordinatorObject)
+                {
+                    continue;
+                }
+
+                if (root.name == "QA_C9L_RouteCompletionCoordinator" ||
+                    root.name == CoordinatorName)
+                {
+                    UnityEngine.Object.DestroyImmediate(root);
+                }
+            }
+
             var so = new SerializedObject(panel); so.Update(); SerializedProperty entries = Property(so, "entries"); int retained = -1;
             for (int i = entries.arraySize - 1; i >= 0; i--)
             {
