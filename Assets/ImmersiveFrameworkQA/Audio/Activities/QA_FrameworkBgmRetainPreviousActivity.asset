@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.ActivityAsset
   activityName: QA Framework BGM Retain Previous Activity
   description: Activity with no own BGM that retains previous Activity BGM.
+  playerParticipationProjectionProfile: {fileID: 11400000, guid: 3f662b2a11f05b04b878d112d4ee764e, type: 2}
+  playerParticipationRequirementsProfile: {fileID: 11400000, guid: d17f6014d83c5f94f8974389a2de54f3, type: 2}
   activityContentProfile: {fileID: 0}
   visualTransitionMode: 0
   transitionGateMode: 10

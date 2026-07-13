@@ -15,5 +15,8 @@ MonoBehaviour:
   activityName: QA Transition Activity A Alt
   description: Alternate activity used only to validate Activity transition request
     diagnostics inside TransitionRouteA.
+  playerParticipationProjectionProfile: {fileID: 11400000, guid: d8243e8d5f963264b89e10fe84a2dc09, type: 2}
+  playerParticipationRequirementsProfile: {fileID: 11400000, guid: a27be6f276fd1414d9b32268e30dd2f7, type: 2}
   activityContentProfile: {fileID: 0}
   visualTransitionMode: 20
+  transitionGateMode: 10
