@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!29 &1
 OcclusionCullingSettings:
@@ -1689,74 +1689,10 @@ MonoBehaviour:
   entries:
   - label: Lifecycle / Core Flow QA
     routeRequestTrigger: {fileID: 2012588706}
-  - label: Unity Build Surface QA
-    routeRequestTrigger: {fileID: 0}
-  - label: Camera Product Surface QA
-    routeRequestTrigger: {fileID: 2010483972}
   - label: Pooling QA
     routeRequestTrigger: {fileID: 624012292}
-  - label: Framework BGM QA
-    routeRequestTrigger: {fileID: 0}
-  - label: Actor Readiness QA
-    routeRequestTrigger: {fileID: 1041334672}
-  - label: Actor Readiness Behaviour QA
-    routeRequestTrigger: {fileID: 267107254}
-  - label: PlayerEntry Passive QA
-    routeRequestTrigger: {fileID: 1881295333}
-  - label: PlayerEntry Behaviour QA
-    routeRequestTrigger: {fileID: 1607782485}
-  - label: PlayerTopology Passive QA
-    routeRequestTrigger: {fileID: 0}
-  - label: PlayerView Passive QA
-    routeRequestTrigger: {fileID: 1856123552}
-  - label: PlayerView Topology QA
-    routeRequestTrigger: {fileID: 96818066}
-  - label: PlayerControl Passive QA
-    routeRequestTrigger: {fileID: 1072985685}
-  - label: PlayerControl Topology QA
-    routeRequestTrigger: {fileID: 3516059}
-  - label: Player Binding Readiness QA
-    routeRequestTrigger: {fileID: 2049058252}
-  - label: Player Binding Diagnostics QA
-    routeRequestTrigger: {fileID: 591603971}
-  - label: Player Binding Authoring Validator QA
-    routeRequestTrigger: {fileID: 1938394871}
-  - label: Player Binding Authoring Issue Cleanup QA
-    routeRequestTrigger: {fileID: 0}
-  - label: PlayerView Binding Adapter QA
-    routeRequestTrigger: {fileID: 1023195282}
-  - label: PlayerView Camera Target Binding QA
-    routeRequestTrigger: {fileID: 1820820407}
-  - label: PlayerControl Binding Adapter QA
-    routeRequestTrigger: {fileID: 1070199935}
-  - label: Unity PlayerInput Bridge QA
-    routeRequestTrigger: {fileID: 0}
-  - label: Unity PlayerInput Activation QA
-    routeRequestTrigger: {fileID: 0}
-  - label: Player Identity QA
-    routeRequestTrigger: {fileID: 0}
-  - label: Player Slot Wiring QA
-    routeRequestTrigger: {fileID: 950545248}
-  - label: Player Runtime Baseline
-    routeRequestTrigger: {fileID: 186321009}
-  - label: Camera / C9C Request Contracts
-    routeRequestTrigger: {fileID: 227325723}
-  - label: Camera / C9D Output Context
-    routeRequestTrigger: {fileID: 1090752297}
-  - label: Camera / C9E Output Rig Applicator
-    routeRequestTrigger: {fileID: 1409757137}
-  - label: Camera / C9F Output Session
-    routeRequestTrigger: {fileID: 872505433}
-  - label: Camera / C9G Route Activity Publishers
-    routeRequestTrigger: {fileID: 582551198}
-  - label: Camera / C9H Route Activity Lifecycle Adapters
-    routeRequestTrigger: {fileID: 1171894124}
-  - label: Camera / C9I Canonical Bindings
-    routeRequestTrigger: {fileID: 74667377}
   - label: C9R Camera Override Authority
     routeRequestTrigger: {fileID: 1371656821}
-  - label: Camera / C9M Activity Route Teardown
-    routeRequestTrigger: {fileID: 2672511}
   title: Immersive Framework QA Hub
   showPanel: 1
   restrictToActiveScene: 1
