@@ -1,8 +1,8 @@
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using Immersive.Framework.Actors;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.PlayerParticipation;
 using UnityEditor;
@@ -108,6 +108,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 GameObject validPrefab = CreateGameObject(created, "QA P3G2 Valid Player Prefab");
                 validPrefab.AddComponent<PlayerInput>();
+                validPrefab.AddComponent<PlayerActorDeclaration>();
                 manager.playerPrefab = validPrefab;
 
                 PlayerSlotProfile slotOne = CreateSlot(created, "QA P3G2 Slot 1", "qa.p3g2.player.1");
