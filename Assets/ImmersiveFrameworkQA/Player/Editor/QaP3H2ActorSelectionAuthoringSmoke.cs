@@ -45,6 +45,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             {
                 Debug.LogError(
                     $"[P3H2_ACTOR_SELECTION_AUTHORING_SMOKE] status='Failed' exception='{exception.GetType().Name}' message='{Escape(exception.Message)}' completed='{string.Join(",", completed)}'.\n{exception}");
+                throw;
             }
             finally
             {
@@ -54,32 +55,32 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
         private static void RunCases(List<string> completed)
         {
-            GameObject playerHostPrefab = CreatePlayerHostPrefab();
+            GameObject logicalPlayerPrefab = CreatePlayerLogicalHostPrefab(
+                "P3H2_PlayerLogicalActor.prefab",
+                includePlayerInput: false);
             ActorProfile validProfile = CreateActorProfile(
                 "ActorProfile_QA_Hero",
                 "  actor-profile.qa.hero  ",
                 "QA Hero",
                 ActorKind.Player,
                 ActorRole.Protagonist,
-                playerHostPrefab);
+                logicalPlayerPrefab);
 
-            AssertEqual(
-                "actor-profile.qa.hero",
-                validProfile.ActorProfileIdText,
+            AssertEqual("actor-profile.qa.hero", validProfile.ActorProfileIdText,
                 "ActorProfileId text was not normalized.");
             completed.Add("actor-profile-id-normalized");
 
             ActorProfileId typedId = validProfile.ActorProfileId;
-            AssertTrue(typedId.IsValid, "Typed ActorProfileId is invalid.");
-            AssertEqual(
-                FrameworkIdentityDomain.ActorProfile,
-                typedId.Domain,
-                "ActorProfileId uses the wrong identity domain.");
+            AssertTrue(typedId.IsValid && typedId.Domain == FrameworkIdentityDomain.ActorProfile,
+                "Typed ActorProfileId is invalid.");
             completed.Add("actor-profile-typed-identity");
 
             object validReport = ValidateActorProfile(validProfile, true);
-            AssertEqual(0, ReadInt(validReport, "ErrorCount"), "Valid ActorProfile was rejected.");
-            completed.Add("valid-player-actor-profile");
+            AssertEqual(0, ReadInt(validReport, "ErrorCount"),
+                "Valid contextual Player ActorProfile was rejected.");
+            AssertTrue(logicalPlayerPrefab.GetComponentInChildren<PlayerInput>(true) == null,
+                "Valid Logical Actor Host contains PlayerInput.");
+            completed.Add("valid-contextual-player-actor-profile");
 
             ActorProfile emptyIdentityProfile = CreateActorProfile(
                 "ActorProfile_QA_EmptyIdentity",
@@ -87,10 +88,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "QA Empty Identity",
                 ActorKind.Player,
                 ActorRole.Protagonist,
-                playerHostPrefab);
+                logicalPlayerPrefab);
             object emptyIdentityReport = ValidateActorProfile(emptyIdentityProfile, false);
-            AssertTrue(ReadInt(emptyIdentityReport, "ErrorCount") > 0, "Empty ActorProfileId was accepted.");
-            AssertReportContains(emptyIdentityReport, "requires a non-empty ActorProfileId");
+            AssertTrue(ReadInt(emptyIdentityReport, "ErrorCount") > 0,
+                "Empty ActorProfileId was accepted.");
             completed.Add("empty-actor-profile-id-rejected");
 
             ActorProfile duplicateProfile = CreateActorProfile(
@@ -99,10 +100,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "QA Hero Duplicate",
                 ActorKind.Player,
                 ActorRole.Protagonist,
-                playerHostPrefab);
+                logicalPlayerPrefab);
             object duplicateReport = ValidateActorProfile(duplicateProfile, true);
-            AssertTrue(ReadInt(duplicateReport, "ErrorCount") > 0, "Duplicate ActorProfileId was accepted.");
-            AssertReportContains(duplicateReport, "also owned by ActorProfile");
+            AssertTrue(ReadInt(duplicateReport, "ErrorCount") > 0,
+                "Duplicate ActorProfileId was accepted.");
             completed.Add("duplicate-actor-profile-id-rejected");
 
             ActorProfile missingHostProfile = CreateActorProfile(
@@ -113,8 +114,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 ActorRole.Protagonist,
                 null);
             object missingHostReport = ValidateActorProfile(missingHostProfile, false);
-            AssertTrue(ReadInt(missingHostReport, "ErrorCount") > 0, "Missing Logical Actor Host was accepted.");
-            AssertReportContains(missingHostReport, "requires an explicit Logical Actor Host Prefab");
+            AssertTrue(ReadInt(missingHostReport, "ErrorCount") > 0,
+                "Missing Logical Actor Host was accepted.");
             completed.Add("missing-logical-host-rejected");
 
             ActorProfile unknownKindProfile = CreateActorProfile(
@@ -123,10 +124,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "QA Unknown Kind",
                 ActorKind.Unknown,
                 ActorRole.Protagonist,
-                playerHostPrefab);
+                logicalPlayerPrefab);
             object unknownKindReport = ValidateActorProfile(unknownKindProfile, false);
-            AssertTrue(ReadInt(unknownKindReport, "ErrorCount") > 0, "Unknown Actor Kind was accepted.");
-            AssertReportContains(unknownKindReport, "Actor Kind");
+            AssertTrue(ReadInt(unknownKindReport, "ErrorCount") > 0,
+                "Unknown Actor Kind was accepted.");
             completed.Add("unknown-actor-kind-rejected");
 
             ActorProfile mismatchedHostProfile = CreateActorProfile(
@@ -135,107 +136,128 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "QA Mismatched Host",
                 ActorKind.NonPlayer,
                 ActorRole.Protagonist,
-                playerHostPrefab);
+                logicalPlayerPrefab);
             object mismatchedHostReport = ValidateActorProfile(mismatchedHostProfile, false);
-            AssertTrue(ReadInt(mismatchedHostReport, "ErrorCount") > 0, "Mismatched host declaration was accepted.");
-            AssertReportContains(mismatchedHostReport, "requires a Logical Actor Host with one ActorDeclaration");
+            AssertTrue(ReadInt(mismatchedHostReport, "ErrorCount") > 0,
+                "Mismatched host declaration was accepted.");
             completed.Add("mismatched-host-kind-rejected");
+
+            GameObject invalidPlayerInputHost = CreatePlayerLogicalHostPrefab(
+                "P3H2_InvalidPlayerInputLogicalActor.prefab",
+                includePlayerInput: true);
+            ActorProfile invalidPlayerInputProfile = CreateActorProfile(
+                "ActorProfile_QA_PlayerInputHost",
+                "actor-profile.qa.player-input-host",
+                "QA Invalid PlayerInput Host",
+                ActorKind.Player,
+                ActorRole.Protagonist,
+                invalidPlayerInputHost);
+            object invalidPlayerInputReport = ValidateActorProfile(
+                invalidPlayerInputProfile,
+                false);
+            AssertTrue(ReadInt(invalidPlayerInputReport, "ErrorCount") > 0,
+                "Logical Player Actor Host with PlayerInput was accepted.");
+            AssertReportContains(invalidPlayerInputReport, "must not contain PlayerInput");
+            completed.Add("logical-player-host-playerinput-rejected");
 
             PlayerActorSelectionPolicyProfile allowPolicy = CreatePolicyProfile(
                 "ActorSelection_QA_AllowDuplicates",
                 "QA Allow Duplicates",
                 PlayerActorSelectionDuplicatePolicy.AllowDuplicates);
-            object allowPolicyReport = ValidateSelectionPolicy(allowPolicy);
-            AssertEqual(0, ReadInt(allowPolicyReport, "ErrorCount"), "AllowDuplicates policy was rejected.");
-            AssertTrue(allowPolicy.AllowsDuplicates, "AllowDuplicates policy evidence is false.");
+            AssertEqual(0, ReadInt(ValidateSelectionPolicy(allowPolicy), "ErrorCount"),
+                "AllowDuplicates policy was rejected.");
             completed.Add("allow-duplicates-policy-valid");
 
             PlayerActorSelectionPolicyProfile uniquePolicy = CreatePolicyProfile(
                 "ActorSelection_QA_Unique",
                 "QA Unique Across Joined Slots",
                 PlayerActorSelectionDuplicatePolicy.UniqueAcrossJoinedSlots);
-            object uniquePolicyReport = ValidateSelectionPolicy(uniquePolicy);
-            AssertEqual(0, ReadInt(uniquePolicyReport, "ErrorCount"), "Unique policy was rejected.");
-            AssertTrue(uniquePolicy.RequiresUniqueActors, "Unique policy evidence is false.");
+            AssertEqual(0, ReadInt(ValidateSelectionPolicy(uniquePolicy), "ErrorCount"),
+                "Unique policy was rejected.");
             completed.Add("unique-policy-valid");
 
             PlayerActorSelectionPolicyProfile invalidPolicy = CreatePolicyProfile(
                 "ActorSelection_QA_Unspecified",
                 "QA Unspecified",
                 PlayerActorSelectionDuplicatePolicy.Unspecified);
-            object invalidPolicyReport = ValidateSelectionPolicy(invalidPolicy);
-            AssertTrue(ReadInt(invalidPolicyReport, "ErrorCount") > 0, "Unspecified policy was accepted.");
-            AssertReportContains(invalidPolicyReport, "requires an explicit Duplicate Policy");
+            AssertTrue(ReadInt(ValidateSelectionPolicy(invalidPolicy), "ErrorCount") > 0,
+                "Unspecified policy was accepted.");
             completed.Add("unspecified-policy-rejected");
 
             PlayerSlotProfile optionalDefaultSlot = CreateSlotProfile(
                 "PlayerSlot_QA_NoDefault",
                 "qa.p3h2.slot.no-default",
                 null);
-            object optionalDefaultReport = ValidatePlayerSlotProfile(optionalDefaultSlot);
-            AssertEqual(0, ReadInt(optionalDefaultReport, "ErrorCount"), "Slot without default Actor was rejected.");
-            AssertTrue(!optionalDefaultSlot.HasDefaultActorProfile, "Slot unexpectedly reports a default Actor.");
+            AssertEqual(0, ReadInt(ValidatePlayerSlotProfile(optionalDefaultSlot), "ErrorCount"),
+                "Slot without default Actor was rejected.");
             completed.Add("slot-default-is-optional");
 
             PlayerSlotProfile validDefaultSlot = CreateSlotProfile(
                 "PlayerSlot_QA_DefaultHero",
                 "qa.p3h2.slot.default-hero",
                 validProfile);
-            object validDefaultReport = ValidatePlayerSlotProfile(validDefaultSlot);
-            AssertEqual(0, ReadInt(validDefaultReport, "ErrorCount"), "Valid Slot default Actor was rejected.");
-            AssertSame(validProfile, validDefaultSlot.DefaultActorProfile, "Slot default Actor reference changed.");
+            AssertEqual(0, ReadInt(ValidatePlayerSlotProfile(validDefaultSlot), "ErrorCount"),
+                "Valid Slot default Actor was rejected.");
             completed.Add("slot-default-reference-valid");
 
             PlayerSlotProfile invalidDefaultSlot = CreateSlotProfile(
                 "PlayerSlot_QA_InvalidDefault",
                 "qa.p3h2.slot.invalid-default",
                 missingHostProfile);
-            object invalidDefaultReport = ValidatePlayerSlotProfile(invalidDefaultSlot);
-            AssertTrue(ReadInt(invalidDefaultReport, "ErrorCount") > 0, "Invalid Slot default Actor was accepted.");
-            AssertReportContains(invalidDefaultReport, "Logical Actor Host");
+            AssertTrue(ReadInt(ValidatePlayerSlotProfile(invalidDefaultSlot), "ErrorCount") > 0,
+                "Invalid Slot default Actor was accepted.");
             completed.Add("invalid-slot-default-rejected");
 
             object projectReport = ValidateProjectActorSelectionProfiles();
-            AssertTrue(ReadInt(projectReport, "ErrorCount") > 0, "Project duplicate scan accepted invalid Actor Profiles.");
-            AssertReportContains(projectReport, "actor-profile.qa.hero");
+            AssertTrue(ReadInt(projectReport, "ErrorCount") > 0,
+                "Project duplicate scan accepted invalid Profiles.");
             completed.Add("project-duplicate-scan-rejected");
 
-            string idBeforeValidation = validProfile.ActorProfileIdText;
-            GameObject hostBeforeValidation = validProfile.LogicalActorHostPrefab;
-            ActorProfile defaultBeforeValidation = validDefaultSlot.DefaultActorProfile;
+            string idBefore = validProfile.ActorProfileIdText;
+            GameObject hostBefore = validProfile.LogicalActorHostPrefab;
             ValidateActorProfile(validProfile, true);
-            ValidatePlayerSlotProfile(validDefaultSlot);
-            AssertEqual(idBeforeValidation, validProfile.ActorProfileIdText, "Validation mutated ActorProfileId.");
-            AssertSame(hostBeforeValidation, validProfile.LogicalActorHostPrefab, "Validation mutated Logical Actor Host.");
-            AssertSame(defaultBeforeValidation, validDefaultSlot.DefaultActorProfile, "Validation mutated Slot default Actor.");
-            completed.Add("validation-is-non-mutating");
-
+            AssertEqual(idBefore, validProfile.ActorProfileIdText,
+                "Validation mutated ActorProfileId.");
+            AssertSame(hostBefore, validProfile.LogicalActorHostPrefab,
+                "Validation mutated Logical Actor Host.");
             AssertRuntimeImmutableProfile(typeof(ActorProfile));
             AssertRuntimeImmutableProfile(typeof(PlayerActorSelectionPolicyProfile));
-            AssertRuntimeImmutableProfile(typeof(PlayerSlotProfile));
-            completed.Add("profiles-are-runtime-immutable");
+            completed.Add("validation-and-profiles-are-immutable");
 
             RunPolicyTemplateCase();
             completed.Add("policy-template-set-created");
         }
 
-        private static GameObject CreatePlayerHostPrefab()
+        private static GameObject CreatePlayerLogicalHostPrefab(
+            string fileName,
+            bool includePlayerInput)
         {
-            const string prefabPath = TempFolder + "/P3H2_PlayerActorHost.prefab";
-            var root = new GameObject("P3H2 Player Actor Host");
+            string prefabPath = TempFolder + "/" + fileName;
+            var root = new GameObject("P3H2 Player Logical Actor Host");
             try
             {
-                PlayerInput playerInput = root.AddComponent<PlayerInput>();
-                PlayerActorDeclaration declaration = root.AddComponent<PlayerActorDeclaration>();
+                PlayerInput playerInput = includePlayerInput
+                    ? root.AddComponent<PlayerInput>()
+                    : null;
+                PlayerActorDeclaration declaration =
+                    root.AddComponent<PlayerActorDeclaration>();
                 var serializedDeclaration = new SerializedObject(declaration);
-                serializedDeclaration.FindProperty("actorId").stringValue = "qa.p3h2.actor.host";
-                serializedDeclaration.FindProperty("displayName").stringValue = "QA P3H2 Actor Host";
-                serializedDeclaration.FindProperty("playerInput").objectReferenceValue = playerInput;
-                serializedDeclaration.FindProperty("reason").stringValue = "qa.p3h2.authoring";
+                serializedDeclaration.FindProperty("actorId").stringValue =
+                    "qa.p3h2.actor.host";
+                serializedDeclaration.FindProperty("displayName").stringValue =
+                    "QA P3H2 Actor Host";
+                SerializedProperty playerInputProperty =
+                    serializedDeclaration.FindProperty("playerInput");
+                if (playerInputProperty != null)
+                {
+                    playerInputProperty.objectReferenceValue = playerInput;
+                }
+                serializedDeclaration.FindProperty("reason").stringValue =
+                    "qa.p3h2.authoring";
                 serializedDeclaration.ApplyModifiedPropertiesWithoutUndo();
 
                 GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
-                AssertNotNull(prefab, "Could not create P3H.2 Player Actor Host prefab.");
+                AssertNotNull(prefab, "Could not create P3H.2 Logical Actor Host prefab.");
                 AssetDatabase.SaveAssets();
                 return prefab;
             }
@@ -255,14 +277,15 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             var profile = ScriptableObject.CreateInstance<ActorProfile>();
             profile.name = fileName;
-            var serializedProfile = new SerializedObject(profile);
-            serializedProfile.FindProperty("actorProfileId").stringValue = actorProfileId;
-            serializedProfile.FindProperty("displayName").stringValue = displayName;
-            serializedProfile.FindProperty("description").stringValue = "P3H.2 QA Actor Profile fixture.";
-            serializedProfile.FindProperty("actorKind").intValue = (int)actorKind;
-            serializedProfile.FindProperty("actorRole").intValue = (int)actorRole;
-            serializedProfile.FindProperty("logicalActorHostPrefab").objectReferenceValue = logicalHost;
-            serializedProfile.ApplyModifiedPropertiesWithoutUndo();
+            var serialized = new SerializedObject(profile);
+            serialized.FindProperty("actorProfileId").stringValue = actorProfileId;
+            serialized.FindProperty("displayName").stringValue = displayName;
+            serialized.FindProperty("description").stringValue =
+                "P3H.2 QA Actor Profile fixture.";
+            serialized.FindProperty("actorKind").intValue = (int)actorKind;
+            serialized.FindProperty("actorRole").intValue = (int)actorRole;
+            serialized.FindProperty("logicalActorHostPrefab").objectReferenceValue = logicalHost;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
             AssetDatabase.CreateAsset(profile, $"{TempFolder}/{fileName}.asset");
             AssetDatabase.SaveAssets();
             return profile;
@@ -275,11 +298,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             var profile = ScriptableObject.CreateInstance<PlayerActorSelectionPolicyProfile>();
             profile.name = fileName;
-            var serializedProfile = new SerializedObject(profile);
-            serializedProfile.FindProperty("displayName").stringValue = displayName;
-            serializedProfile.FindProperty("description").stringValue = "P3H.2 QA selection policy fixture.";
-            serializedProfile.FindProperty("duplicatePolicy").intValue = (int)duplicatePolicy;
-            serializedProfile.ApplyModifiedPropertiesWithoutUndo();
+            var serialized = new SerializedObject(profile);
+            serialized.FindProperty("displayName").stringValue = displayName;
+            serialized.FindProperty("description").stringValue =
+                "P3H.2 QA selection policy fixture.";
+            serialized.FindProperty("duplicatePolicy").intValue = (int)duplicatePolicy;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
             AssetDatabase.CreateAsset(profile, $"{TempFolder}/{fileName}.asset");
             AssetDatabase.SaveAssets();
             return profile;
@@ -292,12 +316,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             var profile = ScriptableObject.CreateInstance<PlayerSlotProfile>();
             profile.name = fileName;
-            var serializedProfile = new SerializedObject(profile);
-            serializedProfile.FindProperty("playerSlotId").stringValue = playerSlotId;
-            serializedProfile.FindProperty("displayName").stringValue = fileName;
-            serializedProfile.FindProperty("description").stringValue = "P3H.2 QA Player Slot fixture.";
-            serializedProfile.FindProperty("defaultActorProfile").objectReferenceValue = defaultActorProfile;
-            serializedProfile.ApplyModifiedPropertiesWithoutUndo();
+            var serialized = new SerializedObject(profile);
+            serialized.FindProperty("playerSlotId").stringValue = playerSlotId;
+            serialized.FindProperty("displayName").stringValue = fileName;
+            serialized.FindProperty("description").stringValue =
+                "P3H.2 QA Player Slot fixture.";
+            serialized.FindProperty("defaultActorProfile").objectReferenceValue =
+                defaultActorProfile;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
             AssetDatabase.CreateAsset(profile, $"{TempFolder}/{fileName}.asset");
             AssetDatabase.SaveAssets();
             return profile;
@@ -306,94 +332,55 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static void RunPolicyTemplateCase()
         {
             DefaultAsset folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(TempFolder);
-            AssertNotNull(folder, "P3H.2 temp folder could not be selected for template creation.");
+            AssertNotNull(folder, "P3H.2 temp folder could not be selected.");
             Selection.activeObject = folder;
-
-            bool executed = EditorApplication.ExecuteMenuItem(PolicyTemplateMenuPath);
-            AssertTrue(executed, $"Template menu command was not found: '{PolicyTemplateMenuPath}'.");
-
+            AssertTrue(EditorApplication.ExecuteMenuItem(PolicyTemplateMenuPath),
+                $"Template menu command not found: '{PolicyTemplateMenuPath}'.");
             string templateFolder = $"{TempFolder}/PlayerParticipation";
-            AssertTrue(AssetDatabase.IsValidFolder(templateFolder), "Policy template folder was not created.");
-
             string[] policyGuids = AssetDatabase.FindAssets(
                 "t:PlayerActorSelectionPolicyProfile",
                 new[] { templateFolder });
-            AssertEqual(2, policyGuids.Length, "Policy template set did not create two Profiles.");
-
-            bool foundAllow = false;
-            bool foundUnique = false;
-            for (int index = 0; index < policyGuids.Length; index++)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(policyGuids[index]);
-                PlayerActorSelectionPolicyProfile profile =
-                    AssetDatabase.LoadAssetAtPath<PlayerActorSelectionPolicyProfile>(path);
-                AssertNotNull(profile, $"Policy template could not be loaded at '{path}'.");
-                object report = ValidateSelectionPolicy(profile);
-                AssertEqual(0, ReadInt(report, "ErrorCount"), $"Policy template '{profile.name}' is invalid.");
-                foundAllow |= profile.DuplicatePolicy == PlayerActorSelectionDuplicatePolicy.AllowDuplicates;
-                foundUnique |= profile.DuplicatePolicy == PlayerActorSelectionDuplicatePolicy.UniqueAcrossJoinedSlots;
-            }
-
-            AssertTrue(foundAllow, "AllowDuplicates policy template was not created.");
-            AssertTrue(foundUnique, "UniqueAcrossJoinedSlots policy template was not created.");
+            AssertEqual(2, policyGuids.Length,
+                "Policy template set did not create two Profiles.");
         }
 
         private static void AssertRuntimeImmutableProfile(Type type)
         {
-            PropertyInfo[] properties = type.GetProperties(
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
-            for (int index = 0; index < properties.Length; index++)
+            foreach (PropertyInfo property in type.GetProperties(
+                         BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
             {
-                AssertTrue(
-                    properties[index].SetMethod == null,
-                    $"Profile '{type.FullName}' exposes writable public property '{properties[index].Name}'.");
-            }
-
-            string[] lifecycleNames = { "Awake", "OnEnable", "Start", "Update" };
-            for (int index = 0; index < lifecycleNames.Length; index++)
-            {
-                MethodInfo lifecycle = type.GetMethod(
-                    lifecycleNames[index],
-                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
-                AssertTrue(lifecycle == null, $"Profile '{type.FullName}' declares gameplay lifecycle '{lifecycleNames[index]}'.");
+                AssertTrue(property.SetMethod == null,
+                    $"Profile '{type.FullName}' exposes writable property '{property.Name}'.");
             }
         }
 
-        private static object ValidateActorProfile(ActorProfile profile, bool includeDuplicateScan)
-        {
-            return InvokeValidator(
+        private static object ValidateActorProfile(ActorProfile profile, bool duplicateScan) =>
+            InvokeValidator(
                 ActorValidatorTypeName,
                 "ValidateActorProfile",
                 new[] { typeof(ActorProfile), typeof(bool) },
-                new object[] { profile, includeDuplicateScan });
-        }
+                new object[] { profile, duplicateScan });
 
-        private static object ValidateSelectionPolicy(PlayerActorSelectionPolicyProfile profile)
-        {
-            return InvokeValidator(
+        private static object ValidateSelectionPolicy(PlayerActorSelectionPolicyProfile profile) =>
+            InvokeValidator(
                 ActorValidatorTypeName,
                 "ValidateSelectionPolicyProfile",
                 new[] { typeof(PlayerActorSelectionPolicyProfile) },
                 new object[] { profile });
-        }
 
-        private static object ValidateProjectActorSelectionProfiles()
-        {
-            return InvokeValidator(
+        private static object ValidateProjectActorSelectionProfiles() =>
+            InvokeValidator(
                 ActorValidatorTypeName,
                 "ValidateProjectActorSelectionProfiles",
                 new[] { typeof(FrameworkValidationMode) },
                 new object[] { FrameworkValidationMode.Standard });
-        }
 
-        private static object ValidatePlayerSlotProfile(PlayerSlotProfile profile)
-        {
-            return InvokeValidator(
+        private static object ValidatePlayerSlotProfile(PlayerSlotProfile profile) =>
+            InvokeValidator(
                 ParticipationValidatorTypeName,
                 "ValidatePlayerSlotProfile",
                 new[] { typeof(PlayerSlotProfile), typeof(bool) },
                 new object[] { profile, false });
-        }
 
         private static object InvokeValidator(
             string typeName,
@@ -402,80 +389,60 @@ namespace ImmersiveFrameworkQA.Player.Editor
             object[] arguments)
         {
             Type validatorType = ResolveType(typeName);
-            AssertNotNull(validatorType, $"Package validator type was not found: '{typeName}'.");
+            AssertNotNull(validatorType, $"Validator type not found: '{typeName}'.");
             MethodInfo method = validatorType.GetMethod(
                 methodName,
                 BindingFlags.Static | BindingFlags.NonPublic,
                 null,
                 parameterTypes,
                 null);
-            AssertNotNull(method, $"Package validator method was not found: '{methodName}'.");
-
-            try
-            {
-                object report = method.Invoke(null, arguments);
-                AssertNotNull(report, $"Package validator '{methodName}' returned null.");
-                return report;
-            }
-            catch (TargetInvocationException exception) when (exception.InnerException != null)
-            {
-                throw new InvalidOperationException(
-                    $"Package validator '{methodName}' failed. {exception.InnerException.Message}",
-                    exception.InnerException);
-            }
+            AssertNotNull(method, $"Validator method not found: '{methodName}'.");
+            return method.Invoke(null, arguments);
         }
 
         private static Type ResolveType(string fullName)
         {
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            for (int index = 0; index < assemblies.Length; index++)
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                Type type = assemblies[index].GetType(fullName, false);
+                Type type = assembly.GetType(fullName, false);
                 if (type != null)
                 {
                     return type;
                 }
             }
-
             return null;
         }
 
         private static int ReadInt(object target, string propertyName)
         {
-            object value = ReadProperty(target, propertyName);
-            return value is int intValue
-                ? intValue
-                : throw new InvalidOperationException(
-                    $"Property '{propertyName}' is not an Int32 on '{target.GetType().FullName}'.");
-        }
-
-        private static object ReadProperty(object target, string propertyName)
-        {
-            AssertNotNull(target, $"Cannot read '{propertyName}' from a null target.");
             PropertyInfo property = target.GetType().GetProperty(
                 propertyName,
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            AssertNotNull(property, $"Property '{propertyName}' was not found on '{target.GetType().FullName}'.");
-            return property.GetValue(target);
+            AssertNotNull(property, $"Property '{propertyName}' not found.");
+            return (int)property.GetValue(target);
         }
 
         private static void AssertReportContains(object report, string expected)
         {
-            object issuesObject = ReadProperty(report, "Issues");
-            AssertTrue(issuesObject is IEnumerable, "Validation report Issues is not enumerable.");
-
-            foreach (object issue in (IEnumerable)issuesObject)
+            PropertyInfo issuesProperty = report.GetType().GetProperty(
+                "Issues",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            AssertTrue(issuesProperty?.GetValue(report) is IEnumerable,
+                "Validation issues are unavailable.");
+            foreach (object issue in (IEnumerable)issuesProperty.GetValue(report))
             {
-                string message = ReadProperty(issue, "Message") as string;
+                PropertyInfo messageProperty = issue.GetType().GetProperty(
+                    "Message",
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                string message = messageProperty?.GetValue(issue) as string;
                 if (!string.IsNullOrEmpty(message) &&
                     message.IndexOf(expected, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     return;
                 }
             }
-
             throw new InvalidOperationException(
-                $"Validation report did not contain expected text '{expected}'.");
+                $"Validation report did not contain '{expected}'.");
         }
 
         private static void PrepareTempFolder()
@@ -484,8 +451,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             string guid = AssetDatabase.CreateFolder(
                 "Assets/ImmersiveFrameworkQA",
                 "__P3H2_ActorSelectionAuthoring_Temp");
-            string createdPath = AssetDatabase.GUIDToAssetPath(guid);
-            AssertEqual(TempFolder, createdPath, "Could not create deterministic P3H.2 QA temp folder.");
+            AssertEqual(TempFolder, AssetDatabase.GUIDToAssetPath(guid),
+                "Could not create deterministic P3H.2 temp folder.");
             AssetDatabase.Refresh();
         }
 

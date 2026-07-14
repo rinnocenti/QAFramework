@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Immersive.Framework.Actors;
 using Immersive.Framework.PlayerParticipation;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -12,8 +11,8 @@ using UnityEngine.SceneManagement;
 namespace ImmersiveFrameworkQA.Player.Editor
 {
     /// <summary>
-    /// Idempotent P3G.4 fixture installer. It creates the real local Player prefab and installs
-    /// one explicit manual PlayerInputManager + LocalPlayerProvisioningAuthoring in QA_UIGlobal.
+    /// Idempotent real-join fixture. Creates one reusable Local Player technical-host prefab and
+    /// installs one explicit manual PlayerInputManager + provisioning authoring in QA_UIGlobal.
     /// </summary>
     public static class QaP3G4RuntimeIntegrationSetup
     {
@@ -21,12 +20,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
             "Immersive Framework/QA/Player/P3G.4 Apply Real Join Fixture";
         private const string RootFolder =
             "Assets/ImmersiveFrameworkQA/Player/P3G4";
-        private const string ActionsPath =
-            RootFolder + "/P3G4_InputActions.asset";
-        private const string PlayerPrefabPath =
-            RootFolder + "/P3G4_LocalPlayerHost.prefab";
-        private const string FixtureName =
-            "P3G4 Local Player Provisioning";
+        private const string ActionsPath = RootFolder + "/P3G4_InputActions.asset";
+        private const string PlayerPrefabPath = RootFolder + "/P3G4_LocalPlayerHost.prefab";
+        private const string FixtureName = "P3G4 Local Player Provisioning";
         private const string TargetSceneName = "QA_UIGlobal";
         private const string JoinEvidenceBindingPath = "<Keyboard>/space";
 
@@ -59,15 +55,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 }
 
                 var serializedAuthoring = new SerializedObject(authoring);
-                SerializedProperty managerProperty =
-                    serializedAuthoring.FindProperty("playerInputManager");
-                if (managerProperty == null)
-                {
-                    throw new InvalidOperationException(
-                        "LocalPlayerProvisioningAuthoring.playerInputManager was not found.");
-                }
-
-                managerProperty.objectReferenceValue = manager;
+                serializedAuthoring.FindProperty("playerInputManager").objectReferenceValue = manager;
                 serializedAuthoring.ApplyModifiedPropertiesWithoutUndo();
 
                 EditorUtility.SetDirty(manager.gameObject);
@@ -78,11 +66,13 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
 
+                LocalPlayerHostAuthoring host =
+                    playerPrefab.GetComponent<LocalPlayerHostAuthoring>();
                 Debug.Log(
                     "[P3G4_RUNTIME_JOIN_FIXTURE_SETUP] status='Applied' " +
                     $"scene='{scenePath}' fixture='{manager.gameObject.name}' " +
-                    $"prefab='{PlayerPrefabPath}' joinBehavior='{manager.joinBehavior}' " +
-                    $"notificationBehavior='{manager.notificationBehavior}' " +
+                    $"prefab='{PlayerPrefabPath}' host='{host.name}' actorMount='{host.ActorMount.name}' " +
+                    $"joinBehavior='{manager.joinBehavior}' notificationBehavior='{manager.notificationBehavior}' " +
                     $"maxPlayers='{manager.maxPlayerCount}'.");
             }
             catch (Exception exception)
@@ -105,18 +95,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 AssetDatabase.CreateAsset(actions, ActionsPath);
             }
 
-            InputActionMap gameplay = actions.FindActionMap("Gameplay", false);
-            if (gameplay == null)
-            {
-                gameplay = actions.AddActionMap("Gameplay");
-            }
-
-            InputAction joinEvidence = gameplay.FindAction("JoinEvidence", false);
-            if (joinEvidence == null)
-            {
-                joinEvidence = gameplay.AddAction("JoinEvidence", InputActionType.Button);
-            }
-
+            InputActionMap gameplay = actions.FindActionMap("Gameplay", false) ??
+                actions.AddActionMap("Gameplay");
+            InputAction joinEvidence = gameplay.FindAction("JoinEvidence", false) ??
+                gameplay.AddAction("JoinEvidence", InputActionType.Button);
             EnsureBinding(joinEvidence, JoinEvidenceBindingPath);
 
             EditorUtility.SetDirty(actions);
@@ -126,15 +108,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
         private static void EnsureBinding(InputAction action, string path)
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
-
             for (int index = 0; index < action.bindings.Count; index++)
             {
-                InputBinding binding = action.bindings[index];
-                if (string.Equals(binding.path, path, StringComparison.Ordinal))
+                if (string.Equals(action.bindings[index].path, path, StringComparison.Ordinal))
                 {
                     return;
                 }
@@ -152,18 +128,16 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 playerInput.actions = actions;
                 playerInput.defaultActionMap = "Gameplay";
 
-                PlayerActorDeclaration declaration =
-                    temporary.AddComponent<PlayerActorDeclaration>();
-                var serializedDeclaration = new SerializedObject(declaration);
-                serializedDeclaration.FindProperty("actorId").stringValue =
-                    "qa.p3g4.actor.local-player";
-                serializedDeclaration.FindProperty("displayName").stringValue =
-                    "P3G4 Local Player";
-                serializedDeclaration.FindProperty("playerInput").objectReferenceValue =
-                    playerInput;
-                serializedDeclaration.FindProperty("reason").stringValue =
-                    "qa.p3g4.real-playerinputmanager-join";
-                serializedDeclaration.ApplyModifiedPropertiesWithoutUndo();
+                var actorMountObject = new GameObject("ActorMount");
+                actorMountObject.transform.SetParent(temporary.transform, false);
+
+                LocalPlayerHostAuthoring host =
+                    temporary.AddComponent<LocalPlayerHostAuthoring>();
+                var serializedHost = new SerializedObject(host);
+                serializedHost.FindProperty("playerInput").objectReferenceValue = playerInput;
+                serializedHost.FindProperty("actorMount").objectReferenceValue =
+                    actorMountObject.transform;
+                serializedHost.ApplyModifiedPropertiesWithoutUndo();
 
                 GameObject prefab = PrefabUtility.SaveAsPrefabAsset(
                     temporary,
@@ -171,7 +145,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 if (prefab == null)
                 {
                     throw new InvalidOperationException(
-                        $"Could not create Player prefab at '{PlayerPrefabPath}'.");
+                        $"Could not create Local Player Host prefab at '{PlayerPrefabPath}'.");
                 }
 
                 return prefab;
@@ -185,11 +159,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static PlayerInputManager ResolveOrCreateManager(Scene scene)
         {
             var managers = new List<PlayerInputManager>();
-            GameObject[] roots = scene.GetRootGameObjects();
-            for (int rootIndex = 0; rootIndex < roots.Length; rootIndex++)
+            foreach (GameObject root in scene.GetRootGameObjects())
             {
-                managers.AddRange(
-                    roots[rootIndex].GetComponentsInChildren<PlayerInputManager>(true));
+                managers.AddRange(root.GetComponentsInChildren<PlayerInputManager>(true));
             }
 
             if (managers.Count > 1)
@@ -236,12 +208,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             string[] guids = AssetDatabase.FindAssets($"{sceneName} t:Scene");
             var exactMatches = new List<string>();
-            for (int index = 0; index < guids.Length; index++)
+            foreach (string guid in guids)
             {
-                string path = AssetDatabase.GUIDToAssetPath(guids[index]);
-                if (string.Equals(
-                        Path.GetFileNameWithoutExtension(path),
-                        sceneName,
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (string.Equals(Path.GetFileNameWithoutExtension(path), sceneName,
                         StringComparison.Ordinal))
                 {
                     exactMatches.Add(path);
@@ -268,7 +238,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 {
                     AssetDatabase.CreateFolder(current, segments[index]);
                 }
-
                 current = next;
             }
         }

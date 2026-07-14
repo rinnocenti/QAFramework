@@ -8,8 +8,8 @@ using UnityEngine;
 namespace ImmersiveFrameworkQA.Player.Editor
 {
     /// <summary>
-    /// Idempotent P3H.4 fixture installer. It extends the real P3G.4 join fixture with
-    /// explicit GameApplication Actor-selection policy and valid default/alternate Actor Profiles.
+    /// Idempotent P3H.4 fixture installer. Extends the real technical-host join fixture with
+    /// explicit Actor-selection policy and separate contextual Logical Actor Host prefabs.
     /// </summary>
     public static class QaP3H4RuntimeHostActorSelectionSetup
     {
@@ -17,14 +17,13 @@ namespace ImmersiveFrameworkQA.Player.Editor
             "Immersive Framework/QA/Player/P3H.4 Apply Runtime Host Actor Selection Fixture";
         private const string RootFolder =
             "Assets/ImmersiveFrameworkQA/Player/P3H4";
-        private const string PlayerPrefabPath =
-            "Assets/ImmersiveFrameworkQA/Player/P3G4/P3G4_LocalPlayerHost.prefab";
-        private const string PolicyPath =
-            RootFolder + "/P3H4_ActorSelectionPolicy.asset";
-        private const string DefaultActorPath =
-            RootFolder + "/P3H4_DefaultActor.asset";
-        private const string AlternateActorPath =
-            RootFolder + "/P3H4_AlternateActor.asset";
+        private const string PolicyPath = RootFolder + "/P3H4_ActorSelectionPolicy.asset";
+        private const string DefaultLogicalHostPath =
+            RootFolder + "/P3H4_DefaultLogicalActor.prefab";
+        private const string AlternateLogicalHostPath =
+            RootFolder + "/P3H4_AlternateLogicalActor.prefab";
+        private const string DefaultActorPath = RootFolder + "/P3H4_DefaultActor.asset";
+        private const string AlternateActorPath = RootFolder + "/P3H4_AlternateActor.asset";
 
         [MenuItem(MenuPath)]
         public static void Apply()
@@ -34,24 +33,26 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 QaP3G4RuntimeIntegrationSetup.Apply();
                 EnsureFolder(RootFolder);
 
-                GameObject playerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefabPath);
-                if (playerPrefab == null)
-                {
-                    throw new InvalidOperationException(
-                        $"P3G.4 Player prefab was not found at '{PlayerPrefabPath}'.");
-                }
+                GameObject defaultLogicalHost = CreateOrUpdateLogicalActorHost(
+                    DefaultLogicalHostPath,
+                    "P3H4 Default Logical Player Actor",
+                    "qa.p3h4.logical.default.template");
+                GameObject alternateLogicalHost = CreateOrUpdateLogicalActorHost(
+                    AlternateLogicalHostPath,
+                    "P3H4 Alternate Logical Player Actor",
+                    "qa.p3h4.logical.alternate.template");
 
                 PlayerActorSelectionPolicyProfile policy = CreateOrUpdatePolicy();
                 ActorProfile defaultActor = CreateOrUpdateActorProfile(
                     DefaultActorPath,
                     "P3H4 Default Player Actor",
                     "qa.p3h4.actor-profile.default",
-                    playerPrefab);
+                    defaultLogicalHost);
                 ActorProfile alternateActor = CreateOrUpdateActorProfile(
                     AlternateActorPath,
                     "P3H4 Alternate Player Actor",
                     "qa.p3h4.actor-profile.alternate",
-                    playerPrefab);
+                    alternateLogicalHost);
 
                 ImmersiveFrameworkSettingsAsset settings =
                     Resources.Load<ImmersiveFrameworkSettingsAsset>(
@@ -66,13 +67,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 var serializedApplication = new SerializedObject(gameApplication);
                 SerializedProperty policyProperty =
                     serializedApplication.FindProperty("playerActorSelectionPolicyProfile");
-                if (policyProperty == null)
-                {
-                    throw new MissingFieldException(
-                        nameof(GameApplicationAsset),
-                        "playerActorSelectionPolicyProfile");
-                }
-
                 policyProperty.objectReferenceValue = policy;
                 serializedApplication.ApplyModifiedPropertiesWithoutUndo();
                 EditorUtility.SetDirty(gameApplication);
@@ -85,16 +79,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 }
 
                 var serializedSlot = new SerializedObject(firstSlot);
-                SerializedProperty defaultActorProperty =
-                    serializedSlot.FindProperty("defaultActorProfile");
-                if (defaultActorProperty == null)
-                {
-                    throw new MissingFieldException(
-                        nameof(PlayerSlotProfile),
-                        "defaultActorProfile");
-                }
-
-                defaultActorProperty.objectReferenceValue = defaultActor;
+                serializedSlot.FindProperty("defaultActorProfile").objectReferenceValue =
+                    defaultActor;
                 serializedSlot.ApplyModifiedPropertiesWithoutUndo();
                 EditorUtility.SetDirty(firstSlot);
 
@@ -106,7 +92,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     $"gameApplication='{gameApplication.name}' policy='{policy.name}' " +
                     $"duplicatePolicy='{policy.DuplicatePolicy}' slot='{firstSlot.PlayerSlotId.StableText}' " +
                     $"defaultActor='{defaultActor.ActorProfileId.StableText}' " +
-                    $"alternateActor='{alternateActor.ActorProfileId.StableText}'.");
+                    $"alternateActor='{alternateActor.ActorProfileId.StableText}' " +
+                    $"logicalHostsSeparated='True'.");
             }
             catch (Exception exception)
             {
@@ -114,6 +101,43 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "[P3H4_RUNTIME_HOST_ACTOR_SELECTION_FIXTURE] status='Failed' " +
                     $"exception='{exception.GetType().Name}' message='{Escape(exception.Message)}'.");
                 throw;
+            }
+        }
+
+        private static GameObject CreateOrUpdateLogicalActorHost(
+            string assetPath,
+            string displayName,
+            string actorId)
+        {
+            var temporary = new GameObject(displayName);
+            try
+            {
+                PlayerActorDeclaration declaration =
+                    temporary.AddComponent<PlayerActorDeclaration>();
+                var serialized = new SerializedObject(declaration);
+                serialized.FindProperty("actorId").stringValue = actorId;
+                serialized.FindProperty("displayName").stringValue = displayName;
+                SerializedProperty playerInput = serialized.FindProperty("playerInput");
+                if (playerInput != null)
+                {
+                    playerInput.objectReferenceValue = null;
+                }
+                serialized.FindProperty("reason").stringValue =
+                    "qa.p3h4.logical-actor-template";
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+
+                GameObject prefab = PrefabUtility.SaveAsPrefabAsset(temporary, assetPath);
+                if (prefab == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Could not create Logical Actor Host prefab at '{assetPath}'.");
+                }
+
+                return prefab;
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(temporary);
             }
         }
 
@@ -179,7 +203,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 {
                     AssetDatabase.CreateFolder(current, segments[index]);
                 }
-
                 current = next;
             }
         }

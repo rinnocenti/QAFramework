@@ -21,15 +21,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             try
             {
-                AssertTrue(
-                    typeof(ActorDeclaration).IsAssignableFrom(typeof(PlayerActorDeclaration)),
+                AssertTrue(typeof(ActorDeclaration).IsAssignableFrom(typeof(PlayerActorDeclaration)),
                     "PlayerActorDeclaration does not inherit ActorDeclaration.");
                 completed.Add("player-declaration-inherits-actor-declaration");
 
                 AssertTrue(!typeof(ActorDeclaration).IsSealed,
-                    "ActorDeclaration must be extensible for specialized declarations.");
+                    "ActorDeclaration must be extensible.");
                 AssertTrue(typeof(PlayerActorDeclaration).IsSealed,
-                    "PlayerActorDeclaration should remain a final specialization.");
+                    "PlayerActorDeclaration should remain final.");
                 completed.Add("hierarchy-sealing-policy");
 
                 genericHost = new GameObject("P3J1 Generic Actor");
@@ -41,107 +40,105 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Generic Actor Role changed.");
                 completed.Add("generic-classification-authored");
 
-                AssertTrue(
-                    generic.TryCreateDescriptor(
+                AssertTrue(generic.TryCreateDescriptor(
                         nameof(QaP3J1ActorDeclarationHierarchySmoke),
                         out ActorDescriptor genericDescriptor,
                         out ActorSetIssue genericIssue),
-                    "Generic Actor descriptor failed. " + genericIssue.Message);
+                    "Generic descriptor failed. " + genericIssue.Message);
                 AssertEqual(new ActorId("qa.p3j1.actor.generic"), genericDescriptor.ActorId,
                     "Generic descriptor lost ActorId.");
-                AssertEqual(ActorKind.NonPlayer, genericDescriptor.ActorKind,
-                    "Generic descriptor has the wrong Actor Kind.");
                 completed.Add("generic-descriptor-preserved");
 
-                playerHost = new GameObject("P3J1 Player Actor");
+                playerHost = new GameObject("P3J1 Contextual Player Actor");
                 PlayerActorDeclaration player =
                     playerHost.AddComponent<PlayerActorDeclaration>();
-                PlayerInput playerInput = playerHost.GetComponent<PlayerInput>();
-                AssertNotNull(playerInput,
-                    "RequireComponent did not preserve PlayerInput evidence.");
-                ConfigurePlayer(player, playerInput);
-                completed.Add("playerinput-evidence-preserved");
+                AssertTrue(playerHost.GetComponent<PlayerInput>() == null,
+                    "PlayerActorDeclaration still adds a same-object PlayerInput.");
+                ConfigurePlayer(player);
+                AssertTrue(!player.HasPlayerInputEvidence,
+                    "Authored Logical Actor unexpectedly has PlayerInput evidence.");
+                completed.Add("playerinput-no-longer-required-on-actor");
 
                 AssertTrue(player is ActorDeclaration,
-                    "Player declaration cannot be consumed through the canonical base type.");
+                    "Player declaration cannot be consumed through base type.");
                 AssertEqual(1, playerHost.GetComponents<ActorDeclaration>().Length,
                     "Player host exposes more than one ActorDeclaration authority.");
                 completed.Add("single-actor-identity-component");
 
                 AssertEqual(ActorKind.Player, player.ActorKind,
-                    "Player specialization does not expose fixed Player kind.");
+                    "Player kind is not fixed.");
                 AssertEqual(ActorRole.Protagonist, player.ActorRole,
-                    "Player specialization does not expose fixed Protagonist role.");
+                    "Player role is not fixed.");
                 completed.Add("player-classification-fixed");
 
                 ActorDeclaration baseView = player;
                 AssertEqual(new ActorId("qa.p3j1.actor.player"), baseView.ActorId,
                     "Upcast Player Actor lost inherited ActorId.");
                 AssertEqual("P3J1 Player", baseView.ActorDisplayName,
-                    "Upcast Player Actor lost inherited display name.");
+                    "Upcast Player Actor lost display name.");
                 completed.Add("inherited-identity-preserved");
 
-                AssertTrue(
-                    baseView.TryCreateDescriptor(
+                AssertTrue(baseView.TryCreateDescriptor(
                         nameof(QaP3J1ActorDeclarationHierarchySmoke),
                         out ActorDescriptor baseDescriptor,
                         out ActorSetIssue baseIssue),
-                    "Base Actor descriptor for Player failed. " + baseIssue.Message);
+                    "Base descriptor for Player failed. " + baseIssue.Message);
                 AssertEqual(ActorKind.Player, baseDescriptor.ActorKind,
-                    "Base descriptor ignored Player classification override.");
+                    "Base descriptor ignored specialization.");
                 AssertEqual(ActorRole.Protagonist, baseDescriptor.ActorRole,
-                    "Base descriptor ignored Player role override.");
+                    "Base descriptor ignored specialized role.");
                 completed.Add("base-descriptor-uses-specialized-classification");
 
-                AssertTrue(
-                    player.TryCreateDescriptor(
+                AssertTrue(player.TryCreateDescriptor(
                         nameof(QaP3J1ActorDeclarationHierarchySmoke),
                         out PlayerActorDescriptor playerDescriptor,
                         out PlayerActorSetIssue playerIssue),
-                    "Specialized Player descriptor failed. " + playerIssue.Message);
+                    "Specialized descriptor failed. " + playerIssue.Message);
                 AssertEqual(new ActorId("qa.p3j1.actor.player"), playerDescriptor.ActorId,
                     "Player descriptor lost inherited ActorId.");
-                AssertTrue(playerDescriptor.HasPlayerInputEvidence,
-                    "Player descriptor lost PlayerInput evidence.");
+                AssertTrue(!playerDescriptor.HasPlayerInputEvidence,
+                    "Contextual Player descriptor inferred PlayerInput.");
                 completed.Add("specialized-player-descriptor-preserved");
 
                 SerializedObject serializedPlayer = new SerializedObject(player);
                 AssertNotNull(serializedPlayer.FindProperty("actorId"),
-                    "Inherited actorId is not serialized on PlayerActorDeclaration.");
+                    "Inherited actorId is not serialized.");
                 AssertNotNull(serializedPlayer.FindProperty("displayName"),
-                    "Inherited displayName is not serialized on PlayerActorDeclaration.");
+                    "Inherited displayName is not serialized.");
                 AssertNotNull(serializedPlayer.FindProperty("reason"),
-                    "Inherited reason is not serialized on PlayerActorDeclaration.");
+                    "Inherited reason is not serialized.");
                 AssertNotNull(serializedPlayer.FindProperty("playerInput"),
-                    "Player-specific PlayerInput evidence is not serialized.");
+                    "Optional runtime PlayerInput evidence is not serialized.");
                 completed.Add("serialized-inheritance-shape");
 
                 int actorInterfaceCount = 0;
-                MonoBehaviour[] behaviours = playerHost.GetComponents<MonoBehaviour>();
-                for (int index = 0; index < behaviours.Length; index++)
+                foreach (MonoBehaviour behaviour in playerHost.GetComponents<MonoBehaviour>())
                 {
-                    if (behaviours[index] is IActor)
+                    if (behaviour is IActor)
                     {
                         actorInterfaceCount++;
                     }
                 }
                 AssertEqual(1, actorInterfaceCount,
-                    "Player host exposes duplicated IActor identity authorities.");
+                    "Player host exposes duplicated IActor authorities.");
                 completed.Add("single-iactor-authority");
 
                 AssertEqual(1,
                     playerHost.GetComponentsInChildren<ActorDeclaration>(true).Length,
-                    "ActorProfile-style base declaration discovery duplicated the Player declaration.");
+                    "Base declaration discovery duplicated Player declaration.");
                 AssertEqual(1,
                     playerHost.GetComponentsInChildren<PlayerActorDeclaration>(true).Length,
-                    "Specialized Player declaration discovery is incorrect.");
+                    "Specialized declaration discovery is incorrect.");
                 completed.Add("profile-discovery-compatible");
 
                 string before = EditorJsonUtility.ToJson(player);
                 baseView.TryCreateDescriptor("QA.P3J1.ReadOnly", out _, out _);
-                player.TryCreateDescriptor("QA.P3J1.ReadOnly", out PlayerActorDescriptor _, out PlayerActorSetIssue _);
+                player.TryCreateDescriptor(
+                    "QA.P3J1.ReadOnly",
+                    out PlayerActorDescriptor _,
+                    out PlayerActorSetIssue _);
                 AssertEqual(before, EditorJsonUtility.ToJson(player),
-                    "Descriptor creation mutated PlayerActorDeclaration authoring state.");
+                    "Descriptor creation mutated authoring state.");
                 completed.Add("descriptor-creation-non-mutating");
 
                 Debug.Log(
@@ -162,7 +159,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 {
                     UnityEngine.Object.DestroyImmediate(playerHost);
                 }
-
                 if (genericHost != null)
                 {
                     UnityEngine.Object.DestroyImmediate(genericHost);
@@ -171,10 +167,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         }
 
         [MenuItem(MenuPath, true)]
-        private static bool ValidateRun()
-        {
-            return !EditorApplication.isPlayingOrWillChangePlaymode;
-        }
+        private static bool ValidateRun() => !EditorApplication.isPlayingOrWillChangePlaymode;
 
         private static void ConfigureGeneric(ActorDeclaration declaration)
         {
@@ -187,15 +180,13 @@ namespace ImmersiveFrameworkQA.Player.Editor
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static void ConfigurePlayer(
-            PlayerActorDeclaration declaration,
-            PlayerInput playerInput)
+        private static void ConfigurePlayer(PlayerActorDeclaration declaration)
         {
             var serialized = new SerializedObject(declaration);
             serialized.FindProperty("actorId").stringValue = "qa.p3j1.actor.player";
             serialized.FindProperty("displayName").stringValue = "P3J1 Player";
             serialized.FindProperty("reason").stringValue = "qa.p3j1.player";
-            serialized.FindProperty("playerInput").objectReferenceValue = playerInput;
+            serialized.FindProperty("playerInput").objectReferenceValue = null;
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 

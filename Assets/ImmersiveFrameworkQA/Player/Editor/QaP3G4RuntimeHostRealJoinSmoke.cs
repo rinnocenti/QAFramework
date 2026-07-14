@@ -9,9 +9,8 @@ using UnityEngine.InputSystem;
 namespace ImmersiveFrameworkQA.Player.Editor
 {
     /// <summary>
-    /// P3G.4 Play Mode smoke using the real PlayerInputManager backend and the public authoring
-    /// request surface. This smoke is intentionally one-shot per Play Mode because local leave
-    /// is scheduled for P3M.
+    /// Play Mode smoke using the real PlayerInputManager backend and stable Local Player Host.
+    /// One-shot per Play Mode because local leave is outside this cut.
     /// </summary>
     public static class QaP3G4RuntimeHostRealJoinSmoke
     {
@@ -27,61 +26,63 @@ namespace ImmersiveFrameworkQA.Player.Editor
             {
                 AssertTrue(EditorApplication.isPlaying,
                     "P3G.4 real join smoke must run in Play Mode.");
-
                 LocalPlayerProvisioningAuthoring authoring = ResolveAuthoring();
                 completed.Add("runtime-authoring-resolved");
 
                 AssertTrue(authoring.RuntimeReady,
-                    "Local Player provisioning authoring is not bound to the Session runtime. " +
+                    "Local Player provisioning runtime is not ready. " +
                     authoring.RuntimeDiagnostic);
                 completed.Add("runtime-bound-to-session");
 
                 PlayerInputManager manager = authoring.PlayerInputManager;
                 AssertNotNull(manager, "Authoring has no PlayerInputManager.");
-                AssertEqual(
-                    PlayerJoinBehavior.JoinPlayersManually,
+                AssertEqual(PlayerJoinBehavior.JoinPlayersManually,
                     manager.joinBehavior,
-                    "PlayerInputManager is not configured for manual join.");
+                    "Manager is not configured for manual join.");
                 completed.Add("manager-manual-join");
 
-                AssertEqual(
-                    PlayerNotifications.InvokeCSharpEvents,
+                AssertEqual(PlayerNotifications.InvokeCSharpEvents,
                     manager.notificationBehavior,
-                    "PlayerInputManager is not configured for typed C# joined callbacks.");
+                    "Manager is not configured for C# callbacks.");
                 completed.Add("manager-csharp-join-notifications");
 
+                GameObject prefab = manager.playerPrefab;
+                AssertNotNull(prefab, "Manager has no Player Prefab.");
+                LocalPlayerHostAuthoring prefabHost =
+                    prefab.GetComponent<LocalPlayerHostAuthoring>();
+                AssertNotNull(prefabHost,
+                    "Player Prefab has no LocalPlayerHostAuthoring.");
+                AssertTrue(prefab.GetComponentInChildren<ActorDeclaration>(true) == null,
+                    "Player Prefab contains a Logical Actor declaration.");
+                completed.Add("player-prefab-is-technical-host");
+
                 PlayerParticipationSnapshot initial = authoring.RuntimeSnapshot;
-                AssertTrue(initial.IsInitialized, "Session participation snapshot is not initialized.");
+                AssertTrue(initial.IsInitialized,
+                    "Session participation snapshot is not initialized.");
                 AssertEqual(0, initial.JoinedCount,
-                    "P3G.4 smoke is one-shot. Re-enter Play Mode before running it again.");
-                AssertEqual(0, initial.ReservedCount,
-                    "Session has a reservation before the real join smoke.");
+                    "Smoke is one-shot. Re-enter Play Mode before running again.");
                 AssertEqual(0, manager.playerCount,
-                    "PlayerInputManager already contains Players. Re-enter Play Mode.");
+                    "PlayerInputManager already contains Players.");
                 string contextId = initial.ContextId;
                 completed.Add("initial-session-clean");
 
                 AssertTrue(!manager.joiningEnabled,
-                    "PlayerInputManager technical joining gate must start closed with the Session logical window.");
+                    "Technical joining gate must start closed.");
                 completed.Add("manager-technical-joining-starts-closed");
 
                 PlayerParticipationOperationResult openResult = authoring.OpenJoining(
                     nameof(QaP3G4RuntimeHostRealJoinSmoke),
                     "real-playerinputmanager-join");
-                AssertTrue(openResult.Completed,
+                AssertTrue(openResult.Completed && openResult.Snapshot.JoiningOpen,
                     "Opening joining failed. " + openResult.ToDiagnosticString());
-                AssertTrue(openResult.Snapshot.JoiningOpen,
-                    "Joining did not become open.");
+                AssertTrue(manager.joiningEnabled,
+                    "Technical joining gate did not open.");
                 completed.Add("joining-opened-explicitly");
 
-                AssertTrue(manager.joiningEnabled,
-                    "PlayerInputManager technical joining gate did not open with the Session logical window.");
-                completed.Add("manager-technical-joining-opened");
-
-                var request = new LocalPlayerJoinRequest(
-                    nameof(QaP3G4RuntimeHostRealJoinSmoke),
-                    "real-playerinputmanager-join");
-                LocalPlayerJoinResult joinResult = authoring.RequestJoin(request);
+                LocalPlayerJoinResult joinResult = authoring.RequestJoin(
+                    new LocalPlayerJoinRequest(
+                        nameof(QaP3G4RuntimeHostRealJoinSmoke),
+                        "real-playerinputmanager-join"));
                 AssertNotNull(joinResult, "Real join returned no result.");
                 AssertTrue(joinResult.Succeeded,
                     "Real PlayerInputManager join failed. " + joinResult.ToDiagnosticString());
@@ -90,7 +91,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 AssertEqual(
                     LocalPlayerJoinCallbackConfirmation.ConfirmedSamePlayerInput,
                     joinResult.CallbackConfirmation,
-                    "Real PlayerInputManager joined callback did not confirm the direct result.");
+                    "Real joined callback did not confirm direct result.");
                 completed.Add("real-callback-confirmed");
 
                 AssertNotNull(joinResult.PlayerInput,
@@ -99,77 +100,90 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Provisioned PlayerInput is not a real Scene instance.");
                 completed.Add("real-playerinput-created");
 
-                PlayerActorDeclaration declaration = joinResult.PlayerActorDeclaration;
-                AssertNotNull(declaration,
-                    "Successful join has no PlayerActorDeclaration evidence.");
-                AssertSame(joinResult.PlayerInput.gameObject, declaration.gameObject,
-                    "PlayerActorDeclaration is not on the provisioned PlayerInput host.");
-                AssertSame(joinResult.PlayerInput, declaration.PlayerInput,
-                    "PlayerActorDeclaration does not resolve the provisioned PlayerInput.");
-                completed.Add("player-actor-declaration-resolved");
+                LocalPlayerHostAuthoring host = joinResult.LocalPlayerHost;
+                AssertNotNull(host,
+                    "Successful join has no Local Player Host evidence.");
+                AssertSame(joinResult.PlayerInput.gameObject, host.gameObject,
+                    "Local Player Host is not the provisioned PlayerInput root.");
+                AssertSame(joinResult.PlayerInput, host.PlayerInput,
+                    "Local Player Host does not resolve provisioned PlayerInput.");
+                AssertNotNull(host.ActorMount,
+                    "Local Player Host has no Actor Mount.");
+                completed.Add("local-player-host-resolved");
+
+                AssertTrue(host.HasJoinedSlot,
+                    "Local Player Host did not commit Slot binding.");
+                AssertEqual(joinResult.Slot.PlayerSlotId, host.JoinedPlayerSlotId,
+                    "Host Slot differs from Session Slot.");
+                AssertEqual(joinResult.Slot.ConfiguredIndex, host.JoinedConfiguredIndex,
+                    "Host configured index differs from Session Slot.");
+                AssertNotNull(host.PlayerSlotDeclaration,
+                    "Joined host has no PlayerSlotDeclaration.");
+                AssertSame(joinResult.PlayerInput,
+                    host.PlayerSlotDeclaration.PlayerInputEvidence,
+                    "Slot declaration lost PlayerInput evidence.");
+                completed.Add("joined-slot-bound-to-host");
+
+                AssertTrue(!host.HasLogicalActor,
+                    "Join prepared a Logical Actor implicitly.");
+                AssertTrue(host.ActorMount.GetComponentInChildren<ActorDeclaration>(true) == null,
+                    "Actor Mount is not empty after join.");
+                completed.Add("logical-actor-remains-unprepared");
 
                 AssertTrue(joinResult.UnityPlayerIndex >= 0,
                     "Unity playerIndex evidence is invalid.");
-                AssertEqual(joinResult.PlayerInput.playerIndex, joinResult.UnityPlayerIndex,
-                    "Result playerIndex differs from PlayerInput evidence.");
+                AssertEqual(joinResult.PlayerInput.playerIndex,
+                    joinResult.UnityPlayerIndex,
+                    "Result playerIndex differs from PlayerInput.");
                 completed.Add("player-index-diagnostic-only");
 
-                AssertTrue(joinResult.Slot.IsValid,
-                    "Successful join has no valid Slot snapshot.");
+                AssertTrue(joinResult.Slot.IsValid && joinResult.Slot.IsJoined,
+                    "Successful result has no Joined Slot snapshot.");
                 AssertEqual(0, joinResult.Slot.ConfiguredIndex,
-                    "First real join did not use the first Available configured Slot.");
-                AssertTrue(joinResult.Slot.IsJoined,
-                    "Committed Slot is not Joined.");
+                    "First join did not use first configured Slot.");
                 completed.Add("first-configured-slot-joined");
 
-                AssertTrue(joinResult.HasReservationEvidence,
-                    "Successful join did not preserve reservation evidence.");
-                AssertTrue(joinResult.HasCommitEvidence,
-                    "Successful join did not preserve commit evidence.");
-                AssertTrue(!joinResult.HasRollbackEvidence,
-                    "Successful join unexpectedly contains rollback evidence.");
+                AssertTrue(joinResult.HasReservationEvidence &&
+                    joinResult.HasCommitEvidence &&
+                    !joinResult.HasRollbackEvidence,
+                    "Join evidence is incomplete.");
                 completed.Add("join-evidence-preserved");
 
                 PlayerParticipationSnapshot afterJoin = authoring.RuntimeSnapshot;
                 AssertEqual(contextId, afterJoin.ContextId,
-                    "Join replaced the Session participation context.");
+                    "Join replaced Session context.");
                 AssertEqual(1, afterJoin.JoinedCount,
-                    "Session snapshot did not record one Joined Slot.");
-                AssertEqual(0, afterJoin.ReservedCount,
-                    "Reservation remained after Joined commit.");
-                completed.Add("host-context-records-joined-slot");
+                    "Session did not record one Joined Slot.");
+                AssertEqual(0, afterJoin.SelectedActorCount,
+                    "Join selected an Actor implicitly.");
+                completed.Add("host-context-records-joined-unselected-slot");
 
                 AssertEqual(1, manager.playerCount,
-                    "PlayerInputManager did not record one real Player.");
-                completed.Add("manager-player-count-updated");
-
+                    "PlayerInputManager did not record one Player.");
                 AssertTrue(ContainsPlayerInput(joinResult.PlayerInput),
                     "Provisioned PlayerInput is absent from PlayerInput.all.");
                 completed.Add("unity-playerinput-global-evidence");
 
                 AssertSame(joinResult, authoring.LastJoinResult,
-                    "Authoring did not preserve the last typed join result.");
+                    "Authoring did not preserve last typed result.");
                 completed.Add("authoring-last-result-preserved");
 
                 PlayerParticipationOperationResult closeResult = authoring.CloseJoining(
                     nameof(QaP3G4RuntimeHostRealJoinSmoke),
                     "real-join-smoke-complete");
-                AssertTrue(closeResult.Completed,
+                AssertTrue(closeResult.Completed && !closeResult.Snapshot.JoiningOpen,
                     "Closing joining failed. " + closeResult.ToDiagnosticString());
-                AssertTrue(!closeResult.Snapshot.JoiningOpen,
-                    "Joining remained open after explicit close.");
                 AssertEqual(1, closeResult.Snapshot.JoinedCount,
-                    "Closing joining removed the admitted Player.");
-                completed.Add("joining-closed-non-destructively");
-
+                    "Closing joining removed admitted host.");
                 AssertTrue(!manager.joiningEnabled,
-                    "PlayerInputManager technical joining gate remained open after Session joining closed.");
-                completed.Add("manager-technical-joining-closed");
+                    "Technical joining gate remained open.");
+                completed.Add("joining-closed-non-destructively");
 
                 Debug.Log(
                     "[P3G4_RUNTIME_HOST_REAL_JOIN_SMOKE] status='Passed' " +
                     $"cases='{completed.Count}' context='{contextId}' " +
                     $"slot='{joinResult.Slot.PlayerSlotId.StableText}' " +
+                    $"host='{host.name}' actorMount='{host.ActorMount.name}' " +
                     $"playerIndex='{joinResult.UnityPlayerIndex}' " +
                     $"callback='{joinResult.CallbackConfirmation}' " +
                     $"completed='{string.Join(",", completed)}'.");
@@ -200,7 +214,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 throw new InvalidOperationException(
                     "Expected exactly one loaded LocalPlayerProvisioningAuthoring.");
             }
-
             return authoring;
         }
 
@@ -213,9 +226,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     FindObjectsInactive.Include,
                     FindObjectsSortMode.InstanceID);
             int loadedCount = 0;
-            for (int index = 0; index < candidates.Length; index++)
+            foreach (LocalPlayerProvisioningAuthoring candidate in candidates)
             {
-                LocalPlayerProvisioningAuthoring candidate = candidates[index];
                 if (candidate == null ||
                     !candidate.gameObject.scene.IsValid() ||
                     !candidate.gameObject.scene.isLoaded)
@@ -245,7 +257,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     return true;
                 }
             }
-
             return false;
         }
 

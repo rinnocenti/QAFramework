@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Immersive.Framework.Actors;
 using Immersive.Framework.PlayerParticipation;
+using Immersive.Framework.PlayerSlots;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -10,23 +11,19 @@ using UnityEngine.InputSystem;
 namespace ImmersiveFrameworkQA.Player.Editor
 {
     /// <summary>
-    /// Editor-only synthetic P3G.3 smoke for reservation, provisioning correlation,
-    /// admission and rollback. No real PlayerInputManager or Play Mode timing is required.
+    /// Synthetic regression for reservation, Local Player Host provisioning, correlation,
+    /// staged Slot admission and rollback. No real PlayerInputManager timing is required.
     /// </summary>
     public static class QaP3G3ProvisioningBridgeSyntheticSmoke
     {
         private const string MenuPath =
             "Immersive Framework/QA/Player/P3G.3 Run Provisioning Bridge Synthetic Smoke";
-
         private const string ContextTypeName =
             "Immersive.Framework.PlayerParticipation.PlayerParticipationRuntimeContext";
-
         private const string BridgeTypeName =
             "Immersive.Framework.PlayerParticipation.LocalPlayerProvisioningBridge";
-
         private static readonly BindingFlags StaticInternal =
             BindingFlags.Static | BindingFlags.NonPublic;
-
         private static readonly BindingFlags InstanceInternal =
             BindingFlags.Instance | BindingFlags.NonPublic;
 
@@ -53,8 +50,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             {
                 Debug.LogError(
                     "[P3G3_PROVISIONING_BRIDGE_SYNTHETIC_SMOKE] status='Failed' " +
-                    $"exception='{exception.GetType().Name}' " +
-                    $"message='{Escape(exception.Message)}' " +
+                    $"exception='{exception.GetType().Name}' message='{Escape(exception.Message)}' " +
                     $"completed='{string.Join(",", completed)}'.");
                 throw;
             }
@@ -87,36 +83,60 @@ namespace ImmersiveFrameworkQA.Player.Editor
             fixture.Backend.EmitCallbackBeforeReturn = true;
 
             LocalPlayerJoinResult first = fixture.Join("first-join");
-            AssertStatus(first, LocalPlayerJoinStatus.SucceededJoined, "First synthetic join failed.");
+            AssertStatus(first, LocalPlayerJoinStatus.SucceededJoined,
+                "First synthetic join failed.");
             AssertEqual(
                 LocalPlayerJoinCallbackConfirmation.ConfirmedSamePlayerInput,
                 first.CallbackConfirmation,
                 "Callback-first join was not correlated.");
-            AssertEqual(0, first.Slot.ConfiguredIndex, "First join did not receive configured Slot index 0.");
-            AssertEqual("PlayerSlot:qa.p3g3.player.1", first.Slot.PlayerSlotId.StableText, "First Slot identity changed.");
+            AssertEqual(0, first.Slot.ConfiguredIndex,
+                "First join did not receive configured Slot index 0.");
             completed.Add("callback-first-single-join-succeeds");
+
+            AssertNotNull(first.LocalPlayerHost,
+                "Successful result has no Local Player Host evidence.");
+            AssertSame(firstPlayer, first.LocalPlayerHost.PlayerInput,
+                "Local Player Host does not resolve direct PlayerInput.");
+            AssertTrue(first.LocalPlayerHost.HasJoinedSlot,
+                "Local Player Host did not commit Slot binding.");
+            AssertEqual(first.Slot.PlayerSlotId, first.LocalPlayerHost.JoinedPlayerSlotId,
+                "Host Slot identity differs from Session commit.");
+            AssertNotNull(first.LocalPlayerHost.PlayerSlotDeclaration,
+                "Joined host has no PlayerSlotDeclaration evidence.");
+            completed.Add("technical-host-slot-binding-committed");
+
+            AssertTrue(!first.LocalPlayerHost.HasLogicalActor,
+                "Join materialized a Logical Actor unexpectedly.");
+            AssertTrue(first.LocalPlayerHost.ActorMount != null &&
+                first.LocalPlayerHost.ActorMount.GetComponentInChildren<ActorDeclaration>(true) == null,
+                "Actor Mount is not empty after join.");
+            completed.Add("join-leaves-logical-actor-unprepared");
 
             PlayerInput secondPlayer = CreatePlayerHost(created, "QA P3G3 Player 2", true);
             fixture.Backend.NextPlayerInput = secondPlayer;
             fixture.Backend.CallbackPlayerInput = secondPlayer;
             LocalPlayerJoinResult second = fixture.Join("second-join");
-            AssertStatus(second, LocalPlayerJoinStatus.SucceededJoined, "Second synthetic join failed.");
-            AssertEqual(1, second.Slot.ConfiguredIndex, "Second join did not receive configured Slot index 1.");
-            AssertTrue(first.Slot.PlayerSlotId != second.Slot.PlayerSlotId, "Two Players received one Slot identity.");
+            AssertStatus(second, LocalPlayerJoinStatus.SucceededJoined,
+                "Second synthetic join failed.");
+            AssertEqual(1, second.Slot.ConfiguredIndex,
+                "Second join did not receive configured Slot index 1.");
+            AssertTrue(first.Slot.PlayerSlotId != second.Slot.PlayerSlotId,
+                "Two Players received one Slot identity.");
             completed.Add("second-join-next-slot");
 
-            AssertEqual(secondPlayer.playerIndex, second.UnityPlayerIndex, "Unity playerIndex evidence was not copied.");
-            AssertEqual("PlayerSlot:qa.p3g3.player.2", second.Slot.PlayerSlotId.StableText, "Slot identity was inferred from playerIndex.");
+            AssertEqual(secondPlayer.playerIndex, second.UnityPlayerIndex,
+                "Unity playerIndex evidence was not copied.");
+            AssertEqual("PlayerSlot:qa.p3g3.player.2",
+                second.Slot.PlayerSlotId.StableText,
+                "Slot identity was inferred from playerIndex.");
             completed.Add("player-index-is-diagnostic-only");
 
-            AssertTrue(fixture.Backend.ReservationObservedBeforeProvisioning, "Slot was not Reserved before backend provisioning.");
+            AssertTrue(fixture.Backend.ReservationObservedBeforeProvisioning,
+                "Slot was not Reserved before backend provisioning.");
             completed.Add("reservation-exists-before-provisioning");
 
-            AssertTrue(first.Succeeded && second.Succeeded, "Direct JoinPlayer evidence did not complete synchronously.");
-            completed.Add("direct-result-completes-without-frame-delay");
-
-            AssertTrue(
-                first.HasReservationEvidence && first.HasCommitEvidence && !first.HasRollbackEvidence,
+            AssertTrue(first.HasReservationEvidence && first.HasCommitEvidence &&
+                !first.HasRollbackEvidence,
                 "Successful result did not preserve reservation/commit evidence.");
             completed.Add("result-preserves-reservation-and-commit-evidence");
         }
@@ -127,35 +147,36 @@ namespace ImmersiveFrameworkQA.Player.Editor
             ICollection<string> completed)
         {
             using Fixture fixture = CreateFixture(created, disposables, 1, true, 1);
-            PlayerInput player = CreatePlayerHost(created, "QA P3G3 Late Callback Player", true);
+            PlayerInput player = CreatePlayerHost(created, "QA P3G3 Late Callback", true);
             fixture.Backend.NextPlayerInput = player;
             fixture.Backend.EmitCallbackBeforeReturn = false;
 
             LocalPlayerJoinResult result = fixture.Join("late-callback");
-            AssertStatus(result, LocalPlayerJoinStatus.SucceededJoined, "Direct result without callback was rejected.");
-            AssertEqual(
-                LocalPlayerJoinCallbackConfirmation.Pending,
+            AssertStatus(result, LocalPlayerJoinStatus.SucceededJoined,
+                "Direct result without callback was rejected.");
+            AssertEqual(LocalPlayerJoinCallbackConfirmation.Pending,
                 result.CallbackConfirmation,
-                "Missing callback did not remain explicitly Pending.");
+                "Missing callback did not remain Pending.");
             completed.Add("no-callback-admits-pending-confirmation");
 
             fixture.Backend.EmitJoined(player);
-            AssertTrue(
-                fixture.TryGetConfirmation(result.OperationId, out LocalPlayerJoinCallbackConfirmation confirmation),
+            AssertTrue(fixture.TryGetConfirmation(result.OperationId,
+                    out LocalPlayerJoinCallbackConfirmation confirmation),
                 "Late callback confirmation was not stored.");
-            AssertEqual(
-                LocalPlayerJoinCallbackConfirmation.ConfirmedSamePlayerInput,
+            AssertEqual(LocalPlayerJoinCallbackConfirmation.ConfirmedSamePlayerInput,
                 confirmation,
-                "Late callback did not confirm the direct PlayerInput.");
+                "Late callback did not confirm direct PlayerInput.");
             completed.Add("late-callback-confirms");
 
             using Fixture unexpectedFixture = CreateFixture(created, disposables, 1, true, 1);
-            PlayerInput unexpectedPlayer = CreatePlayerHost(created, "QA P3G3 Unexpected Player", true);
+            PlayerInput unexpectedPlayer = CreatePlayerHost(created, "QA P3G3 Unexpected", true);
             unexpectedFixture.Backend.EmitJoined(unexpectedPlayer);
             LocalPlayerJoinResult unexpected = unexpectedFixture.LastUnexpectedResult;
-            AssertNotNull(unexpected, "Unexpected joined callback produced no diagnostic result.");
-            AssertStatus(unexpected, LocalPlayerJoinStatus.RejectedUnexpectedJoin, "Unexpected joined callback was accepted.");
-            AssertEqual(1, unexpectedFixture.Backend.RejectCallCount, "Unexpected Player host was not rejected.");
+            AssertNotNull(unexpected, "Unexpected joined callback produced no result.");
+            AssertStatus(unexpected, LocalPlayerJoinStatus.RejectedUnexpectedJoin,
+                "Unexpected joined callback was accepted.");
+            AssertEqual(1, unexpectedFixture.Backend.RejectCallCount,
+                "Unexpected host was not rejected.");
             completed.Add("unexpected-callback-rejected");
         }
 
@@ -168,47 +189,49 @@ namespace ImmersiveFrameworkQA.Player.Editor
             {
                 fixture.Backend.ReturnNull = true;
                 LocalPlayerJoinResult result = fixture.Join("null-result");
-                AssertStatus(result, LocalPlayerJoinStatus.RejectedProvisioningReturnedNull, "Null provisioning result was accepted.");
-                AssertRollbackRestoredAvailable(fixture, result, "Null provisioning result");
+                AssertStatus(result,
+                    LocalPlayerJoinStatus.RejectedProvisioningReturnedNull,
+                    "Null provisioning result was accepted.");
+                AssertRollbackRestoredAvailable(fixture, result, "Null result");
                 completed.Add("join-null-rolls-back");
             }
 
             using (Fixture fixture = CreateFixture(created, disposables, 1, true, 1))
             {
-                PlayerInput destroyedPlayer = CreatePlayerHost(created, "QA P3G3 Destroyed PlayerInput", true);
-                fixture.Backend.NextPlayerInput = destroyedPlayer;
+                PlayerInput destroyed = CreatePlayerHost(created, "QA P3G3 Destroyed", true);
+                fixture.Backend.NextPlayerInput = destroyed;
                 fixture.Backend.DestroyBeforeReturn = true;
                 LocalPlayerJoinResult result = fixture.Join("destroyed-player-input");
-                AssertStatus(result, LocalPlayerJoinStatus.RejectedMissingPlayerInput, "Destroyed PlayerInput was admitted.");
+                AssertStatus(result, LocalPlayerJoinStatus.RejectedMissingPlayerInput,
+                    "Destroyed PlayerInput was admitted.");
                 AssertRollbackRestoredAvailable(fixture, result, "Destroyed PlayerInput");
                 completed.Add("missing-player-input-rolls-back");
             }
 
             using (Fixture fixture = CreateFixture(created, disposables, 1, true, 1))
             {
-                PlayerInput missingActor = CreatePlayerHost(created, "QA P3G3 Missing Actor", false);
-                fixture.Backend.NextPlayerInput = missingActor;
-                LocalPlayerJoinResult result = fixture.Join("missing-actor");
-                AssertStatus(
-                    result,
-                    LocalPlayerJoinStatus.RejectedMissingPlayerActorDeclaration,
-                    "Player host without PlayerActorDeclaration was admitted.");
-                AssertRollbackRestoredAvailable(fixture, result, "Missing PlayerActorDeclaration");
-                AssertTrue(fixture.Backend.RejectCallCount >= 1, "Invalid Player host was not rejected.");
-                completed.Add("missing-player-actor-declaration-rolls-back");
+                PlayerInput missingHost = CreatePlayerHost(created, "QA P3G3 Missing Host", false);
+                fixture.Backend.NextPlayerInput = missingHost;
+                LocalPlayerJoinResult result = fixture.Join("missing-host");
+                AssertStatus(result, LocalPlayerJoinStatus.RejectedMissingLocalPlayerHost,
+                    "PlayerInput without LocalPlayerHostAuthoring was admitted.");
+                AssertRollbackRestoredAvailable(fixture, result, "Missing Local Player Host");
+                completed.Add("missing-local-player-host-rolls-back");
             }
 
             using (Fixture fixture = CreateFixture(created, disposables, 1, true, 1))
             {
-                PlayerInput direct = CreatePlayerHost(created, "QA P3G3 Direct Player", true);
-                PlayerInput callback = CreatePlayerHost(created, "QA P3G3 Divergent Callback Player", true);
+                PlayerInput direct = CreatePlayerHost(created, "QA P3G3 Direct", true);
+                PlayerInput callback = CreatePlayerHost(created, "QA P3G3 Divergent", true);
                 fixture.Backend.NextPlayerInput = direct;
                 fixture.Backend.CallbackPlayerInput = callback;
                 fixture.Backend.EmitCallbackBeforeReturn = true;
                 LocalPlayerJoinResult result = fixture.Join("callback-mismatch");
-                AssertStatus(result, LocalPlayerJoinStatus.RejectedCorrelationMismatch, "Divergent callback was accepted.");
+                AssertStatus(result, LocalPlayerJoinStatus.RejectedCorrelationMismatch,
+                    "Divergent callback was accepted.");
                 AssertRollbackRestoredAvailable(fixture, result, "Callback mismatch");
-                AssertTrue(fixture.Backend.RejectCallCount >= 2, "Divergent Player hosts were not rejected.");
+                AssertTrue(fixture.Backend.RejectCallCount >= 2,
+                    "Divergent hosts were not rejected.");
                 completed.Add("callback-mismatch-rolls-back");
             }
         }
@@ -220,32 +243,31 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             using (Fixture fixture = CreateFixture(created, disposables, 1, false, 1))
             {
-                fixture.Backend.NextPlayerInput = CreatePlayerHost(created, "QA P3G3 Closed Joining Player", true);
+                fixture.Backend.NextPlayerInput = CreatePlayerHost(created, "QA Closed", true);
                 LocalPlayerJoinResult result = fixture.Join("joining-closed");
-                AssertStatus(result, LocalPlayerJoinStatus.RejectedJoiningClosed, "Closed joining reached provisioning.");
-                AssertEqual(0, fixture.Backend.JoinCallCount, "Backend was called while joining was closed.");
+                AssertStatus(result, LocalPlayerJoinStatus.RejectedJoiningClosed,
+                    "Closed joining reached provisioning.");
+                AssertEqual(0, fixture.Backend.JoinCallCount,
+                    "Backend was called while joining was closed.");
                 completed.Add("joining-closed-blocks-provisioning");
             }
 
             using (Fixture fixture = CreateFixture(created, disposables, 1, true, 0))
             {
-                fixture.Backend.NextPlayerInput = CreatePlayerHost(created, "QA P3G3 Capacity Player", true);
+                fixture.Backend.NextPlayerInput = CreatePlayerHost(created, "QA Capacity", true);
                 LocalPlayerJoinResult result = fixture.Join("capacity-reached");
-                AssertStatus(result, LocalPlayerJoinStatus.RejectedCapacityReached, "Zero Session capacity reached provisioning.");
-                AssertEqual(0, fixture.Backend.JoinCallCount, "Backend was called at zero Session capacity.");
+                AssertStatus(result, LocalPlayerJoinStatus.RejectedCapacityReached,
+                    "Zero Session capacity reached provisioning.");
                 completed.Add("capacity-blocks-provisioning");
             }
 
             using (Fixture fixture = CreateFixture(created, disposables, 1, true, 1))
             {
                 fixture.Backend.UsesManualJoin = false;
-                fixture.Backend.NextPlayerInput = CreatePlayerHost(created, "QA P3G3 Automatic Manager Player", true);
+                fixture.Backend.NextPlayerInput = CreatePlayerHost(created, "QA Automatic", true);
                 LocalPlayerJoinResult result = fixture.Join("manual-manager-required");
-                AssertStatus(
-                    result,
-                    LocalPlayerJoinStatus.RejectedManagerConfiguration,
-                    "Non-manual provisioning backend was accepted.");
-                AssertEqual(0, fixture.Backend.JoinCallCount, "Invalid manager configuration reached provisioning.");
+                AssertStatus(result, LocalPlayerJoinStatus.RejectedManagerConfiguration,
+                    "Non-manual backend was accepted.");
                 completed.Add("manual-manager-required");
             }
         }
@@ -256,7 +278,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             ICollection<string> completed)
         {
             using Fixture fixture = CreateFixture(created, disposables, 2, true, 2);
-            PlayerInput player = CreatePlayerHost(created, "QA P3G3 Reentrant Player", true);
+            PlayerInput player = CreatePlayerHost(created, "QA Reentrant", true);
             fixture.Backend.NextPlayerInput = player;
             fixture.Backend.CallbackPlayerInput = player;
             fixture.Backend.EmitCallbackBeforeReturn = true;
@@ -265,12 +287,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             fixture.Backend.BeforeReturn = () => nested = fixture.Join("nested-join");
             LocalPlayerJoinResult outer = fixture.Join("outer-join");
 
-            AssertNotNull(nested, "Reentrant join did not return a result.");
-            AssertStatus(
-                nested,
-                LocalPlayerJoinStatus.RejectedOperationInFlight,
-                "Reentrant provisioning operation was accepted.");
-            AssertStatus(outer, LocalPlayerJoinStatus.SucceededJoined, "Outer join failed after reentrant rejection.");
+            AssertStatus(nested, LocalPlayerJoinStatus.RejectedOperationInFlight,
+                "Reentrant operation was accepted.");
+            AssertStatus(outer, LocalPlayerJoinStatus.SucceededJoined,
+                "Outer join failed after reentrant rejection.");
             completed.Add("reentrant-operation-rejected");
         }
 
@@ -291,13 +311,13 @@ namespace ImmersiveFrameworkQA.Player.Editor
             }
 
             object context = CreateContext(profiles, capacity, joiningOpen);
-            GameObject validPrefab = CreateHostObject(created, "QA P3G3 Backend Player Prefab", true);
+            GameObject validPrefab = CreateHostObject(created,
+                "QA P3G3 Backend Host Prefab", true);
             var backend = new SyntheticProvisioningBackend
             {
                 IsAvailable = true,
                 UsesManualJoin = true,
                 PlayerPrefab = validPrefab,
-                CurrentPlayerCount = 0,
                 TechnicalMaxPlayerCount = Math.Max(1, slotCount)
             };
 
@@ -325,7 +345,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 null
             };
             var result = method.Invoke(null, arguments) as PlayerParticipationOperationResult;
-            AssertNotNull(result, "Context creation returned no operation result.");
+            AssertNotNull(result, "Context creation returned no result.");
             AssertTrue(result.Succeeded, "Context creation failed. " + result.ToDiagnosticString());
             AssertNotNull(arguments[5], "Context creation returned no context.");
             return arguments[5];
@@ -370,14 +390,21 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static GameObject CreateHostObject(
             ICollection<UnityEngine.Object> created,
             string name,
-            bool includeActorDeclaration)
+            bool includeHost)
         {
             var gameObject = new GameObject(name);
             gameObject.SetActive(false);
-            gameObject.AddComponent<PlayerInput>();
-            if (includeActorDeclaration)
+            PlayerInput playerInput = gameObject.AddComponent<PlayerInput>();
+            if (includeHost)
             {
-                gameObject.AddComponent<PlayerActorDeclaration>();
+                var mount = new GameObject("ActorMount");
+                mount.transform.SetParent(gameObject.transform, false);
+                LocalPlayerHostAuthoring host =
+                    gameObject.AddComponent<LocalPlayerHostAuthoring>();
+                var serialized = new SerializedObject(host);
+                serialized.FindProperty("playerInput").objectReferenceValue = playerInput;
+                serialized.FindProperty("actorMount").objectReferenceValue = mount.transform;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
             }
             created.Add(gameObject);
             return gameObject;
@@ -386,16 +413,16 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static PlayerInput CreatePlayerHost(
             ICollection<UnityEngine.Object> created,
             string name,
-            bool includeActorDeclaration)
+            bool includeHost)
         {
-            return CreateHostObject(created, name, includeActorDeclaration)
+            return CreateHostObject(created, name, includeHost)
                 .GetComponent<PlayerInput>();
         }
 
         private static PlayerParticipationSnapshot Snapshot(object context)
         {
             MethodInfo method = context.GetType().GetMethod("CreateSnapshot", InstanceInternal);
-            AssertNotNull(method, "PlayerParticipationRuntimeContext.CreateSnapshot was not found.");
+            AssertNotNull(method, "CreateSnapshot was not found.");
             return method.Invoke(context, Array.Empty<object>()) as PlayerParticipationSnapshot;
         }
 
@@ -410,7 +437,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
             PlayerParticipationSnapshot snapshot = fixture.Snapshot;
             AssertEqual(0, snapshot.ReservedCount, label + " stranded a Reserved Slot.");
             AssertEqual(0, snapshot.JoinedCount, label + " admitted a Player unexpectedly.");
-            AssertEqual(1, snapshot.AvailableCount, label + " did not restore the Slot to Available.");
+            AssertEqual(1, snapshot.AvailableCount, label + " did not restore Available Slot.");
+            if (result.LocalPlayerHost != null)
+            {
+                AssertTrue(!result.LocalPlayerHost.HasJoinedSlot,
+                    label + " left public joined-host evidence.");
+            }
         }
 
         private static void AssertStatus(
@@ -440,6 +472,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
             {
                 throw new InvalidOperationException(
                     $"{message} expected='{expected}' actual='{actual}'.");
+            }
+        }
+
+        private static void AssertSame(object expected, object actual, string message)
+        {
+            if (!ReferenceEquals(expected, actual))
+            {
+                throw new InvalidOperationException(message);
             }
         }
 
@@ -477,10 +517,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             }
 
             internal SyntheticProvisioningBackend Backend { get; }
-
             internal PlayerParticipationSnapshot Snapshot =>
                 QaP3G3ProvisioningBridgeSyntheticSmoke.Snapshot(context);
-
             internal LocalPlayerJoinResult LastUnexpectedResult =>
                 GetProperty<LocalPlayerJoinResult>(bridge, "LastUnexpectedJoinResult");
 
@@ -531,43 +569,24 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private sealed class SyntheticProvisioningBackend : ILocalPlayerProvisioningBackend
         {
             internal bool IsAvailable { get; set; }
-
             bool ILocalPlayerProvisioningBackend.IsAvailable => IsAvailable;
-
             internal bool UsesManualJoin { get; set; }
-
             bool ILocalPlayerProvisioningBackend.UsesManualJoin => UsesManualJoin;
-
             internal GameObject PlayerPrefab { get; set; }
-
             GameObject ILocalPlayerProvisioningBackend.PlayerPrefab => PlayerPrefab;
-
             internal int CurrentPlayerCount { get; set; }
-
             int ILocalPlayerProvisioningBackend.CurrentPlayerCount => CurrentPlayerCount;
-
             internal int TechnicalMaxPlayerCount { get; set; }
-
             int ILocalPlayerProvisioningBackend.TechnicalMaxPlayerCount => TechnicalMaxPlayerCount;
-
             internal PlayerInput NextPlayerInput { get; set; }
-
             internal PlayerInput CallbackPlayerInput { get; set; }
-
             internal bool EmitCallbackBeforeReturn { get; set; }
-
             internal bool ReturnNull { get; set; }
-
             internal bool DestroyBeforeReturn { get; set; }
-
             internal Action BeforeReturn { get; set; }
-
             internal Func<PlayerParticipationSnapshot> SnapshotProvider { get; set; }
-
             internal int JoinCallCount { get; private set; }
-
             internal int RejectCallCount { get; private set; }
-
             internal bool ReservationObservedBeforeProvisioning { get; private set; }
 
             public event Action<PlayerInput> PlayerJoined;
@@ -578,7 +597,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 PlayerParticipationSnapshot snapshot = SnapshotProvider?.Invoke();
                 ReservationObservedBeforeProvisioning |= snapshot != null &&
                     snapshot.ReservedCount == 1;
-
                 BeforeReturn?.Invoke();
 
                 if (ReturnNull)
