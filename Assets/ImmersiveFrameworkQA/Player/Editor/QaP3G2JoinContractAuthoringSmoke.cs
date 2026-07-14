@@ -94,6 +94,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 completed.Add("automatic-join-rejected");
 
                 manager.joinBehavior = PlayerJoinBehavior.JoinPlayersManually;
+                manager.notificationBehavior = PlayerNotifications.InvokeCSharpEvents;
                 object missingPrefabReport = Validate(authoring, null);
                 AssertHasErrors(missingPrefabReport, "Missing Player Prefab was accepted.");
                 AssertReportContains(missingPrefabReport, "has no Player Prefab");
@@ -122,6 +123,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 AssertSame(manager, authoring.PlayerInputManager, "Authoring did not preserve explicit manager reference.");
                 AssertTrue(authoring.UsesManualJoin, "Authoring does not report manual join.");
+                AssertTrue(authoring.UsesCSharpJoinNotifications,
+                    "Authoring does not report typed C# join notifications.");
                 AssertSame(validPrefab, authoring.PlayerPrefab, "Authoring Player Prefab evidence changed.");
                 completed.Add("authoring-evidence-exposed");
 

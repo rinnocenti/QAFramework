@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39fa3d8997a24136984ca6e2c99902bc, type: 3}
+  m_Name: P3G4_InputActions
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionAsset
+  m_ActionMaps:
+  - m_Name: Gameplay
+    m_Id: 59cf8f86-6261-40c6-800b-7a040cb212e7
+    m_Asset: {fileID: 11400000}
+    m_Actions:
+    - m_Name: JoinEvidence
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: c46f025e-6dcf-4f55-ac53-a6184b7883fd
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Bindings:
+    - m_Name: 
+      m_Id: b7c23d50-4186-4362-aa56-f2e44fb08db0
+      m_Path: <Keyboard>/space
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: JoinEvidence
+      m_Flags: 0
+  m_ControlSchemes: []
+  m_IsProjectWide: 0
