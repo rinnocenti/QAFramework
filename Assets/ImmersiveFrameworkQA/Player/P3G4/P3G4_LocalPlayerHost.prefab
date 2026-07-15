@@ -42,6 +42,7 @@ GameObject:
   - component: {fileID: 8563251802638429575}
   - component: {fileID: 1422397286391588568}
   - component: {fileID: 1283688489055004511}
+  - component: {fileID: 6282264667875370117}
   m_Layer: 0
   m_Name: P3G4_LocalPlayerHost
   m_TagString: Untagged
@@ -109,3 +110,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerHostAuthoring
   playerInput: {fileID: 1422397286391588568}
   actorMount: {fileID: 4983790014347863609}
+--- !u!114 &6282264667875370117
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4200306247500672449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcfea0d7cc4144be8c064041108b58b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.UnityInput.UnityPlayerInputGateAdapter
+  playerInput: {fileID: 1422397286391588568}
+  gameplayActionMapName: Gameplay
+  blockOnInputAcceptance: 1
+  blockOnGameplayAction: 1
+  blockMode: 10
+  restorePreviousState: 1
+  applyOnEnable: 1
+  logStateChanges: 0
+  logMissingRuntimeOnce: 0
+  logMissingTargetOnce: 0

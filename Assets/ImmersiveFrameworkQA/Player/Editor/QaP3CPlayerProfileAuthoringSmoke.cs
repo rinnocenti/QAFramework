@@ -13,11 +13,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
     /// P3C editor-only smoke for Player Slot and participation requirements authoring.
     /// Uses temporary QA assets and removes the complete fixture after execution.
     /// </summary>
-    public static class QaP3CPlayerProfileAuthoringSmoke
+    internal static class QaP3CPlayerProfileAuthoringSmoke
     {
-        private const string MenuPath =
-            "Immersive Framework/QA/Player/P3C Run Player Profile Authoring Smoke";
-
         private const string TempFolder =
             "Assets/ImmersiveFrameworkQA/__P3C_PlayerProfileAuthoring_Temp";
 
@@ -27,8 +24,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private const string ValidatorTypeName =
             "Immersive.Framework.Editor.Editor.PlayerParticipation.PlayerParticipationAuthoringValidator";
 
-        [MenuItem(MenuPath)]
-        public static void Run()
+        internal static void Run()
         {
             var completed = new List<string>();
 
@@ -73,7 +69,15 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "PlayerParticipation_QA_None",
                 "QA Participation — None",
                 PlayerParticipationRequirementLevel.None);
-            GameApplicationAsset gameApplication = CreateGameApplication(playerOne, playerTwo);
+            PlayerActorSelectionPolicyProfile actorSelectionPolicy =
+                CreateActorSelectionPolicyProfile(
+                    "ActorSelection_QA_AllowDuplicates",
+                    "QA Actor Selection — Allow Duplicates",
+                    PlayerActorSelectionDuplicatePolicy.AllowDuplicates);
+            GameApplicationAsset gameApplication = CreateGameApplication(
+                actorSelectionPolicy,
+                playerOne,
+                playerTwo);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
@@ -94,21 +98,58 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "TryGetLocalPlayerSlot did not preserve configured order.");
             completed.Add("ordered-game-application-configuration");
 
+            AssertSame(
+                actorSelectionPolicy,
+                gameApplication.PlayerActorSelectionPolicyProfile,
+                "Game Application did not retain the explicit Player Actor Selection Policy.");
+            AssertEqual(
+                "QA Actor Selection — Allow Duplicates",
+                actorSelectionPolicy.DisplayName,
+                "Player Actor Selection Policy display name changed.");
+            AssertEqual(
+                PlayerActorSelectionDuplicatePolicy.AllowDuplicates,
+                actorSelectionPolicy.DuplicatePolicy,
+                "Player Actor Selection Policy duplicate rule changed.");
+            completed.Add("actor-selection-policy-configured");
+
             object validReport = ValidateGameApplication(gameApplication);
-            AssertEqual(0, ReadInt(validReport, "ErrorCount"), "Valid configuration reported errors.");
+            AssertReportHasNoErrors(
+                validReport,
+                "Valid Game Application configuration reported errors.");
             completed.Add("valid-configuration-accepted");
+
+            ConfigureActorSelectionPolicy(gameApplication, null);
+            object missingActorSelectionPolicyReport =
+                ValidateGameApplication(gameApplication);
+            AssertTrue(
+                ReadInt(missingActorSelectionPolicyReport, "ErrorCount") > 0,
+                "Missing Player Actor Selection Policy was accepted.");
+            AssertReportContains(
+                missingActorSelectionPolicyReport,
+                "Player Actor Selection Policy");
+            completed.Add("missing-actor-selection-policy-rejected");
+
+            ConfigureActorSelectionPolicy(gameApplication, actorSelectionPolicy);
+            object restoredValidReport = ValidateGameApplication(gameApplication);
+            AssertReportHasNoErrors(
+                restoredValidReport,
+                "Restored Game Application configuration reported errors.");
 
             AssertTrue(explicitNone.IsExplicitNone, "None requirements Profile is not explicit None.");
             AssertTrue(
                 explicitNone.HasDefinedRequirementLevel,
                 "None requirements Profile has an undefined Requirement Level.");
             object requirementsReport = ValidateRequirementsProfile(explicitNone);
-            AssertEqual(0, ReadInt(requirementsReport, "ErrorCount"), "Explicit None Profile reported errors.");
+            AssertReportHasNoErrors(
+                requirementsReport,
+                "Explicit None Requirements Profile reported errors.");
             completed.Add("explicit-none-requirements-profile");
 
             string playerOneBefore = EditorJsonUtility.ToJson(playerOne);
             string playerTwoBefore = EditorJsonUtility.ToJson(playerTwo);
             string requirementsBefore = EditorJsonUtility.ToJson(explicitNone);
+            string actorSelectionPolicyBefore =
+                EditorJsonUtility.ToJson(actorSelectionPolicy);
             string applicationBefore = EditorJsonUtility.ToJson(gameApplication);
 
             ValidateGameApplication(gameApplication);
@@ -118,6 +159,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             AssertEqual(playerOneBefore, EditorJsonUtility.ToJson(playerOne), "Validation mutated Player 1 Profile.");
             AssertEqual(playerTwoBefore, EditorJsonUtility.ToJson(playerTwo), "Validation mutated Player 2 Profile.");
             AssertEqual(requirementsBefore, EditorJsonUtility.ToJson(explicitNone), "Validation mutated Requirements Profile.");
+            AssertEqual(
+                actorSelectionPolicyBefore,
+                EditorJsonUtility.ToJson(actorSelectionPolicy),
+                "Validation mutated Player Actor Selection Policy.");
             AssertEqual(applicationBefore, EditorJsonUtility.ToJson(gameApplication), "Validation mutated Game Application.");
             completed.Add("validation-is-non-mutating");
 
@@ -170,9 +215,54 @@ namespace ImmersiveFrameworkQA.Player.Editor
             string[] requirementsGuids = AssetDatabase.FindAssets(
                 "t:PlayerParticipationRequirementsProfile",
                 new[] { templateFolder });
+            string[] projectionGuids = AssetDatabase.FindAssets(
+                "t:ActivityParticipationProjectionProfile",
+                new[] { templateFolder });
+            string[] actorSelectionPolicyGuids = AssetDatabase.FindAssets(
+                "t:PlayerActorSelectionPolicyProfile",
+                new[] { templateFolder });
 
             AssertEqual(4, slotGuids.Length, "Complete template did not create four Player Slot Profiles.");
             AssertEqual(5, requirementsGuids.Length, "Complete template did not create five Requirements Profiles.");
+            AssertEqual(
+                3,
+                projectionGuids.Length,
+                "Complete template did not create three Activity Participation Projection Profiles.");
+            completed.Add("complete-template-projections-created");
+
+            AssertEqual(
+                2,
+                actorSelectionPolicyGuids.Length,
+                "Complete template did not create two Player Actor Selection Policy Profiles.");
+            bool foundAllowDuplicates = false;
+            bool foundUniqueAcrossJoinedSlots = false;
+            for (int index = 0; index < actorSelectionPolicyGuids.Length; index++)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(
+                    actorSelectionPolicyGuids[index]);
+                PlayerActorSelectionPolicyProfile policy =
+                    AssetDatabase.LoadAssetAtPath<
+                        PlayerActorSelectionPolicyProfile>(path);
+                if (policy == null)
+                {
+                    continue;
+                }
+
+                foundAllowDuplicates |=
+                    policy.DuplicatePolicy ==
+                    PlayerActorSelectionDuplicatePolicy.AllowDuplicates;
+                foundUniqueAcrossJoinedSlots |=
+                    policy.DuplicatePolicy ==
+                    PlayerActorSelectionDuplicatePolicy.UniqueAcrossJoinedSlots;
+            }
+
+            AssertTrue(
+                foundAllowDuplicates,
+                "Complete template did not create the AllowDuplicates Actor policy.");
+            AssertTrue(
+                foundUniqueAcrossJoinedSlots,
+                "Complete template did not create the UniqueAcrossJoinedSlots Actor policy.");
+            completed.Add("complete-template-actor-selection-policies-created");
 
             bool foundExplicitNone = false;
             for (int index = 0; index < requirementsGuids.Length; index++)
@@ -241,13 +331,56 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return profile;
         }
 
-        private static GameApplicationAsset CreateGameApplication(params PlayerSlotProfile[] profiles)
+        private static PlayerActorSelectionPolicyProfile
+            CreateActorSelectionPolicyProfile(
+                string fileName,
+                string displayName,
+                PlayerActorSelectionDuplicatePolicy duplicatePolicy)
+        {
+            var profile =
+                ScriptableObject.CreateInstance<PlayerActorSelectionPolicyProfile>();
+            profile.name = fileName;
+
+            var serializedProfile = new SerializedObject(profile);
+            serializedProfile.FindProperty("displayName").stringValue = displayName;
+            serializedProfile.FindProperty("description").stringValue =
+                "P3C QA explicit Actor selection policy fixture.";
+            serializedProfile.FindProperty("duplicatePolicy").intValue =
+                (int)duplicatePolicy;
+            serializedProfile.ApplyModifiedPropertiesWithoutUndo();
+
+            AssetDatabase.CreateAsset(profile, $"{TempFolder}/{fileName}.asset");
+            return profile;
+        }
+
+        private static GameApplicationAsset CreateGameApplication(
+            PlayerActorSelectionPolicyProfile actorSelectionPolicy,
+            params PlayerSlotProfile[] profiles)
         {
             var gameApplication = ScriptableObject.CreateInstance<GameApplicationAsset>();
             gameApplication.name = "QA P3C Game Application";
             AssetDatabase.CreateAsset(gameApplication, $"{TempFolder}/GameApplication_QA_P3C.asset");
+            ConfigureActorSelectionPolicy(
+                gameApplication,
+                actorSelectionPolicy);
             ConfigureLocalPlayerSlots(gameApplication, profiles);
             return gameApplication;
+        }
+
+        private static void ConfigureActorSelectionPolicy(
+            GameApplicationAsset gameApplication,
+            PlayerActorSelectionPolicyProfile actorSelectionPolicy)
+        {
+            var serializedApplication = new SerializedObject(gameApplication);
+            SerializedProperty property = serializedApplication.FindProperty(
+                "playerActorSelectionPolicyProfile");
+            AssertNotNull(
+                property,
+                "GameApplicationAsset.playerActorSelectionPolicyProfile serialized field was not found.");
+            property.objectReferenceValue = actorSelectionPolicy;
+            serializedApplication.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(gameApplication);
+            AssetDatabase.SaveAssets();
         }
 
         private static void ConfigureLocalPlayerSlots(
@@ -377,7 +510,40 @@ namespace ImmersiveFrameworkQA.Player.Editor
             }
 
             throw new InvalidOperationException(
-                $"Validation report did not contain expected text '{expected}'.");
+                $"Validation report did not contain expected text '{expected}'. " +
+                $"report='{DescribeReport(report)}'.");
+        }
+
+        private static void AssertReportHasNoErrors(
+            object report,
+            string message)
+        {
+            int errorCount = ReadInt(report, "ErrorCount");
+            if (errorCount > 0)
+            {
+                throw new InvalidOperationException(
+                    $"{message} errors='{errorCount}' " +
+                    $"report='{DescribeReport(report)}'.");
+            }
+        }
+
+        private static string DescribeReport(object report)
+        {
+            object issuesObject = ReadProperty(report, "Issues");
+            AssertTrue(
+                issuesObject is IEnumerable,
+                "Validation report Issues is not enumerable.");
+
+            var messages = new List<string>();
+            foreach (object issue in (IEnumerable)issuesObject)
+            {
+                string message = ReadProperty(issue, "Message") as string;
+                messages.Add(message ?? string.Empty);
+            }
+
+            return messages.Count == 0
+                ? "<no issues>"
+                : string.Join(" | ", messages);
         }
 
         private static void PrepareTempFolder()

@@ -14,17 +14,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
     /// Editor-only regression smoke for passive join contracts and Local Player Host authoring.
     /// It never calls PlayerInputManager.JoinPlayer.
     /// </summary>
-    public static class QaP3G2JoinContractAuthoringSmoke
+    internal static class QaP3G2JoinContractAuthoringSmoke
     {
-        private const string MenuPath =
-            "Immersive Framework/QA/Player/P3G.2 Run Join Contract Authoring Smoke";
         private const string ValidatorTypeName =
             "Immersive.Framework.Editor.Editor.PlayerParticipation.LocalPlayerProvisioningValidator";
         private static readonly BindingFlags StaticInternal =
             BindingFlags.Static | BindingFlags.NonPublic;
 
-        [MenuItem(MenuPath)]
-        public static void Run()
+        internal static void Run()
         {
             var completed = new List<string>();
             var created = new List<UnityEngine.Object>();
@@ -53,41 +50,61 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Session-scoped operation identity is invalid.");
                 completed.Add("operation-id-session-scoped");
 
-                object missingAuthoringReport = Validate(null, null);
+                PlayerSlotProfile slotOne = CreateSlot(
+                    created,
+                    "QA P3G2 Slot 1",
+                    "qa.p3g2.player.1");
+                PlayerSlotProfile slotTwo = CreateSlot(
+                    created,
+                    "QA P3G2 Slot 2",
+                    "qa.p3g2.player.2");
+                GameApplicationAsset application =
+                    CreateApplication(created, slotOne, slotTwo);
+
+                object missingAuthoringReport = Validate(null, application);
                 AssertHasErrors(missingAuthoringReport, "Missing authoring was accepted.");
                 completed.Add("missing-authoring-rejected");
 
                 GameObject authoringObject = CreateGameObject(created, "QA P3G2 Authoring");
                 LocalPlayerProvisioningAuthoring authoring =
                     authoringObject.AddComponent<LocalPlayerProvisioningAuthoring>();
-                object missingManagerReport = Validate(authoring, null);
+                object missingManagerReport = Validate(authoring, application);
                 AssertHasErrors(missingManagerReport, "Missing PlayerInputManager was accepted.");
                 completed.Add("missing-manager-rejected");
 
-                GameObject managerObject = CreateGameObject(created, "QA P3G2 Manager");
-                PlayerInputManager manager = managerObject.AddComponent<PlayerInputManager>();
+                PlayerInputManager manager =
+                    authoringObject.AddComponent<PlayerInputManager>();
                 AssignManager(authoring, manager);
+                manager.notificationBehavior = PlayerNotifications.InvokeCSharpEvents;
+                SetTechnicalCapacity(manager, 2);
+
+                GameObject validPrefab = CreateTechnicalHost(
+                    created,
+                    "QA P3G2 Valid Local Player Host",
+                    includeMount: true);
+                manager.playerPrefab = validPrefab;
                 manager.joinBehavior = PlayerJoinBehavior.JoinPlayersWhenButtonIsPressed;
-                object automaticJoinReport = Validate(authoring, null);
+                object automaticJoinReport = Validate(authoring, application);
                 AssertHasErrors(automaticJoinReport, "Automatic join behavior was accepted.");
+                AssertReportContains(automaticJoinReport, "manual");
                 completed.Add("automatic-join-rejected");
 
                 manager.joinBehavior = PlayerJoinBehavior.JoinPlayersManually;
-                manager.notificationBehavior = PlayerNotifications.InvokeCSharpEvents;
-                object missingPrefabReport = Validate(authoring, null);
+                manager.playerPrefab = null;
+                object missingPrefabReport = Validate(authoring, application);
                 AssertHasErrors(missingPrefabReport, "Missing Player Prefab was accepted.");
                 completed.Add("missing-player-prefab-rejected");
 
                 GameObject missingInputPrefab = CreateGameObject(created, "QA P3G2 Missing Input");
                 manager.playerPrefab = missingInputPrefab;
-                object missingInputReport = Validate(authoring, null);
+                object missingInputReport = Validate(authoring, application);
                 AssertHasErrors(missingInputReport, "Host without PlayerInput was accepted.");
                 completed.Add("missing-player-input-rejected");
 
                 GameObject missingHostPrefab = CreateGameObject(created, "QA P3G2 Missing Host");
                 missingHostPrefab.AddComponent<PlayerInput>();
                 manager.playerPrefab = missingHostPrefab;
-                object missingHostReport = Validate(authoring, null);
+                object missingHostReport = Validate(authoring, application);
                 AssertHasErrors(missingHostReport, "Prefab without LocalPlayerHostAuthoring was accepted.");
                 AssertReportContains(missingHostReport, "LocalPlayerHostAuthoring");
                 completed.Add("missing-local-player-host-rejected");
@@ -97,19 +114,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "QA P3G2 Invalid Mount",
                     includeMount: false);
                 manager.playerPrefab = invalidMountPrefab;
-                object invalidMountReport = Validate(authoring, null);
+                object invalidMountReport = Validate(authoring, application);
                 AssertHasErrors(invalidMountReport, "Host without Actor Mount was accepted.");
                 AssertReportContains(invalidMountReport, "Actor Mount");
                 completed.Add("missing-actor-mount-rejected");
 
-                GameObject validPrefab = CreateTechnicalHost(
-                    created,
-                    "QA P3G2 Valid Local Player Host",
-                    includeMount: true);
                 manager.playerPrefab = validPrefab;
-                PlayerSlotProfile slotOne = CreateSlot(created, "QA P3G2 Slot 1", "qa.p3g2.player.1");
-                PlayerSlotProfile slotTwo = CreateSlot(created, "QA P3G2 Slot 2", "qa.p3g2.player.2");
-                GameApplicationAsset application = CreateApplication(created, slotOne, slotTwo);
                 object validReport = Validate(authoring, application);
                 AssertNoErrors(validReport, "Valid manual provisioning authoring was rejected.");
                 completed.Add("manual-host-provisioning-valid");
@@ -231,6 +241,19 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             var serialized = new SerializedObject(authoring);
             serialized.FindProperty("playerInputManager").objectReferenceValue = manager;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void SetTechnicalCapacity(
+            PlayerInputManager manager,
+            int capacity)
+        {
+            var serialized = new SerializedObject(manager);
+            SerializedProperty property =
+                serialized.FindProperty("m_MaxPlayerCount");
+            AssertNotNull(property,
+                "PlayerInputManager serialized max-player-count field was not found.");
+            property.intValue = capacity;
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 

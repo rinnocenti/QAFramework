@@ -12,11 +12,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
     /// Editor-only P3F.1 smoke for the isolated Session Slot runtime state machine.
     /// No scenes, persistent fixtures or PlayerInput instances are created.
     /// </summary>
-    public static class QaP3FSessionSlotRuntimeSmoke
+    internal static class QaP3FSessionSlotRuntimeSmoke
     {
-        private const string MenuPath =
-            "Immersive Framework/QA/Player/P3F Run Session Slot Runtime Smoke";
-
         private const string ContextTypeName =
             "Immersive.Framework.PlayerParticipation.PlayerParticipationRuntimeContext";
 
@@ -26,8 +23,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static readonly BindingFlags InstanceInternal =
             BindingFlags.Instance | BindingFlags.NonPublic;
 
-        [MenuItem(MenuPath)]
-        public static void Run()
+        internal static void Run()
         {
             var completed = new List<string>();
             var createdProfiles = new List<PlayerSlotProfile>();

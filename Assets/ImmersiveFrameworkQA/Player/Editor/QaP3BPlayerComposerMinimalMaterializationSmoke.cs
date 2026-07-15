@@ -15,11 +15,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
     /// P3B editor-only regression smoke for the simplified PlayerComposer product surface.
     /// Creates temporary in-memory objects only and destroys all created content after execution.
     /// </summary>
-    public static class QaP3BPlayerComposerMinimalMaterializationSmoke
+    internal static class QaP3BPlayerComposerMinimalMaterializationSmoke
     {
-        private const string MenuPath =
-            "Immersive Framework/QA/Player/P3B Run PlayerComposer Minimal Materialization Smoke";
-
         private const string PlayerMapName = "Player";
 
         private static readonly string[] LegacyTypeNames =
@@ -33,8 +30,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             "PlayerControlBehaviour"
         };
 
-        [MenuItem(MenuPath)]
-        public static void Run()
+        internal static void Run()
         {
             var completedCases = new List<string>();
 
@@ -45,7 +41,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 RunInvalidAuthoredMap(completedCases);
                 RunMissingRequiredCameraTargets(completedCases);
                 RunLookAtFollowPolicy(completedCases);
-                RunLegacyCleanup(completedCases);
 
                 Debug.Log(
                     "[P3B_PLAYER_COMPOSER_MINIMAL_SMOKE] status='Passed' " +
@@ -231,63 +226,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
             completed.Add("look-at-use-follow-target");
         }
 
-        private static void RunLegacyCleanup(List<string> completed)
-        {
-            using var fixture = PlayerFixture.Create("QA_P3B_LegacyCleanup");
-
-            ConfigureComposer(
-                fixture.Composer,
-                cameraBindingRequired: false,
-                createAnchorsIfMissing: true,
-                lookAtPolicy: PlayerComposerLookAtPolicy.ExplicitTarget,
-                authoredMap: PlayerMapName);
-
-            Transform framework = EnsureChild(fixture.Composer.transform, "_Framework");
-            Transform bindings = EnsureChild(framework, "_Bindings");
-
-            int createdLegacy = 0;
-            foreach (string typeName in LegacyTypeNames)
-            {
-                Type type = ResolveMonoBehaviourType(typeName);
-                if (type == null)
-                {
-                    continue;
-                }
-
-                bindings.gameObject.AddComponent(type);
-                createdLegacy++;
-            }
-
-            PlayerComposerApplyRebuildResult result =
-                PlayerComposerApplyRebuildUtility.ApplyOrRebuild(
-                    fixture.Composer,
-                    logDiagnostics: false,
-                    useUndo: false);
-
-            AssertTrue(result.Succeeded, $"Legacy cleanup Apply failed: {result.Issue}");
-            AssertNoLegacyMaterialization(fixture.Composer.gameObject);
-
-            Transform remainingFramework = FindDirectChild(fixture.Composer.transform, "_Framework");
-            Transform remainingBindings =
-                remainingFramework != null
-                    ? FindDirectChild(remainingFramework, "_Bindings")
-                    : null;
-
-            AssertNull(
-                remainingBindings,
-                "Empty legacy _Framework/_Bindings container was not removed.");
-
-            if (createdLegacy > 0)
-            {
-                AssertContains(
-                    result.Summary,
-                    "removed:",
-                    "Legacy components existed but Apply/Rebuild reported no removals.");
-            }
-
-            completed.Add($"legacy-cleanup-{createdLegacy}");
-        }
-
         private static void AssertCanonicalMaterialization(PlayerFixture fixture)
         {
             PlayerActorDeclaration actor =
@@ -387,19 +325,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         type.Name,
                         simpleName,
                         StringComparison.Ordinal));
-        }
-
-        private static Transform EnsureChild(Transform parent, string name)
-        {
-            Transform existing = FindDirectChild(parent, name);
-            if (existing != null)
-            {
-                return existing;
-            }
-
-            var child = new GameObject(name);
-            child.transform.SetParent(parent, false);
-            return child.transform;
         }
 
         private static Transform FindDirectChild(Transform parent, string name)

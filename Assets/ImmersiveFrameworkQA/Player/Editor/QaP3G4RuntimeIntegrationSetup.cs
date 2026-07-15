@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Immersive.Framework.PlayerParticipation;
+using Immersive.Framework.UnityInput;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -14,10 +15,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
     /// Idempotent real-join fixture. Creates one reusable Local Player technical-host prefab and
     /// installs one explicit manual PlayerInputManager + provisioning authoring in QA_UIGlobal.
     /// </summary>
-    public static class QaP3G4RuntimeIntegrationSetup
+    internal static class QaP3G4RuntimeIntegrationSetup
     {
-        private const string MenuPath =
-            "Immersive Framework/QA/Player/P3G.4 Apply Real Join Fixture";
         private const string RootFolder =
             "Assets/ImmersiveFrameworkQA/Player/P3G4";
         private const string ActionsPath = RootFolder + "/P3G4_InputActions.asset";
@@ -26,8 +25,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private const string TargetSceneName = "QA_UIGlobal";
         private const string JoinEvidenceBindingPath = "<Keyboard>/space";
 
-        [MenuItem(MenuPath)]
-        public static void Apply()
+        internal static void Apply()
         {
             try
             {
@@ -139,6 +137,18 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     actorMountObject.transform;
                 serializedHost.ApplyModifiedPropertiesWithoutUndo();
 
+                UnityPlayerInputGateAdapter gate =
+                    temporary.AddComponent<UnityPlayerInputGateAdapter>();
+                var serializedGate = new SerializedObject(gate);
+                serializedGate.FindProperty("playerInput").objectReferenceValue =
+                    playerInput;
+                serializedGate.FindProperty("gameplayActionMapName").stringValue =
+                    "Gameplay";
+                SetOptionalBoolean(serializedGate, "logStateChanges", false);
+                SetOptionalBoolean(serializedGate, "logMissingRuntimeOnce", false);
+                SetOptionalBoolean(serializedGate, "logMissingTargetOnce", false);
+                serializedGate.ApplyModifiedPropertiesWithoutUndo();
+
                 GameObject prefab = PrefabUtility.SaveAsPrefabAsset(
                     temporary,
                     PlayerPrefabPath);
@@ -192,8 +202,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             var serializedManager = new SerializedObject(manager);
             serializedManager.Update();
             SerializedProperty maxPlayerCountProperty =
-                serializedManager.FindProperty("m_MaxPlayerCount") ??
-                serializedManager.FindProperty("maxPlayerCount");
+                serializedManager.FindProperty("m_MaxPlayerCount");
             if (maxPlayerCountProperty == null)
             {
                 throw new InvalidOperationException(
@@ -202,6 +211,18 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             maxPlayerCountProperty.intValue = 4;
             serializedManager.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void SetOptionalBoolean(
+            SerializedObject serialized,
+            string propertyName,
+            bool value)
+        {
+            SerializedProperty property = serialized.FindProperty(propertyName);
+            if (property != null)
+            {
+                property.boolValue = value;
+            }
         }
 
         private static string FindUniqueScenePath(string sceneName)

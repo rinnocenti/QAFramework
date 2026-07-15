@@ -13,11 +13,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
     /// P3D editor-only smoke for Activity Projection and Requirements authoring.
     /// Uses temporary assets only and removes the complete fixture after execution.
     /// </summary>
-    public static class QaP3DActivityParticipationAuthoringSmoke
+    internal static class QaP3DActivityParticipationAuthoringSmoke
     {
-        private const string MenuPath =
-            "Immersive Framework/QA/Player/P3D Run Activity Participation Authoring Smoke";
-
         private const string TempFolder =
             "Assets/ImmersiveFrameworkQA/__P3D_ActivityParticipationAuthoring_Temp";
 
@@ -27,8 +24,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private const string ValidatorTypeName =
             "Immersive.Framework.Editor.Editor.PlayerParticipation.ActivityParticipationProjectionAuthoringValidator";
 
-        [MenuItem(MenuPath)]
-        public static void Run()
+        internal static void Run()
         {
             var completed = new List<string>();
 

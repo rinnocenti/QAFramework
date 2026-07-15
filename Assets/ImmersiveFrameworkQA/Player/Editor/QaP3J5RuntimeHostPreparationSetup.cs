@@ -10,13 +10,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
     /// Idempotent P3J.5 fixture. Reuses the canonical P3G.4 technical host and P3H.4
     /// Actor-selection assets; it does not create a second PlayerInputManager or GameApplication.
     /// </summary>
-    public static class QaP3J5RuntimeHostPreparationSetup
+    internal static class QaP3J5RuntimeHostPreparationSetup
     {
-        private const string MenuPath =
-            "Immersive Framework/QA/Player/P3J.5 Apply Runtime Host Preparation Fixture";
 
-        [MenuItem(MenuPath)]
-        public static void Apply()
+        internal static void Apply()
         {
             try
             {

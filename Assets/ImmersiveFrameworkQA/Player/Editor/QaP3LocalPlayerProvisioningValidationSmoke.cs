@@ -9,8 +9,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 {
     internal static class QaP3LocalPlayerProvisioningValidationSmoke
     {
-        [MenuItem("Immersive Framework/QA/Player/P3 Local Player Provisioning Validation Smoke")]
-        private static void Run()
+        internal static void Run()
         {
             var created = new List<UnityEngine.Object>();
             try

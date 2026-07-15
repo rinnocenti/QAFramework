@@ -9,7 +9,9 @@ Root local de provas técnicas sintéticas do framework. Não contém FIRSTGAME 
 - `UnityBuildSurface/`: superfícies Unity de transição e UI global.
 - `Camera/`: C9R Camera Override Authority e C9M Follow Pipeline.
 - `Pooling/` e `Audio/`: contratos técnicos próprios.
-- `Player/Editor/`: P3B PlayerComposer e P3C Player Profile Authoring.
-- `Player/SlotsProfiles/` e `Player/Templates/`: assets persistentes preparados para P3D.
+- `Player/Editor/`: suíte canônica P3 pré-FIRSTGAME e módulos internos de casos/fixture.
+- `Player/Profiles/`, `Player/P3G4/`, `Player/P3H4/` e `Player/P3J6/`: assets consolidados da fixture P3.
 
-Os menus P3B e P3C são smokes editor-only. Os demais domínios são acessados pelo Hub. A consolidação está documentada em `Documentation/QA-CLEANUP-1-DESTRUCTIVE-TEST-CONSOLIDATION.md`.
+Player QA expõe somente `Immersive Framework/QA/Player/P3 Run Canonical Pre-FIRSTGAME Smoke`.
+O fluxo e a validação manual estão documentados em
+`Player/Documentation/P3-CANONICAL-PREFIRSTGAME-QA.md`.

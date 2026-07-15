@@ -11,10 +11,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
     /// Idempotent P3J.6 fixture. Extends P3J.5 with one Activity that projects all joined
     /// local Player Slots and requires Logical Actors Prepared.
     /// </summary>
-    public static class QaP3J6ActivityPlayerActorLifecycleSetup
+    internal static class QaP3J6ActivityPlayerActorLifecycleSetup
     {
-        private const string MenuPath =
-            "Immersive Framework/QA/Player/P3J.6 Apply Activity Player Actor Lifecycle Fixture";
         private const string RootFolder =
             "Assets/ImmersiveFrameworkQA/Player/P3J6";
         internal const string ProjectionPath =
@@ -28,8 +26,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         internal const string NegativeActivityPath =
             RootFolder + "/P3J6_UnjoinedSlotRequiredActivity.asset";
 
-        [MenuItem(MenuPath)]
-        public static void Apply()
+        internal static void Apply()
         {
             try
             {

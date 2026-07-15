@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using Immersive.Framework.Actors;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Camera;
@@ -18,10 +19,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
     /// One-shot Play Mode proof for the official FrameworkRuntimeHost-scoped
     /// Route Startup Activity Player admission integration.
     /// </summary>
-    public static class QaP3K7HRouteStartupActivityPlayerAdmissionSmoke
+    internal static class QaP3K7HRouteStartupActivityPlayerAdmissionSmoke
     {
-        private const string MenuPath =
-            "Immersive Framework/QA/Player/P3K.7H Run Route Startup Activity Player Admission Smoke";
         private const string RuntimeHostTypeName =
             "Immersive.Framework.ApplicationLifecycle.FrameworkRuntimeHost";
         private const string PreparationModuleTypeName =
@@ -40,8 +39,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static readonly BindingFlags StaticAny =
             BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
-        [MenuItem(MenuPath)]
-        public static async void Run()
+        internal static async Task<IReadOnlyList<string>> RunCanonicalAsync()
         {
             var completed = new List<string>();
 
@@ -132,10 +130,28 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Stable host does not own the joined PlayerInput.");
                 completed.Add("stable-player-host-preserved");
 
+                AssertNotNull(stableHost.transform.parent,
+                    "Joined technical host has no explicit Session lifetime parent.");
+                AssertEqual(
+                    stableHost.transform.parent.gameObject.scene,
+                    stableHost.gameObject.scene,
+                    "Joined technical host and Session lifetime parent belong to different Scenes.");
+                completed.Add("technical-host-parented");
+
+                LocalPlayerActorSelectionRequestAuthoring selectionEndpoint =
+                    authoring.GetComponent<LocalPlayerActorSelectionRequestAuthoring>();
+                if (selectionEndpoint == null)
+                {
+                    selectionEndpoint = authoring.gameObject.AddComponent<
+                        LocalPlayerActorSelectionRequestAuthoring>();
+                }
+
+                selectionEndpoint.ProvisioningAuthoring = authoring;
+                AssertTrue(
+                    selectionEndpoint.TryValidateConfiguration(out string endpointIssue),
+                    "Public default Actor selection endpoint is invalid. " + endpointIssue);
                 PlayerActorSelectionResult selected =
-                    Invoke<PlayerActorSelectionResult>(
-                        preparationModule,
-                        "TrySelectDefaultActor",
+                    selectionEndpoint.RequestDefaultActorSelection(
                         slotId,
                         joined.Slot.SelectionRevision,
                         nameof(QaP3K7HRouteStartupActivityPlayerAdmissionSmoke),
@@ -146,7 +162,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     selected.SelectedActorProfile != null,
                     "Default Actor selection failed. " +
                     selected.ToDiagnosticString());
-                completed.Add("default-actor-selected");
+                completed.Add("public-default-actor-selection");
 
                 RouteAsset currentRoute =
                     ResolveCurrentRoute(runtimeHost);
@@ -526,34 +542,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     typeof(ActivityPlayerPreviousExitDisposition));
                 completed.Add("public-lifecycle-contracts-no-unity-references");
 
-                AssertEqual(48, completed.Count,
+                AssertEqual(49, completed.Count,
                     "P3K.7H smoke case count changed unexpectedly.");
-                Debug.Log(
-                    "[P3K7H_ROUTE_STARTUP_ACTIVITY_PLAYER_ADMISSION_SMOKE] " +
-                    $"status='Passed' cases='{completed.Count}' " +
-                    $"session='{finalGameplay.SessionContextId}' " +
-                    $"slot='{slotId.StableText}' " +
-                    $"route='{targetRoute.RouteName}' target='{targetActivity.ActivityName}' " +
-                    $"completed='{string.Join(",", completed)}'.");
+                return completed;
             }
             catch (TargetInvocationException exception)
             {
                 Exception inner = exception.InnerException ?? exception;
-                Debug.LogError(
-                    "[P3K7H_ROUTE_STARTUP_ACTIVITY_PLAYER_ADMISSION_SMOKE] " +
-                    $"status='Failed' exception='{inner.GetType().Name}' " +
-                    $"message='{Escape(inner.Message)}' " +
-                    $"completed='{string.Join(",", completed)}'.");
                 throw inner;
-            }
-            catch (Exception exception)
-            {
-                Debug.LogError(
-                    "[P3K7H_ROUTE_STARTUP_ACTIVITY_PLAYER_ADMISSION_SMOKE] " +
-                    $"status='Failed' exception='{exception.GetType().Name}' " +
-                    $"message='{Escape(exception.Message)}' " +
-                    $"completed='{string.Join(",", completed)}'.");
-                throw;
             }
         }
 
@@ -753,9 +749,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
             }
             return count;
         }
-
-        [MenuItem(MenuPath, true)]
-        private static bool ValidateRun() => EditorApplication.isPlaying;
 
         private static LocalPlayerProvisioningAuthoring ResolveAuthoring()
         {

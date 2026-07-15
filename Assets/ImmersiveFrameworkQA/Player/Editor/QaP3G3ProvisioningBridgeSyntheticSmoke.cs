@@ -14,10 +14,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
     /// Synthetic regression for reservation, Local Player Host provisioning, correlation,
     /// staged Slot admission and rollback. No real PlayerInputManager timing is required.
     /// </summary>
-    public static class QaP3G3ProvisioningBridgeSyntheticSmoke
+    internal static class QaP3G3ProvisioningBridgeSyntheticSmoke
     {
-        private const string MenuPath =
-            "Immersive Framework/QA/Player/P3G.3 Run Provisioning Bridge Synthetic Smoke";
         private const string ContextTypeName =
             "Immersive.Framework.PlayerParticipation.PlayerParticipationRuntimeContext";
         private const string BridgeTypeName =
@@ -27,8 +25,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static readonly BindingFlags InstanceInternal =
             BindingFlags.Instance | BindingFlags.NonPublic;
 
-        [MenuItem(MenuPath)]
-        public static void Run()
+        internal static void Run()
         {
             var completed = new List<string>();
             var created = new List<UnityEngine.Object>();
@@ -102,6 +99,19 @@ namespace ImmersiveFrameworkQA.Player.Editor
             AssertEqual(first.Slot.PlayerSlotId, first.LocalPlayerHost.JoinedPlayerSlotId,
                 "Host Slot identity differs from Session commit.");
             completed.Add("technical-host-slot-binding-committed");
+
+            AssertTrue(first.LocalPlayerHost.transform.IsChildOf(fixture.TechnicalHostParent),
+                "Admitted technical host is not parented below the explicit Session lifetime parent.");
+            AssertEqual(
+                fixture.TechnicalHostParent.gameObject.scene,
+                first.LocalPlayerHost.gameObject.scene,
+                "Admitted technical host and Session lifetime parent belong to different Scenes.");
+            AssertTrue(
+                fixture.TryAttachHost(first.LocalPlayerHost, out string attachIssue),
+                "Idempotent technical-host admission failed. " + attachIssue);
+            AssertEqual(string.Empty, attachIssue,
+                "Successful technical-host admission retained an issue.");
+            completed.Add("technical-host-parented-with-empty-issue");
 
             AssertTrue(!first.LocalPlayerHost.HasLogicalActor,
                 "Join materialized a Logical Actor unexpectedly.");
@@ -319,8 +329,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 TechnicalMaxPlayerCount = Math.Max(1, slotCount)
             };
 
-            object bridge = CreateBridge(context, backend);
-            var fixture = new Fixture(context, bridge, backend);
+            var parentObject = new GameObject("QA P3G3 Technical Host Parent");
+            created.Add(parentObject);
+            object bridge = CreateBridge(context, backend, parentObject.transform);
+            var fixture = new Fixture(
+                context,
+                bridge,
+                backend,
+                parentObject.transform);
             disposables.Add(fixture);
             return fixture;
         }
@@ -351,16 +367,23 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
         private static object CreateBridge(
             object context,
-            ILocalPlayerProvisioningBackend backend)
+            ILocalPlayerProvisioningBackend backend,
+            Transform technicalHostParent)
         {
             Type bridgeType = ResolveRuntimeType(BridgeTypeName);
             ConstructorInfo constructor = bridgeType.GetConstructor(
                 InstanceInternal,
                 null,
-                new[] { context.GetType(), typeof(ILocalPlayerProvisioningBackend) },
+                new[]
+                {
+                    context.GetType(),
+                    typeof(ILocalPlayerProvisioningBackend),
+                    typeof(Transform)
+                },
                 null);
             AssertNotNull(constructor, "LocalPlayerProvisioningBridge constructor was not found.");
-            return constructor.Invoke(new object[] { context, backend });
+            return constructor.Invoke(
+                new object[] { context, backend, technicalHostParent });
         }
 
         private static Type ResolveRuntimeType(string fullName)
@@ -436,6 +459,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             AssertEqual(0, snapshot.ReservedCount, label + " stranded a Reserved Slot.");
             AssertEqual(0, snapshot.JoinedCount, label + " admitted a Player unexpectedly.");
             AssertEqual(1, snapshot.AvailableCount, label + " did not restore Available Slot.");
+            AssertEqual(0, fixture.AdmittedPlayerCount,
+                label + " left a host admitted in the provisioning bridge.");
             if (result.LocalPlayerHost != null)
             {
                 AssertTrue(!result.LocalPlayerHost.HasJoinedSlot,
@@ -506,15 +531,34 @@ namespace ImmersiveFrameworkQA.Player.Editor
             internal Fixture(
                 object context,
                 object bridge,
-                SyntheticProvisioningBackend backend)
+                SyntheticProvisioningBackend backend,
+                Transform technicalHostParent)
             {
                 this.context = context;
                 this.bridge = bridge;
                 Backend = backend;
+                TechnicalHostParent = technicalHostParent;
                 Backend.SnapshotProvider = () => Snapshot(context);
             }
 
             internal SyntheticProvisioningBackend Backend { get; }
+            internal Transform TechnicalHostParent { get; }
+            internal int AdmittedPlayerCount
+            {
+                get
+                {
+                    FieldInfo field = bridge.GetType().GetField(
+                        "admittedPlayers",
+                        InstanceInternal);
+                    AssertNotNull(field, "LocalPlayerProvisioningBridge admittedPlayers was not found.");
+                    object admitted = field.GetValue(bridge);
+                    AssertNotNull(admitted, "LocalPlayerProvisioningBridge admittedPlayers is unavailable.");
+                    PropertyInfo countProperty = admitted.GetType().GetProperty("Count");
+                    AssertNotNull(countProperty,
+                        "LocalPlayerProvisioningBridge admittedPlayers count is unavailable.");
+                    return (int)countProperty.GetValue(admitted);
+                }
+            }
             internal PlayerParticipationSnapshot Snapshot =>
                 QaP3G3ProvisioningBridgeSyntheticSmoke.Snapshot(context);
             internal LocalPlayerJoinResult LastUnexpectedResult =>
@@ -528,6 +572,20 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     bridge,
                     new object[] { new LocalPlayerJoinRequest("QA.P3G3", reason) })
                     as LocalPlayerJoinResult;
+            }
+
+            internal bool TryAttachHost(
+                LocalPlayerHostAuthoring host,
+                out string issue)
+            {
+                MethodInfo method = bridge.GetType().GetMethod(
+                    "TryAttachHostToSessionLifetime",
+                    InstanceInternal);
+                AssertNotNull(method, "TryAttachHostToSessionLifetime was not found.");
+                object[] arguments = { host, null };
+                bool attached = (bool)method.Invoke(bridge, arguments);
+                issue = arguments[1] as string ?? string.Empty;
+                return attached;
             }
 
             internal bool TryGetConfirmation(
