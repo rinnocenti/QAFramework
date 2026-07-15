@@ -1330,44 +1330,13 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 $"{context} did not enable action map '{actionMapName}'.");
         }
 
-        private static void ConfigureSlotDeclaration(
-            PlayerSlotDeclaration declaration,
-            PlayerSlotId slotId,
-            PlayerInput playerInput,
-            string label)
-        {
-            MethodInfo configure = typeof(PlayerSlotDeclaration).GetMethod(
-                "ConfigureForDiagnostics",
-                InstanceAny,
-                null,
-                new[]
-                {
-                    typeof(string),
-                    typeof(string),
-                    typeof(PlayerInput),
-                    typeof(string)
-                },
-                null);
-            AssertNotNull(configure,
-                "PlayerSlotDeclaration ConfigureForDiagnostics is missing.");
-            configure.Invoke(declaration, new object[]
-            {
-                slotId.Value.Value,
-                label,
-                playerInput,
-                "qa.p3k5.joined-slot"
-            });
-        }
-
         private static void ConfigureGateAdapter(
             UnityPlayerInputGateAdapter adapter,
             PlayerInput playerInput,
-            PlayerSlotDeclaration slotDeclaration,
             string actionMapName)
         {
             SerializedObject serialized = new SerializedObject(adapter);
             serialized.FindProperty("playerInput").objectReferenceValue = playerInput;
-            serialized.FindProperty("sourceSlot").objectReferenceValue = slotDeclaration;
             serialized.FindProperty("gameplayActionMapName").stringValue = actionMapName;
             serialized.FindProperty("applyOnEnable").boolValue = false;
             serialized.FindProperty("logStateChanges").boolValue = false;
@@ -1538,7 +1507,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
             internal GameObject Root { get; private set; }
             internal LocalPlayerHostAuthoring Host { get; private set; }
             internal PlayerInput PlayerInput { get; private set; }
-            internal PlayerSlotDeclaration SlotDeclaration { get; private set; }
             internal UnityPlayerInputGateAdapter GateAdapter { get; private set; }
             internal Transform ActorMount { get; private set; }
             internal PlayerActorDeclaration ActorDeclaration { get; private set; }
@@ -1571,20 +1539,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 created.Add(mountObject);
                 fixture.ActorMount = mountObject.transform;
 
-                fixture.SlotDeclaration =
-                    fixture.Root.AddComponent<PlayerSlotDeclaration>();
-                ConfigureSlotDeclaration(
-                    fixture.SlotDeclaration,
-                    slotId,
-                    fixture.PlayerInput,
-                    "P3K.5 Slot");
-
                 SetField(fixture.Host, "playerInput", fixture.PlayerInput);
                 SetField(fixture.Host, "actorMount", fixture.ActorMount);
-                SetField(
-                    fixture.Host,
-                    "stagedSlotDeclaration",
-                    fixture.SlotDeclaration);
                 SetField(fixture.Host, "joinedPlayerSlotId", slotId);
                 SetField(fixture.Host, "joinedConfiguredIndex", 0);
                 FieldInfo admission = typeof(LocalPlayerHostAuthoring).GetField(
@@ -1599,7 +1555,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 ConfigureGateAdapter(
                     fixture.GateAdapter,
                     fixture.PlayerInput,
-                    fixture.SlotDeclaration,
                     gameplayActionMap);
                 fixture.GateAdapter.enabled = false;
 

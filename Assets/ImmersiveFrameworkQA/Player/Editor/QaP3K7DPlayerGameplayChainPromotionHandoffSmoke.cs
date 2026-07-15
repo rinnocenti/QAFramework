@@ -159,9 +159,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Current Actor lost stable PlayerInput evidence.");
                 completed.Add("current-actor-active-and-bound");
 
-                UnityPlayerInputGateAdapter gateAdapter = ConfigureGateAdapter(
-                    stableHost,
-                    stablePlayerInput);
+                UnityPlayerInputGateAdapter gateAdapter =
+                    ConfigureGateAdapter(stableHost, stablePlayerInput);
                 AssertNotNull(gateAdapter,
                     "Stable host Gate adapter could not be configured.");
                 AssertSame(stablePlayerInput, gateAdapter.PlayerInput,
@@ -835,16 +834,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             SerializedObject serialized = new SerializedObject(adapter);
             SerializedProperty playerInputProperty = serialized.FindProperty("playerInput");
-            SerializedProperty sourceSlotProperty = serialized.FindProperty("sourceSlot");
             SerializedProperty actionMapProperty = serialized.FindProperty("gameplayActionMapName");
             AssertNotNull(playerInputProperty,
                 "Gate adapter playerInput property was not found.");
-            AssertNotNull(sourceSlotProperty,
-                "Gate adapter sourceSlot property was not found.");
             AssertNotNull(actionMapProperty,
                 "Gate adapter gameplayActionMapName property was not found.");
             playerInputProperty.objectReferenceValue = playerInput;
-            sourceSlotProperty.objectReferenceValue = host.PlayerSlotDeclaration;
             actionMapProperty.stringValue = actionMapName;
             SerializedProperty logState = serialized.FindProperty("logStateChanges");
             SerializedProperty logRuntime = serialized.FindProperty("logMissingRuntimeOnce");

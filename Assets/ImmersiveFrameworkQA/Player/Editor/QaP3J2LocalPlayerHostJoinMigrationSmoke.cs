@@ -56,11 +56,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Actor Mount is not a child of host root.");
                 completed.Add("explicit-playerinput-and-actor-mount");
 
-                AssertTrue(!validHost.HasJoinedSlot &&
-                    validHost.PlayerSlotDeclaration == null,
+                AssertTrue(!validHost.HasJoinedSlot,
                     "Reusable host prefab starts with joined Slot evidence.");
-                AssertTrue(validObject.GetComponent<PlayerSlotDeclaration>() == null,
-                    "Reusable host contains a pre-authored PlayerSlotDeclaration.");
+                AssertTrue(validObject.GetComponents<MonoBehaviour>()
+                        .All(component => component.GetType().Name != "PlayerSlotDeclaration"),
+                    "Reusable host contains the removed Slot declaration shape.");
                 completed.Add("slot-identity-not-preauthored");
 
                 AssertTrue(!validHost.HasLogicalActor &&
@@ -88,18 +88,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     actorIssue.IndexOf("ActorDeclaration", StringComparison.OrdinalIgnoreCase) >= 0,
                     "Technical host containing ActorDeclaration was accepted.");
                 completed.Add("logical-actor-on-provisioning-host-rejected");
-
-                GameObject slotContaminatedObject = CreateHost(
-                    created,
-                    "P3J2 Slot Contaminated Host",
-                    true);
-                slotContaminatedObject.AddComponent<PlayerSlotDeclaration>();
-                AssertTrue(!slotContaminatedObject
-                        .GetComponent<LocalPlayerHostAuthoring>()
-                        .TryValidateConfiguration(out string slotIssue) &&
-                    slotIssue.IndexOf("pre-authored", StringComparison.OrdinalIgnoreCase) >= 0,
-                    "Pre-authored Slot identity was accepted.");
-                completed.Add("preauthored-slot-rejected");
 
                 RequireComponent[] playerActorRequirements =
                     typeof(PlayerActorDeclaration).GetCustomAttributes<RequireComponent>(true)

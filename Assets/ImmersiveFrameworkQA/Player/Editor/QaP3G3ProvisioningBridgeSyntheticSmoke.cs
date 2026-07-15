@@ -101,8 +101,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "Local Player Host did not commit Slot binding.");
             AssertEqual(first.Slot.PlayerSlotId, first.LocalPlayerHost.JoinedPlayerSlotId,
                 "Host Slot identity differs from Session commit.");
-            AssertNotNull(first.LocalPlayerHost.PlayerSlotDeclaration,
-                "Joined host has no PlayerSlotDeclaration evidence.");
             completed.Add("technical-host-slot-binding-committed");
 
             AssertTrue(!first.LocalPlayerHost.HasLogicalActor,

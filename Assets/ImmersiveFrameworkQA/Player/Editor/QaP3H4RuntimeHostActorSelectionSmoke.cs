@@ -334,8 +334,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             authoring = null;
             LocalPlayerProvisioningAuthoring[] candidates =
                 UnityEngine.Object.FindObjectsByType<LocalPlayerProvisioningAuthoring>(
-                    FindObjectsInactive.Include,
-                    FindObjectsSortMode.InstanceID);
+                    FindObjectsInactive.Include);
             int loadedCount = 0;
             for (int index = 0; index < candidates.Length; index++)
             {

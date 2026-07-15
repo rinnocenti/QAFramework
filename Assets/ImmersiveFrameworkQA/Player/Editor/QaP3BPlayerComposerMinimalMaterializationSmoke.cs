@@ -171,10 +171,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
             AssertNull(
                 fixture.Root.GetComponent<PlayerActorDeclaration>(),
                 "Validation failure created PlayerActorDeclaration.");
-            AssertNull(
-                fixture.Root.GetComponent<PlayerSlotDeclaration>(),
-                "Validation failure created PlayerSlotDeclaration.");
-
             completed.Add("invalid-authored-map");
         }
 
@@ -296,27 +292,15 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             PlayerActorDeclaration actor =
                 fixture.Root.GetComponent<PlayerActorDeclaration>();
-            PlayerSlotDeclaration slot =
-                fixture.Root.GetComponent<PlayerSlotDeclaration>();
-
             AssertNotNull(actor, "PlayerActorDeclaration is missing from Player root.");
-            AssertNotNull(slot, "PlayerSlotDeclaration is missing from Player root.");
             AssertEqual(
                 fixture.Composer.ActorId,
                 ReadString(actor, "actorId"),
                 "PlayerActorDeclaration actorId differs from Composer.");
-            AssertEqual(
-                fixture.Composer.PlayerSlotId,
-                ReadString(slot, "slotId"),
-                "PlayerSlotDeclaration slotId differs from Composer.");
             AssertSame(
                 fixture.PlayerInput,
                 ReadObject(actor, "playerInput"),
                 "PlayerActorDeclaration PlayerInput differs from Composer.");
-            AssertSame(
-                fixture.PlayerInput,
-                ReadObject(slot, "playerInput"),
-                "PlayerSlotDeclaration PlayerInput differs from Composer.");
         }
 
         private static void AssertGateWiring(PlayerFixture fixture)
@@ -327,18 +311,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             Component gate = fixture.Root.GetComponent(gateType);
             AssertNotNull(gate, "UnityPlayerInputGateAdapter was not materialized.");
 
-            PlayerSlotDeclaration slot =
-                fixture.Root.GetComponent<PlayerSlotDeclaration>();
-
             AssertSame(
                 fixture.PlayerInput,
                 ReadObject(gate, "playerInput"),
                 "Gate PlayerInput is not the Composer PlayerInput.");
-            AssertSame(
-                slot,
-                ReadObject(gate, "sourceSlot"),
-                "Gate sourceSlot is not the typed PlayerSlotDeclaration.");
-
             string map =
                 ReadFirstString(
                     gate,
@@ -367,7 +343,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
             serialized.Update();
 
             SetString(serialized, "actorId", "qa.player.actor");
-            SetString(serialized, "playerSlotId", "qa.player.slot.1");
             SetBool(serialized, "controlEnabled", true);
             SetObject(serialized, "playerInput", composer.GetComponent<PlayerInput>());
             SetString(serialized, "gameplayActionMap", authoredMap);

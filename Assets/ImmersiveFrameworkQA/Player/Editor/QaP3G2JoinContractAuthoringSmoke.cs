@@ -125,8 +125,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Technical host contains an Actor declaration.");
                 completed.Add("technical-host-is-not-an-actor");
 
-                AssertTrue(validPrefab.GetComponentInChildren<Immersive.Framework.PlayerSlots.PlayerSlotDeclaration>(true) == null,
-                    "Technical host contains a pre-authored Slot declaration.");
+                AssertTrue(Array.TrueForAll(
+                        validPrefab.GetComponentsInChildren<MonoBehaviour>(true),
+                        component => component == null || component.GetType().Name != "PlayerSlotDeclaration"),
+                    "Technical host contains the removed Slot declaration shape.");
                 completed.Add("slot-identity-not-preauthored");
 
                 string authoringBefore = EditorJsonUtility.ToJson(authoring);

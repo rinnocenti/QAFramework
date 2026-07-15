@@ -117,11 +117,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Host Slot differs from Session Slot.");
                 AssertEqual(joinResult.Slot.ConfiguredIndex, host.JoinedConfiguredIndex,
                     "Host configured index differs from Session Slot.");
-                AssertNotNull(host.PlayerSlotDeclaration,
-                    "Joined host has no PlayerSlotDeclaration.");
-                AssertSame(joinResult.PlayerInput,
-                    host.PlayerSlotDeclaration.PlayerInputEvidence,
-                    "Slot declaration lost PlayerInput evidence.");
+                AssertSame(joinResult.PlayerInput, host.PlayerInput,
+                    "Joined host lost PlayerInput evidence.");
                 completed.Add("joined-slot-bound-to-host");
 
                 AssertTrue(!host.HasLogicalActor,
@@ -223,8 +220,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             authoring = null;
             LocalPlayerProvisioningAuthoring[] candidates =
                 UnityEngine.Object.FindObjectsByType<LocalPlayerProvisioningAuthoring>(
-                    FindObjectsInactive.Include,
-                    FindObjectsSortMode.InstanceID);
+                    FindObjectsInactive.Include);
             int loadedCount = 0;
             foreach (LocalPlayerProvisioningAuthoring candidate in candidates)
             {

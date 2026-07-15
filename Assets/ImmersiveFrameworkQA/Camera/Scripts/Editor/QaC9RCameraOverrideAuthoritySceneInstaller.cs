@@ -77,7 +77,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             GameObject playerRoot = RootObject(scene, "QA_C9R_LocalPlayer");
             PlayerComposer player = Component<PlayerComposer>(playerRoot);
-            Set(player, "actorId", "qa.player.actor.c9r"); Set(player, "playerSlotId", "qa.player.slot.1");
+            Set(player, "actorId", "qa.player.actor.c9r");
             Set(player, "playerInput", Component<PlayerInput>(playerRoot)); Set(player, "cameraBindingRequired", true);
             Set(player, "cameraTarget", playerTarget); Set(player, "lookAtTarget", playerLookAt);
             LocalPlayerCameraRequestBinding playerBinding = Component<LocalPlayerCameraRequestBinding>(playerRoot);
