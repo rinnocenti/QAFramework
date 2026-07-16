@@ -69,8 +69,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 lookAtPolicy: PlayerComposerLookAtPolicy.ExplicitTarget,
                 authoredMap: PlayerMapName);
 
-            PlayerComposerApplyRebuildResult first =
-                PlayerComposerApplyRebuildUtility.ApplyOrRebuild(
+            PreAuthoredPlayerComposerApplyRebuildResult first =
+                PreAuthoredPlayerComposerApplyRebuildUtility.ApplyOrRebuild(
                     fixture.Composer,
                     logDiagnostics: false,
                     useUndo: false);
@@ -92,8 +92,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             AssertNoLegacyMaterialization(fixture.Composer.gameObject);
             AssertGateWiring(fixture);
 
-            PlayerComposerApplyRebuildResult second =
-                PlayerComposerApplyRebuildUtility.ApplyOrRebuild(
+            PreAuthoredPlayerComposerApplyRebuildResult second =
+                PreAuthoredPlayerComposerApplyRebuildUtility.ApplyOrRebuild(
                     fixture.Composer,
                     logDiagnostics: false,
                     useUndo: false);
@@ -103,8 +103,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             AssertTrue(second.RepairedCount == 0, $"Idempotency failed: repaired='{second.RepairedCount}'.");
             AssertTrue(second.BlockedCount == 0, $"Idempotency failed: blocked='{second.BlockedCount}'.");
 
-            PlayerComposerApplyRebuildResult validation =
-                PlayerComposerApplyRebuildUtility.Validate(
+            PreAuthoredPlayerComposerApplyRebuildResult validation =
+                PreAuthoredPlayerComposerApplyRebuildUtility.Validate(
                     fixture.Composer,
                     logDiagnostics: false);
 
@@ -123,8 +123,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 lookAtPolicy: PlayerComposerLookAtPolicy.ExplicitTarget,
                 authoredMap: PlayerMapName);
 
-            PlayerComposerApplyRebuildResult result =
-                PlayerComposerApplyRebuildUtility.ApplyOrRebuild(
+            PreAuthoredPlayerComposerApplyRebuildResult result =
+                PreAuthoredPlayerComposerApplyRebuildUtility.ApplyOrRebuild(
                     fixture.Composer,
                     logDiagnostics: false,
                     useUndo: false);
@@ -152,8 +152,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 lookAtPolicy: PlayerComposerLookAtPolicy.ExplicitTarget,
                 authoredMap: "MissingMap");
 
-            PlayerComposerApplyRebuildResult validation =
-                PlayerComposerApplyRebuildUtility.Validate(
+            PreAuthoredPlayerComposerApplyRebuildResult validation =
+                PreAuthoredPlayerComposerApplyRebuildUtility.Validate(
                     fixture.Composer,
                     logDiagnostics: false);
 
@@ -180,8 +180,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 lookAtPolicy: PlayerComposerLookAtPolicy.ExplicitTarget,
                 authoredMap: PlayerMapName);
 
-            PlayerComposerApplyRebuildResult result =
-                PlayerComposerApplyRebuildUtility.Validate(
+            PreAuthoredPlayerComposerApplyRebuildResult result =
+                PreAuthoredPlayerComposerApplyRebuildUtility.Validate(
                     fixture.Composer,
                     logDiagnostics: false);
 
@@ -205,8 +205,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 lookAtPolicy: PlayerComposerLookAtPolicy.UseFollowTarget,
                 authoredMap: PlayerMapName);
 
-            PlayerComposerApplyRebuildResult result =
-                PlayerComposerApplyRebuildUtility.ApplyOrRebuild(
+            PreAuthoredPlayerComposerApplyRebuildResult result =
+                PreAuthoredPlayerComposerApplyRebuildUtility.ApplyOrRebuild(
                     fixture.Composer,
                     logDiagnostics: false,
                     useUndo: false);
@@ -271,7 +271,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         }
 
         private static void ConfigureComposer(
-            PlayerComposer composer,
+            PreAuthoredPlayerComposer composer,
             bool cameraBindingRequired,
             bool createAnchorsIfMissing,
             PlayerComposerLookAtPolicy lookAtPolicy,
@@ -536,7 +536,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             private PlayerFixture(
                 GameObject root,
-                PlayerComposer composer,
+                PreAuthoredPlayerComposer composer,
                 PlayerInput playerInput,
                 InputActionAsset actionAsset)
             {
@@ -547,14 +547,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
             }
 
             public GameObject Root { get; }
-            public PlayerComposer Composer { get; }
+            public PreAuthoredPlayerComposer Composer { get; }
             public PlayerInput PlayerInput { get; }
             public InputActionAsset ActionAsset { get; }
 
             public static PlayerFixture Create(string name)
             {
                 var root = new GameObject(name);
-                PlayerComposer composer = root.AddComponent<PlayerComposer>();
+                PreAuthoredPlayerComposer composer = root.AddComponent<PreAuthoredPlayerComposer>();
                 PlayerInput playerInput = root.GetComponent<PlayerInput>();
 
                 var actionAsset = ScriptableObject.CreateInstance<InputActionAsset>();
