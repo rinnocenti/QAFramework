@@ -68,12 +68,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 SessionState.SetString(SceneSetupKey, JsonUtility.ToJson(previousScenes));
 
                 var completed = new List<string>();
-                RunEditorGroup(
-                    "composer-authoring",
-                    QaP3BPlayerComposerMinimalMaterializationSmoke.Run,
-                    completed,
-                    "composer-idempotent",
-                    "no-removed-player-components");
+
                 RunEditorGroup(
                     "slot-profile-authoring",
                     QaP3CPlayerProfileAuthoringSmoke.Run,

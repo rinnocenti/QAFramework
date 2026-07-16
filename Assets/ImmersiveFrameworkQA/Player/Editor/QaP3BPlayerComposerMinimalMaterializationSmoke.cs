@@ -12,11 +12,14 @@ using UnityEngine.InputSystem;
 namespace ImmersiveFrameworkQA.Player.Editor
 {
     /// <summary>
-    /// P3B editor-only regression smoke for the simplified PlayerComposer product surface.
+    /// P3B editor-only regression smoke for the alternative Pre-Authored Player Composer surface.
+    /// This is intentionally separate from the canonical join/ActorProfile materialization lane.
     /// Creates temporary in-memory objects only and destroys all created content after execution.
     /// </summary>
     internal static class QaP3BPlayerComposerMinimalMaterializationSmoke
     {
+        private const string MenuPath =
+            "Immersive Framework/QA/Player Alternatives/P3B Run Pre-Authored Player Composer Smoke";
         private const string PlayerMapName = "Player";
 
         private static readonly string[] LegacyTypeNames =
@@ -30,6 +33,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             "PlayerControlBehaviour"
         };
 
+        [MenuItem(MenuPath)]
         internal static void Run()
         {
             var completedCases = new List<string>();
@@ -43,14 +47,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 RunLookAtFollowPolicy(completedCases);
 
                 Debug.Log(
-                    "[P3B_PLAYER_COMPOSER_MINIMAL_SMOKE] status='Passed' " +
+                    "[P3B_PREAUTHORED_PLAYER_COMPOSER_SMOKE] status='Passed' " +
                     $"cases='{completedCases.Count}' " +
                     $"completed='{string.Join(",", completedCases)}'.");
             }
             catch (Exception exception)
             {
                 Debug.LogError(
-                    "[P3B_PLAYER_COMPOSER_MINIMAL_SMOKE] status='Failed' " +
+                    "[P3B_PREAUTHORED_PLAYER_COMPOSER_SMOKE] status='Failed' " +
                     $"exception='{exception.GetType().Name}' " +
                     $"message='{Escape(exception.Message)}' " +
                     $"completed='{string.Join(",", completedCases)}'.");
@@ -88,7 +92,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 fixture.Composer.LookAtTarget,
                 "Anchors/LookAtTarget");
 
-            AssertCanonicalMaterialization(fixture);
+            AssertPreAuthoredMaterialization(fixture);
             AssertNoLegacyMaterialization(fixture.Composer.gameObject);
             AssertGateWiring(fixture);
 
@@ -135,7 +139,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "Camera-disabled Player unexpectedly created an Anchors container.");
             AssertNull(fixture.Composer.CameraTarget, "Camera-disabled Player unexpectedly assigned CameraTarget.");
             AssertNull(fixture.Composer.LookAtTarget, "Camera-disabled Player unexpectedly assigned LookAtTarget.");
-            AssertCanonicalMaterialization(fixture);
+            AssertPreAuthoredMaterialization(fixture);
             AssertNoLegacyMaterialization(fixture.Composer.gameObject);
 
             completed.Add("camera-disabled-no-anchors");
@@ -226,7 +230,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             completed.Add("look-at-use-follow-target");
         }
 
-        private static void AssertCanonicalMaterialization(PlayerFixture fixture)
+        private static void AssertPreAuthoredMaterialization(PlayerFixture fixture)
         {
             PlayerActorDeclaration actor =
                 fixture.Root.GetComponent<PlayerActorDeclaration>();
