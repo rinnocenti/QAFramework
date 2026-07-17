@@ -283,16 +283,26 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Message");
                 AssertTrue(!string.IsNullOrWhiteSpace(gameplayMessage),
                     "Failed GameplayReady request returned no diagnostic message.");
-                AssertTrue(
+                bool reachedCanonicalActivityEnter =
                     gameplayMessage.IndexOf(
                         "canonical-player-enter-failed",
                         StringComparison.OrdinalIgnoreCase) >= 0 ||
                     gameplayMessage.IndexOf(
                         "Canonical Player Activity enter failed",
-                        StringComparison.OrdinalIgnoreCase) >= 0,
-                    "GameplayReady failed before the canonical Player pipeline. " +
+                        StringComparison.OrdinalIgnoreCase) >= 0;
+                bool rejectedByCanonicalSameRoutePreflight =
+                    gameplayMessage.IndexOf(
+                        "PrepareSameRouteActivityPlayerAdmission",
+                        StringComparison.OrdinalIgnoreCase) >= 0 &&
+                    gameplayMessage.IndexOf(
+                        "RejectedCurrentGameplayNotReady",
+                        StringComparison.OrdinalIgnoreCase) >= 0;
+                AssertTrue(
+                    reachedCanonicalActivityEnter ||
+                    rejectedByCanonicalSameRoutePreflight,
+                    "GameplayReady did not reach a canonical Player admission boundary. " +
                     gameplayMessage);
-                completed.Add("gameplay-ready-reached-canonical-pipeline");
+                completed.Add("gameplay-ready-canonical-boundary-rejected");
                 await AwaitSceneUnloadedAsync();
                 AssertSame(noPlayersActivity, ResolveCurrentActivity(runtimeHost),
                     "Failed GameplayReady request replaced the current Activity.");
@@ -305,7 +315,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     runtimeContent,
                     gameplayOwner,
                     slotId);
-                completed.Add("gameplay-ready-failure-rolled-back");
+                completed.Add("gameplay-ready-rejection-left-no-residue");
 
                 AssertFalse(TryResolveLoadedFixture(out _),
                     "Failed target Activity retained its Scene Local Player scene.");
