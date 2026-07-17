@@ -197,94 +197,13 @@ MonoBehaviour:
   m_DefaultActionMap: 
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!1001 &799199189
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 1447405097}
-    m_Modifications:
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_Name
-      value: P3M5B Route A Activity Actor
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 799199193}
-  m_SourcePrefab: {fileID: 100100000, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
---- !u!114 &799199190 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4438141168736318348, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  m_PrefabInstance: {fileID: 799199189}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 799199191}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 26cc512b3155464caed4dc48a6c9de6d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Actors.PlayerActorDeclaration
---- !u!1 &799199191 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  m_PrefabInstance: {fileID: 799199189}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &799199192 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  m_PrefabInstance: {fileID: 799199189}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &799199193
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 799199191}
+  m_GameObject: {fileID: 9022688616461058309}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7e4cd0957f664eeda71cf45e48a45c1d, type: 3}
@@ -292,7 +211,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneLogicalPlayerActorEvidence
   actorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
   logicalActorHostPrefab: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  authoringDiagnostic: P3M5B evidence for 'P3M5B Route A Activity Actor' selected='P3M5B_SceneActorProfile'.
+  authoringDiagnostic: P3M5B persisted reference repair for 'P3M5B Route A Activity
+    Actor'.
 --- !u!1 &1363369154
 GameObject:
   m_ObjectHideFlags: 0
@@ -325,7 +245,7 @@ MonoBehaviour:
   playerSlotProfile: {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
   localPlayerHost: {fileID: 165768970}
   actorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
-  sceneLogicalPlayerActor: {fileID: 799199190}
+  sceneLogicalPlayerActor: {fileID: 4438141168411376729}
   admissionTiming: 0
   lastAuthoringStatus: 0
   lastAuthoringDiagnostic: Scene Local Player Admission has not been validated.
@@ -373,9 +293,60 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 799199192}
+  - {fileID: 6495112087100742327}
   m_Father: {fileID: 165768969}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4438141168411376729
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9022688616461058309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26cc512b3155464caed4dc48a6c9de6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Actors.PlayerActorDeclaration
+  actorId: qa.p3m5b.scene-player.authored
+  actorKind: 20
+  actorRole: 50
+  displayName: P3M5B Scene Player
+  reason: p3m5b.scene-player.authored
+  playerInput: {fileID: 0}
+--- !u!4 &6495112087100742327
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9022688616461058309}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1447405097}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &9022688616461058309
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6495112087100742327}
+  - component: {fileID: 4438141168411376729}
+  - component: {fileID: 799199193}
+  m_Layer: 0
+  m_Name: P3M5B Route A Activity Actor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

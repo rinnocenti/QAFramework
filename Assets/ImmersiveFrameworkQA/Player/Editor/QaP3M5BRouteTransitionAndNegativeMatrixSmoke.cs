@@ -148,6 +148,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 AssertRequestSucceeded(
                     routeARequest,
                     "P3M5B Route A request failed.");
+                AssertRouteActivityReady(
+                    routeARequest,
+                    "P3M5B Route A Startup Activity is not ready.");
                 completed.Add("route-a-request-succeeded");
 
                 AssertSame(routeA, ResolveCurrentRoute(runtimeHost),
@@ -156,9 +159,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Route A Startup Activity did not become current.");
                 completed.Add("route-a-startup-activity-active");
 
-                routeAOwner = RuntimeContentOwner.Activity(
-                    routeAActivity.ActivityName,
-                    routeAActivity.ActivityName);
+                routeAOwner = CreateActivityOwner(routeAActivity);
                 LoadedPlayerFixture routeAFirst = await AwaitActiveFixtureAsync(
                     QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteAActivityScenePath,
                     preparationModule,
@@ -186,6 +187,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 AssertRequestSucceeded(
                     routeBRequest,
                     "P3M5B Route B request failed.");
+                AssertRouteActivityReady(
+                    routeBRequest,
+                    "P3M5B Route B Startup Activity is not ready.");
                 completed.Add("route-b-request-succeeded");
 
                 await AwaitScenesUnloadedAsync(
@@ -204,9 +208,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Route B did not become current.");
                 AssertSame(routeBActivity, ResolveCurrentActivity(runtimeHost),
                     "Route B Startup Activity did not become current.");
-                routeBOwner = RuntimeContentOwner.Activity(
-                    routeBActivity.ActivityName,
-                    routeBActivity.ActivityName);
+                routeBOwner = CreateActivityOwner(routeBActivity);
                 LoadedPlayerFixture routeBFixture = await AwaitActiveFixtureAsync(
                     QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteBActivityScenePath,
                     preparationModule,
@@ -241,6 +243,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 AssertRequestSucceeded(
                     routeAReentryRequest,
                     "P3M5B Route A re-entry request failed.");
+                AssertRouteActivityReady(
+                    routeAReentryRequest,
+                    "P3M5B Route A re-entry Startup Activity is not ready.");
                 AssertSame(routeA, ResolveCurrentRoute(runtimeHost),
                     "Route A did not become current after re-entry.");
                 completed.Add("route-a-reentry-succeeded");
@@ -615,42 +620,115 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 message + " " + GetStringProperty(result, "Message"));
         }
 
+        private static void AssertRouteActivityReady(
+            object routeRequestResult,
+            string message)
+        {
+            object routeLifecycle = GetPropertyValue(
+                routeRequestResult,
+                "RouteLifecycleResult");
+            AssertNotNull(
+                routeLifecycle,
+                message + " RouteLifecycleResult is missing.");
+
+            object activityFlow = GetPropertyValue(
+                routeLifecycle,
+                "ActivityFlowResult");
+            AssertNotNull(
+                activityFlow,
+                message + " ActivityFlowResult is missing.");
+
+            object execution = GetPropertyValue(
+                activityFlow,
+                "ActivityContentExecutionResult");
+            object enterResult = execution != null
+                ? GetPropertyValue(execution, "EnterResult")
+                : null;
+            string executionDiagnostic = execution != null
+                ? execution.ToString()
+                : "<missing-activity-content-execution>";
+            string enterDiagnostic = enterResult != null
+                ? enterResult.ToString()
+                : "<missing-enter-aggregate>";
+
+            AssertTrue(
+                GetBooleanProperty(activityFlow, "IsActivityReady"),
+                message + " " + GetStringProperty(activityFlow, "Message") +
+                " execution=(" + executionDiagnostic + ")" +
+                " enter=(" + enterDiagnostic + ")");
+        }
+
+        private static RuntimeContentOwner CreateActivityOwner(
+            ActivityAsset activity)
+        {
+            AssertNotNull(activity,
+                "P3M5B Activity owner requires an Activity asset.");
+            AssertTrue(activity.HasValidActivityId,
+                $"P3M5B Activity '{activity.name}' has no valid ActivityId.");
+            return RuntimeContentOwner.Activity(
+                activity.ActivityId.StableText,
+                activity.ActivityName);
+        }
+
         private static async Task<LoadedPlayerFixture> AwaitActiveFixtureAsync(
             string scenePath,
             object preparationModule,
             PlayerSlotId playerSlotId,
             RuntimeContentOwner expectedOwner)
         {
+            SceneLocalPlayerAdmissionAuthoring lastAuthoring = null;
+            ScenePlayerActorAdoptionToken lastAdoption = default;
+            PlayerActorPreparationSummary lastPreparation = default;
+            bool foundPreparation = false;
+
             for (int frame = 0; frame < 240; frame++)
             {
-                SceneLocalPlayerAdmissionAuthoring authoring =
-                    ResolveSingleSurface(scenePath, requireLoaded: false);
-                if (authoring != null &&
-                    authoring.RuntimeReady &&
-                    authoring.HasActiveAdmission &&
-                    TryGetAdoptionToken(
-                        preparationModule,
-                        playerSlotId,
-                        out ScenePlayerActorAdoptionToken adoption))
+                lastAuthoring = ResolveSingleSurface(
+                    scenePath,
+                    requireLoaded: false);
+                bool foundAdoption = TryGetAdoptionToken(
+                    preparationModule,
+                    playerSlotId,
+                    out lastAdoption);
+                foundPreparation = TryGetPreparationSummary(
+                    preparationModule,
+                    playerSlotId,
+                    out lastPreparation);
+
+                if (lastAuthoring != null &&
+                    lastAuthoring.RuntimeReady &&
+                    lastAuthoring.HasActiveAdmission &&
+                    foundAdoption &&
+                    foundPreparation &&
+                    lastPreparation.IsPrepared &&
+                    lastPreparation.Materialization.Owner == expectedOwner)
                 {
-                    PlayerActorPreparationSummary preparation =
-                        GetPreparationSummary(preparationModule, playerSlotId);
-                    if (preparation.IsPrepared &&
-                        preparation.Materialization.Owner == expectedOwner)
-                    {
-                        return new LoadedPlayerFixture(
-                            authoring.gameObject.scene,
-                            authoring,
-                            adoption,
-                            preparation);
-                    }
+                    return new LoadedPlayerFixture(
+                        lastAuthoring.gameObject.scene,
+                        lastAuthoring,
+                        lastAdoption,
+                        lastPreparation);
                 }
 
                 await Awaitable.NextFrameAsync();
             }
 
+            Scene loadedScene = SceneManager.GetSceneByPath(scenePath);
+            string actualOwner = foundPreparation &&
+                lastPreparation.Materialization.Owner.IsValid
+                    ? lastPreparation.Materialization.Owner.StableText
+                    : string.Empty;
             throw new InvalidOperationException(
-                $"P3M5B Scene Player fixture '{scenePath}' did not become active within 240 frames.");
+                $"P3M5B Scene Player fixture '{scenePath}' did not become active within 240 frames. " +
+                $"sceneLoaded='{loadedScene.IsValid() && loadedScene.isLoaded}' " +
+                $"surfaceFound='{lastAuthoring != null}' " +
+                $"runtimeReady='{(lastAuthoring != null && lastAuthoring.RuntimeReady)}' " +
+                $"activeAdmission='{(lastAuthoring != null && lastAuthoring.HasActiveAdmission)}' " +
+                $"adoptionValid='{lastAdoption.IsValid}' " +
+                $"preparationFound='{foundPreparation}' " +
+                $"preparationState='{(foundPreparation ? (lastPreparation.IsPrepared ? "Prepared" : "NotPrepared") : string.Empty)}' " +
+                $"actualOwner='{actualOwner}' expectedOwner='{expectedOwner.StableText}' " +
+                $"surfaceDiagnostic='{(lastAuthoring != null ? lastAuthoring.RuntimeDiagnostic : string.Empty)}'.");
         }
 
         private static void AssertAdmittedState(
@@ -987,6 +1065,19 @@ namespace ImmersiveFrameworkQA.Player.Editor
             object preparationModule,
             PlayerSlotId playerSlotId)
         {
+            AssertTrue(TryGetPreparationSummary(
+                    preparationModule,
+                    playerSlotId,
+                    out PlayerActorPreparationSummary summary),
+                $"No preparation summary exists for Slot '{playerSlotId.StableText}'.");
+            return summary;
+        }
+
+        private static bool TryGetPreparationSummary(
+            object preparationModule,
+            PlayerSlotId playerSlotId,
+            out PlayerActorPreparationSummary summary)
+        {
             MethodInfo get = preparationModule.GetType().GetMethod(
                 "TryGetScenePlayerActorPreparationSummary",
                 InstanceAny);
@@ -994,9 +1085,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "Preparation module has no Scene Player preparation summary operation.");
             object[] arguments = { playerSlotId, null };
             bool found = (bool)get.Invoke(preparationModule, arguments);
-            AssertTrue(found,
-                $"No preparation summary exists for Slot '{playerSlotId.StableText}'.");
-            return (PlayerActorPreparationSummary)arguments[1];
+            summary = found
+                ? (PlayerActorPreparationSummary)arguments[1]
+                : default;
+            return found;
         }
 
         private static bool TryGetAdoptionToken(
