@@ -63,6 +63,23 @@ same Local Player Host reused by two Slot surfaces
 The Route A primary scene surface is used to prove that loaded surfaces outside
 an Activity's declared content are ignored rather than admitted.
 
+## Activity identity
+
+Every generated Activity asset receives one explicit stable `activityId`. The
+fixture updates existing assets idempotently, so reapplying it repairs assets
+created by the initial P3M5B setup. Display names and asset filenames are not
+used as Activity scene ownership identity.
+
+```text
+qa.p3m5b.activity.route-a.startup
+qa.p3m5b.activity.route-b.startup
+qa.p3m5b.activity.negative.duplicate-slot
+qa.p3m5b.activity.negative.missing-actor
+qa.p3m5b.activity.negative.mismatched-profile
+qa.p3m5b.activity.negative.reused-host
+qa.p3m5b.activity.negative.undeclared-surface
+```
+
 ## Smoke
 
 Run in a fresh Play Mode session:
@@ -116,6 +133,7 @@ participant order, or a new Route rollback model.
 ## Acceptance
 
 ```text
+Every generated Activity has a valid explicit ActivityId.
 Route replacement compiles and completes through FrameworkRuntimeHost.
 Only one Scene Local Player admission is active after each Route switch.
 Previous Activity scene, preparation, adoption and RuntimeContent owner do not remain.

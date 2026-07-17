@@ -134,6 +134,30 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/ImmersiveFrameworkQA/Player/P3M5A/P3M5A_SceneLocalPlayerActivity.unity
     guid: a4a3c51e8f84bfd449698ad539776d73
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/P3M5B/P3M5B_RouteA.unity
+    guid: 5c7ba20f4a7a2094b9e1e1a2386a1674
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/P3M5B/P3M5B_RouteB.unity
+    guid: d94c9a0718433fe41a57911569c8bf85
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/P3M5B/P3M5B_RouteA_PlayerActivity.unity
+    guid: f3cdf47da9ad0e64ba5de0aee273d3c7
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/P3M5B/P3M5B_RouteB_PlayerActivity.unity
+    guid: 69fc74c304722a24d9362f86c7ab3313
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/P3M5B/P3M5B_Negative_DuplicateSlot.unity
+    guid: b6afa38f2d3b9cb4d8ebf2f83bfd2e19
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/P3M5B/P3M5B_Negative_MissingActor.unity
+    guid: b7ad40082146ed248a0b1b46ede05719
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/P3M5B/P3M5B_Negative_MismatchedProfile.unity
+    guid: ab671433a17b84346bd2ec6da3a4b99a
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/P3M5B/P3M5B_Negative_ReusedHost.unity
+    guid: 047f27b1271dc0c4dabec221c019311f
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

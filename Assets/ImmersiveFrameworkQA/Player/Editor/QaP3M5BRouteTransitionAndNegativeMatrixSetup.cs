@@ -105,6 +105,21 @@ namespace ImmersiveFrameworkQA.Player.Editor
         internal const string AlternateActorProfileId =
             "qa.p3m5b.scene-player.profile.alternate";
 
+        internal const string RouteAActivityId =
+            "qa.p3m5b.activity.route-a.startup";
+        internal const string RouteBActivityId =
+            "qa.p3m5b.activity.route-b.startup";
+        internal const string DuplicateSlotActivityId =
+            "qa.p3m5b.activity.negative.duplicate-slot";
+        internal const string MissingActorActivityId =
+            "qa.p3m5b.activity.negative.missing-actor";
+        internal const string MismatchedProfileActivityId =
+            "qa.p3m5b.activity.negative.mismatched-profile";
+        internal const string ReusedHostActivityId =
+            "qa.p3m5b.activity.negative.reused-host";
+        internal const string UndeclaredSurfaceActivityId =
+            "qa.p3m5b.activity.negative.undeclared-surface";
+
         [MenuItem(MenuPath, true)]
         private static bool ValidateApply()
         {
@@ -229,6 +244,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 ActivityAsset routeAActivity = CreateOrUpdateActivity(
                     RouteAActivityPath,
+                    RouteAActivityId,
                     "P3M5B Route A Startup Activity",
                     firstSlotProjection,
                     requirements,
@@ -238,6 +254,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         RouteAActivityScenePath));
                 ActivityAsset routeBActivity = CreateOrUpdateActivity(
                     RouteBActivityPath,
+                    RouteBActivityId,
                     "P3M5B Route B Startup Activity",
                     firstSlotProjection,
                     requirements,
@@ -247,6 +264,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         RouteBActivityScenePath));
                 CreateOrUpdateActivity(
                     DuplicateSlotActivityPath,
+                    DuplicateSlotActivityId,
                     "P3M5B Negative Duplicate Slot Activity",
                     firstSlotProjection,
                     requirements,
@@ -256,6 +274,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         DuplicateSlotScenePath));
                 CreateOrUpdateActivity(
                     MissingActorActivityPath,
+                    MissingActorActivityId,
                     "P3M5B Negative Missing Actor Activity",
                     firstSlotProjection,
                     requirements,
@@ -265,6 +284,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         MissingActorScenePath));
                 CreateOrUpdateActivity(
                     MismatchedProfileActivityPath,
+                    MismatchedProfileActivityId,
                     "P3M5B Negative Mismatched Profile Activity",
                     firstSlotProjection,
                     requirements,
@@ -274,6 +294,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         MismatchedProfileScenePath));
                 CreateOrUpdateActivity(
                     ReusedHostActivityPath,
+                    ReusedHostActivityId,
                     "P3M5B Negative Reused Host Activity",
                     twoSlotProjection,
                     requirements,
@@ -283,6 +304,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         ReusedHostScenePath));
                 CreateOrUpdateActivity(
                     UndeclaredSurfaceActivityPath,
+                    UndeclaredSurfaceActivityId,
                     "P3M5B Negative Undeclared Surface Activity",
                     firstSlotProjection,
                     requirements,
@@ -306,6 +328,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "[P3M5B_ROUTE_TRANSITION_NEGATIVE_MATRIX_FIXTURE] " +
                     "status='Applied' " +
                     $"routeA='{routeA.RouteName}' routeB='{routeB.RouteName}' " +
+                    $"routeAActivityId='{routeAActivity.ActivityId.StableText}' " +
+                    $"routeBActivityId='{routeBActivity.ActivityId.StableText}' " +
                     $"slot1='{slots[0].PlayerSlotId.StableText}' " +
                     $"slot2='{slots[1].PlayerSlotId.StableText}' " +
                     "negativeCases='duplicate-slot,missing-actor,mismatched-profile,reused-host,undeclared-surface'.");
@@ -832,6 +856,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
         private static ActivityAsset CreateOrUpdateActivity(
             string path,
+            string activityId,
             string activityName,
             ActivityParticipationProjectionProfile projection,
             PlayerParticipationRequirementsProfile requirements,
@@ -846,6 +871,15 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             activity.name = Path.GetFileNameWithoutExtension(path);
             var serialized = new SerializedObject(activity);
+            SerializedProperty activityIdProperty =
+                serialized.FindProperty("activityId");
+            if (activityIdProperty == null)
+            {
+                throw new InvalidOperationException(
+                    $"ActivityAsset '{activity.name}' does not expose the required serialized activityId field.");
+            }
+
+            activityIdProperty.stringValue = activityId;
             serialized.FindProperty("activityName").stringValue = activityName;
             serialized.FindProperty("description").stringValue =
                 "P3M5B QA-only Route transition and negative-matrix Activity.";

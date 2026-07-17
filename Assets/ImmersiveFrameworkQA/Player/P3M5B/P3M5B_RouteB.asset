@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a35fe899a80d2d64dac72e8bfe3079df, type: 3}
+  m_Name: P3M5B_RouteB
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.RouteAsset
+  routeName: P3M5B Route B
+  primaryScenePath: Assets/ImmersiveFrameworkQA/Player/P3M5B/P3M5B_RouteB.unity
+  primarySceneName: P3M5B_RouteB
+  routeContentProfile: {fileID: 0}
+  startupActivity: {fileID: 11400000, guid: 3c973eb1920859643967024061605e7e, type: 2}
+  transitionGateMode: 30
+  description: P3M5B QA-only Route with a real Scene Local Player Startup Activity.
