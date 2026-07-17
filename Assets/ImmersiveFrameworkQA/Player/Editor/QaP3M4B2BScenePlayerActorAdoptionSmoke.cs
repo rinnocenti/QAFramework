@@ -100,7 +100,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     PlayerParticipationRequirementLevel.LogicalActorsPrepared,
                     created);
                 RuntimeContentOwner owner = RuntimeContentOwner.Activity(
-                    "qa.p3m4b2b.activity.owner",
+                    preparedActivity.ActivityId.StableText,
                     preparedActivity.ActivityName);
                 CreateScopeRoot(runtimeContentRuntime, owner);
                 RuntimeScopeContext scope = new RuntimeScopeContext(
@@ -279,7 +279,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     PlayerParticipationRequirementLevel.GameplayReady,
                     created);
                 RuntimeContentOwner gameplayOwner = RuntimeContentOwner.Activity(
-                    "qa.p3m4b2b.gameplay.owner",
+                    gameplayActivity.ActivityId.StableText,
                     gameplayActivity.ActivityName);
                 CreateScopeRoot(runtimeContentRuntime, gameplayOwner);
                 RuntimeScopeContext gameplayScope = new RuntimeScopeContext(

@@ -521,6 +521,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             activity.name = Path.GetFileNameWithoutExtension(path);
             var serialized = new SerializedObject(activity);
+            serialized.FindProperty("activityId").stringValue = CreateActivityId(path);
             serialized.FindProperty("activityName").stringValue = activityName;
             serialized.FindProperty("description").stringValue =
                 "P3M5A QA-only real Activity lifecycle fixture.";
@@ -601,6 +602,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
             property.objectReferenceValue = value;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(target);
+        }
+
+        private static string CreateActivityId(string assetPath)
+        {
+            string fileName = Path.GetFileNameWithoutExtension(assetPath) ?? string.Empty;
+            return "qa." + fileName.Replace("_", ".").ToLowerInvariant();
         }
 
         private static void SetString(

@@ -179,13 +179,13 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 currentContext = CreateActivityScopeContext(
                     runtimeHost,
-                    currentActivity.ActivityName,
+                    currentActivity.ActivityId.StableText,
                     currentActivity.ActivityName,
                     out runtimeContent,
                     out runtimeContentType);
                 RuntimeContentOwner currentOwner =
                     RuntimeContentOwner.Activity(
-                        currentActivity.ActivityName,
+                        currentActivity.ActivityId.StableText,
                         currentActivity.ActivityName);
                 AssertEqual(currentOwner, currentContext.Owner,
                     "Current Activity scope owner differs from lifecycle owner.");
@@ -260,7 +260,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         joined.Slot.Profile);
                 RuntimeContentOwner targetOwner =
                     RuntimeContentOwner.Activity(
-                        targetActivity.ActivityName,
+                        targetActivity.ActivityId.StableText,
                         targetActivity.ActivityName);
                 completed.Add("gameplayready-target-authored");
 
@@ -1042,6 +1042,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 new SerializedObject(activity);
             activitySerialized.FindProperty("activityName").stringValue =
                 "P3K.7H Target Activity";
+            activitySerialized.FindProperty("activityId").stringValue =
+                "qa.p3k7h.target.activity";
             activitySerialized.FindProperty(
                     "playerParticipationProjectionProfile")
                 .objectReferenceValue = projection;

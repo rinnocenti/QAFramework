@@ -187,6 +187,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             activity.name = activityName;
             var serialized = new SerializedObject(activity);
+            serialized.FindProperty("activityId").stringValue = CreateActivityId(assetPath);
             serialized.FindProperty("activityName").stringValue = activityName;
             serialized.FindProperty("description").stringValue =
                 "QA Activity proving Activity-owned Logical Player Actor lifecycle and readiness.";
@@ -217,6 +218,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 current = next;
             }
+        }
+
+        private static string CreateActivityId(string assetPath)
+        {
+            string fileName = System.IO.Path.GetFileNameWithoutExtension(assetPath) ?? string.Empty;
+            return "qa." + fileName.Replace("_", ".").ToLowerInvariant();
         }
 
         private static string Escape(string value)

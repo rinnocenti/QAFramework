@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 17f34eeb2a524bf993b7ad9fd345162e, type: 3}
-  m_Name: P3J6_LogicalActorsPrepared
+  m_Name: P3J6 Logical Actors Prepared
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerParticipationRequirementsProfile
   displayName: "P3J.6 \u2014 Logical Actors Prepared"
   description: Every projected joined Slot must have its selected/default Logical

@@ -440,11 +440,18 @@ namespace ImmersiveFrameworkQA.Audio.Editor
         {
             ActivityAsset asset = LoadOrCreate<ActivityAsset>(assetPath);
             SerializedObject serialized = new SerializedObject(asset);
+            SetSerialized(serialized, "activityId", CreateActivityId(assetPath));
             SetSerialized(serialized, "activityName", activityName);
             SetSerialized(serialized, "description", description);
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(asset);
             return asset;
+        }
+
+        private static string CreateActivityId(string assetPath)
+        {
+            string fileName = System.IO.Path.GetFileNameWithoutExtension(assetPath) ?? string.Empty;
+            return "qa." + fileName.Replace("_", ".").ToLowerInvariant();
         }
 
         private static T LoadOrCreate<T>(string assetPath) where T : ScriptableObject

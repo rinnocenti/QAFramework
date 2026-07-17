@@ -50,6 +50,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             ActivityAsset activity = LoadOrCreate<ActivityAsset>(ActivityPath);
             Set(activity, "activityName",
                 "QA C9R Camera Override Authority Activity");
+            Set(activity, "activityId",
+                "qa.c9r.camera.override.authority.activity");
             Set(activity, "description",
                 "Explicit Activity override used by the C9R authority proof.");
 

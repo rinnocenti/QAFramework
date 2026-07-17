@@ -188,7 +188,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 completed.Add("external-actor-adopted-canonically");
 
                 RuntimeContentOwner firstOwner = RuntimeContentOwner.Activity(
-                    preparedActivity.ActivityName,
+                    preparedActivity.ActivityId.StableText,
                     preparedActivity.ActivityName);
                 AssertEqual(1, CountRuntimeRoots(runtimeContent, firstOwner),
                     "Prepared Activity RuntimeContent owner root is missing.");
@@ -307,7 +307,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 AssertSame(noPlayersActivity, ResolveCurrentActivity(runtimeHost),
                     "Failed GameplayReady request replaced the current Activity.");
                 RuntimeContentOwner gameplayOwner = RuntimeContentOwner.Activity(
-                    gameplayActivity.ActivityName,
+                    gameplayActivity.ActivityId.StableText,
                     gameplayActivity.ActivityName);
                 AssertReleasedState(
                     participationContext,

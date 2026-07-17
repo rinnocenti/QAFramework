@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6d702c1ba364e70ad76a85eb5f1b842, type: 3}
   m_Name: QA_TransitionActivityB
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.ActivityAsset
+  activityId: qa.transition.activity.b
   activityName: QA Transition Activity B
   description: Unity Build Surface QA activity for transition route B.
   playerParticipationProjectionProfile: {fileID: 11400000, guid: c861b083f12cc6345a38251a5a6d75f7, type: 2}

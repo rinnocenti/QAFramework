@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6d702c1ba364e70ad76a85eb5f1b842, type: 3}
   m_Name: P3M5A_NoPlayersActivity
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.ActivityAsset
+  activityId: p3m5a.no.players.activity
   activityName: P3M5A No Players Activity
   description: P3M5A QA-only real Activity lifecycle fixture.
   playerParticipationProjectionProfile: {fileID: 11400000, guid: 56f42f682ad292042bfa92dd96b3e15c, type: 2}
