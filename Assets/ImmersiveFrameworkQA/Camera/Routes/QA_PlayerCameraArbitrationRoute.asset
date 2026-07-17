@@ -18,5 +18,5 @@ MonoBehaviour:
   routeContentProfile: {fileID: 0}
   startupActivity: {fileID: 11400000, guid: 2962537da41ed2b4e9e39ccd28c92f86, type: 2}
   transitionGateMode: 30
-  description: C9R authority proof for Player, Activity, Route and Session camera
-    overrides.
+  description: C9R authority proof for synthetic LocalPlayer, Activity, Route and
+    Session camera requests.

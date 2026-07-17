@@ -28,9 +28,13 @@ namespace ImmersiveFrameworkQA.Editor.CameraAuthoring
                 GameObject rig = new GameObject("FollowRig");
                 rig.transform.SetParent(root.transform, false);
 
+                ExplicitCameraTargetSourceAuthoring source =
+                    rig.AddComponent<ExplicitCameraTargetSourceAuthoring>();
+                Configure(source, target.transform);
+
                 CameraRigComposer composer =
                     rig.AddComponent<CameraRigComposer>();
-                Configure(composer, target.transform);
+                Configure(composer, source);
 
                 CameraRigComposerApplyRebuildResult first =
                     CameraRigComposerApplyRebuildUtility.ApplyOrRebuild(
@@ -40,6 +44,8 @@ namespace ImmersiveFrameworkQA.Editor.CameraAuthoring
 
                 Require(first.Succeeded,
                     $"First Apply/Rebuild failed: {first.BlockingIssue}");
+                Require(composer.TargetSourceBehaviour == source,
+                    "Typed target source was not assigned.");
                 Require(composer.CinemachineCamera != null,
                     "CinemachineCamera was not materialized.");
                 Require(
@@ -65,12 +71,13 @@ namespace ImmersiveFrameworkQA.Editor.CameraAuthoring
                 Require(second.CreatedCount == 0,
                     $"Second Apply/Rebuild was not idempotent. created='{second.CreatedCount}'.");
                 Require(
-                    composer.CinemachineCamera.GetComponents<CinemachineFollow>().Length == 1,
+                    composer.CinemachineCamera
+                        .GetComponents<CinemachineFollow>().Length == 1,
                     "Apply/Rebuild created duplicate CinemachineFollow components.");
 
                 Debug.Log(
-                    $"{LogPrefix} PASS. status='Passed' cases='5' " +
-                    "completed='camera-materialized,follow-pipeline-materialized,target-assigned,offset-applied,idempotent'.");
+                    $"{LogPrefix} PASS. status='Passed' cases='6' " +
+                    "completed='target-source-assigned,camera-materialized,follow-pipeline-materialized,target-assigned,offset-applied,idempotent'.");
             }
             catch (Exception exception)
             {
@@ -89,19 +96,30 @@ namespace ImmersiveFrameworkQA.Editor.CameraAuthoring
         }
 
         private static void Configure(
-            CameraRigComposer composer,
+            ExplicitCameraTargetSourceAuthoring source,
             Transform target)
+        {
+            var serialized = new SerializedObject(source);
+            serialized.Update();
+            serialized.FindProperty("logicalSourceId").stringValue =
+                "qa.c9m.follow-target";
+            serialized.FindProperty("followTarget").objectReferenceValue =
+                target;
+            serialized.FindProperty("lookAtTarget").objectReferenceValue =
+                target;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void Configure(
+            CameraRigComposer composer,
+            ExplicitCameraTargetSourceAuthoring source)
         {
             var serialized = new SerializedObject(composer);
             serialized.Update();
             serialized.FindProperty("presentationIntent").intValue =
                 (int)CameraRigPresentationIntent.Follow;
-            serialized.FindProperty("targetSourceKind").intValue =
-                (int)CameraTargetSourceKind.ExplicitTransform;
-            serialized.FindProperty("explicitFollowTarget").objectReferenceValue =
-                target;
-            serialized.FindProperty("explicitLookAtTarget").objectReferenceValue =
-                target;
+            serialized.FindProperty("targetSource").objectReferenceValue =
+                source;
             serialized.FindProperty("followRequirement").intValue =
                 (int)CameraTargetRequirement.Required;
             serialized.FindProperty("lookAtRequirement").intValue =

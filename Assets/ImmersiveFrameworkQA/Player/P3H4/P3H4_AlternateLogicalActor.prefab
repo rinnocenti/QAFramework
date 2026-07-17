@@ -308,7 +308,7 @@ MonoBehaviour:
   recipe: {fileID: 0}
   presentationIntent: 10
   targetSourceKind: 10
-  playerComposer: {fileID: 0}
+  targetSource: {fileID: 0}
   explicitFollowTarget: {fileID: 3059227772595912486}
   explicitLookAtTarget: {fileID: 7592801142902747627}
   followRequirement: 20

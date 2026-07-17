@@ -151,7 +151,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Camera.QaC9RCameraOverrideAuthorityFixture
   routeBinding: {fileID: 1577868843}
-  playerBinding: {fileID: 488610419}
+  playerBinding: {fileID: 488610423}
   activityBinding: {fileID: 1580616522}
   routeComposer: {fileID: 660878652}
   playerComposer: {fileID: 1179249547}
@@ -215,6 +215,7 @@ GameObject:
   m_Component:
   - component: {fileID: 94951503}
   - component: {fileID: 94951502}
+  - component: {fileID: 94951504}
   m_Layer: 0
   m_Name: Activity Cinemachine Camera
   m_TagString: Untagged
@@ -242,7 +243,7 @@ MonoBehaviour:
   m_StreamingVersion: 0
   m_LegacyPriority: 0
   Target:
-    TrackingTarget: {fileID: 0}
+    TrackingTarget: {fileID: 455465705}
     LookAtTarget: {fileID: 0}
     CustomLookAtTarget: 0
   Lens:
@@ -280,6 +281,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 717848987}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &94951504
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 94951501}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b617507da6d07e749b7efdb34e1173e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
+  TrackerSettings:
+    BindingMode: 4
+    PositionDamping: {x: 1, y: 1, z: 1}
+    AngularDampingMode: 0
+    RotationDamping: {x: 1, y: 1, z: 1}
+    QuaternionDamping: 1
+  FollowOffset: {x: 0, y: 5, z: -8}
 --- !u!1 &446551428
 GameObject:
   m_ObjectHideFlags: 0
@@ -290,6 +310,7 @@ GameObject:
   m_Component:
   - component: {fileID: 446551430}
   - component: {fileID: 446551429}
+  - component: {fileID: 446551431}
   m_Layer: 0
   m_Name: Route Cinemachine Camera
   m_TagString: Untagged
@@ -317,7 +338,7 @@ MonoBehaviour:
   m_StreamingVersion: 0
   m_LegacyPriority: 0
   Target:
-    TrackingTarget: {fileID: 0}
+    TrackingTarget: {fileID: 1926355593}
     LookAtTarget: {fileID: 0}
     CustomLookAtTarget: 0
   Lens:
@@ -355,6 +376,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 660878653}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &446551431
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 446551428}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b617507da6d07e749b7efdb34e1173e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
+  TrackerSettings:
+    BindingMode: 4
+    PositionDamping: {x: 1, y: 1, z: 1}
+    AngularDampingMode: 0
+    RotationDamping: {x: 1, y: 1, z: 1}
+    QuaternionDamping: 1
+  FollowOffset: {x: 0, y: 5, z: -8}
 --- !u!1 &455465704
 GameObject:
   m_ObjectHideFlags: 0
@@ -395,9 +435,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 488610422}
-  - component: {fileID: 488610421}
-  - component: {fileID: 488610420}
-  - component: {fileID: 488610419}
+  - component: {fileID: 488610423}
   m_Layer: 0
   m_Name: QA_C9R_LocalPlayer
   m_TagString: Untagged
@@ -405,100 +443,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &488610419
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 488610418}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 22dd0757d250482db9aac8c4321ce61d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Camera.LocalPlayerCameraRequestBinding
-  playerComposer: {fileID: 488610420}
-  eligibilityScopeId: qa.c9r.player.eligibility
-  requestId: qa.camera.request.c9r.player
-  outputSession: {fileID: 0}
-  rigComposer: {fileID: 1179249547}
-  precedence: 50
-  tieBreakerId: player
-  eligibleOnEnable: 1
-  releaseOnDisable: 1
-  logDiagnostics: 1
-  isLocallyEligible: 0
-  lastStatus: NotEligible
-  lastDiagnostic: 
---- !u!114 &488610420
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 488610418}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a5f97092359840da932627d1a0d12089, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerAuthoring.PlayerComposer
-  recipe: {fileID: 0}
-  actorId: qa.player.actor.c9r
-  playerSlotId: qa.player.slot.1
-  validationMode: 0
-  controlEnabled: 1
-  playerInput: {fileID: 488610421}
-  inputBindingRequired: 1
-  gateParticipation: 1
-  cameraBindingRequired: 1
-  cameraTarget: {fileID: 1947923678}
-  lookAtTarget: {fileID: 2105951581}
-  lookAtPolicy: 0
-  resetEnabled: 0
-  resetScope: 0
-  resetParticipantPolicy: 0
-  frameworkBindingsRoot: {fileID: 0}
-  createBindingsRootIfMissing: 1
-  createAnchorsIfMissing: 1
-  logApplyRebuildDiagnostics: 1
-  gameplayActionMap: Player
-  controlTarget: {fileID: 0}
-  controlStartupPolicy: 0
-  materializeSlotOccupancy: 0
-  materializePassiveEntryViewControl: 0
-  lastApplyRebuildStatus: 
-  lastBlockingIssue: 
-  lastMaterializationSummary: 
---- !u!114 &488610421
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 488610418}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.PlayerInput
-  m_Actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  m_NotificationBehavior: 0
-  m_UIInputModule: {fileID: 0}
-  m_DeviceLostEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_DeviceRegainedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_ControlsChangedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_ActionEvents: []
-  m_NeverAutoSwitchControlSchemes: 0
-  m_DefaultControlScheme: 
-  m_DefaultActionMap: 
-  m_SplitScreenIndex: -1
-  m_Camera: {fileID: 0}
 --- !u!4 &488610422
 Transform:
   m_ObjectHideFlags: 0
@@ -514,6 +458,31 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &488610423
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 488610418}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b59842c55ba40abb29cf9b61e824704, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Camera.QaC9RLocalPlayerCameraRequestBinding
+  ownerId: qa.player.c9r
+  eligibilityScopeId: qa.c9r.player.eligibility
+  requestId: qa.camera.request.c9r.player
+  outputSession: {fileID: 0}
+  rigComposer: {fileID: 1179249547}
+  precedence: 50
+  tieBreakerId: player
+  eligibleOnEnable: 1
+  releaseOnDisable: 1
+  logDiagnostics: 1
+  isLocallyEligible: 0
+  lastStatus: NotEligible
+  lastDiagnostic: 
 --- !u!1 &660878651
 GameObject:
   m_ObjectHideFlags: 0
@@ -524,6 +493,7 @@ GameObject:
   m_Component:
   - component: {fileID: 660878653}
   - component: {fileID: 660878652}
+  - component: {fileID: 660878654}
   m_Layer: 0
   m_Name: QA_C9R_RouteRig
   m_TagString: Untagged
@@ -546,7 +516,7 @@ MonoBehaviour:
   recipe: {fileID: 0}
   presentationIntent: 10
   targetSourceKind: 20
-  playerComposer: {fileID: 0}
+  targetSource: {fileID: 660878654}
   explicitFollowTarget: {fileID: 0}
   explicitLookAtTarget: {fileID: 0}
   followRequirement: 20
@@ -556,12 +526,13 @@ MonoBehaviour:
   createCinemachineCameraIfMissing: 0
   cinemachineCameraObjectName: Cinemachine Camera
   logApplyRebuildDiagnostics: 0
-  lastApplyRebuildStatus: 
+  lastApplyRebuildStatus: ApplySucceeded
   lastBlockingIssue: 
-  lastTargetResolutionSummary: 
-  lastMaterializationSummary: 
-  lastResolvedFollowTarget: {fileID: 0}
-  lastResolvedLookAtTarget: {fileID: 0}
+  lastTargetResolutionSummary: Camera target requirements satisfied.
+  lastMaterializationSummary: created='0' repaired='0' alreadyValid='5' skipped='2'
+    blocked='0'
+  lastResolvedFollowTarget: {fileID: 1926355593}
+  lastResolvedLookAtTarget: {fileID: 1926355593}
 --- !u!4 &660878653
 Transform:
   m_ObjectHideFlags: 0
@@ -578,6 +549,21 @@ Transform:
   - {fileID: 446551430}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &660878654
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 660878651}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 907d2e18b78c4a5889d79de4c11347dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.CameraAuthoring.ExplicitCameraTargetSourceAuthoring
+  logicalSourceId: qa.c9r.route-target
+  followTarget: {fileID: 1926355593}
+  lookAtTarget: {fileID: 1926355593}
 --- !u!1 &717848985
 GameObject:
   m_ObjectHideFlags: 0
@@ -588,6 +574,7 @@ GameObject:
   m_Component:
   - component: {fileID: 717848987}
   - component: {fileID: 717848986}
+  - component: {fileID: 717848988}
   m_Layer: 0
   m_Name: QA_C9R_ActivityRig
   m_TagString: Untagged
@@ -610,7 +597,7 @@ MonoBehaviour:
   recipe: {fileID: 0}
   presentationIntent: 10
   targetSourceKind: 20
-  playerComposer: {fileID: 0}
+  targetSource: {fileID: 717848988}
   explicitFollowTarget: {fileID: 0}
   explicitLookAtTarget: {fileID: 0}
   followRequirement: 20
@@ -620,12 +607,13 @@ MonoBehaviour:
   createCinemachineCameraIfMissing: 0
   cinemachineCameraObjectName: Cinemachine Camera
   logApplyRebuildDiagnostics: 0
-  lastApplyRebuildStatus: 
+  lastApplyRebuildStatus: ApplySucceeded
   lastBlockingIssue: 
-  lastTargetResolutionSummary: 
-  lastMaterializationSummary: 
-  lastResolvedFollowTarget: {fileID: 0}
-  lastResolvedLookAtTarget: {fileID: 0}
+  lastTargetResolutionSummary: Camera target requirements satisfied.
+  lastMaterializationSummary: created='0' repaired='0' alreadyValid='5' skipped='2'
+    blocked='0'
+  lastResolvedFollowTarget: {fileID: 455465705}
+  lastResolvedLookAtTarget: {fileID: 455465705}
 --- !u!4 &717848987
 Transform:
   m_ObjectHideFlags: 0
@@ -642,6 +630,21 @@ Transform:
   - {fileID: 94951503}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &717848988
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717848985}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 907d2e18b78c4a5889d79de4c11347dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.CameraAuthoring.ExplicitCameraTargetSourceAuthoring
+  logicalSourceId: qa.c9r.activity-target
+  followTarget: {fileID: 455465705}
+  lookAtTarget: {fileID: 455465705}
 --- !u!1 &951021551
 GameObject:
   m_ObjectHideFlags: 0
@@ -652,6 +655,7 @@ GameObject:
   m_Component:
   - component: {fileID: 951021553}
   - component: {fileID: 951021552}
+  - component: {fileID: 951021554}
   m_Layer: 0
   m_Name: Player Cinemachine Camera
   m_TagString: Untagged
@@ -679,9 +683,9 @@ MonoBehaviour:
   m_StreamingVersion: 0
   m_LegacyPriority: 0
   Target:
-    TrackingTarget: {fileID: 0}
-    LookAtTarget: {fileID: 0}
-    CustomLookAtTarget: 0
+    TrackingTarget: {fileID: 1947923678}
+    LookAtTarget: {fileID: 2105951581}
+    CustomLookAtTarget: 1
   Lens:
     FieldOfView: 40
     OrthographicSize: 10
@@ -717,6 +721,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1179249548}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &951021554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 951021551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b617507da6d07e749b7efdb34e1173e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
+  TrackerSettings:
+    BindingMode: 4
+    PositionDamping: {x: 1, y: 1, z: 1}
+    AngularDampingMode: 0
+    RotationDamping: {x: 1, y: 1, z: 1}
+    QuaternionDamping: 1
+  FollowOffset: {x: 0, y: 5, z: -8}
 --- !u!1 &1179249546
 GameObject:
   m_ObjectHideFlags: 0
@@ -727,6 +750,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1179249548}
   - component: {fileID: 1179249547}
+  - component: {fileID: 1179249549}
   m_Layer: 0
   m_Name: QA_C9R_PlayerRig
   m_TagString: Untagged
@@ -749,7 +773,7 @@ MonoBehaviour:
   recipe: {fileID: 0}
   presentationIntent: 10
   targetSourceKind: 20
-  playerComposer: {fileID: 0}
+  targetSource: {fileID: 1179249549}
   explicitFollowTarget: {fileID: 0}
   explicitLookAtTarget: {fileID: 0}
   followRequirement: 20
@@ -759,12 +783,13 @@ MonoBehaviour:
   createCinemachineCameraIfMissing: 0
   cinemachineCameraObjectName: Cinemachine Camera
   logApplyRebuildDiagnostics: 0
-  lastApplyRebuildStatus: 
+  lastApplyRebuildStatus: ApplySucceeded
   lastBlockingIssue: 
-  lastTargetResolutionSummary: 
-  lastMaterializationSummary: 
-  lastResolvedFollowTarget: {fileID: 0}
-  lastResolvedLookAtTarget: {fileID: 0}
+  lastTargetResolutionSummary: Camera target requirements satisfied.
+  lastMaterializationSummary: created='0' repaired='0' alreadyValid='5' skipped='2'
+    blocked='0'
+  lastResolvedFollowTarget: {fileID: 1947923678}
+  lastResolvedLookAtTarget: {fileID: 2105951581}
 --- !u!4 &1179249548
 Transform:
   m_ObjectHideFlags: 0
@@ -781,6 +806,21 @@ Transform:
   - {fileID: 951021553}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1179249549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1179249546}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 907d2e18b78c4a5889d79de4c11347dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.CameraAuthoring.ExplicitCameraTargetSourceAuthoring
+  logicalSourceId: qa.c9r.player-target
+  followTarget: {fileID: 1947923678}
+  lookAtTarget: {fileID: 2105951581}
 --- !u!1 &1577868841
 GameObject:
   m_ObjectHideFlags: 0
