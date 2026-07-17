@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2c558e62e6783f2132d6802da05e6426, type: 3}
-  m_Name: P3J6_ExplicitUnjoinedProjection
+  m_Name: P3M5A_ExplicitSlotProjection
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.ActivityParticipationProjectionProfile
-  displayName: "P3J.6 \u2014 Explicit Unjoined Slot"
-  description: Negative readiness fixture requiring the configured second Slot before
-    it joins.
+  displayName: "P3M5A \u2014 Explicit Scene Player Slot"
+  description: Projects the exact configured first Slot admitted by the Activity
+    scene.
   projectionMode: 20
   zeroParticipantPolicy: 10
   explicitSlotProfiles:
-  - {fileID: 11400000, guid: 655efa9f821b73348a227a6a0558b85b, type: 2}
+  - {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}

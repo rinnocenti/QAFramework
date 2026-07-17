@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 17f34eeb2a524bf993b7ad9fd345162e, type: 3}
-  m_Name: P3J6_LogicalActorsPrepared
+  m_Name: P3M5A_GameplayReady
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerParticipationRequirementsProfile
-  displayName: "P3J.6 \u2014 Logical Actors Prepared"
-  description: Every projected joined Slot must have its selected/default Logical
-    Actor prepared by the Activity owner.
-  requirementLevel: 30
+  displayName: "P3M5A \u2014 Gameplay Ready"
+  description: 'Negative integration target: adoption must succeed before the canonical
+    gameplay chain reports missing gameplay authoring.'
+  requirementLevel: 40

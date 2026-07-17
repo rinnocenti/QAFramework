@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6d702c1ba364e70ad76a85eb5f1b842, type: 3}
+  m_Name: P3M5A_ScenePlayerPreparedActivity
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.ActivityAsset
+  activityName: P3M5A Scene Player Prepared Activity
+  description: P3M5A QA-only real Activity lifecycle fixture.
+  playerParticipationProjectionProfile: {fileID: 11400000, guid: 3c75305b28db34e41831b86193c644d2, type: 2}
+  playerParticipationRequirementsProfile: {fileID: 11400000, guid: f33eb3263d79a014aa4a760d6cd57d38, type: 2}
+  activityContentProfile: {fileID: 11400000, guid: b6890cd4ed6b17748be6b39e4802c804, type: 2}
+  visualTransitionMode: 0
+  transitionGateMode: 10

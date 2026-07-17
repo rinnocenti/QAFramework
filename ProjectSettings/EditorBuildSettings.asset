@@ -131,6 +131,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/ImmersiveFrameworkQA/Camera/Scenes/QA_C9M_ActivityRouteTeardown.unity
     guid: 76467bb07e4b32a40a3ba75e101a18e0
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/P3M5A/P3M5A_SceneLocalPlayerActivity.unity
+    guid: a4a3c51e8f84bfd449698ad539776d73
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

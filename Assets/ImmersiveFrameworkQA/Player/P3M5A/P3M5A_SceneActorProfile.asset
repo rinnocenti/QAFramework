@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a5153a396724567a7dd4e0628405071, type: 3}
+  m_Name: P3M5A_SceneActorProfile
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Actors.ActorProfile
+  actorProfileId: qa.p3m5a.scene-player.profile
+  displayName: P3M5A Scene Player
+  description: QA-only Actor Profile for real Scene Local Player Activity integration.
+  icon: {fileID: 0}
+  actorKind: 10
+  actorRole: 10
+  logicalActorHostPrefab: {fileID: 7126472638621521054, guid: 12091f9edc0e1504cb71bc43c9c49bff, type: 3}
