@@ -395,18 +395,49 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         {
             const string LegacyCameraBinding =
                 "Immersive.Framework.Camera.LocalPlayerCameraRequestBinding";
-            const string PreAuthoredComposer =
-                "Immersive.Framework.PlayerAuthoring.PreAuthoredPlayerComposer";
             const string PlayerInput = "UnityEngine.InputSystem.PlayerInput";
 
-            // Remove dependants before the component required by PreAuthoredPlayerComposer.
             RemoveComponentsByTypeName(root, LegacyCameraBinding);
-            RemoveComponentsByTypeName(root, PreAuthoredComposer);
+            RemoveMissingScriptsRecursively(root);
             RemoveComponentsByTypeName(root, PlayerInput);
 
             RequireComponentAbsent(root, LegacyCameraBinding);
-            RequireComponentAbsent(root, PreAuthoredComposer);
+            RequireNoMissingScripts(root);
             RequireComponentAbsent(root, PlayerInput);
+        }
+
+        private static void RemoveMissingScriptsRecursively(GameObject root)
+        {
+            foreach (Transform item in
+                     root.GetComponentsInChildren<Transform>(true))
+            {
+                GameObject target = item.gameObject;
+                if (GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(
+                        target) <= 0)
+                {
+                    continue;
+                }
+
+                GameObjectUtility.RemoveMonoBehavioursWithMissingScript(target);
+                EditorUtility.SetDirty(target);
+            }
+        }
+
+        private static void RequireNoMissingScripts(GameObject root)
+        {
+            foreach (Transform item in
+                     root.GetComponentsInChildren<Transform>(true))
+            {
+                int count =
+                    GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(
+                        item.gameObject);
+                if (count > 0)
+                {
+                    throw new InvalidOperationException(
+                        $"C9R scene repair left '{count}' Missing Script " +
+                        $"component(s) on '{item.name}'.");
+                }
+            }
         }
 
         private static void RemoveComponentsByTypeName(
