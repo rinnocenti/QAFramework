@@ -4,10 +4,8 @@ using System.IO;
 using System.Reflection;
 using Immersive.Framework.UnityInput;
 using UnityEditor;
-using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace ImmersiveFrameworkQA.UnityInput.Editor
 {
@@ -44,9 +42,11 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
                     root.AddComponent<UnityPlayerInputGateAdapter>();
 
                 actions = ScriptableObject.CreateInstance<InputActionAsset>();
+                actions.AddActionMap("Global").AddAction("PauseToggle");
                 actions.AddActionMap("UI").AddAction("Navigate");
                 actions.AddActionMap("Player").AddAction("Move");
                 playerInput.actions = actions;
+                playerInput.defaultActionMap = "Global";
 
                 var serializedAuthority = new SerializedObject(authority);
                 serializedAuthority.FindProperty("playerInput")
@@ -74,6 +74,14 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
                     typeof(UnityPlayerInputGateAdapter),
                     "TrySetPlayerInputActive",
                     parameterCount: 6);
+                MethodInfo applySet = RequireMethod(
+                    typeof(UnityPlayerInputGateAdapter),
+                    "TryApplyActionMapSet",
+                    parameterCount: 6);
+                MethodInfo restoreSet = RequireMethod(
+                    typeof(UnityPlayerInputGateAdapter),
+                    "TryRestoreActionMapSet",
+                    parameterCount: 4);
 
                 SetPlayerInputActive(
                     setPlayerInputActive,
@@ -150,6 +158,48 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
                     "idempotent-ui-release");
                 completed.Add("synthetic-state-clean");
 
+                object gameplaySetReceipt = ApplySet(
+                    applySet,
+                    authority,
+                    "Player",
+                    new[] { "Global", "Player" },
+                    "global-gameplay-baseline");
+                Require(
+                    CurrentMap(playerInput) == "Player" &&
+                    HasExactEnabledMaps(playerInput, "Global", "Player"),
+                    "Exact Global + Player posture was not applied.");
+                completed.Add("global-player-set-applied");
+
+                object pauseSetReceipt = ApplySet(
+                    applySet,
+                    authority,
+                    "UI",
+                    new[] { "Global", "UI" },
+                    "global-ui-baseline");
+                Require(
+                    CurrentMap(playerInput) == "UI" &&
+                    HasExactEnabledMaps(playerInput, "Global", "UI"),
+                    "Exact Global + UI posture was not applied.");
+                completed.Add("global-ui-set-applied");
+
+                RestoreSet(
+                    restoreSet,
+                    authority,
+                    pauseSetReceipt,
+                    "global-ui-release");
+                Require(
+                    CurrentMap(playerInput) == "Player" &&
+                    HasExactEnabledMaps(playerInput, "Global", "Player"),
+                    "Exact Global + Player posture was not restored.");
+                completed.Add("layered-set-rollback-exact");
+
+                RestoreSet(
+                    restoreSet,
+                    authority,
+                    gameplaySetReceipt,
+                    "global-gameplay-release");
+                completed.Add("layered-set-baseline-restored");
+
                 Debug.Log(
                     $"{LogPrefix} status='Passed' cases='{completed.Count}' " +
                     $"completed='{string.Join(",", completed)}'.");
@@ -191,6 +241,8 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
                 "Runtime/PlayerParticipation/Runtime/PlayerGameplayInputBindingRuntimeContext.cs");
             string pause = Read(packageRoot,
                 "Runtime/Pause/PauseInputActionTrigger.cs");
+            string inputModeApplication = Read(packageRoot,
+                "Runtime/InputMode/InputModeUnityPlayerInputApplication.cs");
 
             Require(writer.Contains("playerInput.currentActionMap = targetActionMap"),
                 "Canonical writer has no action-map selection side effect.");
@@ -198,6 +250,8 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
                 "Canonical writer still depends on PlayerInput's private lifecycle gate.");
             Require(writer.Contains("currentActionMap = null"),
                 "Canonical writer has no empty-map restoration side effect.");
+            Require(writer.Contains("TryApplyActionMapSet"),
+                "Canonical writer has no exact action-map set application.");
             completed.Add("physical-writer-present");
 
             Require(gate.Contains("UnityPlayerInputStateWriter.Try"),
@@ -208,6 +262,9 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
             AssertNoDirectPlayerInputWrite(gameplay, "Gameplay binding context");
             AssertNoDirectPlayerInputWrite(gate, "Gate authority");
             AssertNoDirectPlayerInputWrite(pause, "Pause trigger");
+            AssertNoDirectPlayerInputWrite(
+                inputModeApplication,
+                "InputMode application");
             completed.Add("requesters-have-no-direct-write");
 
             Require(!inputMode.Contains("UnityPlayerInputStateWriter.Try"),
@@ -258,6 +315,66 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
             Require(arguments[3] != null,
                 "Action-map selection returned no write receipt.");
             return arguments[3];
+        }
+
+        private static object ApplySet(
+            MethodInfo method,
+            UnityPlayerInputGateAdapter authority,
+            string primaryActionMapName,
+            string[] enabledActionMapNames,
+            string reason)
+        {
+            object[] arguments =
+            {
+                primaryActionMapName,
+                enabledActionMapNames,
+                nameof(QaIc1PlayerInputSingleWriterSmoke),
+                reason,
+                null,
+                null
+            };
+            bool succeeded = (bool)method.Invoke(authority, arguments);
+            Require(succeeded,
+                $"Action-map set application failed. issue='{arguments[5]}'.");
+            Require(arguments[4] != null,
+                "Action-map set application returned no write receipt.");
+            return arguments[4];
+        }
+
+        private static void RestoreSet(
+            MethodInfo method,
+            UnityPlayerInputGateAdapter authority,
+            object receipt,
+            string reason)
+        {
+            object[] arguments =
+            {
+                receipt,
+                nameof(QaIc1PlayerInputSingleWriterSmoke),
+                reason,
+                null
+            };
+            bool succeeded = (bool)method.Invoke(authority, arguments);
+            Require(succeeded,
+                $"Action-map set restore failed. issue='{arguments[3]}'.");
+        }
+
+        private static bool HasExactEnabledMaps(
+            PlayerInput playerInput,
+            params string[] expectedNames)
+        {
+            var expected = new HashSet<string>(
+                expectedNames ?? Array.Empty<string>(),
+                StringComparer.Ordinal);
+            foreach (InputActionMap map in playerInput.actions.actionMaps)
+            {
+                if (map.enabled != expected.Contains(map.name))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static void SetPlayerInputActive(
@@ -328,7 +445,8 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
 
         private static string ResolvePackageRoot()
         {
-            PackageInfo package = PackageInfo.FindForAssembly(
+            UnityEditor.PackageManager.PackageInfo package =
+                UnityEditor.PackageManager.PackageInfo.FindForAssembly(
                 typeof(UnityPlayerInputGateAdapter).Assembly);
             Require(package != null && !string.IsNullOrWhiteSpace(package.resolvedPath),
                 "Could not resolve com.immersive.framework package path.");

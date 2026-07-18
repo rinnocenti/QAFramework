@@ -174,7 +174,7 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
 
                 ValidateSourceOwnership(ResolvePackageRoot(), completed);
 
-                Require(completed.Count == 18,
+                Require(completed.Count == 20,
                     "IC2 InputMode authority smoke case count changed unexpectedly.");
                 Debug.Log(
                     $"{LogPrefix} status='Passed' cases='{completed.Count}' " +
@@ -216,6 +216,9 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
             string applyService = Read(
                 packageRoot,
                 "Runtime/InputMode/PauseInputModeApplyService.cs");
+            string inputModeApplication = Read(
+                packageRoot,
+                "Runtime/InputMode/InputModeUnityPlayerInputApplication.cs");
 
             Require(bridge.Contains("InputModeRuntimeContext") &&
                     bridge.Contains("InputModeRuntimeSnapshot") &&
@@ -260,9 +263,24 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                     !inputModeAdapter.Contains(
                         "UnityPlayerInputStateWriter.Try") &&
                     writer.Contains(
-                        "playerInput.currentActionMap = targetActionMap"),
+                        "TryApplyActionMapSet") &&
+                    writer.Contains(
+                        "playerInput.currentActionMap = primaryMap"),
                 "IC1 physical writer boundary was not preserved by IC2/IC3.");
             completed.Add("physical-writer-boundary-preserved");
+
+            Require(bridge.Contains("globalActionMapName = \"Global\"") &&
+                    bridge.Contains("CreatePersistentActionMapNames") &&
+                    applyRequest.Contains("PersistentActionMapNames") &&
+                    applyService.Contains("TryValidatePersistentActionMaps"),
+                "Canonical Pause/InputMode path does not require the persistent Global map.");
+            completed.Add("global-map-is-persistent-policy");
+
+            Require(!inputModeApplication.Contains(".ActivateInput(") &&
+                    inputModeAdapter.Contains("TryApplyActionMapSet") &&
+                    writer.Contains("TryRestoreActionMapSet"),
+                "Layered InputMode application still performs implicit activation or lacks exact rollback.");
+            completed.Add("layered-map-set-application");
 
             string context = Read(
                 packageRoot,
