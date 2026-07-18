@@ -165,3 +165,25 @@ InputMode application contains no ActivateInput call
 only UnityPlayerInputStateWriter contains package-owned physical mutation
 no singleton, service locator or implicit PlayerInput lookup is introduced
 ```
+
+
+## A4.1 PlayerInput lifecycle boundary
+
+The canonical physical writer owns exact action-map posture only. `PlayerInput` activation,
+deactivation, device pairing and provisioning belong to the Player lifecycle. IC1 uses a
+synthetic `PlayerInput` whose lifecycle activation is intentionally not required, proves the
+writer contains no `inputIsActive` precondition, and verifies that it contains no `ActivateInput`
+or `DeactivateInput` call.
+
+
+## A4.2 lifecycle-independent map preparation
+
+The IC1 fixture must not require Unity to activate a synthetic `PlayerInput` without a paired
+device or control scheme. The writer prepares and restores action-map posture independently
+from `PlayerInput.inputIsActive`; actual input event delivery remains a Player lifecycle concern.
+
+Expected IC1 source case:
+
+```text
+writer-lifecycle-independent
+```

@@ -126,7 +126,6 @@ MonoBehaviour:
   gameplayActionMapName: Gameplay
   blockOnInputAcceptance: 1
   blockOnGameplayAction: 1
-  blockMode: 10
   restorePreviousState: 1
   applyOnEnable: 1
   logStateChanges: 0

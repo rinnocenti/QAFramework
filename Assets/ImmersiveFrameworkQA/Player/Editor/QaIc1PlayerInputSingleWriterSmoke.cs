@@ -70,10 +70,6 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
                     typeof(UnityPlayerInputGateAdapter),
                     "TryRestoreActionMap",
                     parameterCount: 4);
-                MethodInfo setPlayerInputActive = RequireMethod(
-                    typeof(UnityPlayerInputGateAdapter),
-                    "TrySetPlayerInputActive",
-                    parameterCount: 6);
                 MethodInfo applySet = RequireMethod(
                     typeof(UnityPlayerInputGateAdapter),
                     "TryApplyActionMapSet",
@@ -82,15 +78,6 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
                     typeof(UnityPlayerInputGateAdapter),
                     "TryRestoreActionMapSet",
                     parameterCount: 4);
-
-                SetPlayerInputActive(
-                    setPlayerInputActive,
-                    authority,
-                    active: true,
-                    reason: "fixture-activate-input");
-                Require(playerInput.inputIsActive,
-                    "Write authority did not activate the synthetic PlayerInput fixture.");
-                completed.Add("input-activated-by-authority");
 
                 object uiReceipt = Select(
                     select,
@@ -252,7 +239,15 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
                 "Canonical writer has no empty-map restoration side effect.");
             Require(writer.Contains("TryApplyActionMapSet"),
                 "Canonical writer has no exact action-map set application.");
+            Require(!writer.Contains(".ActivateInput("),
+                "Canonical map writer incorrectly owns PlayerInput activation.");
+            Require(!writer.Contains(".DeactivateInput("),
+                "Canonical map writer incorrectly owns PlayerInput deactivation.");
             completed.Add("physical-writer-present");
+
+            Require(!writer.Contains("inputIsActive"),
+                "Canonical map writer still depends on PlayerInput lifecycle activation state.");
+            completed.Add("writer-lifecycle-independent");
 
             Require(gate.Contains("UnityPlayerInputStateWriter.Try"),
                 "Gate authority does not delegate to the physical writer.");
@@ -375,26 +370,6 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
             }
 
             return true;
-        }
-
-        private static void SetPlayerInputActive(
-            MethodInfo method,
-            UnityPlayerInputGateAdapter authority,
-            bool active,
-            string reason)
-        {
-            object[] arguments =
-            {
-                active,
-                nameof(QaIc1PlayerInputSingleWriterSmoke),
-                reason,
-                false,
-                false,
-                null
-            };
-            bool succeeded = (bool)method.Invoke(authority, arguments);
-            Require(succeeded,
-                $"PlayerInput active-state write '{active}' failed. issue='{arguments[5]}'.");
         }
 
         private static void Restore(
