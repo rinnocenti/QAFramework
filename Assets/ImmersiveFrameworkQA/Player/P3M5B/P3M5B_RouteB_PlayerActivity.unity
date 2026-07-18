@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &173104262
+--- !u!1 &1193103576
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,40 +127,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 173104263}
-  m_Layer: 0
-  m_Name: P3M5B Route B Activity Host Actor Mount
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &173104263
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 173104262}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 6495112086701161451}
-  m_Father: {fileID: 2035521307}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &512835699
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 512835701}
-  - component: {fileID: 512835700}
+  - component: {fileID: 1193103578}
+  - component: {fileID: 1193103577}
   m_Layer: 0
   m_Name: P3M5B Route B Activity Admission
   m_TagString: Untagged
@@ -168,32 +136,32 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &512835700
+--- !u!114 &1193103577
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 512835699}
+  m_GameObject: {fileID: 1193103576}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d3d4f1b900974056a6247b2e4dbaa266, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneLocalPlayerAdmissionAuthoring
   playerSlotProfile: {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
-  localPlayerHost: {fileID: 2035521308}
+  localPlayerHost: {fileID: 1242610505}
   actorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
-  sceneLogicalPlayerActor: {fileID: 4438141168070761733}
+  sceneLogicalPlayerActor: {fileID: 4438141167442994374}
   admissionTiming: 0
   lastAuthoringStatus: 0
   lastAuthoringDiagnostic: Scene Local Player Admission has not been validated.
---- !u!4 &512835701
+--- !u!4 &1193103578
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 512835699}
+  m_GameObject: {fileID: 1193103576}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -202,23 +170,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &947236493
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9022688616623120473}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7e4cd0957f664eeda71cf45e48a45c1d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneLogicalPlayerActorEvidence
-  actorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
-  logicalActorHostPrefab: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  authoringDiagnostic: P3M5B persisted reference repair for 'P3M5B Route B Activity
-    Actor'.
---- !u!1 &2035521306
+--- !u!1 &1242610503
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -226,9 +178,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 2035521307}
-  - component: {fileID: 2035521309}
-  - component: {fileID: 2035521308}
+  - component: {fileID: 1242610504}
+  - component: {fileID: 1242610506}
+  - component: {fileID: 1242610505}
   m_Layer: 0
   m_Name: P3M5B Route B Activity Host
   m_TagString: Untagged
@@ -236,43 +188,43 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &2035521307
+--- !u!4 &1242610504
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2035521306}
+  m_GameObject: {fileID: 1242610503}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 173104263}
+  - {fileID: 1687438287}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2035521308
+--- !u!114 &1242610505
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2035521306}
+  m_GameObject: {fileID: 1242610503}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 43020ea2bdd04515a9232be09bdd3684, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerHostAuthoring
-  playerInput: {fileID: 2035521309}
-  actorMount: {fileID: 173104263}
---- !u!114 &2035521309
+  playerInput: {fileID: 1242610506}
+  actorMount: {fileID: 1687438287}
+--- !u!114 &1242610506
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2035521306}
+  m_GameObject: {fileID: 1242610503}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
@@ -296,13 +248,61 @@ MonoBehaviour:
   m_DefaultActionMap: 
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!114 &4438141168070761733
+--- !u!114 &1441437518
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9022688616623120473}
+  m_GameObject: {fileID: 9022688618175994266}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e4cd0957f664eeda71cf45e48a45c1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneLogicalPlayerActorEvidence
+  actorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
+  logicalActorHostPrefab: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+  authoringDiagnostic: P3M5B persisted reference repair for 'P3M5B Route B Activity
+    Actor'.
+--- !u!1 &1687438286
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1687438287}
+  m_Layer: 0
+  m_Name: P3M5B Route B Activity Host Actor Mount
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1687438287
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1687438286}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 6495112086391357992}
+  m_Father: {fileID: 1242610504}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4438141167442994374
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9022688618175994266}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 26cc512b3155464caed4dc48a6c9de6d, type: 3}
@@ -314,22 +314,22 @@ MonoBehaviour:
   displayName: P3M5B Scene Player
   reason: p3m5b.scene-player.authored
   playerInput: {fileID: 0}
---- !u!4 &6495112086701161451
+--- !u!4 &6495112086391357992
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9022688616623120473}
+  m_GameObject: {fileID: 9022688618175994266}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 173104263}
+  m_Father: {fileID: 1687438287}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &9022688616623120473
+--- !u!1 &9022688618175994266
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -337,9 +337,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6495112086701161451}
-  - component: {fileID: 4438141168070761733}
-  - component: {fileID: 947236493}
+  - component: {fileID: 6495112086391357992}
+  - component: {fileID: 4438141167442994374}
+  - component: {fileID: 1441437518}
   m_Layer: 0
   m_Name: P3M5B Route B Activity Actor
   m_TagString: Untagged
@@ -351,5 +351,5 @@ GameObject:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 2035521307}
-  - {fileID: 512835701}
+  - {fileID: 1242610504}
+  - {fileID: 1193103578}

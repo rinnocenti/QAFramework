@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &40778420
+--- !u!1 &412150177
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,7 +127,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 40778421}
+  - component: {fileID: 412150178}
   m_Layer: 0
   m_Name: P3M5B Reused Host Shared Host Actor Mount
   m_TagString: Untagged
@@ -135,39 +135,23 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &40778421
+--- !u!4 &412150178
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 40778420}
+  m_GameObject: {fileID: 412150177}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 6495112086386246188}
-  m_Father: {fileID: 1691689310}
+  - {fileID: 6495112085899508284}
+  m_Father: {fileID: 934864016}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1429772114
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9022688618179008926}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7e4cd0957f664eeda71cf45e48a45c1d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneLogicalPlayerActorEvidence
-  actorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
-  logicalActorHostPrefab: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  authoringDiagnostic: P3M5B persisted reference repair for 'P3M5B Reused Host Shared
-    Actor'.
---- !u!1 &1691689309
+--- !u!1 &710487244
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -175,9 +159,60 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1691689310}
-  - component: {fileID: 1691689312}
-  - component: {fileID: 1691689311}
+  - component: {fileID: 710487246}
+  - component: {fileID: 710487245}
+  m_Layer: 0
+  m_Name: P3M5B Reused Host Slot 2 Admission
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &710487245
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 710487244}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3d4f1b900974056a6247b2e4dbaa266, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneLocalPlayerAdmissionAuthoring
+  playerSlotProfile: {fileID: 11400000, guid: 655efa9f821b73348a227a6a0558b85b, type: 2}
+  localPlayerHost: {fileID: 934864017}
+  actorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
+  sceneLogicalPlayerActor: {fileID: 4438141167261768914}
+  admissionTiming: 0
+  lastAuthoringStatus: 0
+  lastAuthoringDiagnostic: Scene Local Player Admission has not been validated.
+--- !u!4 &710487246
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 710487244}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &934864015
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 934864016}
+  - component: {fileID: 934864018}
+  - component: {fileID: 934864017}
   m_Layer: 0
   m_Name: P3M5B Reused Host Shared Host
   m_TagString: Untagged
@@ -185,43 +220,43 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1691689310
+--- !u!4 &934864016
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1691689309}
+  m_GameObject: {fileID: 934864015}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 40778421}
+  - {fileID: 412150178}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1691689311
+--- !u!114 &934864017
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1691689309}
+  m_GameObject: {fileID: 934864015}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 43020ea2bdd04515a9232be09bdd3684, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerHostAuthoring
-  playerInput: {fileID: 1691689312}
-  actorMount: {fileID: 40778421}
---- !u!114 &1691689312
+  playerInput: {fileID: 934864018}
+  actorMount: {fileID: 412150178}
+--- !u!114 &934864018
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1691689309}
+  m_GameObject: {fileID: 934864015}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
@@ -245,7 +280,7 @@ MonoBehaviour:
   m_DefaultActionMap: 
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!1 &1975933516
+--- !u!1 &1022700240
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -253,8 +288,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1975933518}
-  - component: {fileID: 1975933517}
+  - component: {fileID: 1022700242}
+  - component: {fileID: 1022700241}
   m_Layer: 0
   m_Name: P3M5B Reused Host Slot 1 Admission
   m_TagString: Untagged
@@ -262,32 +297,32 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1975933517
+--- !u!114 &1022700241
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1975933516}
+  m_GameObject: {fileID: 1022700240}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d3d4f1b900974056a6247b2e4dbaa266, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneLocalPlayerAdmissionAuthoring
   playerSlotProfile: {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
-  localPlayerHost: {fileID: 1691689311}
+  localPlayerHost: {fileID: 934864017}
   actorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
-  sceneLogicalPlayerActor: {fileID: 4438141167446009026}
+  sceneLogicalPlayerActor: {fileID: 4438141167261768914}
   admissionTiming: 0
   lastAuthoringStatus: 0
   lastAuthoringDiagnostic: Scene Local Player Admission has not been validated.
---- !u!4 &1975933518
+--- !u!4 &1022700242
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1975933516}
+  m_GameObject: {fileID: 1022700240}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -296,64 +331,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &2066700497
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2066700499}
-  - component: {fileID: 2066700498}
-  m_Layer: 0
-  m_Name: P3M5B Reused Host Slot 2 Admission
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2066700498
+--- !u!114 &1748791138
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2066700497}
+  m_GameObject: {fileID: 9022688617423823246}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d3d4f1b900974056a6247b2e4dbaa266, type: 3}
+  m_Script: {fileID: 11500000, guid: 7e4cd0957f664eeda71cf45e48a45c1d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneLocalPlayerAdmissionAuthoring
-  playerSlotProfile: {fileID: 11400000, guid: 655efa9f821b73348a227a6a0558b85b, type: 2}
-  localPlayerHost: {fileID: 1691689311}
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneLogicalPlayerActorEvidence
   actorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
-  sceneLogicalPlayerActor: {fileID: 4438141167446009026}
-  admissionTiming: 0
-  lastAuthoringStatus: 0
-  lastAuthoringDiagnostic: Scene Local Player Admission has not been validated.
---- !u!4 &2066700499
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2066700497}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4438141167446009026
+  logicalActorHostPrefab: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+  authoringDiagnostic: P3M5B persisted reference repair for 'P3M5B Reused Host Shared
+    Actor'.
+--- !u!114 &4438141167261768914
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9022688618179008926}
+  m_GameObject: {fileID: 9022688617423823246}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 26cc512b3155464caed4dc48a6c9de6d, type: 3}
@@ -365,22 +365,22 @@ MonoBehaviour:
   displayName: P3M5B Scene Player
   reason: p3m5b.scene-player.authored
   playerInput: {fileID: 0}
---- !u!4 &6495112086386246188
+--- !u!4 &6495112085899508284
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9022688618179008926}
+  m_GameObject: {fileID: 9022688617423823246}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 40778421}
+  m_Father: {fileID: 412150178}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &9022688618179008926
+--- !u!1 &9022688617423823246
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -388,9 +388,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6495112086386246188}
-  - component: {fileID: 4438141167446009026}
-  - component: {fileID: 1429772114}
+  - component: {fileID: 6495112085899508284}
+  - component: {fileID: 4438141167261768914}
+  - component: {fileID: 1748791138}
   m_Layer: 0
   m_Name: P3M5B Reused Host Shared Actor
   m_TagString: Untagged
@@ -402,6 +402,6 @@ GameObject:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1691689310}
-  - {fileID: 1975933518}
-  - {fileID: 2066700499}
+  - {fileID: 934864016}
+  - {fileID: 1022700242}
+  - {fileID: 710487246}

@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &173104262
+--- !u!1 &412150177
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,9 +127,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 173104264}
-  - component: {fileID: 173104265}
-  - component: {fileID: 173104263}
+  - component: {fileID: 412150179}
+  - component: {fileID: 412150180}
+  - component: {fileID: 412150178}
   m_Layer: 0
   m_Name: P3M5B Missing Actor Host
   m_TagString: Untagged
@@ -137,43 +137,43 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &173104263
+--- !u!114 &412150178
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 173104262}
+  m_GameObject: {fileID: 412150177}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 43020ea2bdd04515a9232be09bdd3684, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerHostAuthoring
-  playerInput: {fileID: 173104265}
-  actorMount: {fileID: 512835700}
---- !u!4 &173104264
+  playerInput: {fileID: 412150180}
+  actorMount: {fileID: 710487245}
+--- !u!4 &412150179
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 173104262}
+  m_GameObject: {fileID: 412150177}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 512835700}
+  - {fileID: 710487245}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &173104265
+--- !u!114 &412150180
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 173104262}
+  m_GameObject: {fileID: 412150177}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
@@ -197,7 +197,7 @@ MonoBehaviour:
   m_DefaultActionMap: 
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!1 &512835699
+--- !u!1 &710487244
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -205,7 +205,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 512835700}
+  - component: {fileID: 710487245}
   m_Layer: 0
   m_Name: P3M5B Missing Actor Host Actor Mount
   m_TagString: Untagged
@@ -213,22 +213,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &512835700
+--- !u!4 &710487245
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 512835699}
+  m_GameObject: {fileID: 710487244}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 173104264}
+  m_Father: {fileID: 412150179}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &947236489
+--- !u!1 &1748791134
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -236,8 +236,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 947236491}
-  - component: {fileID: 947236490}
+  - component: {fileID: 1748791136}
+  - component: {fileID: 1748791135}
   m_Layer: 0
   m_Name: P3M5B Missing Actor Admission
   m_TagString: Untagged
@@ -245,32 +245,32 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &947236490
+--- !u!114 &1748791135
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 947236489}
+  m_GameObject: {fileID: 1748791134}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d3d4f1b900974056a6247b2e4dbaa266, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneLocalPlayerAdmissionAuthoring
   playerSlotProfile: {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
-  localPlayerHost: {fileID: 173104263}
+  localPlayerHost: {fileID: 412150178}
   actorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
   sceneLogicalPlayerActor: {fileID: 0}
   admissionTiming: 0
   lastAuthoringStatus: 0
   lastAuthoringDiagnostic: Scene Local Player Admission has not been validated.
---- !u!4 &947236491
+--- !u!4 &1748791136
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 947236489}
+  m_GameObject: {fileID: 1748791134}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -283,5 +283,5 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 173104264}
-  - {fileID: 947236491}
+  - {fileID: 412150179}
+  - {fileID: 1748791136}
