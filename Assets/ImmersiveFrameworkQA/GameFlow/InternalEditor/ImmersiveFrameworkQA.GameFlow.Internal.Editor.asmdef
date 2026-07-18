@@ -1,0 +1,17 @@
+{
+  "name": "ImmersiveFrameworkQA.GameFlow.Internal.Editor",
+  "rootNamespace": "ImmersiveFrameworkQA.GameFlow.Internal.Editor",
+  "references": [
+    "Immersive.Framework.Runtime",
+    "Immersive.Foundation.Runtime"
+  ],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
