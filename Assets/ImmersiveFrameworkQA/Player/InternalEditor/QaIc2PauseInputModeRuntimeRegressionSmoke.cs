@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Immersive.Framework.Actors;
+using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.InputMode;
 using Immersive.Framework.Pause;
 using Immersive.Framework.PlayerParticipation;
@@ -123,6 +124,61 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                     "Canonical Resume did not commit Gameplay/Player through the resident authority.");
                 completed.Add("toggle-resume-committed-global-player");
                 completed.Add("global-pause-toggle-remains-enabled");
+
+                Require(
+                    fixture.TryGetPauseState(
+                        out PauseState beforeMissingPortPause) &&
+                    beforeMissingPortPause == PauseState.Running,
+                    "Missing Pause runtime port preflight requires a Running Pause baseline.");
+                InputModeRuntimeSnapshot beforeMissingPortSnapshot =
+                    fixture.RequireRuntimeSnapshot();
+                InputModeRuntimeOperationResult beforeMissingPortOperation =
+                    fixture.Bridge.LastInputModeRuntimeOperation;
+                PauseInputModeUnityPlayerInputRuntimeBridge unboundBridge =
+                    fixture.CreateIsolatedUnboundBridge();
+                PauseInputModeUnityPlayerInputRuntimeBridgeResult missingPort =
+                    unboundBridge.SubmitForDiagnostics(
+                        PauseRequestKind.Pause,
+                        nameof(QaIc2PauseInputModeRuntimeRegressionSmoke),
+                        "missing-pause-port-preflight-preserves-state");
+                PauseState afterMissingPortPause = PauseState.Unknown;
+                bool missingPortPausePreserved =
+                    fixture.TryGetPauseState(out afterMissingPortPause) &&
+                    afterMissingPortPause == PauseState.Running;
+                InputModeRuntimeSnapshot afterMissingPortSnapshot =
+                    fixture.RequireRuntimeSnapshot();
+                InputModeRuntimeOperationResult afterMissingPortOperation =
+                    fixture.Bridge.LastInputModeRuntimeOperation;
+                Require(
+                    missingPort.Failed &&
+                    missingPort.Status ==
+                    PauseInputModeUnityPlayerInputRuntimeBridgeStatus
+                        .FailedPreflight &&
+                    !missingPort.PauseRequestSubmitted &&
+                    missingPort.Message.Contains("Pause runtime port is not bound") &&
+                    missingPortPausePreserved &&
+                    afterMissingPortSnapshot.CurrentMode ==
+                    InputModeKind.Gameplay &&
+                    afterMissingPortSnapshot.Revision ==
+                    beforeMissingPortSnapshot.Revision &&
+                    !afterMissingPortSnapshot.OperationInFlight &&
+                    ReferenceEquals(
+                        beforeMissingPortOperation,
+                        afterMissingPortOperation) &&
+                    !unboundBridge.HasPauseRuntimeBinding &&
+                    !unboundBridge.HasInputModeRuntime &&
+                    unboundBridge.LastInputModeRuntimeOperation == null,
+                    "Missing Pause runtime port did not fail before Pause/InputMode mutation. " +
+                    DescribeMissingPausePortPreflight(
+                        beforeMissingPortPause,
+                        beforeMissingPortSnapshot,
+                        beforeMissingPortOperation,
+                        missingPort,
+                        afterMissingPortPause,
+                        afterMissingPortSnapshot,
+                        afterMissingPortOperation,
+                        unboundBridge));
+                completed.Add("missing-pause-port-preflight-preserves-state");
 
                 int beforeMissingGlobalRevision = resumeSnapshot.Revision;
                 Require(
@@ -323,7 +379,7 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                 completed.Add("cleanup-restores-running-gameplay");
 
                 Require(
-                    completed.Count == 13,
+                    completed.Count == 14,
                     "IC2 runtime regression case count changed unexpectedly.");
                 Debug.Log(
                     $"{LogPrefix} status='Passed' cases='{completed.Count}' " +
@@ -366,33 +422,34 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
             }
         }
 
-        private static SerializedProperty RequireProperty(
-            SerializedObject serializedObject,
-            string propertyName)
+        private static string DescribeMissingPausePortPreflight(
+            PauseState pauseBefore,
+            InputModeRuntimeSnapshot inputModeBefore,
+            InputModeRuntimeOperationResult operationBefore,
+            PauseInputModeUnityPlayerInputRuntimeBridgeResult result,
+            PauseState pauseAfter,
+            InputModeRuntimeSnapshot inputModeAfter,
+            InputModeRuntimeOperationResult operationAfter,
+            PauseInputModeUnityPlayerInputRuntimeBridge unboundBridge)
         {
-            SerializedProperty property =
-                serializedObject.FindProperty(propertyName);
-            Require(
-                property != null,
-                $"Serialized property '{propertyName}' is unavailable on " +
-                $"'{serializedObject.targetObject.GetType().FullName}'.");
-            return property;
+            return
+                $"status='{result.Status}' message='{Escape(result.Message)}' " +
+                $"pauseBefore='{pauseBefore}' pauseAfter='{pauseAfter}' " +
+                $"inputModeBefore='{inputModeBefore.CurrentMode}' " +
+                $"inputModeAfter='{inputModeAfter.CurrentMode}' " +
+                $"revisionBefore='{inputModeBefore.Revision}' " +
+                $"revisionAfter='{inputModeAfter.Revision}' " +
+                $"operationInFlight='{inputModeAfter.OperationInFlight}' " +
+                $"operationBefore='{DescribeOperationStatus(operationBefore)}' " +
+                $"operationAfter='{DescribeOperationStatus(operationAfter)}' " +
+                $"operationReferencePreserved='{ReferenceEquals(operationBefore, operationAfter)}' " +
+                $"bindingStatus='{unboundBridge.PauseRuntimeBindingStatus}' " +
+                $"bindingDiagnostic='{Escape(unboundBridge.PauseRuntimeBindingDiagnostic)}'.";
         }
 
-        private static void SetObjectArray(
-            SerializedObject serializedObject,
-            string propertyName,
-            UnityEngine.Object[] values)
-        {
-            SerializedProperty property =
-                RequireProperty(serializedObject, propertyName);
-            property.arraySize = values?.Length ?? 0;
-            for (int index = 0; index < property.arraySize; index++)
-            {
-                property.GetArrayElementAtIndex(index).objectReferenceValue =
-                    values[index];
-            }
-        }
+        private static string DescribeOperationStatus(
+            InputModeRuntimeOperationResult operation) =>
+            operation == null ? "null" : operation.Status.ToString();
 
         private static string Escape(string value) =>
             string.IsNullOrEmpty(value)
@@ -403,41 +460,24 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
 
         private sealed class RuntimeFixture : IDisposable
         {
-            private readonly GameObject root;
-            private readonly PauseRequestTrigger pauseControl;
-            private InputActionAsset actionAsset;
+            private readonly QaIc2PauseInputModeBridgeFixture fixture;
 
             private RuntimeFixture(
-                GameObject root,
-                PauseRequestTrigger pauseControl,
-                PlayerInput playerInput,
-                PlayerActorDeclaration playerActor,
-                UnityInputTargetDeclaration gameplayTarget,
-                UnityInputTargetDeclaration globalTarget,
-                PauseInputModeUnityPlayerInputRuntimeBridge bridge,
-                LocalPlayerProvisioningAuthoring provisioningAuthoring,
-                InputActionAsset actionAsset)
+                QaIc2PauseInputModeBridgeFixture fixture)
             {
-                this.root = root;
-                this.pauseControl = pauseControl;
-                PlayerInput = playerInput;
-                PlayerActor = playerActor;
-                GameplayTarget = gameplayTarget;
-                GlobalTarget = globalTarget;
-                Bridge = bridge;
-                ProvisioningAuthoring = provisioningAuthoring;
-                this.actionAsset = actionAsset;
+                this.fixture = fixture;
             }
 
-            internal PlayerInput PlayerInput { get; }
-            internal PlayerActorDeclaration PlayerActor { get; }
-            internal UnityInputTargetDeclaration GameplayTarget { get; }
-            internal UnityInputTargetDeclaration GlobalTarget { get; }
-            internal PauseInputModeUnityPlayerInputRuntimeBridge Bridge { get; }
-            internal LocalPlayerProvisioningAuthoring ProvisioningAuthoring { get; }
+            internal PlayerInput PlayerInput => fixture.PlayerInput;
+            internal PlayerActorDeclaration PlayerActor => fixture.PlayerActor;
+            internal UnityInputTargetDeclaration GameplayTarget => fixture.GameplayTarget;
+            internal UnityInputTargetDeclaration GlobalTarget => fixture.GlobalTarget;
+            internal PauseInputModeUnityPlayerInputRuntimeBridge Bridge => fixture.Bridge;
+            internal LocalPlayerProvisioningAuthoring ProvisioningAuthoring =>
+                fixture.ProvisioningAuthoring;
 
             internal bool IsValid =>
-                root != null &&
+                fixture != null &&
                 PlayerInput != null &&
                 PlayerActor != null &&
                 GameplayTarget != null &&
@@ -455,88 +495,36 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
             {
                 LocalPlayerProvisioningAuthoring provisioningAuthoring =
                     ResolveProvisioningAuthoring();
-                GameObject root = null;
-                InputActionAsset actionAsset = null;
+                QaIc2PauseInputModeBridgeFixture fixture = null;
 
                 try
                 {
-                    root = new GameObject(name);
-                    root.SetActive(false);
-
-                    PauseRequestTrigger pauseControl =
-                        root.AddComponent<PauseRequestTrigger>();
-
-                    var playerObject = new GameObject(name + " Player");
-                    playerObject.transform.SetParent(root.transform, false);
-                    actionAsset = CreateActionAsset(
-                        includeGlobalMap: true,
-                        includePlayerMap: true,
-                        includeUiMap: true);
-                    PlayerInput playerInput =
-                        playerObject.AddComponent<PlayerInput>();
-                    playerInput.actions = actionAsset;
-                    playerInput.defaultActionMap = "Global";
-                    playerObject.AddComponent<UnityPlayerInputGateAdapter>();
-
-                    PlayerActorDeclaration playerActor =
-                        playerObject.AddComponent<PlayerActorDeclaration>();
-                    ConfigurePlayerActor(playerActor, playerInput);
-
-                    UnityInputTargetDeclaration gameplayTarget =
-                        playerObject.AddComponent<
-                            UnityInputTargetDeclaration>();
-                    ConfigureInputTarget(
-                        gameplayTarget,
-                        UnityInputTargetRole.GameplayCommands,
-                        "qa.ic2.input.target.gameplay",
-                        "QA IC2 Gameplay Target",
-                        playerInput,
-                        requirePlayerInput: true);
-
-                    var globalTargetObject =
-                        new GameObject(name + " Global Pause Target");
-                    globalTargetObject.transform.SetParent(
-                        root.transform,
-                        false);
-                    UnityInputTargetDeclaration globalTarget =
-                        globalTargetObject.AddComponent<
-                            UnityInputTargetDeclaration>();
-                    ConfigureInputTarget(
-                        globalTarget,
-                        UnityInputTargetRole.GlobalUiPause,
-                        "qa.ic2.input.target.global-pause",
-                        "QA IC2 Global Pause Target",
-                        null,
-                        requirePlayerInput: false);
-
-                    var bridgeObject = new GameObject(name + " Bridge");
-                    bridgeObject.transform.SetParent(root.transform, false);
-                    PauseInputModeUnityPlayerInputRuntimeBridge bridge =
-                        bridgeObject.AddComponent<
-                            PauseInputModeUnityPlayerInputRuntimeBridge>();
-                    ConfigureBridge(
-                        bridge,
-                        playerInput,
-                        new[] { globalTarget, gameplayTarget },
-                        new[] { playerActor },
+                    fixture = QaIc2PauseInputModeBridgeFixture.Create(
+                        name,
                         provisioningAuthoring);
-
-                    root.SetActive(true);
-                    return new RuntimeFixture(
-                        root,
-                        pauseControl,
-                        playerInput,
-                        playerActor,
-                        gameplayTarget,
-                        globalTarget,
-                        bridge,
-                        provisioningAuthoring,
-                        actionAsset);
+                    Require(
+                        FrameworkRuntimeHost.TryGetCurrent(
+                            out FrameworkRuntimeHost runtimeHost) &&
+                        runtimeHost != null,
+                        "IC2 runtime regression requires the active FrameworkRuntimeHost.");
+                    IPauseRuntimePort pauseRuntime = runtimeHost;
+                    Require(
+                        fixture.Bridge.TryBindPauseRuntime(
+                            pauseRuntime,
+                            out string bridgeBindingIssue),
+                        "IC2 runtime regression could not bind the explicit Pause runtime port to the bridge. " +
+                        bridgeBindingIssue);
+                    Require(
+                        fixture.PauseControl.TryBindPauseRuntime(
+                            pauseRuntime,
+                            out string triggerBindingIssue),
+                        "IC2 runtime regression could not bind the explicit Pause runtime port to the Pause request trigger. " +
+                        triggerBindingIssue);
+                    return new RuntimeFixture(fixture);
                 }
                 catch
                 {
-                    DestroyImmediateSafe(root);
-                    DestroyImmediateSafe(actionAsset);
+                    fixture?.Dispose();
                     throw;
                 }
             }
@@ -544,31 +532,34 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
             internal PauseInputModeUnityPlayerInputRuntimeBridgeResult
                 SubmitPause()
             {
-                Bridge.RequestPause();
-                Require(
-                    Bridge.LastResult != null,
-                    "Canonical bridge did not produce a Pause result.");
-                return Bridge.LastResult;
+                return fixture.TrySubmit(
+                    PauseRequestKind.Pause,
+                    nameof(QaIc2PauseInputModeRuntimeRegressionSmoke),
+                    "pause");
+            }
+
+            internal PauseInputModeUnityPlayerInputRuntimeBridge
+                CreateIsolatedUnboundBridge()
+            {
+                return fixture.CreateIsolatedUnboundBridge();
             }
 
             internal PauseInputModeUnityPlayerInputRuntimeBridgeResult
                 SubmitResume()
             {
-                Bridge.RequestResume();
-                Require(
-                    Bridge.LastResult != null,
-                    "Canonical bridge did not produce a Resume result.");
-                return Bridge.LastResult;
+                return fixture.TrySubmit(
+                    PauseRequestKind.Resume,
+                    nameof(QaIc2PauseInputModeRuntimeRegressionSmoke),
+                    "resume");
             }
 
             internal PauseInputModeUnityPlayerInputRuntimeBridgeResult
                 SubmitToggle()
             {
-                Bridge.TogglePause();
-                Require(
-                    Bridge.LastResult != null,
-                    "Canonical bridge did not produce a Toggle result.");
-                return Bridge.LastResult;
+                return fixture.TrySubmit(
+                    PauseRequestKind.Toggle,
+                    nameof(QaIc2PauseInputModeRuntimeRegressionSmoke),
+                    "toggle");
             }
 
             internal InputModeRuntimeSnapshot RequireRuntimeSnapshot()
@@ -583,7 +574,7 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
 
             internal bool TryGetPauseState(out PauseState state)
             {
-                if (!pauseControl.TryGetPauseSnapshot(
+                if (!fixture.PauseControl.TryGetPauseSnapshot(
                         out PauseSnapshot snapshot))
                 {
                     state = PauseState.Unknown;
@@ -609,11 +600,11 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
 
                 if (targetState == PauseState.Paused)
                 {
-                    pauseControl.RequestPause();
+                    fixture.PauseControl.RequestPause();
                 }
                 else if (targetState == PauseState.Running)
                 {
-                    pauseControl.RequestResume();
+                    fixture.PauseControl.RequestResume();
                 }
                 else
                 {
@@ -634,20 +625,10 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                 bool includePlayerMap,
                 bool includeUiMap)
             {
-                InputActionAsset previous = actionAsset;
-                actionAsset = CreateActionAsset(
+                fixture.ReplaceActionAsset(
                     includeGlobalMap,
                     includePlayerMap,
                     includeUiMap);
-                PlayerInput.actions = actionAsset;
-                PlayerInput.defaultActionMap = includeGlobalMap
-                    ? "Global"
-                    : includePlayerMap
-                        ? "Player"
-                        : includeUiMap
-                            ? "UI"
-                            : string.Empty;
-                DestroyImmediateSafe(previous);
             }
 
             internal bool HasExactEnabledMaps(params string[] expectedNames)
@@ -750,20 +731,12 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
 
             internal void SetPlayerActorEvidence(bool enabled)
             {
-                var serializedBridge = new SerializedObject(Bridge);
-                SetObjectArray(
-                    serializedBridge,
-                    "playerActors",
-                    enabled
-                        ? new UnityEngine.Object[] { PlayerActor }
-                        : Array.Empty<UnityEngine.Object>());
-                serializedBridge.ApplyModifiedPropertiesWithoutUndo();
+                fixture.SetPlayerActorEvidence(enabled);
             }
 
             public void Dispose()
             {
-                DestroyImmediateSafe(root);
-                DestroyImmediateSafe(actionAsset);
+                fixture.Dispose();
             }
 
             private static string EntityId(UnityEngine.Object value) =>
@@ -786,166 +759,24 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
             private static LocalPlayerProvisioningAuthoring
                 ResolveProvisioningAuthoring()
             {
-                LocalPlayerProvisioningAuthoring[] candidates =
-                    UnityEngine.Object.FindObjectsByType<
-                        LocalPlayerProvisioningAuthoring>(
-                        FindObjectsInactive.Include,
-                        FindObjectsSortMode.None);
-                LocalPlayerProvisioningAuthoring resolved = null;
-                int loadedCount = 0;
-                for (int index = 0; index < candidates.Length; index++)
-                {
-                    LocalPlayerProvisioningAuthoring candidate =
-                        candidates[index];
-                    if (candidate == null ||
-                        !candidate.gameObject.scene.IsValid() ||
-                        !candidate.gameObject.scene.isLoaded)
-                    {
-                        continue;
-                    }
-
-                    loadedCount++;
-                    resolved = candidate;
-                }
-
+                LocalPlayerProvisioningAuthoring authoring = null;
+                bool isConfigured = false;
+                string diagnostic = string.Empty;
+                bool resolved =
+                    FrameworkRuntimeHost.TryGetCurrent(
+                        out FrameworkRuntimeHost runtimeHost) &&
+                    runtimeHost != null &&
+                    runtimeHost.TryResolveLocalPlayerProvisioningAuthoring(
+                        out authoring,
+                        out isConfigured,
+                        out diagnostic);
                 Require(
-                    loadedCount == 1 && resolved != null,
-                    "IC2 runtime regression requires exactly one loaded " +
-                    "LocalPlayerProvisioningAuthoring from the canonical " +
-                    $"UIGlobal composition. found='{loadedCount}'.");
-                return resolved;
-            }
-
-            private static void ConfigurePlayerActor(
-                PlayerActorDeclaration playerActor,
-                PlayerInput playerInput)
-            {
-                var serializedActor = new SerializedObject(playerActor);
-                RequireProperty(serializedActor, "actorId").stringValue =
-                    "qa.ic2.actor.player.primary";
-                RequireProperty(serializedActor, "displayName").stringValue =
-                    "QA IC2 Player Actor";
-                RequireProperty(serializedActor, "reason").stringValue =
-                    "qa.ic2.runtime-authority";
-                RequireProperty(serializedActor, "playerInput")
-                    .objectReferenceValue = playerInput;
-                serializedActor.ApplyModifiedPropertiesWithoutUndo();
-            }
-
-            private static void ConfigureInputTarget(
-                UnityInputTargetDeclaration target,
-                UnityInputTargetRole role,
-                string targetId,
-                string displayName,
-                PlayerInput playerInput,
-                bool requirePlayerInput)
-            {
-                var serializedTarget = new SerializedObject(target);
-                RequireProperty(serializedTarget, "targetRole").intValue =
-                    (int)role;
-                RequireProperty(serializedTarget, "targetId").stringValue =
-                    targetId;
-                RequireProperty(serializedTarget, "displayName").stringValue =
-                    displayName;
-                RequireProperty(serializedTarget, "playerInput")
-                    .objectReferenceValue = playerInput;
-                RequireProperty(
-                    serializedTarget,
-                    "requirePlayerInputEvidence").boolValue =
-                    requirePlayerInput;
-                RequireProperty(serializedTarget, "reason").stringValue =
-                    "qa.ic2.runtime-authority";
-                serializedTarget.ApplyModifiedPropertiesWithoutUndo();
-            }
-
-            private static void ConfigureBridge(
-                PauseInputModeUnityPlayerInputRuntimeBridge bridge,
-                PlayerInput playerInput,
-                UnityInputTargetDeclaration[] targets,
-                PlayerActorDeclaration[] actors,
-                LocalPlayerProvisioningAuthoring provisioningAuthoring)
-            {
-                var serializedBridge = new SerializedObject(bridge);
-                RequireProperty(serializedBridge, "playerInput")
-                    .objectReferenceValue = playerInput;
-                SetObjectArray(
-                    serializedBridge,
-                    "unityInputTargets",
-                    Array.ConvertAll<
-                        UnityInputTargetDeclaration,
-                        UnityEngine.Object>(
-                        targets,
-                        value => value));
-                SetObjectArray(
-                    serializedBridge,
-                    "playerActors",
-                    Array.ConvertAll<
-                        PlayerActorDeclaration,
-                        UnityEngine.Object>(
-                        actors,
-                        value => value));
-                RequireProperty(
-                    serializedBridge,
-                    "localPlayerProvisioningAuthoring")
-                    .objectReferenceValue = provisioningAuthoring;
-                RequireProperty(
-                    serializedBridge,
-                    "requireLocalPlayerProvisioning").boolValue = true;
-                RequireProperty(
-                    serializedBridge,
-                    "globalActionMapName").stringValue = "Global";
-                RequireProperty(
-                    serializedBridge,
-                    "gameplayActionMapName").stringValue = "Player";
-                RequireProperty(serializedBridge, "uiActionMapName")
-                    .stringValue = "UI";
-                RequireProperty(serializedBridge, "reason").stringValue =
-                    "qa.ic2.runtime-authority";
-                RequireProperty(serializedBridge, "logResults").boolValue =
-                    false;
-                serializedBridge.ApplyModifiedPropertiesWithoutUndo();
-            }
-
-            private static InputActionAsset CreateActionAsset(
-                bool includeGlobalMap,
-                bool includePlayerMap,
-                bool includeUiMap)
-            {
-                var asset = ScriptableObject.CreateInstance<InputActionAsset>();
-                asset.name = "QA IC2 Runtime Authority Actions";
-
-                if (includeGlobalMap)
-                {
-                    var globalMap = new InputActionMap("Global");
-                    globalMap.AddAction(
-                        "PauseToggle",
-                        InputActionType.Button);
-                    asset.AddActionMap(globalMap);
-                }
-
-                if (includePlayerMap)
-                {
-                    var playerMap = new InputActionMap("Player");
-                    playerMap.AddAction("Move", InputActionType.Value);
-                    asset.AddActionMap(playerMap);
-                }
-
-                if (includeUiMap)
-                {
-                    var uiMap = new InputActionMap("UI");
-                    uiMap.AddAction("Submit", InputActionType.Button);
-                    asset.AddActionMap(uiMap);
-                }
-
-                return asset;
-            }
-
-            private static void DestroyImmediateSafe(UnityEngine.Object target)
-            {
-                if (target != null)
-                {
-                    UnityEngine.Object.DestroyImmediate(target);
-                }
+                    resolved && isConfigured && authoring != null,
+                    "IC2 runtime regression requires explicit Local Player " +
+                    "provisioning from the active UIGlobal composition. " +
+                    $"resolved='{resolved}' configured='{isConfigured}' " +
+                    $"diagnostic='{Escape(diagnostic)}'.");
+                return authoring;
             }
         }
     }
