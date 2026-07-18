@@ -125,6 +125,15 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                 completed.Add("global-pause-toggle-remains-enabled");
 
                 int beforeMissingGlobalRevision = resumeSnapshot.Revision;
+                Require(
+                    fixture.TryGetPauseState(
+                        out PauseState beforeMissingGlobalPause) &&
+                    beforeMissingGlobalPause == PauseState.Running,
+                    "Missing Global map preflight requires a Running Pause baseline.");
+                InputModeRuntimeSnapshot beforeMissingGlobalSnapshot =
+                    fixture.RequireRuntimeSnapshot();
+                InputModeRuntimeOperationResult beforeMissingGlobalOperation =
+                    fixture.Bridge.LastInputModeRuntimeOperation;
                 fixture.ReplaceActionAsset(
                     includeGlobalMap: false,
                     includePlayerMap: true,
@@ -133,20 +142,34 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                     fixture.SubmitPause();
                 InputModeRuntimeSnapshot missingGlobalSnapshot =
                     fixture.RequireRuntimeSnapshot();
+                PauseState afterMissingGlobal = PauseState.Unknown;
+                bool missingGlobalPausePreserved =
+                    fixture.TryGetPauseState(out afterMissingGlobal) &&
+                    afterMissingGlobal == PauseState.Running;
                 Require(
                     missingGlobal.Failed &&
                     missingGlobal.Status ==
                     PauseInputModeUnityPlayerInputRuntimeBridgeStatus
                         .FailedPreflight &&
                     !missingGlobal.PauseRequestSubmitted &&
-                    fixture.TryGetPauseState(out PauseState afterMissingGlobal) &&
-                    afterMissingGlobal == PauseState.Running &&
+                    missingGlobalPausePreserved &&
                     missingGlobalSnapshot.CurrentMode == InputModeKind.Gameplay &&
                     missingGlobalSnapshot.Revision == beforeMissingGlobalRevision &&
                     !missingGlobalSnapshot.OperationInFlight &&
                     fixture.Bridge.LastInputModeRuntimeOperation is
-                    { RolledBack: true },
-                    "Missing Global map did not fail before Pause mutation and preserve resident Gameplay state.");
+                    not null &&
+                    ReferenceEquals(
+                        fixture.Bridge.LastInputModeRuntimeOperation,
+                        beforeMissingGlobalOperation) &&
+                    fixture.HasBridgeFixtureInputAndActionIdentity,
+                    "Missing Global map did not fail before Pause mutation and preserve resident Gameplay state. " +
+                    fixture.DescribeMissingGlobalPreflight(
+                        beforeMissingGlobalPause,
+                        beforeMissingGlobalSnapshot,
+                        beforeMissingGlobalOperation,
+                        missingGlobal,
+                        afterMissingGlobal,
+                        missingGlobalSnapshot));
                 completed.Add("missing-global-map-preflight-preserves-state");
 
                 fixture.ReplaceActionAsset(
@@ -155,6 +178,14 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                     includeUiMap: true);
 
                 int beforeMissingUiRevision = resumeSnapshot.Revision;
+                Require(
+                    fixture.TryGetPauseState(out PauseState beforeMissingUiPause) &&
+                    beforeMissingUiPause == PauseState.Running,
+                    "Missing UI map preflight requires a Running Pause baseline.");
+                InputModeRuntimeSnapshot beforeMissingUiSnapshot =
+                    fixture.RequireRuntimeSnapshot();
+                InputModeRuntimeOperationResult beforeMissingUiOperation =
+                    fixture.Bridge.LastInputModeRuntimeOperation;
                 fixture.ReplaceActionAsset(
                     includeGlobalMap: true,
                     includePlayerMap: true,
@@ -163,6 +194,10 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                     fixture.SubmitPause();
                 InputModeRuntimeSnapshot missingUiSnapshot =
                     fixture.RequireRuntimeSnapshot();
+                PauseState afterMissingUi = PauseState.Unknown;
+                bool missingUiPausePreserved =
+                    fixture.TryGetPauseState(out afterMissingUi) &&
+                    afterMissingUi == PauseState.Running;
                 Require(
                     missingUi.Failed &&
                     missingUi.Status ==
@@ -170,14 +205,23 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                         .FailedPreflight &&
                     !missingUi.PauseRequestSubmitted &&
                     missingUi.RequestedMode == InputModeKind.PauseOverlay &&
-                    fixture.TryGetPauseState(out PauseState afterMissingUi) &&
-                    afterMissingUi == PauseState.Running &&
+                    missingUiPausePreserved &&
                     missingUiSnapshot.CurrentMode == InputModeKind.Gameplay &&
                     missingUiSnapshot.Revision == beforeMissingUiRevision &&
                     !missingUiSnapshot.OperationInFlight &&
-                    fixture.Bridge.LastInputModeRuntimeOperation is
-                    { RolledBack: true },
-                    "Missing UI map did not fail before Pause mutation and preserve resident Gameplay state.");
+                    beforeMissingUiOperation is { Committed: true } &&
+                    ReferenceEquals(
+                        fixture.Bridge.LastInputModeRuntimeOperation,
+                        beforeMissingUiOperation),
+                    "Missing UI map did not fail before Pause mutation and preserve resident Gameplay state. " +
+                    "No InputMode transaction can begin when preflight rejects the required UI map. " +
+                    fixture.DescribePreflightFailure(
+                        beforeMissingUiPause,
+                        beforeMissingUiSnapshot,
+                        beforeMissingUiOperation,
+                        missingUi,
+                        afterMissingUi,
+                        missingUiSnapshot));
                 completed.Add("missing-ui-map-preflight-preserves-state");
 
                 fixture.ReplaceActionAsset(
@@ -203,11 +247,24 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
 
                 int beforeMissingActorRevision =
                     recoveredPauseSnapshot.Revision;
+                Require(
+                    fixture.TryGetPauseState(
+                        out PauseState beforeMissingActorPause) &&
+                    beforeMissingActorPause == PauseState.Paused,
+                    "Missing PlayerActor preflight requires a Paused Pause baseline.");
+                InputModeRuntimeSnapshot beforeMissingActorSnapshot =
+                    fixture.RequireRuntimeSnapshot();
+                InputModeRuntimeOperationResult beforeMissingActorOperation =
+                    fixture.Bridge.LastInputModeRuntimeOperation;
                 fixture.SetPlayerActorEvidence(enabled: false);
                 PauseInputModeUnityPlayerInputRuntimeBridgeResult missingActor =
                     fixture.SubmitResume();
                 InputModeRuntimeSnapshot missingActorSnapshot =
                     fixture.RequireRuntimeSnapshot();
+                PauseState afterMissingActor = PauseState.Unknown;
+                bool missingActorPausePreserved =
+                    fixture.TryGetPauseState(out afterMissingActor) &&
+                    afterMissingActor == PauseState.Paused;
                 Require(
                     missingActor.Failed &&
                     missingActor.Status ==
@@ -215,16 +272,25 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                         .FailedPreflight &&
                     !missingActor.PauseRequestSubmitted &&
                     missingActor.RequestedMode == InputModeKind.Gameplay &&
-                    fixture.TryGetPauseState(out PauseState afterMissingActor) &&
-                    afterMissingActor == PauseState.Paused &&
+                    missingActorPausePreserved &&
                     missingActorSnapshot.CurrentMode ==
                     InputModeKind.PauseOverlay &&
                     missingActorSnapshot.Revision ==
                     beforeMissingActorRevision &&
                     !missingActorSnapshot.OperationInFlight &&
-                    fixture.Bridge.LastInputModeRuntimeOperation is
-                    { RolledBack: true },
-                    "Missing PlayerActor evidence did not fail before Resume mutation and preserve resident PauseOverlay state.");
+                    beforeMissingActorOperation is { Committed: true } &&
+                    ReferenceEquals(
+                        fixture.Bridge.LastInputModeRuntimeOperation,
+                        beforeMissingActorOperation),
+                    "Missing PlayerActor evidence did not fail before Resume mutation and preserve resident PauseOverlay state. " +
+                    "No InputMode transaction can begin when preflight rejects PlayerActor evidence. " +
+                    fixture.DescribePreflightFailure(
+                        beforeMissingActorPause,
+                        beforeMissingActorSnapshot,
+                        beforeMissingActorOperation,
+                        missingActor,
+                        afterMissingActor,
+                        missingActorSnapshot));
                 completed.Add("missing-playeractor-preflight-preserves-state");
 
                 fixture.SetPlayerActorEvidence(enabled: true);
@@ -613,6 +679,75 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                 return map?.FindAction(actionName, false) != null && map.enabled;
             }
 
+            internal bool HasBridgeFixtureInputAndActionIdentity =>
+                ReferenceEquals(Bridge.PlayerInput, PlayerInput) &&
+                ReferenceEquals(
+                    Bridge.PlayerInput == null
+                        ? null
+                        : Bridge.PlayerInput.actions,
+                    PlayerInput.actions);
+
+            internal string DescribeMissingGlobalPreflight(
+                PauseState pauseBefore,
+                InputModeRuntimeSnapshot inputModeBefore,
+                InputModeRuntimeOperationResult operationBefore,
+                PauseInputModeUnityPlayerInputRuntimeBridgeResult result,
+                PauseState pauseAfter,
+                InputModeRuntimeSnapshot inputModeAfter)
+            {
+                PlayerInput bridgePlayerInput = Bridge.PlayerInput;
+                InputActionAsset bridgeActions = bridgePlayerInput == null
+                    ? null
+                    : bridgePlayerInput.actions;
+                InputActionAsset fixtureActions = PlayerInput.actions;
+                InputModeRuntimeOperationResult operationAfter =
+                    Bridge.LastInputModeRuntimeOperation;
+
+                return
+                    $"bridgePlayerInputEntityId='{EntityId(bridgePlayerInput)}' " +
+                    $"fixturePlayerInputEntityId='{EntityId(PlayerInput)}' " +
+                    $"bridgeActionsEntityId='{EntityId(bridgeActions)}' " +
+                    $"fixtureActionsEntityId='{EntityId(fixtureActions)}' " +
+                    $"bridgePlayerInputMatchesFixture='{ReferenceEquals(bridgePlayerInput, PlayerInput)}' " +
+                    $"bridgeActionsMatchFixture='{ReferenceEquals(bridgeActions, fixtureActions)}' " +
+                    $"globalPresentOnBridgeAsset='{HasActionMap(bridgeActions, "Global")}' " +
+                    $"globalPresentOnFixtureAsset='{HasActionMap(fixtureActions, "Global")}' " +
+                    $"pauseBefore='{pauseBefore}' pauseAfter='{pauseAfter}' " +
+                    $"inputModeBefore='{inputModeBefore.CurrentMode}' " +
+                    $"inputModeAfter='{inputModeAfter.CurrentMode}' " +
+                    $"operationBeforeStatus='{OperationStatus(operationBefore)}' " +
+                    $"operationBeforeMessage='{OperationMessage(operationBefore)}' " +
+                    $"operationAfterStatus='{OperationStatus(operationAfter)}' " +
+                    $"operationAfterMessage='{OperationMessage(operationAfter)}' " +
+                    $"bridgeResultStatus='{result.Status}' " +
+                    $"bridgeResultMessage='{Escape(result.Message)}'.";
+            }
+
+            internal string DescribePreflightFailure(
+                PauseState pauseBefore,
+                InputModeRuntimeSnapshot inputModeBefore,
+                InputModeRuntimeOperationResult operationBefore,
+                PauseInputModeUnityPlayerInputRuntimeBridgeResult result,
+                PauseState pauseAfter,
+                InputModeRuntimeSnapshot inputModeAfter)
+            {
+                InputModeRuntimeOperationResult operationAfter =
+                    Bridge.LastInputModeRuntimeOperation;
+                return
+                    $"resultStatus='{result.Status}' " +
+                    $"pauseRequestSubmitted='{result.PauseRequestSubmitted}' " +
+                    $"pauseBefore='{pauseBefore}' pauseAfter='{pauseAfter}' " +
+                    $"inputModeBefore='{inputModeBefore.CurrentMode}' " +
+                    $"inputModeAfter='{inputModeAfter.CurrentMode}' " +
+                    $"revisionBefore='{inputModeBefore.Revision}' " +
+                    $"revisionAfter='{inputModeAfter.Revision}' " +
+                    $"operationInFlight='{inputModeAfter.OperationInFlight}' " +
+                    $"operationBeforeStatus='{OperationStatus(operationBefore)}' " +
+                    $"operationAfterStatus='{OperationStatus(operationAfter)}' " +
+                    $"operationReferencePreserved='{ReferenceEquals(operationBefore, operationAfter)}' " +
+                    $"bridgeResultMessage='{Escape(result.Message)}'.";
+            }
+
             internal void SetPlayerActorEvidence(bool enabled)
             {
                 var serializedBridge = new SerializedObject(Bridge);
@@ -630,6 +765,22 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                 DestroyImmediateSafe(root);
                 DestroyImmediateSafe(actionAsset);
             }
+
+            private static string EntityId(UnityEngine.Object value) =>
+                value == null ? string.Empty : value.GetEntityId().ToString();
+
+            private static bool HasActionMap(
+                InputActionAsset actionAsset,
+                string actionMapName) =>
+                actionAsset?.FindActionMap(actionMapName, false) != null;
+
+            private static string OperationStatus(
+                InputModeRuntimeOperationResult operation) =>
+                operation == null ? "null" : operation.Status.ToString();
+
+            private static string OperationMessage(
+                InputModeRuntimeOperationResult operation) =>
+                operation == null ? string.Empty : Escape(operation.Message);
 
 
             private static LocalPlayerProvisioningAuthoring
