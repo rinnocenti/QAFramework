@@ -13,7 +13,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
 {
     /// <summary>
     /// Idempotent real-join fixture. Creates one reusable Local Player technical-host prefab and
-    /// installs one explicit manual PlayerInputManager + provisioning authoring in QA_UIGlobal.
+    /// installs one explicit manual PlayerInputManager + provisioning authoring and host
+    /// registration in QA_UIGlobal.
     /// </summary>
     internal static class QaP3G4RuntimeIntegrationSetup
     {
@@ -56,9 +57,13 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 serializedAuthoring.FindProperty("playerInputManager").objectReferenceValue = manager;
                 serializedAuthoring.ApplyModifiedPropertiesWithoutUndo();
 
+                LocalPlayerProvisioningHostRegistration registration =
+                    ResolveOrCreateRegistration(scene, manager, authoring);
+
                 EditorUtility.SetDirty(manager.gameObject);
                 EditorUtility.SetDirty(manager);
                 EditorUtility.SetDirty(authoring);
+                EditorUtility.SetDirty(registration);
                 EditorSceneManager.MarkSceneDirty(scene);
                 EditorSceneManager.SaveScene(scene);
                 AssetDatabase.SaveAssets();
@@ -69,6 +74,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 Debug.Log(
                     "[P3G4_RUNTIME_JOIN_FIXTURE_SETUP] status='Applied' " +
                     $"scene='{scenePath}' fixture='{manager.gameObject.name}' " +
+                    $"registration='{registration.name}' " +
                     $"prefab='{PlayerPrefabPath}' host='{host.name}' actorMount='{host.ActorMount.name}' " +
                     $"joinBehavior='{manager.joinBehavior}' notificationBehavior='{manager.notificationBehavior}' " +
                     $"maxPlayers='{manager.maxPlayerCount}'.");
@@ -211,6 +217,33 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             maxPlayerCountProperty.intValue = 4;
             serializedManager.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static LocalPlayerProvisioningHostRegistration ResolveOrCreateRegistration(
+            Scene scene,
+            PlayerInputManager manager,
+            LocalPlayerProvisioningAuthoring authoring)
+        {
+            var registrations = new List<LocalPlayerProvisioningHostRegistration>();
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                registrations.AddRange(
+                    root.GetComponentsInChildren<LocalPlayerProvisioningHostRegistration>(true));
+            }
+
+            if (registrations.Count > 1)
+            {
+                throw new InvalidOperationException(
+                    $"Scene '{scene.name}' contains '{registrations.Count}' Local Player Provisioning Host Registrations. Exactly one is required.");
+            }
+
+            LocalPlayerProvisioningHostRegistration registration = registrations.Count == 1
+                ? registrations[0]
+                : manager.gameObject.AddComponent<LocalPlayerProvisioningHostRegistration>();
+            var serializedRegistration = new SerializedObject(registration);
+            serializedRegistration.FindProperty("provisioningAuthoring").objectReferenceValue = authoring;
+            serializedRegistration.ApplyModifiedPropertiesWithoutUndo();
+            return registration;
         }
 
         private static void SetOptionalBoolean(
