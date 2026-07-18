@@ -226,8 +226,8 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
                 "Runtime/InputMode/InputModeUnityPlayerInputAdapter.cs");
             string gameplay = Read(packageRoot,
                 "Runtime/PlayerParticipation/Runtime/PlayerGameplayInputBindingRuntimeContext.cs");
-            string pause = Read(packageRoot,
-                "Runtime/Pause/PauseInputActionTrigger.cs");
+            string canonicalPauseTrigger = Read(packageRoot,
+                "Runtime/InputMode/PauseInputActionRuntimeBridgeTrigger.cs");
             string inputModeApplication = Read(packageRoot,
                 "Runtime/InputMode/InputModeUnityPlayerInputApplication.cs");
 
@@ -256,7 +256,9 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
             AssertNoDirectPlayerInputWrite(inputMode, "InputMode adapter");
             AssertNoDirectPlayerInputWrite(gameplay, "Gameplay binding context");
             AssertNoDirectPlayerInputWrite(gate, "Gate authority");
-            AssertNoDirectPlayerInputWrite(pause, "Pause trigger");
+            AssertNoDirectPlayerInputWrite(
+                canonicalPauseTrigger,
+                "Pause InputAction bridge trigger");
             AssertNoDirectPlayerInputWrite(
                 inputModeApplication,
                 "InputMode application");
@@ -266,8 +268,9 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
                 "InputMode bypasses the explicit Gate write authority.");
             Require(!gameplay.Contains("UnityPlayerInputStateWriter.Try"),
                 "Gameplay binding bypasses the explicit Gate write authority.");
-            Require(!pause.Contains("UnityPlayerInputStateWriter.Try"),
-                "Pause trigger bypasses the explicit Gate write authority.");
+            Require(!canonicalPauseTrigger.Contains(
+                    "UnityPlayerInputStateWriter.Try"),
+                "Pause InputAction bridge trigger bypasses the explicit Gate write authority.");
             completed.Add("single-request-port-enforced");
         }
 

@@ -15,6 +15,12 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
         private const string LogPrefix =
             "[IC2_INPUT_MODE_RUNTIME_AUTHORITY_SMOKE]";
 
+        private static readonly string[] RemovedPauseScriptGuids =
+        {
+            "7f3e8a5c2d5c46f8a8f64d3a8f2f6d21",
+            "d596d6704c2843d9b0769c1bb7e543d2"
+        };
+
         [MenuItem(MenuPath, true)]
         private static bool ValidateRun() => !EditorApplication.isPlaying;
 
@@ -201,9 +207,6 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
             string canonicalTrigger = Read(
                 packageRoot,
                 "Runtime/InputMode/PauseInputActionRuntimeBridgeTrigger.cs");
-            string legacyTrigger = Read(
-                packageRoot,
-                "Runtime/Pause/PauseInputActionTrigger.cs");
             string inputModeAdapter = Read(
                 packageRoot,
                 "Runtime/InputMode/InputModeUnityPlayerInputAdapter.cs");
@@ -249,14 +252,10 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                 "Canonical InputAction trigger bypasses the Pause/InputMode authority.");
             completed.Add("canonical-trigger-delegates");
 
-            Require(legacyTrigger.Contains("FrameworkApiStatus.Removed") &&
-                    legacyTrigger.Contains("[AddComponentMenu(\"\")]") &&
-                    !legacyTrigger.Contains(".performed +=") &&
-                    !legacyTrigger.Contains("FrameworkRuntimeHost.TryGetCurrent") &&
-                    !legacyTrigger.Contains("RequestPause(") &&
-                    !legacyTrigger.Contains("TrySelectActionMap("),
-                "Legacy Pause trigger remains an active parallel submitter.");
-            completed.Add("legacy-trigger-inert");
+            Require(!ContainsRemovedPauseScriptGuidInSerializedAssets() &&
+                    !ContainsRemovedPauseSurface(packageRoot),
+                "Removed Pause scripts or their menu surface remain available.");
+            completed.Add("legacy-pause-surface-absent");
 
             Require(inputModeAdapter.Contains(
                         "UnityPlayerInputGateAdapter writeAuthority") &&
@@ -312,6 +311,55 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
             Require(File.Exists(path),
                 $"Required package source is missing: '{path}'.");
             return File.ReadAllText(path);
+        }
+
+        private static bool ContainsRemovedPauseScriptGuidInSerializedAssets()
+        {
+            foreach (string assetPath in AssetDatabase.GetAllAssetPaths())
+            {
+                if (!IsSerializedAsset(assetPath) || !File.Exists(assetPath))
+                {
+                    continue;
+                }
+
+                string serializedText = File.ReadAllText(assetPath);
+                for (int index = 0; index < RemovedPauseScriptGuids.Length; index++)
+                {
+                    if (serializedText.Contains(
+                            "guid: " + RemovedPauseScriptGuids[index]))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool ContainsRemovedPauseSurface(string packageRoot)
+        {
+            string runtimeRoot = Path.Combine(packageRoot, "Runtime");
+            foreach (string sourcePath in Directory.GetFiles(
+                         runtimeRoot,
+                         "*.cs",
+                         SearchOption.AllDirectories))
+            {
+                string source = File.ReadAllText(sourcePath);
+                if (source.Contains("FrameworkApiStatus.Removed") ||
+                    source.Contains("Immersive Framework/Removed/"))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsSerializedAsset(string path)
+        {
+            return path.EndsWith(".unity", StringComparison.OrdinalIgnoreCase) ||
+                   path.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase) ||
+                   path.EndsWith(".asset", StringComparison.OrdinalIgnoreCase);
         }
 
         private static void Require(bool condition, string message)

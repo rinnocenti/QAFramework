@@ -739,9 +739,6 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                     .objectReferenceValue = provisioningAuthoring;
                 RequireProperty(
                     serializedBridge,
-                    "autoDiscoverMissingReferences").boolValue = false;
-                RequireProperty(
-                    serializedBridge,
                     "requireLocalPlayerProvisioning").boolValue = true;
                 RequireProperty(
                     serializedBridge,
