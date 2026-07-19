@@ -1,0 +1,21 @@
+using System.Threading.Tasks;
+using Immersive.Framework.CycleReset;
+
+namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
+{
+    internal sealed class QaFakeRouteCycleResetRuntimePort : IRouteCycleResetRuntimePort
+    {
+        internal CycleResetResult Result { get; set; }
+        internal int CallCount { get; private set; }
+        internal string LastSource { get; private set; }
+        internal string LastReason { get; private set; }
+
+        public Task<CycleResetResult> RequestRouteCycleResetAsync(string source, string reason)
+        {
+            CallCount++;
+            LastSource = source;
+            LastReason = reason;
+            return Task.FromResult(Result);
+        }
+    }
+}
