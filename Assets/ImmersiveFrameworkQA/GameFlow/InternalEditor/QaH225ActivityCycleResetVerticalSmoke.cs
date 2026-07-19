@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Immersive.Framework.ApplicationLifecycle;
+using Immersive.Framework.ActivityRestart;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.CycleReset;
@@ -22,6 +23,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         [MenuItem("Immersive Framework/QA/Game Flow/H2.2.5 Run Activity Cycle Reset Vertical Smoke")]
         public static async void Run()
+        {
+            await RunInternalAsync();
+        }
+
+        public static async Task RunInternalAsync()
         {
             var completed = new List<string>();
             GameObject root = null;
@@ -61,7 +67,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private static async Task VerifyNoActiveRouteAsync(ICollection<string> completed)
         {
-            var runtime = new RouteLifecycleRuntime(new RuntimeContentRuntime(), new RuntimeContentAnchorBinding(), new QaFakeRouteRuntimePort(), new QaFakeActivityRuntimePort(), new QaFakeRouteCycleResetRuntimePort(), new QaFakeActivityCycleResetRuntimePort());
+            var runtime = new RouteLifecycleRuntime(new RuntimeContentRuntime(), new RuntimeContentAnchorBinding(), new QaFakeRouteRuntimePort(), new QaFakeActivityRuntimePort(), new QaFakeRouteCycleResetRuntimePort(), new QaFakeActivityCycleResetRuntimePort(), new QaFakeActivityRestartRuntimePort());
             CycleResetResult result = await runtime.RequestActivityCycleResetAsync(CycleResetPolicy.ActivityDefault(), "H225", "no-active-route");
             Require(result.Status == CycleResetStatus.RejectedInvalidRequest && result.Message.Contains("No active Route"), result.ToDiagnosticString());
             completed.Add("no-active-route-explicit-structured-failure");
@@ -78,13 +84,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 IActivityRuntimePort activityRuntimePort = host;
                 IRouteCycleResetRuntimePort routeCycleResetRuntimePort = host;
                 IActivityCycleResetRuntimePort activityCycleResetRuntimePort = host;
+                IActivityRestartRuntimePort activityRestartRuntimePort = host;
                 var runtime = new RouteLifecycleRuntime(
                     new RuntimeContentRuntime(),
                     new RuntimeContentAnchorBinding(),
                     routeRuntimePort,
                     activityRuntimePort,
                     routeCycleResetRuntimePort,
-                    activityCycleResetRuntimePort);
+                    activityCycleResetRuntimePort,
+                    activityRestartRuntimePort);
                 var participantSource = new H225ParticipantSource(
                     H225Scenario.NominalActivityOnly);
                 runtime.SetCycleResetParticipantSource(participantSource);

@@ -13,7 +13,7 @@ using UnityEngine.SceneManagement;
 namespace ImmersiveFrameworkQA.Player.Editor
 {
     [InitializeOnLoad]
-    internal static class QaP3CanonicalPreFirstGameSmoke
+    public static class QaP3CanonicalPreFirstGameSmoke
     {
         private const string MenuPath =
             "Immersive Framework/QA/Player/P3 Run Canonical Pre-FIRSTGAME Smoke";
@@ -28,6 +28,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private const string MessageKey = Prefix + "Message";
         private const string FailureSceneKey = Prefix + "FailureScene";
         private const string FailurePlayModeKey = Prefix + "FailurePlayMode";
+        private const string RegressionStatusKey = Prefix + "RegressionStatus";
 
         private static bool playModeRunnerStarted;
 
@@ -131,6 +132,18 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 RecordFailure("editor", exception);
                 FinalizeRun();
             }
+        }
+
+        public static void RunForRegressionSuite()
+        {
+            SessionState.EraseString(RegressionStatusKey);
+            Run();
+        }
+
+        public static bool TryGetRegressionSuiteStatus(out string status)
+        {
+            status = SessionState.GetString(RegressionStatusKey, string.Empty);
+            return !string.IsNullOrEmpty(status);
         }
 
         private static void RunEditorGroup(
@@ -343,6 +356,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             }
 
             List<string> completed = ReadCompleted();
+            SessionState.SetString(RegressionStatusKey, status);
             if (status == "Passed")
             {
                 Debug.Log(

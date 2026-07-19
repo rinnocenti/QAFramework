@@ -20,6 +20,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         [MenuItem("Immersive Framework/QA/Game Flow/H2.2.4 Run Route Cycle Reset Vertical Smoke")]
         public static async void Run()
         {
+            await RunInternalAsync();
+        }
+
+        public static async Task RunInternalAsync()
+        {
             var completed = new List<string>(); GameObject root = null;
             try
             {
@@ -33,7 +38,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     new QaFakeRouteRuntimePort(),
                     new QaFakeActivityRuntimePort(),
                     new QaFakeRouteCycleResetRuntimePort(),
-                    new QaFakeActivityCycleResetRuntimePort());
+                    new QaFakeActivityCycleResetRuntimePort(),
+                    new QaFakeActivityRestartRuntimePort());
                 CycleResetResult noRoute = await noRouteRuntime.RequestRouteCycleResetAsync(
                     CycleResetPolicy.RouteDefault(),
                     "H224",
