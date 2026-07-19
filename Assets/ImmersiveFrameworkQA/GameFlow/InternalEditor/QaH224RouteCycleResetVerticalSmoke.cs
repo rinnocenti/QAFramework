@@ -32,7 +32,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     new RuntimeContentAnchorBinding(),
                     new QaFakeRouteRuntimePort(),
                     new QaFakeActivityRuntimePort(),
-                    new QaFakeRouteCycleResetRuntimePort());
+                    new QaFakeRouteCycleResetRuntimePort(),
+                    new QaFakeActivityCycleResetRuntimePort());
                 CycleResetResult noRoute = await noRouteRuntime.RequestRouteCycleResetAsync(
                     CycleResetPolicy.RouteDefault(),
                     "H224",
