@@ -2,8 +2,7 @@ using System.Threading.Tasks;
 using Immersive.Framework.ActivityRestart;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Reset;
-
-namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
+namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
 {
     internal sealed class QaFakeActivityRestartRuntimePort : IActivityRestartRuntimePort
     {

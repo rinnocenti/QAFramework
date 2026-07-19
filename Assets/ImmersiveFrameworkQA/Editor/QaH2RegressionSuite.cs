@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ImmersiveFrameworkQA.GameFlow.Internal.Editor;
+using ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor;
 using ImmersiveFrameworkQA.InputMode.Editor;
 using ImmersiveFrameworkQA.Player.Editor;
 using UnityEditor;

@@ -1,6 +1,5 @@
 using Immersive.Framework.ApplicationLifecycle;
-
-namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
+namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
 {
     public static class QaH2FrameworkReadiness
     {

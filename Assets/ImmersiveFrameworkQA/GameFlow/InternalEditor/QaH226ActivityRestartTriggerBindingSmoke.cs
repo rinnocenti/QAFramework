@@ -4,13 +4,11 @@ using System.Threading.Tasks;
 using Immersive.Framework.ActivityRestart;
 using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Authoring;
-using Immersive.Framework.Common.FlowTriggers;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.Reset;
 using UnityEditor;
 using UnityEngine;
-
-namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
+namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
 {
     public static class QaH226ActivityRestartTriggerBindingSmoke
     {

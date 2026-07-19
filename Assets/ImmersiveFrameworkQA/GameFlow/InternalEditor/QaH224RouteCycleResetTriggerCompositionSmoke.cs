@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using Immersive.Framework.CycleReset;
 using UnityEditor;
 using UnityEngine;
-
-namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
+namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
 {
     public static class QaH224RouteCycleResetTriggerCompositionSmoke
     {

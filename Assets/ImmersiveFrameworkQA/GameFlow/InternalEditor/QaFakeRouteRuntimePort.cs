@@ -2,8 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
-
-namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
+namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
 {
     internal sealed class QaFakeRouteRuntimePort : IRouteRuntimePort
     {

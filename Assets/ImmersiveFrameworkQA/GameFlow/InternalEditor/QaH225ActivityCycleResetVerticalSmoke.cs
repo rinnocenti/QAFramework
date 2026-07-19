@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.ActivityRestart;
+using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentAnchor;
 using Immersive.Framework.CycleReset;
@@ -11,8 +11,7 @@ using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.RuntimeContent;
 using UnityEditor;
 using UnityEngine;
-
-namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
+namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
 {
     public static class QaH225ActivityCycleResetVerticalSmoke
     {

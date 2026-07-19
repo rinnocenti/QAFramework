@@ -7,8 +7,7 @@ using Immersive.Framework.ObjectReset;
 using Immersive.Framework.Reset;
 using UnityEditor;
 using UnityEngine;
-
-namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
+namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
 {
     public static class QaH228ObjectResetGroupVerticalSmoke
     {

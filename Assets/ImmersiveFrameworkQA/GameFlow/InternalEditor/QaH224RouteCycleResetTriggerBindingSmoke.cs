@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Immersive.Framework.ApplicationLifecycle;
-using Immersive.Framework.Common.FlowTriggers;
 using Immersive.Framework.CycleReset;
 using Immersive.Framework.GameFlow;
 using UnityEditor;
 using UnityEngine;
-
-namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
+namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
 {
     public static class QaH224RouteCycleResetTriggerBindingSmoke
     {

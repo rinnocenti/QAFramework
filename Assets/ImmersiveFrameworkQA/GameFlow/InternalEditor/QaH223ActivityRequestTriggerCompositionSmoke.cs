@@ -4,8 +4,7 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using UnityEditor;
 using UnityEngine;
-
-namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
+namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
 {
     public static class QaH223ActivityRequestTriggerCompositionSmoke
     {
