@@ -28,7 +28,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                     "H2.2.2 Route request trigger binding smoke requires Play Mode.");
                 completed.Add("play-mode-required");
                 Require(
-                    FrameworkRuntimeHost.TryGetCurrent(
+                    global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(
                         out FrameworkRuntimeHost host) && host != null,
                     "H2.2.2 Route request trigger binding smoke requires an initialized global FrameworkRuntimeHost.");
                 IRouteRuntimePort hostRouteRuntime = host;

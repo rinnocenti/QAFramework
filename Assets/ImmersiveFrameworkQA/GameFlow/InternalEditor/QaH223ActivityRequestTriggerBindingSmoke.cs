@@ -30,7 +30,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 completed.Add("play-mode-required");
 
                 Require(
-                    FrameworkRuntimeHost.TryGetCurrent(
+                    global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(
                         out FrameworkRuntimeHost host) && host != null,
                     "H2.2.3 Activity request trigger binding smoke requires an initialized global FrameworkRuntimeHost.");
                 IActivityRuntimePort hostActivityRuntime = host;

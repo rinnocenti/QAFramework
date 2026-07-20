@@ -212,7 +212,7 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
 
             try
             {
-                Require(FrameworkRuntimeHost.TryGetCurrent(
+                Require(global::ImmersiveFrameworkQA.InputMode.Internal.Editor.QaInputModeFrameworkRuntimeHostResolver.TryResolveUniqueHost(
                             out FrameworkRuntimeHost runtimeHost) &&
                         runtimeHost != null,
                     "H2.1 Pause runtime binding proofs require an active global FrameworkRuntimeHost in Play Mode.");

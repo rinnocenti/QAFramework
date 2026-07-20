@@ -18,7 +18,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             try
             {
                 Require(EditorApplication.isPlaying,"H2.2.5 binding smoke requires Play Mode.");completed.Add("play-mode-required");
-                Require(FrameworkRuntimeHost.TryGetCurrent(out FrameworkRuntimeHost host)&&host!=null,"H2.2.5 binding smoke requires FrameworkRuntimeHost.");IActivityCycleResetRuntimePort hostPort=host;Require(hostPort!=null,"FrameworkRuntimeHost did not expose Activity Cycle Reset runtime port.");completed.Add("runtime-host-available");
+                Require(global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(out FrameworkRuntimeHost host)&&host!=null,"H2.2.5 binding smoke requires FrameworkRuntimeHost.");IActivityCycleResetRuntimePort hostPort=host;Require(hostPort!=null,"FrameworkRuntimeHost did not expose Activity Cycle Reset runtime port.");completed.Add("runtime-host-available");
                 ActivityCycleResetTrigger trigger=Create("H225 Bound",objects);var fakeA=new QaFakeActivityCycleResetRuntimePort{Result=Result(CycleResetStatus.Succeeded)};
                 Require(trigger.TryBindActivityCycleResetRuntime(fakeA,out string issue)&&trigger.HasActivityCycleResetRuntimeBinding,"Initial binding failed. "+issue);completed.Add("initial-binding-accepted");
                 Require(trigger.TryBindActivityCycleResetRuntime(fakeA,out issue)&&trigger.ActivityCycleResetRuntimeBindingDiagnostic.Contains("idempotent"),"Idempotent binding failed. "+issue);completed.Add("same-port-rebind-idempotent");

@@ -32,7 +32,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             GameObject root = null;
             try
             {
-                Require(FrameworkRuntimeHost.TryGetCurrent(out FrameworkRuntimeHost host) && host != null, "H2.2.5 vertical smoke requires FrameworkRuntimeHost.");
+                Require(global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(out FrameworkRuntimeHost host) && host != null, "H2.2.5 vertical smoke requires FrameworkRuntimeHost.");
                 Require(host.State.CurrentRoute != null, "H2.2.5 vertical smoke requires active Route.");
                 Require(host.State.CurrentActivity != null, "H2.2.5 vertical smoke requires active Activity.");
                 await VerifyNoActiveRouteAsync(completed);
@@ -59,7 +59,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             }
             finally
             {
-                if (FrameworkRuntimeHost.TryGetCurrent(out FrameworkRuntimeHost host)) host.SetCycleResetParticipantSource(null);
+                if (global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(out FrameworkRuntimeHost host)) host.SetCycleResetParticipantSource(null);
                 if (root != null) UnityEngine.Object.Destroy(root);
             }
         }

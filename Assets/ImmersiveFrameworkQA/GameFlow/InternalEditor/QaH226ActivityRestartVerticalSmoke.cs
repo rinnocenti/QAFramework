@@ -29,7 +29,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             NominalResetFixture nominalFixture = null;
             try
             {
-                Require(FrameworkRuntimeHost.TryGetCurrent(out FrameworkRuntimeHost host) && host != null, "H2.2.6 vertical smoke requires FrameworkRuntimeHost.");
+                Require(global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(out FrameworkRuntimeHost host) && host != null, "H2.2.6 vertical smoke requires FrameworkRuntimeHost.");
                 Require(host.State.CurrentRoute != null && host.State.CurrentActivity != null, "H2.2.6 vertical smoke requires active Route and Activity.");
                 IActivityRestartRuntimePort runtime = host;
 

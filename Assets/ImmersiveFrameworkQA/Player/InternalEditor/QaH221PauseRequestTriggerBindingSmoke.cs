@@ -31,7 +31,7 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                 completed.Add("play-mode-required");
 
                 Require(
-                    FrameworkRuntimeHost.TryGetCurrent(
+                    global::ImmersiveFrameworkQA.InputMode.Internal.Editor.QaInputModeFrameworkRuntimeHostResolver.TryResolveUniqueHost(
                         out FrameworkRuntimeHost currentHost) &&
                     currentHost != null,
                     "H2.2.1 Pause request trigger binding smoke requires an initialized global FrameworkRuntimeHost.");

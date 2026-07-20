@@ -43,7 +43,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     EditorApplication.isPlaying,
                     "H2.2.12 vertical smoke requires Play Mode.");
                 Require(
-                    FrameworkRuntimeHost.TryGetCurrent(
+                    global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(
                         out FrameworkRuntimeHost host) &&
                     host != null,
                     "H2.2.12 vertical smoke requires FrameworkRuntimeHost.");

@@ -27,7 +27,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             var completed = new List<string>(); GameObject root = null;
             try
             {
-                Require(FrameworkRuntimeHost.TryGetCurrent(out FrameworkRuntimeHost host) && host != null, "H2.2.4 vertical smoke requires FrameworkRuntimeHost.");
+                Require(global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(out FrameworkRuntimeHost host) && host != null, "H2.2.4 vertical smoke requires FrameworkRuntimeHost.");
                 Require(host.State.CurrentRoute != null, "H2.2.4 vertical smoke requires an active Route; no-active-Route structured rejection remains an explicit runtime precondition.");
                 Require(host.State.CurrentActivity != null, "H2.2.4 vertical smoke requires an active Activity to prove RouteDefault activity inclusion.");
                 IRouteCycleResetRuntimePort port = host;
@@ -76,7 +76,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 Debug.Log($"{LogPrefix} status='Passed' cases='{completed.Count}' completed='{string.Join(",", completed)}'.");
             }
             catch (Exception exception) { Debug.LogError($"{LogPrefix} status='Failed' message='{exception.Message}'."); throw; }
-            finally { if (FrameworkRuntimeHost.TryGetCurrent(out FrameworkRuntimeHost host)) host.SetCycleResetParticipantSource(null); if (root != null) UnityEngine.Object.Destroy(root); }
+            finally { if (global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(out FrameworkRuntimeHost host)) host.SetCycleResetParticipantSource(null); if (root != null) UnityEngine.Object.Destroy(root); }
         }
 
         private static async Task Wait(RouteCycleResetTrigger trigger)

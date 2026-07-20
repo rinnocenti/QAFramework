@@ -31,7 +31,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             {
                 Require(EditorApplication.isPlaying, "H2.2.6 binding smoke requires Play Mode.");
                 completed.Add("play-mode-required");
-                Require(FrameworkRuntimeHost.TryGetCurrent(out FrameworkRuntimeHost host) && host != null, "H2.2.6 binding smoke requires FrameworkRuntimeHost.");
+                Require(global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(out FrameworkRuntimeHost host) && host != null, "H2.2.6 binding smoke requires FrameworkRuntimeHost.");
                 IActivityRestartRuntimePort hostPort = host;
                 Require(hostPort != null, "FrameworkRuntimeHost did not expose Activity Restart runtime port.");
                 completed.Add("runtime-host-available");

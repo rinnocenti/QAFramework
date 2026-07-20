@@ -503,7 +503,7 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                         name,
                         provisioningAuthoring);
                     Require(
-                        FrameworkRuntimeHost.TryGetCurrent(
+                        global::ImmersiveFrameworkQA.InputMode.Internal.Editor.QaInputModeFrameworkRuntimeHostResolver.TryResolveUniqueHost(
                             out FrameworkRuntimeHost runtimeHost) &&
                         runtimeHost != null,
                         "IC2 runtime regression requires the active FrameworkRuntimeHost.");
@@ -763,7 +763,7 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                 bool isConfigured = false;
                 string diagnostic = string.Empty;
                 bool resolved =
-                    FrameworkRuntimeHost.TryGetCurrent(
+                    global::ImmersiveFrameworkQA.InputMode.Internal.Editor.QaInputModeFrameworkRuntimeHostResolver.TryResolveUniqueHost(
                         out FrameworkRuntimeHost runtimeHost) &&
                     runtimeHost != null &&
                     runtimeHost.TryResolveLocalPlayerProvisioningAuthoring(
