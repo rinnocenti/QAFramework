@@ -203,9 +203,10 @@ This is still QA surface validation only. It does not bind keyboard/controller i
 
 
 
-## F27B Pause Input Binding
+## F27B Technical Pause Bridge Regression
 
-The canonical authored Pause input path for `QA_UIGlobal` is now:
+The following is a technical experimental regression path, not the canonical
+Pause P1 product path and not `QA_UIGlobal` startup composition:
 
 ```text
 PauseInputActionRuntimeBridgeTrigger
@@ -214,4 +215,6 @@ PauseInputActionRuntimeBridgeTrigger
 
 The QA input asset has `PauseToggle` in both `Player` and `UI` maps. Default bindings are Escape and Gamepad Start.
 
-This bridge path is intentionally narrow: it validates the explicit Unity input evidence, forwards the Pause request and keeps Pause, InputMode and PlayerInput synchronized without owning InputMode policy or player join/spawn behavior.
+This bridge path is intentionally narrow: it validates explicit Unity input
+evidence and retained IC2 behavior. Consumer guidance is
+`PausePlayerInputBinding` plus `IPauseProductRequestPort`.

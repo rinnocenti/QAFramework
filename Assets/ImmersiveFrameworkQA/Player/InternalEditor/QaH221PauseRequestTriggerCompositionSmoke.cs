@@ -29,7 +29,7 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                 GlobalUiPauseRequestTriggerBindingResult absent =
                     GlobalUiSceneRuntime.TryBindPauseRequestTriggers(
                         new[] { emptyRoot },
-                        new QaFakePauseRuntimePort());
+                        new QaFakePauseProductRequestPort());
                 Require(
                     absent.Succeeded && absent.Status == "OptionalAbsent" &&
                     absent.RootCount == 1 && absent.TriggerCount == 0,
@@ -40,7 +40,7 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                 GameObject oneRoot = CreateRoot("H221 One Trigger Root", objects);
                 PauseRequestTrigger oneTrigger =
                     oneRoot.AddComponent<PauseRequestTrigger>();
-                var oneFake = new QaFakePauseRuntimePort();
+                var oneFake = new QaFakePauseProductRequestPort();
                 GlobalUiPauseRequestTriggerBindingResult one =
                     GlobalUiSceneRuntime.TryBindPauseRequestTriggers(
                         new[] { oneRoot }, oneFake);
@@ -48,7 +48,7 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                     one.Succeeded && one.Status == "Bound" &&
                     one.TriggerCount == 1 && one.BoundCount == 1 &&
                     one.IdempotentCount == 0 && one.RejectedCount == 0 &&
-                    oneTrigger.HasPauseRuntimeBinding,
+                    oneTrigger.HasPauseProductRequestBinding,
                     "One trigger composition did not bind explicitly. " + one.Message);
                 completed.Add("one-trigger-bound");
 
@@ -61,15 +61,15 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                 objects.Add(multipleChild);
                 PauseRequestTrigger secondMultiple =
                     multipleChild.AddComponent<PauseRequestTrigger>();
-                var multipleFake = new QaFakePauseRuntimePort();
+                var multipleFake = new QaFakePauseProductRequestPort();
                 GlobalUiPauseRequestTriggerBindingResult multiple =
                     GlobalUiSceneRuntime.TryBindPauseRequestTriggers(
                         new[] { multipleRoot }, multipleFake);
                 Require(
                     multiple.Succeeded && multiple.TriggerCount == 2 &&
                     multiple.BoundCount == 2 && multiple.RejectedCount == 0 &&
-                    firstMultiple.HasPauseRuntimeBinding &&
-                    secondMultiple.HasPauseRuntimeBinding,
+                    firstMultiple.HasPauseProductRequestBinding &&
+                    secondMultiple.HasPauseProductRequestBinding,
                     "Multiple trigger composition did not bind every trigger. " +
                     multiple.Message);
                 completed.Add("multiple-triggers-all-bound");
@@ -78,9 +78,9 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                     CreateRoot("H221 Idempotent Trigger Root", objects);
                 PauseRequestTrigger idempotentTrigger =
                     idempotentRoot.AddComponent<PauseRequestTrigger>();
-                var idempotentFake = new QaFakePauseRuntimePort();
+                var idempotentFake = new QaFakePauseProductRequestPort();
                 Require(
-                    idempotentTrigger.TryBindPauseRuntime(
+                    idempotentTrigger.TryBindPauseProductRequest(
                         idempotentFake,
                         out string idempotentIssue),
                     "Could not prebind the idempotent trigger. " + idempotentIssue);
@@ -107,10 +107,10 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                 objects.Add(incompatibleChild);
                 PauseRequestTrigger incompatibleTrigger =
                     incompatibleChild.AddComponent<PauseRequestTrigger>();
-                var expectedRuntime = new QaFakePauseRuntimePort();
-                var incompatibleRuntime = new QaFakePauseRuntimePort();
+                var expectedRuntime = new QaFakePauseProductRequestPort();
+                var incompatibleRuntime = new QaFakePauseProductRequestPort();
                 Require(
-                    incompatibleTrigger.TryBindPauseRuntime(
+                    incompatibleTrigger.TryBindPauseProductRequest(
                         incompatibleRuntime,
                         out string incompatibleIssue),
                     "Could not prebind the incompatible trigger. " +
@@ -126,8 +126,8 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                     incompatible.BoundCount == 1 &&
                     incompatible.IdempotentCount == 0 &&
                     incompatible.RejectedCount == 1 &&
-                    compatibleTrigger.HasPauseRuntimeBinding &&
-                    incompatibleTrigger.HasPauseRuntimeBinding &&
+                    compatibleTrigger.HasPauseProductRequestBinding &&
+                    incompatibleTrigger.HasPauseProductRequestBinding &&
                     incompatible.Message.Contains("different port") &&
                     incompatible.Message.Contains("current lifetime") &&
                     incompatible.Message.Contains("H221 Incompatible Child") &&
@@ -140,13 +140,13 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                     expectedRuntime.RequestCallCount == 1 &&
                     incompatibleRuntime.RequestCallCount == 0 &&
                     compatibleTrigger.LastRequestSucceeded,
-                    "Compatible trigger did not preserve the composition Pause runtime authority.");
+                    "Compatible trigger did not preserve the composition product request authority.");
                 incompatibleTrigger.RequestPause();
                 Require(
                     expectedRuntime.RequestCallCount == 1 &&
                     incompatibleRuntime.RequestCallCount == 1 &&
                     incompatibleTrigger.LastRequestSucceeded,
-                    "Incompatible trigger did not preserve its original Pause runtime authority.");
+                    "Incompatible trigger did not preserve its original product request authority.");
                 completed.Add("incompatible-trigger-binding-rejected");
 
                 Require(

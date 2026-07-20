@@ -9,13 +9,13 @@ using UnityEngine.InputSystem;
 
 namespace ImmersiveFrameworkQA.InputMode.Editor
 {
+    // Fixture for the isolated technical experimental bridge regressions; never a product composition.
     internal sealed class QaIc2PauseInputModeBridgeFixture : IDisposable
     {
         private readonly GameObject root;
 
         private QaIc2PauseInputModeBridgeFixture(
             GameObject root,
-            PauseRequestTrigger pauseControl,
             PlayerInput playerInput,
             PlayerActorDeclaration playerActor,
             UnityInputTargetDeclaration gameplayTarget,
@@ -25,7 +25,6 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
             InputActionAsset actionAsset)
         {
             this.root = root;
-            PauseControl = pauseControl;
             PlayerInput = playerInput;
             PlayerActor = playerActor;
             GameplayTarget = gameplayTarget;
@@ -35,7 +34,6 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
             ActionAsset = actionAsset;
         }
 
-        internal PauseRequestTrigger PauseControl { get; }
         internal PlayerInput PlayerInput { get; }
         internal PlayerActorDeclaration PlayerActor { get; }
         internal UnityInputTargetDeclaration GameplayTarget { get; }
@@ -62,8 +60,6 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                 root = new GameObject(name);
                 root.SetActive(false);
 
-                PauseRequestTrigger pauseControl =
-                    root.AddComponent<PauseRequestTrigger>();
                 var playerObject = new GameObject(name + " Player");
                 playerObject.transform.SetParent(root.transform, false);
                 actionAsset = CreateActionAsset(true, true, true);
@@ -114,7 +110,6 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                 root.SetActive(true);
                 return new QaIc2PauseInputModeBridgeFixture(
                     root,
-                    pauseControl,
                     playerInput,
                     playerActor,
                     gameplayTarget,

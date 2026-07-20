@@ -13,6 +13,7 @@ using PauseState = Immersive.Framework.Pause.PauseState;
 
 namespace ImmersiveFrameworkQA.InputMode.Editor
 {
+    // Technical experimental regression only. This smoke does not prove a Pause P1 product path.
     public static class QaIc2PauseInputModeRuntimeRegressionSmoke
     {
         private const string MenuPath =
@@ -461,11 +462,14 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
         private sealed class RuntimeFixture : IDisposable
         {
             private readonly QaIc2PauseInputModeBridgeFixture fixture;
+            private readonly IPauseRuntimePort pauseRuntime;
 
             private RuntimeFixture(
-                QaIc2PauseInputModeBridgeFixture fixture)
+                QaIc2PauseInputModeBridgeFixture fixture,
+                IPauseRuntimePort pauseRuntime)
             {
                 this.fixture = fixture;
+                this.pauseRuntime = pauseRuntime;
             }
 
             internal PlayerInput PlayerInput => fixture.PlayerInput;
@@ -514,13 +518,7 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                             out string bridgeBindingIssue),
                         "IC2 runtime regression could not bind the explicit Pause runtime port to the bridge. " +
                         bridgeBindingIssue);
-                    Require(
-                        fixture.PauseControl.TryBindPauseRuntime(
-                            pauseRuntime,
-                            out string triggerBindingIssue),
-                        "IC2 runtime regression could not bind the explicit Pause runtime port to the Pause request trigger. " +
-                        triggerBindingIssue);
-                    return new RuntimeFixture(fixture);
+                    return new RuntimeFixture(fixture, pauseRuntime);
                 }
                 catch
                 {
@@ -574,8 +572,7 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
 
             internal bool TryGetPauseState(out PauseState state)
             {
-                if (!fixture.PauseControl.TryGetPauseSnapshot(
-                        out PauseSnapshot snapshot))
+                if (!pauseRuntime.TryGetPauseSnapshot(out PauseSnapshot snapshot))
                 {
                     state = PauseState.Unknown;
                     return false;
@@ -598,13 +595,20 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                     return;
                 }
 
+                PauseRequest request;
                 if (targetState == PauseState.Paused)
                 {
-                    fixture.PauseControl.RequestPause();
+                    request = PauseRequest.Pause(
+                        "qa.ic2.technical.pause",
+                        nameof(QaIc2PauseInputModeRuntimeRegressionSmoke),
+                        "technical-regression-baseline");
                 }
                 else if (targetState == PauseState.Running)
                 {
-                    fixture.PauseControl.RequestResume();
+                    request = PauseRequest.Resume(
+                        "qa.ic2.technical.resume",
+                        nameof(QaIc2PauseInputModeRuntimeRegressionSmoke),
+                        "technical-regression-baseline");
                 }
                 else
                 {
@@ -613,6 +617,11 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                         targetState,
                         "Pause target state must be Running or Paused.");
                 }
+
+                PauseResult result = pauseRuntime.RequestPause(request);
+                Require(
+                    result.Completed,
+                    $"Technical IC2 baseline Pause request failed. {result.Message}");
 
                 Require(
                     TryGetPauseState(out PauseState resolvedState) &&

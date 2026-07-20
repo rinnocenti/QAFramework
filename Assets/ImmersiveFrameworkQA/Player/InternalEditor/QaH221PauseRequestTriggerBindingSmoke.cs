@@ -35,9 +35,8 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                         out FrameworkRuntimeHost currentHost) &&
                     currentHost != null,
                     "H2.2.1 Pause request trigger binding smoke requires an initialized global FrameworkRuntimeHost.");
-                IPauseRuntimePort hostPauseRuntime = currentHost;
                 Require(
-                    hostPauseRuntime.TryGetPauseSnapshot(
+                    currentHost.TryGetPauseSnapshot(
                         out PauseSnapshot hostBefore),
                     "Global FrameworkRuntimeHost had no Pause snapshot for the unbound trigger proof.");
                 completed.Add("runtime-host-available");
@@ -45,28 +44,28 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                 GameObject boundRoot = CreateRoot("H221 Bound Trigger", objects);
                 PauseRequestTrigger boundTrigger =
                     boundRoot.AddComponent<PauseRequestTrigger>();
-                var fakeA = new QaFakePauseRuntimePort();
+                var fakeA = new QaFakePauseProductRequestPort();
                 Require(
-                    boundTrigger.TryBindPauseRuntime(fakeA, out string firstIssue) &&
-                    boundTrigger.HasPauseRuntimeBinding &&
-                    boundTrigger.PauseRuntimeBindingStatus == "Bound",
+                    boundTrigger.TryBindPauseProductRequest(fakeA, out string firstIssue) &&
+                    boundTrigger.HasPauseProductRequestBinding &&
+                    boundTrigger.ProductRequestBindingStatus == "Bound",
                     "Initial Pause request trigger binding was not accepted. " +
                     firstIssue);
                 completed.Add("initial-binding-accepted");
 
                 Require(
-                    boundTrigger.TryBindPauseRuntime(fakeA, out string sameIssue) &&
-                    boundTrigger.PauseRuntimeBindingDiagnostic.Contains("idempotent"),
-                    "Same Pause runtime port rebinding was not idempotent. " +
+                    boundTrigger.TryBindPauseProductRequest(fakeA, out string sameIssue) &&
+                    boundTrigger.ProductRequestBindingDiagnostic.Contains("idempotent"),
+                    "Same Pause product request port rebinding was not idempotent. " +
                     sameIssue);
                 completed.Add("same-port-rebind-idempotent");
 
-                var fakeB = new QaFakePauseRuntimePort();
+                var fakeB = new QaFakePauseProductRequestPort();
                 Require(
-                    !boundTrigger.TryBindPauseRuntime(fakeB, out string differentIssue) &&
-                    boundTrigger.HasPauseRuntimeBinding &&
+                    !boundTrigger.TryBindPauseProductRequest(fakeB, out string differentIssue) &&
+                    boundTrigger.HasPauseProductRequestBinding &&
                     differentIssue.Contains("different port"),
-                    "Different Pause runtime port rebinding was not rejected. " +
+                    "Different Pause product request port rebinding was not rejected. " +
                     differentIssue);
                 completed.Add("different-port-rebind-rejected");
 
@@ -94,17 +93,17 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                     unboundRoot.AddComponent<PauseRequestTrigger>();
                 Require(
                     !unboundTrigger.TryGetPauseSnapshot(out _) &&
-                    !unboundTrigger.HasPauseRuntimeBinding,
+                    !unboundTrigger.HasPauseProductRequestBinding,
                     "Unbound trigger resolved a Pause snapshot without an explicit port.");
                 unboundTrigger.TogglePause();
                 Require(
-                    hostPauseRuntime.TryGetPauseSnapshot(
+                    currentHost.TryGetPauseSnapshot(
                         out PauseSnapshot hostAfter) &&
                     hostAfter.State == hostBefore.State &&
                     unboundTrigger.LastRequestFailed &&
-                    unboundTrigger.LastMessage.Contains("Pause runtime port is not bound") &&
-                    unboundTrigger.PauseRuntimeBindingDiagnostic.Contains(
-                        "Pause runtime port is not bound"),
+                    unboundTrigger.LastMessage.Contains("Pause product request port is not bound") &&
+                    unboundTrigger.ProductRequestBindingDiagnostic.Contains(
+                        "Pause product request port is not bound"),
                     "Unbound trigger fell back to the global host or did not fail explicitly.");
                 completed.Add("unbound-trigger-does-not-fallback-to-current-host");
 

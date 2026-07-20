@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
+using PauseState = Immersive.Framework.Pause.PauseState;
 
 namespace ImmersiveFrameworkQA.PauseP1.Editor
 {
@@ -65,7 +66,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     "Pause action was not resolved from PlayerInput.actions clone.");
                 Require(runtimeAction.id == binding.PauseAction.action.id,
                     "Runtime Pause action GUID differs from authoring reference.");
-                Require(ReferenceEquals(runtimeAction.asset, playerInput.actions),
+                Require(ReferenceEquals(runtimeAction.actionMap?.asset, playerInput.actions),
                     "Runtime Pause action does not belong to PlayerInput.actions.");
                 completed.Add("pause-action-runtime-clone");
 

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ImmersiveFrameworkQA.GameFlow.Internal.Editor;
 using ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor;
 using ImmersiveFrameworkQA.InputMode.Editor;
+using ImmersiveFrameworkQA.PauseP1.Editor;
 using ImmersiveFrameworkQA.Player.Editor;
 using UnityEditor;
 using UnityEngine;
@@ -119,6 +120,7 @@ namespace ImmersiveFrameworkQA.Editor
         {
             if (includeAllH2)
             {
+                Execute("Pause P1", "Legacy Boundary", QaPauseP1LegacyBoundaryStaticSmoke.Run);
                 Execute("H2.2.1", "Composition", QaH221PauseRequestTriggerCompositionSmoke.Run);
                 Execute("H2.2.2", "Composition", QaH222RouteRequestTriggerCompositionSmoke.Run);
                 Execute("H2.2.3", "Composition", QaH223ActivityRequestTriggerCompositionSmoke.Run);
