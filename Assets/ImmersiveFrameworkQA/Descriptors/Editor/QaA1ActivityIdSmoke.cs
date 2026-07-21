@@ -12,7 +12,7 @@ namespace ImmersiveFrameworkQA.Descriptors.Editor
         private const string LifecycleAdmissionTypeName =
             "Immersive.Framework.PlayerParticipation.ActivityPlayerLifecycleAdmissionRuntimeContext";
 
-        [MenuItem("Immersive Framework QA/Contracts/A1 Run Activity ID Smoke")]
+        [MenuItem("Immersive Framework/QA/Regressions/Contracts/Run Activity Identity Regression")]
         private static void Run()
         {
             ActivityAsset activityA = ScriptableObject.CreateInstance<ActivityAsset>();

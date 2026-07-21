@@ -21,10 +21,8 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
         private const string LogPrefix =
             "[IC2_PAUSE_INPUT_MODE_RUNTIME_REGRESSION_SMOKE]";
 
-        [MenuItem(MenuPath, true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
 
-        [MenuItem(MenuPath)]
         public static void Run()
         {
             var completed = new List<string>();

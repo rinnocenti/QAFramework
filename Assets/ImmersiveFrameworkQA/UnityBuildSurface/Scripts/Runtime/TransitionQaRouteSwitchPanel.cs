@@ -33,7 +33,6 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
             buttonLabel = string.IsNullOrWhiteSpace(nextButtonLabel) ? "Request Other Route" : nextButtonLabel;
         }
 
-        [ContextMenu("Request Target Route")]
         public void RequestTargetRoute()
         {
             if (routeRequestTrigger == null)

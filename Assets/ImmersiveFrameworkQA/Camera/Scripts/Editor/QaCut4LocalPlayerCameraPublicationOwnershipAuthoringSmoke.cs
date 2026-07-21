@@ -27,7 +27,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         private static readonly BindingFlags StaticAny =
             BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
-        [MenuItem(MenuPath)]
         internal static void Run()
         {
             var completed = new List<string>();

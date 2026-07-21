@@ -17,13 +17,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private const string RuntimeSource =
             nameof(UnityResetSubjectAdapter);
 
-        [MenuItem(
-            "Immersive Framework/QA/Game Flow/H2.2.10 Run Reset Registration Runtime Binding Smoke",
-            true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
 
-        [MenuItem(
-            "Immersive Framework/QA/Game Flow/H2.2.10 Run Reset Registration Runtime Binding Smoke")]
         public static void Run()
         {
             RunInternal();

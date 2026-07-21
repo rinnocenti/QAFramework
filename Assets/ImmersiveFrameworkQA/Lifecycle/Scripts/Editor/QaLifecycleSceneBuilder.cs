@@ -25,7 +25,7 @@ namespace ImmersiveFrameworkQA.Lifecycle.Editor
         private const string ActivityBPath = "Assets/ImmersiveFrameworkQA/Lifecycle/Activities/QA_LifecycleActivityB.asset";
         private const string NoContentActivityPath = "Assets/ImmersiveFrameworkQA/Lifecycle/Activities/QA_LifecycleNoContentActivity.asset";
 
-        [MenuItem("Immersive Framework QA/Lifecycle/Create or Refresh Lifecycle QA Scenes")]
+        [MenuItem("Immersive Framework/QA/Setup/Lifecycle/Create or Refresh Lifecycle QA Scenes")]
         public static void CreateOrRefreshLifecycleQaScenes()
         {
             bool routeA = CreateRouteScene(

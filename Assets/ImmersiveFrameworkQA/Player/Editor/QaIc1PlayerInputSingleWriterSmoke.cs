@@ -16,10 +16,8 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
         private const string LogPrefix =
             "[IC1_PLAYER_INPUT_SINGLE_WRITER_SMOKE]";
 
-        [MenuItem(MenuPath, true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
 
-        [MenuItem(MenuPath)]
         public static void Run()
         {
             var completed = new List<string>();

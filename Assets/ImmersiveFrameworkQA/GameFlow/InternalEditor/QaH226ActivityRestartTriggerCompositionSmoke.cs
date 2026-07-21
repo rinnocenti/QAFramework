@@ -9,10 +9,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
     {
         private const string LogPrefix = "[H226_ACTIVITY_RESTART_TRIGGER_COMPOSITION_SMOKE]";
 
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.6 Run Activity Restart Trigger Composition Smoke", true)]
         private static bool ValidateRun() => !EditorApplication.isPlaying;
 
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.6 Run Activity Restart Trigger Composition Smoke")]
         public static void Run()
         {
             var objects = new List<UnityEngine.Object>();

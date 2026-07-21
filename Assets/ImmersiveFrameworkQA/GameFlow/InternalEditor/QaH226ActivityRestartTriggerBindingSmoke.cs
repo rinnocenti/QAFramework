@@ -14,10 +14,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
     {
         private const string LogPrefix = "[H226_ACTIVITY_RESTART_TRIGGER_BINDING_SMOKE]";
 
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.6 Run Activity Restart Trigger Binding Smoke", true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
 
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.6 Run Activity Restart Trigger Binding Smoke")]
         public static async void Run()
         {
             await RunInternalAsync();

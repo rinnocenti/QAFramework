@@ -39,6 +39,25 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static readonly BindingFlags StaticAny =
             BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
+        [MenuItem("Immersive Framework/QA/Regressions/Player/Run Player Gameplay Admission Regression")]
+        private static async void Run()
+        {
+            try
+            {
+                IReadOnlyList<string> completed = await RunCanonicalAsync();
+                Debug.Log(
+                    "[PLAYER_GAMEPLAY_ADMISSION_REGRESSION] status='Passed' " +
+                    $"cases='{completed.Count}' completed='{string.Join(",", completed)}'.");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError(
+                    "[PLAYER_GAMEPLAY_ADMISSION_REGRESSION] status='Failed' " +
+                    $"exception='{exception.GetType().Name}' message='{Escape(exception.Message)}'.");
+                throw;
+            }
+        }
+
         internal static async Task<IReadOnlyList<string>> RunCanonicalAsync()
         {
             var completed = new List<string>();

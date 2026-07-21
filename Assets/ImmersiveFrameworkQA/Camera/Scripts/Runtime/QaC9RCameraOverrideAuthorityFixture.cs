@@ -37,7 +37,6 @@ namespace ImmersiveFrameworkQA.Camera
         private bool awaitingRouteLifecycleCleanup;
         private string routeRequestId;
 
-        [ContextMenu("Run C9R Camera Override Authority Proof")]
         public void RunFromContextMenu()
         {
             Begin();

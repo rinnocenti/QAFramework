@@ -83,7 +83,6 @@ namespace ImmersiveFrameworkQA.Audio
             scrollContentWidth = Mathf.Max(360f, nextScrollContentWidth);
         }
 
-        [ContextMenu("Request Other Route")]
         public void RequestOtherRoute()
         {
             if (otherRouteTrigger == null)
@@ -104,37 +103,31 @@ namespace ImmersiveFrameworkQA.Audio
             otherRouteTrigger.RequestRoute();
         }
 
-        [ContextMenu("Request Startup Activity")]
         public void RequestStartupActivity()
         {
             RequestActivity(startupActivityTrigger, "startup", "Expected: Startup Activity BGM applies.");
         }
 
-        [ContextMenu("Request Own Activity")]
         public void RequestOwnActivity()
         {
             RequestActivity(ownActivityTrigger, "own", "Expected: own Activity BGM applies and can be retained.");
         }
 
-        [ContextMenu("Request Retain Previous Activity")]
         public void RequestRetainPreviousActivity()
         {
             RequestActivity(retainPreviousActivityTrigger, "retain-previous", "Expected: no own BGM, retained Activity BGM remains effective.");
         }
 
-        [ContextMenu("Request Route Fallback Activity")]
         public void RequestRouteFallbackActivity()
         {
             RequestActivity(routeFallbackActivityTrigger, "route-fallback", "Expected: Route BGM becomes effective.");
         }
 
-        [ContextMenu("Request Silence Activity")]
         public void RequestSilenceActivity()
         {
             RequestActivity(silenceActivityTrigger, "silence", "Expected: BGM stops and retained Activity BGM is cleared.");
         }
 
-        [ContextMenu("Clear Activity")]
         public void ClearActivity()
         {
             if (clearActivityTrigger == null)

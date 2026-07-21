@@ -23,6 +23,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static readonly BindingFlags InstanceInternal =
             BindingFlags.Instance | BindingFlags.NonPublic;
 
+        [MenuItem("Immersive Framework/QA/Regressions/Player/Run Session Player Slots Regression")]
         internal static void Run()
         {
             var completed = new List<string>();

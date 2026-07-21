@@ -7,14 +7,11 @@ using UnityEditor;
 using UnityEngine;
 namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
 {
-    public static class QaH223ActivityRequestTriggerBindingSmoke
+    public static class ActivityRequestRegression
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Game Flow/H2.2.3 Run Activity Request Trigger Binding Smoke";
-        private const string LogPrefix = "[H223_ACTIVITY_REQUEST_TRIGGER_SMOKE]";
-
-        [MenuItem(MenuPath, true)]
-        private static bool ValidateRun() => EditorApplication.isPlaying;
+            "Immersive Framework/QA/Regressions/Requests/Run Activity Request Regression";
+        private const string LogPrefix = "[ACTIVITY_REQUEST_REGRESSION]";
 
         [MenuItem(MenuPath)]
         public static void Run()
@@ -26,21 +23,27 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             {
                 Require(
                     EditorApplication.isPlaying,
-                    "H2.2.3 Activity request trigger binding smoke requires Play Mode.");
+                    "Activity Request Regression requires Play Mode.");
                 completed.Add("play-mode-required");
 
                 Require(
                     global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(
                         out FrameworkRuntimeHost host) && host != null,
-                    "H2.2.3 Activity request trigger binding smoke requires an initialized global FrameworkRuntimeHost.");
+                    "Activity Request Regression requires an initialized global FrameworkRuntimeHost.");
                 IActivityRuntimePort hostActivityRuntime = host;
                 Require(
                     hostActivityRuntime != null,
                     "Global FrameworkRuntimeHost did not expose the Activity runtime port.");
                 completed.Add("runtime-host-available");
 
-                ActivityAsset target = CreateTarget("H223 Target", objects);
-                GameObject boundRoot = CreateRoot("H223 Bound Trigger", objects);
+                RunCompositionCases(completed, objects);
+
+                ActivityAsset target = CreateTarget(
+                    "Activity Regression Target",
+                    objects);
+                GameObject boundRoot = CreateRoot(
+                    "Activity Regression Bound Trigger",
+                    objects);
                 ActivityRequestTrigger boundTrigger =
                     boundRoot.AddComponent<ActivityRequestTrigger>();
                 boundTrigger.TargetActivity = target;
@@ -131,7 +134,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                     "Bound Activity trigger did not forward clear only to fake A.");
                 completed.Add("clear-forwarded-to-bound-port");
 
-                GameObject unboundRoot = CreateRoot("H223 Unbound Trigger", objects);
+                GameObject unboundRoot = CreateRoot(
+                    "Activity Regression Unbound Trigger",
+                    objects);
                 ActivityRequestTrigger unboundTrigger =
                     unboundRoot.AddComponent<ActivityRequestTrigger>();
                 unboundTrigger.TargetActivity = target;
@@ -165,7 +170,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 completed.Add("unbound-trigger-does-not-fallback-to-current-host");
 
                 GameObject missingTargetRoot =
-                    CreateRoot("H223 Missing Target Trigger", objects);
+                    CreateRoot(
+                        "Activity Regression Missing Target Trigger",
+                        objects);
                 ActivityRequestTrigger missingTargetTrigger =
                     missingTargetRoot.AddComponent<ActivityRequestTrigger>();
                 var missingTargetFake = new QaFakeActivityRuntimePort();
@@ -184,8 +191,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 completed.Add("target-missing-does-not-call-port");
 
                 Require(
-                    completed.Count == 9,
-                    "H2.2.3 Activity request trigger binding smoke case count changed unexpectedly.");
+                    completed.Count == 14,
+                    "Activity Request Regression case count changed unexpectedly.");
                 Debug.Log(
                     $"{LogPrefix} status='Passed' cases='{completed.Count}' completed='{string.Join(",", completed)}'.");
             }
@@ -205,6 +212,158 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                     }
                 }
             }
+        }
+
+        private static void RunCompositionCases(
+            ICollection<string> completed,
+            ICollection<UnityEngine.Object> objects)
+        {
+            GameObject emptyRoot = CreateRoot(
+                "Activity Regression Empty Root",
+                objects);
+            ActivityRequestTriggerBindingResult absent =
+                ActivityRequestTriggerBinding.TryBind(
+                    new[] { emptyRoot },
+                    new QaFakeActivityRuntimePort());
+            Require(
+                absent.Succeeded &&
+                absent.Status == "OptionalAbsent" &&
+                absent.RootCount == 1 &&
+                absent.TriggerCount == 0,
+                "Zero Activity trigger composition did not remain optional. " +
+                absent.Message);
+            completed.Add("zero-triggers-optional");
+
+            GameObject oneRoot = CreateRoot(
+                "Activity Regression One Trigger Root",
+                objects);
+            ActivityRequestTrigger oneTrigger =
+                oneRoot.AddComponent<ActivityRequestTrigger>();
+            var oneRuntime = new QaFakeActivityRuntimePort();
+            ActivityRequestTriggerBindingResult one =
+                ActivityRequestTriggerBinding.TryBind(
+                    new[] { oneRoot },
+                    oneRuntime);
+            Require(
+                one.Succeeded &&
+                one.TriggerCount == 1 &&
+                one.BoundCount == 1 &&
+                one.IdempotentCount == 0 &&
+                one.RejectedCount == 0 &&
+                oneTrigger.HasActivityRuntimeBinding,
+                "One Activity trigger composition was not bound. " +
+                one.Message);
+            completed.Add("one-trigger-bound");
+
+            GameObject multipleRoot = CreateRoot(
+                "Activity Regression Multiple Trigger Root",
+                objects);
+            ActivityRequestTrigger firstMultiple =
+                multipleRoot.AddComponent<ActivityRequestTrigger>();
+            GameObject multipleChild =
+                new GameObject("Activity Regression Multiple Trigger Child");
+            multipleChild.transform.SetParent(
+                multipleRoot.transform,
+                false);
+            objects.Add(multipleChild);
+            ActivityRequestTrigger secondMultiple =
+                multipleChild.AddComponent<ActivityRequestTrigger>();
+            var multipleRuntime = new QaFakeActivityRuntimePort();
+            ActivityRequestTriggerBindingResult multiple =
+                ActivityRequestTriggerBinding.TryBind(
+                    new[] { multipleRoot },
+                    multipleRuntime);
+            Require(
+                multiple.Succeeded &&
+                multiple.TriggerCount == 2 &&
+                multiple.BoundCount == 2 &&
+                multiple.RejectedCount == 0 &&
+                firstMultiple.HasActivityRuntimeBinding &&
+                secondMultiple.HasActivityRuntimeBinding,
+                "Multiple Activity trigger composition did not bind every trigger. " +
+                multiple.Message);
+            completed.Add("multiple-triggers-all-bound");
+
+            GameObject idempotentRoot = CreateRoot(
+                "Activity Regression Idempotent Root",
+                objects);
+            ActivityRequestTrigger idempotentTrigger =
+                idempotentRoot.AddComponent<ActivityRequestTrigger>();
+            var idempotentRuntime = new QaFakeActivityRuntimePort();
+            Require(
+                idempotentTrigger.TryBindActivityRuntime(
+                    idempotentRuntime,
+                    out string idempotentIssue),
+                "Could not prebind the idempotent Activity trigger. " +
+                idempotentIssue);
+            ActivityRequestTriggerBindingResult idempotent =
+                ActivityRequestTriggerBinding.TryBind(
+                    new[] { idempotentRoot },
+                    idempotentRuntime);
+            Require(
+                idempotent.Succeeded &&
+                idempotent.BoundCount == 0 &&
+                idempotent.IdempotentCount == 1 &&
+                idempotent.RejectedCount == 0,
+                "Same Activity runtime composition was not idempotent. " +
+                idempotent.Message);
+            completed.Add("composition-same-port-idempotent");
+
+            ActivityAsset incompatibleTarget = CreateTarget(
+                "Activity Regression Incompatible Target",
+                objects);
+            GameObject incompatibleRoot = CreateRoot(
+                "Activity Regression Incompatible Root",
+                objects);
+            ActivityRequestTrigger compatibleTrigger =
+                incompatibleRoot.AddComponent<ActivityRequestTrigger>();
+            compatibleTrigger.TargetActivity = incompatibleTarget;
+            GameObject incompatibleChild =
+                new GameObject("Activity Regression Incompatible Child");
+            incompatibleChild.transform.SetParent(
+                incompatibleRoot.transform,
+                false);
+            objects.Add(incompatibleChild);
+            ActivityRequestTrigger incompatibleTrigger =
+                incompatibleChild.AddComponent<ActivityRequestTrigger>();
+            incompatibleTrigger.TargetActivity = incompatibleTarget;
+            var compositionRuntime = new QaFakeActivityRuntimePort();
+            var originalRuntime = new QaFakeActivityRuntimePort();
+            Require(
+                incompatibleTrigger.TryBindActivityRuntime(
+                    originalRuntime,
+                    out string incompatibleIssue),
+                "Could not prebind the incompatible Activity trigger. " +
+                incompatibleIssue);
+            ActivityRequestTriggerBindingResult incompatible =
+                ActivityRequestTriggerBinding.TryBind(
+                    new[] { incompatibleRoot },
+                    compositionRuntime);
+            Require(
+                !incompatible.Succeeded &&
+                incompatible.Status == "RejectedTriggerBinding" &&
+                incompatible.RootCount == 1 &&
+                incompatible.TriggerCount == 2 &&
+                incompatible.BoundCount == 1 &&
+                incompatible.IdempotentCount == 0 &&
+                incompatible.RejectedCount == 1 &&
+                incompatible.Message.Contains(
+                    "Activity Regression Incompatible Child") &&
+                incompatible.Message.Contains("different port") &&
+                incompatible.Message.Contains("current lifetime"),
+                "Incompatible Activity trigger was not rejected structurally. " +
+                incompatible.Message);
+            compatibleTrigger.RequestActivity();
+            Require(
+                compositionRuntime.RequestActivityCallCount == 1 &&
+                originalRuntime.RequestActivityCallCount == 0,
+                "Compatible Activity trigger did not preserve the composition authority.");
+            incompatibleTrigger.RequestActivity();
+            Require(
+                compositionRuntime.RequestActivityCallCount == 1 &&
+                originalRuntime.RequestActivityCallCount == 1,
+                "Incompatible Activity trigger did not preserve its original authority.");
+            completed.Add("composition-different-port-rejected");
         }
 
         private static GameObject CreateRoot(

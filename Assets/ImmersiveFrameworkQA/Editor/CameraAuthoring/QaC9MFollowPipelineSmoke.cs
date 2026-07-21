@@ -11,7 +11,7 @@ namespace ImmersiveFrameworkQA.Editor.CameraAuthoring
     public static class QaC9MFollowPipelineSmoke
     {
         private const string MenuPath =
-            "Immersive Framework QA/Camera/C9M Run Follow Pipeline Smoke";
+            "Immersive Framework/QA/Regressions/Camera/Run Camera Follow Authoring Regression";
         private const string LogPrefix = "[QA][C9M Follow Pipeline]";
 
         [MenuItem(MenuPath)]

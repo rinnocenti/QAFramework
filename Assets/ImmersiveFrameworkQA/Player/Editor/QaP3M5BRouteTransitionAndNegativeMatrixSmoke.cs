@@ -10,6 +10,7 @@ using Immersive.Framework.RuntimeContent;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using QaFrameworkReadiness = global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness;
 
 namespace ImmersiveFrameworkQA.Player.Editor
 {
@@ -20,9 +21,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
     public static class QaP3M5BRouteTransitionAndNegativeMatrixSmoke
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Player/P3M5B Run Route Transition and Negative Matrix Smoke";
-        private const string RuntimeHostTypeName =
-            "Immersive.Framework.ApplicationLifecycle.FrameworkRuntimeHost";
+            "Immersive Framework/QA/Regressions/Player/Run Scene Player Route Lifecycle Regression";
+        private const string HubRoutePath =
+            "Assets/ImmersiveFrameworkQA/Hub/Routes/QA_HubRoute.asset";
         private const string PreparationModuleTypeName =
             "Immersive.Framework.PlayerParticipation.PlayerActorPreparationRuntimeHostModule";
         private const string SceneAdmissionModuleTypeName =
@@ -30,9 +31,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
         private static readonly BindingFlags InstanceAny =
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-        private static readonly BindingFlags StaticAny =
-            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-
         private readonly struct LoadedPlayerFixture
         {
             internal LoadedPlayerFixture(
@@ -65,13 +63,13 @@ namespace ImmersiveFrameworkQA.Player.Editor
             var completed = new List<string>();
             var loadedNegativeScenes = new List<string>();
             Exception failure = null;
-            object runtimeHost = null;
+            Component runtimeHost = null;
             object preparationModule = null;
             object sceneAdmissionModule = null;
             object participationContext = null;
             object runtimeContent = null;
-            RouteAsset originalRoute = null;
 
+            RouteAsset hubRoute = null;
             RouteAsset routeA = null;
             RouteAsset routeB = null;
             ActivityAsset routeAActivity = null;
@@ -90,6 +88,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteAPath);
                 routeB = LoadAsset<RouteAsset>(
                     QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteBPath);
+                hubRoute = LoadAsset<RouteAsset>(HubRoutePath);
                 routeAActivity = LoadAsset<ActivityAsset>(
                     QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteAActivityPath);
                 routeBActivity = LoadAsset<ActivityAsset>(
@@ -110,7 +109,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "P3M5B first configured Slot has no valid identity.");
                 completed.Add("fixture-assets-resolved");
 
-                runtimeHost = await AwaitRuntimeHostAsync();
+                runtimeHost = await AwaitUniqueReadyQaRuntimeHostAsync();
                 preparationModule = ResolveHostComponent(
                     runtimeHost,
                     PreparationModuleTypeName,
@@ -131,33 +130,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "FrameworkRuntimeHost has no RuntimeContentRuntime.");
                 completed.Add("official-runtime-authorities-ready");
 
-                originalRoute = ResolveCurrentRoute(runtimeHost);
-                AssertNotNull(originalRoute,
-                    "FrameworkRuntimeHost has no current Route before P3M5B.");
-                AssertSessionClean(
-                    participationContext,
-                    preparationModule,
-                    sceneAdmissionModule,
-                    slotId);
-                completed.Add("session-initially-clean");
-
-                object routeARequest = await RequestRouteAsync(
-                    runtimeHost,
-                    routeA,
-                    "route-a-enter");
-                AssertRequestSucceeded(
-                    routeARequest,
-                    "P3M5B Route A request failed.");
-                AssertRouteActivityReady(
-                    routeARequest,
-                    "P3M5B Route A Startup Activity is not ready.");
-                completed.Add("route-a-request-succeeded");
-
                 AssertSame(routeA, ResolveCurrentRoute(runtimeHost),
-                    "Route A did not become current.");
+                    "P3M5B must start from the official Route A entered through the QA Hub.");
                 AssertSame(routeAActivity, ResolveCurrentActivity(runtimeHost),
-                    "Route A Startup Activity did not become current.");
-                completed.Add("route-a-startup-activity-active");
+                    "P3M5B Route A Startup Activity must already be current and ready.");
+                completed.Add("route-a-initial-state-ready");
 
                 routeAOwner = CreateActivityOwner(routeAActivity);
                 LoadedPlayerFixture routeAFirst = await AwaitActiveFixtureAsync(
@@ -170,7 +147,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     participationContext,
                     slotId,
                     routeAOwner);
-                completed.Add("route-a-scene-player-admitted");
+                completed.Add("route-a-initial-scene-player-admitted");
 
                 AssertEqual(routeAOwner,
                     routeAFirst.Preparation.Materialization.Owner,
@@ -350,30 +327,39 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Negative matrix replaced the active Route A adoption token.");
                 completed.Add("route-state-preserved-after-negatives");
 
-                object restoreRequest = await RequestRouteAsync(
+                object hubReturnRequest = await RequestRouteAsync(
                     runtimeHost,
-                    originalRoute,
-                    "p3m5b-restore-original-route");
+                    hubRoute,
+                    "p3m5b-return-to-qa-hub");
                 AssertRequestSucceeded(
-                    restoreRequest,
-                    "P3M5B could not restore the original Route.");
-                AssertSame(originalRoute, ResolveCurrentRoute(runtimeHost),
-                    "Original Route was not restored.");
+                    hubReturnRequest,
+                    "P3M5B could not return to the official QA Hub Route.");
+                AssertRouteActivityReady(
+                    hubReturnRequest,
+                    "P3M5B QA Hub Activity is not ready after return.");
+                AssertSame(hubRoute, ResolveCurrentRoute(runtimeHost),
+                    "Official QA Hub Route did not become current.");
                 await AwaitAllP3M5BScenesUnloadedAsync();
-                completed.Add("original-route-restored");
+                completed.Add("qa-hub-return-succeeded");
 
-                AssertSessionClean(
+                AssertCleanupAfterHubReturn(
                     participationContext,
                     preparationModule,
                     sceneAdmissionModule,
                     slotId);
+                AssertTrue(routeAFirst.Authoring == null,
+                    "Initial Route A Scene Player Host remained loaded after QA Hub return.");
+                AssertTrue(routeBFixture.Authoring == null,
+                    "Route B Scene Player Host remained loaded after QA Hub return.");
+                AssertTrue(routeASecond.Authoring == null,
+                    "Re-entered Route A Scene Player Host remained loaded after QA Hub return.");
                 AssertEqual(0,
                     CountRuntimeRoots(runtimeContent, routeAOwner),
-                    "Route A RuntimeContent owner remained after restoration.");
+                    "Route A RuntimeContent owner remained after QA Hub return.");
                 AssertEqual(0,
                     CountRuntimeRoots(runtimeContent, routeBOwner),
-                    "Route B RuntimeContent owner remained after restoration.");
-                completed.Add("final-session-clean");
+                    "Route B RuntimeContent owner remained after QA Hub return.");
+                completed.Add("qa-hub-cleanup-complete");
             }
             catch (Exception exception)
             {
@@ -388,17 +374,17 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 }
 
                 if (runtimeHost != null &&
-                    originalRoute != null &&
-                    !ReferenceEquals(ResolveCurrentRoute(runtimeHost), originalRoute))
+                    hubRoute != null &&
+                    !ReferenceEquals(ResolveCurrentRoute(runtimeHost), hubRoute))
                 {
                     object cleanupRestore = await RequestRouteAsync(
                         runtimeHost,
-                        originalRoute,
-                        "p3m5b-cleanup-restore-original-route");
+                        hubRoute,
+                        "p3m5b-cleanup-return-to-qa-hub");
                     if (!GetBooleanProperty(cleanupRestore, "Succeeded"))
                     {
                         throw new InvalidOperationException(
-                            "P3M5B cleanup could not restore the original Route. " +
+                            "P3M5B cleanup could not return to the official QA Hub Route. " +
                             GetStringProperty(cleanupRestore, "Message"));
                     }
                 }
@@ -472,52 +458,79 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return slot;
         }
 
-        private static async Task<object> AwaitRuntimeHostAsync()
+        private static async Task<Component>
+            AwaitUniqueReadyQaRuntimeHostAsync()
         {
-            Type runtimeHostType = typeof(ImmersiveFrameworkSettingsAsset)
-                .Assembly
-                .GetType(RuntimeHostTypeName, true);
-            FieldInfo currentField = runtimeHostType.GetField(
-                "_current",
-                StaticAny);
-            AssertNotNull(currentField,
-                "FrameworkRuntimeHost current field is unavailable.");
+            string lastReadinessDiagnostic =
+                "FrameworkRuntimeHost readiness has not been evaluated.";
 
             for (int frame = 0; frame < 300; frame++)
             {
-                object current = currentField.GetValue(null);
-                if (current != null)
+                if (!QaFrameworkReadiness.TryResolveUniqueHost(
+                        out Component host,
+                        out string hostDiagnostic))
                 {
-                    object state = GetPropertyValue(current, "State");
-                    if (state != null &&
-                        GetBooleanProperty(state, "GameFlowStarted"))
-                    {
-                        Type preparationType = typeof(PlayerParticipationSnapshot)
-                            .Assembly
-                            .GetType(PreparationModuleTypeName, false);
-                        Type sceneType = typeof(PlayerParticipationSnapshot)
-                            .Assembly
-                            .GetType(SceneAdmissionModuleTypeName, false);
-                        Component host = current as Component;
-                        if (host != null && preparationType != null && sceneType != null)
-                        {
-                            Component preparation = host.GetComponent(preparationType);
-                            Component scene = host.GetComponent(sceneType);
-                            if (preparation != null && scene != null &&
-                                GetBooleanProperty(preparation, "IsReady") &&
-                                GetBooleanProperty(scene, "IsReady"))
-                            {
-                                return current;
-                            }
-                        }
-                    }
+                    throw new InvalidOperationException(
+                        "P3M5B requires exactly one loaded FrameworkRuntimeHost " +
+                        $"from the explicit QA resolver. {hostDiagnostic}");
                 }
+
+                object state = GetPropertyValue(host, "State");
+                Type preparationType = typeof(PlayerParticipationSnapshot)
+                    .Assembly
+                    .GetType(PreparationModuleTypeName, false);
+                Type sceneType = typeof(PlayerParticipationSnapshot)
+                    .Assembly
+                    .GetType(SceneAdmissionModuleTypeName, false);
+                Component preparation = preparationType != null
+                    ? host.GetComponent(preparationType)
+                    : null;
+                Component sceneAdmission = sceneType != null
+                    ? host.GetComponent(sceneType)
+                    : null;
+                bool gameFlowStarted =
+                    GetBooleanProperty(state, "GameFlowStarted");
+                object currentRoute =
+                    GetPropertyValue(state, "CurrentRoute");
+                object currentActivity =
+                    GetPropertyValue(state, "CurrentActivity");
+                bool activityReady =
+                    GetBooleanProperty(state, "IsActivityReady");
+                string currentRouteName =
+                    GetStringProperty(state, "CurrentRouteName");
+                string currentActivityName =
+                    GetStringProperty(state, "CurrentActivityName");
+                bool hostReady =
+                    gameFlowStarted &&
+                    currentRoute != null &&
+                    currentActivity != null &&
+                    activityReady;
+                bool preparationReady =
+                    preparation != null &&
+                    GetBooleanProperty(preparation, "IsReady");
+                bool sceneAdmissionReady =
+                    sceneAdmission != null &&
+                    GetBooleanProperty(sceneAdmission, "IsReady");
+                if (hostReady && preparationReady && sceneAdmissionReady)
+                {
+                    return host;
+                }
+
+                lastReadinessDiagnostic =
+                    $"{hostDiagnostic} " +
+                    $"gameFlowStarted='{gameFlowStarted}' " +
+                    $"route='{currentRouteName}' " +
+                    $"activity='{currentActivityName}' " +
+                    $"activityReady='{activityReady}' " +
+                    $"preparationReady='{preparationReady}' " +
+                    $"sceneAdmissionReady='{sceneAdmissionReady}'.";
 
                 await Awaitable.NextFrameAsync();
             }
 
             throw new InvalidOperationException(
-                "FrameworkRuntimeHost did not become ready within 300 frames.");
+                "FrameworkRuntimeHost did not become ready within 300 frames. " +
+                lastReadinessDiagnostic);
         }
 
         private static object ResolveHostComponent(
@@ -747,10 +760,23 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "Scene Player surface has no active admission.");
             AssertTrue(fixture.Authoring.LocalPlayerHost.IsJoined,
                 "Scene Player Host is not Joined.");
+            AssertEqual(playerSlotId,
+                fixture.Authoring.LocalPlayerHost.JoinedPlayerSlotId,
+                "Scene Player Host is Joined to a foreign Player Slot.");
             AssertTrue(fixture.Authoring.SceneLogicalPlayerActor.HasPlayerInputEvidence,
                 "Scene Player Actor has no contextual PlayerInput evidence.");
+            AssertSame(
+                fixture.Authoring.LocalPlayerHost.PlayerInput,
+                fixture.Authoring.SceneLogicalPlayerActor.PlayerInput,
+                "Scene Player Actor does not reference its fixture Host PlayerInput.");
             AssertTrue(fixture.Adoption.IsValid,
                 "Scene Player adoption token is invalid.");
+            AssertEqual(playerSlotId,
+                fixture.Adoption.PlayerSlotId,
+                "Scene Player adoption belongs to a foreign Player Slot.");
+            AssertEqual(fixture.Authoring.SceneLogicalPlayerActor.ActorId,
+                fixture.Adoption.ActorId,
+                "Scene Player adoption does not match the fixture Actor identity.");
             AssertEqual(
                 PlayerActorPhysicalOwnership.ExternalSceneOwned,
                 fixture.Adoption.PhysicalOwnership,
@@ -760,6 +786,15 @@ namespace ImmersiveFrameworkQA.Player.Editor
             AssertEqual(expectedOwner,
                 fixture.Preparation.Materialization.Owner,
                 "Scene Player preparation has the wrong Activity owner.");
+            AssertEqual(fixture.Adoption.ActorId,
+                fixture.Preparation.Materialization.ActorId,
+                "Scene Player preparation retains a foreign Actor identity.");
+            AssertEqual(fixture.Adoption.RuntimeContentIdentity,
+                fixture.Preparation.Materialization.RuntimeContentIdentity,
+                "Scene Player preparation retains a foreign RuntimeContent identity.");
+            AssertEqual(fixture.Adoption.PreparationToken,
+                fixture.Preparation.Token,
+                "Scene Player adoption and preparation tokens do not match.");
 
             PlayerParticipationSnapshot snapshot =
                 CreateParticipationSnapshot(participationContext);
@@ -768,6 +803,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "Scene Player Slot is not Joined.");
             AssertTrue(slot.HasSelectedActor,
                 "Scene Player Slot has no selected Actor.");
+            AssertSame(fixture.Authoring.ActorProfile, slot.SelectedActorProfile,
+                "Scene Player Slot selected an Actor Profile outside its fixture.");
             AssertEqual(0, snapshot.ReservedCount,
                 "Scene Player admission stranded a Reserved Slot.");
             AssertEqual(0, snapshot.LeavingCount,
@@ -1029,7 +1066,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 $"Player Slot '{playerSlotId.StableText}' is not configured in the Session snapshot.");
         }
 
-        private static void AssertSessionClean(
+        private static void AssertCleanupAfterHubReturn(
             object participationContext,
             object preparationModule,
             object sceneAdmissionModule,
@@ -1039,26 +1076,26 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 CreateParticipationSnapshot(participationContext);
             PlayerSlotRuntimeSnapshot slot = FindSlot(snapshot, playerSlotId);
             AssertFalse(slot.IsJoined,
-                "P3M5B clean-state Slot remains Joined.");
+                "P3M5B Slot remains Joined after QA Hub return.");
             AssertFalse(slot.HasSelectedActor,
-                "P3M5B clean-state Slot retains Actor selection.");
+                "P3M5B Slot retains Actor selection after QA Hub return.");
             AssertEqual(0, snapshot.ReservedCount,
-                "P3M5B clean state retains a Reserved Slot.");
+                "P3M5B cleanup retains a Reserved Slot after QA Hub return.");
             AssertEqual(0, snapshot.LeavingCount,
-                "P3M5B clean state retains a Leaving Slot.");
+                "P3M5B cleanup retains a Leaving Slot after QA Hub return.");
             PlayerActorPreparationSummary preparation =
                 GetPreparationSummary(preparationModule, playerSlotId);
             AssertTrue(preparation.IsUnprepared,
-                "P3M5B clean state retains Player Actor preparation. " +
+                "P3M5B cleanup retains Player Actor preparation after QA Hub return. " +
                 preparation.ToDiagnosticString());
             AssertFalse(TryGetAdoptionToken(
                     preparationModule,
                     playerSlotId,
                     out _),
-                "P3M5B clean state retains Scene Actor adoption.");
+                "P3M5B cleanup retains a stale or foreign Scene Actor adoption after QA Hub return.");
             AssertEqual(0,
                 GetIntProperty(sceneAdmissionModule, "ActiveAdmissionCount"),
-                "P3M5B clean state retains an active Scene admission.");
+                "P3M5B cleanup retains an active Scene admission after QA Hub return.");
         }
 
         private static PlayerActorPreparationSummary GetPreparationSummary(

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a35fe899a80d2d64dac72e8bfe3079df, type: 3}
   m_Name: P3M5B_RouteB
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.RouteAsset
-  routeName: P3M5B Route B
+  routeName: Scene Player Route Lifecycle B
   primaryScenePath: Assets/ImmersiveFrameworkQA/Player/P3M5B/P3M5B_RouteB.unity
   primarySceneName: P3M5B_RouteB
   routeContentProfile: {fileID: 0}

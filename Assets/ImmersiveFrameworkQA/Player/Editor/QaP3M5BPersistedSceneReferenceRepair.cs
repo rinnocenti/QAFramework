@@ -69,13 +69,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 ExpectedSceneShape.Valid)
         };
 
-        [MenuItem(MenuPath, true)]
         private static bool ValidateRepair()
         {
             return !EditorApplication.isPlayingOrWillChangePlaymode;
         }
 
-        [MenuItem(MenuPath)]
         public static void Repair()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)

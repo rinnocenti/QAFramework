@@ -17,7 +17,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
     internal static class QaCut4LocalPlayerCameraPublicationOwnershipRuntimeSmoke
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Camera/Cut 4 Run Local Player Camera Publication Ownership Runtime Smoke";
+            "Immersive Framework/QA/Regressions/Camera/Run Local Player Camera Publication Regression";
         private const string CanonicalSmokeTypeName =
             "ImmersiveFrameworkQA.Player.Editor.QaP3K7HRouteStartupActivityPlayerAdmissionSmoke";
         private const string RuntimeHostTypeName =

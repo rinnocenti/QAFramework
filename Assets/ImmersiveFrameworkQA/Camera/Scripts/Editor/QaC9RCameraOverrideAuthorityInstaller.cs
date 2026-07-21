@@ -37,9 +37,7 @@ namespace ImmersiveFrameworkQA.Camera
         private const string CameraName =
             "QA C9R Session Cinemachine Camera";
 
-        [MenuItem(
-            "Immersive Framework QA/Camera/" +
-            "C9R Install Camera Override Authority QA")]
+        [MenuItem("Immersive Framework/QA/Setup/Camera/Install Camera Override Authority QA")]
         private static void Install()
         {
             try

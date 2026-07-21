@@ -14,10 +14,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
         private const string LogPrefix = "[H228_OBJECT_RESET_GROUP_VERTICAL_SMOKE]";
         private const string RuntimeSource = nameof(QaH228ObjectResetGroupVerticalSmoke);
 
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.8 Run Object Reset Group Vertical Smoke", true)]
+        [MenuItem("Immersive Framework/QA/Regressions/Game Flow/Run Object Reset Regression", true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
 
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.8 Run Object Reset Group Vertical Smoke")]
+        [MenuItem("Immersive Framework/QA/Regressions/Game Flow/Run Object Reset Regression")]
         public static async void Run()
         {
             await RunInternalAsync();

@@ -12,15 +12,21 @@ namespace ImmersiveFrameworkQA.Hub
         [Serializable]
         public struct QaHubEntry
         {
+            [SerializeField] private string domain;
             [SerializeField] private string label;
             [SerializeField] private RouteRequestTrigger routeRequestTrigger;
 
-            public QaHubEntry(string label, RouteRequestTrigger routeRequestTrigger)
+            public QaHubEntry(
+                string domain,
+                string label,
+                RouteRequestTrigger routeRequestTrigger)
             {
+                this.domain = domain;
                 this.label = label;
                 this.routeRequestTrigger = routeRequestTrigger;
             }
 
+            public string Domain => domain;
             public string Label => label;
             public RouteRequestTrigger RouteRequestTrigger => routeRequestTrigger;
         }
@@ -106,9 +112,24 @@ namespace ImmersiveFrameworkQA.Hub
             GUILayout.Space(8f);
 
             scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.ExpandHeight(true));
+            string previousDomain = string.Empty;
             for (int i = 0; i < entries.Length; i++)
             {
                 QaHubEntry entry = entries[i];
+                string domain = string.IsNullOrWhiteSpace(entry.Domain)
+                    ? "Other"
+                    : entry.Domain;
+                if (!string.Equals(previousDomain, domain, StringComparison.Ordinal))
+                {
+                    if (!string.IsNullOrEmpty(previousDomain))
+                    {
+                        GUILayout.Space(8f);
+                    }
+
+                    GUILayout.Label(domain, GUI.skin.label);
+                    previousDomain = domain;
+                }
+
                 RouteRequestTrigger trigger = entry.RouteRequestTrigger;
                 string fallbackLabel = trigger != null && trigger.TargetRoute != null
                     ? trigger.TargetRoute.RouteName

@@ -42,7 +42,7 @@ namespace ImmersiveFrameworkQA.Audio.Editor
         private const string StartupActivityCuePath = ScriptableObjects + "/QA_FrameworkBgm_StartupActivityCue.asset";
         private const string OwnActivityCuePath = ScriptableObjects + "/QA_FrameworkBgm_ActivityCue.asset";
 
-        [MenuItem("Immersive Framework QA/Audio/Configure Framework BGM Route-Activity QA")]
+        [MenuItem("Immersive Framework/QA/Setup/Audio/Configure Framework BGM Route-Activity QA")]
         public static void ConfigureFrameworkBgmQa()
         {
             EnsureFolders();

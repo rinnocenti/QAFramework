@@ -54,13 +54,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
         internal const string ActorProfileId = "qa.p3m5a.scene-player.profile";
         internal const string SceneContentId = "qa.p3m5a.scene-player.activity-content";
 
-        [MenuItem(MenuPath, true)]
         private static bool ValidateApply()
         {
             return !EditorApplication.isPlayingOrWillChangePlaymode;
         }
 
-        [MenuItem(MenuPath)]
         public static void Apply()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)

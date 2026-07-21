@@ -19,11 +19,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private const string MenuPath =
             "Immersive Framework/QA/Game Flow/H2.2.13 Run Diagnostics QA Boundary Smoke";
 
-        [MenuItem(MenuPath, true)]
         private static bool ValidateRun() =>
             EditorApplication.isPlaying;
 
-        [MenuItem(MenuPath)]
         public static async void Run()
         {
             await RunInternalAsync();

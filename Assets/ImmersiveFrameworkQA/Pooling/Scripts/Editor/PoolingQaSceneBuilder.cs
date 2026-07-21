@@ -1,8 +1,10 @@
+using Immersive.Framework.Authoring;
+using Immersive.Framework.GameFlow;
 using Immersive.Pooling.Policies;
 using Immersive.Pooling.Unity.Authoring;
 using Immersive.Pooling.Unity.Hosts;
+using ImmersiveFrameworkQA.Hub;
 using ImmersiveFrameworkQA.Pooling;
-using ImmersiveFrameworkQA.Pooling.ImmersiveFrameworkQA.Pooling.Scripts.Runtime;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -27,8 +29,10 @@ namespace ImmersiveFrameworkQA.Pooling.Editor
         private const string LimitedDefinitionPath = ScriptableObjects + "/QA_LimitedCubePool.asset";
         private const string AutoReturnDefinitionPath = ScriptableObjects + "/QA_AutoReturnPool.asset";
         private const string ScenePath = Scenes + "/QA_Pooling.unity";
+        private const string HubRoutePath =
+            "Assets/ImmersiveFrameworkQA/Hub/Routes/QA_HubRoute.asset";
 
-        [MenuItem("Immersive Framework QA/Pooling/Create or Refresh Pooling QA Scene")]
+        [MenuItem("Immersive Framework/QA/Setup/Pooling/Create or Refresh Pooling QA Scene")]
         public static void CreateOrRefreshPoolingQaScene()
         {
             EnsureFolders();
@@ -185,8 +189,33 @@ namespace ImmersiveFrameworkQA.Pooling.Editor
             panelObject.transform.SetParent(root.transform, false);
             var panel = panelObject.AddComponent<PoolingQaPanel>();
             ConfigurePanel(panel, host, cubeDefinition, limitedDefinition, autoReturnDefinition, spawnRoot.transform);
+            CreateHubReturnSurface(root.transform);
 
             EditorSceneManager.SaveScene(scene, ScenePath);
+        }
+
+        private static void CreateHubReturnSurface(Transform parent)
+        {
+            RouteAsset hubRoute = AssetDatabase.LoadAssetAtPath<RouteAsset>(HubRoutePath)
+                ?? throw new System.InvalidOperationException(
+                    $"Required QA Hub route is missing: '{HubRoutePath}'.");
+
+            var returnObject = new GameObject("Pooling Runtime Regression Navigation");
+            returnObject.transform.SetParent(parent, false);
+            RouteRequestTrigger trigger = returnObject.AddComponent<RouteRequestTrigger>();
+            var triggerSerialized = new SerializedObject(trigger);
+            triggerSerialized.FindProperty("targetRoute").objectReferenceValue = hubRoute;
+            triggerSerialized.FindProperty("reason").stringValue =
+                "qa.pooling.runtime-regression.back-to-hub";
+            triggerSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+            QaHubReturnPanel returnPanel = returnObject.AddComponent<QaHubReturnPanel>();
+            returnPanel.Configure(
+                trigger,
+                "Pooling Runtime Regression",
+                "Use Run Pooling Runtime Regression in the Pooling panel.");
+            EditorUtility.SetDirty(trigger);
+            EditorUtility.SetDirty(returnPanel);
         }
 
         private static void ConfigurePanel(
@@ -203,7 +232,7 @@ namespace ImmersiveFrameworkQA.Pooling.Editor
             serialized.FindProperty("limitedDefinition").objectReferenceValue = limitedDefinition;
             serialized.FindProperty("autoReturnDefinition").objectReferenceValue = autoReturnDefinition;
             serialized.FindProperty("spawnParent").objectReferenceValue = spawnParent;
-            serialized.FindProperty("title").stringValue = "Pooling QA";
+            serialized.FindProperty("title").stringValue = "Pooling Runtime Regression";
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(panel);
         }

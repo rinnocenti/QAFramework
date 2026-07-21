@@ -19,7 +19,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private const BindingFlags NonPublicInstance =
             BindingFlags.NonPublic | BindingFlags.Instance;
 
-        [MenuItem(MenuPath)]
         internal static void Run()
         {
             var completed = new List<string>();

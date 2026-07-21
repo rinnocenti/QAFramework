@@ -13,7 +13,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private const string MenuPath =
             "Immersive Framework/QA/Player/P3M4A Scene Local Player Admission Authoring Smoke";
 
-        [MenuItem(MenuPath)]
         internal static void Run()
         {
             var completed = new List<string>();

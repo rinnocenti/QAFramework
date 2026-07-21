@@ -16,7 +16,7 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
     public static class QaIc2InputModeRuntimeAuthoritySmoke
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Input Mode/IC2 Run Runtime Authority Smoke";
+            "Immersive Framework/QA/Regressions/Input/Run Player Input Mode Authority Regression";
         private const string LogPrefix =
             "[IC2_INPUT_MODE_RUNTIME_AUTHORITY_SMOKE]";
 

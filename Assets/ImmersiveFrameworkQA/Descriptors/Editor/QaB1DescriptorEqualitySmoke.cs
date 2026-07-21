@@ -15,7 +15,7 @@ namespace ImmersiveFrameworkQA.Descriptors.Editor
     /// </summary>
     internal static class QaB1DescriptorEqualitySmoke
     {
-        [MenuItem("Immersive Framework QA/Contracts/B1 Run Descriptor Equality Smoke")]
+        [MenuItem("Immersive Framework/QA/Regressions/Contracts/Run Descriptor Equality Regression")]
         private static void Run()
         {
             var completed = new List<string>();

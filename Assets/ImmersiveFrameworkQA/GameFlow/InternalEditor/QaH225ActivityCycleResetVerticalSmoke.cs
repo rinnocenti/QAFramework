@@ -17,10 +17,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
     {
         private const string LogPrefix = "[H225_ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE]";
 
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.5 Run Activity Cycle Reset Vertical Smoke", true)]
+        [MenuItem("Immersive Framework/QA/Regressions/Game Flow/Run Activity Cycle Reset Regression", true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
 
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.5 Run Activity Cycle Reset Vertical Smoke")]
+        [MenuItem("Immersive Framework/QA/Regressions/Game Flow/Run Activity Cycle Reset Regression")]
         public static async void Run()
         {
             await RunInternalAsync();

@@ -584,7 +584,7 @@ Antes de qualquer remoção futura, pesquisar GUIDs dos `.meta`, referências YA
 
 | Corte | Escopo | Arquivos principais | Risco |
 |---|---|---|---|
-| R2 | Route/Activity request | H2.2.2/H2.2.3 pairs | Baixo; fixtures in-memory. |
+| R2 — **IMPLEMENTADO** | Route/Activity request | `RouteRequestRegression` / `ActivityRequestRegression` | Consolidado em Play Mode, com um menu e relatório por regressão. |
 | R3 | Route/Activity reset | H2.2.4/H2.2.5 families | Médio; Edit→Play orchestration. |
 | R4 | Activity restart | H2.2.6 family + remover suite específica | Médio. |
 | R5 | Object reset | H2.2.7/H2.2.8/H2.2.10 | Médio; registration cleanup. |
@@ -638,3 +638,53 @@ Antes de qualquer remoção futura, pesquisar GUIDs dos `.meta`, referências YA
 - **Quantidade a mesclar:** 34 operações de smoke classificadas `MERGE`.
 - **Quantidade a remover:** 2 mega-orquestradores públicos (`QaP3CanonicalPreFirstGameSmoke` e `QaH2RegressionSuite`); adicionalmente, 1 legacy, 1 temporary e 1 diagnostic perdem menu/arquivo após absorção ou privatização.
 - **Ordem dos próximos cortes:** R2 requests → R3 resets → R4 restart → R5 object reset → R6 host/diagnostics → R7 participation → R8 provisioning → R9 input/pause → R10 scene player → R11 gameplay/camera → R12 camera authoring/override → R13 audio/pooling → R14 menus/runners → R15 assets.
+
+## 13. Public QA menu surface cleanup
+
+**Status:** `menu surface cleanup implemented`.
+
+- **Menus antes:** 85 comandos públicos executáveis (58 `MenuItem` e 27 `ContextMenu`) no baseline R2 deste corte.
+- **Regressões visíveis depois:** 21, todas sob `Immersive Framework/QA/Regressions/<Domain>/Run <Regression Name>`; Pause permanece sem regressão pública até P2.5.
+- **Setups visíveis:** 9, todos sob `Immersive Framework/QA/Setup/<Domain>/...`.
+- **Menus removidos:** 60 comandos (33 `MenuItem` de suite, smoke não final ou setup interno e 27 `ContextMenu`). Foram adicionados 5 menus comportamentais para itens `FINAL` antes executáveis apenas internamente; a redução líquida foi de 55 comandos, encerrando em 30 `MenuItem` e zero `ContextMenu`.
+- **Mega-runners removidos:** `QaH2RegressionSuite` e `QaP3CanonicalPreFirstGameSmoke`; nenhuma suite global substituta foi criada.
+- **R2 preservado:** `Route Request Regression` e `Activity Request Regression` mantiveram seus casos e passaram apenas para o ramo público `Regressions/Requests`.
+
+## 14. QA Hub scene access audit
+
+`SceneIndependent` significa que a regressão não exige uma fixture de cena persistida específica. Regressões Play Mode nessa categoria ainda exigem uma sessão oficial com `FrameworkRuntimeHost`, mas podem executar sobre a rota ativa sem uma entrada dedicada no Hub. O Hub expõe somente as quatro regressões `SceneRequired` atuais; Pause permanece fora até a vertical oficial P2.2.
+
+| Regression | Execution mode | Required scene | Route | Hub button | Run surface | Back-to-Hub | Status |
+|---|---|---|---|---|---|---|---|
+| Activity Transition Transaction Regression | Play Mode | — | — | Not applicable | Public `MenuItem` | Not applicable | `SceneIndependent` |
+| Runtime Host Authority Regression | Play Mode | — | — | Not applicable | Public `MenuItem` | Not applicable | `SceneIndependent` |
+| Camera Follow Authoring Regression | Edit Mode | — | — | Not applicable | Public `MenuItem` | Not applicable | `SceneIndependent` |
+| Local Player Camera Publication Regression | Play Mode | `Lifecycle/Scenes/QA_LifecycleRouteA.unity` → `QA_LifecycleRouteB.unity` | `QA Lifecycle Route A`; startup `QA Lifecycle Activity A` | Added under Camera | Lifecycle panel instruction + public `MenuItem` | Existing `QaLifecyclePanel` | `SceneRequired — Ready` |
+| Activity Identity Regression | Edit Mode | — | — | Not applicable | Public `MenuItem` | Not applicable | `SceneIndependent` |
+| Descriptor Equality Regression | Edit Mode | — | — | Not applicable | Public `MenuItem` | Not applicable | `SceneIndependent` |
+| Route Cycle Reset Regression | Play Mode | — | — | Not applicable | Public `MenuItem` | Not applicable | `SceneIndependent` |
+| Activity Cycle Reset Regression | Play Mode | — | — | Not applicable | Public `MenuItem` | Not applicable | `SceneIndependent` |
+| Activity Restart Regression | Play Mode | — | — | Not applicable | Public `MenuItem` | Not applicable | `SceneIndependent` |
+| Object Reset Regression | Play Mode | — | — | Not applicable | Public `MenuItem` | Not applicable | `SceneIndependent` |
+| Input Gate Regression | Play Mode | — | — | Not applicable | Public `MenuItem` | Not applicable | `SceneIndependent` |
+| Player Input Mode Authority Regression | Play Mode | — | — | Not applicable | Public `MenuItem` | Not applicable | `SceneIndependent` |
+| Player Participation Authoring Regression | Edit Mode | — | — | Not applicable | Public `MenuItem` | Not applicable | `SceneIndependent` |
+| Session Player Slots Regression | Edit Mode | — | — | Not applicable | Public `MenuItem` | Not applicable | `SceneIndependent` |
+| Local Player Provisioning Regression | Edit Mode synthetic | — | — | Not applicable | Public `MenuItem` | Not applicable | `SceneIndependent` |
+| Player Gameplay Admission Regression | Play Mode | `Lifecycle/Scenes/QA_LifecycleRouteA.unity` → `QA_LifecycleRouteB.unity` | `QA Lifecycle Route A`; startup `QA Lifecycle Activity A` | Added under Player | Lifecycle panel instruction + public `MenuItem` | Existing `QaLifecyclePanel` | `SceneRequired — Ready` |
+| Scene Player Route Lifecycle Regression | Play Mode | `Player/P3M5B/P3M5B_RouteA.unity` → `P3M5B_RouteB.unity`; additive activity/negative scenes | `Scene Player Route Lifecycle A`; startup `Scene Player Route Lifecycle A Activity` | Added under Player | `QaHubReturnPanel` instruction + public `MenuItem` | Added `QaHubReturnPanel` | `SceneRequired — Ready` |
+| Pooling Runtime Regression | Play Mode | `Pooling/Scenes/QA_Pooling.unity` | `QA Pooling Route`; startup `QA Pooling Activity` | Existing entry renamed under Pooling | `PoolingQaPanel` button + public `MenuItem` | Added `QaHubReturnPanel` | `SceneRequired — Ready` |
+| Route Request Regression | Play Mode | — | — | Not applicable | Public `MenuItem` | Not applicable | `SceneIndependent` |
+| Activity Request Regression | Play Mode | — | — | Not applicable | Public `MenuItem` | Not applicable | `SceneIndependent` |
+| Content Anchor Materialization Regression | Play Mode | — | — | Not applicable | Public `MenuItem` | Not applicable | `SceneIndependent` |
+
+### QA Hub R1 result
+
+- **SceneIndependent:** 17 regressões.
+- **SceneRequired:** 4 regressões.
+- **Botões já existentes:** 3 (`Lifecycle / Core Flow QA`, `Pooling QA`, `C9R Camera Override Authority`); somente Pooling correspondia a uma regressão final atual.
+- **Botões adicionados:** 3 comportamentais; o botão Pooling foi preservado e renomeado.
+- **Entradas removidas/substituídas:** generic Lifecycle e diagnostic C9R.
+- **Routes/Activities criadas:** nenhuma.
+- **Routes/Activities reutilizadas:** Lifecycle Route A/Activity A, Scene Player Route Lifecycle A/Activity, Pooling Route/Activity e Hub Route/Activity para retorno.
+- **Cenas sem painel ou ação visível:** nenhuma entre as quatro `SceneRequired`.

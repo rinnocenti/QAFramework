@@ -10,10 +10,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
     public static class QaH224RouteCycleResetTriggerBindingSmoke
     {
         private const string LogPrefix = "[H224_ROUTE_CYCLE_RESET_TRIGGER_SMOKE]";
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.4 Run Route Cycle Reset Trigger Binding Smoke", true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
 
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.4 Run Route Cycle Reset Trigger Binding Smoke")]
         public static void Run()
         {
             var completed = new List<string>();

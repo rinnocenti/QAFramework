@@ -84,6 +84,21 @@ namespace ImmersiveFrameworkQA.Lifecycle
             GUILayout.Label($"Last Action: {lastAction}");
             GUILayout.Space(8f);
 
+            var wrappedLabel = new GUIStyle(GUI.skin.label)
+            {
+                wordWrap = true
+            };
+            GUILayout.Label("Scene Regressions", GUI.skin.label);
+            GUILayout.Label(
+                "Run from Unity Editor: Immersive Framework/QA/Regressions/" +
+                "Player/Run Player Gameplay Admission Regression",
+                wrappedLabel);
+            GUILayout.Label(
+                "Run from Unity Editor: Immersive Framework/QA/Regressions/" +
+                "Camera/Run Local Player Camera Publication Regression",
+                wrappedLabel);
+
+            GUILayout.Space(8f);
             GUILayout.Label("Routes", GUI.skin.label);
             DrawRouteButton("Load Lifecycle Route A", routeATrigger);
             DrawRouteButton("Load Lifecycle Route B", routeBTrigger);

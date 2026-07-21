@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: P3M5B_RouteA_StartupActivity
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.ActivityAsset
   activityId: qa.p3m5b.activity.route-a.startup
-  activityName: P3M5B Route A Startup Activity
+  activityName: Scene Player Route Lifecycle A Activity
   description: P3M5B QA-only Route transition and negative-matrix Activity.
   playerParticipationProjectionProfile: {fileID: 11400000, guid: c535b0810b3b5f64fbd17495fb8400fb, type: 2}
   playerParticipationRequirementsProfile: {fileID: 11400000, guid: e65fd44302c09be4196184e8f64fc746, type: 2}

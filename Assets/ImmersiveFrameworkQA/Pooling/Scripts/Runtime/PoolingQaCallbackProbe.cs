@@ -1,6 +1,6 @@
 using Immersive.Pooling.Unity.Instances;
 using UnityEngine;
-namespace ImmersiveFrameworkQA.Pooling.ImmersiveFrameworkQA.Pooling.Scripts.Runtime
+namespace ImmersiveFrameworkQA.Pooling
 {
     /// <summary>
     /// QA-only pooled object probe used by the Pooling QA harness.

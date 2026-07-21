@@ -11,10 +11,8 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
     {
         private const string MenuPath = "Immersive Framework/QA/Player/Pause P1/Run Legacy Boundary Static Smoke";
 
-        [MenuItem(MenuPath, true)]
         private static bool ValidateRun() => !EditorApplication.isPlaying;
 
-        [MenuItem(MenuPath)]
         public static void Run()
         {
             string packageRoot = ResolvePackageRoot();

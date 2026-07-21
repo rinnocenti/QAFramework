@@ -54,13 +54,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 Authoring.PlayerSlotProfile;
         }
 
-        [MenuItem(MenuPath, true)]
         private static bool ValidateRun()
         {
             return EditorApplication.isPlaying;
         }
 
-        [MenuItem(MenuPath)]
         public static async void Run()
         {
             var completed = new List<string>();

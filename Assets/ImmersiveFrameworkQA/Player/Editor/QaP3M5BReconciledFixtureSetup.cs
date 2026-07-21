@@ -16,13 +16,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private const string MenuPath =
             "Immersive Framework/QA/Player/P3M5B Apply Reconciled Route Transition Fixture";
 
-        [MenuItem(MenuPath, true)]
         private static bool ValidateApply()
         {
             return !EditorApplication.isPlayingOrWillChangePlaymode;
         }
 
-        [MenuItem(MenuPath)]
         public static void Apply()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)

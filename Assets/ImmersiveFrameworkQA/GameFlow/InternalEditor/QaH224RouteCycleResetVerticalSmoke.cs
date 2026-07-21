@@ -13,10 +13,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
     public static class QaH224RouteCycleResetVerticalSmoke
     {
         private const string LogPrefix = "[H224_ROUTE_CYCLE_RESET_VERTICAL_SMOKE]";
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.4 Run Route Cycle Reset Vertical Smoke", true)]
+        [MenuItem("Immersive Framework/QA/Regressions/Game Flow/Run Route Cycle Reset Regression", true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
 
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.4 Run Route Cycle Reset Vertical Smoke")]
+        [MenuItem("Immersive Framework/QA/Regressions/Game Flow/Run Route Cycle Reset Regression")]
         public static async void Run()
         {
             await RunInternalAsync();

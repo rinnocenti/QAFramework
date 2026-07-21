@@ -29,7 +29,7 @@ namespace ImmersiveFrameworkQA.Audio.Editor
         private const string SfxClipPath = Clips + "/QA_Sfx_Beep.wav";
         private const string BgmClipPath = Clips + "/QA_Bgm_Tone.wav";
 
-        [MenuItem("Immersive Framework QA/Audio/Repair Generated Audio Clips")]
+        [MenuItem("Immersive Framework/QA/Setup/Audio/Repair Generated Audio Clips")]
         public static void RepairGeneratedAudioClips()
         {
             EnsureGeneratedClipsAndAssignments();

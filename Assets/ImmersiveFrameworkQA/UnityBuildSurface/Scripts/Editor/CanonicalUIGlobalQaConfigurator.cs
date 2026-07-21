@@ -6,7 +6,7 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface.Editor
 {
     internal static class CanonicalUIGlobalQaConfigurator
     {
-        private const string MenuPath = "Immersive Framework/QA/Unity Build Surface/Configure Canonical UIGlobal QA Scene";
+        private const string MenuPath = "Immersive Framework/QA/Setup/Bootstrap/Configure Canonical UIGlobal QA Scene";
         private const string GlobalUiScenePath = "Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/QA_UIGlobal.unity";
         private const string GameApplicationPath = "Assets/ImmersiveFrameworkQA/UnityBuildSurface/GameApplications/QA_TransitionGameApplication.asset";
 

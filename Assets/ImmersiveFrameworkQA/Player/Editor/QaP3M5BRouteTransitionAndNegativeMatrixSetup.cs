@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using Immersive.Framework.Actors;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.GameFlow;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.Transition;
+using ImmersiveFrameworkQA.Hub;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -29,7 +31,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
         }
 
         private const string MenuPath =
-            "Immersive Framework/QA/Player/P3M5B Apply Route Transition and Negative Matrix Fixture";
+            "Immersive Framework/QA/Setup/Player/Apply Scene Player Route Lifecycle Fixture";
+        private const string RegressionMenuPath =
+            "Immersive Framework/QA/Regressions/Player/Run Scene Player Route Lifecycle Regression";
+        private const string HubRoutePath =
+            "Assets/ImmersiveFrameworkQA/Hub/Routes/QA_HubRoute.asset";
 
         internal const string RootFolder =
             "Assets/ImmersiveFrameworkQA/Player/P3M5B";
@@ -245,7 +251,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 ActivityAsset routeAActivity = CreateOrUpdateActivity(
                     RouteAActivityPath,
                     RouteAActivityId,
-                    "P3M5B Route A Startup Activity",
+                    "Scene Player Route Lifecycle A Activity",
                     firstSlotProjection,
                     requirements,
                     CreateOrUpdateContentProfile(
@@ -255,7 +261,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 ActivityAsset routeBActivity = CreateOrUpdateActivity(
                     RouteBActivityPath,
                     RouteBActivityId,
-                    "P3M5B Route B Startup Activity",
+                    "Scene Player Route Lifecycle B Activity",
                     firstSlotProjection,
                     requirements,
                     CreateOrUpdateContentProfile(
@@ -312,12 +318,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 RouteAsset routeA = CreateOrUpdateRoute(
                     RouteAPath,
-                    "P3M5B Route A",
+                    "Scene Player Route Lifecycle A",
                     RouteAPrimaryScenePath,
                     routeAActivity);
                 RouteAsset routeB = CreateOrUpdateRoute(
                     RouteBPath,
-                    "P3M5B Route B",
+                    "Scene Player Route Lifecycle B",
                     RouteBPrimaryScenePath,
                     routeBActivity);
 
@@ -474,6 +480,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 opened = true;
                 ClearScene(scene);
                 NewSceneObject(rootName, scene);
+                CreateHubReturnSurface(scene);
                 SaveScene(scene, path);
             }
             finally
@@ -590,6 +597,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
                             $"Unsupported P3M5B Player scene shape '{shape}'.");
                 }
 
+                if (string.Equals(
+                        path,
+                        RouteAPrimaryScenePath,
+                        StringComparison.Ordinal))
+                {
+                    CreateHubReturnSurface(scene);
+                }
+
                 SaveScene(scene, path);
             }
             finally
@@ -605,6 +620,32 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 : EditorSceneManager.NewScene(
                     NewSceneSetup.EmptyScene,
                     NewSceneMode.Additive);
+        }
+
+        private static void CreateHubReturnSurface(Scene scene)
+        {
+            RouteAsset hubRoute = AssetDatabase.LoadAssetAtPath<RouteAsset>(
+                HubRoutePath);
+            Require(hubRoute != null,
+                $"Required QA Hub route is missing: '{HubRoutePath}'.");
+
+            GameObject navigation = NewSceneObject(
+                "Scene Player Route Lifecycle Regression Navigation",
+                scene);
+            RouteRequestTrigger trigger =
+                navigation.AddComponent<RouteRequestTrigger>();
+            SetObject(trigger, "targetRoute", hubRoute);
+            SetString(
+                trigger,
+                "reason",
+                "qa.scene-player-route-lifecycle.back-to-hub");
+
+            QaHubReturnPanel panel = navigation.AddComponent<QaHubReturnPanel>();
+            panel.Configure(
+                trigger,
+                "Scene Player Route Lifecycle Regression",
+                $"Run from Unity Editor: {RegressionMenuPath}");
+            EditorUtility.SetDirty(panel);
         }
 
         private static void ClearScene(Scene scene)
@@ -680,6 +721,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             GameObject root = NewSceneObject(name, scene);
             PlayerInput playerInput = root.AddComponent<PlayerInput>();
+            playerInput.enabled = false;
             LocalPlayerHostAuthoring host =
                 root.AddComponent<LocalPlayerHostAuthoring>();
             GameObject mount = NewSceneObject(name + " Actor Mount", scene);

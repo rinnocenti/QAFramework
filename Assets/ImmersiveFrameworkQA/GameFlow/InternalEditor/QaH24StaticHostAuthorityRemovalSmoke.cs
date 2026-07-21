@@ -12,7 +12,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
     public static class QaH24StaticHostAuthorityRemovalSmoke
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Game Flow/H2.4 Run Static Host Authority Removal Smoke";
+            "Immersive Framework/QA/Regressions/Bootstrap/Run Runtime Host Authority Regression";
 
         private const string LogPrefix =
             "[H24_STATIC_HOST_AUTHORITY_REMOVAL_SMOKE]";

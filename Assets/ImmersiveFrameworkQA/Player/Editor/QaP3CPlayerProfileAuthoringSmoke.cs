@@ -24,6 +24,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private const string ValidatorTypeName =
             "Immersive.Framework.Editor.Editor.PlayerParticipation.PlayerParticipationAuthoringValidator";
 
+        [MenuItem("Immersive Framework/QA/Regressions/Player/Run Player Participation Authoring Regression")]
         internal static void Run()
         {
             var completed = new List<string>();

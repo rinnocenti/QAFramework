@@ -37,7 +37,6 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
         private const string LogPrefix =
             "[QA][PAUSE-P1][SETUP]";
 
-        [MenuItem(MenuRoot + "Setup or Rebuild Consumer Scene")]
         internal static void SetupOrRebuild()
         {
             try
@@ -136,7 +135,6 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
             }
         }
 
-        [MenuItem(MenuRoot + "Open Consumer Scene")]
         internal static void OpenScene()
         {
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(

@@ -77,6 +77,22 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             return true;
         }
 
+        public static bool TryResolveUniqueHost(
+            out Component host,
+            out string diagnostic)
+        {
+            host = null;
+            if (!TryResolveUniqueHost(
+                    out FrameworkRuntimeHost resolved,
+                    out diagnostic))
+            {
+                return false;
+            }
+
+            host = resolved;
+            return true;
+        }
+
         public static bool TryGetReady(
             out string diagnostic)
         {

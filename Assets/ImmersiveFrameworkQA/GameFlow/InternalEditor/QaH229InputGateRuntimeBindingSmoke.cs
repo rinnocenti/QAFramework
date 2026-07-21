@@ -13,10 +13,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
         private const string LogPrefix = "[H229_INPUT_GATE_RUNTIME_BINDING_SMOKE]";
         private const string RuntimeSource = nameof(QaH229InputGateRuntimeBindingSmoke);
 
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.9 Run Input Gate Runtime Binding Smoke", true)]
+        [MenuItem("Immersive Framework/QA/Regressions/Input/Run Input Gate Regression", true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
 
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.9 Run Input Gate Runtime Binding Smoke")]
+        [MenuItem("Immersive Framework/QA/Regressions/Input/Run Input Gate Regression")]
         public static void Run()
         {
             RunInternal();

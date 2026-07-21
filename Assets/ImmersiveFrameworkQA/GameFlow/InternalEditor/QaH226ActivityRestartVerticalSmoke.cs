@@ -13,10 +13,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
     {
         private const string LogPrefix = "[H226_ACTIVITY_RESTART_VERTICAL_SMOKE]";
 
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.6 Run Activity Restart Vertical Smoke", true)]
+        [MenuItem("Immersive Framework/QA/Regressions/Game Flow/Run Activity Restart Regression", true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
 
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.6 Run Activity Restart Vertical Smoke")]
+        [MenuItem("Immersive Framework/QA/Regressions/Game Flow/Run Activity Restart Regression")]
         public static async void Run()
         {
             await RunInternalAsync();

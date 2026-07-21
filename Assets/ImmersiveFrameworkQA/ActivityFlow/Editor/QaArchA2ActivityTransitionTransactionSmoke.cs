@@ -16,7 +16,7 @@ namespace ImmersiveFrameworkQA.ActivityFlow.Editor
     public static class QaArchA2ActivityTransitionTransactionSmoke
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Activity Flow/ARCH-A2 Run Activity Transition Transaction Smoke";
+            "Immersive Framework/QA/Regressions/Activity Flow/Run Activity Transition Transaction Regression";
         private const string RuntimeHostTypeName =
             "Immersive.Framework.ApplicationLifecycle.FrameworkRuntimeHost";
         private const string ActivityFlowRuntimeTypeName =

@@ -28,7 +28,7 @@ namespace ImmersiveFrameworkQA.Audio.Editor
         private const string BgmCuePath = ScriptableObjects + "/QA_BgmCue.asset";
         private const string PooledAudioSourcePrefabPath = Prefabs + "/QA_PooledAudioSource.prefab";
 
-        [MenuItem("Immersive Framework QA/Audio/Create or Refresh Audio QA Scene")]
+        [MenuItem("Immersive Framework/QA/Setup/Audio/Create or Refresh Audio QA Scene")]
         public static void CreateOrRefreshAudioQaScene()
         {
             EnsureFolders();

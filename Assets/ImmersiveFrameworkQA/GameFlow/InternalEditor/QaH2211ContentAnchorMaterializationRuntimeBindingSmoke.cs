@@ -17,12 +17,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             nameof(QaH2211ContentAnchorMaterializationRuntimeBindingSmoke);
 
         [MenuItem(
-            "Immersive Framework/QA/Game Flow/H2.2.11 Run Content Anchor Materialization Runtime Binding Smoke",
+            "Immersive Framework/QA/Regressions/Scene Composition/Run Content Anchor Materialization Regression",
             true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
 
         [MenuItem(
-            "Immersive Framework/QA/Game Flow/H2.2.11 Run Content Anchor Materialization Runtime Binding Smoke")]
+            "Immersive Framework/QA/Regressions/Scene Composition/Run Content Anchor Materialization Regression")]
         public static void Run()
         {
             RunInternal();

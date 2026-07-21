@@ -92,13 +92,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 2)
         };
 
-        [MenuItem(MenuPath, true)]
         private static bool ValidateRun()
         {
             return !EditorApplication.isPlayingOrWillChangePlaymode;
         }
 
-        [MenuItem(MenuPath)]
         private static void Run()
         {
             try

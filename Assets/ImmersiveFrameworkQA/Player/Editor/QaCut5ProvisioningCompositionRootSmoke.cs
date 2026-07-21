@@ -21,7 +21,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static readonly BindingFlags InstanceAny =
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
-        [MenuItem(MenuPath)]
         internal static void Run()
         {
             var completed = new List<string>();

@@ -3,6 +3,8 @@
     "rootNamespace": "ImmersiveFrameworkQA.Pooling.Editor",
     "references": [
         "ImmersiveFrameworkQA.Pooling.Runtime",
+        "ImmersiveFrameworkQA.Hub.Runtime",
+        "Immersive.Framework.Runtime",
         "Immersive.Pooling.Unity",
         "Immersive.Pooling.Runtime"
     ],

@@ -14,10 +14,8 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
             "Immersive Framework/QA/Pause/H2.2.1 Run Pause Request Trigger Binding Smoke";
         private const string LogPrefix = "[H221_PAUSE_REQUEST_TRIGGER_SMOKE]";
 
-        [MenuItem(MenuPath, true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
 
-        [MenuItem(MenuPath)]
         public static void Run()
         {
             var completed = new List<string>();

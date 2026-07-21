@@ -25,13 +25,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private const BindingFlags StaticNonPublic =
             BindingFlags.Static | BindingFlags.NonPublic;
 
-        [MenuItem(MenuPath, true)]
         private static bool ValidateRun()
         {
             return !EditorApplication.isPlayingOrWillChangePlaymode;
         }
 
-        [MenuItem(MenuPath)]
         internal static void Run()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)

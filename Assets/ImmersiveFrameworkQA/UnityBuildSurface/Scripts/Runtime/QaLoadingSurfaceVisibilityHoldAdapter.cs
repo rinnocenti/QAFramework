@@ -205,7 +205,6 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
                 : message.Trim();
         }
 
-        [ContextMenu("Immersive Framework/QA Apply Visible Loading State")]
         private void QaApplyVisibleState()
         {
             if (TryResolveCanvasGroup(out var resolvedCanvasGroup))
@@ -217,7 +216,6 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
             }
         }
 
-        [ContextMenu("Immersive Framework/QA Apply Hidden Loading State")]
         private void QaApplyHiddenState()
         {
             if (TryResolveCanvasGroup(out var resolvedCanvasGroup))
@@ -229,19 +227,16 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
             }
         }
 
-        [ContextMenu("Immersive Framework/QA Apply 50 Percent Loading Progress")]
         private void QaApplyHalfProgress()
         {
             SetDeterminateProgress01(0.5f, "QA loading progress manually set to 50%.");
         }
 
-        [ContextMenu("Immersive Framework/QA Apply Complete Loading Progress")]
         private void QaApplyCompleteProgress()
         {
             SetDeterminateProgress01(1f, "QA loading progress manually set to 100%.");
         }
 
-        [ContextMenu("Immersive Framework/QA Apply Indeterminate Loading Progress")]
         private void QaApplyIndeterminateProgress()
         {
             SetIndeterminateProgress("QA loading progress manually set to indeterminate.");

@@ -60,19 +60,16 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
             clearButtonLabel = string.IsNullOrWhiteSpace(nextClearButtonLabel) ? "Clear Activity" : nextClearButtonLabel;
         }
 
-        [ContextMenu("Request Primary Activity")]
         public void RequestPrimaryActivity()
         {
             RequestActivity(primaryActivityTrigger, "primary");
         }
 
-        [ContextMenu("Request Alternate Activity")]
         public void RequestAlternateActivity()
         {
             RequestActivity(alternateActivityTrigger, "alternate");
         }
 
-        [ContextMenu("Clear Activity")]
         public void ClearActivity()
         {
             if (clearActivityTrigger == null)

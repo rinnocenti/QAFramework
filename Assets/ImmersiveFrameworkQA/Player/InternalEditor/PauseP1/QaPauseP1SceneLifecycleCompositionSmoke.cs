@@ -18,12 +18,10 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
         private const string LogPrefix =
             "[QA][PAUSE-P1][SCENE-LIFECYCLE]";
 
-        [MenuItem(MenuPath, true)]
         private static bool ValidateRun() =>
             EditorApplication.isPlaying &&
             !EditorApplication.isCompiling;
 
-        [MenuItem(MenuPath)]
         public static async void Run()
         {
             var completed = new List<string>();

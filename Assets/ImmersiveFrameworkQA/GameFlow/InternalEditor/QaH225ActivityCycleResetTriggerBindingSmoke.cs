@@ -10,8 +10,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
     public static class QaH225ActivityCycleResetTriggerBindingSmoke
     {
         private const string LogPrefix="[H225_ACTIVITY_CYCLE_RESET_TRIGGER_SMOKE]";
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.5 Run Activity Cycle Reset Trigger Binding Smoke",true)] private static bool ValidateRun()=>EditorApplication.isPlaying;
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.5 Run Activity Cycle Reset Trigger Binding Smoke")]
+        private static bool ValidateRun()=>EditorApplication.isPlaying;
         public static void Run()
         {
             var completed=new List<string>();var objects=new List<UnityEngine.Object>();

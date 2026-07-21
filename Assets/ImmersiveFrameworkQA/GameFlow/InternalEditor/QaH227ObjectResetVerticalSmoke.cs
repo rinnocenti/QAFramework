@@ -14,10 +14,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
         private const string RuntimeSource = nameof(QaH227ObjectResetVerticalSmoke);
         private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(10d);
 
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.7 Run Object Reset Vertical Smoke", true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
 
-        [MenuItem("Immersive Framework/QA/Game Flow/H2.2.7 Run Object Reset Vertical Smoke")]
         public static async void Run()
         {
             await RunInternalAsync();
