@@ -161,6 +161,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/ImmersiveFrameworkQA/Player/PauseP1/Scenes/QA_PauseProductBinding.unity
     guid: 225012a4f988c2b448b0a823c2ad3731
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/PauseP1/QA_PauseP1Route.unity
+    guid: 7f04a2b3c4d54e6f8a90123456789abc
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/PauseP1/QA_PauseP1ActivityContent.unity
+    guid: 7f05a2b3c4d54e6f8a90123456789abc
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

@@ -43,6 +43,7 @@ GameObject:
   - component: {fileID: 1422397286391588568}
   - component: {fileID: 48658375125453752}
   - component: {fileID: 6282264667875370117}
+  - component: {fileID: 7000000000000000001}
   m_Layer: 0
   m_Name: P3G4_LocalPlayerHost
   m_TagString: Untagged
@@ -131,3 +132,20 @@ MonoBehaviour:
   logStateChanges: 0
   logMissingRuntimeOnce: 0
   logMissingTargetOnce: 0
+--- !u!114 &7000000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4200306247500672449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5af9b1f7c0c642c4b9f7d560d3e21001, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Pause.PausePlayerInputBinding
+  playerInput: {fileID: 1422397286391588568}
+  pauseAction: {fileID: 11400000, guid: 7f06a2b3c4d54e6f8a90123456789abc, type: 2}
+  globalActionMapName: Global
+  gameplayActionMapName: Gameplay
+  uiActionMapName: UI

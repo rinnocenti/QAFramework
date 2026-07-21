@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6d702c1ba364e70ad76a85eb5f1b842, type: 3}
+  m_Name: QA_PauseP1Activity
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.ActivityAsset
+  activityId: qa.pause.p1.product-binding
+  activityName: QA Pause P1 Activity
+  description: Declares required Pause product binding for the officially admitted Local Player.
+  playerParticipationProjectionProfile: {fileID: 11400000, guid: d8243e8d5f963264b89e10fe84a2dc09, type: 2}
+  playerParticipationRequirementsProfile: {fileID: 11400000, guid: a27be6f276fd1414d9b32268e30dd2f7, type: 2}
+  activityContentProfile: {fileID: 11400000, guid: 7f03a2b3c4d54e6f8a90123456789abc, type: 2}
+  visualTransitionMode: 0
+  transitionGateMode: 10

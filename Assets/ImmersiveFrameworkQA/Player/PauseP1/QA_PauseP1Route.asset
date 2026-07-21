@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a35fe899a80d2d64dac72e8bfe3079df, type: 3}
+  m_Name: QA_PauseP1Route
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.RouteAsset
+  routeName: QA Pause P1 Route
+  primaryScenePath: Assets/ImmersiveFrameworkQA/Player/PauseP1/QA_PauseP1Route.unity
+  primarySceneName: QA_PauseP1Route
+  routeContentProfile: {fileID: 0}
+  startupActivity: {fileID: 11400000, guid: 7f02a2b3c4d54e6f8a90123456789abc, type: 2}
+  transitionGateMode: 30
+  description: Official Pause Product Binding QA Route with explicit return to QA Hub.

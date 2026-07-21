@@ -1,0 +1,22 @@
+{
+  "name": "ImmersiveFrameworkQA.PauseP1.Editor",
+  "rootNamespace": "ImmersiveFrameworkQA.PauseP1.Editor",
+  "references": [
+    "Immersive.Framework.Runtime",
+    "Unity.InputSystem",
+    "ImmersiveFrameworkQA.Hub.Runtime",
+    "ImmersiveFrameworkQA.Hub.Editor",
+    "ImmersiveFrameworkQA.PauseP1.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

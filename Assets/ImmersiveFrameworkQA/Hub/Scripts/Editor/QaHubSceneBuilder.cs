@@ -30,6 +30,10 @@ namespace ImmersiveFrameworkQA.Hub.Editor
                 "Scene Player Route Lifecycle Regression",
                 Root + "/Player/P3M5B/P3M5B_RouteA.asset"),
             new(
+                "Pause",
+                "Pause Product Binding QA",
+                Root + "/Player/PauseP1/QA_PauseP1Route.asset"),
+            new(
                 "Pooling",
                 "Pooling Runtime Regression",
                 Root + "/Pooling/Routes/QA_PoolingRoute.asset")
@@ -51,6 +55,16 @@ namespace ImmersiveFrameworkQA.Hub.Editor
                 Debug.LogError(
                     $"[QA_HUB_SETUP] status='Failed' reason='{FormatDiagnostic(exception)}'");
                 throw;
+            }
+        }
+
+        public static void CreateOrRefreshHubForSetup()
+        {
+            HubSetupSummary summary = ApplyHubConfiguration();
+            if (summary.DuplicateCount != 0)
+            {
+                throw new InvalidOperationException(
+                    $"QA Hub setup produced '{summary.DuplicateCount}' duplicate entries.");
             }
         }
 
