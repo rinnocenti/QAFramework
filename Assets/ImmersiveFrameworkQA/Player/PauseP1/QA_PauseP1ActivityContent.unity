@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &3200000000
+--- !u!1 &371393864
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,23 +127,58 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3200000001}
-  - component: {fileID: 3200000002}
-  - component: {fileID: 3200000003}
+  - component: {fileID: 371393867}
+  - component: {fileID: 371393866}
+  - component: {fileID: 371393865}
   m_Layer: 0
-  m_Name: "Pause Activity Intent — Official Local Player Binding Required"
+  m_Name: Pause Activity Intent - Official Local Player Binding Required
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3200000001
+--- !u!114 &371393865
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 371393864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f07a2b3c4d54e6f8a90123456789abc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ImmersiveFrameworkQA.PauseP1.Runtime::ImmersiveFrameworkQA.PauseP1.PauseQaIntentPanel
+  title: Pause Activity Intent
+  state: Required
+  instructions: This Activity declares Pause binding intent. Input remains owned
+    by the framework-provisioned Local Player host.
+  panelRect:
+    serializedVersion: 2
+    x: 16
+    y: 16
+    width: 460
+    height: 170
+--- !u!114 &371393866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 371393864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8aa7b2eaf9ed4ee982d88bc2c871f3ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Pause.PauseActivityBindingAuthoring
+  requiredness: 10
+--- !u!4 &371393867
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3200000000}
+  m_GameObject: {fileID: 371393864}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -152,42 +187,8 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3200000002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3200000000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8aa7b2eaf9ed4ee982d88bc2c871f3ee, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Pause.PauseActivityBindingAuthoring
-  requiredness: 10
---- !u!114 &3200000003
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3200000000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7f07a2b3c4d54e6f8a90123456789abc, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: ImmersiveFrameworkQA.PauseP1.Runtime::ImmersiveFrameworkQA.PauseP1.PauseQaIntentPanel
-  title: Pause Activity Intent
-  state: Required
-  instructions: This Activity declares Pause binding intent. Input remains owned by the framework-provisioned Local Player host.
-  panelRect:
-    serializedVersion: 2
-    x: 16
-    y: 16
-    width: 460
-    height: 170
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 3200000001}
+  - {fileID: 371393867}

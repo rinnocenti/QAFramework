@@ -200,6 +200,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
         private static void ValidateOfficialPlayerPreflight(
             ref int duplicateCount)
         {
+            int localDuplicateCount = duplicateCount;
             WithScene(
                 QaPauseProductBindingPaths.UiGlobalScene,
                 scene =>
@@ -218,13 +219,13 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                             .OfType<PauseOfficialPlayerPreflightPanel>()
                             .ToArray();
 
-                    duplicateCount += Math.Max(
+                    localDuplicateCount += Math.Max(
                         0,
                         authorings.Length - 1);
-                    duplicateCount += Math.Max(
+                    localDuplicateCount += Math.Max(
                         0,
                         managers.Length - 1);
-                    duplicateCount += Math.Max(
+                    localDuplicateCount += Math.Max(
                         0,
                         preflights.Length - 1);
 
@@ -249,6 +250,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                             authorings[0]),
                         "Pause preflight public topology does not expose the official provisioning reference.");
                 });
+            duplicateCount = localDuplicateCount;
 
             ValidatePreflightSource();
         }
@@ -326,12 +328,13 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
 
         private static void ValidateRouteScene(ref int playerInputCount)
         {
+            int localPlayerInputCount = playerInputCount;
             WithScene(
                 QaPauseProductBindingPaths.RouteScene,
                 scene =>
                 {
                     Component[] components = Components(scene);
-                    playerInputCount += components.OfType<PlayerInput>().Count();
+                    localPlayerInputCount += components.OfType<PlayerInput>().Count();
                     RouteRequestTrigger[] hubReturns = components
                         .OfType<RouteRequestTrigger>()
                         .Where(trigger =>
@@ -347,16 +350,18 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                         "Pause Route scene requires exactly one visual return panel.");
                     RejectForbidden(components);
                 });
+            playerInputCount = localPlayerInputCount;
         }
 
         private static void ValidateActivityScene(ref int playerInputCount)
         {
+            int localPlayerInputCount = playerInputCount;
             WithScene(
                 QaPauseProductBindingPaths.ActivityScene,
                 scene =>
                 {
                     Component[] components = Components(scene);
-                    playerInputCount += components.OfType<PlayerInput>().Count();
+                    localPlayerInputCount += components.OfType<PlayerInput>().Count();
                     PauseActivityBindingAuthoring[] authorings =
                         components
                             .OfType<PauseActivityBindingAuthoring>()
@@ -382,6 +387,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                         "Pause Activity scene requires exactly one designer-first Pause intent panel.");
                     RejectForbidden(components);
                 });
+            playerInputCount = localPlayerInputCount;
         }
 
         private static void RejectForbidden(Component[] components)

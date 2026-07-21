@@ -142,10 +142,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5af9b1f7c0c642c4b9f7d560d3e21001, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Pause.PausePlayerInputBinding
   playerInput: {fileID: 1422397286391588568}
-  pauseAction: {fileID: 11400000, guid: 7f06a2b3c4d54e6f8a90123456789abc, type: 2}
+  pauseAction: {fileID: 11400000, guid: 401840dce04ff0e48bc792c7215aab94, type: 2}
   globalActionMapName: Global
   gameplayActionMapName: Gameplay
   uiActionMapName: UI

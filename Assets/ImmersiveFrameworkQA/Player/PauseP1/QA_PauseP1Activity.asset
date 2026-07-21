@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.ActivityAsset
   activityId: qa.pause.p1.product-binding
   activityName: QA Pause P1 Activity
-  description: Declares required Pause product binding for the officially admitted Local Player.
+  description: Declares required Pause product binding for the officially admitted
+    Local Player.
   playerParticipationProjectionProfile: {fileID: 11400000, guid: d8243e8d5f963264b89e10fe84a2dc09, type: 2}
   playerParticipationRequirementsProfile: {fileID: 11400000, guid: a27be6f276fd1414d9b32268e30dd2f7, type: 2}
-  activityContentProfile: {fileID: 11400000, guid: 7f03a2b3c4d54e6f8a90123456789abc, type: 2}
+  activityContentProfile: {fileID: 11400000, guid: 4cf8fe676a7eedd48b538988a102d225, type: 2}
   visualTransitionMode: 0
   transitionGateMode: 10

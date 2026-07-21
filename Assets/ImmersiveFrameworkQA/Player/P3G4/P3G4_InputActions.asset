@@ -19,19 +19,19 @@ MonoBehaviour:
     m_Actions:
     - m_Name: JoinEvidence
       m_Type: 1
-      m_ExpectedControlType:
+      m_ExpectedControlType: 
       m_Id: c46f025e-6dcf-4f55-ac53-a6184b7883fd
-      m_Processors:
-      m_Interactions:
+      m_Processors: 
+      m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Bindings:
-    - m_Name:
+    - m_Name: 
       m_Id: b7c23d50-4186-4362-aa56-f2e44fb08db0
       m_Path: <Keyboard>/space
-      m_Interactions:
-      m_Processors:
-      m_Groups:
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
       m_Action: JoinEvidence
       m_Flags: 0
   - m_Name: Global
@@ -42,25 +42,25 @@ MonoBehaviour:
       m_Type: 1
       m_ExpectedControlType: Button
       m_Id: a2222222-3333-4444-8555-666666666666
-      m_Processors:
-      m_Interactions:
+      m_Processors: 
+      m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Bindings:
-    - m_Name:
+    - m_Name: 
       m_Id: a3333333-4444-4555-8666-777777777777
       m_Path: <Keyboard>/escape
-      m_Interactions:
-      m_Processors:
-      m_Groups:
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
       m_Action: PauseToggle
       m_Flags: 0
-    - m_Name:
+    - m_Name: 
       m_Id: a4444444-5555-4666-8777-888888888888
       m_Path: <Gamepad>/start
-      m_Interactions:
-      m_Processors:
-      m_Groups:
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
       m_Action: PauseToggle
       m_Flags: 0
   - m_Name: UI

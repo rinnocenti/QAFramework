@@ -49,15 +49,8 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
 
     public static class QaPauseProductBindingSetup
     {
-        private const string MenuPath =
-            "Immersive Framework/QA/Setup/Pause/Create or Refresh Pause Product Binding QA";
         private const string LogPrefix = "[PAUSE_PRODUCT_BINDING_SETUP]";
 
-        [MenuItem(MenuPath, true)]
-        private static bool ValidateMenu() =>
-            !EditorApplication.isPlayingOrWillChangePlaymode;
-
-        [MenuItem(MenuPath)]
         public static void CreateOrRefresh()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)
