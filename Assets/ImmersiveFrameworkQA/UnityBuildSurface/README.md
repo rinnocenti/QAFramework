@@ -231,6 +231,8 @@ bindings are Escape and Gamepad Start.
 - Superseded APIs must not be restored as wrappers, aliases or compatibility
   surfaces.
 
-The supplied Unity result reported compile errors before this local migration.
-No post-migration QA compile or focused regression PASS result has been supplied,
-so validation remains pending.
+User-provided and approved Unity evidence confirms package compile, QA compile,
+framework boot, the focused Runtime Host, InputMode, Input Gate and Descriptor
+regressions, and the complete Pause lifecycle/reentry sequence. Teardown produced
+no stale or duplicate callback and restored `Time.timeScale` to `1`. Codex did
+not execute Unity. No superseded compatibility API was restored.

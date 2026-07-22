@@ -9,9 +9,11 @@
 > `UnityPlayerInputGateAdapter` regression without the retired binding helper;
 > removed `CycleResetSmokeProbe` cases; and moved Pause P1 to the official
 > `PausePlayerInputBinding` product surface. Superseded package APIs must not be
-> restored through wrappers, aliases or compatibility code. The user-supplied
-> Unity result predates this migration and reported compile errors; post-migration
-> QA compile and focused regression validation remain pending.
+> restored through wrappers, aliases or compatibility code. User-provided and
+> approved Unity evidence confirms package compile, QA compile, framework boot,
+> the focused Runtime Host, InputMode, Input Gate and Descriptor regressions, and
+> the Pause lifecycle/reentry sequence. Teardown produced no stale or duplicate
+> callback and restored `Time.timeScale` to `1`. Codex did not execute Unity.
 
 Data da auditoria: 2026-07-20  
 Escopo: `Assets/ImmersiveFrameworkQA` de `QAFramework`.  
