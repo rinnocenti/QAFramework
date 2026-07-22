@@ -133,6 +133,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 AssertTrue(joined.Succeeded,
                     "Real local Player join failed. " +
                     joined.ToDiagnosticString());
+                AssertTrue(
+                    joined.Slot.IsJoined &&
+                    !joined.Slot.HasSelectedActor,
+                    "Real local Player join must leave the Slot Joined and Unselected. " +
+                    joined.ToDiagnosticString());
+                AssertNotNull(
+                    joined.Slot.Profile?.DefaultActorProfile,
+                    "Joined Player Slot has no default ActorProfile intent.");
                 completed.Add("real-local-player-joined");
 
                 LocalPlayerHostAuthoring stableHost = joined.LocalPlayerHost;
@@ -156,16 +164,20 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 LocalPlayerActorSelectionRequestAuthoring selectionEndpoint =
                     authoring.GetComponent<LocalPlayerActorSelectionRequestAuthoring>();
-                if (selectionEndpoint == null)
-                {
-                    selectionEndpoint = authoring.gameObject.AddComponent<
-                        LocalPlayerActorSelectionRequestAuthoring>();
-                }
-
-                selectionEndpoint.ProvisioningAuthoring = authoring;
+                AssertNotNull(selectionEndpoint,
+                    "Canonical UIGlobal fixture has no Local Player Actor selection request endpoint.");
+                AssertTrue(ReferenceEquals(
+                        selectionEndpoint.ProvisioningAuthoring,
+                        authoring),
+                    "Local Player Actor selection endpoint does not reference the canonical provisioning authoring.");
                 AssertTrue(
                     selectionEndpoint.TryValidateConfiguration(out string endpointIssue),
                     "Public default Actor selection endpoint is invalid. " + endpointIssue);
+                AssertTrue(
+                    selectionEndpoint.HasPlayerActorSelectionRuntimeBinding,
+                    "Public default Actor selection endpoint has no official Session runtime binding. " +
+                    selectionEndpoint.PlayerActorSelectionRuntimeBindingDiagnostic);
+                completed.Add("actor-selection-endpoint-officially-bound");
                 PlayerActorSelectionResult selected =
                     selectionEndpoint.RequestDefaultActorSelection(
                         slotId,
@@ -175,7 +187,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 AssertNotNull(selected,
                     "Default Actor selection returned no result.");
                 AssertTrue(selected.Succeeded &&
-                    selected.SelectedActorProfile != null,
+                    ReferenceEquals(
+                        selected.SelectedActorProfile,
+                        joined.Slot.Profile.DefaultActorProfile),
                     "Default Actor selection failed. " +
                     selected.ToDiagnosticString());
                 completed.Add("public-default-actor-selection");

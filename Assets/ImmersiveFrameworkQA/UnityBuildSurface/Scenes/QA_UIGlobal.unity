@@ -294,6 +294,7 @@ GameObject:
   - component: {fileID: 1295583389}
   - component: {fileID: 1295583388}
   - component: {fileID: 1295583387}
+  - component: {fileID: 1295583392}
   - component: {fileID: 1295583390}
   - component: {fileID: 1295583391}
   m_Layer: 0
@@ -316,6 +317,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerProvisioningAuthoring
   playerInputManager: {fileID: 1295583388}
+--- !u!114 &1295583392
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1295583386}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8db11f138db4fd89de5c9a6e488ba76, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerActorSelectionRequestAuthoring
+  provisioningAuthoring: {fileID: 1295583387}
 --- !u!114 &1295583388
 MonoBehaviour:
   m_ObjectHideFlags: 0

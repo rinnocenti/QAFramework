@@ -57,12 +57,41 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 serializedAuthoring.FindProperty("playerInputManager").objectReferenceValue = manager;
                 serializedAuthoring.ApplyModifiedPropertiesWithoutUndo();
 
+                LocalPlayerActorSelectionRequestAuthoring[] selectionEndpoints =
+                    ResolveSceneActorSelectionEndpoints(scene);
+                if (selectionEndpoints.Length > 1)
+                {
+                    throw new InvalidOperationException(
+                        $"Scene '{scene.name}' contains '{selectionEndpoints.Length}' Local Player Actor Selection Request authorings. Exactly one is required.");
+                }
+
+                if (selectionEndpoints.Length == 1 &&
+                    !ReferenceEquals(
+                        selectionEndpoints[0].gameObject,
+                        manager.gameObject))
+                {
+                    throw new InvalidOperationException(
+                        $"Scene '{scene.name}' contains its Local Player Actor Selection Request authoring on '{selectionEndpoints[0].gameObject.name}', but the canonical provisioning object is '{manager.gameObject.name}'.");
+                }
+
+                LocalPlayerActorSelectionRequestAuthoring selectionEndpoint =
+                    selectionEndpoints.Length == 1
+                        ? selectionEndpoints[0]
+                        : manager.gameObject.AddComponent<
+                            LocalPlayerActorSelectionRequestAuthoring>();
+                var serializedSelectionEndpoint =
+                    new SerializedObject(selectionEndpoint);
+                serializedSelectionEndpoint.FindProperty("provisioningAuthoring")
+                    .objectReferenceValue = authoring;
+                serializedSelectionEndpoint.ApplyModifiedPropertiesWithoutUndo();
+
                 LocalPlayerProvisioningHostRegistration registration =
                     ResolveOrCreateRegistration(scene, manager, authoring);
 
                 EditorUtility.SetDirty(manager.gameObject);
                 EditorUtility.SetDirty(manager);
                 EditorUtility.SetDirty(authoring);
+                EditorUtility.SetDirty(selectionEndpoint);
                 EditorUtility.SetDirty(registration);
                 EditorSceneManager.MarkSceneDirty(scene);
                 EditorSceneManager.SaveScene(scene);
@@ -75,6 +104,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "[P3G4_RUNTIME_JOIN_FIXTURE_SETUP] status='Applied' " +
                     $"scene='{scenePath}' fixture='{manager.gameObject.name}' " +
                     $"registration='{registration.name}' " +
+                    $"actorSelectionEndpoint='{selectionEndpoint.name}' " +
                     $"prefab='{PlayerPrefabPath}' host='{host.name}' actorMount='{host.ActorMount.name}' " +
                     $"joinBehavior='{manager.joinBehavior}' notificationBehavior='{manager.notificationBehavior}' " +
                     $"maxPlayers='{manager.maxPlayerCount}'.");
@@ -86,6 +116,22 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     $"exception='{exception.GetType().Name}' message='{Escape(exception.Message)}'.");
                 throw;
             }
+        }
+
+        private static LocalPlayerActorSelectionRequestAuthoring[]
+            ResolveSceneActorSelectionEndpoints(Scene scene)
+        {
+            var endpoints =
+                new List<LocalPlayerActorSelectionRequestAuthoring>();
+            GameObject[] roots = scene.GetRootGameObjects();
+            for (int index = 0; index < roots.Length; index++)
+            {
+                endpoints.AddRange(
+                    roots[index].GetComponentsInChildren<
+                        LocalPlayerActorSelectionRequestAuthoring>(true));
+            }
+
+            return endpoints.ToArray();
         }
 
         private static InputActionAsset CreateOrUpdateInputActions()

@@ -32,7 +32,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             var objects = new List<UnityObject>();
             LocalPlayerProvisioningAuthoring provisioning = null;
             LocalPlayerActorSelectionRequestAuthoring productAuthoring = null;
-            bool productAuthoringCreated = false;
             bool joiningOpened = false;
 
             try
@@ -86,81 +85,18 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 productAuthoring =
                     provisioning.GetComponent<
                         LocalPlayerActorSelectionRequestAuthoring>();
-                if (productAuthoring == null)
-                {
-                    productAuthoring =
-                        provisioning.gameObject.AddComponent<
-                            LocalPlayerActorSelectionRequestAuthoring>();
-                    productAuthoringCreated = true;
-                }
-
-                productAuthoring.ProvisioningAuthoring = provisioning;
+                Require(
+                    productAuthoring != null,
+                    "Canonical UIGlobal fixture has no Local Player Actor selection request authoring.");
                 Require(
                     productAuthoring.TryValidateConfiguration(
                         out string configurationIssue),
                     configurationIssue);
                 Require(
-                    !productAuthoring.HasPlayerActorSelectionRuntimeBinding,
-                    "H2.2.12 smoke requires an initially unbound product authoring. Re-enter Play Mode.");
-
-                PlayerParticipationSnapshot beforeUnbound =
-                    provisioning.RuntimeSnapshot;
-                Require(
-                    beforeUnbound != null &&
-                    beforeUnbound.IsInitialized &&
-                    beforeUnbound.ConfiguredSlotCount > 0,
-                    "Local Player participation snapshot has no configured Player Slots.");
-                PlayerSlotRuntimeSnapshot unboundSlot =
-                    beforeUnbound.Slots[0];
-
-                PlayerActorSelectionResult unboundResult =
-                    productAuthoring.RequestDefaultActorSelection(
-                        unboundSlot.PlayerSlotId,
-                        unboundSlot.SelectionRevision,
-                        Source,
-                        "unbound-default-selection");
-                PlayerParticipationSnapshot afterUnbound =
-                    provisioning.RuntimeSnapshot;
-                Require(
-                    unboundResult != null &&
-                    unboundResult.Status ==
-                        PlayerActorSelectionStatus.RejectedRuntimeUnavailable &&
-                    unboundResult.Message.Contains("not bound") &&
-                    !productAuthoring.HasPlayerActorSelectionRuntimeBinding &&
-                    productAuthoring.RequestCount == 1 &&
-                    ReferenceEquals(
-                        productAuthoring.LastResult,
-                        unboundResult) &&
-                    afterUnbound.Revision == beforeUnbound.Revision &&
-                    afterUnbound.JoinedCount == beforeUnbound.JoinedCount &&
-                    afterUnbound.SelectedActorCount ==
-                        beforeUnbound.SelectedActorCount,
-                    BuildProductDiagnostic(
-                        productAuthoring,
-                        unboundResult,
-                        afterUnbound));
-                completed.Add(
-                    "unbound-authoring-does-not-fallback-to-current-host");
-
-                LocalPlayerActorSelectionRequestAuthoringBindingResult productBinding =
-                    LocalPlayerActorSelectionRequestAuthoringBinding.TryBind(
-                        new[]
-                        {
-                            provisioning.gameObject,
-                            provisioning.gameObject
-                        },
-                        hostRuntime);
-                Require(
-                    productBinding.Succeeded &&
-                    productBinding.Status == "Bound" &&
-                    productBinding.RootCount == 1 &&
-                    productBinding.AuthoringCount == 1 &&
-                    productBinding.BoundCount == 1 &&
-                    productBinding.IdempotentCount == 0 &&
-                    productBinding.RejectedCount == 0 &&
                     productAuthoring.HasPlayerActorSelectionRuntimeBinding,
-                    productBinding.Message);
-                completed.Add("product-authoring-bound-explicitly");
+                    "Canonical product authoring was not bound by the official runtime lifecycle. " +
+                    productAuthoring.PlayerActorSelectionRuntimeBindingDiagnostic);
+                completed.Add("product-authoring-bound-by-runtime-lifecycle");
 
                 Require(
                     productAuthoring.RuntimeReady,
@@ -304,7 +240,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "divergent-rebind-cannot-redirect-selection-authority");
 
                 Require(
-                    productAuthoring.RequestCount == 3 &&
+                    productAuthoring.RequestCount == 2 &&
                     ReferenceEquals(
                         productAuthoring.LastResult,
                         repeated) &&
@@ -332,11 +268,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 completed.Add("joining-closed");
 
                 Require(
-                    completed.Count == 12,
+                    completed.Count == 11,
                     $"Unexpected H2.2.12 case count. actual='{completed.Count}'.");
 
                 Debug.Log(
-                    $"{LogPrefix} status='Passed' cases='12' " +
+                    $"{LogPrefix} status='Passed' cases='11' " +
                     $"slot='{joined.Slot.PlayerSlotId.StableText}' " +
                     $"actor='{selected.SelectedActorProfileId.StableText}' " +
                     $"completed='{string.Join(",", completed)}'.");
@@ -366,12 +302,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     {
                         // Preserve the primary smoke failure.
                     }
-                }
-
-                if (productAuthoringCreated &&
-                    productAuthoring != null)
-                {
-                    UnityObject.Destroy(productAuthoring);
                 }
 
                 for (int index = objects.Count - 1;
@@ -407,6 +337,43 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 optionalAbsent.AuthoringCount == 0,
                 optionalAbsent.Message);
 
+            GameObject invalidRoot =
+                CreateInactiveRoot(
+                    "H2212 Invalid Binding Root",
+                    objects);
+            var validCandidateObject =
+                new GameObject("H2212 Valid Preflight Candidate");
+            validCandidateObject.transform.SetParent(
+                invalidRoot.transform,
+                false);
+            LocalPlayerActorSelectionRequestAuthoring validCandidate =
+                validCandidateObject.AddComponent<
+                    LocalPlayerActorSelectionRequestAuthoring>();
+            validCandidate.ProvisioningAuthoring =
+                validCandidateObject.AddComponent<
+                    LocalPlayerProvisioningAuthoring>();
+            var invalidCandidateObject =
+                new GameObject("H2212 Invalid Preflight Candidate");
+            invalidCandidateObject.transform.SetParent(
+                invalidRoot.transform,
+                false);
+            LocalPlayerActorSelectionRequestAuthoring invalidCandidate =
+                invalidCandidateObject.AddComponent<
+                    LocalPlayerActorSelectionRequestAuthoring>();
+            LocalPlayerActorSelectionRequestAuthoringBindingResult invalidPreflight =
+                LocalPlayerActorSelectionRequestAuthoringBinding.TryBind(
+                    new[] { invalidRoot },
+                    hostRuntime);
+            Require(
+                !invalidPreflight.Succeeded &&
+                invalidPreflight.Status == "RejectedAuthoringBinding" &&
+                invalidPreflight.AuthoringCount == 2 &&
+                invalidPreflight.BoundCount == 0 &&
+                invalidPreflight.RejectedCount == 1 &&
+                !validCandidate.HasPlayerActorSelectionRuntimeBinding &&
+                !invalidCandidate.HasPlayerActorSelectionRuntimeBinding,
+                invalidPreflight.Message);
+
             GameObject authoredRoot =
                 CreateInactiveRoot(
                     "H2212 Binding Authored Root",
@@ -420,6 +387,22 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             LocalPlayerActorSelectionRequestAuthoring authoring =
                 child.AddComponent<
                     LocalPlayerActorSelectionRequestAuthoring>();
+            LocalPlayerProvisioningAuthoring syntheticProvisioning =
+                child.AddComponent<LocalPlayerProvisioningAuthoring>();
+            authoring.ProvisioningAuthoring = syntheticProvisioning;
+
+            var secondChild =
+                new GameObject(
+                    "H2212 Second Actor Selection Authoring");
+            secondChild.transform.SetParent(
+                authoredRoot.transform,
+                false);
+            LocalPlayerActorSelectionRequestAuthoring secondAuthoring =
+                secondChild.AddComponent<
+                    LocalPlayerActorSelectionRequestAuthoring>();
+            LocalPlayerProvisioningAuthoring secondProvisioning =
+                secondChild.AddComponent<LocalPlayerProvisioningAuthoring>();
+            secondAuthoring.ProvisioningAuthoring = secondProvisioning;
 
             LocalPlayerActorSelectionRequestAuthoringBindingResult missingRuntime =
                 LocalPlayerActorSelectionRequestAuthoringBinding.TryBind(
@@ -430,8 +413,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 missingRuntime.Status ==
                     "RejectedMissingPlayerActorSelectionRuntime" &&
                 missingRuntime.RootCount == 1 &&
-                missingRuntime.AuthoringCount == 0 &&
-                !authoring.HasPlayerActorSelectionRuntimeBinding,
+                missingRuntime.AuthoringCount == 2 &&
+                missingRuntime.RejectedCount == 2 &&
+                !authoring.HasPlayerActorSelectionRuntimeBinding &&
+                !secondAuthoring.HasPlayerActorSelectionRuntimeBinding,
                 missingRuntime.Message);
 
             LocalPlayerActorSelectionRequestAuthoringBindingResult bound =
@@ -448,11 +433,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 bound.Succeeded &&
                 bound.Status == "Bound" &&
                 bound.RootCount == 2 &&
-                bound.AuthoringCount == 1 &&
-                bound.BoundCount == 1 &&
+                bound.AuthoringCount == 2 &&
+                bound.BoundCount == 2 &&
                 bound.IdempotentCount == 0 &&
                 bound.RejectedCount == 0 &&
-                authoring.HasPlayerActorSelectionRuntimeBinding,
+                authoring.HasPlayerActorSelectionRuntimeBinding &&
+                secondAuthoring.HasPlayerActorSelectionRuntimeBinding,
                 bound.Message);
 
             LocalPlayerActorSelectionRequestAuthoringBindingResult idempotent =
@@ -461,11 +447,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     hostRuntime);
             Require(
                 idempotent.Succeeded &&
-                idempotent.Status == "Bound" &&
+                idempotent.Status == "Idempotent" &&
                 idempotent.RootCount == 2 &&
-                idempotent.AuthoringCount == 1 &&
+                idempotent.AuthoringCount == 2 &&
                 idempotent.BoundCount == 0 &&
-                idempotent.IdempotentCount == 1 &&
+                idempotent.IdempotentCount == 2 &&
                 idempotent.RejectedCount == 0,
                 idempotent.Message);
 
@@ -479,10 +465,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 !divergent.Succeeded &&
                 divergent.Status == "RejectedAuthoringBinding" &&
                 divergent.RootCount == 1 &&
-                divergent.AuthoringCount == 1 &&
+                divergent.AuthoringCount == 2 &&
                 divergent.BoundCount == 0 &&
                 divergent.IdempotentCount == 0 &&
-                divergent.RejectedCount == 1 &&
+                divergent.RejectedCount == 2 &&
                 divergentRuntime.SelectionCallCount == 0,
                 divergent.Message);
 
@@ -491,11 +477,54 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             Require(
                 authoring.HasPlayerActorSelectionRuntimeBinding &&
+                secondAuthoring.HasPlayerActorSelectionRuntimeBinding &&
                 !authoring.RuntimeReady &&
-                !authoring.HasProvisioningAuthoring,
-                "A bound Player Actor selection authoring without provisioning incorrectly reported runtime readiness.");
+                !secondAuthoring.RuntimeReady &&
+                authoring.HasProvisioningAuthoring &&
+                secondAuthoring.HasProvisioningAuthoring,
+                "Synthetic Actor selection authoring incorrectly reported runtime readiness before provisioning runtime composition.");
             completed.Add(
                 "binding-is-distinct-from-runtime-readiness");
+
+            LocalPlayerActorSelectionRequestAuthoringReleaseResult divergentRelease =
+                LocalPlayerActorSelectionRequestAuthoringBinding.TryRelease(
+                    new[] { authoredRoot },
+                    divergentRuntime);
+            Require(
+                !divergentRelease.Succeeded &&
+                divergentRelease.Status == "RejectedAuthoringRelease" &&
+                divergentRelease.RejectedCount == 2 &&
+                authoring.HasPlayerActorSelectionRuntimeBinding &&
+                secondAuthoring.HasPlayerActorSelectionRuntimeBinding,
+                divergentRelease.Message);
+
+            LocalPlayerActorSelectionRequestAuthoringReleaseResult released =
+                LocalPlayerActorSelectionRequestAuthoringBinding.TryRelease(
+                    new[] { authoredRoot, authoredRoot },
+                    hostRuntime);
+            Require(
+                released.Succeeded &&
+                released.Status == "Released" &&
+                released.RootCount == 1 &&
+                released.AuthoringCount == 2 &&
+                released.ReleasedCount == 2 &&
+                released.IdempotentCount == 0 &&
+                released.RejectedCount == 0 &&
+                !authoring.HasPlayerActorSelectionRuntimeBinding &&
+                !secondAuthoring.HasPlayerActorSelectionRuntimeBinding,
+                released.Message);
+
+            LocalPlayerActorSelectionRequestAuthoringReleaseResult repeatedRelease =
+                LocalPlayerActorSelectionRequestAuthoringBinding.TryRelease(
+                    new[] { authoredRoot },
+                    hostRuntime);
+            Require(
+                repeatedRelease.Succeeded &&
+                repeatedRelease.Status == "Idempotent" &&
+                repeatedRelease.ReleasedCount == 0 &&
+                repeatedRelease.IdempotentCount == 2 &&
+                repeatedRelease.RejectedCount == 0,
+                repeatedRelease.Message);
         }
 
         private static async Task<
