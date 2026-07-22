@@ -44,6 +44,7 @@ GameObject:
   - component: {fileID: 48658375125453752}
   - component: {fileID: 6282264667875370117}
   - component: {fileID: 7000000000000000001}
+  - component: {fileID: 8702872562540892333}
   m_Layer: 0
   m_Name: P3G4_LocalPlayerHost
   m_TagString: Untagged
@@ -149,3 +150,23 @@ MonoBehaviour:
   globalActionMapName: Global
   gameplayActionMapName: Gameplay
   uiActionMapName: UI
+--- !u!114 &8702872562540892333
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4200306247500672449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d93c0aa4b9e29cd469f99c0e5892f194, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ImmersiveFrameworkQA.PauseP1.Runtime::ImmersiveFrameworkQA.PauseP1.PauseRuntimeEvidencePanel
+  playerInput: {fileID: 1422397286391588568}
+  pauseBinding: {fileID: 7000000000000000001}
+  panelRect:
+    serializedVersion: 2
+    x: 500
+    y: 330
+    width: 500
+    height: 300

@@ -401,12 +401,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ImmersiveFrameworkQA.PauseP1.Runtime::ImmersiveFrameworkQA.PauseP1.PauseOfficialPlayerPreflightPanel
   provisioningAuthoring: {fileID: 1295583387}
+  pauseRequestTrigger: {fileID: 7727001000000000001}
   panelRect:
     serializedVersion: 2
-    x: 16
-    y: 200
-    width: 460
-    height: 175
+    x: 500
+    y: 16
+    width: 500
+    height: 300
 --- !u!1 &1743314762
 GameObject:
   m_ObjectHideFlags: 0

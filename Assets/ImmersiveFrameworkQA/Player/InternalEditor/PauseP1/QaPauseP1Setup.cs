@@ -66,7 +66,6 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
 
                 RequireMap(actionAsset, "Global");
                 RequireMap(actionAsset, "Player");
-                RequireMap(actionAsset, "UI");
 
                 InputActionReference pauseReference =
                     CreatePersistAndReloadPauseReference(pauseAction);
@@ -256,10 +255,6 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                 serialized,
                 "gameplayActionMapName",
                 "Player");
-            SetString(
-                serialized,
-                "uiActionMapName",
-                "UI");
 
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(binding);
@@ -513,10 +508,6 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                 !string.Equals(
                     binding.GameplayActionMapName,
                     "Player",
-                    StringComparison.Ordinal) ||
-                !string.Equals(
-                    binding.UiActionMapName,
-                    "UI",
                     StringComparison.Ordinal))
             {
                 throw new InvalidOperationException(
@@ -528,9 +519,6 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     false) == null ||
                 playerInput.actions.FindActionMap(
                     binding.GameplayActionMapName,
-                    false) == null ||
-                playerInput.actions.FindActionMap(
-                    binding.UiActionMapName,
                     false) == null)
             {
                 throw new InvalidOperationException(

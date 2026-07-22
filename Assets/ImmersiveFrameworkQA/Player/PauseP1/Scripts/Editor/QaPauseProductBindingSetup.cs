@@ -152,7 +152,6 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                 asset,
                 "Global",
                 createIfMissing: true);
-            GetExactlyOneMap(asset, "UI", createIfMissing: true);
 
             InputAction[] pauseActions = global.actions
                 .Where(action => string.Equals(
@@ -285,7 +284,6 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                 SetObject(binding, "pauseAction", pauseReference);
                 SetString(binding, "globalActionMapName", "Global");
                 SetString(binding, "gameplayActionMapName", "Gameplay");
-                SetString(binding, "uiActionMapName", "UI");
 
                 PauseRuntimeEvidencePanel[] evidencePanels =
                     root.GetComponentsInChildren<

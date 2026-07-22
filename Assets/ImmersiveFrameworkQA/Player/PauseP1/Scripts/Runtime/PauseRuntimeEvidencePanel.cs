@@ -47,7 +47,6 @@ namespace ImmersiveFrameworkQA.PauseP1
                 $"timeScale='{FormatTimeScale(snapshot.TimeScale)}' " +
                 $"global='{snapshot.GlobalEnabled}' " +
                 $"gameplay='{snapshot.GameplayEnabled}' " +
-                $"ui='{snapshot.UiEnabled}' " +
                 $"pauseAction='{snapshot.PauseActionEnabled}'",
                 this);
         }
@@ -62,23 +61,16 @@ namespace ImmersiveFrameworkQA.PauseP1
                 pauseBinding != null
                     ? pauseBinding.GameplayActionMapName
                     : string.Empty);
-            InputActionMap uiMap = ResolveMap(
-                pauseBinding != null
-                    ? pauseBinding.UiActionMapName
-                    : string.Empty);
             InputAction runtimePauseAction = ResolvePauseAction();
 
             bool globalEnabled = globalMap != null && globalMap.enabled;
             bool gameplayEnabled = gameplayMap != null && gameplayMap.enabled;
-            bool uiEnabled = uiMap != null && uiMap.enabled;
             float timeScale = Time.timeScale;
             ObservedPosture posture = ResolvePosture(
                 globalMap,
                 gameplayMap,
-                uiMap,
                 globalEnabled,
                 gameplayEnabled,
-                uiEnabled,
                 timeScale);
 
             bool activeBinding =
@@ -99,7 +91,6 @@ namespace ImmersiveFrameworkQA.PauseP1
                     : "None",
                 globalEnabled,
                 gameplayEnabled,
-                uiEnabled,
                 runtimePauseAction != null && runtimePauseAction.enabled,
                 timeScale);
         }
@@ -135,20 +126,17 @@ namespace ImmersiveFrameworkQA.PauseP1
         private static ObservedPosture ResolvePosture(
             InputActionMap globalMap,
             InputActionMap gameplayMap,
-            InputActionMap uiMap,
             bool globalEnabled,
             bool gameplayEnabled,
-            bool uiEnabled,
             float timeScale)
         {
-            if (globalMap == null || gameplayMap == null || uiMap == null)
+            if (globalMap == null || gameplayMap == null)
             {
                 return ObservedPosture.Unknown;
             }
 
             if (globalEnabled &&
                 gameplayEnabled &&
-                !uiEnabled &&
                 timeScale > 0f)
             {
                 return ObservedPosture.Running;
@@ -156,7 +144,6 @@ namespace ImmersiveFrameworkQA.PauseP1
 
             if (globalEnabled &&
                 !gameplayEnabled &&
-                uiEnabled &&
                 timeScale == 0f)
             {
                 return ObservedPosture.Paused;
@@ -211,7 +198,6 @@ namespace ImmersiveFrameworkQA.PauseP1
             GUILayout.Label($"Global Map Enabled: {snapshot.GlobalEnabled}");
             GUILayout.Label(
                 $"Gameplay Map Enabled: {snapshot.GameplayEnabled}");
-            GUILayout.Label($"UI Map Enabled: {snapshot.UiEnabled}");
             GUILayout.Label(
                 $"Pause Action Enabled: {snapshot.PauseActionEnabled}");
             GUILayout.Label(
@@ -241,7 +227,6 @@ namespace ImmersiveFrameworkQA.PauseP1
                 string currentActionMap,
                 bool globalEnabled,
                 bool gameplayEnabled,
-                bool uiEnabled,
                 bool pauseActionEnabled,
                 float timeScale)
             {
@@ -253,7 +238,6 @@ namespace ImmersiveFrameworkQA.PauseP1
                 CurrentActionMap = currentActionMap ?? string.Empty;
                 GlobalEnabled = globalEnabled;
                 GameplayEnabled = gameplayEnabled;
-                UiEnabled = uiEnabled;
                 PauseActionEnabled = pauseActionEnabled;
                 TimeScale = timeScale;
             }
@@ -266,7 +250,6 @@ namespace ImmersiveFrameworkQA.PauseP1
             internal string CurrentActionMap { get; }
             internal bool GlobalEnabled { get; }
             internal bool GameplayEnabled { get; }
-            internal bool UiEnabled { get; }
             internal bool PauseActionEnabled { get; }
             internal float TimeScale { get; }
         }

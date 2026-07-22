@@ -103,9 +103,6 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
             Require(asset.actionMaps.Count(map =>
                     string.Equals(map.name, "Gameplay", StringComparison.Ordinal)) == 1,
                 "Exactly one Gameplay action map is required.");
-            Require(asset.actionMaps.Count(map =>
-                    string.Equals(map.name, "UI", StringComparison.Ordinal)) == 1,
-                "Exactly one UI action map is required.");
             Require(asset.FindActionMap("Gameplay", true)
                     .FindAction("JoinEvidence", false) != null,
                 "Gameplay/JoinEvidence was not preserved.");
@@ -210,8 +207,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                         binding.PauseAction.action.id == expectedPauseAction.id,
                     "Pause binding must point to the dedicated Global/PauseToggle reference.");
                 Require(string.Equals(binding.GlobalActionMapName, "Global", StringComparison.Ordinal) &&
-                        string.Equals(binding.GameplayActionMapName, "Gameplay", StringComparison.Ordinal) &&
-                        string.Equals(binding.UiActionMapName, "UI", StringComparison.Ordinal),
+                        string.Equals(binding.GameplayActionMapName, "Gameplay", StringComparison.Ordinal),
                     "Pause binding action-map names are invalid.");
                 Require(string.Equals(gate.GameplayActionMapName, "Gameplay", StringComparison.Ordinal),
                     "Input Gate must target the Gameplay action map.");
