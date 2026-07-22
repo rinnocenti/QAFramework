@@ -241,11 +241,11 @@ namespace ImmersiveFrameworkQA.PauseP1
                 $"Product Request Binding: {ResolveProductRequestBinding()}");
             GUILayout.Label($"Logical Pause: {ResolveLogicalPause()}");
             GUILayout.Label(
-                $"Last Trigger Outcome: {ResolveLastTriggerOutcome()}");
+                $"Last Authored Trigger Outcome: {ResolveLastTriggerOutcome()}");
             GUILayout.Label(
-                $"Last Trigger Status: {ResolveLastTriggerStatus()}");
+                $"Last Authored Trigger Status: {ResolveLastTriggerStatus()}");
             GUILayout.Label(
-                $"Last Trigger Diagnostic: {ResolveLastTriggerDiagnostic()}",
+                $"Last Authored Trigger Diagnostic: {ResolveLastTriggerDiagnostic()}",
                 wrapped);
             GUILayout.Space(8f);
 
