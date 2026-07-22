@@ -15,3 +15,10 @@ Root local de provas técnicas sintéticas do framework. Não contém FIRSTGAME 
 Player QA expõe somente `Immersive Framework/QA/Player/P3 Run Canonical Pre-FIRSTGAME Smoke`.
 O fluxo e a validação manual estão documentados em
 `Player/Documentation/P3-CANONICAL-PREFIRSTGAME-QA.md`.
+
+## PROD-ID-1 — identidade estável
+
+Execute `Immersive Framework > QA > Regressions > Contracts > Run PROD-ID-1 Identity Regression`.
+O smoke cobre identidade de Route independente de nome/cena, admission token tipado,
+fechamento de identidade de Activity em Object Entry/Local Contribution/Scene Ledger e
+validação explícita de IDs missing, invalid e duplicate.

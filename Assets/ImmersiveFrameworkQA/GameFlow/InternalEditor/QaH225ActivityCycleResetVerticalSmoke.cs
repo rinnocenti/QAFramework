@@ -144,6 +144,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             RouteAsset route = ScriptableObject.CreateInstance<RouteAsset>();
             route.name = "H225 Route Without Activity";
             var serialized = new SerializedObject(route);
+            serialized.FindProperty("routeId").stringValue = "qa.h225.route.without.activity";
             serialized.FindProperty("routeName").stringValue = route.name;
             serialized.FindProperty("primaryScenePath").stringValue = sourceRoute.PrimaryScenePath;
             serialized.FindProperty("primarySceneName").stringValue = sourceRoute.PrimarySceneName;

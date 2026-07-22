@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a35fe899a80d2d64dac72e8bfe3079df, type: 3}
   m_Name: QA_PauseP1Route
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.RouteAsset
+  routeId: qa.pause.p1.route
   routeName: QA Pause P1 Route
   primaryScenePath: Assets/ImmersiveFrameworkQA/Player/PauseP1/QA_PauseP1Route.unity
   primarySceneName: QA_PauseP1Route

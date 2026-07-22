@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a35fe899a80d2d64dac72e8bfe3079df, type: 3}
   m_Name: QA_TransitionRouteA
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.RouteAsset
+  routeId: qa.transition.route.a
   routeName: QA Transition Route A
   primaryScenePath: Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/TransitionRouteA.unity
   primarySceneName: TransitionRouteA

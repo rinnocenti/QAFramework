@@ -35,7 +35,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
 
                 RunCompositionCases(completed, objects);
 
-                RouteAsset target = CreateTarget("Route Regression Target", objects);
+                RouteAsset target = CreateTarget("qa.route-request.target", "Route Regression Target", objects);
                 GameObject boundRoot = CreateRoot("Route Regression Bound Trigger", objects);
                 RouteRequestTrigger boundTrigger =
                     boundRoot.AddComponent<RouteRequestTrigger>();
@@ -229,6 +229,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             completed.Add("composition-same-port-idempotent");
 
             RouteAsset incompatibleTarget = CreateTarget(
+                "qa.route-request.incompatible-target",
                 "Route Regression Incompatible Target",
                 objects);
             GameObject incompatibleRoot = CreateRoot(
@@ -292,10 +293,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             return root;
         }
 
-        private static RouteAsset CreateTarget(string name, ICollection<UnityEngine.Object> objects)
+        private static RouteAsset CreateTarget(string routeId, string name, ICollection<UnityEngine.Object> objects)
         {
             RouteAsset target = ScriptableObject.CreateInstance<RouteAsset>();
             target.name = name;
+            var serialized = new SerializedObject(target);
+            serialized.FindProperty("routeId").stringValue = routeId;
+            serialized.FindProperty("routeName").stringValue = name;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
             objects.Add(target);
             return target;
         }

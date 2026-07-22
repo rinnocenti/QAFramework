@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a35fe899a80d2d64dac72e8bfe3079df, type: 3}
   m_Name: QA_LifecycleRouteB
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.RouteAsset
+  routeId: qa.lifecycle.route.b
   routeName: QA Lifecycle Route B
   primaryScenePath: Assets/ImmersiveFrameworkQA/Lifecycle/Scenes/QA_LifecycleRouteB.unity
   primarySceneName: QA_LifecycleRouteB

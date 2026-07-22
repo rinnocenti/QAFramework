@@ -318,11 +318,13 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 RouteAsset routeA = CreateOrUpdateRoute(
                     RouteAPath,
+                    "qa.p3m5b.route.a",
                     "Scene Player Route Lifecycle A",
                     RouteAPrimaryScenePath,
                     routeAActivity);
                 RouteAsset routeB = CreateOrUpdateRoute(
                     RouteBPath,
+                    "qa.p3m5b.route.b",
                     "Scene Player Route Lifecycle B",
                     RouteBPrimaryScenePath,
                     routeBActivity);
@@ -940,6 +942,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
         private static RouteAsset CreateOrUpdateRoute(
             string path,
+            string routeId,
             string routeName,
             string primaryScenePath,
             ActivityAsset startupActivity)
@@ -953,6 +956,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             route.name = Path.GetFileNameWithoutExtension(path);
             var serialized = new SerializedObject(route);
+            serialized.FindProperty("routeId").stringValue = routeId;
             serialized.FindProperty("routeName").stringValue = routeName;
             serialized.FindProperty("primaryScenePath").stringValue =
                 primaryScenePath;

@@ -212,7 +212,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 RuntimeContentOwner currentRouteOwner =
                     RuntimeContentOwner.Route(
-                        currentRoute.PrimaryScenePath,
+                        currentRoute.RouteId.StableText,
                         currentRoute.RouteName);
                 AssertEqual(1,
                     CountRuntimeRoots(
@@ -288,13 +288,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     targetActivity);
                 RuntimeContentOwner targetRouteOwner =
                     RuntimeContentOwner.Route(
-                        targetRoute.PrimaryScenePath,
+                        targetRoute.RouteId.StableText,
                         targetRoute.RouteName);
                 AssertTrue(!ReferenceEquals(currentRoute, targetRoute) &&
-                    !string.Equals(
-                        currentRoute.PrimaryScenePath,
-                        targetRoute.PrimaryScenePath,
-                        StringComparison.Ordinal) &&
+                    currentRoute.RouteId != targetRoute.RouteId &&
                     currentRouteOwner != targetRouteOwner,
                     "Target Route does not have a distinct canonical Route owner.");
                 completed.Add("route-startup-target-authored");
@@ -341,11 +338,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 AssertEqual(lifecycle.FlowKind,
                     lifecycle.Token.FlowKind,
                     "Lifecycle snapshot and transaction token flow identities differ.");
-                AssertEqual(lifecycle.PreviousRouteName,
-                    lifecycle.Token.PreviousRouteName,
+                AssertEqual(currentRoute.RouteId,
+                    lifecycle.Token.PreviousRouteId,
                     "Lifecycle snapshot and transaction token previous Route identities differ.");
-                AssertEqual(lifecycle.TargetRouteName,
-                    lifecycle.Token.TargetRouteName,
+                AssertEqual(targetRoute.RouteId,
+                    lifecycle.Token.TargetRouteId,
                     "Lifecycle snapshot and transaction token target Route identities differ.");
                 completed.Add("route-startup-flow-identified");
 
@@ -1087,6 +1084,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             RouteAsset route = ScriptableObject.CreateInstance<RouteAsset>();
             route.name = "P3K.7H Target Route";
             SerializedObject serialized = new SerializedObject(route);
+            serialized.FindProperty("routeId").stringValue =
+                "qa.p3k7h.target.route";
             serialized.FindProperty("routeName").stringValue =
                 "P3K.7H Target Route";
             serialized.FindProperty("primaryScenePath").stringValue =
