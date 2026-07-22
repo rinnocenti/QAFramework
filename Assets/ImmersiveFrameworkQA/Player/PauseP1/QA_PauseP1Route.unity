@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &845568154
+--- !u!1 &1564435345
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,9 +127,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 845568157}
-  - component: {fileID: 845568156}
-  - component: {fileID: 845568155}
+  - component: {fileID: 1564435348}
+  - component: {fileID: 1564435347}
+  - component: {fileID: 1564435346}
   m_Layer: 0
   m_Name: Pause Product Binding QA
   m_TagString: Untagged
@@ -137,19 +137,19 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &845568155
+--- !u!114 &1564435346
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 845568154}
+  m_GameObject: {fileID: 1564435345}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a48fc53ee504437e86703a9fca6e864e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: ImmersiveFrameworkQA.Hub.Runtime::ImmersiveFrameworkQA.Hub.QaHubReturnPanel
-  hubRouteTrigger: {fileID: 845568156}
+  hubRouteTrigger: {fileID: 1564435347}
   title: Pause Product Binding QA
   runSurface: 'Official vertical: Escape or Gamepad Start toggles Pause through the
     framework-provisioned Local Player. The Activity declares Pause intent; it does
@@ -162,13 +162,13 @@ MonoBehaviour:
     y: 16
     width: 420
     height: 180
---- !u!114 &845568156
+--- !u!114 &1564435347
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 845568154}
+  m_GameObject: {fileID: 1564435345}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
@@ -176,13 +176,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
   targetRoute: {fileID: 11400000, guid: 1addd390562c4f15a738f4125bb94be8, type: 2}
   reason: qa.pause.product-binding.back-to-hub
---- !u!4 &845568157
+--- !u!4 &1564435348
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 845568154}
+  m_GameObject: {fileID: 1564435345}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -195,4 +195,4 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 845568157}
+  - {fileID: 1564435348}

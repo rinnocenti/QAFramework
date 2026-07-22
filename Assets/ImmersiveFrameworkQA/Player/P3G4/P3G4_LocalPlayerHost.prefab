@@ -149,7 +149,6 @@ MonoBehaviour:
   pauseAction: {fileID: 11400000, guid: 401840dce04ff0e48bc792c7215aab94, type: 2}
   globalActionMapName: Global
   gameplayActionMapName: Gameplay
-  uiActionMapName: UI
 --- !u!114 &8702872562540892333
 MonoBehaviour:
   m_ObjectHideFlags: 0
