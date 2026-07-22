@@ -36,9 +36,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
         private static readonly BindingFlags InstanceAny =
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-        private static readonly BindingFlags StaticAny =
-            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-
         [MenuItem("Immersive Framework/QA/Regressions/Player/Run Player Gameplay Admission Regression")]
         private static async void Run()
         {
@@ -344,6 +341,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 AssertEqual(targetRoute.RouteId,
                     lifecycle.Token.TargetRouteId,
                     "Lifecycle snapshot and transaction token target Route identities differ.");
+                completed.Add("functional-route-identities-retained");
                 completed.Add("route-startup-flow-identified");
 
                 AssertTrue(lifecycle.TransitionAuthorized,
@@ -361,11 +359,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 AssertEqual(currentRoute.RouteName,
                     lifecycle.PreviousRouteName,
-                    "Lifecycle transaction lost the previous Route identity.");
+                    "Lifecycle transaction lost the previous Route diagnostic name.");
                 AssertEqual(targetRoute.RouteName,
                     lifecycle.TargetRouteName,
-                    "Lifecycle transaction lost the destination Route identity.");
-                completed.Add("exact-route-identities-retained");
+                    "Lifecycle transaction lost the destination Route diagnostic name.");
+                completed.Add("route-diagnostic-names-retained");
 
                 AssertEqual(currentOwner, lifecycle.PreviousOwner,
                     "Lifecycle transaction lost the previous Activity owner.");
@@ -796,15 +794,61 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static object ResolveCurrentRuntimeHost()
         {
             Type runtimeHostType = ResolveRuntimeType(RuntimeHostTypeName);
-            MethodInfo tryGetCurrent =
-                runtimeHostType.GetMethod("TryGetCurrent", StaticAny);
-            AssertNotNull(tryGetCurrent,
-                "FrameworkRuntimeHost.TryGetCurrent was not found.");
-            object[] arguments = { null };
-            bool resolved = (bool)tryGetCurrent.Invoke(null, arguments);
-            AssertTrue(resolved && arguments[0] != null,
-                "Current FrameworkRuntimeHost was not resolved.");
-            return arguments[0];
+            UnityEngine.Object[] materializedObjects =
+                Resources.FindObjectsOfTypeAll(runtimeHostType);
+            var candidates = new List<Component>();
+            var seen = new HashSet<Component>();
+
+            for (int index = 0; index < materializedObjects.Length; index++)
+            {
+                UnityEngine.Object materializedObject = materializedObjects[index];
+                if (materializedObject == null ||
+                    !runtimeHostType.IsInstanceOfType(materializedObject) ||
+                    !(materializedObject is Component component) ||
+                    component.gameObject == null ||
+                    EditorUtility.IsPersistent(component))
+                {
+                    continue;
+                }
+
+                UnityEngine.SceneManagement.Scene scene = component.gameObject.scene;
+                if (!scene.IsValid() || !scene.isLoaded ||
+                    UnityEditor.SceneManagement.EditorSceneManager.IsPreviewScene(scene) ||
+                    !seen.Add(component))
+                {
+                    continue;
+                }
+
+                candidates.Add(component);
+            }
+
+            if (candidates.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "FrameworkRuntimeHost runtime instance was not found. " +
+                    "Expected exactly one materialized component in a loaded scene.");
+            }
+
+            if (candidates.Count != 1)
+            {
+                var diagnostics = new List<string>(candidates.Count);
+                for (int index = 0; index < candidates.Count; index++)
+                {
+                    Component candidate = candidates[index];
+                    UnityEngine.SceneManagement.Scene scene = candidate.gameObject.scene;
+                    diagnostics.Add(
+                        $"GameObject='{candidate.gameObject.name}', " +
+                        $"Scene='{scene.name}', ScenePath='{scene.path}', " +
+                        $"EntityId='{candidate.GetEntityId()}'");
+                }
+
+                throw new InvalidOperationException(
+                    "Expected exactly one FrameworkRuntimeHost runtime instance, " +
+                    $"but found '{candidates.Count}'. Candidates: " +
+                    string.Join("; ", diagnostics));
+            }
+
+            return candidates[0];
         }
 
         private static object ResolveHostComponent(

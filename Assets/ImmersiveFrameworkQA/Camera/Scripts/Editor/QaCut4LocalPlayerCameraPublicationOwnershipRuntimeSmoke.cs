@@ -252,18 +252,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         {
             snapshot = null;
             Type hostType = ResolveType(RuntimeHostTypeName);
-            MethodInfo tryGetCurrent = hostType.GetMethod("TryGetCurrent", StaticAny);
-            if (tryGetCurrent == null)
-            {
-                return false;
-            }
-
-            object[] hostArguments = { null };
-            if (!(bool)tryGetCurrent.Invoke(null, hostArguments) ||
-                !(hostArguments[0] is Component host))
-            {
-                return false;
-            }
+            Component host = ResolveUniqueRuntimeHost(hostType);
 
             Type moduleType = ResolveType(GameplayModuleTypeName);
             Component module = host.GetComponent(moduleType);
@@ -284,6 +273,65 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             bool available = (bool)tryGetSnapshot.Invoke(module, snapshotArguments);
             snapshot = snapshotArguments[0] as PlayerGameplayRuntimeHostSnapshot;
             return snapshot != null && (available || !snapshot.IsInitialized);
+        }
+
+        private static Component ResolveUniqueRuntimeHost(Type runtimeHostType)
+        {
+            UnityEngine.Object[] materializedObjects =
+                Resources.FindObjectsOfTypeAll(runtimeHostType);
+            var candidates = new List<Component>();
+            var seen = new HashSet<Component>();
+
+            for (int index = 0; index < materializedObjects.Length; index++)
+            {
+                UnityEngine.Object materializedObject = materializedObjects[index];
+                if (materializedObject == null ||
+                    !runtimeHostType.IsInstanceOfType(materializedObject) ||
+                    !(materializedObject is Component component) ||
+                    component.gameObject == null ||
+                    EditorUtility.IsPersistent(component))
+                {
+                    continue;
+                }
+
+                UnityEngine.SceneManagement.Scene scene = component.gameObject.scene;
+                if (!scene.IsValid() || !scene.isLoaded ||
+                    UnityEditor.SceneManagement.EditorSceneManager.IsPreviewScene(scene) ||
+                    !seen.Add(component))
+                {
+                    continue;
+                }
+
+                candidates.Add(component);
+            }
+
+            if (candidates.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "FrameworkRuntimeHost runtime instance was not found. " +
+                    "Expected exactly one materialized component in a loaded scene.");
+            }
+
+            if (candidates.Count != 1)
+            {
+                var diagnostics = new List<string>(candidates.Count);
+                for (int index = 0; index < candidates.Count; index++)
+                {
+                    Component candidate = candidates[index];
+                    UnityEngine.SceneManagement.Scene scene = candidate.gameObject.scene;
+                    diagnostics.Add(
+                        $"GameObject='{candidate.gameObject.name}', " +
+                        $"Scene='{scene.name}', ScenePath='{scene.path}', " +
+                        $"EntityId='{candidate.GetEntityId()}'");
+                }
+
+                throw new InvalidOperationException(
+                    "Expected exactly one FrameworkRuntimeHost runtime instance, " +
+                    $"but found '{candidates.Count}'. Candidates: " +
+                    string.Join("; ", diagnostics));
+            }
+
+            return candidates[0];
         }
 
         private static Type ResolveType(string fullName)
