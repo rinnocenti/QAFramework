@@ -8,7 +8,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityObject = UnityEngine.Object;
 
-namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
+namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
 {
     public static class QaPlayerActorSelectionRuntimeBindingRegression
     {
@@ -42,7 +42,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     EditorApplication.isPlaying,
                     "Player Actor Selection Runtime Binding regression requires Play Mode.");
                 Require(
-                    global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(
+                    QaH2FrameworkReadiness.TryResolveUniqueHost(
                         out FrameworkRuntimeHost host) &&
                     host != null,
                     "Player Actor Selection Runtime Binding regression requires FrameworkRuntimeHost.");

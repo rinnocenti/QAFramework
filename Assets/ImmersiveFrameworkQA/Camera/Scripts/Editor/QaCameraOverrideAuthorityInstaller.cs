@@ -8,14 +8,13 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
-namespace ImmersiveFrameworkQA.Camera
+namespace ImmersiveFrameworkQA.Camera.Scripts.Editor
 {
     /// <summary>
-    /// Canonical C9R installer. The session output belongs exclusively
+    /// Canonical  installer. The session output belongs exclusively
     /// to QA_UIGlobal.
     /// </summary>
-    internal static class QaC9RCameraOverrideAuthorityInstaller
+    internal static class QaCameraOverrideAuthorityInstaller
     {
         private const string GlobalScenePath =
             "Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/" +
@@ -26,16 +25,16 @@ namespace ImmersiveFrameworkQA.Camera
             "GameApplication.asset";
 
         private const string OutputRootName =
-            "QA C9R Session Camera Output";
+            "QA  Session Camera Output";
 
         private const string TargetName =
-            "QA C9R Session Target";
+            "QA  Session Target";
 
         private const string RigName =
-            "QA C9R Session Rig";
+            "QA  Session Rig";
 
         private const string CameraName =
-            "QA C9R Session Cinemachine Camera";
+            "QA  Session Cinemachine Camera";
 
         [MenuItem("Immersive Framework/QA/Setup/Camera/Install Camera Override Authority QA")]
         private static void Install()
@@ -43,19 +42,19 @@ namespace ImmersiveFrameworkQA.Camera
             try
             {
                 EnsurePersistentSessionOutput();
-                Editor.QaC9RCameraOverrideAuthoritySceneInstaller.Install();
+                Editor.QaCameraOverrideAuthoritySceneInstaller.Install();
 
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
 
                 Debug.Log(
-                    "[C9R_CAMERA_OVERRIDE_AUTHORITY_SETUP] " +
+                    "[_CAMERA_OVERRIDE_AUTHORITY_SETUP] " +
                     "status='Succeeded'.");
             }
             catch (Exception exception)
             {
                 Debug.LogError(
-                    "[C9R_CAMERA_OVERRIDE_AUTHORITY_SETUP] " +
+                    "[_CAMERA_OVERRIDE_AUTHORITY_SETUP] " +
                     "status='Failed' " +
                     $"exception='{exception.GetType().Name}' " +
                     $"message='{Escape(exception.Message)}'.");
@@ -165,12 +164,12 @@ namespace ImmersiveFrameworkQA.Camera
             Set(
                 session,
                 "scopeId",
-                "qa.c9r.session.camera");
+                "qa.session.camera");
 
             Set(
                 session,
                 "requestId",
-                "qa.camera.request.c9r.session");
+                "qa.camera.request.session");
 
             Set(
                 session,

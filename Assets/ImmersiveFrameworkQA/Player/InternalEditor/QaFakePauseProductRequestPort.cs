@@ -1,7 +1,6 @@
 using System;
 using Immersive.Framework.Pause;
-
-namespace ImmersiveFrameworkQA.InputMode.Editor
+namespace ImmersiveFrameworkQA.InputMode.Internal.Editor.ImmersiveFrameworkQA.Player.InternalEditor
 {
     internal sealed class QaFakePauseProductRequestPort : IPauseProductRequestPort
     {

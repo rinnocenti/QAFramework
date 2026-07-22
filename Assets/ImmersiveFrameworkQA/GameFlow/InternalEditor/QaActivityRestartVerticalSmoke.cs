@@ -9,9 +9,9 @@ using UnityEditor;
 using UnityEngine;
 namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
 {
-    public static class QaH226ActivityRestartVerticalSmoke
+    public static class QaActivityRestartVerticalSmoke
     {
-        private const string LogPrefix = "[H226_ACTIVITY_RESTART_VERTICAL_SMOKE]";
+        private const string LogPrefix = "[ACTIVITY_RESTART_VERTICAL_SMOKE]";
 
         [MenuItem("Immersive Framework/QA/Regressions/Game Flow/Run Activity Restart Regression", true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
@@ -29,8 +29,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             NominalResetFixture nominalFixture = null;
             try
             {
-                Require(global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(out FrameworkRuntimeHost host) && host != null, "H2.2.6 vertical smoke requires FrameworkRuntimeHost.");
-                Require(host.State.CurrentRoute != null && host.State.CurrentActivity != null, "H2.2.6 vertical smoke requires active Route and Activity.");
+                Require(QaH2FrameworkReadiness.TryResolveUniqueHost(out FrameworkRuntimeHost host) && host != null, "Activity Restart vertical smoke requires FrameworkRuntimeHost.");
+                Require(host.State.CurrentRoute != null && host.State.CurrentActivity != null, "Activity Restart vertical smoke requires active Route and Activity.");
                 IActivityRestartRuntimePort runtime = host;
 
                 ActivityRestartResult noActivity = (await runtime.RequestActivityRestartAsync(null, false, true, new ResetSelectionConfig(), "H226", "no-active-activity")).Result;
@@ -38,13 +38,13 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 completed.Add("no-active-activity-explicit-structured-failure");
 
                 ActivityAsset mismatch = ScriptableObject.CreateInstance<ActivityAsset>();
-                mismatch.name = "H226 Mismatch";
+                mismatch.name = "Mismatch";
                 objects.Add(mismatch);
                 ActivityRestartResult mismatchResult = (await runtime.RequestActivityRestartAsync(mismatch, false, true, new ResetSelectionConfig(), "H226", "target-mismatch")).Result;
                 Require(mismatchResult.Status == ActivityRestartResultStatus.RejectedTargetMismatch && mismatchResult.Activity == mismatch, mismatchResult.ToDiagnosticString());
                 completed.Add("target-mismatch-explicit-structured-failure");
 
-                ActivityRestartTrigger invalidSelection = CreateTrigger("H226 Invalid Selection", objects);
+                ActivityRestartTrigger invalidSelection = CreateTrigger("Invalid Selection", objects);
                 Require(invalidSelection.TryBindActivityRestartRuntime(runtime, out string issue), issue);
                 invalidSelection.ConfigureForQa(null, true, true, "selection-invalid", ResetSelectionMode.ExplicitSubjects, Array.Empty<ResetSubjectReference>(), false, true, true, false);
                 ActivityRestartResult invalidResult = await invalidSelection.RequestActivityRestartAsync();
@@ -53,7 +53,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
 
                 nominalFixture = NominalResetFixture.Create(host);
                 ActivityAsset activityBeforeRestart = host.State.CurrentActivity;
-                ActivityRestartTrigger nominal = CreateTrigger("H226 Nominal", objects);
+                ActivityRestartTrigger nominal = CreateTrigger("Nominal", objects);
                 Require(nominal.TryBindActivityRestartRuntime(runtime, out issue), issue);
                 nominal.ConfigureForQa(null, true, true, "nominal", ResetSelectionMode.ExplicitSubjects, new[] { nominalFixture.Reference }, false, false, true, false);
                 ActivityRestartResult nominalResult = await nominal.RequestActivityRestartAsync();
@@ -73,7 +73,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                     nominalResult.ToDiagnosticString());
                 completed.Add("nominal-reset-clear-reentry-order-completed");
 
-                ActivityRestartTrigger delayed = CreateTrigger("H226 Delayed", objects);
+                ActivityRestartTrigger delayed = CreateTrigger("Delayed", objects);
                 var delayedPort = new DelayedPort(Result(ActivityRestartResultStatus.CompletedWithWarnings));
                 Require(delayed.TryBindActivityRestartRuntime(delayedPort, out issue), issue);
                 var first = delayed.RequestActivityRestartAsync();
@@ -85,7 +85,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 Require(warnings.Status == ActivityRestartResultStatus.CompletedWithWarnings && delayed.LastRequestSucceeded && !delayed.IsRequestInFlight, "Warnings did not continue to completion.");
                 completed.Add("warnings-continue-until-completion");
 
-                ActivityRestartTrigger blocking = CreateTrigger("H226 Blocking", objects);
+                ActivityRestartTrigger blocking = CreateTrigger("Blocking", objects);
                 Require(blocking.TryBindActivityRestartRuntime(runtime, out issue), issue);
                 blocking.ConfigureForQa(null, true, true, "blocking-reset", ResetSelectionMode.ExplicitSubjects, Array.Empty<ResetSubjectReference>(), false, true, true, false);
                 ActivityRestartResult blockingResult = await blocking.RequestActivityRestartAsync();
@@ -146,10 +146,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
 
             internal static NominalResetFixture Create(FrameworkRuntimeHost host)
             {
-                var owner = new GameObject("H226 Nominal Reset Subject");
+                var owner = new GameObject("Nominal Reset Subject");
                 var participant = new H226RequiredSuccessParticipant();
                 var reference = new ResetSubjectReference();
-                const string subjectId = "qa.h226.activity-restart.nominal";
+                const string subjectId = "qa.activity-restart.nominal";
                 reference.ConfigureForQa(null, subjectId);
                 var fixture = new NominalResetFixture(host, owner, reference, participant);
                 var subject = new ResetSubject(
@@ -157,7 +157,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                     ResetSubjectScope.Runtime,
                     ResetSubjectOrigin.RuntimeRegistered,
                     owner.name,
-                    "H226:Nominal");
+                    "Nominal");
                 ResetRegistryOperationResult subjectResult = host.RegisterResetSubject(subject, owner, "H226", "nominal-register-subject");
                 if (!subjectResult.Succeeded)
                 {
@@ -198,11 +198,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             public bool TryCreateResetParticipantDescriptor(ResetSubject subject, out ResetParticipantDescriptor descriptor, out ResetIssue issue)
             {
                 descriptor = new ResetParticipantDescriptor(
-                    ResetParticipantId.From("qa.h226.activity-restart.nominal.required"),
+                    ResetParticipantId.From("qa.activity-restart.nominal.required"),
                     subject.SubjectId,
                     ResetParticipantRequiredness.Required,
                     0,
-                    "H226 Nominal Required",
+                    "Nominal Required",
                     "H226",
                     "nominal");
                 issue = default;

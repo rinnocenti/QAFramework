@@ -6,13 +6,13 @@ using UnityEditor;
 using UnityEngine;
 using PauseState = Immersive.Framework.Pause.PauseState;
 
-namespace ImmersiveFrameworkQA.InputMode.Editor
+namespace ImmersiveFrameworkQA.InputMode.Internal.Editor.ImmersiveFrameworkQA.Player.InternalEditor
 {
-    public static class QaH221PauseRequestTriggerBindingSmoke
+    public static class QaPauseRequestTriggerBindingSmoke
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Pause/H2.2.1 Run Pause Request Trigger Binding Smoke";
-        private const string LogPrefix = "[H221_PAUSE_REQUEST_TRIGGER_SMOKE]";
+            "Immersive Framework/QA/Pause/Run Pause Request Trigger Binding Smoke";
+        private const string LogPrefix = "[PAUSE_REQUEST_TRIGGER_SMOKE]";
 
         private static bool ValidateRun() => EditorApplication.isPlaying;
 
@@ -29,7 +29,7 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                 completed.Add("play-mode-required");
 
                 Require(
-                    global::ImmersiveFrameworkQA.InputMode.Internal.Editor.QaInputModeFrameworkRuntimeHostResolver.TryResolveUniqueHost(
+                    global::ImmersiveFrameworkQA.InputMode.Internal.Editor.ImmersiveFrameworkQA.Player.InternalEditor.QaInputModeFrameworkRuntimeHostResolver.TryResolveUniqueHost(
                         out FrameworkRuntimeHost currentHost) &&
                     currentHost != null,
                     "H2.2.1 Pause request trigger binding smoke requires an initialized global FrameworkRuntimeHost.");
@@ -39,7 +39,7 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                     "Global FrameworkRuntimeHost had no Pause snapshot for the unbound trigger proof.");
                 completed.Add("runtime-host-available");
 
-                GameObject boundRoot = CreateRoot("H221 Bound Trigger", objects);
+                GameObject boundRoot = CreateRoot("Bound Trigger", objects);
                 PauseRequestTrigger boundTrigger =
                     boundRoot.AddComponent<PauseRequestTrigger>();
                 var fakeA = new QaFakePauseProductRequestPort();
@@ -86,7 +86,7 @@ namespace ImmersiveFrameworkQA.InputMode.Editor
                     "Bound trigger did not forward the Pause request only to fake A.");
                 completed.Add("request-forwarded-to-bound-port");
 
-                GameObject unboundRoot = CreateRoot("H221 Unbound Trigger", objects);
+                GameObject unboundRoot = CreateRoot("Unbound Trigger", objects);
                 PauseRequestTrigger unboundTrigger =
                     unboundRoot.AddComponent<PauseRequestTrigger>();
                 Require(

@@ -8,10 +8,10 @@ using UnityEditor;
 using UnityEngine;
 namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
 {
-    public static class QaH229InputGateRuntimeBindingSmoke
+    public static class QaInputGateRuntimeBindingSmoke
     {
-        private const string LogPrefix = "[H229_INPUT_GATE_RUNTIME_BINDING_SMOKE]";
-        private const string RuntimeSource = nameof(QaH229InputGateRuntimeBindingSmoke);
+        private const string LogPrefix = "[INPUT_GATE_RUNTIME_BINDING_SMOKE]";
+        private const string RuntimeSource = nameof(QaInputGateRuntimeBindingSmoke);
 
         [MenuItem("Immersive Framework/QA/Regressions/Input/Run Input Gate Regression", true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
@@ -29,10 +29,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
 
             try
             {
-                Require(EditorApplication.isPlaying, "H2.2.9 vertical smoke requires Play Mode.");
+                Require(EditorApplication.isPlaying, "INPUT_GATE_RUNTIME_BINDING_SMOKE vertical smoke requires Play Mode.");
                 Require(
-                    global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(out FrameworkRuntimeHost host) && host != null,
-                    "H2.2.9 vertical smoke requires FrameworkRuntimeHost.");
+                    QaH2FrameworkReadiness.TryResolveUniqueHost(out FrameworkRuntimeHost host) && host != null,
+                    "INPUT_GATE_RUNTIME_BINDING_SMOKE vertical smoke requires FrameworkRuntimeHost.");
 
                 IInputGateRuntimePort hostRuntime = host;
                 Require(hostRuntime != null, "FrameworkRuntimeHost did not expose Input Gate runtime port.");
@@ -40,7 +40,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 completed.Add("runtime-port-available");
 
                 InputGateFixture unbound = InputGateFixture.Create(
-                    "H229 Unbound Adapter",
+                    "Unbound Adapter",
                     includeGameplayMap: true,
                     gameplayInitiallyEnabled: true);
                 fixtures.Add(unbound);
@@ -56,7 +56,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
 
                 var gameplayPort = new MutableInputGateRuntimePort();
                 InputGateFixture gameplay = InputGateFixture.Create(
-                    "H229 Gameplay Gate Adapter",
+                    "Gameplay Gate Adapter",
                     includeGameplayMap: true,
                     gameplayInitiallyEnabled: true);
                 fixtures.Add(gameplay);
@@ -65,7 +65,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                     gameplayBindingIssue);
 
                 gameplayPort.CurrentGateSnapshot = Snapshot(
-                    "qa.h229.gameplay",
+                    "qa.gameplay",
                     GateScope.Gameplay,
                     GateDomain.GameplayAction);
                 gameplay.Adapter.ApplyCurrentGate();
@@ -88,12 +88,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 var inputAcceptancePort = new MutableInputGateRuntimePort
                 {
                     CurrentGateSnapshot = Snapshot(
-                        "qa.h229.input-acceptance",
+                        "qa.input-acceptance",
                         GateScope.Input,
                         GateDomain.InputAcceptance)
                 };
                 InputGateFixture inputAcceptance = InputGateFixture.Create(
-                    "H229 Input Acceptance Gate Adapter",
+                    "Input Acceptance Gate Adapter",
                     includeGameplayMap: true,
                     gameplayInitiallyEnabled: true);
                 fixtures.Add(inputAcceptance);
@@ -119,12 +119,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 var unrelatedPort = new MutableInputGateRuntimePort
                 {
                     CurrentGateSnapshot = Snapshot(
-                        "qa.h229.unrelated",
+                        "qa.unrelated",
                         GateScope.Input,
                         GateDomain.UiNavigation)
                 };
                 InputGateFixture unrelated = InputGateFixture.Create(
-                    "H229 Unrelated Gate Adapter",
+                    "Unrelated Gate Adapter",
                     includeGameplayMap: true,
                     gameplayInitiallyEnabled: true);
                 fixtures.Add(unrelated);
@@ -144,12 +144,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 var disabledPort = new MutableInputGateRuntimePort
                 {
                     CurrentGateSnapshot = Snapshot(
-                        "qa.h229.disabled-baseline",
+                        "qa.disabled-baseline",
                         GateScope.Gameplay,
                         GateDomain.GameplayAction)
                 };
                 InputGateFixture disabledBaseline = InputGateFixture.Create(
-                    "H229 Disabled Baseline Adapter",
+                    "Disabled Baseline Adapter",
                     includeGameplayMap: true,
                     gameplayInitiallyEnabled: false);
                 fixtures.Add(disabledBaseline);
@@ -175,12 +175,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 var missingMapPort = new MutableInputGateRuntimePort
                 {
                     CurrentGateSnapshot = Snapshot(
-                        "qa.h229.missing-map",
+                        "qa.missing-map",
                         GateScope.Gameplay,
                         GateDomain.GameplayAction)
                 };
                 InputGateFixture missingMap = InputGateFixture.Create(
-                    "H229 Missing Gameplay Map Adapter",
+                    "Missing Gameplay Map Adapter",
                     includeGameplayMap: false,
                     gameplayInitiallyEnabled: false);
                 fixtures.Add(missingMap);
@@ -327,7 +327,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                     inputActionAssetType);
                 Require(
                     actions != null,
-                    "H2.2.9 fixture failed to create InputActionAsset.");
+                    "fixture failed to create InputActionAsset.");
                 actions.name = name + " Actions";
 
                 object gameplayMap = null;
@@ -340,7 +340,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                         "Player");
                     Require(
                         gameplayMap != null,
-                        "H2.2.9 fixture failed to create Player action map.");
+                        "fixture failed to create Player action map.");
                     InvokeExtensionWithOptionalArguments(
                         inputActionSetupExtensionsType,
                         gameplayMap,
@@ -355,7 +355,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                     "UI");
                 Require(
                     uiMap != null,
-                    "H2.2.9 fixture failed to create UI action map.");
+                    "fixture failed to create UI action map.");
                 InvokeExtensionWithOptionalArguments(
                     inputActionSetupExtensionsType,
                     uiMap,
@@ -365,7 +365,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 Component playerInput = root.AddComponent(playerInputType);
                 Require(
                     playerInput != null,
-                    "H2.2.9 fixture failed to create PlayerInput.");
+                    "fixture failed to create PlayerInput.");
                 WriteProperty(
                     playerInput,
                     "actions",
@@ -438,7 +438,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 }
 
                 throw new InvalidOperationException(
-                    $"H2.2.9 fixture requires Input System type '{fullName}'.");
+                    $"Fixture requires Input System type '{fullName}'.");
             }
 
             private static object FindActionMap(
@@ -448,7 +448,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             {
                 Require(
                     actionAsset != null,
-                    "H2.2.9 fixture requires InputActionAsset evidence.");
+                    "Fixture requires InputActionAsset evidence.");
                 MethodInfo method = actionAsset.GetType().GetMethod(
                     "FindActionMap",
                     BindingFlags.Instance | BindingFlags.Public,
@@ -457,7 +457,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                     modifiers: null);
                 Require(
                     method != null,
-                    "H2.2.9 fixture could not resolve InputActionAsset.FindActionMap(string, bool).");
+                    "Fixture could not resolve InputActionAsset.FindActionMap(string, bool).");
                 return method.Invoke(
                     actionAsset,
                     new object[] { actionMapName, throwIfNotFound });
@@ -471,10 +471,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             {
                 Require(
                     extensionType != null,
-                    $"H2.2.9 fixture requires an extension type for '{methodName}'.");
+                    $"Fixture requires an extension type for '{methodName}'.");
                 Require(
                     target != null,
-                    $"H2.2.9 fixture requires a target for '{methodName}'.");
+                    $"Fixture requires a target for '{methodName}'.");
 
                 MethodInfo method = FindExtensionMethod(
                     extensionType,
@@ -536,7 +536,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 }
 
                 throw new InvalidOperationException(
-                    $"H2.2.9 fixture could not resolve extension '{extensionType.FullName}.{methodName}' for target '{targetType.FullName}' and one required string argument.");
+                    $"Fixture could not resolve extension '{extensionType.FullName}.{methodName}' for target '{targetType.FullName}' and one required string argument.");
             }
 
             private static void InvokeNoArguments(
@@ -545,7 +545,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             {
                 Require(
                     target != null,
-                    $"H2.2.9 fixture requires a target for '{methodName}'.");
+                    $"Fixture requires a target for '{methodName}'.");
                 MethodInfo method = target.GetType().GetMethod(
                     methodName,
                     BindingFlags.Instance | BindingFlags.Public,
@@ -554,7 +554,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                     modifiers: null);
                 Require(
                     method != null,
-                    $"H2.2.9 fixture could not resolve '{target.GetType().FullName}.{methodName}()'.");
+                    $"Fixture could not resolve '{target.GetType().FullName}.{methodName}()'.");
                 method.Invoke(target, Array.Empty<object>());
             }
 
@@ -564,13 +564,13 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             {
                 Require(
                     target != null,
-                    $"H2.2.9 fixture requires a target property '{propertyName}'.");
+                    $"Fixture requires a target property '{propertyName}'.");
                 PropertyInfo property = target.GetType().GetProperty(
                     propertyName,
                     BindingFlags.Instance | BindingFlags.Public);
                 Require(
                     property != null && property.CanRead,
-                    $"H2.2.9 fixture could not read '{target.GetType().FullName}.{propertyName}'.");
+                    $"Fixture could not read '{target.GetType().FullName}.{propertyName}'.");
                 return property.GetValue(target);
             }
 
@@ -589,13 +589,13 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             {
                 Require(
                     target != null,
-                    $"H2.2.9 fixture requires a target property '{propertyName}'.");
+                    $"Fixture requires a target property '{propertyName}'.");
                 PropertyInfo property = target.GetType().GetProperty(
                     propertyName,
                     BindingFlags.Instance | BindingFlags.Public);
                 Require(
                     property != null && property.CanWrite,
-                    $"H2.2.9 fixture could not write '{target.GetType().FullName}.{propertyName}'.");
+                    $"Fixture could not write '{target.GetType().FullName}.{propertyName}'.");
                 property.SetValue(target, value);
             }
         }

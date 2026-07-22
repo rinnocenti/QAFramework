@@ -9,7 +9,7 @@ using UnityEngine;
 namespace ImmersiveFrameworkQA.Camera
 {
     [DisallowMultipleComponent]
-    public sealed class QaC9RCameraOverrideAuthorityFixture :
+    public sealed class QaCameraOverrideAuthorityFixture :
         MonoBehaviour,
         ICameraOutputSessionConsumer,
         ISessionCameraOverrideConsumer
@@ -21,7 +21,7 @@ namespace ImmersiveFrameworkQA.Camera
 
         [SerializeField] private RouteCameraOverrideBinding routeBinding;
         [SerializeField]
-        private QaC9RLocalPlayerCameraRequestBinding playerBinding;
+        private QaLocalPlayerCameraRequestBinding playerBinding;
         [SerializeField] private ActivityCameraOverrideBinding activityBinding;
         [SerializeField] private CameraRigComposer routeComposer;
         [SerializeField] private CameraRigComposer playerComposer;
@@ -198,7 +198,7 @@ namespace ImmersiveFrameworkQA.Camera
             }
 
             Fail(
-                "Route lifecycle cleanup did not unload the C9R route before timeout. " +
+                "Route lifecycle cleanup did not unload the  route before timeout. " +
                 State());
         }
 

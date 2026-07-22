@@ -13,9 +13,9 @@ using UnityEditor;
 using UnityEngine;
 namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
 {
-    public static class QaH225ActivityCycleResetVerticalSmoke
+    public static class QaActivityCycleResetVerticalSmoke
     {
-        private const string LogPrefix = "[H225_ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE]";
+        private const string LogPrefix = "[ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE]";
 
         [MenuItem("Immersive Framework/QA/Regressions/Game Flow/Run Activity Cycle Reset Regression", true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
@@ -32,14 +32,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             GameObject root = null;
             try
             {
-                Require(global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(out FrameworkRuntimeHost host) && host != null, "H2.2.5 vertical smoke requires FrameworkRuntimeHost.");
-                Require(host.State.CurrentRoute != null, "H2.2.5 vertical smoke requires active Route.");
-                Require(host.State.CurrentActivity != null, "H2.2.5 vertical smoke requires active Activity.");
+                Require(QaH2FrameworkReadiness.TryResolveUniqueHost(out FrameworkRuntimeHost host) && host != null, "ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE vertical smoke requires FrameworkRuntimeHost.");
+                Require(host.State.CurrentRoute != null, "ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE vertical smoke requires active Route.");
+                Require(host.State.CurrentActivity != null, "ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE vertical smoke requires active Activity.");
                 await VerifyNoActiveRouteAsync(completed);
                 await VerifyNoActiveActivityAsync(host, completed);
 
                 IActivityCycleResetRuntimePort port = host;
-                root = new GameObject("H225 Vertical Trigger");
+                root = new GameObject("ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE Vertical Trigger");
                 ActivityCycleResetTrigger trigger = root.AddComponent<ActivityCycleResetTrigger>();
                 Require(trigger.TryBindActivityCycleResetRuntime(port, out string issue), issue);
 
@@ -59,7 +59,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             }
             finally
             {
-                if (global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(out FrameworkRuntimeHost host)) host.SetCycleResetParticipantSource(null);
+                if (QaH2FrameworkReadiness.TryResolveUniqueHost(out FrameworkRuntimeHost host)) host.SetCycleResetParticipantSource(null);
                 if (root != null) UnityEngine.Object.Destroy(root);
             }
         }
@@ -92,13 +92,13 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                     routeCycleResetRuntimePort,
                     activityCycleResetRuntimePort,
                     activityRestartRuntimePort);
-                var participantSource = new H225ParticipantSource(
+                var participantSource = new ParticipantSource(
                     H225Scenario.NominalActivityOnly);
                 runtime.SetCycleResetParticipantSource(participantSource);
 
                 RouteLifecycleStartResult startResult = await runtime.StartRouteAsync(
                     route,
-                    "H225",
+                    "ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE",
                     "establish-route-without-activity");
                 Require(startResult.Started, startResult.Message);
                 Require(
@@ -107,7 +107,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
 
                 CycleResetResult result = await runtime.RequestActivityCycleResetAsync(
                     CycleResetPolicy.ActivityDefault(),
-                    "H225",
+                    "ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE",
                     "no-active-activity");
                 Require(
                     result.Status == CycleResetStatus.RejectedInvalidRequest &&
@@ -119,7 +119,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                     result.ToDiagnosticString());
                 CycleResetResult retryResult = await runtime.RequestActivityCycleResetAsync(
                     CycleResetPolicy.ActivityDefault(),
-                    "H225",
+                    "ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE",
                     "no-active-activity-retry");
                 Require(
                     retryResult.Status == CycleResetStatus.RejectedInvalidRequest &&
@@ -142,9 +142,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 sourceRoute != null && sourceRoute.HasPrimaryScene,
                 "Isolated no-active-Activity fixture requires the current Route primary scene.");
             RouteAsset route = ScriptableObject.CreateInstance<RouteAsset>();
-            route.name = "H225 Route Without Activity";
+            route.name = "ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE Route Without Activity";
             var serialized = new SerializedObject(route);
-            serialized.FindProperty("routeId").stringValue = "qa.h225.route.without.activity";
+            serialized.FindProperty("routeId").stringValue = "qa.activity-cycle-reset-vertical-smoke.route.without.activity";
             serialized.FindProperty("routeName").stringValue = route.name;
             serialized.FindProperty("primaryScenePath").stringValue = sourceRoute.PrimaryScenePath;
             serialized.FindProperty("primarySceneName").stringValue = sourceRoute.PrimarySceneName;
@@ -157,7 +157,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
 
         private static async Task VerifyNominalActivityOnlyAsync(FrameworkRuntimeHost host, ActivityCycleResetTrigger trigger, ICollection<string> completed)
         {
-            var source = new H225ParticipantSource(H225Scenario.NominalActivityOnly);
+            var source = new ParticipantSource(H225Scenario.NominalActivityOnly);
             host.SetCycleResetParticipantSource(source);
             trigger.RequestActivityCycleReset();
             await Wait(trigger);
@@ -177,9 +177,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
 
         private static async Task VerifyMixedRouteOnlyAsync(FrameworkRuntimeHost host, IActivityCycleResetRuntimePort port, ICollection<string> completed)
         {
-            var source = new H225ParticipantSource(H225Scenario.MixedWithRouteOnly);
+            var source = new ParticipantSource(H225Scenario.MixedWithRouteOnly);
             host.SetCycleResetParticipantSource(source);
-            CycleResetResult result = await port.RequestActivityCycleResetAsync("H225", "mixed-route-only");
+            CycleResetResult result = await port.RequestActivityCycleResetAsync("ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE", "mixed-route-only");
             Require(
                 result.Status == CycleResetStatus.CompletedWithWarnings &&
                 CountIssues(result, CycleResetIssueKind.UnsupportedScope) == 1 && result.IssueCount == 1 &&
@@ -193,16 +193,16 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
         private static async Task VerifyNoParticipantsAsync(FrameworkRuntimeHost host, IActivityCycleResetRuntimePort port, ICollection<string> completed)
         {
             host.SetCycleResetParticipantSource(null);
-            CycleResetResult result = await port.RequestActivityCycleResetAsync("H225", "no-participants");
+            CycleResetResult result = await port.RequestActivityCycleResetAsync("ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE", "no-participants");
             Require(result.Status == CycleResetStatus.SucceededNoParticipants, result.ToDiagnosticString());
             completed.Add("no-participants-succeeded-no-participants");
         }
 
         private static async Task VerifyOptionalFailureAsync(FrameworkRuntimeHost host, IActivityCycleResetRuntimePort port, ICollection<string> completed)
         {
-            var source = new H225ParticipantSource(H225Scenario.OptionalFailure);
+            var source = new ParticipantSource(H225Scenario.OptionalFailure);
             host.SetCycleResetParticipantSource(source);
-            CycleResetResult result = await port.RequestActivityCycleResetAsync("H225", "optional-failure");
+            CycleResetResult result = await port.RequestActivityCycleResetAsync("ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE", "optional-failure");
             Require(
                 result.Status == CycleResetStatus.CompletedWithWarnings &&
                 result.NonBlockingFailureCount == 1 && result.BlockingFailureCount == 0 &&
@@ -213,9 +213,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
 
         private static async Task VerifyRequiredFailureAsync(FrameworkRuntimeHost host, IActivityCycleResetRuntimePort port, ICollection<string> completed)
         {
-            var source = new H225ParticipantSource(H225Scenario.RequiredFailure);
+            var source = new ParticipantSource(H225Scenario.RequiredFailure);
             host.SetCycleResetParticipantSource(source);
-            CycleResetResult result = await port.RequestActivityCycleResetAsync("H225", "required-failure");
+            CycleResetResult result = await port.RequestActivityCycleResetAsync("ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE", "required-failure");
             Require(result.Status == CycleResetStatus.Failed && result.BlockingFailureCount == 1 && source.ActivityRequired.ExecutionCount == 1, result.ToDiagnosticString());
             completed.Add("required-failure-blocking-failure");
         }
@@ -244,13 +244,13 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
 
         private enum H225Scenario { NominalActivityOnly, MixedWithRouteOnly, OptionalFailure, RequiredFailure }
 
-        private sealed class H225ParticipantSource : ICycleResetParticipantSource
+        private sealed class ParticipantSource : ICycleResetParticipantSource
         {
-            internal H225ParticipantSource(H225Scenario scenario)
+            internal ParticipantSource(H225Scenario scenario)
             {
-                ActivityRequired = Create("qa.h225.activity.required", CycleResetScope.Activity, CycleResetParticipantRequiredness.Required, 10, scenario == H225Scenario.RequiredFailure);
-                ActivityOptional = Create("qa.h225.activity.optional", CycleResetScope.Activity, CycleResetParticipantRequiredness.Optional, 20, scenario == H225Scenario.OptionalFailure);
-                if (scenario == H225Scenario.MixedWithRouteOnly) RouteOnly = Create("qa.h225.route.only", CycleResetScope.Route, CycleResetParticipantRequiredness.Optional, 30, false);
+                ActivityRequired = Create("qa.activity-cycle-reset-vertical-smoke.activity.required", CycleResetScope.Activity, CycleResetParticipantRequiredness.Required, 10, scenario == H225Scenario.RequiredFailure);
+                ActivityOptional = Create("qa.activity-cycle-reset-vertical-smoke.activity.optional", CycleResetScope.Activity, CycleResetParticipantRequiredness.Optional, 20, scenario == H225Scenario.OptionalFailure);
+                if (scenario == H225Scenario.MixedWithRouteOnly) RouteOnly = Create("qa.activity-cycle-reset-vertical-smoke.route.only", CycleResetScope.Route, CycleResetParticipantRequiredness.Optional, 30, false);
             }
 
             internal H225Participant ActivityRequired { get; }
@@ -265,8 +265,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             {
                 CycleResetParticipantId participantId = CycleResetParticipantId.From(id);
                 CycleResetParticipantDescriptor descriptor = requiredness == CycleResetParticipantRequiredness.Required
-                    ? CycleResetParticipantDescriptor.Required(participantId, scope, order, id, "H225", "vertical")
-                    : CycleResetParticipantDescriptor.Optional(participantId, scope, order, id, "H225", "vertical");
+                    ? CycleResetParticipantDescriptor.Required(participantId, scope, order, id, "ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE", "vertical")
+                    : CycleResetParticipantDescriptor.Optional(participantId, scope, order, id, "ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE", "vertical");
                 return new H225Participant(descriptor, fails);
             }
         }
@@ -282,8 +282,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             {
                 ExecutionCount++;
                 return _fails
-                    ? CycleResetParticipantResult.Failure(context, 1, "H225", "vertical", "Synthetic failure.")
-                    : CycleResetParticipantResult.Success(context, "H225", "vertical", "Synthetic success.");
+                    ? CycleResetParticipantResult.Failure(context, 1, "ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE", "vertical", "Synthetic failure.")
+                    : CycleResetParticipantResult.Success(context, "ACTIVITY_CYCLE_RESET_VERTICAL_SMOKE", "vertical", "Synthetic success.");
             }
         }
     }

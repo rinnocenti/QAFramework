@@ -91,8 +91,21 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 VerifyObjectEntry(activityA, created);
                 completed.Add("object-entry-uses-typed-activity-owner");
 
-                Require(state.CurrentRoute.RouteId.StableText == state.CurrentRouteIdentity &&
-                        state.CurrentActivity.ActivityId.StableText == state.CurrentActivityIdentity,
+                Require(
+                    state.CurrentRouteIdentity ==
+                        FrameworkIdentityKey.From(currentRoute.RouteId).StableText &&
+                    state.CurrentRouteName == currentRoute.RouteName &&
+                    state.CurrentActivityIdentity ==
+                        FrameworkIdentityKey.From(currentActivity.ActivityId).StableText &&
+                    state.CurrentActivityName == currentActivity.ActivityName &&
+                    !string.Equals(
+                        state.CurrentRouteIdentity,
+                        state.CurrentRouteName,
+                        StringComparison.Ordinal) &&
+                    !string.Equals(
+                        state.CurrentActivityIdentity,
+                        state.CurrentActivityName,
+                        StringComparison.Ordinal),
                     "Runtime diagnostics do not expose ID separately from display name.");
                 completed.Add("runtime-diagnostics-separate-id-and-name");
                 completed.Add("player-gameplay-admission-route-switch-dependency-registered");

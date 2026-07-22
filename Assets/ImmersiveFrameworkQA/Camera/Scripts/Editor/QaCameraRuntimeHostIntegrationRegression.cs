@@ -7,8 +7,7 @@ using ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlo
 using ImmersiveFrameworkQA.Player.Editor;
 using UnityEditor;
 using UnityEngine;
-
-namespace ImmersiveFrameworkQA.Camera.Editor
+namespace ImmersiveFrameworkQA.Camera.Scripts.Editor
 {
     /// <summary>
     /// Play Mode proof that the official gameplay admission lane is the sole Local Player

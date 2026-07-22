@@ -14,10 +14,9 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
-namespace ImmersiveFrameworkQA.Camera.Editor
+namespace ImmersiveFrameworkQA.Camera.Scripts.Editor
 {
-    internal static class QaC9RCameraOverrideAuthoritySceneInstaller
+    internal static class QaCameraOverrideAuthoritySceneInstaller
     {
         private const string Root = "Assets/ImmersiveFrameworkQA";
         private const string CameraRoot = Root + "/Camera";
@@ -31,11 +30,11 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             Root + "/Hub/Scenes/QA_Hub.unity";
         private const string HubRoutePath =
             Root + "/Hub/Routes/QA_HubRoute.asset";
-        private const string HubLabel = "C9R Camera Override Authority";
+        private const string HubLabel = " Camera Override Authority";
         private const string HubTriggerName =
-            "RouteTrigger_Camera_C9R_Override_Authority";
+            "RouteTrigger_Camera__Override_Authority";
         private const string CoordinatorName =
-            "QA_C9R_RouteCompletionCoordinator";
+            "QA__RouteCompletionCoordinator";
 
         internal static void Install()
         {
@@ -49,20 +48,20 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         {
             ActivityAsset activity = LoadOrCreate<ActivityAsset>(ActivityPath);
             Set(activity, "activityName",
-                "QA C9R Camera Override Authority Activity");
+                "QA Camera Override Authority Activity");
             Set(activity, "activityId",
-                "qa.c9r.camera.override.authority.activity");
+                "qa.camera.override.authority.activity");
             Set(activity, "description",
-                "Explicit Activity override used by the C9R authority proof.");
+                "Explicit Activity override used by the  authority proof.");
 
             RouteAsset route = LoadOrCreate<RouteAsset>(RoutePath);
-            Set(route, "routeName", "QA C9R Camera Override Authority");
+            Set(route, "routeName", "QA  Camera Override Authority");
             Set(route, "primaryScenePath", ScenePath);
             Set(route, "primarySceneName",
                 Path.GetFileNameWithoutExtension(ScenePath));
             Set(route, "startupActivity", activity);
             Set(route, "description",
-                "C9R authority proof for synthetic LocalPlayer, Activity, Route and Session camera requests.");
+                " authority proof for synthetic LocalPlayer, Activity, Route and Session camera requests.");
         }
 
         private static void RepairScene()
@@ -81,50 +80,50 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             Transform routeTarget = Target(
                 scene,
-                "QA_C9R_RouteTarget",
+                "QA_RouteTarget",
                 new Vector3(0f, 1f, 0f));
             Transform playerTarget = Target(
                 scene,
-                "QA_C9R_PlayerTarget",
+                "QA_PlayerTarget",
                 new Vector3(2f, 1f, 0f));
             Transform playerLookAt = Target(
                 scene,
-                "QA_C9R_PlayerLookAt",
+                "QA_PlayerLookAt",
                 new Vector3(2f, 1.5f, 1f));
             Transform activityTarget = Target(
                 scene,
-                "QA_C9R_ActivityTarget",
+                "QA_ActivityTarget",
                 new Vector3(-2f, 1f, 0f));
 
             CameraRigComposer routeRig = Composer(
                 scene,
-                "QA_C9R_RouteRig",
+                "QA_RouteRig",
                 "Route Cinemachine Camera",
                 routeTarget,
                 routeTarget,
-                "qa.c9r.route-target");
+                "qa.route-target");
             CameraRigComposer playerRig = Composer(
                 scene,
-                "QA_C9R_PlayerRig",
+                "QA_PlayerRig",
                 "Player Cinemachine Camera",
                 playerTarget,
                 playerLookAt,
-                "qa.c9r.player-target");
+                "qa.player-target");
             CameraRigComposer activityRig = Composer(
                 scene,
-                "QA_C9R_ActivityRig",
+                "QA_ActivityRig",
                 "Activity Cinemachine Camera",
                 activityTarget,
                 activityTarget,
-                "qa.c9r.activity-target");
+                "qa.activity-target");
 
             GameObject routeRoot = RootObject(
                 scene,
-                "QA_C9R_RouteContent");
+                "QA_RouteContent");
             RouteContentBinding routeContent =
                 Component<RouteContentBinding>(routeRoot);
             Set(routeContent, "route", route);
-            Set(routeContent, "localContentId", "qa.c9r.route-content");
+            Set(routeContent, "localContentId", "qa.route-content");
 
             RouteCameraOverrideBinding routeBinding =
                 Component<RouteCameraOverrideBinding>(routeRoot);
@@ -132,8 +131,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 routeBinding,
                 "assignedRoute",
                 route,
-                "qa.c9r.route",
-                "qa.camera.request.c9r.route",
+                "qa.route",
+                "qa.camera.request.route",
                 routeRig,
                 routeTarget,
                 200,
@@ -141,15 +140,15 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             GameObject playerRoot = RootObject(
                 scene,
-                "QA_C9R_LocalPlayer");
+                "QA_LocalPlayer");
             RemoveLegacyPlayerComponents(playerRoot);
-            QaC9RLocalPlayerCameraRequestBinding playerBinding =
-                Component<QaC9RLocalPlayerCameraRequestBinding>(playerRoot);
-            Set(playerBinding, "ownerId", "qa.player.c9r");
+            QaLocalPlayerCameraRequestBinding playerBinding =
+                Component<QaLocalPlayerCameraRequestBinding>(playerRoot);
+            Set(playerBinding, "ownerId", "qa.player");
             Set(playerBinding, "eligibilityScopeId",
-                "qa.c9r.player.eligibility");
+                "qa.player.eligibility");
             Set(playerBinding, "requestId",
-                "qa.camera.request.c9r.player");
+                "qa.camera.request.player");
             Set(playerBinding, "outputSession", null);
             Set(playerBinding, "rigComposer", playerRig);
             Set(playerBinding, "precedence", 50);
@@ -161,11 +160,11 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             GameObject activityRoot = Child(
                 routeRoot.transform,
-                "QA_C9R_ActivityContent");
+                "QA__ActivityContent");
             ActivityLocalVisibilityAdapter adapter =
                 Component<ActivityLocalVisibilityAdapter>(activityRoot);
             Set(adapter, "activity", activity);
-            Set(adapter, "localContentId", "qa.c9r.activity-content");
+            Set(adapter, "localContentId", "qa.activity-content");
 
             ActivityCameraOverrideBinding activityBinding =
                 Component<ActivityCameraOverrideBinding>(activityRoot);
@@ -173,28 +172,28 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 activityBinding,
                 "assignedActivity",
                 activity,
-                "qa.c9r.activity",
-                "qa.camera.request.c9r.activity",
+                "qa.activity",
+                "qa.camera.request.activity",
                 activityRig,
                 activityTarget,
                 100,
                 "activity");
 
-            GameObject controls = RootObject(scene, "QA_C9R_Controls");
+            GameObject controls = RootObject(scene, "QA__Controls");
             ActivityRequestTrigger activityTrigger =
                 Component<ActivityRequestTrigger>(controls);
             activityTrigger.TargetActivity = activity;
             Set(activityTrigger, "reason",
-                "qa.c9r.activity.lifecycle-cleanup");
+                "qa.activity.lifecycle-cleanup");
 
             RouteRequestTrigger backTrigger =
                 Component<RouteRequestTrigger>(controls);
             backTrigger.TargetRoute = hubRoute;
             Set(backTrigger, "reason",
-                "qa.c9r.route.lifecycle-cleanup");
+                "qa.route.lifecycle-cleanup");
 
-            QaC9RCameraOverrideAuthorityFixture fixture =
-                Component<QaC9RCameraOverrideAuthorityFixture>(controls);
+            QaCameraOverrideAuthorityFixture fixture =
+                Component<QaCameraOverrideAuthorityFixture>(controls);
             Set(fixture, "routeBinding", routeBinding);
             Set(fixture, "playerBinding", playerBinding);
             Set(fixture, "activityBinding", activityBinding);
@@ -247,7 +246,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             if (!result.Succeeded)
             {
                 throw new InvalidOperationException(
-                    $"Could not materialize C9R rig '{rootName}'. {result.BlockingIssue}");
+                    $"Could not materialize  rig '{rootName}'. {result.BlockingIssue}");
             }
 
             camera.enabled = false;
@@ -301,8 +300,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             coordinatorObject.name = CoordinatorName;
             coordinatorObject.transform.SetParent(null, false);
             SceneManager.MoveGameObjectToScene(coordinatorObject, scene);
-            QaC9RCameraOverrideAuthorityCompletionCoordinator coordinator =
-                Component<QaC9RCameraOverrideAuthorityCompletionCoordinator>(
+            QaCameraOverrideAuthorityCompletionCoordinator coordinator =
+                Component<QaCameraOverrideAuthorityCompletionCoordinator>(
                     coordinatorObject);
             Set(coordinator, "routeTrigger", trigger);
 
@@ -329,7 +328,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 string label = entries.GetArrayElementAtIndex(index)
                     .FindPropertyRelative("label").stringValue;
                 if (label != HubLabel &&
-                    label != "Camera / C9R Override Authority" &&
+                    label != "Camera /  Override Authority" &&
                     label != "C9L Player Camera Arbitration")
                 {
                     continue;
@@ -436,7 +435,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 if (count > 0)
                 {
                     throw new InvalidOperationException(
-                        $"C9R scene repair left '{count}' Missing Script " +
+                        $" scene repair left '{count}' Missing Script " +
                         $"component(s) on '{item.name}'.");
                 }
             }
@@ -495,7 +494,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                         StringComparison.Ordinal))
                 {
                     throw new InvalidOperationException(
-                        $"C9R scene repair could not remove legacy component " +
+                        $" scene repair could not remove legacy component " +
                         $"'{componentTypeName}' from '{root.name}'.");
                 }
             }
@@ -503,10 +502,10 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
         private static void RemoveOtherPlayers(
             Scene scene,
-            QaC9RLocalPlayerCameraRequestBinding selected)
+            QaLocalPlayerCameraRequestBinding selected)
         {
-            foreach (QaC9RLocalPlayerCameraRequestBinding item in
-                     All<QaC9RLocalPlayerCameraRequestBinding>(scene))
+            foreach (QaLocalPlayerCameraRequestBinding item in
+                     All<QaLocalPlayerCameraRequestBinding>(scene))
             {
                 if (item != selected)
                 {

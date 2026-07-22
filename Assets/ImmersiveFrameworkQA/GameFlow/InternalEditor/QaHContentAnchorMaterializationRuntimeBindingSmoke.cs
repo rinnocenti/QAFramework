@@ -7,14 +7,14 @@ using UnityEditor;
 using UnityEngine;
 using UnityObject = UnityEngine.Object;
 
-namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
+namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
 {
-    public static class QaH2211ContentAnchorMaterializationRuntimeBindingSmoke
+    public static class QaHContentAnchorMaterializationRuntimeBindingSmoke
     {
         private const string LogPrefix =
-            "[H2211_CONTENT_ANCHOR_MATERIALIZATION_RUNTIME_BINDING_SMOKE]";
+            "[CONTENT_ANCHOR_MATERIALIZATION_RUNTIME_BINDING_SMOKE]";
         private const string Source =
-            nameof(QaH2211ContentAnchorMaterializationRuntimeBindingSmoke);
+            nameof(QaHContentAnchorMaterializationRuntimeBindingSmoke);
 
         [MenuItem(
             "Immersive Framework/QA/Regressions/Scene Composition/Run Content Anchor Materialization Regression",
@@ -45,7 +45,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     EditorApplication.isPlaying,
                     "H2.2.11 vertical smoke requires Play Mode.");
                 Require(
-                    global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(
+                    QaH2FrameworkReadiness.TryResolveUniqueHost(
                         out FrameworkRuntimeHost host) &&
                     host != null,
                     "H2.2.11 vertical smoke requires FrameworkRuntimeHost.");
@@ -66,11 +66,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
                 string runId = Guid.NewGuid().ToString("N");
                 UnityContentAnchorMaterializationBridge unbound = CreateConfiguredBridge(
-                    "H2211 Unbound Bridge",
-                    $"qa.h2211.unbound.owner.{runId}",
-                    $"qa.h2211.unbound.anchor-owner.{runId}",
-                    $"qa.h2211.unbound.anchor.{runId}",
-                    $"qa.h2211.unbound.content.{runId}",
+                    "Unbound Bridge",
+                    $"qa.unbound.owner.{runId}",
+                    $"qa.unbound.anchor-owner.{runId}",
+                    $"qa.unbound.anchor.{runId}",
+                    $"qa.unbound.content.{runId}",
                     objects,
                     out _,
                     out _);
@@ -102,11 +102,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 materializationOwner = RuntimeContentOwner.Transient(ownerId, ownerName);
                 materializationOwnerCreated = true;
                 materializationBridge = CreateConfiguredBridge(
-                    "H2211 Materialization Bridge",
+                    "Materialization Bridge",
                     ownerId,
-                    $"qa.h2211.anchor-owner.{runId}",
-                    $"qa.h2211.anchor.{runId}",
-                    $"qa.h2211.content.{runId}",
+                    $"qa.anchor-owner.{runId}",
+                    $"qa.anchor.{runId}",
+                    $"qa.content.{runId}",
                     objects,
                     out Transform anchor,
                     out GameObject template);
@@ -330,7 +330,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             ICollection<string> completed)
         {
             GameObject emptyRoot = CreateInactiveRoot(
-                "H2211 Binding Empty",
+                "Binding Empty",
                 objects);
 
             UnityContentAnchorMaterializationBridgeBindingResult missingRuntime =
@@ -357,9 +357,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 optionalAbsent.Message);
 
             GameObject authoredRoot = CreateInactiveRoot(
-                "H2211 Binding Authored Root",
+                "Binding Authored Root",
                 objects);
-            var child = new GameObject("H2211 Binding Bridge Child");
+            var child = new GameObject("Binding Bridge Child");
             child.transform.SetParent(authoredRoot.transform, false);
             var bridge =
                 child.AddComponent<UnityContentAnchorMaterializationBridge>();

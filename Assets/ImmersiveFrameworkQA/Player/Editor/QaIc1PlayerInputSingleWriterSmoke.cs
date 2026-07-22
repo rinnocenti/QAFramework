@@ -6,8 +6,7 @@ using Immersive.Framework.UnityInput;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
-
-namespace ImmersiveFrameworkQA.UnityInput.Editor
+namespace ImmersiveFrameworkQA.Player.Editor
 {
     public static class QaIc1PlayerInputSingleWriterSmoke
     {

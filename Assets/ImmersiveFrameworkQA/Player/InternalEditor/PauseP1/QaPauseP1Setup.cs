@@ -7,8 +7,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
-
-namespace ImmersiveFrameworkQA.PauseP1.Editor
+namespace ImmersiveFrameworkQA.InputMode.Internal.Editor.ImmersiveFrameworkQA.Player.InternalEditor.PauseP1
 {
     internal static class QaPauseP1Paths
     {

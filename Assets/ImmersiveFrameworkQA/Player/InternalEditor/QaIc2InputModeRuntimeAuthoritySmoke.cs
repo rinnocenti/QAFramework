@@ -4,8 +4,7 @@ using System.IO;
 using Immersive.Framework.InputMode;
 using UnityEditor;
 using UnityEngine;
-
-namespace ImmersiveFrameworkQA.InputMode.Editor
+namespace ImmersiveFrameworkQA.InputMode.Internal.Editor.ImmersiveFrameworkQA.Player.InternalEditor
 {
     public static class QaIc2InputModeRuntimeAuthoritySmoke
     {

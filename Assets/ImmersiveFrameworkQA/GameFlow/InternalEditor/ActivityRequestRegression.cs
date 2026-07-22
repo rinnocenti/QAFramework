@@ -27,7 +27,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 completed.Add("play-mode-required");
 
                 Require(
-                    global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(
+                    QaH2FrameworkReadiness.TryResolveUniqueHost(
                         out FrameworkRuntimeHost host) && host != null,
                     "Activity Request Regression requires an initialized global FrameworkRuntimeHost.");
                 IActivityRuntimePort hostActivityRuntime = host;

@@ -9,7 +9,7 @@ namespace ImmersiveFrameworkQA.Camera
     /// It intentionally does not prove Player admission, Slot allocation or Actor readiness.
     /// </summary>
     [DisallowMultipleComponent]
-    public sealed class QaC9RLocalPlayerCameraRequestBinding :
+    public sealed class QaLocalPlayerCameraRequestBinding :
         MonoBehaviour,
         ICameraOutputSessionConsumer
     {
@@ -113,7 +113,7 @@ namespace ImmersiveFrameworkQA.Camera
                         precedence,
                         Normalize(tieBreakerId)),
                     CameraRequestReleaseCondition.ExplicitRelease,
-                    nameof(QaC9RLocalPlayerCameraRequestBinding),
+                    nameof(QaLocalPlayerCameraRequestBinding),
                     "QA-only synthetic LocalPlayer request for Camera arbitration.");
             if (!requestResult.IsSucceeded)
             {
@@ -251,7 +251,7 @@ namespace ImmersiveFrameworkQA.Camera
             }
 
             string message =
-                $"[QA][C9R Synthetic Local Player Camera] status='{lastStatus}' diagnostic='{lastDiagnostic}'.";
+                $"[QA][ Synthetic Local Player Camera] status='{lastStatus}' diagnostic='{lastDiagnostic}'.";
             if (error)
             {
                 Debug.LogError(message, this);

@@ -4,8 +4,7 @@ using Immersive.Framework.GlobalUi;
 using Immersive.Framework.Pause;
 using UnityEditor;
 using UnityEngine;
-
-namespace ImmersiveFrameworkQA.InputMode.Editor
+namespace ImmersiveFrameworkQA.InputMode.Internal.Editor.ImmersiveFrameworkQA.Player.InternalEditor
 {
     public static class QaH221PauseRequestTriggerCompositionSmoke
     {

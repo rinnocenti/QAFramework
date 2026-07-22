@@ -1,11 +1,9 @@
 using System;
 using System.IO;
 using Immersive.Framework.Pause;
-using ImmersiveFrameworkQA.InputMode.Editor;
 using UnityEditor;
 using UnityEngine;
-
-namespace ImmersiveFrameworkQA.PauseP1.Editor
+namespace ImmersiveFrameworkQA.InputMode.Internal.Editor.ImmersiveFrameworkQA.Player.InternalEditor.PauseP1
 {
     public static class QaPauseP1LegacyBoundaryStaticSmoke
     {
@@ -17,7 +15,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
         {
             string packageRoot = ResolvePackageRoot();
             ValidateDoesNotContain(
-                FindQaSource(nameof(QaH221PauseRequestTriggerBindingSmoke)),
+                FindQaSource(nameof(QaPauseRequestTriggerBindingSmoke)),
                 "TryBindPauseRuntime",
                 "IPauseRuntimePort",
                 "QaFakePauseRuntimePort",

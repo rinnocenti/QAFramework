@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using Immersive.Framework.ApplicationLifecycle;
 using UnityEngine;
-
-namespace ImmersiveFrameworkQA.InputMode.Internal.Editor
+namespace ImmersiveFrameworkQA.InputMode.Internal.Editor.ImmersiveFrameworkQA.Player.InternalEditor
 {
     internal static class QaInputModeFrameworkRuntimeHostResolver
     {

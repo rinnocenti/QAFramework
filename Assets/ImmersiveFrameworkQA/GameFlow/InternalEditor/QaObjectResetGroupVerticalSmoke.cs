@@ -9,10 +9,10 @@ using UnityEditor;
 using UnityEngine;
 namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
 {
-    public static class QaH228ObjectResetGroupVerticalSmoke
+    public static class QaObjectResetGroupVerticalSmoke
     {
-        private const string LogPrefix = "[H228_OBJECT_RESET_GROUP_VERTICAL_SMOKE]";
-        private const string RuntimeSource = nameof(QaH228ObjectResetGroupVerticalSmoke);
+        private const string LogPrefix = "[OBJECT_RESET_GROUP_VERTICAL_SMOKE]";
+        private const string RuntimeSource = nameof(QaObjectResetGroupVerticalSmoke);
 
         [MenuItem("Immersive Framework/QA/Regressions/Game Flow/Run Object Reset Regression", true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
@@ -32,10 +32,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
 
             try
             {
-                Require(EditorApplication.isPlaying, "H2.2.8 vertical smoke requires Play Mode.");
+                Require(EditorApplication.isPlaying, "OBJECT_RESET_GROUP_VERTICAL_SMOKE vertical smoke requires Play Mode.");
                 Require(
-                    global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(out FrameworkRuntimeHost host) && host != null,
-                    "H2.2.8 vertical smoke requires FrameworkRuntimeHost.");
+                    QaH2FrameworkReadiness.TryResolveUniqueHost(out FrameworkRuntimeHost host) && host != null,
+                    "OBJECT_RESET_GROUP_VERTICAL_SMOKE vertical smoke requires FrameworkRuntimeHost.");
 
                 IResetSelectionExecutionRuntimePort runtime = host;
                 Require(runtime != null, "FrameworkRuntimeHost did not expose Reset selection execution runtime port.");
@@ -44,8 +44,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 RunBindingCompositionCases(objects, completed);
 
                 ObjectResetGroupTrigger unbound = CreateUnboundTrigger(
-                    "H228 Unbound Group Trigger",
-                    "h228-unbound",
+                    "OBJECT_RESET_GROUP_VERTICAL_SMOKE Unbound Group Trigger",
+                    "object-reset-group-vertical-smoke-unbound",
                     "unbound",
                     ResetSelectionMode.ExplicitSubjects,
                     Array.Empty<ResetSubjectReference>(),
@@ -76,8 +76,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
 
                 var recordingPort = new RecordingSelectionExecutionPort();
                 ObjectResetGroupTrigger forwarding = CreateUnboundTrigger(
-                    "H228 Forwarding Group Trigger",
-                    "h228-forwarding",
+                    "OBJECT_RESET_GROUP_VERTICAL_SMOKE Forwarding Group Trigger",
+                    "object-reset-group-vertical-smoke-forwarding",
                     "forward-exactly",
                     ResetSelectionMode.ExplicitSubjects,
                     Array.Empty<ResetSubjectReference>(),
@@ -96,7 +96,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                     && ReferenceEquals(recordingPort.LastSelection, forwarding.Selection)
                     && recordingPort.LastSource == nameof(ObjectResetGroupTrigger)
                     && recordingPort.LastReason == "forward-exactly"
-                    && forwarding.ResolvedGroupId == "h228-forwarding"
+                    && forwarding.ResolvedGroupId == "object-reset-group-vertical-smoke-forwarding"
                     && forwarded.Status == ResetExecutionStatus.SucceededNoSubjects
                     && forwarding.LastSelectionResolution.Status == ResetSelectionResolutionStatus.SucceededNoSubjects
                     && forwarding.LastRequestSucceeded,
@@ -105,30 +105,30 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
 
                 ResetSubjectFixture nominalA = ResetSubjectFixture.Create(
                     host,
-                    "qa.h228.object-reset-group.nominal.a",
-                    "H228 Nominal Subject A");
+                    "qa.object-reset-group-vertical-smoke.nominal.a",
+                    "OBJECT_RESET_GROUP_VERTICAL_SMOKE Nominal Subject A");
                 ResetSubjectFixture nominalB = ResetSubjectFixture.Create(
                     host,
-                    "qa.h228.object-reset-group.nominal.b",
-                    "H228 Nominal Subject B");
+                    "qa.object-reset-group-vertical-smoke.nominal.b",
+                    "OBJECT_RESET_GROUP_VERTICAL_SMOKE Nominal Subject B");
                 fixtures.Add(nominalA);
                 fixtures.Add(nominalB);
                 var nominalParticipantA = new QaResetParticipant(
                     nominalA.SubjectId,
-                    "qa.h228.object-reset-group.nominal.a.required",
+                    "qa.object-reset-group-vertical-smoke.nominal.a.required",
                     ResetParticipantRequiredness.Required,
                     ParticipantBehavior.Succeed);
                 var nominalParticipantB = new QaResetParticipant(
                     nominalB.SubjectId,
-                    "qa.h228.object-reset-group.nominal.b.required",
+                    "qa.object-reset-group-vertical-smoke.nominal.b.required",
                     ResetParticipantRequiredness.Required,
                     ParticipantBehavior.Succeed);
                 nominalA.RegisterParticipant(nominalParticipantA);
                 nominalB.RegisterParticipant(nominalParticipantB);
 
                 ObjectResetGroupTrigger nominal = CreateBoundTrigger(
-                    "H228 Nominal Group Trigger",
-                    "h228-nominal",
+                    "OBJECT_RESET_GROUP_VERTICAL_SMOKE Nominal Group Trigger",
+                    "object-reset-group-vertical-smoke-nominal",
                     "nominal-group",
                     ResetSelectionMode.ExplicitSubjects,
                     new[]
@@ -171,8 +171,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 ResetSubjectReference invalidReference = new ResetSubjectReference();
                 invalidReference.ConfigureForQa(null, string.Empty);
                 ObjectResetGroupTrigger invalidSelection = CreateBoundTrigger(
-                    "H228 Invalid Selection Trigger",
-                    "h228-invalid-selection",
+                    "OBJECT_RESET_GROUP_VERTICAL_SMOKE Invalid Selection Trigger",
+                    "object-reset-group-vertical-smoke-invalid-selection",
                     "invalid-selection",
                     ResetSelectionMode.ExplicitSubjects,
                     new[] { invalidReference },
@@ -194,11 +194,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 completed.Add("invalid-selection-failed-before-execution");
 
                 ObjectResetGroupTrigger missing = CreateBoundTrigger(
-                    "H228 Missing Subject Group Trigger",
-                    "h228-missing",
+                    "OBJECT_RESET_GROUP_VERTICAL_SMOKE Missing Subject Group Trigger",
+                    "object-reset-group-vertical-smoke-missing",
                     "missing-subject",
                     ResetSelectionMode.ExplicitSubjects,
-                    new[] { Reference(ResetSubjectId.From("qa.h228.object-reset-group.missing")) },
+                    new[] { Reference(ResetSubjectId.From("qa.object-reset-group-vertical-smoke.missing")) },
                     allowNoSubjects: false,
                     allowNoParticipants: false,
                     stopOnFailure: true,
@@ -219,8 +219,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 completed.Add("resolved-but-unregistered-subject-failed-explicitly");
 
                 ObjectResetGroupTrigger emptyAllowed = CreateBoundTrigger(
-                    "H228 Empty Allowed Group Trigger",
-                    "h228-empty-allowed",
+                    "Empty Allowed Group Trigger",
+                    "object-reset-group-vertical-smoke-empty-allowed",
                     "empty-allowed",
                     ResetSelectionMode.ExplicitSubjects,
                     Array.Empty<ResetSubjectReference>(),
@@ -246,18 +246,18 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
 
                 ResetSubjectFixture optionalFixture = ResetSubjectFixture.Create(
                     host,
-                    "qa.h228.object-reset-group.optional-failure",
-                    "H228 Optional Failure Subject");
+                    "qa.object-reset-group-vertical-smoke.optional-failure",
+                    "OBJECT_RESET_GROUP_VERTICAL_SMOKE Optional Failure Subject");
                 fixtures.Add(optionalFixture);
                 var optionalParticipant = new QaResetParticipant(
                     optionalFixture.SubjectId,
-                    "qa.h228.object-reset-group.optional-failure.optional",
+                    "qa.object-reset-group-vertical-smoke.optional-failure.optional",
                     ResetParticipantRequiredness.Optional,
                     ParticipantBehavior.Fail);
                 optionalFixture.RegisterParticipant(optionalParticipant);
                 ObjectResetGroupTrigger optionalFailure = CreateBoundTrigger(
-                    "H228 Optional Failure Group Trigger",
-                    "h228-optional-failure",
+                    "OBJECT_RESET_GROUP_VERTICAL_SMOKE Optional Failure Group Trigger",
+                    "object-reset-group-vertical-smoke-optional-failure",
                     "optional-failure",
                     ResetSelectionMode.ExplicitSubjects,
                     new[] { Reference(optionalFixture.SubjectId) },
@@ -284,29 +284,29 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
 
                 ResetSubjectFixture requiredFailureFixture = ResetSubjectFixture.Create(
                     host,
-                    "qa.h228.object-reset-group.required-failure",
-                    "H228 Required Failure Subject");
+                    "qa.object-reset-group-vertical-smoke.required-failure",
+                    "OBJECT_RESET_GROUP_VERTICAL_SMOKE Required Failure Subject");
                 ResetSubjectFixture continuesFixture = ResetSubjectFixture.Create(
                     host,
-                    "qa.h228.object-reset-group.continues",
-                    "H228 Continue Subject");
+                    "qa.object-reset-group-vertical-smoke.continues",
+                    "OBJECT_RESET_GROUP_VERTICAL_SMOKE Continue Subject");
                 fixtures.Add(requiredFailureFixture);
                 fixtures.Add(continuesFixture);
                 var requiredFailureParticipant = new QaResetParticipant(
                     requiredFailureFixture.SubjectId,
-                    "qa.h228.object-reset-group.required-failure.required",
+                    "qa.object-reset-group-vertical-smoke.required-failure.required",
                     ResetParticipantRequiredness.Required,
                     ParticipantBehavior.Fail);
                 var continuesParticipant = new QaResetParticipant(
                     continuesFixture.SubjectId,
-                    "qa.h228.object-reset-group.continues.required",
+                    "qa.object-reset-group-vertical-smoke.continues.required",
                     ResetParticipantRequiredness.Required,
                     ParticipantBehavior.Succeed);
                 requiredFailureFixture.RegisterParticipant(requiredFailureParticipant);
                 continuesFixture.RegisterParticipant(continuesParticipant);
                 ObjectResetGroupTrigger requiredFailure = CreateBoundTrigger(
-                    "H228 Required Failure Group Trigger",
-                    "h228-required-failure",
+                    "OBJECT_RESET_GROUP_VERTICAL_SMOKE Required Failure Group Trigger",
+                    "object-reset-group-vertical-smoke-required-failure",
                     "required-failure-continue",
                     ResetSelectionMode.ExplicitSubjects,
                     new[]
@@ -340,8 +340,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
 
                 var delayedPort = new DelayedSelectionExecutionPort();
                 ObjectResetGroupTrigger delayed = CreateUnboundTrigger(
-                    "H228 Delayed Group Trigger",
-                    "h228-delayed",
+                    "OBJECT_RESET_GROUP_VERTICAL_SMOKE Delayed Group Trigger",
+                    "object-reset-group-vertical-smoke-delayed",
                     "single-flight",
                     ResetSelectionMode.ExplicitSubjects,
                     Array.Empty<ResetSubjectReference>(),
@@ -412,7 +412,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
             ICollection<UnityEngine.Object> objects,
             ICollection<string> completed)
         {
-            GameObject empty = CreateRoot("H228 Binding Empty", objects);
+            GameObject empty = CreateRoot("OBJECT_RESET_GROUP_VERTICAL_SMOKE Binding Empty", objects);
             ObjectResetGroupTriggerBindingResult absent = ObjectResetGroupTriggerBinding.TryBind(
                 new[] { empty, empty },
                 new RecordingSelectionExecutionPort());
@@ -423,7 +423,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 && absent.TriggerCount == 0,
                 absent.Message);
 
-            GameObject root = CreateRoot("H228 Binding Root", objects);
+            GameObject root = CreateRoot("OBJECT_RESET_GROUP_VERTICAL_SMOKE Binding Root", objects);
             ObjectResetGroupTrigger trigger = root.AddComponent<ObjectResetGroupTrigger>();
             var port = new RecordingSelectionExecutionPort();
             ObjectResetGroupTriggerBindingResult bound = ObjectResetGroupTriggerBinding.TryBind(
@@ -446,7 +446,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 && idempotent.IdempotentCount == 1,
                 idempotent.Message);
 
-            GameObject incompatibleRoot = CreateRoot("H228 Binding Incompatible", objects);
+            GameObject incompatibleRoot = CreateRoot("OBJECT_RESET_GROUP_VERTICAL_SMOKE Binding Incompatible", objects);
             ObjectResetGroupTrigger incompatible = incompatibleRoot.AddComponent<ObjectResetGroupTrigger>();
             Require(
                 incompatible.TryBindResetSelectionExecutionRuntime(

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
+using Immersive.Framework.Identity;
 using Immersive.Framework.Loading;
 using Immersive.Framework.Pause;
 using Immersive.Framework.PlayerParticipation;
@@ -106,7 +107,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                     "Baseline Route request failed or lost previous Route release evidence. " + routeResult.Message);
                 completed.Add("route-request-succeeded");
                 Require(host.State.CurrentRoute.HasSameIdentity(targetRoute) &&
-                        host.State.CurrentRouteIdentity == targetRoute.RouteId.StableText,
+                        host.State.CurrentRouteIdentity ==
+                            FrameworkIdentityKey.From(targetRoute.RouteId).StableText,
                     "Route request did not publish the target RouteId.");
                 completed.Add("route-state-reflects-target-id");
 
@@ -117,7 +119,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                     "Baseline Activity request failed or lost previous Activity release evidence. " + activityResult.Message);
                 completed.Add("activity-request-succeeded");
                 Require(host.State.CurrentActivity.HasSameIdentity(targetActivity) &&
-                        host.State.CurrentActivityIdentity == targetActivity.ActivityId.StableText,
+                        host.State.CurrentActivityIdentity ==
+                            FrameworkIdentityKey.From(targetActivity.ActivityId).StableText,
                     "Activity request did not publish the target ActivityId.");
                 completed.Add("activity-state-reflects-target-id");
 
