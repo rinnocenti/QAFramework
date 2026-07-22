@@ -46,7 +46,7 @@ GameObject:
   - component: {fileID: 7000000000000000001}
   - component: {fileID: 8702872562540892333}
   m_Layer: 0
-  m_Name: P3G4_LocalPlayerHost
+  m_Name: Local Player Host
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

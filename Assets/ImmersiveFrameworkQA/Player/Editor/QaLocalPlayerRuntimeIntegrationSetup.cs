@@ -16,13 +16,13 @@ namespace ImmersiveFrameworkQA.Player.Editor
     /// installs one explicit manual PlayerInputManager + provisioning authoring and host
     /// registration in QA_UIGlobal.
     /// </summary>
-    internal static class QaP3G4RuntimeIntegrationSetup
+    internal static class QaLocalPlayerRuntimeIntegrationSetup
     {
         private const string RootFolder =
-            "Assets/ImmersiveFrameworkQA/Player/P3G4";
-        private const string ActionsPath = RootFolder + "/P3G4_InputActions.asset";
-        private const string PlayerPrefabPath = RootFolder + "/P3G4_LocalPlayerHost.prefab";
-        private const string FixtureName = "P3G4 Local Player Provisioning";
+            "Assets/ImmersiveFrameworkQA/Player/LocalPlayerRuntimeIntegration";
+        private const string ActionsPath = RootFolder + "/LocalPlayerInputActions.asset";
+        private const string PlayerPrefabPath = RootFolder + "/LocalPlayerHost.prefab";
+        private const string FixtureName = "Local Player Provisioning";
         private const string TargetSceneName = "QA_UIGlobal";
         private const string JoinEvidenceBindingPath = "<Keyboard>/space";
 
@@ -38,7 +38,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 {
                     Debug.LogWarning(
-                        "[P3G4_RUNTIME_JOIN_FIXTURE_SETUP] status='Cancelled' reason='UnsavedScenes'.");
+                        "[LOCAL_PLAYER_RUNTIME_INTEGRATION_SETUP] status='Cancelled' reason='UnsavedScenes'.");
                     return;
                 }
 
@@ -101,7 +101,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 LocalPlayerHostAuthoring host =
                     playerPrefab.GetComponent<LocalPlayerHostAuthoring>();
                 Debug.Log(
-                    "[P3G4_RUNTIME_JOIN_FIXTURE_SETUP] status='Applied' " +
+                    "[LOCAL_PLAYER_RUNTIME_INTEGRATION_SETUP] status='Applied' " +
                     $"scene='{scenePath}' fixture='{manager.gameObject.name}' " +
                     $"registration='{registration.name}' " +
                     $"actorSelectionEndpoint='{selectionEndpoint.name}' " +
@@ -112,7 +112,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             catch (Exception exception)
             {
                 Debug.LogError(
-                    "[P3G4_RUNTIME_JOIN_FIXTURE_SETUP] status='Failed' " +
+                    "[LOCAL_PLAYER_RUNTIME_INTEGRATION_SETUP] status='Failed' " +
                     $"exception='{exception.GetType().Name}' message='{Escape(exception.Message)}'.");
                 throw;
             }
@@ -141,7 +141,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             if (actions == null)
             {
                 actions = ScriptableObject.CreateInstance<InputActionAsset>();
-                actions.name = "P3G4 Input Actions";
+                actions.name = "Local Player Input Actions";
                 AssetDatabase.CreateAsset(actions, ActionsPath);
             }
 
@@ -171,7 +171,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
         private static GameObject CreateOrUpdatePlayerPrefab(InputActionAsset actions)
         {
-            GameObject temporary = new GameObject("P3G4 Local Player Host");
+            GameObject temporary = new GameObject("Local Player Host");
             try
             {
                 PlayerInput playerInput = temporary.AddComponent<PlayerInput>();
@@ -229,7 +229,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             if (managers.Count > 1)
             {
                 throw new InvalidOperationException(
-                    $"Scene '{scene.name}' contains '{managers.Count}' PlayerInputManager components. P3G.4 requires one Session manager.");
+                    $"Scene '{scene.name}' contains '{managers.Count}' PlayerInputManager components. Local Player runtime integration requires one Session manager.");
             }
 
             if (managers.Count == 1)

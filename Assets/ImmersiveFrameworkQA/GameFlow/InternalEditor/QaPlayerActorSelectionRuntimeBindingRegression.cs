@@ -10,23 +10,25 @@ using UnityObject = UnityEngine.Object;
 
 namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 {
-    public static class QaH2212PlayerActorSelectionRuntimeBindingSmoke
+    public static class QaPlayerActorSelectionRuntimeBindingRegression
     {
         private const string LogPrefix =
-            "[H2212_PLAYER_ACTOR_SELECTION_RUNTIME_BINDING_SMOKE]";
+            "[PLAYER_ACTOR_SELECTION_RUNTIME_BINDING_REGRESSION]";
         private const string Source =
-            nameof(QaH2212PlayerActorSelectionRuntimeBindingSmoke);
+            nameof(QaPlayerActorSelectionRuntimeBindingRegression);
         private const string MenuPath =
-            "Immersive Framework/QA/Game Flow/H2.2.12 Run Player Actor Selection Runtime Binding Smoke";
+            "Immersive Framework/QA/Regressions/Player/Run Player Actor Selection Runtime Binding Regression";
 
+        [MenuItem(MenuPath, true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
 
-        public static async void Run()
+        [MenuItem(MenuPath)]
+        public static async void RunRegression()
         {
-            await RunInternalAsync();
+            await RunRegressionAsync();
         }
 
-        public static async Task RunInternalAsync()
+        public static async Task RunRegressionAsync()
         {
             var completed = new List<string>();
             var objects = new List<UnityObject>();
@@ -38,12 +40,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             {
                 Require(
                     EditorApplication.isPlaying,
-                    "H2.2.12 vertical smoke requires Play Mode.");
+                    "Player Actor Selection Runtime Binding regression requires Play Mode.");
                 Require(
                     global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness.TryResolveUniqueHost(
                         out FrameworkRuntimeHost host) &&
                     host != null,
-                    "H2.2.12 vertical smoke requires FrameworkRuntimeHost.");
+                    "Player Actor Selection Runtime Binding regression requires FrameworkRuntimeHost.");
 
                 IPlayerActorSelectionRuntimePort hostRuntime = host;
                 string hostRuntimeIssue = string.Empty;
@@ -80,7 +82,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         "PlayerInputManager has no readable playerCount property.");
                 Require(
                     playerCount == 0,
-                    "H2.2.12 smoke is one-shot. Re-enter Play Mode before running it again.");
+                    "Player Actor Selection Runtime Binding regression is one-shot. Re-enter Play Mode before running it again.");
 
                 productAuthoring =
                     provisioning.GetComponent<
@@ -269,7 +271,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
                 Require(
                     completed.Count == 11,
-                    $"Unexpected H2.2.12 case count. actual='{completed.Count}'.");
+                    $"Unexpected Player Actor Selection Runtime Binding regression case count. actual='{completed.Count}'.");
 
                 Debug.Log(
                     $"{LogPrefix} status='Passed' cases='11' " +
@@ -300,7 +302,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     }
                     catch
                     {
-                        // Preserve the primary smoke failure.
+                        // Preserve the primary regression failure.
                     }
                 }
 
@@ -323,7 +325,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         {
             GameObject emptyRoot =
                 CreateInactiveRoot(
-                    "H2212 Binding Empty Root",
+                    "Player Actor Selection Binding Empty Root",
                     objects);
 
             LocalPlayerActorSelectionRequestAuthoringBindingResult optionalAbsent =
@@ -339,10 +341,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             GameObject invalidRoot =
                 CreateInactiveRoot(
-                    "H2212 Invalid Binding Root",
+                    "Player Actor Selection Invalid Binding Root",
                     objects);
             var validCandidateObject =
-                new GameObject("H2212 Valid Preflight Candidate");
+                new GameObject("Player Actor Selection Valid Preflight Candidate");
             validCandidateObject.transform.SetParent(
                 invalidRoot.transform,
                 false);
@@ -353,7 +355,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 validCandidateObject.AddComponent<
                     LocalPlayerProvisioningAuthoring>();
             var invalidCandidateObject =
-                new GameObject("H2212 Invalid Preflight Candidate");
+                new GameObject("Player Actor Selection Invalid Preflight Candidate");
             invalidCandidateObject.transform.SetParent(
                 invalidRoot.transform,
                 false);
@@ -376,11 +378,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             GameObject authoredRoot =
                 CreateInactiveRoot(
-                    "H2212 Binding Authored Root",
+                    "Player Actor Selection Binding Authored Root",
                     objects);
             var child =
                 new GameObject(
-                    "H2212 Binding Actor Selection Authoring");
+                    "Player Actor Selection Binding Authoring");
             child.transform.SetParent(
                 authoredRoot.transform,
                 false);
@@ -393,7 +395,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             var secondChild =
                 new GameObject(
-                    "H2212 Second Actor Selection Authoring");
+                    "Player Actor Selection Second Authoring");
             secondChild.transform.SetParent(
                 authoredRoot.transform,
                 false);

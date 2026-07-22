@@ -34,7 +34,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             try
             {
-                QaP3G4RuntimeIntegrationSetup.Apply();
+                QaLocalPlayerRuntimeIntegrationSetup.Apply();
                 EnsureFolder(RootFolder);
 
                 GameObject defaultLogicalHost = CreateOrUpdateLogicalActorHost(

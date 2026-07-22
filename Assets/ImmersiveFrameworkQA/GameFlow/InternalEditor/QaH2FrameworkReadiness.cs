@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Immersive.Framework.ApplicationLifecycle;
+using Immersive.Framework.PlayerParticipation;
 using UnityEngine;
 
 namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
@@ -112,6 +113,20 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 state.CurrentRoute != null &&
                 state.CurrentActivity != null &&
                 state.IsActivityReady;
+        }
+
+        public static bool TryGetPlayerGameplaySnapshot(
+            out PlayerGameplayRuntimeHostSnapshot snapshot)
+        {
+            snapshot = null;
+            if (!TryResolveUniqueHost(out FrameworkRuntimeHost host))
+            {
+                return false;
+            }
+
+            PlayerGameplayRuntimeHostModule module =
+                host.GetComponent<PlayerGameplayRuntimeHostModule>();
+            return module != null && module.TryGetSnapshot(out snapshot);
         }
     }
 }

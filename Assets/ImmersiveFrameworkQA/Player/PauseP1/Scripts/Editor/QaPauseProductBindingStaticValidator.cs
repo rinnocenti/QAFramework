@@ -198,7 +198,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                             AssetDatabase.GetAssetPath(input.actions),
                             QaPauseProductBindingPaths.InputActions,
                             StringComparison.Ordinal),
-                    "Official PlayerInput must use P3G4_InputActions.");
+                    "Official PlayerInput must use Local Player Input Actions.");
                 Require(string.Equals(input.defaultActionMap, "Gameplay", StringComparison.Ordinal),
                     "Official PlayerInput default action map must be Gameplay.");
                 Require(ExplicitObject(binding, "pauseAction") == expectedReference &&

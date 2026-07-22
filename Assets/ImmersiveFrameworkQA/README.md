@@ -16,9 +16,8 @@ Player QA expõe somente `Immersive Framework/QA/Player/P3 Run Canonical Pre-FIR
 O fluxo e a validação manual estão documentados em
 `Player/Documentation/P3-CANONICAL-PREFIRSTGAME-QA.md`.
 
-## PROD-ID-1 — identidade estável
+## Route and Activity identity
 
-Execute `Immersive Framework > QA > Regressions > Contracts > Run PROD-ID-1 Identity Regression`.
-O smoke cobre identidade de Route independente de nome/cena, admission token tipado,
-fechamento de identidade de Activity em Object Entry/Local Contribution/Scene Ledger e
-validação explícita de IDs missing, invalid e duplicate.
+Execute `Immersive Framework > QA > Regressions > Authoring > Run Route and Activity Identity Validation Regression` in Edit Mode, then `Immersive Framework > QA > Regressions > Game Flow > Run Route and Activity Identity Regression` in a fresh Play Mode.
+As regressões cobrem identidade independente de nome/cena, runtime state, admission token,
+Object Entry, Activity Scene Ledger e validação isolada de IDs missing, invalid e duplicate.

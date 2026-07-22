@@ -43,7 +43,7 @@ namespace ImmersiveFrameworkQA.PauseP1
             var wrapped = new GUIStyle(GUI.skin.label) { wordWrap = true };
             GUILayout.Label(instructions, wrapped);
             GUILayout.Space(8f);
-            GUILayout.Label("PlayerInput owner: P3G4_LocalPlayerHost", wrapped);
+            GUILayout.Label("PlayerInput owner: Local Player Host", wrapped);
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 24f));
         }
     }

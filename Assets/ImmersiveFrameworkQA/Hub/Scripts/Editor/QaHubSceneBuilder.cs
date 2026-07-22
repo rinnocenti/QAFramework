@@ -19,7 +19,7 @@ namespace ImmersiveFrameworkQA.Hub.Editor
         {
             new(
                 "Camera",
-                "Local Player Camera Publication Regression",
+                "Camera Runtime Host Integration Regression",
                 Root + "/Lifecycle/Routes/QA_LifecycleRouteA.asset"),
             new(
                 "Player",

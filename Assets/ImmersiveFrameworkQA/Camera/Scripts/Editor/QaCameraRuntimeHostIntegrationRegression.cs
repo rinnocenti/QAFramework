@@ -1,35 +1,29 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
 using Immersive.Framework.Camera;
 using Immersive.Framework.PlayerParticipation;
+using ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor;
+using ImmersiveFrameworkQA.Player.Editor;
 using UnityEditor;
 using UnityEngine;
 
 namespace ImmersiveFrameworkQA.Camera.Editor
 {
     /// <summary>
-    /// Play Mode proof that the real P3 gameplay admission lane is the sole Local Player
+    /// Play Mode proof that the official gameplay admission lane is the sole Local Player
     /// camera publisher and that its request is released with the admission.
     /// </summary>
-    internal static class QaCut4LocalPlayerCameraPublicationOwnershipRuntimeSmoke
+    internal static class QaCameraRuntimeHostIntegrationRegression
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Regressions/Camera/Run Local Player Camera Publication Regression";
-        private const string CanonicalSmokeTypeName =
-            "ImmersiveFrameworkQA.Player.Editor.QaP3K7HRouteStartupActivityPlayerAdmissionSmoke";
-        private const string RuntimeHostTypeName =
-            "Immersive.Framework.ApplicationLifecycle.FrameworkRuntimeHost";
-        private const string GameplayModuleTypeName =
-            "Immersive.Framework.PlayerParticipation.PlayerGameplayRuntimeHostModule";
+            "Immersive Framework/QA/Regressions/Camera/Run Camera Runtime Host Integration Regression";
+        private const string LogPrefix =
+            "[CAMERA_RUNTIME_HOST_INTEGRATION_REGRESSION]";
         private const int MaxObservationFrames = 900;
 
-        private static readonly BindingFlags InstanceAny =
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-        private static readonly BindingFlags StaticAny =
-            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+        [MenuItem(MenuPath, true)]
+        private static bool ValidateRun() => EditorApplication.isPlaying;
 
         [MenuItem(MenuPath)]
         private static async void Run()
@@ -40,18 +34,11 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             try
             {
                 Require(EditorApplication.isPlaying,
-                    "Cut 4 runtime smoke must run in a fresh Play Mode session.");
+                    "Camera Runtime Host Integration Regression requires a fresh Play Mode session.");
                 completed.Add("play-mode-required");
 
-                MethodInfo canonicalMethod = ResolveType(CanonicalSmokeTypeName)
-                    .GetMethod("RunCanonicalAsync", StaticAny);
-                Require(canonicalMethod != null,
-                    "Canonical P3K.7H runtime smoke entry point was not found.");
-
-                object taskObject = canonicalMethod.Invoke(null, Array.Empty<object>());
-                Require(taskObject is Task,
-                    "Canonical P3K.7H runtime smoke did not return a Task.");
-                var canonicalTask = (Task)taskObject;
+                Task<IReadOnlyList<string>> canonicalTask =
+                    QaPlayerGameplayAdmissionRegression.RunRegressionAsync();
                 completed.Add("canonical-real-player-lane-started");
 
                 bool publicationObserved = false;
@@ -97,8 +84,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                         Require(output.Contains(
                                 new CameraRequestId(published.CameraRequestId)),
                             "Gameplay admission summary references a camera request not admitted by the output context.");
-                        Require(CountLocalPlayerRequests(output) == 1,
-                            "Camera output contains more than one Local Player request while one Slot is admitted.");
+                        Require(output.CaptureSnapshot().AdmittedRequestCount > 0,
+                            "Camera output has no admitted request while the Local Player request is published.");
                         completed.Add("exactly-one-local-player-request-admitted");
                     }
 
@@ -109,13 +96,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 Require(publicationObserved,
                     "Canonical real Player lane completed without observable Local Player camera publication.");
 
-                PropertyInfo resultProperty = taskObject.GetType().GetProperty(
-                    "Result",
-                    InstanceAny);
-                Require(resultProperty != null,
-                    "Canonical runtime Task has no result evidence.");
-                IEnumerable canonicalCases = resultProperty.GetValue(taskObject) as IEnumerable;
-                Require(canonicalCases != null,
+                IReadOnlyList<string> canonicalCases = canonicalTask.Result;
+                Require(canonicalCases != null && canonicalCases.Count == 51,
                     "Canonical runtime Task returned no case evidence.");
                 completed.Add("canonical-real-player-lane-completed");
 
@@ -158,18 +140,17 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 Require(completed.Count == 9,
                     "Cut 4 runtime smoke case count changed unexpectedly.");
                 Debug.Log(
-                    "[CUT4_LOCAL_PLAYER_CAMERA_PUBLICATION_OWNERSHIP_RUNTIME_SMOKE] " +
-                    $"status='Passed' cases='{completed.Count}' request='{publishedRequestId}' " +
+                    $"{LogPrefix} " +
+                    $"status='Passed' phase='player-publication' cases='{completed.Count}' request='{publishedRequestId}' " +
                     $"completed='{string.Join(",", completed)}'.");
             }
             catch (Exception exception)
             {
-                Exception resolved = Unwrap(exception);
                 Debug.LogError(
-                    "[CUT4_LOCAL_PLAYER_CAMERA_PUBLICATION_OWNERSHIP_RUNTIME_SMOKE] " +
-                    $"status='Failed' exception='{resolved.GetType().Name}' message='{Escape(resolved.Message)}' " +
+                    $"{LogPrefix} " +
+                    $"status='Failed' phase='player-publication' exception='{exception.GetType().Name}' message='{Escape(exception.Message)}' " +
                     $"completed='{string.Join(",", completed)}'.");
-                throw resolved;
+                throw;
             }
         }
 
@@ -204,6 +185,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 UnityEngine.Object.FindObjectsByType<CameraOutputSessionBinding>(
                     FindObjectsInactive.Include);
             CameraOutputContext resolved = null;
+            CameraOutputSessionBinding resolvedBinding = null;
             int matches = 0;
             for (int index = 0; index < outputs.Length; index++)
             {
@@ -215,155 +197,22 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 }
 
                 resolved = binding.Context;
+                resolvedBinding = binding;
                 matches++;
             }
 
             Require(matches == 1 && resolved != null,
                 $"Expected exactly one CameraOutputContext for output '{outputId}', found '{matches}'.");
+            Require(resolvedBinding.IsInitialized && resolvedBinding.UnityCamera != null &&
+                    resolvedBinding.CinemachineBrain != null,
+                $"Camera output '{outputId}' is not initialized with an explicit Unity Camera and CinemachineBrain.");
             return resolved;
-        }
-
-        private static int CountLocalPlayerRequests(CameraOutputContext context)
-        {
-            FieldInfo admittedField = typeof(CameraOutputContext).GetField(
-                "admittedRequests",
-                InstanceAny);
-            Require(admittedField != null,
-                "CameraOutputContext admitted request storage was not found.");
-            IDictionary admitted = admittedField.GetValue(context) as IDictionary;
-            Require(admitted != null,
-                "CameraOutputContext admitted request storage is unavailable.");
-
-            int count = 0;
-            foreach (DictionaryEntry entry in admitted)
-            {
-                if (entry.Value is CameraRequest request &&
-                    request.Owner.Kind == CameraRequestOwnerKind.LocalPlayer)
-                {
-                    count++;
-                }
-            }
-
-            return count;
         }
 
         private static bool TryGetGameplaySnapshot(
             out PlayerGameplayRuntimeHostSnapshot snapshot)
         {
-            snapshot = null;
-            Type hostType = ResolveType(RuntimeHostTypeName);
-            Component host = ResolveUniqueRuntimeHost(hostType);
-
-            Type moduleType = ResolveType(GameplayModuleTypeName);
-            Component module = host.GetComponent(moduleType);
-            if (module == null)
-            {
-                return false;
-            }
-
-            MethodInfo tryGetSnapshot = moduleType.GetMethod(
-                "TryGetSnapshot",
-                InstanceAny);
-            if (tryGetSnapshot == null)
-            {
-                return false;
-            }
-
-            object[] snapshotArguments = { null };
-            bool available = (bool)tryGetSnapshot.Invoke(module, snapshotArguments);
-            snapshot = snapshotArguments[0] as PlayerGameplayRuntimeHostSnapshot;
-            return snapshot != null && (available || !snapshot.IsInitialized);
-        }
-
-        private static Component ResolveUniqueRuntimeHost(Type runtimeHostType)
-        {
-            UnityEngine.Object[] materializedObjects =
-                Resources.FindObjectsOfTypeAll(runtimeHostType);
-            var candidates = new List<Component>();
-            var seen = new HashSet<Component>();
-
-            for (int index = 0; index < materializedObjects.Length; index++)
-            {
-                UnityEngine.Object materializedObject = materializedObjects[index];
-                if (materializedObject == null ||
-                    !runtimeHostType.IsInstanceOfType(materializedObject) ||
-                    !(materializedObject is Component component) ||
-                    component.gameObject == null ||
-                    EditorUtility.IsPersistent(component))
-                {
-                    continue;
-                }
-
-                UnityEngine.SceneManagement.Scene scene = component.gameObject.scene;
-                if (!scene.IsValid() || !scene.isLoaded ||
-                    UnityEditor.SceneManagement.EditorSceneManager.IsPreviewScene(scene) ||
-                    !seen.Add(component))
-                {
-                    continue;
-                }
-
-                candidates.Add(component);
-            }
-
-            if (candidates.Count == 0)
-            {
-                throw new InvalidOperationException(
-                    "FrameworkRuntimeHost runtime instance was not found. " +
-                    "Expected exactly one materialized component in a loaded scene.");
-            }
-
-            if (candidates.Count != 1)
-            {
-                var diagnostics = new List<string>(candidates.Count);
-                for (int index = 0; index < candidates.Count; index++)
-                {
-                    Component candidate = candidates[index];
-                    UnityEngine.SceneManagement.Scene scene = candidate.gameObject.scene;
-                    diagnostics.Add(
-                        $"GameObject='{candidate.gameObject.name}', " +
-                        $"Scene='{scene.name}', ScenePath='{scene.path}', " +
-                        $"EntityId='{candidate.GetEntityId()}'");
-                }
-
-                throw new InvalidOperationException(
-                    "Expected exactly one FrameworkRuntimeHost runtime instance, " +
-                    $"but found '{candidates.Count}'. Candidates: " +
-                    string.Join("; ", diagnostics));
-            }
-
-            return candidates[0];
-        }
-
-        private static Type ResolveType(string fullName)
-        {
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            for (int index = 0; index < assemblies.Length; index++)
-            {
-                Type type = assemblies[index].GetType(fullName, throwOnError: false);
-                if (type != null)
-                {
-                    return type;
-                }
-            }
-
-            throw new InvalidOperationException($"Type '{fullName}' was not found.");
-        }
-
-        private static Exception Unwrap(Exception exception)
-        {
-            if (exception is TargetInvocationException invocation &&
-                invocation.InnerException != null)
-            {
-                return Unwrap(invocation.InnerException);
-            }
-
-            if (exception is AggregateException aggregate &&
-                aggregate.InnerExceptions.Count == 1)
-            {
-                return Unwrap(aggregate.InnerExceptions[0]);
-            }
-
-            return exception;
+            return QaH2FrameworkReadiness.TryGetPlayerGameplaySnapshot(out snapshot);
         }
 
         private static string Escape(string value)

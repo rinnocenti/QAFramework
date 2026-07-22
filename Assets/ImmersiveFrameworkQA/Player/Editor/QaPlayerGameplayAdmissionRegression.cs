@@ -19,7 +19,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
     /// One-shot Play Mode proof for the official FrameworkRuntimeHost-scoped
     /// Route Startup Activity Player admission integration.
     /// </summary>
-    internal static class QaP3K7HRouteStartupActivityPlayerAdmissionSmoke
+    internal static class QaPlayerGameplayAdmissionRegression
     {
         private const string RuntimeHostTypeName =
             "Immersive.Framework.ApplicationLifecycle.FrameworkRuntimeHost";
@@ -37,11 +37,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static readonly BindingFlags InstanceAny =
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
         [MenuItem("Immersive Framework/QA/Regressions/Player/Run Player Gameplay Admission Regression")]
-        private static async void Run()
+        private static async void RunRegression()
         {
             try
             {
-                IReadOnlyList<string> completed = await RunCanonicalAsync();
+                IReadOnlyList<string> completed = await RunRegressionAsync();
                 Debug.Log(
                     "[PLAYER_GAMEPLAY_ADMISSION_REGRESSION] status='Passed' " +
                     $"cases='{completed.Count}' completed='{string.Join(",", completed)}'.");
@@ -55,7 +55,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             }
         }
 
-        internal static async Task<IReadOnlyList<string>> RunCanonicalAsync()
+        internal static async Task<IReadOnlyList<string>> RunRegressionAsync()
         {
             var completed = new List<string>();
 
@@ -66,7 +66,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             try
             {
                 AssertTrue(EditorApplication.isPlaying,
-                    "P3K.7H Route Startup admission smoke must run in Play Mode.");
+                    "Player Gameplay Admission regression must run in Play Mode.");
                 completed.Add("play-mode-required");
 
                 LocalPlayerProvisioningAuthoring authoring =
@@ -102,23 +102,23 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 completed.Add("session-authorities-initialized");
 
                 AssertTrue(initialGameplay.LifecycleAdmission != null,
-                    "P3K.7H lifecycle admission snapshot is missing.");
+                    "Player Gameplay Admission lifecycle snapshot is missing.");
                 AssertEqual(ActivityPlayerLifecycleAdmissionState.None,
                     initialGameplay.LifecycleAdmission.State,
-                    "P3K.7H lifecycle admission is not initially clean.");
+                    "Player Gameplay Admission lifecycle is not initially clean.");
                 completed.Add("lifecycle-admission-initially-clean");
 
                 PlayerInputManager manager = authoring.PlayerInputManager;
                 AssertNotNull(manager,
                     "Provisioning authoring has no PlayerInputManager.");
                 AssertEqual(0, manager.playerCount,
-                    "P3K.7H smoke is one-shot. Re-enter Play Mode before running again.");
+                    "Player Gameplay Admission regression is one-shot. Re-enter Play Mode before running again.");
 
                 PlayerParticipationOperationResult opened =
                     Invoke<PlayerParticipationOperationResult>(
                         preparationModule,
                         "TryOpenJoining",
-                        nameof(QaP3K7HRouteStartupActivityPlayerAdmissionSmoke),
+                        nameof(QaPlayerGameplayAdmissionRegression),
                         "route-startup-lifecycle-admission");
                 AssertTrue(opened.Completed && opened.Snapshot.JoiningOpen,
                     "Opening joining failed. " + opened.ToDiagnosticString());
@@ -126,7 +126,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 LocalPlayerJoinResult joined = authoring.RequestJoin(
                     new LocalPlayerJoinRequest(
-                        nameof(QaP3K7HRouteStartupActivityPlayerAdmissionSmoke),
+                        nameof(QaPlayerGameplayAdmissionRegression),
                         "route-startup-lifecycle-admission"));
                 AssertNotNull(joined,
                     "Real local Player join returned no result.");
@@ -182,7 +182,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     selectionEndpoint.RequestDefaultActorSelection(
                         slotId,
                         joined.Slot.SelectionRevision,
-                        nameof(QaP3K7HRouteStartupActivityPlayerAdmissionSmoke),
+                        nameof(QaPlayerGameplayAdmissionRegression),
                         "select-current-actor");
                 AssertNotNull(selected,
                     "Default Actor selection returned no result.");
@@ -199,7 +199,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 AssertNotNull(currentRoute,
                     "FrameworkRuntimeHost has no current Route.");
                 AssertTrue(currentRoute.HasPrimaryScene,
-                    "Current Route has no Primary Scene for the Route Startup smoke.");
+                    "Current Route has no Primary Scene for the Player Gameplay Admission regression.");
 
                 ActivityAsset currentActivity =
                     ResolveCurrentActivity(runtimeHost);
@@ -239,7 +239,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         "TryPrepareSelectedActor",
                         currentContext,
                         slotId,
-                        nameof(QaP3K7HRouteStartupActivityPlayerAdmissionSmoke),
+                        nameof(QaPlayerGameplayAdmissionRegression),
                         "prepare-current-activity-actor");
                 AssertNotNull(prepared,
                     "Current Actor preparation returned no result.");
@@ -262,7 +262,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         gameplayModule,
                         "TryEnsureCurrentGameplay",
                         slotId,
-                        nameof(QaP3K7HRouteStartupActivityPlayerAdmissionSmoke),
+                        nameof(QaPlayerGameplayAdmissionRegression),
                         "ensure-current-gameplay");
                 AssertNotNull(ensured,
                     "Current gameplay chain operation returned no result.");
@@ -311,7 +311,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     runtimeHost,
                     "RequestRouteAsync",
                     targetRoute,
-                    nameof(QaP3K7HRouteStartupActivityPlayerAdmissionSmoke),
+                    nameof(QaPlayerGameplayAdmissionRegression),
                     "route-startup-gameplayready-switch");
                 AssertTrue(GetBooleanProperty(requestResult, "Succeeded"),
                     "Route request with GameplayReady Startup Activity failed. " +
@@ -333,9 +333,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 ActivityPlayerLifecycleAdmissionSnapshot lifecycle =
                     switchedGameplay.LifecycleAdmission;
                 AssertNotNull(lifecycle,
-                    "P3K.7H lifecycle admission evidence is missing after switch.");
+                    "Player Gameplay Admission lifecycle evidence is missing after switch.");
                 AssertTrue(lifecycle.IsCompleted,
-                    "P3K.7H lifecycle admission did not complete. " +
+                    "Player Gameplay Admission lifecycle did not complete. " +
                     lifecycle.ToDiagnosticString());
                 completed.Add("lifecycle-admission-completed");
 
@@ -485,7 +485,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 object clearResult = await InvokeTaskResultAsync(
                     runtimeHost,
                     "ClearActivityAsync",
-                    nameof(QaP3K7HRouteStartupActivityPlayerAdmissionSmoke),
+                    nameof(QaPlayerGameplayAdmissionRegression),
                     "clear-adopted-gameplayready-activity");
                 AssertTrue(GetBooleanProperty(clearResult, "Succeeded"),
                     "Clearing adopted Activity failed. " +
@@ -555,7 +555,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     Invoke<PlayerParticipationOperationResult>(
                         preparationModule,
                         "TryCloseJoining",
-                        nameof(QaP3K7HRouteStartupActivityPlayerAdmissionSmoke),
+                        nameof(QaPlayerGameplayAdmissionRegression),
                         "route-startup-lifecycle-admission-complete");
                 AssertTrue(closed.Completed && !closed.Snapshot.JoiningOpen,
                     "Closing joining failed. " + closed.ToDiagnosticString());
@@ -570,8 +570,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     typeof(ActivityPlayerPreviousExitDisposition));
                 completed.Add("public-lifecycle-contracts-no-unity-references");
 
-                AssertEqual(49, completed.Count,
-                    "P3K.7H smoke case count changed unexpectedly.");
+                AssertEqual(51, completed.Count,
+                    "Player Gameplay Admission regression case count changed unexpectedly.");
                 return completed;
             }
             catch (TargetInvocationException exception)
@@ -581,7 +581,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             }
         }
 
-        private static async System.Threading.Tasks.Task<LocalPlayerProvisioningAuthoring>
+        private static async Task<LocalPlayerProvisioningAuthoring>
             AwaitProvisioningAuthoringAsync()
         {
             const int MaxFrames = 300;
@@ -623,7 +623,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             }
 
             throw new InvalidOperationException(
-                "LocalPlayerProvisioningAuthoring did not become RuntimeReady before the smoke timeout.");
+                "LocalPlayerProvisioningAuthoring did not become RuntimeReady before the regression timeout.");
         }
 
         private static RouteAsset ResolveCurrentRoute(
@@ -664,7 +664,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return currentActivity.GetValue(state) as ActivityAsset;
         }
 
-        private static async System.Threading.Tasks.Task<object>
+        private static async Task<object>
             InvokeTaskResultAsync(
                 object target,
                 string methodName,
@@ -675,8 +675,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 methodName).Invoke(target, arguments);
             AssertNotNull(taskObject,
                 $"Async method '{methodName}' returned no Task.");
-            System.Threading.Tasks.Task task =
-                taskObject as System.Threading.Tasks.Task;
+            Task task =
+                taskObject as Task;
             AssertNotNull(task,
                 $"Async method '{methodName}' did not return a Task.");
             await task;
@@ -1078,11 +1078,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
             ActivityParticipationProjectionProfile projection =
                 ScriptableObject.CreateInstance<
                     ActivityParticipationProjectionProfile>();
-            projection.name = "P3K.7H Explicit Player";
+            projection.name = "Player Gameplay Admission Explicit Player";
             SerializedObject projectionSerialized =
                 new SerializedObject(projection);
             projectionSerialized.FindProperty("displayName").stringValue =
-                "P3K.7H Explicit Player";
+                "Player Gameplay Admission Explicit Player";
             projectionSerialized.FindProperty("projectionMode").intValue =
                 (int)ActivityParticipationProjectionMode.ExplicitSlots;
             projectionSerialized.FindProperty(
@@ -1099,11 +1099,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
             PlayerParticipationRequirementsProfile requirements =
                 ScriptableObject.CreateInstance<
                     PlayerParticipationRequirementsProfile>();
-            requirements.name = "P3K.7H Gameplay Ready";
+            requirements.name = "Player Gameplay Admission Ready";
             SerializedObject requirementsSerialized =
                 new SerializedObject(requirements);
             requirementsSerialized.FindProperty("displayName").stringValue =
-                "P3K.7H Gameplay Ready";
+                "Player Gameplay Admission Ready";
             requirementsSerialized.FindProperty(
                     "requirementLevel").intValue =
                 (int)PlayerParticipationRequirementLevel.GameplayReady;
@@ -1111,11 +1111,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             ActivityAsset activity =
                 ScriptableObject.CreateInstance<ActivityAsset>();
-            activity.name = "P3K.7H Target Activity";
+            activity.name = "Player Gameplay Admission Target Activity";
             SerializedObject activitySerialized =
                 new SerializedObject(activity);
             activitySerialized.FindProperty("activityName").stringValue =
-                "P3K.7H Target Activity";
+                "Player Gameplay Admission Target Activity";
             activitySerialized.FindProperty("activityId").stringValue =
                 "qa.p3k7h.target.activity";
             activitySerialized.FindProperty(
@@ -1140,12 +1140,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "Current Route must expose a valid Primary Scene.");
 
             RouteAsset route = ScriptableObject.CreateInstance<RouteAsset>();
-            route.name = "P3K.7H Target Route";
+            route.name = "Player Gameplay Admission Target Route";
             SerializedObject serialized = new SerializedObject(route);
             serialized.FindProperty("routeId").stringValue =
                 "qa.p3k7h.target.route";
             serialized.FindProperty("routeName").stringValue =
-                "P3K.7H Target Route";
+                "Player Gameplay Admission Target Route";
             serialized.FindProperty("primaryScenePath").stringValue =
                 TargetRoutePrimaryScenePath;
             serialized.FindProperty("primarySceneName").stringValue =
@@ -1184,14 +1184,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 new object[]
                 {
                     owner,
-                    nameof(QaP3K7HRouteStartupActivityPlayerAdmissionSmoke),
+                    nameof(QaPlayerGameplayAdmissionRegression),
                     "create-session-gameplay-scope"
                 });
 
             object[] contextArguments =
             {
                 owner,
-                nameof(QaP3K7HRouteStartupActivityPlayerAdmissionSmoke),
+                nameof(QaPlayerGameplayAdmissionRegression),
                 "session-gameplay-runtime-composition",
                 null
             };
@@ -1231,7 +1231,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         new object[]
                         {
                             owner,
-                            nameof(QaP3K7HRouteStartupActivityPlayerAdmissionSmoke),
+                            nameof(QaPlayerGameplayAdmissionRegression),
                             "session-gameplay-runtime-cleanup"
                         });
             AssertNotNull(result,

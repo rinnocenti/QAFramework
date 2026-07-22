@@ -22,11 +22,11 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
     {
         internal const string Root = "Assets/ImmersiveFrameworkQA/Player/PauseP1";
         internal const string InputActions =
-            "Assets/ImmersiveFrameworkQA/Player/P3G4/P3G4_InputActions.asset";
+            "Assets/ImmersiveFrameworkQA/Player/LocalPlayerRuntimeIntegration/LocalPlayerInputActions.asset";
         internal const string PlayerHost =
-            "Assets/ImmersiveFrameworkQA/Player/P3G4/P3G4_LocalPlayerHost.prefab";
+            "Assets/ImmersiveFrameworkQA/Player/LocalPlayerRuntimeIntegration/LocalPlayerHost.prefab";
         internal const string ActionReference =
-            Root + "/P3G4_PauseToggle.asset";
+            Root + "/LocalPlayerPauseToggle.asset";
         internal const string Route = Root + "/QA_PauseP1Route.asset";
         internal const string Activity = Root + "/QA_PauseP1Activity.asset";
         internal const string Content = Root + "/QA_PauseP1ActivityContent.asset";
@@ -116,7 +116,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     $"{LogPrefix} status='Applied' " +
                     $"route='{route.RouteName}' " +
                     $"activity='{activity.ActivityName}' " +
-                    "playerHost='P3G4_LocalPlayerHost' " +
+                    "playerHost='Local Player Host' " +
                     $"pauseBinding='{result.PauseBindingCount}' " +
                     $"runtimeEvidence='{result.RuntimeEvidenceCount}' " +
                     $"pauseRequestTriggers='{result.PauseRequestTriggerCount}' " +
@@ -234,7 +234,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                 reference.Set(pauseAction);
             }
 
-            reference.name = "P3G4_PauseToggle";
+            reference.name = "LocalPlayerPauseToggle";
             EditorUtility.SetDirty(reference);
             AssetDatabase.SaveAssetIfDirty(reference);
             return reference;
@@ -247,7 +247,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
             Require(
                 AssetDatabase.LoadAssetAtPath<GameObject>(
                     QaPauseProductBindingPaths.PlayerHost) != null,
-                "Official P3G4 Local Player host prefab is missing.");
+                "Official Local Player host prefab is missing.");
 
             GameObject root = PrefabUtility.LoadPrefabContents(
                 QaPauseProductBindingPaths.PlayerHost);
@@ -306,7 +306,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     PrefabUtility.SaveAsPrefabAsset(
                         root,
                         QaPauseProductBindingPaths.PlayerHost) != null,
-                    "Could not save the official P3G4 Local Player host.");
+                    "Could not save the official Local Player host.");
             }
             finally
             {

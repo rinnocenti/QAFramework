@@ -95,7 +95,7 @@ namespace ImmersiveFrameworkQA.Lifecycle
                 wrappedLabel);
             GUILayout.Label(
                 "Run from Unity Editor: Immersive Framework/QA/Regressions/" +
-                "Camera/Run Local Player Camera Publication Regression",
+                "Camera/Run Camera Runtime Host Integration Regression",
                 wrappedLabel);
 
             GUILayout.Space(8f);

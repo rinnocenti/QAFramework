@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Immersive.Framework.Camera;
 using Immersive.Framework.CameraAuthoring;
 using Immersive.Framework.GameFlow;
@@ -14,8 +15,9 @@ namespace ImmersiveFrameworkQA.Camera
         ISessionCameraOverrideConsumer
     {
         private const string LogPrefix =
-            "[QA][C9R Camera Override Authority]";
+            "[CAMERA_RUNTIME_HOST_INTEGRATION_REGRESSION]";
         private const int MaxReadinessFrames = 600;
+        private const int ExpectedCaseCount = 11;
 
         [SerializeField] private RouteCameraOverrideBinding routeBinding;
         [SerializeField]
@@ -36,6 +38,7 @@ namespace ImmersiveFrameworkQA.Camera
         private bool started;
         private bool awaitingRouteLifecycleCleanup;
         private string routeRequestId;
+        private readonly List<string> completedCases = new List<string>();
 
         public void RunFromContextMenu()
         {
@@ -58,6 +61,7 @@ namespace ImmersiveFrameworkQA.Camera
             lastStatus = "Running";
             lastFailure = string.Empty;
             completedCaseCount = 0;
+            completedCases.Clear();
 
             yield return WaitFor(Readiness, "persistent-output-readiness");
             if (HasFailed)
@@ -216,9 +220,17 @@ namespace ImmersiveFrameworkQA.Camera
             }
 
             Complete("route-lifecycle-cleanup");
+            if (completedCaseCount != ExpectedCaseCount)
+            {
+                Fail(
+                    $"Camera runtime host integration case count changed. " +
+                    $"expected='{ExpectedCaseCount}' actual='{completedCaseCount}'.");
+                return;
+            }
             lastStatus = "Passed";
             Debug.Log(
-                $"{LogPrefix} PASS. cases='{completedCaseCount}'.",
+                $"{LogPrefix} status='Passed' phase='canonical-override-fixture' " +
+                $"cases='{completedCaseCount}' completed='{string.Join(",", completedCases)}'.",
                 this);
         }
 
@@ -307,8 +319,9 @@ namespace ImmersiveFrameworkQA.Camera
         private void Complete(string name)
         {
             completedCaseCount++;
+            completedCases.Add(name);
             Debug.Log(
-                $"{LogPrefix} case='{name}' status='PASS'.",
+                $"{LogPrefix} phase='canonical-override-fixture' case='{name}' status='Passed'.",
                 this);
         }
 
@@ -322,7 +335,8 @@ namespace ImmersiveFrameworkQA.Camera
             lastStatus = "Failed";
             lastFailure = reason;
             Debug.LogError(
-                $"{LogPrefix} FAIL. reason='{reason}'.",
+                $"{LogPrefix} status='Failed' phase='canonical-override-fixture' " +
+                $"reason='{reason}' completed='{string.Join(",", completedCases)}'.",
                 this);
             if (throwOnFailure)
             {

@@ -7,7 +7,7 @@ using UnityEngine;
 namespace ImmersiveFrameworkQA.Player.Editor
 {
     /// <summary>
-    /// Idempotent P3J.5 fixture. Reuses the canonical P3G.4 technical host and P3H.4
+    /// Idempotent P3J.5 fixture. Reuses the canonical Local Player technical host and P3H.4
     /// Actor-selection assets; it does not create a second PlayerInputManager or GameApplication.
     /// </summary>
     internal static class QaP3J5RuntimeHostPreparationSetup
