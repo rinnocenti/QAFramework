@@ -26,7 +26,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
         internal const string PlayerHost =
             "Assets/ImmersiveFrameworkQA/Player/P3G4/P3G4_LocalPlayerHost.prefab";
         internal const string ActionReference =
-            Root + "/P3G4_PauseToggle.inputactionreference.asset";
+            Root + "/P3G4_PauseToggle.asset";
         internal const string Route = Root + "/QA_PauseP1Route.asset";
         internal const string Activity = Root + "/QA_PauseP1Activity.asset";
         internal const string Content = Root + "/QA_PauseP1ActivityContent.asset";
@@ -79,9 +79,31 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                 EnsureSceneInBuildSettings(QaPauseProductBindingPaths.ActivityScene);
 
                 AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
                 QaHubSceneBuilder.CreateOrRefreshHubForSetup();
                 AssetDatabase.SaveAssets();
+
+                actions = AssetDatabase.LoadAssetAtPath<InputActionAsset>(
+                    QaPauseProductBindingPaths.InputActions);
+
+                pauseAction = actions != null
+                    ? actions.FindAction(
+                        QaPauseProductBindingPaths.PauseAction,
+                        false)
+                    : null;
+
+                pauseReference =
+                    AssetDatabase.LoadAssetAtPath<InputActionReference>(
+                        QaPauseProductBindingPaths.ActionReference);
+
+                route = AssetDatabase.LoadAssetAtPath<RouteAsset>(
+                    QaPauseProductBindingPaths.Route);
+
+                activity = AssetDatabase.LoadAssetAtPath<ActivityAsset>(
+                    QaPauseProductBindingPaths.Activity);
+
+                content =
+                    AssetDatabase.LoadAssetAtPath<ActivityContentProfileAsset>(
+                        QaPauseProductBindingPaths.Content);
 
                 QaPauseProductBindingValidation result =
                     QaPauseProductBindingStaticValidator.Validate(
