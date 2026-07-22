@@ -25,7 +25,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
         public static void RunInternal()
         {
             var completed = new List<string>();
-            var objects = new List<UnityEngine.Object>();
             var fixtures = new List<InputGateFixture>();
 
             try
@@ -39,8 +38,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                 Require(hostRuntime != null, "FrameworkRuntimeHost did not expose Input Gate runtime port.");
                 _ = hostRuntime.CurrentGateSnapshot;
                 completed.Add("runtime-port-available");
-
-                RunBindingCompositionCases(objects, fixtures, completed);
 
                 InputGateFixture unbound = InputGateFixture.Create(
                     "H229 Unbound Adapter",
@@ -223,103 +220,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                     fixtures[index]?.Dispose();
                 }
 
-                for (int index = objects.Count - 1; index >= 0; index--)
-                {
-                    if (objects[index] != null)
-                    {
-                        UnityEngine.Object.Destroy(objects[index]);
-                    }
-                }
             }
-        }
-
-        private static void RunBindingCompositionCases(
-            ICollection<UnityEngine.Object> objects,
-            ICollection<InputGateFixture> fixtures,
-            ICollection<string> completed)
-        {
-            var port = new MutableInputGateRuntimePort();
-            GameObject empty = CreateInactiveRoot("H229 Binding Empty", objects);
-
-            UnityPlayerInputGateAdapterBindingResult missingRuntime =
-                UnityPlayerInputGateAdapterBinding.TryBind(
-                    new[] { empty },
-                    null);
-            Require(
-                !missingRuntime.Succeeded
-                && missingRuntime.Status == "RejectedMissingInputGateRuntime"
-                && missingRuntime.RootCount == 1
-                && missingRuntime.AdapterCount == 0,
-                missingRuntime.Message);
-
-            UnityPlayerInputGateAdapterBindingResult absent =
-                UnityPlayerInputGateAdapterBinding.TryBind(
-                    new[] { empty, empty },
-                    port);
-            Require(
-                absent.Succeeded
-                && absent.Status == "OptionalAbsent"
-                && absent.RootCount == 1
-                && absent.AdapterCount == 0,
-                absent.Message);
-
-            InputGateFixture boundFixture = InputGateFixture.Create(
-                "H229 Binding Root",
-                includeGameplayMap: true,
-                gameplayInitiallyEnabled: true);
-            fixtures.Add(boundFixture);
-            UnityPlayerInputGateAdapterBindingResult bound =
-                UnityPlayerInputGateAdapterBinding.TryBind(
-                    new[] { boundFixture.Root, boundFixture.Root },
-                    port);
-            Require(
-                bound.Succeeded
-                && bound.RootCount == 1
-                && bound.AdapterCount == 1
-                && bound.BoundCount == 1
-                && bound.IdempotentCount == 0
-                && bound.RejectedCount == 0
-                && boundFixture.Adapter.HasInputGateRuntimeBinding,
-                bound.Message);
-
-            GameObject child = CreateInactiveRoot("H229 Binding Child", objects);
-            child.transform.SetParent(boundFixture.Root.transform, false);
-            UnityPlayerInputGateAdapterBindingResult idempotent =
-                UnityPlayerInputGateAdapterBinding.TryBind(
-                    new[] { boundFixture.Root, child, boundFixture.Root },
-                    port);
-            Require(
-                idempotent.Succeeded
-                && idempotent.RootCount == 2
-                && idempotent.AdapterCount == 1
-                && idempotent.BoundCount == 0
-                && idempotent.IdempotentCount == 1
-                && idempotent.RejectedCount == 0,
-                idempotent.Message);
-
-            InputGateFixture incompatible = InputGateFixture.Create(
-                "H229 Binding Incompatible",
-                includeGameplayMap: true,
-                gameplayInitiallyEnabled: true);
-            fixtures.Add(incompatible);
-            Require(
-                incompatible.Adapter.TryBindInputGateRuntime(
-                    new MutableInputGateRuntimePort(),
-                    out string initialIssue),
-                initialIssue);
-            UnityPlayerInputGateAdapterBindingResult rejected =
-                UnityPlayerInputGateAdapterBinding.TryBind(
-                    new[] { incompatible.Root },
-                    new MutableInputGateRuntimePort());
-            Require(
-                !rejected.Succeeded
-                && rejected.Status == "RejectedAdapterBinding"
-                && rejected.AdapterCount == 1
-                && rejected.RejectedCount == 1
-                && rejected.Message.Contains("different port"),
-                rejected.Message);
-
-            completed.Add("explicit-root-binding-optional-idempotent-and-divergent-cases");
         }
 
         private static GateSnapshot Snapshot(
@@ -338,16 +239,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.Gam
                         "qa-gate",
                         "H2.2.9")
                 });
-        }
-
-        private static GameObject CreateInactiveRoot(
-            string name,
-            ICollection<UnityEngine.Object> objects)
-        {
-            var root = new GameObject(name);
-            root.SetActive(false);
-            objects.Add(root);
-            return root;
         }
 
         private static string BuildFixtureDiagnostic(InputGateFixture fixture)

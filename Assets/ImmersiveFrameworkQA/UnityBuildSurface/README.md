@@ -203,18 +203,34 @@ This is still QA surface validation only. It does not bind keyboard/controller i
 
 
 
-## F27B Technical Pause Bridge Regression
+## Pause PlayerInput Product Binding
 
-The following is a technical experimental regression path, not the canonical
-Pause P1 product path and not `QA_UIGlobal` startup composition:
+The retired technical InputMode bridge no longer has a QA execution path.
+Pause input is composed by Scene Lifecycle through the product-owned path:
 
 ```text
-PauseInputActionRuntimeBridgeTrigger
-  -> PauseInputModeUnityPlayerInputRuntimeBridge
+PausePlayerInputBinding
+  -> PauseProductBindingRuntimeContext
+  -> InputModeRuntimeContext
+  -> UnityPlayerInputGateAdapter
+  -> UnityPlayerInputStateWriter
 ```
 
-The QA input asset has `PauseToggle` in both `Player` and `UI` maps. Default bindings are Escape and Gamepad Start.
+The QA input asset keeps `PauseToggle` for the official Pause P1 fixture. Default
+bindings are Escape and Gamepad Start.
 
-This bridge path is intentionally narrow: it validates explicit Unity input
-evidence and retained IC2 behavior. Consumer guidance is
-`PausePlayerInputBinding` plus `IPauseProductRequestPort`.
+### FRAMEWORK-HYGIENE-1 QA reconciliation
+
+- The IC2 bridge fixture and its bridge-only regression were removed.
+- The `InputModeRuntimeContext` transaction regression remains.
+- The behavioral `UnityPlayerInputGateAdapter` regression remains without the
+  retired discovery/binding helper.
+- Cases for the removed `CycleResetSmokeProbe` were deleted.
+- Pause P1 uses `PausePlayerInputBinding` and the official product-owned runtime
+  path.
+- Superseded APIs must not be restored as wrappers, aliases or compatibility
+  surfaces.
+
+The supplied Unity result reported compile errors before this local migration.
+No post-migration QA compile or focused regression PASS result has been supplied,
+so validation remains pending.

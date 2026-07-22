@@ -42,14 +42,14 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                 "Superseded PauseInputModeRuntimeBridgeRegistration source remains in the package.");
             Require(!File.Exists(Path.Combine(packageRoot, "Runtime", "GlobalUi", "GlobalUiPauseRuntimeBindingResult.cs")),
                 "Superseded GlobalUiPauseRuntimeBindingResult source remains in the package.");
-            ValidateDoesNotContain(
-                Path.Combine(packageRoot, "Runtime", "InputMode", "PauseInputModeUnityPlayerInputRuntimeBridge.cs"),
-                "[AddComponentMenu(",
-                "[ContextMenu(");
-            ValidateDoesNotContain(
-                Path.Combine(packageRoot, "Runtime", "InputMode", "PauseInputActionRuntimeBridgeTrigger.cs"),
-                "[AddComponentMenu(",
-                "[ContextMenu(");
+            Require(!File.Exists(Path.Combine(packageRoot, "Runtime", "InputMode", "PauseInputModeUnityPlayerInputRuntimeBridge.cs")),
+                "Retired Pause InputMode runtime bridge remains in the package.");
+            Require(!File.Exists(Path.Combine(packageRoot, "Runtime", "InputMode", "PauseInputActionRuntimeBridgeTrigger.cs")),
+                "Retired Pause InputAction bridge trigger remains in the package.");
+            Require(File.Exists(Path.Combine(packageRoot, "Runtime", "Pause", "PausePlayerInputBinding.cs")),
+                "Canonical Pause PlayerInput product binding is missing.");
+            Require(File.Exists(Path.Combine(packageRoot, "Runtime", "Pause", "PauseProductBindingRuntimeContext.cs")),
+                "Canonical Pause product runtime context is missing.");
 
             string runtimeRoot = Path.Combine(packageRoot, "Runtime");
             foreach (string path in Directory.GetFiles(runtimeRoot, "*.cs", SearchOption.AllDirectories))
@@ -57,7 +57,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                 ValidateDoesNotContain(path, "TryBindPauseInputModeRuntime", "PauseInputModeRuntimeBridgeRegistration", "GlobalUiPauseRuntimeBindingResult");
             }
 
-            Debug.Log("[QA][PAUSE-P1][LEGACY-BOUNDARY] status='Passed' checks='h221-product-only,trigger-product-only,legacy-uiglobal-removed,technical-bridge-hidden'.");
+            Debug.Log("[QA][PAUSE-P1][LEGACY-BOUNDARY] status='Passed' checks='h221-product-only,trigger-product-only,legacy-uiglobal-removed,technical-bridge-removed,canonical-product-binding-present'.");
         }
 
         private static string ResolvePackageRoot()

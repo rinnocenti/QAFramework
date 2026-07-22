@@ -220,14 +220,10 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
                 "Runtime/UnityInput/UnityPlayerInputStateWriter.cs");
             string gate = Read(packageRoot,
                 "Runtime/UnityInput/UnityPlayerInputGateAdapter.cs");
-            string inputMode = Read(packageRoot,
-                "Runtime/InputMode/InputModeUnityPlayerInputAdapter.cs");
             string gameplay = Read(packageRoot,
                 "Runtime/PlayerParticipation/Runtime/PlayerGameplayInputBindingRuntimeContext.cs");
-            string canonicalPauseTrigger = Read(packageRoot,
-                "Runtime/InputMode/PauseInputActionRuntimeBridgeTrigger.cs");
-            string inputModeApplication = Read(packageRoot,
-                "Runtime/InputMode/InputModeUnityPlayerInputApplication.cs");
+            string pauseBinding = Read(packageRoot,
+                "Runtime/Pause/PauseProductBindingRuntimeContext.cs");
 
             Require(writer.Contains("playerInput.currentActionMap = targetActionMap"),
                 "Canonical writer has no action-map selection side effect.");
@@ -251,24 +247,15 @@ namespace ImmersiveFrameworkQA.UnityInput.Editor
                 "Gate authority does not delegate to the physical writer.");
             completed.Add("gate-is-write-port");
 
-            AssertNoDirectPlayerInputWrite(inputMode, "InputMode adapter");
             AssertNoDirectPlayerInputWrite(gameplay, "Gameplay binding context");
             AssertNoDirectPlayerInputWrite(gate, "Gate authority");
-            AssertNoDirectPlayerInputWrite(
-                canonicalPauseTrigger,
-                "Pause InputAction bridge trigger");
-            AssertNoDirectPlayerInputWrite(
-                inputModeApplication,
-                "InputMode application");
+            AssertNoDirectPlayerInputWrite(pauseBinding, "Pause product binding context");
             completed.Add("requesters-have-no-direct-write");
 
-            Require(!inputMode.Contains("UnityPlayerInputStateWriter.Try"),
-                "InputMode bypasses the explicit Gate write authority.");
             Require(!gameplay.Contains("UnityPlayerInputStateWriter.Try"),
                 "Gameplay binding bypasses the explicit Gate write authority.");
-            Require(!canonicalPauseTrigger.Contains(
-                    "UnityPlayerInputStateWriter.Try"),
-                "Pause InputAction bridge trigger bypasses the explicit Gate write authority.");
+            Require(!pauseBinding.Contains("UnityPlayerInputStateWriter.Try"),
+                "Pause product binding bypasses the explicit Gate write authority.");
             completed.Add("single-request-port-enforced");
         }
 

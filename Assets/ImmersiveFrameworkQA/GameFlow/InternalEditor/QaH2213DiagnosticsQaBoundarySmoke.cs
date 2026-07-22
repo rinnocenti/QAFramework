@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using Immersive.Framework.ApplicationLifecycle;
-using Immersive.Framework.CycleReset;
 using Immersive.Framework.Diagnostics;
 using UnityEditor;
 using UnityEngine;
@@ -37,9 +36,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             int baselineCanvasCount =
                 CountLoadedObjects<
                     FrameworkQaCanvas>();
-            int baselineProbeCount =
-                CountLoadedObjects<
-                    CycleResetSmokeProbe>();
 
             try
             {
@@ -148,79 +144,25 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 completed.Add(
                     "unbound-canvas-does-not-fallback-to-current-host");
 
-                Type probeType =
-                    typeof(CycleResetSmokeProbe);
-                Require(
-                    !HasFieldAssignableTo(
-                        probeType,
-                        typeof(FrameworkRuntimeHost)) &&
-                    probeType.GetMethod(
-                        "RunCycleResetSmoke",
-                        BindingFlags.Instance |
-                        BindingFlags.Public) != null,
-                    "CycleResetSmokeProbe still exposes a concrete runtime host dependency.");
-                completed.Add(
-                    "cycle-reset-probe-is-retired-and-host-free");
-
-                GameObject probeRoot =
-                    CreateInactiveRoot(
-                        "H2213 Retired Cycle Reset Probe",
-                        temporaryObjects);
-                CycleResetSmokeProbe probe =
-                    probeRoot.AddComponent<
-                        CycleResetSmokeProbe>();
-
-                FrameworkRuntimeDiagnosticsSnapshot beforeProbe =
-                    diagnosticsRuntime.CreateFrameworkRuntimeDiagnosticsSnapshot();
-                probe.RunCycleResetSmoke();
-                FrameworkRuntimeDiagnosticsSnapshot afterProbe =
-                    diagnosticsRuntime.CreateFrameworkRuntimeDiagnosticsSnapshot();
-
-                Require(
-                    !string.IsNullOrWhiteSpace(
-                        probe.Diagnostic) &&
-                    probe.Diagnostic.Contains(
-                        "QAFramework") &&
-                    beforeProbe.CurrentRouteName ==
-                        afterProbe.CurrentRouteName &&
-                    beforeProbe.CurrentActivityName ==
-                        afterProbe.CurrentActivityName &&
-                    beforeProbe.ContentAnchorBindingCount ==
-                        afterProbe.ContentAnchorBindingCount &&
-                    beforeProbe.PauseState ==
-                        afterProbe.PauseState &&
-                    beforeProbe.PauseGateBlockerCount ==
-                        afterProbe.PauseGateBlockerCount,
-                    "Retired CycleResetSmokeProbe mutated framework runtime state.");
-                completed.Add(
-                    "retired-cycle-reset-probe-executes-no-runtime-request");
-
                 await CleanupTemporaryObjectsAsync(
                     temporaryObjects);
 
                 int finalCanvasCount =
                     CountLoadedObjects<
                         FrameworkQaCanvas>();
-                int finalProbeCount =
-                    CountLoadedObjects<
-                        CycleResetSmokeProbe>();
-
                 Require(
-                    finalCanvasCount ==
-                        baselineCanvasCount &&
-                    finalProbeCount ==
-                        baselineProbeCount,
-                    $"Temporary diagnostics cleanup failed. canvasBaseline='{baselineCanvasCount}' canvasFinal='{finalCanvasCount}' probeBaseline='{baselineProbeCount}' probeFinal='{finalProbeCount}'.");
+                    finalCanvasCount == baselineCanvasCount,
+                    $"Temporary diagnostics cleanup failed. canvasBaseline='{baselineCanvasCount}' canvasFinal='{finalCanvasCount}'.");
 
                 completed.Add(
                     "no-temporary-diagnostics-state-remains");
 
                 Require(
-                    completed.Count == 8,
+                    completed.Count == 6,
                     $"Unexpected H2.2.13 case count. actual='{completed.Count}'.");
 
                 Debug.Log(
-                    $"{LogPrefix} status='Passed' cases='8' " +
+                    $"{LogPrefix} status='Passed' cases='6' " +
                     $"completed='{string.Join(",", completed)}'.");
             }
             catch (Exception exception)

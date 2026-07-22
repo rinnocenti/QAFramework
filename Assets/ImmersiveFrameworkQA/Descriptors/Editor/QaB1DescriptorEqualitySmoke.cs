@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Immersive.Framework.Actors;
 using Immersive.Framework.ContentAnchor;
-using Immersive.Framework.UnityInput;
 using UnityEditor;
 using UnityEngine;
 
@@ -24,7 +23,6 @@ namespace ImmersiveFrameworkQA.Descriptors.Editor
             {
                 VerifyActorDescriptor(completed);
                 VerifyPlayerActorDescriptor(completed);
-                VerifyUnityInputTargetDescriptor(completed);
                 VerifyContentAnchorDeclaration(completed);
 
                 Debug.Log(
@@ -65,18 +63,6 @@ namespace ImmersiveFrameworkQA.Descriptors.Editor
             completed.Add("player-actor-descriptor");
         }
 
-        private static void VerifyUnityInputTargetDescriptor(ICollection<string> completed)
-        {
-            UnityInputTargetDescriptor baseline = CreateInputTarget("Gameplay", "Scene A", "Object A", "QA.B1.A", "baseline", true, true);
-            UnityInputTargetDescriptor cosmeticVariant = CreateInputTarget("Renamed Gameplay", "Scene B", "Object B", "QA.B1.B", "reparented", true, true);
-            AssertEqualContract(baseline, cosmeticVariant, "Unity Input descriptor cosmetics changed equality.");
-            AssertCollectionContract(baseline, cosmeticVariant, "UnityInputTargetDescriptor");
-            AssertNotEqual(baseline, CreateInputTarget("Gameplay", "Scene A", "Object A", "QA.B1.A", "baseline", false, true), "PlayerInput reference capability changed equality.");
-            AssertNotEqual(baseline, CreateInputTarget("Gameplay", "Scene A", "Object A", "QA.B1.A", "baseline", true, false), "Required PlayerInput evidence changed equality.");
-            AssertNotEqual(baseline, new UnityInputTargetDescriptor(UnityInputTargetId.From("qa.b1.input"), UnityInputTargetRole.GlobalUiPause, true, true, "Gameplay", "Scene A", "Object A", "QA.B1.A", "baseline"), "Input target role changed equality.");
-            completed.Add("unity-input-target-descriptor");
-        }
-
         private static void VerifyContentAnchorDeclaration(ICollection<string> completed)
         {
             ContentAnchorDeclaration baseline = CreateAnchor("Anchor One", "first label", "Resource One", "Assets/One.prefab", ContentAnchorScope.Activity, ContentAnchorRequiredness.Required);
@@ -102,11 +88,6 @@ namespace ImmersiveFrameworkQA.Descriptors.Editor
         private static PlayerActorDescriptor CreatePlayerActor(string displayName, string sceneName, string objectName, string source, string reason, bool hasPlayerInputEvidence)
         {
             return new PlayerActorDescriptor(ActorId.From("qa.b1.player"), ActorRole.Protagonist, hasPlayerInputEvidence, displayName, sceneName, objectName, source, reason);
-        }
-
-        private static UnityInputTargetDescriptor CreateInputTarget(string displayName, string sceneName, string objectName, string source, string reason, bool hasPlayerInputReference, bool requiresPlayerInputEvidence)
-        {
-            return new UnityInputTargetDescriptor(UnityInputTargetId.From("qa.b1.input"), UnityInputTargetRole.GameplayCommands, hasPlayerInputReference, requiresPlayerInputEvidence, displayName, sceneName, objectName, source, reason);
         }
 
         private static ContentAnchorDeclaration CreateAnchor(string displayName, string description, string resourceName, string resourcePath, ContentAnchorScope scope, ContentAnchorRequiredness requiredness)

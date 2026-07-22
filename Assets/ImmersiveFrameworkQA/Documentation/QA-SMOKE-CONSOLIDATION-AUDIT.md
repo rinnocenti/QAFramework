@@ -1,5 +1,18 @@
 # QA-SMOKE-R1 — auditoria e mapa de consolidação
 
+> Reconciliation note — 2026-07-22 (`FRAMEWORK-HYGIENE-1C`): this document is
+> the historical R1 inventory and its original counts/classifications remain as
+> audit evidence. The subsequent local QA migration removed
+> `QaIc2PauseInputModeBridgeFixture` and
+> `QaIc2PauseInputModeRuntimeRegressionSmoke`; preserved the pure
+> `InputModeRuntimeContext` transaction regression; preserved the behavioral
+> `UnityPlayerInputGateAdapter` regression without the retired binding helper;
+> removed `CycleResetSmokeProbe` cases; and moved Pause P1 to the official
+> `PausePlayerInputBinding` product surface. Superseded package APIs must not be
+> restored through wrappers, aliases or compatibility code. The user-supplied
+> Unity result predates this migration and reported compile errors; post-migration
+> QA compile and focused regression validation remain pending.
+
 Data da auditoria: 2026-07-20  
 Escopo: `Assets/ImmersiveFrameworkQA` de `QAFramework`.  
 Natureza do corte: auditoria estática; nenhuma consolidação foi implementada.

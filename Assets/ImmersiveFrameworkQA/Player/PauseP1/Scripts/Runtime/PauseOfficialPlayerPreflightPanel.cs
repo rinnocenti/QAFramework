@@ -284,14 +284,13 @@ namespace ImmersiveFrameworkQA.PauseP1
 
         private string ResolveLastTriggerStatus() =>
             pauseRequestTrigger != null
-                ? pauseRequestTrigger.LastRequestStatus
+                ? pauseRequestTrigger.LastStatus.ToString()
                 : "Unavailable";
 
         private string ResolveLastTriggerDiagnostic() =>
             pauseRequestTrigger != null &&
-            !string.IsNullOrWhiteSpace(
-                pauseRequestTrigger.LastRequestDiagnostic)
-                ? pauseRequestTrigger.LastRequestDiagnostic
+            !string.IsNullOrWhiteSpace(pauseRequestTrigger.LastMessage)
+                ? pauseRequestTrigger.LastMessage
                 : "Unavailable";
 
         private static string Sanitize(string value) =>
