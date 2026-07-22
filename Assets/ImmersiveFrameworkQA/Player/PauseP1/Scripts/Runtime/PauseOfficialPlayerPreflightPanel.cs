@@ -1,4 +1,5 @@
 using System;
+using Immersive.Framework.Pause;
 using Immersive.Framework.PlayerParticipation;
 using UnityEngine;
 
@@ -15,17 +16,26 @@ namespace ImmersiveFrameworkQA.PauseP1
         private LocalPlayerProvisioningAuthoring provisioningAuthoring;
 
         [SerializeField]
-        private Rect panelRect = new Rect(16f, 200f, 460f, 175f);
+        private PauseRequestTrigger pauseRequestTrigger;
+
+        [SerializeField]
+        private Rect panelRect = new Rect(500f, 16f, 500f, 300f);
 
         private string lastOperation = "Select Prepare Official Player for Pause QA.";
 
         public LocalPlayerProvisioningAuthoring ProvisioningAuthoring =>
             provisioningAuthoring;
 
+        public PauseRequestTrigger PauseRequestTrigger =>
+            pauseRequestTrigger;
+
         public void Configure(
-            LocalPlayerProvisioningAuthoring nextProvisioningAuthoring)
+            LocalPlayerProvisioningAuthoring nextProvisioningAuthoring,
+            PauseRequestTrigger nextPauseRequestTrigger)
         {
             provisioningAuthoring = nextProvisioningAuthoring;
+            pauseRequestTrigger = nextPauseRequestTrigger;
+            panelRect = new Rect(500f, 16f, 500f, 300f);
         }
 
         public void PrepareOfficialPlayerForPauseQa()
@@ -227,6 +237,16 @@ namespace ImmersiveFrameworkQA.PauseP1
                 wordWrap = true
             };
             GUILayout.Label(lastOperation, wrapped);
+            GUILayout.Label(
+                $"Product Request Binding: {ResolveProductRequestBinding()}");
+            GUILayout.Label($"Logical Pause: {ResolveLogicalPause()}");
+            GUILayout.Label(
+                $"Last Trigger Outcome: {ResolveLastTriggerOutcome()}");
+            GUILayout.Label(
+                $"Last Trigger Status: {ResolveLastTriggerStatus()}");
+            GUILayout.Label(
+                $"Last Trigger Diagnostic: {ResolveLastTriggerDiagnostic()}",
+                wrapped);
             GUILayout.Space(8f);
 
             if (GUILayout.Button(
@@ -239,6 +259,40 @@ namespace ImmersiveFrameworkQA.PauseP1
             GUI.DragWindow(
                 new Rect(0f, 0f, 10000f, 24f));
         }
+
+        private string ResolveProductRequestBinding() =>
+            pauseRequestTrigger != null
+                ? pauseRequestTrigger.ProductRequestBindingStatus
+                : "Missing";
+
+        private string ResolveLogicalPause()
+        {
+            if (pauseRequestTrigger == null ||
+                !pauseRequestTrigger.TryGetPauseSnapshot(
+                    out PauseSnapshot snapshot))
+            {
+                return "Unavailable";
+            }
+
+            return snapshot.State.ToString();
+        }
+
+        private string ResolveLastTriggerOutcome() =>
+            pauseRequestTrigger != null
+                ? pauseRequestTrigger.LastOutcome.ToString()
+                : "Unavailable";
+
+        private string ResolveLastTriggerStatus() =>
+            pauseRequestTrigger != null
+                ? pauseRequestTrigger.LastRequestStatus
+                : "Unavailable";
+
+        private string ResolveLastTriggerDiagnostic() =>
+            pauseRequestTrigger != null &&
+            !string.IsNullOrWhiteSpace(
+                pauseRequestTrigger.LastRequestDiagnostic)
+                ? pauseRequestTrigger.LastRequestDiagnostic
+                : "Unavailable";
 
         private static string Sanitize(string value) =>
             string.IsNullOrEmpty(value)

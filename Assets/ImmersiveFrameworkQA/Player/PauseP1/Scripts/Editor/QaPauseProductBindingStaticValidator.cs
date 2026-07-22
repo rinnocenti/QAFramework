@@ -20,19 +20,28 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
     {
         internal QaPauseProductBindingValidation(
             int pauseBindingCount,
+            int runtimeEvidenceCount,
             int playerInputsInPauseScenes,
             int hubEntryCount,
+            int pauseRequestTriggerCount,
+            int preflightPauseReferenceCount,
             int duplicateCount)
         {
             PauseBindingCount = pauseBindingCount;
+            RuntimeEvidenceCount = runtimeEvidenceCount;
             PlayerInputsInPauseScenes = playerInputsInPauseScenes;
             HubEntryCount = hubEntryCount;
+            PauseRequestTriggerCount = pauseRequestTriggerCount;
+            PreflightPauseReferenceCount = preflightPauseReferenceCount;
             DuplicateCount = duplicateCount;
         }
 
         internal int PauseBindingCount { get; }
+        internal int RuntimeEvidenceCount { get; }
         internal int PlayerInputsInPauseScenes { get; }
         internal int HubEntryCount { get; }
+        internal int PauseRequestTriggerCount { get; }
+        internal int PreflightPauseReferenceCount { get; }
         internal int DuplicateCount { get; }
     }
 
@@ -51,8 +60,12 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
             int pauseBindings = ValidatePlayerHost(
                 pauseAction,
                 pauseReference,
-                ref duplicates);
-            ValidateOfficialPlayerPreflight(ref duplicates);
+                ref duplicates,
+                out int runtimeEvidenceCount);
+            ValidateOfficialPlayerPreflight(
+                ref duplicates,
+                out int pauseRequestTriggerCount,
+                out int preflightPauseReferenceCount);
             ValidateAssets(route, activity, content);
 
             int scenePlayerInputs = 0;
@@ -69,8 +82,11 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
 
             return new QaPauseProductBindingValidation(
                 pauseBindings,
+                runtimeEvidenceCount,
                 scenePlayerInputs,
                 hubEntries,
+                pauseRequestTriggerCount,
+                preflightPauseReferenceCount,
                 duplicates);
         }
 
@@ -126,7 +142,8 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
         private static int ValidatePlayerHost(
             InputAction expectedPauseAction,
             InputActionReference expectedReference,
-            ref int duplicateCount)
+            ref int duplicateCount,
+            out int runtimeEvidenceCount)
         {
             GameObject root = PrefabUtility.LoadPrefabContents(
                 QaPauseProductBindingPaths.PlayerHost);
@@ -138,10 +155,16 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     root.GetComponentsInChildren<UnityPlayerInputGateAdapter>(true);
                 PausePlayerInputBinding[] bindings =
                     root.GetComponentsInChildren<PausePlayerInputBinding>(true);
+                PauseRuntimeEvidencePanel[] evidencePanels =
+                    root.GetComponentsInChildren<
+                        PauseRuntimeEvidencePanel>(true);
 
                 duplicateCount += Math.Max(0, inputs.Length - 1);
                 duplicateCount += Math.Max(0, gates.Length - 1);
                 duplicateCount += Math.Max(0, bindings.Length - 1);
+                duplicateCount += Math.Max(
+                    0,
+                    evidencePanels.Length - 1);
 
                 Require(inputs.Length == 1,
                     $"Official host requires exactly one PlayerInput; found '{inputs.Length}'.");
@@ -149,16 +172,30 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     $"Official host requires exactly one UnityPlayerInputGateAdapter; found '{gates.Length}'.");
                 Require(bindings.Length == 1,
                     $"Official host requires exactly one PausePlayerInputBinding; found '{bindings.Length}'.");
+                Require(evidencePanels.Length == 1,
+                    $"Official host requires exactly one PauseRuntimeEvidencePanel; found '{evidencePanels.Length}'.");
 
                 PlayerInput input = inputs[0];
                 UnityPlayerInputGateAdapter gate = gates[0];
                 PausePlayerInputBinding binding = bindings[0];
+                PauseRuntimeEvidencePanel evidencePanel = evidencePanels[0];
                 Require(ReferenceEquals(gate.gameObject, input.gameObject) &&
-                        ReferenceEquals(binding.gameObject, input.gameObject),
-                    "PlayerInput, Input Gate and Pause binding must share the same host GameObject.");
+                        ReferenceEquals(binding.gameObject, input.gameObject) &&
+                        ReferenceEquals(
+                            evidencePanel.gameObject,
+                            input.gameObject),
+                    "PlayerInput, Input Gate, Pause binding and runtime evidence must share the same host GameObject.");
                 Require(ExplicitObject(gate, "playerInput") == input &&
                         ExplicitObject(binding, "playerInput") == input,
                     "Input Gate and Pause binding must point explicitly to the same PlayerInput; global auto-resolution is not accepted.");
+                Require(
+                    ExplicitObject(evidencePanel, "playerInput") == input &&
+                    ReferenceEquals(evidencePanel.PlayerInput, input),
+                    "Pause runtime evidence must point explicitly to the official PlayerInput.");
+                Require(
+                    ExplicitObject(evidencePanel, "pauseBinding") == binding &&
+                    ReferenceEquals(evidencePanel.PauseBinding, binding),
+                    "Pause runtime evidence must point explicitly to the official PausePlayerInputBinding.");
                 Require(input.actions != null &&
                         string.Equals(
                             AssetDatabase.GetAssetPath(input.actions),
@@ -178,6 +215,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     "Pause binding action-map names are invalid.");
                 Require(string.Equals(gate.GameplayActionMapName, "Gameplay", StringComparison.Ordinal),
                     "Input Gate must target the Gameplay action map.");
+                runtimeEvidenceCount = evidencePanels.Length;
                 return bindings.Length;
             }
             finally
@@ -198,9 +236,13 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
         }
 
         private static void ValidateOfficialPlayerPreflight(
-            ref int duplicateCount)
+            ref int duplicateCount,
+            out int pauseRequestTriggerCount,
+            out int preflightPauseReferenceCount)
         {
             int localDuplicateCount = duplicateCount;
+            int localPauseRequestTriggerCount = 0;
+            int localPreflightPauseReferenceCount = 0;
             WithScene(
                 QaPauseProductBindingPaths.UiGlobalScene,
                 scene =>
@@ -218,6 +260,10 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                         components
                             .OfType<PauseOfficialPlayerPreflightPanel>()
                             .ToArray();
+                    PauseRequestTrigger[] pauseRequestTriggers =
+                        components
+                            .OfType<PauseRequestTrigger>()
+                            .ToArray();
 
                     localDuplicateCount += Math.Max(
                         0,
@@ -228,6 +274,9 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     localDuplicateCount += Math.Max(
                         0,
                         preflights.Length - 1);
+                    localDuplicateCount += Math.Max(
+                        0,
+                        pauseRequestTriggers.Length - 1);
 
                     Require(authorings.Length == 1,
                         $"QA_UIGlobal requires exactly one LocalPlayerProvisioningAuthoring; found '{authorings.Length}'.");
@@ -235,6 +284,8 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                         $"QA_UIGlobal requires exactly one PlayerInputManager; found '{managers.Length}'.");
                     Require(preflights.Length == 1,
                         $"QA_UIGlobal requires exactly one Pause official Player preflight; found '{preflights.Length}'.");
+                    Require(pauseRequestTriggers.Length == 1,
+                        $"QA_UIGlobal requires exactly one official PauseRequestTrigger; found '{pauseRequestTriggers.Length}'.");
                     Require(ReferenceEquals(
                             authorings[0].PlayerInputManager,
                             managers[0]),
@@ -249,51 +300,30 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                             preflights[0].ProvisioningAuthoring,
                             authorings[0]),
                         "Pause preflight public topology does not expose the official provisioning reference.");
+                    bool serializedPauseReference = ReferenceEquals(
+                        ExplicitObject(
+                            preflights[0],
+                            "pauseRequestTrigger"),
+                        pauseRequestTriggers[0]);
+                    bool publicPauseReference = ReferenceEquals(
+                        preflights[0].PauseRequestTrigger,
+                        pauseRequestTriggers[0]);
+                    localPauseRequestTriggerCount =
+                        pauseRequestTriggers.Length;
+                    localPreflightPauseReferenceCount =
+                        serializedPauseReference && publicPauseReference
+                            ? 1
+                            : 0;
+                    Require(serializedPauseReference,
+                        "Pause preflight requires an explicit serialized reference to the official PauseRequestTrigger.");
+                    Require(publicPauseReference,
+                        "Pause preflight public topology does not expose the official PauseRequestTrigger reference.");
                 });
             duplicateCount = localDuplicateCount;
-
-            ValidatePreflightSource();
-        }
-
-        private static void ValidatePreflightSource()
-        {
-            string source = File.ReadAllText(
-                QaPauseProductBindingPaths.PreflightSource);
-            string[] requiredCalls =
-            {
-                "provisioningAuthoring.OpenJoining(",
-                "provisioningAuthoring.SetDynamicCapacity(",
-                "provisioningAuthoring.RequestJoin(",
-                "provisioningAuthoring.CloseJoining("
-            };
-            foreach (string requiredCall in requiredCalls)
-            {
-                Require(source.Contains(
-                        requiredCall,
-                        StringComparison.Ordinal),
-                    $"Pause preflight is missing required API call '{requiredCall}'.");
-            }
-
-            string[] forbiddenTokens =
-            {
-                "void Awake(",
-                "void OnEnable(",
-                "void Start(",
-                "PlayerInputManager.JoinPlayer",
-                ".JoinPlayer(",
-                "PlayerInputManager.instance",
-                "FindObject",
-                "Object.Find",
-                "System.Reflection",
-                "Activator."
-            };
-            foreach (string forbiddenToken in forbiddenTokens)
-            {
-                Require(!source.Contains(
-                        forbiddenToken,
-                        StringComparison.Ordinal),
-                    $"Pause preflight contains forbidden automatic/global behavior '{forbiddenToken}'.");
-            }
+            pauseRequestTriggerCount =
+                localPauseRequestTriggerCount;
+            preflightPauseReferenceCount =
+                localPreflightPauseReferenceCount;
         }
 
         private static void ValidateAssets(

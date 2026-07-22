@@ -38,8 +38,6 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
             "Assets/ImmersiveFrameworkQA/Hub/Scenes/QA_Hub.unity";
         internal const string UiGlobalScene =
             "Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/QA_UIGlobal.unity";
-        internal const string PreflightSource =
-            Root + "/Scripts/Runtime/PauseOfficialPlayerPreflightPanel.cs";
         internal const string Projection =
             "Assets/ImmersiveFrameworkQA/Player/Profiles/PlayerParticipation/ActivityParticipation_AllJoined_AtLeastOne.asset";
         internal const string Requirements =
@@ -120,6 +118,9 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     $"activity='{activity.ActivityName}' " +
                     "playerHost='P3G4_LocalPlayerHost' " +
                     $"pauseBinding='{result.PauseBindingCount}' " +
+                    $"runtimeEvidence='{result.RuntimeEvidenceCount}' " +
+                    $"pauseRequestTriggers='{result.PauseRequestTriggerCount}' " +
+                    $"preflightPauseReference='{result.PreflightPauseReferenceCount}' " +
                     $"playerInputsInPauseScenes='{result.PlayerInputsInPauseScenes}' " +
                     $"hubEntries='{result.HubEntryCount}' " +
                     $"duplicates='{result.DuplicateCount}'");
@@ -286,6 +287,23 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                 SetString(binding, "gameplayActionMapName", "Gameplay");
                 SetString(binding, "uiActionMapName", "UI");
 
+                PauseRuntimeEvidencePanel[] evidencePanels =
+                    root.GetComponentsInChildren<
+                        PauseRuntimeEvidencePanel>(true);
+                Require(evidencePanels.Length <= 1,
+                    $"Duplicate PauseRuntimeEvidencePanel components are rejected; found '{evidencePanels.Length}'.");
+                PauseRuntimeEvidencePanel evidencePanel =
+                    evidencePanels.Length == 1
+                        ? evidencePanels[0]
+                        : input.gameObject.AddComponent<
+                            PauseRuntimeEvidencePanel>();
+                Require(ReferenceEquals(
+                        evidencePanel.gameObject,
+                        input.gameObject),
+                    "Pause runtime evidence must share the official PlayerInput GameObject.");
+                evidencePanel.Configure(input, binding);
+                EditorUtility.SetDirty(evidencePanel);
+
                 Require(
                     PrefabUtility.SaveAsPrefabAsset(
                         root,
@@ -328,6 +346,12 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                             root.GetComponentsInChildren<
                                 PauseOfficialPlayerPreflightPanel>(true))
                         .ToArray();
+                PauseRequestTrigger[] pauseRequestTriggers =
+                    scene.GetRootGameObjects()
+                        .SelectMany(root =>
+                            root.GetComponentsInChildren<
+                                PauseRequestTrigger>(true))
+                        .ToArray();
 
                 Require(authorings.Length == 1,
                     $"QA_UIGlobal requires exactly one LocalPlayerProvisioningAuthoring; found '{authorings.Length}'.");
@@ -335,6 +359,8 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     $"QA_UIGlobal requires exactly one PlayerInputManager; found '{managers.Length}'.");
                 Require(preflights.Length <= 1,
                     $"Duplicate Pause official Player preflight components are rejected; found '{preflights.Length}'.");
+                Require(pauseRequestTriggers.Length == 1,
+                    $"QA_UIGlobal requires exactly one official PauseRequestTrigger; found '{pauseRequestTriggers.Length}'.");
                 Require(ReferenceEquals(
                         authorings[0].PlayerInputManager,
                         managers[0]),
@@ -345,10 +371,10 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                         ? preflights[0]
                         : authorings[0].gameObject.AddComponent<
                             PauseOfficialPlayerPreflightPanel>();
-                SetObject(
-                    preflight,
-                    "provisioningAuthoring",
-                    authorings[0]);
+                preflight.Configure(
+                    authorings[0],
+                    pauseRequestTriggers[0]);
+                EditorUtility.SetDirty(preflight);
 
                 EditorSceneManager.MarkSceneDirty(scene);
                 Require(
