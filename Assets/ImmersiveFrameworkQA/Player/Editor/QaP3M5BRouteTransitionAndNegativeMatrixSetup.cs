@@ -77,10 +77,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
         internal const string ReusedHostContentPath =
             RootFolder + "/P3M5B_Negative_ReusedHost_Content.asset";
 
-        internal const string FirstSlotProjectionPath =
-            RootFolder + "/P3M5B_FirstSlotProjection.asset";
-        internal const string TwoSlotProjectionPath =
-            RootFolder + "/P3M5B_TwoSlotProjection.asset";
         internal const string LogicalActorsPreparedRequirementsPath =
             RootFolder + "/P3M5B_LogicalActorsPrepared.asset";
 
@@ -235,16 +231,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     EnsureSceneInBuildSettings(buildScenes[index]);
                 }
 
-                ActivityParticipationProjectionProfile firstSlotProjection =
-                    CreateOrUpdateProjection(
-                        FirstSlotProjectionPath,
-                        "P3M5B — First Slot",
-                        new[] { slots[0] });
-                ActivityParticipationProjectionProfile twoSlotProjection =
-                    CreateOrUpdateProjection(
-                        TwoSlotProjectionPath,
-                        "P3M5B — Two Slots",
-                        slots);
+                PlayerSlotProfile[] firstSlotProjection = { slots[0] };
+                PlayerSlotProfile[] twoSlotProjection = slots;
                 PlayerParticipationRequirementsProfile requirements =
                     CreateOrUpdateRequirements();
 
@@ -829,45 +817,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return profile;
         }
 
-        private static ActivityParticipationProjectionProfile
-            CreateOrUpdateProjection(
-                string path,
-                string displayName,
-                PlayerSlotProfile[] slots)
-        {
-            ActivityParticipationProjectionProfile profile =
-                AssetDatabase.LoadAssetAtPath<
-                    ActivityParticipationProjectionProfile>(path);
-            if (profile == null)
-            {
-                profile = ScriptableObject.CreateInstance<
-                    ActivityParticipationProjectionProfile>();
-                AssetDatabase.CreateAsset(profile, path);
-            }
-
-            profile.name = Path.GetFileNameWithoutExtension(path);
-            var serialized = new SerializedObject(profile);
-            serialized.FindProperty("displayName").stringValue = displayName;
-            serialized.FindProperty("description").stringValue =
-                "P3M5B explicit configured Slot projection.";
-            SetEnum(serialized.FindProperty("projectionMode"), "ExplicitSlots");
-            SetEnum(
-                serialized.FindProperty("zeroParticipantPolicy"),
-                "Rejected");
-            SerializedProperty explicitSlots =
-                serialized.FindProperty("explicitSlotProfiles");
-            explicitSlots.arraySize = slots.Length;
-            for (int index = 0; index < slots.Length; index++)
-            {
-                explicitSlots.GetArrayElementAtIndex(index)
-                    .objectReferenceValue = slots[index];
-            }
-
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(profile);
-            return profile;
-        }
-
         private static PlayerParticipationRequirementsProfile
             CreateOrUpdateRequirements()
         {
@@ -902,7 +851,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             string path,
             string activityId,
             string activityName,
-            ActivityParticipationProjectionProfile projection,
+            PlayerSlotProfile[] projection,
             PlayerParticipationRequirementsProfile requirements,
             ActivityContentProfileAsset content)
         {
@@ -927,8 +876,18 @@ namespace ImmersiveFrameworkQA.Player.Editor
             serialized.FindProperty("activityName").stringValue = activityName;
             serialized.FindProperty("description").stringValue =
                 "P3M5B QA-only Route transition and negative-matrix Activity.";
-            serialized.FindProperty("playerParticipationProjectionProfile")
-                .objectReferenceValue = projection;
+            serialized.FindProperty("playerParticipationProjectionMode").intValue =
+                (int)ActivityParticipationProjectionMode.ExplicitSlots;
+            serialized.FindProperty("playerParticipationZeroParticipantPolicy").intValue =
+                (int)ActivityParticipationZeroParticipantPolicy.Rejected;
+            SerializedProperty explicitSlots =
+                serialized.FindProperty("playerParticipationExplicitSlotProfiles");
+            explicitSlots.arraySize = projection.Length;
+            for (int index = 0; index < projection.Length; index++)
+            {
+                explicitSlots.GetArrayElementAtIndex(index).objectReferenceValue =
+                    projection[index];
+            }
             serialized.FindProperty("playerParticipationRequirementsProfile")
                 .objectReferenceValue = requirements;
             serialized.FindProperty("activityContentProfile")

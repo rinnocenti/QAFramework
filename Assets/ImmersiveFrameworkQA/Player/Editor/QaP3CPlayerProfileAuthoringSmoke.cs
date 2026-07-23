@@ -201,17 +201,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             string[] requirementsGuids = AssetDatabase.FindAssets(
                 "t:PlayerParticipationRequirementsProfile",
                 new[] { templateFolder });
-            string[] projectionGuids = AssetDatabase.FindAssets(
-                "t:ActivityParticipationProjectionProfile",
-                new[] { templateFolder });
-
             AssertEqual(4, slotGuids.Length, "Complete template did not create four Player Slot Profiles.");
             AssertEqual(5, requirementsGuids.Length, "Complete template did not create five Requirements Profiles.");
-            AssertEqual(
-                3,
-                projectionGuids.Length,
-                "Complete template did not create three Activity Participation Projection Profiles.");
-            completed.Add("complete-template-projections-created");
 
             string[] actorSelectionPolicyGuids = AssetDatabase.FindAssets(
                 "ActorSelection",

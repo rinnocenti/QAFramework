@@ -15,14 +15,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
     {
         private const string RootFolder =
             "Assets/ImmersiveFrameworkQA/Player/P3J6";
-        internal const string ProjectionPath =
-            RootFolder + "/P3J6_AllJoinedProjection.asset";
         internal const string RequirementsPath =
             RootFolder + "/P3J6_LogicalActorsPrepared.asset";
         internal const string ActivityPath =
             RootFolder + "/P3J6_PlayerActorLifecycleActivity.asset";
-        internal const string NegativeProjectionPath =
-            RootFolder + "/P3J6_ExplicitUnjoinedProjection.asset";
         internal const string NegativeActivityPath =
             RootFolder + "/P3J6_UnjoinedSlotRequiredActivity.asset";
 
@@ -33,15 +29,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 QaP3J5RuntimeHostPreparationSetup.Apply();
                 EnsureFolder(RootFolder);
 
-                ActivityParticipationProjectionProfile projection =
-                    CreateOrUpdateProjection();
                 PlayerParticipationRequirementsProfile requirements =
                     CreateOrUpdateRequirements();
                 ActivityAsset activity = CreateOrUpdateActivity(
                     ActivityPath,
                     "P3J6 Player Actor Lifecycle Activity",
-                    projection,
-                    requirements);
+                    requirements,
+                    ActivityParticipationProjectionMode.AllJoinedSlots,
+                    ActivityParticipationZeroParticipantPolicy.Rejected);
 
                 ImmersiveFrameworkSettingsAsset settings =
                     Resources.Load<ImmersiveFrameworkSettingsAsset>(
@@ -56,21 +51,21 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         "P3J.6 negative readiness fixture requires a configured second Local Player Slot.");
                 }
 
-                ActivityParticipationProjectionProfile negativeProjection =
-                    CreateOrUpdateExplicitProjection(secondSlot);
                 ActivityAsset negativeActivity = CreateOrUpdateActivity(
                     NegativeActivityPath,
                     "P3J6 Unjoined Slot Required Activity",
-                    negativeProjection,
-                    requirements);
+                    requirements,
+                    ActivityParticipationProjectionMode.ExplicitSlots,
+                    ActivityParticipationZeroParticipantPolicy.Rejected,
+                    secondSlot);
 
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
 
                 Debug.Log(
                     "[P3J6_ACTIVITY_PLAYER_ACTOR_LIFECYCLE_FIXTURE] status='Applied' " +
-                    $"activity='{activity.ActivityName}' projection='{projection.ProjectionMode}' " +
-                    $"zeroPolicy='{projection.ZeroParticipantPolicy}' " +
+                    $"activity='{activity.ActivityName}' projection='{activity.PlayerParticipationProjectionMode}' " +
+                    $"zeroPolicy='{activity.PlayerParticipationZeroParticipantPolicy}' " +
                     $"requirement='{requirements.RequirementLevel}' " +
                     $"negativeActivity='{negativeActivity.ActivityName}' " +
                     $"negativeSlot='{secondSlot.PlayerSlotId.StableText}'.");
@@ -82,35 +77,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     $"exception='{exception.GetType().Name}' message='{Escape(exception.Message)}'.");
                 throw;
             }
-        }
-
-        private static ActivityParticipationProjectionProfile
-            CreateOrUpdateProjection()
-        {
-            ActivityParticipationProjectionProfile profile =
-                AssetDatabase.LoadAssetAtPath<ActivityParticipationProjectionProfile>(
-                    ProjectionPath);
-            if (profile == null)
-            {
-                profile = ScriptableObject.CreateInstance<
-                    ActivityParticipationProjectionProfile>();
-                AssetDatabase.CreateAsset(profile, ProjectionPath);
-            }
-
-            profile.name = "P3J6 All Joined Players";
-            var serialized = new SerializedObject(profile);
-            serialized.FindProperty("displayName").stringValue =
-                "P3J.6 — All Joined Players";
-            serialized.FindProperty("description").stringValue =
-                "Projects every currently Joined Session Slot in configured order.";
-            serialized.FindProperty("projectionMode").intValue =
-                (int)ActivityParticipationProjectionMode.AllJoinedSlots;
-            serialized.FindProperty("zeroParticipantPolicy").intValue =
-                (int)ActivityParticipationZeroParticipantPolicy.Rejected;
-            serialized.FindProperty("explicitSlotProfiles").arraySize = 0;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(profile);
-            return profile;
         }
 
         private static PlayerParticipationRequirementsProfile
@@ -139,43 +105,13 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return profile;
         }
 
-        private static ActivityParticipationProjectionProfile
-            CreateOrUpdateExplicitProjection(PlayerSlotProfile slot)
-        {
-            ActivityParticipationProjectionProfile profile =
-                AssetDatabase.LoadAssetAtPath<ActivityParticipationProjectionProfile>(
-                    NegativeProjectionPath);
-            if (profile == null)
-            {
-                profile = ScriptableObject.CreateInstance<
-                    ActivityParticipationProjectionProfile>();
-                AssetDatabase.CreateAsset(profile, NegativeProjectionPath);
-            }
-
-            profile.name = "P3J6 Explicit Unjoined Slot";
-            var serialized = new SerializedObject(profile);
-            serialized.FindProperty("displayName").stringValue =
-                "P3J.6 — Explicit Unjoined Slot";
-            serialized.FindProperty("description").stringValue =
-                "Negative readiness fixture requiring the configured second Slot before it joins.";
-            serialized.FindProperty("projectionMode").intValue =
-                (int)ActivityParticipationProjectionMode.ExplicitSlots;
-            serialized.FindProperty("zeroParticipantPolicy").intValue =
-                (int)ActivityParticipationZeroParticipantPolicy.Rejected;
-            SerializedProperty slots =
-                serialized.FindProperty("explicitSlotProfiles");
-            slots.arraySize = 1;
-            slots.GetArrayElementAtIndex(0).objectReferenceValue = slot;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(profile);
-            return profile;
-        }
-
         private static ActivityAsset CreateOrUpdateActivity(
             string assetPath,
             string activityName,
-            ActivityParticipationProjectionProfile projection,
-            PlayerParticipationRequirementsProfile requirements)
+            PlayerParticipationRequirementsProfile requirements,
+            ActivityParticipationProjectionMode projectionMode,
+            ActivityParticipationZeroParticipantPolicy zeroPolicy,
+            params PlayerSlotProfile[] explicitSlots)
         {
             ActivityAsset activity = AssetDatabase.LoadAssetAtPath<ActivityAsset>(
                 assetPath);
@@ -191,8 +127,18 @@ namespace ImmersiveFrameworkQA.Player.Editor
             serialized.FindProperty("activityName").stringValue = activityName;
             serialized.FindProperty("description").stringValue =
                 "QA Activity proving Activity-owned Logical Player Actor lifecycle and readiness.";
-            serialized.FindProperty("playerParticipationProjectionProfile")
-                .objectReferenceValue = projection;
+            serialized.FindProperty("playerParticipationProjectionMode").intValue =
+                (int)projectionMode;
+            serialized.FindProperty("playerParticipationZeroParticipantPolicy").intValue =
+                (int)zeroPolicy;
+            SerializedProperty slots =
+                serialized.FindProperty("playerParticipationExplicitSlotProfiles");
+            int count = explicitSlots != null ? explicitSlots.Length : 0;
+            slots.arraySize = count;
+            for (int index = 0; index < count; index++)
+            {
+                slots.GetArrayElementAtIndex(index).objectReferenceValue = explicitSlots[index];
+            }
             serialized.FindProperty("playerParticipationRequirementsProfile")
                 .objectReferenceValue = requirements;
             serialized.FindProperty("activityContentProfile")

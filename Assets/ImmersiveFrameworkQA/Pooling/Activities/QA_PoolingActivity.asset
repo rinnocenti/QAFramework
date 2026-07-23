@@ -15,7 +15,9 @@ MonoBehaviour:
   activityId: qa.pooling.activity
   activityName: QA Pooling Activity
   description: Synthetic activity for Pooling QA.
-  playerParticipationProjectionProfile: {fileID: 11400000, guid: 3f662b2a11f05b04b878d112d4ee764e, type: 2}
+  playerParticipationProjectionMode: 0
+  playerParticipationZeroParticipantPolicy: 0
+  playerParticipationExplicitSlotProfiles: []
   playerParticipationRequirementsProfile: {fileID: 11400000, guid: d17f6014d83c5f94f8974389a2de54f3, type: 2}
   activityContentProfile: {fileID: 0}
   visualTransitionMode: 0

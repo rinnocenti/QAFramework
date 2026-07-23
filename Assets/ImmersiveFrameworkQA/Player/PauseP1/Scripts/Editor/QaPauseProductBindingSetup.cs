@@ -38,8 +38,6 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
             "Assets/ImmersiveFrameworkQA/Hub/Scenes/QA_Hub.unity";
         internal const string UiGlobalScene =
             "Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/QA_UIGlobal.unity";
-        internal const string Projection =
-            "Assets/ImmersiveFrameworkQA/Player/Profiles/PlayerParticipation/ActivityParticipation_AllJoined_AtLeastOne.asset";
         internal const string Requirements =
             "Assets/ImmersiveFrameworkQA/Player/Profiles/PlayerParticipation/Player Participation — Joined Slots.asset";
         internal const string PauseAction = "Global/PauseToggle";
@@ -419,16 +417,10 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
         private static ActivityAsset CreateOrUpdateActivity(
             ActivityContentProfileAsset content)
         {
-            ActivityParticipationProjectionProfile projection =
-                AssetDatabase.LoadAssetAtPath<
-                    ActivityParticipationProjectionProfile>(
-                    QaPauseProductBindingPaths.Projection);
             PlayerParticipationRequirementsProfile requirements =
                 AssetDatabase.LoadAssetAtPath<
                     PlayerParticipationRequirementsProfile>(
                     QaPauseProductBindingPaths.Requirements);
-            Require(projection != null,
-                "Pause QA All Joined projection profile is missing.");
             Require(requirements != null,
                 "Pause QA Joined Slots requirements profile is missing.");
 
@@ -440,7 +432,13 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
             SetString(serialized, "activityName", "QA Pause P1 Activity");
             SetString(serialized, "description",
                 "Declares required Pause product binding for the officially admitted Local Player.");
-            SetObject(serialized, "playerParticipationProjectionProfile", projection);
+            SetEnum(
+                Property(serialized, "playerParticipationProjectionMode"),
+                "AllJoinedSlots");
+            SetEnum(
+                Property(serialized, "playerParticipationZeroParticipantPolicy"),
+                "Rejected");
+            Property(serialized, "playerParticipationExplicitSlotProfiles").arraySize = 0;
             SetObject(serialized, "playerParticipationRequirementsProfile", requirements);
             SetObject(serialized, "activityContentProfile", content);
             SetEnum(Property(serialized, "visualTransitionMode"), "Seamless");

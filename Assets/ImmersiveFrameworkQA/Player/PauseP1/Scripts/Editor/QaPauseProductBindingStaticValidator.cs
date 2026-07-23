@@ -335,10 +335,14 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     StringComparison.Ordinal) &&
                 ReferenceEquals(route.StartupActivity, activity),
                 "Route primary scene or startup Activity reference is invalid.");
+            bool validProjection =
+                activity.TryGetPlayerParticipationProjectionDescriptor(
+                    out _,
+                    out _);
             Require(ReferenceEquals(activity.ActivityContentProfile, content) &&
-                    activity.PlayerParticipationProjectionProfile != null &&
+                    validProjection &&
                     activity.PlayerParticipationRequirementsProfile != null,
-                "Activity content or Local Player participation references are invalid.");
+                "Activity content, inline Local Player participation Projection or Requirements Profile is invalid.");
 
             var serialized = new SerializedObject(content);
             SerializedProperty scenes = serialized.FindProperty("scenes");

@@ -1075,27 +1075,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static ActivityAsset CreateGameplayReadyActivity(
             PlayerSlotProfile slotProfile)
         {
-            ActivityParticipationProjectionProfile projection =
-                ScriptableObject.CreateInstance<
-                    ActivityParticipationProjectionProfile>();
-            projection.name = "Player Gameplay Admission Explicit Player";
-            SerializedObject projectionSerialized =
-                new SerializedObject(projection);
-            projectionSerialized.FindProperty("displayName").stringValue =
-                "Player Gameplay Admission Explicit Player";
-            projectionSerialized.FindProperty("projectionMode").intValue =
-                (int)ActivityParticipationProjectionMode.ExplicitSlots;
-            projectionSerialized.FindProperty(
-                    "zeroParticipantPolicy").intValue =
-                (int)ActivityParticipationZeroParticipantPolicy.Rejected;
-            SerializedProperty slots =
-                projectionSerialized.FindProperty(
-                    "explicitSlotProfiles");
-            slots.arraySize = 1;
-            slots.GetArrayElementAtIndex(0).objectReferenceValue =
-                slotProfile;
-            projectionSerialized.ApplyModifiedPropertiesWithoutUndo();
-
             PlayerParticipationRequirementsProfile requirements =
                 ScriptableObject.CreateInstance<
                     PlayerParticipationRequirementsProfile>();
@@ -1119,8 +1098,16 @@ namespace ImmersiveFrameworkQA.Player.Editor
             activitySerialized.FindProperty("activityId").stringValue =
                 "qa.p3k7h.target.activity";
             activitySerialized.FindProperty(
-                    "playerParticipationProjectionProfile")
-                .objectReferenceValue = projection;
+                    "playerParticipationProjectionMode").intValue =
+                (int)ActivityParticipationProjectionMode.ExplicitSlots;
+            activitySerialized.FindProperty(
+                    "playerParticipationZeroParticipantPolicy").intValue =
+                (int)ActivityParticipationZeroParticipantPolicy.Rejected;
+            SerializedProperty slots = activitySerialized.FindProperty(
+                "playerParticipationExplicitSlotProfiles");
+            slots.arraySize = 1;
+            slots.GetArrayElementAtIndex(0).objectReferenceValue =
+                slotProfile;
             activitySerialized.FindProperty(
                     "playerParticipationRequirementsProfile")
                 .objectReferenceValue = requirements;

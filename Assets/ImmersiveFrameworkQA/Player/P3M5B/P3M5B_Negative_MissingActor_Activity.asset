@@ -15,7 +15,10 @@ MonoBehaviour:
   activityId: qa.p3m5b.activity.negative.missing-actor
   activityName: P3M5B Negative Missing Actor Activity
   description: P3M5B QA-only Route transition and negative-matrix Activity.
-  playerParticipationProjectionProfile: {fileID: 11400000, guid: c535b0810b3b5f64fbd17495fb8400fb, type: 2}
+  playerParticipationProjectionMode: 20
+  playerParticipationZeroParticipantPolicy: 10
+  playerParticipationExplicitSlotProfiles:
+  - {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
   playerParticipationRequirementsProfile: {fileID: 11400000, guid: e65fd44302c09be4196184e8f64fc746, type: 2}
   activityContentProfile: {fileID: 11400000, guid: 2a1f9b325aead42429868d4b3d54e3c6, type: 2}
   visualTransitionMode: 0

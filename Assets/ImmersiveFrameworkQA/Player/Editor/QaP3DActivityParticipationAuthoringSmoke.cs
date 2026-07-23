@@ -18,9 +18,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private const string TempFolder =
             "Assets/ImmersiveFrameworkQA/__P3D_ActivityParticipationAuthoring_Temp";
 
-        private const string ProjectionTemplateMenuPath =
-            "Assets/Create/Immersive Framework/Player/Templates/Activity Projection Set";
-
         private const string ValidatorTypeName =
             "Immersive.Framework.Editor.Editor.PlayerParticipation.ActivityParticipationProjectionAuthoringValidator";
 
@@ -64,62 +61,59 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "P3D_Requirements_Joined",
                 PlayerParticipationRequirementLevel.JoinedSlots);
 
-            ActivityParticipationProjectionProfile noSlots = CreateProjectionProfile(
-                "P3D_Projection_NoSlots",
-                ActivityParticipationProjectionMode.NoSlots,
-                ActivityParticipationZeroParticipantPolicy.Allowed);
-            ActivityParticipationProjectionProfile allJoinedAllowed = CreateProjectionProfile(
-                "P3D_Projection_AllJoined_Allowed",
-                ActivityParticipationProjectionMode.AllJoinedSlots,
-                ActivityParticipationZeroParticipantPolicy.Allowed);
-            ActivityParticipationProjectionProfile explicitSlots = CreateProjectionProfile(
-                "P3D_Projection_Explicit",
-                ActivityParticipationProjectionMode.ExplicitSlots,
-                ActivityParticipationZeroParticipantPolicy.Rejected,
-                playerOne,
-                playerTwo);
-
             ActivityAsset noPlayersActivity = CreateActivity(
                 "P3D_Activity_NoPlayers",
                 "QA P3D No Players",
-                noSlots,
-                none);
+                none,
+                ActivityParticipationProjectionMode.NoSlots,
+                ActivityParticipationZeroParticipantPolicy.Allowed);
             AssertNoErrors(ValidateActivity(noPlayersActivity), "NoSlots + None was rejected.");
             completed.Add("no-slots-none-valid");
 
             ActivityAsset allJoinedActivity = CreateActivity(
                 "P3D_Activity_AllJoined",
                 "QA P3D All Joined",
-                allJoinedAllowed,
-                joined);
+                joined,
+                ActivityParticipationProjectionMode.AllJoinedSlots,
+                ActivityParticipationZeroParticipantPolicy.Allowed);
             AssertNoErrors(ValidateActivity(allJoinedActivity), "AllJoinedSlots + JoinedSlots was rejected.");
             completed.Add("all-joined-zero-allowed-valid");
 
             AssertTrue(
-                explicitSlots.TryCreateDescriptor(
+                CreateActivity(
+                        "P3D_Activity_Explicit",
+                        "QA P3D Explicit",
+                        joined,
+                        ActivityParticipationProjectionMode.ExplicitSlots,
+                        ActivityParticipationZeroParticipantPolicy.Rejected,
+                        playerOne,
+                        playerTwo)
+                    .TryGetPlayerParticipationProjectionDescriptor(
                     out ActivityParticipationProjectionDescriptor descriptor,
                     out string descriptorIssue),
                 $"Explicit descriptor failed. issue='{descriptorIssue}'.");
             AssertEqual(2, descriptor.ExplicitSlotProfiles.Count, "Explicit descriptor Slot count changed.");
             AssertSame(playerOne, descriptor.ExplicitSlotProfiles[0], "Explicit Slot order index 0 changed.");
             AssertSame(playerTwo, descriptor.ExplicitSlotProfiles[1], "Explicit Slot order index 1 changed.");
-            completed.Add("explicit-slots-order-preserved");
+            completed.Add("activity-owned-explicit-slots-order-preserved");
 
-            ActivityAsset missingProjection = CreateActivity(
-                "P3D_Activity_MissingProjection",
-                "QA P3D Missing Projection",
-                null,
-                none);
-            object missingProjectionReport = ValidateActivity(missingProjection);
-            AssertHasErrors(missingProjectionReport, "Missing Projection was accepted.");
-            AssertReportContains(missingProjectionReport, "missing its mandatory Activity Participation Projection Profile");
-            completed.Add("missing-projection-rejected");
+            ActivityAsset defaultProjection = CreateActivity(
+                "P3D_Activity_DefaultProjection",
+                "QA P3D Default Projection",
+                none,
+                ActivityParticipationProjectionMode.NoSlots,
+                ActivityParticipationZeroParticipantPolicy.Allowed);
+            AssertNoErrors(
+                ValidateActivity(defaultProjection),
+                "Default Activity-owned NoSlots projection was rejected.");
+            completed.Add("activity-owned-default-projection-valid");
 
             ActivityAsset missingRequirements = CreateActivity(
                 "P3D_Activity_MissingRequirements",
                 "QA P3D Missing Requirements",
-                noSlots,
-                null);
+                null,
+                ActivityParticipationProjectionMode.NoSlots,
+                ActivityParticipationZeroParticipantPolicy.Allowed);
             object missingRequirementsReport = ValidateActivity(missingRequirements);
             AssertHasErrors(missingRequirementsReport, "Missing Requirements was accepted.");
             AssertReportContains(missingRequirementsReport, "missing its mandatory Player Participation Requirements Profile");
@@ -128,119 +122,68 @@ namespace ImmersiveFrameworkQA.Player.Editor
             ActivityAsset contradictory = CreateActivity(
                 "P3D_Activity_Contradictory",
                 "QA P3D Contradictory",
-                noSlots,
-                joined);
+                joined,
+                ActivityParticipationProjectionMode.NoSlots,
+                ActivityParticipationZeroParticipantPolicy.Allowed);
             object contradictoryReport = ValidateActivity(contradictory);
             AssertHasErrors(contradictoryReport, "NoSlots + JoinedSlots contradiction was accepted.");
             AssertReportContains(contradictoryReport, "projects No Slots");
             completed.Add("no-slots-non-none-rejected");
 
-            ActivityParticipationProjectionProfile allJoinedWithExplicit = CreateProjectionProfile(
-                "P3D_Projection_AllJoined_WithExplicit",
+            ActivityAsset allJoinedWithExplicit = CreateActivity(
+                "P3D_Activity_AllJoined_WithExplicit",
+                "QA P3D All Joined With Explicit",
+                joined,
                 ActivityParticipationProjectionMode.AllJoinedSlots,
                 ActivityParticipationZeroParticipantPolicy.Allowed,
                 playerOne);
-            object allJoinedExplicitReport = ValidateProjectionProfile(allJoinedWithExplicit);
+            object allJoinedExplicitReport = ValidateActivity(allJoinedWithExplicit);
             AssertHasErrors(allJoinedExplicitReport, "AllJoinedSlots with explicit references was accepted.");
             AssertReportContains(allJoinedExplicitReport, "contains 1 Explicit Slot reference");
             completed.Add("all-joined-explicit-list-rejected");
 
-            ActivityParticipationProjectionProfile explicitEmpty = CreateProjectionProfile(
-                "P3D_Projection_Explicit_Empty",
+            ActivityAsset explicitEmpty = CreateActivity(
+                "P3D_Activity_Explicit_Empty",
+                "QA P3D Explicit Empty",
+                joined,
                 ActivityParticipationProjectionMode.ExplicitSlots,
                 ActivityParticipationZeroParticipantPolicy.Rejected);
-            object explicitEmptyReport = ValidateProjectionProfile(explicitEmpty);
+            object explicitEmptyReport = ValidateActivity(explicitEmpty);
             AssertHasErrors(explicitEmptyReport, "Empty ExplicitSlots was accepted.");
             AssertReportContains(explicitEmptyReport, "has no PlayerSlotProfile references");
             completed.Add("explicit-empty-rejected");
 
-            ActivityParticipationProjectionProfile explicitDuplicate = CreateProjectionProfile(
-                "P3D_Projection_Explicit_Duplicate",
+            ActivityAsset explicitDuplicate = CreateActivity(
+                "P3D_Activity_Explicit_Duplicate",
+                "QA P3D Explicit Duplicate",
+                joined,
                 ActivityParticipationProjectionMode.ExplicitSlots,
                 ActivityParticipationZeroParticipantPolicy.Rejected,
                 playerOne,
                 playerOne);
-            object explicitDuplicateReport = ValidateProjectionProfile(explicitDuplicate);
+            object explicitDuplicateReport = ValidateActivity(explicitDuplicate);
             AssertHasErrors(explicitDuplicateReport, "Duplicate Explicit Slot Profile was accepted.");
             AssertReportContains(explicitDuplicateReport, "repeats PlayerSlotProfile");
             completed.Add("explicit-duplicate-rejected");
 
-            string projectionBefore = EditorJsonUtility.ToJson(explicitSlots);
             string activityBefore = EditorJsonUtility.ToJson(allJoinedActivity);
-            ValidateProjectionProfile(explicitSlots);
             ValidateActivity(allJoinedActivity);
-            AssertEqual(
-                projectionBefore,
-                EditorJsonUtility.ToJson(explicitSlots),
-                "Projection validation mutated the Profile.");
             AssertEqual(
                 activityBefore,
                 EditorJsonUtility.ToJson(allJoinedActivity),
                 "Activity validation mutated the Activity.");
             completed.Add("validation-is-non-mutating");
 
-            RunProjectionTemplateCase(completed);
-
             ActivityAsset projectScanTarget = CreateActivity(
                 "P3D_Activity_ProjectScanTarget",
-                "QA P3D Project Scan Missing Profiles",
+                "QA P3D Project Scan Missing Requirements",
                 null,
-                null);
+                ActivityParticipationProjectionMode.NoSlots,
+                ActivityParticipationZeroParticipantPolicy.Allowed);
             object projectReport = ValidateProjectAssets(FrameworkValidationMode.Standard);
-            AssertHasErrors(projectReport, "Project scan accepted an Activity with missing Profiles.");
+            AssertHasErrors(projectReport, "Project scan accepted an Activity with missing Requirements.");
             AssertReportContains(projectReport, projectScanTarget.ActivityName);
             completed.Add("project-scan-detects-invalid-activity");
-        }
-
-        private static void RunProjectionTemplateCase(List<string> completed)
-        {
-            Selection.activeObject = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(TempFolder);
-            bool executed = EditorApplication.ExecuteMenuItem(ProjectionTemplateMenuPath);
-            AssertTrue(executed, $"Template menu command was not found: '{ProjectionTemplateMenuPath}'.");
-
-            string templateFolder = $"{TempFolder}/PlayerParticipation";
-            AssertTrue(
-                AssetDatabase.IsValidFolder(templateFolder),
-                "Activity Projection template command did not create its folder.");
-
-            string[] guids = AssetDatabase.FindAssets(
-                "t:ActivityParticipationProjectionProfile",
-                new[] { templateFolder });
-            AssertEqual(3, guids.Length, "Activity Projection template set did not create three Profiles.");
-
-            int noSlots = 0;
-            int allJoinedAllowed = 0;
-            int allJoinedRejected = 0;
-            for (int index = 0; index < guids.Length; index++)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guids[index]);
-                ActivityParticipationProjectionProfile profile =
-                    AssetDatabase.LoadAssetAtPath<ActivityParticipationProjectionProfile>(path);
-                AssertNotNull(profile, $"Projection template at '{path}' could not be loaded.");
-                AssertTrue(
-                    profile.TryCreateDescriptor(
-                        out ActivityParticipationProjectionDescriptor descriptor,
-                        out string issue),
-                    $"Projection template '{profile.name}' is invalid. issue='{issue}'.");
-
-                if (descriptor.ProjectsNoSlots)
-                {
-                    noSlots++;
-                }
-                else if (descriptor.ProjectsAllJoinedSlots && descriptor.AllowsZeroParticipants)
-                {
-                    allJoinedAllowed++;
-                }
-                else if (descriptor.ProjectsAllJoinedSlots && !descriptor.AllowsZeroParticipants)
-                {
-                    allJoinedRejected++;
-                }
-            }
-
-            AssertEqual(1, noSlots, "Projection template set requires one NoSlots Profile.");
-            AssertEqual(1, allJoinedAllowed, "Projection template set requires one zero-allowed AllJoined Profile.");
-            AssertEqual(1, allJoinedRejected, "Projection template set requires one zero-rejected AllJoined Profile.");
-            completed.Add("projection-template-set-created");
         }
 
         private static PlayerSlotProfile CreateSlotProfile(string fileName, string playerSlotId)
@@ -271,43 +214,31 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return profile;
         }
 
-        private static ActivityParticipationProjectionProfile CreateProjectionProfile(
-            string fileName,
-            ActivityParticipationProjectionMode mode,
-            ActivityParticipationZeroParticipantPolicy zeroPolicy,
-            params PlayerSlotProfile[] explicitSlots)
-        {
-            var profile = ScriptableObject.CreateInstance<ActivityParticipationProjectionProfile>();
-            profile.name = fileName;
-            var serialized = new SerializedObject(profile);
-            serialized.FindProperty("displayName").stringValue = fileName;
-            serialized.FindProperty("description").stringValue = "P3D QA Projection fixture.";
-            serialized.FindProperty("projectionMode").intValue = (int)mode;
-            serialized.FindProperty("zeroParticipantPolicy").intValue = (int)zeroPolicy;
-            SerializedProperty slots = serialized.FindProperty("explicitSlotProfiles");
-            int count = explicitSlots != null ? explicitSlots.Length : 0;
-            slots.arraySize = count;
-            for (int index = 0; index < count; index++)
-            {
-                slots.GetArrayElementAtIndex(index).objectReferenceValue = explicitSlots[index];
-            }
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            AssetDatabase.CreateAsset(profile, $"{TempFolder}/{fileName}.asset");
-            return profile;
-        }
-
         private static ActivityAsset CreateActivity(
             string fileName,
             string activityName,
-            ActivityParticipationProjectionProfile projection,
-            PlayerParticipationRequirementsProfile requirements)
+            PlayerParticipationRequirementsProfile requirements,
+            ActivityParticipationProjectionMode projectionMode,
+            ActivityParticipationZeroParticipantPolicy zeroPolicy,
+            params PlayerSlotProfile[] explicitSlots)
         {
             var activity = ScriptableObject.CreateInstance<ActivityAsset>();
             activity.name = fileName;
             var serialized = new SerializedObject(activity);
             serialized.FindProperty("activityName").stringValue = activityName;
             serialized.FindProperty("description").stringValue = "P3D QA Activity fixture.";
-            serialized.FindProperty("playerParticipationProjectionProfile").objectReferenceValue = projection;
+            serialized.FindProperty("playerParticipationProjectionMode").intValue =
+                (int)projectionMode;
+            serialized.FindProperty("playerParticipationZeroParticipantPolicy").intValue =
+                (int)zeroPolicy;
+            SerializedProperty slots =
+                serialized.FindProperty("playerParticipationExplicitSlotProfiles");
+            int count = explicitSlots != null ? explicitSlots.Length : 0;
+            slots.arraySize = count;
+            for (int index = 0; index < count; index++)
+            {
+                slots.GetArrayElementAtIndex(index).objectReferenceValue = explicitSlots[index];
+            }
             serialized.FindProperty("playerParticipationRequirementsProfile").objectReferenceValue = requirements;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             AssetDatabase.CreateAsset(activity, $"{TempFolder}/{fileName}.asset");
@@ -321,15 +252,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "ValidateActivity",
                 new[] { typeof(ActivityAsset) },
                 new object[] { activity });
-        }
-
-        private static object ValidateProjectionProfile(
-            ActivityParticipationProjectionProfile profile)
-        {
-            return InvokeValidator(
-                "ValidateProjectionProfile",
-                new[] { typeof(ActivityParticipationProjectionProfile) },
-                new object[] { profile });
         }
 
         private static object ValidateProjectAssets(FrameworkValidationMode validationMode)

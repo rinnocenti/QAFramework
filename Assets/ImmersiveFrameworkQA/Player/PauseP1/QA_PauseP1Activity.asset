@@ -16,7 +16,9 @@ MonoBehaviour:
   activityName: QA Pause P1 Activity
   description: Declares required Pause product binding for the officially admitted
     Local Player.
-  playerParticipationProjectionProfile: {fileID: 11400000, guid: d8243e8d5f963264b89e10fe84a2dc09, type: 2}
+  playerParticipationProjectionMode: 10
+  playerParticipationZeroParticipantPolicy: 10
+  playerParticipationExplicitSlotProfiles: []
   playerParticipationRequirementsProfile: {fileID: 11400000, guid: a27be6f276fd1414d9b32268e30dd2f7, type: 2}
   activityContentProfile: {fileID: 11400000, guid: 4cf8fe676a7eedd48b538988a102d225, type: 2}
   visualTransitionMode: 0

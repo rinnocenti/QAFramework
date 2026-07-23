@@ -15,7 +15,9 @@ MonoBehaviour:
   activityId: qa.c9r.camera.override.authority.activity
   activityName: QA C9R Camera Override Authority Activity
   description: Explicit Activity override used by the C9R authority proof.
-  playerParticipationProjectionProfile: {fileID: 11400000, guid: 3f662b2a11f05b04b878d112d4ee764e, type: 2}
+  playerParticipationProjectionMode: 0
+  playerParticipationZeroParticipantPolicy: 0
+  playerParticipationExplicitSlotProfiles: []
   playerParticipationRequirementsProfile: {fileID: 11400000, guid: d17f6014d83c5f94f8974389a2de54f3, type: 2}
   activityContentProfile: {fileID: 0}
   visualTransitionMode: 0

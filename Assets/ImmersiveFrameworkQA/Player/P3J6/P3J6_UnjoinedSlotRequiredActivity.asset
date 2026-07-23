@@ -16,7 +16,10 @@ MonoBehaviour:
   activityName: P3J6 Unjoined Slot Required Activity
   description: QA Activity proving Activity-owned Logical Player Actor lifecycle
     and readiness.
-  playerParticipationProjectionProfile: {fileID: 11400000, guid: 6205f657a6547e440b8c988e8c3ec7ca, type: 2}
+  playerParticipationProjectionMode: 20
+  playerParticipationZeroParticipantPolicy: 10
+  playerParticipationExplicitSlotProfiles:
+  - {fileID: 11400000, guid: 655efa9f821b73348a227a6a0558b85b, type: 2}
   playerParticipationRequirementsProfile: {fileID: 11400000, guid: a0dcb47f25f859f4f9e886b866b8b762, type: 2}
   activityContentProfile: {fileID: 0}
   visualTransitionMode: 0

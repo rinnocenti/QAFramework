@@ -622,16 +622,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
             PlayerParticipationRequirementLevel requirementLevel,
             ICollection<UnityEngine.Object> created)
         {
-            var projection =
-                ScriptableObject.CreateInstance<ActivityParticipationProjectionProfile>();
-            projection.name = name + " Projection";
-            created.Add(projection);
-            SetEnum(projection, "projectionMode",
-                ActivityParticipationProjectionMode.ExplicitSlots);
-            SetEnum(projection, "zeroParticipantPolicy",
-                ActivityParticipationZeroParticipantPolicy.Rejected);
-            SetObjectArray(projection, "explicitSlotProfiles", new[] { slot });
-
             var requirements =
                 ScriptableObject.CreateInstance<PlayerParticipationRequirementsProfile>();
             requirements.name = name + " Requirements";
@@ -651,7 +641,18 @@ namespace ImmersiveFrameworkQA.Player.Editor
             var activity = ScriptableObject.CreateInstance<ActivityAsset>();
             activity.name = name;
             created.Add(activity);
-            SetObject(activity, "playerParticipationProjectionProfile", projection);
+            SetEnum(
+                activity,
+                "playerParticipationProjectionMode",
+                ActivityParticipationProjectionMode.ExplicitSlots);
+            SetEnum(
+                activity,
+                "playerParticipationZeroParticipantPolicy",
+                ActivityParticipationZeroParticipantPolicy.Rejected);
+            SetObjectArray(
+                activity,
+                "playerParticipationExplicitSlotProfiles",
+                new[] { slot });
             SetObject(activity, "playerParticipationRequirementsProfile", requirements);
             SetObject(activity, "activityContentProfile", content);
             return activity;

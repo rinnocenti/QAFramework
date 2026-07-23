@@ -33,14 +33,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             RootFolder + "/P3M5A_SceneActorProfile.asset";
         internal const string ContentProfilePath =
             RootFolder + "/P3M5A_ActivityContent.asset";
-        internal const string ExplicitProjectionPath =
-            RootFolder + "/P3M5A_ExplicitSlotProjection.asset";
         internal const string PreparedRequirementsPath =
             RootFolder + "/P3M5A_LogicalActorsPrepared.asset";
         internal const string GameplayRequirementsPath =
             RootFolder + "/P3M5A_GameplayReady.asset";
-        internal const string NoPlayersProjectionPath =
-            RootFolder + "/P3M5A_NoPlayersProjection.asset";
         internal const string NoPlayersRequirementsPath =
             RootFolder + "/P3M5A_NoPlayersRequirements.asset";
         internal const string PreparedActivityPath =
@@ -80,8 +76,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 ActivityContentProfileAsset content =
                     CreateOrUpdateContentProfile();
-                ActivityParticipationProjectionProfile explicitProjection =
-                    CreateOrUpdateExplicitProjection(firstSlot);
                 PlayerParticipationRequirementsProfile preparedRequirements =
                     CreateOrUpdateRequirements(
                         PreparedRequirementsPath,
@@ -94,8 +88,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         "Gameplay Ready",
                         PlayerParticipationRequirementLevel.GameplayReady,
                         "Negative integration target: adoption must succeed before the canonical gameplay chain reports missing gameplay authoring.");
-                ActivityParticipationProjectionProfile noPlayersProjection =
-                    CreateOrUpdateNoPlayersProjection();
                 PlayerParticipationRequirementsProfile noPlayersRequirements =
                     CreateOrUpdateRequirements(
                         NoPlayersRequirementsPath,
@@ -106,24 +98,29 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 ActivityAsset preparedActivity = CreateOrUpdateActivity(
                     PreparedActivityPath,
                     "P3M5A Scene Player Prepared Activity",
-                    explicitProjection,
                     preparedRequirements,
                     content,
-                    ActivityVisualTransitionMode.Seamless);
+                    ActivityVisualTransitionMode.Seamless,
+                    ActivityParticipationProjectionMode.ExplicitSlots,
+                    ActivityParticipationZeroParticipantPolicy.Rejected,
+                    firstSlot);
                 ActivityAsset gameplayActivity = CreateOrUpdateActivity(
                     GameplayActivityPath,
                     "P3M5A Scene Player Gameplay Ready Activity",
-                    explicitProjection,
                     gameplayRequirements,
                     content,
-                    ActivityVisualTransitionMode.FadeWithLoading);
+                    ActivityVisualTransitionMode.FadeWithLoading,
+                    ActivityParticipationProjectionMode.ExplicitSlots,
+                    ActivityParticipationZeroParticipantPolicy.Rejected,
+                    firstSlot);
                 ActivityAsset noPlayersActivity = CreateOrUpdateActivity(
                     NoPlayersActivityPath,
                     "P3M5A No Players Activity",
-                    noPlayersProjection,
                     noPlayersRequirements,
                     null,
-                    ActivityVisualTransitionMode.Seamless);
+                    ActivityVisualTransitionMode.Seamless,
+                    ActivityParticipationProjectionMode.NoSlots,
+                    ActivityParticipationZeroParticipantPolicy.Allowed);
 
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
@@ -408,71 +405,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return profile;
         }
 
-        private static ActivityParticipationProjectionProfile
-            CreateOrUpdateExplicitProjection(PlayerSlotProfile slot)
-        {
-            ActivityParticipationProjectionProfile profile =
-                AssetDatabase.LoadAssetAtPath<
-                    ActivityParticipationProjectionProfile>(
-                    ExplicitProjectionPath);
-            if (profile == null)
-            {
-                profile = ScriptableObject.CreateInstance<
-                    ActivityParticipationProjectionProfile>();
-                AssetDatabase.CreateAsset(profile, ExplicitProjectionPath);
-            }
-
-            profile.name = Path.GetFileNameWithoutExtension(
-                ExplicitProjectionPath);
-            var serialized = new SerializedObject(profile);
-            serialized.FindProperty("displayName").stringValue =
-                "P3M5A — Explicit Scene Player Slot";
-            serialized.FindProperty("description").stringValue =
-                "Projects the exact configured first Slot admitted by the Activity scene.";
-            SetEnum(serialized.FindProperty("projectionMode"), "ExplicitSlots");
-            SetEnum(
-                serialized.FindProperty("zeroParticipantPolicy"),
-                "Rejected");
-            SerializedProperty slots =
-                serialized.FindProperty("explicitSlotProfiles");
-            slots.arraySize = 1;
-            slots.GetArrayElementAtIndex(0).objectReferenceValue = slot;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(profile);
-            return profile;
-        }
-
-        private static ActivityParticipationProjectionProfile
-            CreateOrUpdateNoPlayersProjection()
-        {
-            ActivityParticipationProjectionProfile profile =
-                AssetDatabase.LoadAssetAtPath<
-                    ActivityParticipationProjectionProfile>(
-                    NoPlayersProjectionPath);
-            if (profile == null)
-            {
-                profile = ScriptableObject.CreateInstance<
-                    ActivityParticipationProjectionProfile>();
-                AssetDatabase.CreateAsset(profile, NoPlayersProjectionPath);
-            }
-
-            profile.name = Path.GetFileNameWithoutExtension(
-                NoPlayersProjectionPath);
-            var serialized = new SerializedObject(profile);
-            serialized.FindProperty("displayName").stringValue =
-                "P3M5A — No Players";
-            serialized.FindProperty("description").stringValue =
-                "Projects no Player Slots and allows zero participants.";
-            SetEnum(serialized.FindProperty("projectionMode"), "NoSlots");
-            SetEnum(
-                serialized.FindProperty("zeroParticipantPolicy"),
-                "Allowed");
-            serialized.FindProperty("explicitSlotProfiles").arraySize = 0;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(profile);
-            return profile;
-        }
-
         private static PlayerParticipationRequirementsProfile
             CreateOrUpdateRequirements(
                 string path,
@@ -504,10 +436,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static ActivityAsset CreateOrUpdateActivity(
             string path,
             string activityName,
-            ActivityParticipationProjectionProfile projection,
             PlayerParticipationRequirementsProfile requirements,
             ActivityContentProfileAsset content,
-            ActivityVisualTransitionMode visualTransitionMode)
+            ActivityVisualTransitionMode visualTransitionMode,
+            ActivityParticipationProjectionMode projectionMode,
+            ActivityParticipationZeroParticipantPolicy zeroPolicy,
+            params PlayerSlotProfile[] explicitSlots)
         {
             ActivityAsset activity =
                 AssetDatabase.LoadAssetAtPath<ActivityAsset>(path);
@@ -523,8 +457,18 @@ namespace ImmersiveFrameworkQA.Player.Editor
             serialized.FindProperty("activityName").stringValue = activityName;
             serialized.FindProperty("description").stringValue =
                 "P3M5A QA-only real Activity lifecycle fixture.";
-            serialized.FindProperty("playerParticipationProjectionProfile")
-                .objectReferenceValue = projection;
+            serialized.FindProperty("playerParticipationProjectionMode").intValue =
+                (int)projectionMode;
+            serialized.FindProperty("playerParticipationZeroParticipantPolicy").intValue =
+                (int)zeroPolicy;
+            SerializedProperty slots =
+                serialized.FindProperty("playerParticipationExplicitSlotProfiles");
+            int count = explicitSlots != null ? explicitSlots.Length : 0;
+            slots.arraySize = count;
+            for (int index = 0; index < count; index++)
+            {
+                slots.GetArrayElementAtIndex(index).objectReferenceValue = explicitSlots[index];
+            }
             serialized.FindProperty("playerParticipationRequirementsProfile")
                 .objectReferenceValue = requirements;
             serialized.FindProperty("activityContentProfile")
