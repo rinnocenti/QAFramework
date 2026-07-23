@@ -1,92 +1,83 @@
 # P3 Canonical Pre-FIRSTGAME QA
 
-Status: Active
-Last updated: 2026-07-16
+Status: Superseded operational guide; retained as historical inventory  
+Last updated: 2026-07-22
 
 ## Purpose
 
-This is the operational Player QA entry point for the canonical local
-join/ActorProfile materialization lane before FIRSTGAME integration.
+This document records the scope formerly orchestrated by the P3 canonical Pre-FIRSTGAME mega-runner.
 
-It validates the current P3 path from Player Slot authoring through real local
-join, selected Actor materialization, GameplayReady admission and Activity
-lifecycle handoff without restoring removed Player contracts.
-
-The alternative Pre-Authored Player Composer model has its own separate
-Editor-only smoke and is not part of this canonical result.
-
-## Canonical run
-
-Use:
+The public command below no longer exists:
 
 ```text
 Immersive Framework/QA/Player/P3 Run Canonical Pre-FIRSTGAME Smoke
 ```
 
-No setup or repair menu is required. The command repairs the canonical fixture,
-preserves the previous saved Scene setup in `SessionState`, enters Play Mode,
-runs the integrated lane, exits Play Mode and restores the previous Scenes.
+It was removed during QA smoke consolidation. No global or Player mega-suite replaces it. Current evidence must come from the focused regression that owns each contract.
 
-## Canonical Editor phase
+## Current Player regression surface
 
-- Player Slot profile authoring;
-- provisioning surface validity, duplicate rejection and manager divergence;
-- Activity participation projection;
-- ordered Session Slot initialization, joining and capacity;
-- join contract authoring;
-- synthetic provisioning bridge, explicit technical-host parent, callback,
-  rollback, CLR-null/fake-null and single-flight behavior;
-- canonical P3G4/P3H4/P3J5/P3J6 fixture repair.
+### Edit Mode
 
-## Canonical Play Mode phase
+```text
+Immersive Framework/QA/Regressions/Player/Run Player Participation Authoring Regression
+Immersive Framework/QA/Regressions/Player/Run Session Player Slots Regression
+Immersive Framework/QA/Regressions/Player/Run Local Player Provisioning Regression
+```
+
+### Play Mode
+
+```text
+Immersive Framework/QA/Regressions/Player/Run Player Actor Selection Runtime Binding Regression
+Immersive Framework/QA/Regressions/Player/Run Player Gameplay Admission Regression
+Immersive Framework/QA/Regressions/Player/Run Scene Player Route Lifecycle Regression
+```
+
+Each regression owns its own preconditions, cases, cleanup and PASS evidence. A PASS from one regression must not be counted as evidence for another.
+
+## Historical coverage mapping
+
+The former canonical Editor phase combined:
+
+- Player Slot and participation authoring;
+- ordered Session Slot initialization and allocation;
+- Local Player Host provisioning, correlation and rollback;
+- fixture setup for later gameplay and lifecycle proofs.
+
+That coverage now belongs to the three focused Edit Mode regressions.
+
+The former canonical Play Mode phase combined:
 
 - real local Player join and technical-host admission;
 - public default Actor selection;
 - Actor materialization and preparation;
-- Route/Activity restart and owner identity replacement;
-- gameplay occupancy, input binding, camera eligibility and admission;
-- Activity lifecycle handoff and cleanup.
+- gameplay occupancy, input binding and camera eligibility;
+- Route/Activity transition, re-entry and cleanup.
 
-## Alternative Pre-Authored Player coverage
+That coverage now belongs to the three focused Play Mode regressions.
 
-Run separately:
+## Pre-Authored Player Composer
+
+The former command below is also not part of the current public QA menu:
 
 ```text
 Immersive Framework/QA/Player Alternatives/P3B Run Pre-Authored Player Composer Smoke
 ```
 
-This Editor-only smoke validates the optional model where one concrete Player
-already exists with its own `PlayerInput` and
-`PreAuthoredPlayerComposer`. It proves Apply/Rebuild, generated declaration,
-Gate wiring, camera anchors, explicit failures and idempotency.
-
-Its result must not be counted as evidence for the canonical join lane.
+Do not use this historical path as proof that a current `PlayerRecipe` or `PlayerComposer` product surface exists. Any future designer-facing Local Player surface requires its own official package implementation and focused QA contract.
 
 ## Removed contracts
 
-The canonical suite must not depend on `PlayerSlotDeclaration`,
-`PlayerSlotOccupancy`, `PlayerEntry`, `PlayerViews`, `PlayerControls`,
-`PlayerTopology`, F49/F51/F52 PlayerBinding, or
-`SessionPlayerInputManagerDeclaration`.
+Current Player regressions must not restore `PlayerSlotDeclaration`, `PlayerSlotOccupancy`, `PlayerEntry`, `PlayerViews`, `PlayerControls`, `PlayerTopology`, F49/F51/F52 PlayerBinding or `SessionPlayerInputManagerDeclaration`.
 
-## Canonical result
-
-Success emits one aggregate record:
-
-```text
-[P3_CANONICAL_PREFIRSTGAME_SMOKE] status='Passed' phases='2' cases='<total>' completed='<case ids>'
-```
-
-Failure emits the run id, phase, current case, exception, message, completed
-cases, Scene and Play Mode state. A stale interrupted run is rejected and
-cleaned before a new run proceeds.
-
-## Manual validation
+## Validation guidance
 
 1. Import and compile Framework and QAFramework.
-2. Confirm the canonical and alternative menu commands are separate.
-3. Run the canonical command from Edit Mode with all open Scenes saved.
-4. Confirm automatic Play Mode entry/exit and previous Scene restoration.
-5. Confirm the single canonical aggregate log.
-6. Run the alternative Pre-Authored smoke independently.
-7. Do not declare PASS for either lane without its own evidence.
+2. Confirm the focused Player regressions appear under `Immersive Framework/QA/Regressions/Player`.
+3. Confirm the two historical mega-runner menu paths do not appear.
+4. Run each required Edit Mode regression independently.
+5. Enter a fresh Play Mode with the fixture required by the selected runtime regression.
+6. Run each required Play Mode regression independently and retain its own PASS evidence.
+7. Do not report a combined canonical P3 PASS; report the focused regression results.
+
+For the full historical inventory and consolidation decisions, see `../../Documentation/QA-SMOKE-CONSOLIDATION-AUDIT.md`.
