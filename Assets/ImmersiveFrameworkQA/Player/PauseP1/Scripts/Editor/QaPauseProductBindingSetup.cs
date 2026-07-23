@@ -38,8 +38,6 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
             "Assets/ImmersiveFrameworkQA/Hub/Scenes/QA_Hub.unity";
         internal const string UiGlobalScene =
             "Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/QA_UIGlobal.unity";
-        internal const string Requirements =
-            "Assets/ImmersiveFrameworkQA/Player/Profiles/PlayerParticipation/Player Participation — Joined Slots.asset";
         internal const string PauseAction = "Global/PauseToggle";
     }
 
@@ -417,13 +415,6 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
         private static ActivityAsset CreateOrUpdateActivity(
             ActivityContentProfileAsset content)
         {
-            PlayerParticipationRequirementsProfile requirements =
-                AssetDatabase.LoadAssetAtPath<
-                    PlayerParticipationRequirementsProfile>(
-                    QaPauseProductBindingPaths.Requirements);
-            Require(requirements != null,
-                "Pause QA Joined Slots requirements profile is missing.");
-
             ActivityAsset activity = LoadOrCreate<ActivityAsset>(
                 QaPauseProductBindingPaths.Activity);
             activity.name = "QA_PauseP1Activity";
@@ -439,7 +430,9 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                 Property(serialized, "playerParticipationZeroParticipantPolicy"),
                 "Rejected");
             Property(serialized, "playerParticipationExplicitSlotProfiles").arraySize = 0;
-            SetObject(serialized, "playerParticipationRequirementsProfile", requirements);
+            SetEnum(
+                Property(serialized, "playerParticipationRequirementLevel"),
+                "JoinedSlots");
             SetObject(serialized, "activityContentProfile", content);
             SetEnum(Property(serialized, "visualTransitionMode"), "Seamless");
             SetEnum(Property(serialized, "transitionGateMode"),

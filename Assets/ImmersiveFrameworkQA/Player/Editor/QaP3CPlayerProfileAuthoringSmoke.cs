@@ -10,7 +10,7 @@ using UnityEngine;
 namespace ImmersiveFrameworkQA.Player.Editor
 {
     /// <summary>
-    /// P3C editor-only smoke for Player Slot and participation requirements authoring.
+    /// P3C editor-only smoke for Player Slot authoring.
     /// Uses temporary QA assets and removes the complete fixture after execution.
     /// </summary>
     internal static class QaP3CPlayerProfileAuthoringSmoke
@@ -24,7 +24,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private const string ValidatorTypeName =
             "Immersive.Framework.Editor.Editor.PlayerParticipation.PlayerParticipationAuthoringValidator";
 
-        [MenuItem("Immersive Framework/QA/Regressions/Player/Run Player Participation Authoring Regression")]
         internal static void Run()
         {
             var completed = new List<string>();
@@ -66,10 +65,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "qa.p3c.player.2",
                 "QA Player 2",
                 1);
-            PlayerParticipationRequirementsProfile explicitNone = CreateRequirementsProfile(
-                "PlayerParticipation_QA_None",
-                "QA Participation — None",
-                PlayerParticipationRequirementLevel.None);
             GameApplicationAsset gameApplication = CreateGameApplication(
                 PlayerActorSelectionDuplicatePolicy.AllowDuplicates,
                 playerOne,
@@ -127,28 +122,15 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 restoredValidReport,
                 "Restored Game Application configuration reported errors.");
 
-            AssertTrue(explicitNone.IsExplicitNone, "None requirements Profile is not explicit None.");
-            AssertTrue(
-                explicitNone.HasDefinedRequirementLevel,
-                "None requirements Profile has an undefined Requirement Level.");
-            object requirementsReport = ValidateRequirementsProfile(explicitNone);
-            AssertReportHasNoErrors(
-                requirementsReport,
-                "Explicit None Requirements Profile reported errors.");
-            completed.Add("explicit-none-requirements-profile");
-
             string playerOneBefore = EditorJsonUtility.ToJson(playerOne);
             string playerTwoBefore = EditorJsonUtility.ToJson(playerTwo);
-            string requirementsBefore = EditorJsonUtility.ToJson(explicitNone);
             string applicationBefore = EditorJsonUtility.ToJson(gameApplication);
 
             ValidateGameApplication(gameApplication);
-            ValidateRequirementsProfile(explicitNone);
             ValidateProjectProfiles(gameApplication.ValidationMode);
 
             AssertEqual(playerOneBefore, EditorJsonUtility.ToJson(playerOne), "Validation mutated Player 1 Profile.");
             AssertEqual(playerTwoBefore, EditorJsonUtility.ToJson(playerTwo), "Validation mutated Player 2 Profile.");
-            AssertEqual(requirementsBefore, EditorJsonUtility.ToJson(explicitNone), "Validation mutated Requirements Profile.");
             AssertEqual(applicationBefore, EditorJsonUtility.ToJson(gameApplication), "Validation mutated Game Application.");
             completed.Add("validation-is-non-mutating");
 
@@ -198,11 +180,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             AssertTrue(AssetDatabase.IsValidFolder(templateFolder), "Complete template command did not create its folder.");
 
             string[] slotGuids = AssetDatabase.FindAssets("t:PlayerSlotProfile", new[] { templateFolder });
-            string[] requirementsGuids = AssetDatabase.FindAssets(
-                "t:PlayerParticipationRequirementsProfile",
-                new[] { templateFolder });
             AssertEqual(4, slotGuids.Length, "Complete template did not create four Player Slot Profiles.");
-            AssertEqual(5, requirementsGuids.Length, "Complete template did not create five Requirements Profiles.");
 
             string[] actorSelectionPolicyGuids = AssetDatabase.FindAssets(
                 "ActorSelection",
@@ -213,20 +191,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "Complete template created an obsolete Actor Selection Policy asset.");
             completed.Add("complete-template-uses-game-application-actor-policy");
 
-            bool foundExplicitNone = false;
-            for (int index = 0; index < requirementsGuids.Length; index++)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(requirementsGuids[index]);
-                PlayerParticipationRequirementsProfile profile =
-                    AssetDatabase.LoadAssetAtPath<PlayerParticipationRequirementsProfile>(path);
-                if (profile != null && profile.IsExplicitNone)
-                {
-                    foundExplicitNone = true;
-                    break;
-                }
-            }
-
-            AssertTrue(foundExplicitNone, "Complete template set did not create an explicit None Profile.");
             completed.Add("complete-template-set-created");
         }
 
@@ -260,24 +224,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
             {
                 AssetDatabase.SaveAssets();
             }
-        }
-
-        private static PlayerParticipationRequirementsProfile CreateRequirementsProfile(
-            string fileName,
-            string displayName,
-            PlayerParticipationRequirementLevel requirementLevel)
-        {
-            var profile = ScriptableObject.CreateInstance<PlayerParticipationRequirementsProfile>();
-            profile.name = fileName;
-
-            var serializedProfile = new SerializedObject(profile);
-            serializedProfile.FindProperty("displayName").stringValue = displayName;
-            serializedProfile.FindProperty("description").stringValue = "P3C QA explicit requirements fixture.";
-            serializedProfile.FindProperty("requirementLevel").intValue = (int)requirementLevel;
-            serializedProfile.ApplyModifiedPropertiesWithoutUndo();
-
-            AssetDatabase.CreateAsset(profile, $"{TempFolder}/{fileName}.asset");
-            return profile;
         }
 
         private static GameApplicationAsset CreateGameApplication(
@@ -336,15 +282,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "ValidateGameApplication",
                 new[] { typeof(GameApplicationAsset), typeof(bool) },
                 new object[] { gameApplication, true });
-        }
-
-        private static object ValidateRequirementsProfile(
-            PlayerParticipationRequirementsProfile profile)
-        {
-            return InvokeValidator(
-                "ValidateRequirementsProfile",
-                new[] { typeof(PlayerParticipationRequirementsProfile) },
-                new object[] { profile });
         }
 
         private static object ValidateProjectProfiles(FrameworkValidationMode validationMode)

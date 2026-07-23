@@ -33,12 +33,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
             RootFolder + "/P3M5A_SceneActorProfile.asset";
         internal const string ContentProfilePath =
             RootFolder + "/P3M5A_ActivityContent.asset";
-        internal const string PreparedRequirementsPath =
-            RootFolder + "/P3M5A_LogicalActorsPrepared.asset";
-        internal const string GameplayRequirementsPath =
-            RootFolder + "/P3M5A_GameplayReady.asset";
-        internal const string NoPlayersRequirementsPath =
-            RootFolder + "/P3M5A_NoPlayersRequirements.asset";
         internal const string PreparedActivityPath =
             RootFolder + "/P3M5A_ScenePlayerPreparedActivity.asset";
         internal const string GameplayActivityPath =
@@ -76,29 +70,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 ActivityContentProfileAsset content =
                     CreateOrUpdateContentProfile();
-                PlayerParticipationRequirementsProfile preparedRequirements =
-                    CreateOrUpdateRequirements(
-                        PreparedRequirementsPath,
-                        "Logical Actors Prepared",
-                        PlayerParticipationRequirementLevel.LogicalActorsPrepared,
-                        "The Scene Local Player must be admitted, selected and adopted before Activity readiness.");
-                PlayerParticipationRequirementsProfile gameplayRequirements =
-                    CreateOrUpdateRequirements(
-                        GameplayRequirementsPath,
-                        "Gameplay Ready",
-                        PlayerParticipationRequirementLevel.GameplayReady,
-                        "Negative integration target: adoption must succeed before the canonical gameplay chain reports missing gameplay authoring.");
-                PlayerParticipationRequirementsProfile noPlayersRequirements =
-                    CreateOrUpdateRequirements(
-                        NoPlayersRequirementsPath,
-                        "No Players",
-                        PlayerParticipationRequirementLevel.None,
-                        "Transition target with no projected Players and no Activity content.");
-
                 ActivityAsset preparedActivity = CreateOrUpdateActivity(
                     PreparedActivityPath,
                     "P3M5A Scene Player Prepared Activity",
-                    preparedRequirements,
+                    PlayerParticipationRequirementLevel.LogicalActorsPrepared,
                     content,
                     ActivityVisualTransitionMode.Seamless,
                     ActivityParticipationProjectionMode.ExplicitSlots,
@@ -107,7 +82,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 ActivityAsset gameplayActivity = CreateOrUpdateActivity(
                     GameplayActivityPath,
                     "P3M5A Scene Player Gameplay Ready Activity",
-                    gameplayRequirements,
+                    PlayerParticipationRequirementLevel.GameplayReady,
                     content,
                     ActivityVisualTransitionMode.FadeWithLoading,
                     ActivityParticipationProjectionMode.ExplicitSlots,
@@ -116,7 +91,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 ActivityAsset noPlayersActivity = CreateOrUpdateActivity(
                     NoPlayersActivityPath,
                     "P3M5A No Players Activity",
-                    noPlayersRequirements,
+                    PlayerParticipationRequirementLevel.None,
                     null,
                     ActivityVisualTransitionMode.Seamless,
                     ActivityParticipationProjectionMode.NoSlots,
@@ -405,38 +380,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return profile;
         }
 
-        private static PlayerParticipationRequirementsProfile
-            CreateOrUpdateRequirements(
-                string path,
-                string displayName,
-                PlayerParticipationRequirementLevel level,
-                string description)
-        {
-            PlayerParticipationRequirementsProfile profile =
-                AssetDatabase.LoadAssetAtPath<
-                    PlayerParticipationRequirementsProfile>(path);
-            if (profile == null)
-            {
-                profile = ScriptableObject.CreateInstance<
-                    PlayerParticipationRequirementsProfile>();
-                AssetDatabase.CreateAsset(profile, path);
-            }
-
-            profile.name = Path.GetFileNameWithoutExtension(path);
-            var serialized = new SerializedObject(profile);
-            serialized.FindProperty("displayName").stringValue =
-                "P3M5A — " + displayName;
-            serialized.FindProperty("description").stringValue = description;
-            serialized.FindProperty("requirementLevel").intValue = (int)level;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(profile);
-            return profile;
-        }
-
         private static ActivityAsset CreateOrUpdateActivity(
             string path,
             string activityName,
-            PlayerParticipationRequirementsProfile requirements,
+            PlayerParticipationRequirementLevel requirementLevel,
             ActivityContentProfileAsset content,
             ActivityVisualTransitionMode visualTransitionMode,
             ActivityParticipationProjectionMode projectionMode,
@@ -469,8 +416,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             {
                 slots.GetArrayElementAtIndex(index).objectReferenceValue = explicitSlots[index];
             }
-            serialized.FindProperty("playerParticipationRequirementsProfile")
-                .objectReferenceValue = requirements;
+            serialized.FindProperty("playerParticipationRequirementLevel")
+                .intValue = (int)requirementLevel;
             serialized.FindProperty("activityContentProfile")
                 .objectReferenceValue = content;
             serialized.FindProperty("visualTransitionMode").intValue =

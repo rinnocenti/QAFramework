@@ -19,7 +19,7 @@ MonoBehaviour:
   playerParticipationZeroParticipantPolicy: 10
   playerParticipationExplicitSlotProfiles:
   - {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
-  playerParticipationRequirementsProfile: {fileID: 11400000, guid: 05717dd4b3a28e0469e3da757be69237, type: 2}
+  playerParticipationRequirementLevel: 40
   activityContentProfile: {fileID: 11400000, guid: b6890cd4ed6b17748be6b39e4802c804, type: 2}
   visualTransitionMode: 20
   transitionGateMode: 10

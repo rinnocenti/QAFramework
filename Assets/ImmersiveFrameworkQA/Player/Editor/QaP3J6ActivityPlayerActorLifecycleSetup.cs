@@ -15,8 +15,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
     {
         private const string RootFolder =
             "Assets/ImmersiveFrameworkQA/Player/P3J6";
-        internal const string RequirementsPath =
-            RootFolder + "/P3J6_LogicalActorsPrepared.asset";
         internal const string ActivityPath =
             RootFolder + "/P3J6_PlayerActorLifecycleActivity.asset";
         internal const string NegativeActivityPath =
@@ -29,12 +27,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 QaP3J5RuntimeHostPreparationSetup.Apply();
                 EnsureFolder(RootFolder);
 
-                PlayerParticipationRequirementsProfile requirements =
-                    CreateOrUpdateRequirements();
+                PlayerParticipationRequirementLevel requirementLevel =
+                    PlayerParticipationRequirementLevel.LogicalActorsPrepared;
                 ActivityAsset activity = CreateOrUpdateActivity(
                     ActivityPath,
                     "P3J6 Player Actor Lifecycle Activity",
-                    requirements,
+                    requirementLevel,
                     ActivityParticipationProjectionMode.AllJoinedSlots,
                     ActivityParticipationZeroParticipantPolicy.Rejected);
 
@@ -54,7 +52,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 ActivityAsset negativeActivity = CreateOrUpdateActivity(
                     NegativeActivityPath,
                     "P3J6 Unjoined Slot Required Activity",
-                    requirements,
+                    requirementLevel,
                     ActivityParticipationProjectionMode.ExplicitSlots,
                     ActivityParticipationZeroParticipantPolicy.Rejected,
                     secondSlot);
@@ -66,7 +64,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "[P3J6_ACTIVITY_PLAYER_ACTOR_LIFECYCLE_FIXTURE] status='Applied' " +
                     $"activity='{activity.ActivityName}' projection='{activity.PlayerParticipationProjectionMode}' " +
                     $"zeroPolicy='{activity.PlayerParticipationZeroParticipantPolicy}' " +
-                    $"requirement='{requirements.RequirementLevel}' " +
+                    $"requirement='{requirementLevel}' " +
                     $"negativeActivity='{negativeActivity.ActivityName}' " +
                     $"negativeSlot='{secondSlot.PlayerSlotId.StableText}'.");
             }
@@ -79,36 +77,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             }
         }
 
-        private static PlayerParticipationRequirementsProfile
-            CreateOrUpdateRequirements()
-        {
-            PlayerParticipationRequirementsProfile profile =
-                AssetDatabase.LoadAssetAtPath<PlayerParticipationRequirementsProfile>(
-                    RequirementsPath);
-            if (profile == null)
-            {
-                profile = ScriptableObject.CreateInstance<
-                    PlayerParticipationRequirementsProfile>();
-                AssetDatabase.CreateAsset(profile, RequirementsPath);
-            }
-
-            profile.name = "P3J6 Logical Actors Prepared";
-            var serialized = new SerializedObject(profile);
-            serialized.FindProperty("displayName").stringValue =
-                "P3J.6 — Logical Actors Prepared";
-            serialized.FindProperty("description").stringValue =
-                "Every projected joined Slot must have its selected/default Logical Actor prepared by the Activity owner.";
-            serialized.FindProperty("requirementLevel").intValue =
-                (int)PlayerParticipationRequirementLevel.LogicalActorsPrepared;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(profile);
-            return profile;
-        }
-
         private static ActivityAsset CreateOrUpdateActivity(
             string assetPath,
             string activityName,
-            PlayerParticipationRequirementsProfile requirements,
+            PlayerParticipationRequirementLevel requirementLevel,
             ActivityParticipationProjectionMode projectionMode,
             ActivityParticipationZeroParticipantPolicy zeroPolicy,
             params PlayerSlotProfile[] explicitSlots)
@@ -139,8 +111,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             {
                 slots.GetArrayElementAtIndex(index).objectReferenceValue = explicitSlots[index];
             }
-            serialized.FindProperty("playerParticipationRequirementsProfile")
-                .objectReferenceValue = requirements;
+            serialized.FindProperty("playerParticipationRequirementLevel")
+                .intValue = (int)requirementLevel;
             serialized.FindProperty("activityContentProfile")
                 .objectReferenceValue = null;
             serialized.FindProperty("visualTransitionMode").intValue =

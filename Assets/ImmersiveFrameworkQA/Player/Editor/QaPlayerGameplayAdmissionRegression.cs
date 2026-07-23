@@ -1075,19 +1075,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static ActivityAsset CreateGameplayReadyActivity(
             PlayerSlotProfile slotProfile)
         {
-            PlayerParticipationRequirementsProfile requirements =
-                ScriptableObject.CreateInstance<
-                    PlayerParticipationRequirementsProfile>();
-            requirements.name = "Player Gameplay Admission Ready";
-            SerializedObject requirementsSerialized =
-                new SerializedObject(requirements);
-            requirementsSerialized.FindProperty("displayName").stringValue =
-                "Player Gameplay Admission Ready";
-            requirementsSerialized.FindProperty(
-                    "requirementLevel").intValue =
-                (int)PlayerParticipationRequirementLevel.GameplayReady;
-            requirementsSerialized.ApplyModifiedPropertiesWithoutUndo();
-
             ActivityAsset activity =
                 ScriptableObject.CreateInstance<ActivityAsset>();
             activity.name = "Player Gameplay Admission Target Activity";
@@ -1109,8 +1096,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
             slots.GetArrayElementAtIndex(0).objectReferenceValue =
                 slotProfile;
             activitySerialized.FindProperty(
-                    "playerParticipationRequirementsProfile")
-                .objectReferenceValue = requirements;
+                    "playerParticipationRequirementLevel")
+                .intValue =
+                    (int)PlayerParticipationRequirementLevel.GameplayReady;
             activitySerialized.ApplyModifiedPropertiesWithoutUndo();
             return activity;
         }

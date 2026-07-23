@@ -463,11 +463,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
             PlayerParticipationRequirementLevel requirementLevel,
             ICollection<UnityEngine.Object> created)
         {
-            var requirements = ScriptableObject.CreateInstance<PlayerParticipationRequirementsProfile>();
-            requirements.name = name + " Requirements";
-            created.Add(requirements);
-            SetEnum(requirements, "requirementLevel", requirementLevel);
-
             var contentProfile = ScriptableObject.CreateInstance<ActivityContentProfileAsset>();
             contentProfile.name = name + " Content";
             created.Add(contentProfile);
@@ -496,7 +491,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 activity,
                 "playerParticipationExplicitSlotProfiles",
                 slots);
-            SetObject(activity, "playerParticipationRequirementsProfile", requirements);
+            SetEnum(activity, "playerParticipationRequirementLevel", requirementLevel);
             SetObject(activity, "activityContentProfile", contentProfile);
             return activity;
         }

@@ -341,8 +341,10 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     out _);
             Require(ReferenceEquals(activity.ActivityContentProfile, content) &&
                     validProjection &&
-                    activity.PlayerParticipationRequirementsProfile != null,
-                "Activity content, inline Local Player participation Projection or Requirements Profile is invalid.");
+                    activity.HasDefinedPlayerParticipationRequirementLevel &&
+                    activity.PlayerParticipationRequirementLevel ==
+                    PlayerParticipationRequirementLevel.JoinedSlots,
+                "Activity content or inline Local Player participation configuration is invalid.");
 
             var serialized = new SerializedObject(content);
             SerializedProperty scenes = serialized.FindProperty("scenes");

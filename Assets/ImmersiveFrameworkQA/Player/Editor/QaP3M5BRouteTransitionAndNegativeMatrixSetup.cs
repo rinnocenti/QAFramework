@@ -77,8 +77,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
         internal const string ReusedHostContentPath =
             RootFolder + "/P3M5B_Negative_ReusedHost_Content.asset";
 
-        internal const string LogicalActorsPreparedRequirementsPath =
-            RootFolder + "/P3M5B_LogicalActorsPrepared.asset";
 
         internal const string RouteAActivityPath =
             RootFolder + "/P3M5B_RouteA_StartupActivity.asset";
@@ -233,15 +231,15 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 PlayerSlotProfile[] firstSlotProjection = { slots[0] };
                 PlayerSlotProfile[] twoSlotProjection = slots;
-                PlayerParticipationRequirementsProfile requirements =
-                    CreateOrUpdateRequirements();
+                PlayerParticipationRequirementLevel requirementLevel =
+                    PlayerParticipationRequirementLevel.LogicalActorsPrepared;
 
                 ActivityAsset routeAActivity = CreateOrUpdateActivity(
                     RouteAActivityPath,
                     RouteAActivityId,
                     "Scene Player Route Lifecycle A Activity",
                     firstSlotProjection,
-                    requirements,
+                    requirementLevel,
                     CreateOrUpdateContentProfile(
                         RouteAContentPath,
                         "qa.p3m5b.route-a.activity-content",
@@ -251,7 +249,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     RouteBActivityId,
                     "Scene Player Route Lifecycle B Activity",
                     firstSlotProjection,
-                    requirements,
+                    requirementLevel,
                     CreateOrUpdateContentProfile(
                         RouteBContentPath,
                         "qa.p3m5b.route-b.activity-content",
@@ -261,7 +259,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     DuplicateSlotActivityId,
                     "P3M5B Negative Duplicate Slot Activity",
                     firstSlotProjection,
-                    requirements,
+                    requirementLevel,
                     CreateOrUpdateContentProfile(
                         DuplicateSlotContentPath,
                         "qa.p3m5b.negative.duplicate-slot",
@@ -271,7 +269,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     MissingActorActivityId,
                     "P3M5B Negative Missing Actor Activity",
                     firstSlotProjection,
-                    requirements,
+                    requirementLevel,
                     CreateOrUpdateContentProfile(
                         MissingActorContentPath,
                         "qa.p3m5b.negative.missing-actor",
@@ -281,7 +279,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     MismatchedProfileActivityId,
                     "P3M5B Negative Mismatched Profile Activity",
                     firstSlotProjection,
-                    requirements,
+                    requirementLevel,
                     CreateOrUpdateContentProfile(
                         MismatchedProfileContentPath,
                         "qa.p3m5b.negative.mismatched-profile",
@@ -291,7 +289,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     ReusedHostActivityId,
                     "P3M5B Negative Reused Host Activity",
                     twoSlotProjection,
-                    requirements,
+                    requirementLevel,
                     CreateOrUpdateContentProfile(
                         ReusedHostContentPath,
                         "qa.p3m5b.negative.reused-host",
@@ -301,7 +299,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     UndeclaredSurfaceActivityId,
                     "P3M5B Negative Undeclared Surface Activity",
                     firstSlotProjection,
-                    requirements,
+                    requirementLevel,
                     null);
 
                 RouteAsset routeA = CreateOrUpdateRoute(
@@ -817,42 +815,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return profile;
         }
 
-        private static PlayerParticipationRequirementsProfile
-            CreateOrUpdateRequirements()
-        {
-            PlayerParticipationRequirementsProfile profile =
-                AssetDatabase.LoadAssetAtPath<
-                    PlayerParticipationRequirementsProfile>(
-                    LogicalActorsPreparedRequirementsPath);
-            if (profile == null)
-            {
-                profile = ScriptableObject.CreateInstance<
-                    PlayerParticipationRequirementsProfile>();
-                AssetDatabase.CreateAsset(
-                    profile,
-                    LogicalActorsPreparedRequirementsPath);
-            }
-
-            profile.name = Path.GetFileNameWithoutExtension(
-                LogicalActorsPreparedRequirementsPath);
-            var serialized = new SerializedObject(profile);
-            serialized.FindProperty("displayName").stringValue =
-                "P3M5B — Logical Actors Prepared";
-            serialized.FindProperty("description").stringValue =
-                "Scene Local Player admission, selection and adoption are required.";
-            serialized.FindProperty("requirementLevel").intValue =
-                (int)PlayerParticipationRequirementLevel.LogicalActorsPrepared;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(profile);
-            return profile;
-        }
-
         private static ActivityAsset CreateOrUpdateActivity(
             string path,
             string activityId,
             string activityName,
             PlayerSlotProfile[] projection,
-            PlayerParticipationRequirementsProfile requirements,
+            PlayerParticipationRequirementLevel requirementLevel,
             ActivityContentProfileAsset content)
         {
             ActivityAsset activity = AssetDatabase.LoadAssetAtPath<ActivityAsset>(path);
@@ -888,8 +856,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 explicitSlots.GetArrayElementAtIndex(index).objectReferenceValue =
                     projection[index];
             }
-            serialized.FindProperty("playerParticipationRequirementsProfile")
-                .objectReferenceValue = requirements;
+            serialized.FindProperty("playerParticipationRequirementLevel")
+                .intValue = (int)requirementLevel;
             serialized.FindProperty("activityContentProfile")
                 .objectReferenceValue = content;
             serialized.FindProperty("visualTransitionMode").intValue =

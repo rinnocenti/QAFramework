@@ -54,12 +54,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             PlayerSlotProfile playerOne = CreateSlotProfile("P3D_Player_One", "qa.p3d.player.1");
             PlayerSlotProfile playerTwo = CreateSlotProfile("P3D_Player_Two", "qa.p3d.player.2");
-            PlayerParticipationRequirementsProfile none = CreateRequirementsProfile(
-                "P3D_Requirements_None",
-                PlayerParticipationRequirementLevel.None);
-            PlayerParticipationRequirementsProfile joined = CreateRequirementsProfile(
-                "P3D_Requirements_Joined",
-                PlayerParticipationRequirementLevel.JoinedSlots);
+            PlayerParticipationRequirementLevel none =
+                PlayerParticipationRequirementLevel.None;
+            PlayerParticipationRequirementLevel joined =
+                PlayerParticipationRequirementLevel.JoinedSlots;
 
             ActivityAsset noPlayersActivity = CreateActivity(
                 "P3D_Activity_NoPlayers",
@@ -108,16 +106,16 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "Default Activity-owned NoSlots projection was rejected.");
             completed.Add("activity-owned-default-projection-valid");
 
-            ActivityAsset missingRequirements = CreateActivity(
-                "P3D_Activity_MissingRequirements",
-                "QA P3D Missing Requirements",
-                null,
+            ActivityAsset invalidRequirements = CreateActivity(
+                "P3D_Activity_InvalidRequirements",
+                "QA P3D Invalid Requirements",
+                (PlayerParticipationRequirementLevel)999,
                 ActivityParticipationProjectionMode.NoSlots,
                 ActivityParticipationZeroParticipantPolicy.Allowed);
-            object missingRequirementsReport = ValidateActivity(missingRequirements);
-            AssertHasErrors(missingRequirementsReport, "Missing Requirements was accepted.");
-            AssertReportContains(missingRequirementsReport, "missing its mandatory Player Participation Requirements Profile");
-            completed.Add("missing-requirements-rejected");
+            object invalidRequirementsReport = ValidateActivity(invalidRequirements);
+            AssertHasErrors(invalidRequirementsReport, "Invalid Requirement Level was accepted.");
+            AssertReportContains(invalidRequirementsReport, "invalid Player participation Requirement Level");
+            completed.Add("invalid-requirement-level-rejected");
 
             ActivityAsset contradictory = CreateActivity(
                 "P3D_Activity_Contradictory",
@@ -176,12 +174,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             ActivityAsset projectScanTarget = CreateActivity(
                 "P3D_Activity_ProjectScanTarget",
-                "QA P3D Project Scan Missing Requirements",
-                null,
+                "QA P3D Project Scan Invalid Requirements",
+                (PlayerParticipationRequirementLevel)999,
                 ActivityParticipationProjectionMode.NoSlots,
                 ActivityParticipationZeroParticipantPolicy.Allowed);
             object projectReport = ValidateProjectAssets(FrameworkValidationMode.Standard);
-            AssertHasErrors(projectReport, "Project scan accepted an Activity with missing Requirements.");
+            AssertHasErrors(projectReport, "Project scan accepted an Activity with an invalid Requirement Level.");
             AssertReportContains(projectReport, projectScanTarget.ActivityName);
             completed.Add("project-scan-detects-invalid-activity");
         }
@@ -199,25 +197,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return profile;
         }
 
-        private static PlayerParticipationRequirementsProfile CreateRequirementsProfile(
-            string fileName,
-            PlayerParticipationRequirementLevel level)
-        {
-            var profile = ScriptableObject.CreateInstance<PlayerParticipationRequirementsProfile>();
-            profile.name = fileName;
-            var serialized = new SerializedObject(profile);
-            serialized.FindProperty("displayName").stringValue = fileName;
-            serialized.FindProperty("description").stringValue = "P3D QA Requirements fixture.";
-            serialized.FindProperty("requirementLevel").intValue = (int)level;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            AssetDatabase.CreateAsset(profile, $"{TempFolder}/{fileName}.asset");
-            return profile;
-        }
-
         private static ActivityAsset CreateActivity(
             string fileName,
             string activityName,
-            PlayerParticipationRequirementsProfile requirements,
+            PlayerParticipationRequirementLevel requirementLevel,
             ActivityParticipationProjectionMode projectionMode,
             ActivityParticipationZeroParticipantPolicy zeroPolicy,
             params PlayerSlotProfile[] explicitSlots)
@@ -239,7 +222,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             {
                 slots.GetArrayElementAtIndex(index).objectReferenceValue = explicitSlots[index];
             }
-            serialized.FindProperty("playerParticipationRequirementsProfile").objectReferenceValue = requirements;
+            serialized.FindProperty("playerParticipationRequirementLevel").intValue =
+                (int)requirementLevel;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             AssetDatabase.CreateAsset(activity, $"{TempFolder}/{fileName}.asset");
             AssetDatabase.SaveAssets();
