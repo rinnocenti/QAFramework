@@ -17,7 +17,7 @@ MonoBehaviour:
   localPlayerSlots:
   - {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
   - {fileID: 11400000, guid: 655efa9f821b73348a227a6a0558b85b, type: 2}
-  playerActorSelectionPolicyProfile: {fileID: 11400000, guid: 034b028affe8ae248add7b85fa5dc2b5, type: 2}
+  playerActorSelectionDuplicatePolicy: 20
   globalUiScenePolicy: 1
   globalUiScenePath: Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/QA_UIGlobal.unity
   globalUiSceneName: QA_UIGlobal

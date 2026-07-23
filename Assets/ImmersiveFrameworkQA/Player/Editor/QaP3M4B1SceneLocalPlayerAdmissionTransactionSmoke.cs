@@ -198,10 +198,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
             IReadOnlyList<PlayerSlotProfile> orderedSlots,
             ICollection<UnityEngine.Object> created)
         {
-            var policy = ScriptableObject.CreateInstance<PlayerActorSelectionPolicyProfile>();
-            policy.name = "QA P3M4B1 Actor Selection Policy";
-            created.Add(policy);
-
             Assembly assembly = typeof(PlayerParticipationSnapshot).Assembly;
             Type contextType = assembly.GetType(
                 "Immersive.Framework.PlayerParticipation.PlayerParticipationRuntimeContext",
@@ -215,7 +211,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 orderedSlots,
                 orderedSlots.Count,
                 false,
-                policy,
+                PlayerActorSelectionDuplicatePolicy.AllowDuplicates,
                 "QaP3M4B1",
                 "initialize-scene-admission-context",
                 null

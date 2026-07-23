@@ -400,10 +400,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
             PlayerSlotProfile slot,
             ICollection<UnityEngine.Object> created)
         {
-            var policy = ScriptableObject.CreateInstance<PlayerActorSelectionPolicyProfile>();
-            policy.name = "QA P3M4B2B Actor Selection Policy";
-            created.Add(policy);
-
             Type contextType = typeof(PlayerParticipationSnapshot).Assembly.GetType(
                 "Immersive.Framework.PlayerParticipation.PlayerParticipationRuntimeContext",
                 true);
@@ -415,7 +411,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 new[] { slot },
                 1,
                 false,
-                policy,
+                PlayerActorSelectionDuplicatePolicy.AllowDuplicates,
                 "QaP3M4B2B",
                 "initialize-scene-actor-adoption",
                 null

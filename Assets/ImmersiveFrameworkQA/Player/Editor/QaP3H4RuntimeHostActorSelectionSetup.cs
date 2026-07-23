@@ -14,13 +14,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
 {
     /// <summary>
     /// Idempotent P3H.4 fixture installer. Extends the real technical-host join fixture with
-    /// explicit Actor-selection policy and separate contextual Logical Actor Host prefabs.
+    /// explicit GameApplication Actor-selection policy and separate contextual Logical Actor Host prefabs.
     /// </summary>
     internal static class QaP3H4RuntimeHostActorSelectionSetup
     {
         private const string RootFolder =
             "Assets/ImmersiveFrameworkQA/Player/P3H4";
-        private const string PolicyPath = RootFolder + "/P3H4_ActorSelectionPolicy.asset";
         private const string DefaultLogicalHostPath =
             RootFolder + "/P3H4_DefaultLogicalActor.prefab";
         private const string AlternateLogicalHostPath =
@@ -46,7 +45,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "P3H4 Alternate Logical Player Actor",
                     "qa.p3h4.logical.alternate.template");
 
-                PlayerActorSelectionPolicyProfile policy = CreateOrUpdatePolicy();
                 ActorProfile defaultActor = CreateOrUpdateActorProfile(
                     DefaultActorPath,
                     "P3H4 Default Player Actor",
@@ -72,9 +70,15 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 GameApplicationAsset gameApplication = settings.ActiveGameApplication;
                 var serializedApplication = new SerializedObject(gameApplication);
-                SerializedProperty policyProperty =
-                    serializedApplication.FindProperty("playerActorSelectionPolicyProfile");
-                policyProperty.objectReferenceValue = policy;
+                SerializedProperty policyProperty = serializedApplication.FindProperty(
+                    "playerActorSelectionDuplicatePolicy");
+                if (policyProperty == null)
+                {
+                    throw new InvalidOperationException(
+                        "GameApplication Actor duplicate-selection field was not found.");
+                }
+                policyProperty.intValue =
+                    (int)PlayerActorSelectionDuplicatePolicy.UniqueAcrossJoinedSlots;
                 serializedApplication.ApplyModifiedPropertiesWithoutUndo();
                 EditorUtility.SetDirty(gameApplication);
 
@@ -96,8 +100,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 Debug.Log(
                     "[P3H4_RUNTIME_HOST_ACTOR_SELECTION_FIXTURE] status='Applied' " +
-                    $"gameApplication='{gameApplication.name}' policy='{policy.name}' " +
-                    $"duplicatePolicy='{policy.DuplicatePolicy}' slot='{firstSlot.PlayerSlotId.StableText}' " +
+                    $"gameApplication='{gameApplication.name}' " +
+                    $"duplicatePolicy='{gameApplication.PlayerActorSelectionDuplicatePolicy}' slot='{firstSlot.PlayerSlotId.StableText}' " +
                     $"defaultActor='{defaultActor.ActorProfileId.StableText}' " +
                     $"alternateActor='{alternateActor.ActorProfileId.StableText}' " +
                     $"logicalHostsSeparated='True'.");
@@ -209,29 +213,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
             {
                 UnityEngine.Object.DestroyImmediate(temporary);
             }
-        }
-
-        private static PlayerActorSelectionPolicyProfile CreateOrUpdatePolicy()
-        {
-            PlayerActorSelectionPolicyProfile policy =
-                AssetDatabase.LoadAssetAtPath<PlayerActorSelectionPolicyProfile>(PolicyPath);
-            if (policy == null)
-            {
-                policy = ScriptableObject.CreateInstance<PlayerActorSelectionPolicyProfile>();
-                AssetDatabase.CreateAsset(policy, PolicyPath);
-            }
-
-            policy.name = "P3H4 Unique Actor Selection";
-            var serialized = new SerializedObject(policy);
-            serialized.FindProperty("displayName").stringValue =
-                "P3H4 Actor Selection — Unique Across Joined Slots";
-            serialized.FindProperty("description").stringValue =
-                "QA policy proving GameApplication-to-Session runtime composition.";
-            serialized.FindProperty("duplicatePolicy").intValue =
-                (int)PlayerActorSelectionDuplicatePolicy.UniqueAcrossJoinedSlots;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(policy);
-            return policy;
         }
 
         private static ActorProfile CreateOrUpdateActorProfile(
