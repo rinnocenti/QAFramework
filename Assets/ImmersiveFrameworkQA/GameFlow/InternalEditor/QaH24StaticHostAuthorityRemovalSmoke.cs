@@ -7,7 +7,7 @@ using Immersive.Framework.ApplicationLifecycle;
 using UnityEditor;
 using UnityEngine;
 
-namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
+namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 {
     public static class QaH24StaticHostAuthorityRemovalSmoke
     {

@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using PauseState = Immersive.Framework.Pause.PauseState;
 
-namespace ImmersiveFrameworkQA.InputMode.Internal.Editor.ImmersiveFrameworkQA.Player.InternalEditor
+namespace ImmersiveFrameworkQA.InputMode.Internal.Editor
 {
     public static class QaPauseRequestTriggerBindingSmoke
     {
@@ -29,7 +29,7 @@ namespace ImmersiveFrameworkQA.InputMode.Internal.Editor.ImmersiveFrameworkQA.Pl
                 completed.Add("play-mode-required");
 
                 Require(
-                    global::ImmersiveFrameworkQA.InputMode.Internal.Editor.ImmersiveFrameworkQA.Player.InternalEditor.QaInputModeFrameworkRuntimeHostResolver.TryResolveUniqueHost(
+                    global::ImmersiveFrameworkQA.InputMode.Internal.Editor.QaInputModeFrameworkRuntimeHostResolver.TryResolveUniqueHost(
                         out FrameworkRuntimeHost currentHost) &&
                     currentHost != null,
                     "H2.2.1 Pause request trigger binding smoke requires an initialized global FrameworkRuntimeHost.");

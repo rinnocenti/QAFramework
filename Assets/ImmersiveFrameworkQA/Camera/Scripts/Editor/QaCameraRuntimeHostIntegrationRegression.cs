@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Immersive.Framework.Camera;
 using Immersive.Framework.PlayerParticipation;
-using ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor;
+using ImmersiveFrameworkQA.GameFlow.Internal.Editor;
 using ImmersiveFrameworkQA.Player.Editor;
 using UnityEditor;
 using UnityEngine;
-namespace ImmersiveFrameworkQA.Camera.Scripts.Editor
+namespace ImmersiveFrameworkQA.Camera.Editor
 {
     /// <summary>
     /// Play Mode proof that the official gameplay admission lane is the sole Local Player

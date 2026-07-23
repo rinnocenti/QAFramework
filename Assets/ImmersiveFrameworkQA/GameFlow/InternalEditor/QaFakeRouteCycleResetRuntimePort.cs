@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using Immersive.Framework.CycleReset;
-namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
+namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 {
     internal sealed class QaFakeRouteCycleResetRuntimePort : IRouteCycleResetRuntimePort
     {

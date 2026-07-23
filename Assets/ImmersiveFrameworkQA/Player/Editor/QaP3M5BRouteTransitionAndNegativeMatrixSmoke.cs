@@ -10,7 +10,7 @@ using Immersive.Framework.RuntimeContent;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using QaFrameworkReadiness = global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor.QaH2FrameworkReadiness;
+using QaFrameworkReadiness = global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.QaH2FrameworkReadiness;
 
 namespace ImmersiveFrameworkQA.Player.Editor
 {

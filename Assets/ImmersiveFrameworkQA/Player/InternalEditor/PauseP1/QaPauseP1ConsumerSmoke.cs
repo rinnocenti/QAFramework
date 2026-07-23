@@ -10,7 +10,7 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using PauseState = Immersive.Framework.Pause.PauseState;
 
-namespace ImmersiveFrameworkQA.InputMode.Internal.Editor.ImmersiveFrameworkQA.Player.InternalEditor.PauseP1
+namespace ImmersiveFrameworkQA.PauseP1.Editor
 {
     internal static class QaPauseP1ConsumerSmoke
     {

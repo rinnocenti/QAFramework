@@ -6,7 +6,7 @@ using Immersive.Framework.Camera;
 using Immersive.Framework.PlayerParticipation;
 using UnityEditor;
 using UnityEngine;
-namespace ImmersiveFrameworkQA.Camera.Scripts.Editor
+namespace ImmersiveFrameworkQA.Camera.Editor
 {
     /// <summary>
     /// Edit Mode proof for Cut 4 Local Player camera publication ownership.

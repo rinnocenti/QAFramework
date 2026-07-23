@@ -7,7 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityObject = UnityEngine.Object;
 
-namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
+namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 {
     public static class QaHContentAnchorMaterializationRuntimeBindingSmoke
     {

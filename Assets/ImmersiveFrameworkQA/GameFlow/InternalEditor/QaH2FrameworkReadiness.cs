@@ -3,7 +3,7 @@ using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.PlayerParticipation;
 using UnityEngine;
 
-namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor.ImmersiveFrameworkQA.GameFlow.InternalEditor
+namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 {
     public static class QaH2FrameworkReadiness
     {

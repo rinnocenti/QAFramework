@@ -14,7 +14,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-namespace ImmersiveFrameworkQA.Camera.Scripts.Editor
+namespace ImmersiveFrameworkQA.Camera.Editor
 {
     internal static class QaCameraOverrideAuthoritySceneInstaller
     {

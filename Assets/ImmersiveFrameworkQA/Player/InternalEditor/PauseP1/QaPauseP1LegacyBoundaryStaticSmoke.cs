@@ -1,9 +1,10 @@
 using System;
 using System.IO;
 using Immersive.Framework.Pause;
+using ImmersiveFrameworkQA.InputMode.Internal.Editor;
 using UnityEditor;
 using UnityEngine;
-namespace ImmersiveFrameworkQA.InputMode.Internal.Editor.ImmersiveFrameworkQA.Player.InternalEditor.PauseP1
+namespace ImmersiveFrameworkQA.PauseP1.Editor
 {
     public static class QaPauseP1LegacyBoundaryStaticSmoke
     {
