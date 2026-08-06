@@ -1,0 +1,19 @@
+{
+  "name": "ImmersiveFrameworkQA.Lifecycle.Editor",
+  "rootNamespace": "ImmersiveFrameworkQA.Lifecycle.Editor",
+  "references": [
+    "ImmersiveFrameworkQA.Lifecycle.Runtime",
+    "Immersive.Framework.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

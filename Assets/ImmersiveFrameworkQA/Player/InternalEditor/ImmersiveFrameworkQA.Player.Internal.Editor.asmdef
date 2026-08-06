@@ -1,0 +1,19 @@
+{
+  "name": "ImmersiveFrameworkQA.Player.Internal.Editor",
+  "rootNamespace": "ImmersiveFrameworkQA.Player.Internal.Editor",
+  "references": [
+    "Immersive.Framework.Runtime",
+    "Immersive.Foundation.Runtime",
+    "Unity.InputSystem",
+    "ImmersiveFrameworkQA.InputMode.Internal.Editor"
+  ],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

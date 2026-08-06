@@ -1,0 +1,1499 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Threading.Tasks;
+using Immersive.Framework.Authoring;
+using Immersive.Framework.PlayerParticipation;
+using Immersive.Framework.PlayerSlots;
+using Immersive.Framework.RuntimeContent;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using QaFrameworkReadiness = global::ImmersiveFrameworkQA.GameFlow.Internal.Editor.QaH2FrameworkReadiness;
+
+namespace ImmersiveFrameworkQA.Player.Editor
+{
+    /// <summary>
+    /// One-shot Play Mode proof for Scene Local Player Route transition, Route re-entry,
+    /// reverse cleanup and the automatic-authoring negative matrix.
+    /// </summary>
+    public static class QaP3M5BRouteTransitionAndNegativeMatrixSmoke
+    {
+        private const string MenuPath =
+            "Immersive Framework/QA/Regressions/Player/Run Scene Player Route Lifecycle Regression";
+        private const string HubRoutePath =
+            "Assets/ImmersiveFrameworkQA/Hub/Routes/QA_HubRoute.asset";
+        private const string PreparationModuleTypeName =
+            "Immersive.Framework.PlayerParticipation.PlayerActorPreparationRuntimeHostModule";
+        private const string SceneAdmissionModuleTypeName =
+            "Immersive.Framework.PlayerParticipation.SceneLocalPlayerAdmissionRuntimeHostModule";
+
+        private static readonly BindingFlags InstanceAny =
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        private readonly struct LoadedPlayerFixture
+        {
+            internal LoadedPlayerFixture(
+                Scene scene,
+                SceneLocalPlayerAdmissionAuthoring authoring,
+                ScenePlayerActorAdoptionToken adoption,
+                PlayerActorPreparationSummary preparation)
+            {
+                Scene = scene;
+                Authoring = authoring;
+                Adoption = adoption;
+                Preparation = preparation;
+            }
+
+            internal Scene Scene { get; }
+            internal SceneLocalPlayerAdmissionAuthoring Authoring { get; }
+            internal ScenePlayerActorAdoptionToken Adoption { get; }
+            internal PlayerActorPreparationSummary Preparation { get; }
+        }
+
+        [MenuItem(MenuPath, true)]
+        private static bool ValidateRun()
+        {
+            return EditorApplication.isPlaying;
+        }
+
+        [MenuItem(MenuPath)]
+        public static async void Run()
+        {
+            var completed = new List<string>();
+            var loadedNegativeScenes = new List<string>();
+            Exception failure = null;
+            Component runtimeHost = null;
+            object preparationModule = null;
+            object sceneAdmissionModule = null;
+            object participationContext = null;
+            object runtimeContent = null;
+            RouteAsset hubRoute = null;
+            RouteAsset routeA = null;
+            RouteAsset routeB = null;
+            ActivityAsset routeAActivity = null;
+            ActivityAsset routeBActivity = null;
+            PlayerSlotId slotId = default;
+            RuntimeContentOwner routeAOwner = default;
+            RuntimeContentOwner routeBOwner = default;
+
+            try
+            {
+                AssertTrue(EditorApplication.isPlaying,
+                    "P3M5B smoke must run in Play Mode.");
+                completed.Add("play-mode-required");
+
+                routeA = LoadAsset<RouteAsset>(
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteAPath);
+                routeB = LoadAsset<RouteAsset>(
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteBPath);
+                hubRoute = LoadAsset<RouteAsset>(HubRoutePath);
+                routeAActivity = LoadAsset<ActivityAsset>(
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteAActivityPath);
+                routeBActivity = LoadAsset<ActivityAsset>(
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteBActivityPath);
+                ActivityAsset duplicateActivity = LoadAsset<ActivityAsset>(
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.DuplicateSlotActivityPath);
+                ActivityAsset missingActorActivity = LoadAsset<ActivityAsset>(
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.MissingActorActivityPath);
+                ActivityAsset mismatchedProfileActivity = LoadAsset<ActivityAsset>(
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.MismatchedProfileActivityPath);
+                ActivityAsset undeclaredActivity = LoadAsset<ActivityAsset>(
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.UndeclaredSurfaceActivityPath);
+                PlayerSlotProfile firstSlot = ResolveFirstConfiguredSlot();
+                slotId = firstSlot.PlayerSlotId;
+                AssertTrue(slotId.IsValid,
+                    "P3M5B first configured Slot has no valid identity.");
+                completed.Add("fixture-assets-resolved");
+
+                runtimeHost = await AwaitUniqueReadyQaRuntimeHostAsync();
+                preparationModule = ResolveHostComponent(
+                    runtimeHost,
+                    PreparationModuleTypeName,
+                    "PlayerActorPreparationRuntimeHostModule");
+                sceneAdmissionModule = ResolveHostComponent(
+                    runtimeHost,
+                    SceneAdmissionModuleTypeName,
+                    "SceneLocalPlayerAdmissionRuntimeHostModule");
+                participationContext = GetFieldValue(
+                    sceneAdmissionModule,
+                    "participationContext");
+                runtimeContent = GetPropertyValue(
+                    runtimeHost,
+                    "RuntimeContentRuntime");
+                AssertNotNull(participationContext,
+                    "Scene admission module has no participation context.");
+                AssertNotNull(runtimeContent,
+                    "FrameworkRuntimeHost has no RuntimeContentRuntime.");
+                completed.Add("official-runtime-authorities-ready");
+
+                if (!ReferenceEquals(ResolveCurrentRoute(runtimeHost), hubRoute))
+                {
+                    object normalizeRequest = await RequestRouteAsync(
+                        runtimeHost,
+                        hubRoute,
+                        "p3m5b-normalize-to-qa-hub");
+                    AssertRequestSucceeded(
+                        normalizeRequest,
+                        "P3M5B could not normalize its initial state to the QA Hub.");
+                    AssertRouteActivityReady(
+                        normalizeRequest,
+                        "P3M5B QA Hub Activity did not reach readiness during initial normalization.");
+                }
+
+                AssertSame(hubRoute, ResolveCurrentRoute(runtimeHost),
+                    "P3M5B initial normalization did not establish the QA Hub Route.");
+                AssertCleanupAfterHubReturn(
+                    participationContext,
+                    preparationModule,
+                    sceneAdmissionModule,
+                    slotId);
+                completed.Add("initial-state-normalized");
+
+                object routeARequest = await RequestRouteAsync(
+                    runtimeHost,
+                    routeA,
+                    "p3m5b-enter-route-a");
+                AssertRequestSucceeded(
+                    routeARequest,
+                    "P3M5B could not enter the official Route A from the QA Hub.");
+                AssertRouteActivityReady(
+                    routeARequest,
+                    "P3M5B Route A Startup Activity did not reach readiness.");
+                AssertSame(routeA, ResolveCurrentRoute(runtimeHost),
+                    "P3M5B Route A did not become current.");
+                AssertSame(routeAActivity, ResolveCurrentActivity(runtimeHost),
+                    "P3M5B Route A Startup Activity must already be current and ready.");
+                completed.Add("route-a-initial-state-ready");
+
+                routeAOwner = CreateActivityOwner(routeAActivity);
+                LoadedPlayerFixture routeAFirst = await AwaitActiveFixtureAsync(
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteAActivityScenePath,
+                    preparationModule,
+                    slotId,
+                    routeAOwner);
+                AssertAdmittedState(
+                    routeAFirst,
+                    participationContext,
+                    slotId,
+                    routeAOwner);
+                completed.Add("route-a-initial-scene-player-admitted");
+
+                AssertEqual(routeAOwner,
+                    routeAFirst.Preparation.Materialization.Owner,
+                    "Route A preparation owner is not the Startup Activity owner.");
+                AssertEqual(1,
+                    GetIntProperty(sceneAdmissionModule, "ActiveAdmissionCount"),
+                    "Route A retained an unexpected active admission count.");
+                completed.Add("route-a-owner-authoritative");
+
+                object routeBRequest = await RequestRouteAsync(
+                    runtimeHost,
+                    routeB,
+                    "route-a-to-route-b");
+                AssertRequestSucceeded(
+                    routeBRequest,
+                    "P3M5B Route B request failed.");
+                AssertRouteActivityReady(
+                    routeBRequest,
+                    "P3M5B Route B Startup Activity is not ready.");
+                completed.Add("route-b-request-succeeded");
+
+                await AwaitScenesUnloadedAsync(
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteAPrimaryScenePath,
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteAActivityScenePath);
+                AssertTrue(routeAFirst.Authoring == null,
+                    "Route A Activity surface survived Route replacement.");
+                completed.Add("route-a-scenes-released");
+
+                AssertEqual(0,
+                    CountRuntimeRoots(runtimeContent, routeAOwner),
+                    "Route A Activity RuntimeContent root remained after Route switch.");
+                completed.Add("route-a-owner-cleared");
+
+                AssertSame(routeB, ResolveCurrentRoute(runtimeHost),
+                    "Route B did not become current.");
+                AssertSame(routeBActivity, ResolveCurrentActivity(runtimeHost),
+                    "Route B Startup Activity did not become current.");
+                routeBOwner = CreateActivityOwner(routeBActivity);
+                LoadedPlayerFixture routeBFixture = await AwaitActiveFixtureAsync(
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteBActivityScenePath,
+                    preparationModule,
+                    slotId,
+                    routeBOwner);
+                AssertAdmittedState(
+                    routeBFixture,
+                    participationContext,
+                    slotId,
+                    routeBOwner);
+                completed.Add("route-b-scene-player-admitted");
+
+                AssertTrue(routeBFixture.Adoption != routeAFirst.Adoption,
+                    "Route B reused the Route A adoption token.");
+                AssertTrue(routeBFixture.Adoption.ActorId != routeAFirst.Adoption.ActorId,
+                    "Route B reused the Route A runtime Actor identity.");
+                AssertTrue(
+                    routeBFixture.Adoption.RuntimeContentIdentity !=
+                    routeAFirst.Adoption.RuntimeContentIdentity,
+                    "Route B reused the Route A RuntimeContent identity.");
+                completed.Add("route-b-fresh-identities");
+
+                AssertEqual(1,
+                    GetIntProperty(sceneAdmissionModule, "ActiveAdmissionCount"),
+                    "Route switch retained more than one active Scene Player admission.");
+                completed.Add("single-active-admission-after-route-switch");
+
+                object routeAReentryRequest = await RequestRouteAsync(
+                    runtimeHost,
+                    routeA,
+                    "route-b-to-route-a-reentry");
+                AssertRequestSucceeded(
+                    routeAReentryRequest,
+                    "P3M5B Route A re-entry request failed.");
+                AssertRouteActivityReady(
+                    routeAReentryRequest,
+                    "P3M5B Route A re-entry Startup Activity is not ready.");
+                AssertSame(routeA, ResolveCurrentRoute(runtimeHost),
+                    "Route A did not become current after re-entry.");
+                completed.Add("route-a-reentry-succeeded");
+
+                await AwaitScenesUnloadedAsync(
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteBPrimaryScenePath,
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteBActivityScenePath);
+                AssertTrue(routeBFixture.Authoring == null,
+                    "Route B Activity surface survived Route A re-entry.");
+                completed.Add("route-b-scenes-released");
+
+                AssertEqual(0,
+                    CountRuntimeRoots(runtimeContent, routeBOwner),
+                    "Route B Activity RuntimeContent root remained after Route A re-entry.");
+                completed.Add("route-b-owner-cleared");
+
+                LoadedPlayerFixture routeASecond = await AwaitActiveFixtureAsync(
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteAActivityScenePath,
+                    preparationModule,
+                    slotId,
+                    routeAOwner);
+                AssertTrue(routeASecond.Adoption != routeAFirst.Adoption,
+                    "Route A re-entry reused its previous adoption token.");
+                AssertTrue(routeASecond.Adoption != routeBFixture.Adoption,
+                    "Route A re-entry reused Route B adoption evidence.");
+                AssertTrue(routeASecond.Adoption.ActorId != routeAFirst.Adoption.ActorId,
+                    "Route A re-entry reused its previous runtime Actor identity.");
+                AssertAdmittedState(
+                    routeASecond,
+                    participationContext,
+                    slotId,
+                    routeAOwner);
+                completed.Add("route-a-reentry-fresh-identities");
+
+                await AssertResolverRejectedAsync(
+                    sceneAdmissionModule,
+                    duplicateActivity,
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.DuplicateSlotScenePath,
+                    loadedNegativeScenes,
+                    "duplicate-slot",
+                    "declares more than one automatic Scene Local Player Admission",
+                    slotId.StableText);
+                AssertActiveRoutePlayerPreserved(
+                    runtimeHost,
+                    preparationModule,
+                    sceneAdmissionModule,
+                    participationContext,
+                    routeA,
+                    routeAActivity,
+                    routeASecond,
+                    slotId,
+                    routeAOwner);
+                completed.Add("duplicate-slot-rejected");
+
+                await AssertResolverRejectedAsync(
+                    sceneAdmissionModule,
+                    missingActorActivity,
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.MissingActorScenePath,
+                    loadedNegativeScenes,
+                    "missing-actor",
+                    "Scene Local Player Admission",
+                    "is invalid",
+                    "same-root Local Player Host",
+                    "Scene Logical Player Actor");
+                AssertActiveRoutePlayerPreserved(
+                    runtimeHost,
+                    preparationModule,
+                    sceneAdmissionModule,
+                    participationContext,
+                    routeA,
+                    routeAActivity,
+                    routeASecond,
+                    slotId,
+                    routeAOwner);
+                completed.Add("missing-actor-rejected");
+
+                await AssertResolverRejectedAsync(
+                    sceneAdmissionModule,
+                    mismatchedProfileActivity,
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.MismatchedProfileScenePath,
+                    loadedNegativeScenes,
+                    "mismatched-profile",
+                    "Scene Local Player Admission",
+                    "is invalid",
+                    "evidence does not match the selected Actor Profile",
+                    "Logical Actor Host prefab");
+                AssertActiveRoutePlayerPreserved(
+                    runtimeHost,
+                    preparationModule,
+                    sceneAdmissionModule,
+                    participationContext,
+                    routeA,
+                    routeAActivity,
+                    routeASecond,
+                    slotId,
+                    routeAOwner);
+                completed.Add("mismatched-profile-rejected");
+
+                await AssertResolverIgnoredAsync(
+                    sceneAdmissionModule,
+                    undeclaredActivity,
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.UndeclaredSurfaceScenePath,
+                    loadedNegativeScenes);
+                AssertActiveRoutePlayerPreserved(
+                    runtimeHost,
+                    preparationModule,
+                    sceneAdmissionModule,
+                    participationContext,
+                    routeA,
+                    routeAActivity,
+                    routeASecond,
+                    slotId,
+                    routeAOwner);
+                completed.Add("undeclared-surface-ignored");
+
+                AssertEqual(1,
+                    GetIntProperty(sceneAdmissionModule, "ActiveAdmissionCount"),
+                    "Negative matrix changed the active Route A admission count.");
+                AssertFalse(AnyNegativeSceneLoaded(),
+                    "Negative matrix retained a loaded negative fixture scene.");
+                completed.Add("negative-scenes-left-no-admission");
+
+                AssertSame(routeA, ResolveCurrentRoute(runtimeHost),
+                    "Negative matrix changed the current Route.");
+                AssertSame(routeAActivity, ResolveCurrentActivity(runtimeHost),
+                    "Negative matrix changed the current Activity.");
+                ScenePlayerActorAdoptionToken afterNegatives =
+                    GetAdoptionToken(preparationModule, slotId);
+                AssertEqual(routeASecond.Adoption, afterNegatives,
+                    "Negative matrix replaced the active Route A adoption token.");
+                completed.Add("route-state-preserved-after-negatives");
+
+                object hubReturnRequest = await RequestRouteAsync(
+                    runtimeHost,
+                    hubRoute,
+                    "p3m5b-return-to-qa-hub");
+                AssertRequestSucceeded(
+                    hubReturnRequest,
+                    "P3M5B could not return to the official QA Hub Route.");
+                AssertRouteActivityReady(
+                    hubReturnRequest,
+                    "P3M5B QA Hub Activity is not ready after return.");
+                AssertSame(hubRoute, ResolveCurrentRoute(runtimeHost),
+                    "Official QA Hub Route did not become current.");
+                await AwaitAllP3M5BScenesUnloadedAsync();
+                completed.Add("qa-hub-return-succeeded");
+
+                AssertCleanupAfterHubReturn(
+                    participationContext,
+                    preparationModule,
+                    sceneAdmissionModule,
+                    slotId);
+                AssertTrue(routeAFirst.Authoring == null,
+                    "Initial Route A Scene Player Host remained loaded after QA Hub return.");
+                AssertTrue(routeBFixture.Authoring == null,
+                    "Route B Scene Player Host remained loaded after QA Hub return.");
+                AssertTrue(routeASecond.Authoring == null,
+                    "Re-entered Route A Scene Player Host remained loaded after QA Hub return.");
+                AssertEqual(0,
+                    CountRuntimeRoots(runtimeContent, routeAOwner),
+                    "Route A RuntimeContent owner remained after QA Hub return.");
+                AssertEqual(0,
+                    CountRuntimeRoots(runtimeContent, routeBOwner),
+                    "Route B RuntimeContent owner remained after QA Hub return.");
+                completed.Add("qa-hub-cleanup-complete");
+            }
+            catch (Exception exception)
+            {
+                failure = Unwrap(exception);
+            }
+
+            try
+            {
+                for (int index = loadedNegativeScenes.Count - 1; index >= 0; index--)
+                {
+                    await UnloadSceneIfLoadedAsync(loadedNegativeScenes[index]);
+                }
+
+                if (runtimeHost != null &&
+                    hubRoute != null &&
+                    !ReferenceEquals(ResolveCurrentRoute(runtimeHost), hubRoute))
+                {
+                    object cleanupRestore = await RequestRouteAsync(
+                        runtimeHost,
+                        hubRoute,
+                        "p3m5b-cleanup-return-to-qa-hub");
+                    if (!GetBooleanProperty(cleanupRestore, "Succeeded"))
+                    {
+                        throw new InvalidOperationException(
+                            "P3M5B cleanup could not return to the official QA Hub Route. " +
+                            GetStringProperty(cleanupRestore, "Message"));
+                    }
+                }
+            }
+            catch (Exception cleanupException)
+            {
+                Exception actualCleanup = Unwrap(cleanupException);
+                failure = failure == null
+                    ? new InvalidOperationException(
+                        "P3M5B cleanup failed. " + actualCleanup.Message,
+                        actualCleanup)
+                    : new AggregateException(
+                        "P3M5B execution and cleanup both failed.",
+                        failure,
+                        actualCleanup);
+            }
+
+            if (failure != null)
+            {
+                Debug.LogError(
+                    "[P3M5B_ROUTE_TRANSITION_NEGATIVE_MATRIX_SMOKE] " +
+                    $"status='Failed' exception='{failure.GetType().Name}' " +
+                    $"message='{Escape(failure.Message)}' " +
+                    $"completed='{string.Join(",", completed)}'.");
+                throw failure;
+            }
+
+            Debug.Log(
+                "[P3M5B_ROUTE_TRANSITION_NEGATIVE_MATRIX_SMOKE] " +
+                $"status='Passed' cases='{completed.Count}' " +
+                $"completed='{string.Join(",", completed)}'.");
+        }
+
+        private readonly struct ResolveAutomaticResult
+        {
+            internal ResolveAutomaticResult(bool succeeded, int count, string issue)
+            {
+                Succeeded = succeeded;
+                Count = count;
+                Issue = issue ?? string.Empty;
+            }
+
+            internal bool Succeeded { get; }
+            internal int Count { get; }
+            internal string Issue { get; }
+        }
+
+        private static T LoadAsset<T>(string path)
+            where T : UnityEngine.Object
+        {
+            T value = AssetDatabase.LoadAssetAtPath<T>(path);
+            AssertNotNull(value,
+                $"Missing P3M5B asset '{path}'. Apply the fixture outside Play Mode.");
+            return value;
+        }
+
+        private static PlayerSlotProfile ResolveFirstConfiguredSlot()
+        {
+            ImmersiveFrameworkSettingsAsset settings =
+                Resources.Load<ImmersiveFrameworkSettingsAsset>(
+                    ImmersiveFrameworkSettingsAsset.ResourcesPath);
+            AssertNotNull(settings,
+                "Immersive Framework settings are missing.");
+            AssertNotNull(settings.ActiveGameApplication,
+                "Active Game Application is missing.");
+            AssertTrue(settings.ActiveGameApplication.TryGetLocalPlayerSlot(
+                    0,
+                    out PlayerSlotProfile slot) &&
+                slot != null,
+                "P3M5B requires a configured first Local Player Slot.");
+            return slot;
+        }
+
+        private static async Task<Component>
+            AwaitUniqueReadyQaRuntimeHostAsync()
+        {
+            string lastReadinessDiagnostic =
+                "FrameworkRuntimeHost readiness has not been evaluated.";
+
+            for (int frame = 0; frame < 300; frame++)
+            {
+                if (!QaFrameworkReadiness.TryResolveUniqueHost(
+                        out Component host,
+                        out string hostDiagnostic))
+                {
+                    throw new InvalidOperationException(
+                        "P3M5B requires exactly one loaded FrameworkRuntimeHost " +
+                        $"from the explicit QA resolver. {hostDiagnostic}");
+                }
+
+                object state = GetPropertyValue(host, "State");
+                Type preparationType = typeof(PlayerParticipationSnapshot)
+                    .Assembly
+                    .GetType(PreparationModuleTypeName, false);
+                Type sceneType = typeof(PlayerParticipationSnapshot)
+                    .Assembly
+                    .GetType(SceneAdmissionModuleTypeName, false);
+                Component preparation = preparationType != null
+                    ? host.GetComponent(preparationType)
+                    : null;
+                Component sceneAdmission = sceneType != null
+                    ? host.GetComponent(sceneType)
+                    : null;
+                bool gameFlowStarted =
+                    GetBooleanProperty(state, "GameFlowStarted");
+                object currentRoute =
+                    GetPropertyValue(state, "CurrentRoute");
+                object currentActivity =
+                    GetPropertyValue(state, "CurrentActivity");
+                bool activityReady =
+                    GetBooleanProperty(state, "IsActivityReady");
+                string currentRouteName =
+                    GetStringProperty(state, "CurrentRouteName");
+                string currentActivityName =
+                    GetStringProperty(state, "CurrentActivityName");
+                bool hostReady =
+                    gameFlowStarted &&
+                    currentRoute != null &&
+                    currentActivity != null &&
+                    activityReady;
+                bool preparationReady =
+                    preparation != null &&
+                    GetBooleanProperty(preparation, "IsReady");
+                bool sceneAdmissionReady =
+                    sceneAdmission != null &&
+                    GetBooleanProperty(sceneAdmission, "IsReady");
+                if (hostReady && preparationReady && sceneAdmissionReady)
+                {
+                    return host;
+                }
+
+                lastReadinessDiagnostic =
+                    $"{hostDiagnostic} " +
+                    $"gameFlowStarted='{gameFlowStarted}' " +
+                    $"route='{currentRouteName}' " +
+                    $"activity='{currentActivityName}' " +
+                    $"activityReady='{activityReady}' " +
+                    $"preparationReady='{preparationReady}' " +
+                    $"sceneAdmissionReady='{sceneAdmissionReady}'.";
+
+                await Awaitable.NextFrameAsync();
+            }
+
+            throw new InvalidOperationException(
+                "FrameworkRuntimeHost did not become ready within 300 frames. " +
+                lastReadinessDiagnostic);
+        }
+
+        private static object ResolveHostComponent(
+            object runtimeHost,
+            string typeName,
+            string label)
+        {
+            Type componentType = typeof(PlayerParticipationSnapshot)
+                .Assembly
+                .GetType(typeName, true);
+            Component host = runtimeHost as Component;
+            AssertNotNull(host,
+                "FrameworkRuntimeHost is not a Unity Component.");
+            Component component = host.GetComponent(componentType);
+            AssertNotNull(component,
+                $"{label} is not attached to FrameworkRuntimeHost.");
+            return component;
+        }
+
+        private static RouteAsset ResolveCurrentRoute(object runtimeHost)
+        {
+            object state = GetPropertyValue(runtimeHost, "State");
+            return state == null
+                ? null
+                : GetPropertyValue(state, "CurrentRoute") as RouteAsset;
+        }
+
+        private static ActivityAsset ResolveCurrentActivity(object runtimeHost)
+        {
+            object state = GetPropertyValue(runtimeHost, "State");
+            return state == null
+                ? null
+                : GetPropertyValue(state, "CurrentActivity") as ActivityAsset;
+        }
+
+        private static async Task<object> RequestRouteAsync(
+            object runtimeHost,
+            RouteAsset route,
+            string reason)
+        {
+            return await InvokeTaskResultAsync(
+                runtimeHost,
+                "RequestRouteAsync",
+                route,
+                nameof(QaP3M5BRouteTransitionAndNegativeMatrixSmoke),
+                reason);
+        }
+
+        private static async Task<object> InvokeTaskResultAsync(
+            object target,
+            string methodName,
+            params object[] arguments)
+        {
+            MethodInfo method = FindMethod(
+                target.GetType(),
+                methodName,
+                arguments.Length);
+            AssertNotNull(method,
+                $"Missing method '{methodName}' with '{arguments.Length}' arguments on '{target.GetType().Name}'.");
+            object invocation = method.Invoke(target, arguments);
+            Task task = invocation as Task;
+            AssertNotNull(task,
+                $"Method '{methodName}' did not return a Task.");
+            await task;
+            PropertyInfo resultProperty = invocation.GetType().GetProperty(
+                "Result",
+                InstanceAny);
+            AssertNotNull(resultProperty,
+                $"Task returned by '{methodName}' has no Result property.");
+            return resultProperty.GetValue(invocation);
+        }
+
+        private static MethodInfo FindMethod(
+            Type type,
+            string methodName,
+            int argumentCount)
+        {
+            MethodInfo[] methods = type.GetMethods(InstanceAny);
+            for (int index = 0; index < methods.Length; index++)
+            {
+                if (string.Equals(
+                        methods[index].Name,
+                        methodName,
+                        StringComparison.Ordinal) &&
+                    methods[index].GetParameters().Length == argumentCount)
+                {
+                    return methods[index];
+                }
+            }
+
+            return null;
+        }
+
+        private static void AssertRequestSucceeded(
+            object result,
+            string message)
+        {
+            AssertNotNull(result, message + " No request result was returned.");
+            AssertTrue(GetBooleanProperty(result, "Succeeded"),
+                message + " " + BuildRouteRequestFailureDiagnostic(result));
+        }
+
+        private static string BuildRouteRequestFailureDiagnostic(object result)
+        {
+            object routeLifecycle = GetPropertyValue(
+                result,
+                "RouteLifecycleResult");
+            object activityFlow = routeLifecycle != null
+                ? GetPropertyValue(routeLifecycle, "ActivityFlowResult")
+                : null;
+            object execution = activityFlow != null
+                ? GetPropertyValue(
+                    activityFlow,
+                    "ActivityContentExecutionResult")
+                : null;
+            object enter = execution != null
+                ? GetPropertyValue(execution, "EnterResult")
+                : null;
+
+            return
+                GetStringProperty(result, "Message") +
+                " activityFlow=(" +
+                (activityFlow != null ? activityFlow.ToString() : "<missing>") +
+                ") execution=(" +
+                (execution != null ? execution.ToString() : "<missing>") +
+                ") enter=(" +
+                (enter != null ? enter.ToString() : "<missing>") +
+                ")";
+        }
+
+        private static void AssertRouteActivityReady(
+            object routeRequestResult,
+            string message)
+        {
+            object routeLifecycle = GetPropertyValue(
+                routeRequestResult,
+                "RouteLifecycleResult");
+            AssertNotNull(
+                routeLifecycle,
+                message + " RouteLifecycleResult is missing.");
+
+            object activityFlow = GetPropertyValue(
+                routeLifecycle,
+                "ActivityFlowResult");
+            AssertNotNull(
+                activityFlow,
+                message + " ActivityFlowResult is missing.");
+
+            object execution = GetPropertyValue(
+                activityFlow,
+                "ActivityContentExecutionResult");
+            object enterResult = execution != null
+                ? GetPropertyValue(execution, "EnterResult")
+                : null;
+            string executionDiagnostic = execution != null
+                ? execution.ToString()
+                : "<missing-activity-content-execution>";
+            string enterDiagnostic = enterResult != null
+                ? enterResult.ToString()
+                : "<missing-enter-aggregate>";
+
+            AssertTrue(
+                GetBooleanProperty(activityFlow, "IsActivityReady"),
+                message + " " + GetStringProperty(activityFlow, "Message") +
+                " execution=(" + executionDiagnostic + ")" +
+                " enter=(" + enterDiagnostic + ")");
+        }
+
+        private static RuntimeContentOwner CreateActivityOwner(
+            ActivityAsset activity)
+        {
+            AssertNotNull(activity,
+                "P3M5B Activity owner requires an Activity asset.");
+            AssertTrue(activity.HasValidActivityId,
+                $"P3M5B Activity '{activity.name}' has no valid ActivityId.");
+            return RuntimeContentOwner.Activity(
+                activity.ActivityId.StableText,
+                activity.ActivityName);
+        }
+
+        private static async Task<LoadedPlayerFixture> AwaitActiveFixtureAsync(
+            string scenePath,
+            object preparationModule,
+            PlayerSlotId playerSlotId,
+            RuntimeContentOwner expectedOwner)
+        {
+            SceneLocalPlayerAdmissionAuthoring lastAuthoring = null;
+            ScenePlayerActorAdoptionToken lastAdoption = default;
+            PlayerActorPreparationSummary lastPreparation = default;
+            bool foundPreparation = false;
+
+            for (int frame = 0; frame < 240; frame++)
+            {
+                lastAuthoring = ResolveSingleSurface(
+                    scenePath,
+                    requireLoaded: false);
+                bool foundAdoption = TryGetAdoptionToken(
+                    preparationModule,
+                    playerSlotId,
+                    out lastAdoption);
+                foundPreparation = TryGetPreparationSummary(
+                    preparationModule,
+                    playerSlotId,
+                    out lastPreparation);
+
+                if (lastAuthoring != null &&
+                    lastAuthoring.RuntimeReady &&
+                    lastAuthoring.HasActiveAdmission &&
+                    foundAdoption &&
+                    foundPreparation &&
+                    lastPreparation.IsPrepared &&
+                    lastPreparation.Materialization.Owner == expectedOwner)
+                {
+                    return new LoadedPlayerFixture(
+                        lastAuthoring.gameObject.scene,
+                        lastAuthoring,
+                        lastAdoption,
+                        lastPreparation);
+                }
+
+                await Awaitable.NextFrameAsync();
+            }
+
+            Scene loadedScene = SceneManager.GetSceneByPath(scenePath);
+            string actualOwner = foundPreparation &&
+                lastPreparation.Materialization.Owner.IsValid
+                    ? lastPreparation.Materialization.Owner.StableText
+                    : string.Empty;
+            throw new InvalidOperationException(
+                $"P3M5B Scene Player fixture '{scenePath}' did not become active within 240 frames. " +
+                $"sceneLoaded='{loadedScene.IsValid() && loadedScene.isLoaded}' " +
+                $"surfaceFound='{lastAuthoring != null}' " +
+                $"runtimeReady='{(lastAuthoring != null && lastAuthoring.RuntimeReady)}' " +
+                $"activeAdmission='{(lastAuthoring != null && lastAuthoring.HasActiveAdmission)}' " +
+                $"adoptionValid='{lastAdoption.IsValid}' " +
+                $"preparationFound='{foundPreparation}' " +
+                $"preparationState='{(foundPreparation ? (lastPreparation.IsPrepared ? "Prepared" : "NotPrepared") : string.Empty)}' " +
+                $"actualOwner='{actualOwner}' expectedOwner='{expectedOwner.StableText}' " +
+                $"surfaceDiagnostic='{(lastAuthoring != null ? lastAuthoring.RuntimeDiagnostic : string.Empty)}'.");
+        }
+
+        private static void AssertAdmittedState(
+            LoadedPlayerFixture fixture,
+            object participationContext,
+            PlayerSlotId playerSlotId,
+            RuntimeContentOwner expectedOwner)
+        {
+            AssertTrue(fixture.Scene.IsValid() && fixture.Scene.isLoaded,
+                "Admitted Scene Player fixture scene is not loaded.");
+            AssertNotNull(fixture.Authoring,
+                "Admitted Scene Player fixture has no authoring surface.");
+            AssertTrue(fixture.Authoring.RuntimeReady,
+                "Admitted Scene Player surface is not runtime-ready.");
+            AssertTrue(fixture.Authoring.HasActiveAdmission,
+                "Scene Player surface has no active admission.");
+            AssertTrue(fixture.Authoring.LocalPlayerHost.IsJoined,
+                "Scene Player Host is not Joined.");
+            AssertEqual(playerSlotId,
+                fixture.Authoring.LocalPlayerHost.JoinedPlayerSlotId,
+                "Scene Player Host is Joined to a foreign Player Slot.");
+            AssertTrue(fixture.Authoring.SceneLogicalPlayerActor.HasPlayerInputEvidence,
+                "Scene Player Actor has no contextual PlayerInput evidence.");
+            AssertSame(
+                fixture.Authoring.LocalPlayerHost.PlayerInput,
+                fixture.Authoring.SceneLogicalPlayerActor.PlayerInput,
+                "Scene Player Actor does not reference its fixture Host PlayerInput.");
+            AssertTrue(fixture.Adoption.IsValid,
+                "Scene Player adoption token is invalid.");
+            AssertEqual(playerSlotId,
+                fixture.Adoption.PlayerSlotId,
+                "Scene Player adoption belongs to a foreign Player Slot.");
+            AssertEqual(fixture.Authoring.SceneLogicalPlayerActor.ActorId,
+                fixture.Adoption.ActorId,
+                "Scene Player adoption does not match the fixture Actor identity.");
+            AssertEqual(
+                PlayerActorPhysicalOwnership.ExternalSceneOwned,
+                fixture.Adoption.PhysicalOwnership,
+                "Scene Player adoption lost external physical ownership.");
+            AssertTrue(fixture.Preparation.IsPrepared,
+                "Scene Player canonical preparation is not active.");
+            AssertEqual(expectedOwner,
+                fixture.Preparation.Materialization.Owner,
+                "Scene Player preparation has the wrong Activity owner.");
+            AssertEqual(fixture.Adoption.ActorId,
+                fixture.Preparation.Materialization.ActorId,
+                "Scene Player preparation retains a foreign Actor identity.");
+            AssertEqual(fixture.Adoption.RuntimeContentIdentity,
+                fixture.Preparation.Materialization.RuntimeContentIdentity,
+                "Scene Player preparation retains a foreign RuntimeContent identity.");
+            AssertEqual(fixture.Adoption.PreparationToken,
+                fixture.Preparation.Token,
+                "Scene Player adoption and preparation tokens do not match.");
+
+            PlayerParticipationSnapshot snapshot =
+                CreateParticipationSnapshot(participationContext);
+            PlayerSlotRuntimeSnapshot slot = FindSlot(snapshot, playerSlotId);
+            AssertTrue(slot.IsJoined,
+                "Scene Player Slot is not Joined.");
+            AssertTrue(slot.HasSelectedActor,
+                "Scene Player Slot has no selected Actor.");
+            AssertSame(fixture.Authoring.ActorProfile, slot.SelectedActorProfile,
+                "Scene Player Slot selected an Actor Profile outside its fixture.");
+            AssertEqual(0, snapshot.ReservedCount,
+                "Scene Player admission stranded a Reserved Slot.");
+            AssertEqual(0, snapshot.LeavingCount,
+                "Scene Player admission stranded a Leaving Slot.");
+        }
+
+        private static async Task AssertResolverRejectedAsync(
+            object sceneAdmissionModule,
+            ActivityAsset activity,
+            string scenePath,
+            List<string> loadedNegativeScenes,
+            string caseName,
+            params string[] expectedIssueFragments)
+        {
+            int activeAdmissionsBefore =
+                GetIntProperty(sceneAdmissionModule, "ActiveAdmissionCount");
+            await LoadSceneAsync(scenePath);
+            loadedNegativeScenes.Add(scenePath);
+            try
+            {
+                await AwaitSurfacesBoundAsync(scenePath);
+
+                ResolveAutomaticResult result = ResolveAutomaticAuthoring(
+                    sceneAdmissionModule,
+                    activity);
+                AssertFalse(result.Succeeded,
+                    $"Negative case '{caseName}' unexpectedly resolved " +
+                    $"'{result.Count}' automatic surfaces.");
+                AssertEqual(0, result.Count,
+                    $"Negative case '{caseName}' returned candidates while rejecting.");
+                AssertTrue(!string.IsNullOrWhiteSpace(result.Issue),
+                    $"Negative case '{caseName}' rejected without a diagnostic issue.");
+
+                for (int index = 0;
+                     index < expectedIssueFragments.Length;
+                     index++)
+                {
+                    string fragment = expectedIssueFragments[index];
+                    AssertTrue(
+                        !string.IsNullOrWhiteSpace(fragment) &&
+                        result.Issue.IndexOf(
+                            fragment,
+                            StringComparison.OrdinalIgnoreCase) >= 0,
+                        $"Negative case '{caseName}' did not report required " +
+                        $"contract fragment '{fragment}'. issue='{result.Issue}'.");
+                }
+
+                AssertSurfacesInactive(scenePath, caseName);
+                AssertEqual(
+                    activeAdmissionsBefore,
+                    GetIntProperty(
+                        sceneAdmissionModule,
+                        "ActiveAdmissionCount"),
+                    $"Negative case '{caseName}' changed the canonical active admission count.");
+            }
+            finally
+            {
+                await UnloadSceneIfLoadedAsync(scenePath);
+                loadedNegativeScenes.Remove(scenePath);
+            }
+        }
+
+        private static async Task AssertResolverIgnoredAsync(
+            object sceneAdmissionModule,
+            ActivityAsset activity,
+            string scenePath,
+            List<string> loadedNegativeScenes)
+        {
+            const string caseName = "undeclared-surface";
+            int activeAdmissionsBefore =
+                GetIntProperty(sceneAdmissionModule, "ActiveAdmissionCount");
+            await LoadSceneAsync(scenePath);
+            loadedNegativeScenes.Add(scenePath);
+            try
+            {
+                await AwaitSurfacesBoundAsync(scenePath);
+                SceneLocalPlayerAdmissionAuthoring surface =
+                    ResolveSingleSurface(scenePath);
+                AssertNotNull(surface,
+                    "Undeclared negative scene has no Scene Player surface.");
+                AssertTrue(surface.RuntimeReady,
+                    "Undeclared Scene Player surface is not bound for diagnostics.");
+                AssertFalse(surface.HasActiveAdmission,
+                    "Undeclared Scene Player surface was admitted before resolution.");
+
+                ResolveAutomaticResult result = ResolveAutomaticAuthoring(
+                    sceneAdmissionModule,
+                    activity);
+                AssertTrue(result.Succeeded,
+                    "Undeclared-surface resolution failed instead of ignoring " +
+                    $"the surface. issue='{result.Issue}'.");
+                AssertEqual(0, result.Count,
+                    "Activity resolved a surface from a scene it did not declare.");
+                AssertTrue(string.IsNullOrWhiteSpace(result.Issue),
+                    "Undeclared-surface resolution succeeded with an unexpected " +
+                    $"diagnostic issue. issue='{result.Issue}'.");
+                AssertSurfacesInactive(scenePath, caseName);
+                AssertEqual(
+                    activeAdmissionsBefore,
+                    GetIntProperty(
+                        sceneAdmissionModule,
+                        "ActiveAdmissionCount"),
+                    "Undeclared-surface resolution changed the canonical active admission count.");
+            }
+            finally
+            {
+                await UnloadSceneIfLoadedAsync(scenePath);
+                loadedNegativeScenes.Remove(scenePath);
+            }
+        }
+
+        private static void AssertSurfacesInactive(
+            string scenePath,
+            string caseName)
+        {
+            SceneLocalPlayerAdmissionAuthoring[] surfaces =
+                ResolveSurfaces(scenePath);
+            AssertTrue(surfaces.Length > 0,
+                $"Negative case '{caseName}' has no loaded authoring surfaces.");
+            for (int index = 0; index < surfaces.Length; index++)
+            {
+                AssertFalse(surfaces[index].HasActiveAdmission,
+                    $"Negative case '{caseName}' created an active admission " +
+                    $"on surface '{surfaces[index].name}'.");
+            }
+        }
+
+        private static void AssertActiveRoutePlayerPreserved(
+            object runtimeHost,
+            object preparationModule,
+            object sceneAdmissionModule,
+            object participationContext,
+            RouteAsset expectedRoute,
+            ActivityAsset expectedActivity,
+            LoadedPlayerFixture expectedFixture,
+            PlayerSlotId playerSlotId,
+            RuntimeContentOwner expectedOwner)
+        {
+            AssertSame(expectedRoute, ResolveCurrentRoute(runtimeHost),
+                "Negative case changed the current Route.");
+            AssertSame(expectedActivity, ResolveCurrentActivity(runtimeHost),
+                "Negative case changed the current Activity.");
+            AssertEqual(1,
+                GetIntProperty(sceneAdmissionModule, "ActiveAdmissionCount"),
+                "Negative case changed the canonical Scene admission count.");
+            AssertAdmittedState(
+                expectedFixture,
+                participationContext,
+                playerSlotId,
+                expectedOwner);
+            ScenePlayerActorAdoptionToken current =
+                GetAdoptionToken(preparationModule, playerSlotId);
+            AssertEqual(expectedFixture.Adoption, current,
+                "Negative case replaced the current Scene Actor adoption token.");
+            AssertFalse(AnyNegativeSceneLoaded(),
+                "Negative case retained a loaded negative fixture scene.");
+        }
+
+        private static ResolveAutomaticResult ResolveAutomaticAuthoring(
+            object sceneAdmissionModule,
+            ActivityAsset activity)
+        {
+            MethodInfo resolve = sceneAdmissionModule.GetType().GetMethod(
+                "TryResolveAutomaticActivityAuthoring",
+                InstanceAny);
+            AssertNotNull(resolve,
+                "Scene admission module has no automatic Activity authoring resolver.");
+            object[] arguments = { activity, null, null };
+            bool succeeded = (bool)resolve.Invoke(sceneAdmissionModule, arguments);
+            int count = CountEnumerable(arguments[1] as IEnumerable);
+            string issue = Convert.ToString(arguments[2]);
+            return new ResolveAutomaticResult(succeeded, count, issue);
+        }
+
+        private static int CountEnumerable(IEnumerable values)
+        {
+            if (values == null)
+            {
+                return 0;
+            }
+
+            int count = 0;
+            foreach (object _ in values)
+            {
+                count++;
+            }
+
+            return count;
+        }
+
+        private static async Task LoadSceneAsync(string scenePath)
+        {
+            Scene existing = SceneManager.GetSceneByPath(scenePath);
+            if (existing.IsValid() && existing.isLoaded)
+            {
+                return;
+            }
+
+            AsyncOperation operation = SceneManager.LoadSceneAsync(
+                scenePath,
+                LoadSceneMode.Additive);
+            AssertNotNull(operation,
+                $"Could not start loading negative scene '{scenePath}'.");
+            while (!operation.isDone)
+            {
+                await Awaitable.NextFrameAsync();
+            }
+
+            Scene loaded = SceneManager.GetSceneByPath(scenePath);
+            AssertTrue(loaded.IsValid() && loaded.isLoaded,
+                $"Negative scene '{scenePath}' did not load.");
+        }
+
+        private static async Task AwaitSurfacesBoundAsync(string scenePath)
+        {
+            for (int frame = 0; frame < 120; frame++)
+            {
+                SceneLocalPlayerAdmissionAuthoring[] surfaces =
+                    ResolveSurfaces(scenePath);
+                bool ready = surfaces.Length > 0;
+                for (int index = 0; index < surfaces.Length; index++)
+                {
+                    ready &= surfaces[index] != null && surfaces[index].RuntimeReady;
+                }
+
+                if (ready)
+                {
+                    return;
+                }
+
+                await Awaitable.NextFrameAsync();
+            }
+
+            throw new InvalidOperationException(
+                $"Scene Local Player surfaces in '{scenePath}' did not bind within 120 frames.");
+        }
+
+        private static async Task UnloadSceneIfLoadedAsync(string scenePath)
+        {
+            Scene scene = SceneManager.GetSceneByPath(scenePath);
+            if (!scene.IsValid() || !scene.isLoaded)
+            {
+                return;
+            }
+
+            AsyncOperation operation = SceneManager.UnloadSceneAsync(scene);
+            AssertNotNull(operation,
+                $"Could not start unloading scene '{scenePath}'.");
+            while (!operation.isDone)
+            {
+                await Awaitable.NextFrameAsync();
+            }
+
+            await Awaitable.NextFrameAsync();
+            Scene remaining = SceneManager.GetSceneByPath(scenePath);
+            AssertTrue(!remaining.IsValid() || !remaining.isLoaded,
+                $"Scene '{scenePath}' remained loaded after unload.");
+        }
+
+        private static async Task AwaitScenesUnloadedAsync(params string[] paths)
+        {
+            for (int frame = 0; frame < 240; frame++)
+            {
+                bool anyLoaded = false;
+                for (int index = 0; index < paths.Length; index++)
+                {
+                    Scene scene = SceneManager.GetSceneByPath(paths[index]);
+                    anyLoaded |= scene.IsValid() && scene.isLoaded;
+                }
+
+                if (!anyLoaded)
+                {
+                    return;
+                }
+
+                await Awaitable.NextFrameAsync();
+            }
+
+            throw new InvalidOperationException(
+                "One or more P3M5B scenes remained loaded after Route transition.");
+        }
+
+        private static async Task AwaitAllP3M5BScenesUnloadedAsync()
+        {
+            await AwaitScenesUnloadedAsync(
+                QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteAPrimaryScenePath,
+                QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteBPrimaryScenePath,
+                QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteAActivityScenePath,
+                QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteBActivityScenePath,
+                QaP3M5BRouteTransitionAndNegativeMatrixSetup.DuplicateSlotScenePath,
+                QaP3M5BRouteTransitionAndNegativeMatrixSetup.MissingActorScenePath,
+                QaP3M5BRouteTransitionAndNegativeMatrixSetup.MismatchedProfileScenePath,
+                QaP3M5BRouteTransitionAndNegativeMatrixSetup.UndeclaredSurfaceScenePath);
+        }
+
+        private static bool AnyNegativeSceneLoaded()
+        {
+            string[] paths =
+            {
+                QaP3M5BRouteTransitionAndNegativeMatrixSetup.DuplicateSlotScenePath,
+                QaP3M5BRouteTransitionAndNegativeMatrixSetup.MissingActorScenePath,
+                QaP3M5BRouteTransitionAndNegativeMatrixSetup.MismatchedProfileScenePath,
+                QaP3M5BRouteTransitionAndNegativeMatrixSetup.UndeclaredSurfaceScenePath
+            };
+            for (int index = 0; index < paths.Length; index++)
+            {
+                Scene scene = SceneManager.GetSceneByPath(paths[index]);
+                if (scene.IsValid() && scene.isLoaded)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static SceneLocalPlayerAdmissionAuthoring ResolveSingleSurface(
+            string scenePath,
+            bool requireLoaded = true)
+        {
+            SceneLocalPlayerAdmissionAuthoring[] surfaces = ResolveSurfaces(scenePath);
+            if (surfaces.Length == 0 && !requireLoaded)
+            {
+                return null;
+            }
+
+            AssertEqual(1, surfaces.Length,
+                $"Expected exactly one Scene Local Player surface in '{scenePath}'.");
+            return surfaces[0];
+        }
+
+        private static SceneLocalPlayerAdmissionAuthoring[] ResolveSurfaces(
+            string scenePath)
+        {
+            Scene scene = SceneManager.GetSceneByPath(scenePath);
+            if (!scene.IsValid() || !scene.isLoaded)
+            {
+                return Array.Empty<SceneLocalPlayerAdmissionAuthoring>();
+            }
+
+            var surfaces = new List<SceneLocalPlayerAdmissionAuthoring>();
+            GameObject[] roots = scene.GetRootGameObjects();
+            for (int rootIndex = 0; rootIndex < roots.Length; rootIndex++)
+            {
+                surfaces.AddRange(
+                    roots[rootIndex].GetComponentsInChildren<
+                        SceneLocalPlayerAdmissionAuthoring>(true));
+            }
+
+            return surfaces.ToArray();
+        }
+
+        private static PlayerParticipationSnapshot CreateParticipationSnapshot(
+            object context)
+        {
+            MethodInfo create = context.GetType().GetMethod(
+                "CreateSnapshot",
+                InstanceAny);
+            AssertNotNull(create,
+                "Player participation context has no CreateSnapshot method.");
+            return (PlayerParticipationSnapshot)create.Invoke(context, null);
+        }
+
+        private static PlayerSlotRuntimeSnapshot FindSlot(
+            PlayerParticipationSnapshot snapshot,
+            PlayerSlotId playerSlotId)
+        {
+            for (int index = 0; index < snapshot.Slots.Count; index++)
+            {
+                if (snapshot.Slots[index].PlayerSlotId == playerSlotId)
+                {
+                    return snapshot.Slots[index];
+                }
+            }
+
+            throw new InvalidOperationException(
+                $"Player Slot '{playerSlotId.StableText}' is not configured in the Session snapshot.");
+        }
+
+        private static void AssertCleanupAfterHubReturn(
+            object participationContext,
+            object preparationModule,
+            object sceneAdmissionModule,
+            PlayerSlotId playerSlotId)
+        {
+            PlayerParticipationSnapshot snapshot =
+                CreateParticipationSnapshot(participationContext);
+            PlayerSlotRuntimeSnapshot slot = FindSlot(snapshot, playerSlotId);
+            AssertFalse(slot.IsJoined,
+                "P3M5B Slot remains Joined after QA Hub return.");
+            AssertFalse(slot.HasSelectedActor,
+                "P3M5B Slot retains Actor selection after QA Hub return.");
+            AssertEqual(0, snapshot.ReservedCount,
+                "P3M5B cleanup retains a Reserved Slot after QA Hub return.");
+            AssertEqual(0, snapshot.LeavingCount,
+                "P3M5B cleanup retains a Leaving Slot after QA Hub return.");
+            PlayerActorPreparationSummary preparation =
+                GetPreparationSummary(preparationModule, playerSlotId);
+            AssertTrue(preparation.IsUnprepared,
+                "P3M5B cleanup retains Player Actor preparation after QA Hub return. " +
+                preparation.ToDiagnosticString());
+            AssertFalse(TryGetAdoptionToken(
+                    preparationModule,
+                    playerSlotId,
+                    out _),
+                "P3M5B cleanup retains a stale or foreign Scene Actor adoption after QA Hub return.");
+            AssertEqual(0,
+                GetIntProperty(sceneAdmissionModule, "ActiveAdmissionCount"),
+                "P3M5B cleanup retains an active Scene admission after QA Hub return.");
+        }
+
+        private static PlayerActorPreparationSummary GetPreparationSummary(
+            object preparationModule,
+            PlayerSlotId playerSlotId)
+        {
+            AssertTrue(TryGetPreparationSummary(
+                    preparationModule,
+                    playerSlotId,
+                    out PlayerActorPreparationSummary summary),
+                $"No preparation summary exists for Slot '{playerSlotId.StableText}'.");
+            return summary;
+        }
+
+        private static bool TryGetPreparationSummary(
+            object preparationModule,
+            PlayerSlotId playerSlotId,
+            out PlayerActorPreparationSummary summary)
+        {
+            MethodInfo get = preparationModule.GetType().GetMethod(
+                "TryGetScenePlayerActorPreparationSummary",
+                InstanceAny);
+            AssertNotNull(get,
+                "Preparation module has no Scene Player preparation summary operation.");
+            object[] arguments = { playerSlotId, null };
+            bool found = (bool)get.Invoke(preparationModule, arguments);
+            summary = found
+                ? (PlayerActorPreparationSummary)arguments[1]
+                : default;
+            return found;
+        }
+
+        private static bool TryGetAdoptionToken(
+            object preparationModule,
+            PlayerSlotId playerSlotId,
+            out ScenePlayerActorAdoptionToken token)
+        {
+            MethodInfo get = preparationModule.GetType().GetMethod(
+                "TryGetScenePlayerActorAdoption",
+                InstanceAny);
+            AssertNotNull(get,
+                "Preparation module has no Scene Player adoption lookup.");
+            object[] arguments = { playerSlotId, null };
+            bool found = (bool)get.Invoke(preparationModule, arguments);
+            token = found
+                ? (ScenePlayerActorAdoptionToken)arguments[1]
+                : default;
+            return found;
+        }
+
+        private static ScenePlayerActorAdoptionToken GetAdoptionToken(
+            object preparationModule,
+            PlayerSlotId playerSlotId)
+        {
+            AssertTrue(TryGetAdoptionToken(
+                    preparationModule,
+                    playerSlotId,
+                    out ScenePlayerActorAdoptionToken token),
+                $"No Scene Player adoption exists for Slot '{playerSlotId.StableText}'.");
+            return token;
+        }
+
+        private static int CountRuntimeRoots(
+            object runtimeContent,
+            RuntimeContentOwner owner)
+        {
+            if (!owner.IsValid)
+            {
+                return 0;
+            }
+
+            MethodInfo snapshot = runtimeContent.GetType().GetMethod(
+                "SnapshotRoots",
+                InstanceAny,
+                null,
+                Type.EmptyTypes,
+                null);
+            AssertNotNull(snapshot,
+                "RuntimeContentRuntime has no parameterless SnapshotRoots method.");
+            IEnumerable roots = snapshot.Invoke(runtimeContent, null) as IEnumerable;
+            AssertNotNull(roots,
+                "RuntimeContentRuntime SnapshotRoots returned no enumerable result.");
+            int count = 0;
+            foreach (object root in roots)
+            {
+                object value = GetPropertyValue(root, "Owner");
+                if (value is RuntimeContentOwner rootOwner && rootOwner == owner)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private static object GetFieldValue(object target, string fieldName)
+        {
+            AssertNotNull(target,
+                $"Cannot read field '{fieldName}' from null target.");
+            FieldInfo field = target.GetType().GetField(fieldName, InstanceAny);
+            AssertNotNull(field,
+                $"Missing field '{fieldName}' on '{target.GetType().Name}'.");
+            return field.GetValue(target);
+        }
+
+        private static object GetPropertyValue(
+            object target,
+            string propertyName)
+        {
+            AssertNotNull(target,
+                $"Cannot read property '{propertyName}' from null target.");
+            PropertyInfo property = target.GetType().GetProperty(
+                propertyName,
+                InstanceAny);
+            AssertNotNull(property,
+                $"Missing property '{propertyName}' on '{target.GetType().Name}'.");
+            return property.GetValue(target);
+        }
+
+        private static int GetIntProperty(object target, string propertyName)
+        {
+            return Convert.ToInt32(GetPropertyValue(target, propertyName));
+        }
+
+        private static bool GetBooleanProperty(
+            object target,
+            string propertyName)
+        {
+            return Convert.ToBoolean(GetPropertyValue(target, propertyName));
+        }
+
+        private static string GetStringProperty(
+            object target,
+            string propertyName)
+        {
+            return Convert.ToString(GetPropertyValue(target, propertyName));
+        }
+
+        private static Exception Unwrap(Exception exception)
+        {
+            if (exception is TargetInvocationException invocation &&
+                invocation.InnerException != null)
+            {
+                return Unwrap(invocation.InnerException);
+            }
+
+            return exception;
+        }
+
+        private static void AssertTrue(bool condition, string message)
+        {
+            if (!condition)
+            {
+                throw new InvalidOperationException(message);
+            }
+        }
+
+        private static void AssertFalse(bool condition, string message)
+        {
+            AssertTrue(!condition, message);
+        }
+
+        private static void AssertNotNull(object value, string message)
+        {
+            AssertTrue(value != null, message);
+        }
+
+        private static void AssertSame(
+            object expected,
+            object actual,
+            string message)
+        {
+            AssertTrue(ReferenceEquals(expected, actual), message);
+        }
+
+        private static void AssertEqual<T>(
+            T expected,
+            T actual,
+            string message)
+        {
+            if (!EqualityComparer<T>.Default.Equals(expected, actual))
+            {
+                throw new InvalidOperationException(
+                    $"{message} expected='{expected}' actual='{actual}'.");
+            }
+        }
+
+        private static string Escape(string value)
+        {
+            return string.IsNullOrEmpty(value)
+                ? string.Empty
+                : value.Replace("'", "\\'")
+                    .Replace("\r", " ")
+                    .Replace("\n", " ");
+        }
+    }
+}

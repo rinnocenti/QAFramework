@@ -1,0 +1,17 @@
+{
+  "name": "ImmersiveFrameworkQA.PauseP1.Runtime",
+  "rootNamespace": "ImmersiveFrameworkQA.PauseP1",
+  "references": [
+    "Immersive.Framework.Runtime",
+    "Unity.InputSystem"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
