@@ -11,7 +11,7 @@ namespace ImmersiveFrameworkQA.EditorUx.Internal.Editor
 {
     internal static class QaCoreAuthoringEditorUxSmoke
     {
-        [MenuItem("Immersive Framework/QA/Editor UX/Run Core Authoring Editor UX Smoke", priority = 260)]
+        [MenuItem("Immersive Framework/QA/Regressions/Editor UX/Run Core Authoring Editor UX Smoke", priority = 260)]
         private static void Run()
         {
             var evidence = new List<string>();

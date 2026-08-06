@@ -10,7 +10,7 @@ namespace ImmersiveFrameworkQA.EditorUx.Internal.Editor
 {
     internal static class QaObjectResetTriggerAuthoringValidationSmoke
     {
-        [MenuItem("Immersive Framework/QA/Editor UX/Run Object Reset Trigger Authoring Validation Smoke", priority = 261)]
+        [MenuItem("Immersive Framework/QA/Regressions/Editor UX/Run Object Reset Trigger Authoring Validation Smoke", priority = 261)]
         private static void Run()
         {
             VerifyAdapterWithNoResolvedId();

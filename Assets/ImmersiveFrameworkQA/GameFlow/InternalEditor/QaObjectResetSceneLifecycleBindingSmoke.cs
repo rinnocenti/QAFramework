@@ -16,7 +16,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
     // It intentionally does not validate ResetRegistry or ResetExecutor execution.
     internal static class QaObjectResetSceneLifecycleBindingSmoke
     {
-        [MenuItem("Immersive Framework/QA/Game Flow/Run Object Reset Scene Lifecycle Binding Smoke")]
+        [MenuItem("Immersive Framework/QA/Regressions/Game Flow/Run Object Reset Scene Lifecycle Binding Smoke")]
         private static async void Run()
         {
             Scene scene = SceneManager.CreateScene("QA Object Reset Lifecycle");

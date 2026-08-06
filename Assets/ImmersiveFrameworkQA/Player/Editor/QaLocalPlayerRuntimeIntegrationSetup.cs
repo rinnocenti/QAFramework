@@ -41,7 +41,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             EditorApplication.playModeStateChanged += HandlePlayModeStateChanged;
         }
 
-        [MenuItem("Immersive Framework/QA/Setup/Prepare Local Player Prefab Divergence Play Mode Fixture")]
+        [MenuItem("Immersive Framework/QA/Setup/Player/Prepare Local Player Prefab Divergence Play Mode Fixture")]
         private static void PrepareDivergenceFromMenu()
         {
             if (EditorApplication.isPlaying)
