@@ -1,230 +1,286 @@
 using System;
-using System.Collections.Generic;
-using Immersive.Framework.ActivityFlow;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Authoring;
-using Immersive.Framework.ContentFlow;
-using Immersive.Framework.Identity;
-using Immersive.Framework.ObjectEntry;
-using Immersive.Framework.PlayerParticipation;
-using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.RuntimeContent;
 using UnityEditor;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 {
+    /// <summary>
+    /// Canonical public runner for Identity Authority (IF-ID) smokes.
+    /// Corte 2 ships the runner, fixture and baseline snapshot case only.
+    /// </summary>
     public static class QaRouteActivityIdentityRegression
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Regressions/Game Flow/Run Route and Activity Identity Regression";
-        private const string LogPrefix = "[ROUTE_ACTIVITY_IDENTITY_REGRESSION]";
+            "Immersive Framework QA/Game Flow/Run Identity Authority Regression";
+        private const string LogPrefix = "[IF_ID_QA]";
+        private const string Source = nameof(QaRouteActivityIdentityRegression);
+        private const int ExpectedCaseCount = 1;
+
+        private static readonly string[] ExpectedCases =
+        {
+            "baseline-authority-snapshot"
+        };
+
+        private static bool s_running;
 
         [MenuItem(MenuPath, true)]
-        private static bool ValidateRun() => EditorApplication.isPlaying;
+        private static bool ValidateRun() =>
+            EditorApplication.isPlaying && !s_running;
 
         [MenuItem(MenuPath)]
-        public static void Run()
+        public static async void Run()
         {
-            var completed = new List<string>();
-            var created = new List<UnityEngine.Object>();
+            if (s_running)
+            {
+                Debug.LogError(
+                    $"{LogPrefix} status='Failed' reason='concurrent-execution-rejected' " +
+                    "message='Identity Authority Regression is already running.'.");
+                return;
+            }
+
+            s_running = true;
+            var cases = new QaCaseRegistry(ExpectedCases, ExpectedCaseCount);
+            var failures = new QaFailureCollector();
+            QaIdentityAuthorityFixture fixture = null;
+            var stopwatch = Stopwatch.StartNew();
+            QaIdentityAuthorityFixture.AuthoritySnapshot initial = null;
+            QaIdentityAuthorityFixture.AuthoritySnapshot final = null;
+
             try
             {
-                Require(EditorApplication.isPlaying,
-                    "Route and Activity Identity Regression requires a fresh Play Mode after framework boot.");
-                completed.Add("play-mode-required");
-                Require(QaH2FrameworkReadiness.TryResolveUniqueHost(
-                    out FrameworkRuntimeHost host, out string hostDiagnostic), hostDiagnostic);
-                FrameworkRuntimeState state = host.State;
-                Require(state.GameFlowStarted && state.CurrentRoute != null && state.CurrentActivity != null && state.IsActivityReady,
-                    $"Framework runtime is not ready. {hostDiagnostic}");
-                completed.Add("official-runtime-ready");
-
-                RouteAsset currentRoute = state.CurrentRoute;
-                ActivityAsset currentActivity = state.CurrentActivity;
-                Require(currentRoute.HasValidRouteId && currentActivity.HasValidActivityId,
-                    "Runtime state contains an invalid RouteId or ActivityId.");
-                completed.Add("runtime-assets-have-canonical-ids");
-                Require(state.RouteState.RouteIdentity == FrameworkIdentityKey.From(currentRoute.RouteId),
-                    "Runtime Route state did not transport RouteId.");
-                completed.Add("runtime-state-transports-route-id");
-                Require(state.ActivityState.ActivityIdentity == FrameworkIdentityKey.From(currentActivity.ActivityId),
-                    "Runtime Activity state did not transport ActivityId.");
-                completed.Add("runtime-state-transports-activity-id");
-                Require(!string.Equals(currentRoute.RouteId.StableText, currentRoute.RouteName, StringComparison.Ordinal) &&
-                        !string.Equals(currentActivity.ActivityId.StableText, currentActivity.ActivityName, StringComparison.Ordinal),
-                    "A display name is being used as functional identity.");
-                completed.Add("ids-are-distinct-from-display-names");
-
-                RouteAsset routeA = CreateRoute("qa.identity.route.a", "Shared Route", "Assets/Shared.unity", created);
-                RouteAsset routeB = CreateRoute("qa.identity.route.b", "Shared Route", "Assets/Shared.unity", created);
-                ActivityAsset activityA = CreateActivity("qa.identity.activity.a", "Shared Activity", created);
-                ActivityAsset activityB = CreateActivity("qa.identity.activity.b", "Shared Activity", created);
-                RouteId equalRouteId = RouteId.From(routeA.RouteId.StableText);
-                ActivityId equalActivityId = ActivityId.From(activityA.ActivityId.StableText);
-                Require(routeA.RouteId != routeB.RouteId && routeA.RouteId == equalRouteId &&
-                        routeA.RouteId.GetHashCode() == equalRouteId.GetHashCode(),
-                    "Typed RouteId equality or hashing is incoherent.");
-                Require(activityA.ActivityId != activityB.ActivityId && activityA.ActivityId == equalActivityId &&
-                        activityA.ActivityId.GetHashCode() == equalActivityId.GetHashCode(),
-                    "Typed ActivityId equality or hashing is incoherent.");
-                completed.Add("typed-id-equality-and-hashing");
-
-                FrameworkIdentityKey routeIdentityBefore = RouteRuntimeState.EnteredWith(
-                    routeA, default, default, default, default, default, "qa", "identity").RouteIdentity;
-                FrameworkIdentityKey activityIdentityBefore = ActivityRuntimeState.ActiveWith(
-                    activityA, null, "qa", "identity").ActivityIdentity;
-                ConfigureRoute(routeA, routeA.RouteId.StableText, "Renamed Route", "Assets/Renamed.unity");
-                ConfigureActivity(activityA, activityA.ActivityId.StableText, "Renamed Activity");
-                Require(routeIdentityBefore == RouteRuntimeState.EnteredWith(
-                        routeA, default, default, default, default, default, "qa", "identity").RouteIdentity,
-                    "Route rename or scene change changed runtime identity.");
-                Require(activityIdentityBefore == ActivityRuntimeState.ActiveWith(
-                        activityA, null, "qa", "identity").ActivityIdentity,
-                    "Activity rename changed runtime identity.");
-                completed.Add("rename-and-scene-change-preserve-identity");
-
-                VerifyAdmissionToken(routeA, routeB, activityA, activityB);
-                completed.Add("admission-token-transports-route-ids");
-                VerifyLedger(routeA, activityA);
-                completed.Add("activity-scene-ledger-exposes-activity-id");
-                VerifyObjectEntry(activityA, created);
-                completed.Add("object-entry-uses-typed-activity-owner");
+                Require(
+                    EditorApplication.isPlaying,
+                    "Identity Authority Regression requires Play Mode.");
 
                 Require(
-                    state.CurrentRouteIdentity ==
-                        FrameworkIdentityKey.From(currentRoute.RouteId).StableText &&
-                    state.CurrentRouteName == currentRoute.RouteName &&
-                    state.CurrentActivityIdentity ==
-                        FrameworkIdentityKey.From(currentActivity.ActivityId).StableText &&
-                    state.CurrentActivityName == currentActivity.ActivityName &&
-                    !string.Equals(
-                        state.CurrentRouteIdentity,
-                        state.CurrentRouteName,
-                        StringComparison.Ordinal) &&
-                    !string.Equals(
-                        state.CurrentActivityIdentity,
-                        state.CurrentActivityName,
-                        StringComparison.Ordinal),
-                    "Runtime diagnostics do not expose ID separately from display name.");
-                completed.Add("runtime-diagnostics-separate-id-and-name");
-                completed.Add("player-gameplay-admission-route-switch-dependency-registered");
-                completed.Add("activity-transition-transaction-dependency-registered");
+                    QaH2FrameworkReadiness.TryResolveUniqueHost(
+                        out FrameworkRuntimeHost host,
+                        out string hostDiagnostic),
+                    $"Unique FrameworkRuntimeHost is required. {hostDiagnostic}");
 
-                Require(completed.Count == 14,
-                    $"Route and Activity identity case count changed. actual='{completed.Count}'.");
-                Debug.Log($"{LogPrefix} status='Passed' cases='{completed.Count}' routeId='{currentRoute.RouteId}' " +
-                    $"routeName='{currentRoute.RouteName}' activityId='{currentActivity.ActivityId}' " +
-                    $"activityName='{currentActivity.ActivityName}' completed='{string.Join(",", completed)}'.");
+                Require(
+                    host.State.GameFlowStarted,
+                    $"Game Flow is not started. {hostDiagnostic}");
+
+                fixture = QaIdentityAuthorityFixture.Capture(host, Source + ".initial");
+                initial = fixture.Initial;
+
+                await RunBaselineAuthoritySnapshotAsync(fixture, cases);
+
+                cases.RequireComplete();
             }
             catch (Exception exception)
             {
-                Debug.LogError($"{LogPrefix} status='Failed' exception='{exception.GetType().Name}' " +
-                    $"message='{Escape(exception.Message)}' completed='{string.Join(",", completed)}'.");
-                throw;
+                failures.Add("execution", exception);
             }
             finally
             {
-                for (int index = created.Count - 1; index >= 0; index--)
-                    if (created[index] != null) UnityEngine.Object.DestroyImmediate(created[index]);
+                if (fixture != null)
+                {
+                    try
+                    {
+                        await fixture.TeardownAsync(Source + ".teardown");
+                    }
+                    catch (Exception exception)
+                    {
+                        failures.Add("teardown", exception);
+                    }
+
+                    if (fixture.Failures.HasFailures)
+                    {
+                        failures.Add(
+                            "cleanup",
+                            fixture.Failures.ToAggregate(
+                                "Identity Authority fixture cleanup failures."));
+                    }
+
+                    try
+                    {
+                        final = fixture.CaptureCurrent(Source + ".report");
+                    }
+                    catch (Exception exception)
+                    {
+                        failures.Add("final-snapshot", exception);
+                        final = fixture.Initial;
+                    }
+                }
+
+                stopwatch.Stop();
+                s_running = false;
+                EmitFinalReport(
+                    failures,
+                    cases,
+                    initial,
+                    final,
+                    fixture,
+                    stopwatch.Elapsed);
+            }
+
+            if (failures.HasFailures)
+            {
+                throw failures.ToAggregate(
+                    "Identity Authority Regression failed.");
             }
         }
 
-        private static void VerifyAdmissionToken(
-            RouteAsset previousRoute, RouteAsset targetRoute,
-            ActivityAsset previousActivity, ActivityAsset targetActivity)
+        private static Task RunBaselineAuthoritySnapshotAsync(
+            QaIdentityAuthorityFixture fixture,
+            QaCaseRegistry cases)
         {
-            var token = new ActivityPlayerLifecycleAdmissionToken(
-                "qa.identity.session",
-                RuntimeContentOwner.Activity(
-                    previousActivity.ActivityId.StableText,
-                    previousActivity.ActivityName,
-                    RuntimeDefinitionToken.FromUnityObject(previousActivity)),
-                RuntimeContentOwner.Activity(
-                    targetActivity.ActivityId.StableText,
-                    targetActivity.ActivityName,
-                    RuntimeDefinitionToken.FromUnityObject(targetActivity)),
-                ActivityPlayerLifecycleAdmissionFlowKind.RouteStartupActivitySwitch,
-                previousRoute.RouteId, targetRoute.RouteId, 1);
-            var mismatched = new ActivityPlayerLifecycleAdmissionToken(
-                "qa.identity.session",
-                token.PreviousOwner, token.TargetOwner,
-                ActivityPlayerLifecycleAdmissionFlowKind.RouteStartupActivitySwitch,
-                previousRoute.RouteId, RouteId.From("qa.identity.route.foreign"), 1);
-            Require(token.IsValid && token.PreviousRouteId == previousRoute.RouteId &&
-                    token.TargetRouteId == targetRoute.RouteId && token != mismatched,
-                "Admission token lost typed Route identity or accepted mismatched equality.");
+            QaIdentityAuthorityFixture.AuthoritySnapshot before = fixture.Initial;
+            RouteAsset route = before.Route;
+            ActivityAsset activity = before.Activity;
+
+            Require(route != null && route.HasValidRouteId, "Baseline requires a valid current Route.");
+            Require(activity != null && activity.HasValidActivityId, "Baseline requires a valid current Activity.");
+
+            Require(before.RouteOwner.IsValid, "Current Route owner is invalid.");
+            Require(before.ActivityOwner.IsValid, "Current Activity owner is invalid.");
+            Require(
+                before.RouteOwner.HasDefinitionToken && before.RouteToken.IsValid,
+                "Current Route owner is missing a definition token.");
+            Require(
+                before.ActivityOwner.HasDefinitionToken && before.ActivityToken.IsValid,
+                "Current Activity owner is missing a definition token.");
+
+            RuntimeDefinitionToken routeTokenAgain =
+                RuntimeDefinitionToken.FromUnityObject(route);
+            RuntimeDefinitionToken activityTokenAgain =
+                RuntimeDefinitionToken.FromUnityObject(activity);
+            Require(
+                routeTokenAgain == before.RouteToken,
+                "RuntimeDefinitionToken.FromUnityObject is not stable for the same Route reference.");
+            Require(
+                activityTokenAgain == before.ActivityToken,
+                "RuntimeDefinitionToken.FromUnityObject is not stable for the same Activity reference.");
+
+            RuntimeContentOwner derivedRouteOwner = fixture.DeriveRouteOwner(route);
+            RuntimeContentOwner derivedActivityOwner = fixture.DeriveActivityOwner(activity);
+            Require(
+                derivedRouteOwner == before.RouteOwner,
+                "Derived Route owner diverged from the captured snapshot owner.");
+            Require(
+                derivedActivityOwner == before.ActivityOwner,
+                "Derived Activity owner diverged from the captured snapshot owner.");
+
+            RuntimeContentOwner observedRouteOwner =
+                fixture.RequireObservedRouteOwner(route);
+            RuntimeContentOwner observedActivityOwner =
+                fixture.RequireObservedActivityOwner(activity);
+            Require(
+                observedRouteOwner == derivedRouteOwner,
+                "Runtime-observed Route owner does not match the owner derived from the exact Route reference.");
+            Require(
+                observedActivityOwner == derivedActivityOwner,
+                "Runtime-observed Activity owner does not match the owner derived from the exact Activity reference.");
+
+            // Stable IDs remain diagnostic evidence only; operational equality includes the token.
+            Require(
+                !string.IsNullOrWhiteSpace(route.RouteId.StableText),
+                "Route stable ID is blank.");
+            Require(
+                !string.IsNullOrWhiteSpace(activity.ActivityId.StableText),
+                "Activity stable ID is blank.");
+            Require(
+                derivedRouteOwner.HasSameStableDefinition(before.RouteOwner),
+                "Route stable definition evidence was lost.");
+            Require(
+                derivedActivityOwner.HasSameStableDefinition(before.ActivityOwner),
+                "Activity stable definition evidence was lost.");
+
+            QaIdentityAuthorityFixture.AuthoritySnapshot after =
+                fixture.CaptureCurrent(Source + ".baseline-after");
+            Require(
+                ReferenceEquals(after.Route, before.Route),
+                "Baseline case altered the current Route reference.");
+            Require(
+                ReferenceEquals(after.Activity, before.Activity),
+                "Baseline case altered the current Activity reference.");
+            Require(
+                after.RouteOwner == before.RouteOwner &&
+                after.ActivityOwner == before.ActivityOwner,
+                "Baseline case altered runtime content owners.");
+            Require(
+                after.TotalRootCount == before.TotalRootCount &&
+                after.RouteRootCount == before.RouteRootCount &&
+                after.ActivityRootCount == before.ActivityRootCount,
+                "Baseline case altered runtime content roots. " +
+                $"before=({fixture.DescribeRoots(before)}) after=({fixture.DescribeRoots(after)}).");
+            Require(
+                after.GameFlowStarted == before.GameFlowStarted &&
+                after.IsActivityReady == before.IsActivityReady,
+                "Baseline case altered Game Flow readiness state.");
+
+            cases.Complete("baseline-authority-snapshot");
+            return Task.CompletedTask;
         }
 
-        private static void VerifyLedger(RouteAsset route, ActivityAsset activity)
+        private static void EmitFinalReport(
+            QaFailureCollector failures,
+            QaCaseRegistry cases,
+            QaIdentityAuthorityFixture.AuthoritySnapshot initial,
+            QaIdentityAuthorityFixture.AuthoritySnapshot final,
+            QaIdentityAuthorityFixture fixture,
+            TimeSpan duration)
         {
-            ActivitySceneCompositionPlanEntry plan = ActivitySceneCompositionPlanEntry.FromEntry(
-                null, 0, activity.ActivityId.StableText);
-            var entry = new ActivitySceneLedgerEntry(
-                "qa.identity.route.instance", route, activity, plan,
-                ActivitySceneLedgerOwnership.Activity, ActivitySceneLedgerEntryStatus.Loaded);
-            Require(entry.ActivityId == activity.ActivityId &&
-                    entry.ToDiagnosticString().Contains($"activity='{activity.ActivityId.StableText}'"),
-                "Activity Scene Ledger entry did not preserve ActivityId.");
-        }
+            bool passed = !failures.HasFailures && cases.Count == cases.ExpectedCount;
+            string status = passed ? "Passed" : "Failed";
+            int failedCases = cases.ExpectedCount - cases.Count;
+            if (!passed && failedCases == 0)
+            {
+                failedCases = 1;
+            }
 
-        private static void VerifyObjectEntry(ActivityAsset activity, ICollection<UnityEngine.Object> created)
-        {
-            var root = new GameObject("Identity Object Entry");
-            created.Add(root);
-            ObjectEntryDeclaration declaration = root.AddComponent<ObjectEntryDeclaration>();
-            declaration.ConfigureForQa(
-                "qa.identity.entry", ObjectEntryScope.Activity,
-                ObjectEntryRequiredness.Required, "Identity Entry", null, activity);
-            ObjectEntryDescriptor descriptor = declaration.CreateDescriptor();
-            Require(descriptor.OwnerIdentity.HasValue &&
-                    descriptor.OwnerIdentity.Value == FrameworkIdentityKey.From(activity.ActivityId),
-                "Object Entry owner is not the typed Activity identity.");
-        }
+            string authority = fixture != null
+                ? fixture.DescribeAuthority(final ?? initial)
+                : "authority='unavailable'";
+            string initialRoots = fixture != null && initial != null
+                ? fixture.DescribeRoots(initial)
+                : "roots='unavailable'";
+            string finalRoots = fixture != null && final != null
+                ? fixture.DescribeRoots(final)
+                : "roots='unavailable'";
 
-        private static RouteAsset CreateRoute(
-            string id, string name, string scenePath, ICollection<UnityEngine.Object> created)
-        {
-            RouteAsset route = ScriptableObject.CreateInstance<RouteAsset>();
-            created.Add(route);
-            ConfigureRoute(route, id, name, scenePath);
-            return route;
-        }
+            string message =
+                $"{LogPrefix} status='{status}' " +
+                $"executed='{cases.ExpectedCount}' completed='{cases.Count}' " +
+                $"completedNames='{cases.DescribeCompleted()}' " +
+                $"failed='{failedCases}' " +
+                $"missing='{cases.DescribeMissing()}' " +
+                $"durationMs='{(long)duration.TotalMilliseconds}' " +
+                $"{authority} " +
+                $"rootsBefore=({initialRoots}) rootsAfter=({finalRoots}) " +
+                $"executionFailure='{Escape(failures.Describe("execution"))}' " +
+                $"cleanupFailure='{Escape(failures.Describe("cleanup"))}' " +
+                $"teardownFailure='{Escape(failures.Describe("teardown"))}'.";
 
-        private static ActivityAsset CreateActivity(
-            string id, string name, ICollection<UnityEngine.Object> created)
-        {
-            ActivityAsset activity = ScriptableObject.CreateInstance<ActivityAsset>();
-            created.Add(activity);
-            ConfigureActivity(activity, id, name);
-            return activity;
-        }
-
-        private static void ConfigureRoute(RouteAsset route, string id, string name, string scenePath)
-        {
-            var serialized = new SerializedObject(route);
-            serialized.FindProperty("routeId").stringValue = id;
-            serialized.FindProperty("routeName").stringValue = name;
-            serialized.FindProperty("primaryScenePath").stringValue = scenePath;
-            serialized.FindProperty("primarySceneName").stringValue = System.IO.Path.GetFileNameWithoutExtension(scenePath);
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-        }
-
-        private static void ConfigureActivity(ActivityAsset activity, string id, string name)
-        {
-            var serialized = new SerializedObject(activity);
-            serialized.FindProperty("activityId").stringValue = id;
-            serialized.FindProperty("activityName").stringValue = name;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
+            if (passed)
+            {
+                Debug.Log(message);
+            }
+            else
+            {
+                Debug.LogError(message);
+            }
         }
 
         private static void Require(bool condition, string message)
         {
-            if (!condition) throw new InvalidOperationException(message);
+            if (!condition)
+            {
+                throw new InvalidOperationException(message);
+            }
         }
 
-        private static string Escape(string value) => string.IsNullOrEmpty(value)
-            ? string.Empty
-            : value.Replace("'", "\\'").Replace("\r", " ").Replace("\n", " ");
+        private static string Escape(string value) =>
+            string.IsNullOrEmpty(value)
+                ? string.Empty
+                : value.Replace("'", "\\'").Replace("\r", " ").Replace("\n", " ");
     }
 }
