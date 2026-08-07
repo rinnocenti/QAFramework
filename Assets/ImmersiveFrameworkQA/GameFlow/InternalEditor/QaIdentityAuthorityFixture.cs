@@ -1,10 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Immersive.Foundation.Events;
+using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
+using Immersive.Framework.PlayerParticipation;
+using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.RuntimeContent;
+using Immersive.Framework.Transition;
+using UnityEditor;
 using UnityEngine;
 
 namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
@@ -19,6 +25,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private readonly List<RuntimeContentOwner> caseCreatedRootOwners = new List<RuntimeContentOwner>();
         private readonly List<QaOwnedAsyncOperation<FrameworkRouteRequestResult>> ownedRouteOperations =
             new List<QaOwnedAsyncOperation<FrameworkRouteRequestResult>>();
+        private readonly List<QaOwnedAsyncOperation<FrameworkActivityRequestResult>> ownedActivityOperations =
+            new List<QaOwnedAsyncOperation<FrameworkActivityRequestResult>>();
+        private readonly List<IEventBinding> eventBindings = new List<IEventBinding>();
 
         private QaIdentityAuthorityFixture(FrameworkRuntimeHost host, AuthoritySnapshot initial)
         {
@@ -203,6 +212,90 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             return CountRootsForOwner(roots, owner);
         }
 
+        public ActivityAsset CreateTemporaryActivity(
+            string activityId,
+            string activityName)
+        {
+            if (string.IsNullOrWhiteSpace(activityId))
+            {
+                throw new ArgumentException("Activity ID is required.", nameof(activityId));
+            }
+
+            if (string.IsNullOrWhiteSpace(activityName))
+            {
+                throw new ArgumentException("Activity name is required.", nameof(activityName));
+            }
+
+            ActivityAsset activity = ScriptableObject.CreateInstance<ActivityAsset>();
+            activity.name = activityName;
+            var serialized = new SerializedObject(activity);
+            serialized.FindProperty("activityId").stringValue = activityId;
+            serialized.FindProperty("activityName").stringValue = activityName;
+            serialized.FindProperty("playerParticipationProjectionMode").intValue =
+                (int)ActivityParticipationProjectionMode.NoSlots;
+            serialized.FindProperty("playerParticipationZeroParticipantPolicy").intValue =
+                (int)ActivityParticipationZeroParticipantPolicy.Allowed;
+            serialized.FindProperty("playerParticipationExplicitSlotProfiles").arraySize = 0;
+            serialized.FindProperty("playerParticipationRequirementLevel").intValue =
+                (int)PlayerParticipationRequirementLevel.None;
+            serialized.FindProperty("activityEntryReadinessPolicy").intValue =
+                (int)ActivityEntryReadinessPolicy.ObserveOnly;
+            serialized.FindProperty("visualTransitionMode").intValue =
+                (int)ActivityVisualTransitionMode.Seamless;
+            serialized.FindProperty("transitionGateMode").intValue =
+                (int)TransitionGateMode.LifecycleRequestsOnly;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            TrackTemporary(activity);
+            return activity;
+        }
+
+        public RouteAsset CreateTemporaryRoute(
+            string routeId,
+            string routeName,
+            RouteAsset sceneTemplate,
+            ActivityAsset startupActivity)
+        {
+            if (string.IsNullOrWhiteSpace(routeId))
+            {
+                throw new ArgumentException("Route ID is required.", nameof(routeId));
+            }
+
+            if (string.IsNullOrWhiteSpace(routeName))
+            {
+                throw new ArgumentException("Route name is required.", nameof(routeName));
+            }
+
+            if (sceneTemplate == null)
+            {
+                throw new ArgumentNullException(nameof(sceneTemplate));
+            }
+
+            if (string.IsNullOrWhiteSpace(sceneTemplate.PrimaryScenePath))
+            {
+                throw new InvalidOperationException(
+                    "Scene template Route has no Primary Scene path.");
+            }
+
+            if (startupActivity == null)
+            {
+                throw new ArgumentNullException(nameof(startupActivity));
+            }
+
+            RouteAsset route = ScriptableObject.CreateInstance<RouteAsset>();
+            route.name = routeName;
+            var serialized = new SerializedObject(route);
+            serialized.FindProperty("routeId").stringValue = routeId;
+            serialized.FindProperty("routeName").stringValue = routeName;
+            serialized.FindProperty("primaryScenePath").stringValue = sceneTemplate.PrimaryScenePath;
+            serialized.FindProperty("primarySceneName").stringValue = sceneTemplate.PrimarySceneName;
+            serialized.FindProperty("startupActivity").objectReferenceValue = startupActivity;
+            serialized.FindProperty("transitionGateMode").intValue =
+                (int)sceneTemplate.TransitionGateMode;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            TrackTemporary(route);
+            return route;
+        }
+
         public void TrackTemporary(UnityEngine.Object value)
         {
             if (value != null)
@@ -222,6 +315,42 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             caseCreatedRootOwners.Add(owner);
         }
 
+        public LifecycleListenerScope BindLifecycleListeners()
+        {
+            RouteLifecycleRuntime routeLifecycle = RequireRouteLifecycleRuntime();
+            ActivityFlowRuntime activityFlow = routeLifecycle.CurrentActivityFlowRuntime;
+            if (activityFlow == null)
+            {
+                throw new InvalidOperationException(
+                    "Route Lifecycle has no Activity Flow runtime for lifecycle listeners.");
+            }
+
+            var scope = new LifecycleListenerScope();
+            TrackBinding(routeLifecycle.SubscribeRouteEntered(scope.OnRouteEntered));
+            TrackBinding(routeLifecycle.SubscribeRouteExited(scope.OnRouteExited));
+            TrackBinding(activityFlow.SubscribeActivityEntered(scope.OnActivityEntered));
+            TrackBinding(activityFlow.SubscribeActivityExited(scope.OnActivityExited));
+            return scope;
+        }
+
+        public void ReleaseLifecycleListeners()
+        {
+            for (int index = eventBindings.Count - 1; index >= 0; index--)
+            {
+                IEventBinding binding = eventBindings[index];
+                try
+                {
+                    binding?.Dispose();
+                }
+                catch (Exception exception)
+                {
+                    Failures.Add("dispose-lifecycle-listener", exception);
+                }
+            }
+
+            eventBindings.Clear();
+        }
+
         public QaOwnedAsyncOperation<FrameworkRouteRequestResult> AttachRouteRequest(
             string operationName,
             Task<FrameworkRouteRequestResult> request)
@@ -232,10 +361,118 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             return operation;
         }
 
+        public QaOwnedAsyncOperation<FrameworkActivityRequestResult> AttachActivityRequest(
+            string operationName,
+            Task<FrameworkActivityRequestResult> request)
+        {
+            var operation = new QaOwnedAsyncOperation<FrameworkActivityRequestResult>(operationName);
+            operation.Attach(request);
+            ownedActivityOperations.Add(operation);
+            return operation;
+        }
+
+        public async Task<FrameworkRouteRequestResult> RequestRouteAsync(
+            RouteAsset targetRoute,
+            string source,
+            string reason)
+        {
+            QaOwnedAsyncOperation<FrameworkRouteRequestResult> operation =
+                AttachRouteRequest(
+                    reason,
+                    Host.RequestRouteAsync(targetRoute, source, reason));
+            return await operation.AwaitTerminalAsync();
+        }
+
+        public async Task<FrameworkActivityRequestResult> RequestActivityAsync(
+            ActivityAsset targetActivity,
+            string source,
+            string reason)
+        {
+            QaOwnedAsyncOperation<FrameworkActivityRequestResult> operation =
+                AttachActivityRequest(
+                    reason,
+                    Host.RequestActivityAsync(targetActivity, source, reason));
+            return await operation.AwaitTerminalAsync();
+        }
+
+        public async Task RestoreToAsync(AuthoritySnapshot target, string source)
+        {
+            if (target == null)
+            {
+                throw new ArgumentNullException(nameof(target));
+            }
+
+            RouteAsset currentRoute = Host.State.CurrentRoute;
+            ActivityAsset currentActivity = Host.State.CurrentActivity;
+
+            bool routeChanged = !ReferenceEquals(currentRoute, target.Route);
+            bool activityChanged = !ReferenceEquals(currentActivity, target.Activity);
+            if (!routeChanged && !activityChanged)
+            {
+                return;
+            }
+
+            if (routeChanged)
+            {
+                FrameworkRouteRequestResult routeResult = await RequestRouteAsync(
+                    target.Route,
+                    source,
+                    "restore-target-route");
+                bool routeAccepted =
+                    routeResult.Succeeded ||
+                    routeResult.DestinationAuthoritative ||
+                    routeResult.Kind == FrameworkRouteRequestKind.IgnoredAlreadyActive;
+                if (!routeAccepted)
+                {
+                    throw new InvalidOperationException(
+                        "Failed to restore target Route by reference. " +
+                        $"kind='{routeResult.Kind}' message='{routeResult.Message}'.");
+                }
+            }
+            else if (activityChanged)
+            {
+                FrameworkActivityRequestResult activityResult = await RequestActivityAsync(
+                    target.Activity,
+                    source,
+                    "restore-target-activity");
+                bool activityAccepted =
+                    activityResult.Succeeded ||
+                    activityResult.DestinationAuthoritative ||
+                    activityResult.Kind == FrameworkActivityRequestKind.IgnoredAlreadyActive;
+                if (!activityAccepted)
+                {
+                    throw new InvalidOperationException(
+                        "Failed to restore target Activity by reference. " +
+                        $"kind='{activityResult.Kind}' message='{activityResult.Message}'.");
+                }
+            }
+
+            if (!ReferenceEquals(Host.State.CurrentRoute, target.Route))
+            {
+                throw new InvalidOperationException(
+                    "Restore completed without re-establishing the target Route reference.");
+            }
+
+            if (!ReferenceEquals(Host.State.CurrentActivity, target.Activity))
+            {
+                throw new InvalidOperationException(
+                    "Restore completed without re-establishing the target Activity reference.");
+            }
+        }
+
         public async Task TeardownAsync(string source)
         {
             await AwaitOwnedOperationsAsync();
-            await RestoreInitialAuthorityAsync(source);
+            ReleaseLifecycleListeners();
+            try
+            {
+                await RestoreToAsync(Initial, source + ".restore-initial");
+            }
+            catch (Exception exception)
+            {
+                Failures.Add("restore-initial-authority", exception);
+            }
+
             RemoveCaseCreatedRoots(source);
             DestroyTemporaryObjects();
             AssertAuthorityPreserved(source);
@@ -271,6 +508,33 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 $"activityToken='{Escape(snapshot.ActivityToken.StableText)}' " +
                 $"activityOwner='{Escape(snapshot.ActivityOwner.StableText)}' " +
                 DescribeRoots(snapshot);
+        }
+
+        private RouteLifecycleRuntime RequireRouteLifecycleRuntime()
+        {
+            GameFlowRuntime gameFlow = Host.CurrentGameFlowRuntime;
+            if (gameFlow == null)
+            {
+                throw new InvalidOperationException(
+                    "FrameworkRuntimeHost has no GameFlowRuntime.");
+            }
+
+            RouteLifecycleRuntime routeLifecycle = gameFlow.CurrentRouteLifecycleRuntime;
+            if (routeLifecycle == null)
+            {
+                throw new InvalidOperationException(
+                    "GameFlowRuntime has no active Route Lifecycle runtime.");
+            }
+
+            return routeLifecycle;
+        }
+
+        private void TrackBinding(IEventBinding binding)
+        {
+            if (binding != null)
+            {
+                eventBindings.Add(binding);
+            }
         }
 
         private RuntimeContentOwner RequireObservedOwner(
@@ -345,55 +609,27 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 }
                 catch (Exception exception)
                 {
-                    Failures.Add($"await-operation:{operation.Name}", exception);
+                    Failures.Add($"await-route-operation:{operation.Name}", exception);
                 }
             }
-        }
 
-        private async Task RestoreInitialAuthorityAsync(string source)
-        {
-            RouteAsset currentRoute = Host.State.CurrentRoute;
-            ActivityAsset currentActivity = Host.State.CurrentActivity;
-
-            bool routeChanged = !ReferenceEquals(currentRoute, Initial.Route);
-            bool activityChanged = !ReferenceEquals(currentActivity, Initial.Activity);
-            if (!routeChanged && !activityChanged)
+            for (int index = 0; index < ownedActivityOperations.Count; index++)
             {
-                return;
-            }
-
-            try
-            {
-                QaOwnedAsyncOperation<FrameworkRouteRequestResult> restore =
-                    AttachRouteRequest(
-                        "restore-initial-route",
-                        Host.RequestRouteAsync(
-                            Initial.Route,
-                            source,
-                            "restore-initial-authority"));
-                FrameworkRouteRequestResult result = await restore.AwaitTerminalAsync();
-                if (!result.Succeeded && !result.DestinationAuthoritative)
+                QaOwnedAsyncOperation<FrameworkActivityRequestResult> operation =
+                    ownedActivityOperations[index];
+                if (operation == null || !operation.HasOperation || operation.ReachedTerminal)
                 {
-                    throw new InvalidOperationException(
-                        "Failed to restore the initial Route/Activity authority. " +
-                        $"kind='{result.Kind}' message='{result.Message}'.");
+                    continue;
                 }
 
-                if (!ReferenceEquals(Host.State.CurrentRoute, Initial.Route))
+                try
                 {
-                    throw new InvalidOperationException(
-                        "Restore completed without re-establishing the initial Route reference.");
+                    await operation.AwaitTerminalAsync();
                 }
-
-                if (!ReferenceEquals(Host.State.CurrentActivity, Initial.Activity))
+                catch (Exception exception)
                 {
-                    throw new InvalidOperationException(
-                        "Restore completed without re-establishing the initial Activity reference.");
+                    Failures.Add($"await-activity-operation:{operation.Name}", exception);
                 }
-            }
-            catch (Exception exception)
-            {
-                Failures.Add("restore-initial-authority", exception);
             }
         }
 
@@ -435,7 +671,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
                 try
                 {
-                    UnityEngine.Object.Destroy(value);
+                    UnityEngine.Object.DestroyImmediate(value);
                 }
                 catch (Exception exception)
                 {
@@ -576,6 +812,62 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             public bool GameFlowStarted { get; }
             public bool IsActivityReady { get; }
             public string Source { get; }
+        }
+
+        internal sealed class LifecycleListenerScope
+        {
+            public int RouteEnterCount { get; private set; }
+            public int RouteExitCount { get; private set; }
+            public int ActivityEnterCount { get; private set; }
+            public int ActivityExitCount { get; private set; }
+            public RouteAsset LastEnteredRoute { get; private set; }
+            public RouteAsset LastExitedRoute { get; private set; }
+            public ActivityAsset LastEnteredActivity { get; private set; }
+            public ActivityAsset LastExitedActivity { get; private set; }
+
+            public void OnRouteEntered(RouteEnteredEvent value)
+            {
+                if (value == null)
+                {
+                    return;
+                }
+
+                RouteEnterCount++;
+                LastEnteredRoute = value.Route;
+            }
+
+            public void OnRouteExited(RouteExitedEvent value)
+            {
+                if (value == null)
+                {
+                    return;
+                }
+
+                RouteExitCount++;
+                LastExitedRoute = value.Route;
+            }
+
+            public void OnActivityEntered(ActivityEnteredEvent value)
+            {
+                if (value == null)
+                {
+                    return;
+                }
+
+                ActivityEnterCount++;
+                LastEnteredActivity = value.Activity;
+            }
+
+            public void OnActivityExited(ActivityExitedEvent value)
+            {
+                if (value == null)
+                {
+                    return;
+                }
+
+                ActivityExitCount++;
+                LastExitedActivity = value.Activity;
+            }
         }
     }
 }
