@@ -8,6 +8,7 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.RuntimeContent;
+using Immersive.Framework.Transition;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -16,7 +17,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 {
     /// <summary>
     /// Canonical public runner for Identity Authority (IF-ID) smokes.
-    /// Corte 3 adds Route and Activity collision transitions on the same runner.
+    /// Sole public IF-ID surface after Corte 5 consolidation.
+    /// Six cases: baseline, route/activity collision, ownership release, readiness isolation, supersession.
     /// </summary>
     public static class QaRouteActivityIdentityRegression
     {
@@ -24,16 +26,22 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             "Immersive Framework QA/Game Flow/Run Identity Authority Regression";
         private const string LogPrefix = "[IF_ID_QA]";
         private const string Source = nameof(QaRouteActivityIdentityRegression);
-        private const int ExpectedCaseCount = 3;
+        private const int ExpectedCaseCount = 6;
 
         private const string SharedRouteStableId = "qa.if-id.route.collision";
         private const string SharedActivityStableId = "qa.if-id.activity.collision";
+        private const string SharedOwnershipStableId = "qa.if-id.ownership.release";
+        private const string SharedReadinessStableId = "qa.if-id.readiness.collision";
+        private const string SharedSupersessionStableId = "qa.if-id.supersession.activity";
 
         private static readonly string[] ExpectedCases =
         {
             "baseline-authority-snapshot",
             "route-collision-transition",
-            "activity-collision-transition"
+            "activity-collision-transition",
+            "ownership-release-isolation",
+            "readiness-collision-isolation",
+            "legitimate-supersession-preservation"
         };
 
         private static bool s_running;
@@ -85,6 +93,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 await RunBaselineAuthoritySnapshotAsync(fixture, cases);
                 await RunRouteCollisionTransitionAsync(fixture, cases);
                 await RunActivityCollisionTransitionAsync(fixture, cases);
+                await RunOwnershipReleaseIsolationAsync(fixture, cases);
+                await RunReadinessCollisionIsolationAsync(fixture, cases);
+                await RunLegitimateSupersessionPreservationAsync(fixture, cases);
 
                 cases.RequireComplete();
             }
@@ -650,6 +661,589 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             }
 
             cases.Complete("activity-collision-transition");
+        }
+
+        private static async Task RunOwnershipReleaseIsolationAsync(
+            QaIdentityAuthorityFixture fixture,
+            QaCaseRegistry cases)
+        {
+            const string caseName = "ownership-release-isolation";
+            QaIdentityAuthorityFixture.AuthoritySnapshot caseBefore =
+                fixture.CaptureCurrent(Source + ".ownership-release.before");
+            Exception executionFailure = null;
+
+            ActivityAsset definitionA = null;
+            ActivityAsset definitionB = null;
+            RuntimeContentOwner ownerA = default;
+            RuntimeContentOwner ownerB = default;
+            int rootsBeforeCreate = 0;
+            int rootsAfterCreate = 0;
+            int rootsAfterReleaseA = 0;
+            int rootsForAAfter = -1;
+            int rootsForBAfter = -1;
+            RuntimeRootRegistryOperationStatus releaseStatus =
+                RuntimeRootRegistryOperationStatus.Unknown;
+
+            try
+            {
+                definitionA = fixture.CreateTemporaryActivity(
+                    SharedOwnershipStableId,
+                    "IF-ID Ownership Release A");
+                definitionB = fixture.CreateTemporaryActivity(
+                    SharedOwnershipStableId,
+                    "IF-ID Ownership Release B");
+
+                Require(!ReferenceEquals(definitionA, definitionB),
+                    "Ownership definitions A and B must be distinct references.");
+                Require(definitionA.HasSameStableId(definitionB),
+                    "Ownership definitions A and B must share the same stable ID.");
+
+                ownerA = fixture.DeriveActivityOwner(definitionA);
+                ownerB = fixture.DeriveActivityOwner(definitionB);
+                Require(ownerA != ownerB, "Ownership owners A and B must differ.");
+                Require(
+                    ownerA.DefinitionToken != ownerB.DefinitionToken,
+                    "Ownership tokens A and B must differ.");
+                Require(
+                    ownerA.HasSameStableDefinition(ownerB),
+                    "Ownership owners must still share stable-definition diagnostic evidence.");
+
+                rootsBeforeCreate = fixture.RuntimeContent.RootCount;
+
+                RuntimeRootRegistryOperationResult createA = fixture.CreateScopeRoot(
+                    ownerA,
+                    Source,
+                    "ownership-release-create-a");
+                RuntimeRootRegistryOperationResult createB = fixture.CreateScopeRoot(
+                    ownerB,
+                    Source,
+                    "ownership-release-create-b");
+                Require(
+                    createA.Applied && createA.Status == RuntimeRootRegistryOperationStatus.RootCreated,
+                    "Failed to create Root A in the real RuntimeContent registry. " +
+                    $"status='{createA.Status}' message='{createA.Message}'.");
+                Require(
+                    createB.Applied && createB.Status == RuntimeRootRegistryOperationStatus.RootCreated,
+                    "Failed to create Root B in the real RuntimeContent registry. " +
+                    $"status='{createB.Status}' message='{createB.Message}'.");
+                Require(
+                    createA.Owner == ownerA && createB.Owner == ownerB,
+                    "Created roots did not retain the exact owners used at creation.");
+
+                rootsAfterCreate = fixture.RuntimeContent.RootCount;
+                Require(
+                    rootsAfterCreate == rootsBeforeCreate + 2,
+                    "Root count after creating A and B is incoherent. " +
+                    $"before='{rootsBeforeCreate}' after='{rootsAfterCreate}'.");
+                Require(
+                    fixture.CountRootsForOwner(ownerA) == 1 &&
+                    fixture.CountRootsForOwner(ownerB) == 1,
+                    "Roots A and B were not both present after creation.");
+
+                // Release only A by exact owner/token — never by stable ID alone.
+                RuntimeRootRegistryOperationResult releaseA = fixture.RemoveScopeRoot(
+                    ownerA,
+                    Source,
+                    "ownership-release-a");
+                releaseStatus = releaseA.Status;
+                Require(
+                    releaseA.Applied &&
+                    releaseA.Status == RuntimeRootRegistryOperationStatus.RootRemoved,
+                    "Release of Root A did not apply on the real registry. " +
+                    $"status='{releaseA.Status}' message='{releaseA.Message}'.");
+                Require(
+                    releaseA.Owner == ownerA,
+                    "Release result owner is not the exact Owner A.");
+
+                rootsAfterReleaseA = fixture.RuntimeContent.RootCount;
+                rootsForAAfter = fixture.CountRootsForOwner(ownerA);
+                rootsForBAfter = fixture.CountRootsForOwner(ownerB);
+
+                Require(rootsForAAfter == 0, "Root A remained after release of Owner A.");
+                Require(rootsForBAfter == 1, "Root B was affected by release of Owner A.");
+                Require(
+                    ownerB.IsValid && ownerB.HasDefinitionToken,
+                    "Owner B is no longer valid after release of A.");
+                Require(
+                    rootsAfterReleaseA == rootsBeforeCreate + 1,
+                    "Root count after releasing A is incoherent. " +
+                    $"beforeCreate='{rootsBeforeCreate}' afterCreate='{rootsAfterCreate}' " +
+                    $"afterReleaseA='{rootsAfterReleaseA}'.");
+
+                // Stable-ID-only cleanup would have removed both; B must remain addressable by token.
+                Require(
+                    fixture.CountRootsForOwner(
+                        RuntimeContentOwner.Activity(
+                            definitionB.ActivityId.StableText,
+                            definitionB.ActivityName,
+                            ownerB.DefinitionToken)) == 1,
+                    "Owner B root is not addressable by exact token after release of A.");
+            }
+            catch (Exception exception)
+            {
+                executionFailure = exception;
+            }
+            finally
+            {
+                // Case still owns Root B (and A if create failed mid-way); release by exact owner only.
+                try
+                {
+                    if (ownerB.IsValid && fixture.CountRootsForOwner(ownerB) > 0)
+                    {
+                        fixture.RemoveScopeRoot(ownerB, Source, "ownership-release-cleanup-b");
+                    }
+
+                    if (ownerA.IsValid && fixture.CountRootsForOwner(ownerA) > 0)
+                    {
+                        fixture.RemoveScopeRoot(ownerA, Source, "ownership-release-cleanup-a");
+                    }
+                }
+                catch (Exception exception)
+                {
+                    fixture.Failures.Add(caseName + ".root-cleanup", exception);
+                }
+
+                Exception cleanupFailure = null;
+                try
+                {
+                    await fixture.FinalizeCaseAsync(
+                        caseBefore,
+                        caseName,
+                        definitionA,
+                        definitionB);
+                }
+                catch (Exception exception)
+                {
+                    cleanupFailure = exception;
+                    if (executionFailure == null)
+                    {
+                        executionFailure = exception;
+                    }
+                }
+
+                CaseDiagnostics.Add(
+                    $"case='{caseName}' " +
+                    $"status='{(executionFailure == null ? "Passed" : "Failed")}' " +
+                    $"refA='{Escape(definitionA != null ? definitionA.name : "<null>")}' " +
+                    $"refB='{Escape(definitionB != null ? definitionB.name : "<null>")}' " +
+                    $"sharedStableId='{SharedOwnershipStableId}' " +
+                    $"ownerA='{Escape(ownerA.IsValid ? ownerA.StableText : "<none>")}' " +
+                    $"ownerB='{Escape(ownerB.IsValid ? ownerB.StableText : "<none>")}' " +
+                    $"tokenA='{Escape(ownerA.IsValid ? ownerA.DefinitionToken.StableText : "<none>")}' " +
+                    $"tokenB='{Escape(ownerB.IsValid ? ownerB.DefinitionToken.StableText : "<none>")}' " +
+                    $"rootsBefore='{rootsBeforeCreate}' rootsAfterCreate='{rootsAfterCreate}' " +
+                    $"rootsAfterReleaseA='{rootsAfterReleaseA}' " +
+                    $"rootsForAAfter='{rootsForAAfter}' rootsForBAfter='{rootsForBAfter}' " +
+                    $"releaseStatus='{releaseStatus}' " +
+                    $"waitOccurrenceSequence='n/a' supersession='n/a' " +
+                    $"executionFailure='{Escape(QaFailureCollector.Describe(executionFailure))}' " +
+                    $"cleanupFailure='{Escape(QaFailureCollector.Describe(cleanupFailure))}'.");
+            }
+
+            if (executionFailure != null)
+            {
+                throw executionFailure;
+            }
+
+            cases.Complete(caseName);
+        }
+
+        private static async Task RunReadinessCollisionIsolationAsync(
+            QaIdentityAuthorityFixture fixture,
+            QaCaseRegistry cases)
+        {
+            const string caseName = "readiness-collision-isolation";
+            QaIdentityAuthorityFixture.AuthoritySnapshot caseBefore =
+                fixture.CaptureCurrent(Source + ".readiness-collision.before");
+            Exception executionFailure = null;
+
+            ActivityAsset activityA = null;
+            ActivityAsset activityB = null;
+            RuntimeContentOwner ownerA = default;
+            RuntimeContentOwner ownerB = default;
+            int occurrenceSequenceA = 1;
+            int occurrenceSequenceB = 1;
+            int rootsBefore = caseBefore.TotalRootCount;
+            int rootsAfter = rootsBefore;
+            string waitAState = "<none>";
+            string waitBState = "<none>";
+            RouteAsset authorityRoute = caseBefore.Route;
+
+            try
+            {
+                activityA = fixture.CreateTemporaryActivity(
+                    SharedReadinessStableId,
+                    "IF-ID Readiness Collision A");
+                activityB = fixture.CreateTemporaryActivity(
+                    SharedReadinessStableId,
+                    "IF-ID Readiness Collision B");
+
+                Require(!ReferenceEquals(activityA, activityB),
+                    "Readiness activities A and B must be distinct references.");
+                Require(activityA.HasSameStableId(activityB),
+                    "Readiness activities A and B must share the same ActivityId.");
+
+                ownerA = fixture.DeriveActivityOwner(activityA);
+                ownerB = fixture.DeriveActivityOwner(activityB);
+                Require(ownerA != ownerB, "Readiness owners A and B must differ.");
+                Require(
+                    ownerA.DefinitionToken != ownerB.DefinitionToken,
+                    "Readiness tokens A and B must differ.");
+
+                var occurrenceA = new ActivityReadinessOccurrence(activityA, occurrenceSequenceA);
+                var occurrenceB = new ActivityReadinessOccurrence(activityB, occurrenceSequenceB);
+                Require(occurrenceA.IsValid && occurrenceB.IsValid,
+                    "Readiness occurrences A and B must be valid.");
+                Require(occurrenceA.Matches(activityA, occurrenceSequenceA),
+                    "Occurrence A must match Activity A by reference and sequence.");
+                Require(!occurrenceA.Matches(activityB, occurrenceSequenceB),
+                    "Occurrence A must not match colliding Activity B by stable ID alone.");
+                Require(!occurrenceB.Matches(activityA, occurrenceSequenceA),
+                    "Occurrence B must not match Activity A by stable ID alone.");
+
+                TransitionOperationId operationIdA =
+                    TransitionOperationId.From("qa.if-id.readiness.wait.a");
+                TransitionOperationId operationIdB =
+                    TransitionOperationId.From("qa.if-id.readiness.wait.b");
+
+                using (var operationA = new ActivityEntryReadinessActiveOperation(
+                           operationIdA,
+                           occurrenceA,
+                           authorityRoute))
+                using (var operationB = new ActivityEntryReadinessActiveOperation(
+                           operationIdB,
+                           occurrenceB,
+                           authorityRoute))
+                {
+                    Require(operationA.OwnsActivity(activityA),
+                        "OwnsActivity(activityA) must be true for the wait directed at A.");
+                    Require(!operationA.OwnsActivity(activityB),
+                        "OwnsActivity(activityB) must be false for the wait directed at A.");
+                    Require(operationB.OwnsActivity(activityB),
+                        "OwnsActivity(activityB) must be true for the wait directed at B.");
+                    Require(!operationB.OwnsActivity(activityA),
+                        "OwnsActivity(activityA) must be false for the wait directed at B.");
+
+                    Require(
+                        operationA.OwnsRoute(authorityRoute),
+                        "Wait A must own the exact authority Route reference.");
+                    Require(
+                        !operationA.WaitScope.CancellationRequested &&
+                        !operationB.WaitScope.CancellationRequested,
+                        "Readiness waits must start open.");
+
+                    // An operation directed at B must not complete/cancel/replace A's wait by ID alone.
+                    operationB.RequestCancellation(
+                        ActivityEntryReadinessInterruptionReason.ActivityAuthorityReplaced);
+                    Require(
+                        operationB.WaitScope.CancellationRequested,
+                        "Wait B did not cancel when directed at B.");
+                    Require(
+                        !operationA.WaitScope.CancellationRequested,
+                        "Wait A was cancelled by an operation directed at colliding Activity B.");
+                    Require(
+                        operationA.WaitScope.InterruptionReason ==
+                            ActivityEntryReadinessInterruptionReason.None,
+                        "Wait A acquired an interruption reason from colliding Activity B.");
+                    Require(
+                        operationB.WaitScope.InterruptionReason ==
+                            ActivityEntryReadinessInterruptionReason.ActivityAuthorityReplaced,
+                        "Wait B interruption reason diverged.");
+
+                    waitAState =
+                        $"open cancelled='{operationA.WaitScope.CancellationRequested}' " +
+                        $"reason='{operationA.WaitScope.InterruptionReason}' " +
+                        $"sequence='{occurrenceSequenceA}'";
+                    waitBState =
+                        $"cancelled='{operationB.WaitScope.CancellationRequested}' " +
+                        $"reason='{operationB.WaitScope.InterruptionReason}' " +
+                        $"sequence='{occurrenceSequenceB}'";
+
+                    // Sequence remains authority: same Activity A, different sequence is not the same wait.
+                    var occurrenceA2 = new ActivityReadinessOccurrence(activityA, 2);
+                    Require(!occurrenceA.Matches(activityA, 2),
+                        "Occurrence sequence must participate in readiness authority.");
+                    Require(occurrenceA2.Matches(activityA, 2),
+                        "New occurrence for Activity A sequence 2 must match by reference and sequence.");
+                }
+
+                // Waits disposed by using-scope; no case roots created.
+                rootsAfter = fixture.RuntimeContent.RootCount;
+                Require(
+                    rootsAfter == rootsBefore,
+                    "Readiness collision case leaked runtime content roots.");
+            }
+            catch (Exception exception)
+            {
+                executionFailure = exception;
+            }
+            finally
+            {
+                Exception cleanupFailure = null;
+                try
+                {
+                    await fixture.FinalizeCaseAsync(
+                        caseBefore,
+                        caseName,
+                        activityA,
+                        activityB);
+                }
+                catch (Exception exception)
+                {
+                    cleanupFailure = exception;
+                    if (executionFailure == null)
+                    {
+                        executionFailure = exception;
+                    }
+                }
+
+                CaseDiagnostics.Add(
+                    $"case='{caseName}' " +
+                    $"status='{(executionFailure == null ? "Passed" : "Failed")}' " +
+                    $"refA='{Escape(activityA != null ? activityA.name : "<null>")}' " +
+                    $"refB='{Escape(activityB != null ? activityB.name : "<null>")}' " +
+                    $"sharedStableId='{SharedReadinessStableId}' " +
+                    $"ownerA='{Escape(ownerA.IsValid ? ownerA.StableText : "<none>")}' " +
+                    $"ownerB='{Escape(ownerB.IsValid ? ownerB.StableText : "<none>")}' " +
+                    $"tokenA='{Escape(ownerA.IsValid ? ownerA.DefinitionToken.StableText : "<none>")}' " +
+                    $"tokenB='{Escape(ownerB.IsValid ? ownerB.DefinitionToken.StableText : "<none>")}' " +
+                    $"rootsBefore='{rootsBefore}' rootsAfter='{rootsAfter}' " +
+                    $"waitA=({Escape(waitAState)}) waitB=({Escape(waitBState)}) " +
+                    $"occurrenceASequence='{occurrenceSequenceA}' occurrenceBSequence='{occurrenceSequenceB}' " +
+                    $"supersession='n/a' " +
+                    $"executionFailure='{Escape(QaFailureCollector.Describe(executionFailure))}' " +
+                    $"cleanupFailure='{Escape(QaFailureCollector.Describe(cleanupFailure))}'.");
+            }
+
+            if (executionFailure != null)
+            {
+                throw executionFailure;
+            }
+
+            cases.Complete(caseName);
+        }
+
+        private static async Task RunLegitimateSupersessionPreservationAsync(
+            QaIdentityAuthorityFixture fixture,
+            QaCaseRegistry cases)
+        {
+            const string caseName = "legitimate-supersession-preservation";
+            QaIdentityAuthorityFixture.AuthoritySnapshot caseBefore =
+                fixture.CaptureCurrent(Source + ".supersession.before");
+            Exception executionFailure = null;
+
+            ActivityAsset activityA = null;
+            ActivityAsset collidingB = null;
+            RouteAsset authorityRoute = caseBefore.Route;
+            int rootsBefore = caseBefore.TotalRootCount;
+            int rootsAfter = rootsBefore;
+            string supersessionResult = "<none>";
+            string interruptionReason = "<none>";
+            int occurrence1Sequence = 1;
+            int occurrence2Sequence = 2;
+
+            try
+            {
+                activityA = fixture.CreateTemporaryActivity(
+                    SharedSupersessionStableId,
+                    "IF-ID Supersession Activity A");
+                collidingB = fixture.CreateTemporaryActivity(
+                    SharedSupersessionStableId,
+                    "IF-ID Supersession Colliding B");
+
+                Require(!ReferenceEquals(activityA, collidingB),
+                    "Supersession activities must be distinct references.");
+                Require(activityA.HasSameStableId(collidingB),
+                    "Supersession activities must share the same ActivityId for the collision probe.");
+
+                var occurrence1 = new ActivityReadinessOccurrence(activityA, occurrence1Sequence);
+                var occurrence2 = new ActivityReadinessOccurrence(activityA, occurrence2Sequence);
+                var occurrenceColliding = new ActivityReadinessOccurrence(collidingB, 1);
+
+                TransitionOperationId operationId1 =
+                    TransitionOperationId.From("qa.if-id.supersession.wait.1");
+                TransitionOperationId operationId2 =
+                    TransitionOperationId.From("qa.if-id.supersession.wait.2");
+                TransitionOperationId operationIdColliding =
+                    TransitionOperationId.From("qa.if-id.supersession.wait.colliding");
+
+                using (var operation1 = new ActivityEntryReadinessActiveOperation(
+                           operationId1,
+                           occurrence1,
+                           authorityRoute))
+                using (var operation2 = new ActivityEntryReadinessActiveOperation(
+                           operationId2,
+                           occurrence2,
+                           authorityRoute))
+                using (var operationColliding = new ActivityEntryReadinessActiveOperation(
+                           operationIdColliding,
+                           occurrenceColliding,
+                           authorityRoute))
+                {
+                    Require(operation1.OwnsActivity(activityA),
+                        "First occurrence wait must own Activity A.");
+                    Require(operation2.OwnsActivity(activityA),
+                        "Second occurrence wait must own Activity A.");
+                    Require(!operationColliding.OwnsActivity(activityA),
+                        "Colliding definition wait must not own Activity A.");
+                    Require(!operation1.OwnsActivity(collidingB),
+                        "First occurrence wait must not own colliding Activity B.");
+
+                    // Legitimate supersession: Route authority replaced on the correct wait.
+                    operation1.RequestCancellation(
+                        ActivityEntryReadinessInterruptionReason.RouteAuthorityReplaced,
+                        "IF-ID Replacement Route");
+                    Require(
+                        operation1.WaitScope.CancellationRequested,
+                        "Legitimate RouteAuthorityReplaced did not interrupt occurrence 1.");
+                    Require(
+                        operation1.WaitScope.InterruptionReason ==
+                            ActivityEntryReadinessInterruptionReason.RouteAuthorityReplaced,
+                        "Occurrence 1 interruption is not RouteAuthorityReplaced.");
+                    interruptionReason = operation1.WaitScope.InterruptionReason.ToString();
+                    Require(
+                        operation1.WaitScope.CancellationDiagnostic.IndexOf(
+                            "RouteAuthorityReplaced",
+                            StringComparison.Ordinal) >= 0,
+                        "RouteAuthorityReplaced diagnostic was not preserved.");
+
+                    // Map to typed Superseded — not generic Cancelled.
+                    var supersededWait = ActivityEntryReadinessWaitResult.Supersession(
+                        occurrence1,
+                        default,
+                        operation1.WaitScope.CancellationDiagnostic,
+                        revision: 1);
+                    Require(supersededWait.Superseded, "Supersession wait result is not Superseded.");
+                    Require(!supersededWait.Cancelled, "Supersession wait result was classified as Cancelled.");
+
+                    ActivityEntryReadinessExecutionStatus supersededExecution =
+                        GameFlowRuntime.MapWaitStatus(ActivityEntryReadinessWaitStatus.Superseded);
+                    ActivityEntryReadinessExecutionStatus cancelledExecution =
+                        GameFlowRuntime.MapWaitStatus(ActivityEntryReadinessWaitStatus.Cancelled);
+                    Require(
+                        supersededExecution == ActivityEntryReadinessExecutionStatus.Superseded,
+                        "MapWaitStatus lost Superseded classification.");
+                    Require(
+                        cancelledExecution == ActivityEntryReadinessExecutionStatus.Cancelled,
+                        "MapWaitStatus lost Cancelled classification.");
+                    Require(
+                        supersededExecution != cancelledExecution,
+                        "Superseded was collapsed into generic Cancelled.");
+
+                    // Framework route result remains typed as superseded, not success.
+                    var supersededRouteResult = new FrameworkRouteRequestResult(
+                        FrameworkRouteRequestKind.SupersededCommittedTargetByRouteReplacement,
+                        "superseded-by-route-authority",
+                        null,
+                        Source,
+                        "RouteAuthorityReplaced",
+                        default);
+                    Require(supersededRouteResult.Superseded,
+                        "FrameworkRouteRequestResult.Superseded is false for RouteAuthorityReplaced kind.");
+                    Require(!supersededRouteResult.Succeeded,
+                        "Superseded route result was treated as Succeeded.");
+                    Require(!supersededRouteResult.DestinationAuthoritative,
+                        "Superseded route result was treated as destination-authoritative.");
+
+                    supersessionResult =
+                        $"waitStatus='{supersededWait.Status}' " +
+                        $"executionStatus='{supersededExecution}' " +
+                        $"routeKind='{supersededRouteResult.Kind}' " +
+                        $"interruption='{interruptionReason}'";
+
+                    // New occurrence of the correct definition becomes the current open wait.
+                    Require(
+                        !operation2.WaitScope.CancellationRequested,
+                        "New occurrence of Activity A was incorrectly interrupted by occurrence 1 supersession.");
+                    Require(
+                        occurrence2.Matches(activityA, occurrence2Sequence) &&
+                        !occurrence1.Matches(activityA, occurrence2Sequence),
+                        "New occurrence did not become a distinct authority for Activity A.");
+
+                    // Colliding definition cannot produce that supersession against A's wait by ID alone.
+                    operationColliding.RequestCancellation(
+                        ActivityEntryReadinessInterruptionReason.RouteAuthorityReplaced,
+                        "Colliding Replacement");
+                    Require(
+                        operationColliding.WaitScope.CancellationRequested,
+                        "Colliding wait was not cancelled when directed at colliding B.");
+                    Require(
+                        !operation2.WaitScope.CancellationRequested,
+                        "Activity A occurrence 2 was superseded by a colliding definition using only stable ID.");
+                    Require(
+                        operation2.WaitScope.InterruptionReason ==
+                            ActivityEntryReadinessInterruptionReason.None,
+                        "Activity A occurrence 2 acquired RouteAuthorityReplaced from colliding B.");
+
+                    // ActivityAuthorityReplaced remains typed cancellation, not RouteAuthorityReplaced supersession.
+                    operation2.RequestCancellation(
+                        ActivityEntryReadinessInterruptionReason.ActivityAuthorityReplaced);
+                    Require(
+                        operation2.WaitScope.InterruptionReason ==
+                            ActivityEntryReadinessInterruptionReason.ActivityAuthorityReplaced,
+                        "ActivityAuthorityReplaced was not preserved on occurrence 2.");
+                    var cancelledWait = ActivityEntryReadinessWaitResult.Cancellation(
+                        occurrence2,
+                        default,
+                        operation2.WaitScope.CancellationDiagnostic,
+                        revision: 1);
+                    Require(cancelledWait.Cancelled && !cancelledWait.Superseded,
+                        "ActivityAuthorityReplaced wait was converted into Superseded.");
+                    Require(
+                        GameFlowRuntime.MapWaitStatus(ActivityEntryReadinessWaitStatus.Cancelled) ==
+                            ActivityEntryReadinessExecutionStatus.Cancelled,
+                        "ActivityAuthorityReplaced mapping lost Cancelled typing.");
+                }
+
+                rootsAfter = fixture.RuntimeContent.RootCount;
+                Require(
+                    rootsAfter == rootsBefore,
+                    "Supersession case leaked runtime content roots.");
+            }
+            catch (Exception exception)
+            {
+                executionFailure = exception;
+            }
+            finally
+            {
+                Exception cleanupFailure = null;
+                try
+                {
+                    await fixture.FinalizeCaseAsync(
+                        caseBefore,
+                        caseName,
+                        activityA,
+                        collidingB);
+                }
+                catch (Exception exception)
+                {
+                    cleanupFailure = exception;
+                    if (executionFailure == null)
+                    {
+                        executionFailure = exception;
+                    }
+                }
+
+                CaseDiagnostics.Add(
+                    $"case='{caseName}' " +
+                    $"status='{(executionFailure == null ? "Passed" : "Failed")}' " +
+                    $"refA='{Escape(activityA != null ? activityA.name : "<null>")}' " +
+                    $"refB='{Escape(collidingB != null ? collidingB.name : "<null>")}' " +
+                    $"sharedStableId='{SharedSupersessionStableId}' " +
+                    $"rootsBefore='{rootsBefore}' rootsAfter='{rootsAfter}' " +
+                    $"occurrence1Sequence='{occurrence1Sequence}' occurrence2Sequence='{occurrence2Sequence}' " +
+                    $"interruptionReason='{Escape(interruptionReason)}' " +
+                    $"supersession=({Escape(supersessionResult)}) " +
+                    $"executionFailure='{Escape(QaFailureCollector.Describe(executionFailure))}' " +
+                    $"cleanupFailure='{Escape(QaFailureCollector.Describe(cleanupFailure))}'.");
+            }
+
+            if (executionFailure != null)
+            {
+                throw executionFailure;
+            }
+
+            cases.Complete(caseName);
         }
 
         private static void EmitFinalReport(

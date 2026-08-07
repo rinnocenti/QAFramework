@@ -1,5 +1,14 @@
 # QA-SMOKE-R1 — auditoria e mapa de consolidação
 
+> Reconciliation note — IF-ID Corte 5 (2026-08-07): Identity Authority now has a
+> single public menu `Immersive Framework QA/Game Flow/Run Identity Authority
+> Regression` (`QaRouteActivityIdentityRegression` + `QaIdentityAuthorityFixture`)
+> with six Play Mode cases. Removed `QaA1ActivityIdSmoke` and
+> `QaRouteActivityIdentityValidationRegression` (deterministic authoring/identity
+> contracts live in package NUnit). Preserved specialized domain smokes (e.g.
+> P3M5B, descriptor equality) outside the IF-ID surface. See
+> `Assets/ImmersiveFrameworkQA/README.md` § Identity Authority (IF-ID).
+>
 > Reconciliation note — 2026-07-22 (`FRAMEWORK-HYGIENE-1C`): this document is
 > the historical R1 inventory and its original counts/classifications remain as
 > audit evidence. The subsequent local QA migration removed
@@ -202,19 +211,25 @@ Total real: **27**. As duas strings `"[ContextMenu("` no smoke de boundary Pause
 
 Os nomes abaixo são comportamentais e não carregam códigos de cortes. Cada entrada tem um único menu público. Helpers podem permanecer privados ou compartilhados sem menu.
 
-### 5.1 Activity Identity Regression
+### 5.1 Activity Identity / Identity Authority (atualizado IF-ID Corte 5)
 
-- **Nome final:** `Activity Identity Regression`
-- **Domínio:** Contracts / Activity identity
-- **Contrato provado:** identidade funcional é `ActivityId`; rename não altera owner; IDs inválidos/distintos não colapsam.
-- **Casos internos:** rename-stable, distinct-id, whitespace-invalid, lifecycle owner canonical.
-- **Smoke final escolhido:** `QaA1ActivityIdSmoke`.
-- **Smokes substituídos:** nenhum.
-- **Menus removidos:** menu A1, substituído por `Immersive Framework/QA/Contracts/Run Activity Identity Regression`.
-- **Assets preservados:** nenhum persistido.
-- **Assets removíveis:** nenhum.
-- **Pré-condições:** Edit Mode.
-- **Resultado PASS esperado:** todos os owners usam o ID estável e permanecem distintos após rename.
+- **Nome final canônico:** `Identity Authority Regression`
+- **Menu público único:** `Immersive Framework QA/Game Flow/Run Identity Authority Regression`
+- **Implementação:** `QaRouteActivityIdentityRegression` + `QaIdentityAuthorityFixture`
+- **Domínio:** Game Flow / Identity Authority (Play Mode)
+- **Seis casos:** baseline-authority-snapshot; route-collision-transition;
+  activity-collision-transition; ownership-release-isolation;
+  readiness-collision-isolation; legitimate-supersession-preservation
+- **Smokes removidos (Corte 5):**
+  - `QaA1ActivityIdSmoke` e menu
+    `Immersive Framework/QA/Regressions/Contracts/Run Activity Identity Regression`
+    (cobertura determinística no package NUnit + baseline IF-ID)
+  - `QaRouteActivityIdentityValidationRegression` e menu
+    `Immersive Framework/QA/Regressions/Authoring/Run Route and Activity Identity Validation Regression`
+    (validação autoral no package `IdentityAuthoringValidationTests`)
+- **Pré-condições:** Play Mode; host único; Game Flow iniciado
+- **Log:** prefixo único `[IF_ID_QA]`
+- **Histórico R1:** `QaA1ActivityIdSmoke` era Edit Mode “FINAL”; não é mais superfície pública.
 
 ### 5.2 Descriptor Equality Regression
 

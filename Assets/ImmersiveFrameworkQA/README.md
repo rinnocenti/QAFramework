@@ -63,12 +63,69 @@ A regressão `Manager-Provisioned Lifecycle Waiting Projection` reutiliza a fixt
 
 As regressões Play Mode exigem o contexto indicado por cada fixture. Não considere uma regressão aprovada por evidência emitida por outra regressão.
 
-## Route and Activity identity
+## Identity Authority (IF-ID)
 
-Execute `Immersive Framework > QA > Regressions > Authoring > Run Route and Activity Identity Validation Regression` em Edit Mode e depois `Immersive Framework > QA > Regressions > Game Flow > Run Route and Activity Identity Regression` em um Play Mode novo.
+### Superfície canônica única
 
-As regressões cobrem identidade independente de nome/cena, runtime state, admission token, Object Entry, Activity Scene Ledger e validação isolada de IDs missing, invalid e duplicate.
+```text
+Immersive Framework QA/Game Flow/Run Identity Authority Regression
+```
+
+Implementação: `GameFlow/InternalEditor/QaRouteActivityIdentityRegression.cs` +
+`GameFlow/InternalEditor/QaIdentityAuthorityFixture.cs`.
+
+Não existem outros menus públicos de Identity Authority. Smokes antigos de Activity ID
+e validação autoral de Route/Activity IDs foram removidos na consolidação Corte 5.
+
+### Pré-condições
+
+- Unity `6000.5.0f1`
+- **Play Mode** com Game Flow já iniciado
+- exatamente um `FrameworkRuntimeHost` carregado e pronto
+- cena QA válida (ex.: hub ou lifecycle boot) com Route e Activity atuais
+
+### Seis casos (ordem fixa)
+
+1. `baseline-authority-snapshot` — owners/tokens/roots da autoridade atual
+2. `route-collision-transition` — Route A→B com mesmo stable ID, refs distintas
+3. `activity-collision-transition` — Activity A→B com mesmo stable ID, refs distintas
+4. `ownership-release-isolation` — release de Root A não remove Root B
+5. `readiness-collision-isolation` — wait de A não pertence a B
+6. `legitimate-supersession-preservation` — supersession tipada + colisão não finge autoridade
+
+### Package NUnit vs QA smoke
+
+| Onde | O que prova |
+|------|-------------|
+| **Package NUnit** | igualdade por referência e stable ID, hash, token obrigatório, validação autoral, regeneração/Undo, supersession determinística de wait/status |
+| **QA IF-ID runner** | lifecycle/runtime real em Play Mode: colisão, ownership release no registry do host, readiness isolation, supersession legítima com ocorrência |
+
+Não reexecute testes determinísticos do package como MenuItem de QA.
+
+### Como executar
+
+1. Abra o projeto no Unity `6000.5.0f1`
+2. Entre em Play Mode na cena QA com host único
+3. Menu: `Immersive Framework QA > Game Flow > Run Identity Authority Regression`
+4. Um único resumo com prefixo `[IF_ID_QA]` (status, casos, refs, tokens, owners, roots, waits, cleanup)
+
+### Smokes de domínio relacionados (não IF-ID)
+
+Preservados em seus domínios; **não** são a superfície IF-ID:
+
+- `Descriptors/Editor/QaB1DescriptorEqualitySmoke` — igualdade de Actor/PlayerActor descriptors
+- `Player/.../QaP3M5BRouteTransitionAndNegativeMatrixSmoke` — Player/admission/route matrix
+- demais regressões Player/Camera/Game Flow que apenas observam owners
+
+### Removidos (Corte 5)
+
+| Smoke | Menu removido | Motivo |
+|-------|---------------|--------|
+| `QaA1ActivityIdSmoke` | `.../Contracts/Run Activity Identity Regression` | Cobertura determinística de ID/owner/token no package + baseline IF-ID |
+| `QaRouteActivityIdentityValidationRegression` | `.../Authoring/Run Route and Activity Identity Validation Regression` | Validação autoral missing/invalid/duplicate no package NUnit |
 
 ## Consolidação
 
-O inventário histórico, as decisões de consolidação e a superfície pública resultante estão documentados em `Documentation/QA-SMOKE-CONSOLIDATION-AUDIT.md`.
+O inventário histórico e as decisões anteriores estão em
+`Documentation/QA-SMOKE-CONSOLIDATION-AUDIT.md`.
+A consolidação IF-ID (Corte 5) está resumida na seção **Identity Authority (IF-ID)** acima.

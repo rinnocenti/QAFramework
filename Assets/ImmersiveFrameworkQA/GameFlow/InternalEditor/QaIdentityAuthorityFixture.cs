@@ -315,6 +315,77 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             caseCreatedRootOwners.Add(owner);
         }
 
+        public void UntrackCaseCreatedRoot(RuntimeContentOwner owner)
+        {
+            for (int index = caseCreatedRootOwners.Count - 1; index >= 0; index--)
+            {
+                if (caseCreatedRootOwners[index] == owner)
+                {
+                    caseCreatedRootOwners.RemoveAt(index);
+                }
+            }
+        }
+
+        public RuntimeRootRegistryOperationResult CreateScopeRoot(
+            RuntimeContentOwner owner,
+            string source,
+            string reason)
+        {
+            if (!owner.IsValid)
+            {
+                throw new InvalidOperationException(
+                    "Cannot create a scope root for an invalid owner.");
+            }
+
+            RuntimeRootRegistryOperationResult result = RuntimeContent.CreateScopeRoot(
+                owner,
+                source,
+                reason);
+            if (result == null)
+            {
+                throw new InvalidOperationException(
+                    $"CreateScopeRoot returned null for owner '{owner}'.");
+            }
+
+            if (result.Applied ||
+                result.Status == RuntimeRootRegistryOperationStatus.RootAlreadyExists)
+            {
+                TrackCaseCreatedRoot(owner);
+            }
+
+            return result;
+        }
+
+        public RuntimeRootRegistryOperationResult RemoveScopeRoot(
+            RuntimeContentOwner owner,
+            string source,
+            string reason)
+        {
+            if (!owner.IsValid)
+            {
+                throw new InvalidOperationException(
+                    "Cannot remove a scope root for an invalid owner.");
+            }
+
+            RuntimeRootRegistryOperationResult result = RuntimeContent.RemoveScopeRoot(
+                owner,
+                source,
+                reason);
+            if (result == null)
+            {
+                throw new InvalidOperationException(
+                    $"RemoveScopeRoot returned null for owner '{owner}'.");
+            }
+
+            if (result.Applied ||
+                result.Status == RuntimeRootRegistryOperationStatus.RootMissing)
+            {
+                UntrackCaseCreatedRoot(owner);
+            }
+
+            return result;
+        }
+
         public LifecycleListenerScope BindLifecycleListeners()
         {
             RouteLifecycleRuntime routeLifecycle = RequireRouteLifecycleRuntime();
@@ -476,6 +547,153 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             RemoveCaseCreatedRoots(source);
             DestroyTemporaryObjects();
             AssertAuthorityPreserved(source);
+        }
+
+        /// <summary>
+        /// Verifies current Route/Activity authority and root counts match a prior snapshot by
+        /// exact reference, token and owner equality — never by stable ID alone.
+        /// </summary>
+        public void AssertSnapshotPreserved(
+            AuthoritySnapshot expected,
+            string source)
+        {
+            if (expected == null)
+            {
+                throw new ArgumentNullException(nameof(expected));
+            }
+
+            AuthoritySnapshot current = CaptureSnapshot(Host, source + ".verify");
+            if (!ReferenceEquals(current.Route, expected.Route))
+            {
+                throw new InvalidOperationException(
+                    $"Route reference diverged from case snapshot. source='{source}'.");
+            }
+
+            if (!ReferenceEquals(current.Activity, expected.Activity))
+            {
+                throw new InvalidOperationException(
+                    $"Activity reference diverged from case snapshot. source='{source}'.");
+            }
+
+            if (current.RouteOwner != expected.RouteOwner ||
+                current.ActivityOwner != expected.ActivityOwner)
+            {
+                throw new InvalidOperationException(
+                    $"Owners diverged from case snapshot. source='{source}' " +
+                    $"expectedRouteOwner='{expected.RouteOwner}' actualRouteOwner='{current.RouteOwner}' " +
+                    $"expectedActivityOwner='{expected.ActivityOwner}' actualActivityOwner='{current.ActivityOwner}'.");
+            }
+
+            if (current.RouteToken != expected.RouteToken ||
+                current.ActivityToken != expected.ActivityToken)
+            {
+                throw new InvalidOperationException(
+                    $"Definition tokens diverged from case snapshot. source='{source}'.");
+            }
+
+            if (current.TotalRootCount != expected.TotalRootCount ||
+                current.RouteRootCount != expected.RouteRootCount ||
+                current.ActivityRootCount != expected.ActivityRootCount)
+            {
+                throw new InvalidOperationException(
+                    $"Root counts diverged from case snapshot. source='{source}' " +
+                    $"expected=({DescribeRoots(expected)}) actual=({DescribeRoots(current)}).");
+            }
+        }
+
+        public void DestroyTrackedTemporary(UnityEngine.Object value)
+        {
+            if (value == null)
+            {
+                return;
+            }
+
+            temporaryObjects.Remove(value);
+            try
+            {
+                UnityEngine.Object.DestroyImmediate(value);
+            }
+            catch (Exception exception)
+            {
+                Failures.Add($"destroy-temporary:{value.name}", exception);
+            }
+        }
+
+        public void DestroyTrackedTemporaries(params UnityEngine.Object[] values)
+        {
+            if (values == null)
+            {
+                return;
+            }
+
+            for (int index = values.Length - 1; index >= 0; index--)
+            {
+                DestroyTrackedTemporary(values[index]);
+            }
+        }
+
+        /// <summary>
+        /// Case-scoped teardown: await ops, drop listeners, remove remaining case roots by exact owner,
+        /// restore Route/Activity by reference, destroy case temporaries, assert snapshot preservation.
+        /// Cleanup failures are aggregated on <see cref="Failures"/> and also thrown so the case fails.
+        /// </summary>
+        public async Task FinalizeCaseAsync(
+            AuthoritySnapshot caseBefore,
+            string source,
+            params UnityEngine.Object[] caseTemporaries)
+        {
+            var caseCleanup = new QaFailureCollector();
+
+            try
+            {
+                await AwaitOwnedOperationsAsync();
+            }
+            catch (Exception exception)
+            {
+                caseCleanup.Add(source + ".await-ops", exception);
+            }
+
+            ReleaseLifecycleListeners();
+
+            try
+            {
+                // Remove only case-created roots that remain (exact owner/token).
+                RemoveCaseCreatedRoots(source + ".case-roots");
+            }
+            catch (Exception exception)
+            {
+                caseCleanup.Add(source + ".case-roots", exception);
+            }
+
+            try
+            {
+                await RestoreToAsync(caseBefore, source + ".restore");
+            }
+            catch (Exception exception)
+            {
+                caseCleanup.Add(source + ".restore", exception);
+            }
+
+            DestroyTrackedTemporaries(caseTemporaries);
+
+            try
+            {
+                AssertSnapshotPreserved(caseBefore, source + ".preserved");
+            }
+            catch (Exception exception)
+            {
+                caseCleanup.Add(source + ".snapshot-preserved", exception);
+            }
+
+            if (!caseCleanup.HasFailures)
+            {
+                return;
+            }
+
+            // Promote into the long-lived collector for the final [IF_ID_QA] report.
+            Failures.Add(source + ".cleanup", caseCleanup.ToAggregate(
+                $"Case cleanup failed for '{source}'."));
+            throw caseCleanup.ToAggregate($"Case cleanup failed for '{source}'.");
         }
 
         public string DescribeRoots(AuthoritySnapshot snapshot)
