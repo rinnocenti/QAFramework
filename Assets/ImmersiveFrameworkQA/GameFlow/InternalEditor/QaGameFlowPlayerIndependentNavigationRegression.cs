@@ -638,9 +638,13 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     entryActivity, targetActivity, source, reason);
                 ActivityPlayerLifecycleAdmissionSnapshot lifecycle = fixture.LifecycleSnapshot;
                 RuntimeContentOwner previousOwner = RuntimeContentOwner.Activity(
-                    entryActivity.ActivityId.StableText, entryActivity.ActivityName);
+                    entryActivity.ActivityId.StableText,
+                    entryActivity.ActivityName,
+                    RuntimeDefinitionToken.FromUnityObject(entryActivity));
                 RuntimeContentOwner targetOwner = RuntimeContentOwner.Activity(
-                    targetActivity.ActivityId.StableText, targetActivity.ActivityName);
+                    targetActivity.ActivityId.StableText,
+                    targetActivity.ActivityName,
+                    RuntimeDefinitionToken.FromUnityObject(targetActivity));
                 Require(preparation != null && !preparation.NotRequired &&
                         preparation.Status == ActivityPlayerLifecycleAdmissionStatus.SucceededReadyToCommit &&
                         preparation.ReadyForTransition && lifecycle != null &&
@@ -748,7 +752,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 $"Slot '{slotId.StableText}' did not reach coherent GameplayReady ownership.");
             RuntimeContentOwner owner = RuntimeContentOwner.Activity(
                 entryActivity.ActivityId.StableText,
-                entryActivity.ActivityName);
+                entryActivity.ActivityName,
+                RuntimeDefinitionToken.FromUnityObject(entryActivity));
             Require(preparation.Materialization.Owner == owner && admission.Owner == owner,
                 $"Slot '{slotId.StableText}' GameplayReady ownership does not belong to the entry Activity.");
             AssertActiveGameplayChain(fixture, slotId,
@@ -1240,10 +1245,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         {
             RuntimeContentOwner previousOwner = RuntimeContentOwner.Activity(
                 previousActivity.ActivityId.StableText,
-                previousActivity.ActivityName);
+                previousActivity.ActivityName,
+                RuntimeDefinitionToken.FromUnityObject(previousActivity));
             RuntimeContentOwner targetOwner = RuntimeContentOwner.Activity(
                 targetActivity.ActivityId.StableText,
-                targetActivity.ActivityName);
+                targetActivity.ActivityName,
+                RuntimeDefinitionToken.FromUnityObject(targetActivity));
             Require(snapshot != null &&
                     snapshot.State == ActivityPlayerLifecycleAdmissionState.NotRequired &&
                     snapshot.LastStatus == ActivityPlayerLifecycleAdmissionStatus.SucceededNotRequired &&

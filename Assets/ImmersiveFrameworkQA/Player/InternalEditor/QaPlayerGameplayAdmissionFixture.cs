@@ -716,7 +716,10 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             ActivityAsset activity = CurrentActivity;
             if (activity == null || !activity.HasValidActivityId)
                 throw new InvalidOperationException("Current Activity is unavailable or has an invalid ID.");
-            RuntimeContentOwner owner = RuntimeContentOwner.Activity(activity.ActivityId.StableText, activity.ActivityName);
+            RuntimeContentOwner owner = RuntimeContentOwner.Activity(
+                activity.ActivityId.StableText,
+                activity.ActivityName,
+                RuntimeDefinitionToken.FromUnityObject(activity));
             object rootResult = Invoke(RuntimeContentRuntime, "CreateScopeRoot", owner, source, reason);
             CreatedCurrentActivityScopeRoot = (bool)rootResult.GetType().GetProperty("Applied", InstanceAny).GetValue(rootResult);
             object[] arguments = { owner, source, reason, null };

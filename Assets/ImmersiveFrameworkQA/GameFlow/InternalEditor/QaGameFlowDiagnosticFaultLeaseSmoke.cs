@@ -422,7 +422,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 RuntimeContentOwner expectedTargetOwner =
                     RuntimeContentOwner.Activity(
                         targetActivity.ActivityId.StableText,
-                        targetActivity.ActivityName);
+                        targetActivity.ActivityName,
+                        RuntimeDefinitionToken.FromUnityObject(targetActivity));
                 Require(
                     lifecycle.TargetOwner == expectedTargetOwner,
                     "CommittedTargetNotReady did not preserve the committed target owner. " +

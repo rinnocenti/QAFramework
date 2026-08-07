@@ -3,10 +3,6 @@
   "rootNamespace": "ImmersiveFrameworkQA.Hub.Editor",
   "references": [
     "ImmersiveFrameworkQA.Hub.Runtime",
-    "ImmersiveFrameworkQA.Player.Runtime",
-    "ImmersiveFrameworkQA.Player.Editor",
-    "ImmersiveFrameworkQA.Actors.Runtime",
-    "ImmersiveFrameworkQA.Actors.Editor",
     "Immersive.Framework.Runtime"
   ],
   "includePlatforms": [

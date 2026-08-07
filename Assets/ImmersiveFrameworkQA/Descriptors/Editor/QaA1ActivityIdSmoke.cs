@@ -28,7 +28,8 @@ namespace ImmersiveFrameworkQA.Descriptors.Editor
                 RuntimeContentOwner ownerBeforeRename =
                     RuntimeContentOwner.Activity(
                         activityA.ActivityId.StableText,
-                        activityA.ActivityName);
+                        activityA.ActivityName,
+                        RuntimeDefinitionToken.FromUnityObject(activityA));
                 RuntimeContentOwner lifecycleOwnerBeforeRename =
                     InvokeCreateLifecycleOwner(createLifecycleOwner, activityA);
 
@@ -41,7 +42,8 @@ namespace ImmersiveFrameworkQA.Descriptors.Editor
                 RuntimeContentOwner ownerAfterRename =
                     RuntimeContentOwner.Activity(
                         activityA.ActivityId.StableText,
-                        activityA.ActivityName);
+                        activityA.ActivityName,
+                        RuntimeDefinitionToken.FromUnityObject(activityA));
                 RuntimeContentOwner lifecycleOwnerAfterRename =
                     InvokeCreateLifecycleOwner(createLifecycleOwner, activityA);
 
@@ -60,7 +62,8 @@ namespace ImmersiveFrameworkQA.Descriptors.Editor
                 Assert(
                     ownerAfterRename != RuntimeContentOwner.Activity(
                         activityB.ActivityId.StableText,
-                        activityB.ActivityName),
+                        activityB.ActivityName,
+                        RuntimeDefinitionToken.FromUnityObject(activityB)),
                     "Distinct Activity IDs produced the same owner.");
 
                 Configure(activityB, "   ", "Whitespace Id");

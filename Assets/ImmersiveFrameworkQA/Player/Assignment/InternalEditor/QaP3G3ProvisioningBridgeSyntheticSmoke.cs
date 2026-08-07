@@ -394,7 +394,8 @@ namespace ImmersiveFrameworkQA.PlayerAssignment.Internal.Editor
 
             RuntimeContentOwner owner = RuntimeContentOwner.Activity(
                 "qa.cpsa3.manager.activity",
-                "QA CPSA3 Manager Activity");
+                "QA CPSA3 Manager Activity",
+                RuntimeDefinitionToken.MintAnonymous());
             RuntimeScopeContext scope = fixture.CreateScope(owner);
 
             AssertTrue(
@@ -801,7 +802,8 @@ namespace ImmersiveFrameworkQA.PlayerAssignment.Internal.Editor
                 "Manager Actor fixture selection failed.");
             RuntimeContentOwner owner = RuntimeContentOwner.Activity(
                 actorProfileId + ".activity",
-                name + " Activity");
+                name + " Activity",
+                RuntimeDefinitionToken.MintAnonymous());
             RuntimeScopeContext scope = fixture.CreateScope(owner);
             prepared = fixture.Preparation.TryPrepareSelectedActor(
                 scope,

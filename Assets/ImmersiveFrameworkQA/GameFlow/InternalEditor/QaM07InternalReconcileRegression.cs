@@ -783,7 +783,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                             activity,
                             RuntimeContentOwner.Activity(
                                 "qa.m07.foreign-owner",
-                                "Q3 Foreign Owner"),
+                                "Q3 Foreign Owner",
+                                RuntimeDefinitionToken.MintAnonymous()),
                             occurrence,
                             "q3-foreign-owner");
                     ActivityPlayerActorReconcileResult staleOccurrenceResult =

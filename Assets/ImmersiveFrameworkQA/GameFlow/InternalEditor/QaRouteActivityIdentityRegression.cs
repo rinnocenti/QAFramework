@@ -136,8 +136,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         {
             var token = new ActivityPlayerLifecycleAdmissionToken(
                 "qa.identity.session",
-                RuntimeContentOwner.Activity(previousActivity.ActivityId.StableText, previousActivity.ActivityName),
-                RuntimeContentOwner.Activity(targetActivity.ActivityId.StableText, targetActivity.ActivityName),
+                RuntimeContentOwner.Activity(
+                    previousActivity.ActivityId.StableText,
+                    previousActivity.ActivityName,
+                    RuntimeDefinitionToken.FromUnityObject(previousActivity)),
+                RuntimeContentOwner.Activity(
+                    targetActivity.ActivityId.StableText,
+                    targetActivity.ActivityName,
+                    RuntimeDefinitionToken.FromUnityObject(targetActivity)),
                 ActivityPlayerLifecycleAdmissionFlowKind.RouteStartupActivitySwitch,
                 previousRoute.RouteId, targetRoute.RouteId, 1);
             var mismatched = new ActivityPlayerLifecycleAdmissionToken(

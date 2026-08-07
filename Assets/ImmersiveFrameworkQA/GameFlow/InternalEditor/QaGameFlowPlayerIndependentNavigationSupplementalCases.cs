@@ -295,7 +295,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 RuntimeContentOwner expectedOwner =
                     RuntimeContentOwner.Activity(
                         targetActivity.ActivityId.StableText,
-                        targetActivity.ActivityName);
+                        targetActivity.ActivityName,
+                        RuntimeDefinitionToken.FromUnityObject(targetActivity));
 
                 Require(
                     ReferenceEquals(fixture.CurrentActivity, targetActivity) &&

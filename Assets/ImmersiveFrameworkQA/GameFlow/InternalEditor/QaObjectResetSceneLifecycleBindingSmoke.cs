@@ -111,9 +111,18 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             {
                 owner = scope switch
                 {
-                    ResetSubjectScope.Route => RuntimeContentOwner.Route("qa-route", "QA Route"),
-                    ResetSubjectScope.Activity => RuntimeContentOwner.Activity("qa-activity", "QA Activity"),
-                    ResetSubjectScope.Runtime => RuntimeContentOwner.Activity("qa-activity", "QA Activity"),
+                    ResetSubjectScope.Route => RuntimeContentOwner.Route(
+                        "qa-route",
+                        "QA Route",
+                        RuntimeDefinitionToken.MintAnonymous()),
+                    ResetSubjectScope.Activity => RuntimeContentOwner.Activity(
+                        "qa-activity",
+                        "QA Activity",
+                        RuntimeDefinitionToken.MintAnonymous()),
+                    ResetSubjectScope.Runtime => RuntimeContentOwner.Activity(
+                        "qa-activity",
+                        "QA Activity",
+                        RuntimeDefinitionToken.MintAnonymous()),
                     _ => default
                 };
                 issue = owner.IsValid ? string.Empty : "QA binding smoke received an unsupported reset scope.";

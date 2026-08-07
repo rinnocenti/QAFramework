@@ -360,7 +360,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 RuntimeContentOwner currentOwner =
                     RuntimeContentOwner.Activity(
                         currentActivity.ActivityId.StableText,
-                        currentActivity.ActivityName);
+                        currentActivity.ActivityName,
+                        RuntimeDefinitionToken.FromUnityObject(currentActivity));
                 AssertEqual(currentOwner, currentContext.Owner,
                     "Current Activity scope owner differs from lifecycle owner.");
                 if (createdCurrentActivityScopeRoot)
@@ -373,7 +374,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 RuntimeContentOwner currentRouteOwner =
                     RuntimeContentOwner.Route(
                         currentRoute.RouteId.StableText,
-                        currentRoute.RouteName);
+                        currentRoute.RouteName,
+                        RuntimeDefinitionToken.FromUnityObject(currentRoute));
                 AssertEqual(1,
                     CountRuntimeRoots(
                         runtimeContent,
@@ -1324,7 +1326,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 RuntimeContentOwner targetOwner =
                     RuntimeContentOwner.Activity(
                         targetActivity.ActivityId.StableText,
-                        targetActivity.ActivityName);
+                        targetActivity.ActivityName,
+                        RuntimeDefinitionToken.FromUnityObject(targetActivity));
                 completed.Add("gameplayready-target-authored");
 
                 targetRoute = fixture.CreateRouteStartupTarget(
@@ -1335,7 +1338,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 RuntimeContentOwner targetRouteOwner =
                     RuntimeContentOwner.Route(
                         targetRoute.RouteId.StableText,
-                        targetRoute.RouteName);
+                        targetRoute.RouteName,
+                        RuntimeDefinitionToken.FromUnityObject(targetRoute));
                 AssertTrue(!ReferenceEquals(currentRoute, targetRoute) &&
                     currentRoute.RouteId != targetRoute.RouteId &&
                     currentRouteOwner != targetRouteOwner,
@@ -3101,7 +3105,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             runtimeContentType = runtimeContent.GetType();
 
             RuntimeContentOwner owner =
-                RuntimeContentOwner.Activity(ownerId, displayName);
+                RuntimeContentOwner.Activity(
+                    ownerId,
+                    displayName,
+                    RuntimeDefinitionToken.MintAnonymous());
             int rootsBefore =
                 CountRuntimeRoots(
                     runtimeContent,

@@ -766,7 +766,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 $"P3M5B Activity '{activity.name}' has no valid ActivityId.");
             return RuntimeContentOwner.Activity(
                 activity.ActivityId.StableText,
-                activity.ActivityName);
+                activity.ActivityName,
+                RuntimeDefinitionToken.FromUnityObject(activity));
         }
 
         private static async Task<LoadedPlayerFixture> AwaitActiveFixtureAsync(
