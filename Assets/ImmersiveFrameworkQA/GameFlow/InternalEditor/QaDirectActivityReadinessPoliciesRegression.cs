@@ -120,9 +120,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "Host-owned Loading adapter must be hidden and have no active hold.");
                 cases.Complete("host-loading-adapter-resolved");
                 await Awaitable.NextFrameAsync();
-                Require(!host.TransitionGateSnapshot.HasBlockers && !transition.IsVisible &&
-                    !loading.IsVisible && !loading.HideHoldActive,
-                    "Direct readiness policies requires a clean Transition gate and hidden host presentation surfaces before policy execution.");
+                Require(
+                    !host.TransitionGateSnapshot.HasBlockers &&
+                    host.CurrentTransitionGateMode == TransitionGateMode.None &&
+                    !host.ActivityEntryReadinessGateSnapshot.HasBlockers &&
+                    !transition.IsVisible &&
+                    !loading.IsVisible &&
+                    !loading.HideHoldActive,
+                    "Direct readiness policies requires a clean Transition/readiness gate and hidden host presentation surfaces before policy execution.");
 
                 Scene observerScene = SceneManager.GetSceneByPath(initialRoute.PrimaryScenePath);
                 Require(observerScene.IsValid() && observerScene.isLoaded,
@@ -790,9 +795,17 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private static void RequireGateReleased(FrameworkRuntimeHost host)
         {
-            GateSnapshot gate = host.TransitionGateSnapshot;
-            Require(!gate.HasBlockers,
-                "Activity readiness policy must release the capability gate after Ready.");
+            // After Ready: pure Transition Gate and readiness composite must both be clear
+            // (no residual recovery blockers).
+            Require(
+                host != null &&
+                !host.TransitionGateSnapshot.HasBlockers &&
+                host.CurrentTransitionGateMode == TransitionGateMode.None &&
+                !host.ActivityEntryReadinessGateSnapshot.HasBlockers,
+                "Activity readiness policy must release the capability gate after Ready. " +
+                $"transitionMode='{host?.CurrentTransitionGateMode}' " +
+                $"transitionBlockers='{host?.TransitionGateSnapshot.BlockerCount}' " +
+                $"readinessBlockers='{host?.ActivityEntryReadinessGateSnapshot.BlockerCount}'.");
         }
 
         private static void RequireSuccessfulRequest(

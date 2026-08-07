@@ -791,9 +791,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
                 try
                 {
-                    Require(host != null &&
-                        !host.TransitionGateSnapshot.HasBlockers,
-                        "Recovery gate was not released after direct terminal cleanup.");
+                    RequireRecoveryStateCleared(
+                        host,
+                        "after direct terminal cleanup");
                     gateReleased = true;
                 }
                 catch (Exception exception)
@@ -1067,21 +1067,48 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private static void RequireRecoveryGate(
             FrameworkRuntimeHost host)
         {
-            GateSnapshot snapshot = host.TransitionGateSnapshot;
-            Require(snapshot.HasBlockers &&
+            // IF-TXN-03A: Transition Gate is pure residual; recovery lives on the
+            // readiness composite. Terminal failure releases Transition Gate and
+            // retains Activity Entry Readiness Recovery blockers only.
+            Require(
+                host != null &&
+                !host.TransitionGateSnapshot.HasBlockers &&
+                host.CurrentTransitionGateMode == TransitionGateMode.None,
+                "Direct terminal failure must release the pure Transition Gate " +
+                $"(mode='{host?.CurrentTransitionGateMode}' " +
+                $"blockers='{host?.TransitionGateSnapshot.BlockerCount}').");
+
+            GateSnapshot readiness = host.ActivityEntryReadinessGateSnapshot;
+            Require(
+                readiness.HasBlockers &&
                 HasBlocker(
-                    snapshot,
+                    readiness,
                     GateScope.Input,
                     GateDomain.InputAcceptance) &&
                 HasBlocker(
-                    snapshot,
+                    readiness,
                     GateScope.Interaction,
                     GateDomain.InteractionAcceptance) &&
                 HasBlocker(
-                    snapshot,
+                    readiness,
                     GateScope.Gameplay,
                     GateDomain.GameplayAction),
                 "Direct terminal failure did not retain the recovery gate.");
+        }
+
+        private static void RequireRecoveryStateCleared(
+            FrameworkRuntimeHost host,
+            string context)
+        {
+            Require(
+                host != null &&
+                !host.TransitionGateSnapshot.HasBlockers &&
+                host.CurrentTransitionGateMode == TransitionGateMode.None &&
+                !host.ActivityEntryReadinessGateSnapshot.HasBlockers,
+                $"Recovery gate was not released {context}. " +
+                $"transitionMode='{host?.CurrentTransitionGateMode}' " +
+                $"transitionBlockers='{host?.TransitionGateSnapshot.BlockerCount}' " +
+                $"readinessBlockers='{host?.ActivityEntryReadinessGateSnapshot.BlockerCount}'.");
         }
 
         private static bool HasBlocker(

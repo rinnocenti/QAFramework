@@ -254,8 +254,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 RequireLoadingHidden(loading);
                 RequireTransitionHidden(transition);
                 cases.Complete("presentation-finished-hidden");
-                Require(!host.TransitionGateSnapshot.HasBlockers,
-                    "Q2B Route startup transition gate remained active.");
+                Require(
+                    !host.TransitionGateSnapshot.HasBlockers &&
+                    host.CurrentTransitionGateMode == TransitionGateMode.None &&
+                    !host.ActivityEntryReadinessGateSnapshot.HasBlockers,
+                    "Q2B Route startup transition/readiness gates remained active. " +
+                    $"transitionMode='{host.CurrentTransitionGateMode}' " +
+                    $"transitionBlockers='{host.TransitionGateSnapshot.BlockerCount}' " +
+                    $"readinessBlockers='{host.ActivityEntryReadinessGateSnapshot.BlockerCount}'.");
                 cases.Complete("transition-gate-released");
 
                 probe.Dispose();
@@ -417,8 +423,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 RequireLoadingHidden(loading);
                 RequireTransitionHidden(transition);
                 cases.Complete("presentation-finished-hidden");
-                Require(!host.TransitionGateSnapshot.HasBlockers,
-                    "Q2B Game Application startup gate remained active.");
+                Require(
+                    !host.TransitionGateSnapshot.HasBlockers &&
+                    host.CurrentTransitionGateMode == TransitionGateMode.None &&
+                    !host.ActivityEntryReadinessGateSnapshot.HasBlockers,
+                    "Q2B Game Application startup gate remained active. " +
+                    $"transitionMode='{host.CurrentTransitionGateMode}' " +
+                    $"transitionBlockers='{host.TransitionGateSnapshot.BlockerCount}' " +
+                    $"readinessBlockers='{host.ActivityEntryReadinessGateSnapshot.BlockerCount}'.");
                 cases.Complete("transition-gate-released");
 
                 canonicalRoute = QaActivityEntryPresentationEvidenceSetup

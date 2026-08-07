@@ -789,9 +789,16 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private static void RequireGateReleased(FrameworkRuntimeHost host)
         {
-            Require(host != null &&
-                !host.TransitionGateSnapshot.HasBlockers,
-                "WaitCovered capability gate was not released after Ready.");
+            // After Ready: pure Transition Gate and readiness composite must both be clear.
+            Require(
+                host != null &&
+                !host.TransitionGateSnapshot.HasBlockers &&
+                host.CurrentTransitionGateMode == TransitionGateMode.None &&
+                !host.ActivityEntryReadinessGateSnapshot.HasBlockers,
+                "WaitCovered capability gate was not released after Ready. " +
+                $"transitionMode='{host?.CurrentTransitionGateMode}' " +
+                $"transitionBlockers='{host?.TransitionGateSnapshot.BlockerCount}' " +
+                $"readinessBlockers='{host?.ActivityEntryReadinessGateSnapshot.BlockerCount}'.");
         }
 
         private static bool HasBlocker(
