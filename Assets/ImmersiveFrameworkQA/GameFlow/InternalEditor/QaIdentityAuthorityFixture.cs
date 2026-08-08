@@ -21,13 +21,13 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
     /// </summary>
     internal sealed class QaIdentityAuthorityFixture
     {
-        private readonly List<UnityEngine.Object> temporaryObjects = new List<UnityEngine.Object>();
-        private readonly List<RuntimeContentOwner> caseCreatedRootOwners = new List<RuntimeContentOwner>();
-        private readonly List<QaOwnedAsyncOperation<FrameworkRouteRequestResult>> ownedRouteOperations =
+        private readonly List<UnityEngine.Object> _temporaryObjects = new List<UnityEngine.Object>();
+        private readonly List<RuntimeContentOwner> _caseCreatedRootOwners = new List<RuntimeContentOwner>();
+        private readonly List<QaOwnedAsyncOperation<FrameworkRouteRequestResult>> _ownedRouteOperations =
             new List<QaOwnedAsyncOperation<FrameworkRouteRequestResult>>();
-        private readonly List<QaOwnedAsyncOperation<FrameworkActivityRequestResult>> ownedActivityOperations =
+        private readonly List<QaOwnedAsyncOperation<FrameworkActivityRequestResult>> _ownedActivityOperations =
             new List<QaOwnedAsyncOperation<FrameworkActivityRequestResult>>();
-        private readonly List<IEventBinding> eventBindings = new List<IEventBinding>();
+        private readonly List<IEventBinding> _eventBindings = new List<IEventBinding>();
 
         private QaIdentityAuthorityFixture(FrameworkRuntimeHost host, AuthoritySnapshot initial)
         {
@@ -300,7 +300,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         {
             if (value != null)
             {
-                temporaryObjects.Add(value);
+                _temporaryObjects.Add(value);
             }
         }
 
@@ -312,16 +312,16 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "Cannot track an invalid runtime content owner root.");
             }
 
-            caseCreatedRootOwners.Add(owner);
+            _caseCreatedRootOwners.Add(owner);
         }
 
         public void UntrackCaseCreatedRoot(RuntimeContentOwner owner)
         {
-            for (int index = caseCreatedRootOwners.Count - 1; index >= 0; index--)
+            for (int index = _caseCreatedRootOwners.Count - 1; index >= 0; index--)
             {
-                if (caseCreatedRootOwners[index] == owner)
+                if (_caseCreatedRootOwners[index] == owner)
                 {
-                    caseCreatedRootOwners.RemoveAt(index);
+                    _caseCreatedRootOwners.RemoveAt(index);
                 }
             }
         }
@@ -406,9 +406,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         public void ReleaseLifecycleListeners()
         {
-            for (int index = eventBindings.Count - 1; index >= 0; index--)
+            for (int index = _eventBindings.Count - 1; index >= 0; index--)
             {
-                IEventBinding binding = eventBindings[index];
+                IEventBinding binding = _eventBindings[index];
                 try
                 {
                     binding?.Dispose();
@@ -419,7 +419,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 }
             }
 
-            eventBindings.Clear();
+            _eventBindings.Clear();
         }
 
         public QaOwnedAsyncOperation<FrameworkRouteRequestResult> AttachRouteRequest(
@@ -428,7 +428,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         {
             var operation = new QaOwnedAsyncOperation<FrameworkRouteRequestResult>(operationName);
             operation.Attach(request);
-            ownedRouteOperations.Add(operation);
+            _ownedRouteOperations.Add(operation);
             return operation;
         }
 
@@ -438,7 +438,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         {
             var operation = new QaOwnedAsyncOperation<FrameworkActivityRequestResult>(operationName);
             operation.Attach(request);
-            ownedActivityOperations.Add(operation);
+            _ownedActivityOperations.Add(operation);
             return operation;
         }
 
@@ -608,7 +608,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 return;
             }
 
-            temporaryObjects.Remove(value);
+            _temporaryObjects.Remove(value);
             try
             {
                 UnityEngine.Object.DestroyImmediate(value);
@@ -751,7 +751,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         {
             if (binding != null)
             {
-                eventBindings.Add(binding);
+                _eventBindings.Add(binding);
             }
         }
 
@@ -812,10 +812,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private async Task AwaitOwnedOperationsAsync()
         {
-            for (int index = 0; index < ownedRouteOperations.Count; index++)
+            for (int index = 0; index < _ownedRouteOperations.Count; index++)
             {
                 QaOwnedAsyncOperation<FrameworkRouteRequestResult> operation =
-                    ownedRouteOperations[index];
+                    _ownedRouteOperations[index];
                 if (operation == null || !operation.HasOperation || operation.ReachedTerminal)
                 {
                     continue;
@@ -831,10 +831,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 }
             }
 
-            for (int index = 0; index < ownedActivityOperations.Count; index++)
+            for (int index = 0; index < _ownedActivityOperations.Count; index++)
             {
                 QaOwnedAsyncOperation<FrameworkActivityRequestResult> operation =
-                    ownedActivityOperations[index];
+                    _ownedActivityOperations[index];
                 if (operation == null || !operation.HasOperation || operation.ReachedTerminal)
                 {
                     continue;
@@ -853,9 +853,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private void RemoveCaseCreatedRoots(string source)
         {
-            for (int index = caseCreatedRootOwners.Count - 1; index >= 0; index--)
+            for (int index = _caseCreatedRootOwners.Count - 1; index >= 0; index--)
             {
-                RuntimeContentOwner owner = caseCreatedRootOwners[index];
+                RuntimeContentOwner owner = _caseCreatedRootOwners[index];
                 try
                 {
                     RuntimeRootRegistryOperationResult result = RuntimeContent.RemoveScopeRoot(
@@ -874,14 +874,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 }
             }
 
-            caseCreatedRootOwners.Clear();
+            _caseCreatedRootOwners.Clear();
         }
 
         private void DestroyTemporaryObjects()
         {
-            for (int index = temporaryObjects.Count - 1; index >= 0; index--)
+            for (int index = _temporaryObjects.Count - 1; index >= 0; index--)
             {
-                UnityEngine.Object value = temporaryObjects[index];
+                UnityEngine.Object value = _temporaryObjects[index];
                 if (value == null)
                 {
                     continue;
@@ -897,7 +897,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 }
             }
 
-            temporaryObjects.Clear();
+            _temporaryObjects.Clear();
         }
 
         private void AssertAuthorityPreserved(string source)

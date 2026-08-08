@@ -867,54 +867,54 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private sealed class QaParticipantAwareProgressProbe : IDisposable
         {
-            private readonly object sync = new object();
-            private readonly QaLoadingSurfaceVisibilityHoldAdapter loading;
-            private readonly QaTransitionPresentationEvidenceObserver transition;
-            private readonly List<QaProgressSignal> progress =
+            private readonly object _sync = new object();
+            private readonly QaLoadingSurfaceVisibilityHoldAdapter _loading;
+            private readonly QaTransitionPresentationEvidenceObserver _transition;
+            private readonly List<QaProgressSignal> _progress =
                 new List<QaProgressSignal>();
-            private readonly List<QaPresentationSignal> hides =
+            private readonly List<QaPresentationSignal> _hides =
                 new List<QaPresentationSignal>();
-            private readonly List<QaPresentationSignal> reveals =
+            private readonly List<QaPresentationSignal> _reveals =
                 new List<QaPresentationSignal>();
-            private readonly List<ProgressWaiter> progressWaiters =
+            private readonly List<ProgressWaiter> _progressWaiters =
                 new List<ProgressWaiter>();
-            private readonly List<PresentationWaiter> hideWaiters =
+            private readonly List<PresentationWaiter> _hideWaiters =
                 new List<PresentationWaiter>();
-            private readonly List<PresentationWaiter> revealWaiters =
+            private readonly List<PresentationWaiter> _revealWaiters =
                 new List<PresentationWaiter>();
-            private int sequence;
-            private bool transitionVisibleObserved;
-            private bool attached;
+            private int _sequence;
+            private bool _transitionVisibleObserved;
+            private bool _attached;
 
             internal QaParticipantAwareProgressProbe(
                 QaLoadingSurfaceVisibilityHoldAdapter loading,
                 QaTransitionPresentationEvidenceObserver transition)
             {
-                this.loading = loading ??
+                this._loading = loading ??
                     throw new ArgumentNullException(nameof(loading));
-                this.transition = transition ??
+                this._transition = transition ??
                     throw new ArgumentNullException(nameof(transition));
             }
 
             internal void Attach()
             {
-                if (attached)
+                if (_attached)
                 {
                     return;
                 }
 
-                loading.PresentationEvidenceRecorded +=
+                _loading.PresentationEvidenceRecorded +=
                     HandleLoadingEvidence;
-                transition.PresentationEvidenceRecorded +=
+                _transition.PresentationEvidenceRecorded +=
                     HandleTransitionEvidence;
-                attached = true;
+                _attached = true;
             }
 
             internal int CaptureCheckpoint()
             {
-                lock (sync)
+                lock (_sync)
                 {
-                    return sequence;
+                    return _sequence;
                 }
             }
 
@@ -923,11 +923,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 int afterSequence,
                 string label)
             {
-                lock (sync)
+                lock (_sync)
                 {
-                    for (int index = 0; index < progress.Count; index++)
+                    for (int index = 0; index < _progress.Count; index++)
                     {
-                        QaProgressSignal signal = progress[index];
+                        QaProgressSignal signal = _progress[index];
                         if (signal.Sequence > afterSequence &&
                             Approximately(
                                 signal.Entry.ProgressValue01,
@@ -941,7 +941,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         expectedValue,
                         afterSequence,
                         label);
-                    progressWaiters.Add(waiter);
+                    _progressWaiters.Add(waiter);
                     return waiter.Completion.Task;
                 }
             }
@@ -950,8 +950,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 int afterSequence)
             {
                 return WaitForPresentationAsync(
-                    hides,
-                    hideWaiters,
+                    _hides,
+                    _hideWaiters,
                     afterSequence,
                     "loading-hide");
             }
@@ -960,24 +960,24 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 WaitForTransitionRevealAsync(int afterSequence)
             {
                 return WaitForPresentationAsync(
-                    reveals,
-                    revealWaiters,
+                    _reveals,
+                    _revealWaiters,
                     afterSequence,
                     "transition-reveal");
             }
 
             public void Dispose()
             {
-                if (!attached)
+                if (!_attached)
                 {
                     return;
                 }
 
-                loading.PresentationEvidenceRecorded -=
+                _loading.PresentationEvidenceRecorded -=
                     HandleLoadingEvidence;
-                transition.PresentationEvidenceRecorded -=
+                _transition.PresentationEvidenceRecorded -=
                     HandleTransitionEvidence;
-                attached = false;
+                _attached = false;
             }
 
             private Task<QaPresentationSignal> WaitForPresentationAsync(
@@ -986,7 +986,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 int afterSequence,
                 string label)
             {
-                lock (sync)
+                lock (_sync)
                 {
                     for (int index = 0;
                          index < observations.Count;
@@ -1009,9 +1009,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             private void HandleLoadingEvidence(
                 QaLoadingPresentationEvidenceEntry entry)
             {
-                lock (sync)
+                lock (_sync)
                 {
-                    int current = ++sequence;
+                    int current = ++_sequence;
                     if (entry.Kind ==
                             QaLoadingPresentationEvidenceKind.RequestReceived &&
                         entry.Action == LoadingSurfaceAction.Update &&
@@ -1020,7 +1020,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         var signal = new QaProgressSignal(
                             current,
                             entry);
-                        progress.Add(signal);
+                        _progress.Add(signal);
                         CompleteProgressWaiters(signal);
                     }
 
@@ -1031,9 +1031,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         var signal = new QaPresentationSignal(
                             current,
                             "loading-hide");
-                        hides.Add(signal);
+                        _hides.Add(signal);
                         CompletePresentationWaiters(
-                            hideWaiters,
+                            _hideWaiters,
                             signal);
                     }
                 }
@@ -1042,9 +1042,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             private void HandleTransitionEvidence(
                 QaTransitionPresentationEvidenceEntry entry)
             {
-                lock (sync)
+                lock (_sync)
                 {
-                    int current = ++sequence;
+                    int current = ++_sequence;
                     if (entry.Kind !=
                         QaTransitionPresentationEvidenceKind.StateChanged)
                     {
@@ -1054,20 +1054,20 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     if (entry.VisualState ==
                         QaTransitionVisualState.Visible)
                     {
-                        transitionVisibleObserved = true;
+                        _transitionVisibleObserved = true;
                         return;
                     }
 
-                    if (transitionVisibleObserved &&
+                    if (_transitionVisibleObserved &&
                         entry.VisualState ==
                         QaTransitionVisualState.Hidden)
                     {
                         var signal = new QaPresentationSignal(
                             current,
                             "transition-reveal");
-                        reveals.Add(signal);
+                        _reveals.Add(signal);
                         CompletePresentationWaiters(
-                            revealWaiters,
+                            _revealWaiters,
                             signal);
                     }
                 }
@@ -1076,17 +1076,17 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             private void CompleteProgressWaiters(
                 QaProgressSignal signal)
             {
-                for (int index = progressWaiters.Count - 1;
+                for (int index = _progressWaiters.Count - 1;
                      index >= 0;
                      index--)
                 {
-                    ProgressWaiter waiter = progressWaiters[index];
+                    ProgressWaiter waiter = _progressWaiters[index];
                     if (signal.Sequence > waiter.AfterSequence &&
                         Approximately(
                             signal.Entry.ProgressValue01,
                             waiter.ExpectedValue))
                     {
-                        progressWaiters.RemoveAt(index);
+                        _progressWaiters.RemoveAt(index);
                         waiter.Completion.TrySetResult(signal);
                     }
                 }

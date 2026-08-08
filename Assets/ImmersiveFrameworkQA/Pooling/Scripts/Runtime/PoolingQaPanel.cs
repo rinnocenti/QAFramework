@@ -269,8 +269,7 @@ namespace ImmersiveFrameworkQA.Pooling
                     $"Tracked active objects remain after cleanup: {_rented.Count}.");
 
                 PoolingQaCallbackProbe[] probes = FindObjectsByType<PoolingQaCallbackProbe>(
-                    FindObjectsInactive.Include,
-                    FindObjectsSortMode.None);
+                    FindObjectsInactive.Include);
                 int activeProbeCount = 0;
                 foreach (PoolingQaCallbackProbe probe in probes)
                 {

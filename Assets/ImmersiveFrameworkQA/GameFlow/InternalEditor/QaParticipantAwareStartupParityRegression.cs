@@ -1046,20 +1046,20 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private sealed class QaStartupParityProbe : IDisposable
         {
-            private readonly object sync = new object();
-            private readonly QaLoadingSurfaceVisibilityHoldAdapter loading;
-            private readonly QaTransitionPresentationEvidenceObserver transition;
-            private int sequence;
-            private bool transitionVisibleObserved;
-            private bool attached;
+            private readonly object _sync = new object();
+            private readonly QaLoadingSurfaceVisibilityHoldAdapter _loading;
+            private readonly QaTransitionPresentationEvidenceObserver _transition;
+            private int _sequence;
+            private bool _transitionVisibleObserved;
+            private bool _attached;
 
             internal QaStartupParityProbe(
                 QaLoadingSurfaceVisibilityHoldAdapter loading,
                 QaTransitionPresentationEvidenceObserver transition)
             {
-                this.loading = loading ??
+                this._loading = loading ??
                     throw new ArgumentNullException(nameof(loading));
-                this.transition = transition ??
+                this._transition = transition ??
                     throw new ArgumentNullException(nameof(transition));
             }
 
@@ -1069,34 +1069,34 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             internal void Attach()
             {
-                if (attached)
+                if (_attached)
                 {
                     return;
                 }
 
-                loading.PresentationEvidenceRecorded += HandleLoading;
-                transition.PresentationEvidenceRecorded += HandleTransition;
-                attached = true;
+                _loading.PresentationEvidenceRecorded += HandleLoading;
+                _transition.PresentationEvidenceRecorded += HandleTransition;
+                _attached = true;
             }
 
             public void Dispose()
             {
-                if (!attached)
+                if (!_attached)
                 {
                     return;
                 }
 
-                loading.PresentationEvidenceRecorded -= HandleLoading;
-                transition.PresentationEvidenceRecorded -= HandleTransition;
-                attached = false;
+                _loading.PresentationEvidenceRecorded -= HandleLoading;
+                _transition.PresentationEvidenceRecorded -= HandleTransition;
+                _attached = false;
             }
 
             private void HandleLoading(
                 QaLoadingPresentationEvidenceEntry entry)
             {
-                lock (sync)
+                lock (_sync)
                 {
-                    int current = ++sequence;
+                    int current = ++_sequence;
                     if (entry.Kind ==
                             QaLoadingPresentationEvidenceKind.RequestReceived &&
                         entry.Action == LoadingSurfaceAction.Update &&
@@ -1118,9 +1118,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             private void HandleTransition(
                 QaTransitionPresentationEvidenceEntry entry)
             {
-                lock (sync)
+                lock (_sync)
                 {
-                    int current = ++sequence;
+                    int current = ++_sequence;
                     if (entry.Kind !=
                         QaTransitionPresentationEvidenceKind.StateChanged)
                     {
@@ -1130,11 +1130,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     if (entry.VisualState ==
                         QaTransitionVisualState.Visible)
                     {
-                        transitionVisibleObserved = true;
+                        _transitionVisibleObserved = true;
                         return;
                     }
 
-                    if (transitionVisibleObserved &&
+                    if (_transitionVisibleObserved &&
                         entry.VisualState ==
                         QaTransitionVisualState.Hidden)
                     {

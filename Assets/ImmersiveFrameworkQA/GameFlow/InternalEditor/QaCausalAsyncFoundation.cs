@@ -22,15 +22,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
     public sealed class QaOwnedAsyncOperation<TResult>
     {
-        private Task<TResult> operation;
-        private Task<TResult> terminalObservation;
-        private Task<QaOperationUnwindResult<TResult>> unwindObservation;
-        private readonly object sync = new object();
-        private TResult result;
-        private Exception failure;
-        private bool resultAvailable;
-        private bool completionIssuedDuringUnwind;
-        private bool unwindInvoked;
+        private Task<TResult> _operation;
+        private Task<TResult> _terminalObservation;
+        private Task<QaOperationUnwindResult<TResult>> _unwindObservation;
+        private readonly object _sync = new object();
+        private TResult _result;
+        private Exception _failure;
+        private bool _resultAvailable;
+        private bool _completionIssuedDuringUnwind;
+        private bool _unwindInvoked;
 
         public QaOwnedAsyncOperation(string name)
         {
@@ -45,17 +45,17 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         public string Name { get; }
         public QaOwnedAsyncOperationPhase Phase { get; private set; }
-        public bool HasOperation => operation != null;
-        public bool IsCompleted => operation != null && operation.IsCompleted;
+        public bool HasOperation => _operation != null;
+        public bool IsCompleted => _operation != null && _operation.IsCompleted;
         public bool ReachedTerminal => Phase == QaOwnedAsyncOperationPhase.Terminal;
-        public bool CompletionIssuedDuringUnwind => completionIssuedDuringUnwind;
-        public bool ResultAvailable => resultAvailable;
-        public TResult Result => resultAvailable
-            ? result
+        public bool CompletionIssuedDuringUnwind => _completionIssuedDuringUnwind;
+        public bool ResultAvailable => _resultAvailable;
+        public TResult Result => _resultAvailable
+            ? _result
             : throw new InvalidOperationException($"Operation '{Name}' has no result.");
-        public Exception Failure => failure;
-        public bool WasCancelled => operation != null && operation.IsCanceled;
-        public Task<TResult> Task => operation ?? throw new InvalidOperationException(
+        public Exception Failure => _failure;
+        public bool WasCancelled => _operation != null && _operation.IsCanceled;
+        public Task<TResult> Task => _operation ?? throw new InvalidOperationException(
             $"Operation '{Name}' has not been attached.");
 
         public void Attach(Task<TResult> task)
@@ -65,21 +65,21 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 throw new ArgumentNullException(nameof(task));
             }
 
-            lock (sync)
+            lock (_sync)
             {
-                if (operation != null)
+                if (_operation != null)
                 {
                     throw new InvalidOperationException($"Operation '{Name}' is already attached.");
                 }
 
-                operation = task;
+                _operation = task;
                 SetPhase(QaOwnedAsyncOperationPhase.RequestStarted);
             }
         }
 
         public void SetPhase(QaOwnedAsyncOperationPhase phase)
         {
-            lock (sync)
+            lock (_sync)
             {
                 if (ReachedTerminal && phase != QaOwnedAsyncOperationPhase.Terminal)
                 {
@@ -92,12 +92,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         public Task<TResult> AwaitTerminalAsync()
         {
-            lock (sync)
+            lock (_sync)
             {
                 RequireAttachedOperation();
-                if (terminalObservation != null)
+                if (_terminalObservation != null)
                 {
-                    return terminalObservation;
+                    return _terminalObservation;
                 }
 
                 if (ReachedTerminal)
@@ -106,8 +106,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 }
 
                 SetPhase(QaOwnedAsyncOperationPhase.AwaitingRequest);
-                terminalObservation = ObserveTerminalAsync();
-                return terminalObservation;
+                _terminalObservation = ObserveTerminalAsync();
+                return _terminalObservation;
             }
         }
 
@@ -115,19 +115,19 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         {
             try
             {
-                result = await operation;
-                resultAvailable = true;
+                _result = await _operation;
+                _resultAvailable = true;
                 SetPhase(QaOwnedAsyncOperationPhase.RequestCompleted);
-                return result;
+                return _result;
             }
             catch (Exception exception)
             {
-                failure = exception;
+                _failure = exception;
                 throw;
             }
             finally
             {
-                lock (sync)
+                lock (_sync)
                 {
                     Phase = QaOwnedAsyncOperationPhase.Terminal;
                 }
@@ -137,23 +137,23 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         public Task<QaOperationUnwindResult<TResult>> UnwindAsync(
             Func<Task> completionCallback)
         {
-            lock (sync)
+            lock (_sync)
             {
-                if (operation == null)
+                if (_operation == null)
                 {
                     return System.Threading.Tasks.Task.FromResult(
                         QaOperationUnwindResult<TResult>.None(Phase));
                 }
 
-                if (unwindObservation != null)
+                if (_unwindObservation != null)
                 {
-                    return unwindObservation;
+                    return _unwindObservation;
                 }
 
-                if (ReachedTerminal || operation.IsCompleted)
+                if (ReachedTerminal || _operation.IsCompleted)
                 {
-                    unwindObservation = ObserveTerminalForUnwindAsync();
-                    return unwindObservation;
+                    _unwindObservation = ObserveTerminalForUnwindAsync();
+                    return _unwindObservation;
                 }
 
                 if (completionCallback == null)
@@ -161,15 +161,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     throw new ArgumentNullException(nameof(completionCallback));
                 }
 
-                if (unwindInvoked)
+                if (_unwindInvoked)
                 {
                     throw new InvalidOperationException($"Operation '{Name}' unwind was already invoked.");
                 }
 
-                unwindInvoked = true;
+                _unwindInvoked = true;
                 SetPhase(QaOwnedAsyncOperationPhase.Unwinding);
-                unwindObservation = ExecuteUnwindAsync(completionCallback);
-                return unwindObservation;
+                _unwindObservation = ExecuteUnwindAsync(completionCallback);
+                return _unwindObservation;
             }
         }
 
@@ -177,7 +177,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             Func<Task> completionCallback)
         {
             await completionCallback();
-            completionIssuedDuringUnwind = true;
+            _completionIssuedDuringUnwind = true;
             return await ObserveTerminalForUnwindAsync();
         }
 
@@ -186,39 +186,39 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             try
             {
                 await AwaitTerminalAsync();
-                return new QaOperationUnwindResult<TResult>(true, completionIssuedDuringUnwind,
-                    ReachedTerminal, true, false, resultAvailable, result, null, Phase);
+                return new QaOperationUnwindResult<TResult>(true, _completionIssuedDuringUnwind,
+                    ReachedTerminal, true, false, _resultAvailable, _result, null, Phase);
             }
             catch (OperationCanceledException exception)
             {
-                return new QaOperationUnwindResult<TResult>(true, completionIssuedDuringUnwind,
+                return new QaOperationUnwindResult<TResult>(true, _completionIssuedDuringUnwind,
                     ReachedTerminal, false, true, false, default, exception, Phase);
             }
             catch (Exception exception)
             {
-                return new QaOperationUnwindResult<TResult>(true, completionIssuedDuringUnwind,
+                return new QaOperationUnwindResult<TResult>(true, _completionIssuedDuringUnwind,
                     ReachedTerminal, false, false, false, default, exception, Phase);
             }
         }
 
         private Task<TResult> ObserveExistingTerminalResult()
         {
-            if (resultAvailable)
+            if (_resultAvailable)
             {
-                terminalObservation = System.Threading.Tasks.Task.FromResult(result);
-                return terminalObservation;
+                _terminalObservation = System.Threading.Tasks.Task.FromResult(_result);
+                return _terminalObservation;
             }
 
-            if (failure != null)
+            if (_failure != null)
             {
-                terminalObservation = System.Threading.Tasks.Task.FromException<TResult>(failure);
-                return terminalObservation;
+                _terminalObservation = System.Threading.Tasks.Task.FromException<TResult>(_failure);
+                return _terminalObservation;
             }
 
             if (WasCancelled)
             {
-                terminalObservation = operation;
-                return terminalObservation;
+                _terminalObservation = _operation;
+                return _terminalObservation;
             }
 
             throw new InvalidOperationException(
@@ -227,7 +227,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private void RequireAttachedOperation()
         {
-            if (operation == null)
+            if (_operation == null)
             {
                 throw new InvalidOperationException($"Operation '{Name}' has not been attached.");
             }
@@ -235,7 +235,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         public QaOperationSnapshot<TResult> Snapshot() => new QaOperationSnapshot<TResult>(Name,
             Phase, HasOperation, IsCompleted, ReachedTerminal, CompletionIssuedDuringUnwind,
-            ResultAvailable, result, failure, WasCancelled);
+            ResultAvailable, _result, _failure, WasCancelled);
     }
 
     public readonly struct QaOperationUnwindResult<TResult>
@@ -324,29 +324,29 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
     public sealed class QaCausalSignalJoin<TFirst, TSecond>
     {
-        private readonly object sync = new object();
-        private readonly TaskCompletionSource<QaCausalSignalJoinSnapshot<TFirst, TSecond>> completion =
+        private readonly object _sync = new object();
+        private readonly TaskCompletionSource<QaCausalSignalJoinSnapshot<TFirst, TSecond>> _completion =
             new TaskCompletionSource<QaCausalSignalJoinSnapshot<TFirst, TSecond>>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
-        private TFirst first;
-        private TSecond second;
-        private bool hasFirst;
-        private bool hasSecond;
+        private TFirst _first;
+        private TSecond _second;
+        private bool _hasFirst;
+        private bool _hasSecond;
 
-        public bool HasFirst { get { lock (sync) return hasFirst; } }
-        public bool HasSecond { get { lock (sync) return hasSecond; } }
-        public bool IsCompleted => completion.Task.IsCompleted;
-        public TFirst First { get { lock (sync) { if (!hasFirst) throw new InvalidOperationException("First signal was not observed."); return first; } } }
-        public TSecond Second { get { lock (sync) { if (!hasSecond) throw new InvalidOperationException("Second signal was not observed."); return second; } } }
-        public Task<QaCausalSignalJoinSnapshot<TFirst, TSecond>> CompletionTask => completion.Task;
+        public bool HasFirst { get { lock (_sync) return _hasFirst; } }
+        public bool HasSecond { get { lock (_sync) return _hasSecond; } }
+        public bool IsCompleted => _completion.Task.IsCompleted;
+        public TFirst First { get { lock (_sync) { if (!_hasFirst) throw new InvalidOperationException("First signal was not observed."); return _first; } } }
+        public TSecond Second { get { lock (_sync) { if (!_hasSecond) throw new InvalidOperationException("Second signal was not observed."); return _second; } } }
+        public Task<QaCausalSignalJoinSnapshot<TFirst, TSecond>> CompletionTask => _completion.Task;
 
         public bool TrySetFirst(TFirst value)
         {
-            lock (sync)
+            lock (_sync)
             {
-                if (hasFirst) return false;
-                first = value;
-                hasFirst = true;
+                if (_hasFirst) return false;
+                _first = value;
+                _hasFirst = true;
                 TryComplete();
                 return true;
             }
@@ -354,11 +354,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         public bool TrySetSecond(TSecond value)
         {
-            lock (sync)
+            lock (_sync)
             {
-                if (hasSecond) return false;
-                second = value;
-                hasSecond = true;
+                if (_hasSecond) return false;
+                _second = value;
+                _hasSecond = true;
                 TryComplete();
                 return true;
             }
@@ -368,9 +368,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private void TryComplete()
         {
-            if (hasFirst && hasSecond)
+            if (_hasFirst && _hasSecond)
             {
-                completion.TrySetResult(new QaCausalSignalJoinSnapshot<TFirst, TSecond>(first, second));
+                _completion.TrySetResult(new QaCausalSignalJoinSnapshot<TFirst, TSecond>(_first, _second));
             }
         }
     }
@@ -516,27 +516,27 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
     public sealed class QaFailureCollector
     {
-        private readonly List<Entry> entries = new List<Entry>();
+        private readonly List<Entry> _entries = new List<Entry>();
         public void Add(string name, Exception exception)
         {
             if (exception == null) return;
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Failure name is required.", nameof(name));
-            for (int index = 0; index < entries.Count; index++) if (ReferenceEquals(entries[index].Exception, exception)) return;
-            entries.Add(new Entry(name.Trim(), exception));
+            for (int index = 0; index < _entries.Count; index++) if (ReferenceEquals(_entries[index].Exception, exception)) return;
+            _entries.Add(new Entry(name.Trim(), exception));
         }
 
-        public Exception Primary => entries.Count == 0 ? null : entries[0].Exception;
-        public bool HasFailures => entries.Count > 0;
+        public Exception Primary => _entries.Count == 0 ? null : _entries[0].Exception;
+        public bool HasFailures => _entries.Count > 0;
         public string Describe(string name)
         {
-            for (int index = 0; index < entries.Count; index++) if (string.Equals(entries[index].Name, name, StringComparison.Ordinal)) return Describe(entries[index].Exception);
+            for (int index = 0; index < _entries.Count; index++) if (string.Equals(_entries[index].Name, name, StringComparison.Ordinal)) return Describe(_entries[index].Exception);
             return "<none>";
         }
 
         public AggregateException ToAggregate(string message)
         {
             var failures = new List<Exception>();
-            for (int index = 0; index < entries.Count; index++) failures.Add(entries[index].Exception);
+            for (int index = 0; index < _entries.Count; index++) failures.Add(_entries[index].Exception);
             return new AggregateException(message, failures);
         }
 
@@ -546,32 +546,32 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
     public sealed class QaCaseRegistry
     {
-        private readonly IReadOnlyList<string> expected;
-        private readonly List<string> completed = new List<string>();
+        private readonly IReadOnlyList<string> _expected;
+        private readonly List<string> _completed = new List<string>();
         public QaCaseRegistry(IReadOnlyList<string> expectedCases, int declaredCount)
         {
-            expected = expectedCases ?? throw new ArgumentNullException(nameof(expectedCases));
-            if (expected.Count != declaredCount) throw new InvalidOperationException($"Expected case count diverged. declared='{declaredCount}' actual='{expected.Count}'.");
+            _expected = expectedCases ?? throw new ArgumentNullException(nameof(expectedCases));
+            if (_expected.Count != declaredCount) throw new InvalidOperationException($"Expected case count diverged. declared='{declaredCount}' actual='{_expected.Count}'.");
             var names = new HashSet<string>(StringComparer.Ordinal);
-            for (int index = 0; index < expected.Count; index++)
+            for (int index = 0; index < _expected.Count; index++)
             {
-                if (string.IsNullOrWhiteSpace(expected[index])) throw new InvalidOperationException($"Expected case '{index}' is blank.");
-                if (!names.Add(expected[index])) throw new InvalidOperationException($"Expected case '{expected[index]}' is duplicated.");
+                if (string.IsNullOrWhiteSpace(_expected[index])) throw new InvalidOperationException($"Expected case '{index}' is blank.");
+                if (!names.Add(_expected[index])) throw new InvalidOperationException($"Expected case '{_expected[index]}' is duplicated.");
             }
         }
 
-        public int Count => completed.Count;
-        public int ExpectedCount => expected.Count;
+        public int Count => _completed.Count;
+        public int ExpectedCount => _expected.Count;
         public void Complete(string name)
         {
             string next = NextExpectedOrNone();
             if (!string.Equals(next, name, StringComparison.Ordinal)) throw new InvalidOperationException($"Case order diverged. expected='{next}' actual='{name}'.");
-            completed.Add(name);
+            _completed.Add(name);
         }
-        public bool TryCompleteIfNext(string name) { if (!string.Equals(NextExpectedOrNone(), name, StringComparison.Ordinal)) return false; completed.Add(name); return true; }
+        public bool TryCompleteIfNext(string name) { if (!string.Equals(NextExpectedOrNone(), name, StringComparison.Ordinal)) return false; _completed.Add(name); return true; }
         public void RequireComplete() { if (Count != ExpectedCount) throw new InvalidOperationException($"Missing cases. expected='{ExpectedCount}' actual='{Count}' next='{NextExpectedOrNone()}'."); }
-        public string NextExpectedOrNone() => Count < ExpectedCount ? expected[Count] : "<none>";
-        public string DescribeCompleted() => string.Join(",", completed);
-        public string DescribeMissing() { if (Count >= ExpectedCount) return "<none>"; var missing = new List<string>(); for (int i = Count; i < ExpectedCount; i++) missing.Add(expected[i]); return string.Join(",", missing); }
+        public string NextExpectedOrNone() => Count < ExpectedCount ? _expected[Count] : "<none>";
+        public string DescribeCompleted() => string.Join(",", _completed);
+        public string DescribeMissing() { if (Count >= ExpectedCount) return "<none>"; var missing = new List<string>(); for (int i = Count; i < ExpectedCount; i++) missing.Add(_expected[i]); return string.Join(",", missing); }
     }
 }

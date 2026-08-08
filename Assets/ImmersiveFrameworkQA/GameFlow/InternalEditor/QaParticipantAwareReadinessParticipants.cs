@@ -14,20 +14,20 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private const string RootName = "QA_READY_PROGRESS_01_Participants";
         private const string IdPrefix = "qa.ready-progress-01";
 
-        private readonly GameObject root;
-        private readonly Scene ownerScene;
-        private readonly List<ActivityReadinessParticipant> all =
+        private readonly GameObject _root;
+        private readonly Scene _ownerScene;
+        private readonly List<ActivityReadinessParticipant> _all =
             new List<ActivityReadinessParticipant>();
-        private readonly List<ActivityReadinessParticipant> required =
+        private readonly List<ActivityReadinessParticipant> _required =
             new List<ActivityReadinessParticipant>();
-        private readonly List<ListenerRegistration> listeners =
+        private readonly List<ListenerRegistration> _listeners =
             new List<ListenerRegistration>();
-        private readonly TaskCompletionSource<bool> allPreparing =
+        private readonly TaskCompletionSource<bool> _allPreparing =
             new TaskCompletionSource<bool>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
-        private int preparingCount;
-        private int releasedCount;
-        private bool disposed;
+        private int _preparingCount;
+        private int _releasedCount;
+        private bool _disposed;
 
         private QaParticipantAwareReadinessParticipants(
             QaActivityEntryReadinessFixture fixture,
@@ -35,11 +35,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             Scene ownerScene)
         {
             Fixture = fixture ?? throw new ArgumentNullException(nameof(fixture));
-            this.root = root ?? throw new ArgumentNullException(nameof(root));
-            this.ownerScene = ownerScene;
+            this._root = root ?? throw new ArgumentNullException(nameof(root));
+            this._ownerScene = ownerScene;
 
-            required.Add(fixture.Participant);
-            all.Add(fixture.Participant);
+            _required.Add(fixture.Participant);
+            _all.Add(fixture.Participant);
 
             for (int index = 1; index < 4; index++)
             {
@@ -49,8 +49,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     $"{IdPrefix}.required.{index + 1}",
                     ActivityContentExecutionRequiredness.Required,
                     1000 + (index * 10));
-                required.Add(participant);
-                all.Add(participant);
+                _required.Add(participant);
+                _all.Add(participant);
             }
 
             Optional = CreateParticipant(
@@ -59,21 +59,21 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 $"{IdPrefix}.optional.1",
                 ActivityContentExecutionRequiredness.Optional,
                 1100);
-            all.Add(Optional);
+            _all.Add(Optional);
 
-            for (int index = 0; index < all.Count; index++)
+            for (int index = 0; index < _all.Count; index++)
             {
-                Register(all[index]);
+                Register(_all[index]);
             }
         }
 
         internal QaActivityEntryReadinessFixture Fixture { get; }
-        internal IReadOnlyList<ActivityReadinessParticipant> Required => required;
+        internal IReadOnlyList<ActivityReadinessParticipant> Required => _required;
         internal ActivityReadinessParticipant Optional { get; }
-        internal IReadOnlyList<ActivityReadinessParticipant> All => all;
-        internal Task AllPreparing => allPreparing.Task;
-        internal int PreparingCount => preparingCount;
-        internal int ReleasedCount => releasedCount;
+        internal IReadOnlyList<ActivityReadinessParticipant> All => _all;
+        internal Task AllPreparing => _allPreparing.Task;
+        internal int PreparingCount => _preparingCount;
+        internal int ReleasedCount => _releasedCount;
 
         internal static QaParticipantAwareReadinessParticipants Create(
             QaActivityEntryReadinessFixture fixture)
@@ -107,12 +107,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         internal void RequireAllPreparing()
         {
-            Require(preparingCount == all.Count,
-                $"Expected all participant preparations. expected='{all.Count}' actual='{preparingCount}'.");
+            Require(_preparingCount == _all.Count,
+                $"Expected all participant preparations. expected='{_all.Count}' actual='{_preparingCount}'.");
             int occurrence = 0;
-            for (int index = 0; index < all.Count; index++)
+            for (int index = 0; index < _all.Count; index++)
             {
-                ActivityReadinessParticipant participant = all[index];
+                ActivityReadinessParticipant participant = _all[index];
                 Require(participant != null &&
                     participant.State == ActivityReadinessParticipantState.Preparing &&
                     participant.Occurrence > 0,
@@ -137,9 +137,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         internal void CompleteRequired(int index)
         {
-            Require(index >= 0 && index < required.Count,
+            Require(index >= 0 && index < _required.Count,
                 $"Required participant index '{index}' is outside the fixture range.");
-            ActivityReadinessParticipant participant = required[index];
+            ActivityReadinessParticipant participant = _required[index];
             Require(participant.State == ActivityReadinessParticipantState.Preparing,
                 $"Required participant '{index}' must be Preparing before completion.");
             participant.CompletePreparation();
@@ -149,9 +149,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         internal Task CompleteAllPendingForUnwindAsync()
         {
-            for (int index = 0; index < all.Count; index++)
+            for (int index = 0; index < _all.Count; index++)
             {
-                ActivityReadinessParticipant participant = all[index];
+                ActivityReadinessParticipant participant = _all[index];
                 if (participant != null &&
                     participant.State == ActivityReadinessParticipantState.Preparing)
                 {
@@ -164,55 +164,55 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         public async ValueTask DisposeAsync()
         {
-            if (disposed)
+            if (_disposed)
             {
                 return;
             }
 
-            bool neverEntered = preparingCount == 0 && releasedCount == 0;
-            bool enteredAndReleased = preparingCount == all.Count &&
-                releasedCount == all.Count;
+            bool neverEntered = _preparingCount == 0 && _releasedCount == 0;
+            bool enteredAndReleased = _preparingCount == _all.Count &&
+                _releasedCount == _all.Count;
             Require(neverEntered || enteredAndReleased,
                 "Participant-aware cleanup requires either no entry or a full " +
-                $"release. preparing='{preparingCount}' " +
-                $"released='{releasedCount}' expected='{all.Count}'.");
+                $"release. preparing='{_preparingCount}' " +
+                $"released='{_releasedCount}' expected='{_all.Count}'.");
             if (enteredAndReleased)
             {
-                for (int index = 0; index < all.Count; index++)
+                for (int index = 0; index < _all.Count; index++)
                 {
-                    Require(all[index] == null ||
-                        all[index].State ==
+                    Require(_all[index] == null ||
+                        _all[index].State ==
                         ActivityReadinessParticipantState.Released,
                         $"Participant '{index}' was not Released before cleanup.");
                 }
             }
 
-            for (int index = 0; index < listeners.Count; index++)
+            for (int index = 0; index < _listeners.Count; index++)
             {
-                listeners[index].Remove();
+                _listeners[index].Remove();
             }
-            listeners.Clear();
+            _listeners.Clear();
 
-            UnityEngine.Object.Destroy(root);
+            UnityEngine.Object.Destroy(_root);
             await Awaitable.NextFrameAsync();
-            RequireNoRoot(ownerScene);
-            disposed = true;
+            RequireNoRoot(_ownerScene);
+            _disposed = true;
         }
 
         private void Register(ActivityReadinessParticipant participant)
         {
             UnityAction started = () =>
             {
-                preparingCount++;
-                if (preparingCount == all.Count)
+                _preparingCount++;
+                if (_preparingCount == _all.Count)
                 {
-                    allPreparing.TrySetResult(true);
+                    _allPreparing.TrySetResult(true);
                 }
             };
-            UnityAction released = () => releasedCount++;
+            UnityAction released = () => _releasedCount++;
             participant.PreparationStarted.AddListener(started);
             participant.PreparationReleased.AddListener(released);
-            listeners.Add(new ListenerRegistration(
+            _listeners.Add(new ListenerRegistration(
                 participant,
                 started,
                 released));

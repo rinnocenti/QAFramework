@@ -1811,12 +1811,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private sealed class DiagnosticLeaseHandle : IDisposable
         {
-            private readonly object lease;
-            private bool disposed;
+            private readonly object _lease;
+            private bool _disposed;
 
             internal DiagnosticLeaseHandle(object lease)
             {
-                this.lease = lease ??
+                this._lease = lease ??
                     throw new ArgumentNullException(nameof(lease));
             }
 
@@ -1843,19 +1843,19 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             public void Dispose()
             {
-                if (disposed)
+                if (_disposed)
                 {
                     return;
                 }
 
-                disposed = true;
-                if (lease is IDisposable disposable)
+                _disposed = true;
+                if (_lease is IDisposable disposable)
                 {
                     disposable.Dispose();
                 }
                 else
                 {
-                    MethodInfo dispose = lease.GetType().GetMethod(
+                    MethodInfo dispose = _lease.GetType().GetMethod(
                         "Dispose",
                         BindingFlags.Instance |
                         BindingFlags.Public |
@@ -1870,7 +1870,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                             "FrameworkGameFlowDiagnosticFaultLease does not expose Dispose.");
                     }
 
-                    dispose.Invoke(lease, null);
+                    dispose.Invoke(_lease, null);
                 }
 
                 if (HasReadableProperty("Released") && !Released)
@@ -1882,7 +1882,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             private bool HasReadableProperty(string name)
             {
-                return lease.GetType().GetProperty(
+                return _lease.GetType().GetProperty(
                     name,
                     BindingFlags.Instance |
                     BindingFlags.Public |
@@ -1891,7 +1891,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             private object Read(string name)
             {
-                PropertyInfo property = lease.GetType().GetProperty(
+                PropertyInfo property = _lease.GetType().GetProperty(
                     name,
                     BindingFlags.Instance |
                     BindingFlags.Public |
@@ -1902,7 +1902,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     return null;
                 }
 
-                return property.GetValue(lease);
+                return property.GetValue(_lease);
             }
 
             private string ReadText(string name)
@@ -1931,30 +1931,30 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             private const string ScenarioSimpleName =
                 "FrameworkGameFlowDiagnosticFaultScenario";
 
-            private static Type utilityType;
-            private static Type scenarioType;
-            private static MethodInfo tryInstallMethod;
+            private static Type _utilityType;
+            private static Type _scenarioType;
+            private static MethodInfo _tryInstallMethod;
 
             internal static void ValidateBridgeContract()
             {
                 ResolveContract();
 
-                Require(utilityType != null,
+                Require(_utilityType != null,
                     "FrameworkGameFlowDiagnosticFaultUtility was not found.");
-                Require(scenarioType != null && scenarioType.IsEnum,
+                Require(_scenarioType != null && _scenarioType.IsEnum,
                     "FrameworkGameFlowDiagnosticFaultScenario enum was not found.");
-                Require(tryInstallMethod != null,
+                Require(_tryInstallMethod != null,
                     "FrameworkGameFlowDiagnosticFaultUtility.TryInstall was not found.");
 
                 foreach (string scenario in ScenarioNames)
                 {
-                    Require(Enum.GetNames(scenarioType).Contains(scenario),
+                    Require(Enum.GetNames(_scenarioType).Contains(scenario),
                         $"Diagnostic Fault scenario '{scenario}' is absent from the package Editor bridge.");
                 }
 
                 Debug.Log(
-                    $"{LogPrefix}[BRIDGE] status='Passed' utility='{utilityType.FullName}' " +
-                    $"scenarioEnum='{scenarioType.FullName}' scenarios='{ScenarioNames.Length}'.");
+                    $"{LogPrefix}[BRIDGE] status='Passed' utility='{_utilityType.FullName}' " +
+                    $"scenarioEnum='{_scenarioType.FullName}' scenarios='{ScenarioNames.Length}'.");
             }
 
             internal static DiagnosticLeaseHandle Install(
@@ -1965,12 +1965,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 ResolveContract();
 
                 object scenarioValue = Enum.Parse(
-                    scenarioType,
+                    _scenarioType,
                     scenario,
                     ignoreCase: false);
 
                 ParameterInfo[] parameters =
-                    tryInstallMethod.GetParameters();
+                    _tryInstallMethod.GetParameters();
                 object[] arguments =
                 {
                     runtimeHost,
@@ -1983,7 +1983,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 bool installed;
                 try
                 {
-                    installed = (bool)tryInstallMethod.Invoke(
+                    installed = (bool)_tryInstallMethod.Invoke(
                         null,
                         arguments);
                 }
@@ -2024,7 +2024,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                              "ActiveCount"
                          })
                 {
-                    PropertyInfo property = utilityType.GetProperty(
+                    PropertyInfo property = _utilityType.GetProperty(
                         propertyName,
                         BindingFlags.Static |
                         BindingFlags.Public |
@@ -2041,21 +2041,21 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             private static void ResolveContract()
             {
-                if (utilityType != null &&
-                    scenarioType != null &&
-                    tryInstallMethod != null)
+                if (_utilityType != null &&
+                    _scenarioType != null &&
+                    _tryInstallMethod != null)
                 {
                     return;
                 }
 
-                utilityType = FindTypeBySimpleName(UtilitySimpleName);
-                scenarioType = FindTypeBySimpleName(ScenarioSimpleName);
-                if (utilityType == null || scenarioType == null)
+                _utilityType = FindTypeBySimpleName(UtilitySimpleName);
+                _scenarioType = FindTypeBySimpleName(ScenarioSimpleName);
+                if (_utilityType == null || _scenarioType == null)
                 {
                     return;
                 }
 
-                tryInstallMethod = utilityType
+                _tryInstallMethod = _utilityType
                     .GetMethods(
                         BindingFlags.Static |
                         BindingFlags.Public |
@@ -2092,7 +2092,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 return (first == typeof(Component) ||
                         first.IsAssignableFrom(typeof(Component)) ||
                         typeof(Component).IsAssignableFrom(first)) &&
-                       second == scenarioType &&
+                       second == _scenarioType &&
                        third == typeof(string) &&
                        fifth == typeof(string);
             }

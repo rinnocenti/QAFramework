@@ -44,17 +44,17 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             "legitimate-supersession-preservation"
         };
 
-        private static bool s_running;
+        private static bool _sRunning;
         private static readonly List<string> CaseDiagnostics = new List<string>();
 
         [MenuItem(MenuPath, true)]
         private static bool ValidateRun() =>
-            EditorApplication.isPlaying && !s_running;
+            EditorApplication.isPlaying && !_sRunning;
 
         [MenuItem(MenuPath)]
         public static async void Run()
         {
-            if (s_running)
+            if (_sRunning)
             {
                 Debug.LogError(
                     $"{LogPrefix} status='Failed' reason='concurrent-execution-rejected' " +
@@ -62,7 +62,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 return;
             }
 
-            s_running = true;
+            _sRunning = true;
             CaseDiagnostics.Clear();
             var cases = new QaCaseRegistry(ExpectedCases, ExpectedCaseCount);
             var failures = new QaFailureCollector();
@@ -136,7 +136,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 }
 
                 stopwatch.Stop();
-                s_running = false;
+                _sRunning = false;
                 EmitFinalReport(
                     failures,
                     cases,

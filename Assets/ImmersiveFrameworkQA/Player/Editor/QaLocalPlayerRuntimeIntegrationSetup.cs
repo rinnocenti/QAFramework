@@ -133,8 +133,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             }
 
             PlayerInputManager[] managers = UnityEngine.Object.FindObjectsByType<PlayerInputManager>(
-                FindObjectsInactive.Include,
-                FindObjectsSortMode.None);
+                FindObjectsInactive.Include);
             if (managers.Length != 1)
             {
                 throw new InvalidOperationException(
@@ -143,8 +142,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             LocalPlayerProvisioningAuthoring[] authorings =
                 UnityEngine.Object.FindObjectsByType<LocalPlayerProvisioningAuthoring>(
-                    FindObjectsInactive.Include,
-                    FindObjectsSortMode.None);
+                    FindObjectsInactive.Include);
             if (authorings.Length != 1)
             {
                 throw new InvalidOperationException(
@@ -175,8 +173,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             LocalPlayerProvisioningHostRegistration[] registrations =
                 UnityEngine.Object.FindObjectsByType<LocalPlayerProvisioningHostRegistration>(
-                    FindObjectsInactive.Include,
-                    FindObjectsSortMode.None);
+                    FindObjectsInactive.Include);
             if (registrations.Length != 1 ||
                 !ReferenceEquals(registrations[0].ProvisioningAuthoring, authoring))
             {
@@ -186,8 +183,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             LocalPlayerActorSelectionRequestAuthoring[] selectionEndpoints =
                 UnityEngine.Object.FindObjectsByType<LocalPlayerActorSelectionRequestAuthoring>(
-                    FindObjectsInactive.Include,
-                    FindObjectsSortMode.None);
+                    FindObjectsInactive.Include);
             if (selectionEndpoints.Length != 1 ||
                 !ReferenceEquals(selectionEndpoints[0].ProvisioningAuthoring, authoring))
             {

@@ -648,9 +648,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
                 Require(result.DestinationAuthoritative &&
                     result.TargetActivity != null &&
-                    result.TargetActivity.HasSameIdentity(target) &&
+                    result.TargetActivity.HasSameStableId(target) &&
                     host.State.CurrentActivity != null &&
-                    host.State.CurrentActivity.HasSameIdentity(target),
+                    host.State.CurrentActivity.HasSameStableId(target),
                     "Direct failure did not preserve committed destination authority.");
                 cases.Complete("direct-destination-authoritative");
 
@@ -1138,13 +1138,13 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 host.State.GameFlowStarted &&
                 host.State.CurrentRoute != null &&
                 route != null &&
-                host.State.CurrentRoute.HasSameIdentity(route),
+                host.State.CurrentRoute.HasSameStableId(route),
                 "Initial Route authority was not restored.");
             Require((activity == null &&
                      host.State.CurrentActivity == null) ||
                 (activity != null &&
                  host.State.CurrentActivity != null &&
-                 host.State.CurrentActivity.HasSameIdentity(activity)),
+                 host.State.CurrentActivity.HasSameStableId(activity)),
                 "Initial Activity authority was not restored.");
         }
 
@@ -1175,60 +1175,60 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private sealed class QaTerminalDeterminateProgressProbe :
             IDisposable
         {
-            private readonly QaLoadingSurfaceVisibilityHoldAdapter loading;
+            private readonly QaLoadingSurfaceVisibilityHoldAdapter _loading;
             private readonly TaskCompletionSource<
-                QaLoadingPresentationEvidenceEntry> completion =
+                QaLoadingPresentationEvidenceEntry> _completion =
                     new TaskCompletionSource<
                         QaLoadingPresentationEvidenceEntry>(
                             TaskCreationOptions.RunContinuationsAsynchronously);
-            private int updateCount;
-            private float lastProgress01;
-            private bool hasTerminalProgress;
-            private bool hideObserved;
-            private bool attached;
+            private int _updateCount;
+            private float _lastProgress01;
+            private bool _hasTerminalProgress;
+            private bool _hideObserved;
+            private bool _attached;
 
             internal QaTerminalDeterminateProgressProbe(
                 QaLoadingSurfaceVisibilityHoldAdapter loading)
             {
-                this.loading = loading ??
+                this._loading = loading ??
                     throw new ArgumentNullException(nameof(loading));
             }
 
             internal void Attach()
             {
-                if (attached)
+                if (_attached)
                 {
                     return;
                 }
 
-                loading.PresentationEvidenceRecorded += HandleEvidence;
-                attached = true;
+                _loading.PresentationEvidenceRecorded += HandleEvidence;
+                _attached = true;
             }
 
             internal Task<QaLoadingPresentationEvidenceEntry>
                 WaitForSubTerminalProgressAsync()
             {
-                return completion.Task;
+                return _completion.Task;
             }
 
             internal DirectProgressEvidence CaptureEvidence()
             {
                 return new DirectProgressEvidence(
-                    updateCount,
-                    lastProgress01,
-                    hasTerminalProgress,
-                    hideObserved);
+                    _updateCount,
+                    _lastProgress01,
+                    _hasTerminalProgress,
+                    _hideObserved);
             }
 
             public void Dispose()
             {
-                if (!attached)
+                if (!_attached)
                 {
                     return;
                 }
 
-                loading.PresentationEvidenceRecorded -= HandleEvidence;
-                attached = false;
+                _loading.PresentationEvidenceRecorded -= HandleEvidence;
+                _attached = false;
             }
 
             private void HandleEvidence(
@@ -1239,20 +1239,20 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     entry.Action == LoadingSurfaceAction.Update &&
                     entry.ProgressSupported)
                 {
-                    updateCount++;
-                    lastProgress01 = entry.ProgressValue01;
-                    hasTerminalProgress |= entry.ProgressValue01 >=
+                    _updateCount++;
+                    _lastProgress01 = entry.ProgressValue01;
+                    _hasTerminalProgress |= entry.ProgressValue01 >=
                         1f - ProgressTolerance;
 
                     if (entry.ProgressValue01 >= 0f &&
                         entry.ProgressValue01 <
                             1f - ProgressTolerance)
                     {
-                        completion.TrySetResult(entry);
+                        _completion.TrySetResult(entry);
                     }
                 }
 
-                hideObserved |= entry.Kind ==
+                _hideObserved |= entry.Kind ==
                         QaLoadingPresentationEvidenceKind.HiddenApplied &&
                     entry.Action == LoadingSurfaceAction.Hide;
             }
@@ -1281,35 +1281,35 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private sealed class QaRecordingLoadingProgressReporter :
             IFrameworkLoadingProgressReporter
         {
-            private readonly List<FrameworkLoadingProgress> entries =
+            private readonly List<FrameworkLoadingProgress> _entries =
                 new List<FrameworkLoadingProgress>();
-            private readonly string label;
+            private readonly string _label;
 
             internal QaRecordingLoadingProgressReporter(string label)
             {
-                this.label = string.IsNullOrWhiteSpace(label)
+                this._label = string.IsNullOrWhiteSpace(label)
                     ? "Unknown"
                     : label.Trim();
             }
 
             public bool IsEnabled => true;
-            public bool HasReportedProgress => entries.Count > 0;
+            public bool HasReportedProgress => _entries.Count > 0;
             public FrameworkLoadingProgress LastProgress =>
-                entries.Count > 0
-                    ? entries[entries.Count - 1]
+                _entries.Count > 0
+                    ? _entries[_entries.Count - 1]
                     : FrameworkLoadingProgress.Unsupported(
-                        label,
+                        _label,
                         "No progress recorded.");
-            internal int Count => entries.Count;
+            internal int Count => _entries.Count;
             internal bool ContainsTerminalProgress
             {
                 get
                 {
-                    for (int index = 0; index < entries.Count; index++)
+                    for (int index = 0; index < _entries.Count; index++)
                     {
-                        if (entries[index].Supported &&
-                            entries[index].IsDeterminate &&
-                            entries[index].Value01 >=
+                        if (_entries[index].Supported &&
+                            _entries[index].IsDeterminate &&
+                            _entries[index].Value01 >=
                             1f - ProgressTolerance)
                         {
                             return true;
@@ -1323,7 +1323,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             public async Awaitable ReportAsync(
                 FrameworkLoadingProgress progress)
             {
-                entries.Add(progress);
+                _entries.Add(progress);
                 await Task.CompletedTask;
             }
         }

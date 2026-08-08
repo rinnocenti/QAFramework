@@ -157,14 +157,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     joined.Slot.Profile.DefaultActorProfile != null,
                     "Joined Player Slot has no default ActorProfile intent.");
 
-                const string SelectionReason =
+                const string selectionReason =
                     "h2.2.12-select-default-after-join";
                 PlayerActorSelectionResult selected =
                     productAuthoring.RequestDefaultActorSelection(
                         joined.Slot.PlayerSlotId,
                         joined.Slot.SelectionRevision,
                         Source,
-                        SelectionReason);
+                        selectionReason);
                 Require(
                     selected != null &&
                     selected.Succeeded &&
@@ -176,7 +176,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     selected.SelectionRevision >
                         joined.Slot.SelectionRevision &&
                     selected.Source == Source &&
-                    selected.Reason == SelectionReason,
+                    selected.Reason == selectionReason,
                     BuildProductDiagnostic(
                         productAuthoring,
                         selected,
@@ -550,9 +550,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             LocalPlayerProvisioningAuthoring>
             AwaitProvisioningAsync()
         {
-            const int MaxFrames = 600;
+            const int maxFrames = 600;
             for (int frame = 0;
-                 frame < MaxFrames;
+                 frame < maxFrames;
                  frame++)
             {
                 LocalPlayerProvisioningAuthoring[] candidates =

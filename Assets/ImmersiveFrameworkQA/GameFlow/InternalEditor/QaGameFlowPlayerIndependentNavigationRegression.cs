@@ -104,7 +104,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         .RunHostLifecycleAuthorityCoherentAsync
                 }
             };
-        private static IReadOnlyList<string> lastCompleted = Array.Empty<string>();
+        private static IReadOnlyList<string> _lastCompleted = Array.Empty<string>();
 
         [MenuItem(MenuPath, true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;
@@ -123,7 +123,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             {
                 Debug.LogError(
                     $"{LogPrefix} status='Failed' exception='{exception.GetType().Name}' " +
-                    $"message='{Escape(exception.Message)}' completed='{string.Join(",", lastCompleted)}'.");
+                    $"message='{Escape(exception.Message)}' completed='{string.Join(",", _lastCompleted)}'.");
                 throw;
             }
         }
@@ -134,7 +134,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 "Player-independent Navigation Regression requires Play Mode.");
 
             var completed = new List<string>();
-            lastCompleted = completed;
+            _lastCompleted = completed;
             ValidateRuntimeCaseRegistration();
             for (int index = 0; index < CaseNames.Length; index++)
             {
