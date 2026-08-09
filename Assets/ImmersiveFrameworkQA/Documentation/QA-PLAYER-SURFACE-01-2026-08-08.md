@@ -1,165 +1,167 @@
 # QA-PLAYER-SURFACE-01 — Public-only Player Contract Proof
 
-**Date:** 2026-08-08  
+**Original date:** 2026-08-08  
+**Certified:** 2026-08-09  
 **Cut:** Q1 / `QA-PLAYER-SURFACE-01`  
-**Status:** Implemented in QAFramework (Play Mode certification required)  
+**Status:** **CERTIFIED — Unity Play Mode PASS 29/29**  
 **Runner:** `Immersive Framework/QA/Regressions/Player/Run QA-PLAYER-SURFACE-01 Public Provisioning Surface Regression`
 
 ---
 
 ## 1. Objective
 
-Prove a real Manager-Provisioned Player lifecycle using only public consumer surfaces for the Player contract under test:
+Prove a real Manager-Provisioned Player lifecycle through the official public consumer surface:
 
 ```text
-scoped access (P1)
+authored public Activity navigation
+→ scoped Player provisioning access (P1)
 → public commands
-→ public observation (P2)
-→ public Actor selection
+→ immutable observation (P2)
+→ public default Actor selection
 → normal runtime preparation / materialization / admission
 → readiness / WaitCovered / loading / gate
-→ Activity exit preserves Session Host/join
-→ reentry without duplicate Slot/Actor
+→ Activity exit preserves Session-owned Host/join
+→ reentry with a newer Activity occurrence and no duplicate Slot/Actor
 ```
 
-If preparation/materialization/admission does not complete after public Join + default Actor selection, Q1 fails as a **package gap** (no QA bypass).
+Q1 does not call internal Player preparation, materialization, admission or reconcile operations to make the flow pass.
 
 ---
 
-## 2. Documents investigated
-
-| Document | Role |
-|---|---|
-| IF-ADR-015 | Command/observation consumer boundary |
-| IF-ADR-016 | PlayerSessionProfile / ProvisioningProfile initialization |
-| IF-ADR-015 Closure Plan | P1–P4 / Q1 sequence and allowed surfaces |
-| IF-PLAYER-SURFACE-01E2 Public Contract Coverage Audit | Public vs internal coverage matrix |
-| Player Session / Activity reconciliations | Ownership of Host/join vs Activity projection |
-| Transversal invariants / decision classification | Authority separation |
-| P1–P4 package implementations | Consumer access, observation, command trigger, status binding |
-
----
-
-## 3. Existing QA investigated / reused
-
-| Asset | Reuse |
-|---|---|
-| `QaManagerProvisionedLifecyclePublicContractRegression` | Edit Mode contract shape (kept) |
-| `QaManagerProvisionedLifecycleWaitingProjectionRegression` | WaitingForJoin / Released projection pattern |
-| `QaM07ActivitySessionLifecycleProjectionRegression` | Exit preserves Session; occurrence switch |
-| `QaPlayerActorSelectionRuntimeBindingRegression` | Public default Actor selection |
-| `QaParticipantAwareReadinessLoadingProgressRegression` | WaitCovered loading grammar (internal) |
-| `QaM07InternalReconcileSetup` | Edit Mode environment preparation only |
-| `QaActivityEntryReadinessFixture` | Temporary WaitCovered Activity arrangement |
-
----
-
-## 4. Canonical QA structure reused
-
-```text
-Assets/ImmersiveFrameworkQA/GameFlow/InternalEditor/
-  QaPlayerProvisioningPublicSurfaceRegression.cs
-
-Assets/ImmersiveFrameworkQA/Documentation/
-  QA-PLAYER-SURFACE-01-2026-08-08.md
-```
-
-No parallel harness, no new package API, no ZIP, no Git operations.
-
----
-
-## 5. Public APIs exercised
+## 2. Package contracts under test
 
 | Concern | Public surface |
 |---|---|
 | Scoped access | `LocalPlayerProvisioningConsumerAccessBinding` + `ILocalPlayerProvisioningConsumerAccess` |
-| Observation | `TryGetObservation` → `LocalPlayerProvisioningConsumerObservationSnapshot` |
-| Joining / Capacity / Join | `OpenJoining`, `SetDynamicCapacity`, `RequestJoin` |
+| Observation | `TryGetObservation` → immutable `LocalPlayerProvisioningConsumerObservationSnapshot` |
+| Joining / Capacity / Join | `OpenJoining`, `SetDynamicCapacity`, `RequestJoin`, `CloseJoining` |
 | Actor selection | `LocalPlayerActorSelectionRequestAuthoring.RequestDefaultActorSelection` |
-| Lifecycle evidence | `ManagerProvisionedPlayerLifecycleSnapshot` via consumer observation |
-| Slot/Host/Actor readiness | `LocalPlayerProvisioningConsumerSlotObservation` |
-| Loading presentation | `QaLoadingSurfaceVisibilityHoldAdapter` (product-visible loading surface already in UIGlobal) |
-| Authoring fixtures | `GameApplicationAsset`, `PlayerSlotProfile`, `ActorProfile`, `ActivityAsset`, Route content scene |
+| Lifecycle evidence | `ManagerProvisionedPlayerLifecycleSnapshot` through consumer observation |
+| Slot evidence | joined state, Host, selected Actor, preparation/materialization/admission evidence |
+| Activity correlation | Activity owner/occurrence + Session/applied revision evidence |
+| Public navigation | authored composition-time `ActivityRequestTrigger` |
 
-**Not used as consumer path**
+Forbidden as the Player consumer path:
 
 ```text
 reflection
-FindObjectOfType / FindObjectsByType authority lookup
-FrameworkRuntimeHost module GetComponent for Player authority
-PrepareSelectedActor / EnsureGameplayReady / reconcile
+FindObjectOfType / FindObjectsByType authority discovery
+FrameworkRuntimeHost Player module lookup
+TryBind... authority shortcuts
+PrepareSelectedActor
+EnsureGameplayReady
+reconcile
 external Slot mutation
-log parsing
+log parsing as authority
+runtime-created replacement consumer binding
 ```
 
-**Arrangement only (not the Player consumer path under test)**
+---
+
+## 3. Canonical arrangement
+
+Preparation reuses the existing canonical M07/Player fixtures and authors the public navigation/binding before Play Mode.
 
 ```text
-QaActivityEntryReadinessFixture.Activities.RequestActivityAsync / ClearActivityAsync
-host resolution for Game Flow readiness environment
+QA_Hub
+  QA_PlayerSurface_PublicNavigation
+    Enter ActivityRequestTrigger
+    Clear ActivityRequestTrigger
+    Route LocalPlayerProvisioningConsumerAccessBinding
+
+QA_UIGlobal
+  canonical persistent Player provisioning composition
+  QaPlayerSurfaceGlobalUiFixture
+    explicit local Actor Selection reference
 ```
 
----
+`QA_UIGlobal` is not left open as an extra source-scene copy before Play Mode. The Framework loads/persists the canonical Global UI composition once.
 
-## 6. Assertions (typed evidence)
-
-- scoped access available (`IsBound` / `Snapshot.IsAvailable`)
-- Joining open after public OpenJoining
-- Dynamic capacity applied after public SetDynamicCapacity
-- Slot joined + Host evidence after public RequestJoin
-- selected Actor after public default selection
-- prepared / materialized / gameplay admitted without privileged QA APIs
-- lifecycle Ready + GateHeld false
-- Session revision + Applied Session revision correlation
-- Activity occurrence present
-- WaitCovered pending before Player Ready (request incomplete + gate held + loading not terminal)
-- loading/gate terminal after Ready
-- Activity-owned projection released on exit
-- Session-owned Host/join persists
-- reentry newer occurrence, no duplicate Slot/Actor
-- CloseJoining
-- static source scan for forbidden tokens
+Q1 resolves QA-owned fixtures deterministically and consumes their explicit references. It does not discover framework Player authorities by scene scan.
 
 ---
 
-## 7. How to run
+## 4. Certified assertions — 29/29
+
+The certified runner completed all cases:
+
+```text
+play-mode-required
+setup-confirmed
+runtime-started
+public-navigation-fixture-resolved
+public-activity-trigger-composition-bound
+consumer-binding-authored
+scoped-access-available
+fresh-session-confirmed
+waitcovered-activity-configured
+activity-entry-started
+waiting-for-join-observed
+waitcovered-loading-pending
+joining-opened
+dynamic-capacity-set
+public-join-succeeded
+joined-slot-host-observed
+default-actor-selection-requested
+selected-actor-observed
+normal-lifecycle-ready
+prepared-materialized-admitted
+waitcovered-loading-terminal
+activity-entry-completed
+activity-exit-released
+session-host-persists
+reentry-newer-occurrence
+reentry-no-duplicate-slot-actor
+joining-closed
+fixture-cleaned
+public-scan-clean
+```
+
+The certification specifically closes the previously open public `WaitingForJoin + WaitCovered` proof: loading remains non-terminal while the required Player is unresolved, then completes only after the public Join/Actor lifecycle reaches Ready.
+
+---
+
+## 5. Certified result
+
+Unity Play Mode evidence recorded on 2026-08-09:
+
+```text
+[QA_PLAYER_SURFACE_01]
+status='Passed'
+verdict='Q1_PASS'
+cases='29'
+```
+
+Observed correlation in the certified run included distinct Activity occurrences for first entry/reentry and no duplicate Slot/Actor materialization.
+
+No package runtime gap remained after the QA fixture/order corrections.
+
+---
+
+## 6. How to run now
+
+Preferred joint certification:
 
 1. Exit Play Mode.
-2. Run `Immersive Framework/QA/Setup/Player/M07 Prepare Internal Reconcile Regression`.
-3. Enter a **fresh** Play Mode (no previously joined Players).
-4. Run `Immersive Framework/QA/Regressions/Player/Run QA-PLAYER-SURFACE-01 Public Provisioning Surface Regression`.
-5. Expect console:
-   - `status='Passed' verdict='Q1_PASS'` or
-   - `status='Failed' verdict='Q1_FAIL'` with package-gap wording if normal lifecycle does not advance.
+2. Run `Immersive Framework/QA/Setup/Player/Prepare Player Surface Full Certification`.
+3. Confirm the authored preparation completes.
+4. Run `Immersive Framework/QA/Regressions/Player/Run Player Surface Full Certification (Q1+Q2)`.
+5. Expect Q1 `verdict='Q1_PASS'` before the orchestrator exits/re-prepares for Q2.
 
-Unity/Play Mode not executable in CI batch must be recorded as **pending behavioral certification**, not PASS.
+Q1 can still be run separately in a fresh prepared Play Mode when isolating the positive path.
 
 ---
 
-## 8. Expected package gap report format (if FAIL on lifecycle)
+## 7. Certification interpretation
 
-1. Where the public flow stopped  
-2. Public state observed  
-3. Expected operation  
-4. Probable architectural cause  
-5. Smallest package fix  
+This is a **public consumer contract certification**, not a replacement for internal authority QA.
+
+Internal tests should continue proving reservation ownership, assignment-token invariants, rollback, reconciliation and other privileged authority behavior. Those internals must not be promoted into public APIs merely for Q1 convenience.
 
 ---
 
-## 9. Q2 candidates
-
-- joining closed reject
-- capacity exhausted / invalid capacity
-- stale Actor selection revision
-- unavailable / wrong / disposed consumer scope
-- exit while WaitingForJoin / mid progression
-- pure ActivityRequestTrigger-only entry without readiness fixture arrangement
-- repeated no-change operations
-
----
-
-## 10. Suggested commit message
+## 8. Suggested commit message
 
 ```text
-test(qa): prove public player provisioning surface (QA-PLAYER-SURFACE-01)
+docs(qa): record QA-PLAYER-SURFACE-01 certification
 ```

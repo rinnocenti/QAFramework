@@ -1,9 +1,11 @@
 # QA-PLAYER-SURFACE-02 — Negative / Stale Lifecycle Hardening
 
-**Date:** 2026-08-08  
+**Original date:** 2026-08-08  
+**Certified:** 2026-08-09  
 **Cut:** Q2 / `QA-PLAYER-SURFACE-02`  
+**Status:** **CERTIFIED — Unity Play Mode PASS 36/36**  
 **Runner:** `Immersive Framework/QA/Regressions/Player/Run QA-PLAYER-SURFACE-02 Public Surface Negative Regression`  
-**Baseline:** Q1 `QaPlayerProvisioningPublicSurfaceRegression` (positive happy path)
+**Baseline:** Q1 public positive Player Surface path
 
 ---
 
@@ -12,72 +14,163 @@
 Certify that the public Player consumer surface:
 
 - rejects invalid commands with typed public results;
-- does not mutate Session state on rejected operations;
-- refuses missing / wrong / destroyed / replaced scopes without fallback;
+- does not mutate Session state on rejected/no-change operations;
+- refuses missing, wrong, destroyed or stale scope without fallback;
 - isolates Activity-owned evidence across exit/reentry/occurrences;
 - preserves Session-owned join/Host when required by contract;
-- does not present stale observation as current.
+- rejects stale Actor selection revision;
+- fails explicitly when a public navigation trigger is deliberately unbound.
 
 ---
 
-## 2. Case matrix
+## 2. Public APIs under test
 
-| Group | Cases |
-|---|---|
-| Commands | join closed; capacity exhausted; invalid capacity; open/close no-change |
-| Scope P1 | missing binding; wrong scope; destroyed binding; stale endpoint after dispose/exit |
-| Activity lifecycle | exit while WaitingForJoin; exit after join/select; reentry; newer occurrence; no duplicate Slot/Actor |
-| Observation P2 | stale activity observation unavailable; old occurrence not current; revisions do not regress |
-| Actor selection | stale selection revision rejected; repeated default selection stable |
-| Public navigation | runtime-created unbound `ActivityRequestTrigger` fails explicitly; composition-time gap recorded |
-
----
-
-## 3. Public APIs under test
-
-- `ILocalPlayerProvisioningConsumerAccess` / `LocalPlayerProvisioningConsumerAccessBinding`
-- `TryGetObservation` / immutable observation snapshots
-- `OpenJoining` / `CloseJoining` / `SetDynamicCapacity` / `RequestJoin`
+- `ILocalPlayerProvisioningConsumerAccess`
+- `LocalPlayerProvisioningConsumerAccessBinding`
+- immutable `TryGetObservation` projection
+- `OpenJoining`
+- `CloseJoining`
+- `SetDynamicCapacity`
+- `RequestJoin`
 - `LocalPlayerActorSelectionRequestAuthoring.RequestDefaultActorSelection`
-- `PlayerProvisioningCommandTrigger` (missing binding validation/result)
-- `ActivityRequestTrigger` (unbound failure diagnostics)
+- `PlayerProvisioningCommandTrigger`
+- public `ActivityRequestTrigger` failure diagnostics
 
-Arrangement only (not the Player contract path): readiness fixture Activity request/clear, M07 prepare, host readiness for environment.
+Arrangement helpers may prepare the QA environment but do not act as the Player command/observation authority under test.
 
 ---
 
-## 4. Public navigation disposition
+## 3. Certified case matrix — 36/36
 
-Runtime-created `ActivityRequestTrigger` instances are **not** composition-bound by Framework (binding occurs on Route/Activity/GlobalUI composition). Request fails with an explicit public unbound diagnostic.
+### Commands
 
 ```text
-publicNavigation = gap-runtime-created-trigger-not-composition-bound
+join rejected while joining closed
+Open Joining succeeds
+repeated Open Joining = no change
+invalid capacity rejected
+capacity set for exhaustion scenario
+first join succeeds
+second join rejected at capacity
+Close Joining succeeds
+repeated Close Joining = no change
 ```
 
-This is a **product reachability disposition**, not a privileged QA bypass. Full public end-to-end navigation requires an authored trigger present at composition time (Edit Mode fixture / product scene), not `TryBindActivityRuntime` from QA.
-
----
-
-## 5. How to run
-
-1. Exit Play Mode.  
-2. Run M07 Prepare Internal Reconcile Regression.  
-3. Enter a **fresh** Play Mode.  
-4. Run Q2 menu item.  
-5. Optional: run Q1 in another fresh Play Mode.  
-
-Expect console:
+### Scoped access / lifetime
 
 ```text
-[QA_PLAYER_SURFACE_02] status='Passed' verdict='Q2_IMPLEMENTED_STATIC_OK' ...
+missing binding command unavailable
+wrong scope has no fallback
+Activity-scoped endpoint becomes stale after exit
+reentry produces a new current occurrence
+binding destruction releases access
+old Route endpoint remains stale after destruction
 ```
 
-Behavioral Unity certification remains separate until Play Mode is executed.
+### Activity lifecycle
+
+```text
+entry while waiting for Join
+exit while WaitingForJoin
+reentry after waiting exit
+join/select lifecycle entry
+capture occurrence A
+exit after Join preserves Session state
+reentry uses newer occurrence
+old occurrence is not current
+no duplicate Slot/Actor
+```
+
+### Actor selection
+
+```text
+stale selection revision rejected
+repeated default selection remains stable
+```
+
+### Public navigation negative
+
+A deliberately runtime-created/unbound `ActivityRequestTrigger` fails explicitly because the Framework binds authored triggers during Route/Activity/GlobalUI composition. This remains an intentional negative case, not the happy-path navigation strategy.
 
 ---
 
-## 6. Suggested commit
+## 4. Expected error records during negative proof
+
+Q2 deliberately exercises failures. Therefore console `[ERROR]` records can be expected for scenarios such as:
 
 ```text
-test(qa): harden public player surface lifecycle
+Activity entry readiness cancelled after Activity authority removal
+unbound ActivityRequestTrigger request
+```
+
+These records are negative evidence when the typed result and final runner verdict match the expected failure contract.
+
+They do **not** make the certification fail when Q2 ends `status='Passed'` and the joint orchestrator records `q2='PASS'`.
+
+---
+
+## 5. Certified result
+
+Unity Play Mode evidence recorded on 2026-08-09:
+
+```text
+[QA_PLAYER_SURFACE_02]
+status='Passed'
+cases='36'
+```
+
+The joint orchestrator then recorded:
+
+```text
+q2='PASS'
+verdict='PLAYER SURFACE QA CERTIFIED'
+```
+
+### Legacy runner wording
+
+The runner output observed during certification still contained historical text equivalent to:
+
+```text
+verdict='Q2_IMPLEMENTED_STATIC_OK'
+behavioral='PendingUnityPlayModeConfirmation'
+```
+
+That wording is stale because this exact run occurred in Unity Play Mode and completed successfully. The canonical documentation status is therefore **Q2 PASS / Unity Play Mode confirmed**. The runner diagnostic string should be cleaned separately when code changes are next allowed; it does not invalidate this certification record.
+
+---
+
+## 6. How to run now
+
+Preferred joint flow:
+
+1. Exit Play Mode.
+2. Run `Prepare Player Surface Full Certification`.
+3. Run `Run Player Surface Full Certification (Q1+Q2)`.
+4. The orchestrator runs Q1, exits Play Mode, re-prepares canonical M07 + public navigation fixtures, then starts a fresh Play Mode for Q2.
+5. Expect final joint verdict `PLAYER SURFACE QA CERTIFIED`.
+
+---
+
+## 7. Architectural interpretation
+
+Q2 certifies public failure/lifetime semantics without creating:
+
+```text
+service locator
+static Player registry
+reflection-based authority discovery
+manual internal TryBind path
+consumer-side Slot mutation
+consumer-side prepare/materialize/reconcile
+silent stale-scope fallback
+```
+
+Deep authority mutation/rollback cases remain internal QA responsibilities.
+
+---
+
+## 8. Suggested commit
+
+```text
+docs(qa): record QA-PLAYER-SURFACE-02 certification
 ```
