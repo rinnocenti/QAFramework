@@ -77,11 +77,28 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             out string diagnostic)
         {
             fixture = null;
-            QaPlayerSurfaceGlobalUiFixture[] candidates =
+            var candidates = new System.Collections.Generic.List<
+                QaPlayerSurfaceGlobalUiFixture>();
+            QaPlayerSurfaceGlobalUiFixture[] discovered =
                 UnityEngine.Object.FindObjectsByType<
                     QaPlayerSurfaceGlobalUiFixture>(
-                        FindObjectsInactive.Include);
-            int count = candidates.Length;
+                    FindObjectsInactive.Include,
+                    FindObjectsSortMode.None);
+            for (int index = 0; index < discovered.Length; index++)
+            {
+                QaPlayerSurfaceGlobalUiFixture candidate = discovered[index];
+                if (candidate == null ||
+                    candidate.gameObject == null ||
+                    !candidate.gameObject.scene.IsValid() ||
+                    !candidate.gameObject.scene.isLoaded)
+                {
+                    continue;
+                }
+
+                candidates.Add(candidate);
+            }
+
+            int count = candidates.Count;
 
             if (count != 1)
             {
@@ -89,7 +106,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "Player Surface certification requires exactly one live " +
                     $"QaPlayerSurfaceGlobalUiFixture; found '{count}'. " +
                     "The fixture is QA-owned evidence and must be retained by the " +
-                    $"normal UIGlobal composition. {DescribeGlobalUiFixtures(candidates)}";
+                    $"normal UIGlobal composition. {DescribeGlobalUiFixtures(candidates.ToArray())}";
                 return false;
             }
 
@@ -97,14 +114,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             if (!fixture.TryValidateAuthoredSurface(out string issue))
             {
                 diagnostic =
-                    $"UIGlobal QA fixture validation failed. {DescribeGlobalUiFixtures(candidates)} " +
+                    $"UIGlobal QA fixture validation failed. {DescribeGlobalUiFixtures(candidates.ToArray())} " +
                     $"issue='{issue}'.";
                 fixture = null;
                 return false;
             }
 
             diagnostic =
-                DescribeGlobalUiFixtures(candidates);
+                DescribeGlobalUiFixtures(candidates.ToArray());
             return true;
         }
 
@@ -148,6 +165,39 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 $"provisioningReady='{(provisioning != null && provisioning.RuntimeReady)}' " +
                 $"provisioningDiagnostic='{(provisioning != null ? provisioning.RuntimeDiagnostic : "missing")}' " +
                 $"fixtureEvidence=\"fixtureCount='1' {DescribeGlobalUiFixture(fixture)}\".");
+        }
+
+        internal static async Task<LocalPlayerProvisioningAuthoring>
+            RequireProvisioningRuntimeReadyAsync(
+                QaPlayerSurfaceGlobalUiFixture fixture,
+                int frameBudget)
+        {
+            Require(fixture != null,
+                "UIGlobal QA fixture is required for provisioning readiness.");
+            Require(
+                fixture.TryValidateAuthoredSurface(out string fixtureIssue),
+                fixtureIssue);
+
+            LocalPlayerProvisioningAuthoring provisioning = fixture
+                .ActorSelectionRequestAuthoring.ProvisioningAuthoring;
+            Require(provisioning != null,
+                "UIGlobal QA fixture has no Local Player provisioning authoring.");
+
+            for (int frame = 0; frame < frameBudget; frame++)
+            {
+                if (provisioning.RuntimeReady)
+                {
+                    return provisioning;
+                }
+
+                await Awaitable.NextFrameAsync();
+            }
+
+            throw new TimeoutException(
+                "Canonical Local Player provisioning did not become RuntimeReady after Framework boot. " +
+                $"object='{provisioning.gameObject.name}' " +
+                $"scene='{provisioning.gameObject.scene.name}' " +
+                $"diagnostic='{provisioning.RuntimeDiagnostic}'.");
         }
 
         private static string DescribeGlobalUiFixtures(

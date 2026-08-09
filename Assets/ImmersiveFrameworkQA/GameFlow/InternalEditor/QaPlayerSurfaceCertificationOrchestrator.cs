@@ -332,6 +332,18 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     Immersive.Framework.PlayerParticipation
                         .LocalPlayerProvisioningConsumerScope.Route,
                 "Authored Route consumer binding is missing or wrong scope.");
+            Require(
+                fixture.WrongScopeBinding != null &&
+                fixture.WrongScopeBinding.Scope ==
+                    Immersive.Framework.PlayerParticipation
+                        .LocalPlayerProvisioningConsumerScope.Activity,
+                "Authored wrong-scope negative binding is missing or wrong scope.");
+            Require(
+                fixture.DestroyProbeBinding != null &&
+                fixture.DestroyProbeBinding.Scope ==
+                    Immersive.Framework.PlayerParticipation
+                        .LocalPlayerProvisioningConsumerScope.Route,
+                "Authored destroy-probe binding is missing or wrong scope.");
         }
 
         private static void Require(bool condition, string message)

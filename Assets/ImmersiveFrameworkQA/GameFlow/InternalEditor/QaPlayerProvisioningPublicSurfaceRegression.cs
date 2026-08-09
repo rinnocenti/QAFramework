@@ -8,11 +8,11 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
+using Immersive.Framework.Transition;
 using ImmersiveFrameworkQA.Hub;
 using ImmersiveFrameworkQA.UnityBuildSurface;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 {
@@ -32,7 +32,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             "Run QA-PLAYER-SURFACE-01 Public Provisioning Surface Regression";
         private const string Prefix = "[QA_PLAYER_SURFACE_01]";
         private const string Source = nameof(QaPlayerProvisioningPublicSurfaceRegression);
-        private const string ConsumerRootName = "QA_PLAYER_SURFACE_01_Consumer";
         private const int FrameBudget = 360;
         private const int ExpectedCaseCount = 29;
 
@@ -43,7 +42,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             "runtime-started",
             "public-navigation-fixture-resolved",
             "public-activity-trigger-composition-bound",
-            "consumer-binding-created",
+            "consumer-binding-authored",
             "scoped-access-available",
             "fresh-session-confirmed",
             "waitcovered-activity-configured",
@@ -90,7 +89,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             FrameworkRuntimeHost host = null;
             QaPlayerSurfacePublicNavigationFixture publicNav = null;
             QaPlayerSurfaceGlobalUiFixture globalUiFixture = null;
-            GameObject consumerRoot = null;
             LocalPlayerProvisioningConsumerAccessBinding consumerBinding = null;
             ILocalPlayerProvisioningConsumerAccess access = null;
             LocalPlayerActorSelectionRequestAuthoring actorSelection = null;
@@ -126,8 +124,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "QA-PLAYER-SURFACE-01 requires a started Game Flow runtime with a current Route.");
                 cases.Complete("runtime-started");
 
-                loading = ResolveLoadingAdapter();
-
                 Require(
                     QaPlayerSurfacePublicNavigationSupport.TryResolveAuthoredFixture(
                         out publicNav,
@@ -141,11 +137,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                             out globalUiFixture,
                             out string globalUiFixtureDiagnostic),
                     globalUiFixtureDiagnostic);
-                actorSelection = await QaPlayerSurfacePublicNavigationSupport
-                    .RequireActorSelectionRuntimeReadyAsync(
-                        globalUiFixture,
-                        FrameBudget);
-
+                loading = globalUiFixture.LoadingSurface;
+                Require(
+                    loading != null,
+                    "Player Surface UIGlobal fixture has no authored Loading Surface adapter.");
                 enterTrigger = publicNav.EnterActivityTrigger;
                 clearTrigger = publicNav.ClearActivityTrigger;
                 activity = publicNav.TargetActivity;
@@ -154,6 +149,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 await QaPlayerSurfacePublicNavigationSupport
                     .RequireCompositionBoundAsync(clearTrigger, FrameBudget);
                 cases.Complete("public-activity-trigger-composition-bound");
+
+                await QaPlayerSurfacePublicNavigationSupport
+                    .RequireProvisioningRuntimeReadyAsync(
+                        globalUiFixture,
+                        FrameBudget);
 
                 PlayerSlotProfile slotProfile =
                     publicNav.PrimaryPlayerSlot ?? ResolveFirstLocalPlayerSlot();
@@ -164,17 +164,13 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     slotProfile.DefaultActorProfile.LogicalActorHostPrefab != null,
                     "QA-PLAYER-SURFACE-01 requires a configured first Local Player Slot with default Actor.");
 
-                // Prefer the authored Route consumer binding from the public fixture.
-                // Fall back to a runtime Route binding only if the authored one fails.
                 consumerBinding = publicNav.RouteConsumerBinding;
-                if (consumerBinding == null)
-                {
-                    consumerRoot = CreateRouteConsumerRoot(
-                        host.State.CurrentRoute,
-                        out consumerBinding);
-                }
-
-                cases.Complete("consumer-binding-created");
+                Require(
+                    consumerBinding != null &&
+                    consumerBinding.Scope ==
+                        LocalPlayerProvisioningConsumerScope.Route,
+                    "Prepared public navigation fixture has no authored Route consumer binding.");
+                cases.Complete("consumer-binding-authored");
 
                 access = await AwaitScopedAccessAsync(
                     consumerBinding,
@@ -199,10 +195,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     activity != null &&
                     activity.EntryReadinessPolicy ==
                         ActivityEntryReadinessPolicy.WaitCovered &&
+                    activity.VisualTransitionMode ==
+                        ActivityVisualTransitionMode.FadeWithLoading &&
+                    activity.TransitionGateMode ==
+                        TransitionGateMode.InputInteractionAndGameplay &&
                     activity.PlayerParticipationRequirementLevel ==
                         PlayerParticipationRequirementLevel.GameplayReady &&
                     activity.HasActivityContentProfile,
-                    "Authored public WaitCovered Activity is not correctly configured.");
+                    "Authored public WaitCovered Activity does not preserve the canonical " +
+                    "FadeWithLoading presentation and gate configuration.");
                 cases.Complete("waitcovered-activity-configured");
 
                 QaPlayerSurfacePublicNavigationSupport.RequestActivityPublic(
@@ -259,10 +260,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     enterTrigger.IsRequestInFlight &&
                     pendingHold.Lifecycle.GateHeld &&
                     !pendingHold.Lifecycle.IsReady &&
-                    (loading == null ||
-                        loading.IsVisible ||
-                        loading.CurrentAlpha > 0.001f ||
-                        loading.HideHoldActive),
+                    loading.IsVisible &&
+                    loading.CurrentAlpha >= 0.999f &&
+                    !loading.HideHoldActive,
                     "WaitCovered did not keep loading/gate pending while no Player had joined. " +
                     DescribeObservation(pendingHold) +
                     DescribeLoading(loading));
@@ -345,6 +345,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         FrameBudget);
                 cases.Complete("joined-slot-host-observed");
 
+                actorSelection = await QaPlayerSurfacePublicNavigationSupport
+                    .RequireActorSelectionRuntimeReadyAsync(
+                        globalUiFixture,
+                        FrameBudget);
+
                 // Re-read immediately before the public selection request so a
                 // concurrent normal-runtime default selection does not produce a
                 // false stale-revision rejection in this positive path.
@@ -420,8 +425,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 Require(
                     readyObservation.Lifecycle.IsReady &&
                     !readyObservation.Lifecycle.GateHeld &&
-                    (loading == null ||
-                        (!loading.IsVisible && loading.CurrentAlpha <= 0.001f)),
+                    !loading.IsVisible &&
+                    loading.CurrentAlpha <= 0.001f &&
+                    !loading.HideHoldActive,
                     "Loading/gate did not reach a terminal released state after Player Ready. " +
                     DescribeObservation(readyObservation) +
                     DescribeLoading(loading));
@@ -569,8 +575,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     {
                         if (!clearTrigger.IsRequestInFlight)
                         {
-                            clearTrigger.ClearActivity();
+                            QaPlayerSurfacePublicNavigationSupport
+                                .ClearActivityPublic(clearTrigger);
                         }
+
+                        await QaPlayerSurfacePublicNavigationSupport
+                            .AwaitTriggerTerminalSuccessAsync(
+                                clearTrigger,
+                                FrameBudget,
+                                "Player Surface entry unwind did not settle before Play Mode teardown.");
                     }
                     catch (Exception exception)
                     {
@@ -590,10 +603,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     }
                 }
 
-                if (consumerRoot != null)
-                {
-                    UnityEngine.Object.Destroy(consumerRoot);
-                }
             }
 
             if (failures.HasFailures)
@@ -612,49 +621,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 throw failures.ToAggregate(
                     "QA-PLAYER-SURFACE-01 public Player provisioning surface regression failed.");
             }
-        }
-
-        private static GameObject CreateRouteConsumerRoot(
-            RouteAsset route,
-            out LocalPlayerProvisioningConsumerAccessBinding binding)
-        {
-            Require(route != null, "Route consumer root requires the current Route.");
-            Scene primary = default;
-            for (int index = 0; index < SceneManager.sceneCount; index++)
-            {
-                Scene candidate = SceneManager.GetSceneAt(index);
-                if (candidate.IsValid() &&
-                    candidate.isLoaded &&
-                    string.Equals(
-                        candidate.name,
-                        route.PrimarySceneName,
-                        StringComparison.Ordinal))
-                {
-                    primary = candidate;
-                    break;
-                }
-            }
-
-            Require(
-                primary.IsValid() && primary.isLoaded,
-                $"Current Route primary scene '{route.PrimarySceneName}' is not loaded for consumer binding.");
-
-            var root = new GameObject(ConsumerRootName);
-            SceneManager.MoveGameObjectToScene(root, primary);
-            binding = root.AddComponent<LocalPlayerProvisioningConsumerAccessBinding>();
-            var serialized = new SerializedObject(binding);
-            SerializedProperty scope = serialized.FindProperty("scope");
-            Require(scope != null, "Consumer binding is missing serialized scope field.");
-            int routeIndex = Array.IndexOf(
-                scope.enumNames,
-                nameof(LocalPlayerProvisioningConsumerScope.Route));
-            Require(routeIndex >= 0, "Consumer binding scope enum lacks Route.");
-            scope.enumValueIndex = routeIndex;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            Require(
-                binding.Scope == LocalPlayerProvisioningConsumerScope.Route,
-                "Route-scoped consumer binding was not applied.");
-            return root;
         }
 
         private static async Task<ILocalPlayerProvisioningConsumerAccess>
@@ -820,19 +786,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 slot != null,
                 "Could not resolve first Local Player Slot from active GameApplication.");
             return slot;
-        }
-
-        private static QaLoadingSurfaceVisibilityHoldAdapter ResolveLoadingAdapter()
-        {
-            QaLoadingSurfaceVisibilityHoldAdapter[] adapters =
-                UnityEngine.Object.FindObjectsByType<
-                    QaLoadingSurfaceVisibilityHoldAdapter>(
-                        FindObjectsInactive.Include);
-            Require(
-                adapters.Length == 1,
-                "QA-PLAYER-SURFACE-01 requires exactly one live " +
-                $"QaLoadingSurfaceVisibilityHoldAdapter; found '{adapters.Length}'.");
-            return adapters[0];
         }
 
         private static bool HasJoinedSlot(

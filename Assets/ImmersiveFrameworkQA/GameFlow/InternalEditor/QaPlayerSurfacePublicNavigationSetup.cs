@@ -7,6 +7,7 @@ using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
 using Immersive.Framework.Transition;
 using ImmersiveFrameworkQA.Hub;
+using ImmersiveFrameworkQA.Lifecycle;
 using ImmersiveFrameworkQA.UnityBuildSurface;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -112,6 +113,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     $"Could not save Hub scene '{HubScenePath}'.");
 
                 ConfigureGlobalUiFixture();
+                ConfigureActivityContentFixture();
                 Require(
                     !IsGlobalUiSourceSceneLoaded(),
                     "Player Surface Prepare must leave the UIGlobal source scene closed so Framework bootstrap owns its single runtime load.");
@@ -230,7 +232,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 ActivityEntryReadinessPolicy.WaitCovered.ToString());
             SetEnumName(
                 RequireProperty(serialized, "visualTransitionMode"),
-                ActivityVisualTransitionMode.Fade.ToString());
+                ActivityVisualTransitionMode.FadeWithLoading.ToString());
             SetEnumName(
                 RequireProperty(serialized, "transitionGateMode"),
                 TransitionGateMode.InputInteractionAndGameplay.ToString());
@@ -240,10 +242,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             Require(
                 activity.EntryReadinessPolicy ==
                     ActivityEntryReadinessPolicy.WaitCovered &&
+                activity.VisualTransitionMode ==
+                    ActivityVisualTransitionMode.FadeWithLoading &&
+                activity.TransitionGateMode ==
+                    TransitionGateMode.InputInteractionAndGameplay &&
                 activity.PlayerParticipationRequirementLevel ==
                     PlayerParticipationRequirementLevel.GameplayReady &&
                 activity.HasActivityContentProfile,
-                "Authored public Activity did not retain WaitCovered/player configuration.");
+                "Authored public Activity did not retain the canonical " +
+                "WaitCovered/FadeWithLoading/player configuration.");
             return activity;
         }
 
@@ -301,6 +308,16 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             Require(
                 binding != null,
                 "Failed to create Route LocalPlayerProvisioningConsumerAccessBinding.");
+            LocalPlayerProvisioningConsumerAccessBinding wrongScopeBinding =
+                FindOrCreateChildBinding(
+                    root,
+                    "WrongScopeBinding",
+                    LocalPlayerProvisioningConsumerScope.Activity);
+            LocalPlayerProvisioningConsumerAccessBinding destroyProbeBinding =
+                FindOrCreateChildBinding(
+                    root,
+                    "DestroyProbeBinding",
+                    LocalPlayerProvisioningConsumerScope.Route);
             ConfigureTrigger(enter, activity, "qa.player.surface.public.enter");
             ConfigureTrigger(clear, activity, "qa.player.surface.public.clear");
             ApplyScope(binding, LocalPlayerProvisioningConsumerScope.Route);
@@ -310,6 +327,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 enter,
                 clear,
                 binding,
+                wrongScopeBinding,
+                destroyProbeBinding,
                 slot);
             Require(
                 fixture.TryValidateAuthoredSurface(out string issue),
@@ -377,7 +396,21 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             Require(
                 fixture != null,
                 "Failed to add runtime QaPlayerSurfaceGlobalUiFixture to the UIGlobal Player composition.");
-            fixture.Configure(found);
+            QaLoadingSurfaceVisibilityHoldAdapter[] loadingSurfaces =
+                Array.Empty<QaLoadingSurfaceVisibilityHoldAdapter>();
+            var loadingCandidates = new System.Collections.Generic.List<
+                QaLoadingSurfaceVisibilityHoldAdapter>();
+            foreach (GameObject sceneRoot in globalUi.GetRootGameObjects())
+            {
+                loadingCandidates.AddRange(
+                    sceneRoot.GetComponentsInChildren<
+                        QaLoadingSurfaceVisibilityHoldAdapter>(true));
+            }
+            loadingSurfaces = loadingCandidates.ToArray();
+            Require(
+                loadingSurfaces.Length == 1,
+                $"UIGlobal scene requires exactly one Loading Surface adapter; found '{loadingSurfaces.Length}'.");
+            fixture.Configure(found, loadingSurfaces[0]);
             Require(
                 fixture.TryValidateAuthoredSurface(out string fixtureIssue),
                 fixtureIssue);
@@ -407,6 +440,64 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             Require(
                 EditorSceneManager.CloseScene(globalUi, true),
                 $"Could not close UIGlobal source scene '{GlobalUiScenePath}' after fixture authoring.");
+        }
+
+        private static void ConfigureActivityContentFixture()
+        {
+            Scene content = SceneManager.GetSceneByPath(ContentScenePath);
+            if (!content.IsValid() || !content.isLoaded)
+            {
+                content = EditorSceneManager.OpenScene(
+                    ContentScenePath,
+                    OpenSceneMode.Additive);
+            }
+
+            Require(
+                content.IsValid() && content.isLoaded,
+                $"Could not open Player Surface Activity content scene '{ContentScenePath}'.");
+
+            GameObject root = null;
+            foreach (GameObject candidate in content.GetRootGameObjects())
+            {
+                if (candidate != null && string.Equals(
+                        candidate.name,
+                        QaPlayerSurfaceActivityConsumerFixture.RootObjectName,
+                        StringComparison.Ordinal))
+                {
+                    Require(root == null,
+                        "Player Surface Activity content contains duplicate QA fixture roots.");
+                    root = candidate;
+                }
+            }
+
+            if (root == null)
+            {
+                root = new GameObject(
+                    QaPlayerSurfaceActivityConsumerFixture.RootObjectName);
+                SceneManager.MoveGameObjectToScene(root, content);
+            }
+
+            LocalPlayerProvisioningConsumerAccessBinding binding =
+                root.GetComponent<LocalPlayerProvisioningConsumerAccessBinding>() ??
+                root.AddComponent<LocalPlayerProvisioningConsumerAccessBinding>();
+            ApplyScope(binding, LocalPlayerProvisioningConsumerScope.Activity);
+
+            QaPlayerSurfaceActivityConsumerFixture fixture =
+                root.GetComponent<QaPlayerSurfaceActivityConsumerFixture>() ??
+                root.AddComponent<QaPlayerSurfaceActivityConsumerFixture>();
+            fixture.Configure(binding);
+            Require(fixture.TryValidateAuthoredSurface(out string issue), issue);
+
+            EditorUtility.SetDirty(binding);
+            EditorUtility.SetDirty(fixture);
+            EditorUtility.SetDirty(root);
+            EditorSceneManager.MarkSceneDirty(content);
+            Require(
+                EditorSceneManager.SaveScene(content),
+                $"Could not save Player Surface Activity content scene '{ContentScenePath}'.");
+            Require(
+                EditorSceneManager.CloseScene(content, true),
+                $"Could not close Player Surface Activity content scene '{ContentScenePath}'.");
         }
 
         private static bool IsGlobalUiSourceSceneLoaded()
@@ -439,6 +530,30 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             return childObject.GetComponent<ActivityRequestTrigger>() ??
                 childObject.AddComponent<ActivityRequestTrigger>();
+        }
+
+        private static LocalPlayerProvisioningConsumerAccessBinding
+            FindOrCreateChildBinding(
+                GameObject root,
+                string childName,
+                LocalPlayerProvisioningConsumerScope scope)
+        {
+            Transform child = root.transform.Find(childName);
+            GameObject childObject = child != null
+                ? child.gameObject
+                : new GameObject(childName);
+            if (child == null)
+            {
+                childObject.transform.SetParent(root.transform, false);
+            }
+
+            LocalPlayerProvisioningConsumerAccessBinding binding =
+                childObject.GetComponent<
+                    LocalPlayerProvisioningConsumerAccessBinding>() ??
+                childObject.AddComponent<
+                    LocalPlayerProvisioningConsumerAccessBinding>();
+            ApplyScope(binding, scope);
+            return binding;
         }
 
         private static void ConfigureTrigger(

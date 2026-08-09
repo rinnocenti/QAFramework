@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Immersive.Framework.Authoring;
 using Immersive.Framework.PlayerParticipation;
+using Immersive.Framework.PlayerSlots;
 using Immersive.Framework.UnityInput;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -26,6 +28,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             "Assets/ImmersiveFrameworkQA/Player/LocalPlayerRuntimeIntegration";
         private const string ActionsPath = RootFolder + "/LocalPlayerInputActions.asset";
         private const string PlayerPrefabPath = RootFolder + "/LocalPlayerHost.prefab";
+        private const string ProvisioningProfilePath =
+            RootFolder + "/CanonicalPlayerProvisioningProfile.asset";
+        private const string SessionProfilePath =
+            RootFolder + "/CanonicalPlayerSessionProfile.asset";
         private const string DivergentPlayerPrefabPath =
             RootFolder + "/LocalPlayerHost.Divergent.prefab";
         private const string RestoreCanonicalAfterPlayKey =
@@ -190,6 +196,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 throw new InvalidOperationException(
                     "Player Gameplay Admission setup requires one Actor Selection Request for the canonical provisioning authoring.");
             }
+
+            RequireCanonicalPlayerSessionConfiguration();
         }
 
         [MenuItem(MenuPath)]
@@ -214,6 +222,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     actions,
                     PlayerPrefabPath,
                     "Local Player Host");
+                ConfigureCanonicalPlayerSession();
                 string scenePath = FindUniqueScenePath(TargetSceneName);
 
                 if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
@@ -358,6 +367,135 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             AssetDatabase.SaveAssets();
             return actions;
+        }
+
+        private static void ConfigureCanonicalPlayerSession()
+        {
+            ImmersiveFrameworkSettingsAsset settings =
+                Resources.Load<ImmersiveFrameworkSettingsAsset>(
+                    ImmersiveFrameworkSettingsAsset.ResourcesPath);
+            if (settings == null || settings.ActiveGameApplication == null)
+            {
+                throw new InvalidOperationException(
+                    "Canonical Local Player setup requires an active Game Application.");
+            }
+
+            GameApplicationAsset application = settings.ActiveGameApplication;
+            var slots = new List<PlayerSlotProfile>();
+            for (int index = 0; index < application.LocalPlayerSlotCount; index++)
+            {
+                if (!application.TryGetLocalPlayerSlot(
+                        index,
+                        out PlayerSlotProfile slot) ||
+                    slot == null ||
+                    !slot.PlayerSlotId.IsValid)
+                {
+                    throw new InvalidOperationException(
+                        $"Canonical Local Player setup requires a valid Player Slot at index '{index}'.");
+                }
+
+                slots.Add(slot);
+            }
+
+            if (slots.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "Canonical Local Player setup requires at least one Player Slot.");
+            }
+
+            PlayerProvisioningProfile provisioning =
+                AssetDatabase.LoadAssetAtPath<PlayerProvisioningProfile>(
+                    ProvisioningProfilePath);
+            if (provisioning == null)
+            {
+                provisioning = ScriptableObject.CreateInstance<
+                    PlayerProvisioningProfile>();
+                AssetDatabase.CreateAsset(provisioning, ProvisioningProfilePath);
+            }
+
+            var serializedProvisioning = new SerializedObject(provisioning);
+            serializedProvisioning.FindProperty("defaultHostProvisioning")
+                .intValue = (int)PlayerHostProvisioningMode.ManagerProvisioned;
+            serializedProvisioning.FindProperty("slotOverrides").arraySize = 0;
+            serializedProvisioning.FindProperty("actorResolutionPolicy")
+                .intValue = (int)PlayerActorResolutionPolicy.ResolveConfiguredDefault;
+            serializedProvisioning.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(provisioning);
+
+            PlayerSessionProfile session =
+                AssetDatabase.LoadAssetAtPath<PlayerSessionProfile>(
+                    SessionProfilePath);
+            if (session == null)
+            {
+                session = ScriptableObject.CreateInstance<PlayerSessionProfile>();
+                AssetDatabase.CreateAsset(session, SessionProfilePath);
+            }
+
+            var serializedSession = new SerializedObject(session);
+            SerializedProperty supportedSlots =
+                serializedSession.FindProperty("supportedSlots");
+            supportedSlots.arraySize = slots.Count;
+            for (int index = 0; index < slots.Count; index++)
+            {
+                supportedSlots.GetArrayElementAtIndex(index)
+                    .objectReferenceValue = slots[index];
+            }
+
+            serializedSession.FindProperty("initialCapacity").intValue =
+                slots.Count;
+            serializedSession.FindProperty("initialJoiningOpen").boolValue = false;
+            serializedSession.FindProperty("playerProvisioningProfile")
+                .objectReferenceValue = provisioning;
+            serializedSession.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(session);
+
+            var serializedApplication = new SerializedObject(application);
+            serializedApplication.FindProperty("playerSessionEnabled").boolValue = true;
+            serializedApplication.FindProperty("defaultPlayerSessionProfile")
+                .objectReferenceValue = session;
+            serializedApplication.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(application);
+
+            RequireCanonicalPlayerSessionConfiguration();
+        }
+
+        private static void RequireCanonicalPlayerSessionConfiguration()
+        {
+            ImmersiveFrameworkSettingsAsset settings =
+                Resources.Load<ImmersiveFrameworkSettingsAsset>(
+                    ImmersiveFrameworkSettingsAsset.ResourcesPath);
+            GameApplicationAsset application =
+                settings != null ? settings.ActiveGameApplication : null;
+            string sessionIssue = string.Empty;
+            if (application == null ||
+                !application.PlayerSessionEnabled ||
+                application.DefaultPlayerSessionProfile == null ||
+                !application.DefaultPlayerSessionProfile.TryValidate(
+                    out sessionIssue))
+            {
+                throw new InvalidOperationException(
+                    "Canonical Local Player setup requires an enabled, valid " +
+                    "Player Session Profile. " +
+                    (application == null
+                        ? "Active Game Application is missing."
+                        : !application.PlayerSessionEnabled
+                            ? "Player Session is disabled."
+                            : application.DefaultPlayerSessionProfile == null
+                                ? "Default Player Session Profile is missing."
+                                : sessionIssue));
+            }
+
+            PlayerSessionProfile session = application.DefaultPlayerSessionProfile;
+            if (session.PlayerProvisioningProfile == null ||
+                session.PlayerProvisioningProfile.DefaultHostProvisioning !=
+                    PlayerHostProvisioningMode.ManagerProvisioned ||
+                session.PlayerProvisioningProfile.ActorResolutionPolicy !=
+                    PlayerActorResolutionPolicy.ResolveConfiguredDefault)
+            {
+                throw new InvalidOperationException(
+                    "Canonical Local Player setup requires Manager-Provisioned Hosts " +
+                    "and configured default Actor resolution.");
+            }
         }
 
         private static bool EnsureBinding(InputAction action, string path)

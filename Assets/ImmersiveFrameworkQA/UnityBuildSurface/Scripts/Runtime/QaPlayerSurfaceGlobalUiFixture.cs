@@ -17,14 +17,20 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
         [SerializeField]
         private LocalPlayerActorSelectionRequestAuthoring
             actorSelectionRequestAuthoring;
+        [SerializeField]
+        private QaLoadingSurfaceVisibilityHoldAdapter loadingSurface;
 
         public LocalPlayerActorSelectionRequestAuthoring
             ActorSelectionRequestAuthoring => actorSelectionRequestAuthoring;
+        public QaLoadingSurfaceVisibilityHoldAdapter LoadingSurface =>
+            loadingSurface;
 
         public void Configure(
-            LocalPlayerActorSelectionRequestAuthoring actorSelectionAuthoring)
+            LocalPlayerActorSelectionRequestAuthoring actorSelectionAuthoring,
+            QaLoadingSurfaceVisibilityHoldAdapter authoredLoadingSurface)
         {
             actorSelectionRequestAuthoring = actorSelectionAuthoring;
+            loadingSurface = authoredLoadingSurface;
         }
 
         public bool TryValidateAuthoredSurface(out string issue)
@@ -56,6 +62,14 @@ namespace ImmersiveFrameworkQA.UnityBuildSurface
                 issue =
                     "UIGlobal QA fixture references an invalid Actor Selection authoring. " +
                     actorSelectionIssue;
+                return false;
+            }
+
+            if (loadingSurface == null ||
+                loadingSurface.gameObject.scene != gameObject.scene)
+            {
+                issue =
+                    "UIGlobal QA fixture requires its scene-local Loading Surface adapter.";
                 return false;
             }
 

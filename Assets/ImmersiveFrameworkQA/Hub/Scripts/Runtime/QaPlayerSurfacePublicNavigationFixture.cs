@@ -24,6 +24,10 @@ namespace ImmersiveFrameworkQA.Hub
         [SerializeField] private ActivityRequestTrigger clearActivityTrigger;
         [SerializeField]
         private LocalPlayerProvisioningConsumerAccessBinding routeConsumerBinding;
+        [SerializeField]
+        private LocalPlayerProvisioningConsumerAccessBinding wrongScopeBinding;
+        [SerializeField]
+        private LocalPlayerProvisioningConsumerAccessBinding destroyProbeBinding;
         [SerializeField] private PlayerSlotProfile primaryPlayerSlot;
 
         public ActivityAsset TargetActivity => targetActivity;
@@ -31,6 +35,10 @@ namespace ImmersiveFrameworkQA.Hub
         public ActivityRequestTrigger ClearActivityTrigger => clearActivityTrigger;
         public LocalPlayerProvisioningConsumerAccessBinding RouteConsumerBinding =>
             routeConsumerBinding;
+        public LocalPlayerProvisioningConsumerAccessBinding WrongScopeBinding =>
+            wrongScopeBinding;
+        public LocalPlayerProvisioningConsumerAccessBinding DestroyProbeBinding =>
+            destroyProbeBinding;
         public PlayerSlotProfile PrimaryPlayerSlot => primaryPlayerSlot;
 
         public void Configure(
@@ -38,12 +46,16 @@ namespace ImmersiveFrameworkQA.Hub
             ActivityRequestTrigger enterTrigger,
             ActivityRequestTrigger clearTrigger,
             LocalPlayerProvisioningConsumerAccessBinding consumerBinding,
+            LocalPlayerProvisioningConsumerAccessBinding authoredWrongScopeBinding,
+            LocalPlayerProvisioningConsumerAccessBinding authoredDestroyProbeBinding,
             PlayerSlotProfile playerSlot)
         {
             targetActivity = activity;
             enterActivityTrigger = enterTrigger;
             clearActivityTrigger = clearTrigger;
             routeConsumerBinding = consumerBinding;
+            wrongScopeBinding = authoredWrongScopeBinding;
+            destroyProbeBinding = authoredDestroyProbeBinding;
             primaryPlayerSlot = playerSlot;
         }
 
@@ -88,6 +100,26 @@ namespace ImmersiveFrameworkQA.Hub
             {
                 issue =
                     "Public navigation consumer binding must be Route-scoped.";
+                return false;
+            }
+
+            if (wrongScopeBinding == null ||
+                wrongScopeBinding.Scope !=
+                    LocalPlayerProvisioningConsumerScope.Activity ||
+                wrongScopeBinding.gameObject.scene != gameObject.scene)
+            {
+                issue =
+                    "Public navigation fixture requires one authored Activity-scoped negative binding in the Route scene.";
+                return false;
+            }
+
+            if (destroyProbeBinding == null ||
+                destroyProbeBinding.Scope !=
+                    LocalPlayerProvisioningConsumerScope.Route ||
+                destroyProbeBinding.gameObject.scene != gameObject.scene)
+            {
+                issue =
+                    "Public navigation fixture requires one authored Route-scoped destroy probe in the same scene.";
                 return false;
             }
 

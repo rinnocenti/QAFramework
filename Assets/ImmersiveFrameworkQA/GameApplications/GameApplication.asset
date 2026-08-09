@@ -17,8 +17,8 @@ MonoBehaviour:
   localPlayerSlots:
   - {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
   - {fileID: 11400000, guid: 655efa9f821b73348a227a6a0558b85b, type: 2}
-  playerSessionEnabled: 0
-  defaultPlayerSessionProfile: {fileID: 0}
+  playerSessionEnabled: 1
+  defaultPlayerSessionProfile: {fileID: 11400000, guid: 4a8e2f0c6b7d41f9a3c5e102d864b790, type: 2}
   playerActorSelectionDuplicatePolicy: 20
   frameRatePolicy:
     mode: 0

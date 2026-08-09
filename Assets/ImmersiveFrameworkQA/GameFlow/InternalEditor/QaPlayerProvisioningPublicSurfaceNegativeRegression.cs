@@ -9,6 +9,8 @@ using Immersive.Framework.GameFlow;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
 using Immersive.Framework.Transition;
+using ImmersiveFrameworkQA.Hub;
+using ImmersiveFrameworkQA.Lifecycle;
 using ImmersiveFrameworkQA.UnityBuildSurface;
 using UnityEditor;
 using UnityEngine;
@@ -32,11 +34,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private const string Prefix = "[QA_PLAYER_SURFACE_02]";
         private const string Source =
             nameof(QaPlayerProvisioningPublicSurfaceNegativeRegression);
-        private const string ConsumerRootName = "QA_PLAYER_SURFACE_02_Consumer";
-        private const string WrongScopeRootName =
-            "QA_PLAYER_SURFACE_02_WrongScope";
-        private const string ActivityScopeRootName =
-            "QA_PLAYER_SURFACE_02_ActivityScope";
         private const int FrameBudget = 360;
         private const int ExpectedCaseCount = 36;
 
@@ -45,7 +42,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             "play-mode-required",
             "setup-confirmed",
             "runtime-started",
-            "consumer-binding-created",
+            "consumer-binding-authored",
             "scoped-access-available",
             "fresh-session-confirmed",
             "join-rejected-joining-closed",
@@ -100,14 +97,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             var failures = new QaFailureCollector();
             FrameworkRuntimeHost host = null;
             QaActivityEntryReadinessFixture fixture = null;
-            GameObject consumerRoot = null;
-            GameObject wrongScopeRoot = null;
-            GameObject activityScopeRoot = null;
-            GameObject destroyProbeRoot = null;
+            QaPlayerSurfacePublicNavigationFixture publicNav = null;
             LocalPlayerProvisioningConsumerAccessBinding routeBinding = null;
             ILocalPlayerProvisioningConsumerAccess routeAccess = null;
             ILocalPlayerProvisioningConsumerAccess activityAccess = null;
             ILocalPlayerProvisioningConsumerAccess destroyedAccess = null;
+            PlayerParticipationOperationResult staleDestroyedOpen = null;
+            bool destroyedBindingReleasedAtDestruction = false;
+            bool destroyedObservationUnavailableAtDestruction = false;
             LocalPlayerActorSelectionRequestAuthoring actorSelection = null;
             LocalPlayerJoinResult joined = null;
             LocalPlayerHostAuthoring joinedHost = null;
@@ -157,24 +154,39 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         out QaPlayerSurfaceGlobalUiFixture globalUiFixture,
                         out string globalUiFixtureDiagnostic),
                     globalUiFixtureDiagnostic);
-                actorSelection = await QaPlayerSurfacePublicNavigationSupport
-                    .RequireActorSelectionRuntimeReadyAsync(
+                Require(
+                    QaPlayerSurfacePublicNavigationSupport.TryResolveAuthoredFixture(
+                        out publicNav,
+                        out string publicNavDiagnostic),
+                    publicNavDiagnostic);
+                await QaPlayerSurfacePublicNavigationSupport
+                    .RequireProvisioningRuntimeReadyAsync(
                         globalUiFixture,
                         FrameBudget);
-
-                PlayerSlotProfile slotProfile = ResolveFirstLocalPlayerSlot();
+                PlayerSlotProfile slotProfile = ResolveLocalPlayerSlot(
+                    0,
+                    "first");
+                PlayerSlotProfile waitingSlotProfile = ResolveLocalPlayerSlot(
+                    1,
+                    "second");
                 Require(
                     slotProfile != null &&
                     slotProfile.PlayerSlotId.IsValid &&
-                    slotProfile.DefaultActorProfile != null,
-                    "QA-PLAYER-SURFACE-02 requires a configured first Local Player Slot.");
+                    slotProfile.DefaultActorProfile != null &&
+                    waitingSlotProfile != null &&
+                    waitingSlotProfile.PlayerSlotId.IsValid &&
+                    waitingSlotProfile.DefaultActorProfile != null &&
+                    waitingSlotProfile.PlayerSlotId != slotProfile.PlayerSlotId,
+                    "QA-PLAYER-SURFACE-02 requires two identity-distinct configured " +
+                    "Local Player Slots with default Actors.");
 
-                consumerRoot = CreateScopedConsumerRoot(
-                    host.State.CurrentRoute.PrimarySceneName,
-                    ConsumerRootName,
-                    LocalPlayerProvisioningConsumerScope.Route,
-                    out routeBinding);
-                cases.Complete("consumer-binding-created");
+                routeBinding = publicNav.RouteConsumerBinding;
+                Require(
+                    routeBinding != null &&
+                    routeBinding.Scope ==
+                        LocalPlayerProvisioningConsumerScope.Route,
+                    "Prepared Player Surface fixture has no authored Route consumer binding.");
+                cases.Complete("consumer-binding-authored");
 
                 routeAccess = await AwaitScopedAccessAsync(
                     routeBinding,
@@ -191,6 +203,39 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     DescribeObservation(initial));
                 sessionRevisionFloor = initial.SessionRevision;
                 cases.Complete("fresh-session-confirmed");
+
+                // Capture the authored Route endpoint while Route composition is
+                // still authoritative. Later temporary Activity compositions may
+                // legitimately classify scene roots against Activity scope, so
+                // they cannot establish the pre-destruction Route evidence.
+                LocalPlayerProvisioningConsumerAccessBinding destroyBinding =
+                    publicNav.DestroyProbeBinding;
+                Require(
+                    destroyBinding != null &&
+                    destroyBinding.Scope ==
+                        LocalPlayerProvisioningConsumerScope.Route,
+                    "Prepared Player Surface fixture has no authored Route-scoped " +
+                    "destroy probe binding.");
+                destroyedAccess = await AwaitScopedAccessAsync(
+                    destroyBinding,
+                    FrameBudget);
+                Require(
+                    destroyedAccess.Snapshot.IsAvailable,
+                    "Destroy-probe consumer access was not available before destruction.");
+                UnityEngine.Object.Destroy(destroyBinding.gameObject);
+                await AwaitFramesAsync(4);
+                destroyedBindingReleasedAtDestruction =
+                    destroyedAccess.Snapshot.IsDisposed ||
+                    !destroyedAccess.Snapshot.IsAvailable;
+                staleDestroyedOpen = destroyedAccess.OpenJoining(
+                    Source,
+                    "qa-player-surface-02-stale-open");
+                destroyedObservationUnavailableAtDestruction =
+                    !destroyedAccess.TryGetObservation(
+                        out LocalPlayerProvisioningConsumerObservationSnapshot
+                            destroyedObservation) ||
+                    destroyedObservation == null ||
+                    !destroyedObservation.IsAvailable;
 
                 // --- Command negatives (closed / capacity / invalid / no-change) ---
 
@@ -267,8 +312,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 int configuredSlots =
                     open.Snapshot.ConfiguredSlotCount;
                 Require(
-                    configuredSlots >= 1,
-                    "Session must expose at least one configured Slot.");
+                    configuredSlots >= 2,
+                    "Session must expose the two configured Slots required by the " +
+                    "capacity and waiting-projection cases.");
 
                 PlayerParticipationOperationResult invalidCapacity =
                     routeAccess.SetDynamicCapacity(
@@ -416,11 +462,13 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     UnityEngine.Object.Destroy(unboundTrigger.gameObject);
                 }
 
-                wrongScopeRoot = CreateScopedConsumerRoot(
-                    host.State.CurrentRoute.PrimarySceneName,
-                    WrongScopeRootName,
-                    LocalPlayerProvisioningConsumerScope.Activity,
-                    out LocalPlayerProvisioningConsumerAccessBinding wrongBinding);
+                LocalPlayerProvisioningConsumerAccessBinding wrongBinding =
+                    publicNav.WrongScopeBinding;
+                Require(
+                    wrongBinding != null &&
+                    wrongBinding.Scope ==
+                        LocalPlayerProvisioningConsumerScope.Activity,
+                    "Prepared Player Surface fixture has no authored wrong-scope binding.");
                 await AwaitFramesAsync(8);
                 Require(
                     !wrongBinding.IsBound &&
@@ -447,7 +495,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 ConfigurePlayerParticipation(
                     waitingActivity,
                     PlayerParticipationRequirementLevel.GameplayReady,
-                    slotProfile);
+                    waitingSlotProfile);
 
                 ownedWaiting.Attach(
                     fixture.Activities.RequestActivityAsync(
@@ -463,17 +511,22 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                             observation.Lifecycle.Status ==
                                 ManagerProvisionedPlayerLifecycleStatus
                                     .WaitingForJoin &&
-                            observation.Lifecycle.GateHeld,
+                            observation.Lifecycle.GateHeld &&
+                            observation.Participation.JoinedCount == 1 &&
+                            HasJoinedSlot(observation, joinedSlotId) &&
+                            !HasJoinedSlot(
+                                observation,
+                                waitingSlotProfile.PlayerSlotId) &&
+                            ProjectsOnly(
+                                observation.Lifecycle,
+                                waitingSlotProfile),
                         "WaitingForJoin was not publicly observed",
                         FrameBudget);
                 occurrenceA = waiting.ActivityOccurrence;
                 cases.Complete("activity-entry-waiting");
 
-                var activityScopePair =
-                    await CreateActivityScopedBindingWhenContentLoadedAsync();
-                activityScopeRoot = activityScopePair.root;
                 LocalPlayerProvisioningConsumerAccessBinding activityBinding =
-                    activityScopePair.binding;
+                    await ResolveAuthoredActivityBindingWhenContentLoadedAsync();
                 activityAccess = await AwaitScopedAccessAsync(
                     activityBinding,
                     FrameBudget);
@@ -540,12 +593,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "Stale Activity endpoint returned a valid current observation after scope exit.");
                 cases.Complete("stale-activity-endpoint-after-exit");
 
-                if (activityScopeRoot != null)
-                {
-                    UnityEngine.Object.Destroy(activityScopeRoot);
-                    activityScopeRoot = null;
-                }
-
                 ownedReentryWaiting.Attach(
                     fixture.Activities.RequestActivityAsync(
                         waitingActivity,
@@ -558,8 +605,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                             observation.IsAvailable &&
                             observation.HasCurrentActivityOccurrence &&
                             observation.ActivityOccurrence > occurrenceA &&
+                            observation.Lifecycle.Status ==
+                                ManagerProvisionedPlayerLifecycleStatus
+                                    .WaitingForJoin &&
+                            observation.Lifecycle.GateHeld &&
                             observation.Participation.JoinedCount == 1 &&
-                            HasJoinedSlot(observation, joinedSlotId),
+                            HasJoinedSlot(observation, joinedSlotId) &&
+                            ProjectsOnly(
+                                observation.Lifecycle,
+                                waitingSlotProfile),
                         "Reentry after WaitingForJoin exit did not create a newer occurrence with Session join",
                         FrameBudget);
                 Require(
@@ -600,35 +654,19 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
                 // Lifecycle path reuses the existing joined Slot and the single
                 // fixture-owned Activity asset (CreateActivity is one-shot).
+                // Reconfigure only while inactive, matching the canonical M07
+                // projection smoke: the waiting occurrences project unjoined P2,
+                // while lifecycle/reentry project the joined P1.
                 ActivityAsset lifecycleActivity = waitingActivity;
+                ConfigurePlayerParticipation(
+                    lifecycleActivity,
+                    PlayerParticipationRequirementLevel.GameplayReady,
+                    slotProfile);
 
-                ownedLifecycle.Attach(
-                    fixture.Activities.RequestActivityAsync(
-                        lifecycleActivity,
-                        Source,
-                        "qa-player-surface-02-lifecycle-entry"));
-                LocalPlayerProvisioningConsumerObservationSnapshot lifecyclePending =
-                    await AwaitObservationAsync(
-                        routeAccess,
-                        observation =>
-                            observation.IsAvailable &&
-                            observation.HasCurrentActivityOccurrence &&
-                            observation.Participation.JoinedCount == 1,
-                        "Lifecycle Activity entry did not expose joined Session Slot",
+                actorSelection = await QaPlayerSurfacePublicNavigationSupport
+                    .RequireActorSelectionRuntimeReadyAsync(
+                        globalUiFixture,
                         FrameBudget);
-                occurrenceA = lifecyclePending.ActivityOccurrence;
-
-                int lifecyclePrepExpected = fixture.PreparationStartedCount + 1;
-                await AwaitParticipantCycleAsync(
-                    fixture,
-                    ownedLifecycle,
-                    lifecyclePrepExpected,
-                    FrameBudget);
-                if (fixture.Participant.State ==
-                    ActivityReadinessParticipantState.Preparing)
-                {
-                    fixture.Participant.CompletePreparation();
-                }
 
                 LocalPlayerProvisioningConsumerObservationSnapshot preSelect =
                     RequireObservation(routeAccess, "pre-select");
@@ -649,6 +687,35 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         ? selected.ToDiagnosticString()
                         : "Default Actor selection returned no result.");
                 cases.Complete("join-select-for-lifecycle");
+
+                int lifecyclePrepExpected =
+                    fixture.PreparationStartedCount + 1;
+                ownedLifecycle.Attach(
+                    fixture.Activities.RequestActivityAsync(
+                        lifecycleActivity,
+                        Source,
+                        "qa-player-surface-02-lifecycle-entry"));
+                LocalPlayerProvisioningConsumerObservationSnapshot lifecyclePending =
+                    await AwaitObservationAsync(
+                        routeAccess,
+                        observation =>
+                            observation.IsAvailable &&
+                            observation.HasCurrentActivityOccurrence &&
+                            observation.Participation.JoinedCount == 1,
+                        "Lifecycle Activity entry did not expose joined Session Slot",
+                        FrameBudget);
+                occurrenceA = lifecyclePending.ActivityOccurrence;
+
+                await AwaitParticipantCycleAsync(
+                    fixture,
+                    ownedLifecycle,
+                    lifecyclePrepExpected,
+                    FrameBudget);
+                if (fixture.Participant.State ==
+                    ActivityReadinessParticipantState.Preparing)
+                {
+                    fixture.Participant.CompletePreparation();
+                }
 
                 LocalPlayerProvisioningConsumerObservationSnapshot occurrenceSnapshotA =
                     await AwaitObservationAsync(
@@ -674,7 +741,16 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     occurrenceSnapshotA.AppliedSessionRevision;
                 cases.Complete("capture-occurrence-a");
 
-                // Exit during/after Actor progression while Activity-owned projection is live.
+                FrameworkActivityRequestResult lifecycleTerminal =
+                    await ownedLifecycle.AwaitTerminalAsync();
+                Require(
+                    lifecycleTerminal.Succeeded,
+                    string.IsNullOrWhiteSpace(lifecycleTerminal.Message)
+                        ? "Lifecycle Activity entry did not succeed."
+                        : lifecycleTerminal.Message);
+
+                // Exit after the canonical Actor progression reaches its request
+                // terminal while Activity-owned projection is still live.
                 FrameworkActivityRequestResult clearLifecycle =
                     await fixture.Activities.ClearActivityAsync(
                         Source,
@@ -710,6 +786,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "Captured occurrence A snapshot lost its immutable identity.");
                 cases.Complete("exit-after-join-session-persists");
 
+                int reentryPrepExpected =
+                    fixture.PreparationStartedCount + 1;
                 ownedLifecycleReentry.Attach(
                     fixture.Activities.RequestActivityAsync(
                         lifecycleActivity,
@@ -748,7 +826,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "Current observation lost live Activity correlation after reentry.");
                 cases.Complete("old-occurrence-not-current");
 
-                int reentryPrepExpected = fixture.PreparationStartedCount + 1;
                 await AwaitParticipantCycleAsync(
                     fixture,
                     ownedLifecycleReentry,
@@ -783,9 +860,45 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     DescribeObservation(reentryReady));
                 cases.Complete("no-duplicate-slot-actor");
 
+                FrameworkActivityRequestResult lifecycleReentryTerminal =
+                    await ownedLifecycleReentry.AwaitTerminalAsync();
+                Require(
+                    lifecycleReentryTerminal.Succeeded,
+                    string.IsNullOrWhiteSpace(lifecycleReentryTerminal.Message)
+                        ? "Lifecycle reentry did not succeed."
+                        : lifecycleReentryTerminal.Message);
+
+                FrameworkActivityRequestResult releaseBeforeSelectionChecks =
+                    await fixture.Activities.ClearActivityAsync(
+                        Source,
+                        "qa-player-surface-02-release-before-selection-checks");
+                Require(
+                    releaseBeforeSelectionChecks.Succeeded,
+                    string.IsNullOrWhiteSpace(
+                        releaseBeforeSelectionChecks.Message)
+                        ? "Could not release lifecycle reentry before selection checks."
+                        : releaseBeforeSelectionChecks.Message);
+                LocalPlayerProvisioningConsumerObservationSnapshot
+                    selectionCheckObservation = await AwaitObservationAsync(
+                        routeAccess,
+                        observation =>
+                            observation.IsAvailable &&
+                            observation.Lifecycle.IsReleased &&
+                            observation.Lifecycle.SlotCount == 0 &&
+                            observation.Participation.JoinedCount == 1 &&
+                            HasSelectedActor(
+                                observation,
+                                joinedSlotId,
+                                slotProfile.DefaultActorProfile) &&
+                            CountActors(joinedHost) == 0,
+                        "Lifecycle reentry did not release its prepared Actor before selection checks",
+                        FrameBudget);
+
                 // Stale Actor selection revision against the current Slot.
                 int liveSelectionRevision =
-                    FindSlot(reentryReady.Participation, joinedSlotId)
+                    FindSlot(
+                        selectionCheckObservation.Participation,
+                        joinedSlotId)
                         .SelectionRevision;
                 int staleRevision = Math.Max(0, liveSelectionRevision - 1);
                 if (staleRevision == liveSelectionRevision)
@@ -876,48 +989,32 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 // without that binding cannot complete public navigation. This is
                 // recorded as a product reachability disposition for Q2, not a QA
                 // privileged bypass.
+                await QaPlayerSurfacePublicNavigationSupport
+                    .RequireCompositionBoundAsync(
+                        publicNav.EnterActivityTrigger,
+                        FrameBudget);
+                publicNavigationDisposition =
+                    "canonical-authored-trigger-composition-bound";
                 cases.Complete("public-navigation-disposition");
 
                 // --- Destroyed binding / stale route endpoint ---
 
-                destroyProbeRoot = CreateScopedConsumerRoot(
-                    host.State.CurrentRoute.PrimarySceneName,
-                    "QA_PLAYER_SURFACE_02_DestroyProbe",
-                    LocalPlayerProvisioningConsumerScope.Route,
-                    out LocalPlayerProvisioningConsumerAccessBinding destroyBinding);
-                destroyedAccess = await AwaitScopedAccessAsync(
-                    destroyBinding,
-                    FrameBudget);
                 Require(
-                    destroyedAccess.Snapshot.IsAvailable,
-                    "Destroy-probe consumer access was not available before destruction.");
-                UnityEngine.Object.Destroy(destroyProbeRoot);
-                destroyProbeRoot = null;
-                await AwaitFramesAsync(4);
-                Require(
-                    destroyedAccess.Snapshot.IsDisposed ||
-                    !destroyedAccess.Snapshot.IsAvailable,
+                    destroyedBindingReleasedAtDestruction,
                     "Destroyed consumer binding did not release/dispose its endpoint. " +
                     destroyedAccess.Snapshot.Diagnostic);
                 cases.Complete("destroyed-binding-released");
 
-                PlayerParticipationOperationResult staleOpen =
-                    destroyedAccess.OpenJoining(
-                        Source,
-                        "qa-player-surface-02-stale-open");
                 Require(
-                    staleOpen != null &&
-                    staleOpen.Rejected &&
-                    staleOpen.Status ==
+                    staleDestroyedOpen != null &&
+                    staleDestroyedOpen.Rejected &&
+                    staleDestroyedOpen.Status ==
                         PlayerParticipationOperationStatus.RejectedInvalidState,
-                    staleOpen != null
-                        ? staleOpen.ToDiagnosticString()
+                    staleDestroyedOpen != null
+                        ? staleDestroyedOpen.ToDiagnosticString()
                         : "Stale destroyed endpoint OpenJoining returned no result.");
                 Require(
-                    !destroyedAccess.TryGetObservation(
-                        out LocalPlayerProvisioningConsumerObservationSnapshot destroyedObs) ||
-                    destroyedObs == null ||
-                    !destroyedObs.IsAvailable,
+                    destroyedObservationUnavailableAtDestruction,
                     "Destroyed endpoint returned a valid live observation.");
                 cases.Complete("stale-route-endpoint-after-destroy");
 
@@ -1017,10 +1114,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     }
                 }
 
-                DestroyIfPresent(ref activityScopeRoot);
-                DestroyIfPresent(ref wrongScopeRoot);
-                DestroyIfPresent(ref destroyProbeRoot);
-                DestroyIfPresent(ref consumerRoot);
             }
 
             if (failures.HasFailures)
@@ -1068,28 +1161,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             }
         }
 
-        private static GameObject CreateScopedConsumerRoot(
-            string primarySceneName,
-            string rootName,
-            LocalPlayerProvisioningConsumerScope scope,
-            out LocalPlayerProvisioningConsumerAccessBinding binding)
-        {
-            Scene primary = ResolveSceneByName(primarySceneName);
-            Require(
-                primary.IsValid() && primary.isLoaded,
-                $"Primary scene '{primarySceneName}' is not loaded for consumer binding.");
-
-            var root = new GameObject(rootName);
-            SceneManager.MoveGameObjectToScene(root, primary);
-            binding = root.AddComponent<LocalPlayerProvisioningConsumerAccessBinding>();
-            ApplyScope(binding, scope);
-            return root;
-        }
-
-        private static async Task<(
-            GameObject root,
-            LocalPlayerProvisioningConsumerAccessBinding binding)>
-            CreateActivityScopedBindingWhenContentLoadedAsync()
+        private static async Task<LocalPlayerProvisioningConsumerAccessBinding>
+            ResolveAuthoredActivityBindingWhenContentLoadedAsync()
         {
             Scene content = default;
             for (int frame = 0; frame < FrameBudget; frame++)
@@ -1108,28 +1181,32 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 content.IsValid() && content.isLoaded,
                 "Activity content scene did not load for Activity-scoped consumer binding.");
 
-            var root = new GameObject(ActivityScopeRootName);
-            SceneManager.MoveGameObjectToScene(root, content);
-            LocalPlayerProvisioningConsumerAccessBinding binding =
-                root.AddComponent<LocalPlayerProvisioningConsumerAccessBinding>();
-            ApplyScope(binding, LocalPlayerProvisioningConsumerScope.Activity);
-            return (root, binding);
-        }
+            GameObject root = null;
+            foreach (GameObject candidate in content.GetRootGameObjects())
+            {
+                if (candidate != null && string.Equals(
+                        candidate.name,
+                        QaPlayerSurfaceActivityConsumerFixture.RootObjectName,
+                        StringComparison.Ordinal))
+                {
+                    Require(root == null,
+                        "Loaded Activity content contains duplicate Player Surface fixture roots.");
+                    root = candidate;
+                }
+            }
 
-        private static void ApplyScope(
-            LocalPlayerProvisioningConsumerAccessBinding binding,
-            LocalPlayerProvisioningConsumerScope scope)
-        {
-            var serialized = new SerializedObject(binding);
-            SerializedProperty scopeProperty = serialized.FindProperty("scope");
-            Require(scopeProperty != null, "Consumer binding is missing serialized scope.");
-            int index = Array.IndexOf(scopeProperty.enumNames, scope.ToString());
-            Require(index >= 0, $"Consumer binding scope enum lacks '{scope}'.");
-            scopeProperty.enumValueIndex = index;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
+            Require(root != null,
+                "Loaded Activity content is missing its authored Player Surface consumer fixture.");
+            QaPlayerSurfaceActivityConsumerFixture fixture =
+                root.GetComponent<QaPlayerSurfaceActivityConsumerFixture>();
+            string issue = string.Empty;
             Require(
-                binding.Scope == scope,
-                $"Consumer binding scope '{binding.Scope}' did not apply '{scope}'.");
+                fixture != null &&
+                fixture.TryValidateAuthoredSurface(out issue),
+                string.IsNullOrWhiteSpace(issue)
+                    ? "Authored Player Surface Activity fixture is invalid."
+                    : issue);
+            return fixture.ConsumerBinding;
         }
 
         private static async Task<ILocalPlayerProvisioningConsumerAccess>
@@ -1261,7 +1338,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static PlayerSlotProfile ResolveFirstLocalPlayerSlot()
+        private static PlayerSlotProfile ResolveLocalPlayerSlot(
+            int index,
+            string label)
         {
             ImmersiveFrameworkSettingsAsset settings =
                 Resources.Load<ImmersiveFrameworkSettingsAsset>(
@@ -1271,10 +1350,26 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             PlayerSlotProfile slot = null;
             Require(
                 application != null &&
-                application.TryGetLocalPlayerSlot(0, out slot) &&
+                application.TryGetLocalPlayerSlot(index, out slot) &&
                 slot != null,
-                "Could not resolve first Local Player Slot from active GameApplication.");
+                $"Could not resolve {label} Local Player Slot at index '{index}' " +
+                "from active GameApplication.");
             return slot;
+        }
+
+        private static bool ProjectsOnly(
+            ManagerProvisionedPlayerLifecycleSnapshot snapshot,
+            PlayerSlotProfile expectedSlot)
+        {
+            return snapshot != null &&
+                expectedSlot != null &&
+                expectedSlot.PlayerSlotId.IsValid &&
+                snapshot.SlotCount == 1 &&
+                snapshot.Slots.Count == 1 &&
+                string.Equals(
+                    snapshot.Slots[0].PlayerSlotId,
+                    expectedSlot.PlayerSlotId.StableText,
+                    StringComparison.Ordinal);
         }
 
 
@@ -1358,15 +1453,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             return host.ActorMount
                 .GetComponentsInChildren<PlayerActorDeclaration>(true)
                 .Length;
-        }
-
-        private static void DestroyIfPresent(ref GameObject root)
-        {
-            if (root != null)
-            {
-                UnityEngine.Object.Destroy(root);
-                root = null;
-            }
         }
 
         private static void RequirePublicSurfaceScanClean()

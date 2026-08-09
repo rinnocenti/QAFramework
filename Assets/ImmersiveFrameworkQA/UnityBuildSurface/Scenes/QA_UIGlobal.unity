@@ -436,6 +436,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ImmersiveFrameworkQA.UnityBuildSurface.Runtime::ImmersiveFrameworkQA.UnityBuildSurface.QaPlayerSurfaceGlobalUiFixture
   actorSelectionRequestAuthoring: {fileID: 1295583392}
+  loadingSurface: {fileID: 5779747991876066232}
 --- !u!1 &1743314762
 GameObject:
   m_ObjectHideFlags: 0

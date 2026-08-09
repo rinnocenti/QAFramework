@@ -329,6 +329,32 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             GameApplicationAsset application =
                 settings.ActiveGameApplication;
+            string playerSessionIssue = string.Empty;
+            if (!application.PlayerSessionEnabled ||
+                application.DefaultPlayerSessionProfile == null ||
+                !application.DefaultPlayerSessionProfile.TryValidate(
+                    out playerSessionIssue))
+            {
+                diagnostic =
+                    "Canonical Player Session is disabled, missing or invalid. " +
+                    playerSessionIssue;
+                return false;
+            }
+
+            PlayerProvisioningProfile provisioning = application
+                .DefaultPlayerSessionProfile.PlayerProvisioningProfile;
+            if (provisioning == null ||
+                provisioning.DefaultHostProvisioning !=
+                    PlayerHostProvisioningMode.ManagerProvisioned ||
+                provisioning.ActorResolutionPolicy !=
+                    PlayerActorResolutionPolicy.ResolveConfiguredDefault)
+            {
+                diagnostic =
+                    "Canonical Player Session does not use Manager-Provisioned Hosts " +
+                    "with configured default Actor resolution.";
+                return false;
+            }
+
             if (application.PlayerActorSelectionDuplicatePolicy !=
                 PlayerActorSelectionDuplicatePolicy.UniqueAcrossJoinedSlots)
             {
