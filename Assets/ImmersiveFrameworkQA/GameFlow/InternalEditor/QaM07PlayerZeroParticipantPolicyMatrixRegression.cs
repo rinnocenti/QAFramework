@@ -28,7 +28,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
     public static class QaM07PlayerZeroParticipantPolicyMatrixRegression
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Regressions/Player/M07 Run Player Zero-Participant Policy Matrix Regression";
+            "Immersive Framework/QA/Game Flow/Participation/Run Zero Participant Policy Matrix";
         private const string Prefix =
             "[QA_IF_M07_12B_7_PLAYER_ZERO_PARTICIPANT_POLICY_MATRIX]";
         private const int FrameBudget = 300;

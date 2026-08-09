@@ -1,4 +1,5 @@
 using System;
+using ImmersiveFrameworkQA.Player;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Immersive.Framework.ActivityFlow;
@@ -14,6 +15,7 @@ using ImmersiveFrameworkQA.Lifecycle;
 using ImmersiveFrameworkQA.UnityBuildSurface;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
@@ -29,8 +31,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
     public static class QaPlayerProvisioningPublicSurfaceNegativeRegression
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Regressions/Player/" +
-            "Run QA-PLAYER-SURFACE-02 Public Surface Negative Regression";
+            "Immersive Framework/QA/Player/Public Surface/" +
+            "Run Negative Contract";
         private const string Prefix = "[QA_PLAYER_SURFACE_02]";
         private const string Source =
             nameof(QaPlayerProvisioningPublicSurfaceNegativeRegression);
@@ -48,10 +50,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             "join-rejected-joining-closed",
             "open-joining-succeeded",
             "open-joining-no-change",
-            "invalid-capacity-rejected",
-            "capacity-set-for-exhaustion",
-            "first-join-for-capacity",
-            "second-join-capacity-exhausted",
+            "supported-slot-universe-confirmed",
+            "first-join-uses-first-supported-slot",
             "close-joining-succeeded",
             "close-joining-no-change",
             "missing-binding-command-unavailable",
@@ -69,6 +69,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             "no-duplicate-slot-actor",
             "stale-selection-revision-rejected",
             "repeated-default-selection-stable",
+            "second-join-uses-next-supported-slot",
+            "session-full-rejected-no-available-slot",
             "public-activity-trigger-unbound-fails",
             "public-navigation-disposition",
             "destroyed-binding-released",
@@ -89,7 +91,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         /// <summary>
         /// Entry point for the joint certification orchestrator.
         /// </summary>
-        internal static Task RunCertificationAsync() => RunAsync();
+        public static Task RunCertificationAsync() => RunAsync();
 
         private static async Task RunAsync()
         {
@@ -134,7 +136,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "QA-PLAYER-SURFACE-02 requires Play Mode.");
                 cases.Complete("play-mode-required");
 
-                QaM07InternalReconcileSetup.RequirePreparedForCurrentPlayMode();
+                QaPlayerSurfacePublicNavigationSetup.RequirePreparedForCurrentPlayMode();
                 cases.Complete("setup-confirmed");
 
                 Require(
@@ -237,7 +239,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     destroyedObservation == null ||
                     !destroyedObservation.IsAvailable;
 
-                // --- Command negatives (closed / capacity / invalid / no-change) ---
+                // --- Command negatives (closed / no-available-slot / invalid / no-change) ---
 
                 // Normalize to closed so the closed-join rejection is deterministic
                 // regardless of authored Initial Joining intent.
@@ -309,53 +311,18 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         : "Repeated OpenJoining returned no public result.");
                 cases.Complete("open-joining-no-change");
 
-                int configuredSlots =
-                    open.Snapshot.ConfiguredSlotCount;
+                int configuredSlots = open.Snapshot.ConfiguredSlotCount;
                 Require(
                     configuredSlots >= 2,
-                    "Session must expose the two configured Slots required by the " +
-                    "capacity and waiting-projection cases.");
-
-                PlayerParticipationOperationResult invalidCapacity =
-                    routeAccess.SetDynamicCapacity(
-                        configuredSlots + 1,
-                        Source,
-                        "qa-player-surface-02-invalid-capacity");
+                    "Session must expose two Supported Slots for the full-Session proof.");
                 Require(
-                    invalidCapacity != null &&
-                    invalidCapacity.Status ==
-                        PlayerParticipationOperationStatus
-                            .RejectedInvalidRequest &&
-                    invalidCapacity.Rejected &&
-                    !invalidCapacity.StateChanged &&
-                    invalidCapacity.CurrentRevision ==
-                        invalidCapacity.PreviousRevision,
-                    invalidCapacity != null
-                        ? invalidCapacity.ToDiagnosticString()
-                        : "Invalid SetDynamicCapacity returned no result.");
-                LocalPlayerProvisioningConsumerObservationSnapshot afterInvalidCapacity =
-                    RequireObservation(routeAccess, "after-invalid-capacity");
-                Require(
-                    afterInvalidCapacity.Participation.DynamicCapacity ==
-                        open.Snapshot.DynamicCapacity,
-                    "Invalid capacity request changed live capacity. " +
-                    DescribeObservation(afterInvalidCapacity));
-                cases.Complete("invalid-capacity-rejected");
-
-                PlayerParticipationOperationResult setCapacityOne =
-                    routeAccess.SetDynamicCapacity(
-                        1,
-                        Source,
-                        "qa-player-surface-02-capacity-one");
-                Require(
-                    setCapacityOne != null &&
-                    setCapacityOne.Completed &&
-                    setCapacityOne.Snapshot != null &&
-                    setCapacityOne.Snapshot.DynamicCapacity == 1,
-                    setCapacityOne != null
-                        ? setCapacityOne.ToDiagnosticString()
-                        : "SetDynamicCapacity(1) returned no result.");
-                cases.Complete("capacity-set-for-exhaustion");
+                    open.Snapshot.AvailableCount == configuredSlots &&
+                    open.Snapshot.JoinedCount == 0,
+                    "Supported Slot universe was not fully Available before Join. " +
+                    DescribeObservation(RequireObservation(
+                        routeAccess,
+                        "supported-slot-universe")));
+                cases.Complete("supported-slot-universe-confirmed");
 
                 joined = routeAccess.RequestJoin(
                     new LocalPlayerJoinRequest(
@@ -368,35 +335,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     joined.HasLocalPlayerHostEvidence,
                     joined != null
                         ? joined.ToDiagnosticString()
-                        : "First public Join for capacity case returned no result.");
+                        : "First public Join returned no result.");
                 joinedHost = joined.LocalPlayerHost;
                 joinedSlotId = joined.Slot.PlayerSlotId;
                 sessionRevisionFloor = Math.Max(
                     sessionRevisionFloor,
                     RequireObservation(routeAccess, "after-first-join")
                         .SessionRevision);
-                cases.Complete("first-join-for-capacity");
-
-                LocalPlayerJoinResult capacityJoin = routeAccess.RequestJoin(
-                    new LocalPlayerJoinRequest(
-                        Source,
-                        "qa-player-surface-02-capacity-exhausted"));
-                Require(
-                    capacityJoin != null &&
-                    capacityJoin.Status ==
-                        LocalPlayerJoinStatus.RejectedCapacityReached &&
-                    !capacityJoin.Succeeded,
-                    capacityJoin != null
-                        ? capacityJoin.ToDiagnosticString()
-                        : "Capacity-exhausted Join returned no public result.");
-                LocalPlayerProvisioningConsumerObservationSnapshot afterCapacity =
-                    RequireObservation(routeAccess, "after-capacity-join");
-                Require(
-                    afterCapacity.Participation.JoinedCount == 1 &&
-                    afterCapacity.SessionRevision >= sessionRevisionFloor,
-                    "Capacity-exhausted Join changed occupancy unexpectedly. " +
-                    DescribeObservation(afterCapacity));
-                cases.Complete("second-join-capacity-exhausted");
+                cases.Complete("first-join-uses-first-supported-slot");
 
                 PlayerParticipationOperationResult close =
                     routeAccess.CloseJoining(
@@ -470,15 +416,25 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         LocalPlayerProvisioningConsumerScope.Activity,
                     "Prepared Player Surface fixture has no authored wrong-scope binding.");
                 await AwaitFramesAsync(8);
+                ILocalPlayerProvisioningConsumerAccess wrongAccess = null;
+                string wrongIssue = string.Empty;
+                bool wrongAccessAvailable =
+                    wrongBinding.IsBound &&
+                    wrongBinding.TryGetAccess(
+                        out wrongAccess,
+                        out wrongIssue);
                 Require(
-                    !wrongBinding.IsBound &&
-                    !wrongBinding.TryGetAccess(
-                        out ILocalPlayerProvisioningConsumerAccess wrongAccess,
-                        out string wrongIssue) &&
-                    wrongAccess == null &&
-                    !string.IsNullOrWhiteSpace(wrongIssue),
-                    "Activity-scoped binding on Route content must not fall back to Route authority. " +
-                    $"state='{wrongBinding.BindingState}' diagnostic='{wrongBinding.Diagnostic}'.");
+                    wrongAccessAvailable &&
+                    wrongAccess != null &&
+                    wrongAccess.Snapshot.IsAvailable &&
+                    wrongAccess.Snapshot.Scope ==
+                        LocalPlayerProvisioningConsumerScope.Activity &&
+                    wrongAccess.Snapshot.Owner.IsValid,
+                    "Activity-scoped binding on Route content must bind only to the " +
+                    "live Activity authority and never fall back to Route authority. " +
+                    $"state='{wrongBinding.BindingState}' scope='{wrongAccess?.Snapshot.Scope}' " +
+                    $"owner='{wrongAccess?.Snapshot.Owner.StableText}' issue='{wrongIssue}' " +
+                    $"diagnostic='{wrongBinding.Diagnostic}'.");
                 cases.Complete("wrong-scope-no-fallback");
 
                 // --- Activity lifecycle: exit while WaitingForJoin ---
@@ -491,7 +447,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     ActivityEntryReadinessPolicy.WaitCovered,
                     ActivityVisualTransitionMode.Fade,
                     TransitionGateMode.InputInteractionAndGameplay,
-                    QaM07InternalReconcileSetup.ContentScenePath);
+                    QaPlayerSurfacePublicNavigationSetup.ContentScenePath);
                 ConfigurePlayerParticipation(
                     waitingActivity,
                     PlayerParticipationRequirementLevel.GameplayReady,
@@ -654,8 +610,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
                 // Lifecycle path reuses the existing joined Slot and the single
                 // fixture-owned Activity asset (CreateActivity is one-shot).
-                // Reconfigure only while inactive, matching the canonical M07
-                // projection smoke: the waiting occurrences project unjoined P2,
+                // Reconfigure only while inactive, matching the canonical
+                // participation projection: the waiting occurrences project unjoined P2,
                 // while lifecycle/reentry project the joined P1.
                 ActivityAsset lifecycleActivity = waitingActivity;
                 ConfigurePlayerParticipation(
@@ -951,6 +907,58 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         : "Repeated default Actor selection returned no result.");
                 cases.Complete("repeated-default-selection-stable");
 
+                // The lifecycle proof requires P2 to remain available for its
+                // WaitingForJoin projection. The public surface has no leave
+                // operation, so consume P2 only after every one-Player
+                // lifecycle observation has completed.
+                InputDevice sharedDevice =
+                    joined.PlayerInput != null &&
+                    joined.PlayerInput.devices.Count > 0
+                        ? joined.PlayerInput.devices[0]
+                        : null;
+                Require(
+                    sharedDevice != null &&
+                    sharedDevice.added,
+                    "Second Supported Slot Join requires one explicit active InputDevice " +
+                    "from the first PlayerInput.");
+
+                LocalPlayerJoinResult secondJoin = routeAccess.RequestJoin(
+                    new LocalPlayerJoinRequest(
+                        Source,
+                        "qa-player-surface-02-second-supported-slot",
+                        sharedDevice));
+                Require(
+                    secondJoin != null &&
+                    secondJoin.Succeeded &&
+                    secondJoin.Slot.IsJoined &&
+                    secondJoin.Slot.PlayerSlotId != joinedSlotId,
+                    secondJoin != null
+                        ? secondJoin.ToDiagnosticString()
+                        : "Second Supported Slot Join returned no result.");
+                cases.Complete("second-join-uses-next-supported-slot");
+
+                LocalPlayerJoinResult noAvailableSlot = routeAccess.RequestJoin(
+                    new LocalPlayerJoinRequest(
+                        Source,
+                        "qa-player-surface-02-no-available-slot"));
+                Require(
+                    noAvailableSlot != null &&
+                    noAvailableSlot.Status ==
+                        LocalPlayerJoinStatus.RejectedNoAvailableSlot &&
+                    !noAvailableSlot.Succeeded,
+                    noAvailableSlot != null
+                        ? noAvailableSlot.ToDiagnosticString()
+                        : "Full-Session Join returned no public result.");
+                LocalPlayerProvisioningConsumerObservationSnapshot afterFull =
+                    RequireObservation(routeAccess, "after-full-session-join");
+                Require(
+                    afterFull.Participation.JoinedCount == configuredSlots &&
+                    afterFull.Participation.AvailableCount == 0 &&
+                    afterFull.SessionRevision >= sessionRevisionFloor,
+                    "Rejected full-Session Join changed occupancy unexpectedly. " +
+                    DescribeObservation(afterFull));
+                cases.Complete("session-full-rejected-no-available-slot");
+
                 // --- Public navigation disposition ---
 
                 ActivityRequestTrigger publicTrigger =
@@ -1056,7 +1064,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     $"joinedSlot='{joinedSlotId.StableText}' " +
                     $"selectionRevision='{selectionRevisionAtCapture}' " +
                     $"publicNavigation='{publicNavigationDisposition}' " +
-                    "proof='ClosedJoin,CapacityExhausted,InvalidCapacity,NoChange,MissingBinding,WrongScope,ExitWaiting,StaleActivityEndpoint,Reentry,StaleSelection,DestroyedBinding' " +
+                    "proof='ClosedJoin,SupportedSlots,FirstAvailableOrder,NoAvailableSlot,NoChange,MissingBinding,WrongScope,ExitWaiting,StaleActivityEndpoint,Reentry,StaleSelection,DestroyedBinding' " +
                     $"completed='{cases.DescribeCompleted()}'.");
             }
             catch (Exception exception)
@@ -1168,7 +1176,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             for (int frame = 0; frame < FrameBudget; frame++)
             {
                 content = SceneManager.GetSceneByPath(
-                    QaM07InternalReconcileSetup.ContentScenePath);
+                    QaPlayerSurfacePublicNavigationSetup.ContentScenePath);
                 if (content.IsValid() && content.isLoaded)
                 {
                     break;
@@ -1350,7 +1358,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             PlayerSlotProfile slot = null;
             Require(
                 application != null &&
-                application.TryGetLocalPlayerSlot(index, out slot) &&
+                QaPlayerSessionQaSupport.TryGetSupportedSlot(application, index, out slot) &&
                 slot != null,
                 $"Could not resolve {label} Local Player Slot at index '{index}' " +
                 "from active GameApplication.");
@@ -1523,7 +1531,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 $"sessionRevision='{observation.SessionRevision}' " +
                 $"appliedRevision='{observation.AppliedSessionRevision}' " +
                 $"joined='{observation.Participation?.JoinedCount}' " +
-                $"capacity='{observation.Participation?.DynamicCapacity}' " +
+                $"availableSlots='{observation.Participation?.AvailableCount}' " +
                 $"joiningOpen='{observation.Participation?.JoiningOpen}' " +
                 $"diagnostic='{observation.Diagnostic}'";
         }

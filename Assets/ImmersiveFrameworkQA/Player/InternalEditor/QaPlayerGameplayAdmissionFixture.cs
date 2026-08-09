@@ -327,7 +327,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             if (primaryJoin == null)
                 throw new InvalidOperationException("JoinAdditionalPlayer requires the primary Player join first.");
 
-            RequireAdditionalJoinCapacity(nameof(JoinAdditionalPlayer));
+            RequireAdditionalJoinSlotAvailability(nameof(JoinAdditionalPlayer));
 
             LocalPlayerJoinResult result = RequestOfficialJoin(reason);
             ValidateSecondaryJoin(
@@ -362,13 +362,13 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 throw new InvalidOperationException(
                     "Multi-Player QA requires the primary PlayerInput to expose one explicit device that can be supplied to the secondary official join request.");
 
-            RequireAdditionalJoinCapacity(nameof(JoinAdditionalPlayerSharingPrimaryDevice));
+            RequireAdditionalJoinSlotAvailability(nameof(JoinAdditionalPlayerSharingPrimaryDevice));
             PlayerParticipationSnapshot before = ParticipationSnapshot;
             Debug.Log(
                 "[QA_PLAYER_FIXTURE][MULTI_PLAYER_JOIN] " +
                 "phase='before-secondary' " +
-                $"managerPlayers='{PlayerCount}' technicalMax='{Provisioning.TechnicalMaxPlayerCount}' " +
-                $"dynamicCapacity='{before?.DynamicCapacity}' joinedSlots='{before?.JoinedCount}' " +
+                $"managerPlayers='{PlayerCount}' managerLimit='{Provisioning.PlayerInputManager?.maxPlayerCount}' " +
+                $"availableSlots='{before?.AvailableCount}' joinedSlots='{before?.JoinedCount}' " +
                 $"device='{DescribeDevice(sharedDevice)}' deviceId='{sharedDevice.deviceId}' " +
                 $"primaryDeviceCount='{primaryInput.devices.Count}' requestDeviceHint='True'");
 
@@ -538,16 +538,18 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             ownedJoinTeardown.Add(new OwnedJoinTeardownEvidence(result));
         }
 
-        private void RequireAdditionalJoinCapacity(string operation)
+        private void RequireAdditionalJoinSlotAvailability(string operation)
         {
             PlayerParticipationSnapshot participation = ParticipationSnapshot;
-            if (Provisioning.TechnicalMaxPlayerCount < 2 ||
-                participation == null || participation.DynamicCapacity < 2 ||
-                participation.ConfiguredSlotCount < 2 ||
-                participation.JoinedCount + participation.AvailableCount < 2)
+            if (Provisioning.PlayerInputManager == null ||
+                participation == null || participation.ConfiguredSlotCount < 2 ||
+                Provisioning.PlayerInputManager.maxPlayerCount !=
+                    participation.ConfiguredSlotCount ||
+                participation.AvailableCount < 1)
             {
                 throw new InvalidOperationException(
-                    $"{operation} requires TechnicalMaxPlayerCount, DynamicCapacity and usable Slot capacity of at least two.");
+                    $"{operation} requires a PlayerInputManager serialized limit equal to " +
+                    "the Session Supported Slot count and an available second Slot.");
             }
         }
 
@@ -646,7 +648,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             InputDevice primaryDevice)
         {
             return $"result='{result?.ToDiagnosticString()}' managerPlayers='{PlayerCount}' " +
-                   $"technicalMax='{Provisioning.TechnicalMaxPlayerCount}' dynamicCapacity='{ParticipationSnapshot?.DynamicCapacity}' " +
+                   $"managerLimit='{Provisioning.PlayerInputManager?.maxPlayerCount}' availableSlots='{ParticipationSnapshot?.AvailableCount}' " +
                    $"joiningEnabled='{Provisioning.RuntimeSnapshot?.JoiningOpen}' primaryDevice='{DescribeDevice(primaryDevice)}' " +
                    $"primaryDeviceId='{primaryDevice?.deviceId}' primaryDevices='{DescribeDevices(primaryInput)}'.";
         }

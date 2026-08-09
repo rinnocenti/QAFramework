@@ -6,6 +6,7 @@ using Immersive.Framework.Camera;
 using Immersive.Framework.CameraAuthoring;
 using Immersive.Framework.Editor.CameraAuthoring;
 using Immersive.Framework.PlayerParticipation;
+using ImmersiveFrameworkQA.Player.Internal.Editor;
 using Unity.Cinemachine;
 using UnityEditor;
 using UnityEngine;
@@ -33,7 +34,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             try
             {
-                QaLocalPlayerRuntimeIntegrationSetup.Apply();
+                QaManagerProvisionedPlayerFixture.Prepare();
                 EnsureFolder(RootFolder);
 
                 GameObject defaultLogicalHost = CreateOrUpdateLogicalActorHost(
@@ -82,7 +83,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 serializedApplication.ApplyModifiedPropertiesWithoutUndo();
                 EditorUtility.SetDirty(gameApplication);
 
-                if (!gameApplication.TryGetLocalPlayerSlot(0, out PlayerSlotProfile firstSlot) ||
+                if (!ImmersiveFrameworkQA.Player.QaPlayerSessionQaSupport.TryGetSupportedSlot(gameApplication, 0, out PlayerSlotProfile firstSlot) ||
                     firstSlot == null)
                 {
                     throw new InvalidOperationException(

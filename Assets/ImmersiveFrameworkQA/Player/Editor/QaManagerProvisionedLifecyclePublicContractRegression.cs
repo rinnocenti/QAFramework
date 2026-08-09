@@ -15,8 +15,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
         QaManagerProvisionedLifecyclePublicContractRegression
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Regressions/Player/" +
-            "Run Manager-Provisioned Lifecycle Public Contract Regression";
+            "Immersive Framework/QA/Player/Manager Provisioned/" +
+            "Run Lifecycle Contract";
 
         [MenuItem(MenuPath)]
         internal static void Run()

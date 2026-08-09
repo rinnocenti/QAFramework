@@ -322,7 +322,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             for (int index = 0; index < slots.Length; index++)
             {
                 Require(
-                    settings.ActiveGameApplication.TryGetLocalPlayerSlot(
+                    ImmersiveFrameworkQA.Player.QaPlayerSessionQaSupport.TryGetSupportedSlot(
+                        settings.ActiveGameApplication,
                         index,
                         out slots[index]) &&
                     slots[index] != null,

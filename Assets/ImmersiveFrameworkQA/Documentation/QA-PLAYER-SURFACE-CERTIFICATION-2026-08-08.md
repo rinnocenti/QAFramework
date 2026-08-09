@@ -1,5 +1,9 @@
 # Player Surface QA — Joint Certification
 
+> **Superseded by R4 (2026-08-09).** This historical certification records the
+> pre-R2 Player Session surface. Its Capacity commands are not active contracts;
+> use the R4 Player Session QA evidence based on Supported Slots instead.
+
 **Original runbook date:** 2026-08-08  
 **Certified:** 2026-08-09  
 **Cuts:** QA-PLAYER-SURFACE-01 + QA-PLAYER-SURFACE-02  

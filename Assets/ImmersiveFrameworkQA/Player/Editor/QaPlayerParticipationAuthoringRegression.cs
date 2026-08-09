@@ -16,10 +16,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
     internal static class QaPlayerParticipationAuthoringRegression
     {
         private const string TempFolder = "Assets/ImmersiveFrameworkQA/__PlayerParticipationAuthoring_Temp";
-        private const string SlotValidatorTypeName = "Immersive.Framework.Editor.Editor.PlayerParticipation.PlayerParticipationAuthoringValidator";
         private const string ProjectionValidatorTypeName = "Immersive.Framework.Editor.Editor.PlayerParticipation.ActivityParticipationProjectionAuthoringValidator";
 
-        [MenuItem("Immersive Framework/QA/Regressions/Player/Run Player Participation Authoring Regression")]
+        [MenuItem("Immersive Framework/QA/Player/Session/Run Authoring Contract")]
         internal static void Run()
         {
             var completed = new List<string>();
@@ -51,8 +50,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             PlayerSlotProfile playerOne = CreateSlotProfile("PlayerSlot_QA_One", "  qa.p3c.player.1  ", "QA Player 1", 0);
             PlayerSlotProfile playerTwo = CreateSlotProfile("PlayerSlot_QA_Two", "qa.p3c.player.2", "QA Player 2", 1);
-            GameApplicationAsset gameApplication = CreateGameApplication(
-                PlayerActorSelectionDuplicatePolicy.AllowDuplicates,
+            PlayerSessionProfile sessionProfile = CreatePlayerSessionProfile(
                 playerOne,
                 playerTwo);
             AssetDatabase.SaveAssets();
@@ -62,21 +60,26 @@ namespace ImmersiveFrameworkQA.Player.Editor
             AssertTrue(playerOne.TryGetPlayerSlotId(out _, out string playerOneIssue), $"Normalized PlayerSlotId did not resolve: '{playerOneIssue}'.");
             completed.Add("profile-identity-normalized");
 
-            AssertEqual(2, gameApplication.LocalPlayerSlotCount, "Configured Slot count is incorrect.");
-            AssertSame(playerOne, gameApplication.LocalPlayerSlots[0], "Configured Slot order index 0 changed.");
-            AssertSame(playerTwo, gameApplication.LocalPlayerSlots[1], "Configured Slot order index 1 changed.");
-            completed.Add("ordered-game-application-configuration");
+            AssertEqual(2, sessionProfile.SupportedSlotCount, "Supported Slot count is incorrect.");
+            AssertSame(playerOne, sessionProfile.SupportedSlots[0], "Supported Slot order index 0 changed.");
+            AssertSame(playerTwo, sessionProfile.SupportedSlots[1], "Supported Slot order index 1 changed.");
+            completed.Add("ordered-player-session-configuration");
 
-            object validReport = ValidateGameApplication(gameApplication);
-            AssertReportHasNoErrors(validReport, "Valid Game Application configuration reported errors.");
-            completed.Add("valid-configuration-accepted");
+            AssertTrue(sessionProfile.TryValidate(out string profileIssue),
+                $"Valid Player Session Profile reported an error: '{profileIssue}'.");
+            PlayerSessionInitializationResult resolution =
+                PlayerSessionConfigurationResolver.Resolve(sessionProfile);
+            AssertTrue(resolution.Succeeded,
+                $"Valid Player Session Profile did not resolve: '{resolution.Message}'.");
+            completed.Add("valid-player-session-configuration-accepted");
 
             string playerOneBefore = EditorJsonUtility.ToJson(playerOne);
-            string applicationBefore = EditorJsonUtility.ToJson(gameApplication);
-            ValidateGameApplication(gameApplication);
+            string profileBefore = EditorJsonUtility.ToJson(sessionProfile);
+            sessionProfile.TryValidate(out _);
+            PlayerSessionConfigurationResolver.Resolve(sessionProfile);
             AssertEqual(playerOneBefore, EditorJsonUtility.ToJson(playerOne), "Validation mutated Player 1 Profile.");
-            AssertEqual(applicationBefore, EditorJsonUtility.ToJson(gameApplication), "Validation mutated Game Application.");
-            completed.Add("slot-validation-is-non-mutating");
+            AssertEqual(profileBefore, EditorJsonUtility.ToJson(sessionProfile), "Validation mutated Player Session Profile.");
+            completed.Add("player-session-validation-is-non-mutating");
         }
 
         private static void RunActivityProjectionAuthoringCases(List<string> completed)
@@ -135,23 +138,26 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return profile;
         }
 
-        private static GameApplicationAsset CreateGameApplication(
-            PlayerActorSelectionDuplicatePolicy actorSelectionPolicy,
+        private static PlayerSessionProfile CreatePlayerSessionProfile(
             params PlayerSlotProfile[] profiles)
         {
-            var gameApplication = ScriptableObject.CreateInstance<GameApplicationAsset>();
-            gameApplication.name = "QA Game Application";
-            AssetDatabase.CreateAsset(gameApplication, $"{TempFolder}/GameApplication_QA.asset");
-            var serialized = new SerializedObject(gameApplication);
-            serialized.FindProperty("playerActorSelectionDuplicatePolicy").intValue = (int)actorSelectionPolicy;
-            SerializedProperty slots = serialized.FindProperty("localPlayerSlots");
+            var profile = ScriptableObject.CreateInstance<PlayerSessionProfile>();
+            profile.name = "QA Player Session Profile";
+            AssetDatabase.CreateAsset(profile, $"{TempFolder}/PlayerSessionProfile_QA.asset");
+            var serialized = new SerializedObject(profile);
+            SerializedProperty slots = serialized.FindProperty("supportedSlots");
             slots.arraySize = profiles != null ? profiles.Length : 0;
             for (int i = 0; i < slots.arraySize; i++)
             {
                 slots.GetArrayElementAtIndex(i).objectReferenceValue = profiles[i];
             }
+            serialized.FindProperty("initialJoiningOpen").boolValue = true;
+            serialized.FindProperty("hostProvisioning").intValue =
+                (int)PlayerHostProvisioningMode.ManagerProvisioned;
+            serialized.FindProperty("actorResolutionPolicy").intValue =
+                (int)PlayerActorResolutionPolicy.ResolveConfiguredDefault;
             serialized.ApplyModifiedPropertiesWithoutUndo();
-            return gameApplication;
+            return profile;
         }
 
         private static ActivityAsset CreateActivity(
@@ -178,15 +184,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
             serialized.ApplyModifiedPropertiesWithoutUndo();
             AssetDatabase.CreateAsset(activity, $"{TempFolder}/{fileName}.asset");
             return activity;
-        }
-
-        private static object ValidateGameApplication(GameApplicationAsset gameApplication)
-        {
-            return InvokeValidator(
-                SlotValidatorTypeName,
-                "ValidateGameApplication",
-                new[] { typeof(GameApplicationAsset), typeof(bool) },
-                new object[] { gameApplication, true });
         }
 
         private static object ValidateActivity(ActivityAsset activity)

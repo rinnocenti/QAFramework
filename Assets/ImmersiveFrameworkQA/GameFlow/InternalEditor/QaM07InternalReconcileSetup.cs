@@ -1,6 +1,6 @@
 using System;
-using System.Reflection;
-using System.Runtime.ExceptionServices;
+using ImmersiveFrameworkQA.Player;
+using ImmersiveFrameworkQA.Player.Internal.Editor;
 using Immersive.Framework.Actors;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.PlayerParticipation;
@@ -12,16 +12,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 {
     /// <summary>
     /// Idempotent Edit Mode preparation for Q3 — QA-M07-INTERNAL.
-    /// It reuses the canonical QA Hub, P3J.5/P3H.4 Player fixture and the existing
-    /// direct-readiness content scene. No scene, prefab or ProjectSettings asset is created.
+    /// It prepares the canonical Manager-Provisioned Player fixture through typed
+    /// Player support, then applies the existing direct-readiness content setup.
     /// </summary>
-    internal static class QaM07InternalReconcileSetup
+    public static class QaM07InternalReconcileSetup
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Setup/Player/M07 Prepare Internal Reconcile Regression";
+            "Immersive Framework/QA/Game Flow/Participation/Prepare Reconcile Fixture";
         private const string Prefix = "[QA_M07_INTERNAL_SETUP]";
-        private const string PlayerFixtureSetupTypeName =
-            "ImmersiveFrameworkQA.Player.Editor.QaP3J5RuntimeHostPreparationSetup";
         private const string PreparedKey =
             "ImmersiveFrameworkQA.QA_M07_INTERNAL.Prepared";
         private const string RestoreAfterPlayKey =
@@ -70,7 +68,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 Require(ReferenceEquals(application, canonical),
                     "Q3 Player setup changed the active application away from the canonical QA Hub.");
 
-                Require(application.TryGetLocalPlayerSlot(
+                Require(QaPlayerSessionQaSupport.TryGetSupportedSlot(
+                        application,
                         0,
                         out PlayerSlotProfile firstSlot) &&
                     firstSlot != null &&
@@ -78,7 +77,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     firstSlot.DefaultActorProfile.LogicalActorHostPrefab != null,
                     "Q3 requires a valid first Local Player Slot with a default Actor.");
 
-                Require(application.TryGetLocalPlayerSlot(
+                Require(QaPlayerSessionQaSupport.TryGetSupportedSlot(
+                        application,
                         1,
                         out PlayerSlotProfile secondSlot) &&
                     secondSlot != null,
@@ -139,6 +139,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     $"message='{Escape(exception.Message)}'.");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Typed Edit Mode preparation used by the canonical Player QA orchestrator.
+        /// </summary>
+        public static void PrepareForFullPlayerQa()
+        {
+            Prepare();
         }
 
         internal static void RequirePreparedForCurrentPlayMode()
@@ -239,76 +247,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private static void EnsureCanonicalPlayerFixture()
         {
-            if (TryValidateCanonicalPlayerFixture(out string existingDiagnostic))
-            {
-                Debug.Log(
-                    $"{Prefix} status='PlayerFixtureReused' " +
-                    $"diagnostic='{Escape(existingDiagnostic)}'.");
-                return;
-            }
-
-            Exception applicationFailure = null;
-            try
-            {
-                InvokeCanonicalPlayerFixtureSetup();
-            }
-            catch (Exception exception)
-            {
-                applicationFailure = exception;
-            }
-
-            if (TryValidateCanonicalPlayerFixture(out string appliedDiagnostic))
-            {
-                if (applicationFailure != null)
-                {
-                    Debug.LogWarning(
-                        $"{Prefix} status='PlayerFixtureAppliedWithLegacyDiagnosticFailure' " +
-                        $"exception='{applicationFailure.GetType().Name}' " +
-                        $"message='{Escape(applicationFailure.Message)}' " +
-                        $"postconditions='{Escape(appliedDiagnostic)}'.");
-                }
-                else
-                {
-                    Debug.Log(
-                        $"{Prefix} status='PlayerFixtureApplied' " +
-                        $"postconditions='{Escape(appliedDiagnostic)}'.");
-                }
-
-                return;
-            }
-
-            if (applicationFailure != null)
-            {
-                ExceptionDispatchInfo.Capture(applicationFailure).Throw();
-            }
-
-            throw new InvalidOperationException(
-                "Canonical Player fixture setup returned without an exception, " +
-                "but its required postconditions are not valid.");
-        }
-
-        private static void InvokeCanonicalPlayerFixtureSetup()
-        {
-            Type setupType = ResolveLoadedType(
-                PlayerFixtureSetupTypeName);
-            MethodInfo apply = setupType.GetMethod(
-                "Apply",
-                BindingFlags.Static |
-                BindingFlags.Public |
-                BindingFlags.NonPublic);
-            Require(apply != null &&
-                apply.GetParameters().Length == 0,
-                $"Q3 could not resolve parameterless '{PlayerFixtureSetupTypeName}.Apply'.");
-
-            try
-            {
-                apply.Invoke(null, null);
-            }
-            catch (TargetInvocationException exception)
-            {
-                ExceptionDispatchInfo.Capture(
-                    exception.InnerException ?? exception).Throw();
-            }
+            QaManagerProvisionedPlayerFixture.PrepareAndValidate();
+            Require(
+                TryValidateCanonicalPlayerFixture(out string diagnostic),
+                "Activity participation could not validate the explicit " +
+                "Manager-Provisioned Player fixture after preparation. " +
+                diagnostic);
+            Debug.Log(
+                $"{Prefix} status='PlayerFixturePrepared' " +
+                $"diagnostic='{Escape(diagnostic)}'.");
         }
 
         private static bool TryValidateCanonicalPlayerFixture(
@@ -341,12 +288,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 return false;
             }
 
-            PlayerProvisioningProfile provisioning = application
-                .DefaultPlayerSessionProfile.PlayerProvisioningProfile;
-            if (provisioning == null ||
-                provisioning.DefaultHostProvisioning !=
+            PlayerSessionProfile session =
+                application.DefaultPlayerSessionProfile;
+            if (session.HostProvisioning !=
                     PlayerHostProvisioningMode.ManagerProvisioned ||
-                provisioning.ActorResolutionPolicy !=
+                session.ActorResolutionPolicy !=
                     PlayerActorResolutionPolicy.ResolveConfiguredDefault)
             {
                 diagnostic =
@@ -363,10 +309,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 return false;
             }
 
-            if (!application.TryGetLocalPlayerSlot(
-                    0,
-                    out PlayerSlotProfile firstSlot) ||
-                firstSlot == null ||
+            if (session.SupportedSlots.Count < 2)
+            {
+                diagnostic =
+                    "Canonical Player Session requires at least two Supported Slots.";
+                return false;
+            }
+
+            PlayerSlotProfile firstSlot = session.SupportedSlots[0];
+            if (firstSlot == null ||
                 firstSlot.DefaultActorProfile == null ||
                 !firstSlot.DefaultActorProfile.ActorProfileId.IsValid ||
                 firstSlot.DefaultActorProfile.LogicalActorHostPrefab == null)
@@ -376,10 +327,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 return false;
             }
 
-            if (!application.TryGetLocalPlayerSlot(
-                    1,
-                    out PlayerSlotProfile secondSlot) ||
-                secondSlot == null)
+            PlayerSlotProfile secondSlot = session.SupportedSlots[1];
+            if (secondSlot == null)
             {
                 diagnostic =
                     "Second Local Player Slot is missing.";
@@ -414,27 +363,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 $"secondSlot='{secondSlot.PlayerSlotId.StableText}' " +
                 $"alternateActor='{alternate.ActorProfileId.StableText}'.";
             return true;
-        }
-
-        private static Type ResolveLoadedType(string fullName)
-        {
-            Assembly[] assemblies =
-                AppDomain.CurrentDomain.GetAssemblies();
-            for (int index = 0;
-                 index < assemblies.Length;
-                 index++)
-            {
-                Type type = assemblies[index].GetType(
-                    fullName,
-                    false);
-                if (type != null)
-                {
-                    return type;
-                }
-            }
-
-            throw new TypeLoadException(
-                $"Q3 required Editor type '{fullName}' was not found.");
         }
 
         private static SerializedProperty RequireProperty(

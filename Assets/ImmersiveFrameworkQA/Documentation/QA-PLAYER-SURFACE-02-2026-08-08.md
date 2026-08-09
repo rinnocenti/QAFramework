@@ -1,5 +1,9 @@
 # QA-PLAYER-SURFACE-02 — Negative / Stale Lifecycle Hardening
 
+> **Superseded by R4 (2026-08-09).** This is historical evidence for the
+> pre-R2 Player Session API. Capacity operations and their outcomes no longer
+> describe supported QA contracts.
+
 **Original date:** 2026-08-08  
 **Certified:** 2026-08-09  
 **Cut:** Q2 / `QA-PLAYER-SURFACE-02`  

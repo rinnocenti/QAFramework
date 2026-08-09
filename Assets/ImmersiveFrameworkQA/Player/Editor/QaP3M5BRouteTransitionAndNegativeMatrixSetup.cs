@@ -30,9 +30,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
         }
 
         private const string MenuPath =
-            "Immersive Framework/QA/Setup/Player/Apply Scene Player Route Lifecycle Fixture";
+            "Immersive Framework/QA/Player/Scene Provided/Prepare Fixture";
         private const string RegressionMenuPath =
-            "Immersive Framework/QA/Regressions/Player/Run Scene Player Route Lifecycle Regression";
+            "Immersive Framework/QA/Player/Scene Provided/Run Integration";
         private const string HubRoutePath =
             "Assets/ImmersiveFrameworkQA/Hub/Routes/QA_HubRoute.asset";
 
@@ -130,7 +130,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             try
             {
                 EnsureFolder(RootFolder);
-                PlayerSlotProfile[] slots = ResolveConfiguredSlots();
+                PlayerSlotProfile[] slots = PrepareSceneProvidedSession();
                 GameObject actorPrefab = CreateOrUpdateActorPrefab();
                 ActorProfile actorProfile = CreateOrUpdateActorProfile(
                     ActorProfilePath,
@@ -299,6 +299,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     $"routeBActivityId='{routeBActivity.ActivityId.StableText}' " +
                     $"slot1='{slots[0].PlayerSlotId.StableText}' " +
                     $"slot2='{slots[1].PlayerSlotId.StableText}' " +
+                    "hostProvisioning='SceneProvided' " +
+                    $"supportedSlots='{slots.Length}' " +
                     "negativeCases='duplicate-slot,missing-actor,mismatched-profile,undeclared-surface'.");
             }
             catch (Exception exception)
@@ -309,6 +311,64 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     $"message='{Escape(exception.Message)}'.");
                 throw;
             }
+        }
+
+        private static PlayerSlotProfile[] PrepareSceneProvidedSession()
+        {
+            ImmersiveFrameworkSettingsAsset settings =
+                Resources.Load<ImmersiveFrameworkSettingsAsset>(
+                    ImmersiveFrameworkSettingsAsset.ResourcesPath);
+            if (settings == null || settings.ActiveGameApplication == null)
+            {
+                throw new InvalidOperationException(
+                    "P3M5B requires the QA Active Game Application in Immersive Framework settings.");
+            }
+
+            GameApplicationAsset application = settings.ActiveGameApplication;
+            PlayerSessionProfile profile = application.DefaultPlayerSessionProfile;
+            if (!application.PlayerSessionEnabled || profile == null)
+            {
+                throw new InvalidOperationException(
+                    "P3M5B requires an enabled active Player Session Profile.");
+            }
+
+            var serialized = new SerializedObject(profile);
+            serialized.FindProperty("initialJoiningOpen").boolValue = false;
+            serialized.FindProperty("hostProvisioning").intValue =
+                (int)PlayerHostProvisioningMode.SceneProvided;
+            serialized.FindProperty("actorResolutionPolicy").intValue =
+                (int)PlayerActorResolutionPolicy.LeaveUnresolved;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(profile);
+
+            PlayerSlotProfile[] slots = ResolveConfiguredSlots();
+            string profileIssue = string.Empty;
+            if (profile.HostProvisioning != PlayerHostProvisioningMode.SceneProvided ||
+                profile.ActorResolutionPolicy !=
+                    PlayerActorResolutionPolicy.LeaveUnresolved ||
+                profile.InitialJoiningOpen ||
+                !profile.TryValidate(out profileIssue))
+            {
+                throw new InvalidOperationException(
+                    "P3M5B Scene-Provided preparation requires a valid active " +
+                    "PlayerSessionProfile with SceneProvided provisioning. " +
+                    profileIssue);
+            }
+
+            PlayerSessionInitializationResult resolution =
+                PlayerSessionConfigurationResolver.Resolve(profile);
+            if (!resolution.Succeeded || resolution.Configuration == null ||
+                resolution.Configuration.HostProvisioning !=
+                    PlayerHostProvisioningMode.SceneProvided ||
+                resolution.Configuration.SupportedSlotCount != slots.Length)
+            {
+                throw new InvalidOperationException(
+                    "P3M5B Scene-Provided preparation did not resolve the expected " +
+                    "effective Player Session configuration. " +
+                    (resolution != null ? resolution.Message : string.Empty));
+            }
+
+            return slots;
         }
 
         private static PlayerSlotProfile[] ResolveConfiguredSlots()
@@ -325,7 +385,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             var slots = new PlayerSlotProfile[2];
             for (int index = 0; index < slots.Length; index++)
             {
-                if (!settings.ActiveGameApplication.TryGetLocalPlayerSlot(
+                if (!ImmersiveFrameworkQA.Player.QaPlayerSessionQaSupport.TryGetSupportedSlot(
+                        settings.ActiveGameApplication,
                         index,
                         out slots[index]) ||
                     slots[index] == null)

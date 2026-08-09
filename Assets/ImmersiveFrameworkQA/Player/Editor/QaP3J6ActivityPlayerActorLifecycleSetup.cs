@@ -40,9 +40,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     Resources.Load<ImmersiveFrameworkSettingsAsset>(
                         ImmersiveFrameworkSettingsAsset.ResourcesPath);
                 if (settings == null || settings.ActiveGameApplication == null ||
-                    !settings.ActiveGameApplication.TryGetLocalPlayerSlot(
-                        1,
-                        out PlayerSlotProfile secondSlot) ||
+                    !ImmersiveFrameworkQA.Player.QaPlayerSessionQaSupport.TryGetSupportedSlot(settings.ActiveGameApplication, 1, out PlayerSlotProfile secondSlot) ||
                     secondSlot == null)
                 {
                     throw new InvalidOperationException(
@@ -152,3 +150,5 @@ namespace ImmersiveFrameworkQA.Player.Editor
         }
     }
 }
+
+

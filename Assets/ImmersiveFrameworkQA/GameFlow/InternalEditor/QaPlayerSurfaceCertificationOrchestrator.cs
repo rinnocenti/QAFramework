@@ -10,22 +10,18 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 {
     /// <summary>
     /// Joint Edit/Play Mode orchestration for Player Surface public certification.
-    /// Prepares authored navigation + M07 environment, then runs Q1 and Q2 in
+    /// Prepares the authored public Player fixture, then runs Q1 and Q2 in
     /// separate fresh Play Mode sessions.
     /// </summary>
-    internal static class QaPlayerSurfaceCertificationOrchestrator
+    public static class QaPlayerSurfaceCertificationOrchestrator
     {
         private const string Prefix = "[QA_PLAYER_SURFACE_CERT]";
         private const string PrepareMenuPath =
-            "Immersive Framework/QA/Setup/Player/Prepare Player Surface Full Certification";
+            "Immersive Framework/QA/Player/Public Surface/Prepare Certification Fixture";
         private const string RunMenuPath =
-            "Immersive Framework/QA/Regressions/Player/Run Player Surface Full Certification (Q1+Q2)";
-        private const string M07PrepareMenuPath =
-            "Immersive Framework/QA/Setup/Player/M07 Prepare Internal Reconcile Regression";
+            "Immersive Framework/QA/Player/Public Surface/Run Certification";
         private const string HubScenePath =
             "Assets/ImmersiveFrameworkQA/Hub/Scenes/QA_Hub.unity";
-        private const string M07PreparedKey =
-            "ImmersiveFrameworkQA.QA_M07_INTERNAL.Prepared";
         private const string PhaseKey =
             "ImmersiveFrameworkQA.QA_PLAYER_SURFACE.CertPhase";
         private const string Q1ResultKey =
@@ -67,7 +63,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         }
 
         /// <summary>
-        /// Prepares M07 + public navigation fixture. Never marks Prepared on failure.
+        /// Prepares the public fixture. Never marks Prepared on failure.
         /// </summary>
         internal static void PrepareForCertification()
         {
@@ -87,7 +83,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 SessionState.SetInt(PhaseKey, (int)Phase.Prepared);
                 Debug.Log(
                     $"{Prefix} status='Prepared' " +
-                    "m07='Prepared' publicNav='Prepared' " +
+                    "publicPlayerFixture='Prepared' " +
                     "next='Run Player Surface Full Certification (Q1+Q2) or enter Play Mode after prepare'.");
             }
             catch (Exception exception)
@@ -103,6 +99,17 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "q1='NotStarted' q2='NotStarted'.");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Prepares one isolated Public Surface Play Mode phase without starting
+        /// the Public Surface orchestrator's own phase machine.
+        /// </summary>
+        public static void PrepareForFullPlayerQa()
+        {
+            Require(!EditorApplication.isPlaying,
+                "Player Surface preparation for Full Player QA must run in Edit Mode.");
+            PrepareArtifactsForPlaySession();
         }
 
         [MenuItem(RunMenuPath, true)]
@@ -261,18 +268,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private static void PrepareArtifactsForPlaySession()
         {
-            SessionState.EraseBool(M07PreparedKey);
-            if (!EditorApplication.ExecuteMenuItem(M07PrepareMenuPath))
-            {
-                throw new InvalidOperationException(
-                    $"Could not execute menu item '{M07PrepareMenuPath}'.");
-            }
-
-            Require(
-                SessionState.GetBool(M07PreparedKey, false),
-                "M07 prepare did not set the Prepared SessionState marker. " +
-                "Player Surface certification will not start over incomplete M07 setup.");
-
             QaPlayerSurfacePublicNavigationSetup.PrepareForCertification();
             QaPlayerSurfacePublicNavigationSetup.RequirePrepared();
             RequireAuthoredHubFixturePresent();

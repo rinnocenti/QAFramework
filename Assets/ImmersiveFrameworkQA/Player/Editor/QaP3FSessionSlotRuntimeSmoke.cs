@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
 using UnityEditor;
@@ -9,326 +8,183 @@ using UnityEngine;
 namespace ImmersiveFrameworkQA.Player.Editor
 {
     /// <summary>
-    /// Editor-only P3F.1 smoke for the isolated Session Slot runtime state machine.
-    /// No scenes, persistent fixtures or PlayerInput instances are created.
+    /// Edit Mode proof of the authored Player Session product contract. Runtime
+    /// Join behavior is covered through the public Q1/Q2 provisioning surfaces.
     /// </summary>
-    internal static class QaP3FSessionSlotRuntimeSmoke
+    internal static class QaPlayerSessionContractRegression
     {
-        private const string ContextTypeName =
-            "Immersive.Framework.PlayerParticipation.PlayerParticipationRuntimeContext";
+        private const string Prefix = "[P3F_PLAYER_SESSION_CONTRACT]";
+        private const int ExpectedCaseCount = 6;
 
-        private static readonly BindingFlags StaticInternal =
-            BindingFlags.Static | BindingFlags.NonPublic;
+        private static readonly string[] ExpectedCases =
+        {
+            "profile-resolves-four-authoring-concerns",
+            "supported-slots-define-structural-universe",
+            "manager-host-provisioning-is-uniform",
+            "scene-host-provisioning-is-uniform",
+            "actor-resolution-policies-remain-distinct",
+            "effective-configuration-remains-frozen"
+        };
 
-        private static readonly BindingFlags InstanceInternal =
-            BindingFlags.Instance | BindingFlags.NonPublic;
-
-        [MenuItem("Immersive Framework/QA/Regressions/Player/Run Session Player Slots Regression")]
+        [MenuItem("Immersive Framework/QA/Player/Session/Run Session Contract")]
         internal static void Run()
         {
+            var created = new List<UnityEngine.Object>();
             var completed = new List<string>();
-            var createdProfiles = new List<PlayerSlotProfile>();
 
             try
             {
-                PlayerSlotProfile playerOne = CreateProfile(createdProfiles, "QA P3F Player 1", "qa.p3f.player.1");
-                PlayerSlotProfile playerTwo = CreateProfile(createdProfiles, "QA P3F Player 2", "qa.p3f.player.2");
-                PlayerSlotProfile playerThree = CreateProfile(createdProfiles, "QA P3F Player 3", "qa.p3f.player.3");
+                Require(
+                    !EditorApplication.isPlayingOrWillChangePlaymode,
+                    "Player Session contract regression must run in Edit Mode.");
 
-                string playerOneBefore = EditorJsonUtility.ToJson(playerOne);
-                string playerTwoBefore = EditorJsonUtility.ToJson(playerTwo);
-                string playerThreeBefore = EditorJsonUtility.ToJson(playerThree);
-
-                object context = CreateContext(
-                    new[] { playerOne, playerTwo, playerThree },
-                    2,
-                    false,
-                    out PlayerParticipationOperationResult initialization);
-                AssertStatus(initialization, PlayerParticipationOperationStatus.Succeeded, "Valid context initialization failed.");
-                AssertNotNull(context, "Valid initialization did not return a context.");
-                AssertEqual(3, initialization.Snapshot.ConfiguredSlotCount, "Configured Slot count changed.");
-                AssertSame(playerOne, initialization.Snapshot.Slots[0].Profile, "Configured order index 0 changed.");
-                AssertSame(playerTwo, initialization.Snapshot.Slots[1].Profile, "Configured order index 1 changed.");
-                AssertSame(playerThree, initialization.Snapshot.Slots[2].Profile, "Configured order index 2 changed.");
-                completed.Add("ordered-roster-initialized");
-
-                PlayerParticipationOperationResult closedReservation = Reserve(context);
-                AssertStatus(
-                    closedReservation,
-                    PlayerParticipationOperationStatus.RejectedJoiningClosed,
-                    "Closed joining accepted a reservation.");
-                completed.Add("joining-closed-rejected");
-
-                AssertStatus(
-                    InvokeResult(context, "TryOpenJoining", "QA.P3F", "open-joining"),
-                    PlayerParticipationOperationStatus.Succeeded,
-                    "Opening joining failed.");
-                completed.Add("joining-opened");
-
-                PlayerParticipationOperationResult firstReservation = Reserve(context);
-                AssertStatus(firstReservation, PlayerParticipationOperationStatus.Succeeded, "First reservation failed.");
-                AssertSame(playerOne, firstReservation.Slot.Profile, "First configured Available Slot was not reserved.");
-                AssertEqual(PlayerSlotAllocationState.Reserved, firstReservation.Slot.AllocationState, "First Slot is not Reserved.");
-                completed.Add("first-available-reserved");
-
-                PlayerParticipationOperationResult secondReservation = Reserve(context);
-                AssertStatus(secondReservation, PlayerParticipationOperationStatus.Succeeded, "Second reservation failed.");
-                AssertSame(playerTwo, secondReservation.Slot.Profile, "Second configured Available Slot was not reserved.");
-                AssertTrue(
-                    firstReservation.ReservationToken != secondReservation.ReservationToken,
-                    "Two reservations received the same token.");
-                completed.Add("ordered-second-slot-reserved");
-
-                PlayerParticipationOperationResult capacityReached = Reserve(context);
-                AssertStatus(
-                    capacityReached,
-                    PlayerParticipationOperationStatus.RejectedCapacityReached,
-                    "Reservation exceeded dynamic capacity.");
-                completed.Add("reserved-count-consumes-capacity");
-
-                PlayerParticipationOperationResult releaseFirst = InvokeResult(
-                    context,
-                    "TryReleaseReservation",
-                    firstReservation.ReservationToken,
-                    "QA.P3F",
-                    "release-first");
-                AssertStatus(releaseFirst, PlayerParticipationOperationStatus.Succeeded, "Reservation release failed.");
-                AssertEqual(PlayerSlotAllocationState.Available, releaseFirst.Slot.AllocationState, "Released Slot did not return to Available.");
-                completed.Add("reservation-release-restores-available");
-
-                PlayerParticipationOperationResult staleRelease = InvokeResult(
-                    context,
-                    "TryReleaseReservation",
-                    firstReservation.ReservationToken,
-                    "QA.P3F",
-                    "stale-release");
-                AssertStatus(
-                    staleRelease,
-                    PlayerParticipationOperationStatus.RejectedForeignOrStaleReservation,
-                    "Stale reservation token was accepted.");
-                completed.Add("stale-reservation-rejected");
-
-                PlayerParticipationOperationResult replacementReservation = Reserve(context);
-                AssertStatus(replacementReservation, PlayerParticipationOperationStatus.Succeeded, "Replacement reservation failed.");
-                AssertSame(playerOne, replacementReservation.Slot.Profile, "Released first Slot was not selected again by configured order.");
-
-                PlayerParticipationOperationResult markJoined = InvokeResult(
-                    context,
-                    "TryMarkJoined",
-                    replacementReservation.ReservationToken,
-                    "QA.P3F",
-                    "mark-joined");
-                AssertStatus(markJoined, PlayerParticipationOperationStatus.Succeeded, "Mark Joined failed.");
-                AssertEqual(PlayerSlotAllocationState.Joined, markJoined.Slot.AllocationState, "Slot did not become Joined.");
-                completed.Add("reserved-slot-marked-joined");
-
-                PlayerParticipationOperationResult reduceCapacity = InvokeResult(
-                    context,
-                    "TrySetDynamicCapacity",
-                    1,
-                    "QA.P3F",
-                    "reduce-capacity");
-                AssertStatus(reduceCapacity, PlayerParticipationOperationStatus.Succeeded, "Capacity reduction failed.");
-                AssertTrue(reduceCapacity.Snapshot.IsOverCapacity, "Capacity reduction did not report over-capacity state.");
-                AssertEqual(1, reduceCapacity.Snapshot.JoinedCount, "Capacity reduction evicted the Joined Slot.");
-                AssertEqual(1, reduceCapacity.Snapshot.ReservedCount, "Capacity reduction released the existing reservation.");
-                completed.Add("capacity-reduction-is-non-destructive");
-
-                PlayerParticipationOperationResult releaseSecond = InvokeResult(
-                    context,
-                    "TryReleaseReservation",
-                    secondReservation.ReservationToken,
-                    "QA.P3F",
-                    "release-second");
-                AssertStatus(releaseSecond, PlayerParticipationOperationStatus.Succeeded, "Second reservation release failed.");
-                AssertTrue(!releaseSecond.Snapshot.IsOverCapacity, "Context remained over capacity after release.");
-
-                AssertStatus(
-                    Reserve(context),
-                    PlayerParticipationOperationStatus.RejectedCapacityReached,
-                    "Joined Slot did not consume dynamic capacity.");
-                completed.Add("joined-slot-consumes-capacity");
-
-                AssertStatus(
-                    InvokeResult(context, "TrySetDynamicCapacity", 2, "QA.P3F", "increase-capacity"),
-                    PlayerParticipationOperationStatus.Succeeded,
-                    "Capacity increase failed.");
-                PlayerParticipationOperationResult afterIncrease = Reserve(context);
-                AssertStatus(afterIncrease, PlayerParticipationOperationStatus.Succeeded, "Capacity increase did not permit a new reservation.");
-                AssertSame(playerTwo, afterIncrease.Slot.Profile, "Capacity increase changed configured allocation order.");
-                completed.Add("capacity-increase-allows-reservation");
-
-                object foreignContext = CreateContext(
-                    new[] { playerOne },
-                    1,
+                PlayerSlotProfile first = CreateSlot(created, "QA First Slot", "qa.r4.first");
+                PlayerSlotProfile second = CreateSlot(created, "QA Second Slot", "qa.r4.second");
+                PlayerSlotProfile third = CreateSlot(created, "QA Third Slot", "qa.r4.third");
+                PlayerSessionProfile managerProfile = CreateSession(
+                    created,
+                    "QA Manager Player Session",
+                    new[] { first, second, third },
                     true,
-                    out PlayerParticipationOperationResult foreignInitialization);
-                AssertStatus(foreignInitialization, PlayerParticipationOperationStatus.Succeeded, "Foreign context initialization failed.");
-                PlayerParticipationOperationResult foreignReservation = Reserve(foreignContext);
-                AssertStatus(foreignReservation, PlayerParticipationOperationStatus.Succeeded, "Foreign context reservation failed.");
-                PlayerParticipationOperationResult foreignUse = InvokeResult(
-                    context,
-                    "TryReleaseReservation",
-                    foreignReservation.ReservationToken,
-                    "QA.P3F",
-                    "foreign-token");
-                AssertStatus(
-                    foreignUse,
-                    PlayerParticipationOperationStatus.RejectedForeignOrStaleReservation,
-                    "Foreign Session reservation token was accepted.");
-                completed.Add("foreign-reservation-rejected");
+                    PlayerHostProvisioningMode.ManagerProvisioned,
+                    PlayerActorResolutionPolicy.ResolveConfiguredDefault);
+                PlayerSessionInitializationResult managerResolution =
+                    PlayerSessionConfigurationResolver.Resolve(managerProfile);
+                RequireSucceeded(managerResolution, "Manager-Provisioned profile");
+                EffectivePlayerSessionConfiguration managerConfiguration =
+                    managerResolution.Configuration;
+                Require(
+                    managerConfiguration.InitialJoiningOpen &&
+                    managerConfiguration.HostProvisioning == PlayerHostProvisioningMode.ManagerProvisioned &&
+                    managerConfiguration.ActorResolutionPolicy == PlayerActorResolutionPolicy.ResolveConfiguredDefault,
+                    "Effective configuration did not retain all Player Session authoring concerns.");
+                completed.Add(ExpectedCases[0]);
 
-                object duplicateReferenceContext = CreateContext(
-                    new[] { playerOne, playerOne },
-                    2,
+                Require(
+                    managerConfiguration.SupportedSlotCount == 3 &&
+                    managerConfiguration.Slots.Count == 3 &&
+                    managerConfiguration.Slots[0].PlayerSlotId == first.PlayerSlotId &&
+                    managerConfiguration.Slots[1].PlayerSlotId == second.PlayerSlotId &&
+                    managerConfiguration.Slots[2].PlayerSlotId == third.PlayerSlotId,
+                    "Supported Slots did not define the canonical structural universe and order.");
+                completed.Add(ExpectedCases[1]);
+
+                RequireUniformHostProvisioning(managerConfiguration, PlayerHostProvisioningMode.ManagerProvisioned, "Manager-Provisioned");
+                completed.Add(ExpectedCases[2]);
+
+                PlayerSessionProfile sceneProfile = CreateSession(
+                    created,
+                    "QA Scene Player Session",
+                    new[] { first, second },
                     false,
-                    out PlayerParticipationOperationResult duplicateReferenceResult);
-                AssertNull(duplicateReferenceContext, "Duplicate Profile reference produced a context.");
-                AssertStatus(
-                    duplicateReferenceResult,
-                    PlayerParticipationOperationStatus.FailedInvalidConfiguration,
-                    "Duplicate Profile reference was accepted.");
-                completed.Add("duplicate-profile-reference-rejected");
+                    PlayerHostProvisioningMode.SceneProvided,
+                    PlayerActorResolutionPolicy.LeaveUnresolved);
+                PlayerSessionInitializationResult sceneResolution =
+                    PlayerSessionConfigurationResolver.Resolve(sceneProfile);
+                RequireSucceeded(sceneResolution, "Scene-Provided profile");
+                RequireUniformHostProvisioning(sceneResolution.Configuration, PlayerHostProvisioningMode.SceneProvided, "Scene-Provided");
+                completed.Add(ExpectedCases[3]);
 
-                PlayerSlotProfile duplicateIdentity = CreateProfile(
-                    createdProfiles,
-                    "QA P3F Duplicate Identity",
-                    "qa.p3f.player.1");
-                object duplicateIdentityContext = CreateContext(
-                    new[] { playerOne, duplicateIdentity },
-                    2,
+                Require(
+                    managerConfiguration.ActorResolutionPolicy != sceneResolution.Configuration.ActorResolutionPolicy &&
+                    sceneResolution.Configuration.ActorResolutionPolicy == PlayerActorResolutionPolicy.LeaveUnresolved,
+                    "Actor Resolution policies were not preserved as distinct Session configuration.");
+                completed.Add(ExpectedCases[4]);
+
+                ConfigureSession(
+                    managerProfile,
+                    new[] { third, second, first },
                     false,
-                    out PlayerParticipationOperationResult duplicateIdentityResult);
-                AssertNull(duplicateIdentityContext, "Duplicate PlayerSlotId produced a context.");
-                AssertStatus(
-                    duplicateIdentityResult,
-                    PlayerParticipationOperationStatus.FailedInvalidConfiguration,
-                    "Duplicate PlayerSlotId was accepted.");
-                completed.Add("duplicate-slot-identity-rejected");
+                    PlayerHostProvisioningMode.SceneProvided,
+                    PlayerActorResolutionPolicy.LeaveUnresolved);
+                PlayerSessionInitializationResult reResolved =
+                    PlayerSessionConfigurationResolver.Resolve(managerProfile);
+                RequireSucceeded(reResolved, "Re-resolved edited profile");
+                Require(
+                    managerConfiguration.SupportedSlotCount == 3 &&
+                    managerConfiguration.Slots[0].PlayerSlotId == first.PlayerSlotId &&
+                    managerConfiguration.InitialJoiningOpen &&
+                    managerConfiguration.HostProvisioning == PlayerHostProvisioningMode.ManagerProvisioned &&
+                    managerConfiguration.ActorResolutionPolicy == PlayerActorResolutionPolicy.ResolveConfiguredDefault &&
+                    reResolved.Configuration.Slots[0].PlayerSlotId == third.PlayerSlotId &&
+                    !reResolved.Configuration.InitialJoiningOpen &&
+                    reResolved.Configuration.HostProvisioning == PlayerHostProvisioningMode.SceneProvided &&
+                    reResolved.Configuration.ActorResolutionPolicy == PlayerActorResolutionPolicy.LeaveUnresolved,
+                    "Editing PlayerSessionProfile rewrote existing effective Session evidence.");
+                completed.Add(ExpectedCases[5]);
 
-                object invalidCapacityContext = CreateContext(
-                    new[] { playerOne, playerTwo },
-                    3,
-                    false,
-                    out PlayerParticipationOperationResult invalidCapacityResult);
-                AssertNull(invalidCapacityContext, "Invalid initial capacity produced a context.");
-                AssertStatus(
-                    invalidCapacityResult,
-                    PlayerParticipationOperationStatus.FailedInvalidConfiguration,
-                    "Initial capacity above configured Slot count was accepted.");
-                completed.Add("invalid-initial-capacity-rejected");
-
-                AssertEqual(playerOneBefore, EditorJsonUtility.ToJson(playerOne), "Player 1 Profile was mutated by runtime operations.");
-                AssertEqual(playerTwoBefore, EditorJsonUtility.ToJson(playerTwo), "Player 2 Profile was mutated by runtime operations.");
-                AssertEqual(playerThreeBefore, EditorJsonUtility.ToJson(playerThree), "Player 3 Profile was mutated by runtime operations.");
-                completed.Add("profiles-remain-immutable");
-
-                Debug.Log(
-                    "[P3F_SESSION_SLOT_RUNTIME_SMOKE] status='Passed' " +
-                    $"cases='{completed.Count}' completed='{string.Join(",", completed)}'.");
+                Require(completed.Count == ExpectedCaseCount, "Player Session contract case count changed unexpectedly.");
+                Debug.Log($"{Prefix} status='Passed' verdict='StaticContractComplete' cases='{completed.Count}/{ExpectedCaseCount}' completed='{string.Join(",", completed)}'.");
             }
             catch (Exception exception)
             {
-                Debug.LogError(
-                    "[P3F_SESSION_SLOT_RUNTIME_SMOKE] status='Failed' " +
-                    $"exception='{exception.GetType().Name}' " +
-                    $"message='{Escape(exception.Message)}' " +
-                    $"completed='{string.Join(",", completed)}'.");
+                Debug.LogError($"{Prefix} status='Failed' verdict='StaticContractFailed' cases='{completed.Count}/{ExpectedCaseCount}' next='{NextCase(completed)}' completed='{string.Join(",", completed)}' missing='{Escape(exception.Message)}'.");
                 throw;
             }
             finally
             {
-                for (int index = 0; index < createdProfiles.Count; index++)
+                for (int index = created.Count - 1; index >= 0; index--)
                 {
-                    if (createdProfiles[index] != null)
+                    if (created[index] != null)
                     {
-                        UnityEngine.Object.DestroyImmediate(createdProfiles[index]);
+                        UnityEngine.Object.DestroyImmediate(created[index]);
                     }
                 }
             }
         }
 
-        private static PlayerSlotProfile CreateProfile(
-            ICollection<PlayerSlotProfile> createdProfiles,
-            string displayName,
-            string slotId)
+        private static PlayerSlotProfile CreateSlot(ICollection<UnityEngine.Object> created, string name, string playerSlotId)
         {
-            var profile = ScriptableObject.CreateInstance<PlayerSlotProfile>();
-            profile.name = displayName;
-            var serialized = new SerializedObject(profile);
-            serialized.FindProperty("playerSlotId").stringValue = slotId;
-            serialized.FindProperty("displayName").stringValue = displayName;
+            var slot = ScriptableObject.CreateInstance<PlayerSlotProfile>();
+            slot.name = name;
+            var serialized = new SerializedObject(slot);
+            serialized.FindProperty("playerSlotId").stringValue = playerSlotId;
+            serialized.FindProperty("displayName").stringValue = name;
             serialized.ApplyModifiedPropertiesWithoutUndo();
-            createdProfiles.Add(profile);
-            return profile;
+            created.Add(slot);
+            return slot;
         }
 
-        private static object CreateContext(
-            IReadOnlyList<PlayerSlotProfile> profiles,
-            int capacity,
-            bool joiningOpen,
-            out PlayerParticipationOperationResult result)
+        private static PlayerSessionProfile CreateSession(ICollection<UnityEngine.Object> created, string name, PlayerSlotProfile[] slots, bool initialJoiningOpen, PlayerHostProvisioningMode hostProvisioning, PlayerActorResolutionPolicy actorResolutionPolicy)
         {
-            Type contextType = ResolveContextType();
-            MethodInfo method = contextType.GetMethod("TryCreate", StaticInternal);
-            AssertNotNull(method, "PlayerParticipationRuntimeContext.TryCreate was not found.");
+            var session = ScriptableObject.CreateInstance<PlayerSessionProfile>();
+            session.name = name;
+            ConfigureSession(session, slots, initialJoiningOpen, hostProvisioning, actorResolutionPolicy);
+            created.Add(session);
+            return session;
+        }
 
-            object[] arguments =
+        private static void ConfigureSession(PlayerSessionProfile session, PlayerSlotProfile[] slots, bool initialJoiningOpen, PlayerHostProvisioningMode hostProvisioning, PlayerActorResolutionPolicy actorResolutionPolicy)
+        {
+            var serialized = new SerializedObject(session);
+            SerializedProperty supportedSlots = serialized.FindProperty("supportedSlots");
+            supportedSlots.arraySize = slots.Length;
+            for (int index = 0; index < slots.Length; index++)
             {
-                profiles,
-                capacity,
-                joiningOpen,
-                "QA.P3F",
-                "create-context",
-                null
-            };
+                supportedSlots.GetArrayElementAtIndex(index).objectReferenceValue = slots[index];
+            }
 
-            object returned = method.Invoke(null, arguments);
-            result = returned as PlayerParticipationOperationResult;
-            AssertNotNull(result, "TryCreate did not return PlayerParticipationOperationResult.");
-            return arguments[5];
+            serialized.FindProperty("initialJoiningOpen").boolValue = initialJoiningOpen;
+            serialized.FindProperty("hostProvisioning").intValue = (int)hostProvisioning;
+            serialized.FindProperty("actorResolutionPolicy").intValue = (int)actorResolutionPolicy;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static PlayerParticipationOperationResult Reserve(object context)
+        private static void RequireUniformHostProvisioning(EffectivePlayerSessionConfiguration configuration, PlayerHostProvisioningMode expected, string label)
         {
-            return InvokeResult(context, "TryReserveNextAvailableSlot", "QA.P3F", "reserve-next");
-        }
-
-        private static PlayerParticipationOperationResult InvokeResult(
-            object context,
-            string methodName,
-            params object[] arguments)
-        {
-            AssertNotNull(context, $"Cannot invoke '{methodName}' on a null context.");
-            MethodInfo method = context.GetType().GetMethod(methodName, InstanceInternal);
-            AssertNotNull(method, $"Runtime method '{methodName}' was not found.");
-            object returned = method.Invoke(context, arguments);
-            var result = returned as PlayerParticipationOperationResult;
-            AssertNotNull(result, $"Runtime method '{methodName}' did not return PlayerParticipationOperationResult.");
-            return result;
-        }
-
-        private static Type ResolveContextType()
-        {
-            Type type = typeof(PlayerSlotProfile).Assembly.GetType(ContextTypeName, false);
-            AssertNotNull(type, $"Runtime type '{ContextTypeName}' was not found.");
-            return type;
-        }
-
-        private static void AssertStatus(
-            PlayerParticipationOperationResult result,
-            PlayerParticipationOperationStatus expected,
-            string message)
-        {
-            AssertNotNull(result, message + " Result is null.");
-            if (result.Status != expected)
+            Require(configuration.HostProvisioning == expected, label + " effective Session Host Provisioning is invalid.");
+            for (int index = 0; index < configuration.Slots.Count; index++)
             {
-                throw new InvalidOperationException(
-                    $"{message} expected='{expected}' actual='{result.Status}' diagnostics='{result.ToDiagnosticString()}'.");
+                Require(configuration.Slots[index].HostProvisioningMode == expected, label + " resolved a divergent per-Slot Host Provisioning value.");
             }
         }
 
-        private static void AssertTrue(bool condition, string message)
+        private static void RequireSucceeded(PlayerSessionInitializationResult result, string label)
+        {
+            Require(result != null && result.Succeeded && result.Configuration != null, label + " did not resolve. " + (result != null ? result.Message : string.Empty));
+        }
+
+        private static void Require(bool condition, string message)
         {
             if (!condition)
             {
@@ -336,43 +192,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
             }
         }
 
-        private static void AssertEqual<T>(T expected, T actual, string message)
+        private static string NextCase(IReadOnlyList<string> completed)
         {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                throw new InvalidOperationException($"{message} expected='{expected}' actual='{actual}'.");
-            }
-        }
-
-        private static void AssertSame(object expected, object actual, string message)
-        {
-            if (!ReferenceEquals(expected, actual))
-            {
-                throw new InvalidOperationException(message);
-            }
-        }
-
-        private static void AssertNotNull(object value, string message)
-        {
-            if (value == null)
-            {
-                throw new InvalidOperationException(message);
-            }
-        }
-
-        private static void AssertNull(object value, string message)
-        {
-            if (value != null)
-            {
-                throw new InvalidOperationException(message);
-            }
+            return completed.Count < ExpectedCases.Length ? ExpectedCases[completed.Count] : string.Empty;
         }
 
         private static string Escape(string value)
         {
-            return string.IsNullOrEmpty(value)
-                ? string.Empty
-                : value.Replace("\\", "\\\\").Replace("'", "\\'").Replace("\r", " ").Replace("\n", " ");
+            return string.IsNullOrEmpty(value) ? string.Empty : value.Replace("'", "\\'").Replace("\r", " ").Replace("\n", " ");
         }
     }
 }

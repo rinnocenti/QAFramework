@@ -1,4 +1,5 @@
 using System;
+using ImmersiveFrameworkQA.Player;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Immersive.Framework.ActivityFlow;
@@ -28,12 +29,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
     public static class QaPlayerProvisioningPublicSurfaceRegression
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Regressions/Player/" +
-            "Run QA-PLAYER-SURFACE-01 Public Provisioning Surface Regression";
+            "Immersive Framework/QA/Player/Public Surface/" +
+            "Run Positive Contract";
         private const string Prefix = "[QA_PLAYER_SURFACE_01]";
         private const string Source = nameof(QaPlayerProvisioningPublicSurfaceRegression);
         private const int FrameBudget = 360;
-        private const int ExpectedCaseCount = 29;
+        private const int ExpectedCaseCount = 28;
 
         private static readonly string[] ExpectedCases =
         {
@@ -50,7 +51,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             "waiting-for-join-observed",
             "waitcovered-loading-pending",
             "joining-opened",
-            "dynamic-capacity-set",
             "public-join-succeeded",
             "joined-slot-host-observed",
             "default-actor-selection-requested",
@@ -80,7 +80,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         /// <summary>
         /// Entry point for the joint certification orchestrator.
         /// </summary>
-        internal static Task RunCertificationAsync() => RunAsync();
+        public static Task RunCertificationAsync() => RunAsync();
 
         private static async Task RunAsync()
         {
@@ -110,7 +110,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "QA-PLAYER-SURFACE-01 requires Play Mode.");
                 cases.Complete("play-mode-required");
 
-                QaM07InternalReconcileSetup.RequirePreparedForCurrentPlayMode();
+                QaPlayerSurfacePublicNavigationSetup.RequirePreparedForCurrentPlayMode();
                 cases.Complete("setup-confirmed");
 
                 Require(
@@ -280,33 +280,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         : "OpenJoining returned no public result.");
                 joiningOpen = true;
                 cases.Complete("joining-opened");
-
-                int configuredSlots = openResult.Snapshot.ConfiguredSlotCount;
-                int requestedCapacity = configuredSlots > 0
-                    ? Math.Max(1, Math.Min(configuredSlots, openResult.Snapshot.DynamicCapacity > 0
-                        ? openResult.Snapshot.DynamicCapacity
-                        : 1))
-                    : 1;
-                // Prefer an explicit public capacity write when structural room exists.
-                if (configuredSlots >= 2)
-                {
-                    requestedCapacity = 2;
-                }
-
-                PlayerParticipationOperationResult capacityResult =
-                    access.SetDynamicCapacity(
-                        requestedCapacity,
-                        Source,
-                        "qa-player-surface-01-set-dynamic-capacity");
-                Require(
-                    capacityResult != null &&
-                    capacityResult.Completed &&
-                    capacityResult.Snapshot != null &&
-                    capacityResult.Snapshot.DynamicCapacity == requestedCapacity,
-                    capacityResult != null
-                        ? capacityResult.ToDiagnosticString()
-                        : "SetDynamicCapacity returned no public result.");
-                cases.Complete("dynamic-capacity-set");
 
                 joinResult = access.RequestJoin(
                     new LocalPlayerJoinRequest(
@@ -554,10 +527,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     $"occurrence2='{reentered.ActivityOccurrence}' " +
                     $"sessionRevision='{reentryReady.SessionRevision}' " +
                     $"appliedRevision='{reentryReady.AppliedSessionRevision}' " +
-                    $"capacity='{capacityResult.Snapshot.DynamicCapacity}' " +
+                    $"availableSlots='{reentryReady.Participation.AvailableCount}' " +
                     $"slot='{joinedSlotId.StableText}' " +
                     "navigation='authored-ActivityRequestTrigger-composition-bound' " +
-                    "proof='PublicNavigation,ScopedAccess,Joining,Capacity,Join,Host,ActorSelection,NormalLifecycleReady,WaitCoveredPendingThenTerminal,ExitPreservesSession,ReentryNoDuplicate' " +
+                    "proof='PublicNavigation,ScopedAccess,Joining,SupportedSlots,Join,Host,ActorSelection,NormalLifecycleReady,WaitCoveredPendingThenTerminal,ExitPreservesSession,ReentryNoDuplicate' " +
                     $"completed='{cases.DescribeCompleted()}'.");
             }
             catch (Exception exception)
@@ -782,7 +755,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             PlayerSlotProfile slot = null;
             Require(
                 application != null &&
-                application.TryGetLocalPlayerSlot(0, out slot) &&
+                QaPlayerSessionQaSupport.TryGetSupportedSlot(application, 0, out slot) &&
                 slot != null,
                 "Could not resolve first Local Player Slot from active GameApplication.");
             return slot;

@@ -1,4 +1,5 @@
 using System;
+using ImmersiveFrameworkQA.Player;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -23,7 +24,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
     /// environment. All lifecycle evidence asserted by this regression comes
     /// from LocalPlayerProvisioningAuthoring public APIs.
     /// </summary>
-    internal static class
+    public static class
         QaManagerProvisionedLifecycleWaitingProjectionRegression
     {
         private const string MenuPath =
@@ -34,6 +35,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             "[M07_MANAGER_PROVISIONED_LIFECYCLE_WAITING_PROJECTION_REGRESSION]";
 
         private const int ExpectedCaseCount = 14;
+        private const int StartupFrameBudget = 300;
 
         private static readonly BindingFlags InstanceAny =
             BindingFlags.Instance |
@@ -52,6 +54,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             await RunAsync();
         }
 
+        /// <summary>
+        /// Typed Play Mode entry point for the canonical Player QA orchestrator.
+        /// </summary>
+        public static Task RunForFullPlayerQaAsync() => RunAsync();
+
         private static async Task RunAsync()
         {
             var completed = new List<string>();
@@ -68,15 +75,28 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     .RequirePreparedForCurrentPlayMode();
                 completed.Add("m07-setup-confirmed");
 
-                Require(
-                    QaH2FrameworkReadiness.TryResolveUniqueHost(
-                        out FrameworkRuntimeHost host,
-                        out string hostDiagnostic),
-                    hostDiagnostic);
+                FrameworkRuntimeHost host = null;
+                string hostDiagnostic =
+                    "FrameworkRuntimeHost startup has not been evaluated.";
+                for (int frame = 0; frame < StartupFrameBudget; frame++)
+                {
+                    if (QaH2FrameworkReadiness.TryResolveUniqueHost(
+                            out host,
+                            out hostDiagnostic) &&
+                        host != null &&
+                        host.State.GameFlowStarted)
+                    {
+                        break;
+                    }
+
+                    await Awaitable.NextFrameAsync();
+                }
+
                 Require(
                     host != null &&
                     host.State.GameFlowStarted,
-                    "Manager-Provisioned waiting projection requires the official started FrameworkRuntimeHost.");
+                    "Manager-Provisioned waiting projection requires the official started " +
+                    $"FrameworkRuntimeHost within '{StartupFrameBudget}' frames. {hostDiagnostic}");
                 completed.Add("official-host-resolved");
 
                 LocalPlayerProvisioningAuthoring authoring =
@@ -383,7 +403,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             Require(
                 application != null &&
-                application.TryGetLocalPlayerSlot(
+                QaPlayerSessionQaSupport.TryGetSupportedSlot(
+                    application,
                     0,
                     out slotProfile) &&
                 slotProfile != null,

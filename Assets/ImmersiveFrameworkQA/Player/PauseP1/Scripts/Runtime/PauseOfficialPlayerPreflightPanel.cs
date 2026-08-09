@@ -101,22 +101,11 @@ namespace ImmersiveFrameworkQA.PauseP1
                 return false;
             }
 
-            if (snapshot.DynamicCapacity != 1)
+            if (snapshot.ConfiguredSlotCount != 1)
             {
-                PlayerParticipationOperationResult capacity =
-                    provisioningAuthoring.SetDynamicCapacity(
-                        1,
-                        Source,
-                        "pause-qa-preflight-capacity");
-                if (capacity == null || !capacity.Completed)
-                {
-                    diagnostic =
-                        "Could not set dynamic Local Player capacity to one. " +
-                        (capacity != null
-                            ? capacity.ToDiagnosticString()
-                            : "No result was returned.");
-                    return false;
-                }
+                diagnostic =
+                    "Pause QA requires exactly one Supported Slot in the configured Player Session.";
+                return false;
             }
 
             PlayerParticipationOperationResult opened =

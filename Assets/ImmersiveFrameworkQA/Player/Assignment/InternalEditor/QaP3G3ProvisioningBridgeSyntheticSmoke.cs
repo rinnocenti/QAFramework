@@ -16,7 +16,7 @@ namespace ImmersiveFrameworkQA.PlayerAssignment.Internal.Editor
     /// </summary>
     internal static class QaP3G3ProvisioningBridgeSyntheticSmoke
     {
-        [MenuItem("Immersive Framework/QA/Regressions/Player/Run Local Player Provisioning Regression")]
+        [MenuItem("Immersive Framework/QA/Player/Manager Provisioned/Advanced/Run Bridge Contract")]
         internal static void Run()
         {
             var completed = new List<string>();
@@ -1011,15 +1011,6 @@ namespace ImmersiveFrameworkQA.PlayerAssignment.Internal.Editor
                 completed.Add("joining-closed-blocks-provisioning");
             }
 
-            using (Fixture fixture = CreateFixture(created, disposables, 1, true, 0))
-            {
-                fixture.Backend.NextPlayerInput = CreatePlayerHost(created, "QA Capacity", true);
-                LocalPlayerJoinResult result = fixture.Join("capacity-reached");
-                AssertStatus(result, LocalPlayerJoinStatus.RejectedCapacityReached,
-                    "Zero Session capacity reached provisioning.");
-                completed.Add("capacity-blocks-provisioning");
-            }
-
             using (Fixture fixture = CreateFixture(created, disposables, 1, true, 1))
             {
                 fixture.Backend.UsesManualJoin = false;
@@ -1058,7 +1049,7 @@ namespace ImmersiveFrameworkQA.PlayerAssignment.Internal.Editor
             ICollection<IDisposable> disposables,
             int slotCount,
             bool joiningOpen,
-            int capacity)
+            int unusedLegacyLimit)
         {
             var profiles = new PlayerSlotProfile[slotCount];
             for (int index = 0; index < slotCount; index++)
@@ -1070,15 +1061,14 @@ namespace ImmersiveFrameworkQA.PlayerAssignment.Internal.Editor
             }
 
             PlayerParticipationRuntimeContext context =
-                CreateContext(profiles, capacity, joiningOpen);
+                CreateContext(profiles, joiningOpen);
             GameObject validPrefab = CreateHostObject(created,
                 "QA P3G3 Backend Host Prefab", true);
             var backend = new SyntheticProvisioningBackend
             {
                 IsAvailable = true,
                 UsesManualJoin = true,
-                PlayerPrefab = validPrefab,
-                TechnicalMaxPlayerCount = Math.Max(1, slotCount)
+                PlayerPrefab = validPrefab
             };
 
             var parentObject = new GameObject("QA P3G3 Technical Host Parent");
@@ -1096,13 +1086,11 @@ namespace ImmersiveFrameworkQA.PlayerAssignment.Internal.Editor
 
         private static PlayerParticipationRuntimeContext CreateContext(
             IReadOnlyList<PlayerSlotProfile> profiles,
-            int capacity,
             bool joiningOpen)
         {
             PlayerParticipationOperationResult result =
                 PlayerParticipationRuntimeContext.TryCreateWithActorSelectionPolicy(
                 profiles,
-                capacity,
                 joiningOpen,
                 PlayerActorSelectionDuplicatePolicy.AllowDuplicates,
                 "QA.P3G3",
@@ -1598,10 +1586,6 @@ namespace ImmersiveFrameworkQA.PlayerAssignment.Internal.Editor
             bool ILocalPlayerProvisioningBackend.UsesManualJoin => UsesManualJoin;
             internal GameObject PlayerPrefab { get; set; }
             GameObject ILocalPlayerProvisioningBackend.PlayerPrefab => PlayerPrefab;
-            internal int CurrentPlayerCount { get; set; }
-            int ILocalPlayerProvisioningBackend.CurrentPlayerCount => CurrentPlayerCount;
-            internal int TechnicalMaxPlayerCount { get; set; }
-            int ILocalPlayerProvisioningBackend.TechnicalMaxPlayerCount => TechnicalMaxPlayerCount;
             internal PlayerInput NextPlayerInput { get; set; }
             internal PlayerInput CallbackPlayerInput { get; set; }
             internal bool EmitCallbackBeforeReturn { get; set; }

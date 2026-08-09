@@ -82,8 +82,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             QaPlayerSurfaceGlobalUiFixture[] discovered =
                 UnityEngine.Object.FindObjectsByType<
                     QaPlayerSurfaceGlobalUiFixture>(
-                    FindObjectsInactive.Include,
-                    FindObjectsSortMode.None);
+                    FindObjectsInactive.Include);
             for (int index = 0; index < discovered.Length; index++)
             {
                 QaPlayerSurfaceGlobalUiFixture candidate = discovered[index];

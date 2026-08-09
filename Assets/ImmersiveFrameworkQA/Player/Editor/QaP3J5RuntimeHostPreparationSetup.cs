@@ -29,7 +29,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 }
 
                 GameApplicationAsset gameApplication = settings.ActiveGameApplication;
-                if (!gameApplication.TryGetLocalPlayerSlot(0, out PlayerSlotProfile firstSlot) ||
+                if (!ImmersiveFrameworkQA.Player.QaPlayerSessionQaSupport.TryGetSupportedSlot(gameApplication, 0, out PlayerSlotProfile firstSlot) ||
                     firstSlot == null || firstSlot.DefaultActorProfile == null)
                 {
                     throw new InvalidOperationException(
@@ -66,3 +66,5 @@ namespace ImmersiveFrameworkQA.Player.Editor
         }
     }
 }
+
+

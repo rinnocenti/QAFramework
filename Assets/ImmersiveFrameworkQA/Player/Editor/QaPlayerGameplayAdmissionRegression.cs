@@ -44,7 +44,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
         private static IReadOnlyList<string> lastCompleted =
             Array.Empty<string>();
-        [MenuItem("Immersive Framework/QA/Regressions/Player/Run Player Gameplay Admission Regression")]
+        [MenuItem("Immersive Framework/QA/Player/Actor/Run Lifecycle Integration")]
         private static async void RunRegression()
         {
             try
@@ -65,7 +65,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             }
         }
 
-        [MenuItem("Immersive Framework/QA/Regressions/Player/Run Local Player Prefab Divergence Regression")]
+        [MenuItem("Immersive Framework/QA/Player/Manager Provisioned/Advanced/Run Prefab Divergence")]
         private static void RunPrefabDivergenceRegression()
         {
             var completed = new List<string>();
@@ -76,8 +76,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 LocalPlayerProvisioningAuthoring[] candidates =
                     UnityEngine.Object.FindObjectsByType<LocalPlayerProvisioningAuthoring>(
-                        FindObjectsInactive.Include,
-                        FindObjectsSortMode.None);
+                        FindObjectsInactive.Include);
                 LocalPlayerProvisioningAuthoring authoring = null;
                 for (int index = 0; index < candidates.Length; index++)
                 {
@@ -124,8 +123,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Divergent prefab scenario created a physical Player Host.");
                 LocalPlayerHostAuthoring[] hosts =
                     UnityEngine.Object.FindObjectsByType<LocalPlayerHostAuthoring>(
-                        FindObjectsInactive.Include,
-                        FindObjectsSortMode.None);
+                        FindObjectsInactive.Include);
                 int loadedRuntimeHosts = 0;
                 for (int index = 0; index < hosts.Length; index++)
                 {

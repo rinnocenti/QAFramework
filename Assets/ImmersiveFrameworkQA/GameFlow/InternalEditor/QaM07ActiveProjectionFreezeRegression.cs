@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using ImmersiveFrameworkQA.Player;
 using System.Text;
 using System.Threading.Tasks;
 using Immersive.Framework.ActivityFlow;
@@ -33,7 +34,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
     public static class QaM07ActiveProjectionFreezeRegression
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Regressions/Player/M07 Run Active Projection Freeze Regression";
+            "Immersive Framework/QA/Game Flow/Participation/Run Active Projection Freeze";
         private const string Prefix =
             "[QA_IF_M07_12B_8_ACTIVE_PROJECTION_FREEZE]";
         private const int FrameBudget = 300;
@@ -953,7 +954,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     : null;
             PlayerSlotProfile slotProfile = null;
             bool resolved = application != null &&
-                application.TryGetLocalPlayerSlot(
+                QaPlayerSessionQaSupport.TryGetSupportedSlot(
+                    application,
                     0,
                     out slotProfile);
             Require(resolved &&

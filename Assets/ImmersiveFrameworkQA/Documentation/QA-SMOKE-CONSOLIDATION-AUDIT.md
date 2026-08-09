@@ -1,5 +1,9 @@
 # QA-SMOKE-R1 — auditoria e mapa de consolidação
 
+> **Superseded for Player Session by R4 (2026-08-09).** This historical
+> inventory may mention Capacity-era Player Session proofs. Current Player
+> Session QA uses `PlayerSessionProfile` and its structural Supported Slots.
+
 > Reconciliation note — IF-ID Corte 5 (2026-08-07): Identity Authority now has a
 > single public menu `Immersive Framework QA/Game Flow/Run Identity Authority
 > Regression` (`QaRouteActivityIdentityRegression` + `QaIdentityAuthorityFixture`)

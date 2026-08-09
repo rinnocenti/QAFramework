@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using ImmersiveFrameworkQA.Player;
 using System.Threading.Tasks;
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Actors;
@@ -31,7 +32,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         QaM07IncludedExcludedFailureReleaseScopeRegression
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Regressions/Player/M07 Run Included Excluded Failure and Release Scope Regression";
+            "Immersive Framework/QA/Game Flow/Participation/Run Included Excluded Release Scope";
         private const string Prefix =
             "[QA_IF_M07_12B_9_INCLUDED_EXCLUDED_FAILURE_RELEASE_SCOPE]";
         private const string PreparationModuleTypeName =
@@ -1107,9 +1108,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             first = null;
             second = null;
             bool firstResolved = application != null &&
-                application.TryGetLocalPlayerSlot(0, out first);
+                QaPlayerSessionQaSupport.TryGetSupportedSlot(application, 0, out first);
             bool secondResolved = application != null &&
-                application.TryGetLocalPlayerSlot(1, out second);
+                QaPlayerSessionQaSupport.TryGetSupportedSlot(application, 1, out second);
             Require(firstResolved &&
                 secondResolved &&
                 first != null &&

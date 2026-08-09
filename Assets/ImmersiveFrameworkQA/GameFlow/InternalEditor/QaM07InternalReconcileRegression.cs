@@ -1,4 +1,5 @@
 using System;
+using ImmersiveFrameworkQA.Player;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
     public static class QaM07InternalReconcileRegression
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Regressions/Player/M07 Run Internal Reconcile Authority Regression";
+            "Immersive Framework/QA/Game Flow/Participation/Run Reconcile Authority";
         private const string Prefix = "[QA_M07_INTERNAL]";
         private const string PlayerReadinessObjectName =
             "Player Activity Readiness";
@@ -168,11 +169,13 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     ? settings.ActiveGameApplication
                     : null;
                 Require(application != null &&
-                    application.TryGetLocalPlayerSlot(
+                    QaPlayerSessionQaSupport.TryGetSupportedSlot(
+                        application,
                         0,
                         out firstSlotProfile) &&
                     firstSlotProfile != null &&
-                    application.TryGetLocalPlayerSlot(
+                    QaPlayerSessionQaSupport.TryGetSupportedSlot(
+                        application,
                         1,
                         out secondSlotProfile) &&
                     secondSlotProfile != null,
@@ -1677,7 +1680,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             var slots = new List<PlayerSlotProfile>();
             for (int index = 0; index < count; index++)
             {
-                Require(application.TryGetLocalPlayerSlot(
+                Require(QaPlayerSessionQaSupport.TryGetSupportedSlot(
+                        application,
                         index,
                         out PlayerSlotProfile slot) &&
                     slot != null,

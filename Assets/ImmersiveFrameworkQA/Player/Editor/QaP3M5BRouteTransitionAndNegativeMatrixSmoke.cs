@@ -21,7 +21,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
     public static class QaP3M5BRouteTransitionAndNegativeMatrixSmoke
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Regressions/Player/Run Scene Player Route Lifecycle Regression";
+            "Immersive Framework/QA/Player/Scene Provided/Run Integration";
         private const string HubRoutePath =
             "Assets/ImmersiveFrameworkQA/Hub/Routes/QA_HubRoute.asset";
         private const string PreparationModuleTypeName =
@@ -59,6 +59,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
         [MenuItem(MenuPath)]
         public static async void Run()
+        {
+            await RunAsync();
+        }
+
+        /// <summary>
+        /// Typed Play Mode entry point for the canonical Player QA orchestrator.
+        /// </summary>
+        public static async Task RunAsync()
         {
             var completed = new List<string>();
             var loadedNegativeScenes = new List<string>();
@@ -508,7 +516,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "Immersive Framework settings are missing.");
             AssertNotNull(settings.ActiveGameApplication,
                 "Active Game Application is missing.");
-            AssertTrue(settings.ActiveGameApplication.TryGetLocalPlayerSlot(
+            AssertTrue(ImmersiveFrameworkQA.Player.QaPlayerSessionQaSupport.TryGetSupportedSlot(
+                    settings.ActiveGameApplication,
                     0,
                     out PlayerSlotProfile slot) &&
                 slot != null,

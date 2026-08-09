@@ -1,5 +1,10 @@
 # P3M5A — Scene Local Player Integrated Activity Lifecycle QA
 
+> **R4 note (2026-08-09).** The restored setup validates the existing P3M5A
+> fixture assets, derives its Slot from the active `PlayerSessionProfile`, and
+> ensures the fixture scene is in Build Settings. It does not own a separate
+> Player provisioning or Capacity configuration surface.
+
 ## Objective
 
 Prove the `Scene Local Player Admission` product surface through the real

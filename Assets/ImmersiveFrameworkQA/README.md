@@ -1,5 +1,46 @@
 # Immersive Framework QA
 
+## Player QA canonical architecture
+
+Player QA is organized by current product contracts, not by P3/M07 history:
+
+```text
+Player/Session
+Player/Scene Provided
+Player/Manager Provisioned
+Player/Actor
+Player/Public Surface
+Game Flow/Participation
+```
+
+The canonical operational entry point is:
+
+```text
+Immersive Framework/QA/Player/Run Full Player QA
+```
+
+Normal use is one button: the full orchestrator prepares each owned fixture,
+opens isolated Play Mode sessions, runs the canonical Player proofs, restores
+the next fixture boundary, and emits one `[QA_PLAYER_FULL]` summary.
+
+The individual menus remain available for advanced diagnosis:
+
+```text
+Immersive Framework/QA/Player/Session/Run Session Contract
+Immersive Framework/QA/Player/Scene Provided/Prepare Fixture
+Immersive Framework/QA/Player/Scene Provided/Run Integration
+Immersive Framework/QA/Player/Manager Provisioned/Prepare Fixture
+Immersive Framework/QA/Player/Actor/Run Lifecycle Integration
+Immersive Framework/QA/Player/Public Surface/Prepare Certification Fixture
+Immersive Framework/QA/Player/Public Surface/Run Certification
+```
+
+`QaPlayerSessionQaSupport` is the single Player Session support layer in the
+existing Player Internal Editor assembly. It owns profile/bridge validation and
+does not introduce a second Session limit. See
+`Documentation/PLAYER-QA-ARCHITECTURE.md` for fixture ownership and the
+reclassification of historical P3/M07 sources.
+
 Root local de provas técnicas sintéticas do framework. Não contém FIRSTGAME nem documentação arquitetural canônica.
 
 ## Superfícies atuais
@@ -24,9 +65,14 @@ Setups e repairs ficam separados sob:
 Immersive Framework/QA/Setup/<Domain>/...
 ```
 
-Não existe suite global nem mega-runner Player. Cada regressão deve ser executada e validada pela própria evidência.
+The Full Player QA is only an orchestrator of typed entrypoints; it does not
+replace or reimplement the evidence in the individual regressions. Each
+regression remains responsible for its own proof, fixture and cleanup.
 
 ## Player QA
+
+> Historical inventory below. Use the canonical menu tree above and
+> `Documentation/PLAYER-QA-ARCHITECTURE.md` for current operation.
 
 Superfícies públicas atuais:
 

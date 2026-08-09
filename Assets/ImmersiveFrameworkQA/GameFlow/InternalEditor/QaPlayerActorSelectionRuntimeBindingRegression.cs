@@ -17,7 +17,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private const string Source =
             nameof(QaPlayerActorSelectionRuntimeBindingRegression);
         private const string MenuPath =
-            "Immersive Framework/QA/Regressions/Player/Run Player Actor Selection Runtime Binding Regression";
+            "Immersive Framework/QA/Player/Actor/Run Selection Binding";
 
         [MenuItem(MenuPath, true)]
         private static bool ValidateRun() => EditorApplication.isPlaying;

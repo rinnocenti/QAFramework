@@ -1,5 +1,9 @@
 # QA-PLAYER-SURFACE-01 — Public-only Player Contract Proof
 
+> **Superseded by R4 (2026-08-09).** This is historical evidence for the
+> pre-R2 Player Session API. Capacity operations are removed; current QA uses
+> the structural Supported Slot universe.
+
 **Original date:** 2026-08-08  
 **Certified:** 2026-08-09  
 **Cut:** Q1 / `QA-PLAYER-SURFACE-01`  

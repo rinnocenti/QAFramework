@@ -1,4 +1,5 @@
 using System;
+using ImmersiveFrameworkQA.Player;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
     public static class QaM07PlayerRequirementPolicyMatrixRegression
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Regressions/Player/M07 Run Player Requirement Policy Matrix Regression";
+            "Immersive Framework/QA/Game Flow/Participation/Run Player Requirement Policy Matrix";
         private const string Prefix =
             "[QA_IF_M07_12B_6_PLAYER_REQUIREMENT_POLICY_MATRIX]";
         private const string PlayerReadinessObjectName =
@@ -170,7 +171,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         : null;
                 PlayerSlotProfile slotProfile = null;
                 Require(application != null &&
-                    application.TryGetLocalPlayerSlot(
+                    QaPlayerSessionQaSupport.TryGetSupportedSlot(
+                        application,
                         0,
                         out slotProfile) &&
                     slotProfile != null &&

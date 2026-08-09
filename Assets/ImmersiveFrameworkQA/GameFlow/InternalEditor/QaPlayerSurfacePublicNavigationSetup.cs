@@ -8,10 +8,13 @@ using Immersive.Framework.PlayerSlots;
 using Immersive.Framework.Transition;
 using ImmersiveFrameworkQA.Hub;
 using ImmersiveFrameworkQA.Lifecycle;
+using ImmersiveFrameworkQA.Player;
+using ImmersiveFrameworkQA.Player.Internal.Editor;
 using ImmersiveFrameworkQA.UnityBuildSurface;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
@@ -26,16 +29,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
     {
         private const string Prefix = "[QA_PLAYER_SURFACE_PUBLIC_NAV]";
         private const string MenuPath =
-            "Immersive Framework/QA/Setup/Player/Prepare Player Surface Public Navigation Fixture";
+            "Immersive Framework/QA/Player/Public Surface/Prepare Fixture";
         private const string Root =
             "Assets/ImmersiveFrameworkQA/Player/Surface";
         private const string HubScenePath =
             "Assets/ImmersiveFrameworkQA/Hub/Scenes/QA_Hub.unity";
         private const string GlobalUiScenePath =
             "Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/QA_UIGlobal.unity";
-        private const string GlobalUiProvisioningRootName =
-            "Local Player Provisioning";
-        private const string ContentScenePath =
+        internal const string ContentScenePath =
             "Assets/ImmersiveFrameworkQA/GameFlow/Scenes/QA_IF_READY_04_DirectPoliciesContent.unity";
         private const string ContentProfilePath =
             Root + "/QA_PlayerSurfacePublic_ContentProfile.asset";
@@ -68,6 +69,23 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             try
             {
+                QaManagerProvisionedPlayerFixtureContext managerContext =
+                    QaManagerProvisionedPlayerFixture.PrepareAndValidate();
+                Require(
+                    managerContext != null &&
+                    managerContext.Application != null &&
+                    managerContext.SessionProfile != null &&
+                    managerContext.PlayerInputManager != null &&
+                    managerContext.Provisioning != null &&
+                    ReferenceEquals(
+                        managerContext.Application.DefaultPlayerSessionProfile,
+                        managerContext.SessionProfile),
+                    "Manager-Provisioned fixture returned an incomplete or mismatched explicit Player Session context.");
+                string applicationName = managerContext.Application.name;
+                string sessionName = managerContext.SessionProfile.name;
+                int supportedSlotCount = managerContext.SessionProfile.SupportedSlotCount;
+                int serializedPlayerLimit = managerContext.PlayerInputManager.maxPlayerCount;
+                ConfigureGlobalUiFixture(managerContext);
                 EnsureFolder(Root);
                 PlayerSlotProfile slot =
                     AssetDatabase.LoadAssetAtPath<PlayerSlotProfile>(PlayerSlotPath);
@@ -112,7 +130,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     EditorSceneManager.SaveScene(hub),
                     $"Could not save Hub scene '{HubScenePath}'.");
 
-                ConfigureGlobalUiFixture();
                 ConfigureActivityContentFixture();
                 Require(
                     !IsGlobalUiSourceSceneLoaded(),
@@ -129,6 +146,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     $"hub='{HubScenePath}' " +
                     $"root='{QaPlayerSurfacePublicNavigationFixture.RootObjectName}' " +
                     $"globalUi='{GlobalUiScenePath}' " +
+                    $"application='{applicationName}' session='{sessionName}' " +
+                    $"supportedSlots='{supportedSlotCount}' maxPlayers='{serializedPlayerLimit}' " +
                     "binding='composition-time Route primary + Framework ActivityRequestTrigger bind' " +
                     "next='Enter fresh Play Mode; composition binds the authored trigger before public RequestActivity'.");
             }
@@ -338,53 +357,43 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             return fixture;
         }
 
-        private static void ConfigureGlobalUiFixture()
+        internal static void RequirePreparedForCurrentPlayMode()
         {
-            Scene globalUi = SceneManager.GetSceneByPath(GlobalUiScenePath);
-            if (!globalUi.IsValid() || !globalUi.isLoaded)
-            {
-                globalUi = EditorSceneManager.OpenScene(
-                    GlobalUiScenePath,
-                    OpenSceneMode.Additive);
-            }
+            Require(EditorApplication.isPlaying,
+                "Public Player Surface fixture requires Play Mode.");
+        }
 
-            Require(
-                globalUi.IsValid() && globalUi.isLoaded,
-                $"Could not open UIGlobal scene '{GlobalUiScenePath}' to configure its QA fixture.");
-
-            GameObject provisioningRoot = null;
-            GameObject[] roots = globalUi.GetRootGameObjects();
-            for (int rootIndex = 0; rootIndex < roots.Length; rootIndex++)
-            {
-                GameObject candidate = roots[rootIndex];
-                if (candidate == null ||
-                    !string.Equals(
-                        candidate.name,
-                        GlobalUiProvisioningRootName,
-                        StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                Require(
-                    provisioningRoot == null ||
-                    ReferenceEquals(provisioningRoot, candidate),
-                    $"UIGlobal scene '{GlobalUiScenePath}' contains multiple roots named '{GlobalUiProvisioningRootName}'.");
-                provisioningRoot = candidate;
-            }
-
-            Require(
-                provisioningRoot != null,
-                $"UIGlobal scene '{GlobalUiScenePath}' is missing root '{GlobalUiProvisioningRootName}'.");
+        private static void ConfigureGlobalUiFixture(
+            QaManagerProvisionedPlayerFixtureContext managerContext)
+        {
+            Require(managerContext != null,
+                "Public Player Surface fixture requires a Manager-Provisioned context.");
+            PlayerSessionProfile session = managerContext.SessionProfile;
+            PlayerInputManager manager = managerContext.PlayerInputManager;
             LocalPlayerActorSelectionRequestAuthoring found =
-                provisioningRoot.GetComponent<
-                    LocalPlayerActorSelectionRequestAuthoring>();
+                managerContext.ActorSelectionRequest;
+            Require(session != null && manager != null && found != null,
+                "Manager-Provisioned context is missing Session, PlayerInputManager or Actor Selection authoring.");
+
+            Scene globalUi = manager.gameObject.scene;
             Require(
-                found != null,
-                $"UIGlobal provisioning root '{GlobalUiProvisioningRootName}' is missing LocalPlayerActorSelectionRequestAuthoring.");
+                globalUi.IsValid() && globalUi.isLoaded &&
+                string.Equals(globalUi.path, GlobalUiScenePath, StringComparison.Ordinal),
+                "Manager-Provisioned context PlayerInputManager is not in the expected UIGlobal scene.");
+            Require(
+                ReferenceEquals(found.gameObject, manager.gameObject) &&
+                ReferenceEquals(found.ProvisioningAuthoring, managerContext.Provisioning),
+                "Manager-Provisioned context Actor Selection authoring does not belong to its provisioning object.");
             Require(
                 found.TryValidateConfiguration(out string actorSelectionIssue),
                 actorSelectionIssue);
+            QaPlayerSessionQaSupport.ConfigureManagerBridge(session, manager);
+            Require(
+                QaPlayerSessionQaSupport.TryValidateManagerBridge(
+                    session,
+                    manager,
+                    out string bridgeIssue),
+                bridgeIssue);
 
             QaPlayerSurfaceGlobalUiFixture fixture =
                 found.gameObject.GetComponent<QaPlayerSurfaceGlobalUiFixture>();
@@ -437,9 +446,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             Require(
                 EditorSceneManager.SaveScene(globalUi),
                 $"Could not save UIGlobal scene '{GlobalUiScenePath}'.");
-            Require(
-                EditorSceneManager.CloseScene(globalUi, true),
-                $"Could not close UIGlobal source scene '{GlobalUiScenePath}' after fixture authoring.");
         }
 
         private static void ConfigureActivityContentFixture()
@@ -509,7 +515,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private static void CloseGlobalUiSourceSceneIfLoaded()
         {
             Scene scene = SceneManager.GetSceneByPath(GlobalUiScenePath);
-            if (scene.IsValid() && scene.isLoaded)
+            if (scene.IsValid() && scene.isLoaded && SceneManager.sceneCount > 1)
             {
                 EditorSceneManager.CloseScene(scene, true);
             }

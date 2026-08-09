@@ -11,25 +11,55 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
-namespace ImmersiveFrameworkQA.Player.Editor
+namespace ImmersiveFrameworkQA.Player.Internal.Editor
 {
+    public sealed class QaManagerProvisionedPlayerFixtureContext
+    {
+        internal QaManagerProvisionedPlayerFixtureContext(
+            ImmersiveFrameworkSettingsAsset settings,
+            GameApplicationAsset application,
+            PlayerSessionProfile sessionProfile,
+            LocalPlayerProvisioningAuthoring provisioning,
+            PlayerInputManager playerInputManager,
+            GameObject playerHostPrefab,
+            LocalPlayerProvisioningHostRegistration hostRegistration,
+            LocalPlayerActorSelectionRequestAuthoring actorSelectionRequest)
+        {
+            Settings = settings;
+            Application = application;
+            SessionProfile = sessionProfile;
+            Provisioning = provisioning;
+            PlayerInputManager = playerInputManager;
+            PlayerHostPrefab = playerHostPrefab;
+            HostRegistration = hostRegistration;
+            ActorSelectionRequest = actorSelectionRequest;
+        }
+
+        public ImmersiveFrameworkSettingsAsset Settings { get; }
+        public GameApplicationAsset Application { get; }
+        public PlayerSessionProfile SessionProfile { get; }
+        public LocalPlayerProvisioningAuthoring Provisioning { get; }
+        public PlayerInputManager PlayerInputManager { get; }
+        public GameObject PlayerHostPrefab { get; }
+        public LocalPlayerProvisioningHostRegistration HostRegistration { get; }
+        public LocalPlayerActorSelectionRequestAuthoring ActorSelectionRequest { get; }
+    }
+
     /// <summary>
     /// Idempotent real-join fixture. Creates one reusable Local Player technical-host prefab and
     /// installs one explicit manual PlayerInputManager + provisioning authoring and host
     /// registration in QA_UIGlobal.
     /// </summary>
-    internal static class QaLocalPlayerRuntimeIntegrationSetup
+    public static class QaManagerProvisionedPlayerFixture
     {
         private const string MenuPath =
-            "Immersive Framework/QA/Setup/Prepare Canonical Local Player Runtime Fixture";
+            "Immersive Framework/QA/Player/Manager Provisioned/Prepare Fixture";
         private const string GameplayAdmissionSetupMenuPath =
-            "Immersive Framework/QA/Setup/Prepare Player Gameplay Admission Regression";
+            "Immersive Framework/QA/Player/Manager Provisioned/Prepare Gameplay Admission Fixture";
         private const string RootFolder =
             "Assets/ImmersiveFrameworkQA/Player/LocalPlayerRuntimeIntegration";
         private const string ActionsPath = RootFolder + "/LocalPlayerInputActions.asset";
         private const string PlayerPrefabPath = RootFolder + "/LocalPlayerHost.prefab";
-        private const string ProvisioningProfilePath =
-            RootFolder + "/CanonicalPlayerProvisioningProfile.asset";
         private const string SessionProfilePath =
             RootFolder + "/CanonicalPlayerSessionProfile.asset";
         private const string DivergentPlayerPrefabPath =
@@ -47,7 +77,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             EditorApplication.playModeStateChanged += HandlePlayModeStateChanged;
         }
 
-        [MenuItem("Immersive Framework/QA/Setup/Player/Prepare Local Player Prefab Divergence Play Mode Fixture")]
+        [MenuItem("Immersive Framework/QA/Player/Manager Provisioned/Prepare Prefab Divergence Fixture")]
         private static void PrepareDivergenceFromMenu()
         {
             if (EditorApplication.isPlaying)
@@ -56,7 +86,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Local Player divergence fixture setup must run outside Play Mode.");
             }
 
-            Apply();
+            PrepareAndValidate();
             InputActionAsset actions = CreateOrUpdateInputActions();
             GameObject divergentPrefab = CreateOrUpdatePlayerPrefab(
                 actions,
@@ -97,8 +127,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Player Gameplay Admission setup must run outside Play Mode.");
             }
 
-            Apply();
-            ValidateGameplayAdmissionPreparedState();
+            PrepareAndValidate();
             Debug.Log(
                 "[PLAYER_GAMEPLAY_ADMISSION_SETUP] status='Prepared' " +
                 $"scene='{TargetSceneName}' expectedInitialPlayers='0' " +
@@ -115,7 +144,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             try
             {
-                Apply();
+                PrepareAndValidate();
                 SessionState.EraseBool(RestoreCanonicalAfterPlayKey);
                 Debug.Log(
                     "[LOCAL_PLAYER_RUNTIME_INTEGRATION_SETUP] status='Restored' scenario='DivergentManagerPrefab'.");
@@ -129,75 +158,80 @@ namespace ImmersiveFrameworkQA.Player.Editor
             }
         }
 
-        private static void ValidateGameplayAdmissionPreparedState()
+        public static void ValidatePreparedComposition(
+            QaManagerProvisionedPlayerFixtureContext context)
         {
-            Scene scene = SceneManager.GetActiveScene();
-            if (!scene.isLoaded || !string.Equals(scene.name, TargetSceneName, StringComparison.Ordinal))
+            if (context == null)
             {
-                throw new InvalidOperationException(
-                    $"Player Gameplay Admission setup requires loaded scene '{TargetSceneName}', but active scene is '{scene.name}'.");
+                throw new ArgumentNullException(nameof(context));
             }
 
-            PlayerInputManager[] managers = UnityEngine.Object.FindObjectsByType<PlayerInputManager>(
-                FindObjectsInactive.Include);
-            if (managers.Length != 1)
+            RequireCanonicalPlayerSessionConfiguration(
+                context.Settings,
+                context.Application,
+                context.SessionProfile);
+
+            Scene scene = context.PlayerInputManager != null
+                ? context.PlayerInputManager.gameObject.scene
+                : default;
+            if (!scene.isLoaded ||
+                !string.Equals(scene.name, TargetSceneName, StringComparison.Ordinal))
             {
                 throw new InvalidOperationException(
-                    $"Player Gameplay Admission setup requires exactly one loaded PlayerInputManager, but found '{managers.Length}'.");
+                    $"Manager-Provisioned context requires loaded scene '{TargetSceneName}', but scene is '{scene.name}'.");
             }
 
-            LocalPlayerProvisioningAuthoring[] authorings =
-                UnityEngine.Object.FindObjectsByType<LocalPlayerProvisioningAuthoring>(
-                    FindObjectsInactive.Include);
-            if (authorings.Length != 1)
+            PlayerInputManager manager = context.PlayerInputManager;
+            LocalPlayerProvisioningAuthoring authoring = context.Provisioning;
+            if (manager == null || authoring == null ||
+                !ReferenceEquals(authoring.PlayerInputManager, manager))
             {
                 throw new InvalidOperationException(
-                    $"Player Gameplay Admission setup requires exactly one loaded LocalPlayerProvisioningAuthoring, but found '{authorings.Length}'.");
+                    "Manager-Provisioned context does not retain the canonical provisioning and PlayerInputManager references.");
             }
 
-            PlayerInputManager manager = managers[0];
-            LocalPlayerProvisioningAuthoring authoring = authorings[0];
-            if (!ReferenceEquals(authoring.PlayerInputManager, manager))
+            if (context.PlayerHostPrefab == null ||
+                !ReferenceEquals(authoring.LocalPlayerHostPrefab, context.PlayerHostPrefab) ||
+                manager.playerPrefab != null)
             {
                 throw new InvalidOperationException(
-                    "Player Gameplay Admission setup authoring does not reference the canonical PlayerInputManager.");
+                    "Manager-Provisioned context requires its authored Local Player Host Prefab and an empty manager playerPrefab in Edit Mode.");
             }
 
-            if (authoring.LocalPlayerHostPrefab == null || manager.playerPrefab != null)
+            LocalPlayerHostAuthoring host =
+                context.PlayerHostPrefab.GetComponent<LocalPlayerHostAuthoring>();
+            string hostIssue = string.Empty;
+            if (host == null || !host.TryValidateConfiguration(out hostIssue))
             {
                 throw new InvalidOperationException(
-                    "Player Gameplay Admission setup requires an authored Local Player Host Prefab and an empty manager playerPrefab in Edit Mode.");
+                    "Manager-Provisioned context requires a valid Local Player Host Prefab. " +
+                    hostIssue);
             }
 
+            bool bridgeIsValid = QaPlayerSessionQaSupport.TryValidateManagerBridge(
+                context.SessionProfile,
+                manager,
+                out string bridgeIssue);
             if (manager.joinBehavior != PlayerJoinBehavior.JoinPlayersManually ||
                 manager.notificationBehavior != PlayerNotifications.InvokeCSharpEvents ||
-                manager.maxPlayerCount != 4)
+                !bridgeIsValid)
             {
                 throw new InvalidOperationException(
-                    "Player Gameplay Admission setup requires manual C# event joining with maxPlayerCount '4'.");
+                    "Manager-Provisioned context requires manual C# event joining " +
+                    "and a PlayerInputManager bridge derived from PlayerSessionProfile. " +
+                    bridgeIssue);
             }
 
-            LocalPlayerProvisioningHostRegistration[] registrations =
-                UnityEngine.Object.FindObjectsByType<LocalPlayerProvisioningHostRegistration>(
-                    FindObjectsInactive.Include);
-            if (registrations.Length != 1 ||
-                !ReferenceEquals(registrations[0].ProvisioningAuthoring, authoring))
+            if (context.HostRegistration == null ||
+                !ReferenceEquals(context.HostRegistration.ProvisioningAuthoring, authoring) ||
+                context.ActorSelectionRequest == null ||
+                !ReferenceEquals(
+                    context.ActorSelectionRequest.ProvisioningAuthoring,
+                    authoring))
             {
                 throw new InvalidOperationException(
-                    "Player Gameplay Admission setup requires one Host Registration for the canonical provisioning authoring.");
+                    "Manager-Provisioned context does not retain the canonical registration and Actor Selection authoring.");
             }
-
-            LocalPlayerActorSelectionRequestAuthoring[] selectionEndpoints =
-                UnityEngine.Object.FindObjectsByType<LocalPlayerActorSelectionRequestAuthoring>(
-                    FindObjectsInactive.Include);
-            if (selectionEndpoints.Length != 1 ||
-                !ReferenceEquals(selectionEndpoints[0].ProvisioningAuthoring, authoring))
-            {
-                throw new InvalidOperationException(
-                    "Player Gameplay Admission setup requires one Actor Selection Request for the canonical provisioning authoring.");
-            }
-
-            RequireCanonicalPlayerSessionConfiguration();
         }
 
         [MenuItem(MenuPath)]
@@ -209,10 +243,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Canonical Local Player runtime fixture setup must run outside Play Mode.");
             }
 
-            Apply();
+            PrepareAndValidate();
         }
 
-        internal static void Apply()
+        public static QaManagerProvisionedPlayerFixtureContext Prepare()
         {
             try
             {
@@ -222,19 +256,20 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     actions,
                     PlayerPrefabPath,
                     "Local Player Host");
-                ConfigureCanonicalPlayerSession();
+                PlayerSessionProfile session = ConfigureCanonicalPlayerSession(
+                    out ImmersiveFrameworkSettingsAsset settings,
+                    out GameApplicationAsset application);
                 string scenePath = FindUniqueScenePath(TargetSceneName);
 
                 if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 {
-                    Debug.LogWarning(
-                        "[LOCAL_PLAYER_RUNTIME_INTEGRATION_SETUP] status='Cancelled' reason='UnsavedScenes'.");
-                    return;
+                    throw new OperationCanceledException(
+                        "Manager-Provisioned fixture preparation was cancelled because modified scenes were not saved.");
                 }
 
                 Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
                 PlayerInputManager manager = ResolveOrCreateManager(scene);
-                ConfigureManager(manager);
+                ConfigureManager(manager, session);
 
                 LocalPlayerProvisioningAuthoring authoring =
                     manager.GetComponent<LocalPlayerProvisioningAuthoring>();
@@ -289,16 +324,40 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
 
+                settings = Resources.Load<ImmersiveFrameworkSettingsAsset>(
+                    ImmersiveFrameworkSettingsAsset.ResourcesPath);
+                application = settings != null
+                    ? settings.ActiveGameApplication
+                    : null;
+                session = application != null
+                    ? application.DefaultPlayerSessionProfile
+                    : null;
+                RequireCanonicalPlayerSessionConfiguration(
+                    settings,
+                    application,
+                    session);
+
                 LocalPlayerHostAuthoring host =
                     playerPrefab.GetComponent<LocalPlayerHostAuthoring>();
+                var context = new QaManagerProvisionedPlayerFixtureContext(
+                    settings,
+                    application,
+                    session,
+                    authoring,
+                    manager,
+                    playerPrefab,
+                    registration,
+                    selectionEndpoint);
                 Debug.Log(
                     "[LOCAL_PLAYER_RUNTIME_INTEGRATION_SETUP] status='Applied' " +
                     $"scene='{scenePath}' fixture='{manager.gameObject.name}' " +
                     $"registration='{registration.name}' " +
                     $"actorSelectionEndpoint='{selectionEndpoint.name}' " +
                     $"prefab='{PlayerPrefabPath}' host='{host.name}' actorMount='{host.ActorMount.name}' " +
+                    $"application='{application.name}' session='{session.name}' supportedSlots='{session.SupportedSlotCount}' " +
                     $"joinBehavior='{manager.joinBehavior}' notificationBehavior='{manager.notificationBehavior}' " +
                     $"maxPlayers='{manager.maxPlayerCount}'.");
+                return context;
             }
             catch (Exception exception)
             {
@@ -307,6 +366,18 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     $"exception='{exception.GetType().Name}' message='{Escape(exception.Message)}'.");
                 throw;
             }
+        }
+
+        public static QaManagerProvisionedPlayerFixtureContext PrepareAndValidate()
+        {
+            QaManagerProvisionedPlayerFixtureContext context = Prepare();
+            ValidatePreparedComposition(context);
+            Debug.Log(
+                "[LOCAL_PLAYER_RUNTIME_INTEGRATION_SETUP] status='Prepared' " +
+                $"application='{context.Application.name}' session='{context.SessionProfile.name}' " +
+                $"supportedSlots='{context.SessionProfile.SupportedSlotCount}' " +
+                $"maxPlayers='{context.PlayerInputManager.maxPlayerCount}'.");
+            return context;
         }
 
         private static LocalPlayerActorSelectionRequestAuthoring[]
@@ -369,9 +440,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return actions;
         }
 
-        private static void ConfigureCanonicalPlayerSession()
+        private static PlayerSessionProfile ConfigureCanonicalPlayerSession(
+            out ImmersiveFrameworkSettingsAsset settings,
+            out GameApplicationAsset application)
         {
-            ImmersiveFrameworkSettingsAsset settings =
+            settings =
                 Resources.Load<ImmersiveFrameworkSettingsAsset>(
                     ImmersiveFrameworkSettingsAsset.ResourcesPath);
             if (settings == null || settings.ActiveGameApplication == null)
@@ -380,55 +453,21 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Canonical Local Player setup requires an active Game Application.");
             }
 
-            GameApplicationAsset application = settings.ActiveGameApplication;
-            var slots = new List<PlayerSlotProfile>();
-            for (int index = 0; index < application.LocalPlayerSlotCount; index++)
-            {
-                if (!application.TryGetLocalPlayerSlot(
-                        index,
-                        out PlayerSlotProfile slot) ||
-                    slot == null ||
-                    !slot.PlayerSlotId.IsValid)
-                {
-                    throw new InvalidOperationException(
-                        $"Canonical Local Player setup requires a valid Player Slot at index '{index}'.");
-                }
-
-                slots.Add(slot);
-            }
-
-            if (slots.Count == 0)
-            {
-                throw new InvalidOperationException(
-                    "Canonical Local Player setup requires at least one Player Slot.");
-            }
-
-            PlayerProvisioningProfile provisioning =
-                AssetDatabase.LoadAssetAtPath<PlayerProvisioningProfile>(
-                    ProvisioningProfilePath);
-            if (provisioning == null)
-            {
-                provisioning = ScriptableObject.CreateInstance<
-                    PlayerProvisioningProfile>();
-                AssetDatabase.CreateAsset(provisioning, ProvisioningProfilePath);
-            }
-
-            var serializedProvisioning = new SerializedObject(provisioning);
-            serializedProvisioning.FindProperty("defaultHostProvisioning")
-                .intValue = (int)PlayerHostProvisioningMode.ManagerProvisioned;
-            serializedProvisioning.FindProperty("slotOverrides").arraySize = 0;
-            serializedProvisioning.FindProperty("actorResolutionPolicy")
-                .intValue = (int)PlayerActorResolutionPolicy.ResolveConfiguredDefault;
-            serializedProvisioning.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(provisioning);
-
+            application = settings.ActiveGameApplication;
             PlayerSessionProfile session =
                 AssetDatabase.LoadAssetAtPath<PlayerSessionProfile>(
                     SessionProfilePath);
             if (session == null)
             {
-                session = ScriptableObject.CreateInstance<PlayerSessionProfile>();
-                AssetDatabase.CreateAsset(session, SessionProfilePath);
+                throw new InvalidOperationException(
+                    "Canonical Local Player setup requires the persisted Player Session Profile asset with its Supported Slots.");
+            }
+
+            var slots = new List<PlayerSlotProfile>(session.SupportedSlots);
+            if (slots.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "Canonical Local Player setup requires at least one Supported Slot on PlayerSessionProfile.");
             }
 
             var serializedSession = new SerializedObject(session);
@@ -441,11 +480,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     .objectReferenceValue = slots[index];
             }
 
-            serializedSession.FindProperty("initialCapacity").intValue =
-                slots.Count;
             serializedSession.FindProperty("initialJoiningOpen").boolValue = false;
-            serializedSession.FindProperty("playerProvisioningProfile")
-                .objectReferenceValue = provisioning;
+            serializedSession.FindProperty("hostProvisioning").intValue =
+                (int)PlayerHostProvisioningMode.ManagerProvisioned;
+            serializedSession.FindProperty("actorResolutionPolicy").intValue =
+                (int)PlayerActorResolutionPolicy.ResolveConfiguredDefault;
             serializedSession.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(session);
 
@@ -456,45 +495,59 @@ namespace ImmersiveFrameworkQA.Player.Editor
             serializedApplication.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(application);
 
-            RequireCanonicalPlayerSessionConfiguration();
+            RequireCanonicalPlayerSessionConfiguration(
+                settings,
+                application,
+                session);
+            return session;
         }
 
-        private static void RequireCanonicalPlayerSessionConfiguration()
+        private static void RequireCanonicalPlayerSessionConfiguration(
+            ImmersiveFrameworkSettingsAsset settings,
+            GameApplicationAsset application,
+            PlayerSessionProfile session)
         {
-            ImmersiveFrameworkSettingsAsset settings =
-                Resources.Load<ImmersiveFrameworkSettingsAsset>(
-                    ImmersiveFrameworkSettingsAsset.ResourcesPath);
-            GameApplicationAsset application =
-                settings != null ? settings.ActiveGameApplication : null;
             string sessionIssue = string.Empty;
-            if (application == null ||
+            if (settings == null ||
+                application == null ||
+                !ReferenceEquals(settings.ActiveGameApplication, application) ||
                 !application.PlayerSessionEnabled ||
-                application.DefaultPlayerSessionProfile == null ||
-                !application.DefaultPlayerSessionProfile.TryValidate(
+                session == null ||
+                !ReferenceEquals(application.DefaultPlayerSessionProfile, session) ||
+                !session.TryValidate(
                     out sessionIssue))
             {
                 throw new InvalidOperationException(
                     "Canonical Local Player setup requires an enabled, valid " +
                     "Player Session Profile. " +
-                    (application == null
+                    (settings == null || application == null
                         ? "Active Game Application is missing."
+                        : !ReferenceEquals(settings.ActiveGameApplication, application)
+                            ? "Settings no longer points to the prepared Game Application."
                         : !application.PlayerSessionEnabled
                             ? "Player Session is disabled."
-                            : application.DefaultPlayerSessionProfile == null
-                                ? "Default Player Session Profile is missing."
+                            : session == null ||
+                              !ReferenceEquals(
+                                  application.DefaultPlayerSessionProfile,
+                                  session)
+                                ? "Game Application no longer points to the prepared Player Session Profile."
                                 : sessionIssue));
             }
 
-            PlayerSessionProfile session = application.DefaultPlayerSessionProfile;
-            if (session.PlayerProvisioningProfile == null ||
-                session.PlayerProvisioningProfile.DefaultHostProvisioning !=
+            if (session.HostProvisioning !=
                     PlayerHostProvisioningMode.ManagerProvisioned ||
-                session.PlayerProvisioningProfile.ActorResolutionPolicy !=
+                session.ActorResolutionPolicy !=
                     PlayerActorResolutionPolicy.ResolveConfiguredDefault)
             {
                 throw new InvalidOperationException(
                     "Canonical Local Player setup requires Manager-Provisioned Hosts " +
                     "and configured default Actor resolution.");
+            }
+
+            if (session.SupportedSlotCount <= 0)
+            {
+                throw new InvalidOperationException(
+                    "Canonical Local Player setup requires PlayerSessionProfile.SupportedSlotCount greater than zero.");
             }
         }
 
@@ -588,7 +641,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return fixture.AddComponent<PlayerInputManager>();
         }
 
-        private static void ConfigureManager(PlayerInputManager manager)
+        private static void ConfigureManager(
+            PlayerInputManager manager,
+            PlayerSessionProfile session)
         {
             manager.gameObject.name = FixtureName;
             manager.joinBehavior = PlayerJoinBehavior.JoinPlayersManually;
@@ -597,18 +652,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             // technical manager field empty so the official runtime bootstrap materializes it.
             manager.playerPrefab = null;
 
-            var serializedManager = new SerializedObject(manager);
-            serializedManager.Update();
-            SerializedProperty maxPlayerCountProperty =
-                serializedManager.FindProperty("m_MaxPlayerCount");
-            if (maxPlayerCountProperty == null)
-            {
-                throw new InvalidOperationException(
-                    "PlayerInputManager serialized max-player-count field was not found.");
-            }
-
-            maxPlayerCountProperty.intValue = 4;
-            serializedManager.ApplyModifiedPropertiesWithoutUndo();
+            QaPlayerSessionQaSupport.ConfigureManagerBridge(session, manager);
         }
 
         private static LocalPlayerProvisioningHostRegistration ResolveOrCreateRegistration(
