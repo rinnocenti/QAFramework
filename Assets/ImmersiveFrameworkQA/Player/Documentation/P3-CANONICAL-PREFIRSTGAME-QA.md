@@ -1,7 +1,11 @@
 # P3 Canonical Pre-FIRSTGAME QA
 
 Status: Superseded operational guide; retained as historical inventory  
-Last updated: 2026-08-02
+Last updated: 2026-08-09
+
+> Current operation: `Immersive Framework/QA/Player/Run Full Player QA`.
+> The sections below remain a historical P3-era inventory and are not the normal
+> Player QA execution flow. See `../../Documentation/PLAYER-QA-ARCHITECTURE.md`.
 
 ## Purpose
 
@@ -13,9 +17,9 @@ The public command below no longer exists:
 Immersive Framework/QA/Player/P3 Run Canonical Pre-FIRSTGAME Smoke
 ```
 
-It was removed during QA smoke consolidation. No global or Player mega-suite replaces it. Current evidence must come from the focused regression that owns each contract.
+It was removed during QA smoke consolidation. As of 2026-08-09, the canonical current entrypoint is `Immersive Framework/QA/Player/Run Full Player QA`, which coordinates focused regressions without replacing their owned evidence. The remaining P3 instructions are retained for historical traceability and focused diagnosis.
 
-## Current Player regression surface
+## Historical focused Player regression surface
 
 ### Edit Mode
 
@@ -114,7 +118,9 @@ Do not use this historical path as proof that a current `PlayerRecipe` or `Playe
 
 Current Player regressions must not restore `PlayerSlotDeclaration`, `PlayerSlotOccupancy`, `PlayerEntry`, `PlayerViews`, `PlayerControls`, `PlayerTopology`, F49/F51/F52 PlayerBinding or `SessionPlayerInputManagerDeclaration`.
 
-## Validation guidance
+## Historical validation guidance (superseded)
+
+For normal current validation, run `Immersive Framework/QA/Player/Run Full Player QA`. The numbered steps below describe the former focused/manual workflow.
 
 1. Import and compile Framework and QAFramework.
 2. Confirm the focused Player regressions appear under `Immersive Framework/QA/Regressions/Player`.
@@ -125,3 +131,4 @@ Current Player regressions must not restore `PlayerSlotDeclaration`, `PlayerSlot
 7. Do not report a combined canonical P3 PASS; report the focused regression results.
 
 For the full historical inventory and consolidation decisions, see `../../Documentation/QA-SMOKE-CONSOLIDATION-AUDIT.md`.
+For the current certified Player QA baseline, see `../../Documentation/PLAYER-QA-CERTIFICATION-2026-08-09.md`.

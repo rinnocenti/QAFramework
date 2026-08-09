@@ -105,3 +105,39 @@ P3 and M07 labels in source names and historical documentation are retained
 only as traceability. Capacity, `PlayerProvisioningProfile`, Slot provisioning
 overrides and the former `GameApplicationAsset` local-slot API are not active
 QA contracts.
+
+## Certified baseline — 2026-08-09
+
+The canonical one-button flow completed successfully in Unity:
+
+```text
+[QA_PLAYER_FULL] status='Passed' verdict='PLAYER QA CERTIFIED' session='PASS' sceneProvided='PASS' managerProvisioned='PASS' actor='PASS' publicSurface='PASS' participation='PASS'.
+```
+
+Focused evidence observed in the same certification run:
+
+| Proof | Result |
+|---|---|
+| Player Participation Authoring | PASS — 7 cases |
+| Scene-Provided Route Transition / Negative Matrix | PASS — 25 cases |
+| Manager-Provisioned Lifecycle Public Contract | PASS — 9 cases |
+| Manager-Provisioned Waiting Projection | PASS — 14 cases |
+| Actor Selection Runtime Binding | PASS — 13 cases |
+| Player Gameplay Admission | PASS — 114 cases |
+| Public Surface Q1 | PASS — 28 cases |
+| Public Surface Q2 | PASS — 36 cases |
+| Activity Session Projection | PASS — 30 cases |
+
+Manager-Provisioned preparation reported `supportedSlots='2'` and
+`maxPlayers='2'`, confirming the serialized `PlayerInputManager` bridge matched
+`PlayerSessionProfile.SupportedSlotCount`. Scene-Provided preparation reported
+`hostProvisioning='SceneProvided'` with two Supported Slots, proving the two
+provisioning models were prepared independently before their Play Mode phases.
+
+Q2 intentionally emits framework error diagnostics for rejected, stale,
+wrong-scope, destroyed-binding and unbound-trigger cases. Those expected error
+logs are negative-case evidence; Q2 still completed 36 cases with `status='Passed'`.
+
+See `PLAYER-QA-CERTIFICATION-2026-08-09.md` for the retained certification
+record. Normal operation remains the single `Run Full Player QA` entrypoint;
+focused menus are for diagnosis.
