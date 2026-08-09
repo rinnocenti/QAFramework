@@ -90,7 +90,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "Primary Route scene was not kept before additional Route scenes.");
                 completed.Add("from-composition-result-primary-first-and-duplicate-removed");
 
-                IReadOnlyList<RouteContentBinding> bindings = SceneScopedComponentQuery.GetComponentsInRouteContentScope<RouteContentBinding>(scope);
+                IReadOnlyList<RouteContentBinding> bindings = SceneCompositionComponentQuery.GetComponents<RouteContentBinding>(scope);
                 Require(bindings.Count == 6 && Contains(bindings, primaryBinding) &&
                         Contains(bindings, additionalFirstBinding) && Contains(bindings, additionalSecondBinding) &&
                         Contains(bindings, differentRouteBinding) && Contains(bindings, sameNameABinding) && Contains(bindings, sameNameBBinding) &&
@@ -98,7 +98,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "Route-owned scene scope did not preserve owned components or excluded persistent/external scenes.");
                 completed.Add("persistent-external-excluded-and-distinct-components-preserved");
 
-                Require(SceneScopedComponentQuery.GetComponentsInRouteContentScope<RouteContentBinding>(
+                Require(SceneCompositionComponentQuery.GetComponents<RouteContentBinding>(
                             RouteContentDiscoveryScope.FromCompositionResult(CreateDivergentPathResult(routeA, primary, divergentPath))).Count == 0,
                     "A present divergent scene path must not fall back to a matching scene name.");
                 completed.Add("divergent-path-has-no-name-fallback");
