@@ -249,9 +249,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private static void RequireAuthoredHubFixturePresent()
         {
-            Scene hub = EditorSceneManager.OpenScene(
-                HubScenePath,
-                OpenSceneMode.Single);
+            Scene hub = SceneManager.GetSceneByPath(HubScenePath);
+            if (!hub.IsValid() || !hub.isLoaded)
+            {
+                hub = EditorSceneManager.OpenScene(
+                    HubScenePath,
+                    OpenSceneMode.Single);
+            }
+
             Require(
                 hub.IsValid() && hub.isLoaded,
                 $"Hub scene '{HubScenePath}' could not be opened for fixture verification.");

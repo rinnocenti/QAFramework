@@ -126,10 +126,18 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 cases.Complete("runtime-started");
 
                 loading = ResolveLoadingAdapter();
-                actorSelection = ResolveUniqueActorSelectionAuthoring();
+
+                Require(
+                    QaPlayerSurfacePublicNavigationSupport.TryResolveAuthoredFixture(
+                        out publicNav,
+                        out string publicNavDiagnostic),
+                    publicNavDiagnostic);
+                cases.Complete("public-navigation-fixture-resolved");
+
+                actorSelection = publicNav.ActorSelectionRequestAuthoring;
                 Require(
                     actorSelection != null,
-                    "Public LocalPlayerActorSelectionRequestAuthoring was not available.");
+                    "Public navigation fixture is missing its explicit LocalPlayerActorSelectionRequestAuthoring reference.");
                 string selectionConfigIssue;
                 Require(
                     actorSelection.TryValidateConfiguration(out selectionConfigIssue),
@@ -139,13 +147,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     actorSelection.RuntimeReady,
                     "Public Actor selection authoring is not runtime-ready. " +
                     actorSelection.PlayerActorSelectionRuntimeBindingDiagnostic);
-
-                Require(
-                    QaPlayerSurfacePublicNavigationSupport.TryResolveAuthoredFixture(
-                        out publicNav,
-                        out string publicNavDiagnostic),
-                    publicNavDiagnostic);
-                cases.Complete("public-navigation-fixture-resolved");
 
                 enterTrigger = publicNav.EnterActivityTrigger;
                 clearTrigger = publicNav.ClearActivityTrigger;
@@ -821,46 +822,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 slot != null,
                 "Could not resolve first Local Player Slot from active GameApplication.");
             return slot;
-        }
-
-        private static LocalPlayerActorSelectionRequestAuthoring
-            ResolveUniqueActorSelectionAuthoring()
-        {
-            LocalPlayerActorSelectionRequestAuthoring found = null;
-            for (int sceneIndex = 0;
-                 sceneIndex < SceneManager.sceneCount;
-                 sceneIndex++)
-            {
-                Scene scene = SceneManager.GetSceneAt(sceneIndex);
-                if (!scene.IsValid() || !scene.isLoaded)
-                {
-                    continue;
-                }
-
-                GameObject[] roots = scene.GetRootGameObjects();
-                for (int rootIndex = 0; rootIndex < roots.Length; rootIndex++)
-                {
-                    LocalPlayerActorSelectionRequestAuthoring[] candidates =
-                        roots[rootIndex].GetComponentsInChildren<
-                            LocalPlayerActorSelectionRequestAuthoring>(true);
-                    for (int index = 0; index < candidates.Length; index++)
-                    {
-                        LocalPlayerActorSelectionRequestAuthoring candidate =
-                            candidates[index];
-                        if (candidate == null)
-                        {
-                            continue;
-                        }
-
-                        Require(
-                            found == null || ReferenceEquals(found, candidate),
-                            "Multiple LocalPlayerActorSelectionRequestAuthoring surfaces are loaded; public QA expects the canonical product authoring.");
-                        found = candidate;
-                    }
-                }
-            }
-
-            return found;
         }
 
         private static QaLoadingSurfaceVisibilityHoldAdapter ResolveLoadingAdapter()

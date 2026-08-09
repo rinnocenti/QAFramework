@@ -29,6 +29,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             "Assets/ImmersiveFrameworkQA/Player/Surface";
         private const string HubScenePath =
             "Assets/ImmersiveFrameworkQA/Hub/Scenes/QA_Hub.unity";
+        private const string GlobalUiScenePath =
+            "Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/QA_UIGlobal.unity";
         private const string ContentScenePath =
             "Assets/ImmersiveFrameworkQA/GameFlow/Scenes/QA_IF_READY_04_DirectPoliciesContent.unity";
         private const string ContentProfilePath =
@@ -86,7 +88,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
                 GameObject root = FindOrCreateRoot(hub);
                 QaPlayerSurfacePublicNavigationFixture fixture =
-                    ConfigureFixtureRoot(root, activity, slot);
+                    ConfigureFixtureRoot(
+                        root,
+                        activity,
+                        slot,
+                        ResolveGlobalActorSelectionRequestAuthoring());
                 string surfaceIssue = string.Empty;
                 bool authoredSurfaceIsValid = fixture != null &&
                     fixture.TryValidateAuthoredSurface(out surfaceIssue);
@@ -258,7 +264,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private static QaPlayerSurfacePublicNavigationFixture ConfigureFixtureRoot(
             GameObject root,
             ActivityAsset activity,
-            PlayerSlotProfile slot)
+            PlayerSlotProfile slot,
+            LocalPlayerActorSelectionRequestAuthoring actorSelectionAuthoring)
         {
             QaPlayerSurfacePublicNavigationFixture fixture =
                 root.GetComponent<QaPlayerSurfacePublicNavigationFixture>();
@@ -289,18 +296,70 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             Require(
                 binding != null,
                 "Failed to create Route LocalPlayerProvisioningConsumerAccessBinding.");
+            Require(
+                actorSelectionAuthoring != null,
+                "Public navigation fixture requires the authored Local Player Actor Selection Request from the UIGlobal composition.");
+            Require(
+                actorSelectionAuthoring.TryValidateConfiguration(
+                    out string actorSelectionIssue),
+                actorSelectionIssue);
 
             ConfigureTrigger(enter, activity, "qa.player.surface.public.enter");
             ConfigureTrigger(clear, activity, "qa.player.surface.public.clear");
             ApplyScope(binding, LocalPlayerProvisioningConsumerScope.Route);
 
-            fixture.Configure(activity, enter, clear, binding, slot);
+            fixture.Configure(
+                activity,
+                enter,
+                clear,
+                binding,
+                slot,
+                actorSelectionAuthoring);
             Require(
                 fixture.TryValidateAuthoredSurface(out string issue),
                 issue);
             EditorUtility.SetDirty(fixture);
             EditorUtility.SetDirty(root);
             return fixture;
+        }
+
+        private static LocalPlayerActorSelectionRequestAuthoring
+            ResolveGlobalActorSelectionRequestAuthoring()
+        {
+            Scene globalUi = EditorSceneManager.OpenScene(
+                GlobalUiScenePath,
+                OpenSceneMode.Additive);
+            Require(
+                globalUi.IsValid() && globalUi.isLoaded,
+                $"Could not open UIGlobal scene '{GlobalUiScenePath}' to resolve the authored Actor Selection Request.");
+
+            LocalPlayerActorSelectionRequestAuthoring found = null;
+            GameObject[] roots = globalUi.GetRootGameObjects();
+            for (int rootIndex = 0; rootIndex < roots.Length; rootIndex++)
+            {
+                LocalPlayerActorSelectionRequestAuthoring[] candidates =
+                    roots[rootIndex].GetComponentsInChildren<
+                        LocalPlayerActorSelectionRequestAuthoring>(true);
+                for (int index = 0; index < candidates.Length; index++)
+                {
+                    LocalPlayerActorSelectionRequestAuthoring candidate =
+                        candidates[index];
+                    if (candidate == null)
+                    {
+                        continue;
+                    }
+
+                    Require(
+                        found == null || ReferenceEquals(found, candidate),
+                        $"UIGlobal scene '{GlobalUiScenePath}' contains multiple Local Player Actor Selection Request authorings. The Player Surface fixture requires one explicit product authoring.");
+                    found = candidate;
+                }
+            }
+
+            Require(
+                found != null,
+                $"UIGlobal scene '{GlobalUiScenePath}' is missing LocalPlayerActorSelectionRequestAuthoring on its provisioning composition.");
+            return found;
         }
 
         private static ActivityRequestTrigger FindOrCreateChildTrigger(
