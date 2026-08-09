@@ -25,9 +25,6 @@ namespace ImmersiveFrameworkQA.Hub
         [SerializeField]
         private LocalPlayerProvisioningConsumerAccessBinding routeConsumerBinding;
         [SerializeField] private PlayerSlotProfile primaryPlayerSlot;
-        [SerializeField]
-        private LocalPlayerActorSelectionRequestAuthoring
-            actorSelectionRequestAuthoring;
 
         public ActivityAsset TargetActivity => targetActivity;
         public ActivityRequestTrigger EnterActivityTrigger => enterActivityTrigger;
@@ -35,23 +32,19 @@ namespace ImmersiveFrameworkQA.Hub
         public LocalPlayerProvisioningConsumerAccessBinding RouteConsumerBinding =>
             routeConsumerBinding;
         public PlayerSlotProfile PrimaryPlayerSlot => primaryPlayerSlot;
-        public LocalPlayerActorSelectionRequestAuthoring
-            ActorSelectionRequestAuthoring => actorSelectionRequestAuthoring;
 
         public void Configure(
             ActivityAsset activity,
             ActivityRequestTrigger enterTrigger,
             ActivityRequestTrigger clearTrigger,
             LocalPlayerProvisioningConsumerAccessBinding consumerBinding,
-            PlayerSlotProfile playerSlot,
-            LocalPlayerActorSelectionRequestAuthoring actorSelectionAuthoring)
+            PlayerSlotProfile playerSlot)
         {
             targetActivity = activity;
             enterActivityTrigger = enterTrigger;
             clearActivityTrigger = clearTrigger;
             routeConsumerBinding = consumerBinding;
             primaryPlayerSlot = playerSlot;
-            actorSelectionRequestAuthoring = actorSelectionAuthoring;
         }
 
         public bool TryValidateAuthoredSurface(out string issue)
@@ -103,22 +96,6 @@ namespace ImmersiveFrameworkQA.Hub
             {
                 issue =
                     "Public navigation fixture requires a valid primary Player Slot.";
-                return false;
-            }
-
-            if (actorSelectionRequestAuthoring == null)
-            {
-                issue =
-                    "Public navigation fixture is missing the explicit Local Player Actor Selection Request authoring.";
-                return false;
-            }
-
-            if (!actorSelectionRequestAuthoring.TryValidateConfiguration(
-                    out string actorSelectionIssue))
-            {
-                issue =
-                    "Public navigation fixture references an invalid Local Player Actor Selection Request authoring. " +
-                    actorSelectionIssue;
                 return false;
             }
 

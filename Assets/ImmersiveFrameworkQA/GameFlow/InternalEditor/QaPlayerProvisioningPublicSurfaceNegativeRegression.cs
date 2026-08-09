@@ -9,6 +9,7 @@ using Immersive.Framework.GameFlow;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
 using Immersive.Framework.Transition;
+using ImmersiveFrameworkQA.UnityBuildSurface;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -151,19 +152,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "QA-PLAYER-SURFACE-02 requires a started Game Flow runtime.");
                 cases.Complete("runtime-started");
 
-                actorSelection = ResolveUniqueActorSelectionAuthoring();
                 Require(
-                    actorSelection != null,
-                    "Public LocalPlayerActorSelectionRequestAuthoring was not available.");
-                Require(
-                    actorSelection.TryValidateConfiguration(
-                        out string selectionConfigIssue),
-                    selectionConfigIssue);
-                Require(
-                    actorSelection.HasPlayerActorSelectionRuntimeBinding &&
-                    actorSelection.RuntimeReady,
-                    "Public Actor selection authoring is not runtime-ready. " +
-                    actorSelection.PlayerActorSelectionRuntimeBindingDiagnostic);
+                    QaPlayerSurfacePublicNavigationSupport.TryResolveGlobalUiFixture(
+                        out QaPlayerSurfaceGlobalUiFixture globalUiFixture,
+                        out string globalUiFixtureDiagnostic),
+                    globalUiFixtureDiagnostic);
+                actorSelection = await QaPlayerSurfacePublicNavigationSupport
+                    .RequireActorSelectionRuntimeReadyAsync(
+                        globalUiFixture,
+                        FrameBudget);
 
                 PlayerSlotProfile slotProfile = ResolveFirstLocalPlayerSlot();
                 Require(
@@ -1280,45 +1277,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             return slot;
         }
 
-        private static LocalPlayerActorSelectionRequestAuthoring
-            ResolveUniqueActorSelectionAuthoring()
-        {
-            LocalPlayerActorSelectionRequestAuthoring found = null;
-            for (int sceneIndex = 0;
-                 sceneIndex < SceneManager.sceneCount;
-                 sceneIndex++)
-            {
-                Scene scene = SceneManager.GetSceneAt(sceneIndex);
-                if (!scene.IsValid() || !scene.isLoaded)
-                {
-                    continue;
-                }
-
-                GameObject[] roots = scene.GetRootGameObjects();
-                for (int rootIndex = 0; rootIndex < roots.Length; rootIndex++)
-                {
-                    LocalPlayerActorSelectionRequestAuthoring[] candidates =
-                        roots[rootIndex].GetComponentsInChildren<
-                            LocalPlayerActorSelectionRequestAuthoring>(true);
-                    for (int index = 0; index < candidates.Length; index++)
-                    {
-                        LocalPlayerActorSelectionRequestAuthoring candidate =
-                            candidates[index];
-                        if (candidate == null)
-                        {
-                            continue;
-                        }
-
-                        Require(
-                            found == null || ReferenceEquals(found, candidate),
-                            "Multiple Actor selection authoring surfaces are loaded.");
-                        found = candidate;
-                    }
-                }
-            }
-
-            return found;
-        }
 
         private static Scene ResolvePrimaryScene(RouteAsset route)
         {
@@ -1423,6 +1381,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 "FindObject" + "OfType<",
                 "FindObjects" + "ByType<",
                 "FindObjectsOfType" + "All<",
+                "GetComponentsInChildren<LocalPlayerActor" +
+                    "SelectionRequestAuthoring",
                 "PrepareSelected" + "Actor(",
                 "EnsureGameplay" + "Ready(",
                 "TryReconcile" + "(",

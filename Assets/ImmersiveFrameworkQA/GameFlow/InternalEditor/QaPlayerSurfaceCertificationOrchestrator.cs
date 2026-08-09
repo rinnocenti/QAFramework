@@ -39,13 +39,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private enum Phase
         {
-            Idle = 0,
-            Prepared = 1,
-            RunningQ1 = 2,
-            Q1Done = 3,
-            RunningQ2 = 4,
-            Complete = 5,
-            Failed = 6
+            Unprepared = 0,
+            Preparing = 1,
+            Prepared = 2,
+            RunningQ1 = 3,
+            Q1Passed = 4,
+            PreparingQ2 = 5,
+            RunningQ2 = 6,
+            Certified = 7,
+            Failed = 8
         }
 
         [InitializeOnLoadMethod]
@@ -72,7 +74,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             Require(!EditorApplication.isPlaying,
                 "Player Surface Full Certification prepare must run in Edit Mode.");
 
-            SessionState.SetInt(PhaseKey, (int)Phase.Idle);
+            SessionState.SetInt(PhaseKey, (int)Phase.Preparing);
             SessionState.EraseString(Q1ResultKey);
             SessionState.EraseString(Q2ResultKey);
             SessionState.EraseString(NavResultKey);
@@ -80,21 +82,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             try
             {
-                SessionState.EraseBool(M07PreparedKey);
-                if (!EditorApplication.ExecuteMenuItem(M07PrepareMenuPath))
-                {
-                    throw new InvalidOperationException(
-                        $"Could not execute menu item '{M07PrepareMenuPath}'.");
-                }
-
-                Require(
-                    SessionState.GetBool(M07PreparedKey, false),
-                    "M07 prepare did not set the Prepared SessionState marker. " +
-                    "Public navigation will not start over incomplete M07 setup.");
-
-                QaPlayerSurfacePublicNavigationSetup.PrepareForCertification();
-                QaPlayerSurfacePublicNavigationSetup.RequirePrepared();
-                RequireAuthoredHubFixturePresent();
+                PrepareArtifactsForPlaySession();
 
                 SessionState.SetInt(PhaseKey, (int)Phase.Prepared);
                 Debug.Log(
@@ -137,7 +125,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 return;
             }
 
-            if ((Phase)SessionState.GetInt(PhaseKey, (int)Phase.Idle) !=
+            if ((Phase)SessionState.GetInt(PhaseKey, (int)Phase.Unprepared) !=
                 Phase.Prepared)
             {
                 Debug.LogError(
@@ -152,8 +140,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private static void HandlePlayModeStateChanged(PlayModeStateChange state)
         {
-            Phase phase = (Phase)SessionState.GetInt(PhaseKey, (int)Phase.Idle);
-            if (phase is Phase.Idle or Phase.Complete or Phase.Failed or
+            Phase phase = (Phase)SessionState.GetInt(
+                PhaseKey,
+                (int)Phase.Unprepared);
+            if (phase is Phase.Unprepared or Phase.Certified or Phase.Failed or
                 Phase.Prepared)
             {
                 return;
@@ -176,16 +166,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             }
 
             if (state == PlayModeStateChange.EnteredEditMode &&
-                phase == Phase.Q1Done)
+                phase == Phase.Q1Passed)
             {
-                SessionState.SetInt(PhaseKey, (int)Phase.RunningQ2);
-                EditorApplication.delayCall += () =>
-                {
-                    if (!EditorApplication.isPlaying)
-                    {
-                        EditorApplication.isPlaying = true;
-                    }
-                };
+                EditorApplication.delayCall += PrepareAndRunQ2;
             }
         }
 
@@ -198,7 +181,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     .RunCertificationAsync();
                 SessionState.SetString(Q1ResultKey, "PASS");
                 SessionState.SetString(NavResultKey, "PASS");
-                SessionState.SetInt(PhaseKey, (int)Phase.Q1Done);
+                SessionState.SetInt(PhaseKey, (int)Phase.Q1Passed);
                 Debug.Log(
                     $"{Prefix} status='Q1_PASS' navigation='PASS' next='Exit Play Mode for Q2'.");
                 EditorApplication.isPlaying = false;
@@ -223,7 +206,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 await QaPlayerProvisioningPublicSurfaceNegativeRegression
                     .RunCertificationAsync();
                 SessionState.SetString(Q2ResultKey, "PASS");
-                SessionState.SetInt(PhaseKey, (int)Phase.Complete);
+                SessionState.SetInt(PhaseKey, (int)Phase.Certified);
                 string q1 = SessionState.GetString(Q1ResultKey, "UNKNOWN");
                 string nav = SessionState.GetString(NavResultKey, "UNKNOWN");
                 Debug.Log(
@@ -245,6 +228,54 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     $"message='{Escape(exception.Message)}'.");
                 EditorApplication.isPlaying = false;
             }
+        }
+
+        private static void PrepareAndRunQ2()
+        {
+            if (EditorApplication.isPlaying ||
+                (Phase)SessionState.GetInt(
+                    PhaseKey,
+                    (int)Phase.Unprepared) != Phase.Q1Passed)
+            {
+                return;
+            }
+
+            SessionState.SetInt(PhaseKey, (int)Phase.PreparingQ2);
+            try
+            {
+                PrepareArtifactsForPlaySession();
+                SessionState.SetInt(PhaseKey, (int)Phase.RunningQ2);
+                EditorApplication.isPlaying = true;
+            }
+            catch (Exception exception)
+            {
+                SessionState.SetString(Q2ResultKey, "NOT_STARTED");
+                SessionState.SetString(ErrorKey, exception.Message);
+                SessionState.SetInt(PhaseKey, (int)Phase.Failed);
+                Debug.LogError(
+                    $"{Prefix} status='Q2PrepareFailed' " +
+                    $"q1='{SessionState.GetString(Q1ResultKey, "UNKNOWN")}' " +
+                    $"message='{Escape(exception.Message)}'.");
+            }
+        }
+
+        private static void PrepareArtifactsForPlaySession()
+        {
+            SessionState.EraseBool(M07PreparedKey);
+            if (!EditorApplication.ExecuteMenuItem(M07PrepareMenuPath))
+            {
+                throw new InvalidOperationException(
+                    $"Could not execute menu item '{M07PrepareMenuPath}'.");
+            }
+
+            Require(
+                SessionState.GetBool(M07PreparedKey, false),
+                "M07 prepare did not set the Prepared SessionState marker. " +
+                "Player Surface certification will not start over incomplete M07 setup.");
+
+            QaPlayerSurfacePublicNavigationSetup.PrepareForCertification();
+            QaPlayerSurfacePublicNavigationSetup.RequirePrepared();
+            RequireAuthoredHubFixturePresent();
         }
 
         private static void RequireAuthoredHubFixturePresent()

@@ -89,6 +89,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             var failures = new QaFailureCollector();
             FrameworkRuntimeHost host = null;
             QaPlayerSurfacePublicNavigationFixture publicNav = null;
+            QaPlayerSurfaceGlobalUiFixture globalUiFixture = null;
             GameObject consumerRoot = null;
             LocalPlayerProvisioningConsumerAccessBinding consumerBinding = null;
             ILocalPlayerProvisioningConsumerAccess access = null;
@@ -134,19 +135,16 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     publicNavDiagnostic);
                 cases.Complete("public-navigation-fixture-resolved");
 
-                actorSelection = publicNav.ActorSelectionRequestAuthoring;
                 Require(
-                    actorSelection != null,
-                    "Public navigation fixture is missing its explicit LocalPlayerActorSelectionRequestAuthoring reference.");
-                string selectionConfigIssue;
-                Require(
-                    actorSelection.TryValidateConfiguration(out selectionConfigIssue),
-                    selectionConfigIssue);
-                Require(
-                    actorSelection.HasPlayerActorSelectionRuntimeBinding &&
-                    actorSelection.RuntimeReady,
-                    "Public Actor selection authoring is not runtime-ready. " +
-                    actorSelection.PlayerActorSelectionRuntimeBindingDiagnostic);
+                    QaPlayerSurfacePublicNavigationSupport
+                        .TryResolveGlobalUiFixture(
+                            out globalUiFixture,
+                            out string globalUiFixtureDiagnostic),
+                    globalUiFixtureDiagnostic);
+                actorSelection = await QaPlayerSurfacePublicNavigationSupport
+                    .RequireActorSelectionRuntimeReadyAsync(
+                        globalUiFixture,
+                        FrameBudget);
 
                 enterTrigger = publicNav.EnterActivityTrigger;
                 clearTrigger = publicNav.ClearActivityTrigger;
@@ -826,30 +824,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private static QaLoadingSurfaceVisibilityHoldAdapter ResolveLoadingAdapter()
         {
-            for (int sceneIndex = 0;
-                 sceneIndex < SceneManager.sceneCount;
-                 sceneIndex++)
-            {
-                Scene scene = SceneManager.GetSceneAt(sceneIndex);
-                if (!scene.IsValid() || !scene.isLoaded)
-                {
-                    continue;
-                }
-
-                GameObject[] roots = scene.GetRootGameObjects();
-                for (int rootIndex = 0; rootIndex < roots.Length; rootIndex++)
-                {
-                    QaLoadingSurfaceVisibilityHoldAdapter adapter =
-                        roots[rootIndex].GetComponentInChildren<
-                            QaLoadingSurfaceVisibilityHoldAdapter>(true);
-                    if (adapter != null)
-                    {
-                        return adapter;
-                    }
-                }
-            }
-
-            return null;
+            QaLoadingSurfaceVisibilityHoldAdapter[] adapters =
+                UnityEngine.Object.FindObjectsByType<
+                    QaLoadingSurfaceVisibilityHoldAdapter>(
+                        FindObjectsInactive.Include);
+            Require(
+                adapters.Length == 1,
+                "QA-PLAYER-SURFACE-01 requires exactly one live " +
+                $"QaLoadingSurfaceVisibilityHoldAdapter; found '{adapters.Length}'.");
+            return adapters[0];
         }
 
         private static bool HasJoinedSlot(
@@ -979,6 +962,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 "FindObject" + "OfType<",
                 "FindObjects" + "ByType<",
                 "FindObjectsOfType" + "All<",
+                "GetComponentsInChildren<LocalPlayerActor" +
+                    "SelectionRequestAuthoring",
                 "PrepareSelected" + "Actor(",
                 "EnsureGameplay" + "Ready(",
                 "TryReconcile" + "(",

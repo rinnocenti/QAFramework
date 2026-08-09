@@ -1,7 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using Immersive.Framework.GameFlow;
+using Immersive.Framework.PlayerParticipation;
 using ImmersiveFrameworkQA.Hub;
+using ImmersiveFrameworkQA.UnityBuildSurface;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -68,6 +70,126 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 "Authored public navigation fixture was not found in loaded scenes. " +
                 "Run Prepare Player Surface Public Navigation Fixture in Edit Mode.";
             return false;
+        }
+
+        internal static bool TryResolveGlobalUiFixture(
+            out QaPlayerSurfaceGlobalUiFixture fixture,
+            out string diagnostic)
+        {
+            fixture = null;
+            QaPlayerSurfaceGlobalUiFixture[] candidates =
+                UnityEngine.Object.FindObjectsByType<
+                    QaPlayerSurfaceGlobalUiFixture>(
+                        FindObjectsInactive.Include);
+            int count = candidates.Length;
+
+            if (count != 1)
+            {
+                diagnostic =
+                    "Player Surface certification requires exactly one live " +
+                    $"QaPlayerSurfaceGlobalUiFixture; found '{count}'. " +
+                    "The fixture is QA-owned evidence and must be retained by the " +
+                    $"normal UIGlobal composition. {DescribeGlobalUiFixtures(candidates)}";
+                return false;
+            }
+
+            fixture = candidates[0];
+            if (!fixture.TryValidateAuthoredSurface(out string issue))
+            {
+                diagnostic =
+                    $"UIGlobal QA fixture validation failed. {DescribeGlobalUiFixtures(candidates)} " +
+                    $"issue='{issue}'.";
+                fixture = null;
+                return false;
+            }
+
+            diagnostic =
+                DescribeGlobalUiFixtures(candidates);
+            return true;
+        }
+
+        internal static async Task<LocalPlayerActorSelectionRequestAuthoring>
+            RequireActorSelectionRuntimeReadyAsync(
+                QaPlayerSurfaceGlobalUiFixture fixture,
+                int frameBudget)
+        {
+            Require(fixture != null,
+                "UIGlobal QA fixture is required for Actor Selection readiness.");
+            Require(
+                fixture.TryValidateAuthoredSurface(out string fixtureIssue),
+                fixtureIssue);
+
+            LocalPlayerActorSelectionRequestAuthoring authoring =
+                fixture.ActorSelectionRequestAuthoring;
+            Require(authoring != null,
+                "UIGlobal QA fixture has no Actor Selection authoring.");
+
+            for (int frame = 0; frame < frameBudget; frame++)
+            {
+                if (authoring.HasPlayerActorSelectionRuntimeBinding &&
+                    authoring.RuntimeReady)
+                {
+                    return authoring;
+                }
+
+                await Awaitable.NextFrameAsync();
+            }
+
+            LocalPlayerProvisioningAuthoring provisioning =
+                authoring.ProvisioningAuthoring;
+            throw new TimeoutException(
+                "Public Actor Selection did not become runtime-ready after Framework boot. " +
+                $"authoringId='{authoring.GetEntityId()}' " +
+                $"object='{authoring.gameObject.name}' " +
+                $"scene='{authoring.gameObject.scene.name}' " +
+                $"binding='{authoring.PlayerActorSelectionRuntimeBindingStatus}' " +
+                $"bindingDiagnostic='{authoring.PlayerActorSelectionRuntimeBindingDiagnostic}' " +
+                $"provisioningId='{(provisioning != null ? provisioning.GetEntityId().ToString() : "missing")}' " +
+                $"provisioningReady='{(provisioning != null && provisioning.RuntimeReady)}' " +
+                $"provisioningDiagnostic='{(provisioning != null ? provisioning.RuntimeDiagnostic : "missing")}' " +
+                $"fixtureEvidence=\"fixtureCount='1' {DescribeGlobalUiFixture(fixture)}\".");
+        }
+
+        private static string DescribeGlobalUiFixtures(
+            QaPlayerSurfaceGlobalUiFixture[] fixtures)
+        {
+            if (fixtures == null || fixtures.Length == 0)
+            {
+                return "fixtureCount='0'";
+            }
+
+            string result = $"fixtureCount='{fixtures.Length}'";
+            for (int index = 0; index < fixtures.Length; index++)
+            {
+                result += $" fixture[{index}]=\"{DescribeGlobalUiFixture(fixtures[index])}\"";
+            }
+
+            return result;
+        }
+
+        private static string DescribeGlobalUiFixture(
+            QaPlayerSurfaceGlobalUiFixture fixture)
+        {
+            if (fixture == null)
+            {
+                return "fixture='missing'";
+            }
+
+            LocalPlayerActorSelectionRequestAuthoring actorSelection =
+                fixture.ActorSelectionRequestAuthoring;
+            LocalPlayerProvisioningAuthoring provisioning =
+                actorSelection != null
+                    ? actorSelection.ProvisioningAuthoring
+                    : null;
+            return
+                $"fixture='resolved' fixtureId='{fixture.GetEntityId()}' " +
+                $"object='{fixture.gameObject.name}' " +
+                $"scene='{fixture.gameObject.scene.name}' " +
+                $"actorSelectionId='{(actorSelection != null ? actorSelection.GetEntityId().ToString() : "missing")}' " +
+                $"actorSelectionReady='{(actorSelection != null && actorSelection.RuntimeReady)}' " +
+                $"actorSelectionBinding='{(actorSelection != null ? actorSelection.PlayerActorSelectionRuntimeBindingStatus : "missing")}' " +
+                $"provisioningId='{(provisioning != null ? provisioning.GetEntityId().ToString() : "missing")}' " +
+                $"provisioningReady='{(provisioning != null && provisioning.RuntimeReady)}'.";
         }
 
         internal static async Task RequireCompositionBoundAsync(
