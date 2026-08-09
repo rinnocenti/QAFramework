@@ -17,7 +17,13 @@ MonoBehaviour:
   localPlayerSlots:
   - {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
   - {fileID: 11400000, guid: 655efa9f821b73348a227a6a0558b85b, type: 2}
+  playerSessionEnabled: 0
+  defaultPlayerSessionProfile: {fileID: 0}
   playerActorSelectionDuplicatePolicy: 20
+  frameRatePolicy:
+    mode: 0
+    targetFrameRate: 60
+    vSyncCount: 1
   persistentContent:
     containerScene: {fileID: 102900000, guid: 5e4fdcb5ba8c4bd1b7f24e0000000001, type: 3}
   validationMode: 1

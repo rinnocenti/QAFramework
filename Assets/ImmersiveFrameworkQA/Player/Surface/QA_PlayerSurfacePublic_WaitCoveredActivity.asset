@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6d702c1ba364e70ad76a85eb5f1b842, type: 3}
+  m_Name: QA_PlayerSurfacePublic_WaitCoveredActivity
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.ActivityAsset
+  activityId: qa.player.surface.public.waitcovered
+  activityName: QA Player Surface Public WaitCovered
+  description: Authored WaitCovered Activity for public Player Surface certification.
+  playerParticipationProjectionMode: 20
+  playerParticipationZeroParticipantPolicy: 10
+  playerParticipationExplicitSlotProfiles:
+  - {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
+  playerParticipationRequirementLevel: 40
+  activityContentProfile: {fileID: 11400000, guid: 4e969ad240f64201b837fb42cd2de802, type: 2}
+  activityEntryReadinessPolicy: 10
+  visualTransitionMode: 10
+  transitionGateMode: 30

@@ -6,10 +6,9 @@ using Immersive.Framework.Actors;
 using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
-using Immersive.Framework.Loading;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
-using Immersive.Framework.Transition;
+using ImmersiveFrameworkQA.Hub;
 using ImmersiveFrameworkQA.UnityBuildSurface;
 using UnityEditor;
 using UnityEngine;
@@ -21,11 +20,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
     /// QA-PLAYER-SURFACE-01 — Public-only positive Manager-Provisioned Player
     /// lifecycle contract proof.
     ///
-    /// Player commands and observation use only the consumer surfaces available
-    /// to a real game (P1 scoped access, P2 observation, public Actor selection,
-    /// public readiness/loading evidence). Activity entry/exit arrangement reuses
-    /// the existing readiness fixture environment; it does not replace the public
-    /// Player path under test and does not call prepare/materialize/admit/reconcile.
+    /// Requires the authored Hub fixture
+    /// <c>QA_PlayerSurface_PublicNavigation</c> (composition-bound
+    /// ActivityRequestTrigger + Route consumer binding). Player commands use P1/P2
+    /// public surfaces; prepare/materialize/admit remain runtime-owned.
     /// </summary>
     public static class QaPlayerProvisioningPublicSurfaceRegression
     {
@@ -36,17 +34,18 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private const string Source = nameof(QaPlayerProvisioningPublicSurfaceRegression);
         private const string ConsumerRootName = "QA_PLAYER_SURFACE_01_Consumer";
         private const int FrameBudget = 360;
-        private const int ExpectedCaseCount = 28;
+        private const int ExpectedCaseCount = 29;
 
         private static readonly string[] ExpectedCases =
         {
             "play-mode-required",
             "setup-confirmed",
             "runtime-started",
+            "public-navigation-fixture-resolved",
+            "public-activity-trigger-composition-bound",
             "consumer-binding-created",
             "scoped-access-available",
             "fresh-session-confirmed",
-            "fixture-created",
             "waitcovered-activity-configured",
             "activity-entry-started",
             "waiting-for-join-observed",
@@ -79,12 +78,17 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             await RunAsync();
         }
 
+        /// <summary>
+        /// Entry point for the joint certification orchestrator.
+        /// </summary>
+        internal static Task RunCertificationAsync() => RunAsync();
+
         private static async Task RunAsync()
         {
             var cases = new QaCaseRegistry(ExpectedCases, ExpectedCaseCount);
             var failures = new QaFailureCollector();
             FrameworkRuntimeHost host = null;
-            QaActivityEntryReadinessFixture fixture = null;
+            QaPlayerSurfacePublicNavigationFixture publicNav = null;
             GameObject consumerRoot = null;
             LocalPlayerProvisioningConsumerAccessBinding consumerBinding = null;
             ILocalPlayerProvisioningConsumerAccess access = null;
@@ -92,12 +96,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             LocalPlayerJoinResult joinResult = null;
             LocalPlayerHostAuthoring joinedHost = null;
             QaLoadingSurfaceVisibilityHoldAdapter loading = null;
-            var ownedEntry =
-                new QaOwnedAsyncOperation<FrameworkActivityRequestResult>(
-                    "qa-player-surface-01-entry");
-            var ownedReentry =
-                new QaOwnedAsyncOperation<FrameworkActivityRequestResult>(
-                    "qa-player-surface-01-reentry");
+            ActivityRequestTrigger enterTrigger = null;
+            ActivityRequestTrigger clearTrigger = null;
+            ActivityAsset activity = null;
             bool joiningOpen = false;
             int firstOccurrence = 0;
             int sessionRevisionAfterJoin = 0;
@@ -139,7 +140,24 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "Public Actor selection authoring is not runtime-ready. " +
                     actorSelection.PlayerActorSelectionRuntimeBindingDiagnostic);
 
-                PlayerSlotProfile slotProfile = ResolveFirstLocalPlayerSlot();
+                Require(
+                    QaPlayerSurfacePublicNavigationSupport.TryResolveAuthoredFixture(
+                        out publicNav,
+                        out string publicNavDiagnostic),
+                    publicNavDiagnostic);
+                cases.Complete("public-navigation-fixture-resolved");
+
+                enterTrigger = publicNav.EnterActivityTrigger;
+                clearTrigger = publicNav.ClearActivityTrigger;
+                activity = publicNav.TargetActivity;
+                await QaPlayerSurfacePublicNavigationSupport
+                    .RequireCompositionBoundAsync(enterTrigger, FrameBudget);
+                await QaPlayerSurfacePublicNavigationSupport
+                    .RequireCompositionBoundAsync(clearTrigger, FrameBudget);
+                cases.Complete("public-activity-trigger-composition-bound");
+
+                PlayerSlotProfile slotProfile =
+                    publicNav.PrimaryPlayerSlot ?? ResolveFirstLocalPlayerSlot();
                 Require(
                     slotProfile != null &&
                     slotProfile.PlayerSlotId.IsValid &&
@@ -147,9 +165,16 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     slotProfile.DefaultActorProfile.LogicalActorHostPrefab != null,
                     "QA-PLAYER-SURFACE-01 requires a configured first Local Player Slot with default Actor.");
 
-                consumerRoot = CreateRouteConsumerRoot(
-                    host.State.CurrentRoute,
-                    out consumerBinding);
+                // Prefer the authored Route consumer binding from the public fixture.
+                // Fall back to a runtime Route binding only if the authored one fails.
+                consumerBinding = publicNav.RouteConsumerBinding;
+                if (consumerBinding == null)
+                {
+                    consumerRoot = CreateRouteConsumerRoot(
+                        host.State.CurrentRoute,
+                        out consumerBinding);
+                }
+
                 cases.Complete("consumer-binding-created");
 
                 access = await AwaitScopedAccessAsync(
@@ -171,28 +196,22 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     DescribeObservation(initialObservation));
                 cases.Complete("fresh-session-confirmed");
 
-                fixture = await QaActivityEntryReadinessFixture.CreateAsync();
-                fixture.ExpectParticipantPreparationCycles(2);
-                cases.Complete("fixture-created");
-
-                ActivityAsset activity = fixture.CreateActivity(
-                    "qa.player.surface.01.waitcovered",
-                    "QA Player Surface 01 WaitCovered",
-                    ActivityEntryReadinessPolicy.WaitCovered,
-                    ActivityVisualTransitionMode.Fade,
-                    TransitionGateMode.InputInteractionAndGameplay,
-                    QaM07InternalReconcileSetup.ContentScenePath);
-                ConfigurePlayerParticipation(
-                    activity,
-                    PlayerParticipationRequirementLevel.GameplayReady,
-                    slotProfile);
+                Require(
+                    activity != null &&
+                    activity.EntryReadinessPolicy ==
+                        ActivityEntryReadinessPolicy.WaitCovered &&
+                    activity.PlayerParticipationRequirementLevel ==
+                        PlayerParticipationRequirementLevel.GameplayReady &&
+                    activity.HasActivityContentProfile,
+                    "Authored public WaitCovered Activity is not correctly configured.");
                 cases.Complete("waitcovered-activity-configured");
 
-                ownedEntry.Attach(
-                    fixture.Activities.RequestActivityAsync(
-                        activity,
-                        Source,
-                        "qa-player-surface-01-waitcovered-entry"));
+                QaPlayerSurfacePublicNavigationSupport.RequestActivityPublic(
+                    enterTrigger);
+                await QaPlayerSurfacePublicNavigationSupport.AwaitTriggerInFlightAsync(
+                    enterTrigger,
+                    FrameBudget,
+                    "Public WaitCovered entry did not stay in-flight.");
                 cases.Complete("activity-entry-started");
 
                 LocalPlayerProvisioningConsumerObservationSnapshot waiting =
@@ -218,21 +237,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         FrameBudget);
                 firstOccurrence = waiting.ActivityOccurrence;
                 Require(
-                    !ownedEntry.IsCompleted,
-                    "WaitCovered Activity request completed before any public Join. " +
+                    enterTrigger.IsRequestInFlight &&
+                    !enterTrigger.LastRequestSucceeded,
+                    "WaitCovered public Activity request completed before any public Join. " +
                     DescribeObservation(waiting));
                 cases.Complete("waiting-for-join-observed");
-
-                await AwaitParticipantCycleAsync(fixture, ownedEntry, 1, FrameBudget);
-
-                // Complete the temporary non-Player readiness participant so the
-                // remaining WaitCovered hold is attributable to required Player
-                // participation, which is the public contract under test.
-                if (fixture.Participant.State ==
-                    ActivityReadinessParticipantState.Preparing)
-                {
-                    fixture.Participant.CompletePreparation();
-                }
 
                 LocalPlayerProvisioningConsumerObservationSnapshot pendingHold =
                     await AwaitObservationAsync(
@@ -245,10 +254,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                                     .WaitingForJoin &&
                             observation.Lifecycle.GateHeld &&
                             observation.Participation.JoinedCount == 0,
-                        "Player WaitCovered hold was not retained after non-Player readiness completed",
+                        "Player WaitCovered hold was not retained while no Player had joined",
                         FrameBudget);
                 Require(
-                    !ownedEntry.IsCompleted &&
+                    enterTrigger.IsRequestInFlight &&
                     pendingHold.Lifecycle.GateHeld &&
                     !pendingHold.Lifecycle.IsReady &&
                     (loading == null ||
@@ -404,13 +413,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     DescribeObservation(readyObservation));
                 cases.Complete("prepared-materialized-admitted");
 
-                FrameworkActivityRequestResult entryTerminal =
-                    await AwaitOwnedTerminalAsync(ownedEntry, FrameBudget);
-                Require(
-                    entryTerminal.Succeeded,
-                    string.IsNullOrWhiteSpace(entryTerminal.Message)
-                        ? "WaitCovered Activity entry did not succeed after Player Ready."
-                        : entryTerminal.Message);
+                await QaPlayerSurfacePublicNavigationSupport
+                    .AwaitTriggerTerminalSuccessAsync(
+                        enterTrigger,
+                        FrameBudget,
+                        "WaitCovered public Activity entry did not succeed after Player Ready.");
                 Require(
                     readyObservation.Lifecycle.IsReady &&
                     !readyObservation.Lifecycle.GateHeld &&
@@ -422,15 +429,13 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 cases.Complete("waitcovered-loading-terminal");
                 cases.Complete("activity-entry-completed");
 
-                FrameworkActivityRequestResult clearResult =
-                    await fixture.Activities.ClearActivityAsync(
-                        Source,
-                        "qa-player-surface-01-exit");
-                Require(
-                    clearResult.Succeeded,
-                    string.IsNullOrWhiteSpace(clearResult.Message)
-                        ? "Activity exit did not succeed."
-                        : clearResult.Message);
+                QaPlayerSurfacePublicNavigationSupport.ClearActivityPublic(
+                    clearTrigger);
+                await QaPlayerSurfacePublicNavigationSupport
+                    .AwaitTriggerTerminalSuccessAsync(
+                        clearTrigger,
+                        FrameBudget,
+                        "Public Activity exit/clear did not succeed.");
 
                 LocalPlayerProvisioningConsumerObservationSnapshot released =
                     await AwaitObservationAsync(
@@ -451,11 +456,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 cases.Complete("activity-exit-released");
                 cases.Complete("session-host-persists");
 
-                ownedReentry.Attach(
-                    fixture.Activities.RequestActivityAsync(
-                        activity,
-                        Source,
-                        "qa-player-surface-01-reentry"));
+                QaPlayerSurfacePublicNavigationSupport.RequestActivityPublic(
+                    enterTrigger);
                 LocalPlayerProvisioningConsumerObservationSnapshot reentered =
                     await AwaitObservationAsync(
                         access,
@@ -478,13 +480,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     DescribeObservation(reentered));
                 cases.Complete("reentry-newer-occurrence");
 
-                await AwaitParticipantCycleAsync(fixture, ownedReentry, 2, FrameBudget);
-                if (fixture.Participant.State ==
-                    ActivityReadinessParticipantState.Preparing)
-                {
-                    fixture.Participant.CompletePreparation();
-                }
-
                 LocalPlayerProvisioningConsumerObservationSnapshot reentryReady =
                     await AwaitObservationAsync(
                         access,
@@ -502,13 +497,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     joinedHost.IsJoined,
                     "Reentry duplicated Slot/Host or Actor evidence. " +
                     DescribeObservation(reentryReady));
-                FrameworkActivityRequestResult reentryTerminal =
-                    await AwaitOwnedTerminalAsync(ownedReentry, FrameBudget);
-                Require(
-                    reentryTerminal.Succeeded,
-                    string.IsNullOrWhiteSpace(reentryTerminal.Message)
-                        ? "Reentry Activity request did not succeed."
-                        : reentryTerminal.Message);
+                await QaPlayerSurfacePublicNavigationSupport
+                    .AwaitTriggerTerminalSuccessAsync(
+                        enterTrigger,
+                        FrameBudget,
+                        "Public reentry Activity request did not succeed.");
                 cases.Complete("reentry-no-duplicate-slot-actor");
 
                 PlayerParticipationOperationResult closeResult =
@@ -524,8 +517,25 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 joiningOpen = false;
                 cases.Complete("joining-closed");
 
-                await fixture.DisposeAsync();
-                fixture = null;
+                if (clearTrigger != null &&
+                    clearTrigger.HasActivityRuntimeBinding)
+                {
+                    try
+                    {
+                        QaPlayerSurfacePublicNavigationSupport.ClearActivityPublic(
+                            clearTrigger);
+                        await QaPlayerSurfacePublicNavigationSupport
+                            .AwaitTriggerTerminalSuccessAsync(
+                                clearTrigger,
+                                FrameBudget,
+                                "Final public Activity clear failed.");
+                    }
+                    catch (Exception exception)
+                    {
+                        failures.Add("final-clear", exception);
+                    }
+                }
+
                 cases.Complete("fixture-cleaned");
 
                 RequirePublicSurfaceScanClean();
@@ -541,7 +551,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     $"appliedRevision='{reentryReady.AppliedSessionRevision}' " +
                     $"capacity='{capacityResult.Snapshot.DynamicCapacity}' " +
                     $"slot='{joinedSlotId.StableText}' " +
-                    "proof='ScopedAccess,Joining,Capacity,Join,Host,ActorSelection,NormalLifecycleReady,WaitCoveredPendingThenTerminal,ExitPreservesSession,ReentryNoDuplicate' " +
+                    "navigation='authored-ActivityRequestTrigger-composition-bound' " +
+                    "proof='PublicNavigation,ScopedAccess,Joining,Capacity,Join,Host,ActorSelection,NormalLifecycleReady,WaitCoveredPendingThenTerminal,ExitPreservesSession,ReentryNoDuplicate' " +
                     $"completed='{cases.DescribeCompleted()}'.");
             }
             catch (Exception exception)
@@ -550,41 +561,17 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             }
             finally
             {
-                if (ownedReentry.HasOperation && !ownedReentry.ReachedTerminal)
+                if (clearTrigger != null &&
+                    clearTrigger.HasActivityRuntimeBinding &&
+                    (enterTrigger == null || enterTrigger.IsRequestInFlight ||
+                     clearTrigger.IsRequestInFlight))
                 {
                     try
                     {
-                        await ownedReentry.UnwindAsync(
-                            async () =>
-                            {
-                                if (fixture != null)
-                                {
-                                    await fixture.Activities.ClearActivityAsync(
-                                        Source,
-                                        "qa-player-surface-01-reentry-unwind");
-                                }
-                            });
-                    }
-                    catch (Exception exception)
-                    {
-                        failures.Add("reentry-unwind", exception);
-                    }
-                }
-
-                if (ownedEntry.HasOperation && !ownedEntry.ReachedTerminal)
-                {
-                    try
-                    {
-                        await ownedEntry.UnwindAsync(
-                            async () =>
-                            {
-                                if (fixture != null)
-                                {
-                                    await fixture.Activities.ClearActivityAsync(
-                                        Source,
-                                        "qa-player-surface-01-entry-unwind");
-                                }
-                            });
+                        if (!clearTrigger.IsRequestInFlight)
+                        {
+                            clearTrigger.ClearActivity();
+                        }
                     }
                     catch (Exception exception)
                     {
@@ -601,18 +588,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     catch (Exception exception)
                     {
                         failures.Add("joining-cleanup", exception);
-                    }
-                }
-
-                if (fixture != null)
-                {
-                    try
-                    {
-                        await fixture.DisposeAsync();
-                    }
-                    catch (Exception exception)
-                    {
-                        failures.Add("fixture-cleanup", exception);
                     }
                 }
 
@@ -1133,3 +1108,4 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         }
     }
 }
+

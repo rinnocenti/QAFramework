@@ -1,0 +1,406 @@
+using System;
+using System.IO;
+using Immersive.Framework.ActivityFlow;
+using Immersive.Framework.Authoring;
+using Immersive.Framework.GameFlow;
+using Immersive.Framework.PlayerParticipation;
+using Immersive.Framework.PlayerSlots;
+using Immersive.Framework.Transition;
+using ImmersiveFrameworkQA.Hub;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
+{
+    /// <summary>
+    /// Edit Mode authoring for the public Player Surface navigation fixture.
+    /// Places ActivityRequestTrigger and Route consumer binding in QA Hub so
+    /// Framework composition can bind them at boot/route start without QA
+    /// calling privileged bind APIs.
+    /// </summary>
+    internal static class QaPlayerSurfacePublicNavigationSetup
+    {
+        private const string Prefix = "[QA_PLAYER_SURFACE_PUBLIC_NAV]";
+        private const string MenuPath =
+            "Immersive Framework/QA/Setup/Player/Prepare Player Surface Public Navigation Fixture";
+        private const string Root =
+            "Assets/ImmersiveFrameworkQA/Player/Surface";
+        private const string HubScenePath =
+            "Assets/ImmersiveFrameworkQA/Hub/Scenes/QA_Hub.unity";
+        private const string ContentScenePath =
+            "Assets/ImmersiveFrameworkQA/GameFlow/Scenes/QA_IF_READY_04_DirectPoliciesContent.unity";
+        private const string ContentProfilePath =
+            Root + "/QA_PlayerSurfacePublic_ContentProfile.asset";
+        private const string ActivityPath =
+            Root + "/QA_PlayerSurfacePublic_WaitCoveredActivity.asset";
+        private const string PlayerSlotPath =
+            "Assets/ImmersiveFrameworkQA/Player/Profiles/SlotsProfiles/PlayerSlotProfileP1.asset";
+        private const string PreparedKey =
+            "ImmersiveFrameworkQA.QA_PLAYER_SURFACE.PublicNavPrepared";
+
+        [MenuItem(MenuPath, true)]
+        private static bool ValidatePrepare() => !EditorApplication.isPlaying;
+
+        [MenuItem(MenuPath)]
+        private static void PrepareFromMenu()
+        {
+            PrepareForCertification();
+        }
+
+        /// <summary>
+        /// Prepares authored navigation assets and Hub scene fixture.
+        /// Throws on any failure and never leaves a false Prepared marker.
+        /// </summary>
+        internal static void PrepareForCertification()
+        {
+            Require(!EditorApplication.isPlaying,
+                "Public navigation fixture preparation must run in Edit Mode.");
+
+            SessionState.EraseBool(PreparedKey);
+
+            try
+            {
+                EnsureFolder(Root);
+                PlayerSlotProfile slot =
+                    AssetDatabase.LoadAssetAtPath<PlayerSlotProfile>(PlayerSlotPath);
+                Require(slot != null && slot.PlayerSlotId.IsValid,
+                    $"Primary Player Slot missing at '{PlayerSlotPath}'.");
+
+                SceneAsset contentScene =
+                    AssetDatabase.LoadAssetAtPath<SceneAsset>(ContentScenePath);
+                Require(contentScene != null,
+                    $"Activity content scene missing at '{ContentScenePath}'.");
+
+                ActivityContentProfileAsset contentProfile =
+                    CreateOrUpdateContentProfile(contentScene);
+                ActivityAsset activity =
+                    CreateOrUpdateActivity(contentProfile, slot);
+
+                Scene hub = EditorSceneManager.OpenScene(
+                    HubScenePath,
+                    OpenSceneMode.Single);
+                Require(hub.IsValid(),
+                    $"Could not open Hub scene '{HubScenePath}'.");
+
+                GameObject root = FindOrCreateRoot(hub);
+                QaPlayerSurfacePublicNavigationFixture fixture =
+                    ConfigureFixtureRoot(root, activity, slot);
+                string surfaceIssue = string.Empty;
+                bool authoredSurfaceIsValid = fixture != null &&
+                    fixture.TryValidateAuthoredSurface(out surfaceIssue);
+                Require(
+                    authoredSurfaceIsValid,
+                    string.IsNullOrWhiteSpace(surfaceIssue)
+                        ? "Public navigation fixture failed validation after authoring."
+                        : surfaceIssue);
+                Require(
+                    fixture.EnterActivityTrigger != null &&
+                    fixture.ClearActivityTrigger != null &&
+                    fixture.RouteConsumerBinding != null,
+                    "Public navigation fixture is incomplete after ConfigureFixtureRoot.");
+
+                EditorSceneManager.MarkSceneDirty(hub);
+                Require(
+                    EditorSceneManager.SaveScene(hub),
+                    $"Could not save Hub scene '{HubScenePath}'.");
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+
+                SessionState.SetBool(PreparedKey, true);
+
+                Debug.Log(
+                    $"{Prefix} status='Prepared' " +
+                    $"activity='{activity.ActivityName}' " +
+                    $"content='{ContentScenePath}' " +
+                    $"hub='{HubScenePath}' " +
+                    $"root='{QaPlayerSurfacePublicNavigationFixture.RootObjectName}' " +
+                    "binding='composition-time Route primary + Framework ActivityRequestTrigger bind' " +
+                    "next='Enter fresh Play Mode; composition binds the authored trigger before public RequestActivity'.");
+            }
+            catch (Exception exception)
+            {
+                SessionState.EraseBool(PreparedKey);
+                Debug.LogError(
+                    $"{Prefix} status='Failed' " +
+                    $"exception='{exception.GetType().Name}' " +
+                    $"message='{Escape(exception.Message)}'.");
+                throw;
+            }
+        }
+
+        internal static bool IsPrepared =>
+            SessionState.GetBool(PreparedKey, false);
+
+        internal static void RequirePrepared()
+        {
+            Require(
+                IsPrepared,
+                $"Player Surface public navigation fixture is not prepared. Run '{MenuPath}'.");
+            ActivityAsset activity =
+                AssetDatabase.LoadAssetAtPath<ActivityAsset>(ActivityPath);
+            Require(
+                activity != null,
+                $"Authored public Activity missing at '{ActivityPath}'.");
+        }
+
+        private static ActivityContentProfileAsset CreateOrUpdateContentProfile(
+            SceneAsset contentScene)
+        {
+            ActivityContentProfileAsset profile =
+                AssetDatabase.LoadAssetAtPath<ActivityContentProfileAsset>(
+                    ContentProfilePath);
+            if (profile == null)
+            {
+                profile = ScriptableObject.CreateInstance<ActivityContentProfileAsset>();
+                AssetDatabase.CreateAsset(profile, ContentProfilePath);
+            }
+
+            var serialized = new SerializedObject(profile);
+            RequireProperty(serialized, "profileId").stringValue =
+                "qa.player.surface.public.content";
+            SerializedProperty scenes = RequireProperty(serialized, "scenes");
+            scenes.arraySize = 1;
+            SerializedProperty entry = scenes.GetArrayElementAtIndex(0);
+            RequireProperty(entry, "contentId").stringValue =
+                "qa.player.surface.public.activity-content";
+            RequireProperty(entry, "scenePath").stringValue = ContentScenePath;
+            RequireProperty(entry, "sceneName").stringValue =
+                Path.GetFileNameWithoutExtension(ContentScenePath);
+            SetEnumName(RequireProperty(entry, "requiredness"), "Required");
+            SetEnumName(RequireProperty(entry, "loadMode"), "Additive");
+            SetEnumName(
+                RequireProperty(entry, "releasePolicy"),
+                "ReleaseOnActivityChange");
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(profile);
+            return profile;
+        }
+
+        private static ActivityAsset CreateOrUpdateActivity(
+            ActivityContentProfileAsset contentProfile,
+            PlayerSlotProfile slot)
+        {
+            ActivityAsset activity =
+                AssetDatabase.LoadAssetAtPath<ActivityAsset>(ActivityPath);
+            if (activity == null)
+            {
+                activity = ScriptableObject.CreateInstance<ActivityAsset>();
+                AssetDatabase.CreateAsset(activity, ActivityPath);
+            }
+
+            var serialized = new SerializedObject(activity);
+            RequireProperty(serialized, "activityId").stringValue =
+                "qa.player.surface.public.waitcovered";
+            RequireProperty(serialized, "activityName").stringValue =
+                "QA Player Surface Public WaitCovered";
+            RequireProperty(serialized, "description").stringValue =
+                "Authored WaitCovered Activity for public Player Surface certification.";
+            SetEnumName(
+                RequireProperty(serialized, "playerParticipationProjectionMode"),
+                ActivityParticipationProjectionMode.ExplicitSlots.ToString());
+            SetEnumName(
+                RequireProperty(serialized, "playerParticipationZeroParticipantPolicy"),
+                ActivityParticipationZeroParticipantPolicy.Rejected.ToString());
+            SetEnumName(
+                RequireProperty(serialized, "playerParticipationRequirementLevel"),
+                PlayerParticipationRequirementLevel.GameplayReady.ToString());
+            SerializedProperty slots = RequireProperty(
+                serialized,
+                "playerParticipationExplicitSlotProfiles");
+            slots.arraySize = 1;
+            slots.GetArrayElementAtIndex(0).objectReferenceValue = slot;
+            RequireProperty(serialized, "activityContentProfile")
+                .objectReferenceValue = contentProfile;
+            SetEnumName(
+                RequireProperty(serialized, "activityEntryReadinessPolicy"),
+                ActivityEntryReadinessPolicy.WaitCovered.ToString());
+            SetEnumName(
+                RequireProperty(serialized, "visualTransitionMode"),
+                ActivityVisualTransitionMode.Fade.ToString());
+            SetEnumName(
+                RequireProperty(serialized, "transitionGateMode"),
+                TransitionGateMode.InputInteractionAndGameplay.ToString());
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(activity);
+
+            Require(
+                activity.EntryReadinessPolicy ==
+                    ActivityEntryReadinessPolicy.WaitCovered &&
+                activity.PlayerParticipationRequirementLevel ==
+                    PlayerParticipationRequirementLevel.GameplayReady &&
+                activity.HasActivityContentProfile,
+                "Authored public Activity did not retain WaitCovered/player configuration.");
+            return activity;
+        }
+
+        private static GameObject FindOrCreateRoot(Scene hub)
+        {
+            GameObject[] roots = hub.GetRootGameObjects();
+            for (int index = 0; index < roots.Length; index++)
+            {
+                if (string.Equals(
+                        roots[index].name,
+                        QaPlayerSurfacePublicNavigationFixture.RootObjectName,
+                        StringComparison.Ordinal))
+                {
+                    return roots[index];
+                }
+            }
+
+            var root = new GameObject(
+                QaPlayerSurfacePublicNavigationFixture.RootObjectName);
+            SceneManager.MoveGameObjectToScene(root, hub);
+            return root;
+        }
+
+        private static QaPlayerSurfacePublicNavigationFixture ConfigureFixtureRoot(
+            GameObject root,
+            ActivityAsset activity,
+            PlayerSlotProfile slot)
+        {
+            QaPlayerSurfacePublicNavigationFixture fixture =
+                root.GetComponent<QaPlayerSurfacePublicNavigationFixture>();
+            if (fixture == null)
+            {
+                fixture = root.AddComponent<QaPlayerSurfacePublicNavigationFixture>();
+            }
+
+            Require(
+                fixture != null,
+                "Failed to add runtime QaPlayerSurfacePublicNavigationFixture. " +
+                "Confirm the type lives in a non-Editor assembly.");
+
+            ActivityRequestTrigger enter =
+                FindOrCreateChildTrigger(root, "EnterActivityTrigger");
+            ActivityRequestTrigger clear =
+                FindOrCreateChildTrigger(root, "ClearActivityTrigger");
+            LocalPlayerProvisioningConsumerAccessBinding binding =
+                root.GetComponent<LocalPlayerProvisioningConsumerAccessBinding>();
+            if (binding == null)
+            {
+                binding = root.AddComponent<
+                    LocalPlayerProvisioningConsumerAccessBinding>();
+            }
+
+            Require(enter != null, "Failed to create enter ActivityRequestTrigger.");
+            Require(clear != null, "Failed to create clear ActivityRequestTrigger.");
+            Require(
+                binding != null,
+                "Failed to create Route LocalPlayerProvisioningConsumerAccessBinding.");
+
+            ConfigureTrigger(enter, activity, "qa.player.surface.public.enter");
+            ConfigureTrigger(clear, activity, "qa.player.surface.public.clear");
+            ApplyScope(binding, LocalPlayerProvisioningConsumerScope.Route);
+
+            fixture.Configure(activity, enter, clear, binding, slot);
+            Require(
+                fixture.TryValidateAuthoredSurface(out string issue),
+                issue);
+            EditorUtility.SetDirty(fixture);
+            EditorUtility.SetDirty(root);
+            return fixture;
+        }
+
+        private static ActivityRequestTrigger FindOrCreateChildTrigger(
+            GameObject root,
+            string childName)
+        {
+            Transform child = root.transform.Find(childName);
+            GameObject childObject = child != null
+                ? child.gameObject
+                : new GameObject(childName);
+            if (child == null)
+            {
+                childObject.transform.SetParent(root.transform, false);
+            }
+
+            return childObject.GetComponent<ActivityRequestTrigger>() ??
+                childObject.AddComponent<ActivityRequestTrigger>();
+        }
+
+        private static void ConfigureTrigger(
+            ActivityRequestTrigger trigger,
+            ActivityAsset activity,
+            string reason)
+        {
+            var serialized = new SerializedObject(trigger);
+            RequireProperty(serialized, "targetActivity").objectReferenceValue =
+                activity;
+            RequireProperty(serialized, "reason").stringValue = reason;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            trigger.TargetActivity = activity;
+        }
+
+        private static void ApplyScope(
+            LocalPlayerProvisioningConsumerAccessBinding binding,
+            LocalPlayerProvisioningConsumerScope scope)
+        {
+            var serialized = new SerializedObject(binding);
+            SerializedProperty scopeProperty = RequireProperty(serialized, "scope");
+            int index = Array.IndexOf(scopeProperty.enumNames, scope.ToString());
+            Require(index >= 0, $"Scope enum lacks '{scope}'.");
+            scopeProperty.enumValueIndex = index;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void EnsureFolder(string path)
+        {
+            if (AssetDatabase.IsValidFolder(path))
+            {
+                return;
+            }
+
+            string parent = Path.GetDirectoryName(path)?.Replace('\\', '/');
+            string name = Path.GetFileName(path);
+            if (!string.IsNullOrEmpty(parent) && !AssetDatabase.IsValidFolder(parent))
+            {
+                EnsureFolder(parent);
+            }
+
+            AssetDatabase.CreateFolder(parent, name);
+        }
+
+        private static SerializedProperty RequireProperty(
+            SerializedObject serialized,
+            string name)
+        {
+            SerializedProperty property = serialized.FindProperty(name);
+            Require(property != null, $"Missing property '{name}'.");
+            return property;
+        }
+
+        private static SerializedProperty RequireProperty(
+            SerializedProperty parent,
+            string name)
+        {
+            SerializedProperty property = parent.FindPropertyRelative(name);
+            Require(property != null, $"Missing relative property '{name}'.");
+            return property;
+        }
+
+        private static void SetEnumName(SerializedProperty property, string value)
+        {
+            int index = Array.IndexOf(property.enumNames, value);
+            Require(index >= 0, $"Enum '{value}' missing on '{property.propertyPath}'.");
+            property.enumValueIndex = index;
+        }
+
+        private static void Require(bool condition, string message)
+        {
+            if (!condition)
+            {
+                throw new InvalidOperationException(message);
+            }
+        }
+
+        private static string Escape(string value)
+        {
+            return string.IsNullOrEmpty(value)
+                ? string.Empty
+                : value.Replace("'", "\\'").Replace("\r", " ").Replace("\n", " ");
+        }
+    }
+}
+
