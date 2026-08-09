@@ -18,6 +18,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             "Immersive Framework/QA/Player/Run Full Player QA";
         private const string PhaseKey =
             "ImmersiveFrameworkQA.QA_PLAYER_FULL.Phase";
+        private const string SerializationKey =
+            "ImmersiveFrameworkQA.QA_PLAYER_FULL.Serialization";
         private const string SessionKey =
             "ImmersiveFrameworkQA.QA_PLAYER_FULL.Session";
         private const string SceneProvidedKey =
@@ -62,7 +64,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             RunningParticipation = 20,
             ParticipationCompleted = 21,
             Passed = 22,
-            Failed = 23
+            Failed = 23,
+            RunningSerialization = 24
         }
 
         [InitializeOnLoadMethod]
@@ -97,6 +100,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
             try
             {
                 SetPhase(Phase.Preparing);
+
+                SetPhase(Phase.RunningSerialization);
+                if (!QaPlayerSerializationIdentityRegression.Execute(out string serializationError))
+                {
+                    throw new InvalidOperationException(
+                        $"Player serialization identity regression failed: {serializationError}");
+                }
+                MarkPassed(SerializationKey);
 
                 SetPhase(Phase.RunningSession);
                 QaPlayerParticipationAuthoringRegression.Run();
@@ -290,6 +301,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static void ResetCertificationState()
         {
             SetPhase(Phase.Idle);
+            SessionState.SetString(SerializationKey, "NOT RUN");
             SessionState.SetString(SessionKey, "NOT RUN");
             SessionState.SetString(SceneProvidedKey, "NOT RUN");
             SessionState.SetString(ManagerProvisionedKey, "NOT RUN");
@@ -312,6 +324,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             SessionState.SetBool(SummaryEmittedKey, true);
             Debug.Log(
                 $"{Prefix} status='Passed' verdict='PLAYER QA CERTIFIED' " +
+                $"serialization='{Result(SerializationKey)}' " +
                 $"session='{Result(SessionKey)}' " +
                 $"sceneProvided='{Result(SceneProvidedKey)}' " +
                 $"managerProvisioned='{Result(ManagerProvisionedKey)}' " +
@@ -342,6 +355,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 $"{Prefix} status='Failed' verdict='PLAYER QA NOT CERTIFIED' " +
                 $"failedPhase='{SessionState.GetString(FailedPhaseKey, "Unknown")}' " +
                 $"message='{Escape(SessionState.GetString(ErrorKey, string.Empty))}' " +
+                $"serialization='{Result(SerializationKey)}' " +
                 $"session='{Result(SessionKey)}' " +
                 $"sceneProvided='{Result(SceneProvidedKey)}' " +
                 $"managerProvisioned='{Result(ManagerProvisionedKey)}' " +
@@ -354,6 +368,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             switch (phase)
             {
+                case "Serialization Identity":
+                    SessionState.SetString(SerializationKey, "FAIL");
+                    break;
                 case "Session":
                     SessionState.SetString(SessionKey, "FAIL");
                     break;
@@ -421,6 +438,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             return phase switch
             {
+                Phase.RunningSerialization => "Serialization Identity",
                 Phase.RunningSession => "Session",
                 Phase.PreparingSceneProvided or Phase.RunningSceneProvided or
                     Phase.SceneProvidedCompleted => "Scene Provided",
