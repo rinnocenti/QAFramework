@@ -4,6 +4,7 @@ using Immersive.Audio.Unity.Hosts;
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Audio;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.ContentFlow;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.RouteLifecycle;
 using UnityEditor;
@@ -42,15 +43,14 @@ namespace ImmersiveFrameworkQA.Audio.Editor
         private const string StartupActivityCuePath = ScriptableObjects + "/QA_FrameworkBgm_StartupActivityCue.asset";
         private const string OwnActivityCuePath = ScriptableObjects + "/QA_FrameworkBgm_ActivityCue.asset";
 
-        public static void ConfigureForAudioQa()
+        public static bool ConfigureForAudioQa(AudioQaGeneratedClips generatedClips)
         {
             EnsureFolders();
 
-            AudioQaGeneratedClips generatedClips = AudioQaGeneratedClipRepair.EnsureGeneratedClipsAndAssignments();
             if (!generatedClips.IsValid)
             {
                 Debug.LogError("[FRAMEWORK_BGM_QA_SETUP] Framework BGM QA setup aborted because generated clips are not valid.");
-                return;
+                return false;
             }
 
             AudioDefaultsAsset defaults = CreateDefaultsAsset();
@@ -119,10 +119,11 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             if (canonicalConfigured && alternateConfigured)
             {
                 Debug.Log("[AUDIO_QA_SETUP] frameworkBgmFixture='Applied' primaryScene='QA_Audio' routeBFixture='QA_AudioRouteB'.");
-                return;
+                return true;
             }
 
             Debug.LogError("[FRAMEWORK_BGM_QA_SETUP] Framework BGM QA configuration completed with blocking setup errors. Fix the errors above before running the smoke.");
+            return false;
         }
 
         private static bool ConfigureScene(
@@ -145,77 +146,86 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             Scene scene = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath) != null
                 ? EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single)
                 : EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            scene.name = System.IO.Path.GetFileNameWithoutExtension(scenePath);
 
             EnsureScenePresentation(scene, cameraPosition, backgroundColor, label);
 
             GameObject root = EnsureRoot(scene, $"QA_FrameworkBgmRoot_{label}");
             RouteContentBinding routeContentBinding = EnsureComponent<RouteContentBinding>(root);
-            AudioRuntimeHost runtimeHost = EnsureAudioRuntimeHost(root.transform, defaults);
+            AudioRuntimeHost runtimeHost = EnsureAudioRuntimeHost(root.transform, defaults, out bool runtimeHostConfigured);
             FrameworkBgmDirector director = EnsureComponent<FrameworkBgmDirector>(root);
             FrameworkRouteBgmBinding routeBgmBinding = EnsureComponent<FrameworkRouteBgmBinding>(root);
 
-            SetSerialized(routeContentBinding, "route", activeRoute);
-            SetSerialized(routeContentBinding, "localContentId", $"qa-framework-bgm-route-{label.ToLowerInvariant()}");
-            SetSerialized(routeContentBinding, "requiredness", 10);
-
-            SetSerialized(director, "audioRuntimeHost", runtimeHost);
-            SetSerialized(director, "logTransitions", true);
+            bool valid = runtimeHostConfigured
+                & SetSerialized(routeContentBinding, "route", activeRoute)
+                & SetSerialized(routeContentBinding, "localContentId", $"qa-framework-bgm-route-{label.ToLowerInvariant()}")
+                & SetSerialized(routeContentBinding, "requiredness", (int)FrameworkContentRequiredness.Required)
+                & SetSerialized(director, "audioRuntimeHost", runtimeHost)
+                & SetSerialized(director, "logTransitions", true);
 
             FrameworkActivityBgmBinding startupBinding = null;
             if (startupCue != null)
             {
-                startupBinding = EnsureActivityBinding(
+                valid &= EnsureActivityBinding(
                     scene,
                     $"QA_FrameworkBgm_Activity_Startup_{label}",
                     startupActivity,
                     startupCue,
                     FrameworkBgmActivityPolicy.UseOwnOrRoute,
                     director,
-                    "startup");
+                    "startup",
+                    label,
+                    out startupBinding);
             }
 
-            EnsureActivityBinding(
+            valid &= EnsureActivityBinding(
                 scene,
                 $"QA_FrameworkBgm_Activity_Own_{label}",
                 ownActivity,
                 ownActivityCue,
                 FrameworkBgmActivityPolicy.UseOwnOrRetainActivityUntilRouteExit,
                 director,
-                "own");
+                "own",
+                label,
+                out _);
 
-            EnsureActivityBinding(
+            valid &= EnsureActivityBinding(
                 scene,
                 $"QA_FrameworkBgm_Activity_RetainPrevious_{label}",
                 retainActivity,
                 null,
                 FrameworkBgmActivityPolicy.UseOwnOrRetainActivityUntilRouteExit,
                 director,
-                "retain-previous");
+                "retain-previous",
+                label,
+                out _);
 
-            EnsureActivityBinding(
+            valid &= EnsureActivityBinding(
                 scene,
                 $"QA_FrameworkBgm_Activity_RouteFallback_{label}",
                 routeFallbackActivity,
                 null,
                 FrameworkBgmActivityPolicy.UseRoute,
                 director,
-                "route-fallback");
+                "route-fallback",
+                label,
+                out _);
 
-            EnsureActivityBinding(
+            valid &= EnsureActivityBinding(
                 scene,
                 $"QA_FrameworkBgm_Activity_Silence_{label}",
                 silenceActivity,
                 null,
                 FrameworkBgmActivityPolicy.Silence,
                 director,
-                "silence");
+                "silence",
+                label,
+                out _);
 
-            SetSerialized(routeBgmBinding, "routeBgm", routeCue);
-            SetSerialized(routeBgmBinding, "director", director);
-            SetSerialized(routeBgmBinding, "startupActivityBgmBinding", startupBinding);
+            valid &= SetSerialized(routeBgmBinding, "routeBgm", routeCue);
+            valid &= SetSerialized(routeBgmBinding, "director", director);
+            valid &= SetSerialized(routeBgmBinding, "startupActivityBgmBinding", startupBinding);
 
-            ConfigurePanel(
+            valid &= ConfigurePanel(
                 scene,
                 label,
                 otherRoute,
@@ -229,7 +239,10 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                 startupCue,
                 ownActivityCue);
 
-            bool valid = ValidateObjectReference(routeContentBinding, "route", activeRoute, $"RouteContentBinding route on '{root.name}'")
+            valid &= ValidateObjectReference(routeContentBinding, "route", activeRoute, $"RouteContentBinding route on '{root.name}'")
+                & ValidateString(routeContentBinding, "localContentId", $"qa-framework-bgm-route-{label.ToLowerInvariant()}", $"RouteContentBinding localContentId on '{root.name}'")
+                & ValidateInt(routeContentBinding, "requiredness", (int)FrameworkContentRequiredness.Required, $"RouteContentBinding requiredness on '{root.name}'")
+                & ValidateObjectReference(director, "audioRuntimeHost", runtimeHost, $"FrameworkBgmDirector audioRuntimeHost on '{root.name}'")
                 & ValidateObjectReference(routeBgmBinding, "routeBgm", routeCue, $"FrameworkRouteBgmBinding routeBgm on '{root.name}'")
                 & ValidateObjectReference(routeBgmBinding, "director", director, $"FrameworkRouteBgmBinding director on '{root.name}'");
 
@@ -243,35 +256,95 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             return valid;
         }
 
-        private static FrameworkActivityBgmBinding EnsureActivityBinding(
+        private static bool EnsureActivityBinding(
             Scene scene,
             string rootName,
             ActivityAsset activity,
             AudioBgmCueAsset cue,
             FrameworkBgmActivityPolicy policy,
             FrameworkBgmDirector director,
-            string contentIdSuffix)
+            string contentIdSuffix,
+            string sceneLabel,
+            out FrameworkActivityBgmBinding bgmBinding)
         {
             GameObject root = EnsureRoot(scene, rootName);
             ActivityLocalVisibilityAdapter contentBinding = EnsureComponent<ActivityLocalVisibilityAdapter>(root);
-            FrameworkActivityBgmBinding bgmBinding = EnsureComponent<FrameworkActivityBgmBinding>(root);
+            bgmBinding = EnsureComponent<FrameworkActivityBgmBinding>(root);
+            string localContentId = $"qa-framework-bgm-activity-{contentIdSuffix}-{sceneLabel.ToLowerInvariant()}";
 
-            SetSerialized(contentBinding, "activity", activity);
-            SetSerialized(contentBinding, "localContentId", $"qa-framework-bgm-activity-{contentIdSuffix}-{scene.name.ToLowerInvariant()}");
-            SetSerialized(contentBinding, "requiredness", 10);
+            bool valid = ConfigureActivityLocalVisibilityAdapter(contentBinding, activity, localContentId, rootName)
+                & SetSerialized(bgmBinding, "assignedActivity", activity)
+                & SetSerialized(bgmBinding, "activityBgm", cue)
+                & SetSerialized(bgmBinding, "policy", (int)policy)
+                & SetSerialized(bgmBinding, "director", director);
 
-            SetSerialized(bgmBinding, "assignedActivity", activity);
-            SetSerialized(bgmBinding, "activityBgm", cue);
-            SetSerialized(bgmBinding, "policy", (int)policy);
-            SetSerialized(bgmBinding, "director", director);
-
-            ValidateObjectReference(contentBinding, "activity", activity, $"ActivityLocalVisibilityAdapter activity on '{rootName}'");
-            ValidateObjectReference(bgmBinding, "assignedActivity", activity, $"FrameworkActivityBgmBinding assignedActivity on '{rootName}'");
-            ValidateObjectReference(bgmBinding, "director", director, $"FrameworkActivityBgmBinding director on '{rootName}'");
-            return bgmBinding;
+            valid &= ValidateActivityLocalVisibilityAdapter(contentBinding, activity, localContentId, rootName);
+            valid &= ValidateObjectReference(bgmBinding, "assignedActivity", activity, $"FrameworkActivityBgmBinding assignedActivity on '{rootName}'");
+            valid &= ValidateObjectReference(bgmBinding, "director", director, $"FrameworkActivityBgmBinding director on '{rootName}'");
+            return valid;
         }
 
-        private static void ConfigurePanel(
+        private static bool ConfigureActivityLocalVisibilityAdapter(
+            ActivityLocalVisibilityAdapter adapter,
+            ActivityAsset activity,
+            string localContentId,
+            string context)
+        {
+            SerializedObject serialized = new SerializedObject(adapter);
+            SerializedProperty activities = serialized.FindProperty("activities");
+            SerializedProperty matchMode = serialized.FindProperty("matchMode");
+            SerializedProperty noActiveActivityPolicy = serialized.FindProperty("noActiveActivityPolicy");
+            SerializedProperty localContentIdProperty = serialized.FindProperty("localContentId");
+            SerializedProperty requiredness = serialized.FindProperty("requiredness");
+
+            if (activities == null || matchMode == null || noActiveActivityPolicy == null ||
+                localContentIdProperty == null || requiredness == null)
+            {
+                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] ActivityLocalVisibilityAdapter current authoring contract is incomplete. context='{context}'.", adapter);
+                return false;
+            }
+
+            activities.arraySize = 1;
+            activities.GetArrayElementAtIndex(0).objectReferenceValue = activity;
+            matchMode.enumValueIndex = (int)ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive;
+            noActiveActivityPolicy.enumValueIndex = (int)ActivityVisibilityNoActivePolicy.Hidden;
+            localContentIdProperty.stringValue = localContentId;
+            requiredness.enumValueIndex = (int)FrameworkContentRequiredness.Required;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(adapter);
+            return true;
+        }
+
+        private static bool ValidateActivityLocalVisibilityAdapter(
+            ActivityLocalVisibilityAdapter adapter,
+            ActivityAsset activity,
+            string localContentId,
+            string context)
+        {
+            bool valid = adapter.TryGetSingleActivityOwner(out ActivityAsset assignedActivity) && assignedActivity == activity;
+            if (!valid)
+            {
+                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] ActivityLocalVisibilityAdapter owner validation failed. context='{context}'.", adapter);
+            }
+
+            bool policiesValid = adapter.MatchMode == ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive
+                && adapter.NoActiveActivityPolicy == ActivityVisibilityNoActivePolicy.Hidden
+                && adapter.Requiredness == FrameworkContentRequiredness.Required;
+            if (!policiesValid)
+            {
+                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] ActivityLocalVisibilityAdapter policy validation failed. context='{context}'.", adapter);
+            }
+
+            bool localIdValid = adapter.HasExplicitLocalContentId && adapter.LocalContentIdText == localContentId;
+            if (!localIdValid)
+            {
+                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] ActivityLocalVisibilityAdapter local content identity validation failed. context='{context}'.", adapter);
+            }
+
+            return valid & policiesValid & localIdValid;
+        }
+
+        private static bool ConfigurePanel(
             Scene scene,
             string label,
             RouteAsset otherRoute,
@@ -293,49 +366,56 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                 panelObject.transform,
                 $"QA_FrameworkBgm_RouteRequest_{label}",
                 otherRoute,
-                $"qa.framework-bgm.route.{label.ToLowerInvariant()}.other");
+                $"qa.framework-bgm.route.{label.ToLowerInvariant()}.other",
+                out bool routeTriggerConfigured);
 
             ActivityRequestTrigger startupTrigger = EnsureActivityTrigger(
                 scene,
                 panelObject.transform,
                 $"QA_FrameworkBgm_ActivityRequest_Startup_{label}",
                 startupActivity,
-                $"qa.framework-bgm.activity.{label.ToLowerInvariant()}.startup");
+                $"qa.framework-bgm.activity.{label.ToLowerInvariant()}.startup",
+                out bool startupTriggerConfigured);
 
             ActivityRequestTrigger ownTrigger = EnsureActivityTrigger(
                 scene,
                 panelObject.transform,
                 $"QA_FrameworkBgm_ActivityRequest_Own_{label}",
                 ownActivity,
-                $"qa.framework-bgm.activity.{label.ToLowerInvariant()}.own");
+                $"qa.framework-bgm.activity.{label.ToLowerInvariant()}.own",
+                out bool ownTriggerConfigured);
 
             ActivityRequestTrigger retainTrigger = EnsureActivityTrigger(
                 scene,
                 panelObject.transform,
                 $"QA_FrameworkBgm_ActivityRequest_RetainPrevious_{label}",
                 retainActivity,
-                $"qa.framework-bgm.activity.{label.ToLowerInvariant()}.retain-previous");
+                $"qa.framework-bgm.activity.{label.ToLowerInvariant()}.retain-previous",
+                out bool retainTriggerConfigured);
 
             ActivityRequestTrigger routeFallbackTrigger = EnsureActivityTrigger(
                 scene,
                 panelObject.transform,
                 $"QA_FrameworkBgm_ActivityRequest_RouteFallback_{label}",
                 routeFallbackActivity,
-                $"qa.framework-bgm.activity.{label.ToLowerInvariant()}.route-fallback");
+                $"qa.framework-bgm.activity.{label.ToLowerInvariant()}.route-fallback",
+                out bool routeFallbackTriggerConfigured);
 
             ActivityRequestTrigger silenceTrigger = EnsureActivityTrigger(
                 scene,
                 panelObject.transform,
                 $"QA_FrameworkBgm_ActivityRequest_Silence_{label}",
                 silenceActivity,
-                $"qa.framework-bgm.activity.{label.ToLowerInvariant()}.silence");
+                $"qa.framework-bgm.activity.{label.ToLowerInvariant()}.silence",
+                out bool silenceTriggerConfigured);
 
             ActivityRequestTrigger clearTrigger = EnsureActivityTrigger(
                 scene,
                 panelObject.transform,
                 $"QA_FrameworkBgm_ActivityRequest_Clear_{label}",
                 null,
-                $"qa.framework-bgm.activity.{label.ToLowerInvariant()}.clear");
+                $"qa.framework-bgm.activity.{label.ToLowerInvariant()}.clear",
+                out bool clearTriggerConfigured);
 
             panel.Configure(
                 routeTrigger,
@@ -351,14 +431,29 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                 startupCue,
                 ownActivityCue);
             panel.ConfigureLayout(new Rect(16f, 16f, 700f, 740f), new Vector2(480f, 440f), 640f);
-            SetSerialized(panel, "showPanel", false);
+            bool valid = routeTriggerConfigured
+                & startupTriggerConfigured
+                & ownTriggerConfigured
+                & retainTriggerConfigured
+                & routeFallbackTriggerConfigured
+                & silenceTriggerConfigured
+                & clearTriggerConfigured
+                & SetSerialized(panel, "showPanel", false)
+                & ValidateBool(panel, "showPanel", false, $"FrameworkBgmQaPanel showPanel on '{panelObject.name}'");
             AudioQaPanel primaryPanel = FindInScene(scene, "QA_AudioPanel")?.GetComponent<AudioQaPanel>();
             if (primaryPanel != null)
             {
                 primaryPanel.ConfigureFrameworkBgmPanel(panel);
                 EditorUtility.SetDirty(primaryPanel);
             }
+            else if (label == "Canonical")
+            {
+                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] Canonical AudioQaPanel is missing. context='{panelObject.name}'.", panelObject);
+                valid = false;
+            }
+
             EditorUtility.SetDirty(panel);
+            return valid;
         }
 
         private static void EnsureScenePresentation(Scene scene, Vector3 cameraPosition, Color backgroundColor, string label)
@@ -374,37 +469,44 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             }
         }
 
-        private static RouteRequestTrigger EnsureRouteTrigger(Scene scene, Transform parent, string name, RouteAsset targetRoute, string reason)
+        private static RouteRequestTrigger EnsureRouteTrigger(Scene scene, Transform parent, string name, RouteAsset targetRoute, string reason, out bool configured)
         {
             GameObject go = EnsureChild(scene, parent, name);
             RouteRequestTrigger trigger = EnsureComponent<RouteRequestTrigger>(go);
             trigger.TargetRoute = targetRoute;
-            SetSerialized(trigger, "targetRoute", targetRoute);
-            SetSerialized(trigger, "reason", reason);
+            configured = SetSerialized(trigger, "targetRoute", targetRoute)
+                & SetSerialized(trigger, "reason", reason)
+                & ValidateObjectReference(trigger, "targetRoute", targetRoute, $"RouteRequestTrigger targetRoute on '{name}'")
+                & ValidateString(trigger, "reason", reason, $"RouteRequestTrigger reason on '{name}'");
             EditorUtility.SetDirty(trigger);
             return trigger;
         }
 
-        private static ActivityRequestTrigger EnsureActivityTrigger(Scene scene, Transform parent, string name, ActivityAsset targetActivity, string reason)
+        private static ActivityRequestTrigger EnsureActivityTrigger(Scene scene, Transform parent, string name, ActivityAsset targetActivity, string reason, out bool configured)
         {
             GameObject go = EnsureChild(scene, parent, name);
             ActivityRequestTrigger trigger = EnsureComponent<ActivityRequestTrigger>(go);
             trigger.TargetActivity = targetActivity;
-            SetSerialized(trigger, "targetActivity", targetActivity);
-            SetSerialized(trigger, "reason", reason);
+            configured = SetSerialized(trigger, "targetActivity", targetActivity)
+                & SetSerialized(trigger, "reason", reason)
+                & ValidateObjectReference(trigger, "targetActivity", targetActivity, $"ActivityRequestTrigger targetActivity on '{name}'")
+                & ValidateString(trigger, "reason", reason, $"ActivityRequestTrigger reason on '{name}'");
             EditorUtility.SetDirty(trigger);
             return trigger;
         }
 
-        private static AudioRuntimeHost EnsureAudioRuntimeHost(Transform parent, AudioDefaultsAsset defaults)
+        private static AudioRuntimeHost EnsureAudioRuntimeHost(Transform parent, AudioDefaultsAsset defaults, out bool configured)
         {
             GameObject hostObject = EnsureChild(parent.gameObject.scene, parent, "QA_FrameworkBgm_AudioRuntimeHost");
             GameObject playbackRoot = EnsureChild(parent.gameObject.scene, hostObject.transform, "AudioPlayback");
 
             AudioRuntimeHost host = EnsureComponent<AudioRuntimeHost>(hostObject);
-            SetSerialized(host, "defaults", defaults);
-            SetSerialized(host, "playbackRoot", playbackRoot.transform);
-            SetSerialized(host, "composeOnAwake", true);
+            configured = SetSerialized(host, "defaults", defaults)
+                & SetSerialized(host, "playbackRoot", playbackRoot.transform)
+                & SetSerialized(host, "composeOnAwake", true)
+                & ValidateObjectReference(host, "defaults", defaults, $"AudioRuntimeHost defaults on '{hostObject.name}'")
+                & ValidateObjectReference(host, "playbackRoot", playbackRoot.transform, $"AudioRuntimeHost playbackRoot on '{hostObject.name}'")
+                & ValidateBool(host, "composeOnAwake", true, $"AudioRuntimeHost composeOnAwake on '{hostObject.name}'");
             return host;
         }
 
@@ -615,6 +717,42 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             return true;
         }
 
+        private static bool ValidateString(Object target, string propertyName, string expectedValue, string context)
+        {
+            SerializedProperty property = new SerializedObject(target).FindProperty(propertyName);
+            if (property == null || property.stringValue != expectedValue)
+            {
+                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] String validation failed. context='{context}' property='{propertyName}'.", target);
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool ValidateInt(Object target, string propertyName, int expectedValue, string context)
+        {
+            SerializedProperty property = new SerializedObject(target).FindProperty(propertyName);
+            if (property == null || property.intValue != expectedValue)
+            {
+                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] Integer validation failed. context='{context}' property='{propertyName}'.", target);
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool ValidateBool(Object target, string propertyName, bool expectedValue, string context)
+        {
+            SerializedProperty property = new SerializedObject(target).FindProperty(propertyName);
+            if (property == null || property.boolValue != expectedValue)
+            {
+                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] Boolean validation failed. context='{context}' property='{propertyName}'.", target);
+                return false;
+            }
+
+            return true;
+        }
+
         private static bool ReferencesMatch(Object actual, Object expected)
         {
             if (actual == null || expected == null)
@@ -642,64 +780,68 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             return string.IsNullOrWhiteSpace(path) ? value.name : $"{value.name} ({path})";
         }
 
-        private static void SetSerialized(Object target, string propertyName, Object value)
+        private static bool SetSerialized(Object target, string propertyName, Object value)
         {
             SerializedObject serializedObject = new SerializedObject(target);
             SerializedProperty property = serializedObject.FindProperty(propertyName);
             if (property == null)
             {
                 Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] Serialized property not found. target='{target.GetType().Name}' property='{propertyName}'.", target);
-                return;
+                return false;
             }
 
             property.objectReferenceValue = value;
             serializedObject.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(target);
+            return true;
         }
 
-        private static void SetSerialized(Object target, string propertyName, string value)
+        private static bool SetSerialized(Object target, string propertyName, string value)
         {
             SerializedObject serializedObject = new SerializedObject(target);
             SerializedProperty property = serializedObject.FindProperty(propertyName);
             if (property == null)
             {
                 Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] Serialized property not found. target='{target.GetType().Name}' property='{propertyName}'.", target);
-                return;
+                return false;
             }
 
             property.stringValue = value;
             serializedObject.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(target);
+            return true;
         }
 
-        private static void SetSerialized(Object target, string propertyName, int value)
+        private static bool SetSerialized(Object target, string propertyName, int value)
         {
             SerializedObject serializedObject = new SerializedObject(target);
             SerializedProperty property = serializedObject.FindProperty(propertyName);
             if (property == null)
             {
                 Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] Serialized property not found. target='{target.GetType().Name}' property='{propertyName}'.", target);
-                return;
+                return false;
             }
 
             property.intValue = value;
             serializedObject.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(target);
+            return true;
         }
 
-        private static void SetSerialized(Object target, string propertyName, bool value)
+        private static bool SetSerialized(Object target, string propertyName, bool value)
         {
             SerializedObject serializedObject = new SerializedObject(target);
             SerializedProperty property = serializedObject.FindProperty(propertyName);
             if (property == null)
             {
                 Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] Serialized property not found. target='{target.GetType().Name}' property='{propertyName}'.", target);
-                return;
+                return false;
             }
 
             property.boolValue = value;
             serializedObject.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(target);
+            return true;
         }
 
         private static void SetSerialized(SerializedObject serialized, string propertyName, Object value)

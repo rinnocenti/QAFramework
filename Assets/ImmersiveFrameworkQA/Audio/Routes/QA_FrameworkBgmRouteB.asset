@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.RouteAsset
   routeId: qa.framework.bgm.route.b
   routeName: QA Framework BGM Route B
-  primaryScenePath: Assets/ImmersiveFrameworkQA/Audio/Scenes/QA_FrameworkBgmRouteB.unity
-  primarySceneName: QA_FrameworkBgmRouteB
+  primaryScenePath: Assets/ImmersiveFrameworkQA/Audio/Scenes/QA_AudioRouteB.unity
+  primarySceneName: QA_AudioRouteB
   routeContentProfile: {fileID: 0}
   startupActivity: {fileID: 0}
   transitionGateMode: 30

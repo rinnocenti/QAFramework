@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &147616119
+--- !u!1 &11162631
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,8 +127,998 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 147616121}
-  - component: {fileID: 147616120}
+  - component: {fileID: 11162633}
+  - component: {fileID: 11162632}
+  m_Layer: 0
+  m_Name: QA_FrameworkBgm_AudioRuntimeHost
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &11162632
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 11162631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 831dd588133da8f44ba1373af95bb31b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Audio.Unity::Immersive.Audio.Unity.Hosts.AudioRuntimeHost
+  defaults: {fileID: 11400000, guid: 443f6bf908390de4bab685dcbbd66e52, type: 2}
+  playbackRoot: {fileID: 1462594506}
+  poolRuntimeHost: {fileID: 0}
+  composeOnAwake: 1
+  ensurePersistentListener: 1
+  listenerDuplicatePolicy: 1
+  includeInactiveListenersForListenerReport: 1
+--- !u!4 &11162633
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 11162631}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1462594506}
+  m_Father: {fileID: 1254884902}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &58361182
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 58361184}
+  - component: {fileID: 58361183}
+  m_Layer: 0
+  m_Name: QA_FrameworkBgm_ActivityRequest_Own_Canonical
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &58361183
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 58361182}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88595ccde21347ea987cfbba6c100c2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.ActivityRequestTrigger
+  targetActivity: {fileID: 11400000, guid: 2b62b31db1e761947ad1cac26b081351, type: 2}
+  reason: qa.framework-bgm.activity.canonical.own
+--- !u!4 &58361184
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 58361182}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1963272191}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &109526078
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 109526080}
+  - component: {fileID: 109526079}
+  m_Layer: 0
+  m_Name: QA_FrameworkBgm_ActivityRequest_Silence_Canonical
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &109526079
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 109526078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88595ccde21347ea987cfbba6c100c2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.ActivityRequestTrigger
+  targetActivity: {fileID: 11400000, guid: 8d68f3d9b2100324997223ccafb8cace, type: 2}
+  reason: qa.framework-bgm.activity.canonical.silence
+--- !u!4 &109526080
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 109526078}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1963272191}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &384650151
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 384650154}
+  - component: {fileID: 384650153}
+  - component: {fileID: 384650152}
+  m_Layer: 0
+  m_Name: QA_FrameworkBgm_Activity_RetainPrevious_Canonical
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &384650152
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 384650151}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a29ead1351f46d281cc029935f9ad8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Audio::Immersive.Framework.Audio.FrameworkActivityBgmBinding
+  assignedActivity: {fileID: 11400000, guid: 7df9f3493a96596449f212ca2de79467, type: 2}
+  activityBgm: {fileID: 0}
+  policy: 1
+  director: {fileID: 1254884901}
+--- !u!114 &384650153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 384650151}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 186d5c674b9947cbb89d1c02ae9e8317, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityLocalVisibilityAdapter
+  activities:
+  - {fileID: 11400000, guid: 7df9f3493a96596449f212ca2de79467, type: 2}
+  matchMode: 0
+  noActiveActivityPolicy: 0
+  localContentId: qa-framework-bgm-activity-retain-previous-canonical
+  requiredness: 10
+--- !u!4 &384650154
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 384650151}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &434606839
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 434606841}
+  - component: {fileID: 434606840}
+  m_Layer: 0
+  m_Name: QA_PoolRuntimeHost
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &434606840
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 434606839}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c9376e022654122a198d5786c4e611f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Pooling.Unity::Immersive.Pooling.Unity.Hosts.PoolRuntimeHost
+  initializeOnAwake: 1
+  persistAcrossScenes: 0
+  poolDefinitions:
+  - {fileID: 11400000, guid: 2d736b181d719bc429ff231c79f55e3b, type: 2}
+--- !u!4 &434606841
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 434606839}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1089144945}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &540591660
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 540591662}
+  - component: {fileID: 540591661}
+  m_Layer: 0
+  m_Name: QA_AudioRuntimeHost_MissingPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &540591661
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 540591660}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 831dd588133da8f44ba1373af95bb31b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Audio.Unity::Immersive.Audio.Unity.Hosts.AudioRuntimeHost
+  defaults: {fileID: 11400000, guid: 443f6bf908390de4bab685dcbbd66e52, type: 2}
+  playbackRoot: {fileID: 940110294}
+  poolRuntimeHost: {fileID: 0}
+  composeOnAwake: 1
+  ensurePersistentListener: 1
+  listenerDuplicatePolicy: 1
+  includeInactiveListenersForListenerReport: 1
+--- !u!4 &540591662
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 540591660}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 940110294}
+  m_Father: {fileID: 1089144945}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &634535654
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 634535657}
+  - component: {fileID: 634535656}
+  - component: {fileID: 634535655}
+  m_Layer: 0
+  m_Name: QA_FrameworkBgm_Activity_Silence_Canonical
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &634535655
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 634535654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a29ead1351f46d281cc029935f9ad8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Audio::Immersive.Framework.Audio.FrameworkActivityBgmBinding
+  assignedActivity: {fileID: 11400000, guid: 8d68f3d9b2100324997223ccafb8cace, type: 2}
+  activityBgm: {fileID: 0}
+  policy: 3
+  director: {fileID: 1254884901}
+--- !u!114 &634535656
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 634535654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 186d5c674b9947cbb89d1c02ae9e8317, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityLocalVisibilityAdapter
+  activities:
+  - {fileID: 11400000, guid: 8d68f3d9b2100324997223ccafb8cace, type: 2}
+  matchMode: 0
+  noActiveActivityPolicy: 0
+  localContentId: qa-framework-bgm-activity-silence-canonical
+  requiredness: 10
+--- !u!4 &634535657
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 634535654}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &706874889
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 706874892}
+  - component: {fileID: 706874891}
+  - component: {fileID: 706874890}
+  m_Layer: 0
+  m_Name: QA_FrameworkBgm_Activity_RouteFallback_Canonical
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &706874890
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 706874889}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a29ead1351f46d281cc029935f9ad8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Audio::Immersive.Framework.Audio.FrameworkActivityBgmBinding
+  assignedActivity: {fileID: 11400000, guid: a70a560bbcbc96b4f911b1899bf706e1, type: 2}
+  activityBgm: {fileID: 0}
+  policy: 2
+  director: {fileID: 1254884901}
+--- !u!114 &706874891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 706874889}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 186d5c674b9947cbb89d1c02ae9e8317, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityLocalVisibilityAdapter
+  activities:
+  - {fileID: 11400000, guid: a70a560bbcbc96b4f911b1899bf706e1, type: 2}
+  matchMode: 0
+  noActiveActivityPolicy: 0
+  localContentId: qa-framework-bgm-activity-route-fallback-canonical
+  requiredness: 10
+--- !u!4 &706874892
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 706874889}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &717527488
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 717527490}
+  - component: {fileID: 717527489}
+  m_Layer: 0
+  m_Name: QA_FrameworkBgm_ActivityRequest_RouteFallback_Canonical
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &717527489
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717527488}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88595ccde21347ea987cfbba6c100c2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.ActivityRequestTrigger
+  targetActivity: {fileID: 11400000, guid: a70a560bbcbc96b4f911b1899bf706e1, type: 2}
+  reason: qa.framework-bgm.activity.canonical.route-fallback
+--- !u!4 &717527490
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717527488}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1963272191}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &849853214
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 849853216}
+  - component: {fileID: 849853215}
+  m_Layer: 0
+  m_Name: QA_FrameworkBgm_RouteRequest_Canonical
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &849853215
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 849853214}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
+  targetRoute: {fileID: 11400000, guid: 7e5e80a83c509a64488f4c24583bf143, type: 2}
+  reason: qa.framework-bgm.route.canonical.other
+--- !u!4 &849853216
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 849853214}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1963272191}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &940110293
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 940110294}
+  m_Layer: 0
+  m_Name: AudioPlayback
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &940110294
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 940110293}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 540591662}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1008938947
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1008938949}
+  - component: {fileID: 1008938948}
+  m_Layer: 0
+  m_Name: QA_FrameworkBgm_ActivityRequest_Startup_Canonical
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1008938948
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1008938947}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88595ccde21347ea987cfbba6c100c2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.ActivityRequestTrigger
+  targetActivity: {fileID: 11400000, guid: 8bcae3fc76cd48241aeff94bf2994f16, type: 2}
+  reason: qa.framework-bgm.activity.canonical.startup
+--- !u!4 &1008938949
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1008938947}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1963272191}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1089144944
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1089144945}
+  m_Layer: 0
+  m_Name: Audio QA Root
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1089144945
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1089144944}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 434606841}
+  - {fileID: 1268583304}
+  - {fileID: 1721647530}
+  - {fileID: 540591662}
+  - {fileID: 1395151867}
+  - {fileID: 1423996657}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1152724753
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1152724756}
+  - component: {fileID: 1152724755}
+  - component: {fileID: 1152724754}
+  m_Layer: 0
+  m_Name: QA_FrameworkBgm_Activity_Own_Canonical
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1152724754
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1152724753}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a29ead1351f46d281cc029935f9ad8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Audio::Immersive.Framework.Audio.FrameworkActivityBgmBinding
+  assignedActivity: {fileID: 11400000, guid: 2b62b31db1e761947ad1cac26b081351, type: 2}
+  activityBgm: {fileID: 11400000, guid: 5be38132a61f38246a1cc0857330abfe, type: 2}
+  policy: 1
+  director: {fileID: 1254884901}
+--- !u!114 &1152724755
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1152724753}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 186d5c674b9947cbb89d1c02ae9e8317, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityLocalVisibilityAdapter
+  activities:
+  - {fileID: 11400000, guid: 2b62b31db1e761947ad1cac26b081351, type: 2}
+  matchMode: 0
+  noActiveActivityPolicy: 0
+  localContentId: qa-framework-bgm-activity-own-canonical
+  requiredness: 10
+--- !u!4 &1152724756
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1152724753}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1254884900
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1254884902}
+  - component: {fileID: 1254884904}
+  - component: {fileID: 1254884901}
+  - component: {fileID: 1254884903}
+  m_Layer: 0
+  m_Name: QA_FrameworkBgmRoot_Canonical
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1254884901
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1254884900}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a3b4887a49e44418412067c3bba9238, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Audio::Immersive.Framework.Audio.FrameworkBgmDirector
+  audioRuntimeHost: {fileID: 11162632}
+  logTransitions: 1
+--- !u!4 &1254884902
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1254884900}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 11162633}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1254884903
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1254884900}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e897e69eb024346b779e4ec8224ed4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Audio::Immersive.Framework.Audio.FrameworkRouteBgmBinding
+  routeBgm: {fileID: 11400000, guid: 04b5cc94d710ba24ba47840b2c8b002e, type: 2}
+  director: {fileID: 1254884901}
+  startupActivityBgmBinding: {fileID: 1881410672}
+--- !u!114 &1254884904
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1254884900}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f37a6125514e4491a7174d4372fc4c22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.RouteLifecycle.RouteContentBinding
+  route: {fileID: 11400000, guid: 2990185809139e1449458aa38b7fb616, type: 2}
+  localContentId: qa-framework-bgm-route-canonical
+  requiredness: 10
+--- !u!1 &1268583302
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1268583304}
+  - component: {fileID: 1268583303}
+  m_Layer: 0
+  m_Name: QA_AudioRuntimeHost
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1268583303
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1268583302}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 831dd588133da8f44ba1373af95bb31b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Audio.Unity::Immersive.Audio.Unity.Hosts.AudioRuntimeHost
+  defaults: {fileID: 11400000, guid: 443f6bf908390de4bab685dcbbd66e52, type: 2}
+  playbackRoot: {fileID: 2131242562}
+  poolRuntimeHost: {fileID: 434606840}
+  composeOnAwake: 1
+  ensurePersistentListener: 1
+  listenerDuplicatePolicy: 1
+  includeInactiveListenersForListenerReport: 1
+--- !u!4 &1268583304
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1268583302}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2131242562}
+  m_Father: {fileID: 1089144945}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1395151865
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1395151867}
+  - component: {fileID: 1395151866}
+  m_Layer: 0
+  m_Name: QA_AudioListenerRuntimeHost
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1395151866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1395151865}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fa0344de30c4d543bfa6c197c2cfee1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Audio.Unity::Immersive.Audio.Unity.Hosts.AudioListenerRuntimeHost
+  listenerTarget: {fileID: 0}
+  duplicatePolicy: 0
+  includeInactiveListeners: 1
+  persistAcrossScenes: 0
+  enforceOnSceneEvents: 1
+--- !u!4 &1395151867
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1395151865}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1089144945}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1423996656
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1423996657}
+  - component: {fileID: 1423996658}
+  m_Layer: 0
+  m_Name: QA_AudioPanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1423996657
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1423996656}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1089144945}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1423996658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1423996656}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e61435aaaf364e45bdad64efb645e40e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ImmersiveFrameworkQA.Audio.Runtime::ImmersiveFrameworkQA.Audio.AudioQaPanel
+  audioRuntimeHost: {fileID: 1268583303}
+  missingDefaultsHost: {fileID: 1721647529}
+  missingPoolHost: {fileID: 540591661}
+  listenerRuntimeHost: {fileID: 1395151866}
+  sfxCue: {fileID: 11400000, guid: 9990fd529156b774783c3e2fa88be88b, type: 2}
+  pooledSfxCue: {fileID: 11400000, guid: 7bb70d92083286e4b972462c1b5edecb, type: 2}
+  missingClipSfxCue: {fileID: 11400000, guid: 2c2e29fbf573b3f4caf0e6e75b572a2b, type: 2}
+  bgmCue: {fileID: 11400000, guid: 443fd6cbaeedb134cb6cccd4be997a3d, type: 2}
+  frameworkBgmPanel: {fileID: 1963272190}
+  panelRect:
+    serializedVersion: 2
+    x: 16
+    y: 16
+    width: 560
+    height: 650
+  minimumPanelSize: {x: 360, y: 320}
+  scrollContentWidth: 520
+--- !u!1 &1462594505
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1462594506}
+  m_Layer: 0
+  m_Name: AudioPlayback
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1462594506
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1462594505}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 11162633}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1603960924
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1603960926}
+  - component: {fileID: 1603960925}
   m_Layer: 0
   m_Name: QA_AudioLight
   m_TagString: Untagged
@@ -136,13 +1126,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!108 &147616120
+--- !u!108 &1603960925
 Light:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 147616119}
+  m_GameObject: {fileID: 1603960924}
   m_Enabled: 1
   serializedVersion: 13
   m_Type: 1
@@ -201,13 +1191,13 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
---- !u!4 &147616121
+--- !u!4 &1603960926
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 147616119}
+  m_GameObject: {fileID: 1603960924}
   serializedVersion: 2
   m_LocalRotation: {x: 0.3649717, y: -0.2778159, z: 0.115075134, w: 0.88111955}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -216,7 +1206,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &246402980
+--- !u!1 &1611835375
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -224,8 +1214,54 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 246402982}
-  - component: {fileID: 246402981}
+  - component: {fileID: 1611835377}
+  - component: {fileID: 1611835376}
+  m_Layer: 0
+  m_Name: QA_FrameworkBgm_ActivityRequest_Clear_Canonical
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1611835376
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1611835375}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88595ccde21347ea987cfbba6c100c2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.ActivityRequestTrigger
+  targetActivity: {fileID: 0}
+  reason: qa.framework-bgm.activity.canonical.clear
+--- !u!4 &1611835377
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1611835375}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1963272191}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1721647528
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1721647530}
+  - component: {fileID: 1721647529}
   m_Layer: 0
   m_Name: QA_AudioRuntimeHost_MissingDefaults
   m_TagString: Untagged
@@ -233,42 +1269,42 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &246402981
+--- !u!114 &1721647529
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 246402980}
+  m_GameObject: {fileID: 1721647528}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 831dd588133da8f44ba1373af95bb31b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Audio.Unity::Immersive.Audio.Unity.Hosts.AudioRuntimeHost
   defaults: {fileID: 0}
-  playbackRoot: {fileID: 739086386}
+  playbackRoot: {fileID: 2000184110}
   poolRuntimeHost: {fileID: 0}
   composeOnAwake: 1
   ensurePersistentListener: 1
   listenerDuplicatePolicy: 1
   includeInactiveListenersForListenerReport: 1
---- !u!4 &246402982
+--- !u!4 &1721647530
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 246402980}
+  m_GameObject: {fileID: 1721647528}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 2, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 739086386}
-  m_Father: {fileID: 523894463}
+  - {fileID: 2000184110}
+  m_Father: {fileID: 1089144945}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &500854117
+--- !u!1 &1881410671
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -276,59 +1312,66 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 500854118}
-  - component: {fileID: 500854119}
+  - component: {fileID: 1881410674}
+  - component: {fileID: 1881410673}
+  - component: {fileID: 1881410672}
   m_Layer: 0
-  m_Name: QA_AudioPanel
+  m_Name: QA_FrameworkBgm_Activity_Startup_Canonical
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &500854118
+--- !u!114 &1881410672
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1881410671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a29ead1351f46d281cc029935f9ad8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Audio::Immersive.Framework.Audio.FrameworkActivityBgmBinding
+  assignedActivity: {fileID: 11400000, guid: 8bcae3fc76cd48241aeff94bf2994f16, type: 2}
+  activityBgm: {fileID: 11400000, guid: 30795df2c68de5d468c525677757cef5, type: 2}
+  policy: 0
+  director: {fileID: 1254884901}
+--- !u!114 &1881410673
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1881410671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 186d5c674b9947cbb89d1c02ae9e8317, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityLocalVisibilityAdapter
+  activities:
+  - {fileID: 11400000, guid: 8bcae3fc76cd48241aeff94bf2994f16, type: 2}
+  matchMode: 0
+  noActiveActivityPolicy: 0
+  localContentId: qa-framework-bgm-activity-startup-canonical
+  requiredness: 10
+--- !u!4 &1881410674
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 500854117}
+  m_GameObject: {fileID: 1881410671}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 523894463}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &500854119
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 500854117}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e61435aaaf364e45bdad64efb645e40e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ImmersiveFrameworkQA.Audio.Runtime::ImmersiveFrameworkQA.Audio.AudioQaPanel
-  audioRuntimeHost: {fileID: 2028884770}
-  missingDefaultsHost: {fileID: 246402981}
-  missingPoolHost: {fileID: 1660053584}
-  listenerRuntimeHost: {fileID: 861022799}
-  sfxCue: {fileID: 11400000, guid: 9990fd529156b774783c3e2fa88be88b, type: 2}
-  pooledSfxCue: {fileID: 11400000, guid: 7bb70d92083286e4b972462c1b5edecb, type: 2}
-  missingClipSfxCue: {fileID: 11400000, guid: 2c2e29fbf573b3f4caf0e6e75b572a2b, type: 2}
-  bgmCue: {fileID: 11400000, guid: 443fd6cbaeedb134cb6cccd4be997a3d, type: 2}
-  panelRect:
-    serializedVersion: 2
-    x: 16
-    y: 16
-    width: 560
-    height: 650
-  minimumPanelSize: {x: 360, y: 320}
-  scrollContentWidth: 520
---- !u!1 &523894462
+--- !u!1 &1963272189
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -336,36 +1379,72 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 523894463}
+  - component: {fileID: 1963272191}
+  - component: {fileID: 1963272190}
   m_Layer: 0
-  m_Name: Audio QA Root
+  m_Name: QA_FrameworkBgmPanel_Canonical
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &523894463
+--- !u!114 &1963272190
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1963272189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76c1c1a4c7fb42c9aab2ace54e65a4f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ImmersiveFrameworkQA.Audio.Runtime::ImmersiveFrameworkQA.Audio.FrameworkBgmQaPanel
+  director: {fileID: 1254884901}
+  otherRouteTrigger: {fileID: 849853215}
+  startupActivityTrigger: {fileID: 1008938948}
+  ownActivityTrigger: {fileID: 58361183}
+  retainPreviousActivityTrigger: {fileID: 1981970859}
+  routeFallbackActivityTrigger: {fileID: 717527489}
+  silenceActivityTrigger: {fileID: 109526079}
+  clearActivityTrigger: {fileID: 1611835376}
+  expectedRouteBgm: {fileID: 11400000, guid: 04b5cc94d710ba24ba47840b2c8b002e, type: 2}
+  expectedStartupActivityBgm: {fileID: 11400000, guid: 30795df2c68de5d468c525677757cef5, type: 2}
+  expectedOwnActivityBgm: {fileID: 11400000, guid: 5be38132a61f38246a1cc0857330abfe, type: 2}
+  title: QA Framework BGM Canonical
+  showPanel: 0
+  restrictToAudioScene: 1
+  panelRect:
+    serializedVersion: 2
+    x: 16
+    y: 16
+    width: 700
+    height: 740
+  minimumPanelSize: {x: 480, y: 440}
+  scrollContentWidth: 640
+--- !u!4 &1963272191
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 523894462}
+  m_GameObject: {fileID: 1963272189}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1231255937}
-  - {fileID: 2028884771}
-  - {fileID: 246402982}
-  - {fileID: 1660053585}
-  - {fileID: 861022800}
-  - {fileID: 500854118}
+  - {fileID: 849853216}
+  - {fileID: 1008938949}
+  - {fileID: 58361184}
+  - {fileID: 1981970860}
+  - {fileID: 717527490}
+  - {fileID: 109526080}
+  - {fileID: 1611835377}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &739086385
+--- !u!1 &1981970858
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -373,7 +1452,53 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 739086386}
+  - component: {fileID: 1981970860}
+  - component: {fileID: 1981970859}
+  m_Layer: 0
+  m_Name: QA_FrameworkBgm_ActivityRequest_RetainPrevious_Canonical
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1981970859
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1981970858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88595ccde21347ea987cfbba6c100c2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.ActivityRequestTrigger
+  targetActivity: {fileID: 11400000, guid: 7df9f3493a96596449f212ca2de79467, type: 2}
+  reason: qa.framework-bgm.activity.canonical.retain-previous
+--- !u!4 &1981970860
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1981970858}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1963272191}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2000184109
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2000184110}
   m_Layer: 0
   m_Name: AudioPlayback
   m_TagString: Untagged
@@ -381,22 +1506,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &739086386
+--- !u!4 &2000184110
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 739086385}
+  m_GameObject: {fileID: 2000184109}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 246402982}
+  m_Father: {fileID: 1721647530}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &854506658
+--- !u!1 &2052051314
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -404,237 +1529,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 854506659}
-  m_Layer: 0
-  m_Name: AudioPlayback
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &854506659
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 854506658}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1660053585}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &861022798
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 861022800}
-  - component: {fileID: 861022799}
-  m_Layer: 0
-  m_Name: QA_AudioListenerRuntimeHost
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &861022799
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 861022798}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6fa0344de30c4d543bfa6c197c2cfee1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Audio.Unity::Immersive.Audio.Unity.Hosts.AudioListenerRuntimeHost
-  listenerTarget: {fileID: 0}
-  duplicatePolicy: 0
-  includeInactiveListeners: 1
-  persistAcrossScenes: 0
-  enforceOnSceneEvents: 1
---- !u!4 &861022800
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 861022798}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -5}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 523894463}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &941805580
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 941805581}
-  m_Layer: 0
-  m_Name: AudioPlayback
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &941805581
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 941805580}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2028884771}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &987650000
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 987650001}
-  - component: {fileID: 987650002}
-  - component: {fileID: 987650003}
-  m_Layer: 0
-  m_Name: QA_BackToHubNavigation
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &987650001
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 987650000}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &987650002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 987650000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
-  targetRoute: {fileID: 11400000, guid: 1addd390562c4f15a738f4125bb94be8, type: 2}
-  reason: qa.route.back-to-hub
---- !u!114 &987650003
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 987650000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6f6b98ee53b94af8a4663cba085700a8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ImmersiveFrameworkQA.Hub.Runtime::ImmersiveFrameworkQA.Hub.QaHubPanel
-  entries:
-  - label: Back to QA Hub
-    routeRequestTrigger: {fileID: 987650002}
-  title: QA Navigation
-  showPanel: 1
-  panelRect:
-    serializedVersion: 2
-    x: 590
-    y: 16
-    width: 360
-    height: 92
---- !u!1 &1231255935
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1231255937}
-  - component: {fileID: 1231255936}
-  m_Layer: 0
-  m_Name: QA_PoolRuntimeHost
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1231255936
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1231255935}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1c9376e022654122a198d5786c4e611f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Pooling.Unity::Immersive.Pooling.Unity.Hosts.PoolRuntimeHost
-  initializeOnAwake: 1
-  persistAcrossScenes: 0
-  poolDefinitions:
-  - {fileID: 11400000, guid: 2d736b181d719bc429ff231c79f55e3b, type: 2}
---- !u!4 &1231255937
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1231255935}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 523894463}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1513511312
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1513511314}
-  - component: {fileID: 1513511313}
+  - component: {fileID: 2052051316}
+  - component: {fileID: 2052051315}
   m_Layer: 0
   m_Name: QA_AudioCamera
   m_TagString: Untagged
@@ -642,13 +1538,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!20 &1513511313
+--- !u!20 &2052051315
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1513511312}
+  m_GameObject: {fileID: 2052051314}
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
@@ -693,13 +1589,13 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!4 &1513511314
+--- !u!4 &2052051316
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1513511312}
+  m_GameObject: {fileID: 2052051314}
   serializedVersion: 2
   m_LocalRotation: {x: 0.104528464, y: 0, z: 0, w: 0.9945219}
   m_LocalPosition: {x: 0, y: 2, z: -10}
@@ -708,7 +1604,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1660053583
+--- !u!1 &2131242561
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -716,107 +1612,40 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1660053585}
-  - component: {fileID: 1660053584}
+  - component: {fileID: 2131242562}
   m_Layer: 0
-  m_Name: QA_AudioRuntimeHost_MissingPool
+  m_Name: AudioPlayback
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1660053584
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1660053583}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 831dd588133da8f44ba1373af95bb31b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Audio.Unity::Immersive.Audio.Unity.Hosts.AudioRuntimeHost
-  defaults: {fileID: 11400000, guid: 443f6bf908390de4bab685dcbbd66e52, type: 2}
-  playbackRoot: {fileID: 854506659}
-  poolRuntimeHost: {fileID: 0}
-  composeOnAwake: 1
-  ensurePersistentListener: 1
-  listenerDuplicatePolicy: 1
-  includeInactiveListenersForListenerReport: 1
---- !u!4 &1660053585
+--- !u!4 &2131242562
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1660053583}
+  m_GameObject: {fileID: 2131242561}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 2}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 854506659}
-  m_Father: {fileID: 523894463}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &2028884769
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2028884771}
-  - component: {fileID: 2028884770}
-  m_Layer: 0
-  m_Name: QA_AudioRuntimeHost
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2028884770
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2028884769}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 831dd588133da8f44ba1373af95bb31b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Audio.Unity::Immersive.Audio.Unity.Hosts.AudioRuntimeHost
-  defaults: {fileID: 11400000, guid: 443f6bf908390de4bab685dcbbd66e52, type: 2}
-  playbackRoot: {fileID: 941805581}
-  poolRuntimeHost: {fileID: 1231255936}
-  composeOnAwake: 1
-  ensurePersistentListener: 1
-  listenerDuplicatePolicy: 1
-  includeInactiveListenersForListenerReport: 1
---- !u!4 &2028884771
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2028884769}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 941805581}
-  m_Father: {fileID: 523894463}
+  m_Children: []
+  m_Father: {fileID: 1268583304}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 987650001}
-  - {fileID: 1513511314}
-  - {fileID: 147616121}
-  - {fileID: 523894463}
+  - {fileID: 2052051316}
+  - {fileID: 1603960926}
+  - {fileID: 1089144945}
+  - {fileID: 1254884902}
+  - {fileID: 1881410674}
+  - {fileID: 1152724756}
+  - {fileID: 384650154}
+  - {fileID: 706874892}
+  - {fileID: 634535657}
+  - {fileID: 1963272191}

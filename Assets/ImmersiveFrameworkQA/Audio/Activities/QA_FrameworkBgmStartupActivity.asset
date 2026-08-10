@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6d702c1ba364e70ad76a85eb5f1b842, type: 3}
   m_Name: QA_FrameworkBgmStartupActivity
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.ActivityAsset
-  activityId: qa.framework.bgm.startup.activity
+  activityId: qa.qa.frameworkbgmstartupactivity
   activityName: QA Framework BGM Startup Activity
   description: Startup Activity BGM pre-apply.
   playerParticipationProjectionMode: 0
@@ -20,5 +20,6 @@ MonoBehaviour:
   playerParticipationExplicitSlotProfiles: []
   playerParticipationRequirementLevel: 0
   activityContentProfile: {fileID: 0}
+  activityEntryReadinessPolicy: 0
   visualTransitionMode: 0
   transitionGateMode: 10

@@ -54,7 +54,6 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             AudioBgmCueAsset bgmCue = CreateBgmCue(BgmCuePath, "qa.audio.bgm.tone", generatedClips.BgmClip);
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            scene.name = "QA_Audio";
 
             CreateCamera();
             CreateLight();
@@ -91,8 +90,11 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             EditorSceneManager.SaveScene(scene, ScenePath);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            AudioQaGeneratedClipRepair.EnsureGeneratedClipsAndAssignments();
-            FrameworkBgmQaSceneBuilder.ConfigureForAudioQa();
+            if (!FrameworkBgmQaSceneBuilder.ConfigureForAudioQa(generatedClips))
+            {
+                Debug.LogError($"[AUDIO_QA_SETUP] status='Failed' primaryScene='{ScenePath}' fixture='FrameworkBgm'.");
+                return;
+            }
 
             Debug.Log($"[AUDIO_QA_SETUP] status='Applied' primaryScene='{ScenePath}' fixtureScene='Assets/ImmersiveFrameworkQA/Audio/Scenes/QA_AudioRouteB.unity'.");
         }

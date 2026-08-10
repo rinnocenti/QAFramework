@@ -1,5 +1,6 @@
 using System;
 using Immersive.Audio.Authoring;
+using Immersive.Audio.Unity.Hosts;
 using Immersive.Framework.Audio;
 using Immersive.Framework.GameFlow;
 using UnityEngine;
@@ -46,6 +47,16 @@ namespace ImmersiveFrameworkQA.Audio
         private bool showDirectorDiagnostics = true;
         private bool showTriggerDiagnostics = true;
         private string lastManualAction = "Framework BGM QA panel ready.";
+
+        public FrameworkBgmDirector Director => director;
+
+        public AudioRuntimeHost RuntimeHost => director != null ? director.GetComponentInChildren<AudioRuntimeHost>() : null;
+
+        public AudioBgmCueAsset ExpectedRouteBgm => expectedRouteBgm;
+
+        public AudioBgmCueAsset ExpectedStartupActivityBgm => expectedStartupActivityBgm;
+
+        public AudioBgmCueAsset ExpectedOwnActivityBgm => expectedOwnActivityBgm;
 
         public void Configure(
             RouteRequestTrigger nextOtherRouteTrigger,
