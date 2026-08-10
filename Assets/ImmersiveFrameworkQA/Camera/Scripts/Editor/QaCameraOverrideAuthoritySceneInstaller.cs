@@ -325,7 +325,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             Set(binding, "logDiagnostics", true);
         }
 
-        internal static void RepairHub()
+        private static void RepairHub()
         {
             Scene scene = EditorSceneManager.OpenScene(
                 HubScenePath,

@@ -164,6 +164,22 @@ namespace ImmersiveFrameworkQA.Camera
                 return true;
             }
 
+            CameraRequestId typedRequestId =
+                new CameraRequestId(RequestIdText);
+            if (outputSession != null &&
+                outputSession.Context != null &&
+                typedRequestId.IsValid &&
+                !outputSession.Context.Contains(typedRequestId))
+            {
+                publisher = null;
+                isLocallyEligible = false;
+                SetDiagnostic(
+                    "Preserved",
+                    "Synthetic Player request is already absent from the output context.",
+                    false);
+                return true;
+            }
+
             CameraRequestPublisherResult released = publisher.Release();
             if (!released.Succeeded)
             {

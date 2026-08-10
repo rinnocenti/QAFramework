@@ -20,7 +20,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         private const string MenuPath =
             "Immersive Framework/QA/Regressions/Camera/Run ADR-004B Negative Integrity Certification";
         private const string LogPrefix = "[QA_CAMERA_ADR004B]";
-        private const string PackageRevision =
+        private const string PackageBaseRevision =
             "bbaf05dbc7442290de8916fe312acd77a11f2b58";
         private const string QaBaseRevision =
             "f4ce36335878113e4b64e79d337c0645f6499707";
@@ -65,7 +65,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             {
                 Debug.Log(
                     $"{LogPrefix} status='Passed' cases='{passed}/{ExpectedCaseCount}' " +
-                    $"failed='0' blocked='0' packageRevision='{PackageRevision}' qaBaseRevision='{QaBaseRevision}' " +
+                    $"failed='0' blocked='0' packageBaseRevision='{PackageBaseRevision}' packagePatch='IF-ADR-004C' qaBaseRevision='{QaBaseRevision}' " +
                     "verdict='ADR-004B CAMERA NEGATIVE INTEGRITY CERTIFIED'.");
                 return;
             }
@@ -82,7 +82,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             Debug.LogError(
                 $"{LogPrefix} status='{status}' cases='{passed}/{ExpectedCaseCount}' " +
-                $"failed='{failed}' blocked='{blocked}' packageRevision='{PackageRevision}' qaBaseRevision='{QaBaseRevision}' " +
+                $"failed='{failed}' blocked='{blocked}' packageBaseRevision='{PackageBaseRevision}' packagePatch='IF-ADR-004C' qaBaseRevision='{QaBaseRevision}' " +
                 $"verdict='{verdict}'.");
         }
 
@@ -569,7 +569,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             return
                 "operation='CanonicalC9RRouteExit' owner='Route' lifetime='Route' " +
-                "resultingWinner='qa.camera.adr004b.route-lifecycle-survivor' delegated='C9R' cleanup='OwnerOnly'.";
+                "routeRequest='Released' sessionSurvivor='Preserved' " +
+                "winner='ArbitrationOwned' delegated='C9R' cleanup='OwnerOnly'.";
         }
 
         private static string Case16AbnormalOwnerLoss()

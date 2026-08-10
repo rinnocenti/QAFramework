@@ -56,7 +56,7 @@ session, cases 14-16 are reported as `Blocked`; they are never assumed.
 ```text
 01-13  QaCameraAdr004BNegativeIntegrityRegression
 14     canonical C9R Activity lifecycle cleanup evidence
-15     canonical C9R Route lifecycle cleanup + persistent Session survivor
+15     canonical C9R Route lifecycle cleanup + persistent Session survivor preservation
 16     focused C9R abnormal Route-owner disable probe
 17     QaPersistentCameraPresentationCompositionRegression / two-outputs
 18     QaCameraOutputSessionBindingAuthoringRegression / invalid references
@@ -71,6 +71,19 @@ use timing, reflection or a new production fault-injection service:
   valid higher-precedence request remains winner;
 - rollback failure: the valid winner's physical rig is then removed before the
   release, making both replacement apply and rollback apply fail deterministically.
+
+
+## Case 15 evidence boundary
+
+Route lifecycle cleanup owns the canonical Route request only. The C9R proof
+requires that the Route request is absent after Route exit and that the
+synthetic Session survivor remains admitted. It deliberately does **not**
+require that survivor to be the resulting winner.
+
+The persistent `SessionCameraOverrideBinding` may be re-published by the
+transition boundary and legitimately win by its higher precedence. Treating
+`winner == synthetic survivor` as a Route-cleanup invariant is therefore a QA
+false negative, not a framework contract.
 
 ## Case 16 decision gate
 
@@ -117,3 +130,24 @@ change the 11-case positive C9R contract. Therefore C9R may still finish with
 its canonical PASS while the ADR-004B probe has emitted `status='Failed'` for
 case 16. That is intentional: C9R proves the supported lifecycle path; 004B
 probes an abnormal owner-loss boundary and owns the certification verdict.
+
+## Observed certification handoff — 2026-08-10
+
+Manual C9R/ADR-004B execution reproduced abnormal Route-owner loss:
+
+```text
+case='16-abnormal-owner-loss'
+operation='DisableRouteOwner'
+admittedBefore='2'
+admittedAfter='2'
+orphan='True'
+```
+
+Cases 01-14 and 17-18 proved their intended boundaries. The initial case 15
+failure was a QA evidence error caused by requiring the synthetic Session
+survivor to be the winner after Route exit; that assertion has been narrowed
+to owner-scoped cleanup and survivor preservation.
+
+ADR-004B therefore remains **NOT CERTIFIED** because case 16 reproduced a
+package owner-lifetime defect. The next cut is `IF-ADR-004C — Camera Owner
+Lifetime Integrity`.

@@ -18,6 +18,8 @@ namespace ImmersiveFrameworkQA.Camera
             "[CAMERA_RUNTIME_HOST_INTEGRATION_REGRESSION]";
         private const string Adr004BLogPrefix =
             "[QA_CAMERA_ADR004B]";
+        private const string Adr004CLogPrefix =
+            "[QA_CAMERA_ADR004C]";
         private const int MaxReadinessFrames = 600;
         private const int ExpectedCaseCount = 11;
 
@@ -53,6 +55,21 @@ namespace ImmersiveFrameworkQA.Camera
         public static bool Adr004BOwnerLossInvariantPassed { get; private set; }
         public static string Adr004BOwnerLossDiagnostic { get; private set; } = string.Empty;
 
+        public static bool Adr004CActivityDisableExecuted { get; private set; }
+        public static bool Adr004CActivityDisablePassed { get; private set; }
+        public static bool Adr004CSessionDisableExecuted { get; private set; }
+        public static bool Adr004CSessionDisablePassed { get; private set; }
+        public static bool Adr004CNonWinnerDisableExecuted { get; private set; }
+        public static bool Adr004CNonWinnerDisablePassed { get; private set; }
+        public static bool Adr004CWinningRestoreExecuted { get; private set; }
+        public static bool Adr004CWinningRestorePassed { get; private set; }
+        public static bool Adr004CIdempotentCleanupExecuted { get; private set; }
+        public static bool Adr004CIdempotentCleanupPassed { get; private set; }
+        public static bool Adr004CActivityDestroyExecuted { get; private set; }
+        public static bool Adr004CActivityDestroyPassed { get; private set; }
+        public static bool Adr004CRouteReenableExecuted { get; private set; }
+        public static bool Adr004CRouteReenablePassed { get; private set; }
+
         public void RunFromContextMenu()
         {
             Begin();
@@ -76,6 +93,7 @@ namespace ImmersiveFrameworkQA.Camera
             completedCaseCount = 0;
             completedCases.Clear();
             ResetAdr004BEvidence();
+            ResetAdr004CEvidence();
 
             yield return WaitFor(Readiness, "persistent-output-readiness");
             if (HasFailed)
@@ -144,6 +162,10 @@ namespace ImmersiveFrameworkQA.Camera
                         "duplicate-release");
                     Complete("duplicate-release");
 
+                    RunAdr004CActivityDisableProbe();
+                    RunAdr004CNonWinnerDisableProbe();
+                    RunAdr004CSessionDisableProbe();
+
                     Require(activityBinding.RequestOverride().Succeeded,
                         "Activity lifecycle setup failed.");
                     Require(activityRequestTrigger != null,
@@ -179,6 +201,93 @@ namespace ImmersiveFrameworkQA.Camera
                     Adr004BActivityLifecyclePassed = true;
                     Complete("activity-lifecycle-cleanup");
 
+                    activityRequestTrigger.RequestActivity();
+                }))
+            {
+                yield break;
+            }
+
+            yield return WaitFor(
+                () => !activityRequestTrigger.IsRequestInFlight &&
+                    activityRequestTrigger.LastRequestSucceeded &&
+                    !activityRequestTrigger.LastRequestClearedActivity,
+                "adr004c-activity-reenter");
+            if (HasFailed)
+            {
+                yield break;
+            }
+
+            yield return WaitFor(
+                () => activityBinding != null &&
+                    activityBinding.IsOwnerActive,
+                "adr004c-activity-owner-reactivation");
+            if (HasFailed)
+            {
+                yield break;
+            }
+
+            string destroyedActivityRequestId = string.Empty;
+            if (!TryStep(() =>
+                {
+                    Require(activityBinding.RequestOverride().Succeeded,
+                        "ADR-004C Activity destruction setup could not publish the Activity request.");
+                    Winner(activityBinding.RequestIdText, activityComposer,
+                        "adr004c-activity-destroy-setup");
+                    destroyedActivityRequestId = activityBinding.RequestIdText;
+                    Destroy(activityBinding);
+                }))
+            {
+                yield break;
+            }
+
+            yield return null;
+
+            if (!TryStep(() =>
+                {
+                    CameraRequestId requestId =
+                        new CameraRequestId(destroyedActivityRequestId);
+                    bool removed =
+                        !Context.Contains(requestId);
+                    bool restoredPlayer =
+                        IsWinner(playerBinding.RequestIdText);
+
+                    Adr004CActivityDestroyExecuted = true;
+                    Adr004CActivityDestroyPassed =
+                        removed && restoredPlayer;
+
+                    Debug.Log(
+                        $"{Adr004CLogPrefix} case='activity-destruction' " +
+                        $"status='{(Adr004CActivityDestroyPassed ? "Passed" : "Failed")}' " +
+                        $"request='{destroyedActivityRequestId}' removed='{removed}' " +
+                        $"restoredPlayer='{restoredPlayer}'.",
+                        this);
+
+                    if (!removed)
+                    {
+                        CameraOutputSessionResult cleanup =
+                            outputSession.Session.Release(requestId);
+                        Require(cleanup.Succeeded,
+                            "ADR-004C Activity destruction fallback cleanup failed.");
+                    }
+
+                    activityRequestTrigger.ClearActivity();
+                }))
+            {
+                yield break;
+            }
+
+            yield return WaitFor(
+                () => !activityRequestTrigger.IsRequestInFlight &&
+                    activityRequestTrigger.LastRequestSucceeded &&
+                    activityRequestTrigger.LastRequestClearedActivity,
+                "adr004c-activity-clear-after-destroy");
+            if (HasFailed)
+            {
+                yield break;
+            }
+
+            if (!TryStep(() =>
+                {
                     RunAdr004BOwnerLossProbe();
 
                     Require(routeBinding.RequestOverride().Succeeded,
@@ -256,10 +365,216 @@ namespace ImmersiveFrameworkQA.Camera
                 "ADR-004B owner-loss probe cleanup left the Route request admitted.");
 
             routeBinding.enabled = true;
+
+            bool silentlyRepublished =
+                Context.Contains(typedRequestId);
+            Adr004CRouteReenableExecuted = true;
+            Adr004CRouteReenablePassed =
+                !silentlyRepublished && routeBinding.IsOwnerActive;
+
+            Debug.Log(
+                $"{Adr004CLogPrefix} case='route-disable-reenable' " +
+                $"status='{(Adr004CRouteReenablePassed ? "Passed" : "Failed")}' " +
+                $"request='{requestId}' orphan='{orphaned}' " +
+                $"silentRepublish='{silentlyRepublished}' " +
+                $"ownerActiveAfterReenable='{routeBinding.IsOwnerActive}'.",
+                this);
+
+            if (silentlyRepublished)
+            {
+                CameraOverrideResult silentCleanup =
+                    routeBinding.ReleaseOverride();
+                Require(silentCleanup.Succeeded,
+                    "ADR-004C Route silent re-publication cleanup failed.");
+            }
+
             Winner(playerBinding.RequestIdText, playerComposer,
                 "adr004b-owner-loss-cleanup");
         }
 
+        private void RunAdr004CActivityDisableProbe()
+        {
+            Require(activityBinding != null,
+                "ADR-004C Activity disable probe requires the canonical Activity binding.");
+            Require(activityBinding.RequestOverride().Succeeded,
+                "ADR-004C Activity disable setup could not publish the Activity request.");
+            Winner(activityBinding.RequestIdText, activityComposer,
+                "adr004c-activity-disable-setup");
+
+            CameraRequestId requestId =
+                new CameraRequestId(activityBinding.RequestIdText);
+            activityBinding.enabled = false;
+
+            bool removed = !Context.Contains(requestId);
+            bool restoredPlayer = IsWinner(playerBinding.RequestIdText);
+
+            CameraOverrideResult repeatedCleanup =
+                activityBinding.ReleaseOverride();
+            bool idempotent =
+                repeatedCleanup.Succeeded &&
+                repeatedCleanup.Operation ==
+                CameraOverrideOperationKind.Preserved;
+
+            activityBinding.enabled = true;
+            bool silentRepublish = Context.Contains(requestId);
+            bool ownerStillActive = activityBinding.IsOwnerActive;
+
+            Adr004CActivityDisableExecuted = true;
+            Adr004CActivityDisablePassed =
+                removed &&
+                !silentRepublish &&
+                ownerStillActive;
+            Adr004CWinningRestoreExecuted = true;
+            Adr004CWinningRestorePassed =
+                removed && restoredPlayer;
+            Adr004CIdempotentCleanupExecuted = true;
+            Adr004CIdempotentCleanupPassed = idempotent;
+
+            Debug.Log(
+                $"{Adr004CLogPrefix} case='activity-disable' " +
+                $"status='{(Adr004CActivityDisablePassed ? "Passed" : "Failed")}' " +
+                $"request='{requestId.Value}' removed='{removed}' " +
+                $"restoredPlayer='{restoredPlayer}' silentRepublish='{silentRepublish}' " +
+                $"ownerActiveAfterReenable='{ownerStillActive}' " +
+                $"repeatedCleanup='{repeatedCleanup.Operation}'.",
+                this);
+
+            if (!removed || silentRepublish)
+            {
+                CameraOverrideResult cleanup =
+                    activityBinding.ReleaseOverride();
+                Require(cleanup.Succeeded,
+                    "ADR-004C Activity disable fallback cleanup failed.");
+            }
+
+            Require(activityBinding.RequestOverride().Succeeded,
+                "ADR-004C Activity binding could not explicitly publish after re-enable while its logical Activity owner remained active.");
+            Winner(activityBinding.RequestIdText, activityComposer,
+                "adr004c-activity-disable-explicit-republish");
+            Require(activityBinding.ReleaseOverride().Succeeded,
+                "ADR-004C Activity disable probe could not release the explicit re-publication.");
+            Winner(playerBinding.RequestIdText, playerComposer,
+                "adr004c-activity-disable-cleanup");
+        }
+
+        private void RunAdr004CNonWinnerDisableProbe()
+        {
+            Require(activityBinding.RequestOverride().Succeeded,
+                "ADR-004C non-winner setup could not publish the Activity request.");
+            Require(routeBinding.RequestOverride().Succeeded,
+                "ADR-004C non-winner setup could not publish the Route request.");
+            Winner(routeBinding.RequestIdText, routeComposer,
+                "adr004c-nonwinner-route-winner");
+
+            CameraRequestId activityRequestId =
+                new CameraRequestId(activityBinding.RequestIdText);
+            CameraRequestId routeRequestId =
+                new CameraRequestId(routeBinding.RequestIdText);
+
+            activityBinding.enabled = false;
+
+            bool activityRemoved =
+                !Context.Contains(activityRequestId);
+            bool routePreserved =
+                Context.Contains(routeRequestId) &&
+                IsWinner(routeBinding.RequestIdText);
+
+            Adr004CNonWinnerDisableExecuted = true;
+            Adr004CNonWinnerDisablePassed =
+                activityRemoved && routePreserved;
+
+            Debug.Log(
+                $"{Adr004CLogPrefix} case='nonwinner-disable' " +
+                $"status='{(Adr004CNonWinnerDisablePassed ? "Passed" : "Failed")}' " +
+                $"removed='{activityRequestId.Value}' routePreserved='{routePreserved}' " +
+                $"winner='{(Context.HasWinner ? Context.Winner.RequestId.Value : "<none>")}'.",
+                this);
+
+            if (!activityRemoved)
+            {
+                CameraOverrideResult cleanup =
+                    activityBinding.ReleaseOverride();
+                Require(cleanup.Succeeded,
+                    "ADR-004C non-winner Activity fallback cleanup failed.");
+            }
+
+            activityBinding.enabled = true;
+            Require(!Context.Contains(activityRequestId),
+                "ADR-004C Activity request silently re-published after non-winner re-enable.");
+
+            Require(routeBinding.ReleaseOverride().Succeeded,
+                "ADR-004C non-winner Route cleanup failed.");
+            Winner(playerBinding.RequestIdText, playerComposer,
+                "adr004c-nonwinner-cleanup");
+        }
+
+        private void RunAdr004CSessionDisableProbe()
+        {
+            Require(sessionOverride != null,
+                "ADR-004C Session disable probe requires the persistent Session binding.");
+            Require(sessionOverride.RequestOverride().Succeeded,
+                "ADR-004C Session disable setup could not publish the Session request.");
+            Winner(
+                sessionOverride.RequestIdText,
+                sessionOverride.RigComposer,
+                "adr004c-session-disable-setup");
+
+            CameraRequestId requestId =
+                new CameraRequestId(sessionOverride.RequestIdText);
+            sessionOverride.enabled = false;
+
+            bool removed = !Context.Contains(requestId);
+            bool restoredPlayer = IsWinner(playerBinding.RequestIdText);
+
+            CameraOverrideResult repeatedCleanup =
+                sessionOverride.ReleaseOverride();
+            bool idempotent =
+                repeatedCleanup.Succeeded &&
+                repeatedCleanup.Operation ==
+                CameraOverrideOperationKind.Preserved;
+
+            sessionOverride.enabled = true;
+            bool silentRepublish =
+                Context.Contains(requestId);
+            bool ownerReactivated =
+                sessionOverride.IsOwnerActive;
+
+            Adr004CSessionDisableExecuted = true;
+            Adr004CSessionDisablePassed =
+                removed &&
+                restoredPlayer &&
+                !silentRepublish &&
+                ownerReactivated;
+            Adr004CIdempotentCleanupPassed &=
+                idempotent;
+
+            Debug.Log(
+                $"{Adr004CLogPrefix} case='session-disable' " +
+                $"status='{(Adr004CSessionDisablePassed ? "Passed" : "Failed")}' " +
+                $"request='{requestId.Value}' removed='{removed}' restoredPlayer='{restoredPlayer}' " +
+                $"silentRepublish='{silentRepublish}' ownerActiveAfterReenable='{ownerReactivated}' " +
+                $"repeatedCleanup='{repeatedCleanup.Operation}'.",
+                this);
+
+            if (!removed || silentRepublish)
+            {
+                CameraOverrideResult cleanup =
+                    sessionOverride.ReleaseOverride();
+                Require(cleanup.Succeeded,
+                    "ADR-004C Session disable fallback cleanup failed.");
+            }
+
+            Require(sessionOverride.RequestOverride().Succeeded,
+                "ADR-004C Session binding could not explicitly publish after re-enable.");
+            Winner(
+                sessionOverride.RequestIdText,
+                sessionOverride.RigComposer,
+                "adr004c-session-disable-explicit-republish");
+            Require(sessionOverride.ReleaseOverride().Succeeded,
+                "ADR-004C Session disable probe could not release the explicit re-publication.");
+            Winner(playerBinding.RequestIdText, playerComposer,
+                "adr004c-session-disable-cleanup");
+        }
 
         private void PublishRouteLifecycleSurvivor()
         {
@@ -347,17 +662,19 @@ namespace ImmersiveFrameworkQA.Camera
             CameraRequestId survivorId =
                 new CameraRequestId(RouteLifecycleSurvivorRequestId);
             if (!survivorId.IsValid ||
-                !outputSession.Context.Contains(survivorId) ||
-                !outputSession.Context.HasWinner ||
-                outputSession.Context.Winner.RequestId != survivorId)
+                !outputSession.Context.Contains(survivorId))
             {
                 Adr004BRouteLifecyclePassed = false;
                 Fail(
-                    "route-lifecycle-cleanup did not preserve the persistent Session request while releasing the Route owner. " +
+                    "route-lifecycle-cleanup did not preserve the persistent Session survivor while releasing the Route owner. " +
                     State());
                 return;
             }
 
+            // Route cleanup owns only the Route request. The transition boundary
+            // may legitimately re-publish the canonical Session override at a
+            // higher precedence, so survivor preservation must not require the
+            // synthetic Session survivor to become the current winner.
             Adr004BRouteLifecyclePassed = true;
 
             CameraRequestPublisherResult survivorCleanup =
@@ -396,6 +713,24 @@ namespace ImmersiveFrameworkQA.Camera
             Adr004BOwnerLossExecuted = false;
             Adr004BOwnerLossInvariantPassed = false;
             Adr004BOwnerLossDiagnostic = string.Empty;
+        }
+
+        private static void ResetAdr004CEvidence()
+        {
+            Adr004CActivityDisableExecuted = false;
+            Adr004CActivityDisablePassed = false;
+            Adr004CSessionDisableExecuted = false;
+            Adr004CSessionDisablePassed = false;
+            Adr004CNonWinnerDisableExecuted = false;
+            Adr004CNonWinnerDisablePassed = false;
+            Adr004CWinningRestoreExecuted = false;
+            Adr004CWinningRestorePassed = false;
+            Adr004CIdempotentCleanupExecuted = false;
+            Adr004CIdempotentCleanupPassed = true;
+            Adr004CActivityDestroyExecuted = false;
+            Adr004CActivityDestroyPassed = false;
+            Adr004CRouteReenableExecuted = false;
+            Adr004CRouteReenablePassed = false;
         }
 
         private bool Readiness()

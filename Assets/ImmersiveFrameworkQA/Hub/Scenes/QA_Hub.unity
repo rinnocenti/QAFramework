@@ -243,7 +243,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: ImmersiveFrameworkQA.Hub.Runtime::ImmersiveFrameworkQA.Hub.QaHubPanel
   entries:
   - domain: Camera
-    label: Camera Runtime Host Integration Regression
+    label: Camera Override Authority
     routeRequestTrigger: {fileID: 1284668987}
   - domain: Player
     label: Player Gameplay Admission Regression
@@ -412,7 +412,7 @@ GameObject:
   - component: {fileID: 1284668988}
   - component: {fileID: 1284668987}
   m_Layer: 0
-  m_Name: RouteTrigger_Camera_Runtime_Host_Integration_Regression
+  m_Name: RouteTrigger_Camera__Override_Authority
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -430,8 +430,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
-  targetRoute: {fileID: 11400000, guid: c782be7cec6147dfa0cbc5006f8e36dc, type: 2}
-  reason: qa.hub.route.camera_runtime_host_integration_regression
+  targetRoute: {fileID: 11400000, guid: 8ee67928cfa62234aa2cbadde2b7f41b, type: 2}
+  reason: qa.hub.route.camera_override_authority
 --- !u!4 &1284668988
 Transform:
   m_ObjectHideFlags: 0
@@ -446,6 +446,51 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 296167724}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1449548905
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1449548907}
+  - component: {fileID: 1449548906}
+  m_Layer: 0
+  m_Name: QA__RouteCompletionCoordinator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1449548906
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1449548905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96e1da14381b49408cec7cf88f913432, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Camera.QaCameraOverrideAuthorityCompletionCoordinator
+  routeTrigger: {fileID: 1284668987}
+--- !u!4 &1449548907
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1449548905}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1569853676
 GameObject:
@@ -591,3 +636,4 @@ SceneRoots:
   m_Roots:
   - {fileID: 497015385}
   - {fileID: 296167724}
+  - {fileID: 1449548907}

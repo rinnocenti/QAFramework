@@ -1,4 +1,4 @@
-﻿using Immersive.Framework.Authoring;
+using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using System;
 using System.Collections.Generic;
@@ -129,11 +129,6 @@ namespace ImmersiveFrameworkQA.Hub.Editor
                 throw new InvalidOperationException(
                     $"Could not save the QA Hub scene at '{HubScenePath}'.");
             }
-
-            // Camera owns its route-completion coordinator. Re-apply that
-            // domain-owned Hub materialization after any generic Hub rebuild so
-            // other setup flows (for example Audio) cannot silently erase it.
-            QaCameraOverrideAuthoritySceneInstaller.RepairHub();
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
