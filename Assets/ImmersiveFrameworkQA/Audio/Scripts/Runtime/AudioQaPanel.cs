@@ -4,6 +4,7 @@ using System.Text;
 using Immersive.Audio.Authoring;
 using Immersive.Audio.Contracts;
 using Immersive.Audio.Unity.Hosts;
+using Immersive.Framework.Audio;
 using UnityEngine;
 
 namespace ImmersiveFrameworkQA.Audio
@@ -21,6 +22,7 @@ namespace ImmersiveFrameworkQA.Audio
         [SerializeField] private AudioSfxCueAsset pooledSfxCue;
         [SerializeField] private AudioSfxCueAsset missingClipSfxCue;
         [SerializeField] private AudioBgmCueAsset bgmCue;
+        [SerializeField] private FrameworkBgmQaPanel frameworkBgmPanel;
 
         [Header("Panel")]
         [SerializeField] private Rect panelRect = new Rect(16f, 16f, 560f, 650f);
@@ -249,6 +251,11 @@ namespace ImmersiveFrameworkQA.Audio
             SetResult(true, "Audio QA counters reset.");
         }
 
+        public void ConfigureFrameworkBgmPanel(FrameworkBgmQaPanel panel)
+        {
+            frameworkBgmPanel = panel;
+        }
+
         private IEnumerator RunBgmSmokeRoutine()
         {
             bool playOk = false;
@@ -378,7 +385,7 @@ namespace ImmersiveFrameworkQA.Audio
         private void OnGUI()
         {
             panelRect = ClampPanelRect(panelRect);
-            panelRect = ClampPanelRect(GUI.Window(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this), panelRect, DrawWindow, "Immersive Audio QA"));
+            panelRect = ClampPanelRect(GUI.Window(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this), panelRect, DrawWindow, "AUDIO QA"));
         }
 
         private void DrawWindow(int windowId)
@@ -487,9 +494,26 @@ namespace ImmersiveFrameworkQA.Audio
                 RunBgmSmoke();
             }
 
-            if (GUILayout.Button("Run All Audio Smokes"))
+            if (GUILayout.Button("Run All Audio QA"))
             {
                 RunAllSmokes();
+            }
+
+            GUILayout.Space(10f);
+            GUILayout.Label("Framework BGM", GUI.skin.label);
+            if (frameworkBgmPanel == null)
+            {
+                DrawStatusLine("Framework BGM", "Fixture missing. Run Configure Audio QA.");
+            }
+            else
+            {
+                if (GUILayout.Button("Request Startup Activity BGM")) frameworkBgmPanel.RequestStartupActivity();
+                if (GUILayout.Button("Request Activity Own BGM")) frameworkBgmPanel.RequestOwnActivity();
+                if (GUILayout.Button("Request Retain Previous Activity")) frameworkBgmPanel.RequestRetainPreviousActivity();
+                if (GUILayout.Button("Request Route Fallback Activity")) frameworkBgmPanel.RequestRouteFallbackActivity();
+                if (GUILayout.Button("Request Silence Activity")) frameworkBgmPanel.RequestSilenceActivity();
+                if (GUILayout.Button("Clear Activity BGM")) frameworkBgmPanel.ClearActivity();
+                if (GUILayout.Button("Request Route B Fixture")) frameworkBgmPanel.RequestOtherRoute();
             }
 
             GUILayout.Space(10f);

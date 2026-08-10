@@ -28,8 +28,7 @@ namespace ImmersiveFrameworkQA.Audio.Editor
         private const string BgmCuePath = ScriptableObjects + "/QA_BgmCue.asset";
         private const string PooledAudioSourcePrefabPath = Prefabs + "/QA_PooledAudioSource.prefab";
 
-        [MenuItem("Immersive Framework/QA/Setup/Audio/Create or Refresh Audio QA Scene")]
-        public static void CreateOrRefreshAudioQaScene()
+        public static void ConfigureAudioQa()
         {
             EnsureFolders();
 
@@ -93,8 +92,9 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             AudioQaGeneratedClipRepair.EnsureGeneratedClipsAndAssignments();
+            FrameworkBgmQaSceneBuilder.ConfigureForAudioQa();
 
-            Debug.Log($"[AUDIO_QA] QA Audio scene created or refreshed at '{ScenePath}'.");
+            Debug.Log($"[AUDIO_QA_SETUP] status='Applied' primaryScene='{ScenePath}' fixtureScene='Assets/ImmersiveFrameworkQA/Audio/Scenes/QA_AudioRouteB.unity'.");
         }
 
         private static void EnsureFolders()

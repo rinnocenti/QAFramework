@@ -3,6 +3,7 @@ using Immersive.Framework.GameFlow;
 using System;
 using System.Collections.Generic;
 using ImmersiveFrameworkQA.Hub;
+using ImmersiveFrameworkQA.Audio.Editor;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -36,7 +37,11 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             new(
                 "Pooling",
                 "Pooling Runtime Regression",
-                Root + "/Pooling/Routes/QA_PoolingRoute.asset")
+                Root + "/Pooling/Routes/QA_PoolingRoute.asset"),
+            new(
+                "Audio",
+                "Audio QA",
+                Root + "/Audio/Routes/QA_FrameworkBgmRoute.asset")
         };
 
         [MenuItem("Immersive Framework/QA/Setup/Hub/Create or Refresh QA Hub")]
@@ -54,6 +59,22 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             {
                 Debug.LogError(
                     $"[QA_HUB_SETUP] status='Failed' reason='{FormatDiagnostic(exception)}'");
+                throw;
+            }
+        }
+
+        [MenuItem("Immersive Framework/QA/Setup/Audio/Configure Audio QA")]
+        public static void ConfigureAudioQa()
+        {
+            try
+            {
+                AudioQaSceneBuilder.ConfigureAudioQa();
+                CreateOrRefreshHubForSetup();
+                Debug.Log("[AUDIO_QA_SETUP] status='Applied' hub='QA_Hub' primaryScene='QA_Audio'.");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError($"[AUDIO_QA_SETUP] status='Failed' reason='{FormatDiagnostic(exception)}'");
                 throw;
             }
         }

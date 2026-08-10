@@ -231,7 +231,7 @@ namespace ImmersiveFrameworkQA.Audio
             DrawClearButton(clearActivityTrigger, "7. Clear Activity After Silence", ClearActivity);
             GUILayout.Label("   Expected cue: " + FormatCue(expectedRouteBgm));
 
-            DrawActivityButton(ownActivityTrigger, "8. Restore Retained Activity BGM", RequestOwnActivity);
+            DrawActivityButton(ownActivityTrigger, "8. Request Own Activity BGM Again", RequestOwnActivity);
             DrawRouteButton(otherRouteTrigger, "9. Route Switch Clears Retained Activity BGM", RequestOtherRoute);
             GUILayout.Label("   Expected: retained Activity BGM becomes <silence> or route-local only after route switch.");
         }

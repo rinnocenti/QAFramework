@@ -24,8 +24,8 @@ namespace ImmersiveFrameworkQA.Audio.Editor
         private const string Routes = Root + "/Routes";
         private const string Activities = Root + "/Activities";
 
-        private const string CanonicalScenePath = Scenes + "/QA_FrameworkBgm.unity";
-        private const string AlternateScenePath = Scenes + "/QA_FrameworkBgmRouteB.unity";
+        private const string CanonicalScenePath = Scenes + "/QA_Audio.unity";
+        private const string AlternateScenePath = Scenes + "/QA_AudioRouteB.unity";
 
         private const string CanonicalRoutePath = Routes + "/QA_FrameworkBgmRoute.asset";
         private const string AlternateRoutePath = Routes + "/QA_FrameworkBgmRouteB.asset";
@@ -42,8 +42,7 @@ namespace ImmersiveFrameworkQA.Audio.Editor
         private const string StartupActivityCuePath = ScriptableObjects + "/QA_FrameworkBgm_StartupActivityCue.asset";
         private const string OwnActivityCuePath = ScriptableObjects + "/QA_FrameworkBgm_ActivityCue.asset";
 
-        [MenuItem("Immersive Framework/QA/Setup/Audio/Configure Framework BGM Route-Activity QA")]
-        public static void ConfigureFrameworkBgmQa()
+        public static void ConfigureForAudioQa()
         {
             EnsureFolders();
 
@@ -119,7 +118,7 @@ namespace ImmersiveFrameworkQA.Audio.Editor
 
             if (canonicalConfigured && alternateConfigured)
             {
-                Debug.Log("[FRAMEWORK_BGM_QA_SETUP] Framework BGM Route/Activity QA configured under Assets/ImmersiveFrameworkQA/Audio.");
+                Debug.Log("[AUDIO_QA_SETUP] frameworkBgmFixture='Applied' primaryScene='QA_Audio' routeBFixture='QA_AudioRouteB'.");
                 return;
             }
 
@@ -143,11 +142,12 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             Vector3 cameraPosition,
             Color backgroundColor)
         {
-            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            Scene scene = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath) != null
+                ? EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single)
+                : EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             scene.name = System.IO.Path.GetFileNameWithoutExtension(scenePath);
 
-            CreateCamera(cameraPosition, backgroundColor);
-            CreateLight(label);
+            EnsureScenePresentation(scene, cameraPosition, backgroundColor, label);
 
             GameObject root = EnsureRoot(scene, $"QA_FrameworkBgmRoot_{label}");
             RouteContentBinding routeContentBinding = EnsureComponent<RouteContentBinding>(root);
@@ -351,7 +351,27 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                 startupCue,
                 ownActivityCue);
             panel.ConfigureLayout(new Rect(16f, 16f, 700f, 740f), new Vector2(480f, 440f), 640f);
+            SetSerialized(panel, "showPanel", false);
+            AudioQaPanel primaryPanel = FindInScene(scene, "QA_AudioPanel")?.GetComponent<AudioQaPanel>();
+            if (primaryPanel != null)
+            {
+                primaryPanel.ConfigureFrameworkBgmPanel(panel);
+                EditorUtility.SetDirty(primaryPanel);
+            }
             EditorUtility.SetDirty(panel);
+        }
+
+        private static void EnsureScenePresentation(Scene scene, Vector3 cameraPosition, Color backgroundColor, string label)
+        {
+            if (FindInScene(scene, "QA_AudioCamera") == null && FindInScene(scene, "QA_FrameworkBgmCamera") == null)
+            {
+                CreateCamera(cameraPosition, backgroundColor);
+            }
+
+            if (FindInScene(scene, "QA_AudioLight") == null && FindInScene(scene, "QA_FrameworkBgmLight_" + label) == null)
+            {
+                CreateLight(label);
+            }
         }
 
         private static RouteRequestTrigger EnsureRouteTrigger(Scene scene, Transform parent, string name, RouteAsset targetRoute, string reason)

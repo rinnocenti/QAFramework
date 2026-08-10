@@ -3,6 +3,7 @@
   "rootNamespace": "ImmersiveFrameworkQA.Hub.Editor",
   "references": [
     "ImmersiveFrameworkQA.Hub.Runtime",
+    "ImmersiveFrameworkQA.Audio.Editor",
     "Immersive.Framework.Runtime"
   ],
   "includePlatforms": [
