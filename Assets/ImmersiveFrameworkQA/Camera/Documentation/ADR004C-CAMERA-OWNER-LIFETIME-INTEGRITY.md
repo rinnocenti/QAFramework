@@ -1,174 +1,165 @@
 # IF-ADR-004C — Camera Owner Lifetime Integrity
 
-## Status
-
-IMPLEMENTED — READY FOR MANUAL/ONE-BUTTON RETEST.
-
-Triggered by ADR-004B case 16 on 2026-08-10.
+Status: **CERTIFIED — 10/10**  
+Last updated: **2026-08-10**  
+Triggered by: **ADR-004B case 16**
 
 ## Trigger evidence
 
-Canonical C9R composition and public Camera APIs reproduced an admitted Route
-request surviving abnormal owner disable:
+Canonical C9R composition reproduced an admitted Route request surviving
+abnormal component disable:
 
 ```text
-[QA_CAMERA_ADR004B]
 case='16-abnormal-owner-loss'
 operation='DisableRouteOwner'
 request='qa.camera.request.c9r.route'
-owner='Route'
-lifetime='Route'
-output='camera.output.main'
 admittedBefore='2'
 admittedAfter='2'
 orphan='True'
 ```
 
-Normal Activity and Route lifecycle exits remained valid. ADR-004B therefore
-isolated an abnormal Unity component-lifetime gap rather than a Route/Activity
-lifecycle-composition failure.
+Normal Activity and Route lifecycle exits still passed. The first causal
+divergence was therefore component/publication lifetime, not Route/Activity Game
+Flow ownership.
 
 ## Ownership decision
 
-The source comparison establishes two different lifetimes:
+Two lifetimes are distinct:
 
 ```text
 logical owner lifetime
-  Route    -> IRouteContentLifecycleReceiver enter/exit
-  Activity -> IActivityContentLifecycleReceiver enter/exit
-  Session  -> SessionCameraOverrideBinding enable/disable
+  Route    -> Route enter/exit
+  Activity -> Activity enter/exit
+  Session  -> Session binding availability
 
 publication/component lifetime
-  ScopedCameraOverrideBinding -> publisher + overrideActive
+  ScopedCameraOverrideBinding
+    -> publisher
+    -> overrideActive
 ```
 
-`RouteCameraOverrideBinding` and `ActivityCameraOverrideBinding` must not treat a
-temporary component disable as a synthetic Route/Activity exit. Their logical
-owner can still be active after the component is re-enabled.
+A temporary Route/Activity component disable must not synthesize logical owner
+exit. The fix therefore belongs to the existing scoped publication owner.
 
-The correction therefore belongs in the existing scoped publication owner:
+## Package correction
 
 ```text
 ScopedCameraOverrideBinding.OnDisable
   -> release owned publication only
 
 ScopedCameraOverrideBinding.OnDestroy
-  -> final idempotent release safety net
+  -> final idempotent publication release
 ```
 
-These hooks do **not** set `ownerActive = false` and do not re-publish.
+Those shared hooks do not set Route/Activity `ownerActive = false` and do not
+re-publish on re-enable.
 
-`SessionCameraOverrideBinding` remains different because the component itself is
-the Session owner. It overrides both hooks and uses `EndOwnerScope(...)`.
+Session is different because its component owns Session availability:
 
-No new service, manager, context, runtime host, lookup, fallback or lifecycle
-orchestrator is introduced.
+```text
+SessionCameraOverrideBinding.OnDisable
+  -> EndOwnerScope(...)
 
-## Package correction
+SessionCameraOverrideBinding.OnDestroy
+  -> EndOwnerScope(...)
+```
 
-Files:
+Package files:
 
 ```text
 Runtime/Camera/Bindings/ScopedCameraOverrideBinding.cs
 Runtime/Camera/Bindings/SessionCameraOverrideBinding.cs
 ```
 
-Behavior:
-
-1. abnormal disable releases an admitted scoped request;
-2. abnormal destruction has a final idempotent release path;
-3. normal Route/Activity exit remains authoritative for logical owner end;
-4. repeated cleanup is preserved/idempotent;
-5. re-enable never silently publishes;
-6. Route/Activity may explicitly publish again while their already-entered
-   logical owner remains valid;
-7. Session re-enable re-establishes Session owner availability through its
-   existing `OnEnable`, but still does not auto-publish.
+No manager, service, registry, context, runtime host, fallback or alternate
+lifecycle was added.
 
 ## QA reuse
 
-No new fixture or setup is created.
+No new setup or lifecycle fixture was created. C9R remains the canonical Camera
+fixture and retains its 11-case positive contract. 004C probes additional owner
+lifetime boundaries during the same execution and the Editor regression consumes
+that evidence afterwards.
 
-The canonical C9R fixture remains the owner of real lifecycle composition and
-now records additional ADR-004C evidence without changing its canonical 11-case
-count.
-
-The new Editor regression only consumes that evidence in the same Play Mode
-session:
+Menu:
 
 ```text
-Immersive Framework/QA/Regressions/Camera/
+Immersive Framework > QA > Regressions > Camera >
 Run ADR-004C Owner Lifetime Integrity Certification
 ```
 
-## Certification matrix
-
-After source investigation the executable matrix is fixed at 10 cases:
+## Certified matrix
 
 ```text
-01 Activity normal exit releases owned request
-02 Route normal exit releases owned request
-03 Session disable releases request and re-enable remains explicit-only
-04 Route abnormal disable releases request
-05 Activity abnormal disable releases request without ending logical owner
-06 Activity destruction releases request through shared scoped lifetime hook
-07 non-winning Activity loss removes only Activity request and preserves Route
-08 winning Activity loss restores next valid Player request
-09 disable cleanup followed by explicit release is idempotent/Preserved
-10 Route/Activity/Session re-enable never silently re-publishes
+01 Activity normal exit
+02 Route normal exit
+03 Session disable cleanup
+04 Route abnormal disable cleanup
+05 Activity abnormal disable cleanup
+06 Activity destruction cleanup
+07 non-winner owner-only cleanup
+08 winning owner restores next
+09 cleanup idempotent
+10 re-enable without silent republish
 ```
 
-Route abnormal disable and Activity abnormal destruction exercise the same
-inherited scoped publication hooks from two concrete lifecycle owners. Normal
-Route exit remains independently covered by C9R, so the QA does not create a
-second destructive Route fixture solely to duplicate the inherited callback.
-
-## Timeline
+## Executed certification
 
 ```text
-C9R starts with canonical Player winner
-  -> normal precedence/restore/duplicate cases
-  -> Activity disable probe
-  -> non-winner Activity disable probe under Route winner
-  -> Session disable probe
-  -> normal Activity exit
-  -> Activity re-enter
-  -> destroy active Activity binding
-  -> clear Activity
-  -> Route abnormal disable probe (ADR-004B case 16)
-  -> normal Route exit
-  -> C9R 11/11 summary
-  -> run ADR-004C certification in same Play Mode
-  -> rerun ADR-004B certification in same Play Mode
-```
-
-The probes record evidence and perform explicit fallback cleanup only when a
-negative invariant fails, so the canonical C9R lifecycle can still reach its
-normal Route-exit proof and report the first causal divergence separately.
-
-## Retest gate
-
-Expected success:
-
-```text
-[CAMERA_RUNTIME_HOST_INTEGRATION_REGRESSION]
-status='Passed'
-cases='11'
-
 [QA_CAMERA_ADR004C]
 status='Passed'
 cases='10/10'
 failed='0'
+packageBaseRevision='bbaf05dbc7442290de8916fe312acd77a11f2b58'
 verdict='ADR-004C CAMERA OWNER LIFETIME INTEGRITY CERTIFIED'
-
-[QA_CAMERA_ADR004B]
-status='Passed'
-cases='18/18'
-failed='0'
-blocked='0'
-verdict='ADR-004B CAMERA NEGATIVE INTEGRITY CERTIFIED'
 ```
 
-If ADR-004C passes but ADR-004B case 16 still fails, the package correction is
-not accepted. If C9R normal lifecycle regresses, the package correction is also
-not accepted.
+The original 004B owner-loss probe now reports:
+
+```text
+admittedBefore='2'
+admittedAfter='1'
+orphan='False'
+```
+
+C9R remained green and 004B then certified all negative-integrity cases:
+
+```text
+C9R      11/11 PASS
+004C     10/10 PASS
+004B     18/18 PASS
+```
+
+## Certified behavior
+
+- normal lifecycle exit remains authoritative for logical Route/Activity end;
+- component disable/destroy cannot leave its Camera publication orphaned;
+- Session disable/destroy ends Session scope;
+- non-winning owner loss does not perturb the current winner;
+- winning owner loss restores the next valid request;
+- repeated cleanup is idempotent;
+- re-enable does not silently publish;
+- explicit publication remains possible only while logical owner state is valid.
+
+## Post-certification QA teardown hygiene
+
+The later synthetic Local Player `release-not-found` teardown diagnostic is a
+QA-only local-state reconciliation issue. It occurs after the C9R/004C/004B gates
+are already green and does not indicate an owner-lifetime package regression.
+
+The v10 QA patch addresses only that teardown hygiene. A clean-log rerun of v10
+was still pending when this document was updated.
+
+## Verdict
+
+```text
+IF-ADR-004C
+  ACCEPTED / IMPLEMENTED / CERTIFIED
+  cases=10/10
+
+IF-ADR-004B after 004C
+  CERTIFIED 18/18
+
+C9R positive lifecycle
+  PASS 11/11
+```

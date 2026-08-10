@@ -1,177 +1,129 @@
 # Immersive Framework QA
 
+This project contains technical QA for the Immersive Framework. The QA source of
+truth is the current product contract, not historical cut numbering.
+
+## Principles
+
+```text
+QA proves the framework.
+QA does not create a parallel runtime.
+```
+
+- use public framework APIs and canonical lifecycle composition;
+- setup materializes authored configuration;
+- fixture owns references/scope;
+- regression executes contracts and records evidence;
+- orchestrators coordinate already-valid regressions and do not reproduce setup
+  or assertions;
+- capture baseline before mutation;
+- acquire scoped endpoints while the scope is valid;
+- cleanup is idempotent and follows ownership in reverse order;
+- do not use reflection, service locators, global opportunistic lookup or silent
+  fallbacks to make a smoke pass.
+
+## Current domain surfaces
+
+- `Player/`: Player Session, provisioning, Actor selection, participation and
+  current public Player contracts.
+- `Camera/`: Camera rig materialization, persistent output authoring,
+  canonical C9R authority, ADR-004B negative integrity and ADR-004C owner lifetime
+  certification.
+- `GameFlow/`: Route/Activity request, reset/restart and lifecycle contracts.
+- `ActivityFlow/`: Activity transaction/readiness behavior.
+- `InputMode/`, `Pause/`, `Transition/`, `Loading/`, `Reset/`, `Audio/` and other
+  focused product domains retain their own canonical technical proofs.
+
+Historical inventories may list removed or merged smokes. They are evidence of
+past state, not the current execution surface.
+
+## Camera QA — current architecture
+
+Camera uses one canonical positive lifecycle plus focused certification runners.
+
+```text
+C9M Follow Pipeline
+  -> local CameraRigComposer / Follow materialization
+
+C9R Camera Override Authority
+  -> positive Player / Activity / Route / Session authority lifecycle
+
+ADR-004C Owner Lifetime Integrity
+  -> abnormal component disable/destroy cleanup
+
+ADR-004B Negative Integrity
+  -> deterministic negatives, rollback and delegated lifecycle/authoring proof
+```
+
+Current executed certification:
+
+```text
+C9R      11/11 PASS
+ADR004C  10/10 PASS
+ADR004B  18/18 PASS
+```
+
+### Camera setup
+
+```text
+Immersive Framework > QA > Setup > Camera >
+Install Camera Override Authority QA
+```
+
+The setup repairs the existing C9R fixture and persistent output composition. It
+must not create a parallel Camera authority.
+
+### Camera execution order
+
+In one Play Mode session:
+
+```text
+1. Camera Override Authority from QA Hub
+2. wait for C9R 11/11 and return to Hub
+3. Run ADR-004C Owner Lifetime Integrity Certification
+4. Run ADR-004B Negative Integrity Certification
+```
+
+ADR-004B cases 14-16 consume C9R lifecycle evidence from that Play Mode session.
+
+### Camera certification documents
+
+- `Camera/Documentation/C9R-CAMERA-OVERRIDE-AUTHORITY-QA.md`
+- `Camera/Documentation/ADR004C-CAMERA-OWNER-LIFETIME-INTEGRITY.md`
+- `Camera/Documentation/ADR004B-CAMERA-NEGATIVE-INTEGRITY-QA.md`
+- `Camera/Documentation/CAMERA-QA-CONSOLIDATION-CLOSURE-2026-08-10.md`
+
+### Camera consolidation
+
+The current Camera QA intentionally does not restore historical UX/reflection or
+Runtime Host integration smokes whose contract was absorbed by the canonical
+surfaces. See the Camera consolidation closure document for the current retained
+surface.
+
+A QA-only v10 synthetic Local Player teardown patch addresses redundant
+`release-not-found` logging after the functional certification gates. A clean-log
+rerun of that hygiene patch is separate from the executed C9R/004B/004C verdicts.
+
 ## Player QA canonical architecture
 
-Player QA is organized by current product contracts, not by P3/M07 history:
+Player QA is organized by current product contracts rather than P3/M07 history.
+The public aggregate surface remains the appropriate entrypoint for current Player
+certification, with focused regressions retained only where they own distinct
+contracts such as serialization migration integrity.
 
-```text
-Player/Session
-Player/Scene Provided
-Player/Manager Provisioned
-Player/Actor
-Player/Public Surface
-Game Flow/Participation
-```
+Do not restore superseded Capacity or separate provisioning-profile semantics to
+make historical QA compile or pass.
 
-The canonical operational entry point is:
+## Identity Authority
 
-```text
-Immersive Framework/QA/Player/Run Full Player QA
-```
+Identity QA follows authored-definition authority and stable identity contracts.
+Route/Activity authored definitions are not made equivalent merely because text
+or scene data matches. Stable IDs are persistence/diagnostic evidence where the
+owning product contract defines them.
 
-Normal use is one button: the full orchestrator prepares each owned fixture,
-opens isolated Play Mode sessions, runs the canonical Player proofs, restores
-the next fixture boundary, and emits one `[QA_PLAYER_FULL]` summary.
+## Historical QA documents
 
-The individual menus remain available for advanced diagnosis:
-
-```text
-Immersive Framework/QA/Player/Session/Run Session Contract
-Immersive Framework/QA/Player/Scene Provided/Prepare Fixture
-Immersive Framework/QA/Player/Scene Provided/Run Integration
-Immersive Framework/QA/Player/Manager Provisioned/Prepare Fixture
-Immersive Framework/QA/Player/Actor/Run Lifecycle Integration
-Immersive Framework/QA/Player/Public Surface/Prepare Certification Fixture
-Immersive Framework/QA/Player/Public Surface/Run Certification
-```
-
-`QaPlayerSessionQaSupport` is the single Player Session support layer in the
-existing Player Internal Editor assembly. It owns profile/bridge validation and
-does not introduce a second Session limit. See
-`Documentation/PLAYER-QA-ARCHITECTURE.md` for fixture ownership and the
-reclassification of historical P3/M07 sources.
-
-Root local de provas técnicas sintéticas do framework. Não contém FIRSTGAME nem documentação arquitetural canônica.
-
-## Superfícies atuais
-
-- `Hub/`: navegação para regressões que exigem cenas persistidas.
-- `Lifecycle/`: Application e Scene Lifetime.
-- `UnityBuildSurface/`: superfícies Unity de transição e UI global.
-- `Camera/`: regressões de authoring, integração com Runtime Host e autoridade de câmera.
-- `Pooling/` e `Audio/`: contratos técnicos próprios.
-- `Player/Editor/`: regressões focadas de authoring, Slots, provisioning, gameplay admission e lifecycle.
-- `Player/Profiles/`, `Player/P3G4/`, `Player/P3H4/`, `Player/P3J6/` e `Player/P3M5B/`: assets das fixtures Player preservadas.
-
-As regressões públicas ficam sob:
-
-```text
-Immersive Framework/QA/Regressions/<Domain>/Run <Regression Name>
-```
-
-Setups e repairs ficam separados sob:
-
-```text
-Immersive Framework/QA/Setup/<Domain>/...
-```
-
-The Full Player QA is only an orchestrator of typed entrypoints; it does not
-replace or reimplement the evidence in the individual regressions. Each
-regression remains responsible for its own proof, fixture and cleanup.
-
-## Player QA
-
-> Historical inventory below. Use the canonical menu tree above and
-> `Documentation/PLAYER-QA-ARCHITECTURE.md` for current operation.
-
-Superfícies públicas atuais:
-
-```text
-Immersive Framework/QA/Regressions/Player/Run Player Participation Authoring Regression
-Immersive Framework/QA/Regressions/Player/Run Session Player Slots Regression
-Immersive Framework/QA/Regressions/Player/Run Local Player Provisioning Regression
-Immersive Framework/QA/Regressions/Player/Run Manager-Provisioned Lifecycle Public Contract Regression
-Immersive Framework/QA/Regressions/Player/Run Manager-Provisioned Lifecycle Waiting Projection Regression
-Immersive Framework/QA/Regressions/Player/Run Player Actor Selection Runtime Binding Regression
-Immersive Framework/QA/Regressions/Player/Run Player Gameplay Admission Regression
-Immersive Framework/QA/Regressions/Player/Run Scene Player Route Lifecycle Regression
-```
-
-O antigo `P3 Run Canonical Pre-FIRSTGAME Smoke` foi removido durante a consolidação. Seu inventário histórico permanece em `Player/Documentation/P3-CANONICAL-PREFIRSTGAME-QA.md`; ele não é uma instrução operacional atual.
-
-Regressões Edit Mode:
-
-- Player Participation Authoring;
-- Session Player Slots;
-- Local Player Provisioning;
-- Manager-Provisioned Lifecycle Public Contract.
-
-Regressões Play Mode:
-
-- Manager-Provisioned Lifecycle Waiting Projection;
-- Player Actor Selection Runtime Binding;
-- Player Gameplay Admission;
-- Scene Player Route Lifecycle.
-
-A regressão `Manager-Provisioned Lifecycle Public Contract` usa somente APIs públicas. Ela prova normalização, imutabilidade, escopo da evidência de gate, estados terminais e indisponibilidade explícita do Authoring. Ela não substitui uma regressão Play Mode de Activity/Session real.
-
-A regressão `Manager-Provisioned Lifecycle Waiting Projection` reutiliza a fixture M07 real em Play Mode e observa somente o snapshot público do Authoring. Ela prova `WaitingForJoin`, contribuição do Player em `Preparing`, saída `Released` e preservação da Session sem Players. `Ready` e `Failed` permanecem em regressão posterior.
-
-As regressões Play Mode exigem o contexto indicado por cada fixture. Não considere uma regressão aprovada por evidência emitida por outra regressão.
-
-## Identity Authority (IF-ID)
-
-### Superfície canônica única
-
-```text
-Immersive Framework QA/Game Flow/Run Identity Authority Regression
-```
-
-Implementação: `GameFlow/InternalEditor/QaRouteActivityIdentityRegression.cs` +
-`GameFlow/InternalEditor/QaIdentityAuthorityFixture.cs`.
-
-Não existem outros menus públicos de Identity Authority. Smokes antigos de Activity ID
-e validação autoral de Route/Activity IDs foram removidos na consolidação Corte 5.
-
-### Pré-condições
-
-- Unity `6000.5.0f1`
-- **Play Mode** com Game Flow já iniciado
-- exatamente um `FrameworkRuntimeHost` carregado e pronto
-- cena QA válida (ex.: hub ou lifecycle boot) com Route e Activity atuais
-
-### Seis casos (ordem fixa)
-
-1. `baseline-authority-snapshot` — owners/tokens/roots da autoridade atual
-2. `route-collision-transition` — Route A→B com mesmo stable ID, refs distintas
-3. `activity-collision-transition` — Activity A→B com mesmo stable ID, refs distintas
-4. `ownership-release-isolation` — release de Root A não remove Root B
-5. `readiness-collision-isolation` — wait de A não pertence a B
-6. `legitimate-supersession-preservation` — supersession tipada + colisão não finge autoridade
-
-### Package NUnit vs QA smoke
-
-| Onde | O que prova |
-|------|-------------|
-| **Package NUnit** | igualdade por referência e stable ID, hash, token obrigatório, validação autoral, regeneração/Undo, supersession determinística de wait/status |
-| **QA IF-ID runner** | lifecycle/runtime real em Play Mode: colisão, ownership release no registry do host, readiness isolation, supersession legítima com ocorrência |
-
-Não reexecute testes determinísticos do package como MenuItem de QA.
-
-### Como executar
-
-1. Abra o projeto no Unity `6000.5.0f1`
-2. Entre em Play Mode na cena QA com host único
-3. Menu: `Immersive Framework QA > Game Flow > Run Identity Authority Regression`
-4. Um único resumo com prefixo `[IF_ID_QA]` (status, casos, refs, tokens, owners, roots, waits, cleanup)
-
-### Smokes de domínio relacionados (não IF-ID)
-
-Preservados em seus domínios; **não** são a superfície IF-ID:
-
-- `Descriptors/Editor/QaB1DescriptorEqualitySmoke` — igualdade de Actor/PlayerActor descriptors
-- `Player/.../QaP3M5BRouteTransitionAndNegativeMatrixSmoke` — Player/admission/route matrix
-- demais regressões Player/Camera/Game Flow que apenas observam owners
-
-### Removidos (Corte 5)
-
-| Smoke | Menu removido | Motivo |
-|-------|---------------|--------|
-| `QaA1ActivityIdSmoke` | `.../Contracts/Run Activity Identity Regression` | Cobertura determinística de ID/owner/token no package + baseline IF-ID |
-| `QaRouteActivityIdentityValidationRegression` | `.../Authoring/Run Route and Activity Identity Validation Regression` | Validação autoral missing/invalid/duplicate no package NUnit |
-
-## Consolidação
-
-O inventário histórico e as decisões anteriores estão em
-`Documentation/QA-SMOKE-CONSOLIDATION-AUDIT.md`.
-A consolidação IF-ID (Corte 5) está resumida na seção **Identity Authority (IF-ID)** acima.
+Documents such as `Documentation/QA-SMOKE-CONSOLIDATION-AUDIT.md` are historical
+point-in-time audits. Their old file counts, menus and classifications are not a
+request to recreate removed smokes. Current domain documentation and source code
+are authoritative for execution.

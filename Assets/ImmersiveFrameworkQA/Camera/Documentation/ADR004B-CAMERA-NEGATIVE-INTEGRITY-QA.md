@@ -1,42 +1,60 @@
 # ADR-004B Camera Negative Integrity QA
 
+Status: **CERTIFIED — 18/18**  
+Last updated: **2026-08-10**
+
 ## Purpose
 
 Certify the negative and transactional integrity boundaries required by
-`IF-ADR-004B — Camera Negative Integrity Certification` without introducing a
-parallel Camera runtime or changing `com.immersive.framework`.
+`IF-ADR-004B — Camera Negative Integrity Certification` without creating a
+parallel Camera runtime.
 
-The implementation reuses the canonical C9R Camera Override Authority fixture
-for real Activity/Route lifecycle evidence and the existing Camera authoring
-regressions for persistent-output validation.
+The regression reuses the canonical C9R Camera Override Authority lifecycle for
+real Activity/Route evidence and existing Camera authoring regressions for
+persistent-output validation.
 
-## Revisions used to author this cut
+## Source provenance
+
+Original QA authoring bases:
 
 ```text
-QAFramework:              f4ce36335878113e4b64e79d337c0645f6499707
-com.immersive.framework:  bbaf05dbc7442290de8916fe312acd77a11f2b58
+QAFramework
+  f4ce36335878113e4b64e79d337c0645f6499707
+
+com.immersive.framework
+  bbaf05dbc7442290de8916fe312acd77a11f2b58
 ```
 
-The final certification log prints both revisions. If either repository is
-updated, re-audit the smoke against the new source before treating the embedded
-revision evidence as current.
+Current repository heads at documentation closure:
+
+```text
+QAFramework
+  c7f3443df9a95011220db5d584de7afb94e331ec
+  Cam-Pass
+
+com.immersive.framework
+  baecd612c79fe4dabfde5be8d7cf17f3b6b4a3ea
+  Adr004
+```
+
+The final 004B log intentionally distinguishes its package base from the applied
+`IF-ADR-004C` package patch.
 
 ## Setup
 
-Use the existing Camera setup. No ADR-004B-specific setup, scene, fixture,
-context, service or output is added.
+Use the existing Camera setup. 004B adds no setup, scene, fixture, context,
+service or output authority.
 
 ```text
-Immersive Framework > QA > Setup > Camera > Install Camera Override Authority QA
+Immersive Framework > QA > Setup > Camera >
+Install Camera Override Authority QA
 ```
 
 ## Execution
 
-ADR-004B deliberately uses the real C9R lifecycle for cases 14-16.
-
-1. Open the QA Hub and enter Play Mode.
-2. Run the existing `Camera Override Authority` Hub entry.
-3. Wait until C9R returns to the Hub and prints its canonical PASS.
+1. Enter Play Mode from QA Hub.
+2. Run `Camera Override Authority`.
+3. Wait for C9R to return to Hub and emit its 11-case PASS.
 4. Stay in the same Play Mode session.
 5. Run:
 
@@ -45,97 +63,47 @@ Immersive Framework > QA > Regressions > Camera >
 Run ADR-004B Negative Integrity Certification
 ```
 
-The final runner executes cases 1-13 directly, consumes the C9R evidence for
-cases 14-16, and executes the canonical authoring regressions for cases 17-18.
-
-If the final runner is invoked before C9R has completed in the same Play Mode
-session, cases 14-16 are reported as `Blocked`; they are never assumed.
+Cases 14-16 consume C9R evidence from that same Play Mode session. Missing C9R
+evidence blocks those delegated cases rather than assuming them.
 
 ## Matrix ownership
 
 ```text
 01-13  QaCameraAdr004BNegativeIntegrityRegression
-14     canonical C9R Activity lifecycle cleanup evidence
-15     canonical C9R Route lifecycle cleanup + persistent Session survivor preservation
+14     canonical C9R Activity lifecycle cleanup
+15     canonical C9R Route lifecycle cleanup + Session survivor preservation
 16     focused C9R abnormal Route-owner disable probe
-17     QaPersistentCameraPresentationCompositionRegression / two-outputs
-18     QaCameraOutputSessionBindingAuthoringRegression / invalid references
+17     QaPersistentCameraPresentationCompositionRegression
+18     QaCameraOutputSessionBindingAuthoringRegression
 ```
 
-Cases 11-13 use deterministic fixture-controlled rig invalidation. They do not
-use timing, reflection or a new production fault-injection service:
-
-- admission rollback: a higher-precedence request has a composer with no
-  materialized Cinemachine Camera;
-- release rollback: an invalid lower-precedence request is admitted while a
-  valid higher-precedence request remains winner;
-- rollback failure: the valid winner's physical rig is then removed before the
-  release, making both replacement apply and rollback apply fail deterministically.
-
+Cases 11-13 use deterministic fixture-controlled invalid rig state to prove
+physical apply rollback and explicit rollback failure without adding a production
+fault-injection service.
 
 ## Case 15 evidence boundary
 
-Route lifecycle cleanup owns the canonical Route request only. The C9R proof
-requires that the Route request is absent after Route exit and that the
-synthetic Session survivor remains admitted. It deliberately does **not**
-require that survivor to be the resulting winner.
-
-The persistent `SessionCameraOverrideBinding` may be re-published by the
-transition boundary and legitimately win by its higher precedence. Treating
-`winner == synthetic survivor` as a Route-cleanup invariant is therefore a QA
-false negative, not a framework contract.
-
-## Case 16 decision gate
-
-The owner-loss probe disables the active canonical `RouteCameraOverrideBinding`
-while its request is admitted, captures whether the request remains in the
-output context, then performs QA-owned cleanup so C9R can continue.
-
-If the request remains admitted:
+Route cleanup owns the Route request only. The C9R proof requires:
 
 ```text
-[QA_CAMERA_ADR004B] case='16-abnormal-owner-loss' status='Failed' ... orphan='True'
+Route request absent
++ synthetic Session survivor still admitted
++ winner remains arbitration-owned
 ```
 
-The final verdict must be:
+It deliberately does not require the synthetic survivor to be the winner because
+the persistent Session Camera may legitimately be republished during transition
+and win by precedence.
 
-```text
-ADR-004B NOT CERTIFIED — OWNER LOSS ORPHAN REPRODUCED; OPEN IF-ADR-004C
-```
+The earlier `winner == synthetic survivor` assertion was a QA false negative and
+was removed without changing package behavior.
 
-Do not change the package inside this cut. The failing evidence is the gate for
-a separate narrow `IF-ADR-004C — Camera Owner Lifetime Integrity` correction.
+## Case 16 history
 
-If no orphan is reproduced, case 16 passes and 004C is not opened.
-
-## Final verdict
-
-Certification requires all 18 cases:
+The first valid owner-loss probe reproduced:
 
 ```text
 [QA_CAMERA_ADR004B]
-status='Passed'
-cases='18/18'
-failed='0'
-blocked='0'
-verdict='ADR-004B CAMERA NEGATIVE INTEGRITY CERTIFIED'
-```
-
-A failure or missing delegated prerequisite prevents the certified verdict.
-
-## C9R result versus ADR-004B result
-
-The owner-loss probe is observational and performs its own cleanup. It does not
-change the 11-case positive C9R contract. Therefore C9R may still finish with
-its canonical PASS while the ADR-004B probe has emitted `status='Failed'` for
-case 16. That is intentional: C9R proves the supported lifecycle path; 004B
-probes an abnormal owner-loss boundary and owns the certification verdict.
-
-## Observed certification handoff — 2026-08-10
-
-Manual C9R/ADR-004B execution reproduced abnormal Route-owner loss:
-
-```text
 case='16-abnormal-owner-loss'
 operation='DisableRouteOwner'
 admittedBefore='2'
@@ -143,11 +111,80 @@ admittedAfter='2'
 orphan='True'
 ```
 
-Cases 01-14 and 17-18 proved their intended boundaries. The initial case 15
-failure was a QA evidence error caused by requiring the synthetic Session
-survivor to be the winner after Route exit; that assertion has been narrowed
-to owner-scoped cleanup and survivor preservation.
+That result correctly prevented certification and opened:
 
-ADR-004B therefore remains **NOT CERTIFIED** because case 16 reproduced a
-package owner-lifetime defect. The next cut is `IF-ADR-004C — Camera Owner
-Lifetime Integrity`.
+```text
+IF-ADR-004C — Camera Owner Lifetime Integrity
+```
+
+The package was then hardened at the scoped publication/component lifetime
+boundary. 004B was not weakened to hide the failure.
+
+## Final certification
+
+After the 004C package correction:
+
+```text
+[CAMERA_RUNTIME_HOST_INTEGRATION_REGRESSION]
+status='Passed'
+cases='11'
+
+[QA_CAMERA_ADR004C]
+status='Passed'
+cases='10/10'
+failed='0'
+
+[QA_CAMERA_ADR004B]
+status='Passed'
+cases='18/18'
+failed='0'
+blocked='0'
+packagePatch='IF-ADR-004C'
+verdict='ADR-004B CAMERA NEGATIVE INTEGRITY CERTIFIED'
+```
+
+Case 16 now reports:
+
+```text
+admittedBefore='2'
+admittedAfter='1'
+orphan='False'
+```
+
+## What 004B certifies
+
+- deterministic precedence and tie-break behavior;
+- duplicate RequestId and wrong OutputId blocking;
+- repeated Publish/Release idempotence;
+- winner restoration and out-of-order release;
+- admission/release physical-apply rollback;
+- explicit rollback failure;
+- normal Activity/Route cleanup;
+- abnormal Route owner loss without orphaning;
+- duplicate persistent output validation;
+- invalid output reference validation;
+- no fallback Camera authority introduced by QA.
+
+## Post-certification teardown hygiene
+
+After all functional gates were green, scene teardown exposed one QA-only
+synthetic Local Player cleanup issue: its local publisher could attempt a second
+release after the request had already disappeared from the output context.
+
+The v10 QA cleanup patch reconciles that local synthetic state before redundant
+release. It does not alter any 004B case or package behavior. A clean-log rerun of
+that teardown hygiene patch had not yet been supplied when this document was
+updated.
+
+## Verdict
+
+```text
+ADR-004B
+  CERTIFIED 18/18
+
+Product defect discovered by initial case 16
+  RESOLVED by IF-ADR-004C
+
+Current Camera negative-integrity blocker
+  NONE for accepted single-output boundary
+```
