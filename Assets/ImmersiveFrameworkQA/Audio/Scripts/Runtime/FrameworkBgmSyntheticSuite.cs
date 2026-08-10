@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using Immersive.Audio.Authoring;
 using Immersive.Audio.Unity.Hosts;
 using Immersive.Framework.Audio;
@@ -8,13 +9,16 @@ namespace ImmersiveFrameworkQA.Audio
 {
     internal static class FrameworkBgmSyntheticSuite
     {
-        internal static SyntheticSuiteResult Run(FrameworkBgmQaPanel fixture)
+        private const float ProviderStopTimeoutSeconds = 5f;
+
+        internal static IEnumerator Run(FrameworkBgmQaPanel fixture, Action<SyntheticSuiteResult> completed)
         {
             var result = new SyntheticSuiteResult();
             if (fixture == null || fixture.Director == null || fixture.RuntimeHost == null)
             {
                 result.Fail("framework-bgm", "fixture", "configured director and host", "fixture missing", "Synthetic fixture is not configured.");
-                return result;
+                completed?.Invoke(result);
+                yield break;
             }
 
             FrameworkBgmDirector director = fixture.Director;
@@ -22,6 +26,8 @@ namespace ImmersiveFrameworkQA.Audio
             AudioBgmCueAsset routeCue = fixture.ExpectedRouteBgm;
             AudioBgmCueAsset activityCue = fixture.ExpectedOwnActivityBgm;
             AudioBgmCueAsset startupCue = fixture.ExpectedStartupActivityBgm;
+            AudioSource releaseSource = null;
+            bool abort = false;
 
             try
             {
@@ -34,14 +40,56 @@ namespace ImmersiveFrameworkQA.Audio
                 Check(result, "framework-bgm", "retain-confirmed-activity", retain.Outcome == FrameworkBgmOperationOutcome.NoChange && director.RetainedActivityBgmForCurrentRoute == activityCue && director.ConfirmedBgm == activityCue, "NoChange with retained confirmed activity cue", Describe(retain));
                 Assert(result, "framework-bgm", "use-route", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.UseRoute), FrameworkBgmOperationOutcome.Applied, routeCue);
                 Assert(result, "framework-bgm", "silence-release", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.Silence), FrameworkBgmOperationOutcome.Released, null);
+
+                Component service = host.BgmService as Component;
+                releaseSource = service != null ? service.GetComponent<AudioSource>() : null;
+            }
+            catch (Exception exception)
+            {
+                result.Fail("framework-bgm", "unexpected-exception", "no exception", exception.GetType().Name, exception.Message);
+                abort = true;
+            }
+
+            if (abort)
+            {
+                completed?.Invoke(result);
+                yield break;
+            }
+
+            if (releaseSource != null)
+            {
+                float stopDeadline = Time.realtimeSinceStartup + ProviderStopTimeoutSeconds;
+                while (releaseSource != null && releaseSource.isPlaying && Time.realtimeSinceStartup < stopDeadline)
+                {
+                    yield return null;
+                }
+            }
+
+            AudioSource applySource = null;
+            try
+            {
                 Assert(result, "framework-bgm", "clear-activity-route", director.ClearActivityBgm(null), FrameworkBgmOperationOutcome.Applied, routeCue);
                 director.SetActivityBgm(activityCue, FrameworkBgmActivityPolicy.UseOwnOrRetainActivityUntilRouteExit);
                 FrameworkBgmOperationResult routeExit = director.ClearRouteBgm(null);
                 Check(result, "framework-bgm", "route-exit-clears-retention", director.RetainedActivityBgmForCurrentRoute == null, "retained=<null>", Describe(routeExit));
 
                 Assert(result, "adr013a", "apply-success", director.SetRouteBgm(routeCue), FrameworkBgmOperationOutcome.Applied, routeCue);
-                AudioSource applySource = RequireProviderSource(result, host, "apply-rejection");
-                if (applySource == null) return result;
+                applySource = RequireProviderSource(result, host, "apply-rejection");
+            }
+            catch (Exception exception)
+            {
+                result.Fail("framework-bgm", "unexpected-exception", "no exception", exception.GetType().Name, exception.Message);
+                abort = true;
+            }
+
+            if (abort || applySource == null)
+            {
+                completed?.Invoke(result);
+                yield break;
+            }
+
+            try
+            {
                 UnityEngine.Object.DestroyImmediate(applySource);
                 FrameworkBgmOperationResult rejected = director.SetActivityBgm(activityCue, FrameworkBgmActivityPolicy.UseOwnOrRetainActivityUntilRouteExit);
                 Check(result, "adr013a", "apply-rejection", rejected.Outcome == FrameworkBgmOperationOutcome.Rejected && rejected.PreviousConfirmedCue == routeCue && director.ConfirmedBgm == routeCue, "Rejected; previous/confirmed=RouteCue", Describe(rejected));
@@ -66,7 +114,7 @@ namespace ImmersiveFrameworkQA.Audio
                 result.Fail("framework-bgm", "unexpected-exception", "no exception", exception.GetType().Name, exception.Message);
             }
 
-            return result;
+            completed?.Invoke(result);
         }
 
         private static void RunReleaseRejection(SyntheticSuiteResult result, FrameworkBgmDirector director, AudioRuntimeHost host, AudioBgmCueAsset routeCue)

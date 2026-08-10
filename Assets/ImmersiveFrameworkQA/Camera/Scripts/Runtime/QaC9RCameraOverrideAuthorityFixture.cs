@@ -16,6 +16,8 @@ namespace ImmersiveFrameworkQA.Camera
     {
         private const string LogPrefix =
             "[CAMERA_RUNTIME_HOST_INTEGRATION_REGRESSION]";
+        private const string Adr004BLogPrefix =
+            "[QA_CAMERA_ADR004B]";
         private const int MaxReadinessFrames = 600;
         private const int ExpectedCaseCount = 11;
 
@@ -38,7 +40,18 @@ namespace ImmersiveFrameworkQA.Camera
         private bool started;
         private bool awaitingRouteLifecycleCleanup;
         private string routeRequestId;
+        private const string RouteLifecycleSurvivorRequestId =
+            "qa.camera.adr004b.route-lifecycle-survivor";
+        private ICameraRequestPublisher routeLifecycleSurvivorPublisher;
         private readonly List<string> completedCases = new List<string>();
+
+        public static bool Adr004BActivityLifecycleExecuted { get; private set; }
+        public static bool Adr004BActivityLifecyclePassed { get; private set; }
+        public static bool Adr004BRouteLifecycleExecuted { get; private set; }
+        public static bool Adr004BRouteLifecyclePassed { get; private set; }
+        public static bool Adr004BOwnerLossExecuted { get; private set; }
+        public static bool Adr004BOwnerLossInvariantPassed { get; private set; }
+        public static string Adr004BOwnerLossDiagnostic { get; private set; } = string.Empty;
 
         public void RunFromContextMenu()
         {
@@ -62,6 +75,7 @@ namespace ImmersiveFrameworkQA.Camera
             lastFailure = string.Empty;
             completedCaseCount = 0;
             completedCases.Clear();
+            ResetAdr004BEvidence();
 
             yield return WaitFor(Readiness, "persistent-output-readiness");
             if (HasFailed)
@@ -161,11 +175,21 @@ namespace ImmersiveFrameworkQA.Camera
 
             if (!TryStep(() =>
                 {
+                    Adr004BActivityLifecycleExecuted = true;
+                    Adr004BActivityLifecyclePassed = true;
                     Complete("activity-lifecycle-cleanup");
+
+                    RunAdr004BOwnerLossProbe();
+
                     Require(routeBinding.RequestOverride().Succeeded,
                         "Route lifecycle setup failed.");
                     Winner(routeBinding.RequestIdText, routeComposer,
                         "route-lifecycle-setup");
+
+                    PublishRouteLifecycleSurvivor();
+                    Winner(routeBinding.RequestIdText, routeComposer,
+                        "route-lifecycle-survivor-admitted");
+
                     Require(
                         backToHubTrigger != null &&
                         backToHubTrigger.TargetRoute != null,
@@ -179,6 +203,104 @@ namespace ImmersiveFrameworkQA.Camera
             {
                 yield break;
             }
+        }
+
+        private void RunAdr004BOwnerLossProbe()
+        {
+            Require(routeBinding != null,
+                "ADR-004B owner-loss probe requires the canonical Route binding.");
+            Require(Context != null,
+                "ADR-004B owner-loss probe requires the canonical CameraOutputContext.");
+            Require(routeBinding.RequestOverride().Succeeded,
+                "ADR-004B owner-loss setup could not publish the Route request.");
+            Winner(routeBinding.RequestIdText, routeComposer,
+                "adr004b-owner-loss-setup");
+
+            string requestId = routeBinding.RequestIdText;
+            CameraRequestId typedRequestId = new CameraRequestId(requestId);
+            int admittedBeforeDisable = Context.AdmittedRequestCount;
+
+            routeBinding.enabled = false;
+
+            bool orphaned = Context.Contains(typedRequestId);
+            Adr004BOwnerLossExecuted = true;
+            Adr004BOwnerLossInvariantPassed = !orphaned;
+            Adr004BOwnerLossDiagnostic = orphaned
+                ? "Disabling the active RouteCameraOverrideBinding left its admitted Camera request in CameraOutputContext."
+                : "Disabling the active RouteCameraOverrideBinding released its admitted Camera request before ownership became invalid.";
+
+            string evidence =
+                $"case='16-abnormal-owner-loss' operation='DisableRouteOwner' " +
+                $"request='{requestId}' owner='Route' lifetime='Route' " +
+                $"output='{outputSession.OutputIdText}' admittedBefore='{admittedBeforeDisable}' " +
+                $"admittedAfter='{Context.AdmittedRequestCount}' orphan='{orphaned}' " +
+                $"diagnostic='{Escape(Adr004BOwnerLossDiagnostic)}'.";
+
+            if (orphaned)
+            {
+                Debug.LogError(
+                    $"{Adr004BLogPrefix} status='Failed' {evidence}",
+                    this);
+            }
+            else
+            {
+                Debug.Log(
+                    $"{Adr004BLogPrefix} status='Passed' {evidence}",
+                    this);
+            }
+
+            CameraOverrideResult cleanup = routeBinding.ReleaseOverride();
+            Require(cleanup.Succeeded,
+                "ADR-004B owner-loss probe could not clean its owned Route request.");
+            Require(!Context.Contains(typedRequestId),
+                "ADR-004B owner-loss probe cleanup left the Route request admitted.");
+
+            routeBinding.enabled = true;
+            Winner(playerBinding.RequestIdText, playerComposer,
+                "adr004b-owner-loss-cleanup");
+        }
+
+
+        private void PublishRouteLifecycleSurvivor()
+        {
+            Require(outputSession != null && outputSession.Session != null,
+                "ADR-004B Route lifecycle survivor requires the canonical output session.");
+            Require(sessionOverride != null &&
+                sessionOverride.RigComposer != null &&
+                sessionOverride.TargetSource != null,
+                "ADR-004B Route lifecycle survivor requires the persistent Session rig and target.");
+
+            CameraRequestCreateResult request = CameraRequestCreateResult.Create(
+                new CameraRequestId(RouteLifecycleSurvivorRequestId),
+                new CameraOutputId(outputSession.OutputIdText),
+                new CameraRequestOwner(
+                    CameraRequestOwnerKind.Session,
+                    "qa.camera.adr004b.route-lifecycle-survivor-owner"),
+                new CameraRequestLifetime(
+                    CameraRequestLifetimeKind.Session,
+                    "qa.camera.adr004b.route-lifecycle-survivor-scope"),
+                CameraRigReference.FromComposer(sessionOverride.RigComposer),
+                CameraTargetSourceDescriptor.ExplicitTransform(
+                    sessionOverride.TargetSource,
+                    "ADR004BRouteLifecycleSurvivor"),
+                new CameraRequestPolicy(150, "adr004b-route-lifecycle-survivor"),
+                CameraRequestReleaseCondition.ExplicitRelease,
+                nameof(QaCameraOverrideAuthorityFixture),
+                "ADR-004B persistent survivor for Route lifecycle cleanup isolation.");
+            Require(request.IsSucceeded,
+                $"ADR-004B Route lifecycle survivor request creation failed. {request.BlockingIssue}");
+
+            CameraRequestPublisherCreateResult publisher =
+                SessionCameraRequestPublisher.Create(outputSession.Session, request.Request);
+            Require(publisher.Succeeded && publisher.Publisher != null,
+                $"ADR-004B Route lifecycle survivor publisher creation failed. {publisher.DiagnosticSummary}");
+
+            routeLifecycleSurvivorPublisher = publisher.Publisher;
+            CameraRequestPublisherResult publication = routeLifecycleSurvivorPublisher.Publish();
+            Require(publication.Succeeded,
+                $"ADR-004B Route lifecycle survivor publication failed. {publication.DiagnosticSummary}");
+            Require(Context.Contains(new CameraRequestId(RouteLifecycleSurvivorRequestId)),
+                "ADR-004B Route lifecycle survivor was not admitted.");
         }
 
         private IEnumerator WatchRouteExit()
@@ -198,7 +320,7 @@ namespace ImmersiveFrameworkQA.Camera
             }
 
             Fail(
-                "Route lifecycle cleanup did not unload the  route before timeout. " +
+                "Route lifecycle cleanup did not unload the Camera route before timeout. " +
                 State());
         }
 
@@ -209,15 +331,46 @@ namespace ImmersiveFrameworkQA.Camera
                 return;
             }
 
+            Adr004BRouteLifecycleExecuted = true;
+
             if (outputSession.Context == null ||
                 outputSession.Context.Contains(
                     new CameraRequestId(routeRequestId)))
             {
+                Adr004BRouteLifecyclePassed = false;
                 Fail(
                     "route-lifecycle-cleanup did not release the Route request. " +
                     State());
                 return;
             }
+
+            CameraRequestId survivorId =
+                new CameraRequestId(RouteLifecycleSurvivorRequestId);
+            if (!survivorId.IsValid ||
+                !outputSession.Context.Contains(survivorId) ||
+                !outputSession.Context.HasWinner ||
+                outputSession.Context.Winner.RequestId != survivorId)
+            {
+                Adr004BRouteLifecyclePassed = false;
+                Fail(
+                    "route-lifecycle-cleanup did not preserve the persistent Session request while releasing the Route owner. " +
+                    State());
+                return;
+            }
+
+            Adr004BRouteLifecyclePassed = true;
+
+            CameraRequestPublisherResult survivorCleanup =
+                routeLifecycleSurvivorPublisher != null
+                    ? routeLifecycleSurvivorPublisher.Release()
+                    : default;
+            if (routeLifecycleSurvivorPublisher != null && !survivorCleanup.Succeeded)
+            {
+                Fail(
+                    "route-lifecycle-cleanup could not release the ADR-004B Session survivor request.");
+                return;
+            }
+            routeLifecycleSurvivorPublisher = null;
 
             Complete("route-lifecycle-cleanup");
             if (completedCaseCount != ExpectedCaseCount)
@@ -232,6 +385,17 @@ namespace ImmersiveFrameworkQA.Camera
                 $"{LogPrefix} status='Passed' phase='canonical-override-fixture' " +
                 $"cases='{completedCaseCount}' completed='{string.Join(",", completedCases)}'.",
                 this);
+        }
+
+        private static void ResetAdr004BEvidence()
+        {
+            Adr004BActivityLifecycleExecuted = false;
+            Adr004BActivityLifecyclePassed = false;
+            Adr004BRouteLifecycleExecuted = false;
+            Adr004BRouteLifecyclePassed = false;
+            Adr004BOwnerLossExecuted = false;
+            Adr004BOwnerLossInvariantPassed = false;
+            Adr004BOwnerLossDiagnostic = string.Empty;
         }
 
         private bool Readiness()
@@ -357,6 +521,15 @@ namespace ImmersiveFrameworkQA.Camera
                 $"activityOutputAttached='{(activityBinding != null && activityBinding.OutputSession == outputSession)}' " +
                 $"requestCount='{(Context == null ? -1 : Context.AdmittedRequestCount)}' " +
                 $"winner='{(Context != null && Context.HasWinner ? Context.Winner.RequestId.Value : "<none>")}'.";
+        }
+
+        private static string Escape(string value)
+        {
+            return (value ?? string.Empty)
+                .Replace("\\", "\\\\")
+                .Replace("'", "\\'")
+                .Replace("\r", " ")
+                .Replace("\n", " ");
         }
 
         private static void Require(bool condition, string message)

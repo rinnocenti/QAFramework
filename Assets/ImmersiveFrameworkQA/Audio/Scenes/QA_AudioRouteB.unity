@@ -245,7 +245,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
-  targetRoute: {fileID: 0}
+  targetRoute: {fileID: 11400000, guid: 2990185809139e1449458aa38b7fb616, type: 2}
   reason: qa.framework-bgm.route.alternate.other
 --- !u!4 &163004135
 Transform:
@@ -383,7 +383,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88595ccde21347ea987cfbba6c100c2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.ActivityRequestTrigger
-  targetActivity: {fileID: 0}
+  targetActivity: {fileID: 11400000, guid: 2b62b31db1e761947ad1cac26b081351, type: 2}
   reason: qa.framework-bgm.activity.alternate.own
 --- !u!4 &451510759
 Transform:
@@ -460,7 +460,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88595ccde21347ea987cfbba6c100c2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.ActivityRequestTrigger
-  targetActivity: {fileID: 0}
+  targetActivity: {fileID: 11400000, guid: 8bcae3fc76cd48241aeff94bf2994f16, type: 2}
   reason: qa.framework-bgm.activity.alternate.startup
 --- !u!4 &674632707
 Transform:
@@ -580,7 +580,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a29ead1351f46d281cc029935f9ad8e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Audio::Immersive.Framework.Audio.FrameworkActivityBgmBinding
-  assignedActivity: {fileID: 0}
+  assignedActivity: {fileID: 11400000, guid: 7df9f3493a96596449f212ca2de79467, type: 2}
   activityBgm: {fileID: 0}
   policy: 1
   director: {fileID: 1161741116}
@@ -597,7 +597,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityLocalVisibilityAdapter
   activities:
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 7df9f3493a96596449f212ca2de79467, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
   localContentId: qa-framework-bgm-activity-retain-previous-alternate
@@ -646,7 +646,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88595ccde21347ea987cfbba6c100c2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.ActivityRequestTrigger
-  targetActivity: {fileID: 0}
+  targetActivity: {fileID: 11400000, guid: 8d68f3d9b2100324997223ccafb8cace, type: 2}
   reason: qa.framework-bgm.activity.alternate.silence
 --- !u!4 &758381524
 Transform:
@@ -693,7 +693,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a29ead1351f46d281cc029935f9ad8e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Audio::Immersive.Framework.Audio.FrameworkActivityBgmBinding
-  assignedActivity: {fileID: 0}
+  assignedActivity: {fileID: 11400000, guid: 2b62b31db1e761947ad1cac26b081351, type: 2}
   activityBgm: {fileID: 11400000, guid: 5be38132a61f38246a1cc0857330abfe, type: 2}
   policy: 1
   director: {fileID: 1161741116}
@@ -710,7 +710,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityLocalVisibilityAdapter
   activities:
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 2b62b31db1e761947ad1cac26b081351, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
   localContentId: qa-framework-bgm-activity-own-alternate
@@ -806,7 +806,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f37a6125514e4491a7174d4372fc4c22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.RouteLifecycle.RouteContentBinding
-  route: {fileID: 0}
+  route: {fileID: 11400000, guid: 7e5e80a83c509a64488f4c24583bf143, type: 2}
   localContentId: qa-framework-bgm-route-alternate
   requiredness: 10
 --- !u!1 &1250678341
@@ -838,7 +838,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88595ccde21347ea987cfbba6c100c2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.ActivityRequestTrigger
-  targetActivity: {fileID: 0}
+  targetActivity: {fileID: 11400000, guid: 7df9f3493a96596449f212ca2de79467, type: 2}
   reason: qa.framework-bgm.activity.alternate.retain-previous
 --- !u!4 &1250678343
 Transform:
@@ -884,7 +884,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 831dd588133da8f44ba1373af95bb31b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Audio.Unity::Immersive.Audio.Unity.Hosts.AudioRuntimeHost
-  defaults: {fileID: 0}
+  defaults: {fileID: 11400000, guid: 443f6bf908390de4bab685dcbbd66e52, type: 2}
   playbackRoot: {fileID: 488302697}
   poolRuntimeHost: {fileID: 0}
   composeOnAwake: 1
@@ -937,7 +937,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a29ead1351f46d281cc029935f9ad8e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Audio::Immersive.Framework.Audio.FrameworkActivityBgmBinding
-  assignedActivity: {fileID: 0}
+  assignedActivity: {fileID: 11400000, guid: 8d68f3d9b2100324997223ccafb8cace, type: 2}
   activityBgm: {fileID: 0}
   policy: 3
   director: {fileID: 1161741116}
@@ -954,7 +954,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityLocalVisibilityAdapter
   activities:
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 8d68f3d9b2100324997223ccafb8cace, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
   localContentId: qa-framework-bgm-activity-silence-alternate
@@ -1050,7 +1050,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a29ead1351f46d281cc029935f9ad8e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Audio::Immersive.Framework.Audio.FrameworkActivityBgmBinding
-  assignedActivity: {fileID: 0}
+  assignedActivity: {fileID: 11400000, guid: a70a560bbcbc96b4f911b1899bf706e1, type: 2}
   activityBgm: {fileID: 0}
   policy: 2
   director: {fileID: 1161741116}
@@ -1067,7 +1067,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityLocalVisibilityAdapter
   activities:
-  - {fileID: 0}
+  - {fileID: 11400000, guid: a70a560bbcbc96b4f911b1899bf706e1, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
   localContentId: qa-framework-bgm-activity-route-fallback-alternate
@@ -1116,7 +1116,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88595ccde21347ea987cfbba6c100c2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.ActivityRequestTrigger
-  targetActivity: {fileID: 0}
+  targetActivity: {fileID: 11400000, guid: a70a560bbcbc96b4f911b1899bf706e1, type: 2}
   reason: qa.framework-bgm.activity.alternate.route-fallback
 --- !u!4 &2048620415
 Transform:

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using Immersive.Framework.Camera;
@@ -31,6 +32,17 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         [MenuItem(MenuPath, priority = 236)]
         private static void Run()
         {
+            IReadOnlyList<string> completed = RunForCertification();
+
+            Debug.Log(
+                "[QA_CAMERA_OUTPUT_SESSION_BINDING_AUTHORING] " +
+                "status='Passed' " +
+                $"cases='{completed.Count}' " +
+                $"evidence='{string.Join(",", completed)}'.");
+        }
+
+        internal static IReadOnlyList<string> RunForCertification()
+        {
             var completed = new List<string>();
 
             VerifyAutomaticId(completed);
@@ -41,17 +53,23 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             VerifyValidationCase(completed, "missing-brain", true, false, true, false);
             VerifyValidationCase(completed, "split-camera-brain", true, true, false, false);
 
-            Debug.Log(
-                "[QA_CAMERA_OUTPUT_SESSION_BINDING_AUTHORING] " +
-                "status='Passed' " +
-                $"cases='{completed.Count}' " +
-                $"evidence='{string.Join(",", completed)}'.");
+            return completed;
+        }
+
+        internal static IReadOnlyList<string> RunAdr004BInvalidReferenceCertification()
+        {
+            var completed = new List<string>();
+            VerifyValidationCase(completed, "missing-camera", false, true, true, false);
+            VerifyValidationCase(completed, "missing-brain", true, false, true, false);
+            VerifyValidationCase(completed, "split-camera-brain", true, true, false, false);
+            return completed;
         }
 
         private static void VerifyAutomaticId(
             ICollection<string> completed)
         {
             var root = new GameObject("QA_CameraOutput_AutomaticId");
+            root.SetActive(false);
             try
             {
                 CameraOutputSessionBinding binding =
@@ -71,6 +89,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             ICollection<string> completed)
         {
             var root = new GameObject("QA_CameraOutput_PreserveId");
+            root.SetActive(false);
             try
             {
                 CameraOutputSessionBinding binding =
@@ -99,6 +118,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             ICollection<string> completed)
         {
             var root = new GameObject("QA_CameraOutput_GenerateId");
+            root.SetActive(false);
             UnityEditor.Editor editor = null;
 
             try
@@ -156,10 +176,12 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             try
             {
                 var outputRoot = new GameObject($"QA_{caseName}_Output");
+                outputRoot.SetActive(false);
                 roots.Add(outputRoot);
 
                 CameraOutputSessionBinding binding =
                     outputRoot.AddComponent<CameraOutputSessionBinding>();
+                SetOutputId(binding, $"qa.camera.output.{caseName}");
 
                 UnityEngine.Camera camera = includeCamera
                     ? outputRoot.AddComponent<UnityEngine.Camera>()
@@ -172,6 +194,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                     if (!sameObject)
                     {
                         brainRoot = new GameObject($"QA_{caseName}_Brain");
+                        brainRoot.SetActive(false);
                         roots.Add(brainRoot);
                     }
 
@@ -179,11 +202,20 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 }
 
                 AssignOutputReferences(binding, camera, brain);
-                bool isValid = Validate(binding);
+                ValidationProbe validation = Validate(binding);
 
                 Require(
-                    isValid == expectedValid,
-                    $"Case '{caseName}' returned unexpected validity='{isValid}'.");
+                    validation.IsValid == expectedValid,
+                    $"Case '{caseName}' returned unexpected validity='{validation.IsValid}'.");
+
+                if (!expectedValid)
+                {
+                    Require(
+                        validation.BlockingIssueCount > 0 &&
+                        !string.IsNullOrWhiteSpace(validation.Diagnostics),
+                        $"Case '{caseName}' blocked without actionable authoring diagnostics.");
+                }
+
                 completed.Add(caseName);
             }
             finally
@@ -195,7 +227,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             }
         }
 
-        private static bool Validate(
+        private static ValidationProbe Validate(
             CameraOutputSessionBinding binding)
         {
             Type validatorType = ResolveType(ValidatorTypeName);
@@ -209,13 +241,31 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             Require(result != null,
                 "Camera Output authoring validator returned no result.");
 
-            PropertyInfo isValid = result.GetType().GetProperty(
-                "IsValid",
-                InstanceAny);
-            Require(isValid != null,
-                "Camera Output validation result does not expose IsValid.");
+            Type resultType = result.GetType();
+            PropertyInfo isValid = resultType.GetProperty("IsValid", InstanceAny);
+            PropertyInfo issueCount = resultType.GetProperty("BlockingIssueCount", InstanceAny);
+            PropertyInfo issues = resultType.GetProperty("BlockingIssues", InstanceAny);
+            Require(
+                isValid != null && issueCount != null && issues != null,
+                "Camera Output validation result does not expose complete blocking evidence.");
 
-            return (bool)isValid.GetValue(result);
+            var diagnostics = new List<string>();
+            if (issues.GetValue(result) is IEnumerable enumerable)
+            {
+                foreach (object item in enumerable)
+                {
+                    string text = item as string;
+                    if (!string.IsNullOrWhiteSpace(text))
+                    {
+                        diagnostics.Add(text.Trim());
+                    }
+                }
+            }
+
+            return new ValidationProbe(
+                (bool)isValid.GetValue(result),
+                (int)issueCount.GetValue(result),
+                string.Join(" | ", diagnostics));
         }
 
         private static void SetOutputId(
@@ -271,6 +321,23 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             {
                 throw new InvalidOperationException(message);
             }
+        }
+
+        private readonly struct ValidationProbe
+        {
+            public ValidationProbe(
+                bool isValid,
+                int blockingIssueCount,
+                string diagnostics)
+            {
+                IsValid = isValid;
+                BlockingIssueCount = blockingIssueCount;
+                Diagnostics = diagnostics ?? string.Empty;
+            }
+
+            public bool IsValid { get; }
+            public int BlockingIssueCount { get; }
+            public string Diagnostics { get; }
         }
     }
 }

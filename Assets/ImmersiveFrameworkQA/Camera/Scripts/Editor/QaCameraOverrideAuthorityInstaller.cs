@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Immersive.Framework.Authoring;
 using Immersive.Framework.Camera;
 using Immersive.Framework.CameraAuthoring;
+using Immersive.Framework.Editor.CameraAuthoring;
 using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -20,21 +20,17 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             "Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/" +
             "QA_UIGlobal.unity";
 
-        private const string ApplicationPath =
-            "Assets/ImmersiveFrameworkQA/GameApplications/" +
-            "GameApplication.asset";
-
         private const string OutputRootName =
-            "QA  Session Camera Output";
+            "QA C9R Session Camera Output";
 
         private const string TargetName =
-            "QA  Session Target";
+            "QA C9R Session Target";
 
         private const string RigName =
-            "QA  Session Rig";
+            "QA C9R Session Rig";
 
         private const string CameraName =
-            "QA  Session Cinemachine Camera";
+            "QA C9R Session Cinemachine Camera";
 
         [MenuItem("Immersive Framework/QA/Setup/Camera/Install Camera Override Authority QA")]
         private static void Install()
@@ -65,12 +61,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
         private static void EnsurePersistentSessionOutput()
         {
-            GameApplicationAsset application =
-                AssetDatabase.LoadAssetAtPath<GameApplicationAsset>(
-                    ApplicationPath)
-                ?? throw new InvalidOperationException(
-                    "QA GameApplication asset is missing.");
-
             Scene scene = EditorSceneManager.OpenScene(
                 GlobalScenePath,
                 OpenSceneMode.Single);
@@ -80,6 +70,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             GameObject root = output.gameObject;
             root.name = OutputRootName;
+            RemoveSupersededSessionChildren(root.transform);
 
             UnityEngine.Camera unityCamera =
                 EnsureComponent<UnityEngine.Camera>(root);
@@ -118,18 +109,18 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             Set(
                 composer,
-                "cinemachineCamera",
-                cinemachine);
-
-            Set(
-                composer,
-                "logApplyRebuildDiagnostics",
-                false);
+                "presentationIntent",
+                (int)CameraRigPresentationIntent.Follow);
 
             Set(
                 composer,
                 "targetSourceKind",
-                30);
+                (int)CameraTargetSourceKind.ExplicitTransform);
+
+            Set(
+                composer,
+                "targetSource",
+                null);
 
             Set(
                 composer,
@@ -141,15 +132,45 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 "explicitLookAtTarget",
                 target.transform);
 
+            Set(
+                composer,
+                "followRequirement",
+                (int)CameraTargetRequirement.Required);
+
+            Set(
+                composer,
+                "lookAtRequirement",
+                (int)CameraTargetRequirement.Optional);
+
+            Set(
+                composer,
+                "cinemachineCamera",
+                cinemachine);
+
+            Set(
+                composer,
+                "logApplyRebuildDiagnostics",
+                false);
+
+            CameraRigComposerApplyRebuildResult composerResult =
+                CameraRigComposerApplyRebuildUtility.ApplyOrRebuild(
+                    composer,
+                    false,
+                    false);
+
+            if (!composerResult.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    "QA persistent Session Camera rig could not be materialized. " +
+                    composerResult.BlockingIssue);
+            }
+
+            cinemachine.enabled = false;
+
             SessionCameraOverrideBinding session =
                 EnsureSingleSessionOverride(
                     scene,
                     root);
-
-            Set(
-                session,
-                "assignedGameApplication",
-                application);
 
             Set(
                 session,
@@ -159,12 +180,12 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             Set(
                 session,
                 "scopeId",
-                "qa.session.camera");
+                "qa.c9r.session.camera");
 
             Set(
                 session,
                 "requestId",
-                "qa.camera.request.session");
+                "qa.camera.request.c9r.session");
 
             Set(
                 session,
@@ -191,6 +212,13 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 "logDiagnostics",
                 true);
 
+            ValidatePersistentSessionComposition(
+                scene,
+                output,
+                session,
+                composer,
+                target.transform);
+
             EditorSceneManager.MarkSceneDirty(scene);
 
             if (!EditorSceneManager.SaveScene(
@@ -199,6 +227,88 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             {
                 throw new InvalidOperationException(
                     "QA_UIGlobal could not be saved.");
+            }
+        }
+
+        private static void RemoveSupersededSessionChildren(Transform root)
+        {
+            string[] supersededNames =
+            {
+                "QA  Session Target",
+                "QA Session Target",
+                "QA  Session Rig",
+                "QA Session Rig"
+            };
+
+            for (int index = root.childCount - 1; index >= 0; index--)
+            {
+                Transform child = root.GetChild(index);
+                for (int nameIndex = 0;
+                     nameIndex < supersededNames.Length;
+                     nameIndex++)
+                {
+                    if (child.name != supersededNames[nameIndex])
+                    {
+                        continue;
+                    }
+
+                    UnityEngine.Object.DestroyImmediate(child.gameObject);
+                    break;
+                }
+            }
+        }
+
+        private static void ValidatePersistentSessionComposition(
+            Scene scene,
+            CameraOutputSessionBinding output,
+            SessionCameraOverrideBinding session,
+            CameraRigComposer composer,
+            Transform target)
+        {
+            List<CameraOutputSessionBinding> outputs =
+                FindInScene<CameraOutputSessionBinding>(scene);
+            List<SessionCameraOverrideBinding> overrides =
+                FindInScene<SessionCameraOverrideBinding>(scene);
+
+            if (outputs.Count != 1 ||
+                overrides.Count != 1 ||
+                !ReferenceEquals(outputs[0], output) ||
+                !ReferenceEquals(overrides[0], session))
+            {
+                throw new InvalidOperationException(
+                    "QA_UIGlobal Camera C9R repair did not leave exactly one persistent output and one Session override.");
+            }
+
+            if (output.OutputIdText != "camera.output.main" ||
+                output.UnityCamera == null ||
+                output.CinemachineBrain == null ||
+                output.UnityCamera.gameObject != output.gameObject ||
+                output.CinemachineBrain.gameObject != output.gameObject)
+            {
+                throw new InvalidOperationException(
+                    "QA_UIGlobal persistent Camera output is invalid after C9R repair.");
+            }
+
+            if (!ReferenceEquals(session.PersistentOutputSession, output) ||
+                session.ScopeId != "qa.c9r.session.camera" ||
+                session.RequestIdText != "qa.camera.request.c9r.session" ||
+                !ReferenceEquals(session.RigComposer, composer) ||
+                !ReferenceEquals(session.TargetSource, target) ||
+                session.Precedence != 300 ||
+                session.TieBreakerId != "session")
+            {
+                throw new InvalidOperationException(
+                    "QA_UIGlobal Session Camera override is invalid after C9R repair.");
+            }
+
+            if (composer.TargetSourceKind != CameraTargetSourceKind.ExplicitTransform ||
+                composer.TargetSourceBehaviour != null ||
+                !ReferenceEquals(composer.ExplicitFollowTarget, target) ||
+                !ReferenceEquals(composer.ExplicitLookAtTarget, target) ||
+                !composer.ResolveConfiguredCameraTargets().IsSucceeded)
+            {
+                throw new InvalidOperationException(
+                    "QA_UIGlobal Session Camera rig is invalid after C9R repair.");
             }
         }
 
@@ -375,7 +485,18 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                     $"Serialized property '{property}' was not found " +
                     $"on '{target.GetType().Name}'.");
 
-            switch (value)
+            if (value == null)
+            {
+                if (item.propertyType != SerializedPropertyType.ObjectReference)
+                {
+                    throw new InvalidOperationException(
+                        $"Serialized property '{property}' on '{target.GetType().Name}' " +
+                        $"does not accept a null object reference. type='{item.propertyType}'.");
+                }
+
+                item.objectReferenceValue = null;
+            }
+            else switch (value)
             {
                 case UnityEngine.Object reference:
                     item.objectReferenceValue = reference;

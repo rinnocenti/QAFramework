@@ -28,6 +28,17 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         [MenuItem(MenuPath, priority = 235)]
         private static void Run()
         {
+            IReadOnlyList<string> completed = RunForCertification();
+
+            Debug.Log(
+                "[QA_PERSISTENT_CAMERA_PRESENTATION_COMPOSITION] " +
+                "status='Passed' " +
+                $"cases='{completed.Count}' " +
+                $"evidence='{string.Join(",", completed)}'.");
+        }
+
+        internal static IReadOnlyList<string> RunForCertification()
+        {
             var completed = new List<string>();
 
             VerifyCase(completed, "one-output-zero-session-override", 1, 0, true);
@@ -40,11 +51,14 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             VerifyPresentationCase(completed, "zero-transition-one-loading", 0, 1);
             VerifyPresentationCase(completed, "one-transition-one-loading", 1, 1);
 
-            Debug.Log(
-                "[QA_PERSISTENT_CAMERA_PRESENTATION_COMPOSITION] " +
-                "status='Passed' " +
-                $"cases='{completed.Count}' " +
-                $"evidence='{string.Join(",", completed)}'.");
+            return completed;
+        }
+
+        internal static IReadOnlyList<string> RunAdr004BDuplicateOutputCertification()
+        {
+            var completed = new List<string>();
+            VerifyCase(completed, "two-outputs", 2, 0, false);
+            return completed;
         }
 
         private static void VerifyCase(
@@ -61,6 +75,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 for (int index = 0; index < outputCount; index++)
                 {
                     var root = new GameObject($"QA_Output_{index}");
+                    root.SetActive(false);
                     root.AddComponent<CameraOutputSessionBinding>();
                     roots.Add(root);
                 }
@@ -68,6 +83,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 for (int index = 0; index < sessionOverrideCount; index++)
                 {
                     var root = new GameObject($"QA_SessionOverride_{index}");
+                    root.SetActive(false);
                     root.AddComponent<SessionCameraOverrideBinding>();
                     roots.Add(root);
                 }
@@ -81,9 +97,10 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
                 object[] arguments = { null, null, null };
                 bool succeeded = (bool)resolver.Invoke(runtime, arguments);
+                string diagnostic = arguments[2] as string ?? string.Empty;
                 Require(succeeded == expectedSuccess,
                     $"Case '{caseName}' returned unexpected success='{succeeded}'. " +
-                    $"diagnostic='{arguments[2] as string ?? string.Empty}'.");
+                    $"diagnostic='{diagnostic}'.");
 
                 if (succeeded)
                 {
@@ -94,6 +111,12 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                             ? arguments[1] == null
                             : arguments[1] is SessionCameraOverrideBinding,
                         $"Case '{caseName}' resolved an unexpected Session override.");
+                }
+                else
+                {
+                    Require(
+                        !string.IsNullOrWhiteSpace(diagnostic),
+                        $"Case '{caseName}' blocked without an actionable composition diagnostic.");
                 }
 
                 completed.Add(caseName);

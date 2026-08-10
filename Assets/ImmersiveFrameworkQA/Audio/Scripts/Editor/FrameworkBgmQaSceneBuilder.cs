@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Immersive.Audio.Authoring;
 using Immersive.Audio.Contracts;
 using Immersive.Audio.Unity.Hosts;
@@ -79,7 +80,26 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                 "Alternate Framework BGM QA route used to prove retained Activity cleanup.",
                 null);
 
+            AssetDatabase.SaveAssets();
+
+            Scene canonicalScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(CanonicalScenePath) != null
+                ? EditorSceneManager.OpenScene(CanonicalScenePath, OpenSceneMode.Single)
+                : EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            canonicalRoute = AssetDatabase.LoadAssetAtPath<RouteAsset>(CanonicalRoutePath);
+            alternateRoute = AssetDatabase.LoadAssetAtPath<RouteAsset>(AlternateRoutePath);
+            startupActivity = AssetDatabase.LoadAssetAtPath<ActivityAsset>(StartupActivityPath);
+            ownActivity = AssetDatabase.LoadAssetAtPath<ActivityAsset>(OwnActivityPath);
+            retainActivity = AssetDatabase.LoadAssetAtPath<ActivityAsset>(RetainActivityPath);
+            routeFallbackActivity = AssetDatabase.LoadAssetAtPath<ActivityAsset>(RouteFallbackActivityPath);
+            silenceActivity = AssetDatabase.LoadAssetAtPath<ActivityAsset>(SilenceActivityPath);
+            defaults = AssetDatabase.LoadAssetAtPath<AudioDefaultsAsset>(DefaultsPath);
+            routeCue = AssetDatabase.LoadAssetAtPath<AudioBgmCueAsset>(RouteCuePath);
+            startupCue = AssetDatabase.LoadAssetAtPath<AudioBgmCueAsset>(StartupActivityCuePath);
+            ownActivityCue = AssetDatabase.LoadAssetAtPath<AudioBgmCueAsset>(OwnActivityCuePath);
+
             bool canonicalConfigured = ConfigureScene(
+                canonicalScene,
                 CanonicalScenePath,
                 "Canonical",
                 canonicalRoute,
@@ -96,7 +116,23 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                 new Vector3(0f, 2f, -10f),
                 Color.black);
 
+            Scene alternateScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(AlternateScenePath) != null
+                ? EditorSceneManager.OpenScene(AlternateScenePath, OpenSceneMode.Single)
+                : EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            canonicalRoute = AssetDatabase.LoadAssetAtPath<RouteAsset>(CanonicalRoutePath);
+            alternateRoute = AssetDatabase.LoadAssetAtPath<RouteAsset>(AlternateRoutePath);
+            startupActivity = AssetDatabase.LoadAssetAtPath<ActivityAsset>(StartupActivityPath);
+            ownActivity = AssetDatabase.LoadAssetAtPath<ActivityAsset>(OwnActivityPath);
+            retainActivity = AssetDatabase.LoadAssetAtPath<ActivityAsset>(RetainActivityPath);
+            routeFallbackActivity = AssetDatabase.LoadAssetAtPath<ActivityAsset>(RouteFallbackActivityPath);
+            silenceActivity = AssetDatabase.LoadAssetAtPath<ActivityAsset>(SilenceActivityPath);
+            defaults = AssetDatabase.LoadAssetAtPath<AudioDefaultsAsset>(DefaultsPath);
+            alternateRouteCue = AssetDatabase.LoadAssetAtPath<AudioBgmCueAsset>(AlternateRouteCuePath);
+            ownActivityCue = AssetDatabase.LoadAssetAtPath<AudioBgmCueAsset>(OwnActivityCuePath);
+
             bool alternateConfigured = ConfigureScene(
+                alternateScene,
                 AlternateScenePath,
                 "Alternate",
                 alternateRoute,
@@ -113,6 +149,11 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                 new Vector3(4f, 2f, -10f),
                 new Color(0.02f, 0.04f, 0.07f, 1f));
 
+            if (alternateConfigured)
+            {
+                EnsureSceneEnabledInActiveBuildProfile(AlternateScenePath);
+            }
+
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
@@ -127,6 +168,7 @@ namespace ImmersiveFrameworkQA.Audio.Editor
         }
 
         private static bool ConfigureScene(
+            Scene scene,
             string scenePath,
             string label,
             RouteAsset activeRoute,
@@ -143,10 +185,6 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             Vector3 cameraPosition,
             Color backgroundColor)
         {
-            Scene scene = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath) != null
-                ? EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single)
-                : EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-
             EnsureScenePresentation(scene, cameraPosition, backgroundColor, label);
 
             GameObject root = EnsureRoot(scene, $"QA_FrameworkBgmRoot_{label}");
@@ -309,7 +347,7 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             matchMode.enumValueIndex = (int)ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive;
             noActiveActivityPolicy.enumValueIndex = (int)ActivityVisibilityNoActivePolicy.Hidden;
             localContentIdProperty.stringValue = localContentId;
-            requiredness.enumValueIndex = (int)FrameworkContentRequiredness.Required;
+            requiredness.intValue = (int)FrameworkContentRequiredness.Required;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(adapter);
             return true;
@@ -587,6 +625,32 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             T asset = ScriptableObject.CreateInstance<T>();
             AssetDatabase.CreateAsset(asset, assetPath);
             return asset;
+        }
+
+        private static void EnsureSceneEnabledInActiveBuildProfile(string scenePath)
+        {
+            EditorBuildSettingsScene[] scenes = EditorBuildSettings.scenes;
+            for (int i = 0; i < scenes.Length; i++)
+            {
+                if (scenes[i].path != scenePath)
+                {
+                    continue;
+                }
+
+                if (!scenes[i].enabled)
+                {
+                    scenes[i] = new EditorBuildSettingsScene(scenePath, true);
+                    EditorBuildSettings.scenes = scenes;
+                }
+
+                return;
+            }
+
+            var updatedScenes = new List<EditorBuildSettingsScene>(scenes)
+            {
+                new EditorBuildSettingsScene(scenePath, true)
+            };
+            EditorBuildSettings.scenes = updatedScenes.ToArray();
         }
 
         private static void CreateCamera(Vector3 position, Color backgroundColor)

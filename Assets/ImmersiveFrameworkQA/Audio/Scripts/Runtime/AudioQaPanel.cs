@@ -213,23 +213,64 @@ namespace ImmersiveFrameworkQA.Audio
                         return false;
                     }
 
-                    GameObject duplicate = new GameObject("QA_TemporaryDuplicateAudioListener");
-                    AudioListener duplicateListener = duplicate.AddComponent<AudioListener>();
-                    duplicateListener.enabled = true;
+                    Transform hostTarget = listenerRuntimeHost.ListenerTarget != null
+                        ? listenerRuntimeHost.ListenerTarget
+                        : listenerRuntimeHost.transform;
+                    AudioListener hostListenerBefore = hostTarget != null
+                        ? hostTarget.GetComponent<AudioListener>()
+                        : null;
+                    bool hostListenerExistedBefore = hostListenerBefore != null;
+                    bool hostListenerEnabledBefore = hostListenerBefore != null && hostListenerBefore.enabled;
 
-                    AudioListenerHostReport report = listenerRuntimeHost.EnsureListenerAndReport();
-                    bool duplicateStillEnabled = duplicateListener != null && duplicateListener.enabled;
-                    bool ok = report.Status == AudioConfigurationStatus.IssuesDetected
-                        && report.DuplicatePolicy == AudioListenerDuplicatePolicy.ReportOnly
-                        && report.DuplicateEnabledListeners > 0
-                        && duplicateStillEnabled;
+                    GameObject duplicate = null;
+                    AudioListener duplicateListener = null;
+                    AudioListenerHostReport report = default;
+                    bool duplicateStillEnabled = false;
+                    bool evidencePassed = false;
+                    bool cleanupRestored = false;
 
-                    Destroy(duplicate);
-                    listenerRuntimeHost.EnsureListenerAndReport();
+                    try
+                    {
+                        duplicate = new GameObject("QA_TemporaryDuplicateAudioListener");
+                        duplicateListener = duplicate.AddComponent<AudioListener>();
+                        duplicateListener.enabled = true;
 
+                        report = listenerRuntimeHost.EnsureListenerAndReport();
+                        duplicateStillEnabled = duplicateListener != null && duplicateListener.enabled;
+                        evidencePassed = report.Status == AudioConfigurationStatus.IssuesDetected
+                            && report.DuplicatePolicy == AudioListenerDuplicatePolicy.ReportOnly
+                            && report.DuplicateEnabledListeners > 0
+                            && duplicateStillEnabled;
+                    }
+                    finally
+                    {
+                        if (duplicate != null)
+                        {
+                            duplicate.SetActive(false);
+                            Destroy(duplicate);
+                        }
+
+                        AudioListener hostListenerAfter = hostTarget != null
+                            ? hostTarget.GetComponent<AudioListener>()
+                            : null;
+                        if (hostListenerAfter != null)
+                        {
+                            hostListenerAfter.enabled = hostListenerEnabledBefore;
+                            if (!hostListenerExistedBefore)
+                            {
+                                Destroy(hostListenerAfter);
+                            }
+                        }
+
+                        cleanupRestored = hostListenerExistedBefore
+                            ? hostListenerAfter != null && hostListenerAfter.enabled == hostListenerEnabledBefore
+                            : hostListenerAfter == null || !hostListenerAfter.enabled;
+                    }
+
+                    bool ok = evidencePassed && cleanupRestored;
                     SetResult(
                         ok,
-                        $"Listener smoke status='{report.Status}' policy='{report.DuplicatePolicy}' duplicates='{report.DuplicateEnabledListeners}' duplicateStillEnabled='{duplicateStillEnabled}'.");
+                        $"Listener smoke status='{report.Status}' policy='{report.DuplicatePolicy}' duplicates='{report.DuplicateEnabledListeners}' duplicateStillEnabled='{duplicateStillEnabled}' hostListenerEnabledBefore='{hostListenerEnabledBefore}' cleanupRestored='{cleanupRestored}'.");
                     return ok;
                 });
         }
@@ -320,7 +361,8 @@ namespace ImmersiveFrameworkQA.Audio
 
             yield return RunBgmSmokeRoutine();
 
-            FrameworkBgmSyntheticSuite.SyntheticSuiteResult frameworkResult = FrameworkBgmSyntheticSuite.Run(frameworkBgmPanel);
+            FrameworkBgmSyntheticSuite.SyntheticSuiteResult frameworkResult = null;
+            yield return FrameworkBgmSyntheticSuite.Run(frameworkBgmPanel, result => frameworkResult = result);
             passedSmokes += frameworkResult.Passed;
             failedSmokes += frameworkResult.Failed;
 

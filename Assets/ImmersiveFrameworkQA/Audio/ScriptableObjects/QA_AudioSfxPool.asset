@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13b2f53632894f2a9e57f5741b4c686a, type: 3}
   m_Name: QA_AudioSfxPool
   m_EditorClassIdentifier: Immersive.Pooling.Unity::Immersive.Pooling.Unity.Authoring.PoolDefinitionAsset
-  prefab: {fileID: 4669160824885385235, guid: 40aef4bde9d90b84fa74246a73a86872, type: 3}
+  prefab: {fileID: 5455605423922616075, guid: 40aef4bde9d90b84fa74246a73a86872, type: 3}
   poolLabel: QA Audio SFX
   initialCapacity: 2
   maxSize: 8
