@@ -64,7 +64,7 @@ namespace ImmersiveFrameworkQA.ActivityFlow.Editor
                 CheckInvalid(adapter, a, "duplicate-invalid", ref cases);
                 CheckSingleOwner(adapter, false, null, "single-owner-invalid", ref cases);
                 Configure(adapter, new[] { a, sameIdentityAsA }, ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive, ActivityVisibilityNoActivePolicy.Hidden);
-                CheckInvalid(adapter, a, "duplicate-canonical-identity-invalid", ref cases);
+                CheckInvalid(adapter, a, "duplicate-canonical-identity-invalid", ref cases, "CurrentActivityStableIdCollisionAtIndex1");
                 Configure(adapter, new[] { a }, ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive, ActivityVisibilityNoActivePolicy.Hidden, string.Empty);
                 CheckInvalid(adapter, a, "local-content-id-empty-invalid", ref cases);
                 var first=adapter.EvaluateVisibility(a); var second=adapter.EvaluateVisibility(a); Assert(first.IsValid==second.IsValid && first.DesiredVisibility==second.DesiredVisibility, "repeated-evaluation"); cases++;
@@ -100,7 +100,7 @@ namespace ImmersiveFrameworkQA.ActivityFlow.Editor
         }
         private static void Assert(bool condition, string name) { if (!condition) throw new InvalidOperationException("Rule regression failed: " + name); }
         private static void Check(ActivityLocalVisibilityAdapter adapter, ActivityAsset activity, bool valid, bool visible, string name, ref int cases) { var result=adapter.EvaluateVisibility(activity); Assert(result.IsValid==valid && result.DesiredVisibility==visible,name); cases++; }
-        private static void CheckInvalid(ActivityLocalVisibilityAdapter adapter, ActivityAsset activity, string name, ref int cases) { bool state=adapter.gameObject.activeSelf; string before=EditorJsonUtility.ToJson(adapter); var result=adapter.EvaluateVisibility(activity); Assert(!result.IsValid && !string.IsNullOrWhiteSpace(result.DiagnosticReason) && state==adapter.gameObject.activeSelf && before==EditorJsonUtility.ToJson(adapter),name); cases++; }
+        private static void CheckInvalid(ActivityLocalVisibilityAdapter adapter, ActivityAsset activity, string name, ref int cases, string expectedReason = null) { bool state=adapter.gameObject.activeSelf; string before=EditorJsonUtility.ToJson(adapter); var result=adapter.EvaluateVisibility(activity); Assert(!result.IsValid && !string.IsNullOrWhiteSpace(result.DiagnosticReason) && (expectedReason == null || result.DiagnosticReason == expectedReason) && state==adapter.gameObject.activeSelf && before==EditorJsonUtility.ToJson(adapter),name); cases++; }
         private static void CheckSingleOwner(ActivityLocalVisibilityAdapter adapter, bool expected, ActivityAsset expectedActivity, string name, ref int cases) { bool actual=adapter.TryGetSingleActivityOwner(out ActivityAsset owner); Assert(actual==expected && owner==expectedActivity,name); cases++; }
     }
 }
