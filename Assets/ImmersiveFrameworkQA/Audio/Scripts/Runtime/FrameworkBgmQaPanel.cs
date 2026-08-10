@@ -1,6 +1,5 @@
 using System;
 using Immersive.Audio.Authoring;
-using Immersive.Audio.Contracts;
 using Immersive.Framework.Audio;
 using Immersive.Framework.GameFlow;
 using UnityEngine;
@@ -203,7 +202,7 @@ namespace ImmersiveFrameworkQA.Audio
             GUILayout.EndHorizontal();
 
             GUILayout.Label($"Last Action: {lastManualAction}");
-            GUILayout.Label($"Effective BGM: {FormatCue(director != null ? director.CurrentEffectiveBgm : null)} | Silence: {FormatSilence()} | Last Playback: {FormatPlayback()}");
+            GUILayout.Label($"Desired BGM: {FormatCue(director != null ? director.CurrentEffectiveBgm : null)} | Confirmed BGM: {FormatCue(director != null ? director.ConfirmedBgm : null)} | Last Operation: {FormatOperation()}");
         }
 
         private void DrawSmokeNavigation()
@@ -246,9 +245,9 @@ namespace ImmersiveFrameworkQA.Audio
             GUILayout.Label("- [FRAMEWORK_BGM] Route BGM set");
             GUILayout.Label("- [FRAMEWORK_BGM] Startup Activity BGM pre-applied");
             GUILayout.Label("- [FRAMEWORK_BGM] Activity BGM set");
-            GUILayout.Label("- [FRAMEWORK_BGM] BGM applied");
+            GUILayout.Label("- [FRAMEWORK_BGM] BGM operation completed with provider-confirmed outcome");
             GUILayout.Label("- [FRAMEWORK_BGM] Activity BGM policy Silence applied");
-            GUILayout.Label("- AudioPlaybackResult status is explicit");
+            GUILayout.Label("- FrameworkBgmOperationResult distinguishes Applied, Released, NoChange, unavailable authority and rejection");
         }
 
         private void DrawDirectorDiagnostics()
@@ -263,10 +262,16 @@ namespace ImmersiveFrameworkQA.Audio
             GUILayout.Label($"Activity BGM: {FormatCue(director.CurrentActivityBgm)}");
             GUILayout.Label($"Retained Activity BGM: {FormatCue(director.RetainedActivityBgmForCurrentRoute)}");
             GUILayout.Label($"Effective BGM: {FormatCue(director.CurrentEffectiveBgm)}");
+            GUILayout.Label($"Confirmed BGM: {FormatCue(director.ConfirmedBgm)}");
             GUILayout.Label($"Activity Binding Active: {director.HasActiveActivityBgmBinding}");
             GUILayout.Label($"Activity Policy: {director.CurrentActivityPolicy}");
             GUILayout.Label($"Explicit Silence: {director.CurrentEffectiveIsExplicitSilence}");
-            GUILayout.Label($"Last Playback Result: {director.LastPlaybackResult.Status}");
+            FrameworkBgmOperationResult result = director.LastOperationResult;
+            GUILayout.Label($"Last Operation: {result.Operation} / {result.Outcome}");
+            GUILayout.Label($"Previous Confirmed BGM: {FormatCue(result.PreviousConfirmedCue)}");
+            GUILayout.Label($"Requested BGM: {FormatCue(result.RequestedCue)} | Explicit Silence: {result.RequestedExplicitSilence}");
+            GUILayout.Label($"Resulting Confirmed BGM: {FormatCue(result.ConfirmedCue)}");
+            GUILayout.Label($"Reason: {result.Reason ?? "<none>"}");
         }
 
         private void DrawTriggerDiagnostics()
@@ -376,14 +381,11 @@ namespace ImmersiveFrameworkQA.Audio
             lastManualAction = string.IsNullOrWhiteSpace(message) ? "<none>" : message;
         }
 
-        private string FormatSilence()
+        private string FormatOperation()
         {
-            return director != null ? director.CurrentEffectiveIsExplicitSilence.ToString() : "<director-missing>";
-        }
-
-        private string FormatPlayback()
-        {
-            return director != null ? director.LastPlaybackResult.Status.ToString() : "<director-missing>";
+            return director != null
+                ? $"{director.LastOperationResult.Operation}/{director.LastOperationResult.Outcome}"
+                : "<director-missing>";
         }
 
         private static string FormatCue(AudioBgmCueAsset cue)

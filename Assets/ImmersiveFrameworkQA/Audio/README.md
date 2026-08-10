@@ -143,6 +143,16 @@ The Framework BGM panel validates this manual sequence:
 9. Route Switch Clears Retained Activity BGM
 ```
 
+For each mutation, inspect `Last Operation`, `Previous Confirmed BGM`, `Requested BGM`,
+`Resulting Confirmed BGM` and `Reason`. `Applied` and `Released` are valid only after the
+audio provider confirms the operation; `NoChange` must not add a provider mutation.
+
+To certify the negative execution matrix, use an explicitly invalid/missing configured
+audio authority or cue in an isolated QA copy and verify that `Rejected` or
+`OptionalAuthorityUnavailable` preserves the previous confirmed cue. Repeating the same
+request must produce a new provider attempt. Do not treat an authored request as confirmed
+state after a rejection.
+
 ## Expected PASS Criteria
 
 With `Run All Audio Smokes`:
@@ -175,7 +185,7 @@ With the Framework BGM fixture, expected logs include:
 - `AudioDefaultsAsset` serializes and is consumed by `AudioRuntimeHost`.
 - SFX direct playback returns `Succeeded` with a valid handle.
 - SFX pooled playback returns `Succeeded` with a valid handle and returns rented sources to the pool.
-- BGM playback and stop return explicit results.
+- BGM playback and stop return framework-owned typed execution evidence.
 - Cue missing clip returns `FailedMissingClip`.
 - Missing defaults returns `FailedMissingDefaults`; no silent fallback is used.
 - Missing pool returns `FailedMissingPoolService`; no direct fallback is used.
@@ -192,6 +202,8 @@ The Framework BGM fixture proves:
 - `Silence` calls `StopBgm`.
 - Clear Activity returns to the expected Route or retained policy result.
 - Route switch clears retained Activity BGM.
+- Desired BGM and provider-confirmed BGM are shown separately; rejected intent is not
+  retained as a restoration target.
 
 ## What This QA Does Not Test
 
