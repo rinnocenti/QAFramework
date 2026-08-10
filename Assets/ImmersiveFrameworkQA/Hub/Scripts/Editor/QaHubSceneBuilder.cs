@@ -20,8 +20,8 @@ namespace ImmersiveFrameworkQA.Hub.Editor
         {
             new(
                 "Camera",
-                "Camera Runtime Host Integration Regression",
-                Root + "/Lifecycle/Routes/QA_LifecycleRouteA.asset"),
+                "Camera Override Authority",
+                Root + "/Camera/Routes/QA_PlayerCameraArbitrationRoute.asset"),
             new(
                 "Player",
                 "Player Gameplay Admission Regression",
@@ -129,6 +129,11 @@ namespace ImmersiveFrameworkQA.Hub.Editor
                 throw new InvalidOperationException(
                     $"Could not save the QA Hub scene at '{HubScenePath}'.");
             }
+
+            // Camera owns its route-completion coordinator. Re-apply that
+            // domain-owned Hub materialization after any generic Hub rebuild so
+            // other setup flows (for example Audio) cannot silently erase it.
+            QaCameraOverrideAuthoritySceneInstaller.RepairHub();
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();

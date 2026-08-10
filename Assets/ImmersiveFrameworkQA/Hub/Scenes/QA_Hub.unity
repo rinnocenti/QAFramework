@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &12690197
+--- !u!1 &175852721
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,45 +127,45 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 12690199}
-  - component: {fileID: 12690198}
+  - component: {fileID: 175852723}
+  - component: {fileID: 175852722}
   m_Layer: 0
-  m_Name: RouteTrigger_Pause_Product_Binding_QA
+  m_Name: RouteTrigger_Audio_QA
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &12690198
+--- !u!114 &175852722
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 12690197}
+  m_GameObject: {fileID: 175852721}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
-  targetRoute: {fileID: 11400000, guid: 08039b53d1e88f64c88259de607fe740, type: 2}
-  reason: qa.hub.route.pause_product_binding_qa
---- !u!4 &12690199
+  targetRoute: {fileID: 11400000, guid: 2990185809139e1449458aa38b7fb616, type: 2}
+  reason: qa.hub.route.audio_qa
+--- !u!4 &175852723
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 12690197}
+  m_GameObject: {fileID: 175852721}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1632795402}
+  m_Father: {fileID: 296167724}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &548477003
+--- !u!1 &224186667
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -173,45 +173,45 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 548477005}
-  - component: {fileID: 548477004}
+  - component: {fileID: 224186669}
+  - component: {fileID: 224186668}
   m_Layer: 0
-  m_Name: RouteTrigger_Camera_Runtime_Host_Integration_Regression
+  m_Name: RouteTrigger_Player_Gameplay_Admission_Regression
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &548477004
+--- !u!114 &224186668
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 548477003}
+  m_GameObject: {fileID: 224186667}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
   targetRoute: {fileID: 11400000, guid: c782be7cec6147dfa0cbc5006f8e36dc, type: 2}
-  reason: qa.hub.route.camera_runtime_host_integration_regression
---- !u!4 &548477005
+  reason: qa.hub.route.player_gameplay_admission_regression
+--- !u!4 &224186669
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 548477003}
+  m_GameObject: {fileID: 224186667}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1632795402}
+  m_Father: {fileID: 296167724}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &770035267
+--- !u!1 &296167721
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -219,8 +219,115 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 770035269}
-  - component: {fileID: 770035268}
+  - component: {fileID: 296167724}
+  - component: {fileID: 296167723}
+  - component: {fileID: 296167722}
+  m_Layer: 0
+  m_Name: QA_HubCanvas
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &296167722
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 296167721}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f6b98ee53b94af8a4663cba085700a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ImmersiveFrameworkQA.Hub.Runtime::ImmersiveFrameworkQA.Hub.QaHubPanel
+  entries:
+  - domain: Camera
+    label: Camera Runtime Host Integration Regression
+    routeRequestTrigger: {fileID: 1284668987}
+  - domain: Player
+    label: Player Gameplay Admission Regression
+    routeRequestTrigger: {fileID: 224186668}
+  - domain: Player
+    label: Scene Player Route Lifecycle Regression
+    routeRequestTrigger: {fileID: 1569853677}
+  - domain: Pause
+    label: Pause Product Binding QA
+    routeRequestTrigger: {fileID: 1968472335}
+  - domain: Pooling
+    label: Pooling Runtime Regression
+    routeRequestTrigger: {fileID: 1581513116}
+  - domain: Audio
+    label: Audio QA
+    routeRequestTrigger: {fileID: 175852722}
+  title: Immersive Framework QA
+  showPanel: 1
+  restrictToActiveScene: 1
+  panelRect:
+    serializedVersion: 2
+    x: 16
+    y: 16
+    width: 520
+    height: 360
+--- !u!223 &296167723
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 296167721}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 0
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 0
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_UseReflectionProbes: 0
+  m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 0
+  m_TargetDisplay: 0
+--- !u!224 &296167724
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 296167721}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0, y: 0, z: 0}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1284668988}
+  - {fileID: 224186669}
+  - {fileID: 1569853678}
+  - {fileID: 1968472336}
+  - {fileID: 1581513117}
+  - {fileID: 175852723}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0, y: 0}
+--- !u!1 &497015383
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 497015385}
+  - component: {fileID: 497015384}
   m_Layer: 0
   m_Name: QA_HubCamera
   m_TagString: MainCamera
@@ -228,13 +335,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!20 &770035268
+--- !u!20 &497015384
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 770035267}
+  m_GameObject: {fileID: 497015383}
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
@@ -279,13 +386,13 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!4 &770035269
+--- !u!4 &497015385
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 770035267}
+  m_GameObject: {fileID: 497015383}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -10}
@@ -294,7 +401,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &779130342
+--- !u!1 &1284668986
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -302,182 +409,45 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 779130344}
-  - component: {fileID: 779130343}
+  - component: {fileID: 1284668988}
+  - component: {fileID: 1284668987}
   m_Layer: 0
-  m_Name: RouteTrigger_Audio_QA
+  m_Name: RouteTrigger_Camera_Runtime_Host_Integration_Regression
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &779130343
+--- !u!114 &1284668987
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 779130342}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
-  targetRoute: {fileID: 11400000, guid: 2990185809139e1449458aa38b7fb616, type: 2}
-  reason: qa.hub.route.audio_qa
---- !u!4 &779130344
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 779130342}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1632795402}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1344670968
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1344670970}
-  - component: {fileID: 1344670969}
-  m_Layer: 0
-  m_Name: RouteTrigger_Camera__Override_Authority
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1344670969
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1344670968}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
-  targetRoute: {fileID: 11400000, guid: 8ee67928cfa62234aa2cbadde2b7f41b, type: 2}
-  reason: qa.hub.route.camera_override_authority
---- !u!4 &1344670970
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1344670968}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1632795402}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1415264270
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1415264272}
-  - component: {fileID: 1415264271}
-  m_Layer: 0
-  m_Name: QA__RouteCompletionCoordinator
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1415264271
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1415264270}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 96e1da14381b49408cec7cf88f913432, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Camera.QaCameraOverrideAuthorityCompletionCoordinator
-  routeTrigger: {fileID: 1344670969}
---- !u!4 &1415264272
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1415264270}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1481383501
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1481383503}
-  - component: {fileID: 1481383502}
-  m_Layer: 0
-  m_Name: RouteTrigger_Player_Gameplay_Admission_Regression
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1481383502
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1481383501}
+  m_GameObject: {fileID: 1284668986}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
   targetRoute: {fileID: 11400000, guid: c782be7cec6147dfa0cbc5006f8e36dc, type: 2}
-  reason: qa.hub.route.player_gameplay_admission_regression
---- !u!4 &1481383503
+  reason: qa.hub.route.camera_runtime_host_integration_regression
+--- !u!4 &1284668988
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1481383501}
+  m_GameObject: {fileID: 1284668986}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1632795402}
+  m_Father: {fileID: 296167724}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1632795399
+--- !u!1 &1569853676
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -485,119 +455,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1632795402}
-  - component: {fileID: 1632795401}
-  - component: {fileID: 1632795400}
-  m_Layer: 0
-  m_Name: QA_HubCanvas
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1632795400
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1632795399}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6f6b98ee53b94af8a4663cba085700a8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ImmersiveFrameworkQA.Hub.Runtime::ImmersiveFrameworkQA.Hub.QaHubPanel
-  entries:
-  - domain: Camera
-    label: Camera Runtime Host Integration Regression
-    routeRequestTrigger: {fileID: 548477004}
-  - domain: Player
-    label: Player Gameplay Admission Regression
-    routeRequestTrigger: {fileID: 1481383502}
-  - domain: Player
-    label: Scene Player Route Lifecycle Regression
-    routeRequestTrigger: {fileID: 1916369482}
-  - domain: Pause
-    label: Pause Product Binding QA
-    routeRequestTrigger: {fileID: 12690198}
-  - domain: Pooling
-    label: Pooling Runtime Regression
-    routeRequestTrigger: {fileID: 1963045000}
-  - domain: Audio
-    label: Audio QA
-    routeRequestTrigger: {fileID: 779130343}
-  - domain: Camera
-    label: Camera Override Authority
-    routeRequestTrigger: {fileID: 1344670969}
-  title: Immersive Framework QA
-  showPanel: 1
-  restrictToActiveScene: 1
-  panelRect:
-    serializedVersion: 2
-    x: 16
-    y: 16
-    width: 520
-    height: 360
---- !u!223 &1632795401
-Canvas:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1632795399}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_RenderMode: 0
-  m_Camera: {fileID: 0}
-  m_PlaneDistance: 100
-  m_PixelPerfect: 0
-  m_ReceivesEvents: 1
-  m_OverrideSorting: 0
-  m_OverridePixelPerfect: 0
-  m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
-  m_UseReflectionProbes: 0
-  m_AdditionalShaderChannelsFlag: 0
-  m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
-  m_TargetDisplay: 0
---- !u!224 &1632795402
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1632795399}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0, y: 0, z: 0}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 548477005}
-  - {fileID: 1481383503}
-  - {fileID: 1916369483}
-  - {fileID: 12690199}
-  - {fileID: 1963045001}
-  - {fileID: 779130344}
-  - {fileID: 1344670970}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0, y: 0}
---- !u!1 &1916369481
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1916369483}
-  - component: {fileID: 1916369482}
+  - component: {fileID: 1569853678}
+  - component: {fileID: 1569853677}
   m_Layer: 0
   m_Name: RouteTrigger_Scene_Player_Route_Lifecycle_Regression
   m_TagString: Untagged
@@ -605,13 +464,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1916369482
+--- !u!114 &1569853677
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1916369481}
+  m_GameObject: {fileID: 1569853676}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
@@ -619,22 +478,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
   targetRoute: {fileID: 11400000, guid: 3d5401b603dda05439bd71a5b020e5c9, type: 2}
   reason: qa.hub.route.scene_player_route_lifecycle_regression
---- !u!4 &1916369483
+--- !u!4 &1569853678
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1916369481}
+  m_GameObject: {fileID: 1569853676}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1632795402}
+  m_Father: {fileID: 296167724}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1963044999
+--- !u!1 &1581513115
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -642,8 +501,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1963045001}
-  - component: {fileID: 1963045000}
+  - component: {fileID: 1581513117}
+  - component: {fileID: 1581513116}
   m_Layer: 0
   m_Name: RouteTrigger_Pooling_Runtime_Regression
   m_TagString: Untagged
@@ -651,13 +510,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1963045000
+--- !u!114 &1581513116
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1963044999}
+  m_GameObject: {fileID: 1581513115}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
@@ -665,25 +524,70 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
   targetRoute: {fileID: 11400000, guid: 4951b199d5ae47a79dd7115ba0475fe5, type: 2}
   reason: qa.hub.route.pooling_runtime_regression
---- !u!4 &1963045001
+--- !u!4 &1581513117
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1963044999}
+  m_GameObject: {fileID: 1581513115}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1632795402}
+  m_Father: {fileID: 296167724}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1968472334
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1968472336}
+  - component: {fileID: 1968472335}
+  m_Layer: 0
+  m_Name: RouteTrigger_Pause_Product_Binding_QA
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1968472335
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1968472334}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
+  targetRoute: {fileID: 11400000, guid: 08039b53d1e88f64c88259de607fe740, type: 2}
+  reason: qa.hub.route.pause_product_binding_qa
+--- !u!4 &1968472336
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1968472334}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 296167724}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 770035269}
-  - {fileID: 1632795402}
-  - {fileID: 1415264272}
+  - {fileID: 497015385}
+  - {fileID: 296167724}

@@ -325,7 +325,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             Set(binding, "logDiagnostics", true);
         }
 
-        private static void RepairHub()
+        internal static void RepairHub()
         {
             Scene scene = EditorSceneManager.OpenScene(
                 HubScenePath,
@@ -333,6 +333,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             QaHubPanel panel = Single<QaHubPanel>(scene);
             GameObject triggerObject =
                 Find(scene, HubTriggerName) ??
+                Find(scene, "RouteTrigger_Camera_Runtime_Host_Integration_Regression") ??
                 Find(scene, "RouteTrigger_Camera_C9L_Player_Arbitration") ??
                 new GameObject(HubTriggerName);
             triggerObject.name = HubTriggerName;
@@ -381,7 +382,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 if (label != HubLabel &&
                     label != " Camera Override Authority" &&
                     label != "Camera /  Override Authority" &&
-                    label != "C9L Player Camera Arbitration")
+                    label != "C9L Player Camera Arbitration" &&
+                    label != "Camera Runtime Host Integration Regression")
                 {
                     continue;
                 }
