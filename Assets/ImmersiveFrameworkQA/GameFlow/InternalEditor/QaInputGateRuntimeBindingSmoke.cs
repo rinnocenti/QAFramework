@@ -192,7 +192,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 missingMap.Adapter.ApplyCurrentGate();
                 Require(
                     !missingMap.Adapter.IsBlockedByAdapter
-                    && missingMap.Adapter.LastStatus == "FailedActionMapBlock",
+                    && missingMap.Adapter.LastStatus == "FailedGameplayActionMapResolution",
                     BuildFixtureDiagnostic(missingMap));
                 completed.Add("missing-gameplay-map-fails-explicitly-without-block-state");
 

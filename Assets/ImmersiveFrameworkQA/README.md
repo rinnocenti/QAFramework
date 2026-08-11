@@ -30,9 +30,15 @@ QA does not create a parallel runtime.
   canonical C9R authority, ADR-004B negative integrity and ADR-004C owner lifetime
   certification.
 - `GameFlow/`: Route/Activity request, reset/restart and lifecycle contracts.
+  The focused ADR-005 Pause regression is adjacent in
+  `GameFlow/InternalEditor/QaPauseRuntimeBindingSmoke.cs` because it proves Pause
+  authority, PlayerInput binding and the Pause + Activity Restart interaction on
+  the existing GameFlow lifecycle. There is no separate canonical `Pause/` QA
+  domain directory in the current tree.
 - `ActivityFlow/`: Activity transaction/readiness behavior.
-- `InputMode/`, `Pause/`, `Transition/`, `Loading/`, `Reset/`, `Audio/` and other
-  focused product domains retain their own canonical technical proofs.
+- `InputMode/`, `Transition/`, `Loading/`, `Reset/`, `Audio/` and other focused
+  product domains retain their own canonical technical proofs where those
+  directories actually exist.
 
 Historical inventories may list removed or merged smokes. They are evidence of
 past state, not the current execution surface.
