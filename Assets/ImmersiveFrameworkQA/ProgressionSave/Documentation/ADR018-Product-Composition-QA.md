@@ -102,3 +102,54 @@ noFallback='Passed'
 
 After C4, the package may receive the C5 certification cut. FIRSTGAME then owns the
 game-facing usability proof.
+
+
+## Certification result — 2026-08-11
+
+Executed in Unity outside Play Mode.
+
+Observed terminal:
+
+```text
+[ADR018_QA_PRODUCT_COMPOSITION]
+status='Passed'
+cases='12'
+disabled='Passed'
+builtIn='Passed'
+custom='Passed'
+negative='7/7'
+noFallback='Passed'
+selectionIsolation='Passed'
+runtimeRequest='Passed'
+composition='ProgressionSaveApplicationComposition'
+```
+
+Disposition:
+
+```text
+ADR018-C4 Product Composition QA
+  CERTIFIED
+
+cases
+  12/12
+
+negative
+  7/7
+
+no fallback
+  PASS
+
+selection isolation
+  PASS
+
+selected custom backend runtime request
+  PASS
+```
+
+No assertion was weakened after execution.
+
+The QA proves the package's canonical public application-composition path and closes
+the ADR018-C technical gate.
+
+The next Progression Save gate is ADR018-D in FIRSTGAME. It is a real-consumer
+usability/integration proof, not additional technical backend-conformance QA.
