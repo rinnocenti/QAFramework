@@ -125,3 +125,52 @@ After this gate passes, the package can receive the separate Stable
 promotion/certification cut for the core contract.
 
 ADR018-B JSON physical consistency/recovery remains a later cut.
+
+
+## Certification — 2026-08-11
+
+Executed terminal:
+
+```text
+[ADR018_QA_BACKEND_CONFORMANCE]
+status='Passed'
+contractCases='9'
+jsonCoreCases='13'
+alternateCoreCases='13'
+catalogCases='5'
+negativeCases='7'
+jsonBackend='ProgressionSave:qa.json'
+alternateBackend='ProgressionSave:qa.memory'
+alternateCatalog='False'
+consumerRuntime='ProgressionSaveRuntime'
+semanticFingerprint='Missing>Saved>Loaded>Saved>Loaded>Deleted>Missing>Missing'
+```
+
+Certification disposition:
+
+```text
+Core contract shape              PASS — 9
+Built-in JSON core semantics     PASS — 13
+Alternate core semantics         PASS — 13
+Optional catalog boundary        PASS — 5
+Negative result projection       PASS — 7
+Semantic parity                  PASS
+Alternate backend catalog        NOT REQUIRED / False
+```
+
+ADR018-A backend independence is **CERTIFIED**.
+
+The package may promote only the certified core backend port and its transitive
+adapter primitives to Stable.
+
+This certification does not certify:
+
+```text
+JsonProgressionSaveStore physical write/recovery semantics
+IProgressionSaveCatalog stability
+ProgressionSaveRuntime product composition
+Snapshot orchestration
+backend authoring
+```
+
+Those remain subsequent ADR018 cuts.
