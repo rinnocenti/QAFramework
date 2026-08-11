@@ -37,7 +37,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private const string GlobalUiScenePath =
             "Assets/ImmersiveFrameworkQA/UnityBuildSurface/Scenes/QA_UIGlobal.unity";
         internal const string ContentScenePath =
-            "Assets/ImmersiveFrameworkQA/GameFlow/Scenes/QA_IF_READY_04_DirectPoliciesContent.unity";
+            "Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerSurfacePublicActivityContent.unity";
         private const string ContentProfilePath =
             Root + "/QA_PlayerSurfacePublic_ContentProfile.asset";
         private const string ActivityPath =
@@ -96,6 +96,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     AssetDatabase.LoadAssetAtPath<SceneAsset>(ContentScenePath);
                 Require(contentScene != null,
                     $"Activity content scene missing at '{ContentScenePath}'.");
+                EnsureContentSceneEnabledInBuildSettings();
 
                 ActivityContentProfileAsset contentProfile =
                     CreateOrUpdateContentProfile(contentScene);
@@ -506,6 +507,55 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 $"Could not close Player Surface Activity content scene '{ContentScenePath}'.");
         }
 
+        private static void EnsureContentSceneEnabledInBuildSettings()
+        {
+            EditorBuildSettingsScene[] current =
+                EditorBuildSettings.scenes ?? Array.Empty<EditorBuildSettingsScene>();
+            int matchIndex = -1;
+            int matchCount = 0;
+
+            for (int index = 0; index < current.Length; index++)
+            {
+                EditorBuildSettingsScene scene = current[index];
+                if (scene == null ||
+                    !string.Equals(
+                        scene.path,
+                        ContentScenePath,
+                        StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                matchIndex = index;
+                matchCount++;
+            }
+
+            Require(
+                matchCount <= 1,
+                $"Player Surface Activity content scene appears '{matchCount}' times in Build Settings. path='{ContentScenePath}'.");
+
+            if (matchIndex >= 0 && current[matchIndex].enabled)
+            {
+                return;
+            }
+
+            var updated =
+                new System.Collections.Generic.List<EditorBuildSettingsScene>(current);
+            var enabledScene =
+                new EditorBuildSettingsScene(ContentScenePath, true);
+
+            if (matchIndex >= 0)
+            {
+                updated[matchIndex] = enabledScene;
+            }
+            else
+            {
+                updated.Add(enabledScene);
+            }
+
+            EditorBuildSettings.scenes = updated.ToArray();
+        }
+
         private static bool IsGlobalUiSourceSceneLoaded()
         {
             Scene scene = SceneManager.GetSceneByPath(GlobalUiScenePath);
@@ -645,4 +695,3 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         }
     }
 }
-

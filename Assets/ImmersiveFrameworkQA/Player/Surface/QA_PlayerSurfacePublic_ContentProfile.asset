@@ -15,8 +15,8 @@ MonoBehaviour:
   profileId: qa.player.surface.public.content
   scenes:
   - contentId: qa.player.surface.public.activity-content
-    scenePath: Assets/ImmersiveFrameworkQA/GameFlow/Scenes/QA_IF_READY_04_DirectPoliciesContent.unity
-    sceneName: QA_IF_READY_04_DirectPoliciesContent
+    scenePath: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerSurfacePublicActivityContent.unity
+    sceneName: QA_PlayerSurfacePublicActivityContent
     requiredness: 10
     loadMode: 0
     releasePolicy: 0
