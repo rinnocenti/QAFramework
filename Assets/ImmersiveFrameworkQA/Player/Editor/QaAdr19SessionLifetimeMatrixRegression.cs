@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
+using Immersive.Framework.RuntimeContent;
 using ImmersiveFrameworkQA.Player.Internal.Editor;
 using UnityEditor;
 using UnityEngine;
@@ -12,10 +14,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
     /// <summary>
     /// Consolidated Play Mode conformance matrix for ADR 019 Session lifetime invariants.
     ///
+    /// The readiness boundary proof keeps Session membership/selection independent from
+    /// Activity Actor representation until LogicalActorsPrepared is required.
     /// B proves that Session Join remains authoritative while gameplay occupancy is absent.
     /// C proves that an already Joined Slot is not reused by a second official Join.
-    /// E proves that Activity exit does not imply Player Leave.
-    /// D proves that Session termination removes the host-scoped participation authority.
+    /// E proves that Activity exit does not imply Player Leave and does not destroy the
+    /// Session-owned Manager-Provisioned technical Host.
+    /// D proves that Session termination removes the host-scoped participation authority
+    /// and its Session-owned physical Player resources.
     ///
     /// D intentionally runs last because destroying FrameworkRuntimeHost is the actual
     /// Session lifetime boundary and therefore ends the current QA runtime session.
@@ -30,7 +36,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             "Immersive.Framework.PlayerParticipation.LocalPlayerProvisioningRuntimeHostModule";
 
         private const string MenuPath =
-            "Immersive Framework/QA/Player/Session/ADR 19/Run 19.1B-E Session Lifetime Matrix";
+            "Immersive Framework/QA/Player/Session/ADR 19/Run Session Lifetime Matrix";
 
         [MenuItem(MenuPath)]
         private static async void RunRegression()
@@ -41,7 +47,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             {
                 AssertTrue(
                     EditorApplication.isPlaying,
-                    "ADR 19.1B-E Session Lifetime Matrix must run in Play Mode.");
+                    "ADR 19 Session Lifetime Matrix must run in Play Mode.");
+
+                AssertReadinessRepresentationBoundary();
+                completed.Add("readiness-representation-boundary");
 
                 await RunJoinedWithoutGameplayOccupancyAsync();
                 completed.Add("19.1B-joined-without-gameplay-occupancy");
@@ -52,27 +61,118 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 // Activity exit mutates the current Activity, so it runs after the
                 // non-destructive Session cases and immediately before termination.
                 await RunActivityExitPreservesParticipationAsync();
-                completed.Add("19.1E-activity-exit-preserves-participation");
+                completed.Add("19.1E-activity-exit-preserves-participation-and-host");
 
                 // Session termination is destructive by definition. It must be last.
                 await RunSessionTerminationClearsParticipationAsync();
-                completed.Add("19.1D-session-termination-clears-participation");
+                completed.Add("19.1D-session-termination-clears-participation-and-host");
 
                 Debug.Log(
-                    "[ADR19_1B_E_SESSION_LIFETIME_MATRIX] status='Passed' " +
+                    "[ADR19_SESSION_LIFETIME_MATRIX] status='Passed' " +
                     $"cases='{completed.Count}' completed='{string.Join(",", completed)}' " +
-                    "executionOrder='B,C,E,D' sessionTerminated='True' " +
+                    "executionOrder='readiness,B,C,E,D' sessionTerminated='True' " +
                     "nextAction='Exit and re-enter Play Mode before running another runtime smoke'.");
             }
             catch (Exception exception)
             {
                 Debug.LogError(
-                    "[ADR19_1B_E_SESSION_LIFETIME_MATRIX] status='Failed' " +
+                    "[ADR19_SESSION_LIFETIME_MATRIX] status='Failed' " +
                     $"exception='{exception.GetType().Name}' " +
                     $"message='{Escape(exception.Message)}' " +
                     $"completed='{string.Join(",", completed)}'.");
                 throw;
             }
+        }
+
+        private static void AssertReadinessRepresentationBoundary()
+        {
+            ConstructorInfo constructor = ResolveLifecycleSnapshotConstructor();
+            (PlayerParticipationRequirementLevel Level, bool RequiresRepresentation)[] cases =
+            {
+                (PlayerParticipationRequirementLevel.None, false),
+                (PlayerParticipationRequirementLevel.JoinedSlots, false),
+                (PlayerParticipationRequirementLevel.SelectedActors, false),
+                (PlayerParticipationRequirementLevel.LogicalActorsPrepared, true),
+                (PlayerParticipationRequirementLevel.GameplayReady, true)
+            };
+
+            for (int index = 0; index < cases.Length; index++)
+            {
+                PlayerParticipationRequirementLevel level = cases[index].Level;
+                bool expected = cases[index].RequiresRepresentation;
+                var snapshot = (ActivityPlayerActorLifecycleSnapshot)constructor.Invoke(
+                    new object[]
+                    {
+                        ActivityPlayerActorLifecycleStatus.SucceededEnteredNoParticipants,
+                        "ADR19 Readiness Boundary QA",
+                        default(RuntimeContentOwner),
+                        level,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        Array.Empty<ActivityPlayerActorSlotLifecycleSnapshot>(),
+                        "readiness-boundary-probe"
+                    });
+
+                AssertEqual(
+                    expected,
+                    snapshot.RequiresActivityActorRepresentation,
+                    $"ADR19 readiness boundary is incorrect for requirement '{level}'.");
+
+                string expectedDiagnostic =
+                    $"requiresActivityActorRepresentation='{expected}'";
+                AssertTrue(
+                    snapshot.ToDiagnosticString().Contains(
+                        expectedDiagnostic,
+                        StringComparison.Ordinal),
+                    $"ADR19 lifecycle diagnostics do not expose the representation boundary for '{level}'. " +
+                    snapshot.ToDiagnosticString());
+
+                IReadOnlyList<PlayerParticipationReadinessEvidence> requiredEvidence =
+                    PlayerParticipationReadinessRequirements.GetRequiredEvidence(level);
+                bool requiresLogicalActorPreparation = false;
+                for (int evidenceIndex = 0;
+                     evidenceIndex < requiredEvidence.Count;
+                     evidenceIndex++)
+                {
+                    if (requiredEvidence[evidenceIndex] ==
+                        PlayerParticipationReadinessEvidence.LogicalActorPrepared)
+                    {
+                        requiresLogicalActorPreparation = true;
+                        break;
+                    }
+                }
+
+                AssertEqual(
+                    expected,
+                    requiresLogicalActorPreparation,
+                    $"ADR19 representation boundary diverged from canonical readiness evidence for '{level}'.");
+            }
+
+            Debug.Log(
+                "[ADR19_READINESS_REPRESENTATION_BOUNDARY] status='Passed' " +
+                "none='SessionOnly' joinedSlots='SessionOnly' selectedActors='SessionOnly' " +
+                "logicalActorsPrepared='ActivityRepresentationRequired' " +
+                "gameplayReady='ActivityRepresentationRequired'.");
+        }
+
+        private static ConstructorInfo ResolveLifecycleSnapshotConstructor()
+        {
+            ConstructorInfo[] constructors =
+                typeof(ActivityPlayerActorLifecycleSnapshot).GetConstructors(
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+            for (int index = 0; index < constructors.Length; index++)
+            {
+                if (constructors[index].GetParameters().Length == 11)
+                {
+                    return constructors[index];
+                }
+            }
+
+            throw new InvalidOperationException(
+                "ADR19 QA could not resolve the internal ActivityPlayerActorLifecycleSnapshot constructor.");
         }
 
         private static async Task RunJoinedWithoutGameplayOccupancyAsync()
@@ -218,9 +318,21 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 PlayerParticipationSnapshot beforeExit = fixture.ParticipationSnapshot;
                 PlayerSlotRuntimeSnapshot slotBeforeExit =
                     fixture.GetParticipationSlot(slotId);
+                Component runtimeHost = fixture.RuntimeHost as Component;
+                var sessionPlayerInput = joined.PlayerInput;
+                LocalPlayerHostAuthoring sessionLocalPlayerHost = joined.LocalPlayerHost;
 
                 AssertTrue(slotBeforeExit.IsJoined,
                     "19.1E expected the Player to be Joined before Activity exit.");
+                AssertNotNull(runtimeHost,
+                    "19.1E FrameworkRuntimeHost is unavailable before Activity exit.");
+                AssertNotNull(sessionPlayerInput,
+                    "19.1E successful Manager-Provisioned Join has no PlayerInput.");
+                AssertNotNull(sessionLocalPlayerHost,
+                    "19.1E successful Manager-Provisioned Join has no LocalPlayerHostAuthoring.");
+                AssertTrue(
+                    sessionPlayerInput.transform.IsChildOf(runtimeHost.transform),
+                    "19.1E Manager-Provisioned PlayerInput did not enter FrameworkRuntimeHost Session lifetime.");
 
                 await fixture.ClearActivityAsync(
                     nameof(QaAdr19SessionLifetimeMatrixRegression),
@@ -243,12 +355,25 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "19.1E Activity exit implicitly performed Player Leave.");
                 AssertEqual(PlayerSlotAllocationState.Joined, slotAfterExit.AllocationState,
                     "19.1E Activity exit changed the Joined Slot allocation state.");
+                AssertTrue(sessionPlayerInput != null,
+                    "19.1E Activity exit destroyed the Session-owned Manager-Provisioned PlayerInput.");
+                AssertTrue(sessionLocalPlayerHost != null,
+                    "19.1E Activity exit destroyed the Session-owned Manager-Provisioned Local Player Host.");
+                AssertTrue(
+                    sessionPlayerInput.transform.IsChildOf(runtimeHost.transform),
+                    "19.1E Activity exit moved the Manager-Provisioned PlayerInput out of Session ownership.");
+                AssertTrue(
+                    ReferenceEquals(
+                        sessionPlayerInput.GetComponent<LocalPlayerHostAuthoring>(),
+                        sessionLocalPlayerHost),
+                    "19.1E Activity exit replaced the Manager-Provisioned Local Player Host occurrence.");
 
                 Debug.Log(
                     "[ADR19_1E_ACTIVITY_EXIT_PRESERVES_PARTICIPATION] status='Passed' " +
                     $"activity='{Escape(activityName)}' slot='{slotId.StableText}' " +
                     $"sessionContext='{afterExit.ContextId}' joined='{afterExit.JoinedCount}' " +
-                    "currentActivity='<none>' proof='Activity exit is not Player Leave'.");
+                    "playerInputAlive='True' hostAlive='True' currentActivity='<none>' " +
+                    "proof='Activity exit is not Player Leave and does not release Session-owned Manager-Provisioned Host resources'.");
             }
             catch (Exception exception)
             {
@@ -302,6 +427,16 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 LocalPlayerProvisioningAuthoring authoring = fixture.Provisioning;
                 GameObject sessionHostObject = runtimeHost.gameObject;
+                var sessionPlayerInput = joined.PlayerInput;
+                LocalPlayerHostAuthoring sessionLocalPlayerHost = joined.LocalPlayerHost;
+
+                AssertNotNull(sessionPlayerInput,
+                    "19.1D successful Manager-Provisioned Join has no PlayerInput before Session termination.");
+                AssertNotNull(sessionLocalPlayerHost,
+                    "19.1D successful Manager-Provisioned Join has no LocalPlayerHostAuthoring before Session termination.");
+                AssertTrue(
+                    sessionPlayerInput.transform.IsChildOf(runtimeHost.transform),
+                    "19.1D Manager-Provisioned PlayerInput is not owned by the Session runtime before termination.");
 
                 // ADR 019 defines Session lifetime at FrameworkRuntimeHost scope. Destroying
                 // that host is therefore the real termination boundary; this intentionally
@@ -316,6 +451,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "19.1D host-scoped Session participation module survived FrameworkRuntimeHost termination.");
                 AssertTrue(provisioningModule == null,
                     "19.1D host-scoped Local Player provisioning module survived FrameworkRuntimeHost termination.");
+                AssertTrue(sessionPlayerInput == null,
+                    "19.1D Session-owned Manager-Provisioned PlayerInput survived Session termination.");
+                AssertTrue(sessionLocalPlayerHost == null,
+                    "19.1D Session-owned Manager-Provisioned Local Player Host survived Session termination.");
                 AssertEqual(0, CountLoadedSceneComponents(participationModuleType),
                     "19.1D found a surviving loaded Session participation authority after FrameworkRuntimeHost termination.");
 
@@ -344,9 +483,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 Debug.Log(
                     "[ADR19_1D_SESSION_TERMINATION_CLEARS_PARTICIPATION] status='Passed' " +
                     $"joinedBefore='{beforeTermination.JoinedCount}' " +
-                    "participationAuthoritiesAfter='0' " +
+                    "participationAuthoritiesAfter='0' playerInputAlive='False' hostAlive='False' " +
                     $"endpointEvidence='{endpointEvidence}' " +
-                    "proof='Session termination removes Session participation authority without using Player Leave rollback'.");
+                    "proof='Session termination removes Session participation authority and Session-owned Manager-Provisioned physical resources without using Player Leave rollback'.");
 
                 // Do not call fixture cleanup. Session termination is the cleanup boundary under test,
                 // and the fixture's rollback path would be both unavailable and semantically incorrect.

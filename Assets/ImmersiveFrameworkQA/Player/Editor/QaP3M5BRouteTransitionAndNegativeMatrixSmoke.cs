@@ -16,7 +16,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
 {
     /// <summary>
     /// One-shot Play Mode proof for Scene Local Player Route transition, Route re-entry,
-    /// reverse cleanup and the automatic-authoring negative matrix.
+    /// contextual reprojection, reverse Activity cleanup and the automatic-authoring
+    /// negative matrix. Session Player membership and selected Actor intent survive
+    /// Activity representation release as required by ADR 019.
     /// </summary>
     public static class QaP3M5BRouteTransitionAndNegativeMatrixSmoke
     {
@@ -31,6 +33,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
         private static readonly BindingFlags InstanceAny =
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+
         private readonly struct LoadedPlayerFixture
         {
             internal LoadedPlayerFixture(
@@ -151,7 +154,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 AssertSame(hubRoute, ResolveCurrentRoute(runtimeHost),
                     "P3M5B initial normalization did not establish the QA Hub Route.");
-                AssertCleanupAfterHubReturn(
+                AssertInitialHubState(
                     participationContext,
                     preparationModule,
                     sceneAdmissionModule,
@@ -186,6 +189,18 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     slotId,
                     routeAOwner);
                 completed.Add("route-a-initial-scene-player-admitted");
+
+                PlayerParticipationSnapshot sessionAfterFirstAdmission =
+                    CreateParticipationSnapshot(participationContext);
+                PlayerSlotRuntimeSnapshot sessionSlotAfterFirstAdmission =
+                    FindSlot(sessionAfterFirstAdmission, slotId);
+                int retainedSelectionRevision =
+                    sessionSlotAfterFirstAdmission.SelectionRevision;
+                var retainedActorProfileId =
+                    sessionSlotAfterFirstAdmission.SelectedActorProfileId;
+
+                AssertTrue(retainedActorProfileId.IsValid,
+                    "Route A first Scene Player admission did not establish a persistent selected Actor identity.");
 
                 AssertEqual(routeAOwner,
                     routeAFirst.Preparation.Materialization.Owner,
@@ -235,6 +250,26 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     slotId,
                     routeBOwner);
                 completed.Add("route-b-scene-player-admitted");
+
+                PlayerParticipationSnapshot sessionAfterRouteB =
+                    CreateParticipationSnapshot(participationContext);
+                PlayerSlotRuntimeSnapshot sessionSlotAfterRouteB =
+                    FindSlot(sessionAfterRouteB, slotId);
+                AssertEqual(
+                    sessionAfterFirstAdmission.ContextId,
+                    sessionAfterRouteB.ContextId,
+                    "Route A -> Route B replaced the Session Player participation context.");
+                AssertTrue(sessionSlotAfterRouteB.IsJoined,
+                    "Route A -> Route B implicitly performed Player Leave/re-Join.");
+                AssertEqual(
+                    retainedActorProfileId,
+                    sessionSlotAfterRouteB.SelectedActorProfileId,
+                    "Route A -> Route B changed the persistent selected Actor intent.");
+                AssertEqual(
+                    retainedSelectionRevision,
+                    sessionSlotAfterRouteB.SelectionRevision,
+                    "Route A -> Route B cleared/reselected the Actor instead of reprojecting it contextually.");
+                completed.Add("route-b-session-player-reprojected-without-rejoin");
 
                 AssertTrue(routeBFixture.Adoption != routeAFirst.Adoption,
                     "Route B reused the Route A adoption token.");
@@ -293,7 +328,27 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     participationContext,
                     slotId,
                     routeAOwner);
+
+                PlayerParticipationSnapshot sessionAfterRouteAReentry =
+                    CreateParticipationSnapshot(participationContext);
+                PlayerSlotRuntimeSnapshot sessionSlotAfterRouteAReentry =
+                    FindSlot(sessionAfterRouteAReentry, slotId);
+                AssertEqual(
+                    sessionAfterFirstAdmission.ContextId,
+                    sessionAfterRouteAReentry.ContextId,
+                    "Route A re-entry replaced the Session Player participation context.");
+                AssertTrue(sessionSlotAfterRouteAReentry.IsJoined,
+                    "Route A re-entry implicitly performed Player Leave/re-Join.");
+                AssertEqual(
+                    retainedActorProfileId,
+                    sessionSlotAfterRouteAReentry.SelectedActorProfileId,
+                    "Route A re-entry changed the persistent selected Actor intent.");
+                AssertEqual(
+                    retainedSelectionRevision,
+                    sessionSlotAfterRouteAReentry.SelectionRevision,
+                    "Route A re-entry cleared/reselected the Actor instead of reprojecting it contextually.");
                 completed.Add("route-a-reentry-fresh-identities");
+                completed.Add("route-a-reentry-session-player-reprojected-without-rejoin");
 
                 await AssertResolverRejectedAsync(
                     sceneAdmissionModule,
@@ -408,11 +463,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 await AwaitAllP3M5BScenesUnloadedAsync();
                 completed.Add("qa-hub-return-succeeded");
 
-                AssertCleanupAfterHubReturn(
+                AssertSessionPlayerPreservedAfterHubReturn(
                     participationContext,
                     preparationModule,
                     sceneAdmissionModule,
-                    slotId);
+                    slotId,
+                    sessionAfterFirstAdmission.ContextId,
+                    retainedActorProfileId,
+                    retainedSelectionRevision);
                 AssertTrue(routeAFirst.Authoring == null,
                     "Initial Route A Scene Player Host remained loaded after QA Hub return.");
                 AssertTrue(routeBFixture.Authoring == null,
@@ -425,7 +483,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 AssertEqual(0,
                     CountRuntimeRoots(runtimeContent, routeBOwner),
                     "Route B RuntimeContent owner remained after QA Hub return.");
-                completed.Add("qa-hub-cleanup-complete");
+                completed.Add("qa-hub-activity-representation-cleanup-complete");
+                completed.Add("qa-hub-session-player-preserved");
             }
             catch (Exception exception)
             {
@@ -1280,7 +1339,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 $"Player Slot '{playerSlotId.StableText}' is not configured in the Session snapshot.");
         }
 
-        private static void AssertCleanupAfterHubReturn(
+        private static void AssertInitialHubState(
             object participationContext,
             object preparationModule,
             object sceneAdmissionModule,
@@ -1290,26 +1349,71 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 CreateParticipationSnapshot(participationContext);
             PlayerSlotRuntimeSnapshot slot = FindSlot(snapshot, playerSlotId);
             AssertFalse(slot.IsJoined,
-                "P3M5B Slot remains Joined after QA Hub return.");
+                "P3M5B initial QA Hub state already contains a Joined Player.");
             AssertFalse(slot.HasSelectedActor,
-                "P3M5B Slot retains Actor selection after QA Hub return.");
+                "P3M5B initial QA Hub state already contains Actor selection.");
             AssertEqual(0, snapshot.ReservedCount,
-                "P3M5B cleanup retains a Reserved Slot after QA Hub return.");
+                "P3M5B initial QA Hub state retains a Reserved Slot.");
             AssertEqual(0, snapshot.LeavingCount,
-                "P3M5B cleanup retains a Leaving Slot after QA Hub return.");
+                "P3M5B initial QA Hub state retains a Leaving Slot.");
             PlayerActorPreparationSummary preparation =
                 GetPreparationSummary(preparationModule, playerSlotId);
             AssertTrue(preparation.IsUnprepared,
-                "P3M5B cleanup retains Player Actor preparation after QA Hub return. " +
+                "P3M5B initial QA Hub state retains Player Actor preparation. " +
                 preparation.ToDiagnosticString());
             AssertFalse(TryGetAdoptionToken(
                     preparationModule,
                     playerSlotId,
                     out _),
-                "P3M5B cleanup retains a stale or foreign Scene Actor adoption after QA Hub return.");
+                "P3M5B initial QA Hub state retains a stale or foreign Scene Actor adoption.");
             AssertEqual(0,
                 GetIntProperty(sceneAdmissionModule, "ActiveAdmissionCount"),
-                "P3M5B cleanup retains an active Scene admission after QA Hub return.");
+                "P3M5B initial QA Hub state retains an active Scene admission.");
+        }
+
+        private static void AssertSessionPlayerPreservedAfterHubReturn(
+            object participationContext,
+            object preparationModule,
+            object sceneAdmissionModule,
+            PlayerSlotId playerSlotId,
+            string expectedContextId,
+            Immersive.Framework.Actors.ActorProfileId expectedActorProfileId,
+            int expectedSelectionRevision)
+        {
+            PlayerParticipationSnapshot snapshot =
+                CreateParticipationSnapshot(participationContext);
+            PlayerSlotRuntimeSnapshot slot = FindSlot(snapshot, playerSlotId);
+
+            AssertEqual(expectedContextId, snapshot.ContextId,
+                "P3M5B QA Hub return replaced the Session participation context.");
+            AssertTrue(slot.IsJoined,
+                "P3M5B QA Hub return implicitly performed Player Leave.");
+            AssertEqual(PlayerSlotAllocationState.Joined, slot.AllocationState,
+                "P3M5B QA Hub return changed the Session Player Slot allocation state.");
+            AssertTrue(slot.HasSelectedActor,
+                "P3M5B QA Hub return cleared persistent selected Actor intent.");
+            AssertEqual(expectedActorProfileId, slot.SelectedActorProfileId,
+                "P3M5B QA Hub return changed persistent selected Actor identity.");
+            AssertEqual(expectedSelectionRevision, slot.SelectionRevision,
+                "P3M5B QA Hub return cleared/reselected Actor intent instead of preserving it.");
+            AssertEqual(0, snapshot.ReservedCount,
+                "P3M5B QA Hub return retains a Reserved Slot.");
+            AssertEqual(0, snapshot.LeavingCount,
+                "P3M5B QA Hub return retains a Leaving Slot.");
+
+            PlayerActorPreparationSummary preparation =
+                GetPreparationSummary(preparationModule, playerSlotId);
+            AssertTrue(preparation.IsUnprepared,
+                "P3M5B QA Hub return retains Activity Player Actor preparation. " +
+                preparation.ToDiagnosticString());
+            AssertFalse(TryGetAdoptionToken(
+                    preparationModule,
+                    playerSlotId,
+                    out _),
+                "P3M5B QA Hub return retains stale Scene Actor adoption after Activity representation release.");
+            AssertEqual(0,
+                GetIntProperty(sceneAdmissionModule, "ActiveAdmissionCount"),
+                "P3M5B QA Hub return retains active Scene admission after Activity representation release.");
         }
 
         private static PlayerActorPreparationSummary GetPreparationSummary(
