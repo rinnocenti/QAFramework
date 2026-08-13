@@ -315,16 +315,43 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "Successful Leave reopened Joining. ADR-020 requires Joining policy to remain unchanged.");
                 Complete(completed, "joining-remains-closed");
 
-                await Awaitable.NextFrameAsync();
-                await Awaitable.NextFrameAsync();
-                LocalPlayerProvisioningConsumerObservationSnapshot releasedAuthority =
-                    RequireObservation(access, "post-leave-a-authority");
-                Require(
-                    !HasHostEvidence(releasedAuthority, slotId) &&
-                    !SlotHasActivityAuthority(releasedAuthority, slotId) &&
-                    hostA == null,
-                    "Manager-Provisioned Leave left authoritative Host/Activity evidence or the Session-owned Host object alive. " +
-                    DescribeObservation(releasedAuthority));
+                LocalPlayerProvisioningConsumerObservationSnapshot
+                    postLeaveAuthorityObservation = null;
+                LocalPlayerProvisioningConsumerObservationSnapshot releasedAuthority;
+                try
+                {
+                    releasedAuthority = await AwaitObservationAsync(
+                        access,
+                        observation =>
+                        {
+                            postLeaveAuthorityObservation = observation;
+                            return !HasHostEvidence(observation, slotId) &&
+                                !SlotHasActivityAuthority(observation, slotId) &&
+                                hostA == null;
+                        },
+                        "Manager-Provisioned Leave did not settle Host destruction and " +
+                        "authoritative Host/Activity evidence release",
+                        FrameBudget);
+                }
+                catch (TimeoutException exception)
+                {
+                    bool hostDestroyed = hostA == null;
+                    bool hostEvidenceReleased =
+                        postLeaveAuthorityObservation != null &&
+                        !HasHostEvidence(
+                            postLeaveAuthorityObservation,
+                            slotId);
+                    bool activityAuthorityReleased =
+                        postLeaveAuthorityObservation != null &&
+                        !SlotHasActivityAuthority(
+                            postLeaveAuthorityObservation,
+                            slotId);
+                    throw new TimeoutException(
+                        $"{exception.Message} hostDestroyed='{hostDestroyed}' " +
+                        $"hostEvidenceReleased='{hostEvidenceReleased}' " +
+                        $"activityAuthorityReleased='{activityAuthorityReleased}'.",
+                        exception);
+                }
                 Complete(completed, "manager-host-authority-released");
 
                 LocalPlayerProvisioningConsumerObservationSnapshot readinessAfterLeave =
@@ -695,9 +722,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 return slot.IsLogicalActorPrepared ||
                     slot.IsPhysicallyMaterialized ||
                     slot.IsGameplayAdmitted ||
-                    slot.HasCurrentActorEvidence ||
-                    slot.HasPreparationEvidence ||
-                    slot.HasGameplayAdmissionEvidence;
+                    slot.HasCurrentActorEvidence;
             }
 
             return false;
