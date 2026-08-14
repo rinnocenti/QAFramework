@@ -42,6 +42,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             Root + "/QA_PlayerSurfacePublic_ContentProfile.asset";
         private const string ActivityPath =
             Root + "/QA_PlayerSurfacePublic_WaitCoveredActivity.asset";
+        private const string SecondaryActivityPath =
+            Root + "/QA_PlayerSurfacePublic_SecondaryWaitCoveredActivity.asset";
+        private const string PlayerExcludedActivityPath =
+            Root + "/QA_PlayerSurfacePublic_PlayerExcludedActivity.asset";
         private const string PlayerSlotPath =
             "Assets/ImmersiveFrameworkQA/Player/Profiles/SlotsProfiles/PlayerSlotProfileP1.asset";
         private const string PreparedKey =
@@ -100,8 +104,30 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
                 ActivityContentProfileAsset contentProfile =
                     CreateOrUpdateContentProfile(contentScene);
-                ActivityAsset activity =
-                    CreateOrUpdateActivity(contentProfile, slot);
+                ActivityAsset activity = CreateOrUpdateActivity(
+                    ActivityPath,
+                    "qa.player.surface.public.waitcovered.a",
+                    "QA Player Surface Public WaitCovered A",
+                    "Authored Player-representing Activity A for public Player Surface certification.",
+                    contentProfile,
+                    slot,
+                    true);
+                ActivityAsset secondaryActivity = CreateOrUpdateActivity(
+                    SecondaryActivityPath,
+                    "qa.player.surface.public.waitcovered.b",
+                    "QA Player Surface Public WaitCovered B",
+                    "Authored distinct Player-representing Activity B for contextual reprojection certification.",
+                    contentProfile,
+                    slot,
+                    true);
+                ActivityAsset excludedActivity = CreateOrUpdateActivity(
+                    PlayerExcludedActivityPath,
+                    "qa.player.surface.public.player-excluded",
+                    "QA Player Surface Public Player Excluded",
+                    "Authored Activity that deliberately excludes Player contextual participation.",
+                    contentProfile,
+                    slot,
+                    false);
 
                 Scene hub = EditorSceneManager.OpenScene(
                     HubScenePath,
@@ -111,7 +137,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
                 GameObject root = FindOrCreateRoot(hub);
                 QaPlayerSurfacePublicNavigationFixture fixture =
-                    ConfigureFixtureRoot(root, activity, slot);
+                    ConfigureFixtureRoot(
+                        root,
+                        activity,
+                        secondaryActivity,
+                        excludedActivity,
+                        slot);
                 string surfaceIssue = string.Empty;
                 bool authoredSurfaceIsValid = fixture != null &&
                     fixture.TryValidateAuthoredSurface(out surfaceIssue);
@@ -213,38 +244,52 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         }
 
         private static ActivityAsset CreateOrUpdateActivity(
+            string assetPath,
+            string activityId,
+            string activityName,
+            string description,
             ActivityContentProfileAsset contentProfile,
-            PlayerSlotProfile slot)
+            PlayerSlotProfile slot,
+            bool representsPlayer)
         {
             ActivityAsset activity =
-                AssetDatabase.LoadAssetAtPath<ActivityAsset>(ActivityPath);
+                AssetDatabase.LoadAssetAtPath<ActivityAsset>(assetPath);
             if (activity == null)
             {
                 activity = ScriptableObject.CreateInstance<ActivityAsset>();
-                AssetDatabase.CreateAsset(activity, ActivityPath);
+                AssetDatabase.CreateAsset(activity, assetPath);
             }
 
             var serialized = new SerializedObject(activity);
             RequireProperty(serialized, "activityId").stringValue =
-                "qa.player.surface.public.waitcovered";
+                activityId;
             RequireProperty(serialized, "activityName").stringValue =
-                "QA Player Surface Public WaitCovered";
+                activityName;
             RequireProperty(serialized, "description").stringValue =
-                "Authored WaitCovered Activity for public Player Surface certification.";
+                description;
             SetEnumName(
                 RequireProperty(serialized, "playerParticipationProjectionMode"),
-                ActivityParticipationProjectionMode.ExplicitSlots.ToString());
+                (representsPlayer
+                    ? ActivityParticipationProjectionMode.ExplicitSlots
+                    : ActivityParticipationProjectionMode.NoSlots).ToString());
             SetEnumName(
                 RequireProperty(serialized, "playerParticipationZeroParticipantPolicy"),
-                ActivityParticipationZeroParticipantPolicy.Rejected.ToString());
+                (representsPlayer
+                    ? ActivityParticipationZeroParticipantPolicy.Rejected
+                    : ActivityParticipationZeroParticipantPolicy.Allowed).ToString());
             SetEnumName(
                 RequireProperty(serialized, "playerParticipationRequirementLevel"),
-                PlayerParticipationRequirementLevel.GameplayReady.ToString());
+                (representsPlayer
+                    ? PlayerParticipationRequirementLevel.GameplayReady
+                    : PlayerParticipationRequirementLevel.None).ToString());
             SerializedProperty slots = RequireProperty(
                 serialized,
                 "playerParticipationExplicitSlotProfiles");
-            slots.arraySize = 1;
-            slots.GetArrayElementAtIndex(0).objectReferenceValue = slot;
+            slots.arraySize = representsPlayer ? 1 : 0;
+            if (representsPlayer)
+            {
+                slots.GetArrayElementAtIndex(0).objectReferenceValue = slot;
+            }
             RequireProperty(serialized, "activityContentProfile")
                 .objectReferenceValue = contentProfile;
             SetEnumName(
@@ -267,7 +312,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 activity.TransitionGateMode ==
                     TransitionGateMode.InputInteractionAndGameplay &&
                 activity.PlayerParticipationRequirementLevel ==
-                    PlayerParticipationRequirementLevel.GameplayReady &&
+                    (representsPlayer
+                        ? PlayerParticipationRequirementLevel.GameplayReady
+                        : PlayerParticipationRequirementLevel.None) &&
                 activity.HasActivityContentProfile,
                 "Authored public Activity did not retain the canonical " +
                 "WaitCovered/FadeWithLoading/player configuration.");
@@ -297,6 +344,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private static QaPlayerSurfacePublicNavigationFixture ConfigureFixtureRoot(
             GameObject root,
             ActivityAsset activity,
+            ActivityAsset secondaryActivity,
+            ActivityAsset excludedActivity,
             PlayerSlotProfile slot)
         {
             QaPlayerSurfacePublicNavigationFixture fixture =
@@ -313,6 +362,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             ActivityRequestTrigger enter =
                 FindOrCreateChildTrigger(root, "EnterActivityTrigger");
+            ActivityRequestTrigger enterSecondary =
+                FindOrCreateChildTrigger(root, "EnterSecondaryActivityTrigger");
+            ActivityRequestTrigger enterExcluded =
+                FindOrCreateChildTrigger(root, "EnterPlayerExcludedActivityTrigger");
             ActivityRequestTrigger clear =
                 FindOrCreateChildTrigger(root, "ClearActivityTrigger");
             LocalPlayerProvisioningConsumerAccessBinding binding =
@@ -339,12 +392,24 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "DestroyProbeBinding",
                     LocalPlayerProvisioningConsumerScope.Route);
             ConfigureTrigger(enter, activity, "qa.player.surface.public.enter");
+            ConfigureTrigger(
+                enterSecondary,
+                secondaryActivity,
+                "qa.player.surface.public.enter-secondary");
+            ConfigureTrigger(
+                enterExcluded,
+                excludedActivity,
+                "qa.player.surface.public.enter-player-excluded");
             ConfigureTrigger(clear, activity, "qa.player.surface.public.clear");
             ApplyScope(binding, LocalPlayerProvisioningConsumerScope.Route);
 
             fixture.Configure(
                 activity,
+                secondaryActivity,
+                excludedActivity,
                 enter,
+                enterSecondary,
+                enterExcluded,
                 clear,
                 binding,
                 wrongScopeBinding,

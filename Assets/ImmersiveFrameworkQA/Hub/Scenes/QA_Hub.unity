@@ -363,6 +363,21 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!115 &453055146
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: P3M5BSessionProvisioningWitness
+  m_Namespace: ImmersiveFrameworkQA.Player.P3M5B
+  m_AssemblyName: Assembly-CSharp
 --- !u!1 &468170338
 GameObject:
   m_ObjectHideFlags: 0
@@ -492,6 +507,126 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &769286009
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 769286013}
+  - component: {fileID: 769286012}
+  - component: {fileID: 769286011}
+  - component: {fileID: 769286010}
+  - component: {fileID: 769286014}
+  - component: {fileID: 769286015}
+  - component: {fileID: 769286016}
+  m_Layer: 0
+  m_Name: QA_P3M5B_SessionProvisioningWitness
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &769286010
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 769286009}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1423913623}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Player.P3M5B.P3M5BSessionProvisioningWitness
+  routeConsumerBinding: {fileID: 769286012}
+  enterRouteATrigger: {fileID: 769286011}
+--- !u!114 &769286011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 769286009}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
+  targetRoute: {fileID: 11400000, guid: 3d5401b603dda05439bd71a5b020e5c9, type: 2}
+  reason: qa.p3m5b.hub-enter-route-a
+--- !u!114 &769286012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 769286009}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ebf679d50fa62684ab15cd8bfc764416, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerProvisioningConsumerAccessBinding
+  scope: 10
+--- !u!4 &769286013
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 769286009}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &769286014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 769286009}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1696401297}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Player.P3M5B.P3M5BSessionProvisioningWitness
+  routeConsumerBinding: {fileID: 769286012}
+  enterRouteATrigger: {fileID: 769286011}
+--- !u!114 &769286015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 769286009}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1825894530}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Player.P3M5B.P3M5BSessionProvisioningWitness
+  routeConsumerBinding: {fileID: 769286012}
+  enterRouteATrigger: {fileID: 769286011}
+--- !u!114 &769286016
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 769286009}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 453055146}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Player.P3M5B.P3M5BSessionProvisioningWitness
+  routeConsumerBinding: {fileID: 769286012}
+  enterRouteATrigger: {fileID: 769286011}
 --- !u!1 &1064569872
 GameObject:
   m_ObjectHideFlags: 0
@@ -583,6 +718,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 296167724}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!115 &1423913623
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: P3M5BSessionProvisioningWitness
+  m_Namespace: ImmersiveFrameworkQA.Player.P3M5B
+  m_AssemblyName: Assembly-CSharp
 --- !u!1 &1449548905
 GameObject:
   m_ObjectHideFlags: 0
@@ -766,6 +916,36 @@ Transform:
   m_Children: []
   m_Father: {fileID: 296167724}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!115 &1696401297
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: P3M5BSessionProvisioningWitness
+  m_Namespace: ImmersiveFrameworkQA.Player.P3M5B
+  m_AssemblyName: Assembly-CSharp
+--- !u!115 &1825894530
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: P3M5BSessionProvisioningWitness
+  m_Namespace: ImmersiveFrameworkQA.Player.P3M5B
+  m_AssemblyName: Assembly-CSharp
 --- !u!1 &1968472334
 GameObject:
   m_ObjectHideFlags: 0
@@ -856,7 +1036,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ImmersiveFrameworkQA.Hub.Runtime::ImmersiveFrameworkQA.Hub.QaPlayerSurfacePublicNavigationFixture
   targetActivity: {fileID: 11400000, guid: 05fc85d9736342d9aed80c5fe2e67ef2, type: 2}
+  secondaryPlayerActivity: {fileID: 0}
+  playerExcludedActivity: {fileID: 0}
   enterActivityTrigger: {fileID: 468170339}
+  enterSecondaryActivityTrigger: {fileID: 0}
+  enterPlayerExcludedActivityTrigger: {fileID: 0}
   clearActivityTrigger: {fileID: 1470660452}
   routeConsumerBinding: {fileID: 2072436917}
   wrongScopeBinding: {fileID: 1064569873}
@@ -889,3 +1073,4 @@ SceneRoots:
   - {fileID: 296167724}
   - {fileID: 1449548907}
   - {fileID: 2072436919}
+  - {fileID: 769286013}

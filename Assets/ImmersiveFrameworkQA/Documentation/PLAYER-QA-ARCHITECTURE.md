@@ -80,12 +80,17 @@ evidence.
 `QaM07ActiveProjectionFreezeRegression`,
 `QaM07ActivitySessionLifecycleProjectionRegression`,
 `QaM07PlayerRequirementPolicyMatrixRegression`,
-`QaM07PlayerZeroParticipantPolicyMatrixRegression`,
-`QaM07IncludedExcludedFailureReleaseScopeRegression` and
-`QaM07InternalReconcileRegression` remain in GameFlow because their primary
+`QaM07PlayerZeroParticipantPolicyMatrixRegression` and
+`QaManagerProvisionedLifecycleWaitingProjectionRegression` remain in GameFlow
+because their primary
 contract is Activity participation, readiness, occurrence or projection.
 They validate the Manager-Provisioned Player fixture only when Player is a
 participant; they no longer provide infrastructure for Public Surface QA.
+
+The former M07 internal reconcile and included/excluded release-scope
+regressions were retired: both depended on per-Activity physical Actor release
+or internal semantic reflection, which is not a contract of the Session-owned
+physical Player model.
 
 ## Public Surface isolation
 

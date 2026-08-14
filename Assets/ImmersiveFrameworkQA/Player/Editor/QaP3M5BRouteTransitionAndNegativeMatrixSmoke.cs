@@ -1,12 +1,13 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.GameFlow;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
 using Immersive.Framework.RuntimeContent;
+using ImmersiveFrameworkQA.Player.Internal.Editor;
+using ImmersiveFrameworkQA.Player.P3M5B;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -17,8 +18,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
     /// <summary>
     /// One-shot Play Mode proof for Scene Local Player Route transition, Route re-entry,
     /// contextual reprojection, reverse Activity cleanup and the automatic-authoring
-    /// negative matrix. Session Player membership and selected Actor intent survive
-    /// Activity representation release as required by ADR 019.
+    /// negative matrix. Session Player membership, selected Actor intent and the admitted
+    /// physical Player survive Activity representation release as required by ADR-019.
     /// </summary>
     public static class QaP3M5BRouteTransitionAndNegativeMatrixSmoke
     {
@@ -31,27 +32,102 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private const string SceneAdmissionModuleTypeName =
             "Immersive.Framework.PlayerParticipation.SceneLocalPlayerAdmissionRuntimeHostModule";
 
-        private static readonly BindingFlags InstanceAny =
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-
         private readonly struct LoadedPlayerFixture
         {
             internal LoadedPlayerFixture(
-                Scene scene,
+                Scene contextScene,
+                P3M5BContextualAdmissionWitness witness,
                 SceneLocalPlayerAdmissionAuthoring authoring,
+                SceneLocalPlayerAdmissionToken contextualAdmission,
                 ScenePlayerActorAdoptionToken adoption,
-                PlayerActorPreparationSummary preparation)
+                PlayerActorPreparationSummary preparation,
+                PlayerHostEvidenceSummary contextualHostEvidence,
+                PlayerGameplayAdmissionSummary gameplayAdmission)
             {
-                Scene = scene;
+                ContextScene = contextScene;
+                Witness = witness;
                 Authoring = authoring;
+                ContextualAdmission = contextualAdmission;
                 Adoption = adoption;
                 Preparation = preparation;
+                ContextualHostEvidence = contextualHostEvidence;
+                GameplayAdmission = gameplayAdmission;
             }
 
-            internal Scene Scene { get; }
+            internal Scene ContextScene { get; }
+            internal P3M5BContextualAdmissionWitness Witness { get; }
             internal SceneLocalPlayerAdmissionAuthoring Authoring { get; }
+            internal SceneLocalPlayerAdmissionToken ContextualAdmission { get; }
             internal ScenePlayerActorAdoptionToken Adoption { get; }
             internal PlayerActorPreparationSummary Preparation { get; }
+            internal PlayerHostEvidenceSummary ContextualHostEvidence { get; }
+            internal PlayerGameplayAdmissionSummary GameplayAdmission { get; }
+        }
+
+        private readonly struct PublicContextualObservationDiagnostic
+        {
+            internal PublicContextualObservationDiagnostic(
+                string bindingState,
+                RuntimeContentOwner bindingOwner,
+                string bindingDiagnostic,
+                bool accessResolved,
+                string accessIssue,
+                bool observationAvailable,
+                string observationDiagnostic,
+                RuntimeContentOwner currentActivityOwner,
+                bool slotFound,
+                bool hasHostEvidence,
+                bool hasGameplayAdmissionEvidence,
+                RuntimeContentOwner gameplayOwner,
+                RuntimeContentOwner inputOwner,
+                PlayerGameplayInputBindingToken inputBindingToken)
+            {
+                BindingState = bindingState ?? string.Empty;
+                BindingOwner = bindingOwner;
+                BindingDiagnostic = bindingDiagnostic ?? string.Empty;
+                AccessResolved = accessResolved;
+                AccessIssue = accessIssue ?? string.Empty;
+                ObservationAvailable = observationAvailable;
+                ObservationDiagnostic = observationDiagnostic ?? string.Empty;
+                CurrentActivityOwner = currentActivityOwner;
+                SlotFound = slotFound;
+                HasHostEvidence = hasHostEvidence;
+                HasGameplayAdmissionEvidence = hasGameplayAdmissionEvidence;
+                GameplayOwner = gameplayOwner;
+                InputOwner = inputOwner;
+                InputBindingToken = inputBindingToken;
+            }
+
+            internal string BindingState { get; }
+            internal RuntimeContentOwner BindingOwner { get; }
+            internal string BindingDiagnostic { get; }
+            internal bool AccessResolved { get; }
+            internal string AccessIssue { get; }
+            internal bool ObservationAvailable { get; }
+            internal string ObservationDiagnostic { get; }
+            internal RuntimeContentOwner CurrentActivityOwner { get; }
+            internal bool SlotFound { get; }
+            internal bool HasHostEvidence { get; }
+            internal bool HasGameplayAdmissionEvidence { get; }
+            internal RuntimeContentOwner GameplayOwner { get; }
+            internal RuntimeContentOwner InputOwner { get; }
+            internal PlayerGameplayInputBindingToken InputBindingToken { get; }
+
+            internal string ToDiagnosticString()
+            {
+                return $"bindingState='{BindingState}' " +
+                    $"bindingOwner='{BindingOwner.StableText}' " +
+                    $"bindingDiagnostic='{BindingDiagnostic}' " +
+                    $"accessResolved='{AccessResolved}' accessIssue='{AccessIssue}' " +
+                    $"observationAvailable='{ObservationAvailable}' " +
+                    $"observationDiagnostic='{ObservationDiagnostic}' " +
+                    $"currentActivityOwner='{CurrentActivityOwner.StableText}' " +
+                    $"slotFound='{SlotFound}' hasHostEvidence='{HasHostEvidence}' " +
+                    $"hasGameplayAdmissionEvidence='{HasGameplayAdmissionEvidence}' " +
+                    $"gameplayOwner='{GameplayOwner.StableText}' " +
+                    $"inputOwner='{InputOwner.StableText}' " +
+                    $"inputBinding='{InputBindingToken.StableText}'";
+            }
         }
 
         [MenuItem(MenuPath, true)]
@@ -71,6 +147,177 @@ namespace ImmersiveFrameworkQA.Player.Editor
         /// </summary>
         public static async Task RunAsync()
         {
+            await RunAsync(releaseScenePlayer: false);
+        }
+
+        /// <summary>
+        /// Executes the canonical SceneProvided route matrix and then proves
+        /// ADR-020 Leave while the Scene Activity contextual binding is live.
+        /// </summary>
+        internal static async Task RunSceneLeaveWithActivityAsync()
+        {
+            await RunAsync(releaseScenePlayer: true);
+        }
+
+        /// <summary>
+        /// Runs the canonical A->B->A matrix, exits to the Hub (no Player
+        /// contextual assignment), and proves public Leave C/D/E from the
+        /// Hub Route consumer. Route triggers are authored plumbing only;
+        /// every lifecycle assertion below uses public operation/observation
+        /// surfaces or Unity physical references.
+        /// </summary>
+        internal static async Task RunSceneLeaveWithoutActivityAsync()
+        {
+            await RunAsync(releaseScenePlayer: false);
+
+            P3M5BSessionProvisioningWitness witness = ResolveHubSessionWitness();
+            ILocalPlayerProvisioningConsumerAccess access =
+                await AwaitPublicAccessAsync(witness.RouteConsumerBinding);
+            LocalPlayerProvisioningConsumerObservationSnapshot before =
+                RequirePublicObservation(access, "scene-provided-no-activity-before-leave");
+            PlayerSlotRuntimeSnapshot beforeSlot = FindSlot(
+                before.Participation,
+                ResolveFirstConfiguredSlot().PlayerSlotId);
+            AssertTrue(beforeSlot.IsJoined,
+                "SceneProvided no-Activity Leave requires a Joined Session Slot.");
+            AssertFalse(HasPublicContextualAssignment(before, beforeSlot.PlayerSlotId),
+                "SceneProvided no-Activity Leave requires Contextual=Absent before Stage C.");
+
+            LocalPlayerHostAuthoring physicalHost = ResolveJoinedPhysicalHost(
+                beforeSlot.PlayerSlotId);
+            Transform physicalActor = ResolveSinglePhysicalActor(physicalHost);
+            AssertNotNull(physicalHost,
+                "SceneProvided no-Activity Leave could not resolve the retained physical Host.");
+            AssertNotNull(physicalActor,
+                "SceneProvided no-Activity Leave could not resolve the retained physical Actor.");
+
+            SessionPlayerLeaveResult leave = access.RequestLeave(
+                new SessionPlayerLeaveRequest(
+                    beforeSlot.PlayerSlotId,
+                    beforeSlot.Revision,
+                    nameof(QaP3M5BRouteTransitionAndNegativeMatrixSmoke),
+                    "scene-provided-leave-without-activity"));
+            AssertNotNull(leave,
+                "SceneProvided no-Activity Leave returned no public result.");
+            AssertTrue(leave.Succeeded && leave.LeaveStarted &&
+                leave.ActivityRepresentationReleased &&
+                leave.ProvisioningReleased && leave.TerminalCommitted,
+                "SceneProvided no-Activity Leave did not report C no-op/idempotent, D physical release and E terminal commit. " +
+                leave.ToDiagnosticString());
+
+            bool terminal = false;
+            for (int frame = 0; frame < 24; frame++)
+            {
+                LocalPlayerProvisioningConsumerObservationSnapshot after =
+                    RequirePublicObservation(access, "scene-provided-no-activity-after-leave");
+                PlayerSlotRuntimeSnapshot afterSlot = FindSlot(
+                    after.Participation,
+                    beforeSlot.PlayerSlotId);
+                if (!afterSlot.IsJoined && physicalHost == null && physicalActor == null)
+                {
+                    terminal = true;
+                    break;
+                }
+
+                await Awaitable.NextFrameAsync();
+            }
+
+            AssertTrue(terminal,
+                "SceneProvided no-Activity Leave did not reach Vacant only after physical absence. " +
+                $"hostAlive='{physicalHost != null}' actorAlive='{physicalActor != null}'.");
+
+            RouteRequestTrigger rejoinTrigger = witness.EnterRouteATrigger;
+            AssertNotNull(rejoinTrigger,
+                "P3M5B Hub witness has no authored Route A rejoin trigger.");
+            rejoinTrigger.RequestRoute();
+            await AwaitRouteTriggerSuccessAsync(
+                rejoinTrigger,
+                "SceneProvided rejoin Route A request did not succeed.");
+            P3M5BContextualAdmissionWitness rejoinedWitness =
+                ResolveSingleContextualWitness(
+                    QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteAActivityScenePath);
+            ILocalPlayerProvisioningConsumerAccess rejoinedAccess =
+                await AwaitPublicAccessAsync(rejoinedWitness.ActivityConsumerBinding);
+            LocalPlayerProvisioningConsumerObservationSnapshot rejoined =
+                await AwaitPublicObservationAsync(
+                    rejoinedAccess,
+                    observation => observation.Participation != null &&
+                        FindSlot(observation.Participation, beforeSlot.PlayerSlotId).IsJoined &&
+                        HasPublicContextualAssignment(observation, beforeSlot.PlayerSlotId),
+                    "SceneProvided rejoin did not establish a fresh Joined contextual occurrence.");
+            PlayerSlotRuntimeSnapshot rejoinedSlot = FindSlot(
+                rejoined.Participation,
+                beforeSlot.PlayerSlotId);
+            AssertTrue(rejoinedSlot.Revision > beforeSlot.Revision,
+                "SceneProvided rejoin did not advance the Slot revision beyond the retired Leave occurrence.");
+            SessionPlayerLeaveResult staleLeave = rejoinedAccess.RequestLeave(
+                new SessionPlayerLeaveRequest(
+                    beforeSlot.PlayerSlotId,
+                    beforeSlot.Revision,
+                    nameof(QaP3M5BRouteTransitionAndNegativeMatrixSmoke),
+                    "scene-provided-stale-leave-after-rejoin"));
+            AssertNotNull(staleLeave,
+                "SceneProvided stale Leave returned no public result.");
+            AssertFalse(staleLeave.Succeeded,
+                "SceneProvided stale Leave from the retired occurrence was accepted. " +
+                staleLeave.ToDiagnosticString());
+        }
+
+        /// <summary>
+        /// Proves that Session termination owns final cleanup even when the
+        /// SceneProvided Player has already left every Player-participating
+        /// Activity. Host discovery is Unity plumbing; the assertions are the
+        /// public Hub observation and concrete physical Unity references.
+        /// </summary>
+        internal static async Task RunSceneSessionTerminationWithoutActivityAsync()
+        {
+            await RunAsync(releaseScenePlayer: false);
+
+            P3M5BSessionProvisioningWitness witness = ResolveHubSessionWitness();
+            ILocalPlayerProvisioningConsumerAccess access =
+                await AwaitPublicAccessAsync(witness.RouteConsumerBinding);
+            LocalPlayerProvisioningConsumerObservationSnapshot before =
+                RequirePublicObservation(access, "scene-provided-no-activity-before-termination");
+            PlayerSlotRuntimeSnapshot slot = FindSlot(
+                before.Participation,
+                ResolveFirstConfiguredSlot().PlayerSlotId);
+            AssertTrue(slot.IsJoined &&
+                !HasPublicContextualAssignment(before, slot.PlayerSlotId),
+                "SceneProvided termination requires Joined physical state with Contextual=Absent.");
+
+            LocalPlayerHostAuthoring physicalHost = ResolveJoinedPhysicalHost(slot.PlayerSlotId);
+            Transform physicalActor = ResolveSinglePhysicalActor(physicalHost);
+            AssertNotNull(physicalHost,
+                "SceneProvided termination could not resolve the retained physical Host.");
+            AssertNotNull(physicalHost.PlayerInput,
+                "SceneProvided termination requires a retained physical PlayerInput.");
+            AssertNotNull(physicalActor,
+                "SceneProvided termination requires a retained physical Actor.");
+
+            AssertTrue(QaFrameworkReadiness.TryResolveUniqueHost(
+                    out Component runtimeHost,
+                    out string hostIssue) && runtimeHost != null,
+                "SceneProvided termination could not resolve the active Framework host. " + hostIssue);
+            UnityEngine.Object.Destroy(runtimeHost.gameObject);
+            await Awaitable.NextFrameAsync();
+            await Awaitable.NextFrameAsync();
+
+            AssertTrue(runtimeHost == null,
+                "SceneProvided Session termination retained Framework runtime authority.");
+            AssertTrue(physicalHost == null,
+                "SceneProvided Session termination retained the Session physical Host.");
+            AssertTrue(physicalActor == null,
+                "SceneProvided Session termination retained the Session physical Actor.");
+            AssertTrue(!access.Snapshot.IsAvailable ||
+                !access.TryGetObservation(
+                    out LocalPlayerProvisioningConsumerObservationSnapshot after) ||
+                after == null || !after.Participation.IsInitialized ||
+                after.Participation.JoinedCount == 0,
+                "SceneProvided Session termination retained public Session Player participation.");
+        }
+
+        private static async Task RunAsync(bool releaseScenePlayer)
+        {
             var completed = new List<string>();
             var loadedNegativeScenes = new List<string>();
             Exception failure = null;
@@ -85,8 +332,15 @@ namespace ImmersiveFrameworkQA.Player.Editor
             ActivityAsset routeAActivity = null;
             ActivityAsset routeBActivity = null;
             PlayerSlotId slotId = default;
+            RuntimeContentOwner sessionPhysicalOwner = default;
             RuntimeContentOwner routeAOwner = default;
             RuntimeContentOwner routeBOwner = default;
+            LocalPlayerHostAuthoring admittedPhysicalHost = null;
+            Transform admittedPhysicalActor = null;
+            string admittedPhysicalHostEntityId = string.Empty;
+            string admittedPhysicalActorEntityId = string.Empty;
+            Vector3 admittedPhysicalActorPosition = default;
+            Quaternion admittedPhysicalActorRotation = default;
 
             try
             {
@@ -115,6 +369,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 slotId = firstSlot.PlayerSlotId;
                 AssertTrue(slotId.IsValid,
                     "P3M5B first configured Slot has no valid identity.");
+                sessionPhysicalOwner = CreateSessionPhysicalOwner();
                 completed.Add("fixture-assets-resolved");
 
                 runtimeHost = await AwaitUniqueReadyQaRuntimeHostAsync();
@@ -126,12 +381,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     runtimeHost,
                     SceneAdmissionModuleTypeName,
                     "SceneLocalPlayerAdmissionRuntimeHostModule");
-                participationContext = GetFieldValue(
-                    sceneAdmissionModule,
-                    "participationContext");
-                runtimeContent = GetPropertyValue(
-                    runtimeHost,
-                    "RuntimeContentRuntime");
+                participationContext = runtimeHost;
+                runtimeContent = runtimeHost;
                 AssertNotNull(participationContext,
                     "Scene admission module has no participation context.");
                 AssertNotNull(runtimeContent,
@@ -180,15 +431,35 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 routeAOwner = CreateActivityOwner(routeAActivity);
                 LoadedPlayerFixture routeAFirst = await AwaitActiveFixtureAsync(
                     QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteAActivityScenePath,
+                    runtimeHost,
+                    routeAActivity,
                     preparationModule,
                     slotId,
-                    routeAOwner);
+                    sessionPhysicalOwner);
                 AssertAdmittedState(
                     routeAFirst,
+                    runtimeHost,
+                    routeAActivity,
                     participationContext,
                     slotId,
-                    routeAOwner);
+                    sessionPhysicalOwner);
                 completed.Add("route-a-initial-scene-player-admitted");
+
+                admittedPhysicalHost = routeAFirst.Authoring.LocalPlayerHost;
+                admittedPhysicalActor = routeAFirst.Authoring.SceneLogicalPlayerActor.transform;
+                AssertEqual(
+                    routeAFirst.Adoption.ActorId,
+                    routeAFirst.Authoring.SceneLogicalPlayerActor.ActorId,
+                    "Route A physical adoption does not identify its admitted Actor.");
+                AssertNotNull(admittedPhysicalHost,
+                    "Route A did not expose the admitted Scene-Provided physical Host.");
+                AssertNotNull(admittedPhysicalActor,
+                    "Route A did not expose the admitted Scene-Provided physical Actor.");
+                admittedPhysicalHostEntityId = admittedPhysicalHost.GetEntityId().ToString();
+                admittedPhysicalActorEntityId = admittedPhysicalActor.gameObject.GetEntityId().ToString();
+                admittedPhysicalActorPosition = admittedPhysicalActor.position;
+                admittedPhysicalActorRotation = admittedPhysicalActor.rotation;
+                completed.Add("route-a-physical-identity-and-pose-captured");
 
                 PlayerParticipationSnapshot sessionAfterFirstAdmission =
                     CreateParticipationSnapshot(participationContext);
@@ -202,13 +473,13 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 AssertTrue(retainedActorProfileId.IsValid,
                     "Route A first Scene Player admission did not establish a persistent selected Actor identity.");
 
-                AssertEqual(routeAOwner,
+                AssertEqual(sessionPhysicalOwner,
                     routeAFirst.Preparation.Materialization.Owner,
-                    "Route A preparation owner is not the Startup Activity owner.");
+                    "Route A preparation owner is not the Session physical owner.");
                 AssertEqual(1,
                     GetIntProperty(sceneAdmissionModule, "ActiveAdmissionCount"),
                     "Route A retained an unexpected active admission count.");
-                completed.Add("route-a-owner-authoritative");
+                completed.Add("route-a-physical-and-contextual-authority");
 
                 object routeBRequest = await RequestRouteAsync(
                     runtimeHost,
@@ -225,8 +496,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 await AwaitScenesUnloadedAsync(
                     QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteAPrimaryScenePath,
                     QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteAActivityScenePath);
-                AssertTrue(routeAFirst.Authoring == null,
-                    "Route A Activity surface survived Route replacement.");
+                AssertRetiredContextualAdmission(routeAFirst, "Route A1");
                 completed.Add("route-a-scenes-released");
 
                 AssertEqual(0,
@@ -241,14 +511,18 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 routeBOwner = CreateActivityOwner(routeBActivity);
                 LoadedPlayerFixture routeBFixture = await AwaitActiveFixtureAsync(
                     QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteBActivityScenePath,
+                    runtimeHost,
+                    routeBActivity,
                     preparationModule,
                     slotId,
-                    routeBOwner);
+                    sessionPhysicalOwner);
                 AssertAdmittedState(
                     routeBFixture,
+                    runtimeHost,
+                    routeBActivity,
                     participationContext,
                     slotId,
-                    routeBOwner);
+                    sessionPhysicalOwner);
                 completed.Add("route-b-scene-player-admitted");
 
                 PlayerParticipationSnapshot sessionAfterRouteB =
@@ -271,15 +545,24 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Route A -> Route B cleared/reselected the Actor instead of reprojecting it contextually.");
                 completed.Add("route-b-session-player-reprojected-without-rejoin");
 
-                AssertTrue(routeBFixture.Adoption != routeAFirst.Adoption,
-                    "Route B reused the Route A adoption token.");
-                AssertTrue(routeBFixture.Adoption.ActorId != routeAFirst.Adoption.ActorId,
-                    "Route B reused the Route A runtime Actor identity.");
-                AssertTrue(
-                    routeBFixture.Adoption.RuntimeContentIdentity !=
-                    routeAFirst.Adoption.RuntimeContentIdentity,
-                    "Route B reused the Route A RuntimeContent identity.");
-                completed.Add("route-b-fresh-identities");
+                AssertFreshContextualAdmission(
+                    routeAFirst,
+                    routeBFixture,
+                    "Route A1 -> Route B");
+                AssertPhysicalAdoptionUnchanged(
+                    routeAFirst,
+                    routeBFixture,
+                    "Route A -> Route B");
+                AssertPhysicalRepresentationPreserved(
+                    admittedPhysicalHost,
+                    admittedPhysicalActor,
+                    admittedPhysicalHostEntityId,
+                    admittedPhysicalActorEntityId,
+                    admittedPhysicalActorPosition,
+                    admittedPhysicalActorRotation,
+                    "Route A -> Route B");
+                completed.Add("route-b-new-context-preserves-physical-identity");
+                completed.Add("route-b-preserves-physical-pose");
 
                 AssertEqual(1,
                     GetIntProperty(sceneAdmissionModule, "ActiveAdmissionCount"),
@@ -298,13 +581,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "P3M5B Route A re-entry Startup Activity is not ready.");
                 AssertSame(routeA, ResolveCurrentRoute(runtimeHost),
                     "Route A did not become current after re-entry.");
+                AssertSame(routeAActivity, ResolveCurrentActivity(runtimeHost),
+                    "Route A Startup Activity did not become current after re-entry.");
                 completed.Add("route-a-reentry-succeeded");
 
                 await AwaitScenesUnloadedAsync(
                     QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteBPrimaryScenePath,
                     QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteBActivityScenePath);
-                AssertTrue(routeBFixture.Authoring == null,
-                    "Route B Activity surface survived Route A re-entry.");
+                AssertRetiredContextualAdmission(routeBFixture, "Route B");
                 completed.Add("route-b-scenes-released");
 
                 AssertEqual(0,
@@ -314,20 +598,39 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 LoadedPlayerFixture routeASecond = await AwaitActiveFixtureAsync(
                     QaP3M5BRouteTransitionAndNegativeMatrixSetup.RouteAActivityScenePath,
+                    runtimeHost,
+                    routeAActivity,
                     preparationModule,
                     slotId,
-                    routeAOwner);
-                AssertTrue(routeASecond.Adoption != routeAFirst.Adoption,
-                    "Route A re-entry reused its previous adoption token.");
-                AssertTrue(routeASecond.Adoption != routeBFixture.Adoption,
-                    "Route A re-entry reused Route B adoption evidence.");
-                AssertTrue(routeASecond.Adoption.ActorId != routeAFirst.Adoption.ActorId,
-                    "Route A re-entry reused its previous runtime Actor identity.");
+                    sessionPhysicalOwner);
+                AssertTrue(routeASecond.Authoring != routeAFirst.Authoring,
+                    "Route A re-entry reused the prior Activity contextual authoring surface.");
+                AssertFreshContextualAdmission(
+                    routeBFixture,
+                    routeASecond,
+                    "Route B -> Route A2");
+                AssertTrue(routeASecond.ContextualAdmission !=
+                    routeAFirst.ContextualAdmission,
+                    "Route A re-entry reused the Route A1 contextual admission occurrence.");
+                AssertPhysicalAdoptionUnchanged(
+                    routeAFirst,
+                    routeASecond,
+                    "Route B -> Route A re-entry");
                 AssertAdmittedState(
                     routeASecond,
+                    runtimeHost,
+                    routeAActivity,
                     participationContext,
                     slotId,
-                    routeAOwner);
+                    sessionPhysicalOwner);
+                AssertPhysicalRepresentationPreserved(
+                    admittedPhysicalHost,
+                    admittedPhysicalActor,
+                    admittedPhysicalHostEntityId,
+                    admittedPhysicalActorEntityId,
+                    admittedPhysicalActorPosition,
+                    admittedPhysicalActorRotation,
+                    "Route B -> Route A re-entry");
 
                 PlayerParticipationSnapshot sessionAfterRouteAReentry =
                     CreateParticipationSnapshot(participationContext);
@@ -347,7 +650,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     retainedSelectionRevision,
                     sessionSlotAfterRouteAReentry.SelectionRevision,
                     "Route A re-entry cleared/reselected the Actor instead of reprojecting it contextually.");
-                completed.Add("route-a-reentry-fresh-identities");
+                completed.Add("route-a-reentry-new-context-preserves-physical-identity");
                 completed.Add("route-a-reentry-session-player-reprojected-without-rejoin");
 
                 await AssertResolverRejectedAsync(
@@ -367,7 +670,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     routeAActivity,
                     routeASecond,
                     slotId,
-                    routeAOwner);
+                    sessionPhysicalOwner);
                 completed.Add("duplicate-slot-rejected");
 
                 await AssertResolverRejectedAsync(
@@ -389,7 +692,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     routeAActivity,
                     routeASecond,
                     slotId,
-                    routeAOwner);
+                    sessionPhysicalOwner);
                 completed.Add("missing-actor-rejected");
 
                 await AssertResolverRejectedAsync(
@@ -411,7 +714,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     routeAActivity,
                     routeASecond,
                     slotId,
-                    routeAOwner);
+                    sessionPhysicalOwner);
                 completed.Add("mismatched-profile-rejected");
 
                 await AssertResolverIgnoredAsync(
@@ -428,7 +731,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     routeAActivity,
                     routeASecond,
                     slotId,
-                    routeAOwner);
+                    sessionPhysicalOwner);
                 completed.Add("undeclared-surface-ignored");
 
                 AssertEqual(1,
@@ -448,6 +751,18 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Negative matrix replaced the active Route A adoption token.");
                 completed.Add("route-state-preserved-after-negatives");
 
+                if (releaseScenePlayer)
+                {
+                    await AssertSceneProvidedLeaveWithActivityAsync(
+                        routeASecond,
+                        participationContext,
+                        preparationModule,
+                        slotId,
+                        admittedPhysicalHost,
+                        admittedPhysicalActor);
+                    completed.Add("scene-provided-leave-with-activity-c-d-e-terminal");
+                }
+
                 object hubReturnRequest = await RequestRouteAsync(
                     runtimeHost,
                     hubRoute,
@@ -463,20 +778,44 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 await AwaitAllP3M5BScenesUnloadedAsync();
                 completed.Add("qa-hub-return-succeeded");
 
-                AssertSessionPlayerPreservedAfterHubReturn(
-                    participationContext,
-                    preparationModule,
-                    sceneAdmissionModule,
-                    slotId,
-                    sessionAfterFirstAdmission.ContextId,
-                    retainedActorProfileId,
-                    retainedSelectionRevision);
-                AssertTrue(routeAFirst.Authoring == null,
-                    "Initial Route A Scene Player Host remained loaded after QA Hub return.");
-                AssertTrue(routeBFixture.Authoring == null,
-                    "Route B Scene Player Host remained loaded after QA Hub return.");
-                AssertTrue(routeASecond.Authoring == null,
-                    "Re-entered Route A Scene Player Host remained loaded after QA Hub return.");
+                if (!releaseScenePlayer)
+                {
+                    P3M5BSessionProvisioningWitness hubWitness =
+                        ResolveHubSessionWitness();
+                    ILocalPlayerProvisioningConsumerAccess hubAccess =
+                        await AwaitPublicAccessAsync(
+                            hubWitness.RouteConsumerBinding);
+                    LocalPlayerProvisioningConsumerObservationSnapshot hubObservation =
+                        RequirePublicObservation(
+                            hubAccess,
+                            "qa-hub-return-contextual-release");
+                    AssertSessionPlayerPreservedAfterHubReturn(
+                        participationContext,
+                        preparationModule,
+                        sceneAdmissionModule,
+                        slotId,
+                        sessionAfterFirstAdmission.ContextId,
+                        retainedActorProfileId,
+                        retainedSelectionRevision,
+                        routeAFirst,
+                        admittedPhysicalHost,
+                        admittedPhysicalActor,
+                        admittedPhysicalHostEntityId,
+                        admittedPhysicalActorEntityId,
+                        admittedPhysicalActorPosition,
+                        admittedPhysicalActorRotation,
+                        hubObservation);
+                    AssertRetiredContextualAdmission(routeAFirst, "Route A1");
+                    AssertRetiredContextualAdmission(routeASecond, "Route A2");
+                }
+                else
+                {
+                    AssertScenePlayerAbsentAfterLeave(
+                        participationContext,
+                        preparationModule,
+                        sceneAdmissionModule,
+                        slotId);
+                }
                 AssertEqual(0,
                     CountRuntimeRoots(runtimeContent, routeAOwner),
                     "Route A RuntimeContent owner remained after QA Hub return.");
@@ -506,11 +845,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         runtimeHost,
                         hubRoute,
                         "p3m5b-cleanup-return-to-qa-hub");
-                    if (!GetBooleanProperty(cleanupRestore, "Succeeded"))
+                    if (cleanupRestore is not QaRouteRequestObservation cleanup ||
+                        !cleanup.Succeeded)
                     {
                         throw new InvalidOperationException(
                             "P3M5B cleanup could not return to the official QA Hub Route. " +
-                            GetStringProperty(cleanupRestore, "Message"));
+                            (cleanupRestore is QaRouteRequestObservation typed
+                                ? typed.Message
+                                : "No typed route observation was returned."));
                     }
                 }
             }
@@ -584,6 +926,21 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return slot;
         }
 
+        private static RuntimeContentOwner CreateSessionPhysicalOwner()
+        {
+            ImmersiveFrameworkSettingsAsset settings =
+                Resources.Load<ImmersiveFrameworkSettingsAsset>(
+                    ImmersiveFrameworkSettingsAsset.ResourcesPath);
+            AssertNotNull(settings,
+                "Immersive Framework settings are missing.");
+            AssertNotNull(settings.ActiveGameApplication,
+                "Active Game Application is missing.");
+            string applicationName = settings.ActiveGameApplication.ApplicationName;
+            AssertTrue(!string.IsNullOrWhiteSpace(applicationName),
+                "Active Game Application has no name for the Session physical owner.");
+            return RuntimeContentOwner.Session(applicationName, applicationName);
+        }
+
         private static async Task<Component>
             AwaitUniqueReadyQaRuntimeHostAsync()
         {
@@ -601,55 +958,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         $"from the explicit QA resolver. {hostDiagnostic}");
                 }
 
-                object state = GetPropertyValue(host, "State");
-                Type preparationType = typeof(PlayerParticipationSnapshot)
-                    .Assembly
-                    .GetType(PreparationModuleTypeName, false);
-                Type sceneType = typeof(PlayerParticipationSnapshot)
-                    .Assembly
-                    .GetType(SceneAdmissionModuleTypeName, false);
-                Component preparation = preparationType != null
-                    ? host.GetComponent(preparationType)
-                    : null;
-                Component sceneAdmission = sceneType != null
-                    ? host.GetComponent(sceneType)
-                    : null;
-                bool gameFlowStarted =
-                    GetBooleanProperty(state, "GameFlowStarted");
-                object currentRoute =
-                    GetPropertyValue(state, "CurrentRoute");
-                object currentActivity =
-                    GetPropertyValue(state, "CurrentActivity");
-                bool activityReady =
-                    GetBooleanProperty(state, "IsActivityReady");
-                string currentRouteName =
-                    GetStringProperty(state, "CurrentRouteName");
-                string currentActivityName =
-                    GetStringProperty(state, "CurrentActivityName");
-                bool hostReady =
-                    gameFlowStarted &&
-                    currentRoute != null &&
-                    currentActivity != null &&
-                    activityReady;
-                bool preparationReady =
-                    preparation != null &&
-                    GetBooleanProperty(preparation, "IsReady");
-                bool sceneAdmissionReady =
-                    sceneAdmission != null &&
-                    GetBooleanProperty(sceneAdmission, "IsReady");
-                if (hostReady && preparationReady && sceneAdmissionReady)
+                bool hostReady = QaPlayerRuntimeObservationBridge.IsReady(host);
+                if (hostReady)
                 {
                     return host;
                 }
 
                 lastReadinessDiagnostic =
-                    $"{hostDiagnostic} " +
-                    $"gameFlowStarted='{gameFlowStarted}' " +
-                    $"route='{currentRouteName}' " +
-                    $"activity='{currentActivityName}' " +
-                    $"activityReady='{activityReady}' " +
-                    $"preparationReady='{preparationReady}' " +
-                    $"sceneAdmissionReady='{sceneAdmissionReady}'.";
+                    $"{hostDiagnostic} bridgeReady='{hostReady}'.";
 
                 await Awaitable.NextFrameAsync();
             }
@@ -664,32 +980,25 @@ namespace ImmersiveFrameworkQA.Player.Editor
             string typeName,
             string label)
         {
-            Type componentType = typeof(PlayerParticipationSnapshot)
-                .Assembly
-                .GetType(typeName, true);
             Component host = runtimeHost as Component;
             AssertNotNull(host,
                 "FrameworkRuntimeHost is not a Unity Component.");
-            Component component = host.GetComponent(componentType);
-            AssertNotNull(component,
-                $"{label} is not attached to FrameworkRuntimeHost.");
-            return component;
+            // Internal composition is intentionally reached only through the
+            // friend-assembly observation bridge; this method retains the
+            // historical plumbing call shape without exposing a semantic module.
+            return host;
         }
 
         private static RouteAsset ResolveCurrentRoute(object runtimeHost)
         {
-            object state = GetPropertyValue(runtimeHost, "State");
-            return state == null
-                ? null
-                : GetPropertyValue(state, "CurrentRoute") as RouteAsset;
+            return QaPlayerRuntimeObservationBridge.GetCurrentRoute(
+                runtimeHost as Component);
         }
 
         private static ActivityAsset ResolveCurrentActivity(object runtimeHost)
         {
-            object state = GetPropertyValue(runtimeHost, "State");
-            return state == null
-                ? null
-                : GetPropertyValue(state, "CurrentActivity") as ActivityAsset;
+            return QaPlayerRuntimeObservationBridge.GetCurrentActivity(
+                runtimeHost as Component);
         }
 
         private static async Task<object> RequestRouteAsync(
@@ -697,132 +1006,37 @@ namespace ImmersiveFrameworkQA.Player.Editor
             RouteAsset route,
             string reason)
         {
-            return await InvokeTaskResultAsync(
-                runtimeHost,
-                "RequestRouteAsync",
+            return await QaPlayerRuntimeObservationBridge.RequestRouteAsync(
+                runtimeHost as Component,
                 route,
                 nameof(QaP3M5BRouteTransitionAndNegativeMatrixSmoke),
                 reason);
         }
 
-        private static async Task<object> InvokeTaskResultAsync(
-            object target,
-            string methodName,
-            params object[] arguments)
-        {
-            MethodInfo method = FindMethod(
-                target.GetType(),
-                methodName,
-                arguments.Length);
-            AssertNotNull(method,
-                $"Missing method '{methodName}' with '{arguments.Length}' arguments on '{target.GetType().Name}'.");
-            object invocation = method.Invoke(target, arguments);
-            Task task = invocation as Task;
-            AssertNotNull(task,
-                $"Method '{methodName}' did not return a Task.");
-            await task;
-            PropertyInfo resultProperty = invocation.GetType().GetProperty(
-                "Result",
-                InstanceAny);
-            AssertNotNull(resultProperty,
-                $"Task returned by '{methodName}' has no Result property.");
-            return resultProperty.GetValue(invocation);
-        }
-
-        private static MethodInfo FindMethod(
-            Type type,
-            string methodName,
-            int argumentCount)
-        {
-            MethodInfo[] methods = type.GetMethods(InstanceAny);
-            for (int index = 0; index < methods.Length; index++)
-            {
-                if (string.Equals(
-                        methods[index].Name,
-                        methodName,
-                        StringComparison.Ordinal) &&
-                    methods[index].GetParameters().Length == argumentCount)
-                {
-                    return methods[index];
-                }
-            }
-
-            return null;
-        }
 
         private static void AssertRequestSucceeded(
             object result,
             string message)
         {
-            AssertNotNull(result, message + " No request result was returned.");
-            AssertTrue(GetBooleanProperty(result, "Succeeded"),
-                message + " " + BuildRouteRequestFailureDiagnostic(result));
+            AssertTrue(result is QaRouteRequestObservation observation &&
+                observation.Succeeded,
+                message + " " +
+                (result is QaRouteRequestObservation typed
+                    ? typed.Message
+                    : "No typed route observation was returned."));
         }
 
-        private static string BuildRouteRequestFailureDiagnostic(object result)
-        {
-            object routeLifecycle = GetPropertyValue(
-                result,
-                "RouteLifecycleResult");
-            object activityFlow = routeLifecycle != null
-                ? GetPropertyValue(routeLifecycle, "ActivityFlowResult")
-                : null;
-            object execution = activityFlow != null
-                ? GetPropertyValue(
-                    activityFlow,
-                    "ActivityContentExecutionResult")
-                : null;
-            object enter = execution != null
-                ? GetPropertyValue(execution, "EnterResult")
-                : null;
-
-            return
-                GetStringProperty(result, "Message") +
-                " activityFlow=(" +
-                (activityFlow != null ? activityFlow.ToString() : "<missing>") +
-                ") execution=(" +
-                (execution != null ? execution.ToString() : "<missing>") +
-                ") enter=(" +
-                (enter != null ? enter.ToString() : "<missing>") +
-                ")";
-        }
 
         private static void AssertRouteActivityReady(
             object routeRequestResult,
             string message)
         {
-            object routeLifecycle = GetPropertyValue(
-                routeRequestResult,
-                "RouteLifecycleResult");
-            AssertNotNull(
-                routeLifecycle,
-                message + " RouteLifecycleResult is missing.");
-
-            object activityFlow = GetPropertyValue(
-                routeLifecycle,
-                "ActivityFlowResult");
-            AssertNotNull(
-                activityFlow,
-                message + " ActivityFlowResult is missing.");
-
-            object execution = GetPropertyValue(
-                activityFlow,
-                "ActivityContentExecutionResult");
-            object enterResult = execution != null
-                ? GetPropertyValue(execution, "EnterResult")
-                : null;
-            string executionDiagnostic = execution != null
-                ? execution.ToString()
-                : "<missing-activity-content-execution>";
-            string enterDiagnostic = enterResult != null
-                ? enterResult.ToString()
-                : "<missing-enter-aggregate>";
-
-            AssertTrue(
-                GetBooleanProperty(activityFlow, "IsActivityReady"),
-                message + " " + GetStringProperty(activityFlow, "Message") +
-                " execution=(" + executionDiagnostic + ")" +
-                " enter=(" + enterDiagnostic + ")");
+            AssertTrue(routeRequestResult is QaRouteRequestObservation observation &&
+                observation.ActivityReady,
+                message + " " +
+                (routeRequestResult is QaRouteRequestObservation typed
+                    ? typed.Message
+                    : "No typed route observation was returned."));
         }
 
         private static RuntimeContentOwner CreateActivityOwner(
@@ -840,20 +1054,38 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
         private static async Task<LoadedPlayerFixture> AwaitActiveFixtureAsync(
             string scenePath,
+            object runtimeHost,
+            ActivityAsset expectedActivity,
             object preparationModule,
             PlayerSlotId playerSlotId,
-            RuntimeContentOwner expectedOwner)
+            RuntimeContentOwner expectedPhysicalOwner)
         {
+            P3M5BContextualAdmissionWitness lastWitness = null;
             SceneLocalPlayerAdmissionAuthoring lastAuthoring = null;
+            SceneLocalPlayerAdmissionToken lastContextualAdmission = default;
             ScenePlayerActorAdoptionToken lastAdoption = default;
             PlayerActorPreparationSummary lastPreparation = default;
+            PlayerHostEvidenceSummary lastContextualHostEvidence = default;
+            PlayerGameplayAdmissionSummary lastGameplayAdmission = default;
+            PublicContextualObservationDiagnostic lastPublicObservation = default;
             bool foundPreparation = false;
+            bool foundPublicContextualEvidence = false;
+            bool currentActivity = false;
+            bool contextualReady = false;
+            bool physicalReady = false;
 
             for (int frame = 0; frame < 240; frame++)
             {
-                lastAuthoring = ResolveSingleSurface(
+                lastWitness = ResolveSingleContextualWitness(
                     scenePath,
                     requireLoaded: false);
+                lastAuthoring = lastWitness != null
+                    ? lastWitness.AdmissionAuthoring
+                    : null;
+                lastContextualAdmission = lastAuthoring != null &&
+                    lastAuthoring.LastRuntimeResult != null
+                    ? lastAuthoring.LastRuntimeResult.Token
+                    : default;
                 bool foundAdoption = TryGetAdoptionToken(
                     preparationModule,
                     playerSlotId,
@@ -862,20 +1094,48 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     preparationModule,
                     playerSlotId,
                     out lastPreparation);
-
-                if (lastAuthoring != null &&
+                currentActivity =
+                    ReferenceEquals(ResolveCurrentActivity(runtimeHost), expectedActivity);
+                contextualReady = lastWitness != null &&
+                    lastAuthoring != null &&
+                    lastContextualAdmission.IsValid &&
                     lastAuthoring.RuntimeReady &&
-                    lastAuthoring.HasActiveAdmission &&
-                    foundAdoption &&
+                    lastAuthoring.HasActiveAdmission;
+                physicalReady = foundAdoption &&
+                    lastAdoption.IsValid &&
                     foundPreparation &&
                     lastPreparation.IsPrepared &&
-                    lastPreparation.Materialization.Owner == expectedOwner)
+                    lastPreparation.Materialization.Owner == expectedPhysicalOwner &&
+                    lastAdoption.RuntimeContentIdentity.Owner ==
+                    expectedPhysicalOwner &&
+                    lastAdoption.ActorId ==
+                    lastPreparation.Materialization.ActorId &&
+                    lastAdoption.RuntimeContentIdentity ==
+                    lastPreparation.Materialization.RuntimeContentIdentity;
+
+                foundPublicContextualEvidence =
+                    TryGetPublicContextualEvidence(
+                        lastWitness,
+                        playerSlotId,
+                        out lastContextualHostEvidence,
+                        out lastGameplayAdmission,
+                        out lastPublicObservation);
+                contextualReady &= foundPublicContextualEvidence &&
+                    lastContextualHostEvidence.IsRecorded &&
+                    lastGameplayAdmission.IsAdmitted &&
+                    lastGameplayAdmission.InputBindingToken.IsValid;
+
+                if (currentActivity && contextualReady && physicalReady)
                 {
                     return new LoadedPlayerFixture(
-                        lastAuthoring.gameObject.scene,
+                        lastWitness.gameObject.scene,
+                        lastWitness,
                         lastAuthoring,
+                        lastContextualAdmission,
                         lastAdoption,
-                        lastPreparation);
+                        lastPreparation,
+                        lastContextualHostEvidence,
+                        lastGameplayAdmission);
                 }
 
                 await Awaitable.NextFrameAsync();
@@ -889,67 +1149,44 @@ namespace ImmersiveFrameworkQA.Player.Editor
             throw new InvalidOperationException(
                 $"P3M5B Scene Player fixture '{scenePath}' did not become active within 240 frames. " +
                 $"sceneLoaded='{loadedScene.IsValid() && loadedScene.isLoaded}' " +
+                $"currentActivity='{currentActivity}' " +
+                $"contextualReady='{contextualReady}' " +
+                $"physicalReady='{physicalReady}' " +
+                $"witnessFound='{lastWitness != null}' " +
                 $"surfaceFound='{lastAuthoring != null}' " +
                 $"runtimeReady='{(lastAuthoring != null && lastAuthoring.RuntimeReady)}' " +
                 $"activeAdmission='{(lastAuthoring != null && lastAuthoring.HasActiveAdmission)}' " +
+                $"contextualAdmission='{lastContextualAdmission.StableText}' " +
                 $"adoptionValid='{lastAdoption.IsValid}' " +
                 $"preparationFound='{foundPreparation}' " +
                 $"preparationState='{(foundPreparation ? (lastPreparation.IsPrepared ? "Prepared" : "NotPrepared") : string.Empty)}' " +
-                $"actualOwner='{actualOwner}' expectedOwner='{expectedOwner.StableText}' " +
+                $"publicContextualEvidence='{foundPublicContextualEvidence}' " +
+                $"inputBinding='{lastGameplayAdmission.InputBindingToken.StableText}' " +
+                $"publicObservation='{lastPublicObservation.ToDiagnosticString()}' " +
+                $"adoptionValid='{lastAdoption.IsValid}' " +
+                $"preparationFound='{foundPreparation}' " +
+                $"preparationState='{(foundPreparation ? (lastPreparation.IsPrepared ? "Prepared" : "NotPrepared") : string.Empty)}' " +
+                $"actualOwner='{actualOwner}' expectedPhysicalOwner='{expectedPhysicalOwner.StableText}' " +
                 $"surfaceDiagnostic='{(lastAuthoring != null ? lastAuthoring.RuntimeDiagnostic : string.Empty)}'.");
         }
 
         private static void AssertAdmittedState(
             LoadedPlayerFixture fixture,
+            object runtimeHost,
+            ActivityAsset expectedActivity,
             object participationContext,
             PlayerSlotId playerSlotId,
-            RuntimeContentOwner expectedOwner)
+            RuntimeContentOwner expectedPhysicalOwner)
         {
-            AssertTrue(fixture.Scene.IsValid() && fixture.Scene.isLoaded,
-                "Admitted Scene Player fixture scene is not loaded.");
-            AssertNotNull(fixture.Authoring,
-                "Admitted Scene Player fixture has no authoring surface.");
-            AssertTrue(fixture.Authoring.RuntimeReady,
-                "Admitted Scene Player surface is not runtime-ready.");
-            AssertTrue(fixture.Authoring.HasActiveAdmission,
-                "Scene Player surface has no active admission.");
-            AssertTrue(fixture.Authoring.LocalPlayerHost.IsJoined,
-                "Scene Player Host is not Joined.");
-            AssertEqual(playerSlotId,
-                fixture.Authoring.LocalPlayerHost.JoinedPlayerSlotId,
-                "Scene Player Host is Joined to a foreign Player Slot.");
-            AssertTrue(fixture.Authoring.SceneLogicalPlayerActor.HasPlayerInputEvidence,
-                "Scene Player Actor has no contextual PlayerInput evidence.");
-            AssertSame(
-                fixture.Authoring.LocalPlayerHost.PlayerInput,
-                fixture.Authoring.SceneLogicalPlayerActor.PlayerInput,
-                "Scene Player Actor does not reference its fixture Host PlayerInput.");
-            AssertTrue(fixture.Adoption.IsValid,
-                "Scene Player adoption token is invalid.");
-            AssertEqual(playerSlotId,
-                fixture.Adoption.PlayerSlotId,
-                "Scene Player adoption belongs to a foreign Player Slot.");
-            AssertEqual(fixture.Authoring.SceneLogicalPlayerActor.ActorId,
-                fixture.Adoption.ActorId,
-                "Scene Player adoption does not match the fixture Actor identity.");
-            AssertEqual(
-                PlayerActorPhysicalOwnership.ExternalSceneOwned,
-                fixture.Adoption.PhysicalOwnership,
-                "Scene Player adoption lost external physical ownership.");
-            AssertTrue(fixture.Preparation.IsPrepared,
-                "Scene Player canonical preparation is not active.");
-            AssertEqual(expectedOwner,
-                fixture.Preparation.Materialization.Owner,
-                "Scene Player preparation has the wrong Activity owner.");
-            AssertEqual(fixture.Adoption.ActorId,
-                fixture.Preparation.Materialization.ActorId,
-                "Scene Player preparation retains a foreign Actor identity.");
-            AssertEqual(fixture.Adoption.RuntimeContentIdentity,
-                fixture.Preparation.Materialization.RuntimeContentIdentity,
-                "Scene Player preparation retains a foreign RuntimeContent identity.");
-            AssertEqual(fixture.Adoption.PreparationToken,
-                fixture.Preparation.Token,
-                "Scene Player adoption and preparation tokens do not match.");
+            AssertContextualAuthority(
+                fixture,
+                runtimeHost,
+                expectedActivity,
+                playerSlotId);
+            AssertPhysicalAuthority(
+                fixture,
+                playerSlotId,
+                expectedPhysicalOwner);
 
             PlayerParticipationSnapshot snapshot =
                 CreateParticipationSnapshot(participationContext);
@@ -964,6 +1201,397 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "Scene Player admission stranded a Reserved Slot.");
             AssertEqual(0, snapshot.LeavingCount,
                 "Scene Player admission stranded a Leaving Slot.");
+        }
+
+        private static bool TryGetPublicContextualEvidence(
+            P3M5BContextualAdmissionWitness witness,
+            PlayerSlotId playerSlotId,
+            out PlayerHostEvidenceSummary hostEvidence,
+            out PlayerGameplayAdmissionSummary gameplayAdmission,
+            out PublicContextualObservationDiagnostic diagnostic)
+        {
+            hostEvidence = default;
+            gameplayAdmission = default;
+            LocalPlayerProvisioningConsumerAccessBinding binding =
+                witness != null ? witness.ActivityConsumerBinding : null;
+            if (binding == null)
+            {
+                diagnostic = new PublicContextualObservationDiagnostic(
+                    "Missing", default, string.Empty, false,
+                    "Activity consumer binding is missing from the witness.", false,
+                    string.Empty, default, false, false, false,
+                    default, default, default);
+                return false;
+            }
+
+            bool accessResolved = binding.TryGetAccess(
+                out ILocalPlayerProvisioningConsumerAccess access,
+                out string accessIssue);
+            if (!accessResolved || access == null)
+            {
+                diagnostic = new PublicContextualObservationDiagnostic(
+                    binding.BindingState.ToString(), binding.Snapshot.Owner,
+                    binding.Diagnostic, false, accessIssue, false, string.Empty,
+                    default, false, false, false, default, default, default);
+                return false;
+            }
+
+            bool observationResolved = access.TryGetObservation(
+                out LocalPlayerProvisioningConsumerObservationSnapshot observation);
+            if (!observationResolved || observation == null ||
+                !observation.IsAvailable ||
+                !observation.HasCurrentActivityOccurrence)
+            {
+                diagnostic = new PublicContextualObservationDiagnostic(
+                    binding.BindingState.ToString(), binding.Snapshot.Owner,
+                    binding.Diagnostic, true, string.Empty,
+                    observation != null && observation.IsAvailable,
+                    observation != null ? observation.Diagnostic : string.Empty,
+                    observation != null ? observation.ActivityOwner : default,
+                    false, false, false, default, default, default);
+                return false;
+            }
+
+            for (int index = 0; index < observation.Slots.Count; index++)
+            {
+                LocalPlayerProvisioningConsumerSlotObservation slot =
+                    observation.Slots[index];
+                if (slot.Slot.PlayerSlotId != playerSlotId)
+                {
+                    continue;
+                }
+
+                hostEvidence = slot.HostEvidence;
+                gameplayAdmission = slot.GameplayAdmission;
+                diagnostic = new PublicContextualObservationDiagnostic(
+                    binding.BindingState.ToString(), binding.Snapshot.Owner,
+                    binding.Diagnostic, true, string.Empty, true,
+                    observation.Diagnostic, observation.ActivityOwner, true,
+                    slot.HasHostEvidence, slot.HasGameplayAdmissionEvidence,
+                    slot.GameplayAdmission.Owner,
+                    slot.GameplayAdmission.InputBindingToken.Owner,
+                    slot.GameplayAdmission.InputBindingToken);
+                return slot.HasHostEvidence &&
+                    slot.HasGameplayAdmissionEvidence;
+            }
+
+            diagnostic = new PublicContextualObservationDiagnostic(
+                binding.BindingState.ToString(), binding.Snapshot.Owner,
+                binding.Diagnostic, true, string.Empty, true,
+                observation.Diagnostic, observation.ActivityOwner, false,
+                false, false, default, default, default);
+            return false;
+        }
+
+        private static async Task AssertSceneProvidedLeaveWithActivityAsync(
+            LoadedPlayerFixture fixture,
+            object participationContext,
+            object preparationModule,
+            PlayerSlotId playerSlotId,
+            LocalPlayerHostAuthoring physicalHost,
+            Transform physicalActor)
+        {
+            AssertNotNull(fixture.Witness,
+                "SceneProvided Leave requires the active Activity witness.");
+            LocalPlayerProvisioningConsumerAccessBinding binding =
+                fixture.Witness.ActivityConsumerBinding;
+            AssertNotNull(binding,
+                "SceneProvided Leave requires the authored Activity consumer binding.");
+
+            ILocalPlayerProvisioningConsumerAccess access =
+                await AwaitPublicAccessAsync(binding);
+            PlayerParticipationSnapshot before =
+                CreateParticipationSnapshot(participationContext);
+            PlayerSlotRuntimeSnapshot beforeSlot = FindSlot(before, playerSlotId);
+            AssertTrue(beforeSlot.IsJoined,
+                "SceneProvided Leave requires a Joined Slot.");
+
+            SessionPlayerLeaveResult leave = access.RequestLeave(
+                new SessionPlayerLeaveRequest(
+                    playerSlotId,
+                    beforeSlot.Revision,
+                    nameof(QaP3M5BRouteTransitionAndNegativeMatrixSmoke),
+                    "scene-provided-leave-with-activity"));
+            AssertNotNull(leave,
+                "SceneProvided Leave returned no public result.");
+            AssertTrue(leave.Succeeded && leave.LeaveStarted &&
+                leave.ActivityRepresentationReleased &&
+                leave.ProvisioningReleased && leave.TerminalCommitted,
+                "SceneProvided Leave did not complete public C contextual, D physical " +
+                "and E terminal stages. " + leave.ToDiagnosticString());
+
+            for (int frame = 0; frame < 12; frame++)
+            {
+                bool adoptionPresent = TryGetAdoptionToken(
+                    preparationModule,
+                    playerSlotId,
+                    out _);
+                if (!adoptionPresent && physicalHost == null && physicalActor == null)
+                {
+                    return;
+                }
+
+                await Awaitable.NextFrameAsync();
+            }
+
+            throw new InvalidOperationException(
+                "SceneProvided Leave retained physical Session resources after terminal commit. " +
+                $"hostAlive='{(physicalHost != null)}' actorAlive='{(physicalActor != null)}' " +
+                $"adoptionPresent='{TryGetAdoptionToken(preparationModule, playerSlotId, out _)}'.");
+        }
+
+        private static async Task<ILocalPlayerProvisioningConsumerAccess>
+            AwaitPublicAccessAsync(
+                LocalPlayerProvisioningConsumerAccessBinding binding)
+        {
+            for (int frame = 0; frame < 240; frame++)
+            {
+                if (binding.TryGetAccess(
+                        out ILocalPlayerProvisioningConsumerAccess access,
+                        out _) &&
+                    access != null && access.Snapshot.IsAvailable)
+                {
+                    return access;
+                }
+
+                await Awaitable.NextFrameAsync();
+            }
+
+            throw new TimeoutException(
+                "SceneProvided Activity consumer binding did not expose public access. " +
+                $"state='{binding.BindingState}' diagnostic='{binding.Diagnostic}'.");
+        }
+
+        private static async Task<LocalPlayerProvisioningConsumerObservationSnapshot>
+            AwaitPublicObservationAsync(
+                ILocalPlayerProvisioningConsumerAccess access,
+                Func<LocalPlayerProvisioningConsumerObservationSnapshot, bool> predicate,
+                string message)
+        {
+            for (int frame = 0; frame < 240; frame++)
+            {
+                LocalPlayerProvisioningConsumerObservationSnapshot observation =
+                    RequirePublicObservation(access, "await-public-observation");
+                if (predicate(observation))
+                {
+                    return observation;
+                }
+
+                await Awaitable.NextFrameAsync();
+            }
+
+            throw new TimeoutException(message);
+        }
+
+        private static async Task AwaitRouteTriggerSuccessAsync(
+            RouteRequestTrigger trigger,
+            string message)
+        {
+            for (int frame = 0; frame < 360; frame++)
+            {
+                if (!trigger.IsRequestInFlight &&
+                    (trigger.LastRequestSucceeded || trigger.LastRequestFailed ||
+                     trigger.LastRequestIgnored))
+                {
+                    AssertTrue(trigger.LastRequestSucceeded,
+                        message + " " + trigger.LastMessage);
+                    return;
+                }
+
+                await Awaitable.NextFrameAsync();
+            }
+
+            throw new TimeoutException(message);
+        }
+
+        private static void AssertScenePlayerAbsentAfterLeave(
+            object participationContext,
+            object preparationModule,
+            object sceneAdmissionModule,
+            PlayerSlotId playerSlotId)
+        {
+            PlayerParticipationSnapshot snapshot =
+                CreateParticipationSnapshot(participationContext);
+            PlayerSlotRuntimeSnapshot slot = FindSlot(snapshot, playerSlotId);
+            AssertFalse(slot.IsJoined,
+                "SceneProvided Leave left the Slot Joined after terminal physical release.");
+            AssertFalse(TryGetAdoptionToken(
+                    preparationModule,
+                    playerSlotId,
+                    out _),
+                "SceneProvided Leave retained an adoption token after terminal commit.");
+            AssertEqual(0,
+                GetIntProperty(sceneAdmissionModule, "ActiveAdmissionCount"),
+                "SceneProvided Leave retained an active contextual admission after terminal commit.");
+        }
+
+        private static void AssertContextualAuthority(
+            LoadedPlayerFixture fixture,
+            object runtimeHost,
+            ActivityAsset expectedActivity,
+            PlayerSlotId playerSlotId)
+        {
+            AssertTrue(fixture.ContextScene.IsValid() && fixture.ContextScene.isLoaded,
+                "Admitted Scene Player contextual witness scene is not loaded.");
+            AssertNotNull(fixture.Witness,
+                "Admitted Scene Player fixture has no contextual admission witness.");
+            AssertEqual(fixture.ContextScene, fixture.Witness.gameObject.scene,
+                "Contextual admission witness migrated outside its owning Activity scene.");
+            AssertNotNull(fixture.Authoring,
+                "Admitted Scene Player fixture has no authoring surface.");
+            AssertTrue(fixture.ContextualAdmission.IsValid,
+                "Admitted Scene Player fixture has no typed contextual admission token.");
+            AssertSame(expectedActivity, ResolveCurrentActivity(runtimeHost),
+                "Scene Player authoring surface is not bound to the current Activity context.");
+            AssertTrue(fixture.Authoring.RuntimeReady,
+                "Admitted Scene Player surface is not runtime-ready.");
+            AssertTrue(fixture.Authoring.HasActiveAdmission,
+                "Scene Player surface has no active admission.");
+            AssertNotNull(fixture.Authoring.LastRuntimeResult,
+                "Scene Player surface has no admission runtime result.");
+            AssertEqual(fixture.ContextualAdmission,
+                fixture.Authoring.LastRuntimeResult.Token,
+                "Scene Player surface no longer exposes the captured active contextual admission token.");
+            AssertTrue(fixture.Authoring.LocalPlayerHost.IsJoined,
+                "Scene Player Host is not Joined.");
+            AssertEqual(playerSlotId,
+                fixture.Authoring.LocalPlayerHost.JoinedPlayerSlotId,
+                "Scene Player Host is Joined to a foreign Player Slot.");
+            AssertTrue(fixture.Authoring.SceneLogicalPlayerActor.HasPlayerInputEvidence,
+                "Scene Player Actor has no contextual PlayerInput evidence.");
+            AssertSame(
+                fixture.Authoring.LocalPlayerHost.PlayerInput,
+                fixture.Authoring.SceneLogicalPlayerActor.PlayerInput,
+                "Scene Player Actor does not reference its fixture Host PlayerInput.");
+            AssertTrue(fixture.ContextualHostEvidence.IsRecorded,
+                "Scene Player Activity context has no public contextual Host binding evidence.");
+            AssertTrue(fixture.GameplayAdmission.IsAdmitted &&
+                fixture.GameplayAdmission.InputBindingToken.IsValid,
+                "Scene Player Activity context has no admitted public gameplay/input binding.");
+        }
+
+        private static void AssertPhysicalAuthority(
+            LoadedPlayerFixture fixture,
+            PlayerSlotId playerSlotId,
+            RuntimeContentOwner expectedPhysicalOwner)
+        {
+            AssertEqual(RuntimeContentScope.Session, expectedPhysicalOwner.Scope,
+                "Scene Player physical authority must use a Session owner.");
+            AssertTrue(fixture.Adoption.IsValid,
+                "Scene Player adoption token is invalid.");
+            AssertEqual(playerSlotId,
+                fixture.Adoption.PlayerSlotId,
+                "Scene Player adoption belongs to a foreign Player Slot.");
+            AssertEqual(
+                PlayerActorPhysicalOwnership.FrameworkOwned,
+                fixture.Adoption.PhysicalOwnership,
+                "Successful Scene Player adoption did not transfer physical ownership to the Session.");
+            AssertTrue(fixture.Preparation.IsPrepared,
+                "Scene Player canonical preparation is not active.");
+            AssertEqual(expectedPhysicalOwner,
+                fixture.Preparation.Materialization.Owner,
+                "Scene Player preparation has the wrong Session physical owner.");
+            AssertEqual(expectedPhysicalOwner,
+                fixture.Adoption.RuntimeContentIdentity.Owner,
+                "Scene Player adoption RuntimeContent has the wrong Session physical owner.");
+            AssertEqual(fixture.Adoption.ActorId,
+                fixture.Preparation.Materialization.ActorId,
+                "Scene Player preparation retains a foreign Actor identity.");
+            AssertEqual(fixture.Adoption.RuntimeContentIdentity,
+                fixture.Preparation.Materialization.RuntimeContentIdentity,
+                "Scene Player preparation retains a foreign RuntimeContent identity.");
+            AssertEqual(fixture.Adoption.PreparationToken,
+                fixture.Preparation.Token,
+                "Scene Player adoption and preparation tokens do not match.");
+        }
+
+        private static void AssertRetiredContextualAdmission(
+            LoadedPlayerFixture fixture,
+            string contextLabel)
+        {
+            AssertNotNull(fixture.Authoring,
+                contextLabel + " lost the Session-retained admission surface before retirement could be proved.");
+            AssertTrue(fixture.ContextualAdmission.IsValid,
+                contextLabel + " did not capture a valid contextual admission token before exit.");
+            AssertFalse(fixture.Authoring.HasActiveAdmission,
+                contextLabel + " admission remained active after its Activity exited.");
+            AssertNotNull(fixture.Authoring.LastRuntimeResult,
+                contextLabel + " has no post-exit admission result.");
+            AssertEqual(fixture.ContextualAdmission,
+                fixture.Authoring.LastRuntimeResult.Token,
+                contextLabel + " post-exit result does not correlate to the captured admission occurrence.");
+        }
+
+        private static void AssertFreshContextualAdmission(
+            LoadedPlayerFixture previous,
+            LoadedPlayerFixture current,
+            string transition)
+        {
+            AssertTrue(previous.ContextualAdmission.IsValid,
+                transition + " has no previous contextual admission token.");
+            AssertTrue(current.ContextualAdmission.IsValid,
+                transition + " has no current contextual admission token.");
+            AssertTrue(previous.ContextualAdmission != current.ContextualAdmission,
+                transition + " reused the previous contextual admission token.");
+            AssertEqual(previous.ContextualAdmission.ContextId,
+                current.ContextualAdmission.ContextId,
+                transition + " replaced the Session context instead of creating a fresh contextual occurrence.");
+            AssertEqual(previous.ContextualAdmission.PlayerSlotId,
+                current.ContextualAdmission.PlayerSlotId,
+                transition + " changed the contextual Player Slot.");
+            AssertTrue(current.ContextualAdmission.OperationSequence >
+                previous.ContextualAdmission.OperationSequence,
+                transition + " did not create a newer contextual admission occurrence.");
+            AssertTrue(previous.ContextualAdmission.AssignmentToken !=
+                current.ContextualAdmission.AssignmentToken,
+                transition + " reused the prior Activity assignment token.");
+            AssertTrue(previous.ContextualHostEvidence.AssignmentToken !=
+                current.ContextualHostEvidence.AssignmentToken,
+                transition + " reused the prior public contextual Host binding.");
+            AssertTrue(previous.GameplayAdmission.InputBindingToken !=
+                current.GameplayAdmission.InputBindingToken,
+                transition + " reused the prior contextual input binding token.");
+        }
+
+        private static void AssertPhysicalAdoptionUnchanged(
+            LoadedPlayerFixture expectedPhysical,
+            LoadedPlayerFixture current,
+            string transition)
+        {
+            AssertEqual(expectedPhysical.Adoption, current.Adoption,
+                transition + " created a new physical Scene Player adoption.");
+            AssertEqual(expectedPhysical.Adoption.AdoptionRevision,
+                current.Adoption.AdoptionRevision,
+                transition + " changed the physical adoption revision.");
+            AssertEqual(expectedPhysical.Preparation.Token, current.Preparation.Token,
+                transition + " created a new physical Player preparation.");
+            AssertEqual(expectedPhysical.Preparation.Materialization.RuntimeContentIdentity,
+                current.Preparation.Materialization.RuntimeContentIdentity,
+                transition + " changed the physical RuntimeContent identity.");
+        }
+
+        private static void AssertPhysicalRepresentationPreserved(
+            LocalPlayerHostAuthoring expectedHost,
+            Transform expectedActor,
+            string expectedHostEntityId,
+            string expectedActorEntityId,
+            Vector3 expectedActorPosition,
+            Quaternion expectedActorRotation,
+            string transition)
+        {
+            AssertTrue(expectedHost != null,
+                transition + " destroyed the Session-owned physical Host.");
+            AssertTrue(expectedActor != null,
+                transition + " destroyed the Session-owned physical Actor.");
+            AssertEqual(expectedHostEntityId, expectedHost.GetEntityId().ToString(),
+                transition + " changed the physical Host EntityId.");
+            AssertEqual(expectedActorEntityId,
+                expectedActor.gameObject.GetEntityId().ToString(),
+                transition + " changed the physical Actor EntityId.");
+            AssertEqual(expectedActorPosition, expectedActor.position,
+                transition + " implicitly reapplied Initial Placement to the physical Actor position.");
+            AssertEqual(expectedActorRotation, expectedActor.rotation,
+                transition + " implicitly reapplied Initial Placement to the physical Actor rotation.");
         }
 
         private static async Task AssertResolverRejectedAsync(
@@ -1096,7 +1724,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             ActivityAsset expectedActivity,
             LoadedPlayerFixture expectedFixture,
             PlayerSlotId playerSlotId,
-            RuntimeContentOwner expectedOwner)
+            RuntimeContentOwner expectedPhysicalOwner)
         {
             AssertSame(expectedRoute, ResolveCurrentRoute(runtimeHost),
                 "Negative case changed the current Route.");
@@ -1107,9 +1735,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "Negative case changed the canonical Scene admission count.");
             AssertAdmittedState(
                 expectedFixture,
+                runtimeHost,
+                expectedActivity,
                 participationContext,
                 playerSlotId,
-                expectedOwner);
+                expectedPhysicalOwner);
             ScenePlayerActorAdoptionToken current =
                 GetAdoptionToken(preparationModule, playerSlotId);
             AssertEqual(expectedFixture.Adoption, current,
@@ -1122,32 +1752,17 @@ namespace ImmersiveFrameworkQA.Player.Editor
             object sceneAdmissionModule,
             ActivityAsset activity)
         {
-            MethodInfo resolve = sceneAdmissionModule.GetType().GetMethod(
-                "TryResolveAutomaticActivityAuthoring",
-                InstanceAny);
-            AssertNotNull(resolve,
-                "Scene admission module has no automatic Activity authoring resolver.");
-            object[] arguments = { activity, null, null };
-            bool succeeded = (bool)resolve.Invoke(sceneAdmissionModule, arguments);
-            int count = CountEnumerable(arguments[1] as IEnumerable);
-            string issue = Convert.ToString(arguments[2]);
-            return new ResolveAutomaticResult(succeeded, count, issue);
-        }
-
-        private static int CountEnumerable(IEnumerable values)
-        {
-            if (values == null)
-            {
-                return 0;
-            }
-
-            int count = 0;
-            foreach (object _ in values)
-            {
-                count++;
-            }
-
-            return count;
+            Component host = sceneAdmissionModule as Component;
+            AssertNotNull(host,
+                "P3M5B Scene admission observation requires a Framework host Component.");
+            QaAutomaticSceneAdmissionResolution resolution =
+                QaPlayerRuntimeObservationBridge.ResolveAutomaticSceneAdmission(
+                    host,
+                    activity);
+            return new ResolveAutomaticResult(
+                resolution.Succeeded,
+                resolution.Count,
+                resolution.Issue);
         }
 
         private static async Task LoadSceneAsync(string scenePath)
@@ -1291,6 +1906,44 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return surfaces[0];
         }
 
+        private static P3M5BContextualAdmissionWitness
+            ResolveSingleContextualWitness(
+                string scenePath,
+                bool requireLoaded = true)
+        {
+            P3M5BContextualAdmissionWitness[] witnesses =
+                ResolveContextualWitnesses(scenePath);
+            if (witnesses.Length == 0 && !requireLoaded)
+            {
+                return null;
+            }
+
+            AssertEqual(1, witnesses.Length,
+                $"Expected exactly one P3M5B contextual admission witness in '{scenePath}'.");
+            return witnesses[0];
+        }
+
+        private static P3M5BContextualAdmissionWitness[]
+            ResolveContextualWitnesses(string scenePath)
+        {
+            Scene scene = SceneManager.GetSceneByPath(scenePath);
+            if (!scene.IsValid() || !scene.isLoaded)
+            {
+                return Array.Empty<P3M5BContextualAdmissionWitness>();
+            }
+
+            var witnesses = new List<P3M5BContextualAdmissionWitness>();
+            GameObject[] roots = scene.GetRootGameObjects();
+            for (int rootIndex = 0; rootIndex < roots.Length; rootIndex++)
+            {
+                witnesses.AddRange(
+                    roots[rootIndex].GetComponentsInChildren<
+                        P3M5BContextualAdmissionWitness>(true));
+            }
+
+            return witnesses.ToArray();
+        }
+
         private static SceneLocalPlayerAdmissionAuthoring[] ResolveSurfaces(
             string scenePath)
         {
@@ -1312,15 +1965,136 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return surfaces.ToArray();
         }
 
+        private static P3M5BSessionProvisioningWitness ResolveHubSessionWitness()
+        {
+            Scene hub = SceneManager.GetSceneByPath(
+                "Assets/ImmersiveFrameworkQA/Hub/Scenes/QA_Hub.unity");
+            AssertTrue(hub.IsValid() && hub.isLoaded,
+                "P3M5B no-Activity proof requires the loaded QA Hub scene.");
+            P3M5BSessionProvisioningWitness found = null;
+            foreach (GameObject root in hub.GetRootGameObjects())
+            {
+                P3M5BSessionProvisioningWitness[] candidates =
+                    root.GetComponentsInChildren<P3M5BSessionProvisioningWitness>(true);
+                for (int index = 0; index < candidates.Length; index++)
+                {
+                    AssertTrue(found == null,
+                        "P3M5B Hub has duplicate Session provisioning witnesses.");
+                    found = candidates[index];
+                }
+            }
+
+            AssertNotNull(found,
+                "P3M5B Hub has no authored Session provisioning witness. Apply the fixture.");
+            AssertTrue(found.TryValidate(out string issue), issue);
+            return found;
+        }
+
+        private static LocalPlayerProvisioningConsumerObservationSnapshot
+            RequirePublicObservation(
+                ILocalPlayerProvisioningConsumerAccess access,
+                string phase)
+        {
+            AssertNotNull(access,
+                $"P3M5B public observation access is null at '{phase}'.");
+            AssertTrue(access.TryGetObservation(
+                    out LocalPlayerProvisioningConsumerObservationSnapshot observation) &&
+                observation != null && observation.IsAvailable,
+                $"P3M5B public observation is unavailable at '{phase}'. " +
+                access.Snapshot.Diagnostic);
+            return observation;
+        }
+
+        private static bool HasPublicContextualAssignment(
+            LocalPlayerProvisioningConsumerObservationSnapshot observation,
+            PlayerSlotId playerSlotId)
+        {
+            if (observation?.Slots == null)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < observation.Slots.Count; index++)
+            {
+                LocalPlayerProvisioningConsumerSlotObservation slot =
+                    observation.Slots[index];
+                if (slot.Slot.PlayerSlotId == playerSlotId &&
+                    slot.HasCurrentActorEvidence && slot.CurrentActor.IsAssigned)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool HasPublicGameplayAdmission(
+            LocalPlayerProvisioningConsumerObservationSnapshot observation,
+            PlayerSlotId playerSlotId)
+        {
+            if (observation?.Slots == null)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < observation.Slots.Count; index++)
+            {
+                LocalPlayerProvisioningConsumerSlotObservation slot =
+                    observation.Slots[index];
+                if (slot.Slot.PlayerSlotId == playerSlotId &&
+                    (slot.HasGameplayAdmissionEvidence ||
+                     slot.IsGameplayAdmitted ||
+                     slot.GameplayAdmission.InputBindingToken.IsValid))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static LocalPlayerHostAuthoring ResolveJoinedPhysicalHost(
+            PlayerSlotId playerSlotId)
+        {
+            LocalPlayerHostAuthoring found = null;
+            LocalPlayerHostAuthoring[] hosts =
+                Resources.FindObjectsOfTypeAll<LocalPlayerHostAuthoring>();
+            for (int index = 0; index < hosts.Length; index++)
+            {
+                LocalPlayerHostAuthoring candidate = hosts[index];
+                if (candidate == null || !candidate.gameObject.scene.IsValid() ||
+                    !candidate.IsJoined || candidate.JoinedPlayerSlotId != playerSlotId)
+                {
+                    continue;
+                }
+
+                AssertTrue(found == null,
+                    $"P3M5B found multiple physical Hosts for Slot '{playerSlotId.StableText}'.");
+                found = candidate;
+            }
+
+            return found;
+        }
+
+        private static Transform ResolveSinglePhysicalActor(
+            LocalPlayerHostAuthoring host)
+        {
+            if (host == null || host.ActorMount == null || host.ActorMount.childCount != 1)
+            {
+                return null;
+            }
+
+            return host.ActorMount.GetChild(0);
+        }
+
         private static PlayerParticipationSnapshot CreateParticipationSnapshot(
             object context)
         {
-            MethodInfo create = context.GetType().GetMethod(
-                "CreateSnapshot",
-                InstanceAny);
-            AssertNotNull(create,
-                "Player participation context has no CreateSnapshot method.");
-            return (PlayerParticipationSnapshot)create.Invoke(context, null);
+            PlayerParticipationSnapshot snapshot = default;
+            AssertTrue(context is Component host &&
+                QaPlayerRuntimeObservationBridge.TryGetParticipationSnapshot(host, out snapshot),
+                "P3M5B public participation snapshot is unavailable from the QA observation bridge.");
+            return snapshot;
         }
 
         private static PlayerSlotRuntimeSnapshot FindSlot(
@@ -1378,7 +2152,15 @@ namespace ImmersiveFrameworkQA.Player.Editor
             PlayerSlotId playerSlotId,
             string expectedContextId,
             Immersive.Framework.Actors.ActorProfileId expectedActorProfileId,
-            int expectedSelectionRevision)
+            int expectedSelectionRevision,
+            LoadedPlayerFixture expectedPhysical,
+            LocalPlayerHostAuthoring expectedHost,
+            Transform expectedActor,
+            string expectedHostEntityId,
+            string expectedActorEntityId,
+            Vector3 expectedActorPosition,
+            Quaternion expectedActorRotation,
+            LocalPlayerProvisioningConsumerObservationSnapshot hubObservation)
         {
             PlayerParticipationSnapshot snapshot =
                 CreateParticipationSnapshot(participationContext);
@@ -1403,17 +2185,42 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             PlayerActorPreparationSummary preparation =
                 GetPreparationSummary(preparationModule, playerSlotId);
-            AssertTrue(preparation.IsUnprepared,
-                "P3M5B QA Hub return retains Activity Player Actor preparation. " +
+            AssertTrue(preparation.IsPrepared,
+                "P3M5B QA Hub return released Session-owned physical Player preparation. " +
                 preparation.ToDiagnosticString());
-            AssertFalse(TryGetAdoptionToken(
+            AssertEqual(expectedPhysical.Preparation.Token, preparation.Token,
+                "P3M5B QA Hub return changed Session physical Player preparation.");
+            AssertEqual(expectedPhysical.Preparation.Materialization.ActorId,
+                preparation.Materialization.ActorId,
+                "P3M5B QA Hub return changed the retained physical ActorId.");
+            AssertEqual(expectedPhysical.Preparation.Materialization.RuntimeContentIdentity,
+                preparation.Materialization.RuntimeContentIdentity,
+                "P3M5B QA Hub return changed retained physical RuntimeContent.");
+            AssertEqual(expectedPhysical.Preparation.Materialization.Owner,
+                preparation.Materialization.Owner,
+                "P3M5B QA Hub return changed Session physical ownership.");
+            AssertTrue(TryGetAdoptionToken(
                     preparationModule,
                     playerSlotId,
-                    out _),
-                "P3M5B QA Hub return retains stale Scene Actor adoption after Activity representation release.");
+                    out ScenePlayerActorAdoptionToken adoption),
+                "P3M5B QA Hub return released retained Session physical adoption.");
+            AssertEqual(expectedPhysical.Adoption, adoption,
+                "P3M5B QA Hub return changed the Session physical adoption token.");
+            AssertPhysicalRepresentationPreserved(
+                expectedHost,
+                expectedActor,
+                expectedHostEntityId,
+                expectedActorEntityId,
+                expectedActorPosition,
+                expectedActorRotation,
+                "P3M5B Route A2 -> QA Hub");
             AssertEqual(0,
                 GetIntProperty(sceneAdmissionModule, "ActiveAdmissionCount"),
                 "P3M5B QA Hub return retains active Scene admission after Activity representation release.");
+            AssertFalse(HasPublicContextualAssignment(hubObservation, playerSlotId),
+                "P3M5B QA Hub return retained Activity CurrentAssignment evidence.");
+            AssertFalse(HasPublicGameplayAdmission(hubObservation, playerSlotId),
+                "P3M5B QA Hub return retained Activity GameplayAdmission/InputBinding evidence.");
         }
 
         private static PlayerActorPreparationSummary GetPreparationSummary(
@@ -1433,17 +2240,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
             PlayerSlotId playerSlotId,
             out PlayerActorPreparationSummary summary)
         {
-            MethodInfo get = preparationModule.GetType().GetMethod(
-                "TryGetScenePlayerActorPreparationSummary",
-                InstanceAny);
-            AssertNotNull(get,
-                "Preparation module has no Scene Player preparation summary operation.");
-            object[] arguments = { playerSlotId, null };
-            bool found = (bool)get.Invoke(preparationModule, arguments);
-            summary = found
-                ? (PlayerActorPreparationSummary)arguments[1]
-                : default;
-            return found;
+            summary = default;
+            return preparationModule is Component host &&
+                QaPlayerRuntimeObservationBridge.TryGetScenePreparation(
+                    host,
+                    playerSlotId,
+                    out summary);
         }
 
         private static bool TryGetAdoptionToken(
@@ -1451,17 +2253,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
             PlayerSlotId playerSlotId,
             out ScenePlayerActorAdoptionToken token)
         {
-            MethodInfo get = preparationModule.GetType().GetMethod(
-                "TryGetScenePlayerActorAdoption",
-                InstanceAny);
-            AssertNotNull(get,
-                "Preparation module has no Scene Player adoption lookup.");
-            object[] arguments = { playerSlotId, null };
-            bool found = (bool)get.Invoke(preparationModule, arguments);
-            token = found
-                ? (ScenePlayerActorAdoptionToken)arguments[1]
-                : default;
-            return found;
+            token = default;
+            return preparationModule is Component host &&
+                QaPlayerRuntimeObservationBridge.TryGetSceneAdoption(
+                    host,
+                    playerSlotId,
+                    out token);
         }
 
         private static ScenePlayerActorAdoptionToken GetAdoptionToken(
@@ -1480,86 +2277,25 @@ namespace ImmersiveFrameworkQA.Player.Editor
             object runtimeContent,
             RuntimeContentOwner owner)
         {
-            if (!owner.IsValid)
-            {
-                return 0;
-            }
-
-            MethodInfo snapshot = runtimeContent.GetType().GetMethod(
-                "SnapshotRoots",
-                InstanceAny,
-                null,
-                Type.EmptyTypes,
-                null);
-            AssertNotNull(snapshot,
-                "RuntimeContentRuntime has no parameterless SnapshotRoots method.");
-            IEnumerable roots = snapshot.Invoke(runtimeContent, null) as IEnumerable;
-            AssertNotNull(roots,
-                "RuntimeContentRuntime SnapshotRoots returned no enumerable result.");
-            int count = 0;
-            foreach (object root in roots)
-            {
-                object value = GetPropertyValue(root, "Owner");
-                if (value is RuntimeContentOwner rootOwner && rootOwner == owner)
-                {
-                    count++;
-                }
-            }
-
-            return count;
-        }
-
-        private static object GetFieldValue(object target, string fieldName)
-        {
-            AssertNotNull(target,
-                $"Cannot read field '{fieldName}' from null target.");
-            FieldInfo field = target.GetType().GetField(fieldName, InstanceAny);
-            AssertNotNull(field,
-                $"Missing field '{fieldName}' on '{target.GetType().Name}'.");
-            return field.GetValue(target);
-        }
-
-        private static object GetPropertyValue(
-            object target,
-            string propertyName)
-        {
-            AssertNotNull(target,
-                $"Cannot read property '{propertyName}' from null target.");
-            PropertyInfo property = target.GetType().GetProperty(
-                propertyName,
-                InstanceAny);
-            AssertNotNull(property,
-                $"Missing property '{propertyName}' on '{target.GetType().Name}'.");
-            return property.GetValue(target);
+            return runtimeContent is Component host
+                ? QaPlayerRuntimeObservationBridge.CountRuntimeRoots(host, owner)
+                : 0;
         }
 
         private static int GetIntProperty(object target, string propertyName)
         {
-            return Convert.ToInt32(GetPropertyValue(target, propertyName));
-        }
+            if (string.Equals(propertyName, "ActiveAdmissionCount", StringComparison.Ordinal) &&
+                target is Component host)
+            {
+                return QaPlayerRuntimeObservationBridge.GetActiveSceneAdmissionCount(host);
+            }
 
-        private static bool GetBooleanProperty(
-            object target,
-            string propertyName)
-        {
-            return Convert.ToBoolean(GetPropertyValue(target, propertyName));
-        }
-
-        private static string GetStringProperty(
-            object target,
-            string propertyName)
-        {
-            return Convert.ToString(GetPropertyValue(target, propertyName));
+            throw new InvalidOperationException(
+                $"P3M5B does not permit reflective semantic reads for '{propertyName}'.");
         }
 
         private static Exception Unwrap(Exception exception)
         {
-            if (exception is TargetInvocationException invocation &&
-                invocation.InnerException != null)
-            {
-                return Unwrap(invocation.InnerException);
-            }
-
             return exception;
         }
 

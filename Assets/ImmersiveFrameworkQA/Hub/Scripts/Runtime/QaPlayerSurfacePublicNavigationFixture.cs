@@ -20,7 +20,11 @@ namespace ImmersiveFrameworkQA.Hub
         public const string RootObjectName = "QA_PlayerSurface_PublicNavigation";
 
         [SerializeField] private ActivityAsset targetActivity;
+        [SerializeField] private ActivityAsset secondaryPlayerActivity;
+        [SerializeField] private ActivityAsset playerExcludedActivity;
         [SerializeField] private ActivityRequestTrigger enterActivityTrigger;
+        [SerializeField] private ActivityRequestTrigger enterSecondaryActivityTrigger;
+        [SerializeField] private ActivityRequestTrigger enterPlayerExcludedActivityTrigger;
         [SerializeField] private ActivityRequestTrigger clearActivityTrigger;
         [SerializeField]
         private LocalPlayerProvisioningConsumerAccessBinding routeConsumerBinding;
@@ -31,7 +35,13 @@ namespace ImmersiveFrameworkQA.Hub
         [SerializeField] private PlayerSlotProfile primaryPlayerSlot;
 
         public ActivityAsset TargetActivity => targetActivity;
+        public ActivityAsset SecondaryPlayerActivity => secondaryPlayerActivity;
+        public ActivityAsset PlayerExcludedActivity => playerExcludedActivity;
         public ActivityRequestTrigger EnterActivityTrigger => enterActivityTrigger;
+        public ActivityRequestTrigger EnterSecondaryActivityTrigger =>
+            enterSecondaryActivityTrigger;
+        public ActivityRequestTrigger EnterPlayerExcludedActivityTrigger =>
+            enterPlayerExcludedActivityTrigger;
         public ActivityRequestTrigger ClearActivityTrigger => clearActivityTrigger;
         public LocalPlayerProvisioningConsumerAccessBinding RouteConsumerBinding =>
             routeConsumerBinding;
@@ -43,7 +53,11 @@ namespace ImmersiveFrameworkQA.Hub
 
         public void Configure(
             ActivityAsset activity,
+            ActivityAsset secondaryActivity,
+            ActivityAsset excludedActivity,
             ActivityRequestTrigger enterTrigger,
+            ActivityRequestTrigger enterSecondaryTrigger,
+            ActivityRequestTrigger enterExcludedTrigger,
             ActivityRequestTrigger clearTrigger,
             LocalPlayerProvisioningConsumerAccessBinding consumerBinding,
             LocalPlayerProvisioningConsumerAccessBinding authoredWrongScopeBinding,
@@ -51,7 +65,11 @@ namespace ImmersiveFrameworkQA.Hub
             PlayerSlotProfile playerSlot)
         {
             targetActivity = activity;
+            secondaryPlayerActivity = secondaryActivity;
+            playerExcludedActivity = excludedActivity;
             enterActivityTrigger = enterTrigger;
+            enterSecondaryActivityTrigger = enterSecondaryTrigger;
+            enterPlayerExcludedActivityTrigger = enterExcludedTrigger;
             clearActivityTrigger = clearTrigger;
             routeConsumerBinding = consumerBinding;
             wrongScopeBinding = authoredWrongScopeBinding;
@@ -71,6 +89,24 @@ namespace ImmersiveFrameworkQA.Hub
             {
                 issue =
                     "Public navigation fixture is missing enter ActivityRequestTrigger.";
+                return false;
+            }
+
+            if (secondaryPlayerActivity == null ||
+                enterSecondaryActivityTrigger == null ||
+                enterSecondaryActivityTrigger.TargetActivity != secondaryPlayerActivity)
+            {
+                issue =
+                    "Public navigation fixture is missing a distinct Player-representing Activity B trigger.";
+                return false;
+            }
+
+            if (playerExcludedActivity == null ||
+                enterPlayerExcludedActivityTrigger == null ||
+                enterPlayerExcludedActivityTrigger.TargetActivity != playerExcludedActivity)
+            {
+                issue =
+                    "Public navigation fixture is missing the Player-excluded Activity trigger.";
                 return false;
             }
 

@@ -19,21 +19,18 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
     /// Scene-Provided policy and occurrence-aware candidate placement without
     /// duplicating the wider Player lifecycle/admission suites.
     /// </summary>
-    internal static class QaAdr21ActivityPlayerInitialPlacementRegression
+    public static class QaAdr21ActivityPlayerInitialPlacementRegression
     {
         private const string MenuPath =
             "Immersive Framework/QA/Player/Run ADR-021 Initial Placement QA";
         private const string Prefix = "[QA_ADR021_INITIAL_PLACEMENT]";
-        private const int ExpectedCaseCount = 10;
+        private const int ExpectedCaseCount = 9;
         private const string SlotP1Path =
             "Assets/ImmersiveFrameworkQA/Player/Profiles/SlotsProfiles/PlayerSlotProfileP1.asset";
         private const string SlotP2Path =
             "Assets/ImmersiveFrameworkQA/Player/Profiles/SlotsProfiles/PlayerSlotProfileP2.asset";
         private const string ActivityPath =
             "Assets/ImmersiveFrameworkQA/Player/P3J6/P3J6_PlayerActorLifecycleActivity.asset";
-        private const string ActorProfilePath =
-            "Assets/ImmersiveFrameworkQA/Player/P3H4/P3H4_DefaultActor.asset";
-
         [MenuItem(MenuPath, true)]
         private static bool ValidateRun() =>
             !EditorApplication.isPlayingOrWillChangePlaymode;
@@ -47,7 +44,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             }
         }
 
-        internal static bool Execute(out string error)
+        public static bool Execute(out string error)
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)
             {
@@ -68,7 +65,6 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             PlayerSlotProfile p1 = AssetDatabase.LoadAssetAtPath<PlayerSlotProfile>(SlotP1Path);
             PlayerSlotProfile p2 = AssetDatabase.LoadAssetAtPath<PlayerSlotProfile>(SlotP2Path);
             ActivityAsset activity = AssetDatabase.LoadAssetAtPath<ActivityAsset>(ActivityPath);
-            ActorProfile actorProfile = AssetDatabase.LoadAssetAtPath<ActorProfile>(ActorProfilePath);
 
             try
             {
@@ -76,8 +72,6 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 Require(p2 != null, $"Missing QA PlayerSlotProfile at '{SlotP2Path}'.");
                 Require(activity != null && activity.HasValidActivityId,
                     $"Missing or invalid QA Activity at '{ActivityPath}'.");
-                Require(actorProfile != null && actorProfile.TryGetActorProfileId(out _, out _),
-                    $"Missing or invalid QA ActorProfile at '{ActorProfilePath}'.");
 
                 RunCase("AuthoringAndDefaultPolicy", () => ProveAuthoringAndDefaultPolicy(p1), failures, ref passed);
                 RunCase("ManagerLogicalActorTarget", () => ProveManagerLogicalActorTarget(activity, p1), failures, ref passed);
@@ -87,7 +81,6 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 RunCase("AnchorOutsideOwnedSceneRejected", () => ProveAnchorOutsideOwnedSceneRejected(activity, p1), failures, ref passed);
                 RunCase("SceneProvidedPreserveAuthoredPose", () => ProvePreserveAuthoredPose(activity, p1), failures, ref passed);
                 RunCase("SceneProvidedApplyActivityPlacement", () => ProveSceneApplyPlacement(activity, p1), failures, ref passed);
-                RunCase("CandidatePrePromotionAndFreshOccurrence", () => ProveCandidatePrePromotionAndFreshOccurrence(activity, p1, actorProfile), failures, ref passed);
                 RunCase("FailedPlacementEvidence", () => ProveFailedPlacementEvidence(activity, p1), failures, ref passed);
             }
             catch (Exception exception)
@@ -291,57 +284,6 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 Require(ReferenceEquals(target.transform.parent, originalParent) && target.transform.localScale == scale,
                     "Scene Apply changed hierarchy or scale.");
             });
-        }
-
-        private static void ProveCandidatePrePromotionAndFreshOccurrence(
-            ActivityAsset activity,
-            PlayerSlotProfile p1,
-            ActorProfile actorProfile)
-        {
-            WithScenes(activity, (owned, foreign, context1) =>
-            {
-                Transform anchor = CreatePlacementAuthoring(owned, p1, new Vector3(3f, 4f, 5f), Quaternion.Euler(0f, 45f, 0f));
-                GameObject localHost = CreateInScene(foreign, "LocalPlayerHost");
-                ActivityPlayerInitialPlacementRuntimeBinding binding =
-                    localHost.AddComponent<ActivityPlayerInitialPlacementRuntimeBinding>();
-                GameObject target = new GameObject("StagedCandidateLogicalActorHost");
-                SceneManager.MoveGameObjectToScene(target, foreign);
-                target.transform.SetParent(localHost.transform, true);
-
-                Require(actorProfile.TryGetActorProfileId(out ActorProfileId actorProfileId, out string profileIssue),
-                    "Candidate ActorProfile identity unavailable. " + profileIssue);
-                ActorId actorId = ActorId.From("qa.adr21.candidate.actor");
-                RuntimeContentIdentity identity1 = RuntimeContentIdentity.From(context1.Owner, "qa.adr21.candidate.1");
-                var candidate1 = new PlayerActorCandidateStageToken(
-                    "qa.adr21.session", context1.Owner, PlayerSlotId.Player1, actorProfileId, actorId, identity1, 1);
-
-                binding.Configure(context1);
-                Require(binding.TryApplyCandidateBeforePromotion(candidate1, target.transform, out string firstIssue),
-                    "Candidate pre-promotion placement failed. " + firstIssue);
-                ActivityPlayerInitialPlacementEvidence first = binding.LastEvidence;
-                Require(first.IsSuccessful && first.Occurrence.TransitionSequence == context1.Occurrence.TransitionSequence,
-                    "Candidate placement did not retain first occurrence evidence.");
-
-                anchor.SetPositionAndRotation(new Vector3(31f, 7f, -9f), Quaternion.Euler(0f, 210f, 0f));
-                target.transform.position = Vector3.zero;
-                ActivityTransitionPreparationContext context2 = CreateContext(activity, owned, 202);
-                RuntimeContentIdentity identity2 = RuntimeContentIdentity.From(context2.Owner, "qa.adr21.candidate.2");
-                var candidate2 = new PlayerActorCandidateStageToken(
-                    "qa.adr21.session", context2.Owner, PlayerSlotId.Player1, actorProfileId, actorId, identity2, 2);
-
-                binding.Configure(context2);
-                Require(!binding.LastEvidence.IsSuccessful,
-                    "Configure reused successful placement evidence from the previous Activity occurrence.");
-                Require(binding.TryApplyCandidateBeforePromotion(candidate2, target.transform, out string secondIssue),
-                    "Candidate placement failed on fresh Activity occurrence. " + secondIssue);
-                ActivityPlayerInitialPlacementEvidence second = binding.LastEvidence;
-                Require(second.IsSuccessful && second.Occurrence.TransitionSequence == 202,
-                    "Fresh occurrence did not produce fresh placement evidence.");
-                Require(!first.Occurrence.Matches(activity, 202),
-                    "Previous occurrence evidence incorrectly matches reentry occurrence.");
-                Require(SamePose(target.transform, anchor),
-                    "Fresh occurrence did not reapply the current Activity anchor pose before promotion.");
-            }, transitionSequence: 101);
         }
 
         private static void ProveFailedPlacementEvidence(ActivityAsset activity, PlayerSlotProfile p1)

@@ -27,8 +27,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         internal const string ContentScenePath =
             "Assets/ImmersiveFrameworkQA/GameFlow/Scenes/QA_IF_READY_04_DirectPoliciesContent.unity";
-        internal const string ReplacementActorPath =
-            "Assets/ImmersiveFrameworkQA/Player/P3H4/Q3_M07_ReconcileReplacementActor.asset";
         private const string AlternateActorPath =
             "Assets/ImmersiveFrameworkQA/Player/P3H4/P3H4_AlternateActor.asset";
 
@@ -91,9 +89,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     alternate.LogicalActorHostPrefab != null,
                     $"Q3 alternate Actor fixture is missing at '{AlternateActorPath}'.");
 
-                ActorProfile replacement =
-                    CreateOrUpdateReplacementActor(alternate);
-
                 var serializedSecondSlot = new SerializedObject(secondSlot);
                 SerializedProperty secondDefault =
                     serializedSecondSlot.FindProperty("defaultActorProfile");
@@ -127,9 +122,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     $"firstDefault='{firstSlot.DefaultActorProfile.ActorProfileId.StableText}' " +
                     $"secondSlot='{secondSlot.PlayerSlotId.StableText}' " +
                     $"secondDefault='{alternate.ActorProfileId.StableText}' " +
-                    $"replacement='{replacement.ActorProfileId.StableText}' " +
                     $"contentScene='{ContentScenePath}' " +
-                    "next='Enter fresh Play Mode and run M07 Internal Reconcile Authority Regression'.");
+                    "next='Enter fresh Play Mode and run the canonical M07 regressions'.");
             }
             catch (Exception exception)
             {
@@ -171,49 +165,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     ContentScenePath) != null &&
                 CountEnabledBuildScenes(ContentScenePath) == 1,
                 "Q3 direct-readiness content scene is missing or disabled.");
-            Require(ResolveReplacementActor() != null,
-                "Q3 replacement Actor fixture is missing.");
-        }
-
-        internal static ActorProfile ResolveReplacementActor()
-        {
-            return AssetDatabase.LoadAssetAtPath<ActorProfile>(
-                ReplacementActorPath);
-        }
-
-        private static ActorProfile CreateOrUpdateReplacementActor(
-            ActorProfile template)
-        {
-            ActorProfile profile =
-                AssetDatabase.LoadAssetAtPath<ActorProfile>(
-                    ReplacementActorPath);
-            if (profile == null)
-            {
-                profile = ScriptableObject.CreateInstance<ActorProfile>();
-                AssetDatabase.CreateAsset(profile, ReplacementActorPath);
-            }
-
-            profile.name = "Q3_M07_ReconcileReplacementActor";
-            var serialized = new SerializedObject(profile);
-            RequireProperty(serialized, "actorProfileId").stringValue =
-                "qa.m07.reconcile.actor-profile.replacement";
-            RequireProperty(serialized, "displayName").stringValue =
-                "Q3 M07 Reconcile Replacement Actor";
-            RequireProperty(serialized, "description").stringValue =
-                "Q3-only valid ActorProfile used to prove replacement during active-Activity reconcile.";
-            RequireProperty(serialized, "actorKind").intValue =
-                (int)ActorKind.Player;
-            RequireProperty(serialized, "actorRole").intValue =
-                (int)ActorRole.Protagonist;
-            RequireProperty(serialized, "logicalActorHostPrefab")
-                .objectReferenceValue = template.LogicalActorHostPrefab;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(profile);
-
-            Require(profile.ActorProfileId.IsValid &&
-                profile.LogicalActorHostPrefab != null,
-                "Q3 replacement ActorProfile is not execution-ready.");
-            return profile;
         }
 
         private static void HandlePlayModeStateChanged(

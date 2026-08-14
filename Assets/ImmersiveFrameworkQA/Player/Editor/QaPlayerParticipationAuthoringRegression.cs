@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.PlayerParticipation;
 using UnityEditor;
@@ -16,7 +14,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
     internal static class QaPlayerParticipationAuthoringRegression
     {
         private const string TempFolder = "Assets/ImmersiveFrameworkQA/__PlayerParticipationAuthoring_Temp";
-        private const string ProjectionValidatorTypeName = "Immersive.Framework.Editor.Editor.PlayerParticipation.ActivityParticipationProjectionAuthoringValidator";
 
         [MenuItem("Immersive Framework/QA/Player/Session/Run Authoring Contract")]
         internal static void Run()
@@ -95,7 +92,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 none,
                 ActivityParticipationProjectionMode.NoSlots,
                 ActivityParticipationZeroParticipantPolicy.Allowed);
-            AssertReportHasNoErrors(ValidateActivity(noPlayersActivity), "NoSlots + None was rejected.");
+            AssertProjectionDescriptor(
+                noPlayersActivity,
+                ActivityParticipationProjectionMode.NoSlots,
+                ActivityParticipationZeroParticipantPolicy.Allowed,
+                0,
+                "NoSlots + None authoring descriptor is invalid.");
             completed.Add("no-slots-none-valid");
 
             ActivityAsset allJoinedActivity = CreateActivity(
@@ -104,7 +106,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 joined,
                 ActivityParticipationProjectionMode.AllJoinedSlots,
                 ActivityParticipationZeroParticipantPolicy.Allowed);
-            AssertReportHasNoErrors(ValidateActivity(allJoinedActivity), "AllJoinedSlots + JoinedSlots was rejected.");
+            AssertProjectionDescriptor(
+                allJoinedActivity,
+                ActivityParticipationProjectionMode.AllJoinedSlots,
+                ActivityParticipationZeroParticipantPolicy.Allowed,
+                0,
+                "AllJoinedSlots + JoinedSlots authoring descriptor is invalid.");
             completed.Add("all-joined-zero-allowed-valid");
 
             ActivityAsset explicitActivity = CreateActivity(
@@ -115,12 +122,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 ActivityParticipationZeroParticipantPolicy.Rejected,
                 playerOne,
                 playerTwo);
-            AssertTrue(
-                explicitActivity.TryGetPlayerParticipationProjectionDescriptor(
-                    out ActivityParticipationProjectionDescriptor descriptor,
-                    out string descriptorIssue),
-                $"Explicit descriptor failed: '{descriptorIssue}'.");
-            AssertEqual(2, descriptor.ExplicitSlotProfiles.Count, "Explicit descriptor Slot count changed.");
+            AssertProjectionDescriptor(
+                explicitActivity,
+                ActivityParticipationProjectionMode.ExplicitSlots,
+                ActivityParticipationZeroParticipantPolicy.Rejected,
+                2,
+                "Explicit Slot authoring descriptor is invalid.");
             completed.Add("activity-owned-explicit-slots-order-preserved");
         }
 
@@ -186,45 +193,24 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return activity;
         }
 
-        private static object ValidateActivity(ActivityAsset activity)
+        private static void AssertProjectionDescriptor(
+            ActivityAsset activity,
+            ActivityParticipationProjectionMode expectedMode,
+            ActivityParticipationZeroParticipantPolicy expectedZeroPolicy,
+            int expectedExplicitSlotCount,
+            string message)
         {
-            return InvokeValidator(
-                ProjectionValidatorTypeName,
-                "ValidateActivity",
-                new[] { typeof(ActivityAsset) },
-                new object[] { activity });
-        }
-
-        private static object InvokeValidator(string validatorTypeName, string methodName, Type[] parameterTypes, object[] arguments)
-        {
-            Type validatorType = ResolveType(validatorTypeName);
-            AssertNotNull(validatorType, $"Validator type not found: '{validatorTypeName}'.");
-            MethodInfo method = validatorType.GetMethod(
-                methodName,
-                BindingFlags.Static | BindingFlags.NonPublic,
-                null,
-                parameterTypes,
-                null);
-            AssertNotNull(method, $"Validator method not found: '{methodName}'.");
-            return method.Invoke(null, arguments);
-        }
-
-        private static Type ResolveType(string fullName)
-        {
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                Type type = assembly.GetType(fullName, false);
-                if (type != null) return type;
-            }
-            return null;
-        }
-
-        private static void AssertReportHasNoErrors(object report, string message)
-        {
-            PropertyInfo property = report.GetType().GetProperty("ErrorCount", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            AssertNotNull(property, "Property 'ErrorCount' not found.");
-            int errorCount = (int)property.GetValue(report);
-            if (errorCount > 0) throw new InvalidOperationException($"{message} errorCount='{errorCount}'.");
+            AssertTrue(
+                activity.TryGetPlayerParticipationProjectionDescriptor(
+                    out ActivityParticipationProjectionDescriptor descriptor,
+                    out string issue),
+                message + " issue='" + issue + "'.");
+            AssertEqual(expectedMode, descriptor.Mode,
+                message + " Projection mode changed.");
+            AssertEqual(expectedZeroPolicy, descriptor.ZeroParticipantPolicy,
+                message + " Zero-participant policy changed.");
+            AssertEqual(expectedExplicitSlotCount, descriptor.ExplicitSlotProfiles.Count,
+                message + " Explicit Slot count changed.");
         }
 
         private static void PrepareTempFolder()

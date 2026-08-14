@@ -1,7 +1,7 @@
 using System;
 using ImmersiveFrameworkQA.Player;
+using ImmersiveFrameworkQA.Player.Internal.Editor;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Actors;
@@ -41,11 +41,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private const int FrameBudget = 300;
         private const int ExpectedCaseCount = 38;
 
-        private static readonly BindingFlags InstanceAny =
-            BindingFlags.Instance |
-            BindingFlags.Public |
-            BindingFlags.NonPublic;
-
         private static readonly string[] ExpectedCases =
         {
             "play-mode-required",
@@ -82,7 +77,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             "logical-request-started",
             "logical-ready-no-gameplay",
             "logical-request-completed",
-            "logical-cleared-actor-released",
+            "logical-cleared-context-released-physical-retained",
 
             "gameplay-configured",
             "gameplay-request-started",
@@ -499,9 +494,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         authoring.RuntimeSnapshot,
                         slotProfile.PlayerSlotId)
                         .HasSelectedActor &&
-                    CountActors(join.LocalPlayerHost) == 0,
-                    "LogicalActorsPrepared clear did not release the contextual Actor while preserving Session state.");
-                cases.Complete("logical-cleared-actor-released");
+                    CountActors(join.LocalPlayerHost) == 1,
+                    "LogicalActorsPrepared clear did not release the Session-owned physical Actor while releasing Activity context.");
+                cases.Complete("logical-cleared-context-released-physical-retained");
 
                 // GameplayReady --------------------------------------------
                 await StartStageAsync(
@@ -556,8 +551,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         authoring.RuntimeSnapshot,
                         slotProfile.PlayerSlotId)
                         .HasSelectedActor &&
-                    CountActors(join.LocalPlayerHost) == 0,
-                    "GameplayReady clear did not release contextual gameplay/Actor evidence while preserving Session authority.");
+                    CountActors(join.LocalPlayerHost) == 1,
+                    "GameplayReady clear did not retain Activity gameplay context or release the Session-owned physical Actor.");
                 cases.Complete("gameplay-cleared-session-retained");
 
                 PlayerParticipationOperationResult close =
@@ -987,30 +982,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private static LocalPlayerProvisioningAuthoring
             ResolveProvisioningAuthoring(FrameworkRuntimeHost host)
         {
-            MethodInfo method = FindMethod(
-                host.GetType(),
-                "TryResolveLocalPlayerProvisioningAuthoring",
-                3);
-            object[] arguments =
-            {
-                null,
-                false,
-                string.Empty
-            };
-            bool succeeded = method.Invoke(
-                    host,
-                    arguments) is bool value &&
-                value;
-            LocalPlayerProvisioningAuthoring authoring =
-                arguments[0] as LocalPlayerProvisioningAuthoring;
-            bool configured =
-                arguments[1] is bool configuredValue &&
-                configuredValue;
-            string diagnostic =
-                arguments[2] as string ?? string.Empty;
-            Require(succeeded && configured && authoring != null,
+            bool resolved =
+                QaPlayerRuntimeObservationBridge
+                    .TryGetLocalPlayerProvisioningAuthoring(
+                        host,
+                        out LocalPlayerProvisioningAuthoring authoring,
+                        out string diagnostic);
+            Require(resolved && authoring != null,
                 string.IsNullOrWhiteSpace(diagnostic)
-                    ? "FrameworkRuntimeHost did not resolve Local Player provisioning authoring."
+                    ? "Framework runtime did not expose Local Player provisioning authoring."
                     : diagnostic);
             return authoring;
         }
@@ -1111,39 +1091,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 "Actor count requires a Local Player Host with ActorMount.");
             return localPlayerHost.ActorMount.GetComponentsInChildren<
                 PlayerActorDeclaration>(true).Length;
-        }
-
-        private static MethodInfo FindMethod(
-            Type type,
-            string methodName,
-            int parameterCount)
-        {
-            for (Type current = type;
-                 current != null;
-                 current = current.BaseType)
-            {
-                MethodInfo[] methods =
-                    current.GetMethods(InstanceAny);
-                for (int index = 0;
-                     index < methods.Length;
-                     index++)
-                {
-                    MethodInfo candidate = methods[index];
-                    if (string.Equals(
-                            candidate.Name,
-                            methodName,
-                            StringComparison.Ordinal) &&
-                        candidate.GetParameters().Length ==
-                            parameterCount)
-                    {
-                        return candidate;
-                    }
-                }
-            }
-
-            throw new MissingMethodException(
-                type.FullName,
-                methodName);
         }
 
         private static SerializedProperty RequireProperty(

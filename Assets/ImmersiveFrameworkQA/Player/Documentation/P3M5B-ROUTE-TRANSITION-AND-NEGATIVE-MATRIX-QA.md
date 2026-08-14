@@ -8,9 +8,9 @@ QA technical integration
 
 ## Objective
 
-Prove Scene Local Player admission and external Actor adoption across real Route
-replacement and Route re-entry, then validate the automatic-authoring negative
-matrix without changing the active Route or Activity.
+Prove Scene Local Player admission and Session-owned physical Actor continuity across
+real Route replacement and Route re-entry, then validate the automatic-authoring
+negative matrix without changing the active Route or Activity.
 
 ## Product/runtime path
 
@@ -22,7 +22,7 @@ FrameworkRuntimeHost.RequestRouteAsync
 -> target Route Startup Activity
 -> target Activity scene composition
 -> Scene Local Player admission
--> Actor selection and ExternalSceneOwned adoption
+-> Actor selection and Scene-Provided adoption into Session ownership
 -> canonical Player Actor preparation
 ```
 
@@ -96,7 +96,7 @@ Expected:
 ```text
 [P3M5B_ROUTE_TRANSITION_NEGATIVE_MATRIX_SMOKE]
 status='Passed'
-cases='27'
+cases='30'
 ```
 
 ## Coverage
@@ -104,15 +104,15 @@ cases='27'
 ```text
 real Route A request
 Route A Startup Activity automatic admission
-Activity-owned preparation authority
+Activity-owned contextual authority
 Route A -> Route B replacement
 previous Activity scenes released
 previous Activity RuntimeContent owner removed
-Route B automatic admission
-fresh Actor/adoption/RuntimeContent identities
+Route B contextual reprojection
+new contextual adoption occurrence with the same physical Actor/RuntimeContent identity
 exactly one active admission after Route replacement
 Route B -> Route A re-entry
-fresh Route A re-entry identities
+new Route A contextual occurrence with the original physical identity
 negative duplicate Slot rejection
 negative missing Actor rejection
 negative mismatched ActorProfile evidence rejection
@@ -136,8 +136,9 @@ participant order, or a new Route rollback model.
 Every generated Activity has a valid explicit ActivityId.
 Route replacement compiles and completes through FrameworkRuntimeHost.
 Only one Scene Local Player admission is active after each Route switch.
-Previous Activity scene, preparation, adoption and RuntimeContent owner do not remain.
-Route re-entry creates new runtime identities.
+Previous Activity contextual authority and Activity-owned RuntimeContent owner do not remain.
+The admitted Scene-Provided physical Player survives supplying-scene unload and is reused
+with a new contextual occurrence on Route re-entry.
 Every negative case is rejected explicitly at automatic-authoring resolution.
 Undeclared loaded surfaces are ignored.
 The original Route is restored before PASS.

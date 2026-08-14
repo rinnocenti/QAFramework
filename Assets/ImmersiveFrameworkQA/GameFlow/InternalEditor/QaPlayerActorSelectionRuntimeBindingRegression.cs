@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ImmersiveFrameworkQA.Player.Internal.Editor;
 using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
@@ -65,21 +66,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     objects,
                     completed);
 
-                provisioning = await AwaitProvisioningAsync();
+                provisioning = await AwaitProvisioningAsync(host);
                 Require(
                     provisioning.RuntimeReady,
                     "Local Player provisioning runtime is not ready. " +
                     provisioning.RuntimeDiagnostic);
-                object playerInputManager =
-                    GetRequiredPropertyValue(
-                        provisioning,
-                        "PlayerInputManager",
-                        "Local Player provisioning has no PlayerInputManager.");
-                int playerCount =
-                    GetRequiredIntPropertyValue(
-                        playerInputManager,
-                        "playerCount",
-                        "PlayerInputManager has no readable playerCount property.");
+                var playerInputManager = provisioning.PlayerInputManager;
+                Require(playerInputManager != null,
+                    "Local Player provisioning has no PlayerInputManager.");
+                int playerCount = playerInputManager.playerCount;
                 Require(
                     playerCount == 0,
                     "Player Actor Selection Runtime Binding regression is one-shot. Re-enter Play Mode before running it again.");
@@ -134,16 +129,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         ? joined.ToDiagnosticString()
                         : "Public local Player join returned no result.");
 
-                object joinedPlayerInput =
-                    GetRequiredPropertyValue(
-                        joined,
-                        "PlayerInput",
-                        "Successful Local Player join has no PlayerInput evidence.");
-                object hostPlayerInput =
-                    GetRequiredPropertyValue(
-                        joined.LocalPlayerHost,
-                        "PlayerInput",
-                        "Joined Local Player Host has no PlayerInput evidence.");
+                var joinedPlayerInput = joined.PlayerInput;
+                var hostPlayerInput = joined.LocalPlayerHost.PlayerInput;
                 Require(
                     joinedPlayerInput != null &&
                     ReferenceEquals(
@@ -548,29 +535,21 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private static async Task<
             LocalPlayerProvisioningAuthoring>
-            AwaitProvisioningAsync()
+            AwaitProvisioningAsync(FrameworkRuntimeHost host)
         {
             const int maxFrames = 600;
             for (int frame = 0;
                  frame < maxFrames;
                  frame++)
             {
-                LocalPlayerProvisioningAuthoring[] candidates =
-                    Resources.FindObjectsOfTypeAll<
-                        LocalPlayerProvisioningAuthoring>();
-                for (int index = 0;
-                     index < candidates.Length;
-                     index++)
+                if (QaPlayerRuntimeObservationBridge
+                        .TryGetLocalPlayerProvisioningAuthoring(
+                            host,
+                            out LocalPlayerProvisioningAuthoring provisioning,
+                            out _) &&
+                    provisioning != null && provisioning.RuntimeReady)
                 {
-                    LocalPlayerProvisioningAuthoring candidate =
-                        candidates[index];
-                    if (candidate != null &&
-                        candidate.gameObject.scene.IsValid() &&
-                        candidate.gameObject.scene.isLoaded &&
-                        candidate.RuntimeReady)
-                    {
-                        return candidate;
-                    }
+                    return provisioning;
                 }
 
                 await Awaitable.NextFrameAsync();
@@ -627,48 +606,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 $"snapshotRevision='{snapshot?.Revision}' " +
                 $"joined='{snapshot?.JoinedCount}' " +
                 $"selected='{snapshot?.SelectedActorCount}'.";
-        }
-
-        private static object GetRequiredPropertyValue(
-            object target,
-            string propertyName,
-            string issue)
-        {
-            Require(
-                target != null,
-                issue);
-
-            System.Reflection.PropertyInfo property =
-                target.GetType().GetProperty(
-                    propertyName,
-                    System.Reflection.BindingFlags.Instance |
-                    System.Reflection.BindingFlags.Public);
-            Require(
-                property != null &&
-                property.CanRead,
-                issue);
-
-            object value = property.GetValue(target);
-            Require(
-                value != null,
-                issue);
-            return value;
-        }
-
-        private static int GetRequiredIntPropertyValue(
-            object target,
-            string propertyName,
-            string issue)
-        {
-            object value =
-                GetRequiredPropertyValue(
-                    target,
-                    propertyName,
-                    issue);
-            Require(
-                value is int,
-                issue);
-            return (int)value;
         }
 
         private static void Require(

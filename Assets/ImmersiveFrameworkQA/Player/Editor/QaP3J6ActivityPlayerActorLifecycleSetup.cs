@@ -96,7 +96,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             serialized.FindProperty("activityId").stringValue = CreateActivityId(assetPath);
             serialized.FindProperty("activityName").stringValue = activityName;
             serialized.FindProperty("description").stringValue =
-                "QA Activity proving Activity-owned Logical Player Actor lifecycle and readiness.";
+                "QA Activity proving Activity contextual lifecycle and readiness over a Session-owned Logical Player Actor.";
             serialized.FindProperty("playerParticipationProjectionMode").intValue =
                 (int)projectionMode;
             serialized.FindProperty("playerParticipationZeroParticipantPolicy").intValue =
@@ -150,5 +150,4 @@ namespace ImmersiveFrameworkQA.Player.Editor
         }
     }
 }
-
 

@@ -6,7 +6,9 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.Transition;
+using Immersive.Framework.UnityInput;
 using ImmersiveFrameworkQA.Hub;
+using ImmersiveFrameworkQA.Player.P3M5B;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -35,6 +37,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
             "Immersive Framework/QA/Player/Scene Provided/Run Integration";
         private const string HubRoutePath =
             "Assets/ImmersiveFrameworkQA/Hub/Routes/QA_HubRoute.asset";
+        private const string HubScenePath =
+            "Assets/ImmersiveFrameworkQA/Hub/Scenes/QA_Hub.unity";
+        private const string LocalPlayerInputActionsPath =
+            "Assets/ImmersiveFrameworkQA/Player/LocalPlayerRuntimeIntegration/LocalPlayerInputActions.asset";
+        private const string GameplayActionMapName = "Gameplay";
 
         internal const string RootFolder =
             "Assets/ImmersiveFrameworkQA/Player/P3M5B";
@@ -214,7 +221,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 }
 
                 PlayerSlotProfile[] firstSlotProjection = { slots[0] };
-                PlayerParticipationRequirementLevel requirementLevel =
+                PlayerParticipationRequirementLevel positiveRequirementLevel =
+                    PlayerParticipationRequirementLevel.GameplayReady;
+                PlayerParticipationRequirementLevel negativeRequirementLevel =
                     PlayerParticipationRequirementLevel.LogicalActorsPrepared;
 
                 ActivityAsset routeAActivity = CreateOrUpdateActivity(
@@ -222,7 +231,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     RouteAActivityId,
                     "Scene Player Route Lifecycle A Activity",
                     firstSlotProjection,
-                    requirementLevel,
+                    positiveRequirementLevel,
                     CreateOrUpdateContentProfile(
                         RouteAContentPath,
                         "qa.p3m5b.route-a.activity-content",
@@ -232,7 +241,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     RouteBActivityId,
                     "Scene Player Route Lifecycle B Activity",
                     firstSlotProjection,
-                    requirementLevel,
+                    positiveRequirementLevel,
                     CreateOrUpdateContentProfile(
                         RouteBContentPath,
                         "qa.p3m5b.route-b.activity-content",
@@ -242,7 +251,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     DuplicateSlotActivityId,
                     "P3M5B Negative Duplicate Slot Activity",
                     firstSlotProjection,
-                    requirementLevel,
+                    negativeRequirementLevel,
                     CreateOrUpdateContentProfile(
                         DuplicateSlotContentPath,
                         "qa.p3m5b.negative.duplicate-slot",
@@ -252,7 +261,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     MissingActorActivityId,
                     "P3M5B Negative Missing Actor Activity",
                     firstSlotProjection,
-                    requirementLevel,
+                    negativeRequirementLevel,
                     CreateOrUpdateContentProfile(
                         MissingActorContentPath,
                         "qa.p3m5b.negative.missing-actor",
@@ -262,7 +271,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     MismatchedProfileActivityId,
                     "P3M5B Negative Mismatched Profile Activity",
                     firstSlotProjection,
-                    requirementLevel,
+                    negativeRequirementLevel,
                     CreateOrUpdateContentProfile(
                         MismatchedProfileContentPath,
                         "qa.p3m5b.negative.mismatched-profile",
@@ -272,7 +281,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     UndeclaredSurfaceActivityId,
                     "P3M5B Negative Undeclared Surface Activity",
                     firstSlotProjection,
-                    requirementLevel,
+                    negativeRequirementLevel,
                     null);
 
                 RouteAsset routeA = CreateOrUpdateRoute(
@@ -287,6 +296,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Scene Player Route Lifecycle B",
                     RouteBPrimaryScenePath,
                     routeBActivity);
+
+                ConfigureHubSessionWitness(routeA);
 
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
@@ -644,6 +655,83 @@ namespace ImmersiveFrameworkQA.Player.Editor
             EditorUtility.SetDirty(panel);
         }
 
+        private static void ConfigureHubSessionWitness(RouteAsset routeA)
+        {
+            Require(routeA != null,
+                "P3M5B Hub Session witness requires Route A.");
+            Scene existing = SceneManager.GetSceneByPath(HubScenePath);
+            bool opened = !existing.IsValid() || !existing.isLoaded;
+            Scene hub = opened
+                ? EditorSceneManager.OpenScene(HubScenePath, OpenSceneMode.Additive)
+                : existing;
+            Scene previousActive = SceneManager.GetActiveScene();
+
+            try
+            {
+                GameObject root = null;
+                foreach (GameObject candidate in hub.GetRootGameObjects())
+                {
+                    if (candidate != null && string.Equals(
+                            candidate.name,
+                            P3M5BSessionProvisioningWitness.RootObjectName,
+                            StringComparison.Ordinal))
+                    {
+                        Require(root == null,
+                            "P3M5B Hub contains duplicate Session provisioning witnesses.");
+                        root = candidate;
+                    }
+                }
+
+                root ??= NewSceneObject(
+                    P3M5BSessionProvisioningWitness.RootObjectName,
+                    hub);
+                LocalPlayerProvisioningConsumerAccessBinding binding =
+                    root.GetComponent<LocalPlayerProvisioningConsumerAccessBinding>() ??
+                    root.AddComponent<LocalPlayerProvisioningConsumerAccessBinding>();
+                var serializedBinding = new SerializedObject(binding);
+                SerializedProperty scope = serializedBinding.FindProperty("scope");
+                Require(scope != null,
+                    "P3M5B Hub witness binding has no serialized scope.");
+                int routeScopeIndex = Array.IndexOf(
+                    scope.enumNames,
+                    LocalPlayerProvisioningConsumerScope.Route.ToString());
+                Require(routeScopeIndex >= 0,
+                    "P3M5B Hub witness binding cannot resolve Route scope.");
+                scope.enumValueIndex = routeScopeIndex;
+                serializedBinding.ApplyModifiedPropertiesWithoutUndo();
+
+                RouteRequestTrigger enterRouteA =
+                    root.GetComponent<RouteRequestTrigger>() ??
+                    root.AddComponent<RouteRequestTrigger>();
+                enterRouteA.TargetRoute = routeA;
+                SetString(enterRouteA, "reason", "qa.p3m5b.hub-enter-route-a");
+
+                P3M5BSessionProvisioningWitness witness =
+                    root.GetComponent<P3M5BSessionProvisioningWitness>() ??
+                    root.AddComponent<P3M5BSessionProvisioningWitness>();
+                witness.Configure(binding, enterRouteA);
+                Require(witness.TryValidate(out string issue), issue);
+                EditorUtility.SetDirty(binding);
+                EditorUtility.SetDirty(enterRouteA);
+                EditorUtility.SetDirty(witness);
+                EditorSceneManager.MarkSceneDirty(hub);
+                Require(EditorSceneManager.SaveScene(hub),
+                    $"Could not save P3M5B Hub witness in '{HubScenePath}'.");
+            }
+            finally
+            {
+                if (opened && hub.IsValid() && hub.isLoaded)
+                {
+                    EditorSceneManager.CloseScene(hub, true);
+                }
+
+                if (previousActive.IsValid() && previousActive.isLoaded)
+                {
+                    SceneManager.SetActiveScene(previousActive);
+                }
+            }
+        }
+
         private static void ClearScene(Scene scene)
         {
             GameObject[] roots = scene.GetRootGameObjects();
@@ -704,6 +792,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 actor,
                 evidenceProfile,
                 actorPrefab);
+            CreateContextualAdmissionWitness(
+                scene,
+                label + " Contextual Admission Witness",
+                admission);
             if (validate && !admission.TryValidateRuntimeEvidence(out string issue))
             {
                 throw new InvalidOperationException(
@@ -713,6 +805,35 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return admission;
         }
 
+        private static P3M5BContextualAdmissionWitness
+            CreateContextualAdmissionWitness(
+                Scene scene,
+                string name,
+                SceneLocalPlayerAdmissionAuthoring admission)
+        {
+            Require(admission != null,
+                "P3M5B contextual witness requires an admission authoring surface.");
+            GameObject root = NewSceneObject(name, scene);
+            LocalPlayerProvisioningConsumerAccessBinding binding =
+                root.AddComponent<LocalPlayerProvisioningConsumerAccessBinding>();
+            var serializedBinding = new SerializedObject(binding);
+            SerializedProperty scope = serializedBinding.FindProperty("scope");
+            Require(scope != null,
+                "P3M5B contextual witness binding has no serialized scope.");
+            int activityScopeIndex = Array.IndexOf(
+                scope.enumNames,
+                LocalPlayerProvisioningConsumerScope.Activity.ToString());
+            Require(activityScopeIndex >= 0,
+                "P3M5B contextual witness binding cannot resolve Activity scope.");
+            scope.enumValueIndex = activityScopeIndex;
+            serializedBinding.ApplyModifiedPropertiesWithoutUndo();
+            P3M5BContextualAdmissionWitness witness =
+                root.AddComponent<P3M5BContextualAdmissionWitness>();
+            witness.EditorConfigure(admission, binding);
+            EditorUtility.SetDirty(witness);
+            return witness;
+        }
+
         private static LocalPlayerHostAuthoring CreateHost(
             Scene scene,
             string name)
@@ -720,6 +841,19 @@ namespace ImmersiveFrameworkQA.Player.Editor
             GameObject root = NewSceneObject(name, scene);
             PlayerInput playerInput = root.AddComponent<PlayerInput>();
             playerInput.enabled = false;
+            InputActionAsset inputActions = RequireCanonicalGameplayInputActions();
+            InputActionMap gameplayActionMap = inputActions.FindActionMap(
+                GameplayActionMapName,
+                false);
+            Require(gameplayActionMap != null,
+                $"P3M5B canonical input asset has no '{GameplayActionMapName}' action map.");
+            SetObject(playerInput, "m_Actions", inputActions);
+            SetString(playerInput, "m_DefaultActionMap", GameplayActionMapName);
+
+            UnityPlayerInputGateAdapter inputGate =
+                root.AddComponent<UnityPlayerInputGateAdapter>();
+            ConfigureGameplayInputGate(inputGate, playerInput, inputActions, gameplayActionMap);
+
             LocalPlayerHostAuthoring host =
                 root.AddComponent<LocalPlayerHostAuthoring>();
             GameObject mount = NewSceneObject(name + " Actor Mount", scene);
@@ -727,6 +861,52 @@ namespace ImmersiveFrameworkQA.Player.Editor
             SetObject(host, "playerInput", playerInput);
             SetObject(host, "actorMount", mount.transform);
             return host;
+        }
+
+        private static InputActionAsset RequireCanonicalGameplayInputActions()
+        {
+            InputActionAsset inputActions =
+                AssetDatabase.LoadAssetAtPath<InputActionAsset>(
+                    LocalPlayerInputActionsPath);
+            Require(inputActions != null,
+                $"P3M5B requires canonical input actions at '{LocalPlayerInputActionsPath}'.");
+            Require(inputActions.FindActionMap(GameplayActionMapName, false) != null,
+                $"P3M5B canonical input actions at '{LocalPlayerInputActionsPath}' " +
+                $"have no '{GameplayActionMapName}' action map.");
+            return inputActions;
+        }
+
+        private static void ConfigureGameplayInputGate(
+            UnityPlayerInputGateAdapter inputGate,
+            PlayerInput playerInput,
+            InputActionAsset inputActions,
+            InputActionMap gameplayActionMap)
+        {
+            var serialized = new SerializedObject(inputGate);
+            SerializedProperty playerInputProperty = serialized.FindProperty("playerInput");
+            SerializedProperty actionMapProperty = serialized.FindProperty("gameplayActionMap");
+            SerializedProperty actionMapAssetProperty =
+                actionMapProperty?.FindPropertyRelative("actionAsset");
+            SerializedProperty actionMapIdProperty =
+                actionMapProperty?.FindPropertyRelative("actionMapId");
+            SerializedProperty cachedActionMapNameProperty =
+                actionMapProperty?.FindPropertyRelative("cachedActionMapName");
+            SerializedProperty actionMapNameProperty =
+                serialized.FindProperty("gameplayActionMapName");
+
+            Require(playerInputProperty != null,
+                "P3M5B UnityPlayerInputGateAdapter has no playerInput property.");
+            Require(actionMapAssetProperty != null && actionMapIdProperty != null &&
+                    cachedActionMapNameProperty != null && actionMapNameProperty != null,
+                "P3M5B UnityPlayerInputGateAdapter has no Gameplay action-map contract.");
+
+            playerInputProperty.objectReferenceValue = playerInput;
+            actionMapAssetProperty.objectReferenceValue = inputActions;
+            actionMapIdProperty.stringValue = gameplayActionMap.id.ToString("D");
+            cachedActionMapNameProperty.stringValue = GameplayActionMapName;
+            actionMapNameProperty.stringValue = GameplayActionMapName;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(inputGate);
         }
 
         private static PlayerActorDeclaration CreateActor(

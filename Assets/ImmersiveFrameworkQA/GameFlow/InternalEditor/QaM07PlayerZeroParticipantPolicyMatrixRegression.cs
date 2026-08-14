@@ -1,6 +1,6 @@
 using System;
-using System.Reflection;
 using System.Threading.Tasks;
+using ImmersiveFrameworkQA.Player.Internal.Editor;
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Authoring;
@@ -33,11 +33,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             "[QA_IF_M07_12B_7_PLAYER_ZERO_PARTICIPANT_POLICY_MATRIX]";
         private const int FrameBudget = 300;
         private const int ExpectedCaseCount = 36;
-
-        private static readonly BindingFlags InstanceAny =
-            BindingFlags.Instance |
-            BindingFlags.Public |
-            BindingFlags.NonPublic;
 
         private static readonly string[] ExpectedCases =
         {
@@ -896,30 +891,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private static LocalPlayerProvisioningAuthoring
             ResolveProvisioningAuthoring(FrameworkRuntimeHost host)
         {
-            MethodInfo method = FindMethod(
-                host.GetType(),
-                "TryResolveLocalPlayerProvisioningAuthoring",
-                3);
-            object[] arguments =
-            {
-                null,
-                false,
-                string.Empty
-            };
-            bool succeeded = method.Invoke(
-                    host,
-                    arguments) is bool value &&
-                value;
-            LocalPlayerProvisioningAuthoring authoring =
-                arguments[0] as LocalPlayerProvisioningAuthoring;
-            bool configured =
-                arguments[1] is bool configuredValue &&
-                configuredValue;
-            string diagnostic =
-                arguments[2] as string ?? string.Empty;
-            Require(succeeded && configured && authoring != null,
+            bool resolved =
+                QaPlayerRuntimeObservationBridge
+                    .TryGetLocalPlayerProvisioningAuthoring(
+                        host,
+                        out LocalPlayerProvisioningAuthoring authoring,
+                        out string diagnostic);
+            Require(resolved && authoring != null,
                 string.IsNullOrWhiteSpace(diagnostic)
-                    ? "FrameworkRuntimeHost did not resolve Local Player provisioning authoring."
+                    ? "Framework runtime did not expose Local Player provisioning authoring."
                     : diagnostic);
             return authoring;
         }
@@ -941,39 +921,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             }
 
             return count;
-        }
-
-        private static MethodInfo FindMethod(
-            Type type,
-            string methodName,
-            int parameterCount)
-        {
-            for (Type current = type;
-                 current != null;
-                 current = current.BaseType)
-            {
-                MethodInfo[] methods =
-                    current.GetMethods(InstanceAny);
-                for (int index = 0;
-                     index < methods.Length;
-                     index++)
-                {
-                    MethodInfo candidate = methods[index];
-                    if (string.Equals(
-                            candidate.Name,
-                            methodName,
-                            StringComparison.Ordinal) &&
-                        candidate.GetParameters().Length ==
-                            parameterCount)
-                    {
-                        return candidate;
-                    }
-                }
-            }
-
-            throw new MissingMethodException(
-                type.FullName,
-                methodName);
         }
 
         private static SerializedProperty RequireProperty(

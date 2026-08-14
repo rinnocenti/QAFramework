@@ -731,10 +731,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 Require(
                     joinedHost != null &&
                     joinedHost.IsJoined &&
-                    CountActors(joinedHost) == 0 &&
+                    CountActors(joinedHost) == 1 &&
                     releasedLifecycle.SessionRevision >= sessionRevisionFloor &&
                     releasedLifecycle.AppliedSessionRevision >= appliedRevisionFloor,
-                    "Exit after join lost Session Host/join or regressed revisions. " +
+                    "Exit after join destroyed the Session-owned physical Actor, lost Session Host/join or regressed revisions. " +
                     DescribeObservation(releasedLifecycle));
                 // Immutable capture must retain occurrence A facts; it is not the live view.
                 Require(
@@ -846,8 +846,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                                 observation,
                                 joinedSlotId,
                                 slotProfile.DefaultActorProfile) &&
-                            CountActors(joinedHost) == 0,
-                        "Lifecycle reentry did not release its prepared Actor before selection checks",
+                            CountActors(joinedHost) == 1,
+                        "Lifecycle reentry destroyed its Session-owned physical Actor before selection checks",
                         FrameBudget);
 
                 // Stale Actor selection revision against the current Slot.

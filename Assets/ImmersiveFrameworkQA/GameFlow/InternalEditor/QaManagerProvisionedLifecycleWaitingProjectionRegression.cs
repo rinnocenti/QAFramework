@@ -1,7 +1,7 @@
 using System;
 using ImmersiveFrameworkQA.Player;
+using ImmersiveFrameworkQA.Player.Internal.Editor;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.ApplicationLifecycle;
@@ -36,11 +36,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private const int ExpectedCaseCount = 14;
         private const int StartupFrameBudget = 300;
-
-        private static readonly BindingFlags InstanceAny =
-            BindingFlags.Instance |
-            BindingFlags.Public |
-            BindingFlags.NonPublic;
 
         [MenuItem(MenuPath, true)]
         private static bool ValidateRun()
@@ -469,74 +464,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             ResolveProvisioningAuthoring(
                 FrameworkRuntimeHost host)
         {
-            MethodInfo method =
-                FindMethod(
-                    host.GetType(),
-                    "TryResolveLocalPlayerProvisioningAuthoring",
-                    3);
-
-            object[] arguments =
-            {
-                null,
-                false,
-                string.Empty
-            };
-
-            bool succeeded =
-                (bool)method.Invoke(
+            bool resolved = QaPlayerRuntimeObservationBridge
+                .TryGetLocalPlayerProvisioningAuthoring(
                     host,
-                    arguments);
-
-            bool configured =
-                arguments[1] is bool value &&
-                value;
-
-            string diagnostic =
-                arguments[2] as string ??
-                string.Empty;
-
-            Require(
-                succeeded &&
-                configured &&
-                arguments[0] is
-                    LocalPlayerProvisioningAuthoring,
-                "Official host did not resolve its configured Local Player provisioning Authoring. " +
+                    out LocalPlayerProvisioningAuthoring authoring,
+                    out string diagnostic);
+            Require(resolved && authoring != null,
+                "Official host did not expose Local Player provisioning Authoring. " +
                 diagnostic);
-
-            return
-                (LocalPlayerProvisioningAuthoring)
-                    arguments[0];
-        }
-
-        private static MethodInfo FindMethod(
-            Type type,
-            string methodName,
-            int parameterCount)
-        {
-            MethodInfo[] methods =
-                type.GetMethods(InstanceAny);
-
-            for (int index = 0;
-                 index < methods.Length;
-                 index++)
-            {
-                MethodInfo method =
-                    methods[index];
-
-                if (string.Equals(
-                        method.Name,
-                        methodName,
-                        StringComparison.Ordinal) &&
-                    method.GetParameters().Length ==
-                        parameterCount)
-                {
-                    return method;
-                }
-            }
-
-            throw new MissingMethodException(
-                type.FullName,
-                methodName);
+            return authoring;
         }
 
         private static SerializedProperty RequireProperty(

@@ -18,7 +18,7 @@ FrameworkRuntimeHost.RequestActivityAsync
   -> SceneLocalPlayerAdmissionRuntimeHostModule scene binding
   -> Scene Local Player admission
   -> Actor Profile selection
-  -> ExternalSceneOwned Actor adoption
+  -> Scene-Provided Actor adoption into Session ownership
   -> canonical Activity Player Actor lifecycle
   -> Activity readiness
 ```
@@ -32,11 +32,11 @@ deterministic loaded-scene reconciliation before every Activity resolution
 exact configured Slot admission
 Host commit
 Actor selection
-ExternalSceneOwned adoption
+Session-owned adoption after success
 LogicalActorsPrepared readiness
-same-Route exit to a no-Player Activity
-reverse release and RuntimeContent cleanup
-same-Route re-entry with new typed identities
+same-Route exit to a no-Player Activity while retaining the physical Player
+contextual release and Activity RuntimeContent cleanup
+same-Route re-entry with a new contextual occurrence and the same physical identity
 stale adoption-token rejection
 GameplayReady negative that reaches an explicit canonical Player admission boundary
 rejected-target residue and scene-release proof
@@ -140,11 +140,11 @@ session-initially-clean
 real-activity-request-entered
 activity-scene-surface-bound
 slot-host-selection-committed
-external-actor-adopted-canonically
+scene-actor-adopted-into-session-canonically
 activity-runtime-owner-authoritative
 same-route-exit-completed
-reverse-release-left-no-residue
-reentry-created-new-identities
+contextual-release-preserves-physical-player
+reentry-new-context-preserves-physical-identity
 stale-reentry-token-rejected
 second-exit-clean
 gameplay-ready-canonical-boundary-rejected
@@ -159,14 +159,13 @@ compiles
 setup is idempotent
 positive Activity request succeeds
 Scene Local Player becomes Joined and selected
-external Actor is prepared without duplication
-ownership is ExternalSceneOwned
-exit returns Slot to non-Joined and clears selection
-preparation and adoption tokens are removed
-released Activity RuntimeContent root is removed
-re-entry reconciles the newly loaded scene surface before lifecycle execution
-re-entry generates new preparation/adoption identities
-stale token cannot release the current adoption
+original Scene-Provided Actor is adopted without duplication
+ownership is Session-owned after successful adoption
+exit to the no-Player Activity preserves the joined Slot, selection and physical Player
+only the contextual Activity occurrence and its RuntimeContent owner are released
+re-entry reconciles a new contextual occurrence against the existing physical Player
+re-entry does not replace the Actor or reapply placement implicitly
+stale contextual evidence cannot release the current Session physical Player
 bare GameplayReady target fails at an explicit canonical Player admission boundary
 same-Route preflight rejection is valid when the previous Activity has no current GameplayReady owner
 later canonical Activity enter failure remains valid when target preparation is reached
