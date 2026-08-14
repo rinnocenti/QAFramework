@@ -169,8 +169,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         /// </summary>
         internal static async Task RunSceneLeaveWithoutActivityAsync()
         {
-            (LocalPlayerHostAuthoring PhysicalHost, Transform PhysicalActor) retainedPhysical =
-                await RunAsync(releaseScenePlayer: false);
+            await RunAsync(releaseScenePlayer: false);
 
             P3M5BSessionProvisioningWitness witness = ResolveHubSessionWitness();
             ILocalPlayerProvisioningConsumerAccess access =
@@ -185,8 +184,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
             AssertFalse(HasPublicContextualAssignment(before, beforeSlot.PlayerSlotId),
                 "SceneProvided no-Activity Leave requires Contextual=Absent before Stage C.");
 
-            LocalPlayerHostAuthoring physicalHost = retainedPhysical.PhysicalHost;
-            Transform physicalActor = retainedPhysical.PhysicalActor;
+            LocalPlayerHostAuthoring physicalHost = ResolveJoinedPhysicalHost(
+                beforeSlot.PlayerSlotId);
+            Transform physicalActor = ResolveSinglePhysicalActor(physicalHost);
             AssertNotNull(physicalHost,
                 "SceneProvided no-Activity Leave could not resolve the retained physical Host.");
             AssertNotNull(physicalActor,
@@ -272,8 +272,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         /// </summary>
         internal static async Task RunSceneSessionTerminationWithoutActivityAsync()
         {
-            (LocalPlayerHostAuthoring PhysicalHost, Transform PhysicalActor) retainedPhysical =
-                await RunAsync(releaseScenePlayer: false);
+            await RunAsync(releaseScenePlayer: false);
 
             P3M5BSessionProvisioningWitness witness = ResolveHubSessionWitness();
             ILocalPlayerProvisioningConsumerAccess access =
@@ -287,8 +286,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 !HasPublicContextualAssignment(before, slot.PlayerSlotId),
                 "SceneProvided termination requires Joined physical state with Contextual=Absent.");
 
-            LocalPlayerHostAuthoring physicalHost = retainedPhysical.PhysicalHost;
-            Transform physicalActor = retainedPhysical.PhysicalActor;
+            LocalPlayerHostAuthoring physicalHost = ResolveJoinedPhysicalHost(slot.PlayerSlotId);
+            Transform physicalActor = ResolveSinglePhysicalActor(physicalHost);
             AssertNotNull(physicalHost,
                 "SceneProvided termination could not resolve the retained physical Host.");
             AssertNotNull(physicalHost.PlayerInput,
@@ -581,8 +580,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         internal static Task RunNoPhysicalHandoffOnActivityTransitionAsync() =>
             RunAsync(releaseScenePlayer: false);
 
-        private static async Task<(LocalPlayerHostAuthoring PhysicalHost, Transform PhysicalActor)>
-            RunAsync(bool releaseScenePlayer)
+        private static async Task RunAsync(bool releaseScenePlayer)
         {
             var completed = new List<string>();
             var loadedNegativeScenes = new List<string>();
@@ -1149,8 +1147,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "[P3M5B_ROUTE_TRANSITION_NEGATIVE_MATRIX_SMOKE] " +
                 $"status='Passed' cases='{completed.Count}' " +
                 $"completed='{string.Join(",", completed)}'.");
-
-            return (admittedPhysicalHost, admittedPhysicalActor);
         }
 
         private readonly struct ResolveAutomaticResult

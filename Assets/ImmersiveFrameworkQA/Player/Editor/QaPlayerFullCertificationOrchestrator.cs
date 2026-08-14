@@ -40,8 +40,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
             "ImmersiveFrameworkQA.QA_PLAYER_FULL.Actor";
         private const string PublicSurfaceKey =
             "ImmersiveFrameworkQA.QA_PLAYER_FULL.PublicSurface";
-        private const string SessionLifetimeKey =
-            "ImmersiveFrameworkQA.QA_PLAYER_FULL.SessionLifetime";
+        private const string FailedFirstSceneAdoptionKey =
+            "ImmersiveFrameworkQA.QA_PLAYER_FULL.FailedFirstSceneAdoption";
+        private const string FailedContextualReprojectionKey =
+            "ImmersiveFrameworkQA.QA_PLAYER_FULL.FailedContextualReprojection";
+        private const string NoPhysicalHandoffKey =
+            "ImmersiveFrameworkQA.QA_PLAYER_FULL.NoPhysicalHandoff";
         private const string PlacementKey =
             "ImmersiveFrameworkQA.QA_PLAYER_FULL.Placement";
         private const string LeaveKey =
@@ -78,24 +82,30 @@ namespace ImmersiveFrameworkQA.Player.Editor
             PreparingLeave = 20,
             RunningLeave = 21,
             LeaveCompleted = 22,
-            PreparingParticipation = 23,
-            RunningParticipation = 24,
-            ParticipationCompleted = 25,
-            Passed = 26,
-            Failed = 27,
-            RunningSerialization = 28,
-            PreparingSceneProvidedLeave = 29,
-            RunningSceneProvidedLeave = 30,
-            SceneProvidedLeaveCompleted = 31,
-            PreparingSceneProvidedNoActivityLeave = 32,
-            RunningSceneProvidedNoActivityLeave = 33,
-            SceneProvidedNoActivityLeaveCompleted = 34,
-            PreparingSceneProvidedNoActivityTermination = 35,
-            RunningSceneProvidedNoActivityTermination = 36,
-            SceneProvidedNoActivityTerminationCompleted = 37,
-            PreparingManagerSessionTermination = 38,
-            RunningManagerSessionTermination = 39,
-            ManagerSessionTerminationCompleted = 40
+            PreparingFailedFirstSceneAdoption = 23,
+            RunningFailedFirstSceneAdoption = 24,
+            FailedFirstSceneAdoptionCompleted = 25,
+            PreparingFailedContextualReprojection = 26,
+            RunningFailedContextualReprojection = 27,
+            FailedContextualReprojectionCompleted = 28,
+            PreparingNoPhysicalHandoff = 29,
+            RunningNoPhysicalHandoff = 30,
+            NoPhysicalHandoffCompleted = 31,
+            Passed = 32,
+            Failed = 33,
+            RunningSerialization = 34,
+            PreparingSceneProvidedLeave = 35,
+            RunningSceneProvidedLeave = 36,
+            SceneProvidedLeaveCompleted = 37,
+            PreparingSceneProvidedNoActivityLeave = 38,
+            RunningSceneProvidedNoActivityLeave = 39,
+            SceneProvidedNoActivityLeaveCompleted = 40,
+            PreparingSceneProvidedNoActivityTermination = 41,
+            RunningSceneProvidedNoActivityTermination = 42,
+            SceneProvidedNoActivityTerminationCompleted = 43,
+            PreparingManagerSessionTermination = 44,
+            RunningManagerSessionTermination = 45,
+            ManagerSessionTerminationCompleted = 46
         }
 
         [InitializeOnLoadMethod]
@@ -185,7 +195,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 return;
             }
 
-            if (phase == Phase.ParticipationCompleted)
+            if (phase == Phase.NoPhysicalHandoffCompleted)
             {
                 CompleteSuccess();
                 return;
@@ -289,11 +299,25 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         MarkPassed(LeaveKey);
                         break;
 
-                    case Phase.RunningParticipation:
+                    case Phase.RunningFailedFirstSceneAdoption:
                         await QaP3M5BRouteTransitionAndNegativeMatrixSmoke
-                            .RunSceneSessionTerminationWithoutActivityAsync();
-                        SetPhase(Phase.ParticipationCompleted);
-                        MarkPassed(SessionLifetimeKey);
+                            .RunFailedFirstSceneAdoptionAsync();
+                        SetPhase(Phase.FailedFirstSceneAdoptionCompleted);
+                        MarkPassed(FailedFirstSceneAdoptionKey);
+                        break;
+
+                    case Phase.RunningFailedContextualReprojection:
+                        await QaP3M5BRouteTransitionAndNegativeMatrixSmoke
+                            .RunFailedContextualReprojectionAsync();
+                        SetPhase(Phase.FailedContextualReprojectionCompleted);
+                        MarkPassed(FailedContextualReprojectionKey);
+                        break;
+
+                    case Phase.RunningNoPhysicalHandoff:
+                        await QaP3M5BRouteTransitionAndNegativeMatrixSmoke
+                            .RunNoPhysicalHandoffOnActivityTransitionAsync();
+                        SetPhase(Phase.NoPhysicalHandoffCompleted);
+                        MarkPassed(NoPhysicalHandoffKey);
                         break;
 
                     default:
@@ -393,9 +417,23 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         break;
 
                     case Phase.ManagerSessionTerminationCompleted:
-                        SetPhase(Phase.PreparingParticipation);
+                        SetPhase(Phase.PreparingFailedFirstSceneAdoption);
                         QaP3M5BRouteTransitionAndNegativeMatrixSetup.Apply();
-                        SetPhase(Phase.RunningParticipation);
+                        SetPhase(Phase.RunningFailedFirstSceneAdoption);
+                        EnterFreshPlayMode();
+                        break;
+
+                    case Phase.FailedFirstSceneAdoptionCompleted:
+                        SetPhase(Phase.PreparingFailedContextualReprojection);
+                        QaP3M5BRouteTransitionAndNegativeMatrixSetup.Apply();
+                        SetPhase(Phase.RunningFailedContextualReprojection);
+                        EnterFreshPlayMode();
+                        break;
+
+                    case Phase.FailedContextualReprojectionCompleted:
+                        SetPhase(Phase.PreparingNoPhysicalHandoff);
+                        QaP3M5BRouteTransitionAndNegativeMatrixSetup.Apply();
+                        SetPhase(Phase.RunningNoPhysicalHandoff);
                         EnterFreshPlayMode();
                         break;
                 }
@@ -422,7 +460,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
             SessionState.SetString(ActorKey, "NOT RUN");
             SessionState.SetString(PublicSurfaceKey, "NOT RUN");
             SessionState.SetString(LeaveKey, "NOT RUN");
-            SessionState.SetString(SessionLifetimeKey, "NOT RUN");
+            SessionState.SetString(FailedFirstSceneAdoptionKey, "NOT RUN");
+            SessionState.SetString(FailedContextualReprojectionKey, "NOT RUN");
+            SessionState.SetString(NoPhysicalHandoffKey, "NOT RUN");
             SessionState.SetString(PlacementKey, "NOT RUN");
             SessionState.EraseString(FailedPhaseKey);
             SessionState.EraseString(ErrorKey);
@@ -463,7 +503,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 $"actor='{Result(ActorKey)}' " +
                 $"publicSurface='{Result(PublicSurfaceKey)}' " +
                 $"leave='{Result(LeaveKey)}' " +
-                $"sessionLifetime='{Result(SessionLifetimeKey)}'.");
+                $"failedFirstSceneAdoption='{Result(FailedFirstSceneAdoptionKey)}' " +
+                $"failedContextualReprojection='{Result(FailedContextualReprojectionKey)}' " +
+                $"noPhysicalHandoff='{Result(NoPhysicalHandoffKey)}' " +
+                $"mandatoryContracts='{MandatoryContractCount}' " +
+                $"executedContracts='{ExecutedMandatoryContractCount}' " +
+                $"passedContracts='{PassedMandatoryContractCount}'.");
         }
 
         private static void Fail(string failedPhase, Exception exception)
@@ -501,7 +546,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 $"actor='{Result(ActorKey)}' " +
                 $"publicSurface='{Result(PublicSurfaceKey)}' " +
                 $"leave='{Result(LeaveKey)}' " +
-                $"sessionLifetime='{Result(SessionLifetimeKey)}'.");
+                $"failedFirstSceneAdoption='{Result(FailedFirstSceneAdoptionKey)}' " +
+                $"failedContextualReprojection='{Result(FailedContextualReprojectionKey)}' " +
+                $"noPhysicalHandoff='{Result(NoPhysicalHandoffKey)}' " +
+                $"mandatoryContracts='{MandatoryContractCount}' " +
+                $"executedContracts='{ExecutedMandatoryContractCount}' " +
+                $"passedContracts='{PassedMandatoryContractCount}'.");
         }
 
         private static void MarkFailedForPhase(string phase)
@@ -544,9 +594,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 case "Session Player Leave":
                     SessionState.SetString(LeaveKey, "FAIL");
                     break;
-                case "Participation Integration":
-                case "Session Lifetime":
-                    SessionState.SetString(SessionLifetimeKey, "FAIL");
+                case "Failed First Scene Adoption":
+                    SessionState.SetString(FailedFirstSceneAdoptionKey, "FAIL");
+                    break;
+                case "Failed Contextual Reprojection":
+                    SessionState.SetString(FailedContextualReprojectionKey, "FAIL");
+                    break;
+                case "No Physical Handoff On Activity Transition":
+                    SessionState.SetString(NoPhysicalHandoffKey, "FAIL");
                     break;
             }
         }
@@ -583,7 +638,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 Phase.RunningPublicSurfacePositive or
                 Phase.RunningPublicSurfaceNegative or
                 Phase.RunningLeave or
-                Phase.RunningParticipation;
+                Phase.RunningFailedFirstSceneAdoption or
+                Phase.RunningFailedContextualReprojection or
+                Phase.RunningNoPhysicalHandoff;
         }
 
         private static bool IsCompletedPlayPhase(Phase phase)
@@ -598,7 +655,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 Phase.ManagerSessionTerminationCompleted or
                 Phase.PublicSurfacePositiveCompleted or
                 Phase.PublicSurfaceCompleted or
-                Phase.LeaveCompleted;
+                Phase.LeaveCompleted or
+                Phase.FailedFirstSceneAdoptionCompleted or
+                Phase.FailedContextualReprojectionCompleted;
         }
 
         private static string CurrentPhaseLabel() => PhaseLabel(CurrentPhase);
@@ -638,8 +697,18 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     Phase.PublicSurfaceCompleted => "Public Surface",
                 Phase.PreparingLeave or Phase.RunningLeave or
                     Phase.LeaveCompleted => "Session Player Leave",
-                Phase.PreparingParticipation or Phase.RunningParticipation or
-                    Phase.ParticipationCompleted => "Session Lifetime",
+                Phase.PreparingFailedFirstSceneAdoption or
+                    Phase.RunningFailedFirstSceneAdoption or
+                    Phase.FailedFirstSceneAdoptionCompleted =>
+                    "Failed First Scene Adoption",
+                Phase.PreparingFailedContextualReprojection or
+                    Phase.RunningFailedContextualReprojection or
+                    Phase.FailedContextualReprojectionCompleted =>
+                    "Failed Contextual Reprojection",
+                Phase.PreparingNoPhysicalHandoff or
+                    Phase.RunningNoPhysicalHandoff or
+                    Phase.NoPhysicalHandoffCompleted =>
+                    "No Physical Handoff On Activity Transition",
                 _ => "Preparation"
             };
         }
@@ -660,35 +729,85 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static string Result(string key) =>
             SessionState.GetString(key, "NOT RUN");
 
-        private static bool AllMandatoryPhasesPassed()
+        private readonly struct MandatoryContract
         {
-            string[] keys =
+            internal MandatoryContract(
+                int id,
+                string description,
+                string owningQaCase,
+                string resultKey)
             {
-                SerializationKey,
-                SessionKey,
-                PlacementKey,
-                SceneProvidedKey,
-                SceneProvidedLeaveKey,
-                SceneProvidedNoActivityLeaveKey,
-                SceneProvidedNoActivityTerminationKey,
-                ManagerProvisionedKey,
-                ManagerNoActivityKey,
-                ManagerSessionTerminationKey,
-                ActorKey,
-                PublicSurfaceKey,
-                LeaveKey,
-                SessionLifetimeKey
-            };
+                Id = id;
+                Description = description;
+                OwningQaCase = owningQaCase;
+                ResultKey = resultKey;
+            }
 
-            for (int index = 0; index < keys.Length; index++)
+            internal int Id { get; }
+            internal string Description { get; }
+            internal string OwningQaCase { get; }
+            internal string ResultKey { get; }
+            internal bool Mandatory => true;
+        }
+
+        // This is the certification authority, not a phase-count proxy. Multiple
+        // contracts may be proved by one focused QA case, but every mandatory
+        // contract has one explicit result source.
+        private static readonly MandatoryContract[] MandatoryContracts =
+        {
+            new(1, "Manager Join without contextual assignment", "QaPlayerProvisioningPublicSurfaceRegression.RunNoActivityJoinAsync", ManagerNoActivityKey),
+            new(2, "Manager first physical acquisition", "QaManagerProvisionedLifecycleWaitingProjectionRegression.RunForFullPlayerQaAsync", ManagerProvisionedKey),
+            new(3, "Manager A -> B -> A physical continuity", "QaManagerProvisionedLifecycleWaitingProjectionRegression.RunForFullPlayerQaAsync", ManagerProvisionedKey),
+            new(4, "SceneProvided exact original adoption", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunAsync", SceneProvidedKey),
+            new(5, "SceneProvided A -> B -> A physical continuity", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunAsync", SceneProvidedKey),
+            new(6, "Scene source unload retains physical", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunAsync", SceneProvidedKey),
+            new(7, "Fresh contextual occurrence per Activity", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunAsync", SceneProvidedKey),
+            new(8, "Previous contextual occurrence retired", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunAsync", SceneProvidedKey),
+            new(9, "Activity -> none retains physical", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunAsync", SceneProvidedKey),
+            new(10, "none -> Activity reuses physical", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunAsync", SceneProvidedKey),
+            new(11, "Target Activity excludes Player without physical destruction", "QaPlayerProvisioningPublicSurfaceRegression.RunCertificationAsync", PublicSurfaceKey),
+            new(12, "No implicit teleport across Activities", "QaAdr21ActivityPlayerInitialPlacementRegression.Execute", PlacementKey),
+            new(13, "Later SceneProvided candidate does not replace physical", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunAsync", SceneProvidedKey),
+            new(14, "Failed first SceneProvided adoption does not steal candidate", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunFailedFirstSceneAdoptionAsync", FailedFirstSceneAdoptionKey),
+            new(15, "Failed contextual reprojection retains committed physical", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunFailedContextualReprojectionAsync", FailedContextualReprojectionKey),
+            new(16, "Manager Leave with Activity", "QaSessionPlayerLeavePublicManagerRegression.RunCertificationAsync", LeaveKey),
+            new(17, "Manager Leave without Activity", "QaSessionPlayerLeavePublicManagerRegression.RunCertificationAsync", LeaveKey),
+            new(18, "SceneProvided Leave with Activity", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunSceneLeaveWithActivityAsync", SceneProvidedLeaveKey),
+            new(19, "SceneProvided Leave without Activity", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunSceneLeaveWithoutActivityAsync", SceneProvidedNoActivityLeaveKey),
+            new(20, "Stale Leave rejected after rejoin", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunSceneLeaveWithoutActivityAsync", SceneProvidedNoActivityLeaveKey),
+            new(21, "Manager Session termination", "QaPlayerProvisioningPublicSurfaceRegression.RunManagerSessionTerminationAsync", ManagerSessionTerminationKey),
+            new(22, "SceneProvided Session termination", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunSceneSessionTerminationWithoutActivityAsync", SceneProvidedNoActivityTerminationKey),
+            new(23, "Physical evidence stable between Activities", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunAsync", SceneProvidedKey),
+            new(24, "Contextual input/gameplay evidence fresh", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunAsync", SceneProvidedKey),
+            new(25, "Normal A -> B requires no physical candidate or handoff", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunNoPhysicalHandoffOnActivityTransitionAsync", NoPhysicalHandoffKey)
+        };
+
+        private static int MandatoryContractCount => MandatoryContracts.Length;
+
+        private static int ExecutedMandatoryContractCount => CountMandatoryContracts(
+            result => !string.Equals(result, "NOT RUN", StringComparison.Ordinal));
+
+        private static int PassedMandatoryContractCount => CountMandatoryContracts(
+            result => string.Equals(result, "PASS", StringComparison.Ordinal));
+
+        private static bool AllMandatoryPhasesPassed() =>
+            MandatoryContractCount == 25 &&
+            ExecutedMandatoryContractCount == MandatoryContractCount &&
+            PassedMandatoryContractCount == MandatoryContractCount;
+
+        private static int CountMandatoryContracts(Func<string, bool> predicate)
+        {
+            int count = 0;
+            for (int index = 0; index < MandatoryContracts.Length; index++)
             {
-                if (!string.Equals(Result(keys[index]), "PASS", StringComparison.Ordinal))
+                MandatoryContract contract = MandatoryContracts[index];
+                if (contract.Mandatory && predicate(Result(contract.ResultKey)))
                 {
-                    return false;
+                    count++;
                 }
             }
 
-            return true;
+            return count;
         }
 
         private static string Escape(string value)

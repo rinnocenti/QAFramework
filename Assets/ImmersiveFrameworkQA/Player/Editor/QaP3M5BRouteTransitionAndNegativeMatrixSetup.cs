@@ -54,6 +54,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
             RootFolder + "/P3M5B_RouteA_PlayerActivity.unity";
         internal const string RouteBActivityScenePath =
             RootFolder + "/P3M5B_RouteB_PlayerActivity.unity";
+        internal const string FailedFirstAdoptionPrimaryScenePath =
+            RootFolder + "/P3M5B_FailedFirstAdoption_Route.unity";
+        internal const string FailedFirstAdoptionActivityScenePath =
+            RootFolder + "/P3M5B_FailedFirstAdoption_PlayerActivity.unity";
+        internal const string FailedReprojectionPrimaryScenePath =
+            RootFolder + "/P3M5B_FailedReprojection_Route.unity";
+        internal const string FailedReprojectionActivityScenePath =
+            RootFolder + "/P3M5B_FailedReprojection_PlayerActivity.unity";
         internal const string DuplicateSlotScenePath =
             RootFolder + "/P3M5B_Negative_DuplicateSlot.unity";
         internal const string MissingActorScenePath =
@@ -73,6 +81,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             RootFolder + "/P3M5B_RouteA_ActivityContent.asset";
         internal const string RouteBContentPath =
             RootFolder + "/P3M5B_RouteB_ActivityContent.asset";
+        internal const string FailedFirstAdoptionContentPath =
+            RootFolder + "/P3M5B_FailedFirstAdoption_ActivityContent.asset";
+        internal const string FailedReprojectionContentPath =
+            RootFolder + "/P3M5B_FailedReprojection_ActivityContent.asset";
         internal const string DuplicateSlotContentPath =
             RootFolder + "/P3M5B_Negative_DuplicateSlot_Content.asset";
         internal const string MissingActorContentPath =
@@ -83,6 +95,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             RootFolder + "/P3M5B_RouteA_StartupActivity.asset";
         internal const string RouteBActivityPath =
             RootFolder + "/P3M5B_RouteB_StartupActivity.asset";
+        internal const string FailedFirstAdoptionActivityPath =
+            RootFolder + "/P3M5B_FailedFirstAdoption_Activity.asset";
+        internal const string FailedReprojectionActivityPath =
+            RootFolder + "/P3M5B_FailedReprojection_Activity.asset";
         internal const string DuplicateSlotActivityPath =
             RootFolder + "/P3M5B_Negative_DuplicateSlot_Activity.asset";
         internal const string MissingActorActivityPath =
@@ -96,6 +112,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             RootFolder + "/P3M5B_RouteA.asset";
         internal const string RouteBPath =
             RootFolder + "/P3M5B_RouteB.asset";
+        internal const string FailedFirstAdoptionRoutePath =
+            RootFolder + "/P3M5B_FailedFirstAdoption_Route.asset";
+        internal const string FailedReprojectionRoutePath =
+            RootFolder + "/P3M5B_FailedReprojection_Route.asset";
 
         internal const string AuthoredActorId =
             "qa.p3m5b.scene-player.authored";
@@ -108,6 +128,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             "qa.p3m5b.activity.route-a.startup";
         internal const string RouteBActivityId =
             "qa.p3m5b.activity.route-b.startup";
+        internal const string FailedFirstAdoptionActivityId =
+            "qa.p3m5b.activity.failed-first-adoption";
+        internal const string FailedReprojectionActivityId =
+            "qa.p3m5b.activity.failed-reprojection";
         internal const string DuplicateSlotActivityId =
             "qa.p3m5b.activity.negative.duplicate-slot";
         internal const string MissingActorActivityId =
@@ -156,6 +180,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 CreateOrUpdateEmptyScene(
                     RouteBPrimaryScenePath,
                     "P3M5B Route B Primary");
+                CreateOrUpdateEmptyScene(
+                    FailedFirstAdoptionPrimaryScenePath,
+                    "P3M5B Failed First Adoption Primary");
+                CreateOrUpdateEmptyScene(
+                    FailedReprojectionPrimaryScenePath,
+                    "P3M5B Failed Reprojection Primary");
                 CreateOrUpdatePlayerScene(
                     RouteAActivityScenePath,
                     PlayerSceneShape.ValidSingle,
@@ -172,6 +202,22 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     actorProfile,
                     alternateProfile,
                     "P3M5B Route B Activity");
+                CreateOrUpdatePlayerScene(
+                    FailedFirstAdoptionActivityScenePath,
+                    PlayerSceneShape.MismatchedProfile,
+                    slots,
+                    actorPrefab,
+                    actorProfile,
+                    alternateProfile,
+                    "P3M5B Failed First Adoption Activity");
+                CreateOrUpdatePlayerScene(
+                    FailedReprojectionActivityScenePath,
+                    PlayerSceneShape.MismatchedProfile,
+                    slots,
+                    actorPrefab,
+                    actorProfile,
+                    alternateProfile,
+                    "P3M5B Failed Reprojection Activity");
                 CreateOrUpdatePlayerScene(
                     DuplicateSlotScenePath,
                     PlayerSceneShape.DuplicateSlot,
@@ -210,6 +256,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     RouteBPrimaryScenePath,
                     RouteAActivityScenePath,
                     RouteBActivityScenePath,
+                    FailedFirstAdoptionPrimaryScenePath,
+                    FailedFirstAdoptionActivityScenePath,
+                    FailedReprojectionPrimaryScenePath,
+                    FailedReprojectionActivityScenePath,
                     DuplicateSlotScenePath,
                     MissingActorScenePath,
                     MismatchedProfileScenePath,
@@ -246,6 +296,26 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         RouteBContentPath,
                         "qa.p3m5b.route-b.activity-content",
                         RouteBActivityScenePath));
+                ActivityAsset failedFirstAdoptionActivity = CreateOrUpdateActivity(
+                    FailedFirstAdoptionActivityPath,
+                    FailedFirstAdoptionActivityId,
+                    "P3M5B Failed First Scene Adoption Activity",
+                    firstSlotProjection,
+                    PlayerParticipationRequirementLevel.LogicalActorsPrepared,
+                    CreateOrUpdateContentProfile(
+                        FailedFirstAdoptionContentPath,
+                        "qa.p3m5b.failed-first-adoption.activity-content",
+                        FailedFirstAdoptionActivityScenePath));
+                ActivityAsset failedReprojectionActivity = CreateOrUpdateActivity(
+                    FailedReprojectionActivityPath,
+                    FailedReprojectionActivityId,
+                    "P3M5B Failed Contextual Reprojection Activity",
+                    firstSlotProjection,
+                    PlayerParticipationRequirementLevel.LogicalActorsPrepared,
+                    CreateOrUpdateContentProfile(
+                        FailedReprojectionContentPath,
+                        "qa.p3m5b.failed-reprojection.activity-content",
+                        FailedReprojectionActivityScenePath));
                 CreateOrUpdateActivity(
                     DuplicateSlotActivityPath,
                     DuplicateSlotActivityId,
@@ -296,6 +366,18 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Scene Player Route Lifecycle B",
                     RouteBPrimaryScenePath,
                     routeBActivity);
+                CreateOrUpdateRoute(
+                    FailedFirstAdoptionRoutePath,
+                    "qa.p3m5b.route.failed-first-adoption",
+                    "P3M5B Failed First Scene Adoption",
+                    FailedFirstAdoptionPrimaryScenePath,
+                    failedFirstAdoptionActivity);
+                CreateOrUpdateRoute(
+                    FailedReprojectionRoutePath,
+                    "qa.p3m5b.route.failed-reprojection",
+                    "P3M5B Failed Contextual Reprojection",
+                    FailedReprojectionPrimaryScenePath,
+                    failedReprojectionActivity);
 
                 ConfigureHubSessionWitness(routeA);
 

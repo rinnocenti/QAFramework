@@ -10,17 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c6d702c1ba364e70ad76a85eb5f1b842, type: 3}
-  m_Name: QA_PlayerSurfacePublic_WaitCoveredActivity
+  m_Name: QA_PlayerSurfacePublic_PlayerExcludedActivity
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.ActivityAsset
-  activityId: qa.player.surface.public.waitcovered.a
-  activityName: QA Player Surface Public WaitCovered A
-  description: Authored Player-representing Activity A for public Player Surface
-    certification.
-  playerParticipationProjectionMode: 20
-  playerParticipationZeroParticipantPolicy: 10
-  playerParticipationExplicitSlotProfiles:
-  - {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
-  playerParticipationRequirementLevel: 40
+  activityId: qa.player.surface.public.player-excluded
+  activityName: QA Player Surface Public Player Excluded
+  description: Authored Activity that deliberately excludes Player contextual participation.
+  playerParticipationProjectionMode: 0
+  playerParticipationZeroParticipantPolicy: 0
+  playerParticipationExplicitSlotProfiles: []
+  playerParticipationRequirementLevel: 0
   activityContentProfile: {fileID: 11400000, guid: 4e969ad240f64201b837fb42cd2de802, type: 2}
   activityEntryReadinessPolicy: 10
   visualTransitionMode: 20

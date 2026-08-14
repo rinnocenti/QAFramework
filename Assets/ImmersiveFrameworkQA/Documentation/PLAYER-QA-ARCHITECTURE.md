@@ -23,18 +23,29 @@ Normal operation starts at `Immersive Framework/QA/Player/Run Full Player QA`.
 `QaPlayerFullCertificationOrchestrator` is the sole Player QA master state
 owner. It coordinates, without reimplementing, the following isolated phases:
 
-1. Session Contract (Edit Mode);
-2. Scene-Provided fixture and runtime integration;
-3. Manager-Provisioned fixture, Edit Mode contract and waiting projection;
-4. Actor lifecycle binding;
-5. Public Surface positive and negative certification in separate sessions;
-6. Game Flow Participation integration.
+1. serialization identity and Session contract (Edit Mode);
+2. Scene-Provided lifecycle, Leave and Session-termination proofs;
+3. Manager-Provisioned lifecycle, no-Activity and Session-termination proofs;
+4. Actor lifecycle binding and public-surface positive/negative proofs;
+5. failed first SceneProvided adoption rollback;
+6. failed contextual reprojection rollback after physical commit;
+7. normal A -> B without physical candidate/handoff.
 
 The master uses its own `SessionState` only for phase/result continuity across
 Play Mode transitions. Fixture references remain owned by their typed setup;
 notably, Public Surface preparation receives its Player Session through the
 Manager-Provisioned typed context. Individual menus remain advanced diagnostic
 entrypoints.
+
+## Mandatory lifecycle matrix
+
+`QaPlayerFullCertificationOrchestrator.MandatoryContracts` is the executable
+25-row authority for certification. Every entry carries `ContractId`,
+description, owning QA case, mandatory flag and result key; the final verdict
+requires exactly 25 mandatory contracts, all executed and all `PASS`. The three
+explicit rollback/transition rows are 14 (failed first SceneProvided adoption),
+15 (failed contextual reprojection) and 25 (no physical handoff on normal
+A -> B). A phase count alone is not a certification condition.
 
 ## Audit classification
 

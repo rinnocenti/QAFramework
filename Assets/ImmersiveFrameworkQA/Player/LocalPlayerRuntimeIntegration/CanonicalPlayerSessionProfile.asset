@@ -16,5 +16,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
   - {fileID: 11400000, guid: 655efa9f821b73348a227a6a0558b85b, type: 2}
   initialJoiningOpen: 0
-  hostProvisioning: 20
-  actorResolutionPolicy: 20
+  hostProvisioning: 10
+  actorResolutionPolicy: 10
