@@ -97,13 +97,10 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             CameraRigComposer composer =
                 EnsureComponent<CameraRigComposer>(rig);
 
-            GameObject cameraObject =
-                EnsureChild(
-                    rig.transform,
-                    CameraName);
-
             CinemachineCamera cinemachine =
-                EnsureComponent<CinemachineCamera>(cameraObject);
+                EnsureSingleQaOwnedCinemachineCamera(
+                    rig,
+                    composer);
 
             cinemachine.enabled = false;
 
@@ -230,6 +227,71 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             }
         }
 
+        private static CinemachineCamera
+            EnsureSingleQaOwnedCinemachineCamera(
+                GameObject rig,
+                CameraRigComposer composer)
+        {
+            if (rig == null || composer == null)
+            {
+                throw new InvalidOperationException(
+                    "QA C9R Camera repair requires the canonical rig and composer.");
+            }
+
+            GameObject cameraObject =
+                EnsureChild(
+                    rig.transform,
+                    CameraName);
+
+            CinemachineCamera selected =
+                EnsureComponent<CinemachineCamera>(
+                    cameraObject);
+
+            CinemachineCamera[] localCameras =
+                rig.GetComponentsInChildren<
+                    CinemachineCamera>(
+                    true);
+
+            int removed = 0;
+
+            for (int index =
+                     localCameras.Length - 1;
+                 index >= 0;
+                 index--)
+            {
+                CinemachineCamera candidate =
+                    localCameras[index];
+
+                if (candidate == null ||
+                    ReferenceEquals(
+                        candidate,
+                        selected))
+                {
+                    continue;
+                }
+
+                // The complete QA C9R rig subtree is authored and owned by this
+                // installer. Removing an extra CinemachineCamera component here
+                // repairs fixture state; it is not product materialization and
+                // does not weaken ADR-022 external/unknown ownership protection.
+                UnityEngine.Object.DestroyImmediate(
+                    candidate);
+
+                removed++;
+            }
+
+            if (removed > 0)
+            {
+                Debug.Log(
+                    "[_CAMERA_OVERRIDE_AUTHORITY_SETUP] " +
+                    "status='Repaired' " +
+                    "repair='RemovedExtraQaOwnedCinemachineCameraComponents' " +
+                    $"count='{removed}'.");
+            }
+
+            return selected;
+        }
+
         private static void RemoveSupersededSessionChildren(Transform root)
         {
             string[] supersededNames =
@@ -309,6 +371,25 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             {
                 throw new InvalidOperationException(
                     "QA_UIGlobal Session Camera rig is invalid after C9R repair.");
+            }
+
+            CinemachineCamera[] localCameras =
+                composer.GetComponentsInChildren<
+                    CinemachineCamera>(
+                    true);
+
+            if (composer.CinemachineCamera == null ||
+                localCameras.Length != 1 ||
+                !ReferenceEquals(
+                    localCameras[0],
+                    composer.CinemachineCamera) ||
+                composer.CinemachineCamera.gameObject.name !=
+                    CameraName ||
+                composer.CinemachineCamera.transform.parent !=
+                    composer.transform)
+            {
+                throw new InvalidOperationException(
+                    "QA_UIGlobal Camera C9R repair did not leave exactly one canonical local CinemachineCamera.");
             }
         }
 

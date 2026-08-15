@@ -16,8 +16,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         private const string MenuPath =
             "Immersive Framework/QA/Regressions/Camera/Run ADR-004C Owner Lifetime Integrity Certification";
         private const string LogPrefix = "[QA_CAMERA_ADR004C]";
-        private const string PackageBaseRevision =
-            "bbaf05dbc7442290de8916fe312acd77a11f2b58";
         private const int ExpectedCaseCount = 10;
 
         [MenuItem(MenuPath, true)]
@@ -25,6 +23,11 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
         [MenuItem(MenuPath, priority = 238)]
         private static void Run()
+        {
+            RunCertification();
+        }
+
+        internal static bool RunCertification()
         {
             var results = new List<CaseResult>(ExpectedCaseCount);
 
@@ -50,15 +53,16 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             {
                 Debug.Log(
                     $"{LogPrefix} status='Passed' cases='{passed}/{ExpectedCaseCount}' " +
-                    $"failed='0' packageBaseRevision='{PackageBaseRevision}' " +
+                    "failed='0' " +
                     "verdict='ADR-004C CAMERA OWNER LIFETIME INTEGRITY CERTIFIED'.");
-                return;
+                return true;
             }
 
             Debug.LogError(
                 $"{LogPrefix} status='Failed' cases='{passed}/{ExpectedCaseCount}' " +
-                $"failed='{failed}' packageBaseRevision='{PackageBaseRevision}' " +
+                $"failed='{failed}' " +
                 "verdict='ADR-004C NOT CERTIFIED — OWNER LIFETIME INTEGRITY FAILURE'.");
+            return false;
         }
 
         private static string Case01ActivityNormalExit()

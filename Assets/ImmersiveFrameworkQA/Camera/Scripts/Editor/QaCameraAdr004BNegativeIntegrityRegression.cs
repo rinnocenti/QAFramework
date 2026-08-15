@@ -20,10 +20,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         private const string MenuPath =
             "Immersive Framework/QA/Regressions/Camera/Run ADR-004B Negative Integrity Certification";
         private const string LogPrefix = "[QA_CAMERA_ADR004B]";
-        private const string PackageBaseRevision =
-            "bbaf05dbc7442290de8916fe312acd77a11f2b58";
-        private const string QaBaseRevision =
-            "f4ce36335878113e4b64e79d337c0645f6499707";
         private const int ExpectedCaseCount = 18;
 
         [MenuItem(MenuPath, true)]
@@ -31,6 +27,11 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
         [MenuItem(MenuPath, priority = 237)]
         private static void Run()
+        {
+            RunCertification();
+        }
+
+        internal static bool RunCertification()
         {
             var results = new List<CaseResult>(ExpectedCaseCount);
 
@@ -65,9 +66,9 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             {
                 Debug.Log(
                     $"{LogPrefix} status='Passed' cases='{passed}/{ExpectedCaseCount}' " +
-                    $"failed='0' blocked='0' packageBaseRevision='{PackageBaseRevision}' packagePatch='IF-ADR-004C' qaBaseRevision='{QaBaseRevision}' " +
+                    "failed='0' blocked='0' " +
                     "verdict='ADR-004B CAMERA NEGATIVE INTEGRITY CERTIFIED'.");
-                return;
+                return true;
             }
 
             string status = failed > 0 ? "Failed" : "Blocked";
@@ -82,8 +83,9 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             Debug.LogError(
                 $"{LogPrefix} status='{status}' cases='{passed}/{ExpectedCaseCount}' " +
-                $"failed='{failed}' blocked='{blocked}' packageBaseRevision='{PackageBaseRevision}' packagePatch='IF-ADR-004C' qaBaseRevision='{QaBaseRevision}' " +
+                $"failed='{failed}' blocked='{blocked}' " +
                 $"verdict='{verdict}'.");
+            return false;
         }
 
         private static string Case01HigherPrecedence()

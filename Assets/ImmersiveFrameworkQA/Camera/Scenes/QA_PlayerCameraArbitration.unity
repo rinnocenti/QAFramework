@@ -216,6 +216,7 @@ GameObject:
   - component: {fileID: 94951503}
   - component: {fileID: 94951502}
   - component: {fileID: 94951504}
+  - component: {fileID: 94951505}
   m_Layer: 0
   m_Name: Activity Cinemachine Camera
   m_TagString: Untagged
@@ -300,6 +301,19 @@ MonoBehaviour:
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
   FollowOffset: {x: 0, y: 5, z: -8}
+--- !u!114 &94951505
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 94951501}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e8b78ac948f05a46a6d8339a503172b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineHardLookAt
+  LookAtOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &446551428
 GameObject:
   m_ObjectHideFlags: 0
@@ -311,6 +325,7 @@ GameObject:
   - component: {fileID: 446551430}
   - component: {fileID: 446551429}
   - component: {fileID: 446551431}
+  - component: {fileID: 446551432}
   m_Layer: 0
   m_Name: Route Cinemachine Camera
   m_TagString: Untagged
@@ -395,6 +410,19 @@ MonoBehaviour:
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
   FollowOffset: {x: 0, y: 5, z: -8}
+--- !u!114 &446551432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 446551428}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e8b78ac948f05a46a6d8339a503172b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineHardLookAt
+  LookAtOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &455465704
 GameObject:
   m_ObjectHideFlags: 0
@@ -521,13 +549,26 @@ MonoBehaviour:
   followRequirement: 20
   lookAtRequirement: 10
   followOffset: {x: 0, y: 5, z: -8}
+  mountedPositionDamping: 0
+  mountedRotationDamping: 0
+  thirdPersonShoulderOffset: {x: 0.5, y: -0.4, z: 0}
+  thirdPersonVerticalArmLength: 0.4
+  thirdPersonCameraSide: 1
+  thirdPersonCameraDistance: 2
+  thirdPersonDamping: {x: 0.1, y: 0.5, z: 0.3}
   cinemachineCamera: {fileID: 446551429}
+  materializedPresentationIntent: 10
+  frameworkOwnedCinemachineCamera: {fileID: 0}
+  frameworkOwnedPositionControl: {fileID: 0}
+  frameworkOwnedRotationControl: {fileID: 446551432}
+  materializationRevision: 1
   logApplyRebuildDiagnostics: 0
   lastApplyRebuildStatus: ApplySucceeded
   lastBlockingIssue: 
   lastTargetResolutionSummary: Camera target requirements satisfied.
-  lastMaterializationSummary: created='0' repaired='0' alreadyValid='5' skipped='2'
-    blocked='0'
+  lastMaterializationSummary: created='1' repaired='0' alreadyValid='5' skipped='2'
+    blocked='0' presentation='Follow' cameraOwnership='ExternalOrUnknown' positionOwnership='ExternalOrUnknown'
+    rotationOwnership='FrameworkOwned' revision='1'
   lastResolvedFollowTarget: {fileID: 1926355593}
   lastResolvedLookAtTarget: {fileID: 1926355593}
 --- !u!4 &660878653
@@ -599,13 +640,26 @@ MonoBehaviour:
   followRequirement: 20
   lookAtRequirement: 10
   followOffset: {x: 0, y: 5, z: -8}
+  mountedPositionDamping: 0
+  mountedRotationDamping: 0
+  thirdPersonShoulderOffset: {x: 0.5, y: -0.4, z: 0}
+  thirdPersonVerticalArmLength: 0.4
+  thirdPersonCameraSide: 1
+  thirdPersonCameraDistance: 2
+  thirdPersonDamping: {x: 0.1, y: 0.5, z: 0.3}
   cinemachineCamera: {fileID: 94951502}
+  materializedPresentationIntent: 10
+  frameworkOwnedCinemachineCamera: {fileID: 0}
+  frameworkOwnedPositionControl: {fileID: 0}
+  frameworkOwnedRotationControl: {fileID: 94951505}
+  materializationRevision: 1
   logApplyRebuildDiagnostics: 0
   lastApplyRebuildStatus: ApplySucceeded
   lastBlockingIssue: 
   lastTargetResolutionSummary: Camera target requirements satisfied.
-  lastMaterializationSummary: created='0' repaired='0' alreadyValid='5' skipped='2'
-    blocked='0'
+  lastMaterializationSummary: created='1' repaired='0' alreadyValid='5' skipped='2'
+    blocked='0' presentation='Follow' cameraOwnership='ExternalOrUnknown' positionOwnership='ExternalOrUnknown'
+    rotationOwnership='FrameworkOwned' revision='1'
   lastResolvedFollowTarget: {fileID: 455465705}
   lastResolvedLookAtTarget: {fileID: 455465705}
 --- !u!4 &717848987
@@ -650,6 +704,7 @@ GameObject:
   - component: {fileID: 951021553}
   - component: {fileID: 951021552}
   - component: {fileID: 951021554}
+  - component: {fileID: 951021555}
   m_Layer: 0
   m_Name: Player Cinemachine Camera
   m_TagString: Untagged
@@ -734,6 +789,19 @@ MonoBehaviour:
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
   FollowOffset: {x: 0, y: 5, z: -8}
+--- !u!114 &951021555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 951021551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e8b78ac948f05a46a6d8339a503172b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineHardLookAt
+  LookAtOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &1179249546
 GameObject:
   m_ObjectHideFlags: 0
@@ -772,13 +840,26 @@ MonoBehaviour:
   followRequirement: 20
   lookAtRequirement: 10
   followOffset: {x: 0, y: 5, z: -8}
+  mountedPositionDamping: 0
+  mountedRotationDamping: 0
+  thirdPersonShoulderOffset: {x: 0.5, y: -0.4, z: 0}
+  thirdPersonVerticalArmLength: 0.4
+  thirdPersonCameraSide: 1
+  thirdPersonCameraDistance: 2
+  thirdPersonDamping: {x: 0.1, y: 0.5, z: 0.3}
   cinemachineCamera: {fileID: 951021552}
+  materializedPresentationIntent: 10
+  frameworkOwnedCinemachineCamera: {fileID: 0}
+  frameworkOwnedPositionControl: {fileID: 0}
+  frameworkOwnedRotationControl: {fileID: 951021555}
+  materializationRevision: 1
   logApplyRebuildDiagnostics: 0
   lastApplyRebuildStatus: ApplySucceeded
   lastBlockingIssue: 
   lastTargetResolutionSummary: Camera target requirements satisfied.
-  lastMaterializationSummary: created='0' repaired='0' alreadyValid='5' skipped='2'
-    blocked='0'
+  lastMaterializationSummary: created='1' repaired='0' alreadyValid='5' skipped='2'
+    blocked='0' presentation='Follow' cameraOwnership='ExternalOrUnknown' positionOwnership='ExternalOrUnknown'
+    rotationOwnership='FrameworkOwned' revision='1'
   lastResolvedFollowTarget: {fileID: 1947923678}
   lastResolvedLookAtTarget: {fileID: 2105951581}
 --- !u!4 &1179249548
