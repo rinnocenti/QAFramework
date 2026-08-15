@@ -162,7 +162,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     EditorSceneManager.SaveScene(hub),
                     $"Could not save Hub scene '{HubScenePath}'.");
 
-                ConfigureActivityContentFixture(slot);
+                ConfigureActivityContentFixture();
                 Require(
                     !IsGlobalUiSourceSceneLoaded(),
                     "Player Surface Prepare must leave the UIGlobal source scene closed so Framework bootstrap owns its single runtime load.");
@@ -514,13 +514,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 $"Could not save UIGlobal scene '{GlobalUiScenePath}'.");
         }
 
-        private static void ConfigureActivityContentFixture(
-            PlayerSlotProfile slot)
+        private static void ConfigureActivityContentFixture()
         {
-            Require(
-                slot != null && slot.PlayerSlotId.IsValid,
-                "Player Surface Activity content requires the explicit primary Player Slot.");
-
             Scene content = SceneManager.GetSceneByPath(ContentScenePath);
             if (!content.IsValid() || !content.isLoaded)
             {
@@ -534,8 +529,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 $"Could not open Player Surface Activity content scene '{ContentScenePath}'.");
 
             GameObject root = null;
-            ActivityPlayerInitialPlacementAuthoring placementAuthoring = null;
-            int placementAuthoringCount = 0;
             foreach (GameObject candidate in content.GetRootGameObjects())
             {
                 if (candidate != null && string.Equals(
@@ -547,35 +540,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         "Player Surface Activity content contains duplicate QA fixture roots.");
                     root = candidate;
                 }
-
-                if (candidate == null)
-                {
-                    continue;
-                }
-
-                ActivityPlayerInitialPlacementAuthoring[] placementCandidates =
-                    candidate.GetComponentsInChildren<
-                        ActivityPlayerInitialPlacementAuthoring>(true);
-                for (int index = 0;
-                     index < placementCandidates.Length;
-                     index++)
-                {
-                    ActivityPlayerInitialPlacementAuthoring candidateAuthoring =
-                        placementCandidates[index];
-                    if (candidateAuthoring == null)
-                    {
-                        continue;
-                    }
-
-                    placementAuthoringCount++;
-                    placementAuthoring = candidateAuthoring;
-                }
             }
-
-            Require(
-                placementAuthoringCount <= 1,
-                "Player Surface Activity content contains duplicate " +
-                $"ActivityPlayerInitialPlacementAuthoring components. found='{placementAuthoringCount}'.");
 
             if (root == null)
             {
@@ -595,79 +560,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             fixture.Configure(binding);
             Require(fixture.TryValidateAuthoredSurface(out string issue), issue);
 
-            if (placementAuthoring == null)
-            {
-                var placementRoot = new GameObject(
-                    "ActivityPlayerInitialPlacement");
-                SceneManager.MoveGameObjectToScene(placementRoot, content);
-                placementAuthoring =
-                    placementRoot.AddComponent<
-                        ActivityPlayerInitialPlacementAuthoring>();
-            }
-
-            Transform placementAnchor =
-                placementAuthoring.transform.Find("PlacementAnchor");
-            if (placementAnchor == null)
-            {
-                var anchorObject = new GameObject("PlacementAnchor");
-                SceneManager.MoveGameObjectToScene(anchorObject, content);
-                anchorObject.transform.SetParent(
-                    placementAuthoring.transform,
-                    false);
-                placementAnchor = anchorObject.transform;
-            }
-
-            Require(
-                placementAuthoring.gameObject.scene.handle == content.handle &&
-                placementAnchor.gameObject.scene.handle == content.handle,
-                "ADR-021 initial-placement authoring and anchor must belong to the " +
-                "Player Surface Activity-owned content scene.");
-
-            placementAnchor.localPosition = Vector3.zero;
-            placementAnchor.localRotation = Quaternion.identity;
-
-            var placementSerialized =
-                new SerializedObject(placementAuthoring);
-            SerializedProperty placementBindings =
-                RequireProperty(placementSerialized, "bindings");
-            placementBindings.arraySize = 1;
-            SerializedProperty placementBinding =
-                placementBindings.GetArrayElementAtIndex(0);
-            RequireProperty(
-                    placementBinding,
-                    "playerSlotProfile")
-                .objectReferenceValue = slot;
-            RequireProperty(
-                    placementBinding,
-                    "placementAnchor")
-                .objectReferenceValue = placementAnchor;
-            placementSerialized.ApplyModifiedPropertiesWithoutUndo();
-            placementSerialized.Update();
-
-            Require(
-                placementAuthoring.Bindings.Count == 1 &&
-                placementAuthoring.Bindings[0] != null &&
-                ReferenceEquals(
-                    placementAuthoring.Bindings[0].PlayerSlotProfile,
-                    slot) &&
-                ReferenceEquals(
-                    placementAuthoring.Bindings[0].PlacementAnchor,
-                    placementAnchor),
-                "ADR-021 initial-placement authoring did not retain the exact " +
-                "Player Slot -> placement anchor binding.");
-            Require(
-                placementAuthoring.Bindings[0].TryGetPlayerSlotId(
-                    out PlayerSlotId placementSlotId,
-                    out string placementIssue) &&
-                placementSlotId == slot.PlayerSlotId,
-                "ADR-021 initial-placement binding did not resolve the exact " +
-                $"Player Slot. {placementIssue}");
-
             EditorUtility.SetDirty(binding);
             EditorUtility.SetDirty(fixture);
             EditorUtility.SetDirty(root);
-            EditorUtility.SetDirty(placementAuthoring);
-            EditorUtility.SetDirty(placementAnchor.gameObject);
             EditorSceneManager.MarkSceneDirty(content);
             Require(
                 EditorSceneManager.SaveScene(content),
@@ -676,6 +571,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 EditorSceneManager.CloseScene(content, true),
                 $"Could not close Player Surface Activity content scene '{ContentScenePath}'.");
         }
+
         private static void EnsureContentSceneEnabledInBuildSettings()
         {
             EditorBuildSettingsScene[] current =

@@ -1,3 +1,4 @@
+using Immersive.Framework.Actors;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.ApplicationLifecycle;
@@ -208,6 +209,40 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 host.GetComponent<PlayerActorPreparationRuntimeHostModule>() is
                     PlayerActorPreparationRuntimeHostModule preparation &&
                 preparation.TryGetScenePlayerActorAdoption(slotId, out token);
+        }
+
+        /// <summary>
+        /// Observes the Session-owned physical Host/Actor already identified by
+        /// a current preparation token. This is not Activity-scoped and does
+        /// not invent a second lookup authority.
+        /// </summary>
+        public static bool TryGetPreparedPhysicalEvidence(
+            Component hostComponent,
+            PlayerSlotId slotId,
+            PlayerActorPreparationToken expectedPreparation,
+            out LocalPlayerHostAuthoring host,
+            out PlayerActorDeclaration actorDeclaration,
+            out string diagnostic)
+        {
+            host = null;
+            actorDeclaration = null;
+            diagnostic = string.Empty;
+            if (hostComponent is not FrameworkRuntimeHost runtimeHost ||
+                runtimeHost.GetComponent<PlayerActorPreparationRuntimeHostModule>() is not
+                    PlayerActorPreparationRuntimeHostModule preparation)
+            {
+                diagnostic = "Player Actor preparation runtime is unavailable.";
+                return false;
+            }
+
+            return preparation.TryGetPreparedPhysicalEvidence(
+                slotId,
+                expectedPreparation,
+                out host,
+                out _,
+                out actorDeclaration,
+                out _,
+                out diagnostic);
         }
 
         public static int GetActiveSceneAdmissionCount(Component hostComponent)

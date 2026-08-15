@@ -185,12 +185,16 @@ namespace ImmersiveFrameworkQA.Player.Editor
             AssertFalse(HasPublicContextualAssignment(before, beforeSlot.PlayerSlotId),
                 "SceneProvided no-Activity Leave requires Contextual=Absent before Stage C.");
 
-            LocalPlayerHostAuthoring physicalHost = retainedPhysical.PhysicalHost;
-            Transform physicalActor = retainedPhysical.PhysicalActor;
-            AssertNotNull(physicalHost,
-                "SceneProvided no-Activity Leave could not resolve the retained physical Host.");
-            AssertNotNull(physicalActor,
-                "SceneProvided no-Activity Leave could not resolve the retained physical Actor.");
+            ResolveRetainedSessionPhysicalPlayer(
+                before,
+                beforeSlot.PlayerSlotId,
+                "SceneProvided no-Activity Leave",
+                out LocalPlayerHostAuthoring physicalHost,
+                out Transform physicalActor);
+            AssertSame(retainedPhysical.PhysicalHost, physicalHost,
+                "SceneProvided no-Activity Leave resolved a different Session physical Host than the adopted instance.");
+            AssertSame(retainedPhysical.PhysicalActor, physicalActor,
+                "SceneProvided no-Activity Leave resolved a different Session physical Actor than the adopted instance.");
 
             SessionPlayerLeaveResult leave = access.RequestLeave(
                 new SessionPlayerLeaveRequest(
@@ -287,14 +291,18 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 !HasPublicContextualAssignment(before, slot.PlayerSlotId),
                 "SceneProvided termination requires Joined physical state with Contextual=Absent.");
 
-            LocalPlayerHostAuthoring physicalHost = retainedPhysical.PhysicalHost;
-            Transform physicalActor = retainedPhysical.PhysicalActor;
-            AssertNotNull(physicalHost,
-                "SceneProvided termination could not resolve the retained physical Host.");
+            ResolveRetainedSessionPhysicalPlayer(
+                before,
+                slot.PlayerSlotId,
+                "SceneProvided termination",
+                out LocalPlayerHostAuthoring physicalHost,
+                out Transform physicalActor);
+            AssertSame(retainedPhysical.PhysicalHost, physicalHost,
+                "SceneProvided termination resolved a different Session physical Host than the adopted instance.");
+            AssertSame(retainedPhysical.PhysicalActor, physicalActor,
+                "SceneProvided termination resolved a different Session physical Actor than the adopted instance.");
             AssertNotNull(physicalHost.PlayerInput,
                 "SceneProvided termination requires a retained physical PlayerInput.");
-            AssertNotNull(physicalActor,
-                "SceneProvided termination requires a retained physical Actor.");
 
             AssertTrue(QaFrameworkReadiness.TryResolveUniqueHost(
                     out Component runtimeHost,
@@ -495,13 +503,27 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         "failed-contextual-reprojection");
                 AssertFalse(failedSurface.HasActiveAdmission,
                     "Failed contextual reprojection retained a B contextual admission.");
-                AssertEqual(0, QaPlayerRuntimeObservationBridge.CountRuntimeRoots(
-                        runtimeHost,
-                        CreateActivityOwner(failedActivity)),
-                    "Failed contextual reprojection retained RuntimeContent owned by B.");
+                ActivityAsset currentActivity = ResolveCurrentActivity(runtimeHost);
+                bool failedActivityIsCurrent = ReferenceEquals(
+                    currentActivity,
+                    failedActivity);
                 bool routeARemainsCurrent = ReferenceEquals(
-                    ResolveCurrentActivity(runtimeHost),
+                    currentActivity,
                     routeAActivity);
+                int failedOwnerRoots =
+                    QaPlayerRuntimeObservationBridge.CountRuntimeRoots(
+                        runtimeHost,
+                        CreateActivityOwner(failedActivity));
+                if (failedActivityIsCurrent)
+                {
+                    AssertTrue(failedOwnerRoots > 0,
+                        "Failed contextual reprojection current Activity B lost its Activity RuntimeContent scope.");
+                }
+                else
+                {
+                    AssertEqual(0, failedOwnerRoots,
+                        "Failed contextual reprojection retained RuntimeContent owned by B.");
+                }
                 AssertEqual(routeARemainsCurrent ? 1 : 0,
                     QaPlayerRuntimeObservationBridge.GetActiveSceneAdmissionCount(runtimeHost),
                     "Failed contextual reprojection retained an admission outside the authoritative Activity state.");
@@ -1307,7 +1329,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             string message)
         {
             AssertTrue(routeRequest is QaRouteRequestObservation observation &&
-                !observation.Succeeded && !observation.ActivityReady,
+                !observation.ActivityReady,
                 message + " " +
                 (routeRequest is QaRouteRequestObservation typed
                     ? typed.Message
@@ -1348,21 +1370,34 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 SceneLocalPlayerAdmissionAuthoring surface = ResolveSingleSurface(
                     scenePath,
                     requireLoaded: false);
-                if (surface != null && surface.RuntimeReady &&
-                    surface.LastRuntimeResult != null &&
-                    !surface.LastRuntimeResult.Succeeded)
+                if (surface != null && surface.RuntimeReady)
                 {
-                    AssertFalse(surface.LastRuntimeResult.Token.IsValid,
-                        $"Rejected case '{caseName}' retained a contextual admission token. " +
-                        surface.LastRuntimeResult.ToDiagnosticString());
-                    return surface;
+                    bool admissionRejected =
+                        surface.LastRuntimeResult != null &&
+                        !surface.LastRuntimeResult.Succeeded;
+                    bool authoringRejected =
+                        !surface.HasActiveAdmission &&
+                        !surface.TryValidateRuntimeEvidence(out _);
+                    if (admissionRejected || authoringRejected)
+                    {
+                        if (surface.LastRuntimeResult != null)
+                        {
+                            AssertFalse(surface.LastRuntimeResult.Token.IsValid,
+                                $"Rejected case '{caseName}' retained a contextual admission token. " +
+                                surface.LastRuntimeResult.ToDiagnosticString());
+                        }
+
+                        AssertFalse(surface.HasActiveAdmission,
+                            $"Rejected case '{caseName}' retained an active contextual admission.");
+                        return surface;
+                    }
                 }
 
                 await Awaitable.NextFrameAsync();
             }
 
             throw new TimeoutException(
-                $"Rejected SceneProvided case '{caseName}' did not expose a failed public admission result within 240 frames.");
+                $"Rejected SceneProvided case '{caseName}' did not expose a public authoring or admission rejection within 240 frames.");
         }
 
         private static void AssertCommittedPhysicalStatePreserved(
@@ -2440,38 +2475,76 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return false;
         }
 
-        private static LocalPlayerHostAuthoring ResolveJoinedPhysicalHost(
-            PlayerSlotId playerSlotId)
+        private static LocalPlayerProvisioningConsumerSlotObservation
+            FindSlotObservation(
+                LocalPlayerProvisioningConsumerObservationSnapshot observation,
+                PlayerSlotId playerSlotId)
         {
-            LocalPlayerHostAuthoring found = null;
-            LocalPlayerHostAuthoring[] hosts =
-                Resources.FindObjectsOfTypeAll<LocalPlayerHostAuthoring>();
-            for (int index = 0; index < hosts.Length; index++)
+            if (observation?.Slots != null)
             {
-                LocalPlayerHostAuthoring candidate = hosts[index];
-                if (candidate == null || !candidate.gameObject.scene.IsValid() ||
-                    !candidate.IsJoined || candidate.JoinedPlayerSlotId != playerSlotId)
+                for (int index = 0; index < observation.Slots.Count; index++)
                 {
-                    continue;
+                    if (observation.Slots[index].Slot.PlayerSlotId == playerSlotId)
+                    {
+                        return observation.Slots[index];
+                    }
                 }
-
-                AssertTrue(found == null,
-                    $"P3M5B found multiple physical Hosts for Slot '{playerSlotId.StableText}'.");
-                found = candidate;
             }
 
-            return found;
+            throw new InvalidOperationException(
+                $"Public observation has no Slot '{playerSlotId.StableText}'.");
         }
 
-        private static Transform ResolveSinglePhysicalActor(
-            LocalPlayerHostAuthoring host)
+        private static void ResolveRetainedSessionPhysicalPlayer(
+            LocalPlayerProvisioningConsumerObservationSnapshot observation,
+            PlayerSlotId playerSlotId,
+            string failurePrefix,
+            out LocalPlayerHostAuthoring host,
+            out Transform actor)
         {
-            if (host == null || host.ActorMount == null || host.ActorMount.childCount != 1)
-            {
-                return null;
-            }
+            LocalPlayerProvisioningConsumerSlotObservation slotObservation =
+                FindSlotObservation(observation, playerSlotId);
+            AssertTrue(
+                slotObservation.IsPhysicallyMaterialized &&
+                slotObservation.Preparation.Token.IsValid,
+                failurePrefix +
+                " lost Session physical preparation on the Hub consumer observation.");
+            AssertFalse(
+                slotObservation.HasCurrentActorEvidence &&
+                slotObservation.CurrentActor.IsAssigned,
+                failurePrefix +
+                " unexpectedly retained Activity CurrentActor evidence.");
 
-            return host.ActorMount.GetChild(0);
+            AssertTrue(
+                QaFrameworkReadiness.TryResolveUniqueHost(
+                    out Component runtimeHost,
+                    out string hostIssue) &&
+                runtimeHost != null,
+                failurePrefix +
+                " could not resolve the unique Framework runtime host. " +
+                hostIssue);
+
+            AssertTrue(
+                QaPlayerRuntimeObservationBridge.TryGetPreparedPhysicalEvidence(
+                    runtimeHost,
+                    playerSlotId,
+                    slotObservation.Preparation.Token,
+                    out host,
+                    out PlayerActorDeclaration actorDeclaration,
+                    out string physicalIssue) &&
+                host != null &&
+                actorDeclaration != null,
+                failurePrefix +
+                " could not resolve the retained physical Actor. " +
+                physicalIssue);
+
+            AssertTrue(host != null,
+                failurePrefix +
+                " could not resolve the retained physical Host.");
+            actor = actorDeclaration.transform;
+            AssertTrue(actor != null,
+                failurePrefix +
+                " could not resolve the retained physical Actor.");
         }
 
         private static PlayerParticipationSnapshot CreateParticipationSnapshot(

@@ -155,34 +155,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
                 LocalPlayerProvisioningConsumerObservationSnapshot initial =
                     RequireObservation(access, "join-without-activity-initial");
-                if (initial.HasCurrentActivityOccurrence)
-                {
-                    ActivityRequestTrigger clearTrigger =
-                        fixture.ClearActivityTrigger;
-                    Require(clearTrigger != null,
-                        "Manager Join Without Activity requires the authored Clear Activity trigger.");
-                    await QaPlayerSurfacePublicNavigationSupport
-                        .RequireCompositionBoundAsync(
-                            clearTrigger,
-                            noActivityFrameBudget);
-                    QaPlayerSurfacePublicNavigationSupport.ClearActivityPublic(
-                        clearTrigger);
-                    await QaPlayerSurfacePublicNavigationSupport
-                        .AwaitTriggerTerminalSuccessAsync(
-                            clearTrigger,
-                            noActivityFrameBudget,
-                            "Manager Join Without Activity could not clear the startup Activity.");
-                    initial = await AwaitObservationAsync(
-                        access,
-                        observation =>
-                            observation.Participation != null &&
-                            observation.Participation.IsInitialized &&
-                            observation.Participation.JoinedCount == 0 &&
-                            !observation.HasCurrentActivityOccurrence,
-                        "Manager Join Without Activity did not reach a fresh Session with no current Activity",
-                        noActivityFrameBudget);
-                }
-
                 Require(initial.Participation != null &&
                         initial.Participation.IsInitialized &&
                         initial.Participation.JoinedCount == 0 &&
@@ -281,21 +253,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             var expectedCases = new List<string>(ExpectedCases);
             if (terminateSession)
             {
-                int scanIndex = expectedCases.IndexOf("public-scan-clean");
-                string[] terminationCases =
-                {
-                    "session-termination-preconditions",
-                    "session-termination-physical-resources-released",
-                    "session-termination-public-evidence-cleared"
-                };
-                if (scanIndex >= 0)
-                {
-                    expectedCases.InsertRange(scanIndex, terminationCases);
-                }
-                else
-                {
-                    expectedCases.AddRange(terminationCases);
-                }
+                expectedCases.Add("session-termination-preconditions");
+                expectedCases.Add("session-termination-physical-resources-released");
+                expectedCases.Add("session-termination-public-evidence-cleared");
             }
 
             var cases = new QaCaseRegistry(

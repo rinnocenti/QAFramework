@@ -587,8 +587,6 @@ MonoBehaviour:
   m_Script: {fileID: 1423913623}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Player.P3M5B.P3M5BSessionProvisioningWitness
-  routeConsumerBinding: {fileID: 769286012}
-  enterRouteATrigger: {fileID: 769286011}
 --- !u!114 &769286011
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -643,8 +641,6 @@ MonoBehaviour:
   m_Script: {fileID: 1696401297}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Player.P3M5B.P3M5BSessionProvisioningWitness
-  routeConsumerBinding: {fileID: 769286012}
-  enterRouteATrigger: {fileID: 769286011}
 --- !u!114 &769286015
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -657,8 +653,6 @@ MonoBehaviour:
   m_Script: {fileID: 1825894530}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Player.P3M5B.P3M5BSessionProvisioningWitness
-  routeConsumerBinding: {fileID: 769286012}
-  enterRouteATrigger: {fileID: 769286011}
 --- !u!114 &769286016
 MonoBehaviour:
   m_ObjectHideFlags: 0
