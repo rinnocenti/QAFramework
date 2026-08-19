@@ -400,37 +400,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 689124967}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &488302696
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 488302697}
-  m_Layer: 0
-  m_Name: AudioPlayback
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &488302697
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 488302696}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1261085833}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &674632705
 GameObject:
   m_ObjectHideFlags: 0
@@ -506,7 +475,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76c1c1a4c7fb42c9aab2ace54e65a4f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: ImmersiveFrameworkQA.Audio.Runtime::ImmersiveFrameworkQA.Audio.FrameworkBgmQaPanel
-  director: {fileID: 1161741116}
+  director: {fileID: 0}
   otherRouteTrigger: {fileID: 163004134}
   startupActivityTrigger: {fileID: 674632706}
   ownActivityTrigger: {fileID: 451510758}
@@ -514,7 +483,7 @@ MonoBehaviour:
   routeFallbackActivityTrigger: {fileID: 2048620414}
   silenceActivityTrigger: {fileID: 758381523}
   clearActivityTrigger: {fileID: 1620448398}
-  expectedRouteBgm: {fileID: 11400000, guid: 5dc81c4d0b9a6a147b2bceab5aa7ba2f, type: 2}
+  expectedRouteBgm: {fileID: 0}
   expectedStartupActivityBgm: {fileID: 0}
   expectedOwnActivityBgm: {fileID: 11400000, guid: 5be38132a61f38246a1cc0857330abfe, type: 2}
   title: QA Framework BGM Alternate
@@ -583,7 +552,7 @@ MonoBehaviour:
   assignedActivity: {fileID: 11400000, guid: 7df9f3493a96596449f212ca2de79467, type: 2}
   activityBgm: {fileID: 0}
   policy: 1
-  director: {fileID: 1161741116}
+  director: {fileID: 0}
 --- !u!114 &692557508
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -696,7 +665,7 @@ MonoBehaviour:
   assignedActivity: {fileID: 11400000, guid: 2b62b31db1e761947ad1cac26b081351, type: 2}
   activityBgm: {fileID: 11400000, guid: 5be38132a61f38246a1cc0857330abfe, type: 2}
   policy: 1
-  director: {fileID: 1161741116}
+  director: {fileID: 0}
 --- !u!114 &936837619
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -740,7 +709,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1161741117}
   - component: {fileID: 1161741119}
-  - component: {fileID: 1161741116}
   - component: {fileID: 1161741118}
   m_Layer: 0
   m_Name: QA_FrameworkBgmRoot_Alternate
@@ -749,20 +717,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1161741116
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1161741115}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a3b4887a49e44418412067c3bba9238, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Audio::Immersive.Framework.Audio.FrameworkBgmDirector
-  audioRuntimeHost: {fileID: 1261085832}
-  logTransitions: 1
 --- !u!4 &1161741117
 Transform:
   m_ObjectHideFlags: 0
@@ -775,8 +729,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1261085833}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1161741118
@@ -791,8 +744,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e897e69eb024346b779e4ec8224ed4b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Audio::Immersive.Framework.Audio.FrameworkRouteBgmBinding
-  routeBgm: {fileID: 11400000, guid: 5dc81c4d0b9a6a147b2bceab5aa7ba2f, type: 2}
-  director: {fileID: 1161741116}
+  routeBgm: {fileID: 0}
+  director: {fileID: 0}
   startupActivityBgmBinding: {fileID: 0}
 --- !u!114 &1161741119
 MonoBehaviour:
@@ -855,58 +808,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 689124967}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1261085831
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1261085833}
-  - component: {fileID: 1261085832}
-  m_Layer: 0
-  m_Name: QA_FrameworkBgm_AudioRuntimeHost
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1261085832
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1261085831}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 831dd588133da8f44ba1373af95bb31b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Audio.Unity::Immersive.Audio.Unity.Hosts.AudioRuntimeHost
-  defaults: {fileID: 11400000, guid: 443f6bf908390de4bab685dcbbd66e52, type: 2}
-  playbackRoot: {fileID: 488302697}
-  poolRuntimeHost: {fileID: 0}
-  composeOnAwake: 1
-  ensurePersistentListener: 1
-  listenerDuplicatePolicy: 1
-  includeInactiveListenersForListenerReport: 1
---- !u!4 &1261085833
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1261085831}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 488302697}
-  m_Father: {fileID: 1161741117}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1403271167
 GameObject:
   m_ObjectHideFlags: 0
@@ -940,7 +841,7 @@ MonoBehaviour:
   assignedActivity: {fileID: 11400000, guid: 8d68f3d9b2100324997223ccafb8cace, type: 2}
   activityBgm: {fileID: 0}
   policy: 3
-  director: {fileID: 1161741116}
+  director: {fileID: 0}
 --- !u!114 &1403271169
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1053,7 +954,7 @@ MonoBehaviour:
   assignedActivity: {fileID: 11400000, guid: a70a560bbcbc96b4f911b1899bf706e1, type: 2}
   activityBgm: {fileID: 0}
   policy: 2
-  director: {fileID: 1161741116}
+  director: {fileID: 0}
 --- !u!114 &1674869626
 MonoBehaviour:
   m_ObjectHideFlags: 0
