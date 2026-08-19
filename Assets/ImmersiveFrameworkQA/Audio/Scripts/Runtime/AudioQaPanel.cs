@@ -4,7 +4,6 @@ using System.Text;
 using Immersive.Audio.Authoring;
 using Immersive.Audio.Contracts;
 using Immersive.Audio.Unity.Hosts;
-using Immersive.Framework.Audio;
 using UnityEngine;
 
 namespace ImmersiveFrameworkQA.Audio

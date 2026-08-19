@@ -164,6 +164,11 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             cinemachine.enabled = false;
 
+            Set(
+                output,
+                "defaultCameraRig",
+                composer);
+
             SessionCameraOverrideBinding session =
                 EnsureSingleSessionOverride(
                     scene,
@@ -344,6 +349,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             if (output.OutputIdText != "camera.output.main" ||
                 output.UnityCamera == null ||
                 output.CinemachineBrain == null ||
+                !ReferenceEquals(output.DefaultCameraRig, composer) ||
                 output.UnityCamera.gameObject != output.gameObject ||
                 output.CinemachineBrain.gameObject != output.gameObject)
             {

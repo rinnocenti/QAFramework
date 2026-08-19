@@ -476,6 +476,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ImmersiveFrameworkQA.Audio.Runtime::ImmersiveFrameworkQA.Audio.FrameworkBgmQaPanel
   director: {fileID: 0}
+  routeBgmBinding: {fileID: 1161741118}
   otherRouteTrigger: {fileID: 163004134}
   startupActivityTrigger: {fileID: 674632706}
   ownActivityTrigger: {fileID: 451510758}

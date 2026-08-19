@@ -119,6 +119,84 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &817659557
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 817659558}
+  m_Layer: 0
+  m_Name: AudioPlayback
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &817659558
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 817659557}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1689272598}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &891184830
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 891184832}
+  - component: {fileID: 891184831}
+  m_Layer: 0
+  m_Name: QA_FrameworkBgm_SessionAuthority
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &891184831
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 891184830}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a3b4887a49e44418412067c3bba9238, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Audio::Immersive.Framework.Audio.FrameworkBgmDirector
+  audioRuntimeHost: {fileID: 1689272597}
+  logTransitions: 1
+--- !u!4 &891184832
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 891184830}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1689272598}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &927980694
 GameObject:
   m_ObjectHideFlags: 0
@@ -178,6 +256,7 @@ MonoBehaviour:
   outputId: camera.output.main
   unityCamera: {fileID: 927980698}
   cinemachineBrain: {fileID: 927980697}
+  defaultCameraRig: {fileID: 2088542687}
   initializeOnAwake: 1
   logDiagnostics: 1
   lastStatus: NotInitialized
@@ -437,6 +516,58 @@ MonoBehaviour:
   m_EditorClassIdentifier: ImmersiveFrameworkQA.UnityBuildSurface.Runtime::ImmersiveFrameworkQA.UnityBuildSurface.QaPlayerSurfaceGlobalUiFixture
   actorSelectionRequestAuthoring: {fileID: 1295583392}
   loadingSurface: {fileID: 5779747991876066232}
+--- !u!1 &1689272596
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1689272598}
+  - component: {fileID: 1689272597}
+  m_Layer: 0
+  m_Name: QA_FrameworkBgm_AudioRuntimeHost
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1689272597
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1689272596}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 831dd588133da8f44ba1373af95bb31b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Audio.Unity::Immersive.Audio.Unity.Hosts.AudioRuntimeHost
+  defaults: {fileID: 11400000, guid: 443f6bf908390de4bab685dcbbd66e52, type: 2}
+  playbackRoot: {fileID: 817659558}
+  poolRuntimeHost: {fileID: 0}
+  composeOnAwake: 1
+  ensurePersistentListener: 0
+  listenerDuplicatePolicy: 1
+  includeInactiveListenersForListenerReport: 1
+--- !u!4 &1689272598
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1689272596}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 817659558}
+  m_Father: {fileID: 891184832}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1743314762
 GameObject:
   m_ObjectHideFlags: 0
@@ -517,14 +648,14 @@ MonoBehaviour:
   frameworkOwnedCinemachineCamera: {fileID: 0}
   frameworkOwnedPositionControl: {fileID: 0}
   frameworkOwnedRotationControl: {fileID: 2126973285}
-  materializationRevision: 1
+  materializationRevision: 2
   logApplyRebuildDiagnostics: 0
   lastApplyRebuildStatus: ApplySucceeded
   lastBlockingIssue: 
   lastTargetResolutionSummary: Camera target requirements satisfied.
-  lastMaterializationSummary: created='1' repaired='0' alreadyValid='5' skipped='2'
+  lastMaterializationSummary: created='0' repaired='0' alreadyValid='6' skipped='2'
     blocked='0' presentation='Follow' cameraOwnership='ExternalOrUnknown' positionOwnership='ExternalOrUnknown'
-    rotationOwnership='FrameworkOwned' revision='1'
+    rotationOwnership='FrameworkOwned' revision='2'
   lastResolvedFollowTarget: {fileID: 1743314763}
   lastResolvedLookAtTarget: {fileID: 1743314763}
 --- !u!4 &2088542689
@@ -1534,3 +1665,4 @@ SceneRoots:
   - {fileID: 2605456869210397787}
   - {fileID: 927980699}
   - {fileID: 1295583389}
+  - {fileID: 891184832}

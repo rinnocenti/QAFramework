@@ -17,6 +17,6 @@ MonoBehaviour:
   primaryScenePath: Assets/ImmersiveFrameworkQA/Audio/Scenes/QA_AudioRouteB.unity
   primarySceneName: QA_AudioRouteB
   routeContentProfile: {fileID: 0}
-  startupActivity: {fileID: 0}
+  startupActivity: {fileID: 11400000, guid: 7df9f3493a96596449f212ca2de79467, type: 2}
   transitionGateMode: 30
   description: Alternate Framework BGM QA route used to prove retained Activity cleanup.

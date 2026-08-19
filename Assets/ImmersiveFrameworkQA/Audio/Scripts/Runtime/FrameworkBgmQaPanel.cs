@@ -8,7 +8,9 @@ using UnityEngine;
 namespace ImmersiveFrameworkQA.Audio
 {
     /// <summary>
-    /// QA-only IMGUI panel for manually exercising official FrameworkBgm Route/Activity precedence.
+    /// QA-only IMGUI panel for manually exercising official Framework BGM Route/Activity semantics.
+    /// The persistent Director is resolved through the same-scene Route binding after Framework
+    /// injection; no cross-scene serialized reference is required.
     /// </summary>
     [DisallowMultipleComponent]
     [AddComponentMenu("Immersive Framework QA/Audio/Framework BGM QA Panel")]
@@ -16,6 +18,7 @@ namespace ImmersiveFrameworkQA.Audio
     {
         [Header("Runtime")]
         [SerializeField] private FrameworkBgmDirector director;
+        [SerializeField] private FrameworkRouteBgmBinding routeBgmBinding;
 
         [Header("Route")]
         [SerializeField] private RouteRequestTrigger otherRouteTrigger;
@@ -48,9 +51,31 @@ namespace ImmersiveFrameworkQA.Audio
         private bool showTriggerDiagnostics = true;
         private string lastManualAction = "Framework BGM QA panel ready.";
 
-        public FrameworkBgmDirector Director => director;
+        public FrameworkBgmDirector Director
+        {
+            get
+            {
+                if (director != null)
+                {
+                    return director;
+                }
 
-        public AudioRuntimeHost RuntimeHost => director != null ? director.GetComponentInChildren<AudioRuntimeHost>() : null;
+                return routeBgmBinding != null
+                    ? routeBgmBinding.Director
+                    : null;
+            }
+        }
+
+        public AudioRuntimeHost RuntimeHost
+        {
+            get
+            {
+                FrameworkBgmDirector resolved = Director;
+                return resolved != null
+                    ? resolved.GetComponentInChildren<AudioRuntimeHost>(true)
+                    : null;
+            }
+        }
 
         public AudioBgmCueAsset ExpectedRouteBgm => expectedRouteBgm;
 
@@ -86,7 +111,10 @@ namespace ImmersiveFrameworkQA.Audio
             expectedOwnActivityBgm = nextExpectedOwnActivityBgm;
         }
 
-        public void ConfigureLayout(Rect nextPanelRect, Vector2 nextMinimumPanelSize, float nextScrollContentWidth)
+        public void ConfigureLayout(
+            Rect nextPanelRect,
+            Vector2 nextMinimumPanelSize,
+            float nextScrollContentWidth)
         {
             panelRect = nextPanelRect;
             minimumPanelSize = nextMinimumPanelSize;
@@ -98,44 +126,65 @@ namespace ImmersiveFrameworkQA.Audio
             if (otherRouteTrigger == null)
             {
                 SetManualAction("Route request blocked. RouteRequestTrigger is missing.");
-                Debug.LogWarning("[FRAMEWORK_BGM_QA] Route request blocked. RouteRequestTrigger is missing.", this);
+                Debug.LogWarning(
+                    "[FRAMEWORK_BGM_QA] Route request blocked. RouteRequestTrigger is missing.",
+                    this);
                 return;
             }
 
             if (otherRouteTrigger.TargetRoute == null)
             {
-                SetManualAction("Route request blocked. Target Route is missing. Run the Framework BGM QA configurator.");
-                Debug.LogWarning("[FRAMEWORK_BGM_QA] Route request blocked. Target Route is missing.", this);
+                SetManualAction(
+                    "Route request blocked. Target Route is missing. Run the Framework BGM QA configurator.");
+                Debug.LogWarning(
+                    "[FRAMEWORK_BGM_QA] Route request blocked. Target Route is missing. Run the Framework BGM QA configurator.",
+                    this);
                 return;
             }
 
-            SetManualAction("Requested other route. Expected: Route B has no BGM request, so the confirmed BGM continues without restart or stop.");
+            SetManualAction(
+                "Requested other route. Expected: Route B has no BGM request, so the confirmed BGM continues without restart or stop.");
             otherRouteTrigger.RequestRoute();
         }
 
         public void RequestStartupActivity()
         {
-            RequestActivity(startupActivityTrigger, "startup", "Expected: Startup Activity BGM applies.");
+            RequestActivity(
+                startupActivityTrigger,
+                "startup",
+                "Expected: Startup Activity BGM applies.");
         }
 
         public void RequestOwnActivity()
         {
-            RequestActivity(ownActivityTrigger, "own", "Expected: own Activity BGM applies and can be retained.");
+            RequestActivity(
+                ownActivityTrigger,
+                "own",
+                "Expected: own Activity BGM applies and can be retained.");
         }
 
         public void RequestRetainPreviousActivity()
         {
-            RequestActivity(retainPreviousActivityTrigger, "retain-previous", "Expected: no explicit BGM request; confirmed BGM remains unchanged.");
+            RequestActivity(
+                retainPreviousActivityTrigger,
+                "retain-previous",
+                "Expected: no explicit BGM request; confirmed BGM remains unchanged.");
         }
 
         public void RequestRouteFallbackActivity()
         {
-            RequestActivity(routeFallbackActivityTrigger, "route-fallback", "Expected: explicit UseRoute requests the currently authored Route BGM when one exists; otherwise NoChange.");
+            RequestActivity(
+                routeFallbackActivityTrigger,
+                "route-fallback",
+                "Expected: explicit UseRoute requests the currently authored Route BGM when one exists; otherwise NoChange.");
         }
 
         public void RequestSilenceActivity()
         {
-            RequestActivity(silenceActivityTrigger, "silence", "Expected: BGM stops and retained Activity BGM is cleared.");
+            RequestActivity(
+                silenceActivityTrigger,
+                "silence",
+                "Expected: BGM stops and retained Activity BGM is cleared.");
         }
 
         public void ClearActivity()
@@ -143,27 +192,39 @@ namespace ImmersiveFrameworkQA.Audio
             if (clearActivityTrigger == null)
             {
                 SetManualAction("Activity clear failed. ActivityRequestTrigger is missing.");
-                Debug.LogWarning("[FRAMEWORK_BGM_QA] Activity clear failed. ActivityRequestTrigger is missing.", this);
+                Debug.LogWarning(
+                    "[FRAMEWORK_BGM_QA] Activity clear failed. ActivityRequestTrigger is missing.",
+                    this);
                 return;
             }
 
-            SetManualAction("Requested clear activity. Expected: owner exit publishes no new BGM intent; confirmed presentation remains unchanged.");
+            SetManualAction(
+                "Requested clear activity. Expected: owner exit publishes no new BGM intent; confirmed presentation remains unchanged.");
             clearActivityTrigger.ClearActivity();
         }
 
-        private void RequestActivity(ActivityRequestTrigger trigger, string label, string expectation)
+        private void RequestActivity(
+            ActivityRequestTrigger trigger,
+            string label,
+            string expectation)
         {
             if (trigger == null)
             {
-                SetManualAction($"Activity request blocked. label='{label}' ActivityRequestTrigger is missing.");
-                Debug.LogWarning($"[FRAMEWORK_BGM_QA] Activity request blocked. label='{label}' ActivityRequestTrigger is missing.", this);
+                SetManualAction(
+                    $"Activity request blocked. label='{label}' ActivityRequestTrigger is missing.");
+                Debug.LogWarning(
+                    $"[FRAMEWORK_BGM_QA] Activity request blocked. label='{label}' ActivityRequestTrigger is missing.",
+                    this);
                 return;
             }
 
             if (trigger.TargetActivity == null)
             {
-                SetManualAction($"Activity request blocked. label='{label}' Target Activity is missing. Run the Framework BGM QA configurator.");
-                Debug.LogWarning($"[FRAMEWORK_BGM_QA] Activity request blocked. label='{label}' Target Activity is missing.", this);
+                SetManualAction(
+                    $"Activity request blocked. label='{label}' Target Activity is missing. Run the Framework BGM QA configurator.");
+                Debug.LogWarning(
+                    $"[FRAMEWORK_BGM_QA] Activity request blocked. label='{label}' Target Activity is missing. Run the Framework BGM QA configurator.",
+                    this);
                 return;
             }
 
@@ -179,21 +240,32 @@ namespace ImmersiveFrameworkQA.Audio
             }
 
             panelRect = ClampToScreen(panelRect);
-            panelRect = ClampToScreen(GUI.Window(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this), panelRect, DrawWindow, title));
+            panelRect = ClampToScreen(
+                GUI.Window(
+                    System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this),
+                    panelRect,
+                    DrawWindow,
+                    title));
             GUI.enabled = true;
         }
 
         private bool ShouldDrawForCurrentScene()
         {
             return !restrictToAudioScene
-                || gameObject.scene.path.StartsWith("Assets/ImmersiveFrameworkQA/Audio/Scenes/", StringComparison.Ordinal);
+                || gameObject.scene.path.StartsWith(
+                    "Assets/ImmersiveFrameworkQA/Audio/Scenes/",
+                    StringComparison.Ordinal);
         }
 
         private void DrawWindow(int windowId)
         {
             DrawHeader();
 
-            scroll = GUILayout.BeginScrollView(scroll, GUILayout.Width(panelRect.width - 12f), GUILayout.Height(panelRect.height - 76f));
+            scroll = GUILayout.BeginScrollView(
+                scroll,
+                GUILayout.Width(panelRect.width - 12f),
+                GUILayout.Height(panelRect.height - 76f));
+
             GUILayout.BeginVertical(GUILayout.Width(scrollContentWidth));
 
             DrawFoldout("Smoke Navigation", ref showSmokeNavigation, DrawSmokeNavigation);
@@ -208,49 +280,85 @@ namespace ImmersiveFrameworkQA.Audio
 
         private void DrawHeader()
         {
+            FrameworkBgmDirector resolved = Director;
+
             GUILayout.BeginHorizontal();
             GUILayout.Label(title, GUI.skin.label, GUILayout.ExpandWidth(true));
             GUILayout.EndHorizontal();
 
             GUILayout.Label($"Last Action: {lastManualAction}");
-            GUILayout.Label($"Desired BGM: {FormatCue(director != null ? director.CurrentEffectiveBgm : null)} | Confirmed BGM: {FormatCue(director != null ? director.ConfirmedBgm : null)} | Last Operation: {FormatOperation()}");
+            GUILayout.Label(
+                $"Desired BGM: {FormatCue(resolved != null ? resolved.CurrentEffectiveBgm : null)} | " +
+                $"Confirmed BGM: {FormatCue(resolved != null ? resolved.ConfirmedBgm : null)} | " +
+                $"Last Operation: {FormatOperation()}");
         }
 
         private void DrawSmokeNavigation()
         {
-            GUILayout.Label("Run this sequence from top to bottom. Watch [FRAMEWORK_BGM] logs after each request.");
+            GUILayout.Label(
+                "Run this sequence from top to bottom. Watch [FRAMEWORK_BGM] logs after each request.");
             GUILayout.Space(4f);
 
-            DrawActivityButton(startupActivityTrigger, "1. Startup Activity BGM", RequestStartupActivity);
+            DrawActivityButton(
+                startupActivityTrigger,
+                "1. Startup Activity BGM",
+                RequestStartupActivity);
             GUILayout.Label("   Expected cue: " + FormatCue(expectedStartupActivityBgm));
 
-            DrawClearButton(clearActivityTrigger, "2. Clear Activity: Preserve Confirmed", ClearActivity);
+            DrawClearButton(
+                clearActivityTrigger,
+                "2. Clear Activity: Preserve Confirmed",
+                ClearActivity);
             GUILayout.Label("   Expected: Startup Activity BGM continues; clear is NoRequest.");
 
-            DrawActivityButton(ownActivityTrigger, "3. Activity Own BGM", RequestOwnActivity);
+            DrawActivityButton(
+                ownActivityTrigger,
+                "3. Activity Own BGM",
+                RequestOwnActivity);
             GUILayout.Label("   Expected cue: " + FormatCue(expectedOwnActivityBgm));
 
-            DrawActivityButton(retainPreviousActivityTrigger, "4. Activity Without BGM: Retain Previous", RequestRetainPreviousActivity);
+            DrawActivityButton(
+                retainPreviousActivityTrigger,
+                "4. Activity Without BGM: Retain Previous",
+                RequestRetainPreviousActivity);
             GUILayout.Label("   Expected cue: " + FormatCue(expectedOwnActivityBgm));
 
-            DrawActivityButton(routeFallbackActivityTrigger, "5. Activity UseRoute: Route Fallback", RequestRouteFallbackActivity);
+            DrawActivityButton(
+                routeFallbackActivityTrigger,
+                "5. Activity UseRoute: Route Fallback",
+                RequestRouteFallbackActivity);
             GUILayout.Label("   Expected cue: " + FormatCue(expectedRouteBgm));
 
-            DrawActivityButton(silenceActivityTrigger, "6. Activity Silence", RequestSilenceActivity);
+            DrawActivityButton(
+                silenceActivityTrigger,
+                "6. Activity Silence",
+                RequestSilenceActivity);
             GUILayout.Label("   Expected: StopBgm and explicit silence.");
 
-            DrawClearButton(clearActivityTrigger, "7. Clear Activity After Silence: Preserve Silence", ClearActivity);
+            DrawClearButton(
+                clearActivityTrigger,
+                "7. Clear Activity After Silence: Preserve Silence",
+                ClearActivity);
             GUILayout.Label("   Expected: explicit silence remains confirmed; clear is NoRequest.");
 
-            DrawActivityButton(ownActivityTrigger, "8. Request Own Activity BGM Again", RequestOwnActivity);
-            DrawRouteButton(otherRouteTrigger, "9. Route Switch With No New BGM Request", RequestOtherRoute);
-            GUILayout.Label("   Expected: current confirmed BGM continues through Route A unload / Route B load.");
+            DrawActivityButton(
+                ownActivityTrigger,
+                "8. Request Own Activity BGM Again",
+                RequestOwnActivity);
+
+            DrawRouteButton(
+                otherRouteTrigger,
+                "9. Route Switch With No New BGM Request",
+                RequestOtherRoute);
+            GUILayout.Label(
+                "   Expected: current confirmed BGM continues through Route A unload / Route B load.");
         }
 
         private void DrawExpectedFlow()
         {
             GUILayout.Label("Intent contract under test:");
-            GUILayout.Label("NoRequest -> preserve | Same Cue -> NoChange | Different Cue -> controlled transition | Silence -> explicit stop");
+            GUILayout.Label(
+                "NoRequest -> preserve | Same Cue -> NoChange | Different Cue -> controlled transition | Silence -> explicit stop");
             GUILayout.Space(6f);
             GUILayout.Label("Expected logs:");
             GUILayout.Label("- [FRAMEWORK_BGM] Route/Activity explicit BGM intent set");
@@ -258,29 +366,34 @@ namespace ImmersiveFrameworkQA.Audio
             GUILayout.Label("- owner exits preserve the confirmed BGM without provider mutation");
             GUILayout.Label("- [FRAMEWORK_BGM] BGM operation completed with provider-confirmed outcome");
             GUILayout.Label("- [FRAMEWORK_BGM] explicit Silence intent applied");
-            GUILayout.Label("- FrameworkBgmOperationResult distinguishes Applied, Released, NoChange, unavailable authority and rejection");
+            GUILayout.Label(
+                "- FrameworkBgmOperationResult distinguishes Applied, Released, NoChange, unavailable authority and rejection");
         }
 
         private void DrawDirectorDiagnostics()
         {
-            if (director == null)
+            FrameworkBgmDirector resolved = Director;
+            if (resolved == null)
             {
-                GUILayout.Label("Director: Missing");
+                GUILayout.Label("Director: Missing / not injected yet");
                 return;
             }
 
-            GUILayout.Label($"Route BGM: {FormatCue(director.CurrentRouteBgm)}");
-            GUILayout.Label($"Activity BGM: {FormatCue(director.CurrentActivityBgm)}");
-            GUILayout.Label($"Retained Activity BGM: {FormatCue(director.RetainedActivityBgmForCurrentRoute)}");
-            GUILayout.Label($"Effective BGM: {FormatCue(director.CurrentEffectiveBgm)}");
-            GUILayout.Label($"Confirmed BGM: {FormatCue(director.ConfirmedBgm)}");
-            GUILayout.Label($"Activity Binding Active: {director.HasActiveActivityBgmBinding}");
-            GUILayout.Label($"Activity Policy: {director.CurrentActivityPolicy}");
-            GUILayout.Label($"Explicit Silence: {director.CurrentEffectiveIsExplicitSilence}");
-            FrameworkBgmOperationResult result = director.LastOperationResult;
+            GUILayout.Label($"Route BGM: {FormatCue(resolved.CurrentRouteBgm)}");
+            GUILayout.Label($"Activity BGM: {FormatCue(resolved.CurrentActivityBgm)}");
+            GUILayout.Label(
+                $"Retained Activity BGM: {FormatCue(resolved.RetainedActivityBgmForCurrentRoute)}");
+            GUILayout.Label($"Effective BGM: {FormatCue(resolved.CurrentEffectiveBgm)}");
+            GUILayout.Label($"Confirmed BGM: {FormatCue(resolved.ConfirmedBgm)}");
+            GUILayout.Label($"Activity Binding Active: {resolved.HasActiveActivityBgmBinding}");
+            GUILayout.Label($"Activity Policy: {resolved.CurrentActivityPolicy}");
+            GUILayout.Label($"Explicit Silence: {resolved.CurrentEffectiveIsExplicitSilence}");
+
+            FrameworkBgmOperationResult result = resolved.LastOperationResult;
             GUILayout.Label($"Last Operation: {result.Operation} / {result.Outcome}");
             GUILayout.Label($"Previous Confirmed BGM: {FormatCue(result.PreviousConfirmedCue)}");
-            GUILayout.Label($"Requested BGM: {FormatCue(result.RequestedCue)} | Explicit Silence: {result.RequestedExplicitSilence}");
+            GUILayout.Label(
+                $"Requested BGM: {FormatCue(result.RequestedCue)} | Explicit Silence: {result.RequestedExplicitSilence}");
             GUILayout.Label($"Resulting Confirmed BGM: {FormatCue(result.ConfirmedCue)}");
             GUILayout.Label($"Reason: {result.Reason ?? "<none>"}");
         }
@@ -296,7 +409,10 @@ namespace ImmersiveFrameworkQA.Audio
             DrawActivityStatus("Clear", clearActivityTrigger);
         }
 
-        private static void DrawFoldout(string label, ref bool expanded, Action draw)
+        private static void DrawFoldout(
+            string label,
+            ref bool expanded,
+            Action draw)
         {
             GUILayout.Space(8f);
             if (GUILayout.Button($"{(expanded ? "v" : ">")} {label}", GUILayout.Height(26f)))
@@ -314,11 +430,17 @@ namespace ImmersiveFrameworkQA.Audio
             GUILayout.EndVertical();
         }
 
-        private static void DrawRouteButton(RouteRequestTrigger trigger, string label, Action action)
+        private static void DrawRouteButton(
+            RouteRequestTrigger trigger,
+            string label,
+            Action action)
         {
             bool hasTarget = trigger != null && trigger.TargetRoute != null;
             GUI.enabled = trigger != null && hasTarget && !trigger.IsRequestInFlight;
-            string resolvedLabel = hasTarget ? label : $"{label} [MISSING TARGET ROUTE]";
+            string resolvedLabel = hasTarget
+                ? label
+                : $"{label} [MISSING TARGET ROUTE]";
+
             if (GUILayout.Button(resolvedLabel, GUILayout.Height(30f)))
             {
                 action?.Invoke();
@@ -327,11 +449,17 @@ namespace ImmersiveFrameworkQA.Audio
             GUI.enabled = true;
         }
 
-        private static void DrawActivityButton(ActivityRequestTrigger trigger, string label, Action action)
+        private static void DrawActivityButton(
+            ActivityRequestTrigger trigger,
+            string label,
+            Action action)
         {
             bool hasTarget = trigger != null && trigger.TargetActivity != null;
             GUI.enabled = trigger != null && hasTarget && !trigger.IsRequestInFlight;
-            string resolvedLabel = hasTarget ? label : $"{label} [MISSING TARGET ACTIVITY]";
+            string resolvedLabel = hasTarget
+                ? label
+                : $"{label} [MISSING TARGET ACTIVITY]";
+
             if (GUILayout.Button(resolvedLabel, GUILayout.Height(30f)))
             {
                 action?.Invoke();
@@ -340,7 +468,10 @@ namespace ImmersiveFrameworkQA.Audio
             GUI.enabled = true;
         }
 
-        private static void DrawClearButton(ActivityRequestTrigger trigger, string label, Action action)
+        private static void DrawClearButton(
+            ActivityRequestTrigger trigger,
+            string label,
+            Action action)
         {
             GUI.enabled = trigger != null && !trigger.IsRequestInFlight;
             if (GUILayout.Button(label, GUILayout.Height(30f)))
@@ -351,7 +482,9 @@ namespace ImmersiveFrameworkQA.Audio
             GUI.enabled = true;
         }
 
-        private static void DrawRouteStatus(string label, RouteRequestTrigger trigger)
+        private static void DrawRouteStatus(
+            string label,
+            RouteRequestTrigger trigger)
         {
             if (trigger == null)
             {
@@ -359,14 +492,18 @@ namespace ImmersiveFrameworkQA.Audio
                 return;
             }
 
-            GUILayout.Label($"{label}: target='{FormatRouteTarget(trigger)}' outcome='{trigger.LastOutcome}' inFlight='{trigger.IsRequestInFlight}'");
+            GUILayout.Label(
+                $"{label}: target='{FormatRouteTarget(trigger)}' outcome='{trigger.LastOutcome}' inFlight='{trigger.IsRequestInFlight}'");
+
             if (!string.IsNullOrWhiteSpace(trigger.LastMessage))
             {
                 GUILayout.Label($"  message='{trigger.LastMessage}'");
             }
         }
 
-        private static void DrawActivityStatus(string label, ActivityRequestTrigger trigger)
+        private static void DrawActivityStatus(
+            string label,
+            ActivityRequestTrigger trigger)
         {
             if (trigger == null)
             {
@@ -375,7 +512,8 @@ namespace ImmersiveFrameworkQA.Audio
             }
 
             string suffix = trigger.LastRequestClearedActivity ? " clear" : string.Empty;
-            GUILayout.Label($"{label}: target='{FormatActivityTarget(trigger)}' outcome='{trigger.LastOutcome}{suffix}' inFlight='{trigger.IsRequestInFlight}'");
+            GUILayout.Label(
+                $"{label}: target='{FormatActivityTarget(trigger)}' outcome='{trigger.LastOutcome}{suffix}' inFlight='{trigger.IsRequestInFlight}'");
         }
 
         private Rect ClampToScreen(Rect rect)
@@ -384,18 +522,26 @@ namespace ImmersiveFrameworkQA.Audio
             float height = Mathf.Max(rect.height, minimumPanelSize.y);
             float maxX = Mathf.Max(0f, Screen.width - width);
             float maxY = Mathf.Max(0f, Screen.height - height);
-            return new Rect(Mathf.Clamp(rect.x, 0f, maxX), Mathf.Clamp(rect.y, 0f, maxY), width, height);
+
+            return new Rect(
+                Mathf.Clamp(rect.x, 0f, maxX),
+                Mathf.Clamp(rect.y, 0f, maxY),
+                width,
+                height);
         }
 
         private void SetManualAction(string message)
         {
-            lastManualAction = string.IsNullOrWhiteSpace(message) ? "<none>" : message;
+            lastManualAction = string.IsNullOrWhiteSpace(message)
+                ? "<none>"
+                : message;
         }
 
         private string FormatOperation()
         {
-            return director != null
-                ? $"{director.LastOperationResult.Operation}/{director.LastOperationResult.Outcome}"
+            FrameworkBgmDirector resolved = Director;
+            return resolved != null
+                ? $"{resolved.LastOperationResult.Operation}/{resolved.LastOperationResult.Outcome}"
                 : "<director-missing>";
         }
 
@@ -406,12 +552,16 @@ namespace ImmersiveFrameworkQA.Audio
 
         private static string FormatRouteTarget(RouteRequestTrigger trigger)
         {
-            return trigger != null && trigger.TargetRoute != null ? trigger.TargetRoute.RouteName : "<missing>";
+            return trigger != null && trigger.TargetRoute != null
+                ? trigger.TargetRoute.RouteName
+                : "<missing>";
         }
 
         private static string FormatActivityTarget(ActivityRequestTrigger trigger)
         {
-            return trigger != null && trigger.TargetActivity != null ? trigger.TargetActivity.ActivityName : "<missing>";
+            return trigger != null && trigger.TargetActivity != null
+                ? trigger.TargetActivity.ActivityName
+                : "<missing>";
         }
     }
 }
