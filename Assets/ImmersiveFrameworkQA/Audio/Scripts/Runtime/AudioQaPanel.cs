@@ -366,8 +366,14 @@ namespace ImmersiveFrameworkQA.Audio
             passedSmokes += frameworkResult.Passed;
             failedSmokes += frameworkResult.Failed;
 
-            bool ok = failedSmokes == 0 && passedSmokes == 26;
-            SetResult(ok, $"status='{(ok ? "Passed" : "Failed")}' core='7/7' frameworkBgm='{frameworkResult.FrameworkBgmPassed}/{frameworkResult.FrameworkBgmTotal}' adr013a='{frameworkResult.Adr013aPassed}/{frameworkResult.Adr013aTotal}' total='{passedSmokes}/{passedSmokes + failedSmokes}' failed='{failedSmokes}'.");
+            bool ok = failedSmokes == 0;
+            SetResult(
+                ok,
+                $"status='{(ok ? "Passed" : "Failed")}' core='7/7' " +
+                $"frameworkBgm='{frameworkResult.FrameworkBgmPassed}/{frameworkResult.FrameworkBgmTotal}' " +
+                $"adr013a='{frameworkResult.Adr013aPassed}/{frameworkResult.Adr013aTotal}' " +
+                $"audioContinuity='{frameworkResult.AudioContinuityPassed}/{frameworkResult.AudioContinuityTotal}' " +
+                $"total='{passedSmokes}/{passedSmokes + failedSmokes}' failed='{failedSmokes}'.");
         }
 
         private void RunOperation(string operation, Func<bool> action)

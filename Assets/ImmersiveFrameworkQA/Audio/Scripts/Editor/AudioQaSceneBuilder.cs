@@ -96,6 +96,12 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                 return;
             }
 
+            if (!FrameworkBgmContinuityQaConfigurator.Configure())
+            {
+                Debug.LogError($"[AUDIO_QA_SETUP] status='Failed' primaryScene='{ScenePath}' fixture='BgmContinuity'.");
+                return;
+            }
+
             Debug.Log($"[AUDIO_QA_SETUP] status='Applied' primaryScene='{ScenePath}' fixtureScene='Assets/ImmersiveFrameworkQA/Audio/Scenes/QA_AudioRouteB.unity'.");
         }
 

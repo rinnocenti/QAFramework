@@ -109,7 +109,7 @@ namespace ImmersiveFrameworkQA.Audio
                 return;
             }
 
-            SetManualAction("Requested other route. Expected: Route BGM applies and retained Activity BGM is cleared.");
+            SetManualAction("Requested other route. Expected: Route B has no BGM request, so the confirmed BGM continues without restart or stop.");
             otherRouteTrigger.RequestRoute();
         }
 
@@ -125,12 +125,12 @@ namespace ImmersiveFrameworkQA.Audio
 
         public void RequestRetainPreviousActivity()
         {
-            RequestActivity(retainPreviousActivityTrigger, "retain-previous", "Expected: no own BGM, retained Activity BGM remains effective.");
+            RequestActivity(retainPreviousActivityTrigger, "retain-previous", "Expected: no explicit BGM request; confirmed BGM remains unchanged.");
         }
 
         public void RequestRouteFallbackActivity()
         {
-            RequestActivity(routeFallbackActivityTrigger, "route-fallback", "Expected: Route BGM becomes effective.");
+            RequestActivity(routeFallbackActivityTrigger, "route-fallback", "Expected: explicit UseRoute requests the currently authored Route BGM when one exists; otherwise NoChange.");
         }
 
         public void RequestSilenceActivity()
@@ -147,7 +147,7 @@ namespace ImmersiveFrameworkQA.Audio
                 return;
             }
 
-            SetManualAction("Requested clear activity. Expected: Route BGM or retained Activity policy result becomes effective.");
+            SetManualAction("Requested clear activity. Expected: owner exit publishes no new BGM intent; confirmed presentation remains unchanged.");
             clearActivityTrigger.ClearActivity();
         }
 
@@ -224,8 +224,8 @@ namespace ImmersiveFrameworkQA.Audio
             DrawActivityButton(startupActivityTrigger, "1. Startup Activity BGM", RequestStartupActivity);
             GUILayout.Label("   Expected cue: " + FormatCue(expectedStartupActivityBgm));
 
-            DrawClearButton(clearActivityTrigger, "2. Clear Activity: Route BGM", ClearActivity);
-            GUILayout.Label("   Expected cue: " + FormatCue(expectedRouteBgm));
+            DrawClearButton(clearActivityTrigger, "2. Clear Activity: Preserve Confirmed", ClearActivity);
+            GUILayout.Label("   Expected: Startup Activity BGM continues; clear is NoRequest.");
 
             DrawActivityButton(ownActivityTrigger, "3. Activity Own BGM", RequestOwnActivity);
             GUILayout.Label("   Expected cue: " + FormatCue(expectedOwnActivityBgm));
@@ -239,25 +239,25 @@ namespace ImmersiveFrameworkQA.Audio
             DrawActivityButton(silenceActivityTrigger, "6. Activity Silence", RequestSilenceActivity);
             GUILayout.Label("   Expected: StopBgm and explicit silence.");
 
-            DrawClearButton(clearActivityTrigger, "7. Clear Activity After Silence", ClearActivity);
-            GUILayout.Label("   Expected cue: " + FormatCue(expectedRouteBgm));
+            DrawClearButton(clearActivityTrigger, "7. Clear Activity After Silence: Preserve Silence", ClearActivity);
+            GUILayout.Label("   Expected: explicit silence remains confirmed; clear is NoRequest.");
 
             DrawActivityButton(ownActivityTrigger, "8. Request Own Activity BGM Again", RequestOwnActivity);
-            DrawRouteButton(otherRouteTrigger, "9. Route Switch Clears Retained Activity BGM", RequestOtherRoute);
-            GUILayout.Label("   Expected: retained Activity BGM becomes <silence> or route-local only after route switch.");
+            DrawRouteButton(otherRouteTrigger, "9. Route Switch With No New BGM Request", RequestOtherRoute);
+            GUILayout.Label("   Expected: current confirmed BGM continues through Route A unload / Route B load.");
         }
 
         private void DrawExpectedFlow()
         {
-            GUILayout.Label("Priority under test:");
-            GUILayout.Label("Activity BGM > Retained Activity BGM > Route BGM > Silence / Stop");
+            GUILayout.Label("Intent contract under test:");
+            GUILayout.Label("NoRequest -> preserve | Same Cue -> NoChange | Different Cue -> controlled transition | Silence -> explicit stop");
             GUILayout.Space(6f);
             GUILayout.Label("Expected logs:");
-            GUILayout.Label("- [FRAMEWORK_BGM] Route BGM set");
+            GUILayout.Label("- [FRAMEWORK_BGM] Route/Activity explicit BGM intent set");
             GUILayout.Label("- [FRAMEWORK_BGM] Startup Activity BGM pre-applied");
-            GUILayout.Label("- [FRAMEWORK_BGM] Activity BGM set");
+            GUILayout.Label("- owner exits preserve the confirmed BGM without provider mutation");
             GUILayout.Label("- [FRAMEWORK_BGM] BGM operation completed with provider-confirmed outcome");
-            GUILayout.Label("- [FRAMEWORK_BGM] Activity BGM policy Silence applied");
+            GUILayout.Label("- [FRAMEWORK_BGM] explicit Silence intent applied");
             GUILayout.Label("- FrameworkBgmOperationResult distinguishes Applied, Released, NoChange, unavailable authority and rejection");
         }
 
@@ -401,7 +401,7 @@ namespace ImmersiveFrameworkQA.Audio
 
         private static string FormatCue(AudioBgmCueAsset cue)
         {
-            return cue != null ? cue.name : "<silence>";
+            return cue != null ? cue.name : "<none>";
         }
 
         private static string FormatRouteTarget(RouteRequestTrigger trigger)

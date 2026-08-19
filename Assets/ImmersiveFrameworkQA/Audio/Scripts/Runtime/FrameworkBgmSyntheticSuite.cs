@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using Immersive.Audio.Authoring;
+using Immersive.Audio.Contracts;
 using Immersive.Audio.Unity.Hosts;
+using Immersive.Audio.Unity.Services;
 using Immersive.Framework.Audio;
 using UnityEngine;
 
@@ -10,6 +12,7 @@ namespace ImmersiveFrameworkQA.Audio
     internal static class FrameworkBgmSyntheticSuite
     {
         private const float ProviderStopTimeoutSeconds = 5f;
+        private const float TransitionSettleSeconds = 0.2f;
 
         internal static IEnumerator Run(FrameworkBgmQaPanel fixture, Action<SyntheticSuiteResult> completed)
         {
@@ -26,137 +29,325 @@ namespace ImmersiveFrameworkQA.Audio
             AudioBgmCueAsset routeCue = fixture.ExpectedRouteBgm;
             AudioBgmCueAsset activityCue = fixture.ExpectedOwnActivityBgm;
             AudioBgmCueAsset startupCue = fixture.ExpectedStartupActivityBgm;
-            AudioSource releaseSource = null;
-            bool abort = false;
 
-            try
+            if (routeCue == null || activityCue == null || startupCue == null)
             {
-                director.ClearRouteBgm(null);
-                Assert(result, "framework-bgm", "route-apply", director.SetRouteBgm(routeCue), FrameworkBgmOperationOutcome.Applied, routeCue);
-                Assert(result, "framework-bgm", "startup-activity-precedence", director.SetActivityBgm(startupCue, FrameworkBgmActivityPolicy.UseOwnOrRoute), FrameworkBgmOperationOutcome.Applied, startupCue);
-                Assert(result, "framework-bgm", "activity-own", director.SetActivityBgm(activityCue, FrameworkBgmActivityPolicy.UseOwnOrRetainActivityUntilRouteExit), FrameworkBgmOperationOutcome.Applied, activityCue);
-
-                FrameworkBgmOperationResult retain = director.SetActivityBgm(null, FrameworkBgmActivityPolicy.UseOwnOrRetainActivityUntilRouteExit);
-                Check(result, "framework-bgm", "retain-confirmed-activity", retain.Outcome == FrameworkBgmOperationOutcome.NoChange && director.RetainedActivityBgmForCurrentRoute == activityCue && director.ConfirmedBgm == activityCue, "NoChange with retained confirmed activity cue", Describe(retain));
-                Assert(result, "framework-bgm", "use-route", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.UseRoute), FrameworkBgmOperationOutcome.Applied, routeCue);
-                Assert(result, "framework-bgm", "silence-release", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.Silence), FrameworkBgmOperationOutcome.Released, null);
-
-                Component service = host.BgmService as Component;
-                releaseSource = service != null ? service.GetComponent<AudioSource>() : null;
-            }
-            catch (Exception exception)
-            {
-                result.Fail("framework-bgm", "unexpected-exception", "no exception", exception.GetType().Name, exception.Message);
-                abort = true;
-            }
-
-            if (abort)
-            {
+                result.Fail("framework-bgm", "fixture-cues", "route/startup/activity cues assigned", "one or more cues missing", "Run the Audio QA configurator.");
                 completed?.Invoke(result);
                 yield break;
             }
 
-            if (releaseSource != null)
-            {
-                float stopDeadline = Time.realtimeSinceStartup + ProviderStopTimeoutSeconds;
-                while (releaseSource != null && releaseSource.isPlaying && Time.realtimeSinceStartup < stopDeadline)
-                {
-                    yield return null;
-                }
-            }
+            // Establish a deterministic explicit-silence baseline. This is setup, not one of the
+            // contract assertions below.
+            director.SetActivityBgm(null, FrameworkBgmActivityPolicy.Silence);
+            yield return WaitForProviderStop(host);
 
-            AudioSource applySource = null;
             try
             {
-                Assert(result, "framework-bgm", "clear-activity-route", director.ClearActivityBgm(null), FrameworkBgmOperationOutcome.Applied, routeCue);
-                director.SetActivityBgm(activityCue, FrameworkBgmActivityPolicy.UseOwnOrRetainActivityUntilRouteExit);
-                FrameworkBgmOperationResult routeExit = director.ClearRouteBgm(null);
-                Check(result, "framework-bgm", "route-exit-clears-retention", director.RetainedActivityBgmForCurrentRoute == null, "retained=<null>", Describe(routeExit));
+                Assert(result, "framework-bgm", "route-apply", director.SetRouteBgm(routeCue), FrameworkBgmOperationOutcome.Applied, routeCue, false);
+                Assert(result, "framework-bgm", "same-confirmed-route", director.SetRouteBgm(routeCue), FrameworkBgmOperationOutcome.NoChange, routeCue, false);
+                Assert(result, "framework-bgm", "startup-activity", director.SetActivityBgm(startupCue, FrameworkBgmActivityPolicy.UseOwnOrRoute), FrameworkBgmOperationOutcome.Applied, startupCue, false);
+                Assert(result, "framework-bgm", "activity-own", director.SetActivityBgm(activityCue, FrameworkBgmActivityPolicy.UseOwnOrPreserveCurrent), FrameworkBgmOperationOutcome.Applied, activityCue, false);
 
-                Assert(result, "adr013a", "apply-success", director.SetRouteBgm(routeCue), FrameworkBgmOperationOutcome.Applied, routeCue);
-                applySource = RequireProviderSource(result, host, "apply-rejection");
+                FrameworkBgmOperationResult clearActivity = director.ClearActivityBgm(activityCue);
+                Check(
+                    result,
+                    "framework-bgm",
+                    "activity-exit-preserves-confirmed",
+                    clearActivity.Operation == FrameworkBgmOperation.Preserve
+                        && clearActivity.Outcome == FrameworkBgmOperationOutcome.NoChange
+                        && clearActivity.RequestedCue == null
+                        && !clearActivity.RequestedExplicitSilence
+                        && director.ConfirmedBgm == activityCue,
+                    "NoChange; requested=<null>; confirmed=ActivityCue",
+                    Describe(clearActivity));
+
+                FrameworkBgmOperationResult clearRoute = director.ClearRouteBgm(routeCue);
+                Check(
+                    result,
+                    "framework-bgm",
+                    "route-exit-preserves-confirmed",
+                    clearRoute.Operation == FrameworkBgmOperation.Preserve
+                        && clearRoute.Outcome == FrameworkBgmOperationOutcome.NoChange
+                        && clearRoute.RequestedCue == null
+                        && director.ConfirmedBgm == activityCue,
+                    "NoChange; requested=<null>; confirmed=ActivityCue",
+                    Describe(clearRoute));
+
+                Assert(result, "framework-bgm", "route-no-request-preserves", director.SetRouteBgm(null), FrameworkBgmOperationOutcome.NoChange, activityCue, false);
+                Assert(result, "framework-bgm", "activity-no-request-preserves", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.UseOwnOrPreserveCurrent), FrameworkBgmOperationOutcome.NoChange, activityCue, false);
+                Assert(result, "framework-bgm", "use-route-without-route-preserves", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.UseRoute), FrameworkBgmOperationOutcome.NoChange, activityCue, false);
+
+                Assert(result, "framework-bgm", "explicit-silence", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.Silence), FrameworkBgmOperationOutcome.Released, null, true);
+                FrameworkBgmOperationResult clearAfterSilence = director.ClearActivityBgm(null);
+                Check(
+                    result,
+                    "framework-bgm",
+                    "owner-exit-preserves-silence",
+                    clearAfterSilence.Outcome == FrameworkBgmOperationOutcome.NoChange
+                        && clearAfterSilence.RequestedCue == null
+                        && !clearAfterSilence.RequestedExplicitSilence
+                        && director.ConfirmedBgm == null
+                        && director.ConfirmedExplicitSilence,
+                    "NoChange; no new request; confirmed explicit silence",
+                    Describe(clearAfterSilence));
+
+                FrameworkBgmOperationResult noRouteAfterSilence = director.SetRouteBgm(null);
+                Check(
+                    result,
+                    "framework-bgm",
+                    "no-request-after-silence",
+                    noRouteAfterSilence.Operation == FrameworkBgmOperation.Preserve
+                        && noRouteAfterSilence.Outcome == FrameworkBgmOperationOutcome.NoChange
+                        && director.ConfirmedBgm == null
+                        && director.ConfirmedExplicitSilence,
+                    "NoChange; confirmed explicit silence",
+                    Describe(noRouteAfterSilence));
+
+                Assert(result, "framework-bgm", "play-after-silence", director.SetRouteBgm(routeCue), FrameworkBgmOperationOutcome.Applied, routeCue, false);
+                Assert(result, "framework-bgm", "route-exit-sticky-play", director.ClearRouteBgm(routeCue), FrameworkBgmOperationOutcome.NoChange, routeCue, false);
+
+                RunProviderRejectionCases(result, director, host, routeCue, activityCue);
             }
             catch (Exception exception)
             {
                 result.Fail("framework-bgm", "unexpected-exception", "no exception", exception.GetType().Name, exception.Message);
-                abort = true;
-            }
-
-            if (abort || applySource == null)
-            {
                 completed?.Invoke(result);
                 yield break;
             }
 
-            try
-            {
-                UnityEngine.Object.DestroyImmediate(applySource);
-                FrameworkBgmOperationResult rejected = director.SetActivityBgm(activityCue, FrameworkBgmActivityPolicy.UseOwnOrRetainActivityUntilRouteExit);
-                Check(result, "adr013a", "apply-rejection", rejected.Outcome == FrameworkBgmOperationOutcome.Rejected && rejected.PreviousConfirmedCue == routeCue && director.ConfirmedBgm == routeCue, "Rejected; previous/confirmed=RouteCue", Describe(rejected));
-                Check(result, "adr013a", "rejected-not-retained", director.RetainedActivityBgmForCurrentRoute != activityCue && director.ConfirmedBgm == routeCue, "rejected cue not retained; confirmed=RouteCue", Describe(rejected));
-                host.Compose();
-                Assert(result, "adr013a", "apply-retry", director.Refresh(), FrameworkBgmOperationOutcome.Applied, activityCue);
+            // The rejection helper can leave a pending intent that needs one frame after Compose.
+            yield return null;
 
-                Assert(result, "adr013a", "apply-no-change", director.Refresh(), FrameworkBgmOperationOutcome.NoChange, activityCue);
-                Assert(result, "adr013a", "release-success", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.Silence), FrameworkBgmOperationOutcome.Released, null);
-                Assert(result, "adr013a", "release-no-change", director.Refresh(), FrameworkBgmOperationOutcome.NoChange, null);
-
-                var unavailableRoot = new GameObject("QA_Synthetic_Bgm_NoAuthority");
-                var unavailableDirector = unavailableRoot.AddComponent<FrameworkBgmDirector>();
-                FrameworkBgmOperationResult unavailable = unavailableDirector.SetRouteBgm(routeCue);
-                Check(result, "adr013a", "optional-authority-unavailable", unavailable.Outcome == FrameworkBgmOperationOutcome.OptionalAuthorityUnavailable && unavailableDirector.ConfirmedBgm == null, "OptionalAuthorityUnavailable; confirmed=<null>", Describe(unavailable));
-                UnityEngine.Object.DestroyImmediate(unavailableRoot);
-
-                RunReleaseRejection(result, director, host, routeCue);
-            }
-            catch (Exception exception)
-            {
-                result.Fail("framework-bgm", "unexpected-exception", "no exception", exception.GetType().Name, exception.Message);
-            }
-
+            yield return RunPhysicalProviderContinuity(result, host, routeCue, activityCue);
             completed?.Invoke(result);
         }
 
-        private static void RunReleaseRejection(SyntheticSuiteResult result, FrameworkBgmDirector director, AudioRuntimeHost host, AudioBgmCueAsset routeCue)
+        private static void RunProviderRejectionCases(
+            SyntheticSuiteResult result,
+            FrameworkBgmDirector director,
+            AudioRuntimeHost host,
+            AudioBgmCueAsset routeCue,
+            AudioBgmCueAsset activityCue)
         {
-            Assert(result, "adr013a", "release-rejection-baseline", director.SetRouteBgm(routeCue), FrameworkBgmOperationOutcome.Applied, routeCue);
-            AudioSource source = RequireProviderSource(result, host, "release-rejection");
+            AudioSource source = RequireProviderSource(result, host, "apply-rejection");
             if (source == null)
             {
                 return;
             }
 
             UnityEngine.Object.DestroyImmediate(source);
-            FrameworkBgmOperationResult rejected = director.SetActivityBgm(null, FrameworkBgmActivityPolicy.Silence);
-            Check(result, "adr013a", "release-rejection", rejected.Outcome == FrameworkBgmOperationOutcome.Rejected && director.ConfirmedBgm == routeCue, "Rejected; confirmed=RouteCue", Describe(rejected));
+            FrameworkBgmOperationResult rejectedApply = director.SetActivityBgm(activityCue, FrameworkBgmActivityPolicy.UseOwnOrPreserveCurrent);
+            Check(
+                result,
+                "adr013a",
+                "apply-rejection",
+                rejectedApply.Outcome == FrameworkBgmOperationOutcome.Rejected
+                    && rejectedApply.PreviousConfirmedCue == routeCue
+                    && director.ConfirmedBgm == routeCue,
+                "Rejected; confirmed remains RouteCue",
+                Describe(rejectedApply));
+
             host.Compose();
-            Assert(result, "adr013a", "release-retry", director.Refresh(), FrameworkBgmOperationOutcome.Released, null);
+            Assert(result, "adr013a", "apply-retry", director.Refresh(), FrameworkBgmOperationOutcome.Applied, activityCue, false);
+
+            source = RequireProviderSource(result, host, "release-rejection");
+            if (source == null)
+            {
+                return;
+            }
+
+            UnityEngine.Object.DestroyImmediate(source);
+            FrameworkBgmOperationResult rejectedRelease = director.SetActivityBgm(null, FrameworkBgmActivityPolicy.Silence);
+            Check(
+                result,
+                "adr013a",
+                "release-rejection",
+                rejectedRelease.Outcome == FrameworkBgmOperationOutcome.Rejected
+                    && director.ConfirmedBgm == activityCue
+                    && !director.ConfirmedExplicitSilence,
+                "Rejected; confirmed remains ActivityCue and not silence",
+                Describe(rejectedRelease));
+
+            host.Compose();
+            Assert(result, "adr013a", "release-retry", director.Refresh(), FrameworkBgmOperationOutcome.Released, null, true);
+
+            var unavailableRoot = new GameObject("QA_Synthetic_Bgm_NoAuthority");
+            unavailableRoot.SetActive(false);
+            var unavailableDirector = unavailableRoot.AddComponent<FrameworkBgmDirector>();
+            FrameworkBgmOperationResult unavailable = unavailableDirector.SetRouteBgm(routeCue);
+            Check(
+                result,
+                "adr013a",
+                "optional-authority-unavailable",
+                unavailable.Outcome == FrameworkBgmOperationOutcome.OptionalAuthorityUnavailable
+                    && unavailableDirector.ConfirmedBgm == null
+                    && !unavailableDirector.ConfirmedExplicitSilence,
+                "OptionalAuthorityUnavailable; no confirmed presentation",
+                Describe(unavailable));
+            UnityEngine.Object.DestroyImmediate(unavailableRoot);
+        }
+
+        private static IEnumerator RunPhysicalProviderContinuity(
+            SyntheticSuiteResult result,
+            AudioRuntimeHost host,
+            AudioBgmCueAsset firstCue,
+            AudioBgmCueAsset secondCue)
+        {
+            AudioPlaybackResult firstPlay = host.PlayBgm(firstCue);
+            if (!firstPlay.Succeeded)
+            {
+                result.Fail("audio-continuity", "provider-baseline", "Succeeded", firstPlay.Status.ToString(), "Could not establish provider baseline.");
+                yield break;
+            }
+
+            yield return new WaitForSecondsRealtime(TransitionSettleSeconds);
+
+            AudioSource source = RequireProviderSource(result, host, "provider-source");
+            if (source == null)
+            {
+                yield break;
+            }
+
+            int beforeSameCueSamples = source.timeSamples;
+            float beforeSameCueVolume = source.volume;
+            AudioPlaybackResult sameCue = host.PlayBgm(firstCue);
+            int afterSameCueSamples = source.timeSamples;
+
+            Check(
+                result,
+                "audio-continuity",
+                "same-cue-no-restart",
+                sameCue.Succeeded
+                    && source.isPlaying
+                    && beforeSameCueSamples == afterSameCueSamples
+                    && Mathf.Approximately(source.volume, beforeSameCueVolume),
+                "Succeeded; source keeps position and volume synchronously",
+                $"status={sameCue.Status}; beforeSamples={beforeSameCueSamples}; afterSamples={afterSameCueSamples}; beforeVolume={beforeSameCueVolume:F4}; afterVolume={source.volume:F4}");
+
+            float beforeTransitionVolume = source.volume;
+            int beforeTransitionSamples = source.timeSamples;
+            AudioPlaybackResult transition = host.PlayBgm(secondCue);
+            int immediatelyAfterTransitionSamples = source.timeSamples;
+
+            Check(
+                result,
+                "audio-continuity",
+                "different-cue-no-abrupt-cut",
+                transition.Succeeded
+                    && source.isPlaying
+                    && source.volume > 0f
+                    && beforeTransitionVolume > 0f
+                    && beforeTransitionSamples == immediatelyAfterTransitionSamples,
+                "Succeeded; old source remains playing immediately while fade-out starts",
+                $"status={transition.Status}; playing={source.isPlaying}; beforeVolume={beforeTransitionVolume:F4}; immediateVolume={source.volume:F4}; beforeSamples={beforeTransitionSamples}; immediateSamples={immediatelyAfterTransitionSamples}");
+
+            yield return new WaitForSecondsRealtime(TransitionSettleSeconds);
+
+            AudioBgmService concreteService = host.BgmService as AudioBgmService;
+            Check(
+                result,
+                "audio-continuity",
+                "different-cue-transition-completes",
+                concreteService != null
+                    && ReferenceEquals(concreteService.ActiveCue, secondCue)
+                    && source.isPlaying
+                    && source.volume > 0f,
+                "ActiveCue=second; source playing above zero volume",
+                $"active={NameOf(concreteService != null ? concreteService.ActiveCue : null)}; playing={source.isPlaying}; volume={source.volume:F4}");
+
+            float beforeStopVolume = source.volume;
+            AudioPlaybackResult stop = host.StopBgm();
+            bool continuedDuringFade = stop.Status == AudioPlaybackStatus.Stopped
+                && source.isPlaying
+                && beforeStopVolume > 0f
+                && source.volume > 0f;
+
+            float stopDeadline = Time.realtimeSinceStartup + ProviderStopTimeoutSeconds;
+            while (source != null && source.isPlaying && Time.realtimeSinceStartup < stopDeadline)
+            {
+                yield return null;
+            }
+
+            concreteService = host.BgmService as AudioBgmService;
+            Check(
+                result,
+                "audio-continuity",
+                "explicit-stop-fades-to-silence",
+                continuedDuringFade && source != null && !source.isPlaying && concreteService != null && concreteService.ActiveCue == null,
+                "Stop accepted; source keeps playing during fade then reaches silence",
+                $"status={stop.Status}; continuedDuringFade={continuedDuringFade}; finalPlaying={(source != null && source.isPlaying)}; active={NameOf(concreteService != null ? concreteService.ActiveCue : null)}");
+        }
+
+        private static IEnumerator WaitForProviderStop(AudioRuntimeHost host)
+        {
+            Component service = host != null ? host.BgmService as Component : null;
+            AudioSource source = service != null ? service.GetComponent<AudioSource>() : null;
+            if (source == null)
+            {
+                yield break;
+            }
+
+            float deadline = Time.realtimeSinceStartup + ProviderStopTimeoutSeconds;
+            while (source.isPlaying && Time.realtimeSinceStartup < deadline)
+            {
+                yield return null;
+            }
         }
 
         private static AudioSource RequireProviderSource(SyntheticSuiteResult result, AudioRuntimeHost host, string caseName)
         {
-            Component service = host.BgmService as Component;
+            Component service = host != null ? host.BgmService as Component : null;
             AudioSource source = service != null ? service.GetComponent<AudioSource>() : null;
             if (source == null)
             {
-                result.Fail("adr013a", caseName, "provider source available", "source missing", "AudioRuntimeHost did not expose the real BGM service source.");
+                result.Fail("audio-continuity", caseName, "provider source available", "source missing", "AudioRuntimeHost did not expose the real BGM service source.");
             }
 
             return source;
         }
 
-        private static void Assert(SyntheticSuiteResult result, string group, string name, FrameworkBgmOperationResult operation, FrameworkBgmOperationOutcome outcome, AudioBgmCueAsset confirmed)
+        private static void Assert(
+            SyntheticSuiteResult result,
+            string group,
+            string name,
+            FrameworkBgmOperationResult operation,
+            FrameworkBgmOperationOutcome outcome,
+            AudioBgmCueAsset confirmed,
+            bool confirmedSilence)
         {
-            Check(result, group, name, operation.Outcome == outcome && operation.ConfirmedCue == confirmed, $"outcome={outcome}; confirmed={NameOf(confirmed)}", Describe(operation));
+            Check(
+                result,
+                group,
+                name,
+                operation.Outcome == outcome
+                    && operation.ConfirmedCue == confirmed
+                    && operation.ConfirmedExplicitSilence == confirmedSilence,
+                $"outcome={outcome}; confirmed={NameOf(confirmed)}; confirmedSilence={confirmedSilence}",
+                Describe(operation));
         }
 
         private static void Check(SyntheticSuiteResult result, string group, string name, bool passed, string expected, string actual)
         {
-            if (passed) result.Pass(group, name, expected, actual); else result.Fail(group, name, expected, actual, "Synthetic assertion failed.");
+            if (passed)
+            {
+                result.Pass(group, name, expected, actual);
+            }
+            else
+            {
+                result.Fail(group, name, expected, actual, "Synthetic assertion failed.");
+            }
         }
 
-        private static string Describe(FrameworkBgmOperationResult result) => $"outcome={result.Outcome}; requested={NameOf(result.RequestedCue)}; confirmed={NameOf(result.ConfirmedCue)}; reason={result.Reason}";
-        private static string NameOf(AudioBgmCueAsset cue) => cue != null ? cue.name : "<null>";
+        private static string Describe(FrameworkBgmOperationResult result)
+        {
+            return $"outcome={result.Outcome}; requested={NameOf(result.RequestedCue)}; requestedSilence={result.RequestedExplicitSilence}; confirmed={NameOf(result.ConfirmedCue)}; confirmedSilence={result.ConfirmedExplicitSilence}; reason={result.Reason}";
+        }
+
+        private static string NameOf(AudioBgmCueAsset cue)
+        {
+            return cue != null ? cue.name : "<null>";
+        }
 
         internal sealed class SyntheticSuiteResult
         {
@@ -166,9 +357,12 @@ namespace ImmersiveFrameworkQA.Audio
             internal int FrameworkBgmFailed { get; private set; }
             internal int Adr013aPassed { get; private set; }
             internal int Adr013aFailed { get; private set; }
+            internal int AudioContinuityPassed { get; private set; }
+            internal int AudioContinuityFailed { get; private set; }
 
             internal int FrameworkBgmTotal => FrameworkBgmPassed + FrameworkBgmFailed;
             internal int Adr013aTotal => Adr013aPassed + Adr013aFailed;
+            internal int AudioContinuityTotal => AudioContinuityPassed + AudioContinuityFailed;
 
             internal void Pass(string group, string name, string expected, string actual)
             {
@@ -195,6 +389,12 @@ namespace ImmersiveFrameworkQA.Audio
                 if (group == "adr013a")
                 {
                     if (passed) Adr013aPassed++; else Adr013aFailed++;
+                    return;
+                }
+
+                if (group == "audio-continuity")
+                {
+                    if (passed) AudioContinuityPassed++; else AudioContinuityFailed++;
                 }
             }
         }
