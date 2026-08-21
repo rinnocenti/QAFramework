@@ -233,6 +233,14 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             }
             else
             {
+                valid &= SetInt(
+                    routeBinding,
+                    "policy",
+                    (int)FrameworkBgmRoutePolicy.PlayOwn);
+                valid &= SetInt(
+                    routeBinding,
+                    "routePolicySerializationVersion",
+                    1);
                 valid &= SetObject(routeBinding, "director", null);
             }
 
@@ -442,9 +450,17 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                 return false;
             }
 
-            // Route B deliberately has no BGM opinion. The previously confirmed presentation
-            // must continue across Route A exit, scene unload and Route B entry.
+            // Route B explicitly preserves the previously confirmed presentation across Route A
+            // exit, scene unload and Route B entry.
             valid &= SetObject(routeBinding, "routeBgm", null);
+            valid &= SetInt(
+                routeBinding,
+                "policy",
+                (int)FrameworkBgmRoutePolicy.PreserveCurrent);
+            valid &= SetInt(
+                routeBinding,
+                "routePolicySerializationVersion",
+                1);
             valid &= SetObject(routeBinding, "director", null);
 
             FrameworkBgmQaPanel panel =
@@ -860,6 +876,36 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             property.boolValue =
                 value;
 
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(target);
+            return true;
+        }
+
+        private static bool SetInt(
+            Object target,
+            string propertyName,
+            int value)
+        {
+            if (target == null)
+            {
+                Debug.LogError(
+                    $"[FRAMEWORK_BGM_CONTINUITY_QA_SETUP] Cannot set serialized integer property on null target. property='{propertyName}'.");
+                return false;
+            }
+
+            var serialized = new SerializedObject(target);
+            serialized.Update();
+
+            SerializedProperty property = serialized.FindProperty(propertyName);
+            if (property == null)
+            {
+                Debug.LogError(
+                    $"[FRAMEWORK_BGM_CONTINUITY_QA_SETUP] Serialized property missing. target='{target.GetType().Name}' property='{propertyName}'.",
+                    target);
+                return false;
+            }
+
+            property.intValue = value;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(target);
             return true;

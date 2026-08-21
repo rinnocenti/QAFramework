@@ -44,16 +44,34 @@ namespace ImmersiveFrameworkQA.Audio
 
             try
             {
-                Assert(result, "framework-bgm", "route-apply", director.SetRouteBgm(routeCue), FrameworkBgmOperationOutcome.Applied, routeCue, false);
-                Assert(result, "framework-bgm", "same-confirmed-route", director.SetRouteBgm(routeCue), FrameworkBgmOperationOutcome.NoChange, routeCue, false);
-                Assert(result, "framework-bgm", "startup-activity", director.SetActivityBgm(startupCue, FrameworkBgmActivityPolicy.UseOwnOrRoute), FrameworkBgmOperationOutcome.Applied, startupCue, false);
-                Assert(result, "framework-bgm", "activity-own", director.SetActivityBgm(activityCue, FrameworkBgmActivityPolicy.UseOwnOrPreserveCurrent), FrameworkBgmOperationOutcome.Applied, activityCue, false);
+                Assert(result, "framework-bgm", "route-play-own", director.SetRouteBgm(routeCue, FrameworkBgmRoutePolicy.PlayOwn), FrameworkBgmOperationOutcome.Applied, routeCue, false);
+                Assert(result, "framework-bgm", "same-confirmed-route", director.SetRouteBgm(routeCue, FrameworkBgmRoutePolicy.PlayOwn), FrameworkBgmOperationOutcome.NoChange, routeCue, false);
+
+                Assert(result, "framework-bgm", "activity-play-before-route-replacement", director.SetActivityBgm(activityCue, FrameworkBgmActivityPolicy.UseOwnOrPreserveCurrent), FrameworkBgmOperationOutcome.Applied, activityCue, false);
+                Assert(result, "framework-bgm", "route-play-own-replaces-activity", director.SetRouteBgm(routeCue, FrameworkBgmRoutePolicy.PlayOwn), FrameworkBgmOperationOutcome.Applied, routeCue, false);
+
+                Assert(result, "framework-bgm", "activity-play-before-route-preserve", director.SetActivityBgm(activityCue, FrameworkBgmActivityPolicy.UseOwnOrPreserveCurrent), FrameworkBgmOperationOutcome.Applied, activityCue, false);
+                Assert(result, "framework-bgm", "route-preserve-current-keeps-activity", director.SetRouteBgm(null, FrameworkBgmRoutePolicy.PreserveCurrent), FrameworkBgmOperationOutcome.NoChange, activityCue, false);
+                Assert(result, "framework-bgm", "use-route-inherits-preserve", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.UseRoute), FrameworkBgmOperationOutcome.NoChange, activityCue, false);
+                Assert(result, "framework-bgm", "use-own-or-route-inherits-preserve", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.UseOwnOrRoute), FrameworkBgmOperationOutcome.NoChange, activityCue, false);
+                Assert(result, "framework-bgm", "use-own-or-preserve-ignores-route-preserve", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.UseOwnOrPreserveCurrent), FrameworkBgmOperationOutcome.NoChange, activityCue, false);
+
+                Assert(result, "framework-bgm", "activity-play-before-route-silence", director.SetActivityBgm(activityCue, FrameworkBgmActivityPolicy.UseOwnOrPreserveCurrent), FrameworkBgmOperationOutcome.NoChange, activityCue, false);
+                Assert(result, "framework-bgm", "route-silence", director.SetRouteBgm(null, FrameworkBgmRoutePolicy.Silence), FrameworkBgmOperationOutcome.Released, null, true);
+                Assert(result, "framework-bgm", "use-route-inherits-silence", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.UseRoute), FrameworkBgmOperationOutcome.NoChange, null, true);
+                Assert(result, "framework-bgm", "use-own-or-route-inherits-silence", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.UseOwnOrRoute), FrameworkBgmOperationOutcome.NoChange, null, true);
+                Assert(result, "framework-bgm", "use-own-or-preserve-ignores-route-silence", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.UseOwnOrPreserveCurrent), FrameworkBgmOperationOutcome.NoChange, null, true);
+
+                Assert(result, "framework-bgm", "route-play-own-before-use-route", director.SetRouteBgm(routeCue, FrameworkBgmRoutePolicy.PlayOwn), FrameworkBgmOperationOutcome.Applied, routeCue, false);
+                Assert(result, "framework-bgm", "use-route-inherits-play", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.UseRoute), FrameworkBgmOperationOutcome.NoChange, routeCue, false);
+                Assert(result, "framework-bgm", "use-own-or-preserve-ignores-route-play", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.UseOwnOrPreserveCurrent), FrameworkBgmOperationOutcome.NoChange, routeCue, false);
+                Assert(result, "framework-bgm", "use-own-or-route-own-cue-wins", director.SetActivityBgm(activityCue, FrameworkBgmActivityPolicy.UseOwnOrRoute), FrameworkBgmOperationOutcome.Applied, activityCue, false);
 
                 FrameworkBgmOperationResult clearActivity = director.ClearActivityBgm(activityCue);
                 Check(
                     result,
                     "framework-bgm",
-                    "activity-exit-preserves-confirmed",
+                    "activity-exit-does-not-restore-route",
                     clearActivity.Operation == FrameworkBgmOperation.Preserve
                         && clearActivity.Outcome == FrameworkBgmOperationOutcome.NoChange
                         && clearActivity.RequestedCue == null
@@ -62,11 +80,11 @@ namespace ImmersiveFrameworkQA.Audio
                     "NoChange; requested=<null>; confirmed=ActivityCue",
                     Describe(clearActivity));
 
-                FrameworkBgmOperationResult clearRoute = director.ClearRouteBgm(routeCue);
+                FrameworkBgmOperationResult clearRoute = director.ClearRouteBgm(routeCue, FrameworkBgmRoutePolicy.PlayOwn);
                 Check(
                     result,
                     "framework-bgm",
-                    "route-exit-preserves-confirmed",
+                    "route-exit-does-not-stop-or-restore",
                     clearRoute.Operation == FrameworkBgmOperation.Preserve
                         && clearRoute.Outcome == FrameworkBgmOperationOutcome.NoChange
                         && clearRoute.RequestedCue == null
@@ -74,9 +92,8 @@ namespace ImmersiveFrameworkQA.Audio
                     "NoChange; requested=<null>; confirmed=ActivityCue",
                     Describe(clearRoute));
 
-                Assert(result, "framework-bgm", "route-no-request-preserves", director.SetRouteBgm(null), FrameworkBgmOperationOutcome.NoChange, activityCue, false);
-                Assert(result, "framework-bgm", "activity-no-request-preserves", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.UseOwnOrPreserveCurrent), FrameworkBgmOperationOutcome.NoChange, activityCue, false);
-                Assert(result, "framework-bgm", "use-route-without-route-preserves", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.UseRoute), FrameworkBgmOperationOutcome.NoChange, activityCue, false);
+                Assert(result, "framework-bgm", "startup-route-is-deferred", director.SetRouteBgm(routeCue, FrameworkBgmRoutePolicy.PlayOwn, true), FrameworkBgmOperationOutcome.NoChange, activityCue, false);
+                Assert(result, "framework-bgm", "startup-activity-prevents-route-transient-play", director.SetActivityBgm(startupCue, FrameworkBgmActivityPolicy.UseOwnOrRoute), FrameworkBgmOperationOutcome.Applied, startupCue, false);
 
                 Assert(result, "framework-bgm", "explicit-silence", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.Silence), FrameworkBgmOperationOutcome.Released, null, true);
                 FrameworkBgmOperationResult clearAfterSilence = director.ClearActivityBgm(null);
@@ -92,11 +109,11 @@ namespace ImmersiveFrameworkQA.Audio
                     "NoChange; no new request; confirmed explicit silence",
                     Describe(clearAfterSilence));
 
-                FrameworkBgmOperationResult noRouteAfterSilence = director.SetRouteBgm(null);
+                FrameworkBgmOperationResult noRouteAfterSilence = director.SetRouteBgm(null, FrameworkBgmRoutePolicy.PreserveCurrent);
                 Check(
                     result,
                     "framework-bgm",
-                    "no-request-after-silence",
+                    "preserve-after-silence",
                     noRouteAfterSilence.Operation == FrameworkBgmOperation.Preserve
                         && noRouteAfterSilence.Outcome == FrameworkBgmOperationOutcome.NoChange
                         && director.ConfirmedBgm == null
@@ -104,8 +121,8 @@ namespace ImmersiveFrameworkQA.Audio
                     "NoChange; confirmed explicit silence",
                     Describe(noRouteAfterSilence));
 
-                Assert(result, "framework-bgm", "play-after-silence", director.SetRouteBgm(routeCue), FrameworkBgmOperationOutcome.Applied, routeCue, false);
-                Assert(result, "framework-bgm", "route-exit-sticky-play", director.ClearRouteBgm(routeCue), FrameworkBgmOperationOutcome.NoChange, routeCue, false);
+                Assert(result, "framework-bgm", "play-after-silence", director.SetRouteBgm(routeCue, FrameworkBgmRoutePolicy.PlayOwn), FrameworkBgmOperationOutcome.Applied, routeCue, false);
+                Assert(result, "framework-bgm", "route-exit-sticky-play", director.ClearRouteBgm(routeCue, FrameworkBgmRoutePolicy.PlayOwn), FrameworkBgmOperationOutcome.NoChange, routeCue, false);
 
                 RunProviderRejectionCases(result, director, host, routeCue, activityCue);
             }

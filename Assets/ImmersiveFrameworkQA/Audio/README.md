@@ -120,18 +120,16 @@ QA_FrameworkBgmPanel_*
 - `Run All Audio QA` - runs the Core Audio suite; Framework BGM controls remain in the same panel.
 - `Reset QA Counters` - clears panel counters.
 
-The Framework BGM group validates this manual sequence:
+The Framework BGM group validates the Route-policy matrix and sticky owner exits:
 
 ```text
-1. Startup Activity BGM
-2. Clear Activity: Route BGM
-3. Activity Own BGM
-4. Activity Without BGM: Retain Previous
-5. Activity UseRoute: Route Fallback
-6. Activity Silence
-7. Clear Activity After Silence
-8. Request Own Activity BGM Again
-9. Route Switch Clears Retained Activity BGM
+1. Route `PlayOwn`, `PreserveCurrent` and `Silence`
+2. `UseRoute` inheriting each complete Route intent
+3. cue-less `UseOwnOrRoute` inheriting each complete Route intent
+4. Activity-owned cue winning over every Route intent
+5. Activity and Route exit preserving confirmed presentation
+6. Startup Activity intent replacing a deferred Route intent without transient Route playback
+7. explicit Silence remaining sticky across owner exit and Preserve
 ```
 
 For each mutation, inspect `Last Operation`, `Previous Confirmed BGM`, `Requested BGM`,
@@ -185,14 +183,13 @@ With the Framework BGM fixture, expected logs include:
 
 The Framework BGM fixture proves:
 
-- Route BGM is applied through `FrameworkRouteBgmBinding`.
+- Route `PlayOwn`, `PreserveCurrent` and `Silence` are applied through `FrameworkRouteBgmBinding`.
 - Startup Activity BGM is pre-applied through an explicit `FrameworkActivityBgmBinding`.
 - Activity-owned BGM wins over Route BGM.
-- Activity without BGM can retain the previous Activity BGM until Route exit.
-- `UseRoute` falls back to Route BGM.
+- Activity exit never restores Route BGM automatically.
+- `UseRoute` and cue-less `UseOwnOrRoute` inherit the complete Route intent.
 - `Silence` calls `StopBgm`.
-- Clear Activity returns to the expected Route or retained policy result.
-- Route switch clears retained Activity BGM.
+- Route exit does not stop or restore BGM.
 - Desired BGM and provider-confirmed BGM are shown separately; rejected intent is not
   retained as a restoration target.
 

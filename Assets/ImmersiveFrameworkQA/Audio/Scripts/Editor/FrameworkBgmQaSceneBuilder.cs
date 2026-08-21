@@ -260,6 +260,13 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                 out _);
 
             valid &= SetSerialized(routeBgmBinding, "routeBgm", routeCue);
+            valid &= SetSerialized(
+                routeBgmBinding,
+                "policy",
+                (int)(routeCue != null
+                    ? FrameworkBgmRoutePolicy.PlayOwn
+                    : FrameworkBgmRoutePolicy.PreserveCurrent));
+            valid &= SetSerialized(routeBgmBinding, "routePolicySerializationVersion", 1);
             valid &= SetSerialized(routeBgmBinding, "director", director);
             valid &= SetSerialized(routeBgmBinding, "startupActivityBgmBinding", startupBinding);
 
@@ -281,8 +288,9 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                 & ValidateString(routeContentBinding, "localContentId", $"qa-framework-bgm-route-{label.ToLowerInvariant()}", $"RouteContentBinding localContentId on '{root.name}'")
                 & ValidateInt(routeContentBinding, "requiredness", (int)FrameworkContentRequiredness.Required, $"RouteContentBinding requiredness on '{root.name}'")
                 & ValidateObjectReference(director, "audioRuntimeHost", runtimeHost, $"FrameworkBgmDirector audioRuntimeHost on '{root.name}'")
-                & ValidateObjectReference(routeBgmBinding, "routeBgm", routeCue, $"FrameworkRouteBgmBinding routeBgm on '{root.name}'")
-                & ValidateObjectReference(routeBgmBinding, "director", director, $"FrameworkRouteBgmBinding director on '{root.name}'");
+                 & ValidateObjectReference(routeBgmBinding, "routeBgm", routeCue, $"FrameworkRouteBgmBinding routeBgm on '{root.name}'")
+                 & ValidateInt(routeBgmBinding, "policy", (int)(routeCue != null ? FrameworkBgmRoutePolicy.PlayOwn : FrameworkBgmRoutePolicy.PreserveCurrent), $"FrameworkRouteBgmBinding policy on '{root.name}'")
+                 & ValidateObjectReference(routeBgmBinding, "director", director, $"FrameworkRouteBgmBinding director on '{root.name}'");
 
             if (startupCue != null)
             {

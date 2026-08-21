@@ -176,7 +176,7 @@ namespace ImmersiveFrameworkQA.Audio
             RequestActivity(
                 routeFallbackActivityTrigger,
                 "route-fallback",
-                "Expected: explicit UseRoute requests the currently authored Route BGM when one exists; otherwise NoChange.");
+                "Expected: explicit UseRoute inherits the complete current Route intent: Play Own, Preserve Current or Silence.");
         }
 
         public void RequestSilenceActivity()
@@ -325,7 +325,7 @@ namespace ImmersiveFrameworkQA.Audio
 
             DrawActivityButton(
                 routeFallbackActivityTrigger,
-                "5. Activity UseRoute: Route Fallback",
+                "5. Activity UseRoute: Inherit Route Intent",
                 RequestRouteFallbackActivity);
             GUILayout.Label("   Expected cue: " + FormatCue(expectedRouteBgm));
 
@@ -379,6 +379,7 @@ namespace ImmersiveFrameworkQA.Audio
                 return;
             }
 
+            GUILayout.Label($"Route Policy: {resolved.CurrentRoutePolicy}");
             GUILayout.Label($"Route BGM: {FormatCue(resolved.CurrentRouteBgm)}");
             GUILayout.Label($"Activity BGM: {FormatCue(resolved.CurrentActivityBgm)}");
             GUILayout.Label(
@@ -404,7 +405,7 @@ namespace ImmersiveFrameworkQA.Audio
             DrawActivityStatus("Startup", startupActivityTrigger);
             DrawActivityStatus("Own", ownActivityTrigger);
             DrawActivityStatus("Retain Previous", retainPreviousActivityTrigger);
-            DrawActivityStatus("Route Fallback", routeFallbackActivityTrigger);
+            DrawActivityStatus("Route Intent", routeFallbackActivityTrigger);
             DrawActivityStatus("Silence", silenceActivityTrigger);
             DrawActivityStatus("Clear", clearActivityTrigger);
         }
