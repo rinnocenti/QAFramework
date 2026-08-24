@@ -15,9 +15,9 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
 {
     /// <summary>
     /// IF-ADR-021 — Activity Player Actor Initial Placement regression.
-    /// Proves exact Activity-owned discovery, Slot binding, pose authority,
-    /// Scene-Provided policy and occurrence-aware candidate placement without
-    /// duplicating the wider Player lifecycle/admission suites.
+    /// Preserves the historical Activity proof while asserting the Model B Route
+    /// authoring policy surface. Route lifecycle certification remains a separate
+    /// Play Mode proof; this runner does not duplicate the runtime lifecycle.
     /// </summary>
     public static class QaAdr21ActivityPlayerInitialPlacementRegression
     {
@@ -73,7 +73,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 Require(activity != null && activity.HasValidActivityId,
                     $"Missing or invalid QA Activity at '{ActivityPath}'.");
 
-                RunCase("AuthoringAndDefaultPolicy", () => ProveAuthoringAndDefaultPolicy(p1), failures, ref passed);
+                RunCase("AuthoringAndRoutePolicy", () => ProveAuthoringAndRoutePolicy(p1), failures, ref passed);
                 RunCase("ManagerLogicalActorTarget", () => ProveManagerLogicalActorTarget(activity, p1), failures, ref passed);
                 RunCase("MissingBindingNoFallback", () => ProveMissingBindingNoFallback(activity, p1, p2), failures, ref passed);
                 RunCase("DuplicateExactSlotRejected", () => ProveDuplicateExactSlotRejected(activity, p1), failures, ref passed);
@@ -102,7 +102,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             return true;
         }
 
-        private static void ProveAuthoringAndDefaultPolicy(PlayerSlotProfile p1)
+        private static void ProveAuthoringAndRoutePolicy(PlayerSlotProfile p1)
         {
             GameObject root = null;
             try
@@ -123,15 +123,22 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 Require(binding.TryGetPlayerSlotId(out PlayerSlotId slot, out string issue) && slot == PlayerSlotId.Player1,
                     "Binding did not resolve exact PlayerSlotId. " + issue);
 
-                GameObject scenePlayer = new GameObject("QA_ADR021_SceneProvidedDefault");
-                scenePlayer.transform.SetParent(root.transform, false);
-                SceneLocalPlayerAdmissionAuthoring sceneAuthoring =
-                    scenePlayer.AddComponent<SceneLocalPlayerAdmissionAuthoring>();
-                Require(sceneAuthoring.InitialPlacementPolicy == SceneProvidedPlayerInitialPlacementPolicy.PreserveAuthoredPose,
-                    "Scene-Provided default policy must be PreserveAuthoredPose.");
-                Require((int)SceneProvidedPlayerInitialPlacementPolicy.PreserveAuthoredPose == 0 &&
-                        (int)SceneProvidedPlayerInitialPlacementPolicy.ApplyActivityPlacement == 1,
-                    "Scene-Provided placement policy serialized identities changed.");
+                GameObject routeRoot = new GameObject("QA_ADR021_RouteSpatialEntry");
+                routeRoot.transform.SetParent(root.transform, false);
+                RoutePlayerSpatialEntryAuthoring routeAuthoring =
+                    routeRoot.AddComponent<RoutePlayerSpatialEntryAuthoring>();
+                SetRouteBindings(routeAuthoring, new BindingSpec(p1, anchorObject.transform));
+                string routeIssue = string.Empty;
+                bool hasExactRouteSlot = routeAuthoring.Bindings.Count == 1 &&
+                    routeAuthoring.Bindings[0].TryGetPlayerSlotId(
+                        out PlayerSlotId routeSlot,
+                        out routeIssue) &&
+                    routeSlot == PlayerSlotId.Player1;
+                Require(hasExactRouteSlot,
+                    "Route authoring did not retain the exact Slot binding. " + routeIssue);
+                Require((int)RoutePlayerSpatialEntryPolicy.PreserveCurrentPose == 0 &&
+                        (int)RoutePlayerSpatialEntryPolicy.ApplyExplicitPlacement == 1,
+                    "Route spatial-entry policy serialized identities changed.");
             }
             finally
             {
@@ -468,6 +475,28 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 SerializedProperty anchor = element.FindPropertyRelative("placementAnchor");
                 Require(slot != null && anchor != null,
                     $"Serialized placement binding fields were not found at index '{index}'.");
+                slot.objectReferenceValue = specs[index].SlotProfile;
+                anchor.objectReferenceValue = specs[index].Anchor;
+            }
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            serialized.Update();
+        }
+
+        private static void SetRouteBindings(
+            RoutePlayerSpatialEntryAuthoring authoring,
+            params BindingSpec[] specs)
+        {
+            var serialized = new SerializedObject(authoring);
+            SerializedProperty bindings = serialized.FindProperty("bindings");
+            Require(bindings != null, "Serialized Route spatial-entry field 'bindings' was not found.");
+            bindings.arraySize = specs?.Length ?? 0;
+            for (int index = 0; index < bindings.arraySize; index++)
+            {
+                SerializedProperty element = bindings.GetArrayElementAtIndex(index);
+                SerializedProperty slot = element.FindPropertyRelative("playerSlotProfile");
+                SerializedProperty anchor = element.FindPropertyRelative("placementAnchor");
+                Require(slot != null && anchor != null,
+                    $"Serialized Route spatial-entry binding fields were not found at index '{index}'.");
                 slot.objectReferenceValue = specs[index].SlotProfile;
                 anchor.objectReferenceValue = specs[index].Anchor;
             }

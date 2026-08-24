@@ -3,6 +3,7 @@ using Immersive.Audio.Authoring;
 using Immersive.Audio.Contracts;
 using Immersive.Audio.Unity.Hosts;
 using Immersive.Framework.ActivityFlow;
+using ActivityLocalVisibilityAdapter = Immersive.Framework.ActivityFlow.ActivityContentBinding;
 using Immersive.Framework.Audio;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentFlow;

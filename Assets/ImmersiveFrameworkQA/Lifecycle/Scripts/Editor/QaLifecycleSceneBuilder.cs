@@ -1,4 +1,5 @@
 using Immersive.Framework.ActivityFlow;
+using ActivityLocalVisibilityAdapter = Immersive.Framework.ActivityFlow.ActivityContentBinding;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.RouteLifecycle;

@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using Immersive.Framework.ActivityFlow;
+using ActivityLocalVisibilityAdapter = Immersive.Framework.ActivityFlow.ActivityContentBinding;
 using Immersive.Framework.Authoring;
 using UnityEditor;
 using UnityEngine;

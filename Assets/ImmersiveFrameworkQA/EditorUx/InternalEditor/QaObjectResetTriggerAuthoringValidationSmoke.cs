@@ -1,6 +1,6 @@
 using System;
 using Immersive.Framework.Actors;
-using Immersive.Framework.Editor.Editor.Authoring;
+using Immersive.Framework.Editor.Authoring;
 using Immersive.Framework.ObjectReset;
 using Immersive.Framework.Reset.Unity;
 using UnityEditor;
