@@ -21,6 +21,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
   playerParticipationRequirementLevel: 30
   activityContentProfile: {fileID: 11400000, guid: 1cf2575e759257a46bc4697ee67e196f, type: 2}
+  playerRelocationPolicy: 0
   activityEntryReadinessPolicy: 0
   visualTransitionMode: 0
   transitionGateMode: 10

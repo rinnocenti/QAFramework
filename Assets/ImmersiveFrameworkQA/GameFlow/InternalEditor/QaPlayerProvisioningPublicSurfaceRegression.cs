@@ -344,10 +344,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         out host,
                         out string hostDiagnostic),
                     hostDiagnostic);
-                Require(
-                    host != null && host.State.GameFlowStarted &&
-                    host.State.CurrentRoute != null,
-                    "QA-PLAYER-SURFACE-01 requires a started Game Flow runtime with a current Route.");
+                await QaH2FrameworkReadiness.RequireStartedRouteAsync(
+                    host,
+                    FrameBudget);
                 cases.Complete("runtime-started");
 
                 Require(
@@ -1476,4 +1475,3 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         }
     }
 }
-

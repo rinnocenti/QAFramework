@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.PlayerParticipation;
 using UnityEngine;
@@ -7,6 +9,53 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 {
     public static class QaH2FrameworkReadiness
     {
+        internal static async Task RequireStartedRouteAsync(
+            FrameworkRuntimeHost host,
+            int frameBudget)
+        {
+            if (host == null)
+            {
+                throw new InvalidOperationException(
+                    "Framework runtime startup requires the resolved FrameworkRuntimeHost.");
+            }
+
+            if (frameBudget <= 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(frameBudget),
+                    "Framework runtime startup frame budget must be positive.");
+            }
+
+            string lastDiagnostic =
+                "FrameworkRuntimeHost StartAsync completion has not been observed.";
+            for (int frame = 0; frame < frameBudget; frame++)
+            {
+                if (host == null)
+                {
+                    throw new InvalidOperationException(
+                        "FrameworkRuntimeHost was destroyed before StartAsync completed. " +
+                        lastDiagnostic);
+                }
+
+                FrameworkRuntimeState state = host.State;
+                if (state.GameFlowStarted && state.CurrentRoute != null)
+                {
+                    return;
+                }
+
+                lastDiagnostic =
+                    $"gameFlowStarted='{state.GameFlowStarted}' " +
+                    $"route='{state.CurrentRouteName}' " +
+                    $"activity='{state.CurrentActivityName}' " +
+                    $"activityReady='{state.IsActivityReady}'.";
+                await Awaitable.NextFrameAsync();
+            }
+
+            throw new TimeoutException(
+                "FrameworkRuntimeHost did not complete StartAsync with a current Route " +
+                $"within '{frameBudget}' frames. {lastDiagnostic}");
+        }
+
         internal static bool TryResolveUniqueHost(
             out FrameworkRuntimeHost host)
         {

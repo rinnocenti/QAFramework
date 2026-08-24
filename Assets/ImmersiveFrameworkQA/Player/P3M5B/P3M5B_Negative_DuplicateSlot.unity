@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &116999224
+--- !u!1 &186423738
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,245 +127,25 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 116999225}
+  - component: {fileID: 186423740}
+  - component: {fileID: 186423743}
+  - component: {fileID: 186423742}
+  - component: {fileID: 186423741}
+  - component: {fileID: 186423739}
   m_Layer: 0
-  m_Name: P3M5B Duplicate Slot A Host Actor Mount
+  m_Name: P3M5B Duplicate Slot A Admission
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &116999225
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 116999224}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 626741241}
-  m_Father: {fileID: 1965943475}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &472772959
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 472772960}
-  m_Layer: 0
-  m_Name: P3M5B Duplicate Slot B Host Actor Mount
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &472772960
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 472772959}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1279406465}
-  m_Father: {fileID: 1102707303}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &626741238
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 116999225}
-    m_Modifications:
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      propertyPath: m_Name
-      value: P3M5B Duplicate Slot A Actor
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 626741242}
-  m_SourcePrefab: {fileID: 100100000, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
---- !u!114 &626741239 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4438141168736318348, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  m_PrefabInstance: {fileID: 626741238}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 626741240}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 26cc512b3155464caed4dc48a6c9de6d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Actors.PlayerActorDeclaration
---- !u!1 &626741240 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  m_PrefabInstance: {fileID: 626741238}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &626741241 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  m_PrefabInstance: {fileID: 626741238}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &626741242
+--- !u!114 &186423739
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 626741240}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7e4cd0957f664eeda71cf45e48a45c1d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneLogicalPlayerActorEvidence
-  actorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
-  logicalActorHostPrefab: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  authoringDiagnostic: P3M5B evidence for 'P3M5B Duplicate Slot A Actor' selected='P3M5B_SceneActorProfile'.
---- !u!1 &1055009115
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1055009118}
-  - component: {fileID: 1055009117}
-  - component: {fileID: 1055009116}
-  m_Layer: 0
-  m_Name: P3M5B Duplicate Slot A Contextual Admission Witness
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1055009116
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1055009115}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4c5a10848f54c0d83c5c88a2ce1d686, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Player.P3M5B.P3M5BContextualAdmissionWitness
-  admissionAuthoring: {fileID: 1965943474}
-  activityConsumerBinding: {fileID: 1055009117}
---- !u!114 &1055009117
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1055009115}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ebf679d50fa62684ab15cd8bfc764416, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerProvisioningConsumerAccessBinding
-  scope: 20
---- !u!4 &1055009118
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1055009115}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1102707301
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1102707303}
-  - component: {fileID: 1102707306}
-  - component: {fileID: 1102707305}
-  - component: {fileID: 1102707304}
-  - component: {fileID: 1102707302}
-  m_Layer: 0
-  m_Name: P3M5B Duplicate Slot B Admission
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1102707302
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1102707301}
+  m_GameObject: {fileID: 186423738}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d3d4f1b900974056a6247b2e4dbaa266, type: 3}
@@ -373,57 +153,56 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneLocalPlayerAdmissionAuthoring
   playerSlotProfile: {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
   actorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
-  sceneLogicalPlayerActor: {fileID: 1279406463}
+  sceneLogicalPlayerActor: {fileID: 2133765233}
   admissionTiming: 0
-  initialPlacementPolicy: 0
   evidenceActorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
   evidenceLogicalActorHostPrefab: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  evidenceDiagnostic: P3M5B fixture evidence for 'P3M5B Duplicate Slot B Admission'.
+  evidenceDiagnostic: P3M5B fixture evidence for 'P3M5B Duplicate Slot A Admission'.
   lastAuthoringStatus: 0
   lastAuthoringDiagnostic: Scene-Provided Player has not been validated.
---- !u!4 &1102707303
+--- !u!4 &186423740
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1102707301}
+  m_GameObject: {fileID: 186423738}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 472772960}
+  - {fileID: 1981779235}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1102707304
+--- !u!114 &186423741
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1102707301}
+  m_GameObject: {fileID: 186423738}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 43020ea2bdd04515a9232be09bdd3684, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerHostAuthoring
-  playerInput: {fileID: 1102707306}
-  actorMount: {fileID: 472772960}
---- !u!114 &1102707305
+  playerInput: {fileID: 186423743}
+  actorMount: {fileID: 1981779235}
+--- !u!114 &186423742
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1102707301}
+  m_GameObject: {fileID: 186423738}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dcfea0d7cc4144be8c064041108b58b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.UnityInput.UnityPlayerInputGateAdapter
-  playerInput: {fileID: 1102707306}
+  playerInput: {fileID: 186423743}
   gameplayActionMap:
     actionAsset: {fileID: 11400000, guid: 259c8527ac4fb9840bdd325ff0984352, type: 2}
     actionMapId: 59cf8f86-6261-40c6-800b-7a040cb212e7
@@ -436,13 +215,13 @@ MonoBehaviour:
   logStateChanges: 1
   logMissingRuntimeOnce: 1
   logMissingTargetOnce: 1
---- !u!114 &1102707306
+--- !u!114 &186423743
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1102707301}
+  m_GameObject: {fileID: 186423738}
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
@@ -466,13 +245,291 @@ MonoBehaviour:
   m_DefaultActionMap: Gameplay
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!1001 &1279406462
+--- !u!1 &561793138
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 561793141}
+  - component: {fileID: 561793140}
+  - component: {fileID: 561793139}
+  m_Layer: 0
+  m_Name: P3M5B Duplicate Slot B Contextual Admission Witness
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &561793139
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 561793138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4c5a10848f54c0d83c5c88a2ce1d686, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Player.P3M5B.P3M5BContextualAdmissionWitness
+  admissionAuthoring: {fileID: 1059330701}
+  activityConsumerBinding: {fileID: 561793140}
+--- !u!114 &561793140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 561793138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ebf679d50fa62684ab15cd8bfc764416, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerProvisioningConsumerAccessBinding
+  scope: 20
+--- !u!4 &561793141
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 561793138}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &622533823
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 622533824}
+  m_Layer: 0
+  m_Name: P3M5B Duplicate Slot B Host Actor Mount
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &622533824
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 622533823}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1591254970}
+  m_Father: {fileID: 1059330702}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &904100916
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 904100919}
+  - component: {fileID: 904100918}
+  - component: {fileID: 904100917}
+  m_Layer: 0
+  m_Name: P3M5B Duplicate Slot A Contextual Admission Witness
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &904100917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 904100916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4c5a10848f54c0d83c5c88a2ce1d686, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Player.P3M5B.P3M5BContextualAdmissionWitness
+  admissionAuthoring: {fileID: 186423739}
+  activityConsumerBinding: {fileID: 904100918}
+--- !u!114 &904100918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 904100916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ebf679d50fa62684ab15cd8bfc764416, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerProvisioningConsumerAccessBinding
+  scope: 20
+--- !u!4 &904100919
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 904100916}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1059330700
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1059330702}
+  - component: {fileID: 1059330705}
+  - component: {fileID: 1059330704}
+  - component: {fileID: 1059330703}
+  - component: {fileID: 1059330701}
+  m_Layer: 0
+  m_Name: P3M5B Duplicate Slot B Admission
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1059330701
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1059330700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3d4f1b900974056a6247b2e4dbaa266, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneLocalPlayerAdmissionAuthoring
+  playerSlotProfile: {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
+  actorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
+  sceneLogicalPlayerActor: {fileID: 1591254968}
+  admissionTiming: 0
+  evidenceActorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
+  evidenceLogicalActorHostPrefab: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+  evidenceDiagnostic: P3M5B fixture evidence for 'P3M5B Duplicate Slot B Admission'.
+  lastAuthoringStatus: 0
+  lastAuthoringDiagnostic: Scene-Provided Player has not been validated.
+--- !u!4 &1059330702
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1059330700}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 622533824}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1059330703
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1059330700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43020ea2bdd04515a9232be09bdd3684, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerHostAuthoring
+  playerInput: {fileID: 1059330705}
+  actorMount: {fileID: 622533824}
+--- !u!114 &1059330704
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1059330700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcfea0d7cc4144be8c064041108b58b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.UnityInput.UnityPlayerInputGateAdapter
+  playerInput: {fileID: 1059330705}
+  gameplayActionMap:
+    actionAsset: {fileID: 11400000, guid: 259c8527ac4fb9840bdd325ff0984352, type: 2}
+    actionMapId: 59cf8f86-6261-40c6-800b-7a040cb212e7
+    cachedActionMapName: Gameplay
+  gameplayActionMapName: Gameplay
+  blockOnInputAcceptance: 1
+  blockOnGameplayAction: 1
+  restorePreviousState: 1
+  applyOnEnable: 1
+  logStateChanges: 1
+  logMissingRuntimeOnce: 1
+  logMissingTargetOnce: 1
+--- !u!114 &1059330705
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1059330700}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.PlayerInput
+  m_Actions: {fileID: 11400000, guid: 259c8527ac4fb9840bdd325ff0984352, type: 2}
+  m_NotificationBehavior: 0
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents: []
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: Gameplay
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
+--- !u!1001 &1591254967
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 472772960}
+    m_TransformParent: {fileID: 622533824}
     m_Modifications:
     - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
       propertyPath: m_LocalPosition.x
@@ -524,36 +581,36 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1279406466}
+      addedObject: {fileID: 1591254971}
   m_SourcePrefab: {fileID: 100100000, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
---- !u!114 &1279406463 stripped
+--- !u!114 &1591254968 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4438141168736318348, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  m_PrefabInstance: {fileID: 1279406462}
+  m_PrefabInstance: {fileID: 1591254967}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1279406464}
+  m_GameObject: {fileID: 1591254969}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 26cc512b3155464caed4dc48a6c9de6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Actors.PlayerActorDeclaration
---- !u!1 &1279406464 stripped
+--- !u!1 &1591254969 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  m_PrefabInstance: {fileID: 1279406462}
+  m_PrefabInstance: {fileID: 1591254967}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &1279406465 stripped
+--- !u!4 &1591254970 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  m_PrefabInstance: {fileID: 1279406462}
+  m_PrefabInstance: {fileID: 1591254967}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1279406466
+--- !u!114 &1591254971
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1279406464}
+  m_GameObject: {fileID: 1591254969}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7e4cd0957f664eeda71cf45e48a45c1d, type: 3}
@@ -562,7 +619,7 @@ MonoBehaviour:
   actorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
   logicalActorHostPrefab: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
   authoringDiagnostic: P3M5B evidence for 'P3M5B Duplicate Slot B Actor' selected='P3M5B_SceneActorProfile'.
---- !u!1 &1609366006
+--- !u!1 &1981779234
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -570,190 +627,131 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1609366009}
-  - component: {fileID: 1609366008}
-  - component: {fileID: 1609366007}
+  - component: {fileID: 1981779235}
   m_Layer: 0
-  m_Name: P3M5B Duplicate Slot B Contextual Admission Witness
+  m_Name: P3M5B Duplicate Slot A Host Actor Mount
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1609366007
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1609366006}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4c5a10848f54c0d83c5c88a2ce1d686, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Player.P3M5B.P3M5BContextualAdmissionWitness
-  admissionAuthoring: {fileID: 1102707302}
-  activityConsumerBinding: {fileID: 1609366008}
---- !u!114 &1609366008
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1609366006}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ebf679d50fa62684ab15cd8bfc764416, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerProvisioningConsumerAccessBinding
-  scope: 20
---- !u!4 &1609366009
+--- !u!4 &1981779235
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1609366006}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1965943473
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1965943475}
-  - component: {fileID: 1965943478}
-  - component: {fileID: 1965943477}
-  - component: {fileID: 1965943476}
-  - component: {fileID: 1965943474}
-  m_Layer: 0
-  m_Name: P3M5B Duplicate Slot A Admission
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1965943474
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1965943473}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d3d4f1b900974056a6247b2e4dbaa266, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneLocalPlayerAdmissionAuthoring
-  playerSlotProfile: {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
-  actorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
-  sceneLogicalPlayerActor: {fileID: 626741239}
-  admissionTiming: 0
-  initialPlacementPolicy: 0
-  evidenceActorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
-  evidenceLogicalActorHostPrefab: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  evidenceDiagnostic: P3M5B fixture evidence for 'P3M5B Duplicate Slot A Admission'.
-  lastAuthoringStatus: 0
-  lastAuthoringDiagnostic: Scene-Provided Player has not been validated.
---- !u!4 &1965943475
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1965943473}
+  m_GameObject: {fileID: 1981779234}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 116999225}
-  m_Father: {fileID: 0}
+  - {fileID: 2133765235}
+  m_Father: {fileID: 186423740}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1965943476
-MonoBehaviour:
+--- !u!1001 &2133765232
+PrefabInstance:
   m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1981779235}
+    m_Modifications:
+    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+      propertyPath: m_Name
+      value: P3M5B Duplicate Slot A Actor
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2133765236}
+  m_SourcePrefab: {fileID: 100100000, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+--- !u!114 &2133765233 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4438141168736318348, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+  m_PrefabInstance: {fileID: 2133765232}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1965943473}
+  m_GameObject: {fileID: 2133765234}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43020ea2bdd04515a9232be09bdd3684, type: 3}
+  m_Script: {fileID: 11500000, guid: 26cc512b3155464caed4dc48a6c9de6d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerHostAuthoring
-  playerInput: {fileID: 1965943478}
-  actorMount: {fileID: 116999225}
---- !u!114 &1965943477
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Actors.PlayerActorDeclaration
+--- !u!1 &2133765234 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+  m_PrefabInstance: {fileID: 2133765232}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2133765235 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+  m_PrefabInstance: {fileID: 2133765232}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2133765236
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1965943473}
+  m_GameObject: {fileID: 2133765234}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dcfea0d7cc4144be8c064041108b58b1, type: 3}
+  m_Script: {fileID: 11500000, guid: 7e4cd0957f664eeda71cf45e48a45c1d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.UnityInput.UnityPlayerInputGateAdapter
-  playerInput: {fileID: 1965943478}
-  gameplayActionMap:
-    actionAsset: {fileID: 11400000, guid: 259c8527ac4fb9840bdd325ff0984352, type: 2}
-    actionMapId: 59cf8f86-6261-40c6-800b-7a040cb212e7
-    cachedActionMapName: Gameplay
-  gameplayActionMapName: Gameplay
-  blockOnInputAcceptance: 1
-  blockOnGameplayAction: 1
-  restorePreviousState: 1
-  applyOnEnable: 1
-  logStateChanges: 1
-  logMissingRuntimeOnce: 1
-  logMissingTargetOnce: 1
---- !u!114 &1965943478
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1965943473}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.PlayerInput
-  m_Actions: {fileID: 11400000, guid: 259c8527ac4fb9840bdd325ff0984352, type: 2}
-  m_NotificationBehavior: 0
-  m_UIInputModule: {fileID: 0}
-  m_DeviceLostEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_DeviceRegainedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_ControlsChangedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_ActionEvents: []
-  m_NeverAutoSwitchControlSchemes: 0
-  m_DefaultControlScheme: 
-  m_DefaultActionMap: Gameplay
-  m_SplitScreenIndex: -1
-  m_Camera: {fileID: 0}
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneLogicalPlayerActorEvidence
+  actorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
+  logicalActorHostPrefab: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
+  authoringDiagnostic: P3M5B evidence for 'P3M5B Duplicate Slot A Actor' selected='P3M5B_SceneActorProfile'.
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1965943475}
-  - {fileID: 1055009118}
-  - {fileID: 1102707303}
-  - {fileID: 1609366009}
+  - {fileID: 186423740}
+  - {fileID: 904100919}
+  - {fileID: 1059330702}
+  - {fileID: 561793141}

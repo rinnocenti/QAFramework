@@ -48,6 +48,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
             "ImmersiveFrameworkQA.QA_PLAYER_FULL.NoPhysicalHandoff";
         private const string PlacementKey =
             "ImmersiveFrameworkQA.QA_PLAYER_FULL.Placement";
+        private const string RouteSpatialEntryKey =
+            "ImmersiveFrameworkQA.QA_PLAYER_FULL.RouteSpatialEntry";
+        private const string ActivityRelocationKey =
+            "ImmersiveFrameworkQA.QA_PLAYER_FULL.ActivityRelocation";
+        private const int HistoricalMandatoryContractCount = 25;
         private const string LeaveKey =
             "ImmersiveFrameworkQA.QA_PLAYER_FULL.Leave";
         private const string FailedPhaseKey =
@@ -153,13 +158,21 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 QaPlayerParticipationAuthoringRegression.Run();
                 MarkPassed(SessionKey);
 
-                if (!QaAdr21ActivityPlayerInitialPlacementRegression.Execute(
-                        out string placementError))
+                if (!QaAdr21RoutePlayerSpatialEntryRegression.Execute(
+                        out string routeSpatialEntryError))
                 {
                     throw new InvalidOperationException(
-                        "ADR-021 initial placement regression failed: " + placementError);
+                        "ADR-021 Route Spatial Entry regression failed: " + routeSpatialEntryError);
                 }
-                MarkPassed(PlacementKey);
+                MarkPassed(RouteSpatialEntryKey);
+
+                if (!QaAdr21ActivityPlayerRelocationRegression.Execute(
+                        out string relocationError))
+                {
+                    throw new InvalidOperationException(
+                        "ADR-021 Activity Relocation regression failed: " + relocationError);
+                }
+                MarkPassed(ActivityRelocationKey);
 
                 SetPhase(Phase.PreparingSceneProvided);
                 QaP3M5BRouteTransitionAndNegativeMatrixSetup.Apply();
@@ -464,6 +477,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             SessionState.SetString(FailedContextualReprojectionKey, "NOT RUN");
             SessionState.SetString(NoPhysicalHandoffKey, "NOT RUN");
             SessionState.SetString(PlacementKey, "NOT RUN");
+            SessionState.SetString(RouteSpatialEntryKey, "NOT RUN");
+            SessionState.SetString(ActivityRelocationKey, "NOT RUN");
             SessionState.EraseString(FailedPhaseKey);
             SessionState.EraseString(ErrorKey);
             SessionState.EraseBool(SummaryEmittedKey);
@@ -489,10 +504,13 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             SessionState.SetBool(SummaryEmittedKey, true);
             Debug.Log(
-                $"{Prefix} status='Completed' verdict='PLAYER QA CERTIFIED' " +
+                $"{Prefix} status='Completed' verdict='PLAYER CURRENT AGGREGATE COMPLETE' " +
+                $"historicalFullPlayer='{HistoricalMandatoryContractCount}/{HistoricalMandatoryContractCount}' " +
                 $"serialization='{Result(SerializationKey)}' " +
                 $"session='{Result(SessionKey)}' " +
-                $"placement='{Result(PlacementKey)}' " +
+                $"routeSpatialEntry='{Result(RouteSpatialEntryKey)}' " +
+                $"activityRelocation='{Result(ActivityRelocationKey)}' " +
+                $"historicalPlacement='{Result(PlacementKey)}' " +
                 $"sceneProvided='{Result(SceneProvidedKey)}' " +
                 $"sceneProvidedLeave='{Result(SceneProvidedLeaveKey)}' " +
                 $"sceneProvidedNoActivityLeave='{Result(SceneProvidedNoActivityLeaveKey)}' " +
@@ -535,7 +553,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 $"message='{Escape(SessionState.GetString(ErrorKey, string.Empty))}' " +
                 $"serialization='{Result(SerializationKey)}' " +
                 $"session='{Result(SessionKey)}' " +
-                $"placement='{Result(PlacementKey)}' " +
+                $"routeSpatialEntry='{Result(RouteSpatialEntryKey)}' " +
+                $"activityRelocation='{Result(ActivityRelocationKey)}' " +
+                $"historicalPlacement='{Result(PlacementKey)}' " +
                 $"sceneProvided='{Result(SceneProvidedKey)}' " +
                 $"sceneProvidedLeave='{Result(SceneProvidedLeaveKey)}' " +
                 $"sceneProvidedNoActivityLeave='{Result(SceneProvidedNoActivityLeaveKey)}' " +
@@ -766,7 +786,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             new(9, "Activity -> none retains physical", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunAsync", SceneProvidedKey),
             new(10, "none -> Activity reuses physical", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunAsync", SceneProvidedKey),
             new(11, "Target Activity excludes Player without physical destruction", "QaPlayerProvisioningPublicSurfaceRegression.RunCertificationAsync", PublicSurfaceKey),
-            new(12, "No implicit teleport across Activities", "QaAdr21ActivityPlayerInitialPlacementRegression.Execute", PlacementKey),
+            new(12, "No implicit teleport across Activities", "QaAdr21ActivityPlayerRelocationRegression.Execute", ActivityRelocationKey),
             new(13, "Later SceneProvided candidate does not replace physical", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunAsync", SceneProvidedKey),
             new(14, "Failed first SceneProvided adoption does not steal candidate", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunFailedFirstSceneAdoptionAsync", FailedFirstSceneAdoptionKey),
             new(15, "Failed contextual reprojection retains committed physical", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunFailedContextualReprojectionAsync", FailedContextualReprojectionKey),
@@ -779,7 +799,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
             new(22, "SceneProvided Session termination", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunSceneSessionTerminationWithoutActivityAsync", SceneProvidedNoActivityTerminationKey),
             new(23, "Physical evidence stable between Activities", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunAsync", SceneProvidedKey),
             new(24, "Contextual input/gameplay evidence fresh", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunAsync", SceneProvidedKey),
-            new(25, "Normal A -> B requires no physical candidate or handoff", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunNoPhysicalHandoffOnActivityTransitionAsync", NoPhysicalHandoffKey)
+            new(25, "Normal A -> B requires no physical candidate or handoff", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunNoPhysicalHandoffOnActivityTransitionAsync", NoPhysicalHandoffKey),
+            new(26, "ADR-021 Model B Route Spatial Entry", "QaAdr21RoutePlayerSpatialEntryRegression.Execute", RouteSpatialEntryKey),
+            new(27, "ADR-021 Model B Activity Explicit Relocation", "QaAdr21ActivityPlayerRelocationRegression.Execute", ActivityRelocationKey)
         };
 
         private static int MandatoryContractCount => MandatoryContracts.Length;
@@ -791,7 +813,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             result => string.Equals(result, "PASS", StringComparison.Ordinal));
 
         private static bool AllMandatoryPhasesPassed() =>
-            MandatoryContractCount == 25 &&
+            MandatoryContractCount == 27 &&
             ExecutedMandatoryContractCount == MandatoryContractCount &&
             PassedMandatoryContractCount == MandatoryContractCount;
 

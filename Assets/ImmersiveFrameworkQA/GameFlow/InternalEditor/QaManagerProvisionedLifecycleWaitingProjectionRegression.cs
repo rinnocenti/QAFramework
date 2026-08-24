@@ -70,28 +70,16 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     .RequirePreparedForCurrentPlayMode();
                 completed.Add("m07-setup-confirmed");
 
-                FrameworkRuntimeHost host = null;
-                string hostDiagnostic =
-                    "FrameworkRuntimeHost startup has not been evaluated.";
-                for (int frame = 0; frame < StartupFrameBudget; frame++)
-                {
-                    if (QaH2FrameworkReadiness.TryResolveUniqueHost(
-                            out host,
-                            out hostDiagnostic) &&
-                        host != null &&
-                        host.State.GameFlowStarted)
-                    {
-                        break;
-                    }
-
-                    await Awaitable.NextFrameAsync();
-                }
-
                 Require(
-                    host != null &&
-                    host.State.GameFlowStarted,
-                    "Manager-Provisioned waiting projection requires the official started " +
-                    $"FrameworkRuntimeHost within '{StartupFrameBudget}' frames. {hostDiagnostic}");
+                    QaH2FrameworkReadiness.TryResolveUniqueHost(
+                        out FrameworkRuntimeHost host,
+                        out string hostDiagnostic) &&
+                    host != null,
+                    "Manager-Provisioned waiting projection requires one " +
+                    "FrameworkRuntimeHost. " + hostDiagnostic);
+                await QaH2FrameworkReadiness.RequireStartedRouteAsync(
+                    host,
+                    StartupFrameBudget);
                 completed.Add("official-host-resolved");
 
                 LocalPlayerProvisioningAuthoring authoring =

@@ -95,10 +95,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         out FrameworkRuntimeHost host,
                         out string hostDiagnostic),
                     hostDiagnostic);
-                Require(
-                    host != null && host.State.GameFlowStarted &&
-                    host.State.CurrentRoute != null,
-                    "ADR020-H requires a started Game Flow runtime with a current Route.");
+                await QaH2FrameworkReadiness.RequireStartedRouteAsync(
+                    host,
+                    FrameBudget);
                 Complete(completed, "runtime-started");
 
                 Require(

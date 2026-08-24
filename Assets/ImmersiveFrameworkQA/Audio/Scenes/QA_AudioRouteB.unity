@@ -747,7 +747,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Audio::Immersive.Framework.Audio.FrameworkRouteBgmBinding
   routeBgm: {fileID: 0}
   director: {fileID: 0}
-  startupActivityBgmBinding: {fileID: 0}
 --- !u!114 &1161741119
 MonoBehaviour:
   m_ObjectHideFlags: 0

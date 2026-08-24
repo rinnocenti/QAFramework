@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.ActivityAsset
   activityId: qa.qa.frameworkbgmstartupactivity
   activityName: QA Framework BGM Startup Activity
-  description: Startup Activity BGM pre-apply.
+  description: Startup Activity BGM lifecycle resolution.
   playerParticipationProjectionMode: 0
   playerParticipationZeroParticipantPolicy: 0
   playerParticipationExplicitSlotProfiles: []

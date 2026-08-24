@@ -18,5 +18,6 @@ MonoBehaviour:
   primarySceneName: P3M5B_FailedReprojection_Route
   routeContentProfile: {fileID: 0}
   startupActivity: {fileID: 11400000, guid: d8be62056983ce448908dc0279460ebf, type: 2}
+  playerSpatialEntryPolicy: 0
   transitionGateMode: 30
   description: P3M5B QA-only Route with a real Scene Local Player Startup Activity.

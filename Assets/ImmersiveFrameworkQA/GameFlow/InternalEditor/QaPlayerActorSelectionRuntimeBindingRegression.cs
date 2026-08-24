@@ -42,11 +42,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 Require(
                     EditorApplication.isPlaying,
                     "Player Actor Selection Runtime Binding regression requires Play Mode.");
-                Require(
-                    QaH2FrameworkReadiness.TryResolveUniqueHost(
-                        out FrameworkRuntimeHost host) &&
-                    host != null,
-                    "Player Actor Selection Runtime Binding regression requires FrameworkRuntimeHost.");
+                FrameworkRuntimeHost host = await AwaitStartedFrameworkRuntimeHostAsync();
 
                 IPlayerActorSelectionRuntimePort hostRuntime = host;
                 string hostRuntimeIssue = string.Empty;
@@ -557,6 +553,24 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             throw new InvalidOperationException(
                 "Timed out waiting for LocalPlayerProvisioningAuthoring RuntimeReady.");
+        }
+
+        private static async Task<FrameworkRuntimeHost>
+            AwaitStartedFrameworkRuntimeHostAsync()
+        {
+            Require(
+                QaH2FrameworkReadiness.TryResolveUniqueHost(
+                    out FrameworkRuntimeHost host,
+                    out string hostDiagnostic) &&
+                host != null,
+                "Player Actor Selection Runtime Binding regression requires " +
+                "one FrameworkRuntimeHost. " + hostDiagnostic);
+
+            const int maxFrames = 600;
+            await QaH2FrameworkReadiness.RequireStartedRouteAsync(
+                host,
+                maxFrames);
+            return host;
         }
 
         private static PlayerSlotRuntimeSnapshot FindSlot(

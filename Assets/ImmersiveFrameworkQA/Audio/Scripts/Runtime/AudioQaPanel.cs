@@ -558,7 +558,7 @@ namespace ImmersiveFrameworkQA.Audio
             }
             else
             {
-                if (GUILayout.Button("Request Startup Activity BGM")) frameworkBgmPanel.RequestStartupActivity();
+                if (GUILayout.Button("Resolve Startup Activity Route BGM")) frameworkBgmPanel.RequestStartupActivity();
                 if (GUILayout.Button("Request Activity Own BGM")) frameworkBgmPanel.RequestOwnActivity();
                 if (GUILayout.Button("Request Retain Previous Activity")) frameworkBgmPanel.RequestRetainPreviousActivity();
                 if (GUILayout.Button("Request Route Fallback Activity")) frameworkBgmPanel.RequestRouteFallbackActivity();

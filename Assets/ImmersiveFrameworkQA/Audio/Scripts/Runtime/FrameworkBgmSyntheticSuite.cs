@@ -28,11 +28,10 @@ namespace ImmersiveFrameworkQA.Audio
             AudioRuntimeHost host = fixture.RuntimeHost;
             AudioBgmCueAsset routeCue = fixture.ExpectedRouteBgm;
             AudioBgmCueAsset activityCue = fixture.ExpectedOwnActivityBgm;
-            AudioBgmCueAsset startupCue = fixture.ExpectedStartupActivityBgm;
 
-            if (routeCue == null || activityCue == null || startupCue == null)
+            if (routeCue == null || activityCue == null)
             {
-                result.Fail("framework-bgm", "fixture-cues", "route/startup/activity cues assigned", "one or more cues missing", "Run the Audio QA configurator.");
+                result.Fail("framework-bgm", "fixture-cues", "route/activity cues assigned", "one or more cues missing", "Run the Audio QA configurator.");
                 completed?.Invoke(result);
                 yield break;
             }
@@ -41,6 +40,12 @@ namespace ImmersiveFrameworkQA.Audio
             // contract assertions below.
             director.SetActivityBgm(null, FrameworkBgmActivityPolicy.Silence);
             yield return WaitForProviderStop(host);
+
+            yield return RunStartupActivityIsolation(
+                result,
+                director,
+                routeCue,
+                activityCue);
 
             try
             {
@@ -91,9 +96,6 @@ namespace ImmersiveFrameworkQA.Audio
                         && director.ConfirmedBgm == activityCue,
                     "NoChange; requested=<null>; confirmed=ActivityCue",
                     Describe(clearRoute));
-
-                Assert(result, "framework-bgm", "startup-route-is-deferred", director.SetRouteBgm(routeCue, FrameworkBgmRoutePolicy.PlayOwn, true), FrameworkBgmOperationOutcome.NoChange, activityCue, false);
-                Assert(result, "framework-bgm", "startup-activity-prevents-route-transient-play", director.SetActivityBgm(startupCue, FrameworkBgmActivityPolicy.UseOwnOrRoute), FrameworkBgmOperationOutcome.Applied, startupCue, false);
 
                 Assert(result, "framework-bgm", "explicit-silence", director.SetActivityBgm(null, FrameworkBgmActivityPolicy.Silence), FrameworkBgmOperationOutcome.Released, null, true);
                 FrameworkBgmOperationResult clearAfterSilence = director.ClearActivityBgm(null);
@@ -203,6 +205,110 @@ namespace ImmersiveFrameworkQA.Audio
                 "OptionalAuthorityUnavailable; no confirmed presentation",
                 Describe(unavailable));
             UnityEngine.Object.DestroyImmediate(unavailableRoot);
+        }
+
+        private static IEnumerator RunStartupActivityIsolation(
+            SyntheticSuiteResult result,
+            FrameworkBgmDirector sourceDirector,
+            AudioBgmCueAsset routeCue,
+            AudioBgmCueAsset activityCue)
+        {
+            var isolationParent = new GameObject(
+                "QA_Synthetic_StartupActivityIsolation");
+            isolationParent.SetActive(false);
+
+            try
+            {
+                GameObject isolatedRoot = UnityEngine.Object.Instantiate(
+                    sourceDirector.gameObject,
+                    isolationParent.transform);
+                FrameworkBgmDirector isolatedDirector =
+                    isolatedRoot.GetComponent<FrameworkBgmDirector>();
+                AudioRuntimeHost isolatedHost =
+                    isolatedRoot.GetComponentInChildren<AudioRuntimeHost>(true);
+                if (isolatedDirector == null || isolatedHost == null)
+                {
+                    result.Fail(
+                        "framework-bgm",
+                        "startup-activity-isolation-fixture",
+                        "cloned Director and AudioRuntimeHost",
+                        $"director={(isolatedDirector != null)}; host={(isolatedHost != null)}",
+                        "Could not create the authored fixture clone required for isolated Startup Activity verification.");
+                    yield break;
+                }
+
+                isolatedDirector.enabled = false;
+                isolationParent.SetActive(true);
+                isolatedHost.StopBgm();
+                yield return WaitForProviderStop(isolatedHost);
+
+                AudioSource source = RequireProviderSource(
+                    result,
+                    isolatedHost,
+                    "startup-activity-isolation-provider");
+                if (source == null)
+                {
+                    yield break;
+                }
+
+                AudioBgmService service =
+                    isolatedHost.BgmService as AudioBgmService;
+                Check(
+                    result,
+                    "framework-bgm",
+                    "startup-activity-neutral-baseline",
+                    isolatedDirector.ConfirmedBgm == null
+                        && !isolatedDirector.ConfirmedExplicitSilence
+                        && !source.isPlaying
+                        && service != null
+                        && service.ActiveCue == null,
+                    "confirmed=<null>; confirmedSilence=False; provider=stopped",
+                    $"confirmed={NameOf(isolatedDirector.ConfirmedBgm)}; confirmedSilence={isolatedDirector.ConfirmedExplicitSilence}; playing={source.isPlaying}; active={NameOf(service != null ? service.ActiveCue : null)}");
+
+                FrameworkBgmOperationResult deferredRoute =
+                    isolatedDirector.SetRouteBgm(
+                        routeCue,
+                        FrameworkBgmRoutePolicy.PlayOwn,
+                        true);
+                Check(
+                    result,
+                    "framework-bgm",
+                    "startup-route-is-deferred",
+                    deferredRoute.Outcome == FrameworkBgmOperationOutcome.NoChange
+                        && isolatedDirector.ConfirmedBgm == null
+                        && !isolatedDirector.ConfirmedExplicitSilence
+                        && !source.isPlaying
+                        && service != null
+                        && service.ActiveCue == null,
+                    "NoChange; confirmed=<null>; provider has no RouteCue presentation",
+                    Describe(deferredRoute) +
+                    $"; playing={source.isPlaying}; active={NameOf(service != null ? service.ActiveCue : null)}");
+
+                FrameworkBgmOperationResult activityOwn =
+                    isolatedDirector.SetActivityBgm(
+                        activityCue,
+                        FrameworkBgmActivityPolicy.UseOwnOrRoute);
+                Check(
+                    result,
+                    "framework-bgm",
+                    "startup-activity-prevents-route-transient-play",
+                    activityOwn.Outcome == FrameworkBgmOperationOutcome.Applied
+                        && activityOwn.ConfirmedCue == activityCue
+                        && !activityOwn.ConfirmedExplicitSilence
+                        && isolatedDirector.ConfirmedBgm == activityCue
+                        && source.isPlaying
+                        && service != null
+                        && ReferenceEquals(service.ActiveCue, activityCue),
+                    "Applied; confirmed=ActivityCue; provider playing ActivityCue",
+                    Describe(activityOwn) +
+                    $"; playing={source.isPlaying}; active={NameOf(service != null ? service.ActiveCue : null)}");
+            }
+            finally
+            {
+                UnityEngine.Object.Destroy(isolationParent);
+            }
+
+            yield return null;
         }
 
         private static IEnumerator RunPhysicalProviderContinuity(

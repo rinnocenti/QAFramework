@@ -152,7 +152,7 @@ namespace ImmersiveFrameworkQA.Audio
             RequestActivity(
                 startupActivityTrigger,
                 "startup",
-                "Expected: Startup Activity BGM applies.");
+                "Expected: Route BGM resolves after Startup Activity completion.");
         }
 
         public void RequestOwnActivity()
@@ -301,7 +301,7 @@ namespace ImmersiveFrameworkQA.Audio
 
             DrawActivityButton(
                 startupActivityTrigger,
-                "1. Startup Activity BGM",
+                "1. Startup Activity: resolve Route BGM",
                 RequestStartupActivity);
             GUILayout.Label("   Expected cue: " + FormatCue(expectedStartupActivityBgm));
 
@@ -309,7 +309,7 @@ namespace ImmersiveFrameworkQA.Audio
                 clearActivityTrigger,
                 "2. Clear Activity: Preserve Confirmed",
                 ClearActivity);
-            GUILayout.Label("   Expected: Startup Activity BGM continues; clear is NoRequest.");
+            GUILayout.Label("   Expected: Route BGM remains; clear is NoRequest.");
 
             DrawActivityButton(
                 ownActivityTrigger,
@@ -362,7 +362,7 @@ namespace ImmersiveFrameworkQA.Audio
             GUILayout.Space(6f);
             GUILayout.Label("Expected logs:");
             GUILayout.Label("- [FRAMEWORK_BGM] Route/Activity explicit BGM intent set");
-            GUILayout.Label("- [FRAMEWORK_BGM] Startup Activity BGM pre-applied");
+            GUILayout.Label("- [FRAMEWORK_BGM] Startup Activity intent resolves before pending Route intent");
             GUILayout.Label("- owner exits preserve the confirmed BGM without provider mutation");
             GUILayout.Label("- [FRAMEWORK_BGM] BGM operation completed with provider-confirmed outcome");
             GUILayout.Label("- [FRAMEWORK_BGM] explicit Silence intent applied");

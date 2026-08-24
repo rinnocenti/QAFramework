@@ -58,10 +58,10 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             AudioDefaultsAsset defaults = CreateDefaultsAsset();
             AudioBgmCueAsset routeCue = CreateBgmCue(RouteCuePath, "qa.framework.bgm.route", generatedClips.BgmClip, 0.45f);
             AudioBgmCueAsset alternateRouteCue = CreateBgmCue(AlternateRouteCuePath, "qa.framework.bgm.route-b", generatedClips.BgmClip, 0.5f);
-            AudioBgmCueAsset startupCue = CreateBgmCue(StartupActivityCuePath, "qa.framework.bgm.startup-activity", generatedClips.BgmClip, 0.55f);
+            CreateBgmCue(StartupActivityCuePath, "qa.framework.bgm.startup-activity", generatedClips.BgmClip, 0.55f);
             AudioBgmCueAsset ownActivityCue = CreateBgmCue(OwnActivityCuePath, "qa.framework.bgm.activity-own", generatedClips.BgmClip, 0.6f);
 
-            ActivityAsset startupActivity = CreateActivityAsset(StartupActivityPath, "QA Framework BGM Startup Activity", "Startup Activity BGM pre-apply.");
+            ActivityAsset startupActivity = CreateActivityAsset(StartupActivityPath, "QA Framework BGM Startup Activity", "Startup Activity BGM lifecycle resolution.");
             ActivityAsset ownActivity = CreateActivityAsset(OwnActivityPath, "QA Framework BGM Own Activity", "Activity with its own retained BGM.");
             ActivityAsset retainActivity = CreateActivityAsset(RetainActivityPath, "QA Framework BGM Retain Previous Activity", "Activity with no own BGM that retains previous Activity BGM.");
             ActivityAsset routeFallbackActivity = CreateActivityAsset(RouteFallbackActivityPath, "QA Framework BGM Route Fallback Activity", "Activity that explicitly uses Route BGM.");
@@ -96,7 +96,6 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             silenceActivity = AssetDatabase.LoadAssetAtPath<ActivityAsset>(SilenceActivityPath);
             defaults = AssetDatabase.LoadAssetAtPath<AudioDefaultsAsset>(DefaultsPath);
             routeCue = AssetDatabase.LoadAssetAtPath<AudioBgmCueAsset>(RouteCuePath);
-            startupCue = AssetDatabase.LoadAssetAtPath<AudioBgmCueAsset>(StartupActivityCuePath);
             ownActivityCue = AssetDatabase.LoadAssetAtPath<AudioBgmCueAsset>(OwnActivityCuePath);
 
             bool canonicalConfigured = ConfigureScene(
@@ -112,7 +111,7 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                 silenceActivity,
                 defaults,
                 routeCue,
-                startupCue,
+                null,
                 ownActivityCue,
                 new Vector3(0f, 2f, -10f),
                 Color.black);
@@ -201,7 +200,6 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                 & SetSerialized(director, "audioRuntimeHost", runtimeHost)
                 & SetSerialized(director, "logTransitions", true);
 
-            FrameworkActivityBgmBinding startupBinding = null;
             if (startupCue != null)
             {
                 valid &= EnsureActivityBinding(
@@ -213,7 +211,13 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                     director,
                     "startup",
                     label,
-                    out startupBinding);
+                    out _);
+            }
+            else
+            {
+                valid &= RemoveRoot(
+                    scene,
+                    $"QA_FrameworkBgm_Activity_Startup_{label}");
             }
 
             valid &= EnsureActivityBinding(
@@ -269,7 +273,6 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                     : FrameworkBgmRoutePolicy.PreserveCurrent));
             valid &= SetSerialized(routeBgmBinding, "routePolicySerializationVersion", 1);
             valid &= SetSerialized(routeBgmBinding, "director", director);
-            valid &= SetSerialized(routeBgmBinding, "startupActivityBgmBinding", startupBinding);
 
             valid &= ConfigurePanel(
                 scene,
@@ -282,7 +285,7 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                 silenceActivity,
                 director,
                 routeCue,
-                startupCue,
+                routeCue,
                 ownActivityCue);
 
             valid &= ValidateObjectReference(routeContentBinding, "route", activeRoute, $"RouteContentBinding route on '{root.name}'")
@@ -292,11 +295,6 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                  & ValidateObjectReference(routeBgmBinding, "routeBgm", routeCue, $"FrameworkRouteBgmBinding routeBgm on '{root.name}'")
                  & ValidateInt(routeBgmBinding, "policy", (int)(routeCue != null ? FrameworkBgmRoutePolicy.PlayOwn : FrameworkBgmRoutePolicy.PreserveCurrent), $"FrameworkRouteBgmBinding policy on '{root.name}'")
                  & ValidateObjectReference(routeBgmBinding, "director", director, $"FrameworkRouteBgmBinding director on '{root.name}'");
-
-            if (startupCue != null)
-            {
-                valid &= ValidateObjectReference(routeBgmBinding, "startupActivityBgmBinding", startupBinding, $"FrameworkRouteBgmBinding startupActivityBgmBinding on '{root.name}'");
-            }
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, scenePath);
@@ -714,6 +712,18 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             SceneManager.MoveGameObjectToScene(root, scene);
             root.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
             return root;
+        }
+
+        private static bool RemoveRoot(Scene scene, string name)
+        {
+            GameObject root = FindInScene(scene, name);
+            if (root == null)
+            {
+                return true;
+            }
+
+            Object.DestroyImmediate(root);
+            return FindInScene(scene, name) == null;
         }
 
         private static GameObject EnsureChild(Scene scene, Transform parent, string name)

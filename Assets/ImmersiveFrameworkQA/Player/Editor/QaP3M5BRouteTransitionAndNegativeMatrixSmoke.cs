@@ -1234,18 +1234,24 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private static async Task<Component>
             AwaitUniqueReadyQaRuntimeHostAsync()
         {
+            AssertTrue(
+                QaFrameworkReadiness.TryResolveUniqueHost(
+                    out Component host,
+                    out string hostDiagnostic) &&
+                host != null,
+                "P3M5B requires exactly one loaded FrameworkRuntimeHost " +
+                "from the explicit QA resolver. " + hostDiagnostic);
+
             string lastReadinessDiagnostic =
-                "FrameworkRuntimeHost readiness has not been evaluated.";
+                hostDiagnostic;
 
             for (int frame = 0; frame < 300; frame++)
             {
-                if (!QaFrameworkReadiness.TryResolveUniqueHost(
-                        out Component host,
-                        out string hostDiagnostic))
+                if (host == null)
                 {
                     throw new InvalidOperationException(
-                        "P3M5B requires exactly one loaded FrameworkRuntimeHost " +
-                        $"from the explicit QA resolver. {hostDiagnostic}");
+                        "FrameworkRuntimeHost was destroyed before P3M5B readiness completed. " +
+                        lastReadinessDiagnostic);
                 }
 
                 bool hostReady = QaPlayerRuntimeObservationBridge.IsReady(host);

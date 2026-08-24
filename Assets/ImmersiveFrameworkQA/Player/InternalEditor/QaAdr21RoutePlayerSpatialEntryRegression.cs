@@ -457,7 +457,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 player.Target.position = nudged;
                 Quaternion nudgedRotation = player.Target.rotation;
                 int occurrence = participant.LastContext.OccurrenceSequence;
-                Require(player.Binding.TryApplyRouteSpatialEntry(player.Handle, out string repeatIssue),
+                Require(player.Binding.TryApplyBeforeActivation(player.Handle, out string repeatIssue),
                     "CASE 6 repeat delivery of the same occurrence failed. " + repeatIssue);
                 Require(player.Target.position == nudged && SameRotation(player.Target.rotation, nudgedRotation),
                     "CASE 6 same Route occurrence mutated spatial pose a second time.");
@@ -817,13 +817,14 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             try
             {
                 routeAuthoring = CreateRouteBinding(world.PrimaryA, p1, new Vector3(2f, 4f, 6f), Quaternion.Euler(0f, 40f, 0f));
-                activityAuthoring = CreateActivityPlacementAuthoring(
+                activityProfile = CreateActivityContentProfile("qa.adr021.activity-content", world.ActivityContent);
+                activity = CreateActivity("qa.adr021.activity.no-relocation", "ADR021 No Relocation", activityProfile);
+                activityAuthoring = CreateActivityRelocationAuthoring(
                     world.ActivityContent,
+                    activity,
                     p1,
                     new Vector3(99f, 0f, 99f),
                     Quaternion.identity);
-                activityProfile = CreateActivityContentProfile("qa.adr021.activity-content", world.ActivityContent);
-                activity = CreateActivity("qa.adr021.activity.no-relocation", "ADR021 No Relocation", activityProfile);
                 route = CreateRoute(
                     "qa.adr021.route.then-activity",
                     "ADR021 Then Activity",
@@ -849,10 +850,10 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 Require(
                     player.Target.position == routePose.Position &&
                     SameRotation(player.Target.rotation, routePose.Rotation),
-                    "CASE 15 Activity enter changed pose. Old Activity initial placement must not run as Route fallback.");
+                    "CASE 15 Activity enter changed pose. Activity NoRelocation must not run as Route fallback.");
                 Require(
                     !SamePose(player.Target, GetAnchor(activityAuthoring)),
-                    "CASE 15 applied historical Activity initial placement during Activity enter.");
+                    "CASE 15 applied Activity relocation during Activity enter.");
                 LogIdentity("ActivityEnterWithoutRelocationDoesNotRepeatRouteEntry", participant, player, route, occurrence);
             }
             finally
@@ -995,7 +996,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 player.Target.position = player.Target.position + Vector3.up;
                 PlayerActorMaterializationHandle replacement = player.CreateReplacementHandle("qa.physical.case18-b");
                 Require(
-                    player.Binding.TryApplyRouteSpatialEntry(replacement, out string issue),
+                    player.Binding.TryApplyBeforeActivation(replacement, out string issue),
                     "CASE 18 replacement representation was not processed. " + issue);
                 Require(SamePose(player.Target, GetAnchor(authoring)),
                     "CASE 18 gate ignored physical representation identity inside the same Route occurrence.");
@@ -1162,24 +1163,26 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             return root;
         }
 
-        private static GameObject CreateActivityPlacementAuthoring(
+        private static GameObject CreateActivityRelocationAuthoring(
             Scene scene,
+            ActivityAsset activity,
             PlayerSlotProfile slot,
             Vector3 position,
             Quaternion rotation)
         {
-            GameObject root = CreateInScene(scene, "ActivityPlayerInitialPlacement");
-            ActivityPlayerInitialPlacementAuthoring authoring = root.AddComponent<ActivityPlayerInitialPlacementAuthoring>();
-            GameObject anchor = CreateInScene(scene, "ActivityAnchor");
+            GameObject root = CreateInScene(scene, "ActivityPlayerRelocation");
+            ActivityPlayerRelocationAuthoring authoring = root.AddComponent<ActivityPlayerRelocationAuthoring>();
+            GameObject anchor = CreateInScene(scene, "ActivityRelocationAnchor");
             anchor.transform.SetParent(root.transform, true);
             anchor.transform.SetPositionAndRotation(position, rotation);
             var serialized = new SerializedObject(authoring);
             SerializedProperty bindings = serialized.FindProperty("bindings");
-            Require(bindings != null, "ActivityPlayerInitialPlacementAuthoring.bindings was not found.");
+            Require(bindings != null, "ActivityPlayerRelocationAuthoring.bindings was not found.");
             bindings.arraySize = 1;
             SerializedProperty element = bindings.GetArrayElementAtIndex(0);
+            element.FindPropertyRelative("activity").objectReferenceValue = activity;
             element.FindPropertyRelative("playerSlotProfile").objectReferenceValue = slot;
-            element.FindPropertyRelative("placementAnchor").objectReferenceValue = anchor.transform;
+            element.FindPropertyRelative("relocationAnchor").objectReferenceValue = anchor.transform;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             return root;
         }
@@ -1465,7 +1468,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 GameObject root,
                 LocalPlayerHostAuthoring host,
                 PlayerActorDeclaration actor,
-                ActivityPlayerInitialPlacementRuntimeBinding binding,
+                RoutePlayerSpatialEntryRuntimeBinding binding,
                 PlayerActorMaterializationHandle handle,
                 PlayerSlotId slotId,
                 ActorId actorId,
@@ -1484,7 +1487,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             internal GameObject Root { get; }
             internal LocalPlayerHostAuthoring Host { get; }
             internal PlayerActorDeclaration Actor { get; }
-            internal ActivityPlayerInitialPlacementRuntimeBinding Binding { get; }
+            internal RoutePlayerSpatialEntryRuntimeBinding Binding { get; }
             internal PlayerActorMaterializationHandle Handle { get; private set; }
             internal PlayerSlotId SlotId { get; }
             internal ActorId ActorId { get; }
@@ -1532,8 +1535,8 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 admissionSerialized.FindProperty("sceneLogicalPlayerActor").objectReferenceValue = actor;
                 admissionSerialized.ApplyModifiedPropertiesWithoutUndo();
 
-                ActivityPlayerInitialPlacementRuntimeBinding binding =
-                    root.AddComponent<ActivityPlayerInitialPlacementRuntimeBinding>();
+                RoutePlayerSpatialEntryRuntimeBinding binding =
+                    root.AddComponent<RoutePlayerSpatialEntryRuntimeBinding>();
                 Require(slot.TryGetPlayerSlotId(out PlayerSlotId slotId, out string slotIssue),
                     "QA PlayerSlotProfile did not resolve a SlotId. " + slotIssue);
                 PlayerActorMaterializationHandle handle = CreateHandle(
@@ -1672,7 +1675,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
         /// <summary>
         /// Host-scoped participant registered on RouteLifecycleRuntime. It uses the same
         /// IRoutePlayerSpatialEntryLifecycleParticipant contract and the same
-        /// ActivityPlayerInitialPlacementRuntimeBinding gate as
+        /// RoutePlayerSpatialEntryRuntimeBinding gate as
         /// PlayerActorPreparationRuntimeHostModule.
         /// </summary>
         private sealed class SpatialEntryParticipant : IRoutePlayerSpatialEntryLifecycleParticipant
@@ -1705,7 +1708,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 issue = string.Empty;
                 if (player != null)
                 {
-                    player.Binding.ConfigureRouteSpatialEntry(context);
+                    player.Binding.Configure(context);
                 }
 
                 if (!admitted || player == null)
@@ -1739,7 +1742,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                     return false;
                 }
 
-                player.Binding.ConfigureRouteSpatialEntry(LastContext);
+                player.Binding.Configure(LastContext);
                 return ApplyCurrent(out issue);
             }
 
@@ -1780,7 +1783,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             private bool ApplyCurrent(out string issue)
             {
                 ApplyInvocationCount++;
-                bool applied = player.Binding.TryApplyRouteSpatialEntry(player.Handle, out issue);
+                bool applied = player.Binding.TryApplyBeforeActivation(player.Handle, out issue);
                 LastApplySucceeded = applied;
                 LastIssue = issue ?? string.Empty;
                 return applied;

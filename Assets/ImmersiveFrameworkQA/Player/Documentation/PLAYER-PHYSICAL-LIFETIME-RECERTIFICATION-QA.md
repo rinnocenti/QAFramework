@@ -24,7 +24,7 @@ pose while producing new contextual readiness/gameplay evidence.
 | `QaPlayerProvisioningPublicSurfaceRegression` | API-MIGRATE | Manager-Provisioned exit/re-entry now captures and preserves the exact Actor entity and pose. |
 | `QaPlayerProvisioningPublicSurfaceNegativeRegression` | API-MIGRATE | Exit no longer expects physical Actor destruction. |
 | `QaSessionPlayerLeavePublicManagerRegression` | KEEP / FULL-QA | ADR020-H retains public occurrence-safe Leave proof and is now a Full Player QA phase. |
-| `QaAdr21ActivityPlayerInitialPlacementRegression` | KEEP | First-placement and explicit Scene-Provided policies remain valid; it must not be read as proof that every new Activity re-places a Player. |
+| `QaAdr21ActivityPlayerInitialPlacementRegression` | SUPERSEDED | Historical Activity-owned Initial Placement 9/9 remains documented. It is not a current Model B owner. Current owners: `QaAdr21RoutePlayerSpatialEntryRegression` and `QaAdr21ActivityPlayerRelocationRegression`. |
 | Old generated `Player/Scripts/Runtime/*.cs` entries | RETIRE | They are absent source files retained only by the generated `.csproj`; Unity must regenerate project files rather than recreating retired QA fixtures. |
 
 ## Covered by this cut
@@ -47,14 +47,14 @@ pose while producing new contextual readiness/gameplay evidence.
   `SceneLocalPlayerAdmissionAuthoring` surface: it exposes admission/release but not
   the public exact-occurrence Session Leave command. Do not bypass that boundary with
   reflection or internal runtime-module access.
-- ADR-021 first-placement regression remains an Edit Mode contract proof. The runtime
-  A→B no-teleport proof belongs to the P3M5B Play Mode path.
+- Historical ADR-021 Activity-owned Initial Placement 9/9 remains documentary only.
+  Current Model B Edit Mode owners are Route Spatial Entry and Activity Relocation.
 
 ## Unity execution order
 
 1. In Edit Mode, run `Immersive Framework > QA > Player > P3M5B Apply Route Transition and Negative Matrix Fixture`.
 2. Enter a fresh normal Play Mode session and run `Immersive Framework > QA > Player > Scene Provided > Run Integration`.
-3. Return to Edit Mode and run `Immersive Framework > QA > Player > Run ADR-021 Initial Placement QA`.
+3. Return to Edit Mode and run `Immersive Framework > QA > Player > Run ADR-021 Route Spatial Entry QA`, then `Run ADR-021 Activity Relocation QA`.
 4. In Edit Mode, run `Immersive Framework > QA > Player > Run Full Player QA`. It now runs Scene-Provided, Manager-Provisioned, public surface, ADR020-H Leave and participation phases in fresh Play Mode sessions.
 
 Collect each final diagnostic line. A `Passed` result is required from Unity before
