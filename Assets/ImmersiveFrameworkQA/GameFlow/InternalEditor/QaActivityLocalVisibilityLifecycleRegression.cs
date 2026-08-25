@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Immersive.Framework.ActivityFlow;
-using ActivityLocalVisibilityAdapter = Immersive.Framework.ActivityFlow.ActivityContentBinding;
 using Immersive.Framework.ApplicationLifecycle;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentFlow;
@@ -262,7 +261,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             ActivityAsset activityA,
             ActivityAsset activityC)
         {
-            (ActivityLocalVisibilityAdapter invalid, QaActivityLocalVisibilityLifecycleProbe probe) =
+            (ActivityVisibilityRule invalid, QaActivityLocalVisibilityLifecycleProbe probe) =
                 Fixture.CreateInvalidBinding(
                     scene,
                     FrameworkContentRequiredness.Required);
@@ -304,7 +303,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             Scene scene,
             ActivityAsset activityC)
         {
-            (ActivityLocalVisibilityAdapter invalid, QaActivityLocalVisibilityLifecycleProbe probe) =
+            (ActivityVisibilityRule invalid, QaActivityLocalVisibilityLifecycleProbe probe) =
                 Fixture.CreateInvalidBinding(
                     scene,
                     FrameworkContentRequiredness.Optional);
@@ -465,11 +464,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         {
             private readonly IReadOnlyList<QaActivityLocalVisibilityLifecycleProbe> _probes;
             private Fixture(
-                ActivityLocalVisibilityAdapter positiveSingle,
-                ActivityLocalVisibilityAdapter positiveMultiple,
-                ActivityLocalVisibilityAdapter negativeSingle,
-                ActivityLocalVisibilityAdapter negativeMultiple,
-                ActivityLocalVisibilityAdapter noActiveVisible,
+                ActivityVisibilityRule positiveSingle,
+                ActivityVisibilityRule positiveMultiple,
+                ActivityVisibilityRule negativeSingle,
+                ActivityVisibilityRule negativeMultiple,
+                ActivityVisibilityRule noActiveVisible,
                 QaActivityLocalVisibilityLifecycleProbe positiveSingleProbe,
                 QaActivityLocalVisibilityLifecycleProbe positiveMultipleProbe,
                 QaActivityLocalVisibilityLifecycleProbe negativeSingleProbe,
@@ -488,11 +487,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 NoActiveVisibleProbe = noActiveVisibleProbe;
                 _probes = new[] { positiveSingleProbe, positiveMultipleProbe, negativeSingleProbe, negativeMultipleProbe, noActiveVisibleProbe };
             }
-            public ActivityLocalVisibilityAdapter PositiveSingle { get; }
-            public ActivityLocalVisibilityAdapter PositiveMultiple { get; }
-            public ActivityLocalVisibilityAdapter NegativeSingle { get; }
-            public ActivityLocalVisibilityAdapter NegativeMultiple { get; }
-            public ActivityLocalVisibilityAdapter NoActiveVisible { get; }
+            public ActivityVisibilityRule PositiveSingle { get; }
+            public ActivityVisibilityRule PositiveMultiple { get; }
+            public ActivityVisibilityRule NegativeSingle { get; }
+            public ActivityVisibilityRule NegativeMultiple { get; }
+            public ActivityVisibilityRule NoActiveVisible { get; }
             public QaActivityLocalVisibilityLifecycleProbe PositiveSingleProbe { get; }
             public QaActivityLocalVisibilityLifecycleProbe PositiveMultipleProbe { get; }
             public QaActivityLocalVisibilityLifecycleProbe NegativeSingleProbe { get; }
@@ -500,15 +499,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             public QaActivityLocalVisibilityLifecycleProbe NoActiveVisibleProbe { get; }
             public static Fixture Create(Scene scene, ActivityAsset activityA, ActivityAsset activityB, ICollection<GameObject> roots)
             {
-                (ActivityLocalVisibilityAdapter single, QaActivityLocalVisibilityLifecycleProbe singleProbe) = CreateBinding(scene, roots, new[] { activityA }, ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive, "qa.lifecycle.lifecycle-single");
-                (ActivityLocalVisibilityAdapter multiple, QaActivityLocalVisibilityLifecycleProbe multipleProbe) = CreateBinding(scene, roots, new[] { activityA, activityB }, ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive, "qa.lifecycle.lifecycle-multiple");
-                (ActivityLocalVisibilityAdapter negativeSingle, QaActivityLocalVisibilityLifecycleProbe negativeSingleProbe) = CreateBinding(scene, roots, new[] { activityA }, ActivityVisibilityMatchMode.HiddenWhenAnyListedActivityIsActive, "qa.lifecycle.lifecycle-negative-single");
-                (ActivityLocalVisibilityAdapter negativeMultiple, QaActivityLocalVisibilityLifecycleProbe negativeMultipleProbe) = CreateBinding(scene, roots, new[] { activityA, activityB }, ActivityVisibilityMatchMode.HiddenWhenAnyListedActivityIsActive, "qa.lifecycle.lifecycle-negative-multiple");
-                (ActivityLocalVisibilityAdapter noActiveVisible, QaActivityLocalVisibilityLifecycleProbe noActiveVisibleProbe) = CreateBinding(scene, roots, new[] { activityA }, ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive, "qa.lifecycle.lifecycle-no-active-visible", ActivityVisibilityNoActivePolicy.Visible);
+                (ActivityVisibilityRule single, QaActivityLocalVisibilityLifecycleProbe singleProbe) = CreateBinding(scene, roots, new[] { activityA }, ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive, "qa.lifecycle.lifecycle-single");
+                (ActivityVisibilityRule multiple, QaActivityLocalVisibilityLifecycleProbe multipleProbe) = CreateBinding(scene, roots, new[] { activityA, activityB }, ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive, "qa.lifecycle.lifecycle-multiple");
+                (ActivityVisibilityRule negativeSingle, QaActivityLocalVisibilityLifecycleProbe negativeSingleProbe) = CreateBinding(scene, roots, new[] { activityA }, ActivityVisibilityMatchMode.HiddenWhenAnyListedActivityIsActive, "qa.lifecycle.lifecycle-negative-single");
+                (ActivityVisibilityRule negativeMultiple, QaActivityLocalVisibilityLifecycleProbe negativeMultipleProbe) = CreateBinding(scene, roots, new[] { activityA, activityB }, ActivityVisibilityMatchMode.HiddenWhenAnyListedActivityIsActive, "qa.lifecycle.lifecycle-negative-multiple");
+                (ActivityVisibilityRule noActiveVisible, QaActivityLocalVisibilityLifecycleProbe noActiveVisibleProbe) = CreateBinding(scene, roots, new[] { activityA }, ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive, "qa.lifecycle.lifecycle-no-active-visible", ActivityVisibilityNoActivePolicy.Visible);
                 return new Fixture(single, multiple, negativeSingle, negativeMultiple, noActiveVisible, singleProbe, multipleProbe, negativeSingleProbe, negativeMultipleProbe, noActiveVisibleProbe);
             }
 
-            public static (ActivityLocalVisibilityAdapter, QaActivityLocalVisibilityLifecycleProbe) CreateInvalidBinding(
+            public static (ActivityVisibilityRule, QaActivityLocalVisibilityLifecycleProbe) CreateInvalidBinding(
                 Scene scene,
                 FrameworkContentRequiredness requiredness)
             {
@@ -525,14 +524,16 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             }
 
             public void Reset() { for (int index = 0; index < _probes.Count; index++) _probes[index].ResetCounters(); }
-            private static (ActivityLocalVisibilityAdapter, QaActivityLocalVisibilityLifecycleProbe) CreateBinding(Scene scene, ICollection<GameObject> roots, ActivityAsset[] activities, ActivityVisibilityMatchMode mode, string id, ActivityVisibilityNoActivePolicy policy = ActivityVisibilityNoActivePolicy.Hidden, bool allowInvalid = false, FrameworkContentRequiredness requiredness = FrameworkContentRequiredness.Required, string rootName = "QA Activity Local Visibility Lifecycle Temporary Root")
+            private static (ActivityVisibilityRule, QaActivityLocalVisibilityLifecycleProbe) CreateBinding(Scene scene, ICollection<GameObject> roots, ActivityAsset[] activities, ActivityVisibilityMatchMode mode, string id, ActivityVisibilityNoActivePolicy policy = ActivityVisibilityNoActivePolicy.Hidden, bool allowInvalid = false, FrameworkContentRequiredness requiredness = FrameworkContentRequiredness.Required, string rootName = "QA Activity Local Visibility Lifecycle Temporary Root")
             {
                 GameObject root = new GameObject(rootName); SceneManager.MoveGameObjectToScene(root, scene); roots?.Add(root);
-                ActivityLocalVisibilityAdapter adapter = root.AddComponent<ActivityLocalVisibilityAdapter>(); QaActivityLocalVisibilityLifecycleProbe probe = root.AddComponent<QaActivityLocalVisibilityLifecycleProbe>();
+                ActivityVisibilityRule adapter = root.AddComponent<ActivityVisibilityRule>();
+                ActivityContentContribution contribution = root.AddComponent<ActivityContentContribution>();
+                QaActivityLocalVisibilityLifecycleProbe probe = root.AddComponent<QaActivityLocalVisibilityLifecycleProbe>();
                 Require(activities != null && (allowInvalid || activities.Length > 0), "Lifecycle fixture requires one or more Activities.");
                 SerializedObject serialized = new SerializedObject(adapter);
                 SerializedProperty list = serialized.FindProperty("activities");
-                Require(list != null && list.isArray, "ActivityLocalVisibilityAdapter activities property is unavailable.");
+                Require(list != null && list.isArray, "ActivityVisibilityRule activities property is unavailable.");
                 list.arraySize = activities.Length;
                 for (int index = 0; index < activities.Length; index++)
                 {
@@ -542,9 +543,13 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
                 serialized.FindProperty("matchMode").intValue = (int)mode;
                 serialized.FindProperty("noActiveActivityPolicy").intValue = (int)policy;
-                serialized.FindProperty("localContentId").stringValue = id;
-                serialized.FindProperty("requiredness").intValue = (int)requiredness;
                 serialized.ApplyModifiedProperties();
+
+                SerializedObject contributionSerialized = new SerializedObject(contribution);
+                contributionSerialized.FindProperty("activity").objectReferenceValue = activities.Length > 0 ? activities[0] : null;
+                contributionSerialized.FindProperty("localContentId").stringValue = id;
+                contributionSerialized.FindProperty("requiredness").intValue = (int)requiredness;
+                contributionSerialized.ApplyModifiedProperties();
 
                 SerializedObject applied = new SerializedObject(adapter);
                 SerializedProperty appliedList = applied.FindProperty("activities");

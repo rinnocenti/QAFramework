@@ -21,7 +21,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 {
     /// <summary>
     /// Edit Mode authoring for the public Player Surface navigation fixture.
-    /// Places ActivityRequestTrigger and Route consumer binding in QA Hub so
+    /// Places ActivityRequestTrigger and a Route-scoped consumer in QA Hub so
     /// Framework composition can bind them at boot/route start without QA
     /// calling privileged bind APIs.
     /// </summary>

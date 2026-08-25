@@ -85,7 +85,7 @@ QA_FrameworkBgmRoot_*
   FrameworkRouteBgmBinding
 
 QA_FrameworkBgm_Activity_*
-  ActivityLocalVisibilityAdapter
+  ActivityContentContribution + ActivityVisibilityRule
   FrameworkActivityBgmBinding
 
 QA_FrameworkBgmPanel_*

@@ -135,7 +135,7 @@ namespace ImmersiveFrameworkQA.Hub
                 LocalPlayerProvisioningConsumerScope.Route)
             {
                 issue =
-                    "Public navigation consumer binding must be Route-scoped.";
+                    "Public navigation scoped consumer must be Route-scoped.";
                 return false;
             }
 

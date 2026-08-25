@@ -185,7 +185,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     routeBinding != null &&
                     routeBinding.Scope ==
                         LocalPlayerProvisioningConsumerScope.Route,
-                    "Prepared Player Surface fixture has no authored Route consumer binding.");
+                    "Prepared Player Surface fixture has no authored Route-scoped consumer.");
                 cases.Complete("consumer-binding-authored");
 
                 routeAccess = await AwaitScopedAccessAsync(
@@ -386,7 +386,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         !unboundTrigger.TryValidateConfiguration(
                             out string unboundIssue) &&
                         !string.IsNullOrWhiteSpace(unboundIssue),
-                        "Missing consumer binding must fail public command validation.");
+                        "Missing scoped consumer must fail public command validation.");
                     unboundTrigger.InvokeConfiguredOperation();
                     Require(
                         unboundTrigger.LastResultKind ==
@@ -1007,7 +1007,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
                 Require(
                     destroyedBindingReleasedAtDestruction,
-                    "Destroyed consumer binding did not release/dispose its endpoint. " +
+                    "Destroyed scoped consumer did not release/dispose its endpoint. " +
                     destroyedAccess.Snapshot.Diagnostic);
                 cases.Complete("destroyed-binding-released");
 
@@ -1185,7 +1185,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             Require(
                 content.IsValid() && content.isLoaded,
-                "Activity content scene did not load for Activity-scoped consumer binding.");
+                "Activity content scene did not load for its Activity-scoped consumer.");
 
             GameObject root = null;
             foreach (GameObject candidate in content.GetRootGameObjects())
@@ -1220,7 +1220,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 PlayerSessionScopedAccessConsumer binding,
                 int frameBudget)
         {
-            Require(binding != null, "Scoped access wait requires a consumer binding.");
+            Require(binding != null, "Scoped access wait requires a scoped consumer.");
             for (int frame = 0; frame < frameBudget; frame++)
             {
                 if (binding.TryGetAccess(

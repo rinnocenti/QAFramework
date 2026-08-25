@@ -3,7 +3,6 @@ using Immersive.Audio.Authoring;
 using Immersive.Audio.Contracts;
 using Immersive.Audio.Unity.Hosts;
 using Immersive.Framework.ActivityFlow;
-using ActivityLocalVisibilityAdapter = Immersive.Framework.ActivityFlow.ActivityContentBinding;
 using Immersive.Framework.Audio;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.ContentFlow;
@@ -313,39 +312,37 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             out ActivityBgmAuthoring bgmBinding)
         {
             GameObject root = EnsureRoot(scene, rootName);
-            ActivityLocalVisibilityAdapter contentBinding = EnsureComponent<ActivityLocalVisibilityAdapter>(root);
+            ActivityContentContribution contribution = EnsureComponent<ActivityContentContribution>(root);
+            ActivityVisibilityRule visibilityRule = EnsureComponent<ActivityVisibilityRule>(root);
             bgmBinding = EnsureComponent<ActivityBgmAuthoring>(root);
             string localContentId = $"qa-framework-bgm-activity-{contentIdSuffix}-{sceneLabel.ToLowerInvariant()}";
 
-            bool valid = ConfigureActivityLocalVisibilityAdapter(contentBinding, activity, localContentId, rootName)
+            bool valid = ConfigureActivityContentContribution(contribution, activity, localContentId, rootName)
+                & ConfigureActivityVisibilityRule(visibilityRule, activity, rootName)
                 & SetSerialized(bgmBinding, "assignedActivity", activity)
                 & SetSerialized(bgmBinding, "activityBgm", cue)
                 & SetSerialized(bgmBinding, "policy", (int)policy)
                 & SetSerialized(bgmBinding, "director", director);
 
-            valid &= ValidateActivityLocalVisibilityAdapter(contentBinding, activity, localContentId, rootName);
+            valid &= ValidateActivityContentContribution(contribution, activity, localContentId, rootName);
+            valid &= ValidateActivityVisibilityRule(visibilityRule, activity, rootName);
             valid &= ValidateObjectReference(bgmBinding, "assignedActivity", activity, $"ActivityBgmAuthoring assignedActivity on '{rootName}'");
             valid &= ValidateObjectReference(bgmBinding, "director", director, $"ActivityBgmAuthoring director on '{rootName}'");
             return valid;
         }
 
-        private static bool ConfigureActivityLocalVisibilityAdapter(
-            ActivityLocalVisibilityAdapter adapter,
+        private static bool ConfigureActivityVisibilityRule(
+            ActivityVisibilityRule adapter,
             ActivityAsset activity,
-            string localContentId,
             string context)
         {
             SerializedObject serialized = new SerializedObject(adapter);
             SerializedProperty activities = serialized.FindProperty("activities");
             SerializedProperty matchMode = serialized.FindProperty("matchMode");
             SerializedProperty noActiveActivityPolicy = serialized.FindProperty("noActiveActivityPolicy");
-            SerializedProperty localContentIdProperty = serialized.FindProperty("localContentId");
-            SerializedProperty requiredness = serialized.FindProperty("requiredness");
-
-            if (activities == null || matchMode == null || noActiveActivityPolicy == null ||
-                localContentIdProperty == null || requiredness == null)
+            if (activities == null || matchMode == null || noActiveActivityPolicy == null)
             {
-                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] ActivityLocalVisibilityAdapter current authoring contract is incomplete. context='{context}'.", adapter);
+                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] ActivityVisibilityRule current authoring contract is incomplete. context='{context}'.", adapter);
                 return false;
             }
 
@@ -353,40 +350,44 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             activities.GetArrayElementAtIndex(0).objectReferenceValue = activity;
             matchMode.enumValueIndex = (int)ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive;
             noActiveActivityPolicy.enumValueIndex = (int)ActivityVisibilityNoActivePolicy.Hidden;
-            localContentIdProperty.stringValue = localContentId;
-            requiredness.intValue = (int)FrameworkContentRequiredness.Required;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(adapter);
             return true;
         }
 
-        private static bool ValidateActivityLocalVisibilityAdapter(
-            ActivityLocalVisibilityAdapter adapter,
+        private static bool ValidateActivityVisibilityRule(
+            ActivityVisibilityRule adapter,
             ActivityAsset activity,
-            string localContentId,
             string context)
         {
-            bool valid = adapter.TryGetSingleActivityOwner(out ActivityAsset assignedActivity) && assignedActivity == activity;
+            bool valid = adapter.Activities.Count == 1 && adapter.Activities[0] == activity;
             if (!valid)
             {
-                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] ActivityLocalVisibilityAdapter owner validation failed. context='{context}'.", adapter);
+                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] ActivityVisibilityRule owner validation failed. context='{context}'.", adapter);
             }
 
             bool policiesValid = adapter.MatchMode == ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive
-                && adapter.NoActiveActivityPolicy == ActivityVisibilityNoActivePolicy.Hidden
-                && adapter.Requiredness == FrameworkContentRequiredness.Required;
+                && adapter.NoActiveActivityPolicy == ActivityVisibilityNoActivePolicy.Hidden;
             if (!policiesValid)
             {
-                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] ActivityLocalVisibilityAdapter policy validation failed. context='{context}'.", adapter);
+                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] ActivityVisibilityRule policy validation failed. context='{context}'.", adapter);
             }
 
-            bool localIdValid = adapter.HasExplicitLocalContentId && adapter.LocalContentIdText == localContentId;
-            if (!localIdValid)
-            {
-                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] ActivityLocalVisibilityAdapter local content identity validation failed. context='{context}'.", adapter);
-            }
+            return valid & policiesValid;
+        }
 
-            return valid & policiesValid & localIdValid;
+        private static bool ConfigureActivityContentContribution(ActivityContentContribution contribution, ActivityAsset activity, string localContentId, string context)
+        {
+            return SetSerialized(contribution, "activity", activity)
+                & SetSerialized(contribution, "localContentId", localContentId)
+                & SetSerialized(contribution, "requiredness", (int)FrameworkContentRequiredness.Required);
+        }
+
+        private static bool ValidateActivityContentContribution(ActivityContentContribution contribution, ActivityAsset activity, string localContentId, string context)
+        {
+            bool valid = contribution.Activity == activity && contribution.LocalContentIdText == localContentId && contribution.Requiredness == FrameworkContentRequiredness.Required;
+            if (!valid) Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] ActivityContentContribution validation failed. context='{context}'.", contribution);
+            return valid;
         }
 
         private static bool ConfigurePanel(

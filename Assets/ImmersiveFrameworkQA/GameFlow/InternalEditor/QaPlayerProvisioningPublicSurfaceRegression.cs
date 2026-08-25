@@ -23,7 +23,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
     ///
     /// Requires the authored Hub fixture
     /// <c>QA_PlayerSurface_PublicNavigation</c> (composition-bound
-    /// ActivityRequestTrigger + Route consumer binding). Player commands use P1/P2
+    /// ActivityRequestTrigger + Route-scoped consumer). Player commands use P1/P2
     /// public surfaces; prepare/materialize/admit remain runtime-owned.
     /// </summary>
     public static class QaPlayerProvisioningPublicSurfaceRegression
@@ -147,7 +147,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 Require(fixture.RouteConsumerBinding != null &&
                         fixture.RouteConsumerBinding.Scope ==
                         LocalPlayerProvisioningConsumerScope.Route,
-                    "Manager Join Without Activity requires the authored Route consumer binding.");
+                    "Manager Join Without Activity requires the authored Route-scoped consumer.");
                 access = await AwaitScopedAccessAsync(
                     fixture.RouteConsumerBinding,
                     noActivityFrameBudget);
@@ -402,7 +402,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     consumerBinding != null &&
                     consumerBinding.Scope ==
                         LocalPlayerProvisioningConsumerScope.Route,
-                    "Prepared public navigation fixture has no authored Route consumer binding.");
+                    "Prepared public navigation fixture has no authored Route-scoped consumer.");
                 cases.Complete("consumer-binding-authored");
 
                 access = await AwaitScopedAccessAsync(
@@ -1035,7 +1035,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 PlayerSessionScopedAccessConsumer binding,
                 int frameBudget)
         {
-            Require(binding != null, "Scoped access wait requires a consumer binding.");
+            Require(binding != null, "Scoped access wait requires a scoped consumer.");
             for (int frame = 0; frame < frameBudget; frame++)
             {
                 if (binding.TryGetAccess(

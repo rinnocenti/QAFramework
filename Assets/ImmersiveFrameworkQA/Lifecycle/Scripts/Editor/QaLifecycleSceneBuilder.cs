@@ -1,5 +1,4 @@
 using Immersive.Framework.ActivityFlow;
-using ActivityLocalVisibilityAdapter = Immersive.Framework.ActivityFlow.ActivityContentBinding;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.RouteLifecycle;
@@ -155,12 +154,14 @@ namespace ImmersiveFrameworkQA.Lifecycle.Editor
             bool initiallyActive = true)
         {
             GameObject root = EnsureRoot(scene, name);
-            ActivityLocalVisibilityAdapter activityBinding = EnsureComponent<ActivityLocalVisibilityAdapter>(root);
-            SetSerializedActivities(activityBinding, activity);
-            SetSerialized(activityBinding, "matchMode", (int)ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive);
-            SetSerialized(activityBinding, "noActiveActivityPolicy", (int)ActivityVisibilityNoActivePolicy.Hidden);
-            SetSerialized(activityBinding, "localContentId", name.ToLowerInvariant());
-            SetSerialized(activityBinding, "requiredness", 10);
+            ActivityContentContribution contribution = EnsureComponent<ActivityContentContribution>(root);
+            SetSerialized(contribution, "activity", activity);
+            SetSerialized(contribution, "localContentId", name.ToLowerInvariant());
+            SetSerialized(contribution, "requiredness", 10);
+            ActivityVisibilityRule visibilityRule = EnsureComponent<ActivityVisibilityRule>(root);
+            SetSerializedActivities(visibilityRule, activity);
+            SetSerialized(visibilityRule, "matchMode", (int)ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive);
+            SetSerialized(visibilityRule, "noActiveActivityPolicy", (int)ActivityVisibilityNoActivePolicy.Hidden);
 
             CreateMarker(root.transform, activity.ActivityName, position, color, primitiveType);
             root.SetActive(initiallyActive);
@@ -311,7 +312,7 @@ namespace ImmersiveFrameworkQA.Lifecycle.Editor
             EditorUtility.SetDirty(target);
         }
 
-        private static void SetSerializedActivities(ActivityLocalVisibilityAdapter target, ActivityAsset activity)
+        private static void SetSerializedActivities(ActivityVisibilityRule target, ActivityAsset activity)
         {
             if (activity == null)
             {
@@ -322,7 +323,7 @@ namespace ImmersiveFrameworkQA.Lifecycle.Editor
             SerializedProperty activities = serialized.FindProperty("activities");
             if (activities == null || !activities.isArray)
             {
-                throw new System.InvalidOperationException("ActivityLocalVisibilityAdapter activities property is unavailable.");
+                throw new System.InvalidOperationException("ActivityVisibilityRule activities property is unavailable.");
             }
 
             activities.arraySize = 1;

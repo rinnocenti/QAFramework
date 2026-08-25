@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Immersive.Framework.ActivityFlow;
-using ActivityLocalVisibilityAdapter = Immersive.Framework.ActivityFlow.ActivityContentBinding;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.Camera;
 using Immersive.Framework.CameraAuthoring;
@@ -183,20 +182,16 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             GameObject activityRoot = Child(
                 routeRoot.transform,
                 "QA_C9R_ActivityContent");
-            ActivityLocalVisibilityAdapter adapter =
-                Component<ActivityLocalVisibilityAdapter>(activityRoot);
+            ActivityVisibilityRule adapter =
+                Component<ActivityVisibilityRule>(activityRoot);
             Set(adapter, "activities",
                 new UnityEngine.Object[] { activity });
             Set(adapter, "matchMode",
                 (int)ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive);
             Set(adapter, "noActiveActivityPolicy",
                 (int)ActivityVisibilityNoActivePolicy.Hidden);
-            Set(adapter, "localContentId", "qa.c9r.activity-content");
-            Set(adapter, "requiredness",
-                (int)FrameworkContentRequiredness.Required);
-
-            if (!adapter.TryGetSingleActivityOwner(out ActivityAsset visibilityOwner) ||
-                !ReferenceEquals(visibilityOwner, activity))
+            if (adapter.Activities.Count != 1 ||
+                !ReferenceEquals(adapter.Activities[0], activity))
             {
                 throw new InvalidOperationException(
                     "C9R Activity visibility adapter did not materialize the canonical single Activity owner.");
@@ -473,14 +468,14 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             RouteAsset route,
             ActivityAsset activity,
             RouteContentContribution routeContent,
-            ActivityLocalVisibilityAdapter visibility,
+            ActivityVisibilityRule visibility,
             RouteCameraOverride routeBinding,
             QaLocalPlayerCameraRequestBinding playerBinding,
             ActivityCameraOverride activityBinding,
             QaCameraOverrideAuthorityFixture fixture)
         {
             if (!ReferenceEquals(Single<RouteContentContribution>(scene), routeContent) ||
-                !ReferenceEquals(Single<ActivityLocalVisibilityAdapter>(scene), visibility) ||
+                !ReferenceEquals(Single<ActivityVisibilityRule>(scene), visibility) ||
                 !ReferenceEquals(Single<RouteCameraOverride>(scene), routeBinding) ||
                 !ReferenceEquals(Single<QaLocalPlayerCameraRequestBinding>(scene), playerBinding) ||
                 !ReferenceEquals(Single<ActivityCameraOverride>(scene), activityBinding) ||
@@ -498,10 +493,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                     "C9R Route content binding is not materialized with the canonical owner, local id and requiredness.");
             }
 
-            if (!visibility.TryGetSingleActivityOwner(out ActivityAsset visibilityOwner) ||
-                !ReferenceEquals(visibilityOwner, activity) ||
-                visibility.LocalContentIdText != "qa.c9r.activity-content" ||
-                visibility.Requiredness != FrameworkContentRequiredness.Required ||
+            if (visibility.Activities.Count != 1 ||
+                !ReferenceEquals(visibility.Activities[0], activity) ||
                 visibility.MatchMode != ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive ||
                 visibility.NoActiveActivityPolicy != ActivityVisibilityNoActivePolicy.Hidden)
             {

@@ -32,7 +32,7 @@ namespace ImmersiveFrameworkQA.Lifecycle
             if (consumerBinding == null)
             {
                 issue =
-                    "Player Surface Activity fixture is missing its consumer binding.";
+                    "Player Surface Activity fixture is missing its scoped consumer.";
                 return false;
             }
 
@@ -40,7 +40,7 @@ namespace ImmersiveFrameworkQA.Lifecycle
                 LocalPlayerProvisioningConsumerScope.Activity)
             {
                 issue =
-                    "Player Surface Activity consumer binding must be Activity-scoped.";
+                    "Player Surface Activity scoped consumer must be Activity-scoped.";
                 return false;
             }
 

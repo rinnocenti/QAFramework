@@ -133,7 +133,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 Require(
                     consumerBinding != null &&
                     consumerBinding.Scope == LocalPlayerProvisioningConsumerScope.Route,
-                    "ADR020-H requires the authored Route scoped Player consumer binding.");
+                    "ADR020-H requires the authored Route-scoped Player consumer.");
                 access = await AwaitScopedAccessAsync(consumerBinding, FrameBudget);
                 Complete(completed, "consumer-access-ready");
 
@@ -572,7 +572,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 int frameBudget)
         {
             Require(binding != null,
-                "Scoped access wait requires a consumer binding.");
+                "Scoped access wait requires a scoped consumer.");
             for (int frame = 0; frame < frameBudget; frame++)
             {
                 if (binding.TryGetAccess(
@@ -587,7 +587,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             }
 
             throw new TimeoutException(
-                "Player consumer binding did not become available. " +
+                "Player scoped consumer did not become available. " +
                 $"state='{binding.BindingState}' diagnostic='{binding.Diagnostic}'.");
         }
 

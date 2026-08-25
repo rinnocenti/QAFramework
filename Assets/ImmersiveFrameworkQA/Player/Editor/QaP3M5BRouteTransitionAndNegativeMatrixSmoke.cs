@@ -1646,7 +1646,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             {
                 diagnostic = new PublicContextualObservationDiagnostic(
                     "Missing", default, string.Empty, false,
-                    "Activity consumer binding is missing from the witness.", false,
+                    "Activity scoped consumer is missing from the witness.", false,
                     string.Empty, default, false, false, false,
                     default, default, default);
                 return false;
@@ -1724,7 +1724,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             PlayerSessionScopedAccessConsumer binding =
                 fixture.Witness.ActivityConsumerBinding;
             AssertNotNull(binding,
-                "SceneProvided Leave requires the authored Activity consumer binding.");
+                "SceneProvided Leave requires the authored Activity scoped consumer.");
 
             ILocalPlayerProvisioningConsumerAccess access =
                 await AwaitPublicAccessAsync(binding);
@@ -1786,7 +1786,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             }
 
             throw new TimeoutException(
-                "SceneProvided Activity consumer binding did not expose public access. " +
+                "SceneProvided Activity scoped consumer did not expose public access. " +
                 $"state='{binding.BindingState}' diagnostic='{binding.Diagnostic}'.");
         }
 

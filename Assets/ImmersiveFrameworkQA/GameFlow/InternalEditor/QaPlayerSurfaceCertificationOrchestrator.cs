@@ -326,7 +326,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 fixture.RouteConsumerBinding.Scope ==
                     Immersive.Framework.PlayerParticipation
                         .LocalPlayerProvisioningConsumerScope.Route,
-                "Authored Route consumer binding is missing or wrong scope.");
+                "Authored Route-scoped consumer is missing or has the wrong scope.");
             Require(
                 fixture.WrongScopeBinding != null &&
                 fixture.WrongScopeBinding.Scope ==
