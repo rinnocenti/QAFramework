@@ -368,25 +368,24 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 FindOrCreateChildTrigger(root, "EnterPlayerExcludedActivityTrigger");
             ActivityRequestTrigger clear =
                 FindOrCreateChildTrigger(root, "ClearActivityTrigger");
-            LocalPlayerProvisioningConsumerAccessBinding binding =
-                root.GetComponent<LocalPlayerProvisioningConsumerAccessBinding>();
+            PlayerSessionScopedAccessConsumer binding =
+                root.GetComponent<PlayerSessionScopedAccessConsumer>();
             if (binding == null)
             {
-                binding = root.AddComponent<
-                    LocalPlayerProvisioningConsumerAccessBinding>();
+                binding = root.AddComponent<PlayerSessionStatus>();
             }
 
             Require(enter != null, "Failed to create enter ActivityRequestTrigger.");
             Require(clear != null, "Failed to create clear ActivityRequestTrigger.");
             Require(
                 binding != null,
-                "Failed to create Route LocalPlayerProvisioningConsumerAccessBinding.");
-            LocalPlayerProvisioningConsumerAccessBinding wrongScopeBinding =
+                "Failed to create Route PlayerSessionScopedAccessConsumer.");
+            PlayerSessionScopedAccessConsumer wrongScopeBinding =
                 FindOrCreateChildBinding(
                     root,
                     "WrongScopeBinding",
                     LocalPlayerProvisioningConsumerScope.Activity);
-            LocalPlayerProvisioningConsumerAccessBinding destroyProbeBinding =
+            PlayerSessionScopedAccessConsumer destroyProbeBinding =
                 FindOrCreateChildBinding(
                     root,
                     "DestroyProbeBinding",
@@ -560,9 +559,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 SceneManager.MoveGameObjectToScene(root, content);
             }
 
-            LocalPlayerProvisioningConsumerAccessBinding binding =
-                root.GetComponent<LocalPlayerProvisioningConsumerAccessBinding>() ??
-                root.AddComponent<LocalPlayerProvisioningConsumerAccessBinding>();
+            PlayerSessionScopedAccessConsumer binding =
+                root.GetComponent<PlayerSessionScopedAccessConsumer>() ??
+                root.AddComponent<PlayerSessionStatus>();
             ApplyScope(binding, LocalPlayerProvisioningConsumerScope.Activity);
 
             QaPlayerSurfaceActivityConsumerFixture fixture =
@@ -663,7 +662,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 childObject.AddComponent<ActivityRequestTrigger>();
         }
 
-        private static LocalPlayerProvisioningConsumerAccessBinding
+        private static PlayerSessionScopedAccessConsumer
             FindOrCreateChildBinding(
                 GameObject root,
                 string childName,
@@ -678,11 +677,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 childObject.transform.SetParent(root.transform, false);
             }
 
-            LocalPlayerProvisioningConsumerAccessBinding binding =
+            PlayerSessionScopedAccessConsumer binding =
                 childObject.GetComponent<
-                    LocalPlayerProvisioningConsumerAccessBinding>() ??
-                childObject.AddComponent<
-                    LocalPlayerProvisioningConsumerAccessBinding>();
+                    PlayerSessionScopedAccessConsumer>() ??
+                childObject.AddComponent<PlayerSessionStatus>();
             ApplyScope(binding, scope);
             return binding;
         }
@@ -701,7 +699,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         }
 
         private static void ApplyScope(
-            LocalPlayerProvisioningConsumerAccessBinding binding,
+            PlayerSessionScopedAccessConsumer binding,
             LocalPlayerProvisioningConsumerScope scope)
         {
             var serialized = new SerializedObject(binding);

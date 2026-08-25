@@ -100,7 +100,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             FrameworkRuntimeHost host = null;
             QaActivityEntryReadinessFixture fixture = null;
             QaPlayerSurfacePublicNavigationFixture publicNav = null;
-            LocalPlayerProvisioningConsumerAccessBinding routeBinding = null;
+            PlayerSessionScopedAccessConsumer routeBinding = null;
             ILocalPlayerProvisioningConsumerAccess routeAccess = null;
             ILocalPlayerProvisioningConsumerAccess activityAccess = null;
             ILocalPlayerProvisioningConsumerAccess destroyedAccess = null;
@@ -208,7 +208,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 // still authoritative. Later temporary Activity compositions may
                 // legitimately classify scene roots against Activity scope, so
                 // they cannot establish the pre-destruction Route evidence.
-                LocalPlayerProvisioningConsumerAccessBinding destroyBinding =
+                PlayerSessionScopedAccessConsumer destroyBinding =
                     publicNav.DestroyProbeBinding;
                 Require(
                     destroyBinding != null &&
@@ -406,7 +406,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     UnityEngine.Object.Destroy(unboundTrigger.gameObject);
                 }
 
-                LocalPlayerProvisioningConsumerAccessBinding wrongBinding =
+                PlayerSessionScopedAccessConsumer wrongBinding =
                     publicNav.WrongScopeBinding;
                 Require(
                     wrongBinding != null &&
@@ -479,7 +479,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 occurrenceA = waiting.ActivityOccurrence;
                 cases.Complete("activity-entry-waiting");
 
-                LocalPlayerProvisioningConsumerAccessBinding activityBinding =
+                PlayerSessionScopedAccessConsumer activityBinding =
                     await ResolveAuthoredActivityBindingWhenContentLoadedAsync();
                 activityAccess = await AwaitScopedAccessAsync(
                     activityBinding,
@@ -1167,7 +1167,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             }
         }
 
-        private static async Task<LocalPlayerProvisioningConsumerAccessBinding>
+        private static async Task<PlayerSessionScopedAccessConsumer>
             ResolveAuthoredActivityBindingWhenContentLoadedAsync()
         {
             Scene content = default;
@@ -1217,7 +1217,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private static async Task<ILocalPlayerProvisioningConsumerAccess>
             AwaitScopedAccessAsync(
-                LocalPlayerProvisioningConsumerAccessBinding binding,
+                PlayerSessionScopedAccessConsumer binding,
                 int frameBudget)
         {
             Require(binding != null, "Scoped access wait requires a consumer binding.");

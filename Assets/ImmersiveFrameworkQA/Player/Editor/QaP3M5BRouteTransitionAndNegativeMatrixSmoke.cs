@@ -1640,7 +1640,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             hostEvidence = default;
             gameplayAdmission = default;
-            LocalPlayerProvisioningConsumerAccessBinding binding =
+            PlayerSessionScopedAccessConsumer binding =
                 witness != null ? witness.ActivityConsumerBinding : null;
             if (binding == null)
             {
@@ -1721,7 +1721,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             AssertNotNull(fixture.Witness,
                 "SceneProvided Leave requires the active Activity witness.");
-            LocalPlayerProvisioningConsumerAccessBinding binding =
+            PlayerSessionScopedAccessConsumer binding =
                 fixture.Witness.ActivityConsumerBinding;
             AssertNotNull(binding,
                 "SceneProvided Leave requires the authored Activity consumer binding.");
@@ -1770,7 +1770,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
         private static async Task<ILocalPlayerProvisioningConsumerAccess>
             AwaitPublicAccessAsync(
-                LocalPlayerProvisioningConsumerAccessBinding binding)
+                PlayerSessionScopedAccessConsumer binding)
         {
             for (int frame = 0; frame < 240; frame++)
             {

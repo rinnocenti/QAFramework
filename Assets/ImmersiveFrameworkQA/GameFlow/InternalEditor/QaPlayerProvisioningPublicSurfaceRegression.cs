@@ -305,7 +305,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             FrameworkRuntimeHost host = null;
             QaPlayerSurfacePublicNavigationFixture publicNav = null;
             QaPlayerSurfaceGlobalUiFixture globalUiFixture = null;
-            LocalPlayerProvisioningConsumerAccessBinding consumerBinding = null;
+            PlayerSessionScopedAccessConsumer consumerBinding = null;
             ILocalPlayerProvisioningConsumerAccess access = null;
             LocalPlayerActorSelectionRequestAuthoring actorSelection = null;
             LocalPlayerJoinResult joinResult = null;
@@ -1032,7 +1032,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private static async Task<ILocalPlayerProvisioningConsumerAccess>
             AwaitScopedAccessAsync(
-                LocalPlayerProvisioningConsumerAccessBinding binding,
+                PlayerSessionScopedAccessConsumer binding,
                 int frameBudget)
         {
             Require(binding != null, "Scoped access wait requires a consumer binding.");
@@ -1051,7 +1051,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             }
 
             throw new TimeoutException(
-                "LocalPlayerProvisioningConsumerAccessBinding did not become bound to a live public scope. " +
+                "PlayerSessionScopedAccessConsumer did not become bound to a live public scope. " +
                 $"state='{binding.BindingState}' diagnostic='{binding.Diagnostic}'.");
         }
 

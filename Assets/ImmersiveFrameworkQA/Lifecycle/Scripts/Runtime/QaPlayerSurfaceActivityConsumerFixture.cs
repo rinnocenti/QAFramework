@@ -16,13 +16,13 @@ namespace ImmersiveFrameworkQA.Lifecycle
             "QA_PlayerSurface_ActivityConsumer";
 
         [SerializeField]
-        private LocalPlayerProvisioningConsumerAccessBinding consumerBinding;
+        private PlayerSessionScopedAccessConsumer consumerBinding;
 
-        public LocalPlayerProvisioningConsumerAccessBinding ConsumerBinding =>
+        public PlayerSessionScopedAccessConsumer ConsumerBinding =>
             consumerBinding;
 
         public void Configure(
-            LocalPlayerProvisioningConsumerAccessBinding binding)
+            PlayerSessionScopedAccessConsumer binding)
         {
             consumerBinding = binding;
         }

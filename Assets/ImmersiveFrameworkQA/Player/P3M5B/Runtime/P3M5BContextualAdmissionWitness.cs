@@ -16,17 +16,17 @@ namespace ImmersiveFrameworkQA.Player.P3M5B
         private SceneLocalPlayerAdmissionAuthoring admissionAuthoring;
 
         [SerializeField]
-        private LocalPlayerProvisioningConsumerAccessBinding activityConsumerBinding;
+        private PlayerSessionScopedAccessConsumer activityConsumerBinding;
 
         public SceneLocalPlayerAdmissionAuthoring AdmissionAuthoring =>
             admissionAuthoring;
 
-        public LocalPlayerProvisioningConsumerAccessBinding ActivityConsumerBinding =>
+        public PlayerSessionScopedAccessConsumer ActivityConsumerBinding =>
             activityConsumerBinding;
 
         public void EditorConfigure(
             SceneLocalPlayerAdmissionAuthoring admission,
-            LocalPlayerProvisioningConsumerAccessBinding binding)
+            PlayerSessionScopedAccessConsumer binding)
         {
             admissionAuthoring = admission;
             activityConsumerBinding = binding;
@@ -44,16 +44,16 @@ namespace ImmersiveFrameworkQA.Player.P3M5B
         public const string RootObjectName = "QA_P3M5B_SessionProvisioningWitness";
 
         [SerializeField]
-        private LocalPlayerProvisioningConsumerAccessBinding routeConsumerBinding;
+        private PlayerSessionScopedAccessConsumer routeConsumerBinding;
         [SerializeField]
         private RouteRequestTrigger enterRouteATrigger;
 
-        public LocalPlayerProvisioningConsumerAccessBinding RouteConsumerBinding =>
+        public PlayerSessionScopedAccessConsumer RouteConsumerBinding =>
             routeConsumerBinding;
         public RouteRequestTrigger EnterRouteATrigger => enterRouteATrigger;
 
         public void Configure(
-            LocalPlayerProvisioningConsumerAccessBinding binding,
+            PlayerSessionScopedAccessConsumer binding,
             RouteRequestTrigger routeATrigger)
         {
             routeConsumerBinding = binding;

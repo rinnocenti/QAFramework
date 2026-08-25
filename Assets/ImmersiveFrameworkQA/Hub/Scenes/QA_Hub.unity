@@ -252,9 +252,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 658652610}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ebf679d50fa62684ab15cd8bfc764416, type: 3}
+  m_Script: {fileID: 11500000, guid: 9a206419dbd04d2697fa0a2b881a7a1b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerProvisioningConsumerAccessBinding
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionStatus
   scope: 10
 --- !u!4 &658652612
 Transform:
@@ -372,9 +372,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 680282355}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ebf679d50fa62684ab15cd8bfc764416, type: 3}
+  m_Script: {fileID: 11500000, guid: 9a206419dbd04d2697fa0a2b881a7a1b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerProvisioningConsumerAccessBinding
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionStatus
   scope: 10
 --- !u!4 &680282359
 Transform:
@@ -698,9 +698,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1187152390}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ebf679d50fa62684ab15cd8bfc764416, type: 3}
+  m_Script: {fileID: 11500000, guid: 9a206419dbd04d2697fa0a2b881a7a1b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerProvisioningConsumerAccessBinding
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionStatus
   scope: 20
 --- !u!4 &1187152392
 Transform:
@@ -958,9 +958,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1921611417}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ebf679d50fa62684ab15cd8bfc764416, type: 3}
+  m_Script: {fileID: 11500000, guid: 9a206419dbd04d2697fa0a2b881a7a1b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerProvisioningConsumerAccessBinding
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionStatus
   scope: 10
 --- !u!114 &1921611419
 MonoBehaviour:

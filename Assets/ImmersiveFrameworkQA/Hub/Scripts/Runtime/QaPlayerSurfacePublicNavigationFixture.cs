@@ -27,11 +27,11 @@ namespace ImmersiveFrameworkQA.Hub
         [SerializeField] private ActivityRequestTrigger enterPlayerExcludedActivityTrigger;
         [SerializeField] private ActivityRequestTrigger clearActivityTrigger;
         [SerializeField]
-        private LocalPlayerProvisioningConsumerAccessBinding routeConsumerBinding;
+        private PlayerSessionScopedAccessConsumer routeConsumerBinding;
         [SerializeField]
-        private LocalPlayerProvisioningConsumerAccessBinding wrongScopeBinding;
+        private PlayerSessionScopedAccessConsumer wrongScopeBinding;
         [SerializeField]
-        private LocalPlayerProvisioningConsumerAccessBinding destroyProbeBinding;
+        private PlayerSessionScopedAccessConsumer destroyProbeBinding;
         [SerializeField] private PlayerSlotProfile primaryPlayerSlot;
 
         public ActivityAsset TargetActivity => targetActivity;
@@ -43,11 +43,11 @@ namespace ImmersiveFrameworkQA.Hub
         public ActivityRequestTrigger EnterPlayerExcludedActivityTrigger =>
             enterPlayerExcludedActivityTrigger;
         public ActivityRequestTrigger ClearActivityTrigger => clearActivityTrigger;
-        public LocalPlayerProvisioningConsumerAccessBinding RouteConsumerBinding =>
+        public PlayerSessionScopedAccessConsumer RouteConsumerBinding =>
             routeConsumerBinding;
-        public LocalPlayerProvisioningConsumerAccessBinding WrongScopeBinding =>
+        public PlayerSessionScopedAccessConsumer WrongScopeBinding =>
             wrongScopeBinding;
-        public LocalPlayerProvisioningConsumerAccessBinding DestroyProbeBinding =>
+        public PlayerSessionScopedAccessConsumer DestroyProbeBinding =>
             destroyProbeBinding;
         public PlayerSlotProfile PrimaryPlayerSlot => primaryPlayerSlot;
 
@@ -59,9 +59,9 @@ namespace ImmersiveFrameworkQA.Hub
             ActivityRequestTrigger enterSecondaryTrigger,
             ActivityRequestTrigger enterExcludedTrigger,
             ActivityRequestTrigger clearTrigger,
-            LocalPlayerProvisioningConsumerAccessBinding consumerBinding,
-            LocalPlayerProvisioningConsumerAccessBinding authoredWrongScopeBinding,
-            LocalPlayerProvisioningConsumerAccessBinding authoredDestroyProbeBinding,
+            PlayerSessionScopedAccessConsumer consumerBinding,
+            PlayerSessionScopedAccessConsumer authoredWrongScopeBinding,
+            PlayerSessionScopedAccessConsumer authoredDestroyProbeBinding,
             PlayerSlotProfile playerSlot)
         {
             targetActivity = activity;

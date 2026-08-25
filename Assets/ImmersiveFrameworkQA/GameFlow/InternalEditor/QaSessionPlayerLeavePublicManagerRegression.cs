@@ -128,7 +128,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 await QaPlayerSurfacePublicNavigationSupport
                     .RequireCompositionBoundAsync(clearTrigger, FrameBudget);
 
-                LocalPlayerProvisioningConsumerAccessBinding consumerBinding =
+                PlayerSessionScopedAccessConsumer consumerBinding =
                     publicNav.RouteConsumerBinding;
                 Require(
                     consumerBinding != null &&
@@ -568,7 +568,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
         private static async Task<ILocalPlayerProvisioningConsumerAccess>
             AwaitScopedAccessAsync(
-                LocalPlayerProvisioningConsumerAccessBinding binding,
+                PlayerSessionScopedAccessConsumer binding,
                 int frameBudget)
         {
             Require(binding != null,
