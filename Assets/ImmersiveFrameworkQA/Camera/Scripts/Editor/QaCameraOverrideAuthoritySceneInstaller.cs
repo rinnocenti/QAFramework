@@ -162,7 +162,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             GameObject playerRoot = RootObject(
                 scene,
                 "QA_C9R_LocalPlayer");
-            RemoveLegacyPlayerComponents(playerRoot);
+            NormalizeSyntheticPlayerRoot(playerRoot);
             QaLocalPlayerCameraRequestBinding playerBinding =
                 Component<QaLocalPlayerCameraRequestBinding>(playerRoot);
             Set(playerBinding, "ownerId", "qa.player.c9r");
@@ -568,17 +568,13 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             }
         }
 
-        private static void RemoveLegacyPlayerComponents(GameObject root)
+        private static void NormalizeSyntheticPlayerRoot(GameObject root)
         {
-            const string LegacyCameraBinding =
-                "Immersive.Framework.Camera.LocalPlayerCameraRequestBinding";
             const string PlayerInput = "UnityEngine.InputSystem.PlayerInput";
 
-            RemoveComponentsByTypeName(root, LegacyCameraBinding);
             RemoveMissingScriptsRecursively(root);
             RemoveComponentsByTypeName(root, PlayerInput);
 
-            RequireComponentAbsent(root, LegacyCameraBinding);
             RequireNoMissingScripts(root);
             RequireComponentAbsent(root, PlayerInput);
         }

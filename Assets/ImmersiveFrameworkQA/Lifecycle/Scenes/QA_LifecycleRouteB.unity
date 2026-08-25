@@ -258,6 +258,7 @@ GameObject:
   m_Component:
   - component: {fileID: 136073924}
   - component: {fileID: 136073923}
+  - component: {fileID: 500000001}
   m_Layer: 0
   m_Name: QA_Lifecycle_ActivityA_B
   m_TagString: Untagged
@@ -281,8 +282,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a9fb61714d4d4cdd95b7ddb0835a7a29, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
-  localContentId: qa_lifecycle_activitya_b
-  requiredness: 10
 --- !u!4 &136073924
 Transform:
   m_ObjectHideFlags: 0
@@ -309,6 +308,7 @@ GameObject:
   m_Component:
   - component: {fileID: 296233161}
   - component: {fileID: 296233160}
+  - component: {fileID: 500000002}
   m_Layer: 0
   m_Name: QA_Lifecycle_ActivityB_B
   m_TagString: Untagged
@@ -332,8 +332,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4f86e4e9c7dd4ef19428ee7863c8bcd6, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
-  localContentId: qa_lifecycle_activityb_b
-  requiredness: 10
 --- !u!4 &296233161
 Transform:
   m_ObjectHideFlags: 0
@@ -526,6 +524,7 @@ GameObject:
   m_Component:
   - component: {fileID: 491414643}
   - component: {fileID: 491414642}
+  - component: {fileID: 500000000}
   m_Layer: 0
   m_Name: QA_Lifecycle_NoContentActivity_B
   m_TagString: Untagged
@@ -549,8 +548,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d7594dc5aefa4a84ad13ec90641f936f, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
-  localContentId: qa_lifecycle_nocontentactivity_b
-  requiredness: 10
 --- !u!4 &491414643
 Transform:
   m_ObjectHideFlags: 0
@@ -1893,3 +1890,48 @@ SceneRoots:
   - {fileID: 296233161}
   - {fileID: 491414643}
   - {fileID: 1634220376}
+--- !u!114 &500000000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 491414641}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b946bb8df6944fdb886d3433c93d6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityContentContribution
+  activity: {fileID: 11400000, guid: d7594dc5aefa4a84ad13ec90641f936f, type: 2}
+  localContentId: qa_lifecycle_nocontentactivity_b
+  requiredness: 10
+--- !u!114 &500000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 136073922}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b946bb8df6944fdb886d3433c93d6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityContentContribution
+  activity: {fileID: 11400000, guid: a9fb61714d4d4cdd95b7ddb0835a7a29, type: 2}
+  localContentId: qa_lifecycle_activitya_b
+  requiredness: 10
+--- !u!114 &500000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 296233159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b946bb8df6944fdb886d3433c93d6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityContentContribution
+  activity: {fileID: 11400000, guid: 4f86e4e9c7dd4ef19428ee7863c8bcd6, type: 2}
+  localContentId: qa_lifecycle_activityb_b
+  requiredness: 10

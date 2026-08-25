@@ -1024,8 +1024,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2962537da41ed2b4e9e39ccd28c92f86, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
-  localContentId: qa.c9r.activity-content
-  requiredness: 10
 --- !u!4 &1580616524
 Transform:
   m_ObjectHideFlags: 0

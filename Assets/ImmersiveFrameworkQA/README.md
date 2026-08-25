@@ -24,17 +24,19 @@ QA does not create a parallel runtime.
 
 ## Current domain surfaces
 
-- `Player/`: Player Session, provisioning, Actor selection, participation and
-  current public Player contracts.
+- `Player/`: Player Session, provisioning, Actor selection, participation, current
+  public Player contracts and the focused Pause/Input/Gate authoring-composition
+  regression.
 - `Camera/`: Camera rig materialization, persistent output authoring,
   canonical C9R authority, ADR-004B negative integrity and ADR-004C owner lifetime
   certification.
 - `GameFlow/`: Route/Activity request, reset/restart and lifecycle contracts.
-  The focused ADR-005 Pause regression is adjacent in
+  The focused ADR-005 Pause runtime regression remains adjacent in
   `GameFlow/InternalEditor/QaPauseRuntimeBindingSmoke.cs` because it proves Pause
-  authority, PlayerInput binding and the Pause + Activity Restart interaction on
-  the existing GameFlow lifecycle. There is no separate canonical `Pause/` QA
-  domain directory in the current tree.
+  runtime authority, PlayerInput/Gate behavior and the Pause + Activity Restart
+  interaction on the existing GameFlow lifecycle. It is complementary to the
+  static Pause/Input/Gate composition proof in `Player/Editor`; there is no
+  separate canonical `Pause/` QA domain directory in the current tree.
 - `ActivityFlow/`: Activity transaction/readiness behavior.
 - `InputMode/`, `Transition/`, `Loading/`, `Reset/`, `Audio/` and other focused
   product domains retain their own canonical technical proofs where those
@@ -115,10 +117,69 @@ rerun of that hygiene patch is separate from the executed C9R/004B/004C verdicts
 Player QA is organized by current product contracts rather than P3/M07 history.
 The public aggregate surface remains the appropriate entrypoint for current Player
 certification, with focused regressions retained only where they own distinct
-contracts such as serialization migration integrity.
+contracts such as serialization migration integrity or authoring authority.
 
 Do not restore superseded Capacity or separate provisioning-profile semantics to
 make historical QA compile or pass.
+
+### Pause/Input/Gate composition certification
+
+The current single-player authoring authority is:
+
+```text
+UnityPlayerInputGateAdapter
+  -> owns PlayerInput
+  -> owns Gameplay Action Map
+  -> owns physical Gate writes
+
+PlayerPauseInput
+  -> owns Pause Action
+  -> derives PlayerInput and Gameplay Action Map from the Gate Adapter
+```
+
+Focused Edit Mode regression:
+
+```text
+Assets/ImmersiveFrameworkQA/Player/Editor/
+QaPauseInputGateCompositionRegression.cs
+
+Immersive Framework
+  > QA
+    > Player
+      > Pause
+        > Run Pause Input Gate Composition
+```
+
+Executed certification:
+
+```text
+[P0_PAUSE_INPUT_GATE_COMPOSITION]
+status='Passed'
+verdict='StaticContractComplete'
+cases='8/8'
+```
+
+The eight certified cases prove:
+
+```text
+PlayerPauseInput authors only the Pause Action
+Gate Adapter owns PlayerInput and Gameplay map
+Gate Adapter remains valid without Pause input
+Pause derives the Gate-owned authority
+missing Gate is rejected explicitly
+duplicate Gate authoring is prevented
+Gameplay map resolution uses GUID identity without name fallback
+Gate restore remains idempotent
+```
+
+This Edit Mode regression does not replace the Play Mode Pause lifecycle proof.
+`GameFlow/InternalEditor/QaPauseRuntimeBindingSmoke.cs` remains responsible for
+Pause state transitions, Gate application/restoration, lifecycle release/teardown
+and Pause + Activity Restart behavior.
+
+See:
+
+`Player/Documentation/P1-PAUSE-PRODUCT-BINDING-QA.md`
 
 ## Identity Authority
 

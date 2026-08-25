@@ -12,42 +12,24 @@ Corte 5
 Explicit Local Player Provisioning Composition Root
 ```
 
-Esta entrega não altera `com.immersive.framework`. Ela adiciona QA técnico focado nos contratos que não estavam cobertos pela consolidação atual do QAFramework.
+Este registro histórico descreve QA técnico focado nos contratos que não estavam
+cobertos pela consolidação do QAFramework. O corte atual altera o package e requer
+nova execução manual da lane de runtime antes de qualquer nova certificação.
 
 ## Corte 4 — Camera publication ownership
 
-### Authoring smoke
+### Contrato atual de authoring e runtime
 
-Execute em Edit Mode:
+`PlayerGameplayCameraAuthoring` é a única superfície normal de authoring para
+participação de um Logical Player em Gameplay Camera. O request não é autorado
+como um segundo componente: a lane de gameplay admission o materializa a partir
+da intenção, do Player preparado e do output explícito.
 
-```text
-Immersive Framework
-  > QA
-    > Camera
-      > Cut 4 Run Local Player Camera Publication Ownership Authoring Smoke
-```
+O documento de Cut 4 antes descrevia um componente de plumbing e um
+Scene Auto-Publisher opcional. Esse contrato foi removido; não há smoke de
+authoring separado que deva reinstalá-lo.
 
-Resultado esperado:
-
-```text
-[CUT4_LOCAL_PLAYER_CAMERA_PUBLICATION_OWNERSHIP_AUTHORING_SMOKE]
-status='Passed'
-cases='9'
-```
-
-Prova:
-
-```text
-LocalPlayerCameraRequestBinding é authoring evidence por padrão
-Scene Auto-Publisher exige opt-in explícito
-TryPublish sem opt-in falha explicitamente
-publisher source é diagnosticável
-Scene Auto-Publisher + Scene Local Player Admission do mesmo Player é rejeitado
-binding evidence sem auto-publisher é aceito junto da admissão
-Players distintos não são colapsados pelo validator
-```
-
-### Runtime smoke
+### Runtime smoke histórico a reexecutar
 
 Execute em uma sessão nova de Play Mode:
 
@@ -58,7 +40,7 @@ Immersive Framework
       > Cut 4 Run Local Player Camera Publication Ownership Runtime Smoke
 ```
 
-Resultado esperado:
+Registro histórico pré-corte:
 
 ```text
 [CUT4_LOCAL_PLAYER_CAMERA_PUBLICATION_OWNERSHIP_RUNTIME_SMOKE]
@@ -66,18 +48,26 @@ status='Passed'
 cases='9'
 ```
 
-Esse smoke reutiliza a lane real `P3K.7H` e prova:
+Ao ser reexecutado, esse smoke deve reutilizar a lane real `P3K.7H` e provar:
 
 ```text
 Player real é provisionado e admitido
-PlayerGameplayAdmissionRuntimeContext é o publisher canônico
+PlayerGameplayCameraEligibilityRuntimeContext é o publisher canônico, dentro da
+lane de Player gameplay admission
 existe exatamente um request LocalPlayer no output para o Slot admitido
 request e output mantêm identidade explícita
-nenhum LocalPlayerCameraRequestBinding de cena publica em paralelo
+nenhum componente de cena publica em paralelo
 release da admissão remove a publicação e o request do output
 ```
 
 A lane é one-shot. Reentre em Play Mode antes de repetir.
+
+### Fixture C9R preservada
+
+`QaLocalPlayerCameraRequestBinding` permanece somente no `QAFramework` como
+fixture sintética da arbitragem genérica de Camera. Ela não pertence ao package,
+não possui `AddComponentMenu` e não participa de Player admission, Slot allocation
+ou Actor readiness; portanto não é uma superfície alternativa de authoring.
 
 ## Corte 5 — Provisioning composition root
 

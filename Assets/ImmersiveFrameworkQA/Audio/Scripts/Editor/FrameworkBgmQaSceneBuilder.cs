@@ -313,67 +313,19 @@ namespace ImmersiveFrameworkQA.Audio.Editor
         {
             GameObject root = EnsureRoot(scene, rootName);
             ActivityContentContribution contribution = EnsureComponent<ActivityContentContribution>(root);
-            ActivityVisibilityRule visibilityRule = EnsureComponent<ActivityVisibilityRule>(root);
             bgmBinding = EnsureComponent<ActivityBgmAuthoring>(root);
             string localContentId = $"qa-framework-bgm-activity-{contentIdSuffix}-{sceneLabel.ToLowerInvariant()}";
 
             bool valid = ConfigureActivityContentContribution(contribution, activity, localContentId, rootName)
-                & ConfigureActivityVisibilityRule(visibilityRule, activity, rootName)
                 & SetSerialized(bgmBinding, "assignedActivity", activity)
                 & SetSerialized(bgmBinding, "activityBgm", cue)
                 & SetSerialized(bgmBinding, "policy", (int)policy)
                 & SetSerialized(bgmBinding, "director", director);
 
             valid &= ValidateActivityContentContribution(contribution, activity, localContentId, rootName);
-            valid &= ValidateActivityVisibilityRule(visibilityRule, activity, rootName);
             valid &= ValidateObjectReference(bgmBinding, "assignedActivity", activity, $"ActivityBgmAuthoring assignedActivity on '{rootName}'");
             valid &= ValidateObjectReference(bgmBinding, "director", director, $"ActivityBgmAuthoring director on '{rootName}'");
             return valid;
-        }
-
-        private static bool ConfigureActivityVisibilityRule(
-            ActivityVisibilityRule adapter,
-            ActivityAsset activity,
-            string context)
-        {
-            SerializedObject serialized = new SerializedObject(adapter);
-            SerializedProperty activities = serialized.FindProperty("activities");
-            SerializedProperty matchMode = serialized.FindProperty("matchMode");
-            SerializedProperty noActiveActivityPolicy = serialized.FindProperty("noActiveActivityPolicy");
-            if (activities == null || matchMode == null || noActiveActivityPolicy == null)
-            {
-                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] ActivityVisibilityRule current authoring contract is incomplete. context='{context}'.", adapter);
-                return false;
-            }
-
-            activities.arraySize = 1;
-            activities.GetArrayElementAtIndex(0).objectReferenceValue = activity;
-            matchMode.enumValueIndex = (int)ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive;
-            noActiveActivityPolicy.enumValueIndex = (int)ActivityVisibilityNoActivePolicy.Hidden;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(adapter);
-            return true;
-        }
-
-        private static bool ValidateActivityVisibilityRule(
-            ActivityVisibilityRule adapter,
-            ActivityAsset activity,
-            string context)
-        {
-            bool valid = adapter.Activities.Count == 1 && adapter.Activities[0] == activity;
-            if (!valid)
-            {
-                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] ActivityVisibilityRule owner validation failed. context='{context}'.", adapter);
-            }
-
-            bool policiesValid = adapter.MatchMode == ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive
-                && adapter.NoActiveActivityPolicy == ActivityVisibilityNoActivePolicy.Hidden;
-            if (!policiesValid)
-            {
-                Debug.LogError($"[FRAMEWORK_BGM_QA_SETUP] ActivityVisibilityRule policy validation failed. context='{context}'.", adapter);
-            }
-
-            return valid & policiesValid;
         }
 
         private static bool ConfigureActivityContentContribution(ActivityContentContribution contribution, ActivityAsset activity, string localContentId, string context)

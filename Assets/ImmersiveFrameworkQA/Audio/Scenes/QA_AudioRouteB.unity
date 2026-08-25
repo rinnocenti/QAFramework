@@ -531,6 +531,7 @@ GameObject:
   - component: {fileID: 692557509}
   - component: {fileID: 692557508}
   - component: {fileID: 692557507}
+  - component: {fileID: 500000003}
   m_Layer: 0
   m_Name: QA_FrameworkBgm_Activity_RetainPrevious_Alternate
   m_TagString: Untagged
@@ -570,8 +571,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7df9f3493a96596449f212ca2de79467, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
-  localContentId: qa-framework-bgm-activity-retain-previous-alternate
-  requiredness: 10
 --- !u!4 &692557509
 Transform:
   m_ObjectHideFlags: 0
@@ -644,6 +643,7 @@ GameObject:
   - component: {fileID: 936837620}
   - component: {fileID: 936837619}
   - component: {fileID: 936837618}
+  - component: {fileID: 500000001}
   m_Layer: 0
   m_Name: QA_FrameworkBgm_Activity_Own_Alternate
   m_TagString: Untagged
@@ -683,8 +683,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2b62b31db1e761947ad1cac26b081351, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
-  localContentId: qa-framework-bgm-activity-own-alternate
-  requiredness: 10
 --- !u!4 &936837620
 Transform:
   m_ObjectHideFlags: 0
@@ -819,6 +817,7 @@ GameObject:
   - component: {fileID: 1403271170}
   - component: {fileID: 1403271169}
   - component: {fileID: 1403271168}
+  - component: {fileID: 500000002}
   m_Layer: 0
   m_Name: QA_FrameworkBgm_Activity_Silence_Alternate
   m_TagString: Untagged
@@ -858,8 +857,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8d68f3d9b2100324997223ccafb8cace, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
-  localContentId: qa-framework-bgm-activity-silence-alternate
-  requiredness: 10
 --- !u!4 &1403271170
 Transform:
   m_ObjectHideFlags: 0
@@ -932,6 +929,7 @@ GameObject:
   - component: {fileID: 1674869627}
   - component: {fileID: 1674869626}
   - component: {fileID: 1674869625}
+  - component: {fileID: 500000000}
   m_Layer: 0
   m_Name: QA_FrameworkBgm_Activity_RouteFallback_Alternate
   m_TagString: Untagged
@@ -971,8 +969,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a70a560bbcbc96b4f911b1899bf706e1, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
-  localContentId: qa-framework-bgm-activity-route-fallback-alternate
-  requiredness: 10
 --- !u!4 &1674869627
 Transform:
   m_ObjectHideFlags: 0
@@ -1046,3 +1042,63 @@ SceneRoots:
   - {fileID: 1674869627}
   - {fileID: 1403271170}
   - {fileID: 689124967}
+--- !u!114 &500000000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1674869624}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b946bb8df6944fdb886d3433c93d6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityContentContribution
+  activity: {fileID: 11400000, guid: a70a560bbcbc96b4f911b1899bf706e1, type: 2}
+  localContentId: qa-framework-bgm-activity-route-fallback-alternate
+  requiredness: 10
+--- !u!114 &500000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 936837617}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b946bb8df6944fdb886d3433c93d6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityContentContribution
+  activity: {fileID: 11400000, guid: 2b62b31db1e761947ad1cac26b081351, type: 2}
+  localContentId: qa-framework-bgm-activity-own-alternate
+  requiredness: 10
+--- !u!114 &500000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1403271167}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b946bb8df6944fdb886d3433c93d6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityContentContribution
+  activity: {fileID: 11400000, guid: 8d68f3d9b2100324997223ccafb8cace, type: 2}
+  localContentId: qa-framework-bgm-activity-silence-alternate
+  requiredness: 10
+--- !u!114 &500000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 692557506}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b946bb8df6944fdb886d3433c93d6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityContentContribution
+  activity: {fileID: 11400000, guid: 7df9f3493a96596449f212ca2de79467, type: 2}
+  localContentId: qa-framework-bgm-activity-retain-previous-alternate
+  requiredness: 10

@@ -257,9 +257,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1758999841}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 186d5c674b9947cbb89d1c02ae9e8317, type: 3}
+  m_Script: {fileID: 11500000, guid: 7b946bb8df6944fdb886d3433c93d6b4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityVisibilityRule
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityContentContribution
   activity: {fileID: 11400000, guid: bdf8efd3ca2551d41935bd81cff68bfb, type: 2}
   localContentId: qa.activity.a.additive.visibility
   requiredness: 0

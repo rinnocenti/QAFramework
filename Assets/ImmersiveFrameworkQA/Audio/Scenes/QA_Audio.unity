@@ -311,6 +311,7 @@ GameObject:
   - component: {fileID: 357098824}
   - component: {fileID: 357098823}
   - component: {fileID: 357098822}
+  - component: {fileID: 500000003}
   m_Layer: 0
   m_Name: QA_FrameworkBgm_Activity_Own_Canonical
   m_TagString: Untagged
@@ -350,8 +351,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2b62b31db1e761947ad1cac26b081351, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
-  localContentId: qa-framework-bgm-activity-own-canonical
-  requiredness: 10
 --- !u!4 &357098824
 Transform:
   m_ObjectHideFlags: 0
@@ -475,6 +474,7 @@ GameObject:
   - component: {fileID: 437644396}
   - component: {fileID: 437644395}
   - component: {fileID: 437644394}
+  - component: {fileID: 500000000}
   m_Layer: 0
   m_Name: QA_FrameworkBgm_Activity_Silence_Canonical
   m_TagString: Untagged
@@ -514,8 +514,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8d68f3d9b2100324997223ccafb8cace, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
-  localContentId: qa-framework-bgm-activity-silence-canonical
-  requiredness: 10
 --- !u!4 &437644396
 Transform:
   m_ObjectHideFlags: 0
@@ -677,6 +675,7 @@ GameObject:
   - component: {fileID: 537704755}
   - component: {fileID: 537704754}
   - component: {fileID: 537704753}
+  - component: {fileID: 500000002}
   m_Layer: 0
   m_Name: QA_FrameworkBgm_Activity_RouteFallback_Canonical
   m_TagString: Untagged
@@ -716,8 +715,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a70a560bbcbc96b4f911b1899bf706e1, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
-  localContentId: qa-framework-bgm-activity-route-fallback-canonical
-  requiredness: 10
 --- !u!4 &537704755
 Transform:
   m_ObjectHideFlags: 0
@@ -1367,6 +1364,7 @@ GameObject:
   - component: {fileID: 1939256005}
   - component: {fileID: 1939256004}
   - component: {fileID: 1939256003}
+  - component: {fileID: 500000001}
   m_Layer: 0
   m_Name: QA_FrameworkBgm_Activity_RetainPrevious_Canonical
   m_TagString: Untagged
@@ -1406,8 +1404,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7df9f3493a96596449f212ca2de79467, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
-  localContentId: qa-framework-bgm-activity-retain-previous-canonical
-  requiredness: 10
 --- !u!4 &1939256005
 Transform:
   m_ObjectHideFlags: 0
@@ -1482,3 +1478,63 @@ SceneRoots:
   - {fileID: 537704755}
   - {fileID: 437644396}
   - {fileID: 837793034}
+--- !u!114 &500000000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 437644393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b946bb8df6944fdb886d3433c93d6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityContentContribution
+  activity: {fileID: 11400000, guid: 8d68f3d9b2100324997223ccafb8cace, type: 2}
+  localContentId: qa-framework-bgm-activity-silence-canonical
+  requiredness: 10
+--- !u!114 &500000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1939256002}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b946bb8df6944fdb886d3433c93d6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityContentContribution
+  activity: {fileID: 11400000, guid: 7df9f3493a96596449f212ca2de79467, type: 2}
+  localContentId: qa-framework-bgm-activity-retain-previous-canonical
+  requiredness: 10
+--- !u!114 &500000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 537704752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b946bb8df6944fdb886d3433c93d6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityContentContribution
+  activity: {fileID: 11400000, guid: a70a560bbcbc96b4f911b1899bf706e1, type: 2}
+  localContentId: qa-framework-bgm-activity-route-fallback-canonical
+  requiredness: 10
+--- !u!114 &500000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 357098821}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b946bb8df6944fdb886d3433c93d6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityContentContribution
+  activity: {fileID: 11400000, guid: 2b62b31db1e761947ad1cac26b081351, type: 2}
+  localContentId: qa-framework-bgm-activity-own-canonical
+  requiredness: 10

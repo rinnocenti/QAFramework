@@ -129,6 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 552654582}
   - component: {fileID: 552654581}
+  - component: {fileID: 500000001}
   m_Layer: 0
   m_Name: QA_Lifecycle_Additional_ActivityA
   m_TagString: Untagged
@@ -152,8 +153,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a9fb61714d4d4cdd95b7ddb0835a7a29, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
-  localContentId: qa_lifecycle_additional_activitya
-  requiredness: 10
 --- !u!4 &552654582
 Transform:
   m_ObjectHideFlags: 0
@@ -1038,6 +1037,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2091036407}
   - component: {fileID: 2091036406}
+  - component: {fileID: 500000000}
   m_Layer: 0
   m_Name: QA_Lifecycle_Additional_ActivityB_InactiveChild
   m_TagString: Untagged
@@ -1061,8 +1061,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4f86e4e9c7dd4ef19428ee7863c8bcd6, type: 2}
   matchMode: 0
   noActiveActivityPolicy: 0
-  localContentId: qa_lifecycle_additional_activityb_inactivechild
-  requiredness: 10
 --- !u!4 &2091036407
 Transform:
   m_ObjectHideFlags: 0
@@ -1171,3 +1169,33 @@ SceneRoots:
   - {fileID: 1579387486}
   - {fileID: 552654582}
   - {fileID: 2091036407}
+--- !u!114 &500000000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2091036405}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b946bb8df6944fdb886d3433c93d6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityContentContribution
+  activity: {fileID: 11400000, guid: 4f86e4e9c7dd4ef19428ee7863c8bcd6, type: 2}
+  localContentId: qa_lifecycle_additional_activityb_inactivechild
+  requiredness: 10
+--- !u!114 &500000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 552654580}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b946bb8df6944fdb886d3433c93d6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityFlow.ActivityContentContribution
+  activity: {fileID: 11400000, guid: a9fb61714d4d4cdd95b7ddb0835a7a29, type: 2}
+  localContentId: qa_lifecycle_additional_activitya
+  requiredness: 10
