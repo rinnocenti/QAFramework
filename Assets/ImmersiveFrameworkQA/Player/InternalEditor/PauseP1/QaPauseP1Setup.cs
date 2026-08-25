@@ -118,7 +118,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     $"{LogPrefix} PASS. " +
                     $"scene='{QaPauseP1Paths.ScenePath}' " +
                     $"action='{QaPauseP1Paths.PauseActionPath}' " +
-                    "components='PlayerInput,PausePlayerInputBinding," +
+                    "components='PlayerInput,PlayerPauseInput," +
                     "UnityPlayerInputGateAdapter,PauseRequestTrigger' " +
                     "serializedPauseAction='Valid'.");
             }
@@ -169,8 +169,8 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                 playerObject.AddComponent<UnityPlayerInputGateAdapter>();
             ConfigureAdapter(adapter, playerInput);
 
-            PausePlayerInputBinding binding =
-                playerObject.AddComponent<PausePlayerInputBinding>();
+            PlayerPauseInput binding =
+                playerObject.AddComponent<PlayerPauseInput>();
             ConfigureBinding(
                 binding,
                 playerInput,
@@ -223,7 +223,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
         }
 
         private static void ConfigureBinding(
-            PausePlayerInputBinding binding,
+            PlayerPauseInput binding,
             PlayerInput playerInput,
             InputActionReference pauseReference)
         {
@@ -410,8 +410,8 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
 
             PlayerInput playerInput =
                 FindExactlyOne<PlayerInput>(roots);
-            PausePlayerInputBinding binding =
-                FindExactlyOne<PausePlayerInputBinding>(roots);
+            PlayerPauseInput binding =
+                FindExactlyOne<PlayerPauseInput>(roots);
             UnityPlayerInputGateAdapter adapter =
                 FindExactlyOne<UnityPlayerInputGateAdapter>(roots);
             FindExactlyOne<PauseRequestTrigger>(roots);
@@ -424,7 +424,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     playerInput.gameObject))
             {
                 throw new InvalidOperationException(
-                    "PlayerInput, PausePlayerInputBinding and " +
+                    "PlayerInput, PlayerPauseInput and " +
                     "UnityPlayerInputGateAdapter must be co-located.");
             }
 
@@ -433,7 +433,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     playerInput))
             {
                 throw new InvalidOperationException(
-                    "Persisted PausePlayerInputBinding lost its PlayerInput reference.");
+                    "Persisted PlayerPauseInput lost its PlayerInput reference.");
             }
 
             if (!ReferenceEquals(
@@ -468,7 +468,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
             if (binding.PauseAction == null)
             {
                 throw new InvalidOperationException(
-                    "Persisted PausePlayerInputBinding has no Pause InputActionReference.");
+                    "Persisted PlayerPauseInput has no Pause InputActionReference.");
             }
 
             string pauseReferencePath =
@@ -479,7 +479,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     StringComparison.Ordinal))
             {
                 throw new InvalidOperationException(
-                    "Persisted PausePlayerInputBinding references an unexpected " +
+                    "Persisted PlayerPauseInput references an unexpected " +
                     "InputActionReference asset. " +
                     $"expected='{QaPauseP1Paths.PauseActionReferencePath}' " +
                     $"actual='{pauseReferencePath}'.");
@@ -510,7 +510,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     StringComparison.Ordinal))
             {
                 throw new InvalidOperationException(
-                    "Persisted PausePlayerInputBinding action-map names are invalid.");
+                    "Persisted PlayerPauseInput action-map names are invalid.");
             }
 
             if (playerInput.actions.FindActionMap(

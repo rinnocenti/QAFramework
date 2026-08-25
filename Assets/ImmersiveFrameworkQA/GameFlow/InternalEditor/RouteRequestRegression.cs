@@ -140,8 +140,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             GameObject emptyRoot = CreateRoot(
                 "Route Regression Empty Root",
                 objects);
-            RouteRequestTriggerBindingResult absent =
-                RouteRequestTriggerBinding.TryBind(
+            RouteRequestTriggerBinderResult absent =
+                RouteRequestTriggerBinder.TryBind(
                     new[] { emptyRoot },
                     new QaFakeRouteRuntimePort());
             Require(
@@ -159,8 +159,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             RouteRequestTrigger oneTrigger =
                 oneRoot.AddComponent<RouteRequestTrigger>();
             var oneRuntime = new QaFakeRouteRuntimePort();
-            RouteRequestTriggerBindingResult one =
-                RouteRequestTriggerBinding.TryBind(
+            RouteRequestTriggerBinderResult one =
+                RouteRequestTriggerBinder.TryBind(
                     new[] { oneRoot },
                     oneRuntime);
             Require(
@@ -188,8 +188,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             RouteRequestTrigger secondMultiple =
                 multipleChild.AddComponent<RouteRequestTrigger>();
             var multipleRuntime = new QaFakeRouteRuntimePort();
-            RouteRequestTriggerBindingResult multiple =
-                RouteRequestTriggerBinding.TryBind(
+            RouteRequestTriggerBinderResult multiple =
+                RouteRequestTriggerBinder.TryBind(
                     new[] { multipleRoot },
                     multipleRuntime);
             Require(
@@ -215,8 +215,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     out string idempotentIssue),
                 "Could not prebind the idempotent Route trigger. " +
                 idempotentIssue);
-            RouteRequestTriggerBindingResult idempotent =
-                RouteRequestTriggerBinding.TryBind(
+            RouteRequestTriggerBinderResult idempotent =
+                RouteRequestTriggerBinder.TryBind(
                     new[] { idempotentRoot },
                     idempotentRuntime);
             Require(
@@ -255,8 +255,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     out string incompatibleIssue),
                 "Could not prebind the incompatible Route trigger. " +
                 incompatibleIssue);
-            RouteRequestTriggerBindingResult incompatible =
-                RouteRequestTriggerBinding.TryBind(
+            RouteRequestTriggerBinderResult incompatible =
+                RouteRequestTriggerBinder.TryBind(
                     new[] { incompatibleRoot },
                     compositionRuntime);
             Require(

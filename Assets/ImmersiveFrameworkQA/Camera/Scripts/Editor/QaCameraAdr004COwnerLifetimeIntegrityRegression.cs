@@ -115,7 +115,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             Require(QaCameraOverrideAuthorityFixture.Adr004CActivityDestroyExecuted,
                 "Canonical C9R Activity destruction evidence has not executed.");
             Require(QaCameraOverrideAuthorityFixture.Adr004CActivityDestroyPassed,
-                "Destroying an active ActivityCameraOverrideBinding left its request admitted or failed to restore the next winner.");
+                "Destroying an active ActivityCameraOverride left its request admitted or failed to restore the next winner.");
             return "operation='DestroyActivityBinding' owner='Activity' request='Released' inheritedScopedLifetime='Verified'.";
         }
 

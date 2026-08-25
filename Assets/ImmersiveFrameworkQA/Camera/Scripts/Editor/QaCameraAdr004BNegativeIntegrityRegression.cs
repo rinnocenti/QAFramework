@@ -607,7 +607,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         private static string Case18InvalidOutputBindingReferences()
         {
             IReadOnlyList<string> evidence =
-                QaCameraOutputSessionBindingAuthoringRegression.RunAdr004BInvalidReferenceCertification();
+                QaCameraOutputAuthoringAuthoringRegression.RunAdr004BInvalidReferenceCertification();
             Require(
                 evidence != null &&
                 evidence.Contains("missing-camera") &&
@@ -617,7 +617,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             return
                 "operation='OutputAuthoringValidation' missingCamera='Blocked' missingBrain='Blocked' " +
-                "splitCameraBrain='Blocked' delegated='QaCameraOutputSessionBindingAuthoringRegression' " +
+                "splitCameraBrain='Blocked' delegated='QaCameraOutputAuthoringAuthoringRegression' " +
                 "diagnostic='Actionable' fallbackLookup='None'.";
         }
 
@@ -740,7 +740,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         {
             private readonly GameObject root;
             private readonly Transform target;
-            private readonly CameraOutputSessionBinding binding;
+            private readonly CameraOutputAuthoring binding;
 
             public SyntheticFixture(string caseId)
             {
@@ -752,7 +752,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 unityCamera.enabled = false;
                 CinemachineBrain brain = root.AddComponent<CinemachineBrain>();
 
-                binding = root.AddComponent<CameraOutputSessionBinding>();
+                binding = root.AddComponent<CameraOutputAuthoring>();
                 Set(binding, "outputId", $"qa.camera.adr004b.{caseId}.output");
                 Set(binding, "unityCamera", unityCamera);
                 Set(binding, "cinemachineBrain", brain);

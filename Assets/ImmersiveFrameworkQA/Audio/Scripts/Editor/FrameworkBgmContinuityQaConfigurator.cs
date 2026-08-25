@@ -221,13 +221,13 @@ namespace ImmersiveFrameworkQA.Audio.Editor
 
             valid &= ClearBindingDirectorReferences(canonical);
 
-            FrameworkRouteBgmBinding routeBinding =
-                routeRoot.GetComponent<FrameworkRouteBgmBinding>();
+            RouteBgmAuthoring routeBinding =
+                routeRoot.GetComponent<RouteBgmAuthoring>();
 
             if (routeBinding == null)
             {
                 Debug.LogError(
-                    "[FRAMEWORK_BGM_CONTINUITY_QA_SETUP] Canonical FrameworkRouteBgmBinding is missing.",
+                    "[FRAMEWORK_BGM_CONTINUITY_QA_SETUP] Canonical RouteBgmAuthoring is missing.",
                     routeRoot);
                 valid = false;
             }
@@ -439,13 +439,13 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             bool valid =
                 ClearBindingDirectorReferences(scene);
 
-            FrameworkRouteBgmBinding routeBinding =
-                routeRoot.GetComponent<FrameworkRouteBgmBinding>();
+            RouteBgmAuthoring routeBinding =
+                routeRoot.GetComponent<RouteBgmAuthoring>();
 
             if (routeBinding == null)
             {
                 Debug.LogError(
-                    "[FRAMEWORK_BGM_CONTINUITY_QA_SETUP] Alternate FrameworkRouteBgmBinding is missing.",
+                    "[FRAMEWORK_BGM_CONTINUITY_QA_SETUP] Alternate RouteBgmAuthoring is missing.",
                     routeRoot);
                 return false;
             }
@@ -567,8 +567,8 @@ namespace ImmersiveFrameworkQA.Audio.Editor
 
             foreach (GameObject root in scene.GetRootGameObjects())
             {
-                FrameworkRouteBgmBinding[] routeBindings =
-                    root.GetComponentsInChildren<FrameworkRouteBgmBinding>(true);
+                RouteBgmAuthoring[] routeBindings =
+                    root.GetComponentsInChildren<RouteBgmAuthoring>(true);
 
                 for (int index = 0;
                      index < routeBindings.Length;
@@ -580,8 +580,8 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                         null);
                 }
 
-                FrameworkActivityBgmBinding[] activityBindings =
-                    root.GetComponentsInChildren<FrameworkActivityBgmBinding>(true);
+                ActivityBgmAuthoring[] activityBindings =
+                    root.GetComponentsInChildren<ActivityBgmAuthoring>(true);
 
                 for (int index = 0;
                      index < activityBindings.Length;

@@ -53,8 +53,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             try
             {
                 owner = new GameObject("QA_PlayerSerializationIdentity");
-                PlayerProvisioningCommandTrigger trigger =
-                    owner.AddComponent<PlayerProvisioningCommandTrigger>();
+                PlayerSessionCommandTrigger trigger =
+                    owner.AddComponent<PlayerSessionCommandTrigger>();
 
                 RunCase(
                     "OpenJoiningIdentity",
@@ -125,7 +125,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         }
 
         private static void ProveOpenJoiningIdentity(
-            PlayerProvisioningCommandTrigger trigger)
+            PlayerSessionCommandTrigger trigger)
         {
             InjectSerializedOperation(trigger, 10);
             Require(
@@ -135,7 +135,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         }
 
         private static void ProveCloseJoiningIdentity(
-            PlayerProvisioningCommandTrigger trigger)
+            PlayerSessionCommandTrigger trigger)
         {
             InjectSerializedOperation(trigger, 20);
             Require(
@@ -145,7 +145,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         }
 
         private static void ProveRetiredCapacityValue(
-            PlayerProvisioningCommandTrigger trigger)
+            PlayerSessionCommandTrigger trigger)
         {
             InjectSerializedOperation(trigger, 30);
 
@@ -191,7 +191,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         }
 
         private static void ProveRequestJoinIdentity(
-            PlayerProvisioningCommandTrigger trigger)
+            PlayerSessionCommandTrigger trigger)
         {
             InjectSerializedOperation(trigger, 40);
             Require(
@@ -226,7 +226,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         }
 
         private static void ProveRequestDefaultActorSelectionIdentity(
-            PlayerProvisioningCommandTrigger trigger)
+            PlayerSessionCommandTrigger trigger)
         {
             InjectSerializedOperation(trigger, 50);
             Require(
@@ -262,14 +262,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
         }
 
         private static void InjectSerializedOperation(
-            PlayerProvisioningCommandTrigger trigger,
+            PlayerSessionCommandTrigger trigger,
             int rawValue)
         {
             var serialized = new SerializedObject(trigger);
             SerializedProperty operation = serialized.FindProperty("operation");
             Require(
                 operation != null,
-                "Serialized PlayerProvisioningCommandTrigger field 'operation' was not found.");
+                "Serialized PlayerSessionCommandTrigger field 'operation' was not found.");
 
             operation.intValue = rawValue;
             serialized.ApplyModifiedPropertiesWithoutUndo();
@@ -284,7 +284,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         }
 
         private static void RequireRecognizedOperation(
-            PlayerProvisioningCommandTrigger trigger,
+            PlayerSessionCommandTrigger trigger,
             int rawValue)
         {
             bool valid = trigger.TryValidateConfiguration(out string issue);

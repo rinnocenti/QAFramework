@@ -140,15 +140,15 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             GameObject routeRoot = RootObject(
                 scene,
                 "QA_C9R_RouteContent");
-            RouteContentBinding routeContent =
-                Component<RouteContentBinding>(routeRoot);
+            RouteContentContribution routeContent =
+                Component<RouteContentContribution>(routeRoot);
             Set(routeContent, "route", route);
             Set(routeContent, "localContentId", "qa.c9r.route-content");
             Set(routeContent, "requiredness",
                 (int)FrameworkContentRequiredness.Required);
 
-            RouteCameraOverrideBinding routeBinding =
-                Component<RouteCameraOverrideBinding>(routeRoot);
+            RouteCameraOverride routeBinding =
+                Component<RouteCameraOverride>(routeRoot);
             Configure(
                 routeBinding,
                 "assignedRoute",
@@ -202,8 +202,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                     "C9R Activity visibility adapter did not materialize the canonical single Activity owner.");
             }
 
-            ActivityCameraOverrideBinding activityBinding =
-                Component<ActivityCameraOverrideBinding>(activityRoot);
+            ActivityCameraOverride activityBinding =
+                Component<ActivityCameraOverride>(activityRoot);
             Configure(
                 activityBinding,
                 "assignedActivity",
@@ -306,7 +306,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         }
 
         private static void Configure(
-            ScopedCameraOverrideBinding binding,
+            ScopedCameraOverride binding,
             string ownerProperty,
             UnityEngine.Object owner,
             string scope,
@@ -472,18 +472,18 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             Scene scene,
             RouteAsset route,
             ActivityAsset activity,
-            RouteContentBinding routeContent,
+            RouteContentContribution routeContent,
             ActivityLocalVisibilityAdapter visibility,
-            RouteCameraOverrideBinding routeBinding,
+            RouteCameraOverride routeBinding,
             QaLocalPlayerCameraRequestBinding playerBinding,
-            ActivityCameraOverrideBinding activityBinding,
+            ActivityCameraOverride activityBinding,
             QaCameraOverrideAuthorityFixture fixture)
         {
-            if (!ReferenceEquals(Single<RouteContentBinding>(scene), routeContent) ||
+            if (!ReferenceEquals(Single<RouteContentContribution>(scene), routeContent) ||
                 !ReferenceEquals(Single<ActivityLocalVisibilityAdapter>(scene), visibility) ||
-                !ReferenceEquals(Single<RouteCameraOverrideBinding>(scene), routeBinding) ||
+                !ReferenceEquals(Single<RouteCameraOverride>(scene), routeBinding) ||
                 !ReferenceEquals(Single<QaLocalPlayerCameraRequestBinding>(scene), playerBinding) ||
-                !ReferenceEquals(Single<ActivityCameraOverrideBinding>(scene), activityBinding) ||
+                !ReferenceEquals(Single<ActivityCameraOverride>(scene), activityBinding) ||
                 !ReferenceEquals(Single<QaCameraOverrideAuthorityFixture>(scene), fixture))
             {
                 throw new InvalidOperationException(
@@ -549,8 +549,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         private static void RemoveLocalOutputAndLegacyRoots(Scene scene)
         {
             var remove = new HashSet<GameObject>();
-            foreach (CameraOutputSessionBinding item in
-                     All<CameraOutputSessionBinding>(scene))
+            foreach (CameraOutputAuthoring item in
+                     All<CameraOutputAuthoring>(scene))
             {
                 remove.Add(item.gameObject);
             }

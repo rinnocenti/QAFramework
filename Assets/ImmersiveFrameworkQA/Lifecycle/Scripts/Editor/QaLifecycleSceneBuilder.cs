@@ -88,7 +88,7 @@ namespace ImmersiveFrameworkQA.Lifecycle.Editor
             CreateDirectionalLight($"QA_Lifecycle_Light_{label}");
 
             GameObject routeRoot = EnsureRoot(scene, $"QA_Lifecycle_RouteContent_{label}");
-            RouteContentBinding routeBinding = EnsureComponent<RouteContentBinding>(routeRoot);
+            RouteContentContribution routeBinding = EnsureComponent<RouteContentContribution>(routeRoot);
             SetSerialized(routeBinding, "route", activeRoute);
             SetSerialized(routeBinding, "localContentId", $"qa-lifecycle-route-{label.ToLowerInvariant()}");
             SetSerialized(routeBinding, "requiredness", 10);
@@ -132,7 +132,7 @@ namespace ImmersiveFrameworkQA.Lifecycle.Editor
             CreateCamera(new Color(0.04f, 0.055f, 0.05f, 1f));
             CreateDirectionalLight("QA_Lifecycle_Additional_Light");
             GameObject root = EnsureRoot(scene, "QA_Lifecycle_AdditionalContent");
-            RouteContentBinding routeBinding = EnsureComponent<RouteContentBinding>(root);
+            RouteContentContribution routeBinding = EnsureComponent<RouteContentContribution>(root);
             SetSerialized(routeBinding, "route", routeA);
             SetSerialized(routeBinding, "localContentId", "qa-lifecycle-route-a-additional");
             SetSerialized(routeBinding, "requiredness", 10);

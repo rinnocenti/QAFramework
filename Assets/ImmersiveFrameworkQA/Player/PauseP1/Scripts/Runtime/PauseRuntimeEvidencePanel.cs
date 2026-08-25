@@ -11,7 +11,7 @@ namespace ImmersiveFrameworkQA.PauseP1
         private const string LogPrefix = "[PAUSE_RUNTIME_EVIDENCE]";
 
         [SerializeField] private PlayerInput playerInput;
-        [SerializeField] private PausePlayerInputBinding pauseBinding;
+        [SerializeField] private PlayerPauseInput pauseBinding;
         [SerializeField]
         private Rect panelRect = new Rect(500f, 330f, 500f, 300f);
 
@@ -19,11 +19,11 @@ namespace ImmersiveFrameworkQA.PauseP1
         private ObservedPosture lastObservedPosture;
 
         public PlayerInput PlayerInput => playerInput;
-        public PausePlayerInputBinding PauseBinding => pauseBinding;
+        public PlayerPauseInput PauseBinding => pauseBinding;
 
         public void Configure(
             PlayerInput nextPlayerInput,
-            PausePlayerInputBinding nextPauseBinding)
+            PlayerPauseInput nextPauseBinding)
         {
             playerInput = nextPlayerInput;
             pauseBinding = nextPauseBinding;

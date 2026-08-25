@@ -18,7 +18,7 @@ namespace ImmersiveFrameworkQA.Audio
     {
         [Header("Runtime")]
         [SerializeField] private FrameworkBgmDirector director;
-        [SerializeField] private FrameworkRouteBgmBinding routeBgmBinding;
+        [SerializeField] private RouteBgmAuthoring routeBgmBinding;
 
         [Header("Route")]
         [SerializeField] private RouteRequestTrigger otherRouteTrigger;

@@ -16,7 +16,7 @@ namespace ImmersiveFrameworkQA.Camera
         [SerializeField] private string ownerId;
         [SerializeField] private string eligibilityScopeId;
         [SerializeField] private string requestId;
-        [SerializeField] private CameraOutputSessionBinding outputSession;
+        [SerializeField] private CameraOutputAuthoring outputSession;
         [SerializeField] private CameraRigComposer rigComposer;
         [SerializeField] private int precedence = 50;
         [SerializeField] private string tieBreakerId;
@@ -235,7 +235,7 @@ namespace ImmersiveFrameworkQA.Camera
         }
 
         void ICameraOutputSessionConsumer.AttachOutputSession(
-            CameraOutputSessionBinding binding)
+            CameraOutputAuthoring binding)
         {
             outputSession = binding;
             if (binding == null)

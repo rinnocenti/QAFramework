@@ -23,10 +23,10 @@ namespace ImmersiveFrameworkQA.Camera
         private const int MaxReadinessFrames = 600;
         private const int ExpectedCaseCount = 11;
 
-        [SerializeField] private RouteCameraOverrideBinding routeBinding;
+        [SerializeField] private RouteCameraOverride routeBinding;
         [SerializeField]
         private QaLocalPlayerCameraRequestBinding playerBinding;
-        [SerializeField] private ActivityCameraOverrideBinding activityBinding;
+        [SerializeField] private ActivityCameraOverride activityBinding;
         [SerializeField] private CameraRigComposer routeComposer;
         [SerializeField] private CameraRigComposer playerComposer;
         [SerializeField] private CameraRigComposer activityComposer;
@@ -37,8 +37,8 @@ namespace ImmersiveFrameworkQA.Camera
         [SerializeField] private string lastFailure;
         [SerializeField] private int completedCaseCount;
 
-        private CameraOutputSessionBinding outputSession;
-        private SessionCameraOverrideBinding sessionOverride;
+        private CameraOutputAuthoring outputSession;
+        private SessionCameraOverride sessionOverride;
         private bool started;
         private bool awaitingRouteLifecycleCleanup;
         private string routeRequestId;
@@ -335,8 +335,8 @@ namespace ImmersiveFrameworkQA.Camera
             Adr004BOwnerLossExecuted = true;
             Adr004BOwnerLossInvariantPassed = !orphaned;
             Adr004BOwnerLossDiagnostic = orphaned
-                ? "Disabling the active RouteCameraOverrideBinding left its admitted Camera request in CameraOutputContext."
-                : "Disabling the active RouteCameraOverrideBinding released its admitted Camera request before ownership became invalid.";
+                ? "Disabling the active RouteCameraOverride left its admitted Camera request in CameraOutputContext."
+                : "Disabling the active RouteCameraOverride released its admitted Camera request before ownership became invalid.";
 
             string evidence =
                 $"case='16-abnormal-owner-loss' operation='DisableRouteOwner' " +
@@ -876,7 +876,7 @@ namespace ImmersiveFrameworkQA.Camera
         }
 
         void ICameraOutputSessionConsumer.AttachOutputSession(
-            CameraOutputSessionBinding binding)
+            CameraOutputAuthoring binding)
         {
             outputSession = binding;
         }
@@ -887,7 +887,7 @@ namespace ImmersiveFrameworkQA.Camera
         }
 
         void ISessionCameraOverrideConsumer.AttachSessionCameraOverride(
-            SessionCameraOverrideBinding binding)
+            SessionCameraOverride binding)
         {
             sessionOverride = binding;
         }

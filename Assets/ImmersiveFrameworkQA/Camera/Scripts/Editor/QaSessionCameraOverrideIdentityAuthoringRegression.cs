@@ -18,7 +18,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             "Immersive Framework/QA/Regressions/Camera/Run Session Camera Override Identity Authoring Regression";
 
         private const string EditorTypeName =
-            "Immersive.Framework.Editor.CameraAuthoring.SessionCameraOverrideBindingEditor";
+            "Immersive.Framework.Editor.CameraAuthoring.SessionCameraOverrideEditor";
 
         private const BindingFlags InstanceAny =
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
@@ -47,8 +47,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             try
             {
-                SessionCameraOverrideBinding binding =
-                    root.AddComponent<SessionCameraOverrideBinding>();
+                SessionCameraOverride binding =
+                    root.AddComponent<SessionCameraOverride>();
 
                 Require(HasText(binding.ScopeId),
                     "A new Session Camera Override did not receive a Scope ID.");
@@ -77,8 +77,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             try
             {
-                SessionCameraOverrideBinding binding =
-                    root.AddComponent<SessionCameraOverrideBinding>();
+                SessionCameraOverride binding =
+                    root.AddComponent<SessionCameraOverride>();
 
                 SetIds(
                     binding,
@@ -110,8 +110,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             try
             {
-                SessionCameraOverrideBinding binding =
-                    root.AddComponent<SessionCameraOverrideBinding>();
+                SessionCameraOverride binding =
+                    root.AddComponent<SessionCameraOverride>();
 
                 SetIds(
                     binding,
@@ -144,8 +144,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             try
             {
-                SessionCameraOverrideBinding binding =
-                    root.AddComponent<SessionCameraOverrideBinding>();
+                SessionCameraOverride binding =
+                    root.AddComponent<SessionCameraOverride>();
 
                 SetIds(
                     binding,
@@ -194,9 +194,9 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         }
 
         private static void InvokeReset(
-            SessionCameraOverrideBinding binding)
+            SessionCameraOverride binding)
         {
-            MethodInfo reset = typeof(SessionCameraOverrideBinding).GetMethod(
+            MethodInfo reset = typeof(SessionCameraOverride).GetMethod(
                 "Reset",
                 InstanceAny);
             Require(reset != null,
@@ -205,7 +205,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         }
 
         private static void SetIds(
-            SessionCameraOverrideBinding binding,
+            SessionCameraOverride binding,
             string scopeId,
             string requestId,
             string tieBreakerId)

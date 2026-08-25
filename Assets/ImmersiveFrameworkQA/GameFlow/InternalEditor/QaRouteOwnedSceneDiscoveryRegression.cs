@@ -72,14 +72,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 Scene sameNameB = EditorSceneManager.OpenScene(sameNameBPath, OpenSceneMode.Additive);
                 EditorSceneManager.OpenScene(divergentPath, OpenSceneMode.Additive);
 
-                RouteContentBinding primaryBinding = CreateBinding(primary, "Primary Binding", routeA);
-                RouteContentBinding additionalFirstBinding = CreateBinding(additional, "Additional Binding A", routeA);
-                RouteContentBinding additionalSecondBinding = CreateBinding(additional, "Additional Binding B", routeA);
-                RouteContentBinding differentRouteBinding = CreateBinding(differentRoute, "Different Route Binding", routeB);
-                RouteContentBinding persistentBinding = CreateBinding(persistent, "Persistent Binding", routeA);
-                RouteContentBinding externalBinding = CreateBinding(external, "External Binding", routeA);
-                RouteContentBinding sameNameABinding = CreateBinding(sameNameA, "Path A Binding", routeA);
-                RouteContentBinding sameNameBBinding = CreateBinding(sameNameB, "Path B Binding", routeA);
+                RouteContentContribution primaryBinding = CreateBinding(primary, "Primary Binding", routeA);
+                RouteContentContribution additionalFirstBinding = CreateBinding(additional, "Additional Binding A", routeA);
+                RouteContentContribution additionalSecondBinding = CreateBinding(additional, "Additional Binding B", routeA);
+                RouteContentContribution differentRouteBinding = CreateBinding(differentRoute, "Different Route Binding", routeB);
+                RouteContentContribution persistentBinding = CreateBinding(persistent, "Persistent Binding", routeA);
+                RouteContentContribution externalBinding = CreateBinding(external, "External Binding", routeA);
+                RouteContentContribution sameNameABinding = CreateBinding(sameNameA, "Path A Binding", routeA);
+                RouteContentContribution sameNameBBinding = CreateBinding(sameNameB, "Path B Binding", routeA);
                 SaveTemporaryScenes();
 
                 RouteContentDiscoveryScope scope = RouteContentDiscoveryScope.FromCompositionResult(
@@ -90,7 +90,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "Primary Route scene was not kept before additional Route scenes.");
                 completed.Add("from-composition-result-primary-first-and-duplicate-removed");
 
-                IReadOnlyList<RouteContentBinding> bindings = SceneCompositionComponentQuery.GetComponents<RouteContentBinding>(scope);
+                IReadOnlyList<RouteContentContribution> bindings = SceneCompositionComponentQuery.GetComponents<RouteContentContribution>(scope);
                 Require(bindings.Count == 6 && Contains(bindings, primaryBinding) &&
                         Contains(bindings, additionalFirstBinding) && Contains(bindings, additionalSecondBinding) &&
                         Contains(bindings, differentRouteBinding) && Contains(bindings, sameNameABinding) && Contains(bindings, sameNameBBinding) &&
@@ -98,7 +98,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "Route-owned scene scope did not preserve owned components or excluded persistent/external scenes.");
                 completed.Add("persistent-external-excluded-and-distinct-components-preserved");
 
-                Require(SceneCompositionComponentQuery.GetComponents<RouteContentBinding>(
+                Require(SceneCompositionComponentQuery.GetComponents<RouteContentContribution>(
                             RouteContentDiscoveryScope.FromCompositionResult(CreateDivergentPathResult(routeA, primary, divergentPath))).Count == 0,
                     "A present divergent scene path must not fall back to a matching scene name.");
                 completed.Add("divergent-path-has-no-name-fallback");
@@ -169,14 +169,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 role == RouteSceneRole.Primary ? RouteSceneLoadMode.Single : RouteSceneLoadMode.Additive, order, true);
         }
 
-        private static RouteContentBinding CreateBinding(Scene scene, string name, RouteAsset route)
+        private static RouteContentContribution CreateBinding(Scene scene, string name, RouteAsset route)
         {
             var gameObject = new GameObject(name);
             SceneManager.MoveGameObjectToScene(gameObject, scene);
-            RouteContentBinding binding = gameObject.AddComponent<RouteContentBinding>();
+            RouteContentContribution binding = gameObject.AddComponent<RouteContentContribution>();
             var serialized = new SerializedObject(binding);
             SerializedProperty property = serialized.FindProperty("route");
-            Require(property != null, "RouteContentBinding route property was not found.");
+            Require(property != null, "RouteContentContribution route property was not found.");
             property.objectReferenceValue = route;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(binding);

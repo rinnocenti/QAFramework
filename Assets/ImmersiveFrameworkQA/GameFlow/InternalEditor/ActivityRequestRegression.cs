@@ -221,8 +221,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             GameObject emptyRoot = CreateRoot(
                 "Activity Regression Empty Root",
                 objects);
-            ActivityRequestTriggerBindingResult absent =
-                ActivityRequestTriggerBinding.TryBind(
+            ActivityRequestTriggerBinderResult absent =
+                ActivityRequestTriggerBinder.TryBind(
                     new[] { emptyRoot },
                     new QaFakeActivityRuntimePort());
             Require(
@@ -240,8 +240,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             ActivityRequestTrigger oneTrigger =
                 oneRoot.AddComponent<ActivityRequestTrigger>();
             var oneRuntime = new QaFakeActivityRuntimePort();
-            ActivityRequestTriggerBindingResult one =
-                ActivityRequestTriggerBinding.TryBind(
+            ActivityRequestTriggerBinderResult one =
+                ActivityRequestTriggerBinder.TryBind(
                     new[] { oneRoot },
                     oneRuntime);
             Require(
@@ -269,8 +269,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             ActivityRequestTrigger secondMultiple =
                 multipleChild.AddComponent<ActivityRequestTrigger>();
             var multipleRuntime = new QaFakeActivityRuntimePort();
-            ActivityRequestTriggerBindingResult multiple =
-                ActivityRequestTriggerBinding.TryBind(
+            ActivityRequestTriggerBinderResult multiple =
+                ActivityRequestTriggerBinder.TryBind(
                     new[] { multipleRoot },
                     multipleRuntime);
             Require(
@@ -296,8 +296,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     out string idempotentIssue),
                 "Could not prebind the idempotent Activity trigger. " +
                 idempotentIssue);
-            ActivityRequestTriggerBindingResult idempotent =
-                ActivityRequestTriggerBinding.TryBind(
+            ActivityRequestTriggerBinderResult idempotent =
+                ActivityRequestTriggerBinder.TryBind(
                     new[] { idempotentRoot },
                     idempotentRuntime);
             Require(
@@ -335,8 +335,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     out string incompatibleIssue),
                 "Could not prebind the incompatible Activity trigger. " +
                 incompatibleIssue);
-            ActivityRequestTriggerBindingResult incompatible =
-                ActivityRequestTriggerBinding.TryBind(
+            ActivityRequestTriggerBinderResult incompatible =
+                ActivityRequestTriggerBinder.TryBind(
                     new[] { incompatibleRoot },
                     compositionRuntime);
             Require(

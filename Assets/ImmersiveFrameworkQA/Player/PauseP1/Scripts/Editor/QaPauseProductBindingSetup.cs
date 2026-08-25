@@ -267,13 +267,13 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                 SetObject(gates[0], "playerInput", input);
                 SetString(gates[0], "gameplayActionMapName", "Gameplay");
 
-                PausePlayerInputBinding[] bindings =
-                    root.GetComponentsInChildren<PausePlayerInputBinding>(true);
+                PlayerPauseInput[] bindings =
+                    root.GetComponentsInChildren<PlayerPauseInput>(true);
                 Require(bindings.Length <= 1,
-                    $"Duplicate PausePlayerInputBinding components are rejected; found '{bindings.Length}'.");
-                PausePlayerInputBinding binding = bindings.Length == 1
+                    $"Duplicate PlayerPauseInput components are rejected; found '{bindings.Length}'.");
+                PlayerPauseInput binding = bindings.Length == 1
                     ? bindings[0]
-                    : input.gameObject.AddComponent<PausePlayerInputBinding>();
+                    : input.gameObject.AddComponent<PlayerPauseInput>();
                 Require(ReferenceEquals(binding.gameObject, input.gameObject),
                     "Pause binding must share the official PlayerInput GameObject.");
                 SetObject(binding, "playerInput", input);
@@ -500,7 +500,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     GameObject root = NewSceneObject(
                         "Pause Activity Intent - Official Local Player Binding Required",
                         scene);
-                    root.AddComponent<PauseActivityBindingAuthoring>();
+                    root.AddComponent<ActivityPauseAuthoring>();
                     PauseQaIntentPanel panel =
                         root.AddComponent<PauseQaIntentPanel>();
                     panel.Configure(

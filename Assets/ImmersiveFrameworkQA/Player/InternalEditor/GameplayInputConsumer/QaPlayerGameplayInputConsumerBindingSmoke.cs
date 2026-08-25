@@ -9,7 +9,7 @@ using UnityEngine.InputSystem;
 
 namespace ImmersiveFrameworkQA.Player.Internal.Editor
 {
-    internal static class QaPlayerGameplayInputConsumerBindingSmoke
+    internal static class QaPlayerGameplayInputReaderSmoke
     {
         private const string Prefix =
             "[QA][PLAYER-GAMEPLAY-INPUT-CONSUMER-01]";
@@ -65,7 +65,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 completed.Add("runtime-copy-distinct");
 
                 Require(
-                    PlayerGameplayInputConsumerBinding.TryResolveRuntimeActionIdentity(
+                    PlayerGameplayInputReader.TryResolveRuntimeActionIdentity(
                         runtimeAsset,
                         runtimeGameplay,
                         moveReference,
@@ -83,7 +83,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 InputActionMap runtimeUi = runtimeAsset.AddActionMap("UI");
                 runtimeUi.AddAction("Submit", InputActionType.Button);
                 Require(
-                    !PlayerGameplayInputConsumerBinding.TryResolveRuntimeActionIdentity(
+                    !PlayerGameplayInputReader.TryResolveRuntimeActionIdentity(
                         runtimeAsset,
                         runtimeUi,
                         moveReference,
@@ -103,7 +103,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                     foreignMove.id != authoredMove.id,
                     "Foreign action fixture unexpectedly reused authored GUID.");
                 Require(
-                    !PlayerGameplayInputConsumerBinding.TryResolveRuntimeActionIdentity(
+                    !PlayerGameplayInputReader.TryResolveRuntimeActionIdentity(
                         runtimeAsset,
                         runtimeGameplay,
                         foreignMoveReference,
@@ -117,8 +117,8 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 completed.Add("no-name-fallback");
 
                 actorObject = new GameObject("QA Gameplay Input Consumer Actor");
-                PlayerGameplayInputConsumerBinding consumer =
-                    actorObject.AddComponent<PlayerGameplayInputConsumerBinding>();
+                PlayerGameplayInputReader consumer =
+                    actorObject.AddComponent<PlayerGameplayInputReader>();
                 Require(
                     !consumer.HasCurrentGameplayBinding && !consumer.GameplayReady,
                     "Fresh consumer unexpectedly reported current gameplay authority.");
@@ -128,7 +128,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                     "Unbound consumer did not fail closed with a default value.");
                 completed.Add("unbound-fails-closed");
 
-                Type surface = typeof(PlayerGameplayInputConsumerBinding);
+                Type surface = typeof(PlayerGameplayInputReader);
                 bool exposesRawInput = surface
                     .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
                     .Any(p => IsRawInputType(p.PropertyType)) ||

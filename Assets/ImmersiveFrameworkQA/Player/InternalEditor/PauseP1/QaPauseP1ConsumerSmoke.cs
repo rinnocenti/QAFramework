@@ -38,8 +38,8 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                 GameObject[] roots =
                     loadedScene.GetRootGameObjects();
 
-                PausePlayerInputBinding binding =
-                    FindExactlyOne<PausePlayerInputBinding>(
+                PlayerPauseInput binding =
+                    FindExactlyOne<PlayerPauseInput>(
                         loadedScene,
                         roots);
                 PauseRequestTrigger trigger =
@@ -319,9 +319,9 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     secondPlayer,
                     loadedScene);
 
-                PausePlayerInputBinding secondBinding =
+                PlayerPauseInput secondBinding =
                     secondPlayer.GetComponent<
-                        PausePlayerInputBinding>();
+                        PlayerPauseInput>();
 
                 Require(
                     secondBinding != null,

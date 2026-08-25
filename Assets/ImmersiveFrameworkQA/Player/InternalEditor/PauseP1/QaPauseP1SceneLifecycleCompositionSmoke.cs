@@ -36,8 +36,8 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                 GameObject[] exactRoots =
                     loadedScene.GetRootGameObjects();
 
-                PausePlayerInputBinding binding =
-                    FindExactlyOne<PausePlayerInputBinding>(
+                PlayerPauseInput binding =
+                    FindExactlyOne<PlayerPauseInput>(
                         loadedScene,
                         exactRoots);
                 PlayerInput playerInput =
@@ -66,13 +66,13 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     foreignPlayer,
                     foreignScene);
 
-                PausePlayerInputBinding foreignBinding =
+                PlayerPauseInput foreignBinding =
                     foreignPlayer.GetComponent<
-                        PausePlayerInputBinding>();
+                        PlayerPauseInput>();
 
                 Require(
                     foreignBinding != null,
-                    "Foreign scope clone has no PausePlayerInputBinding.");
+                    "Foreign scope clone has no PlayerPauseInput.");
 
                 Require(
                     lifecycle.OnSceneAvailable(
@@ -122,9 +122,9 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     secondPlayer,
                     loadedScene);
 
-                PausePlayerInputBinding secondBinding =
+                PlayerPauseInput secondBinding =
                     secondPlayer.GetComponent<
-                        PausePlayerInputBinding>();
+                        PlayerPauseInput>();
 
                 Require(
                     secondBinding != null,

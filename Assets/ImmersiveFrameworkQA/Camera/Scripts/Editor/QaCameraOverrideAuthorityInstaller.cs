@@ -65,7 +65,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 GlobalScenePath,
                 OpenSceneMode.Single);
 
-            CameraOutputSessionBinding output =
+            CameraOutputAuthoring output =
                 EnsureSingleOutput(scene);
 
             GameObject root = output.gameObject;
@@ -169,7 +169,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 "defaultCameraRig",
                 composer);
 
-            SessionCameraOverrideBinding session =
+            SessionCameraOverride session =
                 EnsureSingleSessionOverride(
                     scene,
                     root);
@@ -327,15 +327,15 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
         private static void ValidatePersistentSessionComposition(
             Scene scene,
-            CameraOutputSessionBinding output,
-            SessionCameraOverrideBinding session,
+            CameraOutputAuthoring output,
+            SessionCameraOverride session,
             CameraRigComposer composer,
             Transform target)
         {
-            List<CameraOutputSessionBinding> outputs =
-                FindInScene<CameraOutputSessionBinding>(scene);
-            List<SessionCameraOverrideBinding> overrides =
-                FindInScene<SessionCameraOverrideBinding>(scene);
+            List<CameraOutputAuthoring> outputs =
+                FindInScene<CameraOutputAuthoring>(scene);
+            List<SessionCameraOverride> overrides =
+                FindInScene<SessionCameraOverride>(scene);
 
             if (outputs.Count != 1 ||
                 overrides.Count != 1 ||
@@ -399,13 +399,13 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             }
         }
 
-        private static CameraOutputSessionBinding EnsureSingleOutput(
+        private static CameraOutputAuthoring EnsureSingleOutput(
             Scene scene)
         {
-            List<CameraOutputSessionBinding> outputs =
-                FindInScene<CameraOutputSessionBinding>(scene);
+            List<CameraOutputAuthoring> outputs =
+                FindInScene<CameraOutputAuthoring>(scene);
 
-            CameraOutputSessionBinding selected =
+            CameraOutputAuthoring selected =
                 outputs.Find(
                     item =>
                         item.gameObject.name == OutputRootName);
@@ -419,7 +419,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                  index >= 0;
                  index--)
             {
-                CameraOutputSessionBinding candidate =
+                CameraOutputAuthoring candidate =
                     outputs[index];
 
                 if (candidate == null ||
@@ -445,18 +445,18 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 scene);
 
             return root.AddComponent<
-                CameraOutputSessionBinding>();
+                CameraOutputAuthoring>();
         }
 
-        private static SessionCameraOverrideBinding
+        private static SessionCameraOverride
             EnsureSingleSessionOverride(
                 Scene scene,
                 GameObject outputRoot)
         {
-            List<SessionCameraOverrideBinding> overrides =
-                FindInScene<SessionCameraOverrideBinding>(scene);
+            List<SessionCameraOverride> overrides =
+                FindInScene<SessionCameraOverride>(scene);
 
-            SessionCameraOverrideBinding selected =
+            SessionCameraOverride selected =
                 overrides.Find(
                     item =>
                         item.gameObject == outputRoot);
@@ -470,7 +470,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                  index >= 0;
                  index--)
             {
-                SessionCameraOverrideBinding candidate =
+                SessionCameraOverride candidate =
                     overrides[index];
 
                 if (candidate == null ||
@@ -485,13 +485,13 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             if (selected == null)
             {
                 return outputRoot.AddComponent<
-                    SessionCameraOverrideBinding>();
+                    SessionCameraOverride>();
             }
 
             if (selected.gameObject != outputRoot)
             {
                 throw new InvalidOperationException(
-                    "QA_UIGlobal has a SessionCameraOverrideBinding " +
+                    "QA_UIGlobal has a SessionCameraOverride " +
                     "outside the persistent camera output root.");
             }
 

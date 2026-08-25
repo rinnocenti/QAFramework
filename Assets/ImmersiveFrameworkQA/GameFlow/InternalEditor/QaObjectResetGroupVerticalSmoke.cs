@@ -413,7 +413,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             ICollection<string> completed)
         {
             GameObject empty = CreateRoot("OBJECT_RESET_GROUP_VERTICAL_SMOKE Binding Empty", objects);
-            ObjectResetGroupTriggerBindingResult absent = ObjectResetGroupTriggerBinding.TryBind(
+            ObjectResetGroupTriggerBinderResult absent = ObjectResetGroupTriggerBinder.TryBind(
                 new[] { empty, empty },
                 new RecordingSelectionExecutionPort());
             Require(
@@ -426,7 +426,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             GameObject root = CreateRoot("OBJECT_RESET_GROUP_VERTICAL_SMOKE Binding Root", objects);
             ObjectResetGroupTrigger trigger = root.AddComponent<ObjectResetGroupTrigger>();
             var port = new RecordingSelectionExecutionPort();
-            ObjectResetGroupTriggerBindingResult bound = ObjectResetGroupTriggerBinding.TryBind(
+            ObjectResetGroupTriggerBinderResult bound = ObjectResetGroupTriggerBinder.TryBind(
                 new[] { root, root },
                 port);
             Require(
@@ -437,7 +437,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 && trigger.HasResetSelectionExecutionRuntimeBinding,
                 bound.Message);
 
-            ObjectResetGroupTriggerBindingResult idempotent = ObjectResetGroupTriggerBinding.TryBind(
+            ObjectResetGroupTriggerBinderResult idempotent = ObjectResetGroupTriggerBinder.TryBind(
                 new[] { root },
                 port);
             Require(
@@ -453,7 +453,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     new RecordingSelectionExecutionPort(),
                     out string initialIssue),
                 initialIssue);
-            ObjectResetGroupTriggerBindingResult rejected = ObjectResetGroupTriggerBinding.TryBind(
+            ObjectResetGroupTriggerBinderResult rejected = ObjectResetGroupTriggerBinder.TryBind(
                 new[] { incompatibleRoot },
                 new RecordingSelectionExecutionPort());
             Require(

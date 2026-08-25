@@ -187,8 +187,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
                 var divergentRuntime =
                     new RejectingPlayerActorSelectionRuntimePort();
-                LocalPlayerActorSelectionRequestAuthoringBindingResult divergentBinding =
-                    LocalPlayerActorSelectionRequestAuthoringBinding.TryBind(
+                LocalPlayerActorSelectionRequestAuthoringBinderResult divergentBinding =
+                    LocalPlayerActorSelectionRequestAuthoringBinder.TryBind(
                         new[] { provisioning.gameObject },
                         divergentRuntime);
                 Require(
@@ -311,8 +311,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "Player Actor Selection Binding Empty Root",
                     objects);
 
-            LocalPlayerActorSelectionRequestAuthoringBindingResult optionalAbsent =
-                LocalPlayerActorSelectionRequestAuthoringBinding.TryBind(
+            LocalPlayerActorSelectionRequestAuthoringBinderResult optionalAbsent =
+                LocalPlayerActorSelectionRequestAuthoringBinder.TryBind(
                     new[] { emptyRoot, emptyRoot },
                     hostRuntime);
             Require(
@@ -326,7 +326,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             completed.Add("optional-absent-selection-binding-is-non-blocking");
 
             LocalPlayerActorSelectionRequestAuthoringReleaseResult optionalRelease =
-                LocalPlayerActorSelectionRequestAuthoringBinding.TryRelease(
+                LocalPlayerActorSelectionRequestAuthoringBinder.TryRelease(
                     new[] { emptyRoot, emptyRoot },
                     hostRuntime);
             Require(
@@ -362,8 +362,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             LocalPlayerActorSelectionRequestAuthoring invalidCandidate =
                 invalidCandidateObject.AddComponent<
                     LocalPlayerActorSelectionRequestAuthoring>();
-            LocalPlayerActorSelectionRequestAuthoringBindingResult invalidPreflight =
-                LocalPlayerActorSelectionRequestAuthoringBinding.TryBind(
+            LocalPlayerActorSelectionRequestAuthoringBinderResult invalidPreflight =
+                LocalPlayerActorSelectionRequestAuthoringBinder.TryBind(
                     new[] { invalidRoot },
                     hostRuntime);
             Require(
@@ -406,8 +406,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 secondChild.AddComponent<LocalPlayerProvisioningAuthoring>();
             secondAuthoring.ProvisioningAuthoring = secondProvisioning;
 
-            LocalPlayerActorSelectionRequestAuthoringBindingResult missingRuntime =
-                LocalPlayerActorSelectionRequestAuthoringBinding.TryBind(
+            LocalPlayerActorSelectionRequestAuthoringBinderResult missingRuntime =
+                LocalPlayerActorSelectionRequestAuthoringBinder.TryBind(
                     new[] { authoredRoot },
                     null);
             Require(
@@ -421,8 +421,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 !secondAuthoring.HasPlayerActorSelectionRuntimeBinding,
                 missingRuntime.Message);
 
-            LocalPlayerActorSelectionRequestAuthoringBindingResult bound =
-                LocalPlayerActorSelectionRequestAuthoringBinding.TryBind(
+            LocalPlayerActorSelectionRequestAuthoringBinderResult bound =
+                LocalPlayerActorSelectionRequestAuthoringBinder.TryBind(
                     new[]
                     {
                         authoredRoot,
@@ -443,8 +443,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 secondAuthoring.HasPlayerActorSelectionRuntimeBinding,
                 bound.Message);
 
-            LocalPlayerActorSelectionRequestAuthoringBindingResult idempotent =
-                LocalPlayerActorSelectionRequestAuthoringBinding.TryBind(
+            LocalPlayerActorSelectionRequestAuthoringBinderResult idempotent =
+                LocalPlayerActorSelectionRequestAuthoringBinder.TryBind(
                     new[] { authoredRoot, child },
                     hostRuntime);
             Require(
@@ -459,8 +459,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             var divergentRuntime =
                 new RejectingPlayerActorSelectionRuntimePort();
-            LocalPlayerActorSelectionRequestAuthoringBindingResult divergent =
-                LocalPlayerActorSelectionRequestAuthoringBinding.TryBind(
+            LocalPlayerActorSelectionRequestAuthoringBinderResult divergent =
+                LocalPlayerActorSelectionRequestAuthoringBinder.TryBind(
                     new[] { authoredRoot },
                     divergentRuntime);
             Require(
@@ -489,7 +489,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 "binding-is-distinct-from-runtime-readiness");
 
             LocalPlayerActorSelectionRequestAuthoringReleaseResult divergentRelease =
-                LocalPlayerActorSelectionRequestAuthoringBinding.TryRelease(
+                LocalPlayerActorSelectionRequestAuthoringBinder.TryRelease(
                     new[] { authoredRoot },
                     divergentRuntime);
             Require(
@@ -501,7 +501,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 divergentRelease.Message);
 
             LocalPlayerActorSelectionRequestAuthoringReleaseResult released =
-                LocalPlayerActorSelectionRequestAuthoringBinding.TryRelease(
+                LocalPlayerActorSelectionRequestAuthoringBinder.TryRelease(
                     new[] { authoredRoot, authoredRoot },
                     hostRuntime);
             Require(
@@ -517,7 +517,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 released.Message);
 
             LocalPlayerActorSelectionRequestAuthoringReleaseResult repeatedRelease =
-                LocalPlayerActorSelectionRequestAuthoringBinding.TryRelease(
+                LocalPlayerActorSelectionRequestAuthoringBinder.TryRelease(
                     new[] { authoredRoot },
                     hostRuntime);
             Require(

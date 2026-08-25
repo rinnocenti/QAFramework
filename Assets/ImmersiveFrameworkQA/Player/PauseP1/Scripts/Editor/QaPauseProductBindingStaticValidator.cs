@@ -150,8 +150,8 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                     root.GetComponentsInChildren<PlayerInput>(true);
                 UnityPlayerInputGateAdapter[] gates =
                     root.GetComponentsInChildren<UnityPlayerInputGateAdapter>(true);
-                PausePlayerInputBinding[] bindings =
-                    root.GetComponentsInChildren<PausePlayerInputBinding>(true);
+                PlayerPauseInput[] bindings =
+                    root.GetComponentsInChildren<PlayerPauseInput>(true);
                 PauseRuntimeEvidencePanel[] evidencePanels =
                     root.GetComponentsInChildren<
                         PauseRuntimeEvidencePanel>(true);
@@ -168,13 +168,13 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                 Require(gates.Length == 1,
                     $"Official host requires exactly one UnityPlayerInputGateAdapter; found '{gates.Length}'.");
                 Require(bindings.Length == 1,
-                    $"Official host requires exactly one PausePlayerInputBinding; found '{bindings.Length}'.");
+                    $"Official host requires exactly one PlayerPauseInput; found '{bindings.Length}'.");
                 Require(evidencePanels.Length == 1,
                     $"Official host requires exactly one PauseRuntimeEvidencePanel; found '{evidencePanels.Length}'.");
 
                 PlayerInput input = inputs[0];
                 UnityPlayerInputGateAdapter gate = gates[0];
-                PausePlayerInputBinding binding = bindings[0];
+                PlayerPauseInput binding = bindings[0];
                 PauseRuntimeEvidencePanel evidencePanel = evidencePanels[0];
                 Require(ReferenceEquals(gate.gameObject, input.gameObject) &&
                         ReferenceEquals(binding.gameObject, input.gameObject) &&
@@ -192,7 +192,7 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                 Require(
                     ExplicitObject(evidencePanel, "pauseBinding") == binding &&
                     ReferenceEquals(evidencePanel.PauseBinding, binding),
-                    "Pause runtime evidence must point explicitly to the official PausePlayerInputBinding.");
+                    "Pause runtime evidence must point explicitly to the official PlayerPauseInput.");
                 Require(input.actions != null &&
                         string.Equals(
                             AssetDatabase.GetAssetPath(input.actions),
@@ -394,12 +394,12 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
                 {
                     Component[] components = Components(scene);
                     localPlayerInputCount += components.OfType<PlayerInput>().Count();
-                    PauseActivityBindingAuthoring[] authorings =
+                    ActivityPauseAuthoring[] authorings =
                         components
-                            .OfType<PauseActivityBindingAuthoring>()
+                            .OfType<ActivityPauseAuthoring>()
                             .ToArray();
                     Require(authorings.Length == 1,
-                        "Pause Activity scene requires exactly one PauseActivityBindingAuthoring.");
+                        "Pause Activity scene requires exactly one ActivityPauseAuthoring.");
                     Require(
                         authorings[0].Requiredness ==
                             PauseActivityBindingRequiredness.Required,

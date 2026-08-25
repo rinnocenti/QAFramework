@@ -12,15 +12,15 @@ namespace ImmersiveFrameworkQA.Camera.Editor
     /// Regression for the persistent Camera Output authoring surface.
     /// The regression uses reflection only for package-internal Editor APIs.
     /// </summary>
-    internal static class QaCameraOutputSessionBindingAuthoringRegression
+    internal static class QaCameraOutputAuthoringAuthoringRegression
     {
         private const string MenuPath =
             "Immersive Framework/QA/Regressions/Camera/Run Camera Output Session Binding Authoring Regression";
 
         private const string ValidatorTypeName =
-            "Immersive.Framework.Editor.CameraAuthoring.CameraOutputSessionBindingAuthoringValidator";
+            "Immersive.Framework.Editor.CameraAuthoring.CameraOutputAuthoringAuthoringValidator";
         private const string EditorTypeName =
-            "Immersive.Framework.Editor.CameraAuthoring.CameraOutputSessionBindingEditor";
+            "Immersive.Framework.Editor.CameraAuthoring.CameraOutputAuthoringEditor";
         private const string BrainTypeName =
             "Unity.Cinemachine.CinemachineBrain";
 
@@ -72,8 +72,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             root.SetActive(false);
             try
             {
-                CameraOutputSessionBinding binding =
-                    root.AddComponent<CameraOutputSessionBinding>();
+                CameraOutputAuthoring binding =
+                    root.AddComponent<CameraOutputAuthoring>();
                 Require(
                     !string.IsNullOrWhiteSpace(binding.OutputIdText),
                     "A newly created Camera Output Session Binding did not receive an Output ID.");
@@ -92,11 +92,11 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             root.SetActive(false);
             try
             {
-                CameraOutputSessionBinding binding =
-                    root.AddComponent<CameraOutputSessionBinding>();
+                CameraOutputAuthoring binding =
+                    root.AddComponent<CameraOutputAuthoring>();
                 SetOutputId(binding, "qa.camera.output.existing");
 
-                MethodInfo reset = typeof(CameraOutputSessionBinding).GetMethod(
+                MethodInfo reset = typeof(CameraOutputAuthoring).GetMethod(
                     "Reset",
                     InstanceAny);
                 Require(reset != null,
@@ -123,8 +123,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             try
             {
-                CameraOutputSessionBinding binding =
-                    root.AddComponent<CameraOutputSessionBinding>();
+                CameraOutputAuthoring binding =
+                    root.AddComponent<CameraOutputAuthoring>();
                 SetOutputId(binding, string.Empty);
 
                 Type editorType = ResolveType(EditorTypeName);
@@ -179,8 +179,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 outputRoot.SetActive(false);
                 roots.Add(outputRoot);
 
-                CameraOutputSessionBinding binding =
-                    outputRoot.AddComponent<CameraOutputSessionBinding>();
+                CameraOutputAuthoring binding =
+                    outputRoot.AddComponent<CameraOutputAuthoring>();
                 SetOutputId(binding, $"qa.camera.output.{caseName}");
 
                 UnityEngine.Camera camera = includeCamera
@@ -228,7 +228,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         }
 
         private static ValidationProbe Validate(
-            CameraOutputSessionBinding binding)
+            CameraOutputAuthoring binding)
         {
             Type validatorType = ResolveType(ValidatorTypeName);
             MethodInfo validate = validatorType.GetMethod(
@@ -269,7 +269,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         }
 
         private static void SetOutputId(
-            CameraOutputSessionBinding binding,
+            CameraOutputAuthoring binding,
             string value)
         {
             var serialized = new SerializedObject(binding);
@@ -281,7 +281,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         }
 
         private static void AssignOutputReferences(
-            CameraOutputSessionBinding binding,
+            CameraOutputAuthoring binding,
             UnityEngine.Camera camera,
             Component brain)
         {

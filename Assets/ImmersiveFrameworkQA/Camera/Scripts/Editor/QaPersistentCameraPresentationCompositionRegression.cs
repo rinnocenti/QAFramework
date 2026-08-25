@@ -76,7 +76,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 {
                     var root = new GameObject($"QA_Output_{index}");
                     root.SetActive(false);
-                    root.AddComponent<CameraOutputSessionBinding>();
+                    root.AddComponent<CameraOutputAuthoring>();
                     roots.Add(root);
                 }
 
@@ -84,7 +84,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 {
                     var root = new GameObject($"QA_SessionOverride_{index}");
                     root.SetActive(false);
-                    root.AddComponent<SessionCameraOverrideBinding>();
+                    root.AddComponent<SessionCameraOverride>();
                     roots.Add(root);
                 }
 
@@ -104,12 +104,12 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
                 if (succeeded)
                 {
-                    Require(arguments[0] is CameraOutputSessionBinding,
+                    Require(arguments[0] is CameraOutputAuthoring,
                         $"Case '{caseName}' did not resolve the mandatory output.");
                     Require(
                         sessionOverrideCount == 0
                             ? arguments[1] == null
-                            : arguments[1] is SessionCameraOverrideBinding,
+                            : arguments[1] is SessionCameraOverride,
                         $"Case '{caseName}' resolved an unexpected Session override.");
                 }
                 else

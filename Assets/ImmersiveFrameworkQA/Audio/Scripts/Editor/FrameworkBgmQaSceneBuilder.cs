@@ -188,15 +188,15 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             EnsureScenePresentation(scene, cameraPosition, backgroundColor, label);
 
             GameObject root = EnsureRoot(scene, $"QA_FrameworkBgmRoot_{label}");
-            RouteContentBinding routeContentBinding = EnsureComponent<RouteContentBinding>(root);
+            RouteContentContribution routeContentContribution = EnsureComponent<RouteContentContribution>(root);
             AudioRuntimeHost runtimeHost = EnsureAudioRuntimeHost(root.transform, defaults, out bool runtimeHostConfigured);
             FrameworkBgmDirector director = EnsureComponent<FrameworkBgmDirector>(root);
-            FrameworkRouteBgmBinding routeBgmBinding = EnsureComponent<FrameworkRouteBgmBinding>(root);
+            RouteBgmAuthoring routeBgmBinding = EnsureComponent<RouteBgmAuthoring>(root);
 
             bool valid = runtimeHostConfigured
-                & SetSerialized(routeContentBinding, "route", activeRoute)
-                & SetSerialized(routeContentBinding, "localContentId", $"qa-framework-bgm-route-{label.ToLowerInvariant()}")
-                & SetSerialized(routeContentBinding, "requiredness", (int)FrameworkContentRequiredness.Required)
+                & SetSerialized(routeContentContribution, "route", activeRoute)
+                & SetSerialized(routeContentContribution, "localContentId", $"qa-framework-bgm-route-{label.ToLowerInvariant()}")
+                & SetSerialized(routeContentContribution, "requiredness", (int)FrameworkContentRequiredness.Required)
                 & SetSerialized(director, "audioRuntimeHost", runtimeHost)
                 & SetSerialized(director, "logTransitions", true);
 
@@ -288,13 +288,13 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                 routeCue,
                 ownActivityCue);
 
-            valid &= ValidateObjectReference(routeContentBinding, "route", activeRoute, $"RouteContentBinding route on '{root.name}'")
-                & ValidateString(routeContentBinding, "localContentId", $"qa-framework-bgm-route-{label.ToLowerInvariant()}", $"RouteContentBinding localContentId on '{root.name}'")
-                & ValidateInt(routeContentBinding, "requiredness", (int)FrameworkContentRequiredness.Required, $"RouteContentBinding requiredness on '{root.name}'")
+            valid &= ValidateObjectReference(routeContentContribution, "route", activeRoute, $"RouteContentContribution route on '{root.name}'")
+                & ValidateString(routeContentContribution, "localContentId", $"qa-framework-bgm-route-{label.ToLowerInvariant()}", $"RouteContentContribution localContentId on '{root.name}'")
+                & ValidateInt(routeContentContribution, "requiredness", (int)FrameworkContentRequiredness.Required, $"RouteContentContribution requiredness on '{root.name}'")
                 & ValidateObjectReference(director, "audioRuntimeHost", runtimeHost, $"FrameworkBgmDirector audioRuntimeHost on '{root.name}'")
-                 & ValidateObjectReference(routeBgmBinding, "routeBgm", routeCue, $"FrameworkRouteBgmBinding routeBgm on '{root.name}'")
-                 & ValidateInt(routeBgmBinding, "policy", (int)(routeCue != null ? FrameworkBgmRoutePolicy.PlayOwn : FrameworkBgmRoutePolicy.PreserveCurrent), $"FrameworkRouteBgmBinding policy on '{root.name}'")
-                 & ValidateObjectReference(routeBgmBinding, "director", director, $"FrameworkRouteBgmBinding director on '{root.name}'");
+                 & ValidateObjectReference(routeBgmBinding, "routeBgm", routeCue, $"RouteBgmAuthoring routeBgm on '{root.name}'")
+                 & ValidateInt(routeBgmBinding, "policy", (int)(routeCue != null ? FrameworkBgmRoutePolicy.PlayOwn : FrameworkBgmRoutePolicy.PreserveCurrent), $"RouteBgmAuthoring policy on '{root.name}'")
+                 & ValidateObjectReference(routeBgmBinding, "director", director, $"RouteBgmAuthoring director on '{root.name}'");
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, scenePath);
@@ -310,11 +310,11 @@ namespace ImmersiveFrameworkQA.Audio.Editor
             FrameworkBgmDirector director,
             string contentIdSuffix,
             string sceneLabel,
-            out FrameworkActivityBgmBinding bgmBinding)
+            out ActivityBgmAuthoring bgmBinding)
         {
             GameObject root = EnsureRoot(scene, rootName);
             ActivityLocalVisibilityAdapter contentBinding = EnsureComponent<ActivityLocalVisibilityAdapter>(root);
-            bgmBinding = EnsureComponent<FrameworkActivityBgmBinding>(root);
+            bgmBinding = EnsureComponent<ActivityBgmAuthoring>(root);
             string localContentId = $"qa-framework-bgm-activity-{contentIdSuffix}-{sceneLabel.ToLowerInvariant()}";
 
             bool valid = ConfigureActivityLocalVisibilityAdapter(contentBinding, activity, localContentId, rootName)
@@ -324,8 +324,8 @@ namespace ImmersiveFrameworkQA.Audio.Editor
                 & SetSerialized(bgmBinding, "director", director);
 
             valid &= ValidateActivityLocalVisibilityAdapter(contentBinding, activity, localContentId, rootName);
-            valid &= ValidateObjectReference(bgmBinding, "assignedActivity", activity, $"FrameworkActivityBgmBinding assignedActivity on '{rootName}'");
-            valid &= ValidateObjectReference(bgmBinding, "director", director, $"FrameworkActivityBgmBinding director on '{rootName}'");
+            valid &= ValidateObjectReference(bgmBinding, "assignedActivity", activity, $"ActivityBgmAuthoring assignedActivity on '{rootName}'");
+            valid &= ValidateObjectReference(bgmBinding, "director", director, $"ActivityBgmAuthoring director on '{rootName}'");
             return valid;
         }
 

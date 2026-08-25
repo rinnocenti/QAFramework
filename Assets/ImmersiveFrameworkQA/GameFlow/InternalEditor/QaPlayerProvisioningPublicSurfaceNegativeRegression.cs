@@ -376,10 +376,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
                 // --- Missing binding / wrong scope ---
 
-                PlayerProvisioningCommandTrigger unboundTrigger =
+                PlayerSessionCommandTrigger unboundTrigger =
                     new GameObject(
                             "QA_PLAYER_SURFACE_02_UnboundCommand")
-                        .AddComponent<PlayerProvisioningCommandTrigger>();
+                        .AddComponent<PlayerSessionCommandTrigger>();
                 try
                 {
                     Require(

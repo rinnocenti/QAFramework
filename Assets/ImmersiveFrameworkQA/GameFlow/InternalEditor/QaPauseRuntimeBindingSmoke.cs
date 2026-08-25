@@ -242,11 +242,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             var root = new GameObject($"QA Invalid Pause Binding {pass}");
             try
             {
-                var binding = root.AddComponent<PausePlayerInputBinding>();
+                var binding = root.AddComponent<PlayerPauseInput>();
                 Require(
                     !binding.TryValidateAuthoring(out string diagnostic) &&
                     !string.IsNullOrWhiteSpace(diagnostic),
-                    "PausePlayerInputBinding accepted missing mandatory authoring without a diagnostic.");
+                    "PlayerPauseInput accepted missing mandatory authoring without a diagnostic.");
                 completed.Add($"{pass}:missing-binding-authoring-fails-explicitly");
             }
             finally
@@ -345,7 +345,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 InputActionReference pauseActionReference,
                 PlayerInput playerInput,
                 UnityPlayerInputGateAdapter adapter,
-                PausePlayerInputBinding binding,
+                PlayerPauseInput binding,
                 PauseRequestTrigger trigger,
                 ActivityRestartTrigger restartTrigger,
                 InputActionMap globalMap,
@@ -373,7 +373,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             internal PlayerInput PlayerInput { get; }
             internal UnityPlayerInputGateAdapter Adapter { get; }
-            internal PausePlayerInputBinding Binding { get; }
+            internal PlayerPauseInput Binding { get; }
             internal PauseRequestTrigger Trigger { get; }
             internal ActivityRestartTrigger RestartTrigger { get; }
             internal InputActionMap GlobalMap { get; }
@@ -398,7 +398,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 playerInput.defaultActionMap = gameplayMap.name;
 
                 var adapter = root.AddComponent<UnityPlayerInputGateAdapter>();
-                var binding = root.AddComponent<PausePlayerInputBinding>();
+                var binding = root.AddComponent<PlayerPauseInput>();
                 var trigger = root.AddComponent<PauseRequestTrigger>();
                 var restartTrigger = root.AddComponent<ActivityRestartTrigger>();
 
@@ -571,7 +571,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             }
 
             private static void ConfigureBinding(
-                PausePlayerInputBinding binding,
+                PlayerPauseInput binding,
                 PlayerInput playerInput,
                 InputActionReference pauseAction,
                 InputActionAsset actions,
