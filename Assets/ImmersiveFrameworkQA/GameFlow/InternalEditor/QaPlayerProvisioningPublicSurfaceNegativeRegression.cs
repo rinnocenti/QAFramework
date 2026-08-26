@@ -54,8 +54,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             "first-join-uses-first-supported-slot",
             "close-joining-succeeded",
             "close-joining-no-change",
-            "missing-binding-command-unavailable",
-            "wrong-scope-no-fallback",
+            "valid-authored-command-runtime-unavailable",
+            "activity-scoped-route-content-bound",
             "activity-entry-waiting",
             "activity-scope-bound",
             "exit-while-waiting-for-join",
@@ -107,7 +107,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             PlayerParticipationOperationResult staleDestroyedOpen = null;
             bool destroyedBindingReleasedAtDestruction = false;
             bool destroyedObservationUnavailableAtDestruction = false;
-            LocalPlayerActorSelectionRequestAuthoring actorSelection = null;
+            PlayerSessionDefaultActorSelectionCommandTrigger actorSelection = null;
             LocalPlayerJoinResult joined = null;
             LocalPlayerHostAuthoring joinedHost = null;
             PlayerSlotId joinedSlotId = default;
@@ -374,32 +374,52 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         : "Repeated CloseJoining returned no public result.");
                 cases.Complete("close-joining-no-change");
 
-                // --- Missing binding / wrong scope ---
+                // --- Valid authoring without runtime binding / Activity scope in Route content ---
 
-                PlayerSessionCommandTrigger unboundTrigger =
+                PlayerSessionOpenJoiningCommandTrigger unboundTrigger =
                     new GameObject(
                             "QA_PLAYER_SURFACE_02_UnboundCommand")
-                        .AddComponent<PlayerSessionCommandTrigger>();
+                        .AddComponent<PlayerSessionOpenJoiningCommandTrigger>();
                 try
                 {
                     Require(
-                        !unboundTrigger.TryValidateConfiguration(
+                        unboundTrigger.TryValidateConfiguration(
                             out string unboundIssue) &&
-                        !string.IsNullOrWhiteSpace(unboundIssue),
-                        "Missing scoped consumer must fail public command validation.");
-                    unboundTrigger.InvokeConfiguredOperation();
+                        string.IsNullOrWhiteSpace(unboundIssue),
+                        "A default Activity-scoped command with no live binding must remain authoring-valid.");
+                    bool unboundAccessResolved = unboundTrigger.TryGetAccess(
+                        out ILocalPlayerProvisioningConsumerAccess unboundAccess,
+                        out string unboundAccessIssue);
                     Require(
-                        unboundTrigger.LastResultKind ==
-                            PlayerProvisioningCommandResultKind
-                                .ParticipationOperation &&
-                        unboundTrigger.LastParticipationResult != null &&
-                        unboundTrigger.LastParticipationResult.Rejected &&
-                        unboundTrigger.LastParticipationResult.Status ==
+                        unboundTrigger.BindingState ==
+                            PlayerSessionScopedAccessState.Unbound &&
+                        !unboundTrigger.IsScopedAccessAvailable &&
+                        !unboundAccessResolved &&
+                        unboundAccess == null,
+                        "Valid authored command without a composed scope must expose " +
+                        "runtime unavailability without a fallback. " +
+                        $"state='{unboundTrigger.BindingState}' " +
+                        $"scope='{unboundTrigger.Scope}' " +
+                        $"issue='{unboundAccessIssue}' " +
+                        $"diagnostic='{unboundTrigger.Diagnostic}'.");
+                    int revisionBeforeUnboundInvoke = closeAgain.CurrentRevision;
+                    bool joiningOpenBeforeUnboundInvoke = closeAgain.Snapshot.JoiningOpen;
+                    unboundTrigger.Invoke();
+                    Require(
+                        unboundTrigger.LastOpenJoiningResult != null &&
+                        unboundTrigger.LastOpenJoiningResult.Rejected &&
+                        unboundTrigger.LastOpenJoiningResult.Status ==
                             PlayerParticipationOperationStatus
                                 .RejectedInvalidState,
-                        "Missing binding did not produce an explicit public unavailable/rejected command result. " +
+                        "Runtime-unavailable command did not produce an explicit public rejection. " +
                         unboundTrigger.LastDiagnostic);
-                    cases.Complete("missing-binding-command-unavailable");
+                    LocalPlayerProvisioningConsumerObservationSnapshot afterUnboundInvoke =
+                        RequireObservation(routeAccess, "valid-authored-command-runtime-unavailable");
+                    Require(
+                        afterUnboundInvoke.Participation.Revision == revisionBeforeUnboundInvoke &&
+                        afterUnboundInvoke.Participation.JoiningOpen == joiningOpenBeforeUnboundInvoke,
+                        "Runtime-unavailable command mutated Player Session state.");
+                    cases.Complete("valid-authored-command-runtime-unavailable");
                 }
                 finally
                 {
@@ -412,7 +432,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     wrongBinding != null &&
                     wrongBinding.Scope ==
                         LocalPlayerProvisioningConsumerScope.Activity,
-                    "Prepared Player Surface fixture has no authored wrong-scope binding.");
+                    "Prepared Player Surface fixture has no authored Activity-scoped Route-content binding.");
                 await AwaitFramesAsync(8);
                 ILocalPlayerProvisioningConsumerAccess wrongAccess = null;
                 string wrongIssue = string.Empty;
@@ -433,7 +453,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     $"state='{wrongBinding.BindingState}' scope='{wrongAccess?.Snapshot.Scope}' " +
                     $"owner='{wrongAccess?.Snapshot.Owner.StableText}' issue='{wrongIssue}' " +
                     $"diagnostic='{wrongBinding.Diagnostic}'.");
-                cases.Complete("wrong-scope-no-fallback");
+                cases.Complete("activity-scoped-route-content-bound");
 
                 // --- Activity lifecycle: exit while WaitingForJoin ---
 
@@ -619,7 +639,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
                 actorSelection = await QaPlayerSurfacePublicNavigationSupport
                     .RequireActorSelectionRuntimeReadyAsync(
-                        globalUiFixture,
+                        publicNav,
                         FrameBudget);
 
                 LocalPlayerProvisioningConsumerObservationSnapshot preSelect =
@@ -627,12 +647,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 int currentSelectionRevision =
                     FindSlot(preSelect.Participation, joinedSlotId)
                         .SelectionRevision;
+                ConfigureExpectedSelectionRevision(
+                    actorSelection,
+                    currentSelectionRevision);
+                actorSelection.Invoke();
                 PlayerActorSelectionResult selected =
-                    actorSelection.RequestDefaultActorSelection(
-                        joinedSlotId,
-                        currentSelectionRevision,
-                        Source,
-                        "qa-player-surface-02-default-selection");
+                    actorSelection.LastActorSelectionResult;
                 Require(
                     selected != null &&
                     selected.Succeeded &&
@@ -861,12 +881,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     staleRevision = liveSelectionRevision + 17;
                 }
 
+                ConfigureExpectedSelectionRevision(actorSelection, staleRevision);
+                actorSelection.Invoke();
                 PlayerActorSelectionResult staleSelection =
-                    actorSelection.RequestDefaultActorSelection(
-                        joinedSlotId,
-                        staleRevision,
-                        Source,
-                        "qa-player-surface-02-stale-selection");
+                    actorSelection.LastActorSelectionResult;
                 Require(
                     staleSelection != null &&
                     staleSelection.Status ==
@@ -887,12 +905,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     DescribeObservation(afterStaleSelection));
                 cases.Complete("stale-selection-revision-rejected");
 
+                ConfigureExpectedSelectionRevision(
+                    actorSelection,
+                    liveSelectionRevision);
+                actorSelection.Invoke();
                 PlayerActorSelectionResult repeatedSelection =
-                    actorSelection.RequestDefaultActorSelection(
-                        joinedSlotId,
-                        liveSelectionRevision,
-                        Source,
-                        "qa-player-surface-02-repeat-selection");
+                    actorSelection.LastActorSelectionResult;
                 Require(
                     repeatedSelection != null &&
                     repeatedSelection.Succeeded &&
@@ -1540,6 +1558,17 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             {
                 throw new InvalidOperationException(message);
             }
+        }
+
+        private static void ConfigureExpectedSelectionRevision(
+            PlayerSessionCommandTriggerBase command,
+            int expectedSelectionRevision)
+        {
+            var serialized = new SerializedObject(command);
+            SerializedProperty property = serialized.FindProperty("expectedSelectionRevision");
+            Require(property != null, "Actor command has no Expected Selection Revision field.");
+            property.intValue = expectedSelectionRevision;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static string Escape(string value)

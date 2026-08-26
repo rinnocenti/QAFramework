@@ -32,6 +32,11 @@ namespace ImmersiveFrameworkQA.Hub
         private PlayerSessionScopedAccessConsumer wrongScopeBinding;
         [SerializeField]
         private PlayerSessionScopedAccessConsumer destroyProbeBinding;
+        [SerializeField] private PlayerSessionSelectActorCommandTrigger selectActorCommand;
+        [SerializeField] private PlayerSessionDefaultActorSelectionCommandTrigger defaultActorSelectionCommand;
+        [SerializeField] private PlayerSessionReplaceActorSelectionCommandTrigger replaceActorSelectionCommand;
+        [SerializeField] private PlayerSessionClearActorSelectionCommandTrigger clearActorSelectionCommand;
+        [SerializeField] private PlayerSessionSelectActorCommandTrigger unavailableSelectActorCommand;
         [SerializeField] private PlayerSlotProfile primaryPlayerSlot;
 
         public ActivityAsset TargetActivity => targetActivity;
@@ -49,6 +54,11 @@ namespace ImmersiveFrameworkQA.Hub
             wrongScopeBinding;
         public PlayerSessionScopedAccessConsumer DestroyProbeBinding =>
             destroyProbeBinding;
+        public PlayerSessionSelectActorCommandTrigger SelectActorCommand => selectActorCommand;
+        public PlayerSessionDefaultActorSelectionCommandTrigger DefaultActorSelectionCommand => defaultActorSelectionCommand;
+        public PlayerSessionReplaceActorSelectionCommandTrigger ReplaceActorSelectionCommand => replaceActorSelectionCommand;
+        public PlayerSessionClearActorSelectionCommandTrigger ClearActorSelectionCommand => clearActorSelectionCommand;
+        public PlayerSessionSelectActorCommandTrigger UnavailableSelectActorCommand => unavailableSelectActorCommand;
         public PlayerSlotProfile PrimaryPlayerSlot => primaryPlayerSlot;
 
         public void Configure(
@@ -62,6 +72,11 @@ namespace ImmersiveFrameworkQA.Hub
             PlayerSessionScopedAccessConsumer consumerBinding,
             PlayerSessionScopedAccessConsumer authoredWrongScopeBinding,
             PlayerSessionScopedAccessConsumer authoredDestroyProbeBinding,
+            PlayerSessionSelectActorCommandTrigger authoredSelectActorCommand,
+            PlayerSessionDefaultActorSelectionCommandTrigger authoredDefaultActorSelectionCommand,
+            PlayerSessionReplaceActorSelectionCommandTrigger authoredReplaceActorSelectionCommand,
+            PlayerSessionClearActorSelectionCommandTrigger authoredClearActorSelectionCommand,
+            PlayerSessionSelectActorCommandTrigger authoredUnavailableSelectActorCommand,
             PlayerSlotProfile playerSlot)
         {
             targetActivity = activity;
@@ -74,10 +89,26 @@ namespace ImmersiveFrameworkQA.Hub
             routeConsumerBinding = consumerBinding;
             wrongScopeBinding = authoredWrongScopeBinding;
             destroyProbeBinding = authoredDestroyProbeBinding;
+            selectActorCommand = authoredSelectActorCommand;
+            defaultActorSelectionCommand = authoredDefaultActorSelectionCommand;
+            replaceActorSelectionCommand = authoredReplaceActorSelectionCommand;
+            clearActorSelectionCommand = authoredClearActorSelectionCommand;
+            unavailableSelectActorCommand = authoredUnavailableSelectActorCommand;
             primaryPlayerSlot = playerSlot;
         }
 
         public bool TryValidateAuthoredSurface(out string issue)
+        {
+            return TryValidateAuthoredSurface(true, out issue);
+        }
+
+        /// <summary>
+        /// Validates the retained public surface after the negative regression has
+        /// intentionally destroyed its one-shot Route stale-access probe.
+        /// </summary>
+        public bool TryValidateAuthoredSurface(
+            bool requireDestroyProbe,
+            out string issue)
         {
             if (targetActivity == null)
             {
@@ -149,13 +180,31 @@ namespace ImmersiveFrameworkQA.Hub
                 return false;
             }
 
-            if (destroyProbeBinding == null ||
-                destroyProbeBinding.Scope !=
+            if (requireDestroyProbe &&
+                (destroyProbeBinding == null ||
+                 destroyProbeBinding.Scope !=
                     LocalPlayerProvisioningConsumerScope.Route ||
-                destroyProbeBinding.gameObject.scene != gameObject.scene)
+                 destroyProbeBinding.gameObject.scene != gameObject.scene))
             {
                 issue =
                     "Public navigation fixture requires one authored Route-scoped destroy probe in the same scene.";
+                return false;
+            }
+
+            if (!ValidateRouteCommand(selectActorCommand, "Select Actor", out issue) ||
+                !ValidateRouteCommand(defaultActorSelectionCommand, "Default Actor Selection", out issue) ||
+                !ValidateRouteCommand(replaceActorSelectionCommand, "Replace Actor Selection", out issue) ||
+                !ValidateRouteCommand(clearActorSelectionCommand, "Clear Actor Selection", out issue))
+            {
+                return false;
+            }
+
+            if (unavailableSelectActorCommand == null ||
+                unavailableSelectActorCommand.Scope !=
+                    LocalPlayerProvisioningConsumerScope.Activity ||
+                unavailableSelectActorCommand.gameObject.scene != gameObject.scene)
+            {
+                issue = "Public navigation fixture requires an Activity-scoped Select Actor command in the Route scene.";
                 return false;
             }
 
@@ -164,6 +213,23 @@ namespace ImmersiveFrameworkQA.Hub
             {
                 issue =
                     "Public navigation fixture requires a valid primary Player Slot.";
+                return false;
+            }
+
+            issue = string.Empty;
+            return true;
+        }
+
+        private bool ValidateRouteCommand(
+            PlayerSessionCommandTriggerBase command,
+            string label,
+            out string issue)
+        {
+            if (command == null || command.gameObject != gameObject ||
+                command.gameObject.scene != gameObject.scene ||
+                command.Scope != LocalPlayerProvisioningConsumerScope.Route)
+            {
+                issue = $"Public navigation fixture requires its Route-scoped {label} command on the fixture root.";
                 return false;
             }
 

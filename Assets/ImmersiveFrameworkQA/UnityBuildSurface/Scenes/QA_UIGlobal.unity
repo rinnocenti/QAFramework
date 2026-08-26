@@ -372,7 +372,6 @@ GameObject:
   - component: {fileID: 1295583389}
   - component: {fileID: 1295583388}
   - component: {fileID: 1295583387}
-  - component: {fileID: 1295583392}
   - component: {fileID: 1295583390}
   - component: {fileID: 1295583391}
   - component: {fileID: 1295583393}
@@ -489,19 +488,6 @@ MonoBehaviour:
     y: 16
     width: 500
     height: 300
---- !u!114 &1295583392
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1295583386}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d8db11f138db4fd89de5c9a6e488ba76, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerActorSelectionRequestAuthoring
-  provisioningAuthoring: {fileID: 1295583387}
 --- !u!114 &1295583393
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -514,7 +500,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c489adeb145a45d4a4010bb77a4ecf35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: ImmersiveFrameworkQA.UnityBuildSurface.Runtime::ImmersiveFrameworkQA.UnityBuildSurface.QaPlayerSurfaceGlobalUiFixture
-  actorSelectionRequestAuthoring: {fileID: 1295583392}
+  provisioningAuthoring: {fileID: 1295583387}
   loadingSurface: {fileID: 5779747991876066232}
 --- !u!1 &1689272596
 GameObject:

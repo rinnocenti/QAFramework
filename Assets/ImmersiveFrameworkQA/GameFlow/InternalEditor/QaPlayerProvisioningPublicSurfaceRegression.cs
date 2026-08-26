@@ -307,7 +307,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             QaPlayerSurfaceGlobalUiFixture globalUiFixture = null;
             PlayerSessionScopedAccessConsumer consumerBinding = null;
             ILocalPlayerProvisioningConsumerAccess access = null;
-            LocalPlayerActorSelectionRequestAuthoring actorSelection = null;
+            PlayerSessionDefaultActorSelectionCommandTrigger actorSelection = null;
             LocalPlayerJoinResult joinResult = null;
             LocalPlayerHostAuthoring joinedHost = null;
             QaLoadingSurfaceVisibilityHoldAdapter loading = null;
@@ -557,7 +557,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
                 actorSelection = await QaPlayerSurfacePublicNavigationSupport
                     .RequireActorSelectionRuntimeReadyAsync(
-                        globalUiFixture,
+                        publicNav,
                         FrameBudget);
 
                 // Re-read immediately before the public selection request so a
@@ -568,12 +568,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 int selectionRevisionBefore =
                     FindSlot(preSelection.Participation, joinedSlotId)
                         .SelectionRevision;
+                ConfigureExpectedSelectionRevision(
+                    actorSelection,
+                    selectionRevisionBefore);
+                actorSelection.Invoke();
                 PlayerActorSelectionResult selection =
-                    actorSelection.RequestDefaultActorSelection(
-                        joinedSlotId,
-                        selectionRevisionBefore,
-                        Source,
-                        "qa-player-surface-01-default-actor-selection");
+                    actorSelection.LastActorSelectionResult;
                 Require(
                     selection != null &&
                     selection.Succeeded &&
@@ -584,7 +584,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         slotProfile.DefaultActorProfile),
                     selection != null
                         ? selection.ToDiagnosticString()
-                        : "Public RequestDefaultActorSelection returned no result.");
+                        : "Public Default Actor Selection command returned no result.");
                 cases.Complete("default-actor-selection-requested");
 
                 LocalPlayerProvisioningConsumerObservationSnapshot selectedObservation =
@@ -1463,6 +1463,17 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             {
                 throw new InvalidOperationException(message);
             }
+        }
+
+        private static void ConfigureExpectedSelectionRevision(
+            PlayerSessionCommandTriggerBase command,
+            int expectedSelectionRevision)
+        {
+            var serialized = new SerializedObject(command);
+            SerializedProperty property = serialized.FindProperty("expectedSelectionRevision");
+            Require(property != null, "Actor command has no Expected Selection Revision field.");
+            property.intValue = expectedSelectionRevision;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static string Escape(string value)

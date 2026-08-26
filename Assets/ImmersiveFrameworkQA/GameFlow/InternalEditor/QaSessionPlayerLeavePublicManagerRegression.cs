@@ -189,21 +189,21 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "Player A Join did not return a live joined Local Player Host.");
                 Complete(completed, "player-a-joined");
 
-                LocalPlayerActorSelectionRequestAuthoring actorSelection =
+                PlayerSessionDefaultActorSelectionCommandTrigger actorSelection =
                     await QaPlayerSurfacePublicNavigationSupport
                         .RequireActorSelectionRuntimeReadyAsync(
-                            globalUiFixture,
+                            publicNav,
                             FrameBudget);
                 LocalPlayerProvisioningConsumerObservationSnapshot beforeSelection =
                     RequireObservation(access, "before-selection-a");
                 PlayerSlotRuntimeSnapshot slotBeforeSelection =
                     FindSlot(beforeSelection.Participation, slotId);
+                ConfigureExpectedSelectionRevision(
+                    actorSelection,
+                    slotBeforeSelection.SelectionRevision);
+                actorSelection.Invoke();
                 PlayerActorSelectionResult selection =
-                    actorSelection.RequestDefaultActorSelection(
-                        slotId,
-                        slotBeforeSelection.SelectionRevision,
-                        Source,
-                        "adr020-h-select-a");
+                    actorSelection.LastActorSelectionResult;
                 Require(
                     selection != null && selection.Succeeded &&
                     selection.Slot.IsJoined &&
@@ -823,6 +823,17 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             {
                 throw new InvalidOperationException(message);
             }
+        }
+
+        private static void ConfigureExpectedSelectionRevision(
+            PlayerSessionCommandTriggerBase command,
+            int expectedSelectionRevision)
+        {
+            var serialized = new SerializedObject(command);
+            SerializedProperty property = serialized.FindProperty("expectedSelectionRevision");
+            Require(property != null, "Actor command has no Expected Selection Revision field.");
+            property.intValue = expectedSelectionRevision;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static string Escape(string value)

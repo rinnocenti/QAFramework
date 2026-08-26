@@ -40,6 +40,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             "ImmersiveFrameworkQA.QA_PLAYER_FULL.Actor";
         private const string PublicSurfaceKey =
             "ImmersiveFrameworkQA.QA_PLAYER_FULL.PublicSurface";
+        private const string SessionChangeObservationKey =
+            "ImmersiveFrameworkQA.QA_PLAYER_FULL.SessionChangeObservation";
+        private const string DesignerEventProjectionKey =
+            "ImmersiveFrameworkQA.QA_PLAYER_FULL.DesignerEventProjection";
         private const string FailedFirstSceneAdoptionKey =
             "ImmersiveFrameworkQA.QA_PLAYER_FULL.FailedFirstSceneAdoption";
         private const string FailedContextualReprojectionKey =
@@ -110,7 +114,13 @@ namespace ImmersiveFrameworkQA.Player.Editor
             SceneProvidedNoActivityTerminationCompleted = 43,
             PreparingManagerSessionTermination = 44,
             RunningManagerSessionTermination = 45,
-            ManagerSessionTerminationCompleted = 46
+            ManagerSessionTerminationCompleted = 46,
+            PreparingSessionChangeObservation = 47,
+            RunningSessionChangeObservation = 48,
+            SessionChangeObservationCompleted = 49,
+            PreparingDesignerEventProjection = 50,
+            RunningDesignerEventProjection = 51,
+            DesignerEventProjectionCompleted = 52
         }
 
         [InitializeOnLoadMethod]
@@ -147,10 +157,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 SetPhase(Phase.Preparing);
 
                 SetPhase(Phase.RunningSerialization);
-                if (!QaPlayerSerializationIdentityRegression.Execute(out string serializationError))
+                if (!QaPlayerExplicitCommandSurfaceRegression.Execute(out string serializationError))
                 {
                     throw new InvalidOperationException(
-                        $"Player serialization identity regression failed: {serializationError}");
+                        $"Player explicit command surface regression failed: {serializationError}");
                 }
                 MarkPassed(SerializationKey);
 
@@ -272,8 +282,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         break;
 
                     case Phase.RunningActor:
-                        await QaPlayerActorSelectionRuntimeBindingRegression
-                            .RunRegressionAsync();
+                        await QaPlayerActorSelectionPublicSurfaceRegression
+                            .RunCertificationAsync();
                         SetPhase(Phase.ActorCompleted);
                         MarkPassed(ActorKey);
                         break;
@@ -303,6 +313,20 @@ namespace ImmersiveFrameworkQA.Player.Editor
                             .RunCertificationAsync();
                         SetPhase(Phase.PublicSurfaceCompleted);
                         MarkPassed(PublicSurfaceKey);
+                        break;
+
+                    case Phase.RunningSessionChangeObservation:
+                        await QaPlayerSessionChangeObservationRegression
+                            .RunCertificationAsync();
+                        SetPhase(Phase.SessionChangeObservationCompleted);
+                        MarkPassed(SessionChangeObservationKey);
+                        break;
+
+                    case Phase.RunningDesignerEventProjection:
+                        await QaPlayerSessionDesignerEventProjectionRegression
+                            .RunCertificationAsync();
+                        SetPhase(Phase.DesignerEventProjectionCompleted);
+                        MarkPassed(DesignerEventProjectionKey);
                         break;
 
                     case Phase.RunningLeave:
@@ -416,6 +440,20 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         break;
 
                     case Phase.PublicSurfaceCompleted:
+                        SetPhase(Phase.PreparingSessionChangeObservation);
+                        QaPlayerSurfaceCertificationOrchestrator.PrepareForFullPlayerQa();
+                        SetPhase(Phase.RunningSessionChangeObservation);
+                        EnterFreshPlayMode();
+                        break;
+
+                    case Phase.SessionChangeObservationCompleted:
+                        SetPhase(Phase.PreparingDesignerEventProjection);
+                        QaPlayerSurfaceCertificationOrchestrator.PrepareForFullPlayerQa();
+                        SetPhase(Phase.RunningDesignerEventProjection);
+                        EnterFreshPlayMode();
+                        break;
+
+                    case Phase.DesignerEventProjectionCompleted:
                         SetPhase(Phase.PreparingLeave);
                         QaPlayerSurfaceCertificationOrchestrator.PrepareForFullPlayerQa();
                         SetPhase(Phase.RunningLeave);
@@ -472,6 +510,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             SessionState.SetString(ManagerSessionTerminationKey, "NOT RUN");
             SessionState.SetString(ActorKey, "NOT RUN");
             SessionState.SetString(PublicSurfaceKey, "NOT RUN");
+            SessionState.SetString(SessionChangeObservationKey, "NOT RUN");
+            SessionState.SetString(DesignerEventProjectionKey, "NOT RUN");
             SessionState.SetString(LeaveKey, "NOT RUN");
             SessionState.SetString(FailedFirstSceneAdoptionKey, "NOT RUN");
             SessionState.SetString(FailedContextualReprojectionKey, "NOT RUN");
@@ -520,6 +560,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 $"managerSessionTermination='{Result(ManagerSessionTerminationKey)}' " +
                 $"actor='{Result(ActorKey)}' " +
                 $"publicSurface='{Result(PublicSurfaceKey)}' " +
+                $"sessionChangeObservation='{Result(SessionChangeObservationKey)}' " +
+                $"designerEventProjection='{Result(DesignerEventProjectionKey)}' " +
                 $"leave='{Result(LeaveKey)}' " +
                 $"failedFirstSceneAdoption='{Result(FailedFirstSceneAdoptionKey)}' " +
                 $"failedContextualReprojection='{Result(FailedContextualReprojectionKey)}' " +
@@ -565,6 +607,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 $"managerSessionTermination='{Result(ManagerSessionTerminationKey)}' " +
                 $"actor='{Result(ActorKey)}' " +
                 $"publicSurface='{Result(PublicSurfaceKey)}' " +
+                $"sessionChangeObservation='{Result(SessionChangeObservationKey)}' " +
+                $"designerEventProjection='{Result(DesignerEventProjectionKey)}' " +
                 $"leave='{Result(LeaveKey)}' " +
                 $"failedFirstSceneAdoption='{Result(FailedFirstSceneAdoptionKey)}' " +
                 $"failedContextualReprojection='{Result(FailedContextualReprojectionKey)}' " +
@@ -610,6 +654,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     break;
                 case "Public Surface":
                     SessionState.SetString(PublicSurfaceKey, "FAIL");
+                    break;
+                case "Session Change Observation":
+                    SessionState.SetString(SessionChangeObservationKey, "FAIL");
+                    break;
+                case "Designer-facing Player Session Event Projection":
+                    SessionState.SetString(DesignerEventProjectionKey, "FAIL");
                     break;
                 case "Session Player Leave":
                     SessionState.SetString(LeaveKey, "FAIL");
@@ -657,6 +707,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 Phase.RunningManagerSessionTermination or
                 Phase.RunningPublicSurfacePositive or
                 Phase.RunningPublicSurfaceNegative or
+                Phase.RunningSessionChangeObservation or
+                Phase.RunningDesignerEventProjection or
                 Phase.RunningLeave or
                 Phase.RunningFailedFirstSceneAdoption or
                 Phase.RunningFailedContextualReprojection or
@@ -675,6 +727,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 Phase.ManagerSessionTerminationCompleted or
                 Phase.PublicSurfacePositiveCompleted or
                 Phase.PublicSurfaceCompleted or
+                Phase.SessionChangeObservationCompleted or
+                Phase.DesignerEventProjectionCompleted or
                 Phase.LeaveCompleted or
                 Phase.FailedFirstSceneAdoptionCompleted or
                 Phase.FailedContextualReprojectionCompleted;
@@ -715,6 +769,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     Phase.PublicSurfacePositiveCompleted or
                     Phase.RunningPublicSurfaceNegative or
                     Phase.PublicSurfaceCompleted => "Public Surface",
+                Phase.PreparingSessionChangeObservation or
+                Phase.RunningSessionChangeObservation or
+                    Phase.SessionChangeObservationCompleted =>
+                    "Session Change Observation",
+                Phase.PreparingDesignerEventProjection or
+                Phase.RunningDesignerEventProjection or
+                    Phase.DesignerEventProjectionCompleted =>
+                    "Designer-facing Player Session Event Projection",
                 Phase.PreparingLeave or Phase.RunningLeave or
                     Phase.LeaveCompleted => "Session Player Leave",
                 Phase.PreparingFailedFirstSceneAdoption or
@@ -801,7 +863,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
             new(24, "Contextual input/gameplay evidence fresh", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunAsync", SceneProvidedKey),
             new(25, "Normal A -> B requires no physical candidate or handoff", "QaP3M5BRouteTransitionAndNegativeMatrixSmoke.RunNoPhysicalHandoffOnActivityTransitionAsync", NoPhysicalHandoffKey),
             new(26, "ADR-021 Model B Route Spatial Entry", "QaAdr21RoutePlayerSpatialEntryRegression.Execute", RouteSpatialEntryKey),
-            new(27, "ADR-021 Model B Activity Explicit Relocation", "QaAdr21ActivityPlayerRelocationRegression.Execute", ActivityRelocationKey)
+            new(27, "ADR-021 Model B Activity Explicit Relocation", "QaAdr21ActivityPlayerRelocationRegression.Execute", ActivityRelocationKey),
+            new(28, "Session-scoped Player participation change observation", "QaPlayerSessionChangeObservationRegression.RunCertificationAsync", SessionChangeObservationKey),
+            new(29, "Designer-facing Player Session event projection", "QaPlayerSessionDesignerEventProjectionRegression.RunCertificationAsync", DesignerEventProjectionKey)
         };
 
         private static int MandatoryContractCount => MandatoryContracts.Length;
@@ -813,7 +877,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             result => string.Equals(result, "PASS", StringComparison.Ordinal));
 
         private static bool AllMandatoryPhasesPassed() =>
-            MandatoryContractCount == 27 &&
+            MandatoryContractCount == 29 &&
             ExecutedMandatoryContractCount == MandatoryContractCount &&
             PassedMandatoryContractCount == MandatoryContractCount;
 

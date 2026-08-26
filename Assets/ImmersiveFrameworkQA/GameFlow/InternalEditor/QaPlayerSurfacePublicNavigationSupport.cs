@@ -124,46 +124,45 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             return true;
         }
 
-        internal static async Task<LocalPlayerActorSelectionRequestAuthoring>
+        internal static async Task<PlayerSessionDefaultActorSelectionCommandTrigger>
             RequireActorSelectionRuntimeReadyAsync(
-                QaPlayerSurfaceGlobalUiFixture fixture,
+                QaPlayerSurfacePublicNavigationFixture fixture,
                 int frameBudget)
         {
             Require(fixture != null,
-                "UIGlobal QA fixture is required for Actor Selection readiness.");
+                "Route public-navigation fixture is required for Actor Selection readiness.");
             Require(
-                fixture.TryValidateAuthoredSurface(out string fixtureIssue),
+                fixture.TryValidateAuthoredSurface(false, out string fixtureIssue),
                 fixtureIssue);
 
-            LocalPlayerActorSelectionRequestAuthoring authoring =
-                fixture.ActorSelectionRequestAuthoring;
-            Require(authoring != null,
-                "UIGlobal QA fixture has no Actor Selection authoring.");
+            PlayerSessionSelectActorCommandTrigger select = fixture.SelectActorCommand;
+            PlayerSessionDefaultActorSelectionCommandTrigger selectDefault =
+                fixture.DefaultActorSelectionCommand;
+            PlayerSessionReplaceActorSelectionCommandTrigger replace =
+                fixture.ReplaceActorSelectionCommand;
+            PlayerSessionClearActorSelectionCommandTrigger clear =
+                fixture.ClearActorSelectionCommand;
+            Require(select != null && selectDefault != null && replace != null && clear != null,
+                "Route public-navigation fixture has an incomplete explicit Actor-selection command surface.");
 
             for (int frame = 0; frame < frameBudget; frame++)
             {
-                if (authoring.HasPlayerActorSelectionRuntimeBinding &&
-                    authoring.RuntimeReady)
+                if (select.IsScopedAccessAvailable &&
+                    selectDefault.IsScopedAccessAvailable &&
+                    replace.IsScopedAccessAvailable &&
+                    clear.IsScopedAccessAvailable)
                 {
-                    return authoring;
+                    return selectDefault;
                 }
 
                 await Awaitable.NextFrameAsync();
             }
 
-            LocalPlayerProvisioningAuthoring provisioning =
-                authoring.ProvisioningAuthoring;
             throw new TimeoutException(
-                "Public Actor Selection did not become runtime-ready after Framework boot. " +
-                $"authoringId='{authoring.GetEntityId()}' " +
-                $"object='{authoring.gameObject.name}' " +
-                $"scene='{authoring.gameObject.scene.name}' " +
-                $"binding='{authoring.PlayerActorSelectionRuntimeBindingStatus}' " +
-                $"bindingDiagnostic='{authoring.PlayerActorSelectionRuntimeBindingDiagnostic}' " +
-                $"provisioningId='{(provisioning != null ? provisioning.GetEntityId().ToString() : "missing")}' " +
-                $"provisioningReady='{(provisioning != null && provisioning.RuntimeReady)}' " +
-                $"provisioningDiagnostic='{(provisioning != null ? provisioning.RuntimeDiagnostic : "missing")}' " +
-                $"fixtureEvidence=\"fixtureCount='1' {DescribeGlobalUiFixture(fixture)}\".");
+                "Public Actor-selection commands did not become Route-scoped after Framework boot. " +
+                $"select='{select.ScopeBindingStatus}' default='{selectDefault.ScopeBindingStatus}' " +
+                $"replace='{replace.ScopeBindingStatus}' clear='{clear.ScopeBindingStatus}' " +
+                $"fixtureEvidence=\"{DescribePublicNavigationFixture(fixture)}\".");
         }
 
         internal static async Task<LocalPlayerProvisioningAuthoring>
@@ -177,8 +176,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 fixture.TryValidateAuthoredSurface(out string fixtureIssue),
                 fixtureIssue);
 
-            LocalPlayerProvisioningAuthoring provisioning = fixture
-                .ActorSelectionRequestAuthoring.ProvisioningAuthoring;
+            LocalPlayerProvisioningAuthoring provisioning = fixture.ProvisioningAuthoring;
             Require(provisioning != null,
                 "UIGlobal QA fixture has no Local Player provisioning authoring.");
 
@@ -224,21 +222,30 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 return "fixture='missing'";
             }
 
-            LocalPlayerActorSelectionRequestAuthoring actorSelection =
-                fixture.ActorSelectionRequestAuthoring;
-            LocalPlayerProvisioningAuthoring provisioning =
-                actorSelection != null
-                    ? actorSelection.ProvisioningAuthoring
-                    : null;
+            LocalPlayerProvisioningAuthoring provisioning = fixture.ProvisioningAuthoring;
             return
                 $"fixture='resolved' fixtureId='{fixture.GetEntityId()}' " +
                 $"object='{fixture.gameObject.name}' " +
                 $"scene='{fixture.gameObject.scene.name}' " +
-                $"actorSelectionId='{(actorSelection != null ? actorSelection.GetEntityId().ToString() : "missing")}' " +
-                $"actorSelectionReady='{(actorSelection != null && actorSelection.RuntimeReady)}' " +
-                $"actorSelectionBinding='{(actorSelection != null ? actorSelection.PlayerActorSelectionRuntimeBindingStatus : "missing")}' " +
                 $"provisioningId='{(provisioning != null ? provisioning.GetEntityId().ToString() : "missing")}' " +
                 $"provisioningReady='{(provisioning != null && provisioning.RuntimeReady)}'.";
+        }
+
+        private static string DescribePublicNavigationFixture(
+            QaPlayerSurfacePublicNavigationFixture fixture)
+        {
+            if (fixture == null)
+            {
+                return "fixture='missing'";
+            }
+
+            return
+                $"fixture='{fixture.GetEntityId()}' object='{fixture.gameObject.name}' " +
+                $"scene='{fixture.gameObject.scene.name}' " +
+                $"select='{fixture.SelectActorCommand?.ScopeBindingStatus}' " +
+                $"default='{fixture.DefaultActorSelectionCommand?.ScopeBindingStatus}' " +
+                $"replace='{fixture.ReplaceActorSelectionCommand?.ScopeBindingStatus}' " +
+                $"clear='{fixture.ClearActorSelectionCommand?.ScopeBindingStatus}'.";
         }
 
         internal static async Task RequireCompositionBoundAsync(

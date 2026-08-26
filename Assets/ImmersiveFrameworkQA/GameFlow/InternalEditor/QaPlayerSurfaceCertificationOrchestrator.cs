@@ -332,7 +332,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 fixture.WrongScopeBinding.Scope ==
                     Immersive.Framework.PlayerParticipation
                         .LocalPlayerProvisioningConsumerScope.Activity,
-                "Authored wrong-scope negative binding is missing or wrong scope.");
+                "Authored Activity-scoped Route-content binding is missing or has the wrong scope.");
             Require(
                 fixture.DestroyProbeBinding != null &&
                 fixture.DestroyProbeBinding.Scope ==

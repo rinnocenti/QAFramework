@@ -769,7 +769,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     hub);
                 PlayerSessionScopedAccessConsumer binding =
                     root.GetComponent<PlayerSessionScopedAccessConsumer>() ??
-                    root.AddComponent<PlayerSessionStatus>();
+                    root.AddComponent<PlayerSessionObserver>();
                 var serializedBinding = new SerializedObject(binding);
                 SerializedProperty scope = serializedBinding.FindProperty("scope");
                 Require(scope != null,
@@ -897,7 +897,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "P3M5B contextual witness requires an admission authoring surface.");
             GameObject root = NewSceneObject(name, scene);
             PlayerSessionScopedAccessConsumer binding =
-                root.AddComponent<PlayerSessionStatus>();
+                root.AddComponent<PlayerSessionObserver>();
             var serializedBinding = new SerializedObject(binding);
             SerializedProperty scope = serializedBinding.FindProperty("scope");
             Require(scope != null,

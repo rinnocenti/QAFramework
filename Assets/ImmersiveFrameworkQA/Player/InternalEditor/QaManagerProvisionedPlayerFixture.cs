@@ -22,8 +22,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             LocalPlayerProvisioningAuthoring provisioning,
             PlayerInputManager playerInputManager,
             GameObject playerHostPrefab,
-            LocalPlayerProvisioningHostRegistration hostRegistration,
-            LocalPlayerActorSelectionRequestAuthoring actorSelectionRequest)
+            LocalPlayerProvisioningHostRegistration hostRegistration)
         {
             Settings = settings;
             Application = application;
@@ -32,7 +31,6 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             PlayerInputManager = playerInputManager;
             PlayerHostPrefab = playerHostPrefab;
             HostRegistration = hostRegistration;
-            ActorSelectionRequest = actorSelectionRequest;
         }
 
         public ImmersiveFrameworkSettingsAsset Settings { get; }
@@ -42,7 +40,6 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
         public PlayerInputManager PlayerInputManager { get; }
         public GameObject PlayerHostPrefab { get; }
         public LocalPlayerProvisioningHostRegistration HostRegistration { get; }
-        public LocalPlayerActorSelectionRequestAuthoring ActorSelectionRequest { get; }
     }
 
     /// <summary>
@@ -223,14 +220,10 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             }
 
             if (context.HostRegistration == null ||
-                !ReferenceEquals(context.HostRegistration.ProvisioningAuthoring, authoring) ||
-                context.ActorSelectionRequest == null ||
-                !ReferenceEquals(
-                    context.ActorSelectionRequest.ProvisioningAuthoring,
-                    authoring))
+                !ReferenceEquals(context.HostRegistration.ProvisioningAuthoring, authoring))
             {
                 throw new InvalidOperationException(
-                    "Manager-Provisioned context does not retain the canonical registration and Actor Selection authoring.");
+                    "Manager-Provisioned context does not retain the canonical provisioning registration.");
             }
         }
 
@@ -283,41 +276,12 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 serializedAuthoring.FindProperty("localPlayerHostPrefab").objectReferenceValue = playerPrefab;
                 serializedAuthoring.ApplyModifiedPropertiesWithoutUndo();
 
-                LocalPlayerActorSelectionRequestAuthoring[] selectionEndpoints =
-                    ResolveSceneActorSelectionEndpoints(scene);
-                if (selectionEndpoints.Length > 1)
-                {
-                    throw new InvalidOperationException(
-                        $"Scene '{scene.name}' contains '{selectionEndpoints.Length}' Local Player Actor Selection Request authorings. Exactly one is required.");
-                }
-
-                if (selectionEndpoints.Length == 1 &&
-                    !ReferenceEquals(
-                        selectionEndpoints[0].gameObject,
-                        manager.gameObject))
-                {
-                    throw new InvalidOperationException(
-                        $"Scene '{scene.name}' contains its Local Player Actor Selection Request authoring on '{selectionEndpoints[0].gameObject.name}', but the canonical provisioning object is '{manager.gameObject.name}'.");
-                }
-
-                LocalPlayerActorSelectionRequestAuthoring selectionEndpoint =
-                    selectionEndpoints.Length == 1
-                        ? selectionEndpoints[0]
-                        : manager.gameObject.AddComponent<
-                            LocalPlayerActorSelectionRequestAuthoring>();
-                var serializedSelectionEndpoint =
-                    new SerializedObject(selectionEndpoint);
-                serializedSelectionEndpoint.FindProperty("provisioningAuthoring")
-                    .objectReferenceValue = authoring;
-                serializedSelectionEndpoint.ApplyModifiedPropertiesWithoutUndo();
-
                 LocalPlayerProvisioningHostRegistration registration =
                     ResolveOrCreateRegistration(scene, manager, authoring);
 
                 EditorUtility.SetDirty(manager.gameObject);
                 EditorUtility.SetDirty(manager);
                 EditorUtility.SetDirty(authoring);
-                EditorUtility.SetDirty(selectionEndpoint);
                 EditorUtility.SetDirty(registration);
                 EditorSceneManager.MarkSceneDirty(scene);
                 EditorSceneManager.SaveScene(scene);
@@ -346,13 +310,11 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                     authoring,
                     manager,
                     playerPrefab,
-                    registration,
-                    selectionEndpoint);
+                    registration);
                 Debug.Log(
                     "[LOCAL_PLAYER_RUNTIME_INTEGRATION_SETUP] status='Applied' " +
                     $"scene='{scenePath}' fixture='{manager.gameObject.name}' " +
                     $"registration='{registration.name}' " +
-                    $"actorSelectionEndpoint='{selectionEndpoint.name}' " +
                     $"prefab='{PlayerPrefabPath}' host='{host.name}' actorMount='{host.ActorMount.name}' " +
                     $"application='{application.name}' session='{session.name}' supportedSlots='{session.SupportedSlotCount}' " +
                     $"joinBehavior='{manager.joinBehavior}' notificationBehavior='{manager.notificationBehavior}' " +
@@ -378,22 +340,6 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 $"supportedSlots='{context.SessionProfile.SupportedSlotCount}' " +
                 $"maxPlayers='{context.PlayerInputManager.maxPlayerCount}'.");
             return context;
-        }
-
-        private static LocalPlayerActorSelectionRequestAuthoring[]
-            ResolveSceneActorSelectionEndpoints(Scene scene)
-        {
-            var endpoints =
-                new List<LocalPlayerActorSelectionRequestAuthoring>();
-            GameObject[] roots = scene.GetRootGameObjects();
-            for (int index = 0; index < roots.Length; index++)
-            {
-                endpoints.AddRange(
-                    roots[index].GetComponentsInChildren<
-                        LocalPlayerActorSelectionRequestAuthoring>(true));
-            }
-
-            return endpoints.ToArray();
         }
 
         private static InputActionAsset CreateOrUpdateInputActions()

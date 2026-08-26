@@ -236,6 +236,7 @@ GameObject:
   m_Component:
   - component: {fileID: 658652612}
   - component: {fileID: 658652611}
+  - component: {fileID: 658652613}
   m_Layer: 0
   m_Name: DestroyProbeBinding
   m_TagString: Untagged
@@ -254,8 +255,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9a206419dbd04d2697fa0a2b881a7a1b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionStatus
-  scope: 10
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionObserver
 --- !u!4 &658652612
 Transform:
   m_ObjectHideFlags: 0
@@ -271,6 +271,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1921611420}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &658652613
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 658652610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44d40c4cca356b446bf782279981c9dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionObserver
+  scope: 10
 --- !u!1 &669377174
 GameObject:
   m_ObjectHideFlags: 0
@@ -330,6 +343,7 @@ GameObject:
   - component: {fileID: 680282357}
   - component: {fileID: 680282356}
   - component: {fileID: 680282360}
+  - component: {fileID: 680282361}
   m_Layer: 0
   m_Name: QA_P3M5B_SessionProvisioningWitness
   m_TagString: Untagged
@@ -374,8 +388,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9a206419dbd04d2697fa0a2b881a7a1b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionStatus
-  scope: 10
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionObserver
 --- !u!4 &680282359
 Transform:
   m_ObjectHideFlags: 0
@@ -403,8 +416,21 @@ MonoBehaviour:
   m_Script: {fileID: 17747361}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Player.P3M5B.P3M5BSessionProvisioningWitness
-  routeConsumerBinding: {fileID: 680282358}
+  routeConsumerBinding: {fileID: 680282361}
   enterRouteATrigger: {fileID: 680282357}
+--- !u!114 &680282361
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 680282355}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44d40c4cca356b446bf782279981c9dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionObserver
+  scope: 10
 --- !u!1 &817060761
 GameObject:
   m_ObjectHideFlags: 0
@@ -450,6 +476,121 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1905153653}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &900000100
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1921611417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1f8d5a7d2c9406f9a311e8bc3b14d52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionSelectActorCommandTrigger
+  scope: 10
+  reason: qa-player-surface-select
+  playerSlot: {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
+  actorProfile: {fileID: 11400000, guid: 4b99c62ca2062964699d84b82fc950b4, type: 2}
+  expectedSelectionRevision: -1
+--- !u!114 &900000101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1921611417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52fa68b8d6243084e97231ab260a11bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionDefaultActorSelectionCommandTrigger
+  scope: 10
+  reason: qa-player-surface-select-default
+  playerSlot: {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
+  expectedSelectionRevision: -1
+--- !u!114 &900000102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1921611417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4e28937a86f4b08945b1c3de0f7462a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionReplaceActorSelectionCommandTrigger
+  scope: 10
+  reason: qa-player-surface-replace
+  playerSlot: {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
+  actorProfile: {fileID: 11400000, guid: 3cb60c4096063ea4d9010c768067788f, type: 2}
+  expectedSelectionRevision: -1
+--- !u!114 &900000103
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1921611417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e56b9d10c73a4df8b28e6c9140fa357d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionClearActorSelectionCommandTrigger
+  scope: 10
+  reason: qa-player-surface-clear
+  playerSlot: {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
+  expectedSelectionRevision: -1
+--- !u!1 &900000104
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 900000106}
+  - component: {fileID: 900000105}
+  m_Layer: 0
+  m_Name: UnavailableSelectActorCommand
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &900000105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900000104}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1f8d5a7d2c9406f9a311e8bc3b14d52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionSelectActorCommandTrigger
+  scope: 20
+  reason: qa-player-surface-unavailable-select
+  playerSlot: {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
+  actorProfile: {fileID: 11400000, guid: 4b99c62ca2062964699d84b82fc950b4, type: 2}
+  expectedSelectionRevision: -1
+--- !u!4 &900000106
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900000104}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1921611420}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &952827716
 GameObject:
@@ -682,6 +823,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1187152392}
   - component: {fileID: 1187152391}
+  - component: {fileID: 1187152393}
   m_Layer: 0
   m_Name: WrongScopeBinding
   m_TagString: Untagged
@@ -700,8 +842,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9a206419dbd04d2697fa0a2b881a7a1b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionStatus
-  scope: 20
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionObserver
 --- !u!4 &1187152392
 Transform:
   m_ObjectHideFlags: 0
@@ -717,6 +858,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1921611420}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1187152393
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1187152390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44d40c4cca356b446bf782279981c9dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionObserver
+  scope: 20
 --- !u!1 &1204178476
 GameObject:
   m_ObjectHideFlags: 0
@@ -942,6 +1096,11 @@ GameObject:
   - component: {fileID: 1921611420}
   - component: {fileID: 1921611419}
   - component: {fileID: 1921611418}
+  - component: {fileID: 1921611421}
+  - component: {fileID: 900000100}
+  - component: {fileID: 900000101}
+  - component: {fileID: 900000102}
+  - component: {fileID: 900000103}
   m_Layer: 0
   m_Name: QA_PlayerSurface_PublicNavigation
   m_TagString: Untagged
@@ -960,8 +1119,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9a206419dbd04d2697fa0a2b881a7a1b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionStatus
-  scope: 10
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionObserver
 --- !u!114 &1921611419
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -981,9 +1139,14 @@ MonoBehaviour:
   enterSecondaryActivityTrigger: {fileID: 1093217384}
   enterPlayerExcludedActivityTrigger: {fileID: 2008261503}
   clearActivityTrigger: {fileID: 1320626576}
-  routeConsumerBinding: {fileID: 1921611418}
-  wrongScopeBinding: {fileID: 1187152391}
-  destroyProbeBinding: {fileID: 658652611}
+  routeConsumerBinding: {fileID: 1921611421}
+  wrongScopeBinding: {fileID: 1187152393}
+  destroyProbeBinding: {fileID: 658652613}
+  selectActorCommand: {fileID: 900000100}
+  defaultActorSelectionCommand: {fileID: 900000101}
+  replaceActorSelectionCommand: {fileID: 900000102}
+  clearActorSelectionCommand: {fileID: 900000103}
+  unavailableSelectActorCommand: {fileID: 900000105}
   primaryPlayerSlot: {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
 --- !u!4 &1921611420
 Transform:
@@ -1004,8 +1167,22 @@ Transform:
   - {fileID: 1320626577}
   - {fileID: 1187152392}
   - {fileID: 658652612}
+  - {fileID: 900000106}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1921611421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1921611417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44d40c4cca356b446bf782279981c9dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionObserver
+  scope: 10
 --- !u!1 &2008261502
 GameObject:
   m_ObjectHideFlags: 0

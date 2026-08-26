@@ -328,14 +328,13 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 session.StartRoutePreserve();
                 Vector3 before = new Vector3(4f, 5f, 6f);
                 session.Player.Target.position = before;
+                PoseSnapshot poseBefore = PoseSnapshot.Capture(session.Player.Target);
                 Require(session.StartActivity(activity).Completed, "CASE 7 Activity enter failed.");
                 Require(!session.TryRelocate(out ActivityPlayerRelocationEvidence evidence, out string issue),
                     "CASE 7 missing exact binding unexpectedly succeeded.");
-                Require(evidence.Status == ActivityPlayerRelocationStatus.Failed && !evidence.IsApplied,
-                    "CASE 7 converted missing binding into preserve success.");
-                Require(issue.Contains("exactly one binding", StringComparison.Ordinal) && issue.Contains("Found '0'", StringComparison.Ordinal),
-                    "CASE 7 did not fail explicitly without fallback. " + issue);
-                Require(session.Player.Target.position == before, "CASE 7 moved the Player after a missing-binding failure.");
+                RequireFailedRelocation(evidence, issue, 0, "CASE 7 missing exact binding");
+                Require(SamePose(session.Player.Target, poseBefore),
+                    "CASE 7 moved the Player after a missing-binding failure.");
                 LogCase("MissingBindingFails", activity, session, ActivityPlayerRelocationPolicy.ApplyExplicitRelocation, 0, false, evidence);
             }
             finally
@@ -354,13 +353,13 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             try
             {
                 session.StartRoutePreserve();
-                Vector3 before = session.Player.Target.position;
+                PoseSnapshot poseBefore = PoseSnapshot.Capture(session.Player.Target);
                 Require(session.StartActivity(activity).Completed, "CASE 8 Activity enter failed.");
                 Require(!session.TryRelocate(out ActivityPlayerRelocationEvidence evidence, out string issue),
                     "CASE 8 duplicate exact bindings were not rejected.");
-                Require(!evidence.IsApplied && issue.Contains("duplicate bindings", StringComparison.Ordinal),
-                    "CASE 8 did not produce a deterministic duplicate failure. " + issue);
-                Require(session.Player.Target.position == before, "CASE 8 chose a first-found duplicate anchor.");
+                RequireFailedRelocation(evidence, issue, 2, "CASE 8 duplicate exact bindings");
+                Require(SamePose(session.Player.Target, poseBefore),
+                    "CASE 8 chose a first-found duplicate anchor.");
                 LogCase("DuplicateBindingFails", activity, session, ActivityPlayerRelocationPolicy.ApplyExplicitRelocation, 2, false, evidence);
             }
             finally
@@ -378,11 +377,14 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             try
             {
                 session.StartRoutePreserve();
+                PoseSnapshot poseBefore = PoseSnapshot.Capture(session.Player.Target);
                 Require(session.StartActivity(activity).Completed, "CASE 9 Activity enter failed.");
-                Require(!session.TryRelocate(out _, out string issue),
+                Require(!session.TryRelocate(out ActivityPlayerRelocationEvidence evidence, out string issue),
                     "CASE 9 counted an unrelated loaded scene.");
-                Require(issue.Contains("Found '0'", StringComparison.Ordinal), "CASE 9 did not ignore the unrelated scene. " + issue);
-                LogCase("UnrelatedSceneIgnored", activity, session, ActivityPlayerRelocationPolicy.ApplyExplicitRelocation, 0, false);
+                RequireFailedRelocation(evidence, issue, 0, "CASE 9 unrelated scene");
+                Require(SamePose(session.Player.Target, poseBefore),
+                    "CASE 9 moved the Player from an unrelated scene binding.");
+                LogCase("UnrelatedSceneIgnored", activity, session, ActivityPlayerRelocationPolicy.ApplyExplicitRelocation, 0, false, evidence);
             }
             finally
             {
@@ -399,11 +401,14 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             try
             {
                 session.StartRoutePreserve();
+                PoseSnapshot poseBefore = PoseSnapshot.Capture(session.Player.Target);
                 Require(session.StartActivity(activity).Completed, "CASE 10 Activity enter failed.");
-                Require(!session.TryRelocate(out _, out string issue),
+                Require(!session.TryRelocate(out ActivityPlayerRelocationEvidence evidence, out string issue),
                     "CASE 10 used Persistent Content as a relocation source.");
-                Require(issue.Contains("Found '0'", StringComparison.Ordinal), "CASE 10 did not ignore Persistent Content. " + issue);
-                LogCase("PersistentContentIgnored", activity, session, ActivityPlayerRelocationPolicy.ApplyExplicitRelocation, 0, false);
+                RequireFailedRelocation(evidence, issue, 0, "CASE 10 Persistent Content");
+                Require(SamePose(session.Player.Target, poseBefore),
+                    "CASE 10 moved the Player from a Persistent Content binding.");
+                LogCase("PersistentContentIgnored", activity, session, ActivityPlayerRelocationPolicy.ApplyExplicitRelocation, 0, false, evidence);
             }
             finally
             {
@@ -422,12 +427,14 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             try
             {
                 session.StartRoutePreserve();
+                PoseSnapshot poseBefore = PoseSnapshot.Capture(session.Player.Target);
                 Require(session.StartActivity(activityA).Completed, "CASE 11 Activity A enter failed.");
-                Require(!session.TryRelocate(out _, out string issue),
+                Require(!session.TryRelocate(out ActivityPlayerRelocationEvidence evidence, out string issue),
                     "CASE 11 used another Activity's content scene as current discovery.");
-                Require(issue.Contains("Found '0'", StringComparison.Ordinal),
-                    "CASE 11 did not ignore other-Activity content. " + issue);
-                LogCase("OtherActivityContentIgnored", activityA, session, ActivityPlayerRelocationPolicy.ApplyExplicitRelocation, 0, false);
+                RequireFailedRelocation(evidence, issue, 0, "CASE 11 other Activity content");
+                Require(SamePose(session.Player.Target, poseBefore),
+                    "CASE 11 moved the Player from another Activity's content binding.");
+                LogCase("OtherActivityContentIgnored", activityA, session, ActivityPlayerRelocationPolicy.ApplyExplicitRelocation, 0, false, evidence);
             }
             finally
             {
@@ -1202,6 +1209,31 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
         private static bool SamePose(Transform left, Transform right) =>
             Vector3.Distance(left.position, right.position) <= 0.0001f &&
             SameRotation(left.rotation, right.rotation);
+
+        private static bool SamePose(Transform target, PoseSnapshot snapshot) =>
+            target != null &&
+            Vector3.Distance(target.position, snapshot.Position) <= 0.0001f &&
+            SameRotation(target.rotation, snapshot.Rotation);
+
+        private static void RequireFailedRelocation(
+            ActivityPlayerRelocationEvidence evidence,
+            string issue,
+            int expectedMatchingBindings,
+            string caseName)
+        {
+            Require(
+                evidence.Status == ActivityPlayerRelocationStatus.Failed &&
+                !evidence.IsApplied,
+                $"{caseName} did not publish failed, unapplied relocation evidence. " +
+                $"status='{evidence.Status}' applied='{evidence.IsApplied}' " +
+                $"issue='{issue}'.");
+            Require(
+                issue.Contains(
+                    $"Matching bindings: '{expectedMatchingBindings}'",
+                    StringComparison.Ordinal),
+                $"{caseName} did not report the expected matching-binding cardinality " +
+                $"'{expectedMatchingBindings}'. {issue}");
+        }
 
         private static bool SameRotation(Quaternion left, Quaternion right) =>
             Quaternion.Angle(left, right) <= 0.01f;

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Immersive.Framework.ActivityFlow;
+using Immersive.Framework.Actors;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.PlayerParticipation;
@@ -372,7 +373,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 root.GetComponent<PlayerSessionScopedAccessConsumer>();
             if (binding == null)
             {
-                binding = root.AddComponent<PlayerSessionStatus>();
+                binding = root.AddComponent<PlayerSessionObserver>();
             }
 
             Require(enter != null, "Failed to create enter ActivityRequestTrigger.");
@@ -401,6 +402,37 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 "qa.player.surface.public.enter-player-excluded");
             ConfigureTrigger(clear, activity, "qa.player.surface.public.clear");
             ApplyScope(binding, LocalPlayerProvisioningConsumerScope.Route);
+            ActorProfile alternateActor = AssetDatabase.LoadAssetAtPath<ActorProfile>(
+                "Assets/ImmersiveFrameworkQA/Player/P3H4/P3H4_AlternateActor.asset");
+            Require(alternateActor != null,
+                "Public Player Surface requires the existing P3H4 alternate Actor fixture.");
+            PlayerSessionSelectActorCommandTrigger select =
+                root.GetComponent<PlayerSessionSelectActorCommandTrigger>() ??
+                root.AddComponent<PlayerSessionSelectActorCommandTrigger>();
+            PlayerSessionDefaultActorSelectionCommandTrigger selectDefault =
+                root.GetComponent<PlayerSessionDefaultActorSelectionCommandTrigger>() ??
+                root.AddComponent<PlayerSessionDefaultActorSelectionCommandTrigger>();
+            PlayerSessionReplaceActorSelectionCommandTrigger replace =
+                root.GetComponent<PlayerSessionReplaceActorSelectionCommandTrigger>() ??
+                root.AddComponent<PlayerSessionReplaceActorSelectionCommandTrigger>();
+            PlayerSessionClearActorSelectionCommandTrigger clearActorSelection =
+                root.GetComponent<PlayerSessionClearActorSelectionCommandTrigger>() ??
+                root.AddComponent<PlayerSessionClearActorSelectionCommandTrigger>();
+            PlayerSessionSelectActorCommandTrigger unavailableSelect =
+                FindOrCreateChildActorCommand(
+                    root,
+                    "UnavailableSelectActorCommand");
+            ConfigureActorCommand(select, slot, slot.DefaultActorProfile,
+                "qa-player-surface-select");
+            ConfigureActorCommand(selectDefault, slot, null,
+                "qa-player-surface-select-default");
+            ConfigureActorCommand(replace, slot, alternateActor,
+                "qa-player-surface-replace");
+            ConfigureActorCommand(clearActorSelection, slot, null,
+                "qa-player-surface-clear");
+            ConfigureActorCommand(unavailableSelect, slot, slot.DefaultActorProfile,
+                "qa-player-surface-unavailable-select");
+            ApplyScope(unavailableSelect, LocalPlayerProvisioningConsumerScope.Activity);
 
             fixture.Configure(
                 activity,
@@ -413,6 +445,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 binding,
                 wrongScopeBinding,
                 destroyProbeBinding,
+                select,
+                selectDefault,
+                replace,
+                clearActorSelection,
+                unavailableSelect,
                 slot);
             Require(
                 fixture.TryValidateAuthoredSurface(out string issue),
@@ -435,23 +472,17 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 "Public Player Surface fixture requires a Manager-Provisioned context.");
             PlayerSessionProfile session = managerContext.SessionProfile;
             PlayerInputManager manager = managerContext.PlayerInputManager;
-            LocalPlayerActorSelectionRequestAuthoring found =
-                managerContext.ActorSelectionRequest;
-            Require(session != null && manager != null && found != null,
-                "Manager-Provisioned context is missing Session, PlayerInputManager or Actor Selection authoring.");
+            LocalPlayerProvisioningAuthoring provisioning = managerContext.Provisioning;
+            Require(session != null && manager != null && provisioning != null,
+                "Manager-Provisioned context is missing Session, PlayerInputManager or Provisioning authoring.");
 
             Scene globalUi = manager.gameObject.scene;
             Require(
                 globalUi.IsValid() && globalUi.isLoaded &&
                 string.Equals(globalUi.path, GlobalUiScenePath, StringComparison.Ordinal),
                 "Manager-Provisioned context PlayerInputManager is not in the expected UIGlobal scene.");
-            Require(
-                ReferenceEquals(found.gameObject, manager.gameObject) &&
-                ReferenceEquals(found.ProvisioningAuthoring, managerContext.Provisioning),
-                "Manager-Provisioned context Actor Selection authoring does not belong to its provisioning object.");
-            Require(
-                found.TryValidateConfiguration(out string actorSelectionIssue),
-                actorSelectionIssue);
+            Require(ReferenceEquals(provisioning.gameObject, manager.gameObject),
+                "Manager-Provisioned context Provisioning authoring does not belong to its manager object.");
             QaPlayerSessionQaSupport.ConfigureManagerBridge(session, manager);
             Require(
                 QaPlayerSessionQaSupport.TryValidateManagerBridge(
@@ -461,10 +492,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 bridgeIssue);
 
             QaPlayerSurfaceGlobalUiFixture fixture =
-                found.gameObject.GetComponent<QaPlayerSurfaceGlobalUiFixture>();
+                manager.gameObject.GetComponent<QaPlayerSurfaceGlobalUiFixture>();
             if (fixture == null)
             {
-                fixture = found.gameObject.AddComponent<QaPlayerSurfaceGlobalUiFixture>();
+                fixture = manager.gameObject.AddComponent<QaPlayerSurfaceGlobalUiFixture>();
             }
 
             Require(
@@ -484,7 +515,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             Require(
                 loadingSurfaces.Length == 1,
                 $"UIGlobal scene requires exactly one Loading Surface adapter; found '{loadingSurfaces.Length}'.");
-            fixture.Configure(found, loadingSurfaces[0]);
+            fixture.Configure(provisioning, loadingSurfaces[0]);
             Require(
                 fixture.TryValidateAuthoredSurface(out string fixtureIssue),
                 fixtureIssue);
@@ -506,11 +537,37 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 $"QaPlayerSurfaceGlobalUiFixture; found '{fixtureCount}'.");
 
             EditorUtility.SetDirty(fixture);
-            EditorUtility.SetDirty(found.gameObject);
+            EditorUtility.SetDirty(manager.gameObject);
             EditorSceneManager.MarkSceneDirty(globalUi);
             Require(
                 EditorSceneManager.SaveScene(globalUi),
                 $"Could not save UIGlobal scene '{GlobalUiScenePath}'.");
+        }
+
+        private static void ConfigureActorCommand(
+            PlayerSessionCommandTriggerBase command,
+            PlayerSlotProfile slot,
+            ActorProfile actor,
+            string reason)
+        {
+            var serialized = new SerializedObject(command);
+            RequireProperty(serialized, "playerSlot").objectReferenceValue = slot;
+            SerializedProperty actorProperty = serialized.FindProperty("actorProfile");
+            if (actorProperty != null)
+            {
+                actorProperty.objectReferenceValue = actor;
+            }
+
+            RequireProperty(serialized, "expectedSelectionRevision").intValue =
+                PlayerActorSelectionRequest.NoExpectedRevision;
+            RequireProperty(serialized, "reason").stringValue = reason;
+            SerializedProperty scope = RequireProperty(serialized, "scope");
+            int routeIndex = Array.IndexOf(
+                scope.enumNames,
+                LocalPlayerProvisioningConsumerScope.Route.ToString());
+            Require(routeIndex >= 0, "Actor command scope enum lacks Route.");
+            scope.enumValueIndex = routeIndex;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static void ConfigureActivityContentFixture(
@@ -561,7 +618,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             PlayerSessionScopedAccessConsumer binding =
                 root.GetComponent<PlayerSessionScopedAccessConsumer>() ??
-                root.AddComponent<PlayerSessionStatus>();
+                root.AddComponent<PlayerSessionObserver>();
             ApplyScope(binding, LocalPlayerProvisioningConsumerScope.Activity);
 
             QaPlayerSurfaceActivityConsumerFixture fixture =
@@ -680,9 +737,28 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             PlayerSessionScopedAccessConsumer binding =
                 childObject.GetComponent<
                     PlayerSessionScopedAccessConsumer>() ??
-                childObject.AddComponent<PlayerSessionStatus>();
+                childObject.AddComponent<PlayerSessionObserver>();
             ApplyScope(binding, scope);
             return binding;
+        }
+
+        private static PlayerSessionSelectActorCommandTrigger
+            FindOrCreateChildActorCommand(
+                GameObject root,
+                string childName)
+        {
+            Transform child = root.transform.Find(childName);
+            GameObject childObject = child != null
+                ? child.gameObject
+                : new GameObject(childName);
+            if (child == null)
+            {
+                childObject.transform.SetParent(root.transform, false);
+            }
+
+            return childObject.GetComponent<
+                PlayerSessionSelectActorCommandTrigger>() ??
+                childObject.AddComponent<PlayerSessionSelectActorCommandTrigger>();
         }
 
         private static void ConfigureTrigger(

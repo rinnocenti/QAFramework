@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &561793138
+--- !u!1 &63101276
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,31 +127,59 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 561793139}
+  - component: {fileID: 63101279}
+  - component: {fileID: 63101278}
+  - component: {fileID: 63101277}
   m_Layer: 0
-  m_Name: P3M5B Failed First Adoption Activity Host Actor Mount
+  m_Name: P3M5B Failed First Adoption Activity Contextual Admission Witness
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &561793139
+--- !u!114 &63101277
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 63101276}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4c5a10848f54c0d83c5c88a2ce1d686, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Player.P3M5B.P3M5BContextualAdmissionWitness
+  admissionAuthoring: {fileID: 758021883}
+  activityConsumerBinding: {fileID: 63101278}
+--- !u!114 &63101278
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 63101276}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44d40c4cca356b446bf782279981c9dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionObserver
+  scope: 20
+--- !u!4 &63101279
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 561793138}
+  m_GameObject: {fileID: 63101276}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1591254970}
-  m_Father: {fileID: 622533825}
+  m_Children: []
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &622533823
+--- !u!1 &758021882
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -159,11 +187,11 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 622533825}
-  - component: {fileID: 622533828}
-  - component: {fileID: 622533827}
-  - component: {fileID: 622533826}
-  - component: {fileID: 622533824}
+  - component: {fileID: 758021884}
+  - component: {fileID: 758021887}
+  - component: {fileID: 758021886}
+  - component: {fileID: 758021885}
+  - component: {fileID: 758021883}
   m_Layer: 0
   m_Name: P3M5B Failed First Adoption Activity Admission
   m_TagString: Untagged
@@ -171,13 +199,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &622533824
+--- !u!114 &758021883
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 622533823}
+  m_GameObject: {fileID: 758021882}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d3d4f1b900974056a6247b2e4dbaa266, type: 3}
@@ -185,57 +213,57 @@ MonoBehaviour:
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneLocalPlayerAdmissionAuthoring
   playerSlotProfile: {fileID: 11400000, guid: 72e64a324cd271140b6ce9cbaf73b1eb, type: 2}
   actorProfile: {fileID: 11400000, guid: 883101345992a764db3ffee993cb79fa, type: 2}
-  sceneLogicalPlayerActor: {fileID: 1591254968}
+  sceneLogicalPlayerActor: {fileID: 1075485976}
   admissionTiming: 0
   evidenceActorProfile: {fileID: 11400000, guid: 6f8b6c8a25b254c43a2ee8af7e750d0d, type: 2}
   evidenceLogicalActorHostPrefab: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
   evidenceDiagnostic: P3M5B fixture evidence for 'P3M5B Failed First Adoption Activity
     Admission'.
   lastAuthoringStatus: 0
-  lastAuthoringDiagnostic: Scene-Provided Player has not been validated.
---- !u!4 &622533825
+  lastAuthoringDiagnostic: Scene Local Player has not been validated.
+--- !u!4 &758021884
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 622533823}
+  m_GameObject: {fileID: 758021882}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 561793139}
+  - {fileID: 1434522199}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &622533826
+--- !u!114 &758021885
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 622533823}
+  m_GameObject: {fileID: 758021882}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 43020ea2bdd04515a9232be09bdd3684, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerHostAuthoring
-  playerInput: {fileID: 622533828}
-  actorMount: {fileID: 561793139}
---- !u!114 &622533827
+  playerInput: {fileID: 758021887}
+  actorMount: {fileID: 1434522199}
+--- !u!114 &758021886
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 622533823}
+  m_GameObject: {fileID: 758021882}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dcfea0d7cc4144be8c064041108b58b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.UnityInput.UnityPlayerInputGateAdapter
-  playerInput: {fileID: 622533828}
+  playerInput: {fileID: 758021887}
   gameplayActionMap:
     actionAsset: {fileID: 11400000, guid: 259c8527ac4fb9840bdd325ff0984352, type: 2}
     actionMapId: 59cf8f86-6261-40c6-800b-7a040cb212e7
@@ -248,13 +276,13 @@ MonoBehaviour:
   logStateChanges: 1
   logMissingRuntimeOnce: 1
   logMissingTargetOnce: 1
---- !u!114 &622533828
+--- !u!114 &758021887
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 622533823}
+  m_GameObject: {fileID: 758021882}
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
@@ -278,13 +306,13 @@ MonoBehaviour:
   m_DefaultActionMap: Gameplay
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!1001 &1591254967
+--- !u!1001 &1075485975
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 561793139}
+    m_TransformParent: {fileID: 1434522199}
     m_Modifications:
     - target: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
       propertyPath: m_LocalPosition.x
@@ -336,36 +364,36 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1591254971}
+      addedObject: {fileID: 1075485979}
   m_SourcePrefab: {fileID: 100100000, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
---- !u!114 &1591254968 stripped
+--- !u!114 &1075485976 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4438141168736318348, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  m_PrefabInstance: {fileID: 1591254967}
+  m_PrefabInstance: {fileID: 1075485975}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1591254969}
+  m_GameObject: {fileID: 1075485977}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 26cc512b3155464caed4dc48a6c9de6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Actors.PlayerActorDeclaration
---- !u!1 &1591254969 stripped
+--- !u!1 &1075485977 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  m_PrefabInstance: {fileID: 1591254967}
+  m_PrefabInstance: {fileID: 1075485975}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &1591254970 stripped
+--- !u!4 &1075485978 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6495112087644050786, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
-  m_PrefabInstance: {fileID: 1591254967}
+  m_PrefabInstance: {fileID: 1075485975}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1591254971
+--- !u!114 &1075485979
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1591254969}
+  m_GameObject: {fileID: 1075485977}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7e4cd0957f664eeda71cf45e48a45c1d, type: 3}
@@ -375,7 +403,7 @@ MonoBehaviour:
   logicalActorHostPrefab: {fileID: 9022688616756645584, guid: c74f87fdab71bc04e9801906c19e0c75, type: 3}
   authoringDiagnostic: P3M5B evidence for 'P3M5B Failed First Adoption Activity Actor'
     selected='P3M5B_SceneActorProfile'.
---- !u!1 &2133765232
+--- !u!1 &1434522198
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -383,61 +411,33 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 2133765235}
-  - component: {fileID: 2133765234}
-  - component: {fileID: 2133765233}
+  - component: {fileID: 1434522199}
   m_Layer: 0
-  m_Name: P3M5B Failed First Adoption Activity Contextual Admission Witness
+  m_Name: P3M5B Failed First Adoption Activity Host Actor Mount
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2133765233
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2133765232}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4c5a10848f54c0d83c5c88a2ce1d686, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Player.P3M5B.P3M5BContextualAdmissionWitness
-  admissionAuthoring: {fileID: 622533824}
-  activityConsumerBinding: {fileID: 2133765234}
---- !u!114 &2133765234
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2133765232}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9a206419dbd04d2697fa0a2b881a7a1b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionStatus
-  scope: 20
---- !u!4 &2133765235
+--- !u!4 &1434522199
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2133765232}
+  m_GameObject: {fileID: 1434522198}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
+  m_Children:
+  - {fileID: 1075485978}
+  m_Father: {fileID: 758021884}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 622533825}
-  - {fileID: 2133765235}
+  - {fileID: 758021884}
+  - {fileID: 63101279}
