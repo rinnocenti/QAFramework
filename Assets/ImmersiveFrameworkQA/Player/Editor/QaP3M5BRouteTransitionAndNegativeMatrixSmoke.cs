@@ -372,7 +372,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                             .FailedFirstAdoptionActivityScenePath,
                         "failed-first-scene-adoption");
                 LocalPlayerHostAuthoring originalHost = candidate.LocalPlayerHost;
-                PlayerActorDeclaration originalActor = candidate.SceneLogicalPlayerActor;
+                PlayerActorDeclaration originalActor = candidate.ScenePlayerActorDeclaration;
                 AssertNotNull(originalHost,
                     "Failed first SceneProvided adoption lost its original Host reference.");
                 AssertNotNull(originalActor,
@@ -480,7 +480,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     physicalOwner);
 
                 LocalPlayerHostAuthoring physicalHost = committed.Authoring.LocalPlayerHost;
-                Transform physicalActor = committed.Authoring.SceneLogicalPlayerActor.transform;
+                Transform physicalActor = committed.Authoring.ScenePlayerActorDeclaration.transform;
                 string hostEntityId = physicalHost.GetEntityId().ToString();
                 string actorEntityId = physicalActor.gameObject.GetEntityId().ToString();
                 Vector3 actorPosition = physicalActor.position;
@@ -734,10 +734,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 completed.Add("route-a-initial-scene-player-admitted");
 
                 admittedPhysicalHost = routeAFirst.Authoring.LocalPlayerHost;
-                admittedPhysicalActor = routeAFirst.Authoring.SceneLogicalPlayerActor.transform;
+                admittedPhysicalActor = routeAFirst.Authoring.ScenePlayerActorDeclaration.transform;
                 AssertEqual(
                     routeAFirst.Adoption.ActorId,
-                    routeAFirst.Authoring.SceneLogicalPlayerActor.ActorId,
+                    routeAFirst.Authoring.ScenePlayerActorDeclaration.ActorId,
                     "Route A physical adoption does not identify its admitted Actor.");
                 AssertNotNull(admittedPhysicalHost,
                     "Route A did not expose the admitted Scene-Provided physical Host.");
@@ -1885,12 +1885,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             AssertEqual(playerSlotId,
                 fixture.Authoring.LocalPlayerHost.JoinedPlayerSlotId,
                 "Scene Player Host is Joined to a foreign Player Slot.");
-            AssertTrue(fixture.Authoring.SceneLogicalPlayerActor.HasPlayerInputEvidence,
-                "Scene Player Actor has no contextual PlayerInput evidence.");
             AssertSame(
                 fixture.Authoring.LocalPlayerHost.PlayerInput,
-                fixture.Authoring.SceneLogicalPlayerActor.PlayerInput,
-                "Scene Player Actor does not reference its fixture Host PlayerInput.");
+                fixture.Authoring.LocalPlayerHost.GetComponent<UnityEngine.InputSystem.PlayerInput>(),
+                "Scene Player Host does not retain its canonical PlayerInput.");
             AssertTrue(fixture.ContextualHostEvidence.IsRecorded,
                 "Scene Player Activity context has no public contextual Host binding evidence.");
             AssertTrue(fixture.GameplayAdmission.IsAdmitted &&

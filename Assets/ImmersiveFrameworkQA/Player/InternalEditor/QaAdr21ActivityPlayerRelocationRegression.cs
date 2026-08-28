@@ -1489,7 +1489,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 hostSerialized.FindProperty("actorMount").objectReferenceValue = mount.transform;
                 hostSerialized.ApplyModifiedPropertiesWithoutUndo();
 
-                GameObject actorObject = new GameObject("LogicalActor");
+                GameObject actorObject = new GameObject("PlayerActorRuntimeHost");
                 SceneManager.MoveGameObjectToScene(actorObject, session);
                 actorObject.transform.SetParent(mount.transform, false);
                 PlayerActorDeclaration actor = actorObject.AddComponent<PlayerActorDeclaration>();
@@ -1497,18 +1497,34 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 actorSerialized.FindProperty("actorId").stringValue = actorIdText;
                 actorSerialized.ApplyModifiedPropertiesWithoutUndo();
 
+                PlayerActorRuntimeHost runtimeHost =
+                    actorObject.AddComponent<PlayerActorRuntimeHost>();
+                GameObject presentationMountObject = new GameObject("PresentationMount");
+                SceneManager.MoveGameObjectToScene(presentationMountObject, session);
+                presentationMountObject.transform.SetParent(actorObject.transform, false);
+                GameObject presentation = new GameObject("Presentation");
+                SceneManager.MoveGameObjectToScene(presentation, session);
+                presentation.transform.SetParent(presentationMountObject.transform, false);
+                var runtimeHostSerialized = new SerializedObject(runtimeHost);
+                runtimeHostSerialized.FindProperty("playerActorDeclaration")
+                    .objectReferenceValue = actor;
+                runtimeHostSerialized.FindProperty("presentationMount")
+                    .objectReferenceValue = presentationMountObject.transform;
+                runtimeHostSerialized.ApplyModifiedPropertiesWithoutUndo();
+
                 SceneLocalPlayerAdmissionAuthoring admission = root.AddComponent<SceneLocalPlayerAdmissionAuthoring>();
                 var admissionSerialized = new SerializedObject(admission);
                 admissionSerialized.FindProperty("playerSlotProfile").objectReferenceValue = slot;
                 admissionSerialized.FindProperty("actorProfile").objectReferenceValue = actorProfile;
-                admissionSerialized.FindProperty("sceneLogicalPlayerActor").objectReferenceValue = actor;
+                admissionSerialized.FindProperty("scenePlayerActorRuntimeHost").objectReferenceValue = runtimeHost;
+                admissionSerialized.FindProperty("scenePresentation").objectReferenceValue = presentation;
                 admissionSerialized.ApplyModifiedPropertiesWithoutUndo();
 
                 RoutePlayerSpatialEntryRuntimeBinding binding = root.AddComponent<RoutePlayerSpatialEntryRuntimeBinding>();
                 Require(slot.TryGetPlayerSlotId(out PlayerSlotId slotId, out string slotIssue),
                     "QA PlayerSlotProfile did not resolve a SlotId. " + slotIssue);
                 PlayerActorMaterializationHandle handle = CreateHandle(
-                    slot, slotId, actorProfile, host, playerInput, actor, actorObject, ActorId.From(actorIdText), representationId);
+                    slot, slotId, actorProfile, host, playerInput, runtimeHost, presentation, ActorId.From(actorIdText), representationId);
                 return new SessionPlayer(root, host, actor, binding, handle, slotId, ActorId.From(actorIdText), handle.Request.RuntimeContentIdentity.StableText)
                 {
                     SceneAdmission = admission
@@ -1523,8 +1539,9 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                     Handle.Request.ActorProfile,
                     Host,
                     Host.PlayerInput,
-                    Actor,
-                    Actor.gameObject,
+                    Actor.GetComponent<PlayerActorRuntimeHost>(),
+                    Actor.GetComponent<PlayerActorRuntimeHost>()
+                        ?.PresentationMount.GetChild(0).gameObject,
                     ActorId,
                     representationId);
                 RepresentationIdentity = replacement.Request.RuntimeContentIdentity.StableText;
@@ -1546,8 +1563,8 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 ActorProfile actorProfile,
                 LocalPlayerHostAuthoring host,
                 PlayerInput playerInput,
-                PlayerActorDeclaration actor,
-                GameObject logicalActorHost,
+                PlayerActorRuntimeHost runtimeHost,
+                GameObject presentation,
                 ActorId actorId,
                 string representationId)
             {
@@ -1573,7 +1590,8 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 var runtimeRequest = new RuntimeMaterializationRequest(scope, contentId, resource, cancellation, "QA_ADR021_ACTIVITY_RELOCATION", "materialize");
                 RuntimeContentHandle contentHandle = RuntimeContentHandle.Materialized(runtimeRequest.Identity, "QA_ADR021_ACTIVITY_RELOCATION", "materialize");
                 return new PlayerActorMaterializationHandle(
-                    request, runtimeRequest, contentHandle, host, playerInput, actor, logicalActorHost,
+                    request, runtimeRequest, contentHandle, host, playerInput, runtimeHost, presentation,
+                    null, false,
                     "QA_ADR021_ACTIVITY_RELOCATION", "materialize");
             }
         }

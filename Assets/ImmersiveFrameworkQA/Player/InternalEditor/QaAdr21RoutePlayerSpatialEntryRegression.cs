@@ -1520,7 +1520,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 hostSerialized.FindProperty("actorMount").objectReferenceValue = mount.transform;
                 hostSerialized.ApplyModifiedPropertiesWithoutUndo();
 
-                GameObject actorObject = new GameObject("LogicalActor");
+                GameObject actorObject = new GameObject("PlayerActorRuntimeHost");
                 SceneManager.MoveGameObjectToScene(actorObject, session);
                 actorObject.transform.SetParent(mount.transform, false);
                 PlayerActorDeclaration actor = actorObject.AddComponent<PlayerActorDeclaration>();
@@ -1528,11 +1528,27 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 actorSerialized.FindProperty("actorId").stringValue = actorIdText;
                 actorSerialized.ApplyModifiedPropertiesWithoutUndo();
 
+                PlayerActorRuntimeHost runtimeHost =
+                    actorObject.AddComponent<PlayerActorRuntimeHost>();
+                GameObject presentationMountObject = new GameObject("PresentationMount");
+                SceneManager.MoveGameObjectToScene(presentationMountObject, session);
+                presentationMountObject.transform.SetParent(actorObject.transform, false);
+                GameObject presentation = new GameObject("Presentation");
+                SceneManager.MoveGameObjectToScene(presentation, session);
+                presentation.transform.SetParent(presentationMountObject.transform, false);
+                var runtimeHostSerialized = new SerializedObject(runtimeHost);
+                runtimeHostSerialized.FindProperty("playerActorDeclaration")
+                    .objectReferenceValue = actor;
+                runtimeHostSerialized.FindProperty("presentationMount")
+                    .objectReferenceValue = presentationMountObject.transform;
+                runtimeHostSerialized.ApplyModifiedPropertiesWithoutUndo();
+
                 SceneLocalPlayerAdmissionAuthoring admission = root.AddComponent<SceneLocalPlayerAdmissionAuthoring>();
                 var admissionSerialized = new SerializedObject(admission);
                 admissionSerialized.FindProperty("playerSlotProfile").objectReferenceValue = slot;
                 admissionSerialized.FindProperty("actorProfile").objectReferenceValue = actorProfile;
-                admissionSerialized.FindProperty("sceneLogicalPlayerActor").objectReferenceValue = actor;
+                admissionSerialized.FindProperty("scenePlayerActorRuntimeHost").objectReferenceValue = runtimeHost;
+                admissionSerialized.FindProperty("scenePresentation").objectReferenceValue = presentation;
                 admissionSerialized.ApplyModifiedPropertiesWithoutUndo();
 
                 RoutePlayerSpatialEntryRuntimeBinding binding =
@@ -1545,8 +1561,8 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                     actorProfile,
                     host,
                     playerInput,
-                    actor,
-                    actorObject,
+                    runtimeHost,
+                    presentation,
                     ActorId.From(actorIdText),
                     representationId);
                 return new SessionPlayer(
@@ -1571,8 +1587,9 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                     Handle.Request.ActorProfile,
                     Host,
                     Host.PlayerInput,
-                    Actor,
-                    Actor.gameObject,
+                    Actor.GetComponent<PlayerActorRuntimeHost>(),
+                    Actor.GetComponent<PlayerActorRuntimeHost>()
+                        ?.PresentationMount.GetChild(0).gameObject,
                     ActorId,
                     representationId);
                 RepresentationIdentity = replacement.Request.RuntimeContentIdentity.StableText;
@@ -1593,8 +1610,8 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 ActorProfile actorProfile,
                 LocalPlayerHostAuthoring host,
                 PlayerInput playerInput,
-                PlayerActorDeclaration actor,
-                GameObject logicalActorHost,
+                PlayerActorRuntimeHost runtimeHost,
+                GameObject presentation,
                 ActorId actorId,
                 string representationId)
             {
@@ -1665,8 +1682,10 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                     contentHandle,
                     host,
                     playerInput,
-                    actor,
-                    logicalActorHost,
+                    runtimeHost,
+                    presentation,
+                    null,
+                    false,
                     "QA_ADR021_ROUTE_SPATIAL_ENTRY",
                     "materialize");
             }
@@ -1752,7 +1771,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 Require(player != null && player.SceneAdmission != null,
                     "Scene-Provided apply requires SceneLocalPlayerAdmissionAuthoring.");
                 if (!LastContext.IsValid ||
-                    player.SceneAdmission.SceneLogicalPlayerActor == null ||
+                    player.SceneAdmission.ScenePlayerActorDeclaration == null ||
                     !player.SceneAdmission.TryGetPlayerSlotId(out PlayerSlotId playerSlotId, out issue))
                 {
                     if (string.IsNullOrEmpty(issue))
@@ -1770,10 +1789,10 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 bool applied = RoutePlayerSpatialEntryRuntime.TryApply(
                     LastContext,
                     playerSlotId,
-                    player.SceneAdmission.SceneLogicalPlayerActor.ActorId,
+                    player.SceneAdmission.ScenePlayerActorDeclaration.ActorId,
                     "scene-provided:" + playerSlotId.StableText + ":" +
-                    player.SceneAdmission.SceneLogicalPlayerActor.ActorId.StableText,
-                    player.SceneAdmission.SceneLogicalPlayerActor.transform,
+                    player.SceneAdmission.ScenePlayerActorDeclaration.ActorId.StableText,
+                    player.SceneAdmission.ScenePlayerActorDeclaration.transform,
                     out issue);
                 LastApplySucceeded = applied;
                 LastIssue = issue ?? string.Empty;

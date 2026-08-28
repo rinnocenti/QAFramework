@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Immersive.Framework.Actors;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
@@ -57,6 +58,8 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             "Assets/ImmersiveFrameworkQA/Player/LocalPlayerRuntimeIntegration";
         private const string ActionsPath = RootFolder + "/LocalPlayerInputActions.asset";
         private const string PlayerPrefabPath = RootFolder + "/LocalPlayerHost.prefab";
+        private const string PlayerActorRuntimeHostPrefabPath =
+            RootFolder + "/PlayerActorRuntimeHost.prefab";
         private const string SessionProfilePath =
             RootFolder + "/CanonicalPlayerSessionProfile.asset";
         private const string DivergentPlayerPrefabPath =
@@ -519,6 +522,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             GameObject temporary = new GameObject(displayName);
             try
             {
+                GameObject runtimeHostPrefab = CreateOrUpdateRuntimeHostPrefab();
                 PlayerInput playerInput = temporary.AddComponent<PlayerInput>();
                 playerInput.actions = actions;
                 playerInput.defaultActionMap = "Gameplay";
@@ -532,6 +536,9 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 serializedHost.FindProperty("playerInput").objectReferenceValue = playerInput;
                 serializedHost.FindProperty("actorMount").objectReferenceValue =
                     actorMountObject.transform;
+                serializedHost.FindProperty("playerActorRuntimeHostPrefab")
+                    .objectReferenceValue =
+                    runtimeHostPrefab.GetComponent<PlayerActorRuntimeHost>();
                 serializedHost.ApplyModifiedPropertiesWithoutUndo();
 
                 UnityPlayerInputGateAdapter gate =
@@ -560,6 +567,68 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             finally
             {
                 UnityEngine.Object.DestroyImmediate(temporary);
+            }
+        }
+
+        private static GameObject CreateOrUpdateRuntimeHostPrefab()
+        {
+            GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(
+                PlayerActorRuntimeHostPrefabPath);
+            GameObject root = existing != null
+                ? PrefabUtility.LoadPrefabContents(PlayerActorRuntimeHostPrefabPath)
+                : new GameObject("PlayerActorRuntimeHost");
+
+            try
+            {
+                root.name = Path.GetFileNameWithoutExtension(PlayerActorRuntimeHostPrefabPath);
+                foreach (PlayerInput input in root.GetComponentsInChildren<PlayerInput>(true))
+                {
+                    UnityEngine.Object.DestroyImmediate(input);
+                }
+
+                PlayerActorRuntimeHost runtimeHost =
+                    root.GetComponent<PlayerActorRuntimeHost>() ??
+                    root.AddComponent<PlayerActorRuntimeHost>();
+                PlayerActorDeclaration declaration =
+                    root.GetComponent<PlayerActorDeclaration>() ??
+                    root.AddComponent<PlayerActorDeclaration>();
+                declaration.name = "PlayerActorDeclaration";
+
+                Transform presentationMount = root.transform.Find("PresentationMount");
+                if (presentationMount == null)
+                {
+                    presentationMount = new GameObject("PresentationMount").transform;
+                    presentationMount.SetParent(root.transform, false);
+                }
+
+                var serializedRuntimeHost = new SerializedObject(runtimeHost);
+                serializedRuntimeHost.FindProperty("playerActorDeclaration")
+                    .objectReferenceValue = declaration;
+                serializedRuntimeHost.FindProperty("presentationMount")
+                    .objectReferenceValue = presentationMount;
+                serializedRuntimeHost.ApplyModifiedPropertiesWithoutUndo();
+
+                GameObject saved = PrefabUtility.SaveAsPrefabAsset(
+                    root,
+                    PlayerActorRuntimeHostPrefabPath);
+                if (saved == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Could not create Player Actor Runtime Host prefab at '{PlayerActorRuntimeHostPrefabPath}'.");
+                }
+
+                return saved;
+            }
+            finally
+            {
+                if (existing != null)
+                {
+                    PrefabUtility.UnloadPrefabContents(root);
+                }
+                else
+                {
+                    UnityEngine.Object.DestroyImmediate(root);
+                }
             }
         }
 

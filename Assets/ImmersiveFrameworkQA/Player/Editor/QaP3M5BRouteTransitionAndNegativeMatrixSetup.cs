@@ -70,8 +70,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             RootFolder + "/P3M5B_Negative_MismatchedProfile.unity";
         internal const string UndeclaredSurfaceScenePath =
             RootFolder + "/P3M5B_Negative_UndeclaredSurface.unity";
-        internal const string ActorPrefabPath =
-            RootFolder + "/P3M5B_SceneLogicalPlayerActor.prefab";
+        internal const string RuntimeHostPrefabPath =
+            RootFolder + "/P3M5B_PlayerActorRuntimeHost.prefab";
+        internal const string PresentationPrefabPath =
+            RootFolder + "/P3M5B_PlayerPresentation.prefab";
         internal const string ActorProfilePath =
             RootFolder + "/P3M5B_SceneActorProfile.asset";
         internal const string AlternateActorProfilePath =
@@ -162,17 +164,18 @@ namespace ImmersiveFrameworkQA.Player.Editor
             {
                 EnsureFolder(RootFolder);
                 PlayerSlotProfile[] slots = PrepareSceneProvidedSession();
-                GameObject actorPrefab = CreateOrUpdateActorPrefab();
+                GameObject runtimeHostPrefab = CreateOrUpdateRuntimeHostPrefab();
+                GameObject presentationPrefab = CreateOrUpdatePresentationPrefab();
                 ActorProfile actorProfile = CreateOrUpdateActorProfile(
                     ActorProfilePath,
                     ActorProfileId,
                     "P3M5B Scene Player",
-                    actorPrefab);
+                    presentationPrefab);
                 ActorProfile alternateProfile = CreateOrUpdateActorProfile(
                     AlternateActorProfilePath,
                     AlternateActorProfileId,
                     "P3M5B Alternate Scene Player",
-                    actorPrefab);
+                    CreateOrUpdateAlternatePresentationPrefab());
 
                 CreateOrUpdateEmptyScene(
                     RouteAPrimaryScenePath,
@@ -190,7 +193,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     RouteAActivityScenePath,
                     PlayerSceneShape.ValidSingle,
                     slots,
-                    actorPrefab,
+                    runtimeHostPrefab,
                     actorProfile,
                     alternateProfile,
                     "P3M5B Route A Activity");
@@ -198,7 +201,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     RouteBActivityScenePath,
                     PlayerSceneShape.ValidSingle,
                     slots,
-                    actorPrefab,
+                    runtimeHostPrefab,
                     actorProfile,
                     alternateProfile,
                     "P3M5B Route B Activity");
@@ -206,7 +209,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     FailedFirstAdoptionActivityScenePath,
                     PlayerSceneShape.MismatchedProfile,
                     slots,
-                    actorPrefab,
+                    runtimeHostPrefab,
                     actorProfile,
                     alternateProfile,
                     "P3M5B Failed First Adoption Activity");
@@ -214,7 +217,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     FailedReprojectionActivityScenePath,
                     PlayerSceneShape.MismatchedProfile,
                     slots,
-                    actorPrefab,
+                    runtimeHostPrefab,
                     actorProfile,
                     alternateProfile,
                     "P3M5B Failed Reprojection Activity");
@@ -222,7 +225,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     DuplicateSlotScenePath,
                     PlayerSceneShape.DuplicateSlot,
                     slots,
-                    actorPrefab,
+                    runtimeHostPrefab,
                     actorProfile,
                     alternateProfile,
                     "P3M5B Duplicate Slot");
@@ -230,7 +233,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     MissingActorScenePath,
                     PlayerSceneShape.MissingActor,
                     slots,
-                    actorPrefab,
+                    runtimeHostPrefab,
                     actorProfile,
                     alternateProfile,
                     "P3M5B Missing Actor");
@@ -238,7 +241,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     MismatchedProfileScenePath,
                     PlayerSceneShape.MismatchedProfile,
                     slots,
-                    actorPrefab,
+                    runtimeHostPrefab,
                     actorProfile,
                     alternateProfile,
                     "P3M5B Mismatched Profile");
@@ -246,7 +249,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     UndeclaredSurfaceScenePath,
                     PlayerSceneShape.ValidSingle,
                     slots,
-                    actorPrefab,
+                    runtimeHostPrefab,
                     actorProfile,
                     alternateProfile,
                     "P3M5B Undeclared Surface");
@@ -492,24 +495,27 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return slots;
         }
 
-        private static GameObject CreateOrUpdateActorPrefab()
+        private static GameObject CreateOrUpdateRuntimeHostPrefab()
         {
             GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(
-                ActorPrefabPath);
+                RuntimeHostPrefabPath);
             bool loadedContents = asset != null;
             GameObject root = loadedContents
-                ? PrefabUtility.LoadPrefabContents(ActorPrefabPath)
-                : new GameObject(Path.GetFileNameWithoutExtension(ActorPrefabPath));
+                ? PrefabUtility.LoadPrefabContents(RuntimeHostPrefabPath)
+                : new GameObject(Path.GetFileNameWithoutExtension(RuntimeHostPrefabPath));
 
             try
             {
-                root.name = Path.GetFileNameWithoutExtension(ActorPrefabPath);
+                root.name = Path.GetFileNameWithoutExtension(RuntimeHostPrefabPath);
                 PlayerInput[] inputs = root.GetComponentsInChildren<PlayerInput>(true);
                 for (int index = inputs.Length - 1; index >= 0; index--)
                 {
                     UnityEngine.Object.DestroyImmediate(inputs[index]);
                 }
 
+                PlayerActorRuntimeHost runtimeHost =
+                    root.GetComponent<PlayerActorRuntimeHost>() ??
+                    root.AddComponent<PlayerActorRuntimeHost>();
                 PlayerActorDeclaration declaration =
                     root.GetComponent<PlayerActorDeclaration>();
                 if (declaration == null)
@@ -528,16 +534,30 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 }
 
                 SetString(declaration, "actorId", AuthoredActorId);
-                SetString(declaration, "displayName", "P3M5B Scene Player");
-                SetString(declaration, "reason", "p3m5b.scene-player.authored");
+                SetString(declaration, "displayName", "P3M5B Scene Player Runtime");
+                SetString(declaration, "reason", "p3m5b.scene-player.runtime");
+
+                Transform presentationMount = root.transform.Find("PresentationMount");
+                if (presentationMount == null)
+                {
+                    presentationMount = new GameObject("PresentationMount").transform;
+                    presentationMount.SetParent(root.transform, false);
+                }
+
+                var serializedRuntimeHost = new SerializedObject(runtimeHost);
+                serializedRuntimeHost.FindProperty("playerActorDeclaration")
+                    .objectReferenceValue = declaration;
+                serializedRuntimeHost.FindProperty("presentationMount")
+                    .objectReferenceValue = presentationMount;
+                serializedRuntimeHost.ApplyModifiedPropertiesWithoutUndo();
 
                 GameObject saved = PrefabUtility.SaveAsPrefabAsset(
                     root,
-                    ActorPrefabPath);
+                    RuntimeHostPrefabPath);
                 if (saved == null)
                 {
                     throw new InvalidOperationException(
-                        "P3M5B could not save the Scene Logical Player Actor prefab.");
+                        "P3M5B could not save the Player Actor Runtime Host prefab.");
                 }
 
                 return saved;
@@ -555,11 +575,57 @@ namespace ImmersiveFrameworkQA.Player.Editor
             }
         }
 
+        private static GameObject CreateOrUpdatePresentationPrefab()
+        {
+            return CreateOrUpdatePresentationPrefab(
+                PresentationPrefabPath,
+                "P3M5B Player Presentation");
+        }
+
+        private static GameObject CreateOrUpdateAlternatePresentationPrefab()
+        {
+            return CreateOrUpdatePresentationPrefab(
+                RootFolder + "/P3M5B_AlternatePlayerPresentation.prefab",
+                "P3M5B Alternate Player Presentation");
+        }
+
+        private static GameObject CreateOrUpdatePresentationPrefab(string path, string name)
+        {
+            GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            GameObject root = asset != null
+                ? PrefabUtility.LoadPrefabContents(path)
+                : new GameObject(name);
+            try
+            {
+                root.name = Path.GetFileNameWithoutExtension(path);
+                foreach (PlayerInput input in root.GetComponentsInChildren<PlayerInput>(true))
+                {
+                    UnityEngine.Object.DestroyImmediate(input);
+                }
+                foreach (ActorDeclaration declaration in root.GetComponentsInChildren<ActorDeclaration>(true))
+                {
+                    UnityEngine.Object.DestroyImmediate(declaration);
+                }
+                foreach (PlayerActorRuntimeHost host in root.GetComponentsInChildren<PlayerActorRuntimeHost>(true))
+                {
+                    UnityEngine.Object.DestroyImmediate(host);
+                }
+                GameObject saved = PrefabUtility.SaveAsPrefabAsset(root, path);
+                if (saved == null) throw new InvalidOperationException($"P3M5B could not save Presentation prefab '{path}'.");
+                return saved;
+            }
+            finally
+            {
+                if (asset != null) PrefabUtility.UnloadPrefabContents(root);
+                else UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
         private static ActorProfile CreateOrUpdateActorProfile(
             string path,
             string profileId,
             string displayName,
-            GameObject actorPrefab)
+            GameObject presentationPrefab)
         {
             ActorProfile profile = AssetDatabase.LoadAssetAtPath<ActorProfile>(path);
             if (profile == null)
@@ -577,7 +643,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "QA-only P3M5B Scene Local Player Actor Profile.");
             SetEnum(profile, "actorKind", "Player");
             SetEnum(profile, "actorRole", "Protagonist");
-            SetObject(profile, "logicalActorHostPrefab", actorPrefab);
+            SetObject(profile, "presentationPrefab", presentationPrefab);
             EditorUtility.SetDirty(profile);
             return profile;
         }
@@ -608,7 +674,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             string path,
             PlayerSceneShape shape,
             PlayerSlotProfile[] slots,
-            GameObject actorPrefab,
+            GameObject runtimeHostPrefab,
             ActorProfile actorProfile,
             ActorProfile alternateProfile,
             string label)
@@ -630,7 +696,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                             scene,
                             label,
                             slots[0],
-                            actorPrefab,
+                            runtimeHostPrefab,
                             actorProfile,
                             actorProfile);
                         break;
@@ -641,14 +707,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
                             scene,
                             label + " A",
                             slots[0],
-                            actorPrefab,
+                            runtimeHostPrefab,
                             actorProfile,
                             actorProfile);
                         CreateValidSurface(
                             scene,
                             label + " B",
                             slots[0],
-                            actorPrefab,
+                            runtimeHostPrefab,
                             actorProfile,
                             actorProfile);
                         break;
@@ -657,7 +723,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     {
                         LocalPlayerHostAuthoring host = CreateHost(
                             scene,
-                            label + " Host");
+                            label + " Host",
+                            runtimeHostPrefab);
                         CreateAdmission(
                             scene,
                             label + " Admission",
@@ -665,8 +732,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                             host,
                             actorProfile,
                             null,
-                            actorProfile,
-                            actorPrefab);
+                            null,
+                            actorProfile);
                         break;
                     }
                     case PlayerSceneShape.MismatchedProfile:
@@ -675,7 +742,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                             scene,
                             label,
                             slots[0],
-                            actorPrefab,
+                            runtimeHostPrefab,
                             actorProfile,
                             alternateProfile,
                             validate: false);
@@ -852,28 +919,32 @@ namespace ImmersiveFrameworkQA.Player.Editor
             Scene scene,
             string label,
             PlayerSlotProfile slot,
-            GameObject actorPrefab,
+            GameObject runtimeHostPrefab,
             ActorProfile selectedProfile,
             ActorProfile evidenceProfile,
             bool validate = true)
         {
-            LocalPlayerHostAuthoring host = CreateHost(scene, label + " Host");
-            PlayerActorDeclaration actor = CreateActor(
+            LocalPlayerHostAuthoring host = CreateHost(
+                scene,
+                label + " Host",
+                runtimeHostPrefab);
+            PlayerActorRuntimeHost runtimeHost = CreateActorRuntime(
                 scene,
                 label + " Actor",
-                actorPrefab,
+                runtimeHostPrefab,
                 host.ActorMount,
-                selectedProfile,
-                evidenceProfile);
+                selectedProfile);
             SceneLocalPlayerAdmissionAuthoring admission = CreateAdmission(
                 scene,
                 label + " Admission",
                 slot,
                 host,
                 selectedProfile,
-                actor,
-                evidenceProfile,
-                actorPrefab);
+                runtimeHost,
+                runtimeHost.PresentationMount.childCount == 1
+                    ? runtimeHost.PresentationMount.GetChild(0).gameObject
+                    : null,
+                evidenceProfile);
             CreateContextualAdmissionWitness(
                 scene,
                 label + " Contextual Admission Witness",
@@ -918,7 +989,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
         private static LocalPlayerHostAuthoring CreateHost(
             Scene scene,
-            string name)
+            string name,
+            GameObject runtimeHostPrefab)
         {
             GameObject root = NewSceneObject(name, scene);
             PlayerInput playerInput = root.AddComponent<PlayerInput>();
@@ -942,6 +1014,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             mount.transform.SetParent(root.transform, false);
             SetObject(host, "playerInput", playerInput);
             SetObject(host, "actorMount", mount.transform);
+            SetObject(
+                host,
+                "playerActorRuntimeHostPrefab",
+                runtimeHostPrefab.GetComponent<PlayerActorRuntimeHost>());
             return host;
         }
 
@@ -991,45 +1067,38 @@ namespace ImmersiveFrameworkQA.Player.Editor
             EditorUtility.SetDirty(inputGate);
         }
 
-        private static PlayerActorDeclaration CreateActor(
+        private static PlayerActorRuntimeHost CreateActorRuntime(
             Scene scene,
             string name,
-            GameObject actorPrefab,
+            GameObject runtimeHostPrefab,
             Transform parent,
-            ActorProfile selectedProfile,
-            ActorProfile evidenceProfile)
+            ActorProfile selectedProfile)
         {
             GameObject root = PrefabUtility.InstantiatePrefab(
-                actorPrefab,
+                runtimeHostPrefab,
                 scene) as GameObject;
             if (root == null)
             {
                 throw new InvalidOperationException(
-                    $"P3M5B could not instantiate Actor prefab for '{name}'.");
+                    $"P3M5B could not instantiate Player Actor Runtime Host prefab for '{name}'.");
             }
 
             root.name = name;
             root.transform.SetParent(parent, false);
-            PlayerActorDeclaration actor =
-                root.GetComponent<PlayerActorDeclaration>();
-            if (actor == null)
+            PlayerActorRuntimeHost runtimeHost =
+                root.GetComponent<PlayerActorRuntimeHost>();
+            if (runtimeHost == null || !runtimeHost.TryValidateConfiguration(out string issue))
             {
                 throw new InvalidOperationException(
-                    $"P3M5B Actor '{name}' has no PlayerActorDeclaration.");
+                    $"P3M5B Runtime Host '{name}' is invalid. {issue}");
             }
-
-            SceneLogicalPlayerActorEvidence evidence =
-                root.GetComponent<SceneLogicalPlayerActorEvidence>();
-            if (evidence == null)
-            {
-                evidence = root.AddComponent<SceneLogicalPlayerActorEvidence>();
-            }
-
-            evidence.EditorSetEvidence(
-                evidenceProfile,
-                actorPrefab,
-                $"P3M5B evidence for '{name}' selected='{selectedProfile?.name}'.");
-            return actor;
+            GameObject presentation = PrefabUtility.InstantiatePrefab(
+                selectedProfile.PresentationPrefab,
+                runtimeHost.PresentationMount) as GameObject;
+            if (presentation == null) throw new InvalidOperationException($"P3M5B could not instantiate Presentation for '{name}'.");
+            ScenePlayerActorPresentationEvidence evidence = presentation.AddComponent<ScenePlayerActorPresentationEvidence>();
+            evidence.EditorSetEvidence(selectedProfile, selectedProfile.PresentationPrefab, $"P3M5B Presentation evidence for '{name}'.");
+            return runtimeHost;
         }
 
         private static SceneLocalPlayerAdmissionAuthoring CreateAdmission(
@@ -1038,20 +1107,21 @@ namespace ImmersiveFrameworkQA.Player.Editor
             PlayerSlotProfile slot,
             LocalPlayerHostAuthoring host,
             ActorProfile actorProfile,
-            PlayerActorDeclaration actor,
-            ActorProfile evidenceProfile,
-            GameObject evidenceLogicalActorHostPrefab)
+            PlayerActorRuntimeHost runtimeHost,
+            GameObject presentation,
+            ActorProfile evidenceProfile)
         {
             SceneLocalPlayerAdmissionAuthoring admission =
                 host.gameObject.AddComponent<SceneLocalPlayerAdmissionAuthoring>();
             host.gameObject.name = name;
             SetObject(admission, "playerSlotProfile", slot);
             SetObject(admission, "actorProfile", actorProfile);
-            SetObject(admission, "sceneLogicalPlayerActor", actor);
+            SetObject(admission, "scenePlayerActorRuntimeHost", runtimeHost);
+            SetObject(admission, "scenePresentation", presentation);
             SetEnum(admission, "admissionTiming", "OnActivityEnter");
             admission.EditorSetProfileEvidence(
                 evidenceProfile,
-                evidenceLogicalActorHostPrefab,
+                evidenceProfile != null ? evidenceProfile.PresentationPrefab : null,
                 $"P3M5B fixture evidence for '{name}'.");
             return admission;
         }

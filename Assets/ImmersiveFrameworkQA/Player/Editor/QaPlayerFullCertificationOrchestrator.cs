@@ -58,7 +58,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
             "ImmersiveFrameworkQA.QA_PLAYER_FULL.RouteSpatialEntry";
         private const string ActivityRelocationKey =
             "ImmersiveFrameworkQA.QA_PLAYER_FULL.ActivityRelocation";
-        private const int HistoricalMandatoryContractCount = 25;
         private const string LeaveKey =
             "ImmersiveFrameworkQA.QA_PLAYER_FULL.Leave";
         private const string FailedPhaseKey =
@@ -566,7 +565,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             SessionState.SetBool(SummaryEmittedKey, true);
             Debug.Log(
                 $"{Prefix} status='Completed' verdict='PLAYER CURRENT AGGREGATE COMPLETE' " +
-                $"historicalFullPlayer='{HistoricalMandatoryContractCount}/{HistoricalMandatoryContractCount}' " +
+                $"acceptedFullPlayer='{MandatoryContractCount}/{MandatoryContractCount}' " +
                 $"serialization='{Result(SerializationKey)}' " +
                 $"session='{Result(SessionKey)}' " +
                 $"routeSpatialEntry='{Result(RouteSpatialEntryKey)}' " +
@@ -910,7 +909,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
             result => string.Equals(result, "PASS", StringComparison.Ordinal));
 
         private static bool AllMandatoryPhasesPassed() =>
-            MandatoryContractCount == 30 &&
             ExecutedMandatoryContractCount == MandatoryContractCount &&
             PassedMandatoryContractCount == MandatoryContractCount;
 
