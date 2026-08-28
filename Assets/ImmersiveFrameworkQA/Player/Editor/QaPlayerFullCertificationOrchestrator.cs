@@ -32,6 +32,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             "ImmersiveFrameworkQA.QA_PLAYER_FULL.SceneProvidedNoActivityTermination";
         private const string ManagerProvisionedKey =
             "ImmersiveFrameworkQA.QA_PLAYER_FULL.ManagerProvisioned";
+        private const string LeaveUnresolvedKey =
+            "ImmersiveFrameworkQA.QA_PLAYER_FULL.LeaveUnresolved";
         private const string ManagerNoActivityKey =
             "ImmersiveFrameworkQA.QA_PLAYER_FULL.ManagerNoActivity";
         private const string ManagerSessionTerminationKey =
@@ -120,7 +122,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             SessionChangeObservationCompleted = 49,
             PreparingDesignerEventProjection = 50,
             RunningDesignerEventProjection = 51,
-            DesignerEventProjectionCompleted = 52
+            DesignerEventProjectionCompleted = 52,
+            PreparingLeaveUnresolved = 53,
+            RunningLeaveUnresolved = 54,
+            LeaveUnresolvedCompleted = 55
         }
 
         [InitializeOnLoadMethod]
@@ -281,6 +286,13 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         MarkPassed(ManagerProvisionedKey);
                         break;
 
+                    case Phase.RunningLeaveUnresolved:
+                        await QaPlayerLeaveUnresolvedExplicitSelectionRegression
+                            .RunForFullPlayerQaAsync();
+                        SetPhase(Phase.LeaveUnresolvedCompleted);
+                        MarkPassed(LeaveUnresolvedKey);
+                        break;
+
                     case Phase.RunningActor:
                         await QaPlayerActorSelectionPublicSurfaceRegression
                             .RunCertificationAsync();
@@ -412,6 +424,14 @@ namespace ImmersiveFrameworkQA.Player.Editor
                         break;
 
                     case Phase.ManagerProvisionedCompleted:
+                        SetPhase(Phase.PreparingLeaveUnresolved);
+                        QaPlayerLeaveUnresolvedExplicitSelectionSetup
+                            .PrepareForFullPlayerQa();
+                        SetPhase(Phase.RunningLeaveUnresolved);
+                        EnterFreshPlayMode();
+                        break;
+
+                    case Phase.LeaveUnresolvedCompleted:
                         SetPhase(Phase.PreparingActor);
                         QaManagerProvisionedPlayerFixture.PrepareAndValidate();
                         SetPhase(Phase.RunningActor);
@@ -506,6 +526,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             SessionState.SetString(SceneProvidedNoActivityLeaveKey, "NOT RUN");
             SessionState.SetString(SceneProvidedNoActivityTerminationKey, "NOT RUN");
             SessionState.SetString(ManagerProvisionedKey, "NOT RUN");
+            SessionState.SetString(LeaveUnresolvedKey, "NOT RUN");
             SessionState.SetString(ManagerNoActivityKey, "NOT RUN");
             SessionState.SetString(ManagerSessionTerminationKey, "NOT RUN");
             SessionState.SetString(ActorKey, "NOT RUN");
@@ -556,6 +577,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 $"sceneProvidedNoActivityLeave='{Result(SceneProvidedNoActivityLeaveKey)}' " +
                 $"sceneProvidedNoActivityTermination='{Result(SceneProvidedNoActivityTerminationKey)}' " +
                 $"managerProvisioned='{Result(ManagerProvisionedKey)}' " +
+                $"leaveUnresolved='{Result(LeaveUnresolvedKey)}' " +
                 $"managerNoActivity='{Result(ManagerNoActivityKey)}' " +
                 $"managerSessionTermination='{Result(ManagerSessionTerminationKey)}' " +
                 $"actor='{Result(ActorKey)}' " +
@@ -603,6 +625,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 $"sceneProvidedNoActivityLeave='{Result(SceneProvidedNoActivityLeaveKey)}' " +
                 $"sceneProvidedNoActivityTermination='{Result(SceneProvidedNoActivityTerminationKey)}' " +
                 $"managerProvisioned='{Result(ManagerProvisionedKey)}' " +
+                $"leaveUnresolved='{Result(LeaveUnresolvedKey)}' " +
                 $"managerNoActivity='{Result(ManagerNoActivityKey)}' " +
                 $"managerSessionTermination='{Result(ManagerSessionTerminationKey)}' " +
                 $"actor='{Result(ActorKey)}' " +
@@ -642,6 +665,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     break;
                 case "Manager Provisioned":
                     SessionState.SetString(ManagerProvisionedKey, "FAIL");
+                    break;
+                case "LeaveUnresolved Explicit Actor Selection":
+                    SessionState.SetString(LeaveUnresolvedKey, "FAIL");
                     break;
                 case "Manager Join Without Activity":
                     SessionState.SetString(ManagerNoActivityKey, "FAIL");
@@ -702,6 +728,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 Phase.RunningSceneProvidedNoActivityLeave or
                 Phase.RunningSceneProvidedNoActivityTermination or
                 Phase.RunningManagerProvisioned or
+                Phase.RunningLeaveUnresolved or
                 Phase.RunningActor or
                 Phase.RunningManagerNoActivity or
                 Phase.RunningManagerSessionTermination or
@@ -722,6 +749,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 Phase.SceneProvidedNoActivityLeaveCompleted or
                 Phase.SceneProvidedNoActivityTerminationCompleted or
                 Phase.ManagerProvisionedCompleted or
+                Phase.LeaveUnresolvedCompleted or
                 Phase.ActorCompleted or
                 Phase.ManagerNoActivityCompleted or
                 Phase.ManagerSessionTerminationCompleted or
@@ -757,6 +785,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 Phase.PreparingManagerProvisioned or
                     Phase.RunningManagerProvisioned or
                     Phase.ManagerProvisionedCompleted => "Manager Provisioned",
+                Phase.PreparingLeaveUnresolved or
+                    Phase.RunningLeaveUnresolved or
+                    Phase.LeaveUnresolvedCompleted =>
+                    "LeaveUnresolved Explicit Actor Selection",
                 Phase.PreparingActor or Phase.RunningActor or Phase.ActorCompleted => "Actor Lifecycle",
                 Phase.PreparingManagerNoActivity or Phase.RunningManagerNoActivity or
                     Phase.ManagerNoActivityCompleted => "Manager Join Without Activity",
@@ -865,7 +897,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             new(26, "ADR-021 Model B Route Spatial Entry", "QaAdr21RoutePlayerSpatialEntryRegression.Execute", RouteSpatialEntryKey),
             new(27, "ADR-021 Model B Activity Explicit Relocation", "QaAdr21ActivityPlayerRelocationRegression.Execute", ActivityRelocationKey),
             new(28, "Session-scoped Player participation change observation", "QaPlayerSessionChangeObservationRegression.RunCertificationAsync", SessionChangeObservationKey),
-            new(29, "Designer-facing Player Session event projection", "QaPlayerSessionDesignerEventProjectionRegression.RunCertificationAsync", DesignerEventProjectionKey)
+            new(29, "Designer-facing Player Session event projection", "QaPlayerSessionDesignerEventProjectionRegression.RunCertificationAsync", DesignerEventProjectionKey),
+            new(30, "LeaveUnresolved waits for explicit Actor selection", "QaPlayerLeaveUnresolvedExplicitSelectionRegression.RunForFullPlayerQaAsync", LeaveUnresolvedKey)
         };
 
         private static int MandatoryContractCount => MandatoryContracts.Length;
@@ -877,7 +910,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             result => string.Equals(result, "PASS", StringComparison.Ordinal));
 
         private static bool AllMandatoryPhasesPassed() =>
-            MandatoryContractCount == 29 &&
+            MandatoryContractCount == 30 &&
             ExecutedMandatoryContractCount == MandatoryContractCount &&
             PassedMandatoryContractCount == MandatoryContractCount;
 
