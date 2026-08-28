@@ -474,8 +474,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             PlayerSessionObserver observer,
             string phase)
         {
+            PlayerParticipationSnapshot snapshot = null;
             Require(observer != null && observer.TryGetSnapshot(
-                        out PlayerParticipationSnapshot snapshot) &&
+                        out snapshot) &&
                     snapshot != null,
                 $"PlayerSessionObserver snapshot is unavailable at '{phase}'.");
             return snapshot;
