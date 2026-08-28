@@ -22,9 +22,9 @@ namespace ImmersiveFrameworkQA.PauseP1.Editor
     {
         internal const string Root = "Assets/ImmersiveFrameworkQA/Player/PauseP1";
         internal const string InputActions =
-            "Assets/ImmersiveFrameworkQA/Player/LocalPlayerRuntimeIntegration/LocalPlayerInputActions.asset";
+            "Assets/ImmersiveFrameworkQA/Player/Input/QA_PlayerInputActions.inputactions";
         internal const string PlayerHost =
-            "Assets/ImmersiveFrameworkQA/Player/LocalPlayerRuntimeIntegration/LocalPlayerHost.prefab";
+            "Assets/ImmersiveFrameworkQA/Player/Prefabs/QA_ManagerLocalPlayerHost.prefab";
         internal const string ActionReference =
             Root + "/LocalPlayerPauseToggle.asset";
         internal const string Route = Root + "/QA_PauseP1Route.asset";

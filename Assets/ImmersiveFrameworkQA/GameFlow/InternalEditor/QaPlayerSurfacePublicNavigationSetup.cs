@@ -48,7 +48,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private const string PlayerExcludedActivityPath =
             Root + "/QA_PlayerSurfacePublic_PlayerExcludedActivity.asset";
         private const string PlayerSlotPath =
-            "Assets/ImmersiveFrameworkQA/Player/Profiles/SlotsProfiles/PlayerSlotProfileP1.asset";
+            "Assets/ImmersiveFrameworkQA/Player/Profiles/QA_PlayerSlot_P1.asset";
         private const string PreparedKey =
             "ImmersiveFrameworkQA.QA_PLAYER_SURFACE.PublicNavPrepared";
 
@@ -403,7 +403,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             ConfigureTrigger(clear, activity, "qa.player.surface.public.clear");
             ApplyScope(binding, LocalPlayerProvisioningConsumerScope.Route);
             ActorProfile alternateActor = AssetDatabase.LoadAssetAtPath<ActorProfile>(
-                "Assets/ImmersiveFrameworkQA/Player/P3H4/P3H4_AlternateActor.asset");
+                "Assets/ImmersiveFrameworkQA/Player/Profiles/QA_AlternateActor.asset");
             Require(alternateActor != null,
                 "Public Player Surface requires the existing P3H4 alternate Actor fixture.");
             PlayerSessionSelectActorCommandTrigger select =

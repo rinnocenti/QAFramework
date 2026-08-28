@@ -182,10 +182,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         secondSlotProfile.PlayerSlotId &&
                     firstSlotProfile.DefaultActorProfile != null &&
                     firstSlotProfile.DefaultActorProfile
-                        .LogicalActorHostPrefab != null &&
+                        .PresentationPrefab != null &&
                     secondSlotProfile.DefaultActorProfile != null &&
                     secondSlotProfile.DefaultActorProfile
-                        .LogicalActorHostPrefab != null,
+                        .PresentationPrefab != null,
                     "IF-M07-12B-5 requires two identity-distinct configured Slots with explicit default Actors.");
                 cases.Complete("two-slot-fixture-confirmed");
 

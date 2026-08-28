@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using ImmersiveFrameworkQA.Hub;
 using ImmersiveFrameworkQA.Audio.Editor;
+using ImmersiveFrameworkQA.Player.Editor;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -24,12 +25,12 @@ namespace ImmersiveFrameworkQA.Hub.Editor
                 Root + "/Camera/Routes/QA_PlayerCameraArbitrationRoute.asset"),
             new(
                 "Player",
-                "Player Gameplay Admission Regression",
-                Root + "/Lifecycle/Routes/QA_LifecycleRouteA.asset"),
+                "Player QA",
+                Root + "/Player/Routes/QA_PlayerRoute.asset"),
             new(
                 "Player",
-                "Scene Player Route Lifecycle Regression",
-                Root + "/Player/P3M5B/P3M5B_RouteA.asset"),
+                "Player Scene-Provided",
+                Root + "/Player/Routes/QA_PlayerSceneProvidedRoute.asset"),
             new(
                 "Pause",
                 "Pause Product Binding QA",
@@ -75,6 +76,22 @@ namespace ImmersiveFrameworkQA.Hub.Editor
             catch (Exception exception)
             {
                 Debug.LogError($"[AUDIO_QA_SETUP] status='Failed' reason='{FormatDiagnostic(exception)}'");
+                throw;
+            }
+        }
+
+        [MenuItem("Immersive Framework/QA/Setup/Player/Configure Player QA", priority = 11)]
+        public static void ConfigurePlayerQaFromHub()
+        {
+            try
+            {
+                PlayerQaSceneBuilder.ConfigurePlayerQa();
+                CreateOrRefreshHubForSetup();
+                Debug.Log("[QA_PLAYER_SETUP] status='Applied' hub='QA_Hub' primaryScene='QA_Player'.");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError($"[QA_PLAYER_SETUP] status='Failed' reason='{FormatDiagnostic(exception)}'");
                 throw;
             }
         }

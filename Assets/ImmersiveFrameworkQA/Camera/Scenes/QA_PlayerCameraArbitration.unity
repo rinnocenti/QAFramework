@@ -561,14 +561,14 @@ MonoBehaviour:
   frameworkOwnedCinemachineCamera: {fileID: 0}
   frameworkOwnedPositionControl: {fileID: 0}
   frameworkOwnedRotationControl: {fileID: 446551432}
-  materializationRevision: 2
+  materializationRevision: 4
   logApplyRebuildDiagnostics: 0
   lastApplyRebuildStatus: ApplySucceeded
   lastBlockingIssue: 
   lastTargetResolutionSummary: Camera target requirements satisfied.
   lastMaterializationSummary: created='0' repaired='0' alreadyValid='6' skipped='2'
     blocked='0' presentation='Follow' cameraOwnership='ExternalOrUnknown' positionOwnership='ExternalOrUnknown'
-    rotationOwnership='FrameworkOwned' revision='2'
+    rotationOwnership='FrameworkOwned' revision='4'
   lastResolvedFollowTarget: {fileID: 1926355593}
   lastResolvedLookAtTarget: {fileID: 1926355593}
 --- !u!4 &660878653
@@ -652,14 +652,14 @@ MonoBehaviour:
   frameworkOwnedCinemachineCamera: {fileID: 0}
   frameworkOwnedPositionControl: {fileID: 0}
   frameworkOwnedRotationControl: {fileID: 94951505}
-  materializationRevision: 2
+  materializationRevision: 4
   logApplyRebuildDiagnostics: 0
   lastApplyRebuildStatus: ApplySucceeded
   lastBlockingIssue: 
   lastTargetResolutionSummary: Camera target requirements satisfied.
   lastMaterializationSummary: created='0' repaired='0' alreadyValid='6' skipped='2'
     blocked='0' presentation='Follow' cameraOwnership='ExternalOrUnknown' positionOwnership='ExternalOrUnknown'
-    rotationOwnership='FrameworkOwned' revision='2'
+    rotationOwnership='FrameworkOwned' revision='4'
   lastResolvedFollowTarget: {fileID: 455465705}
   lastResolvedLookAtTarget: {fileID: 455465705}
 --- !u!4 &717848987
@@ -852,14 +852,14 @@ MonoBehaviour:
   frameworkOwnedCinemachineCamera: {fileID: 0}
   frameworkOwnedPositionControl: {fileID: 0}
   frameworkOwnedRotationControl: {fileID: 951021555}
-  materializationRevision: 2
+  materializationRevision: 4
   logApplyRebuildDiagnostics: 0
   lastApplyRebuildStatus: ApplySucceeded
   lastBlockingIssue: 
   lastTargetResolutionSummary: Camera target requirements satisfied.
   lastMaterializationSummary: created='0' repaired='0' alreadyValid='6' skipped='2'
     blocked='0' presentation='Follow' cameraOwnership='ExternalOrUnknown' positionOwnership='ExternalOrUnknown'
-    rotationOwnership='FrameworkOwned' revision='2'
+    rotationOwnership='FrameworkOwned' revision='4'
   lastResolvedFollowTarget: {fileID: 1947923678}
   lastResolvedLookAtTarget: {fileID: 2105951581}
 --- !u!4 &1179249548

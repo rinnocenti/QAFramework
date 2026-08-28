@@ -634,14 +634,14 @@ MonoBehaviour:
   frameworkOwnedCinemachineCamera: {fileID: 0}
   frameworkOwnedPositionControl: {fileID: 0}
   frameworkOwnedRotationControl: {fileID: 2126973285}
-  materializationRevision: 2
+  materializationRevision: 4
   logApplyRebuildDiagnostics: 0
   lastApplyRebuildStatus: ApplySucceeded
   lastBlockingIssue: 
   lastTargetResolutionSummary: Camera target requirements satisfied.
   lastMaterializationSummary: created='0' repaired='0' alreadyValid='6' skipped='2'
     blocked='0' presentation='Follow' cameraOwnership='ExternalOrUnknown' positionOwnership='ExternalOrUnknown'
-    rotationOwnership='FrameworkOwned' revision='2'
+    rotationOwnership='FrameworkOwned' revision='4'
   lastResolvedFollowTarget: {fileID: 1743314763}
   lastResolvedLookAtTarget: {fileID: 1743314763}
 --- !u!4 &2088542689

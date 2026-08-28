@@ -28,7 +28,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         internal const string ContentScenePath =
             "Assets/ImmersiveFrameworkQA/GameFlow/Scenes/QA_IF_READY_04_DirectPoliciesContent.unity";
         private const string AlternateActorPath =
-            "Assets/ImmersiveFrameworkQA/Player/P3H4/P3H4_AlternateActor.asset";
+            "Assets/ImmersiveFrameworkQA/Player/Profiles/QA_AlternateActor.asset";
 
         [InitializeOnLoadMethod]
         private static void RegisterRestoration()
@@ -72,7 +72,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         out PlayerSlotProfile firstSlot) &&
                     firstSlot != null &&
                     firstSlot.DefaultActorProfile != null &&
-                    firstSlot.DefaultActorProfile.LogicalActorHostPrefab != null,
+                    firstSlot.DefaultActorProfile.PresentationPrefab != null,
                     "Q3 requires a valid first Local Player Slot with a default Actor.");
 
                 Require(QaPlayerSessionQaSupport.TryGetSupportedSlot(
@@ -86,7 +86,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     AssetDatabase.LoadAssetAtPath<ActorProfile>(
                         AlternateActorPath);
                 Require(alternate != null &&
-                    alternate.LogicalActorHostPrefab != null,
+                    alternate.PresentationPrefab != null,
                     $"Q3 alternate Actor fixture is missing at '{AlternateActorPath}'.");
 
                 var serializedSecondSlot = new SerializedObject(secondSlot);
@@ -271,10 +271,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             if (firstSlot == null ||
                 firstSlot.DefaultActorProfile == null ||
                 !firstSlot.DefaultActorProfile.ActorProfileId.IsValid ||
-                firstSlot.DefaultActorProfile.LogicalActorHostPrefab == null)
+                firstSlot.DefaultActorProfile.PresentationPrefab == null)
             {
                 diagnostic =
-                    "First Local Player Slot has no valid default ActorProfile and Logical Actor Host.";
+                    "First Local Player Slot has no valid default ActorProfile and Presentation.";
                 return false;
             }
 
@@ -291,7 +291,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     AlternateActorPath);
             if (alternate == null ||
                 !alternate.ActorProfileId.IsValid ||
-                alternate.LogicalActorHostPrefab == null)
+                alternate.PresentationPrefab == null)
             {
                 diagnostic =
                     $"Alternate Actor fixture is missing or invalid at '{AlternateActorPath}'.";
@@ -299,11 +299,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             }
 
             if (ReferenceEquals(
-                    firstSlot.DefaultActorProfile.LogicalActorHostPrefab,
-                    alternate.LogicalActorHostPrefab))
+                    firstSlot.DefaultActorProfile.PresentationPrefab,
+                    alternate.PresentationPrefab))
             {
                 diagnostic =
-                    "Default and alternate Actor fixtures share the same Logical Actor Host prefab.";
+                    "Default and alternate Actor fixtures share the same Presentation Prefab.";
                 return false;
             }
 

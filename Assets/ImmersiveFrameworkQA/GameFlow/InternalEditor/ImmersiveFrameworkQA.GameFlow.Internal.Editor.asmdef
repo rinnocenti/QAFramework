@@ -6,7 +6,7 @@
         "Immersive.Foundation.Runtime",
         "ImmersiveFrameworkQA.Lifecycle.Runtime",
         "ImmersiveFrameworkQA.Hub.Runtime",
-        "ImmersiveFrameworkQA.Player.Internal.Editor",
+        "ImmersiveFrameworkQA.Player.Editor",
         "ImmersiveFrameworkQA.UnityBuildSurface.Runtime",
         "Unity.InputSystem"
     ],

@@ -206,6 +206,21 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/ImmersiveFrameworkQA/Player/P3M5B/P3M5B_FailedReprojection_PlayerActivity.unity
     guid: bdd4900484d49d544b07d1c1228020e5
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/PlayerV2/Access/Scenes/QA2_Access_Manager_Persistent.unity
+    guid: c196c54c18f45d94a8aa36b553a29628
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/PlayerV2/Access/Scenes/QA2_Access_Manager_Runtime.unity
+    guid: 4b2a49211446032459a29c0409df77a8
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/PlayerV2/Access/Scenes/QA2_Access_Scene_Runtime.unity
+    guid: 620d1275323d5de44a3ab9131fdfb8b5
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_Player.unity
+    guid: 5870b952fc3445846905633dec1d19d4
+  - enabled: 1
+    path: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerSceneProvided.unity
+    guid: 1b9dde9791cd4504ea540cc055b1f5ad
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

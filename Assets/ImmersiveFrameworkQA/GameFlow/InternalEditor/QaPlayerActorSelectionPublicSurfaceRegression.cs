@@ -52,7 +52,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 "Actor command QA requires the authored primary Slot and default Actor.");
             ActorProfile actorA = firstSlot.DefaultActorProfile;
             ActorProfile actorB = AssetDatabase.LoadAssetAtPath<ActorProfile>(
-                "Assets/ImmersiveFrameworkQA/Player/P3H4/P3H4_AlternateActor.asset");
+                "Assets/ImmersiveFrameworkQA/Player/Profiles/QA_AlternateActor.asset");
             Require(actorB != null && !ReferenceEquals(actorA, actorB),
                 "Actor command QA requires the existing distinct P3H4 alternate Actor.");
 

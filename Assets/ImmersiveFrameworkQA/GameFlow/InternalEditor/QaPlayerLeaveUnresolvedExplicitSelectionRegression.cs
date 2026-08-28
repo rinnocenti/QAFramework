@@ -25,7 +25,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
         private const int ExpectedCaseCount = 22;
         private const int FrameBudget = 360;
         private const string AlternateActorPath =
-            "Assets/ImmersiveFrameworkQA/Player/P3H4/P3H4_AlternateActor.asset";
+            "Assets/ImmersiveFrameworkQA/Player/Profiles/QA_AlternateActor.asset";
 
         public static Task RunForFullPlayerQaAsync() => RunAsync();
 

@@ -180,6 +180,52 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1921611420}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &475207252
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 475207254}
+  - component: {fileID: 475207253}
+  m_Layer: 0
+  m_Name: RouteTrigger_Camera__Override_Authority
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &475207253
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 475207252}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
+  targetRoute: {fileID: 11400000, guid: 8ee67928cfa62234aa2cbadde2b7f41b, type: 2}
+  reason: qa.hub.route.camera_override_authority
+--- !u!4 &475207254
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 475207252}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1905153653}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &598473919
 GameObject:
   m_ObjectHideFlags: 0
@@ -384,6 +430,8 @@ MonoBehaviour:
   m_Script: {fileID: 1858011040}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Player.P3M5B.P3M5BSessionProvisioningWitness
+  routeConsumerBinding: {fileID: 0}
+  enterRouteATrigger: {fileID: 0}
 --- !u!114 &680282357
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1026,6 +1074,51 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1921611420}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1433974487
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1433974489}
+  - component: {fileID: 1433974488}
+  m_Layer: 0
+  m_Name: QA__RouteCompletionCoordinator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1433974488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1433974487}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96e1da14381b49408cec7cf88f913432, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ImmersiveFrameworkQA.Camera.QaCameraOverrideAuthorityCompletionCoordinator
+  routeTrigger: {fileID: 475207253}
+--- !u!4 &1433974489
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1433974487}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!115 &1858011040
 MonoScript:
   m_ObjectHideFlags: 0
@@ -1074,7 +1167,7 @@ MonoBehaviour:
   entries:
   - domain: Camera
     label: Camera Override Authority
-    routeRequestTrigger: {fileID: 817060762}
+    routeRequestTrigger: {fileID: 475207253}
   - domain: Player
     label: Player Gameplay Admission Regression
     routeRequestTrigger: {fileID: 952827717}
@@ -1141,6 +1234,7 @@ RectTransform:
   - {fileID: 1204178478}
   - {fileID: 669377176}
   - {fileID: 598473921}
+  - {fileID: 475207254}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1321,3 +1415,4 @@ SceneRoots:
   - {fileID: 1905153653}
   - {fileID: 680282359}
   - {fileID: 1921611420}
+  - {fileID: 1433974489}

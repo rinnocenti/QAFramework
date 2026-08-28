@@ -175,7 +175,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     slotProfile.PlayerSlotId.IsValid &&
                     slotProfile.DefaultActorProfile != null &&
                     slotProfile.DefaultActorProfile.ActorProfileId.IsValid &&
-                    slotProfile.DefaultActorProfile.LogicalActorHostPrefab != null,
+                    slotProfile.DefaultActorProfile.PresentationPrefab != null,
                     "IF-M07-12B-6 requires one valid Local Player Slot with an explicit default Actor.");
                 cases.Complete("slot-fixture-confirmed");
 

@@ -231,7 +231,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 completed.Add(expectedCases[5]);
 
                 Require(join.LocalPlayerHost.ActorMount.childCount == 0 &&
-                        !join.LocalPlayerHost.HasLogicalActor,
+                        !join.LocalPlayerHost.HasPlayerActorRuntime,
                     "Manager Join materialized a physical Actor before an Activity required it.");
                 completed.Add(expectedCases[6]);
 
@@ -394,7 +394,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     slotProfile != null &&
                     slotProfile.PlayerSlotId.IsValid &&
                     slotProfile.DefaultActorProfile != null &&
-                    slotProfile.DefaultActorProfile.LogicalActorHostPrefab != null,
+                    slotProfile.DefaultActorProfile.PresentationPrefab != null,
                     "QA-PLAYER-SURFACE-01 requires a configured first Local Player Slot with default Actor.");
 
                 consumerBinding = publicNav.RouteConsumerBinding;

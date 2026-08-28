@@ -24,9 +24,11 @@ QA does not create a parallel runtime.
 
 ## Current domain surfaces
 
-- `Player/`: Player Session, provisioning, Actor selection, participation, current
-  public Player contracts and the focused Pause/Input/Gate authoring-composition
-  regression.
+- `Player/`: one Player functional. Setup creates fixtures, Hub opens the Player
+  QA scene, and the panel runs the full public Player contract in Play Mode.
+  Pause/Input/Gate authoring remains a focused Edit Mode proof in the same
+  functional. PauseP1 product-binding assets stay adjacent for the Pause Hub
+  entry; Game Flow keeps Activity participation regressions.
 - `Camera/`: Camera rig materialization, persistent output authoring,
   canonical C9R authority, ADR-004B negative integrity and ADR-004C owner lifetime
   certification.
@@ -35,7 +37,7 @@ QA does not create a parallel runtime.
   `GameFlow/InternalEditor/QaPauseRuntimeBindingSmoke.cs` because it proves Pause
   runtime authority, PlayerInput/Gate behavior and the Pause + Activity Restart
   interaction on the existing GameFlow lifecycle. It is complementary to the
-  static Pause/Input/Gate composition proof in `Player/Editor`; there is no
+  static Pause/Input/Gate composition proof in `Player/Scripts/Editor`; there is no
   separate canonical `Pause/` QA domain directory in the current tree.
 - `ActivityFlow/`: Activity transaction/readiness behavior.
 - `InputMode/`, `Transition/`, `Loading/`, `Reset/`, `Audio/` and other focused
@@ -114,13 +116,23 @@ rerun of that hygiene patch is separate from the executed C9R/004B/004C verdicts
 
 ## Player QA canonical architecture
 
-Player QA is organized by current product contracts rather than P3/M07 history.
-The public aggregate surface remains the appropriate entrypoint for current Player
-certification, with focused regressions retained only where they own distinct
-contracts such as serialization migration integrity or authoring authority.
+Player is one QA feature with one setup, Hub entry, primary scene and
+consolidated panel — the same shape as Audio, Pooling and Lifecycle.
 
-Do not restore superseded Capacity or separate provisioning-profile semantics to
-make historical QA compile or pass.
+```text
+1. Immersive Framework > QA > Setup > Player > Configure Player QA
+2. Open Assets/ImmersiveFrameworkQA/Hub/Scenes/QA_Hub.unity
+3. Enter Play Mode
+4. Open Player QA
+5. Run All Player QA
+6. Inspect the consolidated PASS / FAIL output
+```
+
+`Run Full Player QA` in Edit Mode validates authoring and Pause/Input/Gate
+composition. The same menu in Play Mode runs the panel suite, requesting the
+Player route from Hub when needed.
+
+See `Player/README.md`.
 
 ### Pause/Input/Gate composition certification
 
@@ -140,9 +152,6 @@ PlayerPauseInput
 Focused Edit Mode regression:
 
 ```text
-Assets/ImmersiveFrameworkQA/Player/Editor/
-QaPauseInputGateCompositionRegression.cs
-
 Immersive Framework
   > QA
     > Player
@@ -150,36 +159,10 @@ Immersive Framework
         > Run Pause Input Gate Composition
 ```
 
-Executed certification:
-
-```text
-[P0_PAUSE_INPUT_GATE_COMPOSITION]
-status='Passed'
-verdict='StaticContractComplete'
-cases='8/8'
-```
-
-The eight certified cases prove:
-
-```text
-PlayerPauseInput authors only the Pause Action
-Gate Adapter owns PlayerInput and Gameplay map
-Gate Adapter remains valid without Pause input
-Pause derives the Gate-owned authority
-missing Gate is rejected explicitly
-duplicate Gate authoring is prevented
-Gameplay map resolution uses GUID identity without name fallback
-Gate restore remains idempotent
-```
-
 This Edit Mode regression does not replace the Play Mode Pause lifecycle proof.
 `GameFlow/InternalEditor/QaPauseRuntimeBindingSmoke.cs` remains responsible for
 Pause state transitions, Gate application/restoration, lifecycle release/teardown
 and Pause + Activity Restart behavior.
-
-See:
-
-`Player/Documentation/P1-PAUSE-PRODUCT-BINDING-QA.md`
 
 ## Identity Authority
 

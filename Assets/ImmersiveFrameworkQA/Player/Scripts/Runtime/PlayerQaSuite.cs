@@ -1,0 +1,960 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using Immersive.Framework.PlayerParticipation;
+using Immersive.Framework.PlayerSlots;
+using UnityEngine;
+using UnityEngine.Events;
+
+namespace ImmersiveFrameworkQA.Player
+{
+    internal static class PlayerQaSuite
+    {
+        private const int FrameBudget = 360;
+        private const string Source = nameof(PlayerQaSuite);
+
+        internal sealed class Result
+        {
+            internal readonly List<string> Completed = new List<string>(16);
+            internal string FailedCase;
+            internal string FailureMessage;
+            internal int Passed;
+            internal int Failed;
+
+            internal bool Ok => Failed == 0 && string.IsNullOrEmpty(FailedCase);
+
+            internal void Pass(string caseId)
+            {
+                Completed.Add(caseId);
+                Passed++;
+            }
+
+            internal void Fail(string caseId, string expected, string actual, string message)
+            {
+                FailedCase = caseId;
+                Failed++;
+                FailureMessage =
+                    $"{caseId}: expected '{expected}', actual '{actual}'. {message}";
+            }
+        }
+
+        internal static IEnumerator Run(PlayerQaPanel fixture, Action<Result> completed)
+        {
+            var result = new Result();
+            if (fixture == null)
+            {
+                result.Fail("fixture", "configured panel", "null", "Player QA panel is missing.");
+                completed?.Invoke(result);
+                yield break;
+            }
+
+            yield return RunGroup(result, "access", () => ProveAccess(fixture, result));
+            if (!result.Ok)
+            {
+                completed?.Invoke(result);
+                yield break;
+            }
+
+            yield return WaitThen(result, "join", () => ProveJoin(fixture, result));
+            if (!result.Ok)
+            {
+                completed?.Invoke(result);
+                yield break;
+            }
+
+            yield return WaitThen(result, "observation", () => ProveObservation(fixture, result));
+            if (!result.Ok)
+            {
+                completed?.Invoke(result);
+                yield break;
+            }
+
+            yield return WaitThen(result, "actor-default", () => ProveDefaultActor(fixture, result));
+            if (!result.Ok)
+            {
+                completed?.Invoke(result);
+                yield break;
+            }
+
+            yield return WaitThen(result, "actor-replace", () => ProveReplaceActor(fixture, result));
+            if (!result.Ok)
+            {
+                completed?.Invoke(result);
+                yield break;
+            }
+
+            yield return WaitThen(result, "second-player", () => ProveSecondPlayer(fixture, result));
+            if (!result.Ok)
+            {
+                completed?.Invoke(result);
+                yield break;
+            }
+
+            yield return WaitThen(result, "joining-control", () => ProveJoiningControl(fixture, result));
+            if (!result.Ok)
+            {
+                completed?.Invoke(result);
+                yield break;
+            }
+
+            yield return WaitThen(result, "commands", () => ProveCommands(fixture, result));
+            if (!result.Ok)
+            {
+                completed?.Invoke(result);
+                yield break;
+            }
+
+            yield return WaitThen(result, "leave", () => ProveLeave(fixture, result));
+            if (!result.Ok)
+            {
+                completed?.Invoke(result);
+                yield break;
+            }
+
+            yield return WaitThen(result, "rejoin", () => ProveRejoin(fixture, result));
+            if (!result.Ok)
+            {
+                completed?.Invoke(result);
+                yield break;
+            }
+
+            yield return WaitThen(result, "negatives", () => ProveNegatives(fixture, result));
+            if (!result.Ok)
+            {
+                completed?.Invoke(result);
+                yield break;
+            }
+
+            yield return RunGroup(result, "spatial", () => ProveSpatial(fixture, result));
+            if (!result.Ok)
+            {
+                completed?.Invoke(result);
+                yield break;
+            }
+
+            yield return RunGroup(result, "relocation", () => ProveRelocation(fixture, result));
+            completed?.Invoke(result);
+        }
+
+        private static IEnumerator RunGroup(Result result, string caseId, Action body)
+        {
+            try
+            {
+                body();
+                if (result.Ok)
+                {
+                    result.Pass(caseId);
+                }
+            }
+            catch (Exception exception)
+            {
+                result.Fail(caseId, "no exception", exception.GetType().Name, exception.Message);
+            }
+
+            yield return null;
+        }
+
+        private static IEnumerator WaitThen(Result result, string caseId, Func<IEnumerator> body)
+        {
+            Exception caught = null;
+            IEnumerator routine = null;
+            try
+            {
+                routine = body();
+            }
+            catch (Exception exception)
+            {
+                caught = exception;
+            }
+
+            if (caught != null)
+            {
+                result.Fail(caseId, "no exception", caught.GetType().Name, caught.Message);
+                yield break;
+            }
+
+            while (true)
+            {
+                bool moveNext;
+                try
+                {
+                    moveNext = routine.MoveNext();
+                }
+                catch (Exception exception)
+                {
+                    result.Fail(caseId, "no exception", exception.GetType().Name, exception.Message);
+                    yield break;
+                }
+
+                if (!moveNext)
+                {
+                    break;
+                }
+
+                yield return routine.Current;
+            }
+
+            if (result.Ok)
+            {
+                result.Pass(caseId);
+            }
+        }
+
+        private static void ProveAccess(PlayerQaPanel fixture, Result result)
+        {
+            Require(result, "access", fixture.Probe != null && fixture.Observer != null,
+                "probe and observer assigned", "missing",
+                "Player QA scene requires a Route-scoped probe and PlayerSessionObserver.");
+            if (!result.Ok)
+            {
+                return;
+            }
+
+            Require(result, "access",
+                fixture.Probe.Scope == LocalPlayerProvisioningConsumerScope.Route &&
+                fixture.Observer.Scope == LocalPlayerProvisioningConsumerScope.Route,
+                "Route scope",
+                $"{fixture.Probe.Scope}/{fixture.Observer.Scope}",
+                "Player QA consumers must be Route-scoped.");
+        }
+
+        private static IEnumerator ProveJoin(PlayerQaPanel fixture, Result result)
+        {
+            IPlayerSessionScopedAccess access = null;
+            yield return WaitFor(
+                result,
+                "join",
+                () => fixture.Probe.TryGetAccess(out access, out _) &&
+                      access != null &&
+                      access.Snapshot.IsAvailable,
+                "Timed out waiting for Route-scoped IPlayerSessionScopedAccess.");
+
+            Require(result, "join", access != null && access.Snapshot.IsAvailable,
+                "scoped access available", access == null ? "null" : access.Snapshot.Diagnostic,
+                "Timed out waiting for Route-scoped IPlayerSessionScopedAccess.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            Require(result, "join", access.Snapshot.HasJoinCapability,
+                "HasJoinCapability", "false",
+                "Manager-Provisioned Player QA requires ILocalPlayerJoinAccess.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            Require(result, "join",
+                fixture.Probe.TryGetJoinAccess(out ILocalPlayerJoinAccess joinAccess, out string joinIssue) &&
+                joinAccess != null,
+                "join access", joinIssue,
+                "ILocalPlayerJoinAccess is unavailable.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            if (TryFindSlot(fixture, ExpectedSlotId(fixture), out PlayerSessionScopedSlotObservation existing) &&
+                existing.IsJoined)
+            {
+                yield break;
+            }
+
+            LocalPlayerJoinResult join = joinAccess.RequestJoin(
+                new LocalPlayerJoinRequest(Source, "player-qa-join-p1"));
+            Require(result, "join", join != null && join.Succeeded,
+                "SucceededJoined", join == null ? "null" : $"{join.Status} {join.Message}",
+                "RequestJoin failed.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            Require(result, "join",
+                join.Slot.PlayerSlotId == ExpectedSlotId(fixture) &&
+                join.HasLocalPlayerHostEvidence &&
+                join.LocalPlayerHost != null &&
+                join.PlayerInput != null &&
+                join.HasAssignmentEvidence,
+                "P1 host evidence",
+                join.Slot.PlayerSlotId.IsValid ? join.Slot.PlayerSlotId.StableText : "invalid",
+                "Join did not expose complete public Host/assignment evidence.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            ValidateManagerHost(result, fixture, join.LocalPlayerHost);
+            yield return WaitForSlot(
+                result,
+                "join",
+                fixture,
+                slot => slot.IsJoined &&
+                        slot.HasHostEvidence &&
+                        slot.HostEvidence.AssignmentOrigin == PlayerSlotAssignmentOrigin.ManagerProvisioned);
+        }
+
+        private static IEnumerator ProveObservation(PlayerQaPanel fixture, Result result)
+        {
+            yield return WaitForSlot(result, "observation", fixture, slot => slot.IsJoined);
+            if (!TryGetAccess(fixture, out IPlayerSessionScopedAccess access, out string issue))
+            {
+                result.Fail("observation", "available access", issue, issue);
+                yield break;
+            }
+
+            Require(result, "observation",
+                access.TryGetObservation(out PlayerSessionScopedObservationSnapshot fromAccess) &&
+                fixture.Observer.TryGetObservation(out PlayerSessionScopedObservationSnapshot fromObserver) &&
+                fromAccess != null &&
+                fromObserver != null &&
+                fromAccess.IsAvailable &&
+                fromObserver.IsAvailable &&
+                fromAccess.SessionRevision == fromObserver.SessionRevision,
+                "matching observer/access snapshots",
+                "diverged",
+                "PlayerSessionObserver and IPlayerSessionScopedAccess did not expose the same Session.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            PlayerSessionScopedSlotObservation slot = FindSlot(fromAccess, ExpectedSlotId(fixture));
+            Require(result, "observation", slot.IsJoined,
+                "P1 joined", slot.Slot.AllocationState.ToString(),
+                "Observation does not show the joined P1 Slot.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            bool sawChange = false;
+            bool sawDesignerJoin = false;
+            void OnChanged(PlayerSessionChange change)
+            {
+                if (change != null &&
+                    (change.Kind == PlayerSessionChangeKind.SlotAllocationChanged ||
+                     change.Kind == PlayerSessionChangeKind.ActorSelectionChanged ||
+                     change.Kind == PlayerSessionChangeKind.JoiningChanged))
+                {
+                    sawChange = true;
+                }
+            }
+
+            void OnJoined()
+            {
+                sawDesignerJoin = true;
+            }
+
+            fixture.Observer.Changed += OnChanged;
+            fixture.Observer.OnPlayerJoined.AddListener(OnJoined);
+            try
+            {
+                if (fixture.Probe.TryGetJoinAccess(out ILocalPlayerJoinAccess joinAccess, out _) &&
+                    TryFindSlot(fixture, ExpectedSlotTwoId(fixture), out PlayerSessionScopedSlotObservation p2) &&
+                    !p2.IsJoined)
+                {
+                    joinAccess.RequestJoin(new LocalPlayerJoinRequest(Source, "player-qa-observe-join"));
+                    yield return WaitFor(
+                        result,
+                        "observation",
+                        () => sawChange,
+                        "PlayerSessionObserver.Changed did not fire after a Session mutation.");
+                }
+                else
+                {
+                    PlayerParticipationOperationResult closed = access.CloseJoining(
+                        Source, "player-qa-observe-close");
+                    PlayerParticipationOperationResult opened = access.OpenJoining(
+                        Source, "player-qa-observe-open");
+                    Require(result, "observation",
+                        closed != null && opened != null && (closed.Completed || opened.Completed),
+                        "joining mutation",
+                        "none",
+                        "Could not mutate joining to observe PlayerSessionChange.");
+                    yield return WaitFor(
+                        result,
+                        "observation",
+                        () => sawChange,
+                        "PlayerSessionObserver.Changed did not fire after Open/Close Joining.");
+                }
+            }
+            finally
+            {
+                fixture.Observer.Changed -= OnChanged;
+                fixture.Observer.OnPlayerJoined.RemoveListener(OnJoined);
+            }
+
+            Require(result, "observation", sawChange || sawDesignerJoin,
+                "observer change or designer join event",
+                "none",
+                "Player Session observation did not emit a committed change.");
+        }
+
+        private static IEnumerator ProveDefaultActor(PlayerQaPanel fixture, Result result)
+        {
+            if (!TryGetAccess(fixture, out IPlayerSessionScopedAccess access, out string issue))
+            {
+                result.Fail("actor-default", "available access", issue, issue);
+                yield break;
+            }
+
+            if (!TryFindSlot(fixture, ExpectedSlotId(fixture), out PlayerSessionScopedSlotObservation current))
+            {
+                result.Fail("actor-default", "joined P1", "missing", "P1 Slot observation is missing.");
+                yield break;
+            }
+
+            if (!(current.Slot.SelectedActorProfile == fixture.DefaultActor &&
+                  current.IsLogicalActorPrepared &&
+                  current.IsPhysicallyMaterialized))
+            {
+                PlayerActorSelectionResult selection = access.RequestSelectDefaultActor(
+                    ExpectedSlotId(fixture),
+                    current.Slot.SelectionRevision,
+                    Source,
+                    "player-qa-default-actor");
+                Require(result, "actor-default",
+                    selection != null && selection.Succeeded,
+                    "default actor selected",
+                    selection == null ? "null" : $"{selection.Status} {selection.Message}",
+                    "RequestSelectDefaultActor failed.");
+                if (!result.Ok)
+                {
+                    yield break;
+                }
+            }
+
+            yield return WaitForSlot(
+                result,
+                "actor-default",
+                fixture,
+                slot => slot.Slot.SelectedActorProfile == fixture.DefaultActor &&
+                        slot.IsLogicalActorPrepared &&
+                        slot.IsPhysicallyMaterialized &&
+                        slot.CurrentActor.HasCurrentActor);
+
+            if (!TryFindSlot(fixture, ExpectedSlotId(fixture), out PlayerSessionScopedSlotObservation prepared))
+            {
+                result.Fail("actor-default", "prepared default actor", "missing",
+                    "Default Actor did not become prepared and materialized.");
+                yield break;
+            }
+
+            Require(result, "actor-default",
+                prepared.Slot.SelectedActorProfile == fixture.DefaultActor &&
+                prepared.IsPhysicallyMaterialized,
+                "default actor materialized",
+                prepared.Slot.SelectedActorProfile != null
+                    ? prepared.Slot.SelectedActorProfile.ActorProfileIdText
+                    : "none",
+                "Default Actor was not physically materialized.");
+        }
+
+        private static IEnumerator ProveReplaceActor(PlayerQaPanel fixture, Result result)
+        {
+            if (fixture.AlternateActor == null)
+            {
+                result.Fail("actor-replace", "alternate actor", "null",
+                    "Player QA requires the Alternate Actor Profile.");
+                yield break;
+            }
+
+            if (!TryGetAccess(fixture, out IPlayerSessionScopedAccess access, out string issue))
+            {
+                result.Fail("actor-replace", "available access", issue, issue);
+                yield break;
+            }
+
+            if (!TryFindSlot(fixture, ExpectedSlotId(fixture), out PlayerSessionScopedSlotObservation current))
+            {
+                result.Fail("actor-replace", "joined P1", "missing", "P1 Slot observation is missing.");
+                yield break;
+            }
+
+            PlayerActorSelectionResult replace = access.RequestReplaceActorSelection(
+                new PlayerActorSelectionRequest(
+                    ExpectedSlotId(fixture),
+                    fixture.AlternateActor,
+                    Source,
+                    "player-qa-replace-actor",
+                    current.Slot.SelectionRevision));
+            Require(result, "actor-replace", replace != null && replace.Succeeded,
+                "replace succeeded",
+                replace == null ? "null" : $"{replace.Status} {replace.Message}",
+                "RequestReplaceActorSelection failed.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            yield return WaitForSlot(
+                result,
+                "actor-replace",
+                fixture,
+                slot => slot.Slot.SelectedActorProfile == fixture.AlternateActor &&
+                        slot.IsPhysicallyMaterialized);
+
+            PlayerActorSelectionResult restore = access.RequestSelectDefaultActor(
+                ExpectedSlotId(fixture),
+                replace.SelectionRevision,
+                Source,
+                "player-qa-restore-default-actor");
+            Require(result, "actor-replace", restore != null && restore.Succeeded,
+                "restore default",
+                restore == null ? "null" : $"{restore.Status} {restore.Message}",
+                "Restoring the default Actor after replace failed.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            yield return WaitForSlot(
+                result,
+                "actor-replace",
+                fixture,
+                slot => slot.Slot.SelectedActorProfile == fixture.DefaultActor &&
+                        slot.IsPhysicallyMaterialized);
+        }
+
+        private static IEnumerator ProveSecondPlayer(PlayerQaPanel fixture, Result result)
+        {
+            if (fixture.PlayerTwoSlot == null)
+            {
+                result.Fail("second-player", "P2 slot", "null", "Player QA requires the P2 Slot Profile.");
+                yield break;
+            }
+
+            if (!fixture.Probe.TryGetJoinAccess(out ILocalPlayerJoinAccess joinAccess, out string joinIssue))
+            {
+                result.Fail("second-player", "join access", joinIssue, joinIssue);
+                yield break;
+            }
+
+            if (TryFindSlot(fixture, ExpectedSlotTwoId(fixture), out PlayerSessionScopedSlotObservation existing) &&
+                existing.IsJoined)
+            {
+                yield break;
+            }
+
+            LocalPlayerJoinResult join = joinAccess.RequestJoin(
+                new LocalPlayerJoinRequest(Source, "player-qa-join-p2"));
+            Require(result, "second-player", join != null && join.Succeeded,
+                "P2 joined",
+                join == null ? "null" : $"{join.Status} {join.Message}",
+                "Second-player RequestJoin failed.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            Require(result, "second-player",
+                join.Slot.PlayerSlotId == ExpectedSlotTwoId(fixture) &&
+                join.Slot.PlayerSlotId != ExpectedSlotId(fixture),
+                "distinct P2 slot",
+                join.Slot.PlayerSlotId.IsValid ? join.Slot.PlayerSlotId.StableText : "invalid",
+                "Second join did not allocate the distinct P2 Slot.");
+            yield return WaitForSlot(
+                result,
+                "second-player",
+                fixture,
+                slot => slot.IsJoined,
+                ExpectedSlotTwoId(fixture));
+        }
+
+        private static IEnumerator ProveJoiningControl(PlayerQaPanel fixture, Result result)
+        {
+            if (!TryGetAccess(fixture, out IPlayerSessionScopedAccess access, out string issue))
+            {
+                result.Fail("joining-control", "available access", issue, issue);
+                yield break;
+            }
+
+            PlayerParticipationOperationResult closed = access.CloseJoining(Source, "player-qa-close-joining");
+            Require(result, "joining-control", closed != null && closed.Completed,
+                "joining closed",
+                closed == null ? "null" : $"{closed.Status} {closed.Message}",
+                "CloseJoining failed.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            if (fixture.Probe.TryGetJoinAccess(out ILocalPlayerJoinAccess joinAccess, out _))
+            {
+                LocalPlayerJoinResult rejected = joinAccess.RequestJoin(
+                    new LocalPlayerJoinRequest(Source, "player-qa-join-while-closed"));
+                Require(result, "joining-control", rejected != null && !rejected.Succeeded,
+                    "join rejected while closed",
+                    rejected == null ? "null" : rejected.Status.ToString(),
+                    "Join while closed was not rejected.");
+                if (!result.Ok)
+                {
+                    yield break;
+                }
+            }
+
+            PlayerParticipationOperationResult opened = access.OpenJoining(Source, "player-qa-open-joining");
+            Require(result, "joining-control", opened != null && opened.Completed,
+                "joining opened",
+                opened == null ? "null" : $"{opened.Status} {opened.Message}",
+                "OpenJoining failed.");
+            yield return null;
+        }
+
+        private static IEnumerator ProveCommands(PlayerQaPanel fixture, Result result)
+        {
+            Require(result, "commands",
+                fixture.JoinCommand != null &&
+                fixture.LeaveCommand != null &&
+                fixture.SelectActorCommand != null &&
+                fixture.DefaultActorCommand != null &&
+                fixture.ReplaceActorCommand != null &&
+                fixture.ClearActorCommand != null &&
+                fixture.OpenJoiningCommand != null &&
+                fixture.CloseJoiningCommand != null,
+                "all command triggers", "missing",
+                "Player QA scene is missing one or more official Player Session command triggers.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            Require(result, "commands",
+                fixture.JoinCommand.TryValidateConfiguration(out string joinIssue),
+                "join command valid", joinIssue, joinIssue);
+            Require(result, "commands",
+                fixture.LeaveCommand.TryValidateConfiguration(out string leaveIssue),
+                "leave command valid", leaveIssue, leaveIssue);
+            Require(result, "commands",
+                fixture.SelectActorCommand.TryValidateConfiguration(out string selectIssue),
+                "select-actor command valid", selectIssue, selectIssue);
+            Require(result, "commands",
+                fixture.DefaultActorCommand.TryValidateConfiguration(out string defaultIssue),
+                "default-actor command valid", defaultIssue, defaultIssue);
+            yield return null;
+        }
+
+        private static IEnumerator ProveLeave(PlayerQaPanel fixture, Result result)
+        {
+            if (!TryGetAccess(fixture, out IPlayerSessionScopedAccess access, out string issue))
+            {
+                result.Fail("leave", "available access", issue, issue);
+                yield break;
+            }
+
+            if (!TryFindSlot(fixture, ExpectedSlotTwoId(fixture), out PlayerSessionScopedSlotObservation p2) ||
+                !p2.IsJoined)
+            {
+                yield break;
+            }
+
+            SessionPlayerLeaveResult leave = access.RequestLeave(
+                new SessionPlayerLeaveRequest(
+                    ExpectedSlotTwoId(fixture),
+                    p2.Slot.Revision,
+                    Source,
+                    "player-qa-leave-p2"));
+            Require(result, "leave", leave != null && leave.Succeeded,
+                "P2 left",
+                leave == null ? "null" : $"{leave.Status} {leave.Message}",
+                "RequestLeave for P2 failed.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            yield return WaitFor(
+                result,
+                "leave",
+                () => TryFindSlot(fixture, ExpectedSlotTwoId(fixture), out PlayerSessionScopedSlotObservation after) &&
+                      !after.IsJoined,
+                "Timed out waiting for P2 to leave.");
+        }
+
+        private static IEnumerator ProveRejoin(PlayerQaPanel fixture, Result result)
+        {
+            if (!fixture.Probe.TryGetJoinAccess(out ILocalPlayerJoinAccess joinAccess, out string joinIssue))
+            {
+                result.Fail("rejoin", "join access", joinIssue, joinIssue);
+                yield break;
+            }
+
+            if (TryFindSlot(fixture, ExpectedSlotTwoId(fixture), out PlayerSessionScopedSlotObservation existing) &&
+                existing.IsJoined)
+            {
+                yield break;
+            }
+
+            LocalPlayerJoinResult join = joinAccess.RequestJoin(
+                new LocalPlayerJoinRequest(Source, "player-qa-rejoin-p2"));
+            Require(result, "rejoin", join != null && join.Succeeded,
+                "P2 rejoined",
+                join == null ? "null" : $"{join.Status} {join.Message}",
+                "Rejoin after Leave failed.");
+            yield return WaitForSlot(
+                result,
+                "rejoin",
+                fixture,
+                slot => slot.IsJoined,
+                ExpectedSlotTwoId(fixture));
+        }
+
+        private static IEnumerator ProveNegatives(PlayerQaPanel fixture, Result result)
+        {
+            if (!TryGetAccess(fixture, out IPlayerSessionScopedAccess access, out string issue))
+            {
+                result.Fail("negatives", "available access", issue, issue);
+                yield break;
+            }
+
+            if (TryFindSlot(fixture, ExpectedSlotId(fixture), out PlayerSessionScopedSlotObservation p1) &&
+                p1.IsJoined)
+            {
+                SessionPlayerLeaveResult stale = access.RequestLeave(
+                    new SessionPlayerLeaveRequest(
+                        ExpectedSlotId(fixture),
+                        Math.Max(0, p1.Slot.Revision - 1),
+                        Source,
+                        "player-qa-stale-leave"));
+                Require(result, "negatives", stale != null && !stale.Succeeded,
+                    "stale leave rejected",
+                    stale == null ? "null" : $"{stale.Status} {stale.Message}",
+                    "Stale Leave occurrence revision was not rejected.");
+                if (!result.Ok)
+                {
+                    yield break;
+                }
+            }
+
+            Require(result, "negatives", fixture.WrongScopeProbe != null,
+                "wrong-scope probe", "null",
+                "Player QA requires an Activity-scoped probe for negative access proof.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            bool wrongScopeBound = fixture.WrongScopeProbe.TryGetAccess(
+                out IPlayerSessionScopedAccess unusedAccess,
+                out _);
+            Require(result, "negatives",
+                fixture.WrongScopeProbe.Scope == LocalPlayerProvisioningConsumerScope.Activity &&
+                !wrongScopeBound &&
+                unusedAccess == null,
+                "Activity-scoped access unavailable on Route-only scene",
+                wrongScopeBound ? "available" : "unavailable",
+                "Wrong-scope probe unexpectedly received Player Session access.");
+            yield return null;
+        }
+
+        private static void ProveSpatial(PlayerQaPanel fixture, Result result)
+        {
+            Require(result, "spatial", fixture.SpatialEntry != null,
+                "RoutePlayerSpatialEntryAuthoring", "null",
+                "Player QA primary scene requires Route Player Spatial Entry authoring.");
+            if (!result.Ok)
+            {
+                return;
+            }
+
+            bool bound = false;
+            IReadOnlyList<RoutePlayerSpatialEntryAuthoring.Binding> bindings =
+                fixture.SpatialEntry.Bindings;
+            for (int index = 0; index < bindings.Count; index++)
+            {
+                RoutePlayerSpatialEntryAuthoring.Binding binding = bindings[index];
+                if (binding.PlayerSlotProfile == fixture.PlayerOneSlot &&
+                    binding.PlacementAnchor != null)
+                {
+                    bound = true;
+                    break;
+                }
+            }
+
+            Require(result, "spatial", bound,
+                "P1 spatial anchor", "missing",
+                "Route spatial entry does not bind P1 to an explicit world anchor.");
+        }
+
+        private static void ProveRelocation(PlayerQaPanel fixture, Result result)
+        {
+            Require(result, "relocation", fixture.Relocation != null && fixture.StartupActivity != null,
+                "ActivityPlayerRelocationAuthoring", "null",
+                "Player QA primary scene requires Activity Player Relocation authoring.");
+            if (!result.Ok)
+            {
+                return;
+            }
+
+            bool bound = false;
+            IReadOnlyList<ActivityPlayerRelocationAuthoring.Binding> bindings =
+                fixture.Relocation.Bindings;
+            for (int index = 0; index < bindings.Count; index++)
+            {
+                ActivityPlayerRelocationAuthoring.Binding binding = bindings[index];
+                if (binding.Activity == fixture.StartupActivity &&
+                    binding.PlayerSlotProfile == fixture.PlayerOneSlot &&
+                    binding.RelocationAnchor != null)
+                {
+                    bound = true;
+                    break;
+                }
+            }
+
+            Require(result, "relocation", bound,
+                "startup activity P1 relocation anchor", "missing",
+                "Activity relocation does not bind the Startup Activity and P1 to an explicit world anchor.");
+        }
+
+        private static void ValidateManagerHost(
+            Result result,
+            PlayerQaPanel fixture,
+            LocalPlayerHostAuthoring actualHost)
+        {
+            Require(result, "join",
+                fixture.ManagerHostTemplate != null &&
+                actualHost != null &&
+                actualHost != fixture.ManagerHostTemplate &&
+                actualHost.IsJoined &&
+                actualHost.PlayerInput != null &&
+                actualHost.ActorMount != null &&
+                actualHost.PlayerActorRuntimeHostPrefab ==
+                    fixture.ManagerHostTemplate.PlayerActorRuntimeHostPrefab,
+                "canonical manager host instance",
+                actualHost == null ? "null" : actualHost.name,
+                "Join did not materialize the canonical Manager Local Player Host composition.");
+        }
+
+        private static bool TryGetAccess(
+            PlayerQaPanel fixture,
+            out IPlayerSessionScopedAccess access,
+            out string issue)
+        {
+            access = null;
+            issue = "probe missing";
+            return fixture.Probe != null &&
+                fixture.Probe.TryGetAccess(out access, out issue) &&
+                access != null &&
+                access.Snapshot.IsAvailable;
+        }
+
+        private static bool TryFindSlot(
+            PlayerQaPanel fixture,
+            PlayerSlotId slotId,
+            out PlayerSessionScopedSlotObservation slot)
+        {
+            slot = default;
+            if (fixture.Observer == null ||
+                !fixture.Observer.TryGetObservation(out PlayerSessionScopedObservationSnapshot observation) ||
+                observation == null ||
+                !observation.IsAvailable)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < observation.Slots.Count; index++)
+            {
+                PlayerSessionScopedSlotObservation candidate = observation.Slots[index];
+                if (candidate.Slot.PlayerSlotId == slotId)
+                {
+                    slot = candidate;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static PlayerSessionScopedSlotObservation FindSlot(
+            PlayerSessionScopedObservationSnapshot observation,
+            PlayerSlotId slotId)
+        {
+            for (int index = 0; index < observation.Slots.Count; index++)
+            {
+                PlayerSessionScopedSlotObservation candidate = observation.Slots[index];
+                if (candidate.Slot.PlayerSlotId == slotId)
+                {
+                    return candidate;
+                }
+            }
+
+            return default;
+        }
+
+        private static IEnumerator WaitForSlot(
+            Result result,
+            string caseId,
+            PlayerQaPanel fixture,
+            Func<PlayerSessionScopedSlotObservation, bool> predicate,
+            PlayerSlotId? slotId = null)
+        {
+            PlayerSlotId expected = slotId ?? ExpectedSlotId(fixture);
+            yield return WaitFor(
+                result,
+                caseId,
+                () => TryFindSlot(fixture, expected, out PlayerSessionScopedSlotObservation slot) &&
+                      predicate(slot),
+                "Timed out waiting for the expected Player Slot observation.");
+        }
+
+        private static IEnumerator WaitFor(
+            Result result,
+            string caseId,
+            Func<bool> predicate,
+            string timeoutMessage)
+        {
+            for (int frame = 0; frame < FrameBudget; frame++)
+            {
+                if (predicate())
+                {
+                    yield break;
+                }
+
+                yield return null;
+            }
+
+            if (result.Ok)
+            {
+                result.Fail(caseId, "condition met", "timeout", timeoutMessage);
+            }
+        }
+
+        private static PlayerSlotId ExpectedSlotId(PlayerQaPanel fixture)
+        {
+            if (fixture.PlayerOneSlot != null &&
+                fixture.PlayerOneSlot.TryGetPlayerSlotId(out PlayerSlotId slotId, out _))
+            {
+                return slotId;
+            }
+
+            return default;
+        }
+
+        private static PlayerSlotId ExpectedSlotTwoId(PlayerQaPanel fixture)
+        {
+            if (fixture.PlayerTwoSlot != null &&
+                fixture.PlayerTwoSlot.TryGetPlayerSlotId(out PlayerSlotId slotId, out _))
+            {
+                return slotId;
+            }
+
+            return default;
+        }
+
+        private static void Require(
+            Result result,
+            string caseId,
+            bool condition,
+            string expected,
+            string actual,
+            string message)
+        {
+            if (!condition && result.Ok)
+            {
+                result.Fail(caseId, expected, actual, message);
+            }
+        }
+    }
+}
