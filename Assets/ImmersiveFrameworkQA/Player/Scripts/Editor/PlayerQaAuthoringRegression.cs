@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Immersive.Framework.Actors;
+using Immersive.Framework.Authoring;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
 using UnityEditor;
@@ -18,7 +19,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private const string Prefix = "[QA_PLAYER_AUTHORING]";
         private const string MenuPath =
             "Immersive Framework/QA/Player/Run Authoring Contract";
-        private const int ExpectedCaseCount = 10;
+        private const int ExpectedCaseCount = 11;
 
         [MenuItem(MenuPath, true)]
         private static bool ValidateRun() =>
@@ -55,6 +56,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 PlayerSessionProfile sceneSession = Require<PlayerSessionProfile>(PlayerQaPaths.SceneSessionPath);
                 PlayerSessionProfile closedSession =
                     Require<PlayerSessionProfile>(PlayerQaPaths.ClosedUnresolvedSessionPath);
+                ActivityAsset startupActivity =
+                    Require<ActivityAsset>(PlayerQaPaths.StartupActivityPath);
+                ActivityAsset relocateActivity =
+                    Require<ActivityAsset>(PlayerQaPaths.RelocateActivityPath);
 
                 ValidateInput(actions);
                 completed.Add("input");
@@ -105,6 +110,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     PlayerActorResolutionPolicy.LeaveUnresolved);
                 completed.Add("leave-unresolved-profile");
 
+                ValidateActivityContracts(startupActivity, relocateActivity);
+                completed.Add("activity-contracts");
+
                 ValidateExplicitCommandSurface();
                 completed.Add("explicit-command-surface");
 
@@ -135,6 +143,29 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 throw;
             }
+        }
+
+        private static void ValidateActivityContracts(
+            ActivityAsset startupActivity,
+            ActivityAsset relocateActivity)
+        {
+            Require(
+                startupActivity.PlayerParticipationProjectionMode ==
+                    ActivityParticipationProjectionMode.AllJoinedSlots &&
+                startupActivity.PlayerParticipationZeroParticipantPolicy ==
+                    ActivityParticipationZeroParticipantPolicy.Allowed &&
+                startupActivity.PlayerParticipationRequirementLevel ==
+                    PlayerParticipationRequirementLevel.JoinedSlots,
+                "Startup Activity must remain a Session-membership-only Player contract.");
+
+            Require(
+                relocateActivity.PlayerParticipationProjectionMode ==
+                    ActivityParticipationProjectionMode.AllJoinedSlots &&
+                relocateActivity.PlayerParticipationZeroParticipantPolicy ==
+                    ActivityParticipationZeroParticipantPolicy.Allowed &&
+                relocateActivity.PlayerParticipationRequirementLevel ==
+                    PlayerParticipationRequirementLevel.LogicalActorsPrepared,
+                "Relocate Activity must own the explicit Player Actor preparation/materialization contract.");
         }
 
         private static void ValidateInput(InputActionAsset actions)

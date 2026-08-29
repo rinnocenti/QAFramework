@@ -67,10 +67,6 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             try
             {
                 PlayerQaSceneBuilder.EnsureSharedFixtures();
-                GameObject playerPrefab = RequirePrefab(PlayerQaPaths.ManagerHostPath);
-                PlayerSessionProfile session = ConfigureCanonicalPlayerSession(
-                    out ImmersiveFrameworkSettingsAsset settings,
-                    out GameApplicationAsset application);
                 string scenePath = FindUniqueScenePath(TargetSceneName);
 
                 if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
@@ -80,6 +76,15 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 }
 
                 Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+
+                // Resolve asset-backed fixture inputs only after the target scene is open.
+                // This prevents the Manager bridge from carrying stale UnityEngine.Object
+                // wrappers across the single-scene replacement performed above.
+                GameObject playerPrefab = RequirePrefab(PlayerQaPaths.ManagerHostPath);
+                PlayerSessionProfile session = ConfigureCanonicalPlayerSession(
+                    out ImmersiveFrameworkSettingsAsset settings,
+                    out GameApplicationAsset application);
+
                 PlayerInputManager manager = ResolveOrCreateManager(scene);
                 ConfigureManager(manager, session);
 
@@ -111,6 +116,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                     ImmersiveFrameworkSettingsAsset.ResourcesPath);
                 application = settings != null ? settings.ActiveGameApplication : null;
                 session = application != null ? application.DefaultPlayerSessionProfile : null;
+                playerPrefab = RequirePrefab(PlayerQaPaths.ManagerHostPath);
                 RequireCanonicalPlayerSessionConfiguration(settings, application, session);
 
                 LocalPlayerHostAuthoring host = playerPrefab.GetComponent<LocalPlayerHostAuthoring>();
@@ -322,6 +328,12 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             PlayerInputManager manager,
             PlayerSessionProfile session)
         {
+            if (session == null)
+            {
+                throw new InvalidOperationException(
+                    "Manager-Provisioned fixture could not resolve its PlayerSessionProfile after opening QA_UIGlobal.");
+            }
+
             manager.gameObject.name = FixtureName;
             manager.joinBehavior = PlayerJoinBehavior.JoinPlayersManually;
             manager.notificationBehavior = PlayerNotifications.InvokeCSharpEvents;

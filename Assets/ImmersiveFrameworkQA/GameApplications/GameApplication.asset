@@ -15,7 +15,7 @@ MonoBehaviour:
   applicationName: Game Application
   startupRoute: {fileID: 11400000, guid: 1addd390562c4f15a738f4125bb94be8, type: 2}
   playerSessionEnabled: 1
-  defaultPlayerSessionProfile: {fileID: 11400000, guid: 4a8e2f0c6b7d41f9a3c5e102d864b790, type: 2}
+  defaultPlayerSessionProfile: {fileID: 11400000, guid: 99192fd397c265141a8bb0ae8dfac801, type: 2}
   playerActorSelectionDuplicatePolicy: 20
   progressionSaveEnabled: 0
   defaultProgressionSaveProfile: {fileID: 0}

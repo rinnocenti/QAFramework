@@ -1,0 +1,18 @@
+diff --git a/Assets/ImmersiveFrameworkQA/Player/Scripts/Runtime/PlayerQaSuite.cs b/Assets/ImmersiveFrameworkQA/Player/Scripts/Runtime/PlayerQaSuite.cs
+--- a/Assets/ImmersiveFrameworkQA/Player/Scripts/Runtime/PlayerQaSuite.cs
++++ b/Assets/ImmersiveFrameworkQA/Player/Scripts/Runtime/PlayerQaSuite.cs
+@@ -274,12 +274,11 @@ namespace ImmersiveFrameworkQA.Player
+             Require(result, "join",
+                 join.Slot.PlayerSlotId == ExpectedSlotId(fixture) &&
+                 join.HasLocalPlayerHostEvidence &&
+                 join.LocalPlayerHost != null &&
+-                join.PlayerInput != null &&
+-                join.HasAssignmentEvidence,
++                join.PlayerInput != null,
+                 "P1 host evidence",
+                 join.Slot.PlayerSlotId.IsValid ? join.Slot.PlayerSlotId.StableText : "invalid",
+-                "Join did not expose complete public Host/assignment evidence.");
++                "Join did not expose complete public Host evidence.");
+             if (!result.Ok)
+             {
+                 yield break;

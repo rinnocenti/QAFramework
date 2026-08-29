@@ -39,9 +39,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
         internal const string PrimaryScenePath = Scenes + "/QA_Player.unity";
         internal const string SceneProvidedScenePath = Scenes + "/QA_PlayerSceneProvided.unity";
 
-        internal const string PlayerOneSlotId = "qa.player.p1";
-        internal const string PlayerTwoSlotId = "qa.player.p2";
-        internal const string DefaultActorId = "qa.actor.default";
-        internal const string AlternateActorId = "qa.actor.alternate";
+        internal const string PlayerOneSlotId = "player.1";
+        internal const string PlayerTwoSlotId = "player.2";
+        internal const string DefaultActorId = "actor-profile.qa.default";
+        internal const string AlternateActorId = "actor-profile.qa.alternate";
     }
 }

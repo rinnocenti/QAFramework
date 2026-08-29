@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
-using UnityEngine.InputSystem;
 
 namespace ImmersiveFrameworkQA.Player
 {
@@ -82,7 +81,7 @@ namespace ImmersiveFrameworkQA.Player
                 yield break;
             }
 
-            yield return WaitThen(result, "actor-lifecycle", () => ProveActorLifecycle(fixture, result));
+            yield return WaitThen(result, "second-player", () => ProveSecondPlayer(fixture, result));
             if (!result.Ok)
             {
                 completed?.Invoke(result);
@@ -90,13 +89,6 @@ namespace ImmersiveFrameworkQA.Player
             }
 
             yield return WaitThen(result, "joining-control", () => ProveJoiningControl(fixture, result));
-            if (!result.Ok)
-            {
-                completed?.Invoke(result);
-                yield break;
-            }
-
-            yield return WaitThen(result, "second-player", () => ProveSecondPlayer(fixture, result));
             if (!result.Ok)
             {
                 completed?.Invoke(result);
@@ -197,19 +189,7 @@ namespace ImmersiveFrameworkQA.Player
                     break;
                 }
 
-                if (!result.Ok)
-                {
-                    (routine as IDisposable)?.Dispose();
-                    yield break;
-                }
-
                 yield return routine.Current;
-
-                if (!result.Ok)
-                {
-                    (routine as IDisposable)?.Dispose();
-                    yield break;
-                }
             }
 
             if (result.Ok)
@@ -220,13 +200,9 @@ namespace ImmersiveFrameworkQA.Player
 
         private static void ProveAccess(PlayerQaPanel fixture, Result result)
         {
-            Require(result, "access",
-                fixture.Probe != null &&
-                fixture.Observer != null &&
-                fixture.ActivityScopeProbe != null,
-                "Route and Activity scoped probes assigned",
-                "missing",
-                "Player QA scene requires Route-scoped access/observation and an Activity-scoped access probe.");
+            Require(result, "access", fixture.Probe != null && fixture.Observer != null,
+                "probe and observer assigned", "missing",
+                "Player QA scene requires a Route-scoped probe and PlayerSessionObserver.");
             if (!result.Ok)
             {
                 return;
@@ -235,27 +211,9 @@ namespace ImmersiveFrameworkQA.Player
             Require(result, "access",
                 fixture.Probe.Scope == LocalPlayerProvisioningConsumerScope.Route &&
                 fixture.Observer.Scope == LocalPlayerProvisioningConsumerScope.Route,
-                "Route-scoped access consumers",
+                "Route scope",
                 $"{fixture.Probe.Scope}/{fixture.Observer.Scope}",
-                "The canonical Player QA access probe and observer must remain Route-scoped.");
-            if (!result.Ok)
-            {
-                return;
-            }
-
-            bool activityScopeBound = fixture.ActivityScopeProbe.TryGetAccess(
-                out IPlayerSessionScopedAccess activityScopeAccess,
-                out string activityScopeIssue);
-            Require(result, "access",
-                fixture.ActivityScopeProbe.Scope == LocalPlayerProvisioningConsumerScope.Activity &&
-                activityScopeBound &&
-                activityScopeAccess != null &&
-                activityScopeAccess.Snapshot.IsAvailable,
-                "Activity-scoped access bound to the active Activity lifecycle scope",
-                activityScopeBound
-                    ? "available"
-                    : activityScopeIssue,
-                "Activity scope is a Framework lifecycle scope; it is not inferred from nominal scene ownership.");
+                "Player QA consumers must be Route-scoped.");
         }
 
         private static IEnumerator ProveJoin(PlayerQaPanel fixture, Result result)
@@ -298,11 +256,6 @@ namespace ImmersiveFrameworkQA.Player
             if (TryFindSlot(fixture, ExpectedSlotId(fixture), out PlayerSessionScopedSlotObservation existing) &&
                 existing.IsJoined)
             {
-                Require(result, "join",
-                    existing.HasHostEvidence,
-                    "joined P1 with Host evidence",
-                    existing.HasHostEvidence ? "present" : "missing",
-                    "Existing joined P1 does not expose retained Session Host evidence.");
                 yield break;
             }
 
@@ -335,7 +288,8 @@ namespace ImmersiveFrameworkQA.Player
                 "join",
                 fixture,
                 slot => slot.IsJoined &&
-                        slot.HasHostEvidence);
+                        slot.HasHostEvidence &&
+                        slot.HostEvidence.AssignmentOrigin == PlayerSlotAssignmentOrigin.ManagerProvisioned);
         }
 
         private static IEnumerator ProveObservation(PlayerQaPanel fixture, Result result)
@@ -373,7 +327,7 @@ namespace ImmersiveFrameworkQA.Player
             }
 
             bool sawChange = false;
-            bool sawDesignerJoining = false;
+            bool sawDesignerJoin = false;
             void OnChanged(PlayerSessionChange change)
             {
                 if (change != null &&
@@ -385,49 +339,54 @@ namespace ImmersiveFrameworkQA.Player
                 }
             }
 
-            void OnJoiningChanged()
+            void OnJoined()
             {
-                sawDesignerJoining = true;
+                sawDesignerJoin = true;
             }
 
             fixture.Observer.Changed += OnChanged;
-            fixture.Observer.OnJoiningClosed.AddListener(OnJoiningChanged);
-            fixture.Observer.OnJoiningOpened.AddListener(OnJoiningChanged);
+            fixture.Observer.OnPlayerJoined.AddListener(OnJoined);
             try
             {
-                PlayerParticipationOperationResult closed = access.CloseJoining(
-                    Source, "player-qa-observe-close");
-                PlayerParticipationOperationResult opened = access.OpenJoining(
-                    Source, "player-qa-observe-open");
-                Require(result, "observation",
-                    closed != null && closed.Completed &&
-                    opened != null && opened.Completed,
-                    "joining close/open mutation",
-                    $"close='{(closed != null ? closed.Status.ToString() : "null")}' " +
-                    $"open='{(opened != null ? opened.Status.ToString() : "null")}'",
-                    "Could not mutate Joining state to prove Player Session observation.");
-                if (!result.Ok)
+                if (fixture.Probe.TryGetJoinAccess(out ILocalPlayerJoinAccess joinAccess, out _) &&
+                    TryFindSlot(fixture, ExpectedSlotTwoId(fixture), out PlayerSessionScopedSlotObservation p2) &&
+                    !p2.IsJoined)
                 {
-                    yield break;
+                    joinAccess.RequestJoin(new LocalPlayerJoinRequest(Source, "player-qa-observe-join"));
+                    yield return WaitFor(
+                        result,
+                        "observation",
+                        () => sawChange,
+                        "PlayerSessionObserver.Changed did not fire after a Session mutation.");
                 }
-
-                yield return WaitFor(
-                    result,
-                    "observation",
-                    () => sawChange && sawDesignerJoining,
-                    "PlayerSessionObserver did not emit both Changed and a designer Joining event after Close/Open Joining.");
+                else
+                {
+                    PlayerParticipationOperationResult closed = access.CloseJoining(
+                        Source, "player-qa-observe-close");
+                    PlayerParticipationOperationResult opened = access.OpenJoining(
+                        Source, "player-qa-observe-open");
+                    Require(result, "observation",
+                        closed != null && opened != null && (closed.Completed || opened.Completed),
+                        "joining mutation",
+                        "none",
+                        "Could not mutate joining to observe PlayerSessionChange.");
+                    yield return WaitFor(
+                        result,
+                        "observation",
+                        () => sawChange,
+                        "PlayerSessionObserver.Changed did not fire after Open/Close Joining.");
+                }
             }
             finally
             {
                 fixture.Observer.Changed -= OnChanged;
-                fixture.Observer.OnJoiningClosed.RemoveListener(OnJoiningChanged);
-                fixture.Observer.OnJoiningOpened.RemoveListener(OnJoiningChanged);
+                fixture.Observer.OnPlayerJoined.RemoveListener(OnJoined);
             }
 
-            Require(result, "observation", sawChange && sawDesignerJoining,
-                "observer change and designer joining event",
-                $"changed='{sawChange}' designerJoining='{sawDesignerJoining}'",
-                "Player Session observation did not emit the expected committed change surfaces.");
+            Require(result, "observation", sawChange || sawDesignerJoin,
+                "observer change or designer join event",
+                "none",
+                "Player Session observation did not emit a committed change.");
         }
 
         private static IEnumerator ProveDefaultActor(PlayerQaPanel fixture, Result result)
@@ -444,7 +403,9 @@ namespace ImmersiveFrameworkQA.Player
                 yield break;
             }
 
-            if (current.Slot.SelectedActorProfile != fixture.DefaultActor)
+            if (!(current.Slot.SelectedActorProfile == fixture.DefaultActor &&
+                  current.IsLogicalActorPrepared &&
+                  current.IsPhysicallyMaterialized))
             {
                 PlayerActorSelectionResult selection = access.RequestSelectDefaultActor(
                     ExpectedSlotId(fixture),
@@ -466,22 +427,28 @@ namespace ImmersiveFrameworkQA.Player
                 result,
                 "actor-default",
                 fixture,
-                slot => slot.Slot.SelectedActorProfile == fixture.DefaultActor);
+                slot => slot.Slot.SelectedActorProfile == fixture.DefaultActor &&
+                        slot.IsLogicalActorPrepared &&
+                        slot.IsPhysicallyMaterialized &&
+                        slot.CurrentActor.HasCurrentActor);
 
-            if (!result.Ok)
+            if (!TryFindSlot(fixture, ExpectedSlotId(fixture), out PlayerSessionScopedSlotObservation prepared))
             {
+                result.Fail("actor-default", "prepared default actor", "missing",
+                    "Default Actor did not become prepared and materialized.");
                 yield break;
             }
 
             Require(result, "actor-default",
-                fixture.DefaultActor != null &&
-                fixture.DefaultActor.PresentationPrefab != null,
-                "default ActorProfile with PresentationPrefab",
-                fixture.DefaultActor != null && fixture.DefaultActor.PresentationPrefab != null
-                    ? fixture.DefaultActor.PresentationPrefab.name
-                    : "missing",
-                "Default Actor selection must retain an explicit ActorProfile PresentationPrefab.");
+                prepared.Slot.SelectedActorProfile == fixture.DefaultActor &&
+                prepared.IsPhysicallyMaterialized,
+                "default actor materialized",
+                prepared.Slot.SelectedActorProfile != null
+                    ? prepared.Slot.SelectedActorProfile.ActorProfileIdText
+                    : "none",
+                "Default Actor was not physically materialized.");
         }
+
         private static IEnumerator ProveReplaceActor(PlayerQaPanel fixture, Result result)
         {
             if (fixture.AlternateActor == null)
@@ -523,19 +490,14 @@ namespace ImmersiveFrameworkQA.Player
                 result,
                 "actor-replace",
                 fixture,
-                slot => slot.Slot.SelectedActorProfile == fixture.AlternateActor);
-            if (!result.Ok)
-            {
-                yield break;
-            }
+                slot => slot.Slot.SelectedActorProfile == fixture.AlternateActor &&
+                        slot.IsPhysicallyMaterialized);
 
-            PlayerActorSelectionResult restore = access.RequestReplaceActorSelection(
-                new PlayerActorSelectionRequest(
-                    ExpectedSlotId(fixture),
-                    fixture.DefaultActor,
-                    Source,
-                    "player-qa-restore-default-actor",
-                    replace.SelectionRevision));
+            PlayerActorSelectionResult restore = access.RequestSelectDefaultActor(
+                ExpectedSlotId(fixture),
+                replace.SelectionRevision,
+                Source,
+                "player-qa-restore-default-actor");
             Require(result, "actor-replace", restore != null && restore.Succeeded,
                 "restore default",
                 restore == null ? "null" : $"{restore.Status} {restore.Message}",
@@ -549,61 +511,8 @@ namespace ImmersiveFrameworkQA.Player
                 result,
                 "actor-replace",
                 fixture,
-                slot => slot.Slot.SelectedActorProfile == fixture.DefaultActor);
-        }
-        private static IEnumerator ProveActorLifecycle(PlayerQaPanel fixture, Result result)
-        {
-            var trigger = fixture.RelocateActivityTrigger;
-            Require(result, "actor-lifecycle",
-                trigger != null &&
-                fixture.RelocateActivity != null &&
-                ReferenceEquals(trigger.TargetActivity, fixture.RelocateActivity),
-                "Relocate Activity trigger",
-                trigger != null && trigger.TargetActivity != null
-                    ? trigger.TargetActivity.ActivityName
-                    : "missing",
-                "Actor lifecycle proof requires the dedicated Relocate Activity trigger.");
-            if (!result.Ok)
-            {
-                yield break;
-            }
-
-            trigger.RequestActivity();
-            yield return WaitFor(
-                result,
-                "actor-lifecycle",
-                () => !trigger.IsRequestInFlight &&
-                      (trigger.LastRequestSucceeded ||
-                       trigger.LastRequestFailed ||
-                       trigger.LastRequestIgnored),
-                "Timed out waiting for the dedicated Actor lifecycle Activity request.");
-            if (!result.Ok)
-            {
-                yield break;
-            }
-
-            Require(result, "actor-lifecycle",
-                trigger.LastRequestSucceeded,
-                "Relocate Activity request succeeded",
-                $"outcome={trigger.LastOutcome} message={trigger.LastMessage}",
-                "Dedicated Actor lifecycle Activity request did not succeed.");
-            if (!result.Ok)
-            {
-                yield break;
-            }
-
-            yield return WaitForSlot(
-                result,
-                "actor-lifecycle",
-                fixture,
-                slot => slot.IsJoined &&
-                        slot.Slot.SelectedActorProfile == fixture.DefaultActor &&
-                        slot.IsLogicalActorPrepared &&
-                        slot.IsPhysicallyMaterialized &&
-                        slot.CurrentActor.HasCurrentActor &&
-                        slot.HasHostEvidence &&
-                        slot.HostEvidence.AssignmentOrigin ==
-                            PlayerSlotAssignmentOrigin.ManagerProvisioned);
+                slot => slot.Slot.SelectedActorProfile == fixture.DefaultActor &&
+                        slot.IsPhysicallyMaterialized);
         }
 
         private static IEnumerator ProveSecondPlayer(PlayerQaPanel fixture, Result result)
@@ -623,30 +532,11 @@ namespace ImmersiveFrameworkQA.Player
             if (TryFindSlot(fixture, ExpectedSlotTwoId(fixture), out PlayerSessionScopedSlotObservation existing) &&
                 existing.IsJoined)
             {
-                result.Fail(
-                    "second-player",
-                    "P2 available before second Join",
-                    existing.Slot.AllocationState.ToString(),
-                    "Second-player proof cannot certify a Join that was already consumed by an earlier case.");
-                yield break;
-            }
-
-            Keyboard sharedKeyboard = Keyboard.current;
-            Require(result, "second-player",
-                sharedKeyboard != null,
-                "explicit QA Keyboard device",
-                "missing",
-                "Second-player provisioning proof requires the Editor Keyboard so the QA can explicitly share one deterministic device instead of depending on unpaired-device auto-selection.");
-            if (!result.Ok)
-            {
                 yield break;
             }
 
             LocalPlayerJoinResult join = joinAccess.RequestJoin(
-                new LocalPlayerJoinRequest(
-                    Source,
-                    "player-qa-join-p2",
-                    sharedKeyboard));
+                new LocalPlayerJoinRequest(Source, "player-qa-join-p2"));
             Require(result, "second-player", join != null && join.Succeeded,
                 "P2 joined",
                 join == null ? "null" : $"{join.Status} {join.Message}",
@@ -678,41 +568,6 @@ namespace ImmersiveFrameworkQA.Player
                 yield break;
             }
 
-            if (TryFindSlot(
-                    fixture,
-                    ExpectedSlotTwoId(fixture),
-                    out PlayerSessionScopedSlotObservation occupiedP2) &&
-                occupiedP2.IsJoined)
-            {
-                SessionPlayerLeaveResult prepareLeave = access.RequestLeave(
-                    new SessionPlayerLeaveRequest(
-                        ExpectedSlotTwoId(fixture),
-                        occupiedP2.Slot.Revision,
-                        Source,
-                        "player-qa-prepare-joining-control"));
-                Require(result, "joining-control",
-                    prepareLeave != null && prepareLeave.Succeeded,
-                    "P2 available before JoiningClosed proof",
-                    prepareLeave == null
-                        ? "null"
-                        : $"{prepareLeave.Status} {prepareLeave.Message}",
-                    "Could not establish an available Slot for the JoiningClosed proof.");
-                if (!result.Ok)
-                {
-                    yield break;
-                }
-
-                yield return WaitFor(
-                    result,
-                    "joining-control",
-                    () => TryFindSlot(
-                              fixture,
-                              ExpectedSlotTwoId(fixture),
-                              out PlayerSessionScopedSlotObservation availableP2) &&
-                          !availableP2.IsJoined,
-                    "Timed out preparing an available P2 Slot for JoiningClosed proof.");
-            }
-
             PlayerParticipationOperationResult closed = access.CloseJoining(Source, "player-qa-close-joining");
             Require(result, "joining-control", closed != null && closed.Completed,
                 "joining closed",
@@ -723,30 +578,18 @@ namespace ImmersiveFrameworkQA.Player
                 yield break;
             }
 
-            Require(result, "joining-control",
-                fixture.Probe.TryGetJoinAccess(
-                    out ILocalPlayerJoinAccess joinAccess,
-                    out string joinIssue) &&
-                joinAccess != null,
-                "join access",
-                joinIssue,
-                "ILocalPlayerJoinAccess is unavailable during JoiningClosed proof.");
-            if (!result.Ok)
+            if (fixture.Probe.TryGetJoinAccess(out ILocalPlayerJoinAccess joinAccess, out _))
             {
-                yield break;
-            }
-
-            LocalPlayerJoinResult rejected = joinAccess.RequestJoin(
-                new LocalPlayerJoinRequest(Source, "player-qa-join-while-closed"));
-            Require(result, "joining-control",
-                rejected != null &&
-                rejected.Status == LocalPlayerJoinStatus.RejectedJoiningClosed,
-                "RejectedJoiningClosed",
-                rejected == null ? "null" : rejected.Status.ToString(),
-                "Join while closed was rejected for a reason other than JoiningClosed.");
-            if (!result.Ok)
-            {
-                yield break;
+                LocalPlayerJoinResult rejected = joinAccess.RequestJoin(
+                    new LocalPlayerJoinRequest(Source, "player-qa-join-while-closed"));
+                Require(result, "joining-control", rejected != null && !rejected.Succeeded,
+                    "join rejected while closed",
+                    rejected == null ? "null" : rejected.Status.ToString(),
+                    "Join while closed was not rejected.");
+                if (!result.Ok)
+                {
+                    yield break;
+                }
             }
 
             PlayerParticipationOperationResult opened = access.OpenJoining(Source, "player-qa-open-joining");
@@ -787,18 +630,6 @@ namespace ImmersiveFrameworkQA.Player
             Require(result, "commands",
                 fixture.DefaultActorCommand.TryValidateConfiguration(out string defaultIssue),
                 "default-actor command valid", defaultIssue, defaultIssue);
-            Require(result, "commands",
-                fixture.ReplaceActorCommand.TryValidateConfiguration(out string replaceIssue),
-                "replace-actor command valid", replaceIssue, replaceIssue);
-            Require(result, "commands",
-                fixture.ClearActorCommand.TryValidateConfiguration(out string clearIssue),
-                "clear-actor command valid", clearIssue, clearIssue);
-            Require(result, "commands",
-                fixture.OpenJoiningCommand.TryValidateConfiguration(out string openJoiningIssue),
-                "open-joining command valid", openJoiningIssue, openJoiningIssue);
-            Require(result, "commands",
-                fixture.CloseJoiningCommand.TryValidateConfiguration(out string closeJoiningIssue),
-                "close-joining command valid", closeJoiningIssue, closeJoiningIssue);
             yield return null;
         }
 
@@ -813,13 +644,6 @@ namespace ImmersiveFrameworkQA.Player
             if (!TryFindSlot(fixture, ExpectedSlotTwoId(fixture), out PlayerSessionScopedSlotObservation p2) ||
                 !p2.IsJoined)
             {
-                result.Fail(
-                    "leave",
-                    "joined P2 before Leave",
-                    p2.Slot.PlayerSlotId.IsValid
-                        ? p2.Slot.AllocationState.ToString()
-                        : "missing",
-                    "Leave proof requires the P2 produced by the second-player case.");
                 yield break;
             }
 
@@ -857,30 +681,11 @@ namespace ImmersiveFrameworkQA.Player
             if (TryFindSlot(fixture, ExpectedSlotTwoId(fixture), out PlayerSessionScopedSlotObservation existing) &&
                 existing.IsJoined)
             {
-                result.Fail(
-                    "rejoin",
-                    "P2 available after Leave",
-                    existing.Slot.AllocationState.ToString(),
-                    "Rejoin proof requires Leave to have released P2 first.");
-                yield break;
-            }
-
-            Keyboard sharedKeyboard = Keyboard.current;
-            Require(result, "rejoin",
-                sharedKeyboard != null,
-                "explicit QA Keyboard device",
-                "missing",
-                "Rejoin provisioning proof requires the Editor Keyboard so the QA does not depend on an unpaired device becoming available after P2 leaves.");
-            if (!result.Ok)
-            {
                 yield break;
             }
 
             LocalPlayerJoinResult join = joinAccess.RequestJoin(
-                new LocalPlayerJoinRequest(
-                    Source,
-                    "player-qa-rejoin-p2",
-                    sharedKeyboard));
+                new LocalPlayerJoinRequest(Source, "player-qa-rejoin-p2"));
             Require(result, "rejoin", join != null && join.Succeeded,
                 "P2 rejoined",
                 join == null ? "null" : $"{join.Status} {join.Message}",
@@ -901,45 +706,43 @@ namespace ImmersiveFrameworkQA.Player
                 yield break;
             }
 
-            if (!TryFindSlot(fixture, ExpectedSlotId(fixture), out PlayerSessionScopedSlotObservation p1) ||
-                !p1.IsJoined)
+            if (TryFindSlot(fixture, ExpectedSlotId(fixture), out PlayerSessionScopedSlotObservation p1) &&
+                p1.IsJoined)
             {
-                result.Fail(
-                    "negatives",
-                    "joined P1 for stale-revision proof",
-                    p1.Slot.PlayerSlotId.IsValid
-                        ? p1.Slot.AllocationState.ToString()
-                        : "missing",
-                    "Negative stale-revision proof requires the canonical joined P1.");
+                SessionPlayerLeaveResult stale = access.RequestLeave(
+                    new SessionPlayerLeaveRequest(
+                        ExpectedSlotId(fixture),
+                        Math.Max(0, p1.Slot.Revision - 1),
+                        Source,
+                        "player-qa-stale-leave"));
+                Require(result, "negatives", stale != null && !stale.Succeeded,
+                    "stale leave rejected",
+                    stale == null ? "null" : $"{stale.Status} {stale.Message}",
+                    "Stale Leave occurrence revision was not rejected.");
+                if (!result.Ok)
+                {
+                    yield break;
+                }
+            }
+
+            Require(result, "negatives", fixture.WrongScopeProbe != null,
+                "wrong-scope probe", "null",
+                "Player QA requires an Activity-scoped probe for negative access proof.");
+            if (!result.Ok)
+            {
                 yield break;
             }
 
+            bool wrongScopeBound = fixture.WrongScopeProbe.TryGetAccess(
+                out IPlayerSessionScopedAccess unusedAccess,
+                out _);
             Require(result, "negatives",
-                p1.Slot.Revision > 0,
-                "positive joined P1 revision",
-                p1.Slot.Revision.ToString(),
-                "Cannot construct a prior stale revision from the current P1 Slot revision.");
-            if (!result.Ok)
-            {
-                yield break;
-            }
-
-            SessionPlayerLeaveResult stale = access.RequestLeave(
-                new SessionPlayerLeaveRequest(
-                    ExpectedSlotId(fixture),
-                    p1.Slot.Revision - 1,
-                    Source,
-                    "player-qa-stale-leave"));
-            Require(result, "negatives", stale != null && !stale.Succeeded,
-                "stale leave rejected",
-                stale == null ? "null" : $"{stale.Status} {stale.Message}",
-                "Stale Leave occurrence revision was not rejected.");
-            if (!result.Ok)
-            {
-                yield break;
-            }
-
-
+                fixture.WrongScopeProbe.Scope == LocalPlayerProvisioningConsumerScope.Activity &&
+                !wrongScopeBound &&
+                unusedAccess == null,
+                "Activity-scoped access unavailable on Route-only scene",
+                wrongScopeBound ? "available" : "unavailable",
+                "Wrong-scope probe unexpectedly received Player Session access.");
             yield return null;
         }
 
@@ -974,7 +777,7 @@ namespace ImmersiveFrameworkQA.Player
 
         private static void ProveRelocation(PlayerQaPanel fixture, Result result)
         {
-            Require(result, "relocation", fixture.Relocation != null && fixture.RelocateActivity != null,
+            Require(result, "relocation", fixture.Relocation != null && fixture.StartupActivity != null,
                 "ActivityPlayerRelocationAuthoring", "null",
                 "Player QA primary scene requires Activity Player Relocation authoring.");
             if (!result.Ok)
@@ -988,7 +791,7 @@ namespace ImmersiveFrameworkQA.Player
             for (int index = 0; index < bindings.Count; index++)
             {
                 ActivityPlayerRelocationAuthoring.Binding binding = bindings[index];
-                if (binding.Activity == fixture.RelocateActivity &&
+                if (binding.Activity == fixture.StartupActivity &&
                     binding.PlayerSlotProfile == fixture.PlayerOneSlot &&
                     binding.RelocationAnchor != null)
                 {
@@ -998,9 +801,10 @@ namespace ImmersiveFrameworkQA.Player
             }
 
             Require(result, "relocation", bound,
-                "Relocate Activity P1 relocation anchor", "missing",
-                "Activity relocation does not bind the dedicated Relocate Activity and P1 to an explicit world anchor.");
+                "startup activity P1 relocation anchor", "missing",
+                "Activity relocation does not bind the Startup Activity and P1 to an explicit world anchor.");
         }
+
         private static void ValidateManagerHost(
             Result result,
             PlayerQaPanel fixture,

@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using Immersive.Framework.Actors;
 using Immersive.Framework.Authoring;
@@ -22,7 +21,7 @@ namespace ImmersiveFrameworkQA.Player
         [Header("Scoped Access")]
         [SerializeField] private PlayerQaScopedAccessProbe probe;
         [SerializeField] private PlayerSessionObserver observer;
-        [SerializeField] private PlayerQaScopedAccessProbe wrongScopeProbe;
+        [SerializeField] private PlayerQaScopedAccessProbe activityScopeProbe;
 
         [Header("Commands")]
         [SerializeField] private PlayerSessionJoinCommandTrigger joinCommand;
@@ -43,8 +42,10 @@ namespace ImmersiveFrameworkQA.Player
         [SerializeField] private RoutePlayerSpatialEntryAuthoring spatialEntry;
         [SerializeField] private ActivityPlayerRelocationAuthoring relocation;
         [SerializeField] private ActivityAsset startupActivity;
+        [SerializeField] private ActivityAsset relocateActivity;
 
         [Header("Navigation")]
+        [SerializeField] private ActivityRequestTrigger relocateActivityTrigger;
         [SerializeField] private RouteRequestTrigger hubRouteTrigger;
 
         [Header("Panel")]
@@ -59,7 +60,7 @@ namespace ImmersiveFrameworkQA.Player
 
         public PlayerQaScopedAccessProbe Probe => probe;
         public PlayerSessionObserver Observer => observer;
-        public PlayerQaScopedAccessProbe WrongScopeProbe => wrongScopeProbe;
+        public PlayerQaScopedAccessProbe ActivityScopeProbe => activityScopeProbe;
         public PlayerSessionJoinCommandTrigger JoinCommand => joinCommand;
         public PlayerSessionLeaveCommandTrigger LeaveCommand => leaveCommand;
         public PlayerSessionSelectActorCommandTrigger SelectActorCommand =>
@@ -82,11 +83,13 @@ namespace ImmersiveFrameworkQA.Player
         public RoutePlayerSpatialEntryAuthoring SpatialEntry => spatialEntry;
         public ActivityPlayerRelocationAuthoring Relocation => relocation;
         public ActivityAsset StartupActivity => startupActivity;
+        public ActivityAsset RelocateActivity => relocateActivity;
+        public ActivityRequestTrigger RelocateActivityTrigger => relocateActivityTrigger;
 
         public void Configure(
             PlayerQaScopedAccessProbe configuredProbe,
             PlayerSessionObserver configuredObserver,
-            PlayerQaScopedAccessProbe configuredWrongScopeProbe,
+            PlayerQaScopedAccessProbe configuredActivityScopeProbe,
             PlayerSessionJoinCommandTrigger configuredJoin,
             PlayerSessionLeaveCommandTrigger configuredLeave,
             PlayerSessionSelectActorCommandTrigger configuredSelectActor,
@@ -103,11 +106,13 @@ namespace ImmersiveFrameworkQA.Player
             RoutePlayerSpatialEntryAuthoring configuredSpatial,
             ActivityPlayerRelocationAuthoring configuredRelocation,
             ActivityAsset configuredStartupActivity,
+            ActivityAsset configuredRelocateActivity,
+            ActivityRequestTrigger configuredRelocateActivityTrigger,
             RouteRequestTrigger configuredHubTrigger)
         {
             probe = configuredProbe;
             observer = configuredObserver;
-            wrongScopeProbe = configuredWrongScopeProbe;
+            activityScopeProbe = configuredActivityScopeProbe;
             joinCommand = configuredJoin;
             leaveCommand = configuredLeave;
             selectActorCommand = configuredSelectActor;
@@ -124,6 +129,8 @@ namespace ImmersiveFrameworkQA.Player
             spatialEntry = configuredSpatial;
             relocation = configuredRelocation;
             startupActivity = configuredStartupActivity;
+            relocateActivity = configuredRelocateActivity;
+            relocateActivityTrigger = configuredRelocateActivityTrigger;
             hubRouteTrigger = configuredHubTrigger;
         }
 

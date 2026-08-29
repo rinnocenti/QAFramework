@@ -34,17 +34,20 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     PlayerQaPaths.StartupActivityPath,
                     "QA Player Startup Activity",
                     "Startup Activity for the canonical Player QA route.",
-                    ActivityPlayerRelocationPolicy.ApplyExplicitRelocation);
-                EnsureActivity(
+                    ActivityPlayerRelocationPolicy.ApplyExplicitRelocation,
+                    PlayerParticipationRequirementLevel.JoinedSlots);
+                ActivityAsset relocate = EnsureActivity(
                     PlayerQaPaths.RelocateActivityPath,
                     "QA Player Relocate Activity",
-                    "Second Activity used to prove explicit relocation authoring.",
-                    ActivityPlayerRelocationPolicy.ApplyExplicitRelocation);
+                    "Dedicated Activity used to prove Player Actor lifecycle preparation and explicit relocation.",
+                    ActivityPlayerRelocationPolicy.ApplyExplicitRelocation,
+                    PlayerParticipationRequirementLevel.LogicalActorsPrepared);
                 EnsureActivity(
                     PlayerQaPaths.EmptyActivityPath,
                     "QA Player Empty Activity",
                     "Activity with no Player relocation bindings.",
-                    ActivityPlayerRelocationPolicy.NoRelocation);
+                    ActivityPlayerRelocationPolicy.NoRelocation,
+                    PlayerParticipationRequirementLevel.JoinedSlots);
                 RouteAsset primaryRoute = EnsureRoute(
                     PlayerQaPaths.PrimaryRoutePath,
                     "QA Player",
@@ -60,7 +63,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 RouteAsset hubRoute = AssetDatabase.LoadAssetAtPath<RouteAsset>(
                     PlayerQaPaths.HubRoutePath);
 
-                CreatePrimaryScene(primaryRoute, sceneRoute, hubRoute, startup);
+                CreatePrimaryScene(primaryRoute, sceneRoute, hubRoute, startup, relocate);
                 CreateSceneProvidedScene(sceneRoute, primaryRoute, hubRoute, startup);
                 EnsureSceneInBuildSettings(PlayerQaPaths.PrimaryScenePath);
                 EnsureSceneInBuildSettings(PlayerQaPaths.SceneProvidedScenePath);
@@ -123,6 +126,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "QA Player P2",
                 1,
                 alternateActor);
+            AssetDatabase.SaveAssets();
+            playerOne = Load<PlayerSlotProfile>(PlayerQaPaths.PlayerOneSlotPath);
+            playerTwo = Load<PlayerSlotProfile>(PlayerQaPaths.PlayerTwoSlotPath);
             GameObject runtimeHost = EnsureRuntimeHost();
             EnsureManagerLocalPlayerHost(actions, runtimeHost);
             EnsureSceneLocalPlayerHost(
@@ -162,7 +168,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             RouteAsset primaryRoute,
             RouteAsset sceneRoute,
             RouteAsset hubRoute,
-            ActivityAsset startup)
+            ActivityAsset startup,
+            ActivityAsset relocate)
         {
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             scene.name = "QA_Player";
@@ -183,7 +190,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             ConfigureSpatial(spatial, playerOne, p1Anchor);
 
             ActivityPlayerRelocationAuthoring relocation = root.AddComponent<ActivityPlayerRelocationAuthoring>();
-            ConfigureRelocation(relocation, startup, playerOne, relocateAnchor);
+            ConfigureRelocation(relocation, relocate, playerOne, relocateAnchor);
 
             var panelObject = new GameObject("QA_PlayerPanel");
             panelObject.transform.SetParent(root.transform, false);
@@ -197,9 +204,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 panelObject.transform,
                 "QA_Player_Observer",
                 LocalPlayerProvisioningConsumerScope.Route);
-            PlayerQaScopedAccessProbe wrongScope = CreateConsumer<PlayerQaScopedAccessProbe>(
+            PlayerQaScopedAccessProbe activityScope = CreateConsumer<PlayerQaScopedAccessProbe>(
                 panelObject.transform,
-                "QA_Player_WrongScope",
+                "QA_Player_ActivityScopedAccess",
                 LocalPlayerProvisioningConsumerScope.Activity);
 
             PlayerSessionJoinCommandTrigger join = CreateConsumer<PlayerSessionJoinCommandTrigger>(
@@ -232,6 +239,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 CreateConsumer<PlayerSessionCloseJoiningCommandTrigger>(
                     panelObject.transform, "QA_Player_CloseJoining", LocalPlayerProvisioningConsumerScope.Route);
 
+            ActivityRequestTrigger relocateTrigger = CreateActivityTrigger(
+                panelObject.transform,
+                "ActivityTrigger_PlayerRelocate",
+                relocate,
+                "qa.player.actor-lifecycle");
+
             RouteRequestTrigger hubTrigger = CreateRouteTrigger(
                 panelObject.transform, "RouteTrigger_Hub", hubRoute, "qa.player.return-hub");
             CreateRouteTrigger(
@@ -243,7 +256,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             panel.Configure(
                 probe,
                 observer,
-                wrongScope,
+                activityScope,
                 join,
                 leave,
                 selectActor,
@@ -260,6 +273,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 spatial,
                 relocation,
                 startup,
+                relocate,
+                relocateTrigger,
                 hubTrigger);
 
             EditorSceneManager.SaveScene(scene, PlayerQaPaths.PrimaryScenePath);
@@ -400,6 +415,21 @@ namespace ImmersiveFrameworkQA.Player.Editor
             SetString(profile, "description", "Canonical Player QA Slot Profile.");
             SetInt(profile, "displayOrder", displayOrder);
             SetObject(profile, "defaultActorProfile", defaultActor);
+            AssetDatabase.SaveAssetIfDirty(profile);
+            profile = Load<PlayerSlotProfile>(path);
+            if (!profile.TryGetPlayerSlotId(out PlayerSlotId resolved, out string issue) ||
+                profile.PlayerSlotIdText != playerSlotId)
+            {
+                throw new InvalidOperationException(
+                    $"Player QA Slot Profile '{name}' did not persist identity '{playerSlotId}'. {issue}");
+            }
+
+            if (resolved.StableText != $"PlayerSlot:{playerSlotId}")
+            {
+                throw new InvalidOperationException(
+                    $"Player QA Slot Profile '{name}' resolved '{resolved.StableText}', expected 'PlayerSlot:{playerSlotId}'.");
+            }
+
             return profile;
         }
 
@@ -561,7 +591,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             string path,
             string activityName,
             string description,
-            ActivityPlayerRelocationPolicy relocationPolicy)
+            ActivityPlayerRelocationPolicy relocationPolicy,
+            PlayerParticipationRequirementLevel requirementLevel)
         {
             ActivityAsset asset = LoadOrCreate<ActivityAsset>(path, Path.GetFileNameWithoutExtension(path));
             var serialized = new SerializedObject(asset);
@@ -574,7 +605,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
             serialized.FindProperty("playerParticipationZeroParticipantPolicy").intValue =
                 (int)ActivityParticipationZeroParticipantPolicy.Allowed;
             serialized.FindProperty("playerParticipationRequirementLevel").intValue =
-                (int)PlayerParticipationRequirementLevel.JoinedSlots;
+                (int)requirementLevel;
             serialized.FindProperty("playerRelocationPolicy").intValue = (int)relocationPolicy;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(asset);
@@ -645,6 +676,24 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return component;
         }
 
+        private static ActivityRequestTrigger CreateActivityTrigger(
+            Transform parent,
+            string name,
+            ActivityAsset activity,
+            string reason)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            ActivityRequestTrigger trigger = go.AddComponent<ActivityRequestTrigger>();
+            if (activity != null)
+            {
+                SetObject(trigger, "targetActivity", activity);
+            }
+
+            SetString(trigger, "reason", reason);
+            return trigger;
+        }
+
         private static RouteRequestTrigger CreateRouteTrigger(
             Transform parent,
             string name,
@@ -713,6 +762,13 @@ namespace ImmersiveFrameworkQA.Player.Editor
             {
                 asset = ScriptableObject.CreateInstance<T>();
                 AssetDatabase.CreateAsset(asset, path);
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+                asset = AssetDatabase.LoadAssetAtPath<T>(path);
+            }
+
+            if (asset == null)
+            {
+                throw new InvalidOperationException($"Could not create Player QA asset '{path}'.");
             }
 
             if (asset.name != name)
@@ -783,44 +839,33 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
         private static void SetObject(UnityEngine.Object target, string propertyName, UnityEngine.Object value)
         {
-            var serialized = new SerializedObject(target);
-            SerializedProperty property = serialized.FindProperty(propertyName)
-                ?? throw new InvalidOperationException(
-                    $"Serialized property '{propertyName}' was not found on '{target.GetType().Name}'.");
+            SerializedObject serialized = BeginSerialized(target);
+            SerializedProperty property = RequireProperty(serialized, propertyName);
             property.objectReferenceValue = value;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(target);
+            ApplySerialized(target, serialized);
         }
 
         private static void SetString(UnityEngine.Object target, string propertyName, string value)
         {
-            var serialized = new SerializedObject(target);
-            SerializedProperty property = serialized.FindProperty(propertyName)
-                ?? throw new InvalidOperationException(
-                    $"Serialized property '{propertyName}' was not found on '{target.GetType().Name}'.");
+            SerializedObject serialized = BeginSerialized(target);
+            SerializedProperty property = RequireProperty(serialized, propertyName);
             property.stringValue = value;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(target);
+            ApplySerialized(target, serialized);
         }
 
         private static void SetInt(UnityEngine.Object target, string propertyName, int value)
         {
-            var serialized = new SerializedObject(target);
-            SerializedProperty property = serialized.FindProperty(propertyName)
-                ?? throw new InvalidOperationException(
-                    $"Serialized property '{propertyName}' was not found on '{target.GetType().Name}'.");
+            SerializedObject serialized = BeginSerialized(target);
+            SerializedProperty property = RequireProperty(serialized, propertyName);
             property.intValue = value;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(target);
+            ApplySerialized(target, serialized);
         }
 
         private static void SetEnum<TEnum>(UnityEngine.Object target, string propertyName, TEnum value)
             where TEnum : struct, Enum
         {
-            var serialized = new SerializedObject(target);
-            SerializedProperty property = serialized.FindProperty(propertyName)
-                ?? throw new InvalidOperationException(
-                    $"Serialized property '{propertyName}' was not found on '{target.GetType().Name}'.");
+            SerializedObject serialized = BeginSerialized(target);
+            SerializedProperty property = RequireProperty(serialized, propertyName);
             int index = Array.IndexOf(property.enumNames, value.ToString());
             if (index < 0)
             {
@@ -831,8 +876,28 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 property.enumValueIndex = index;
             }
 
+            ApplySerialized(target, serialized);
+        }
+
+        private static SerializedObject BeginSerialized(UnityEngine.Object target)
+        {
+            var serialized = new SerializedObject(target);
+            serialized.Update();
+            return serialized;
+        }
+
+        private static SerializedProperty RequireProperty(SerializedObject serialized, string propertyName)
+        {
+            return serialized.FindProperty(propertyName)
+                ?? throw new InvalidOperationException(
+                    $"Serialized property '{propertyName}' was not found on '{serialized.targetObject.GetType().Name}'.");
+        }
+
+        private static void ApplySerialized(UnityEngine.Object target, SerializedObject serialized)
+        {
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(target);
+            AssetDatabase.SaveAssetIfDirty(target);
         }
 
         private static string Escape(string value)
