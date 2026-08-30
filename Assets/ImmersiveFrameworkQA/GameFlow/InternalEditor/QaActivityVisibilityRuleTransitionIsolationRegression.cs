@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Immersive.Framework.ActivityFlow;
+using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using UnityEditor;
 using UnityEngine;
