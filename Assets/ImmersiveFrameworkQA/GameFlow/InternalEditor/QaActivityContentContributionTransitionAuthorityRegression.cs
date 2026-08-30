@@ -87,13 +87,22 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     scope.ActivityC,
                     nameof(QaActivityContentContributionTransitionAuthorityRegression),
                     "required-invalid-contribution-blocks");
+                ActivityContentApplyResult content = result.ActivityFlowResult.ActivityContentResult;
 
                 QaAdr009ActivityFlowScope.Require(
-                    result.Kind == FrameworkActivityRequestKind.FailedPreCommitTransition &&
+                    result.Kind == FrameworkActivityRequestKind.FailedInvalidConfig,
+                    "Required invalid Contribution must be classified as invalid configuration.");
+                QaAdr009ActivityFlowScope.Require(
+                    result.ActivityFlowResult.ActivityTransitionFailedBeforeCommit &&
+                    !result.ActivityFlowResult.ActivityAuthorityCommitReached &&
+                    !result.CommitBoundaryReached &&
                     !result.Succeeded &&
-                    !result.DestinationAuthoritative &&
-                    !result.CommitBoundaryReached,
+                    !result.DestinationAuthoritative,
                     "Required invalid Contribution must reject before the Activity commit boundary.");
+                QaAdr009ActivityFlowScope.Require(
+                    content.RequiredInvalidBindingCount == 1 &&
+                    content.OptionalInvalidBindingCount == 0,
+                    "Required invalid Contribution must be classified as Required only.");
                 QaAdr009ActivityFlowScope.Require(ReferenceEquals(scope.Host.State.CurrentActivity, previous),
                     "Required invalid Contribution must preserve the previous canonical Activity.");
                 QaAdr009ActivityFlowScope.Require(
