@@ -21,7 +21,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             LocalPlayerProvisioningAuthoring provisioning,
             PlayerInputManager playerInputManager,
             GameObject playerHostPrefab,
-            LocalPlayerProvisioningHostRegistration hostRegistration)
+            LocalPlayerProvisioningEndpointRegistration hostRegistration)
         {
             Settings = settings;
             Application = application;
@@ -38,7 +38,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
         public LocalPlayerProvisioningAuthoring Provisioning { get; }
         public PlayerInputManager PlayerInputManager { get; }
         public GameObject PlayerHostPrefab { get; }
-        public LocalPlayerProvisioningHostRegistration HostRegistration { get; }
+        public LocalPlayerProvisioningEndpointRegistration HostRegistration { get; }
     }
 
     /// <summary>
@@ -100,7 +100,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
                 serializedAuthoring.FindProperty("localPlayerHostPrefab").objectReferenceValue = playerPrefab;
                 serializedAuthoring.ApplyModifiedPropertiesWithoutUndo();
 
-                LocalPlayerProvisioningHostRegistration registration =
+                LocalPlayerProvisioningEndpointRegistration registration =
                     ResolveOrCreateRegistration(scene, manager, authoring);
 
                 EditorUtility.SetDirty(manager.gameObject);
@@ -341,27 +341,27 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             QaPlayerSessionQaSupport.ConfigureManagerBridge(session, manager);
         }
 
-        private static LocalPlayerProvisioningHostRegistration ResolveOrCreateRegistration(
+        private static LocalPlayerProvisioningEndpointRegistration ResolveOrCreateRegistration(
             Scene scene,
             PlayerInputManager manager,
             LocalPlayerProvisioningAuthoring authoring)
         {
-            var registrations = new List<LocalPlayerProvisioningHostRegistration>();
+            var registrations = new List<LocalPlayerProvisioningEndpointRegistration>();
             foreach (GameObject root in scene.GetRootGameObjects())
             {
                 registrations.AddRange(
-                    root.GetComponentsInChildren<LocalPlayerProvisioningHostRegistration>(true));
+                    root.GetComponentsInChildren<LocalPlayerProvisioningEndpointRegistration>(true));
             }
 
             if (registrations.Count > 1)
             {
                 throw new InvalidOperationException(
-                    $"Scene '{scene.name}' contains '{registrations.Count}' Local Player Provisioning Host Registrations. Exactly one is required.");
+                    $"Scene '{scene.name}' contains '{registrations.Count}' Local Player Provisioning Endpoint Registrations. Exactly one is required.");
             }
 
-            LocalPlayerProvisioningHostRegistration registration = registrations.Count == 1
+            LocalPlayerProvisioningEndpointRegistration registration = registrations.Count == 1
                 ? registrations[0]
-                : manager.gameObject.AddComponent<LocalPlayerProvisioningHostRegistration>();
+                : manager.gameObject.AddComponent<LocalPlayerProvisioningEndpointRegistration>();
             var serializedRegistration = new SerializedObject(registration);
             serializedRegistration.FindProperty("provisioningAuthoring").objectReferenceValue = authoring;
             serializedRegistration.ApplyModifiedPropertiesWithoutUndo();
