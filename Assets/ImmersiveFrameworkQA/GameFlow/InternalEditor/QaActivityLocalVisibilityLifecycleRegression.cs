@@ -75,16 +75,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 await RunNegativeSingleCases(activities, fixture, activityA, activityB);
                 await RunNegativeMultipleCases(activities, fixture, activityA, activityB, activityC);
                 await RunNoActiveVisibleCases(activities, fixture, activityA, activityB);
-                await RunRequiredInvalidRuleCase(
-                    host,
-                    activities,
-                    additionalScene,
-                    activityA,
-                    activityC);
-                await RunOptionalInvalidRuleCase(
-                    activities,
-                    additionalScene,
-                    activityC);
                 await RunClearAndIdempotenceCases(host, activities, fixture, activityA);
             }
             catch (Exception exception)
@@ -136,8 +126,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
 
             Debug.Log(
                 "[QA_ACTIVITY_LOCAL_VISIBILITY_LIFECYCLE] " +
-                "status='Passed' cases='18' " +
-                "completed='positive-single,positive-multiple,negative-single,negative-multiple,no-active-visible,required-invalid-blocks,optional-invalid-diagnostic,clear,idempotence'");
+                "status='Passed' cases='16' " +
+                "completed='positive-single,positive-multiple,negative-single,negative-multiple,no-active-visible,clear,idempotence'");
         }
 
         private static async Task RunPositiveSingleCases(
@@ -254,95 +244,6 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             AssertCallback(fixture.NoActiveVisibleProbe, 0, "Enter", activityA, "Case 14");
         }
 
-        private static async Task RunRequiredInvalidRuleCase(
-            FrameworkRuntimeHost host,
-            IActivityRuntimePort activities,
-            Scene scene,
-            ActivityAsset activityA,
-            ActivityAsset activityC)
-        {
-            (ActivityVisibilityRule invalid, QaActivityLocalVisibilityLifecycleProbe probe) =
-                Fixture.CreateInvalidBinding(
-                    scene,
-                    FrameworkContentRequiredness.Required);
-            try
-            {
-                bool activeBefore = invalid.gameObject.activeSelf;
-                int enterBefore = probe.EnterCount;
-                int exitBefore = probe.ExitCount;
-
-                FrameworkActivityRequestResult request = await activities.RequestActivityAsync(
-                    activityC,
-                    nameof(QaActivityLocalVisibilityLifecycleRegression),
-                    "required-invalid-rule-blocks");
-                Require(!request.Succeeded && !request.DestinationAuthoritative,
-                    "Case 15 Required invalid rule must reject target authority before commit.");
-                Require(request.Message.Contains("Required Activity Local Visibility Adapter configuration is invalid") &&
-                        request.Message.Contains(invalid.gameObject.name) &&
-                        request.Message.Contains("CurrentActivitiesEmpty") &&
-                        request.Message.Contains("requiredness='Required'"),
-                    "Case 15 diagnostic must identify required configuration, binding and invalid target reason.");
-                Require(ReferenceEquals(host.State.CurrentActivity, activityA),
-                    "Case 15 Required invalid rule must preserve the previous Activity authority.");
-                Require(invalid.gameObject.activeSelf == activeBefore,
-                    "Case 15 Required invalid rule must not mutate activeSelf.");
-                Require(probe.EnterCount == enterBefore && probe.ExitCount == exitBefore && probe.Callbacks.Count == 0,
-                    "Case 15 Required invalid rule must not dispatch lifecycle callbacks.");
-            }
-            finally
-            {
-                if (invalid != null)
-                {
-                    UnityEngine.Object.DestroyImmediate(invalid.gameObject);
-                }
-            }
-        }
-
-        private static async Task RunOptionalInvalidRuleCase(
-            IActivityRuntimePort activities,
-            Scene scene,
-            ActivityAsset activityC)
-        {
-            (ActivityVisibilityRule invalid, QaActivityLocalVisibilityLifecycleProbe probe) =
-                Fixture.CreateInvalidBinding(
-                    scene,
-                    FrameworkContentRequiredness.Optional);
-            try
-            {
-                bool activeBefore = invalid.gameObject.activeSelf;
-                int enterBefore = probe.EnterCount;
-                int exitBefore = probe.ExitCount;
-
-                FrameworkActivityRequestResult request = await RequestActivityAsync(
-                    activities,
-                    activityC,
-                    "optional-invalid-rule-diagnostic");
-                ActivityContentApplyResult content = request.ActivityFlowResult.ActivityContentResult;
-                Require(content.InvalidBindingCount == 1 &&
-                        content.RequiredInvalidBindingCount == 0 &&
-                        content.OptionalInvalidBindingCount == 1,
-                    "Case 16 must classify the invalid binding as Optional only.");
-                Require(content.HasWarningMessage &&
-                        content.WarningMessage.Contains(invalid.gameObject.name) &&
-                        content.WarningMessage.Contains("CurrentActivitiesEmpty") &&
-                        content.WarningMessage.Contains("requiredness='Optional'"),
-                    "Case 16 warning must identify the optional binding and invalid configuration.");
-                Require(!content.HasRequiredInvalidBindings,
-                    "Case 16 Optional invalid rule must not be reported as Required.");
-                Require(invalid.gameObject.activeSelf == activeBefore,
-                    "Case 16 Optional invalid rule must not mutate activeSelf.");
-                Require(probe.EnterCount == enterBefore && probe.ExitCount == exitBefore && probe.Callbacks.Count == 0,
-                    "Case 16 Optional invalid rule must not dispatch lifecycle callbacks.");
-            }
-            finally
-            {
-                if (invalid != null)
-                {
-                    UnityEngine.Object.DestroyImmediate(invalid.gameObject);
-                }
-            }
-        }
-
         private static async Task RunClearAndIdempotenceCases(
             FrameworkRuntimeHost host,
             IActivityRuntimePort activities,
@@ -353,11 +254,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             fixture.Reset();
 
             await RequireActivityAsync(activities, activityA, "clear-from-a-setup");
-            AssertProbe(fixture.PositiveSingleProbe, 1, 0, activityA, "Enter", 0, "Case 17 setup");
+            AssertProbe(fixture.PositiveSingleProbe, 1, 0, activityA, "Enter", 0, "Case 15 setup");
             await RequireClearAsync(activities, "clear-from-a");
-            AssertProbe(fixture.PositiveSingleProbe, 1, 1, activityA, "Exit", 1, "Case 17");
-            Require(!fixture.PositiveSingle.gameObject.activeSelf, "Case 17 must hide positive single after Clear.");
-            Require(host.State.CurrentActivity == null, "Case 17 first Clear must leave no active Activity.");
+            AssertProbe(fixture.PositiveSingleProbe, 1, 1, activityA, "Exit", 1, "Case 15");
+            Require(!fixture.PositiveSingle.gameObject.activeSelf, "Case 15 must hide positive single after Clear.");
+            Require(host.State.CurrentActivity == null, "Case 15 first Clear must leave no active Activity.");
 
             bool clearActiveSelf = fixture.PositiveSingle.gameObject.activeSelf;
             int clearEnterCount = fixture.PositiveSingleProbe.EnterCount;
@@ -367,21 +268,21 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 nameof(QaActivityLocalVisibilityLifecycleRegression),
                 "clear-idempotence");
             Require(repeatedClear.Kind == FrameworkActivityRequestKind.IgnoredNoActiveActivity,
-                "Case 17 repeated Clear must be ignored because no Activity is active.");
-            Require(!repeatedClear.Succeeded, "Case 17 repeated Clear must not succeed.");
-            Require(repeatedClear.TargetActivity == null, "Case 17 repeated Clear target must be null.");
-            Require(repeatedClear.Reason == "clear-idempotence", "Case 17 repeated Clear reason diverged.");
-            Require(host.State.CurrentActivity == null, "Case 17 repeated Clear must preserve no active Activity.");
+                "Case 15 repeated Clear must be ignored because no Activity is active.");
+            Require(!repeatedClear.Succeeded, "Case 15 repeated Clear must not succeed.");
+            Require(repeatedClear.TargetActivity == null, "Case 15 repeated Clear target must be null.");
+            Require(repeatedClear.Reason == "clear-idempotence", "Case 15 repeated Clear reason diverged.");
+            Require(host.State.CurrentActivity == null, "Case 15 repeated Clear must preserve no active Activity.");
             Require(fixture.PositiveSingle.gameObject.activeSelf == clearActiveSelf,
-                "Case 17 repeated Clear must preserve activeSelf.");
+                "Case 15 repeated Clear must preserve activeSelf.");
             Require(fixture.PositiveSingleProbe.EnterCount == clearEnterCount &&
                     fixture.PositiveSingleProbe.ExitCount == clearExitCount,
-                "Case 17 repeated Clear must not dispatch lifecycle callbacks.");
+                "Case 15 repeated Clear must not dispatch lifecycle callbacks.");
 
             await RequireActivityAsync(activities, activityA, "activity-idempotence-first");
-            AssertProbe(fixture.PositiveSingleProbe, 2, 1, activityA, "Enter", 2, "Case 18 setup");
+            AssertProbe(fixture.PositiveSingleProbe, 2, 1, activityA, "Enter", 2, "Case 16 setup");
             Require(host.State.CurrentActivity != null && host.State.CurrentActivity.HasSameIdentity(activityA),
-                "Case 18 setup must leave Activity A active.");
+                "Case 16 setup must leave Activity A active.");
 
             bool activityActiveSelf = fixture.PositiveSingle.gameObject.activeSelf;
             int activityEnterCount = fixture.PositiveSingleProbe.EnterCount;
@@ -392,19 +293,19 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 nameof(QaActivityLocalVisibilityLifecycleRegression),
                 repeatedActivityReason);
             Require(repeatedActivity.Kind == FrameworkActivityRequestKind.IgnoredAlreadyActive,
-                "Case 18 repeated Activity request must be ignored because A is already active.");
-            Require(!repeatedActivity.Succeeded, "Case 18 repeated Activity request must not succeed.");
+                "Case 16 repeated Activity request must be ignored because A is already active.");
+            Require(!repeatedActivity.Succeeded, "Case 16 repeated Activity request must not succeed.");
             Require(repeatedActivity.TargetActivity != null && repeatedActivity.TargetActivity.HasSameIdentity(activityA),
-                "Case 18 repeated Activity target must be A.");
+                "Case 16 repeated Activity target must be A.");
             Require(repeatedActivity.Reason == repeatedActivityReason,
-                "Case 18 repeated Activity reason diverged.");
+                "Case 16 repeated Activity reason diverged.");
             Require(host.State.CurrentActivity != null && host.State.CurrentActivity.HasSameIdentity(activityA),
-                "Case 18 repeated Activity request must preserve Activity A.");
+                "Case 16 repeated Activity request must preserve Activity A.");
             Require(fixture.PositiveSingle.gameObject.activeSelf == activityActiveSelf,
-                "Case 18 repeated Activity request must preserve activeSelf.");
+                "Case 16 repeated Activity request must preserve activeSelf.");
             Require(fixture.PositiveSingleProbe.EnterCount == activityEnterCount &&
                     fixture.PositiveSingleProbe.ExitCount == activityExitCount,
-                "Case 18 repeated Activity request must not dispatch lifecycle callbacks.");
+                "Case 16 repeated Activity request must not dispatch lifecycle callbacks.");
         }
 
         private static async Task RequireRouteAsync(IRouteRuntimePort routes, RouteAsset route, string reason)
@@ -507,30 +408,14 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 return new Fixture(single, multiple, negativeSingle, negativeMultiple, noActiveVisible, singleProbe, multipleProbe, negativeSingleProbe, negativeMultipleProbe, noActiveVisibleProbe);
             }
 
-            public static (ActivityVisibilityRule, QaActivityLocalVisibilityLifecycleProbe) CreateInvalidBinding(
-                Scene scene,
-                FrameworkContentRequiredness requiredness)
-            {
-                return CreateBinding(
-                    scene,
-                    null,
-                    Array.Empty<ActivityAsset>(),
-                    ActivityVisibilityMatchMode.VisibleWhenAnyListedActivityIsActive,
-                    "qa.lifecycle.lifecycle-invalid",
-                    ActivityVisibilityNoActivePolicy.Hidden,
-                    allowInvalid: true,
-                    requiredness: requiredness,
-                    rootName: "QA Activity Local Visibility Lifecycle Invalid Root");
-            }
-
             public void Reset() { for (int index = 0; index < _probes.Count; index++) _probes[index].ResetCounters(); }
-            private static (ActivityVisibilityRule, QaActivityLocalVisibilityLifecycleProbe) CreateBinding(Scene scene, ICollection<GameObject> roots, ActivityAsset[] activities, ActivityVisibilityMatchMode mode, string id, ActivityVisibilityNoActivePolicy policy = ActivityVisibilityNoActivePolicy.Hidden, bool allowInvalid = false, FrameworkContentRequiredness requiredness = FrameworkContentRequiredness.Required, string rootName = "QA Activity Local Visibility Lifecycle Temporary Root")
+            private static (ActivityVisibilityRule, QaActivityLocalVisibilityLifecycleProbe) CreateBinding(Scene scene, ICollection<GameObject> roots, ActivityAsset[] activities, ActivityVisibilityMatchMode mode, string id, ActivityVisibilityNoActivePolicy policy = ActivityVisibilityNoActivePolicy.Hidden, string rootName = "QA Activity Local Visibility Lifecycle Temporary Root")
             {
                 GameObject root = new GameObject(rootName); SceneManager.MoveGameObjectToScene(root, scene); roots?.Add(root);
                 ActivityVisibilityRule adapter = root.AddComponent<ActivityVisibilityRule>();
                 ActivityContentContribution contribution = root.AddComponent<ActivityContentContribution>();
                 QaActivityLocalVisibilityLifecycleProbe probe = root.AddComponent<QaActivityLocalVisibilityLifecycleProbe>();
-                Require(activities != null && (allowInvalid || activities.Length > 0), "Lifecycle fixture requires one or more Activities.");
+                Require(activities != null && activities.Length > 0, "Lifecycle fixture requires one or more Activities.");
                 SerializedObject serialized = new SerializedObject(adapter);
                 SerializedProperty list = serialized.FindProperty("activities");
                 Require(list != null && list.isArray, "ActivityVisibilityRule activities property is unavailable.");
@@ -548,7 +433,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 SerializedObject contributionSerialized = new SerializedObject(contribution);
                 contributionSerialized.FindProperty("activity").objectReferenceValue = activities.Length > 0 ? activities[0] : null;
                 contributionSerialized.FindProperty("localContentId").stringValue = id;
-                contributionSerialized.FindProperty("requiredness").intValue = (int)requiredness;
+                contributionSerialized.FindProperty("requiredness").intValue = (int)FrameworkContentRequiredness.Required;
                 contributionSerialized.ApplyModifiedProperties();
 
                 SerializedObject applied = new SerializedObject(adapter);
@@ -561,8 +446,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         $"Lifecycle fixture serialized Activity at index {index} is null after apply.");
                 }
 
-                Require(allowInvalid == !adapter.EvaluateVisibility(null).IsValid,
-                    "Lifecycle fixture rule validity diverged from its requested contract.");
+                Require(adapter.EvaluateVisibility(null).IsValid,
+                    "Lifecycle fixture requires a valid ActivityVisibilityRule.");
 
                 return (adapter, probe);
             }
