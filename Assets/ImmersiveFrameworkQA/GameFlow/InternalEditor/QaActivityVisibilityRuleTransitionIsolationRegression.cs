@@ -85,10 +85,17 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "invalid-rule-diagnostic-nonmutating-nonblocking");
                 ActivityContentApplyResult content = result.ActivityFlowResult.ActivityContentResult;
 
-                QaAdr009ActivityFlowScope.Require(result.Succeeded && result.DestinationAuthoritative,
-                    "Invalid ActivityVisibilityRule must not block the Activity transition.");
+                QaAdr009ActivityFlowScope.Require(
+                    result.Succeeded &&
+                    result.DestinationAuthoritative &&
+                    result.ActivityFlowResult.ActivityAuthorityCommitReached,
+                    "Invalid ActivityVisibilityRule must allow the Activity commit.");
                 QaAdr009ActivityFlowScope.Require(ReferenceEquals(scope.Host.State.CurrentActivity, scope.ActivityC),
                     "Invalid ActivityVisibilityRule must allow the target Activity to become canonical.");
+                QaAdr009ActivityFlowScope.Require(
+                    result.TransitionDiagnostics.BlockingIssueCount == 0 &&
+                    result.ActivityFlowResult.ActivityContentExecutionResult.BlockingIssueCount == 0,
+                    "Invalid ActivityVisibilityRule must not introduce blocking issues.");
                 QaAdr009ActivityFlowScope.Require(
                     content.InvalidBindingCount == 1 &&
                     content.RequiredInvalidBindingCount == 0 &&
@@ -99,8 +106,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     "Invalid ActivityVisibilityRule must produce visibility-only diagnostic evidence.");
                 QaAdr009ActivityFlowScope.Require(root.activeSelf == activeBefore,
                     "Invalid ActivityVisibilityRule must not mutate its GameObject activeSelf.");
-                QaAdr009ActivityFlowScope.Require(content.ActivityContentCount == 0,
-                    "Invalid ActivityVisibilityRule must not register Activity-owned content.");
+                RequireNoActivityContentEntryFromRule(content, rule);
             }
             finally
             {
@@ -130,9 +136,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 ActivityContentApplyResult targetContent = enterTarget.ActivityFlowResult.ActivityContentResult;
                 QaAdr009ActivityFlowScope.Require(enterTarget.Succeeded && enterTarget.DestinationAuthoritative && root.activeSelf,
                     "Valid ActivityVisibilityRule must preserve visibility for its listed Activity.");
-                QaAdr009ActivityFlowScope.Require(targetContent.InvalidBindingCount == 0 &&
-                    targetContent.ActivityContentCount == 0,
-                    "Valid ActivityVisibilityRule must not create invalid or Activity-owned content evidence.");
+                QaAdr009ActivityFlowScope.Require(
+                    targetContent.InvalidBindingCount == 0 &&
+                    targetContent.RequiredInvalidBindingCount == 0 &&
+                    targetContent.OptionalInvalidBindingCount == 0,
+                    "Valid ActivityVisibilityRule must not create invalid Contribution evidence.");
+                RequireNoActivityContentEntryFromRule(targetContent, rule);
 
                 await scope.EnsureActivityAsync(scope.ActivityA, "valid-rule-switch-away");
                 QaAdr009ActivityFlowScope.Require(!root.activeSelf,
@@ -145,9 +154,12 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 ActivityContentApplyResult reentryContent = reenterTarget.ActivityFlowResult.ActivityContentResult;
                 QaAdr009ActivityFlowScope.Require(reenterTarget.Succeeded && reenterTarget.DestinationAuthoritative && root.activeSelf,
                     "Valid ActivityVisibilityRule must restore visibility when its listed Activity becomes canonical again.");
-                QaAdr009ActivityFlowScope.Require(reentryContent.InvalidBindingCount == 0 &&
-                    reentryContent.ActivityContentCount == 0,
-                    "Visibility-only reentry must not register Activity-owned content.");
+                QaAdr009ActivityFlowScope.Require(
+                    reentryContent.InvalidBindingCount == 0 &&
+                    reentryContent.RequiredInvalidBindingCount == 0 &&
+                    reentryContent.OptionalInvalidBindingCount == 0,
+                    "Visibility-only reentry must not create invalid Contribution evidence.");
+                RequireNoActivityContentEntryFromRule(reentryContent, rule);
             }
             finally
             {
@@ -174,6 +186,24 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             serialized.FindProperty("matchMode").intValue = (int)matchMode;
             serialized.FindProperty("noActiveActivityPolicy").intValue = (int)noActivePolicy;
             serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void RequireNoActivityContentEntryFromRule(
+            ActivityContentApplyResult content,
+            ActivityVisibilityRule rule)
+        {
+            QaAdr009ActivityFlowScope.Require(rule != null && rule.gameObject != null,
+                "ActivityVisibilityRule ownership assertion requires its GameObject.");
+            string ruleObjectName = rule.gameObject.name;
+            string ruleSceneName = rule.gameObject.scene.name;
+            IReadOnlyList<ActivityContentEntry> entries = content.ActivityContentSet.Entries;
+            for (int index = 0; index < entries.Count; index++)
+            {
+                QaAdr009ActivityFlowScope.Require(
+                    !string.Equals(entries[index].Handle.ResourceName, ruleObjectName, StringComparison.Ordinal) ||
+                    !string.Equals(entries[index].Handle.ResourcePath, ruleSceneName, StringComparison.Ordinal),
+                    "ActivityVisibilityRule must not originate an ActivityContentEntry.");
+            }
         }
 
         private static Exception Combine(Exception executionFailure, Exception cleanupFailure)
