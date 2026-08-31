@@ -532,8 +532,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 return;
             }
 
-            SceneLocalPlayerAdmissionAuthoring admission =
-                root.AddComponent<SceneLocalPlayerAdmissionAuthoring>();
+            SceneProvidedLocalPlayerAuthoring admission =
+                root.AddComponent<SceneProvidedLocalPlayerAuthoring>();
             GameObject runtimeHostObject = PrefabUtility.InstantiatePrefab(
                 runtimeHostPrefab,
                 actorMount.transform) as GameObject;
@@ -553,7 +553,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 presentationPrefab,
                 "Canonical Player QA Scene-Provided composition.");
             admission.EditorSetAuthoringResult(
-                SceneLocalPlayerAdmissionAuthoringStatus.Valid,
+                SceneProvidedLocalPlayerAuthoringStatus.Valid,
                 "Canonical Player QA Scene-Provided composition is authored.");
             SetObject(admission, "playerSlotProfile", playerSlot);
             SetObject(admission, "actorProfile", actorProfile);

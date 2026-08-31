@@ -257,7 +257,7 @@ namespace ImmersiveFrameworkQA.Player.Internal.Editor
             bool succeeded = admissions.TryResolveAutomaticActivityAuthoring(
                 activity,
                 out System.Collections.Generic.IReadOnlyList<
-                    SceneLocalPlayerAdmissionAuthoring> authoring,
+                    SceneProvidedLocalPlayerAuthoring> authoring,
                 out string issue);
             return new QaAutomaticSceneAdmissionResolution(
                 succeeded,

@@ -260,7 +260,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "Manager Local Player Host lost its Input or Runtime Host prefab reference.");
             Require(
                 host.ActorMount.childCount == 0 &&
-                managerHostPrefab.GetComponent<SceneLocalPlayerAdmissionAuthoring>() == null,
+                managerHostPrefab.GetComponent<SceneProvidedLocalPlayerAuthoring>() == null,
                 "Manager Local Player Host must keep an empty Actor Mount and no Scene admission.");
         }
 
@@ -274,8 +274,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             LocalPlayerHostAuthoring host = RequireSingle<LocalPlayerHostAuthoring>(sceneHostPrefab);
             PlayerInput playerInput = RequireSingle<PlayerInput>(sceneHostPrefab);
-            SceneLocalPlayerAdmissionAuthoring admission =
-                RequireSingle<SceneLocalPlayerAdmissionAuthoring>(sceneHostPrefab);
+            SceneProvidedLocalPlayerAuthoring admission =
+                RequireSingle<SceneProvidedLocalPlayerAuthoring>(sceneHostPrefab);
             PlayerActorRuntimeHost sceneRuntimeHost =
                 RequireSingleInChildren<PlayerActorRuntimeHost>(host.ActorMount);
             Require(
@@ -283,17 +283,17 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 admission.PlayerSlotProfile == playerOne &&
                 admission.ActorProfile == defaultActor &&
                 admission.ScenePlayerActorRuntimeHost == sceneRuntimeHost,
-                "Scene Local Player Host admission references are incomplete or foreign.");
+                "Scene-Provided Local Player references are incomplete or foreign.");
             Require(
                 host.TryValidateAdmissionConfiguration(sceneRuntimeHost, true, out string hostIssue),
-                $"Scene Local Player Host is invalid. {hostIssue}");
+                $"Scene-Provided Local Player host is invalid. {hostIssue}");
             Require(
                 admission.TryValidateRuntimeEvidence(out string admissionIssue),
-                $"Scene Local Player Admission evidence is invalid. {admissionIssue}");
+                $"Scene-Provided Local Player evidence is invalid. {admissionIssue}");
             Require(
                 SourcePrefab(sceneRuntimeHost.gameObject) == runtimeHostPrefab &&
                 SourcePrefab(admission.ScenePresentation) == defaultPresentation,
-                "Scene Local Player Host must retain exact Runtime Host and Presentation prefab provenance.");
+                "Scene-Provided Local Player must retain exact Runtime Host and Presentation prefab provenance.");
         }
 
         private static void ValidateSession(

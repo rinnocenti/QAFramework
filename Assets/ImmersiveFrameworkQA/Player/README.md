@@ -51,7 +51,7 @@ PlayerSessionCloseJoiningCommandTrigger
 RoutePlayerSpatialEntryAuthoring
 ActivityPlayerRelocationAuthoring
 LocalPlayerHostAuthoring
-SceneLocalPlayerAdmissionAuthoring
+SceneProvidedLocalPlayerAuthoring
 PlayerActorRuntimeHost
 ```
 
