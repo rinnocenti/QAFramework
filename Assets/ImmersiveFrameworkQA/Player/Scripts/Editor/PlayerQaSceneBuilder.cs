@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Immersive.Framework.Actors;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Editor.PlayerParticipation;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
@@ -42,6 +43,12 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "Dedicated Activity used to prove Player Actor lifecycle preparation and explicit relocation.",
                     ActivityPlayerRelocationPolicy.ApplyExplicitRelocation,
                     PlayerParticipationRequirementLevel.LogicalActorsPrepared);
+                ActivityAsset gameplayReady = EnsureActivity(
+                    PlayerQaPaths.GameplayReadyActivityPath,
+                    "QA Player Gameplay Ready Activity",
+                    "Dedicated Activity used to prove Player gameplay projection and Presentation input reader binding.",
+                    ActivityPlayerRelocationPolicy.NoRelocation,
+                    PlayerParticipationRequirementLevel.GameplayReady);
                 EnsureActivity(
                     PlayerQaPaths.EmptyActivityPath,
                     "QA Player Empty Activity",
@@ -63,7 +70,13 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 RouteAsset hubRoute = AssetDatabase.LoadAssetAtPath<RouteAsset>(
                     PlayerQaPaths.HubRoutePath);
 
-                CreatePrimaryScene(primaryRoute, sceneRoute, hubRoute, startup, relocate);
+                CreatePrimaryScene(
+                    primaryRoute,
+                    sceneRoute,
+                    hubRoute,
+                    startup,
+                    relocate,
+                    gameplayReady);
                 CreateSceneProvidedScene(sceneRoute, primaryRoute, hubRoute, startup);
                 EnsureSceneInBuildSettings(PlayerQaPaths.PrimaryScenePath);
                 EnsureSceneInBuildSettings(PlayerQaPaths.SceneProvidedScenePath);
@@ -95,11 +108,23 @@ namespace ImmersiveFrameworkQA.Player.Editor
             GameObject defaultPresentation = EnsurePresentation(
                 PlayerQaPaths.DefaultPresentationPath,
                 "QA_DefaultPresentation",
-                PrimitiveType.Capsule);
+                PrimitiveType.Capsule,
+                gameplayInputReaderCount: 1);
             GameObject alternatePresentation = EnsurePresentation(
                 PlayerQaPaths.AlternatePresentationPath,
                 "QA_AlternatePresentation",
-                PrimitiveType.Cube);
+                PrimitiveType.Cube,
+                gameplayInputReaderCount: 1);
+            GameObject noGameplayReaderPresentation = EnsurePresentation(
+                PlayerQaPaths.NoGameplayReaderPresentationPath,
+                "QA_NoGameplayReaderPresentation",
+                PrimitiveType.Sphere,
+                gameplayInputReaderCount: 0);
+            GameObject ambiguousGameplayReaderPresentation = EnsurePresentation(
+                PlayerQaPaths.AmbiguousGameplayReaderPresentationPath,
+                "QA_AmbiguousGameplayReaderPresentation",
+                PrimitiveType.Cylinder,
+                gameplayInputReaderCount: 2);
             ActorProfile defaultActor = EnsureActorProfile(
                 PlayerQaPaths.DefaultActorPath,
                 "QA_DefaultActor",
@@ -112,6 +137,18 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 PlayerQaPaths.AlternateActorId,
                 "QA Alternate Actor",
                 alternatePresentation);
+            ActorProfile noGameplayReaderActor = EnsureActorProfile(
+                PlayerQaPaths.NoGameplayReaderActorPath,
+                "QA_NoGameplayReaderActor",
+                PlayerQaPaths.NoGameplayReaderActorId,
+                "QA No Gameplay Reader Actor",
+                noGameplayReaderPresentation);
+            ActorProfile ambiguousGameplayReaderActor = EnsureActorProfile(
+                PlayerQaPaths.AmbiguousGameplayReaderActorPath,
+                "QA_AmbiguousGameplayReaderActor",
+                PlayerQaPaths.AmbiguousGameplayReaderActorId,
+                "QA Ambiguous Gameplay Reader Actor",
+                ambiguousGameplayReaderPresentation);
             PlayerSlotProfile playerOne = EnsureSlotProfile(
                 PlayerQaPaths.PlayerOneSlotPath,
                 "QA_PlayerSlot_P1",
@@ -169,7 +206,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
             RouteAsset sceneRoute,
             RouteAsset hubRoute,
             ActivityAsset startup,
-            ActivityAsset relocate)
+            ActivityAsset relocate,
+            ActivityAsset gameplayReady)
         {
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             scene.name = "QA_Player";
@@ -181,6 +219,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
             PlayerSlotProfile playerTwo = Load<PlayerSlotProfile>(PlayerQaPaths.PlayerTwoSlotPath);
             ActorProfile defaultActor = Load<ActorProfile>(PlayerQaPaths.DefaultActorPath);
             ActorProfile alternateActor = Load<ActorProfile>(PlayerQaPaths.AlternateActorPath);
+            ActorProfile noGameplayReaderActor = Load<ActorProfile>(
+                PlayerQaPaths.NoGameplayReaderActorPath);
+            ActorProfile ambiguousGameplayReaderActor = Load<ActorProfile>(
+                PlayerQaPaths.AmbiguousGameplayReaderActorPath);
             GameObject managerHostPrefab = Load<GameObject>(PlayerQaPaths.ManagerHostPath);
 
             Transform p1Anchor = CreateAnchor(root.transform, "QA_Player_SpatialAnchor_P1", new Vector3(-1.5f, 0f, 0f));
@@ -244,6 +286,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "ActivityTrigger_PlayerRelocate",
                 relocate,
                 "qa.player.actor-lifecycle");
+            ActivityRequestTrigger gameplayReadyTrigger = CreateActivityTrigger(
+                panelObject.transform,
+                "ActivityTrigger_PlayerGameplayReady",
+                gameplayReady,
+                "qa.player.gameplay-ready");
 
             RouteRequestTrigger hubTrigger = CreateRouteTrigger(
                 panelObject.transform, "RouteTrigger_Hub", hubRoute, "qa.player.return-hub");
@@ -270,11 +317,15 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 playerTwo,
                 defaultActor,
                 alternateActor,
+                noGameplayReaderActor,
+                ambiguousGameplayReaderActor,
                 spatial,
                 relocation,
                 startup,
                 relocate,
+                gameplayReady,
                 relocateTrigger,
+                gameplayReadyTrigger,
                 hubTrigger);
 
             EditorSceneManager.SaveScene(scene, PlayerQaPaths.PrimaryScenePath);
@@ -368,10 +419,33 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return Load<InputActionAsset>(PlayerQaPaths.InputActionsPath);
         }
 
-        private static GameObject EnsurePresentation(string path, string name, PrimitiveType primitive)
+        private static GameObject EnsurePresentation(
+            string path,
+            string name,
+            PrimitiveType primitive,
+            int gameplayInputReaderCount)
         {
+            if (gameplayInputReaderCount < 0 || gameplayInputReaderCount > 2)
+            {
+                throw new ArgumentOutOfRangeException(nameof(gameplayInputReaderCount));
+            }
+
             return RebuildPrefab(path, name, root =>
             {
+                if (gameplayInputReaderCount == 1)
+                {
+                    root.AddComponent<PlayerGameplayInputReader>();
+                }
+                else if (gameplayInputReaderCount == 2)
+                {
+                    var firstReader = new GameObject("GameplayReader_A");
+                    firstReader.transform.SetParent(root.transform, false);
+                    firstReader.AddComponent<PlayerGameplayInputReader>();
+                    var secondReader = new GameObject("GameplayReader_B");
+                    secondReader.transform.SetParent(root.transform, false);
+                    secondReader.AddComponent<PlayerGameplayInputReader>();
+                }
+
                 GameObject visual = GameObject.CreatePrimitive(primitive);
                 visual.name = "Visual";
                 visual.transform.SetParent(root.transform, false);
@@ -442,7 +516,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 {
                     PlayerActorRuntimeHost host = root.AddComponent<PlayerActorRuntimeHost>();
                     PlayerActorDeclaration declaration = root.AddComponent<PlayerActorDeclaration>();
-                    SetString(declaration, "actorId", "qa.player.runtime-host");
+                    root.AddComponent<CharacterController>();
                     SetString(declaration, "displayName", "QA Player Actor");
                     SetString(declaration, "reason", "qa.player.runtime-host");
                     var presentationMount = new GameObject("PresentationMount");
@@ -539,24 +613,20 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 actorMount.transform) as GameObject;
             PlayerActorRuntimeHost sceneRuntimeHost =
                 runtimeHostObject.GetComponent<PlayerActorRuntimeHost>();
-            GameObject presentation = PrefabUtility.InstantiatePrefab(
+            PrefabUtility.InstantiatePrefab(
                 presentationPrefab,
-                sceneRuntimeHost.PresentationMount) as GameObject;
-            var evidence = presentation.AddComponent<ScenePlayerActorPresentationEvidence>();
-            evidence.EditorSetEvidence(
-                actorProfile,
-                presentationPrefab,
-                "Canonical Player QA Scene-Provided presentation evidence.");
-            admission.EditorSetCompositionReferences(sceneRuntimeHost, presentation);
-            admission.EditorSetProfileEvidence(
-                actorProfile,
-                presentationPrefab,
-                "Canonical Player QA Scene-Provided composition.");
-            admission.EditorSetAuthoringResult(
-                SceneProvidedLocalPlayerAuthoringStatus.Valid,
-                "Canonical Player QA Scene-Provided composition is authored.");
+                sceneRuntimeHost.PresentationMount);
+            SetObject(admission, "localPlayerHost", localHost);
             SetObject(admission, "playerSlotProfile", playerSlot);
             SetObject(admission, "actorProfile", actorProfile);
+            SceneProvidedLocalPlayerAuthoringResult validation =
+                SceneProvidedLocalPlayerAuthoringUtility.Validate(admission, false);
+            if (!validation.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    "Player QA Scene-Provided composition is invalid. " +
+                    validation.Message);
+            }
         }
 
         private static PlayerSessionProfile EnsureSessionProfile(

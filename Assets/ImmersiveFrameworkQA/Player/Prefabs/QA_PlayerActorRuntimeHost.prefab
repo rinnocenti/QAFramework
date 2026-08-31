@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 3544036804315888642}
   - component: {fileID: 2588055085092389146}
   - component: {fileID: 67149408712258747}
+  - component: {fileID: 7286384185092641187}
   m_Layer: 0
   m_Name: QA_PlayerActorRuntimeHost
   m_TagString: Untagged
@@ -60,12 +61,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26cc512b3155464caed4dc48a6c9de6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Actors.PlayerActorDeclaration
-  actorId: qa.player.runtime-host
+  actorId: 
   actorKind: 20
   actorRole: 50
   displayName: QA Player Actor
   reason: qa.player.runtime-host
   playerInput: {fileID: 0}
+--- !u!143 &7286384185092641187
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4231750217686470611}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 2
+  m_Radius: 0.5
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &8846594669946273576
 GameObject:
   m_ObjectHideFlags: 0

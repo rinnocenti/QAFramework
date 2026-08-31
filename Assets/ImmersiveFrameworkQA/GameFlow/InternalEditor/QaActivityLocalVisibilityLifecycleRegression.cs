@@ -167,16 +167,15 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             Require(fixture.PositiveMultiple.gameObject.activeSelf, "Case 4 must leave positive multiple active.");
 
             await RequireActivityAsync(activities, activityB, "positive-multiple-a-to-b");
-            AssertProbe(fixture.PositiveMultipleProbe, 2, 1, activityB, "Enter", 2, "Case 5");
-            AssertCallback(fixture.PositiveMultipleProbe, 1, "Exit", activityA, "Case 5 exit");
+            AssertProbe(fixture.PositiveMultipleProbe, 1, 1, activityA, "Exit", 1, "Case 5");
             Require(fixture.PositiveMultiple.gameObject.activeSelf, "Case 5 must preserve activeSelf.");
 
             await RequireActivityAsync(activities, activityC, "positive-multiple-b-to-c");
-            AssertProbe(fixture.PositiveMultipleProbe, 2, 2, activityB, "Exit", 3, "Case 6");
+            AssertProbe(fixture.PositiveMultipleProbe, 1, 1, activityA, "Exit", 1, "Case 6");
             Require(!fixture.PositiveMultiple.gameObject.activeSelf, "Case 6 must leave positive multiple inactive.");
 
             await RequireActivityAsync(activities, activityA, "positive-multiple-c-to-a");
-            AssertProbe(fixture.PositiveMultipleProbe, 3, 2, activityA, "Enter", 4, "Case 7");
+            AssertProbe(fixture.PositiveMultipleProbe, 2, 1, activityA, "Enter", 2, "Case 7");
             Require(fixture.PositiveMultiple.gameObject.activeSelf, "Case 7 must reenter positive multiple.");
         }
 
@@ -190,11 +189,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             fixture.Reset();
 
             await RequireActivityAsync(activities, activityB, "negative-single-no-active-to-b");
-            AssertProbe(fixture.NegativeSingleProbe, 1, 0, activityB, "Enter", 0, "Case 8");
+            AssertNoCallbacks(fixture.NegativeSingleProbe, "Case 8");
             Require(fixture.NegativeSingle.gameObject.activeSelf, "Case 8 must activate negative single for an unlisted Activity.");
 
             await RequireActivityAsync(activities, activityA, "negative-single-b-to-a");
-            AssertProbe(fixture.NegativeSingleProbe, 1, 1, activityB, "Exit", 1, "Case 9");
+            AssertProbe(fixture.NegativeSingleProbe, 1, 0, activityA, "Enter", 0, "Case 9", expectedActiveSelf: false);
             Require(!fixture.NegativeSingle.gameObject.activeSelf, "Case 9 must hide negative single for its listed Activity.");
         }
 
@@ -209,16 +208,16 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             fixture.Reset();
 
             await RequireActivityAsync(activities, activityC, "negative-multiple-no-active-to-c");
-            AssertProbe(fixture.NegativeMultipleProbe, 1, 0, activityC, "Enter", 0, "Case 10");
+            AssertNoCallbacks(fixture.NegativeMultipleProbe, "Case 10");
             Require(fixture.NegativeMultiple.gameObject.activeSelf, "Case 10 must activate negative multiple for C.");
 
             await RequireActivityAsync(activities, activityA, "negative-multiple-c-to-a");
-            AssertProbe(fixture.NegativeMultipleProbe, 1, 1, activityC, "Exit", 1, "Case 11");
+            AssertProbe(fixture.NegativeMultipleProbe, 1, 0, activityA, "Enter", 0, "Case 11", expectedActiveSelf: false);
             Require(!fixture.NegativeMultiple.gameObject.activeSelf, "Case 11 must hide negative multiple for A.");
 
             await RequireActivityAsync(activities, activityB, "negative-multiple-a-to-b");
-            AssertProbe(fixture.NegativeMultipleProbe, 1, 1, activityC, "Exit", 1, "Case 12");
-            Require(!fixture.NegativeMultiple.gameObject.activeSelf, "Case 12 must preserve negative multiple hidden without callbacks.");
+            AssertProbe(fixture.NegativeMultipleProbe, 1, 1, activityA, "Exit", 1, "Case 12", expectedActiveSelf: false);
+            Require(!fixture.NegativeMultiple.gameObject.activeSelf, "Case 12 must preserve negative multiple hidden after Exit(A).");
         }
 
         private static async Task RunNoActiveVisibleCases(
@@ -343,17 +342,23 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             Require(result.Succeeded, result.Message);
         }
 
-        private static void AssertProbe(QaActivityLocalVisibilityLifecycleProbe probe, int enters, int exits, ActivityAsset activity, string callback, int callbackIndex, string label)
+        private static void AssertProbe(QaActivityLocalVisibilityLifecycleProbe probe, int enters, int exits, ActivityAsset activity, string callback, int callbackIndex, string label, bool expectedActiveSelf = true)
         {
             Require(probe.EnterCount == enters && probe.ExitCount == exits && probe.LastActivity == activity, label + " counts or Activity diverged.");
-            AssertCallback(probe, callbackIndex, callback, activity, label);
+            AssertCallback(probe, callbackIndex, callback, activity, label, expectedActiveSelf);
         }
 
-        private static void AssertCallback(QaActivityLocalVisibilityLifecycleProbe probe, int index, string callback, ActivityAsset activity, string label)
+        private static void AssertNoCallbacks(QaActivityLocalVisibilityLifecycleProbe probe, string label)
+        {
+            Require(probe.EnterCount == 0 && probe.ExitCount == 0 && probe.LastActivity == null && probe.Callbacks.Count == 0,
+                label + " must not dispatch lifecycle outside Contribution ownership.");
+        }
+
+        private static void AssertCallback(QaActivityLocalVisibilityLifecycleProbe probe, int index, string callback, ActivityAsset activity, string label, bool expectedActiveSelf = true)
         {
             Require(probe.Callbacks.Count > index, label + " callback is missing.");
             CallbackRecord record = probe.Callbacks[index];
-            Require(record.Callback == callback && record.Activity == activity && record.ActiveSelfBefore && record.ActiveSelfAfter, label + " callback evidence diverged.");
+            Require(record.Callback == callback && record.Activity == activity && record.ActiveSelfBefore == expectedActiveSelf && record.ActiveSelfAfter == expectedActiveSelf, label + " callback evidence diverged.");
         }
 
         private static T Load<T>(string path) where T : UnityEngine.Object => AssetDatabase.LoadAssetAtPath<T>(path) ?? throw new InvalidOperationException("Missing QA asset: " + path);

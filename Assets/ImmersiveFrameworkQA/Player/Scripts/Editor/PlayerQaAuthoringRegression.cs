@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Immersive.Framework.Actors;
 using Immersive.Framework.Authoring;
+using Immersive.Framework.Editor.PlayerParticipation;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
 using UnityEditor;
@@ -19,7 +21,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
         private const string Prefix = "[QA_PLAYER_AUTHORING]";
         private const string MenuPath =
             "Immersive Framework/QA/Player/Run Authoring Contract";
-        private const int ExpectedCaseCount = 11;
+        private const int ExpectedCaseCount = 13;
 
         [MenuItem(MenuPath, true)]
         private static bool ValidateRun() =>
@@ -47,8 +49,16 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 PlayerSlotProfile playerTwo = Require<PlayerSlotProfile>(PlayerQaPaths.PlayerTwoSlotPath);
                 ActorProfile defaultActor = Require<ActorProfile>(PlayerQaPaths.DefaultActorPath);
                 ActorProfile alternateActor = Require<ActorProfile>(PlayerQaPaths.AlternateActorPath);
+                ActorProfile noGameplayReaderActor = Require<ActorProfile>(
+                    PlayerQaPaths.NoGameplayReaderActorPath);
+                ActorProfile ambiguousGameplayReaderActor = Require<ActorProfile>(
+                    PlayerQaPaths.AmbiguousGameplayReaderActorPath);
                 GameObject defaultPresentation = Require<GameObject>(PlayerQaPaths.DefaultPresentationPath);
                 GameObject alternatePresentation = Require<GameObject>(PlayerQaPaths.AlternatePresentationPath);
+                GameObject noGameplayReaderPresentation = Require<GameObject>(
+                    PlayerQaPaths.NoGameplayReaderPresentationPath);
+                GameObject ambiguousGameplayReaderPresentation = Require<GameObject>(
+                    PlayerQaPaths.AmbiguousGameplayReaderPresentationPath);
                 GameObject runtimeHostPrefab = Require<GameObject>(PlayerQaPaths.RuntimeHostPath);
                 GameObject managerHostPrefab = Require<GameObject>(PlayerQaPaths.ManagerHostPath);
                 GameObject sceneHostPrefab = Require<GameObject>(PlayerQaPaths.SceneHostPath);
@@ -60,15 +70,30 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     Require<ActivityAsset>(PlayerQaPaths.StartupActivityPath);
                 ActivityAsset relocateActivity =
                     Require<ActivityAsset>(PlayerQaPaths.RelocateActivityPath);
+                ActivityAsset gameplayReadyActivity =
+                    Require<ActivityAsset>(PlayerQaPaths.GameplayReadyActivityPath);
 
                 ValidateInput(actions);
                 completed.Add("input");
 
-                ValidateProfiles(playerOne, playerTwo, defaultActor, alternateActor);
+                ValidateProfiles(
+                    playerOne,
+                    playerTwo,
+                    defaultActor,
+                    alternateActor,
+                    noGameplayReaderActor,
+                    ambiguousGameplayReaderActor);
                 completed.Add("profiles");
 
                 ValidatePresentations(defaultPresentation, alternatePresentation);
                 completed.Add("presentations");
+
+                ValidateReaderCardinalityFixtures(
+                    noGameplayReaderPresentation,
+                    ambiguousGameplayReaderPresentation,
+                    noGameplayReaderActor,
+                    ambiguousGameplayReaderActor);
+                completed.Add("reader-cardinality-fixtures");
 
                 PlayerActorRuntimeHost runtimeHost = ValidateRuntimeHost(runtimeHostPrefab);
                 completed.Add("runtime-host");
@@ -110,7 +135,10 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     PlayerActorResolutionPolicy.LeaveUnresolved);
                 completed.Add("leave-unresolved-profile");
 
-                ValidateActivityContracts(startupActivity, relocateActivity);
+                ValidateActivityContracts(
+                    startupActivity,
+                    relocateActivity,
+                    gameplayReadyActivity);
                 completed.Add("activity-contracts");
 
                 ValidateExplicitCommandSurface();
@@ -118,6 +146,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
                 ValidateGameplayInputReader();
                 completed.Add("gameplay-input-reader");
+
+                ValidateCharacterControllerRequirement();
+                completed.Add("character-controller-root");
 
                 Require(completed.Count == ExpectedCaseCount,
                     "Player QA authoring case count changed unexpectedly.");
@@ -147,7 +178,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
         private static void ValidateActivityContracts(
             ActivityAsset startupActivity,
-            ActivityAsset relocateActivity)
+            ActivityAsset relocateActivity,
+            ActivityAsset gameplayReadyActivity)
         {
             Require(
                 startupActivity.PlayerParticipationProjectionMode ==
@@ -166,6 +198,15 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 relocateActivity.PlayerParticipationRequirementLevel ==
                     PlayerParticipationRequirementLevel.LogicalActorsPrepared,
                 "Relocate Activity must own the explicit Player Actor preparation/materialization contract.");
+
+            Require(
+                gameplayReadyActivity.PlayerParticipationProjectionMode ==
+                    ActivityParticipationProjectionMode.AllJoinedSlots &&
+                gameplayReadyActivity.PlayerParticipationZeroParticipantPolicy ==
+                    ActivityParticipationZeroParticipantPolicy.Allowed &&
+                gameplayReadyActivity.PlayerParticipationRequirementLevel ==
+                    PlayerParticipationRequirementLevel.GameplayReady,
+                "Gameplay Ready Activity must own the explicit Player gameplay projection contract.");
         }
 
         private static void ValidateInput(InputActionAsset actions)
@@ -188,7 +229,9 @@ namespace ImmersiveFrameworkQA.Player.Editor
             PlayerSlotProfile playerOne,
             PlayerSlotProfile playerTwo,
             ActorProfile defaultActor,
-            ActorProfile alternateActor)
+            ActorProfile alternateActor,
+            ActorProfile noGameplayReaderActor,
+            ActorProfile ambiguousGameplayReaderActor)
         {
             Require(
                 playerOne.PlayerSlotIdText == PlayerQaPaths.PlayerOneSlotId &&
@@ -197,7 +240,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 "Player QA Slot identities must remain distinct and stable.");
             Require(
                 defaultActor.ActorProfileIdText == PlayerQaPaths.DefaultActorId &&
-                alternateActor.ActorProfileIdText == PlayerQaPaths.AlternateActorId,
+                alternateActor.ActorProfileIdText == PlayerQaPaths.AlternateActorId &&
+                noGameplayReaderActor.ActorProfileIdText ==
+                    PlayerQaPaths.NoGameplayReaderActorId &&
+                ambiguousGameplayReaderActor.ActorProfileIdText ==
+                    PlayerQaPaths.AmbiguousGameplayReaderActorId,
                 "Player QA Actor identities must remain stable.");
             Require(
                 playerOne.DefaultActorProfile == defaultActor &&
@@ -211,19 +258,66 @@ namespace ImmersiveFrameworkQA.Player.Editor
         {
             Require(defaultPresentation != alternatePresentation,
                 "Default and Alternate Presentation fixtures must be distinct prefabs.");
-            ValidatePresentation(defaultPresentation, "Default");
-            ValidatePresentation(alternatePresentation, "Alternate");
+            ValidatePresentation(
+                defaultPresentation,
+                "Default",
+                "QA_DefaultPresentation");
+            ValidatePresentation(
+                alternatePresentation,
+                "Alternate",
+                "QA_AlternatePresentation");
         }
 
-        private static void ValidatePresentation(GameObject presentation, string label)
+        private static void ValidatePresentation(
+            GameObject presentation,
+            string label,
+            string expectedName)
         {
             Require(
-                PrefabUtility.IsPartOfPrefabAsset(presentation),
-                $"{label} Presentation must be a prefab asset.");
+                PrefabUtility.IsPartOfPrefabAsset(presentation) &&
+                presentation.name == expectedName,
+                $"{label} Presentation must remain the correctly named prefab asset.");
             Require(
                 presentation.GetComponentsInChildren<PlayerInput>(true).Length == 0 &&
+                presentation.GetComponentsInChildren<PlayerActorRuntimeHost>(true).Length == 0 &&
+                presentation.GetComponentsInChildren<PlayerActorDeclaration>(true).Length == 0 &&
+                presentation.GetComponentsInChildren<PlayerGameplayInputReader>(true).Length == 1,
+                $"{label} Presentation must contain exactly one PlayerGameplayInputReader and no Player Actor infrastructure.");
+        }
+
+        private static void ValidateReaderCardinalityFixtures(
+            GameObject noGameplayReaderPresentation,
+            GameObject ambiguousGameplayReaderPresentation,
+            ActorProfile noGameplayReaderActor,
+            ActorProfile ambiguousGameplayReaderActor)
+        {
+            Require(
+                noGameplayReaderActor.PresentationPrefab == noGameplayReaderPresentation &&
+                ambiguousGameplayReaderActor.PresentationPrefab ==
+                    ambiguousGameplayReaderPresentation,
+                "Player QA reader-cardinality Actor Profiles must retain their exact Presentation fixtures.");
+            ValidatePresentationReaderCardinality(
+                noGameplayReaderPresentation,
+                "No-reader",
+                0);
+            ValidatePresentationReaderCardinality(
+                ambiguousGameplayReaderPresentation,
+                "Ambiguous",
+                2);
+        }
+
+        private static void ValidatePresentationReaderCardinality(
+            GameObject presentation,
+            string label,
+            int expectedReaderCount)
+        {
+            Require(
+                presentation.GetComponentsInChildren<PlayerGameplayInputReader>(true).Length ==
+                    expectedReaderCount &&
+                presentation.GetComponentsInChildren<PlayerActorDeclaration>(true).Length == 0 &&
+                presentation.GetComponentsInChildren<PlayerInput>(true).Length == 0 &&
                 presentation.GetComponentsInChildren<PlayerActorRuntimeHost>(true).Length == 0,
-                $"{label} Presentation must not contain PlayerInput or Player Actor runtime infrastructure.");
+                $"{label} Presentation must contain exactly '{expectedReaderCount}' PlayerGameplayInputReader components and no Player Actor infrastructure.");
         }
 
         private static PlayerActorRuntimeHost ValidateRuntimeHost(GameObject runtimeHostPrefab)
@@ -236,10 +330,20 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 runtimeHost.TryValidateConfiguration(out issue),
                 $"Player QA Runtime Host prefab is invalid. {issue}");
             Require(
+                runtimeHostPrefab.name == "QA_PlayerActorRuntimeHost" &&
                 runtimeHostPrefab.GetComponentsInChildren<PlayerInput>(true).Length == 0 &&
+                runtimeHostPrefab.GetComponentsInChildren<PlayerGameplayInputReader>(true).Length == 0 &&
+                runtimeHostPrefab.GetComponents<PlayerActorRuntimeHost>().Length == 1 &&
+                runtimeHostPrefab.GetComponents<PlayerActorDeclaration>().Length == 1 &&
+                runtimeHostPrefab.GetComponents<CharacterController>().Length == 1 &&
                 runtimeHost.PresentationMount != null &&
-                runtimeHost.PresentationMount.childCount == 0,
-                "Runtime Host prefab must have no PlayerInput and an empty Presentation Mount.");
+                runtimeHost.PresentationMount.parent == runtimeHost.transform &&
+                runtimeHost.PresentationMount.childCount == 0 &&
+                runtimeHost.PlayerActorDeclaration != null,
+                "Runtime Host prefab must keep exactly one root Player Actor host, declaration and CharacterController; PlayerInput is absent and Presentation Mount is empty.");
+            RequireEmptyAuthoredActorId(
+                runtimeHost.PlayerActorDeclaration,
+                "Runtime Host prefab");
             return runtimeHost;
         }
 
@@ -280,20 +384,39 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 RequireSingleInChildren<PlayerActorRuntimeHost>(host.ActorMount);
             Require(
                 playerInput.actions == actions &&
+                admission.LocalPlayerHost == host &&
                 admission.PlayerSlotProfile == playerOne &&
-                admission.ActorProfile == defaultActor &&
-                admission.ScenePlayerActorRuntimeHost == sceneRuntimeHost,
-                "Scene-Provided Local Player references are incomplete or foreign.");
+                admission.ActorProfile == defaultActor,
+                "Scene-Provided Local Player canonical intent is incomplete or foreign.");
             Require(
                 host.TryValidateAdmissionConfiguration(sceneRuntimeHost, true, out string hostIssue),
                 $"Scene-Provided Local Player host is invalid. {hostIssue}");
             Require(
-                admission.TryValidateRuntimeEvidence(out string admissionIssue),
-                $"Scene-Provided Local Player evidence is invalid. {admissionIssue}");
+                host.ActorMount.childCount == 1 &&
+                sceneRuntimeHost.transform.parent == host.ActorMount,
+                "Scene-Provided Runtime Host must be the exact direct Actor Mount child.");
+            Require(
+                sceneRuntimeHost.PresentationMount != null &&
+                sceneRuntimeHost.PresentationMount.parent == sceneRuntimeHost.transform &&
+                sceneRuntimeHost.PresentationMount.childCount == 1,
+                "Scene-Provided Runtime Host must have one direct Presentation Mount child.");
+            GameObject presentation =
+                sceneRuntimeHost.PresentationMount.GetChild(0).gameObject;
+            Require(
+                sceneRuntimeHost.PlayerActorDeclaration != null,
+                "Scene-Provided Runtime Host must contain a Player Actor declaration.");
+            RequireEmptyAuthoredActorId(
+                sceneRuntimeHost.PlayerActorDeclaration,
+                "Scene-Provided Player Actor declaration");
             Require(
                 SourcePrefab(sceneRuntimeHost.gameObject) == runtimeHostPrefab &&
-                SourcePrefab(admission.ScenePresentation) == defaultPresentation,
-                "Scene-Provided Local Player must retain exact Runtime Host and Presentation prefab provenance.");
+                SourcePrefab(presentation) == defaultPresentation,
+                "Scene-Provided Local Player must retain exact authored Runtime Host and Presentation prefab provenance.");
+            SceneProvidedLocalPlayerAuthoringResult validation =
+                SceneProvidedLocalPlayerAuthoringUtility.Validate(admission, false);
+            Require(
+                validation.Succeeded,
+                $"Scene-Provided Local Player validation failed. {validation.Message}");
         }
 
         private static void ValidateSession(
@@ -363,30 +486,112 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 typeof(PlayerGameplayInputReader).GetCustomAttributes(
                     typeof(DisallowMultipleComponent), true).Length > 0,
                 "PlayerGameplayInputReader must prevent duplicate consumers on one Actor.");
-            Require(
-                typeof(PlayerGameplayInputReader).GetCustomAttributes(
-                    typeof(RequireComponent), true).Length > 0,
-                "PlayerGameplayInputReader must require PlayerActorDeclaration.");
-
             var host = new GameObject("QA Player Gameplay Input Reader");
             try
             {
                 host.SetActive(false);
-                host.AddComponent<PlayerActorDeclaration>();
                 PlayerGameplayInputReader reader = host.AddComponent<PlayerGameplayInputReader>();
+                Require(
+                    host.GetComponent<PlayerActorDeclaration>() == null,
+                    "PlayerGameplayInputReader must be authorable without a local PlayerActorDeclaration.");
                 var serialized = new SerializedObject(reader);
                 Require(
                     serialized.FindProperty("playerInput") == null &&
-                    serialized.FindProperty("actions") == null,
+                    serialized.FindProperty("actions") == null &&
+                    !HasSerializedInputOwnershipField(),
                     "PlayerGameplayInputReader must not serialize PlayerInput or a raw Input Action Asset.");
                 Require(
-                    !reader.HasCurrentGameplayBinding,
-                    "Unbound PlayerGameplayInputReader must stay fail-closed.");
+                    !reader.HasCurrentGameplayBinding && !reader.GameplayReady,
+                    "Unbound PlayerGameplayInputReader must stay fail-closed for binding and readiness.");
             }
             finally
             {
                 UnityEngine.Object.DestroyImmediate(host);
             }
+        }
+
+        private static bool HasSerializedInputOwnershipField()
+        {
+            FieldInfo[] fields = typeof(PlayerGameplayInputReader).GetFields(
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            for (int index = 0; index < fields.Length; index++)
+            {
+                FieldInfo field = fields[index];
+                bool isSerialized =
+                    (!field.IsStatic && field.IsPublic &&
+                     !Attribute.IsDefined(field, typeof(NonSerializedAttribute))) ||
+                    Attribute.IsDefined(field, typeof(SerializeField));
+                if (isSerialized &&
+                    (typeof(PlayerInput).IsAssignableFrom(field.FieldType) ||
+                     typeof(InputActionAsset).IsAssignableFrom(field.FieldType)))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static void ValidateCharacterControllerRequirement()
+        {
+            GameObject valid = CreateRuntimeHost("QA Player Actor valid root", true, false);
+            GameObject missing = CreateRuntimeHost("QA Player Actor missing controller", false, false);
+            GameObject childOnly = CreateRuntimeHost("QA Player Actor child controller", false, true);
+            try
+            {
+                PlayerActorRuntimeHost validHost = valid.GetComponent<PlayerActorRuntimeHost>();
+                Require(
+                    validHost.TryValidateConfiguration(out string validIssue),
+                    $"Canonical Player Actor root with CharacterController must be valid. {validIssue}");
+
+                PlayerActorRuntimeHost missingHost = missing.GetComponent<PlayerActorRuntimeHost>();
+                Require(
+                    !missingHost.TryValidateConfiguration(out string missingIssue) &&
+                    missingIssue.IndexOf("CharacterController", StringComparison.Ordinal) >= 0,
+                    "Player Actor root without CharacterController must fail with an explicit CharacterController configuration issue.");
+
+                PlayerActorRuntimeHost childOnlyHost = childOnly.GetComponent<PlayerActorRuntimeHost>();
+                Require(
+                    !childOnlyHost.TryValidateConfiguration(out string childOnlyIssue) &&
+                    childOnlyIssue.IndexOf("CharacterController", StringComparison.Ordinal) >= 0,
+                    "CharacterController only on a Player Actor child must be invalid; the Framework must not search descendants.");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(valid);
+                UnityEngine.Object.DestroyImmediate(missing);
+                UnityEngine.Object.DestroyImmediate(childOnly);
+            }
+        }
+
+        private static GameObject CreateRuntimeHost(
+            string name,
+            bool addRootCharacterController,
+            bool addChildCharacterController)
+        {
+            var root = new GameObject(name);
+            PlayerActorRuntimeHost host = root.AddComponent<PlayerActorRuntimeHost>();
+            PlayerActorDeclaration declaration = root.AddComponent<PlayerActorDeclaration>();
+            var presentationMount = new GameObject("PresentationMount");
+            presentationMount.transform.SetParent(root.transform, false);
+            if (addRootCharacterController)
+            {
+                root.AddComponent<CharacterController>();
+            }
+
+            if (addChildCharacterController)
+            {
+                var child = new GameObject("ChildOnlyCharacterController");
+                child.transform.SetParent(root.transform, false);
+                child.AddComponent<CharacterController>();
+            }
+
+            var serialized = new SerializedObject(host);
+            serialized.FindProperty("playerActorDeclaration").objectReferenceValue = declaration;
+            serialized.FindProperty("presentationMount").objectReferenceValue =
+                presentationMount.transform;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            return root;
         }
 
         private static T Require<T>(string path)
@@ -396,6 +601,22 @@ namespace ImmersiveFrameworkQA.Player.Editor
             Require(asset != null,
                 $"Required Player QA fixture is missing at '{path}'. Run Configure Player QA.");
             return asset;
+        }
+
+        private static void RequireEmptyAuthoredActorId(
+            PlayerActorDeclaration declaration,
+            string owner)
+        {
+            Require(declaration != null,
+                $"{owner} is missing its Player Actor declaration.");
+
+            var serialized = new SerializedObject(declaration);
+            serialized.Update();
+            SerializedProperty actorId = serialized.FindProperty("actorId");
+            Require(actorId != null,
+                $"{owner} Player Actor declaration is missing serialized 'actorId'.");
+            Require(string.IsNullOrWhiteSpace(actorId.stringValue),
+                $"{owner} Player Actor declaration must keep serialized 'actorId' empty before runtime occurrence identity is established.");
         }
 
         private static T RequireSingle<T>(GameObject root)

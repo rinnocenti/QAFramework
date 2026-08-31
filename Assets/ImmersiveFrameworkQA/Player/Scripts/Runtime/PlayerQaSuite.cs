@@ -1,8 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
+using Immersive.Framework.Actors;
+using Immersive.Framework.GameFlow;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace ImmersiveFrameworkQA.Player
@@ -19,6 +23,10 @@ namespace ImmersiveFrameworkQA.Player
             internal string FailureMessage;
             internal int Passed;
             internal int Failed;
+            internal LocalPlayerHostAuthoring PlayerOneHost;
+            internal PlayerGameplayInputReader CurrentGameplayReader;
+            internal PlayerGameplayInputBindingToken LastReleasedGameplayBinding;
+            internal bool PreviousReaderOccurrenceReleased;
 
             internal bool Ok => Failed == 0 && string.IsNullOrEmpty(FailedCase);
 
@@ -75,14 +83,28 @@ namespace ImmersiveFrameworkQA.Player
                 yield break;
             }
 
-            yield return WaitThen(result, "actor-replace", () => ProveReplaceActor(fixture, result));
+            yield return WaitThen(result, "actor-lifecycle", () => ProveActorLifecycle(fixture, result));
             if (!result.Ok)
             {
                 completed?.Invoke(result);
                 yield break;
             }
 
-            yield return WaitThen(result, "actor-lifecycle", () => ProveActorLifecycle(fixture, result));
+            yield return WaitThen(result, "gameplay-ready-reader", () => ProveGameplayReadyReader(fixture, result));
+            if (!result.Ok)
+            {
+                completed?.Invoke(result);
+                yield break;
+            }
+
+            yield return WaitThen(result, "reader-cardinality", () => ProveReaderCardinality(fixture, result));
+            if (!result.Ok)
+            {
+                completed?.Invoke(result);
+                yield break;
+            }
+
+            yield return WaitThen(result, "actor-replace", () => ProveReplaceActor(fixture, result));
             if (!result.Ok)
             {
                 completed?.Invoke(result);
@@ -330,6 +352,10 @@ namespace ImmersiveFrameworkQA.Player
             }
 
             ValidateManagerHost(result, fixture, join.LocalPlayerHost);
+            if (result.Ok)
+            {
+                result.PlayerOneHost = join.LocalPlayerHost;
+            }
             yield return WaitForSlot(
                 result,
                 "join",
@@ -481,6 +507,11 @@ namespace ImmersiveFrameworkQA.Player
                     ? fixture.DefaultActor.PresentationPrefab.name
                     : "missing",
                 "Default Actor selection must retain an explicit ActorProfile PresentationPrefab.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
         }
         private static IEnumerator ProveReplaceActor(PlayerQaPanel fixture, Result result)
         {
@@ -503,6 +534,17 @@ namespace ImmersiveFrameworkQA.Player
                 yield break;
             }
 
+            PlayerGameplayInputReader previousReader = result.CurrentGameplayReader;
+            Require(result, "actor-replace",
+                previousReader != null && previousReader.HasCurrentGameplayBinding,
+                "bound Default Presentation reader before replacement",
+                previousReader == null ? "missing" : previousReader.Diagnostic,
+                "Actor replacement must start from the GameplayReady Default Presentation reader.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
             PlayerActorSelectionResult replace = access.RequestReplaceActorSelection(
                 new PlayerActorSelectionRequest(
                     ExpectedSlotId(fixture),
@@ -519,37 +561,38 @@ namespace ImmersiveFrameworkQA.Player
                 yield break;
             }
 
-            yield return WaitForSlot(
+            yield return WaitFor(
                 result,
                 "actor-replace",
-                fixture,
-                slot => slot.Slot.SelectedActorProfile == fixture.AlternateActor);
+                () => TryResolveCurrentGameplayReader(
+                          result.PlayerOneHost,
+                          out PlayerGameplayInputReader alternateReader,
+                          out _) &&
+                      alternateReader.HasCurrentGameplayBinding &&
+                      !ReferenceEquals(alternateReader, previousReader) &&
+                      TryFindSlot(
+                          fixture,
+                          ExpectedSlotId(fixture),
+                          out PlayerSessionScopedSlotObservation alternateSlot) &&
+                          alternateReader.CurrentBindingToken ==
+                          alternateSlot.GameplayAdmission.InputBindingToken,
+                "FRAMEWORK CONTRACT GAP / REGRESSION: Actor replacement during an active completed GameplayReady Activity does not reconcile the current gameplay projection.");
             if (!result.Ok)
             {
                 yield break;
             }
 
-            PlayerActorSelectionResult restore = access.RequestReplaceActorSelection(
-                new PlayerActorSelectionRequest(
-                    ExpectedSlotId(fixture),
-                    fixture.DefaultActor,
-                    Source,
-                    "player-qa-restore-default-actor",
-                    replace.SelectionRevision));
-            Require(result, "actor-replace", restore != null && restore.Succeeded,
-                "restore default",
-                restore == null ? "null" : $"{restore.Status} {restore.Message}",
-                "Restoring the default Actor after replace failed.");
-            if (!result.Ok)
-            {
-                yield break;
-            }
-
-            yield return WaitForSlot(
-                result,
-                "actor-replace",
-                fixture,
-                slot => slot.Slot.SelectedActorProfile == fixture.DefaultActor);
+            string readerIssue = string.Empty;
+            Require(result, "actor-replace",
+                (previousReader == null || !previousReader.HasCurrentGameplayBinding) &&
+                TryResolveCurrentGameplayReader(
+                    result.PlayerOneHost,
+                    out PlayerGameplayInputReader currentReader,
+                    out readerIssue) &&
+                currentReader.HasCurrentGameplayBinding,
+                "released Default reader and bound Alternate reader",
+                readerIssue,
+                "Actor replacement left the retired Presentation reader bound or did not bind the Alternate Presentation reader.");
         }
         private static IEnumerator ProveActorLifecycle(PlayerQaPanel fixture, Result result)
         {
@@ -604,6 +647,535 @@ namespace ImmersiveFrameworkQA.Player
                         slot.HasHostEvidence &&
                         slot.HostEvidence.AssignmentOrigin ==
                             PlayerSlotAssignmentOrigin.ManagerProvisioned);
+        }
+
+        private static IEnumerator ProveGameplayReadyReader(
+            PlayerQaPanel fixture,
+            Result result)
+        {
+            ActivityRequestTrigger trigger = fixture.GameplayReadyActivityTrigger;
+            Require(result, "gameplay-ready-reader",
+                trigger != null &&
+                fixture.GameplayReadyActivity != null &&
+                ReferenceEquals(trigger.TargetActivity, fixture.GameplayReadyActivity),
+                "GameplayReady Activity trigger",
+                trigger != null && trigger.TargetActivity != null
+                    ? trigger.TargetActivity.ActivityName
+                    : "missing",
+                "Player QA requires its dedicated GameplayReady Activity trigger.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            yield return RequestActivity(
+                result,
+                "gameplay-ready-reader",
+                trigger,
+                expectSuccess: true,
+                "GameplayReady Activity request did not complete successfully.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            EmitGameplayReadyReaderTopologyDiagnostic(result);
+
+            yield return WaitFor(
+                result,
+                "gameplay-ready-reader",
+                () => TryResolveCurrentGameplayReader(
+                          result.PlayerOneHost,
+                          out PlayerGameplayInputReader reader,
+                          out _) &&
+                      reader.HasCurrentGameplayBinding &&
+                      TryFindSlot(
+                          fixture,
+                          ExpectedSlotId(fixture),
+                          out PlayerSessionScopedSlotObservation slot) &&
+                      slot.Slot.SelectedActorProfile == fixture.DefaultActor &&
+                      slot.HasGameplayAdmissionEvidence &&
+                      slot.GameplayAdmission.IsAdmitted &&
+                      reader.CurrentBindingToken == slot.GameplayAdmission.InputBindingToken,
+                DescribeGameplayReadyReaderFailure(fixture, result));
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            string readerIssue = string.Empty;
+            Require(result, "gameplay-ready-reader",
+                TryResolveCurrentGameplayReader(
+                    result.PlayerOneHost,
+                    out PlayerGameplayInputReader reader,
+                    out readerIssue) &&
+                reader.gameObject.GetComponent<PlayerActorDeclaration>() == null &&
+                TryFindSlot(
+                    fixture,
+                    ExpectedSlotId(fixture),
+                    out PlayerSessionScopedSlotObservation slot) &&
+                reader.HasCurrentGameplayBinding &&
+                reader.CurrentBindingToken.IsValid &&
+                reader.CurrentBindingToken == slot.GameplayAdmission.InputBindingToken &&
+                reader.GameplayReady == slot.GameplayAdmission.GameplayReady,
+                "current Default Presentation gameplay reader",
+                readerIssue,
+                DescribeGameplayReadyReaderFailure(fixture, result));
+            if (result.Ok)
+            {
+                result.CurrentGameplayReader = reader;
+            }
+        }
+
+        private static IEnumerator ProveReaderCardinality(PlayerQaPanel fixture, Result result)
+        {
+            Require(result, "reader-cardinality",
+                fixture.NoGameplayReaderActor != null &&
+                fixture.DefaultActor != null &&
+                fixture.AmbiguousGameplayReaderActor != null,
+                "zero, one and ambiguous Actor Profiles",
+                "missing",
+                "Reader cardinality requires the three authored Actor fixtures.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            // A suíte chega com a ocorrência canônica em GameplayReady.
+            // Ela termina antes da cardinalidade, pois downgrade de Activity é apenas contextual.
+            yield return LeaveReaderCardinalityOccurrence(
+                fixture, result, "initial-occurrence");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            yield return RunFreshReaderCardinalityFixture(
+                fixture, result, "zero", fixture.NoGameplayReaderActor, 0,
+                expectGameplayReady: true, leaveAfterProof: true);
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            yield return RunFreshReaderCardinalityFixture(
+                fixture, result, "one", fixture.DefaultActor, 1,
+                expectGameplayReady: true, leaveAfterProof: true);
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            yield return RunFreshReaderCardinalityFixture(
+                fixture, result, "ambiguous", fixture.AmbiguousGameplayReaderActor, 2,
+                expectGameplayReady: false, leaveAfterProof: true);
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            // Preserva a pré-condição da prova separada de actor-replace sem alterá-la
+            // nem tratar replacement como mecanismo de cardinalidade.
+            yield return RunFreshReaderCardinalityFixture(
+                fixture, result, "actor-replace-precondition", fixture.DefaultActor, 1,
+                expectGameplayReady: true, leaveAfterProof: false);
+        }
+
+        private static IEnumerator RunFreshReaderCardinalityFixture(
+            PlayerQaPanel fixture,
+            Result result,
+            string fixtureName,
+            ActorProfile actor,
+            int expectedReaderCount,
+            bool expectGameplayReady,
+            bool leaveAfterProof)
+        {
+            if (!TryGetAccess(fixture, out IPlayerSessionScopedAccess access, out string issue))
+            {
+                result.Fail("reader-cardinality", "available Route-scoped access", issue, issue);
+                yield break;
+            }
+
+            PlayerParticipationOperationResult open = access.OpenJoining(
+                Source, $"player-qa-reader-cardinality-{fixtureName}-open-joining");
+            Require(result, "reader-cardinality",
+                open != null && open.Completed && open.Snapshot != null && open.Snapshot.JoiningOpen,
+                "joining open before fresh occurrence",
+                open == null ? "null" : $"{open.Status} {open.Message}",
+                "Reader cardinality could not establish the public joining policy for a fresh Player occurrence.");
+            string joinIssue = string.Empty;
+            if (!result.Ok || !fixture.Probe.TryGetJoinAccess(
+                    out ILocalPlayerJoinAccess joinAccess, out joinIssue) ||
+                joinAccess == null)
+            {
+                if (result.Ok)
+                {
+                    result.Fail("reader-cardinality", "ILocalPlayerJoinAccess", joinIssue,
+                        "Fresh Player occurrence requires the authored Route-scoped join access.");
+                }
+
+                yield break;
+            }
+
+            LocalPlayerJoinResult join = joinAccess.RequestJoin(
+                new LocalPlayerJoinRequest(
+                    Source, $"player-qa-reader-cardinality-{fixtureName}-join"));
+            Require(result, "reader-cardinality",
+                join != null && join.Succeeded &&
+                join.Slot.PlayerSlotId == ExpectedSlotId(fixture) &&
+                join.LocalPlayerHost != null && join.HasLocalPlayerHostEvidence,
+                "fresh joined P1 occurrence with Host evidence",
+                join == null ? "null" : $"{join.Status} {join.Message}",
+                "Fresh Player occurrence did not join the canonical P1 Slot.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            result.PlayerOneHost = join.LocalPlayerHost;
+            result.CurrentGameplayReader = null;
+            yield return WaitFor(result, "reader-cardinality", () =>
+                TryFindSlot(fixture, ExpectedSlotId(fixture), out PlayerSessionScopedSlotObservation fresh) &&
+                fresh.IsJoined &&
+                fresh.Slot.Revision == join.Slot.Revision &&
+                !fresh.Slot.HasSelectedActor &&
+                !fresh.IsLogicalActorPrepared &&
+                !fresh.IsPhysicallyMaterialized &&
+                join.LocalPlayerHost != null && join.LocalPlayerHost.ActorMount != null &&
+                join.LocalPlayerHost.ActorMount.GetComponentsInChildren<PlayerActorRuntimeHost>(true).Length == 0,
+                "Fresh Player occurrence did not reach mutable selection with no prepared Actor or Runtime Host.");
+            if (!result.Ok || !TryFindSlot(
+                    fixture, ExpectedSlotId(fixture), out PlayerSessionScopedSlotObservation mutable))
+            {
+                yield break;
+            }
+
+            PlayerActorSelectionResult selection = access.RequestSelectActorProfile(
+                new PlayerActorSelectionRequest(
+                    ExpectedSlotId(fixture), actor, Source,
+                    $"player-qa-reader-cardinality-{fixtureName}-select",
+                    mutable.Slot.SelectionRevision));
+            Require(result, "reader-cardinality",
+                selection != null && selection.Succeeded && selection.StateChanged &&
+                selection.Slot.SelectedActorProfile == actor,
+                $"{fixtureName} initial Actor selection before preparation",
+                selection == null ? "null" : $"{selection.Status} {selection.Message}",
+                "A fresh unselected Player occurrence must use SelectActorProfile before preparation.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            yield return RequestActivity(result, "reader-cardinality", fixture.RelocateActivityTrigger,
+                expectSuccess: true,
+                $"Relocate Activity did not prepare the {fixtureName} Actor through the canonical lifecycle.");
+            yield return WaitFor(result, "reader-cardinality", () =>
+                HasPreparedReaderCardinality(
+                    fixture, result.PlayerOneHost, actor, expectedReaderCount),
+                $"Timed out preparing the {fixtureName} Presentation.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            yield return RequestActivity(result, "reader-cardinality", fixture.GameplayReadyActivityTrigger,
+                expectSuccess: expectGameplayReady,
+                expectGameplayReady
+                    ? $"GameplayReady Activity rejected the valid {fixtureName} Presentation."
+                    : "GameplayReady Activity did not reject the ambiguous Presentation.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            yield return WaitFor(result, "reader-cardinality", () =>
+                HasGameplayReaderCardinality(
+                    fixture, result.PlayerOneHost, actor, expectedReaderCount,
+                    expectGameplayReady) &&
+                (!expectGameplayReady || expectedReaderCount != 1 ||
+                    HasBoundCurrentGameplayReader(fixture, result, actor)) &&
+                (expectGameplayReady || HasNoBoundCurrentGameplayReader(result.PlayerOneHost)),
+                expectGameplayReady
+                    ? $"Timed out admitting the {fixtureName} Presentation under GameplayReady authority."
+                    : "Timed out waiting for the normal Player gameplay chain to reject ambiguous reader cardinality.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            if (expectGameplayReady && expectedReaderCount == 1 &&
+                TryResolveCurrentGameplayReader(
+                    result.PlayerOneHost, out PlayerGameplayInputReader currentReader, out _))
+            {
+                result.CurrentGameplayReader = currentReader;
+                Require(result, "reader-cardinality",
+                    !result.LastReleasedGameplayBinding.IsValid ||
+                    currentReader.CurrentBindingToken != result.LastReleasedGameplayBinding,
+                    "fresh occurrence gameplay binding token",
+                    currentReader.CurrentBindingToken.StableText,
+                    "A fresh Player occurrence reused the gameplay binding token released by its predecessor.");
+            }
+
+            Require(result, "reader-cardinality",
+                !expectGameplayReady || expectedReaderCount != 0 ||
+                HasNoBoundCurrentGameplayReader(result.PlayerOneHost),
+                "zero-reader Presentation admitted without a current reader binding",
+                result.CurrentGameplayReader == null ? "no-current-reader" : result.CurrentGameplayReader.Diagnostic,
+                "A zero-reader Presentation retained gameplay input authority.");
+            if (!expectGameplayReady)
+            {
+                Require(result, "reader-cardinality",
+                    fixture.GameplayReadyActivityTrigger.LastMessage != null &&
+                    fixture.GameplayReadyActivityTrigger.LastMessage.Contains(
+                        "requires at most one PlayerGameplayInputReader"),
+                    "HostScoped Player gameplay endpoint cardinality rejection",
+                    fixture.GameplayReadyActivityTrigger.LastMessage ?? "missing",
+                    "Ambiguous cardinality was not rejected by the normal HostScoped Player gameplay endpoint resolution.");
+            }
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            EmitReaderCardinalityDiagnostic(
+                fixtureName, actor, join, selection, result,
+                DescribeActivityRequestOutcome(fixture.GameplayReadyActivityTrigger),
+                leaveOutcome: leaveAfterProof ? "pending" : "not-requested");
+            if (leaveAfterProof)
+            {
+                yield return LeaveReaderCardinalityOccurrence(
+                    fixture, result, fixtureName);
+            }
+        }
+
+        private static IEnumerator LeaveReaderCardinalityOccurrence(
+            PlayerQaPanel fixture,
+            Result result,
+            string phase)
+        {
+            if (!TryGetAccess(fixture, out IPlayerSessionScopedAccess access, out string issue) ||
+                !TryFindSlot(fixture, ExpectedSlotId(fixture), out PlayerSessionScopedSlotObservation current) ||
+                !current.IsJoined)
+            {
+                result.Fail("reader-cardinality", "current joined P1 occurrence",
+                    string.IsNullOrEmpty(issue) ? "P1 unavailable" : issue,
+                    "Reader cardinality can only reset through the public Leave operation for the current occurrence.");
+                yield break;
+            }
+
+            LocalPlayerHostAuthoring previousHost = result.PlayerOneHost;
+            PlayerActorRuntimeHost previousRuntimeHost = null;
+            GameObject previousPresentation = null;
+            if (previousHost != null && previousHost.ActorMount != null)
+            {
+                PlayerActorRuntimeHost[] runtimeHosts = previousHost.ActorMount
+                    .GetComponentsInChildren<PlayerActorRuntimeHost>(true);
+                if (runtimeHosts.Length == 1)
+                {
+                    previousRuntimeHost = runtimeHosts[0];
+                    if (previousRuntimeHost != null &&
+                        previousRuntimeHost.PresentationMount != null &&
+                        previousRuntimeHost.PresentationMount.childCount == 1)
+                    {
+                        previousPresentation = previousRuntimeHost.PresentationMount
+                            .GetChild(0).gameObject;
+                    }
+                }
+            }
+
+            PlayerGameplayInputReader previousReader = result.CurrentGameplayReader;
+            PlayerGameplayInputBindingToken previousBinding = previousReader != null
+                ? previousReader.CurrentBindingToken
+                : default;
+            SessionPlayerLeaveResult leave = access.RequestLeave(
+                new SessionPlayerLeaveRequest(
+                    ExpectedSlotId(fixture), current.Slot.Revision, Source,
+                    $"player-qa-reader-cardinality-{phase}-leave"));
+            Require(result, "reader-cardinality", leave != null && leave.Succeeded,
+                $"{phase} Leave succeeded",
+                leave == null ? "null" : $"{leave.Status} {leave.Message}",
+                "Fresh Player occurrence teardown must use the public Session Player Leave authority.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            yield return WaitFor(result, "reader-cardinality", () =>
+                TryFindSlot(fixture, ExpectedSlotId(fixture), out PlayerSessionScopedSlotObservation released) &&
+                !released.IsJoined &&
+                !released.IsLogicalActorPrepared &&
+                !released.IsPhysicallyMaterialized &&
+                (previousReader == null || !previousReader.HasCurrentGameplayBinding) &&
+                previousRuntimeHost == null &&
+                previousPresentation == null &&
+                previousHost == null,
+                $"Public Leave did not release the {phase} Actor, Runtime Host, Presentation and gameplay binding.");
+            Require(result, "reader-cardinality",
+                !previousBinding.IsValid || previousReader == null ||
+                !previousReader.HasCurrentGameplayBinding,
+                $"{phase} gameplay binding released",
+                previousReader == null ? "destroyed" : previousReader.Diagnostic,
+                "A previous Player occurrence binding remained authoritative after Leave.");
+            if (result.Ok)
+            {
+                if (previousBinding.IsValid)
+                {
+                    result.LastReleasedGameplayBinding = previousBinding;
+                }
+
+                result.PreviousReaderOccurrenceReleased = true;
+                result.PlayerOneHost = null;
+                result.CurrentGameplayReader = null;
+            }
+        }
+
+        private static bool HasPreparedReaderCardinality(
+            PlayerQaPanel fixture,
+            LocalPlayerHostAuthoring host,
+            ActorProfile expectedActor,
+            int expectedReaderCount)
+        {
+            return TryFindSlot(
+                       fixture,
+                       ExpectedSlotId(fixture),
+                       out PlayerSessionScopedSlotObservation slot) &&
+                   slot.Slot.SelectedActorProfile == expectedActor &&
+                   slot.IsLogicalActorPrepared &&
+                   slot.IsPhysicallyMaterialized &&
+                   TryGetCurrentGameplayReaderCount(
+                       host,
+                       out int readerCount,
+                       out _) &&
+                   readerCount == expectedReaderCount;
+        }
+
+        private static bool HasGameplayReaderCardinality(
+            PlayerQaPanel fixture,
+            LocalPlayerHostAuthoring host,
+            ActorProfile expectedActor,
+            int expectedReaderCount,
+            bool expectedAdmission)
+        {
+            return TryFindSlot(
+                       fixture,
+                       ExpectedSlotId(fixture),
+                       out PlayerSessionScopedSlotObservation slot) &&
+                   slot.Slot.SelectedActorProfile == expectedActor &&
+                   slot.HasGameplayAdmissionEvidence &&
+                   slot.GameplayAdmission.IsAdmitted == expectedAdmission &&
+                   TryGetCurrentGameplayReaderCount(
+                       host,
+                       out int readerCount,
+                       out _) &&
+                   readerCount == expectedReaderCount;
+        }
+
+        private static bool HasBoundCurrentGameplayReader(
+            PlayerQaPanel fixture,
+            Result result,
+            ActorProfile expectedActor)
+        {
+            return TryResolveCurrentGameplayReader(
+                       result.PlayerOneHost,
+                       out PlayerGameplayInputReader reader,
+                       out _) &&
+                   reader.HasCurrentGameplayBinding &&
+                   TryFindSlot(
+                       fixture,
+                       ExpectedSlotId(fixture),
+                       out PlayerSessionScopedSlotObservation slot) &&
+                   slot.Slot.SelectedActorProfile == expectedActor &&
+                   slot.HasGameplayAdmissionEvidence &&
+                   slot.GameplayAdmission.IsAdmitted &&
+                   reader.CurrentBindingToken == slot.GameplayAdmission.InputBindingToken;
+        }
+
+        private static bool HasNoBoundCurrentGameplayReader(LocalPlayerHostAuthoring host)
+        {
+            if (!TryGetCurrentGameplayReaders(
+                    host,
+                    out PlayerGameplayInputReader[] readers,
+                    out _))
+            {
+                return false;
+            }
+
+            for (int index = 0; index < readers.Length; index++)
+            {
+                if (readers[index] != null && readers[index].HasCurrentGameplayBinding)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static void EmitReaderCardinalityDiagnostic(
+            string fixtureName,
+            ActorProfile actor,
+            LocalPlayerJoinResult join,
+            PlayerActorSelectionResult selection,
+            Result result,
+            string gameplayProjectionOutcome,
+            string leaveOutcome)
+        {
+            LocalPlayerHostAuthoring host = result != null ? result.PlayerOneHost : null;
+            PlayerActorRuntimeHost runtimeHost = null;
+            GameObject presentation = null;
+            PlayerGameplayInputReader boundReader = null;
+            int readerCount = -1;
+            if (host != null && host.ActorMount != null)
+            {
+                PlayerActorRuntimeHost[] runtimeHosts = host.ActorMount
+                    .GetComponentsInChildren<PlayerActorRuntimeHost>(true);
+                if (runtimeHosts.Length == 1)
+                {
+                    runtimeHost = runtimeHosts[0];
+                    if (runtimeHost != null && runtimeHost.PresentationMount != null &&
+                        runtimeHost.PresentationMount.childCount == 1)
+                    {
+                        presentation = runtimeHost.PresentationMount.GetChild(0).gameObject;
+                    }
+                }
+
+                if (TryGetCurrentGameplayReaders(host, out PlayerGameplayInputReader[] readers, out _))
+                {
+                    readerCount = readers.Length;
+                    for (int index = 0; index < readers.Length; index++)
+                    {
+                        if (readers[index] != null && readers[index].HasCurrentGameplayBinding)
+                        {
+                            boundReader = readers[index];
+                            break;
+                        }
+                    }
+                }
+            }
+
+            Debug.Log(
+                $"[QA_PLAYER_READER_CARDINALITY] fixture='{fixtureName}' " +
+                $"actor='{DescribeObject(actor)}' " +
+                $"playerOccurrence='{(join != null ? join.Slot.Revision.ToString() : "unavailable")}' " +
+                $"joinOutcome='{(join != null ? join.Status.ToString() : "not-requested")}' " +
+                "selectionOperation='SelectActorProfile' " +
+                $"selectionOutcome='{(selection != null ? selection.Status.ToString() : "not-requested")}' " +
+                $"preparedActor='{(runtimeHost != null)}' " +
+                $"runtimeHost='{DescribeObject(runtimeHost)}' " +
+                $"presentation='{DescribeObject(presentation)}' " +
+                $"readerCount='{readerCount}' " +
+                $"boundReader='{DescribeObject(boundReader)}' " +
+                $"stalePreviousReaderBound='{(result != null && !result.PreviousReaderOccurrenceReleased)}' " +
+                $"gameplayProjectionOutcome='{gameplayProjectionOutcome}' " +
+                $"leaveOutcome='{leaveOutcome}'.");
+        }
+
+
+        private static string DescribeActivityRequestOutcome(ActivityRequestTrigger trigger)
+        {
+            return trigger == null
+                ? "missing"
+                : trigger.LastOutcome.ToString();
         }
 
         private static IEnumerator ProveSecondPlayer(PlayerQaPanel fixture, Result result)
@@ -1020,6 +1592,306 @@ namespace ImmersiveFrameworkQA.Player
                 "Join did not materialize the canonical Manager Local Player Host composition.");
         }
 
+        private static void EmitGameplayReadyReaderTopologyDiagnostic(Result result)
+        {
+            const string prefix = "[QA_PLAYER_PRESENTATION_DIAGNOSTIC]";
+            LocalPlayerHostAuthoring host = result != null ? result.PlayerOneHost : null;
+            if (host == null || host.ActorMount == null)
+            {
+                Debug.LogError(
+                    $"{prefix} host='{DescribeObject(host)}' " +
+                    $"actorMount='{DescribeObject(host != null ? host.ActorMount : null)}' " +
+                    "runtimeHostCount='0' runtimeHost='<unavailable>' " +
+                    "declarationCount='0' declaration='<unavailable>' " +
+                    "declarationOnRuntimeHostRoot='false' presentationMount='<unavailable>' " +
+                    "presentationChildCount='0' runtimeHostReaderCount='0' " +
+                    "declarationSubtreeReaderCount='0' presentationMountReaderCount='0' " +
+                    "reason='Canonical joined Local Player Host or Actor Mount is unavailable.'",
+                    host);
+                return;
+            }
+
+            PlayerActorRuntimeHost[] runtimeHosts = host.ActorMount
+                .GetComponentsInChildren<PlayerActorRuntimeHost>(true);
+            PlayerActorRuntimeHost runtimeHost = runtimeHosts.Length == 1
+                ? runtimeHosts[0]
+                : null;
+
+            PlayerActorDeclaration[] declarations = runtimeHost != null
+                ? runtimeHost.GetComponentsInChildren<PlayerActorDeclaration>(true)
+                : System.Array.Empty<PlayerActorDeclaration>();
+            PlayerActorDeclaration declaration = runtimeHost != null
+                ? runtimeHost.PlayerActorDeclaration
+                : null;
+            Transform presentationMount = runtimeHost != null
+                ? runtimeHost.PresentationMount
+                : null;
+
+            PlayerGameplayInputReader[] runtimeHostReaders = runtimeHost != null
+                ? runtimeHost.GetComponentsInChildren<PlayerGameplayInputReader>(true)
+                : System.Array.Empty<PlayerGameplayInputReader>();
+            PlayerGameplayInputReader[] declarationReaders = declaration != null
+                ? declaration.GetComponentsInChildren<PlayerGameplayInputReader>(true)
+                : System.Array.Empty<PlayerGameplayInputReader>();
+            PlayerGameplayInputReader[] presentationReaders = presentationMount != null
+                ? presentationMount.GetComponentsInChildren<PlayerGameplayInputReader>(true)
+                : System.Array.Empty<PlayerGameplayInputReader>();
+
+            var readerEvidence = new List<PlayerGameplayInputReader>();
+            AddDistinctReaders(readerEvidence, runtimeHostReaders);
+            AddDistinctReaders(readerEvidence, declarationReaders);
+            AddDistinctReaders(readerEvidence, presentationReaders);
+
+            var diagnostic = new StringBuilder(prefix);
+            diagnostic.Append(" host='").Append(DescribeObject(host)).Append("'")
+                .Append(" actorMount='").Append(DescribeObject(host.ActorMount)).Append("'")
+                .Append(" runtimeHostCount='").Append(runtimeHosts.Length).Append("'")
+                .Append(" runtimeHost='").Append(DescribeObject(runtimeHost)).Append("'")
+                .Append(" declarationCount='").Append(declarations.Length).Append("'")
+                .Append(" declaration='").Append(DescribeObject(declaration)).Append("'")
+                .Append(" declarationOnRuntimeHostRoot='")
+                .Append(runtimeHost != null && declaration != null &&
+                    ReferenceEquals(declaration.gameObject, runtimeHost.gameObject))
+                .Append("'")
+                .Append(" declarationTransformEqualsRuntimeHostTransform='")
+                .Append(runtimeHost != null && declaration != null &&
+                    declaration.transform == runtimeHost.transform)
+                .Append("'")
+                .Append(" presentationMount='").Append(DescribeObject(presentationMount)).Append("'")
+                .Append(" presentationMountIsChildOfRuntimeHost='")
+                .Append(runtimeHost != null && presentationMount != null &&
+                    presentationMount.IsChildOf(runtimeHost.transform))
+                .Append("'")
+                .Append(" presentationChildCount='")
+                .Append(presentationMount != null ? presentationMount.childCount : 0)
+                .Append("'")
+                .Append(" runtimeHostReaderCount='").Append(runtimeHostReaders.Length).Append("'")
+                .Append(" declarationSubtreeReaderCount='").Append(declarationReaders.Length).Append("'")
+                .Append(" presentationMountReaderCount='").Append(presentationReaders.Length).Append("'");
+
+            if (presentationMount != null)
+            {
+                for (int index = 0; index < presentationMount.childCount; index++)
+                {
+                    Transform child = presentationMount.GetChild(index);
+                    diagnostic.Append(" presentationChild[").Append(index).Append("]='")
+                        .Append(DescribeObject(child))
+                        .Append("' activeSelf='").Append(child.gameObject.activeSelf)
+                        .Append("' activeInHierarchy='").Append(child.gameObject.activeInHierarchy)
+                        .Append("'");
+                }
+            }
+
+            for (int index = 0; index < readerEvidence.Count; index++)
+            {
+                PlayerGameplayInputReader reader = readerEvidence[index];
+                diagnostic.Append(" readerIndex='").Append(index)
+                    .Append("' readerGameObject='").Append(DescribeObject(reader != null ? reader.gameObject : null))
+                    .Append("' readerInstanceId='");
+                if (reader != null)
+                {
+                    diagnostic.Append(reader.GetEntityId().ToString());
+                }
+                else
+                {
+                    diagnostic.Append("<missing>");
+                }
+
+                diagnostic.Append("' hasCurrentGameplayBinding='")
+                    .Append(reader != null && reader.HasCurrentGameplayBinding)
+                    .Append("' gameplayReady='").Append(reader != null && reader.GameplayReady)
+                    .Append("' bindingTokenValid='").Append(reader != null && reader.CurrentBindingToken.IsValid)
+                    .Append("' readerIsChildOfRuntimeHost='")
+                    .Append(reader != null && runtimeHost != null &&
+                        reader.transform.IsChildOf(runtimeHost.transform))
+                    .Append("' readerIsChildOfDeclaration='")
+                    .Append(reader != null && declaration != null &&
+                        reader.transform.IsChildOf(declaration.transform))
+                    .Append("'");
+            }
+
+            Debug.Log(diagnostic.ToString(), host);
+        }
+
+        private static void AddDistinctReaders(
+            List<PlayerGameplayInputReader> destination,
+            PlayerGameplayInputReader[] candidates)
+        {
+            for (int candidateIndex = 0; candidateIndex < candidates.Length; candidateIndex++)
+            {
+                PlayerGameplayInputReader candidate = candidates[candidateIndex];
+                bool alreadyPresent = false;
+                for (int existingIndex = 0; existingIndex < destination.Count; existingIndex++)
+                {
+                    if (ReferenceEquals(destination[existingIndex], candidate))
+                    {
+                        alreadyPresent = true;
+                        break;
+                    }
+                }
+
+                if (!alreadyPresent)
+                {
+                    destination.Add(candidate);
+                }
+            }
+        }
+
+        private static string DescribeObject(UnityEngine.Object value)
+        {
+            return value != null ? value.name : "<missing>";
+        }
+
+        private static string DescribeGameplayReadyReaderFailure(
+            PlayerQaPanel fixture,
+            Result result)
+        {
+            if (!TryGetCurrentGameplayReaders(
+                    result != null ? result.PlayerOneHost : null,
+                    out PlayerGameplayInputReader[] readers,
+                    out string topologyIssue))
+            {
+                return $"GameplayReady reader not found because canonical topology is invalid: {topologyIssue}";
+            }
+
+            if (readers.Length == 0)
+            {
+                return "GameplayReady reader is absent from the Default Presentation hierarchy.";
+            }
+
+            if (readers.Length != 1 || readers[0] == null)
+            {
+                return $"GameplayReady reader topology is invalid: expected exactly one reader, found '{readers.Length}'.";
+            }
+
+            PlayerGameplayInputReader reader = readers[0];
+            if (!reader.HasCurrentGameplayBinding)
+            {
+                return "GameplayReady reader was found but remains unbound.";
+            }
+
+            if (!reader.CurrentBindingToken.IsValid)
+            {
+                return "GameplayReady reader is bound but its binding token is invalid.";
+            }
+
+            if (!TryFindSlot(
+                    fixture,
+                    ExpectedSlotId(fixture),
+                    out PlayerSessionScopedSlotObservation slot) ||
+                !slot.HasGameplayAdmissionEvidence ||
+                reader.CurrentBindingToken != slot.GameplayAdmission.InputBindingToken)
+            {
+                return "GameplayReady reader is bound but its binding token does not match current gameplay admission.";
+            }
+
+            if (!reader.GameplayReady)
+            {
+                return IsCurrentPresentationInactive(result != null ? result.PlayerOneHost : null)
+                    ? "GameplayReady reader is bound with a valid token but its Presentation occurrence is inactive."
+                    : "GameplayReady reader is bound with a valid token but is not GameplayReady.";
+            }
+
+            return "GameplayReady reader verification did not reach the expected terminal state.";
+        }
+
+        private static bool TryResolveCurrentGameplayReader(
+            LocalPlayerHostAuthoring localPlayerHost,
+            out PlayerGameplayInputReader reader,
+            out string issue)
+        {
+            reader = null;
+            if (!TryGetCurrentGameplayReaders(localPlayerHost, out PlayerGameplayInputReader[] readers, out issue))
+            {
+                return false;
+            }
+
+            if (readers.Length != 1)
+            {
+                issue =
+                    $"Canonical Player Presentation requires exactly one PlayerGameplayInputReader. Found '{readers.Length}'.";
+                return false;
+            }
+
+            reader = readers[0];
+            return reader != null;
+        }
+
+        private static bool TryGetCurrentGameplayReaderCount(
+            LocalPlayerHostAuthoring localPlayerHost,
+            out int readerCount,
+            out string issue)
+        {
+            readerCount = 0;
+            if (!TryGetCurrentGameplayReaders(localPlayerHost, out PlayerGameplayInputReader[] readers, out issue))
+            {
+                return false;
+            }
+
+            readerCount = readers.Length;
+            return true;
+        }
+
+        private static bool TryGetCurrentGameplayReaders(
+            LocalPlayerHostAuthoring localPlayerHost,
+            out PlayerGameplayInputReader[] readers,
+            out string issue)
+        {
+            readers = System.Array.Empty<PlayerGameplayInputReader>();
+            issue = string.Empty;
+            if (localPlayerHost == null || localPlayerHost.ActorMount == null)
+            {
+                issue = "Joined Local Player Host or its Actor Mount is unavailable.";
+                return false;
+            }
+
+            PlayerActorRuntimeHost[] runtimeHosts = localPlayerHost.ActorMount
+                .GetComponentsInChildren<PlayerActorRuntimeHost>(true);
+            if (runtimeHosts.Length != 1 || runtimeHosts[0] == null ||
+                runtimeHosts[0].transform.parent != localPlayerHost.ActorMount)
+            {
+                issue =
+                    $"Joined Local Player Host requires exactly one direct PlayerActorRuntimeHost. Found '{runtimeHosts.Length}'.";
+                return false;
+            }
+
+            PlayerActorRuntimeHost runtimeHost = runtimeHosts[0];
+            if (!runtimeHost.TryValidateConfiguration(out issue) ||
+                runtimeHost.PresentationMount == null ||
+                runtimeHost.PresentationMount.parent != runtimeHost.transform ||
+                runtimeHost.PresentationMount.childCount != 1)
+            {
+                issue = string.IsNullOrEmpty(issue)
+                    ? "Canonical Player Actor Runtime Host requires one direct Presentation instance."
+                    : issue;
+                return false;
+            }
+
+            readers = runtimeHost.PresentationMount
+                .GetComponentsInChildren<PlayerGameplayInputReader>(true);
+            return true;
+        }
+
+        private static bool IsCurrentPresentationInactive(
+            LocalPlayerHostAuthoring localPlayerHost)
+        {
+            if (localPlayerHost == null || localPlayerHost.ActorMount == null)
+            {
+                return false;
+            }
+
+            PlayerActorRuntimeHost[] runtimeHosts = localPlayerHost.ActorMount
+                .GetComponentsInChildren<PlayerActorRuntimeHost>(true);
+            if (runtimeHosts.Length != 1 || runtimeHosts[0] == null ||
+                runtimeHosts[0].PresentationMount == null ||
+                runtimeHosts[0].PresentationMount.childCount != 1)
+            {
+                return false;
+            }
+
+            return !runtimeHosts[0].PresentationMount.GetChild(0).gameObject.activeSelf;
+        }
+
         private static bool TryGetAccess(
             PlayerQaPanel fixture,
             out IPlayerSessionScopedAccess access,
@@ -1160,6 +2032,47 @@ namespace ImmersiveFrameworkQA.Player
             return $"status='timeout' expectedSlot='{expectedText}' " +
                    $"observationAvailable='{observation.IsAvailable}' " +
                    $"observedSlots='{observedSlots}' slotFound='false'";
+        }
+
+        private static IEnumerator RequestActivity(
+            Result result,
+            string caseId,
+            ActivityRequestTrigger trigger,
+            bool expectSuccess,
+            string failure)
+        {
+            Require(result, caseId,
+                trigger != null && trigger.TargetActivity != null,
+                "configured Activity trigger",
+                trigger == null ? "missing" : "target missing",
+                failure);
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            trigger.RequestActivity();
+            yield return WaitFor(
+                result,
+                caseId,
+                () => !trigger.IsRequestInFlight &&
+                      (trigger.LastRequestSucceeded ||
+                       trigger.LastRequestFailed ||
+                       trigger.LastRequestIgnored),
+                "Timed out waiting for the Activity request outcome.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            bool expectedOutcome = expectSuccess
+                ? trigger.LastRequestSucceeded
+                : trigger.LastRequestFailed;
+            Require(result, caseId,
+                expectedOutcome,
+                expectSuccess ? "successful Activity request" : "failed Activity request",
+                $"outcome={trigger.LastOutcome} message={trigger.LastMessage}",
+                failure);
         }
 
         private static IEnumerator WaitFor(

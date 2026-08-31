@@ -39,13 +39,17 @@ namespace ImmersiveFrameworkQA.Player
         [SerializeField] private PlayerSlotProfile playerTwoSlot;
         [SerializeField] private ActorProfile defaultActor;
         [SerializeField] private ActorProfile alternateActor;
+        [SerializeField] private ActorProfile noGameplayReaderActor;
+        [SerializeField] private ActorProfile ambiguousGameplayReaderActor;
         [SerializeField] private RoutePlayerSpatialEntryAuthoring spatialEntry;
         [SerializeField] private ActivityPlayerRelocationAuthoring relocation;
         [SerializeField] private ActivityAsset startupActivity;
         [SerializeField] private ActivityAsset relocateActivity;
+        [SerializeField] private ActivityAsset gameplayReadyActivity;
 
         [Header("Navigation")]
         [SerializeField] private ActivityRequestTrigger relocateActivityTrigger;
+        [SerializeField] private ActivityRequestTrigger gameplayReadyActivityTrigger;
         [SerializeField] private RouteRequestTrigger hubRouteTrigger;
 
         [Header("Panel")]
@@ -80,11 +84,16 @@ namespace ImmersiveFrameworkQA.Player
         public PlayerSlotProfile PlayerTwoSlot => playerTwoSlot;
         public ActorProfile DefaultActor => defaultActor;
         public ActorProfile AlternateActor => alternateActor;
+        public ActorProfile NoGameplayReaderActor => noGameplayReaderActor;
+        public ActorProfile AmbiguousGameplayReaderActor => ambiguousGameplayReaderActor;
         public RoutePlayerSpatialEntryAuthoring SpatialEntry => spatialEntry;
         public ActivityPlayerRelocationAuthoring Relocation => relocation;
         public ActivityAsset StartupActivity => startupActivity;
         public ActivityAsset RelocateActivity => relocateActivity;
+        public ActivityAsset GameplayReadyActivity => gameplayReadyActivity;
         public ActivityRequestTrigger RelocateActivityTrigger => relocateActivityTrigger;
+        public ActivityRequestTrigger GameplayReadyActivityTrigger =>
+            gameplayReadyActivityTrigger;
 
         public void Configure(
             PlayerQaScopedAccessProbe configuredProbe,
@@ -103,11 +112,15 @@ namespace ImmersiveFrameworkQA.Player
             PlayerSlotProfile configuredPlayerTwo,
             ActorProfile configuredDefaultActorProfile,
             ActorProfile configuredAlternateActor,
+            ActorProfile configuredNoGameplayReaderActor,
+            ActorProfile configuredAmbiguousGameplayReaderActor,
             RoutePlayerSpatialEntryAuthoring configuredSpatial,
             ActivityPlayerRelocationAuthoring configuredRelocation,
             ActivityAsset configuredStartupActivity,
             ActivityAsset configuredRelocateActivity,
+            ActivityAsset configuredGameplayReadyActivity,
             ActivityRequestTrigger configuredRelocateActivityTrigger,
+            ActivityRequestTrigger configuredGameplayReadyActivityTrigger,
             RouteRequestTrigger configuredHubTrigger)
         {
             probe = configuredProbe;
@@ -126,11 +139,15 @@ namespace ImmersiveFrameworkQA.Player
             playerTwoSlot = configuredPlayerTwo;
             defaultActor = configuredDefaultActorProfile;
             alternateActor = configuredAlternateActor;
+            noGameplayReaderActor = configuredNoGameplayReaderActor;
+            ambiguousGameplayReaderActor = configuredAmbiguousGameplayReaderActor;
             spatialEntry = configuredSpatial;
             relocation = configuredRelocation;
             startupActivity = configuredStartupActivity;
             relocateActivity = configuredRelocateActivity;
+            gameplayReadyActivity = configuredGameplayReadyActivity;
             relocateActivityTrigger = configuredRelocateActivityTrigger;
+            gameplayReadyActivityTrigger = configuredGameplayReadyActivityTrigger;
             hubRouteTrigger = configuredHubTrigger;
         }
 

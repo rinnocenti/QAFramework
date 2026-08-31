@@ -15,12 +15,20 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
         internal const string DefaultPresentationPath = Prefabs + "/QA_DefaultPresentation.prefab";
         internal const string AlternatePresentationPath = Prefabs + "/QA_AlternatePresentation.prefab";
+        internal const string NoGameplayReaderPresentationPath =
+            Prefabs + "/QA_NoGameplayReaderPresentation.prefab";
+        internal const string AmbiguousGameplayReaderPresentationPath =
+            Prefabs + "/QA_AmbiguousGameplayReaderPresentation.prefab";
         internal const string RuntimeHostPath = Prefabs + "/QA_PlayerActorRuntimeHost.prefab";
         internal const string ManagerHostPath = Prefabs + "/QA_ManagerLocalPlayerHost.prefab";
         internal const string SceneHostPath = Prefabs + "/QA_SceneLocalPlayerHost.prefab";
 
         internal const string DefaultActorPath = Profiles + "/QA_DefaultActor.asset";
         internal const string AlternateActorPath = Profiles + "/QA_AlternateActor.asset";
+        internal const string NoGameplayReaderActorPath =
+            Profiles + "/QA_NoGameplayReaderActor.asset";
+        internal const string AmbiguousGameplayReaderActorPath =
+            Profiles + "/QA_AmbiguousGameplayReaderActor.asset";
         internal const string PlayerOneSlotPath = Profiles + "/QA_PlayerSlot_P1.asset";
         internal const string PlayerTwoSlotPath = Profiles + "/QA_PlayerSlot_P2.asset";
         internal const string ManagerSessionPath = Profiles + "/QA_PlayerSession_Manager.asset";
@@ -30,6 +38,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
         internal const string StartupActivityPath = Activities + "/QA_PlayerStartupActivity.asset";
         internal const string RelocateActivityPath = Activities + "/QA_PlayerRelocateActivity.asset";
+        internal const string GameplayReadyActivityPath =
+            Activities + "/QA_PlayerGameplayReadyActivity.asset";
         internal const string EmptyActivityPath = Activities + "/QA_PlayerEmptyActivity.asset";
 
         internal const string PrimaryRoutePath = Routes + "/QA_PlayerRoute.asset";
@@ -43,5 +53,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
         internal const string PlayerTwoSlotId = "player.2";
         internal const string DefaultActorId = "actor-profile.qa.default";
         internal const string AlternateActorId = "actor-profile.qa.alternate";
+        internal const string NoGameplayReaderActorId = "actor-profile.qa.no-gameplay-reader";
+        internal const string AmbiguousGameplayReaderActorId =
+            "actor-profile.qa.ambiguous-gameplay-reader";
     }
 }

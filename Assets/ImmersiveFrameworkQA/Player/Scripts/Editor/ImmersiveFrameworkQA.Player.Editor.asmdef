@@ -5,6 +5,7 @@
     "ImmersiveFrameworkQA.Player.Runtime",
     "ImmersiveFrameworkQA.Hub.Runtime",
     "Immersive.Framework.Runtime",
+    "Immersive.Framework.Editor",
     "Unity.InputSystem"
   ],
   "includePlatforms": [

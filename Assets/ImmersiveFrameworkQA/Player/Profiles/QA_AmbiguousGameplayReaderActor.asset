@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a5153a396724567a7dd4e0628405071, type: 3}
+  m_Name: QA_AmbiguousGameplayReaderActor
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Actors.ActorProfile
+  actorProfileId: actor-profile.qa.ambiguous-gameplay-reader
+  displayName: QA Ambiguous Gameplay Reader Actor
+  description: Canonical Player QA Actor Profile.
+  icon: {fileID: 0}
+  actorKind: 10
+  actorRole: 10
+  presentationPrefab: {fileID: 3561787649476023308, guid: 0b72783bfa229cf4aae0d82f74ea469d, type: 3}

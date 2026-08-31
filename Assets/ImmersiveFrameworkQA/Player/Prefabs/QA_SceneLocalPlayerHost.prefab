@@ -96,7 +96,7 @@ MonoBehaviour:
   playerInput: {fileID: 3359115971551663588}
   gameplayActionMap:
     actionAsset: {fileID: -944628639613478452, guid: 35f83a0d297d4fd4cb00622e66290b11, type: 3}
-    actionMapId: 9a009a52-0680-4917-9b89-8339b5070c13
+    actionMapId: ce8e3ce3-e32f-46d3-b966-d627be6a8976
     cachedActionMapName: Gameplay
   gameplayActionMapName: Player
   blockOnInputAcceptance: 1
@@ -117,17 +117,14 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d3d4f1b900974056a6247b2e4dbaa266, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneLocalPlayerAdmissionAuthoring
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.SceneProvidedLocalPlayerAuthoring
+  localPlayerHost: {fileID: 656953467188180956}
   playerSlotProfile: {fileID: 11400000, guid: 678fe2ad24be1934a8855251a004b624, type: 2}
   actorProfile: {fileID: 11400000, guid: 90fc18ad86a86344d95c45d6ee655a26, type: 2}
-  scenePlayerActorRuntimeHost: {fileID: 2967946548622878238}
-  scenePresentation: {fileID: 4109366232453998863}
   admissionTiming: 0
-  evidenceActorProfile: {fileID: 11400000, guid: 90fc18ad86a86344d95c45d6ee655a26, type: 2}
-  evidencePresentationPrefab: {fileID: 5732651860038140422, guid: ef092d610b100944da6965fb13a35432, type: 3}
-  evidenceDiagnostic: Canonical Player QA Scene-Provided composition.
   lastAuthoringStatus: 10
-  lastAuthoringDiagnostic: Canonical Player QA Scene-Provided composition is authored.
+  lastAuthoringDiagnostic: Scene-Provided Local Player authored composition and prefab
+    provenance are valid.
 --- !u!1 &4186864328416101810
 GameObject:
   m_ObjectHideFlags: 0
@@ -220,17 +217,6 @@ PrefabInstance:
       addedObject: {fileID: 2123908288859751160}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7e1bc1dfd37666c4a82694291a7b6059, type: 3}
---- !u!114 &2967946548622878238 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2588055085092389146, guid: 7e1bc1dfd37666c4a82694291a7b6059, type: 3}
-  m_PrefabInstance: {fileID: 782181346986436356}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd151acf79cd456a9997d26d3af27439, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerActorRuntimeHost
 --- !u!4 &4320130135823522566 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3544036804315888642, guid: 7e1bc1dfd37666c4a82694291a7b6059, type: 3}
@@ -296,33 +282,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5732651860038140422, guid: ef092d610b100944da6965fb13a35432, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2564948682780769518}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ef092d610b100944da6965fb13a35432, type: 3}
 --- !u!4 &2123908288859751160 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7777925444201343473, guid: ef092d610b100944da6965fb13a35432, type: 3}
   m_PrefabInstance: {fileID: 8541391903171128073}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &4109366232453998863 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5732651860038140422, guid: ef092d610b100944da6965fb13a35432, type: 3}
-  m_PrefabInstance: {fileID: 8541391903171128073}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &2564948682780769518
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4109366232453998863}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e351cbd59d6b4c8e8c97157b068edb7b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.ScenePlayerActorPresentationEvidence
-  actorProfile: {fileID: 11400000, guid: 90fc18ad86a86344d95c45d6ee655a26, type: 2}
-  presentationPrefab: {fileID: 5732651860038140422, guid: ef092d610b100944da6965fb13a35432, type: 3}
-  authoringDiagnostic: Canonical Player QA Scene-Provided presentation evidence.
