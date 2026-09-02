@@ -172,24 +172,31 @@ namespace ImmersiveFrameworkQA.Player
             PlayerQaSuite.Result suiteResult = null;
             yield return PlayerQaSuite.Run(this, result => suiteResult = result);
 
-            bool ok = suiteResult != null && suiteResult.Ok;
+            bool certified = suiteResult != null && suiteResult.IsCertified;
             string completed = suiteResult != null
                 ? string.Join(",", suiteResult.Completed)
                 : string.Empty;
+            string blockers = suiteResult != null
+                ? string.Join(" | ", suiteResult.Blocked)
+                : string.Empty;
             string summary = suiteResult == null
                 ? "Player QA suite did not complete."
-                : ok
+                : certified
                     ? $"{LogPrefix} status='Passed' verdict='PLAYER QA CERTIFIED' " +
                       $"cases='{suiteResult.Passed}/{suiteResult.Passed}' " +
                       $"completed='{completed}'."
+                    : suiteResult.Ok
+                        ? $"{LogPrefix} status='Blocked' verdict='PLAYER QA BLOCKED BY FRAMEWORK GAP' " +
+                          $"cases='{suiteResult.Passed}/{suiteResult.Passed}' " +
+                          $"completed='{completed}' blockers='{Escape(blockers)}'."
                     : $"{LogPrefix} status='Failed' verdict='PLAYER QA NOT CERTIFIED' " +
                       $"failedCase='{suiteResult.FailedCase}' " +
                       $"passed='{suiteResult.Passed}' failed='{suiteResult.Failed}' " +
                       $"completed='{completed}' " +
                       $"message='{Escape(suiteResult.FailureMessage)}'.";
 
-            SetResult(ok, summary);
-            if (ok)
+            SetResult(certified, summary);
+            if (certified)
             {
                 Debug.Log(summary, this);
             }

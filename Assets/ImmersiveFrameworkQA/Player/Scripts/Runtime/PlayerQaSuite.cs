@@ -19,6 +19,7 @@ namespace ImmersiveFrameworkQA.Player
         internal sealed class Result
         {
             internal readonly List<string> Completed = new List<string>(16);
+            internal readonly List<string> Blocked = new List<string>(2);
             internal string FailedCase;
             internal string FailureMessage;
             internal int Passed;
@@ -29,6 +30,7 @@ namespace ImmersiveFrameworkQA.Player
             internal bool PreviousReaderOccurrenceReleased;
 
             internal bool Ok => Failed == 0 && string.IsNullOrEmpty(FailedCase);
+            internal bool IsCertified => Ok && Blocked.Count == 0;
 
             internal void Pass(string caseId)
             {
@@ -42,6 +44,12 @@ namespace ImmersiveFrameworkQA.Player
                 Failed++;
                 FailureMessage =
                     $"{caseId}: expected '{expected}', actual '{actual}'. {message}";
+            }
+
+            internal void Block(string caseId, string capability, string currentBehavior)
+            {
+                Blocked.Add(
+                    $"{caseId}: capability='{capability}' current='{currentBehavior}'");
             }
         }
 
@@ -76,6 +84,7 @@ namespace ImmersiveFrameworkQA.Player
                 yield break;
             }
 
+            // P1 canonical lifecycle: one retained occurrence reaches GameplayReady.
             yield return WaitThen(result, "actor-default", () => ProveDefaultActor(fixture, result));
             if (!result.Ok)
             {
@@ -97,6 +106,7 @@ namespace ImmersiveFrameworkQA.Player
                 yield break;
             }
 
+            // P1 adversarial/cardinality: fresh occurrences always clean up before the next proof.
             yield return WaitThen(result, "reader-cardinality", () => ProveReaderCardinality(fixture, result));
             if (!result.Ok)
             {
@@ -104,6 +114,7 @@ namespace ImmersiveFrameworkQA.Player
                 yield break;
             }
 
+            // ADR-024 positive proof: replace the prepared Actor inside the retained P1 occurrence.
             yield return WaitThen(result, "actor-replace", () => ProveReplaceActor(fixture, result));
             if (!result.Ok)
             {
@@ -111,14 +122,15 @@ namespace ImmersiveFrameworkQA.Player
                 yield break;
             }
 
-            yield return WaitThen(result, "joining-control", () => ProveJoiningControl(fixture, result));
+            // P2 membership lifecycle: Join -> Joining control -> Leave -> Rejoin -> cleanup.
+            yield return WaitThen(result, "second-player", () => ProveSecondPlayer(fixture, result));
             if (!result.Ok)
             {
                 completed?.Invoke(result);
                 yield break;
             }
 
-            yield return WaitThen(result, "second-player", () => ProveSecondPlayer(fixture, result));
+            yield return WaitThen(result, "joining-control", () => ProveJoiningControl(fixture, result));
             if (!result.Ok)
             {
                 completed?.Invoke(result);
@@ -528,34 +540,139 @@ namespace ImmersiveFrameworkQA.Player
                 yield break;
             }
 
-            if (!TryFindSlot(fixture, ExpectedSlotId(fixture), out PlayerSessionScopedSlotObservation current))
-            {
-                result.Fail("actor-replace", "joined P1", "missing", "P1 Slot observation is missing.");
-                yield break;
-            }
-
-            PlayerGameplayInputReader previousReader = result.CurrentGameplayReader;
             Require(result, "actor-replace",
-                previousReader != null && previousReader.HasCurrentGameplayBinding,
-                "bound Default Presentation reader before replacement",
-                previousReader == null ? "missing" : previousReader.Diagnostic,
-                "Actor replacement must start from the GameplayReady Default Presentation reader.");
+                access.TryGetObservation(out PlayerSessionScopedObservationSnapshot beforeObservation) &&
+                beforeObservation != null && beforeObservation.IsAvailable &&
+                beforeObservation.HasCurrentActivityOccurrence,
+                "available scoped observation with current Activity occurrence",
+                access.Snapshot.Diagnostic,
+                "Prepared Actor replacement requires current Session and Activity evidence before the mutation.");
             if (!result.Ok)
             {
                 yield break;
             }
 
-            PlayerActorSelectionResult replace = access.RequestReplaceActorSelection(
-                new PlayerActorSelectionRequest(
-                    ExpectedSlotId(fixture),
-                    fixture.AlternateActor,
-                    Source,
-                    "player-qa-replace-actor",
-                    current.Slot.SelectionRevision));
-            Require(result, "actor-replace", replace != null && replace.Succeeded,
-                "replace succeeded",
-                replace == null ? "null" : $"{replace.Status} {replace.Message}",
-                "RequestReplaceActorSelection failed.");
+            PlayerSessionScopedSlotObservation before =
+                FindSlot(beforeObservation, ExpectedSlotId(fixture));
+            Require(result, "actor-replace",
+                before.IsJoined &&
+                before.Slot.SelectedActorProfile == fixture.DefaultActor &&
+                before.IsLogicalActorPrepared &&
+                before.IsPhysicallyMaterialized &&
+                before.HasCurrentActorEvidence &&
+                before.CurrentActor.HasCurrentActor &&
+                before.HasHostEvidence &&
+                before.HasGameplayAdmissionEvidence &&
+                before.GameplayAdmission.IsAdmitted &&
+                before.GameplayAdmission.GameplayReady,
+                "joined GameplayReady P1 with prepared Default Actor",
+                before.Slot.PlayerSlotId.IsValid
+                    ? $"slot={before.Slot.PlayerSlotId.StableText} selected={DescribeObject(before.Slot.SelectedActorProfile)} prepared={before.IsLogicalActorPrepared} gameplay={before.GameplayAdmission.State}"
+                    : "P1 missing",
+                "ADR-024 proof must start from the canonical fresh P1 GameplayReady occurrence.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            LocalPlayerHostAuthoring previousHost = result.PlayerOneHost;
+            PlayerInput previousPlayerInput = previousHost != null ? previousHost.PlayerInput : null;
+            PlayerActorRuntimeHost[] previousRuntimeHosts =
+                previousHost != null && previousHost.ActorMount != null
+                    ? previousHost.ActorMount.GetComponentsInChildren<PlayerActorRuntimeHost>(true)
+                    : Array.Empty<PlayerActorRuntimeHost>();
+            PlayerActorRuntimeHost previousRuntimeHost = previousRuntimeHosts.Length == 1
+                ? previousRuntimeHosts[0]
+                : null;
+            GameObject previousPresentation =
+                previousRuntimeHost != null &&
+                previousRuntimeHost.PresentationMount != null &&
+                previousRuntimeHost.PresentationMount.childCount == 1
+                    ? previousRuntimeHost.PresentationMount.GetChild(0).gameObject
+                    : null;
+
+            string previousReaderIssue = string.Empty;
+            PlayerGameplayInputReader previousReader = null;
+            Require(result, "actor-replace",
+                previousHost != null &&
+                previousPlayerInput != null &&
+                previousRuntimeHost != null &&
+                previousPresentation != null &&
+                TryResolveCurrentGameplayReader(
+                    previousHost,
+                    out previousReader,
+                    out previousReaderIssue) &&
+                ReferenceEquals(previousReader, result.CurrentGameplayReader) &&
+                previousReader.HasCurrentGameplayBinding &&
+                previousReader.GameplayReady &&
+                previousReader.CurrentBindingToken == before.GameplayAdmission.InputBindingToken,
+                "one current Default Actor Runtime Host, Presentation and gameplay reader",
+                previousReaderIssue,
+                "ADR-024 proof requires exact physical and gameplay baseline evidence before replacement.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            int previousPlayerRevision = before.Slot.Revision;
+            int previousSelectionRevision = before.Slot.SelectionRevision;
+            int previousSessionRevision = beforeObservation.SessionRevision;
+            int previousActivityOccurrence = beforeObservation.ActivityOccurrence;
+            PlayerActorPreparationToken previousActorToken = before.Preparation.Token;
+            PlayerGameplayAdmissionToken previousGameplayToken = before.GameplayAdmission.Token;
+            PlayerGameplayInputBindingToken previousInputBinding =
+                before.GameplayAdmission.InputBindingToken;
+
+            var request = new PlayerPreparedActorReplacementRequest(
+                ExpectedSlotId(fixture),
+                fixture.AlternateActor,
+                Source,
+                "player-qa-replace-prepared-actor",
+                previousSelectionRevision,
+                previousSessionRevision);
+
+            PlayerPreparedActorReplacementResult replacement =
+                access.RequestReplacePreparedActor(request);
+            Require(result, "actor-replace",
+                replacement != null &&
+                replacement.Status ==
+                    PlayerPreparedActorReplacementStatus.SucceededReplacedAndGameplayReady &&
+                replacement.PlayerSlotId == ExpectedSlotId(fixture) &&
+                replacement.ReplacementCommitted &&
+                replacement.GameplayReprojected &&
+                !replacement.CleanupPending &&
+                replacement.ActivityOccurrence == previousActivityOccurrence,
+                "SucceededReplacedAndGameplayReady with committed gameplay reprojection and no pending cleanup",
+                replacement == null
+                    ? "null"
+                    : $"status={replacement.Status} committed={replacement.ReplacementCommitted} gameplayReprojected={replacement.GameplayReprojected} cleanupPending={replacement.CleanupPending} activityOccurrence={replacement.ActivityOccurrence} message={replacement.Message} previousActor={(replacement.PreviousActor.IsValid ? replacement.PreviousActor.ToDiagnosticString() : "<unavailable>")} currentActor={(replacement.CurrentActor.IsValid ? replacement.CurrentActor.ToDiagnosticString() : "<unavailable>")} previousGameplay={(replacement.PreviousGameplay.IsValid ? replacement.PreviousGameplay.ToDiagnosticString() : "<unavailable>")} currentGameplay={(replacement.CurrentGameplay.IsValid ? replacement.CurrentGameplay.ToDiagnosticString() : "<unavailable>")}",
+                "The public ADR-024 operation did not return its authoritative successful terminal result.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            Require(result, "actor-replace",
+                replacement.PreviousActor.IsPrepared &&
+                replacement.PreviousActor.Token == previousActorToken &&
+                replacement.PreviousActor.SelectionRevision == previousSelectionRevision &&
+                replacement.PreviousGameplay.IsAdmitted &&
+                replacement.PreviousGameplay.GameplayReady &&
+                replacement.PreviousGameplay.Token == previousGameplayToken &&
+                replacement.PreviousGameplay.InputBindingToken == previousInputBinding &&
+                replacement.CurrentActor.IsPrepared &&
+                replacement.CurrentActor.Token.IsValid &&
+                replacement.CurrentActor.Token != previousActorToken &&
+                replacement.CurrentActor.SelectionRevision > previousSelectionRevision &&
+                replacement.CurrentGameplay.IsAdmitted &&
+                replacement.CurrentGameplay.GameplayReady &&
+                replacement.CurrentGameplay.Token.IsValid &&
+                replacement.CurrentGameplay.Token != previousGameplayToken &&
+                replacement.CurrentGameplay.InputBindingToken.IsValid &&
+                replacement.CurrentGameplay.InputBindingToken != previousInputBinding,
+                "typed A-to-B Actor and Gameplay replacement evidence",
+                $"previousActor={replacement.PreviousActor.ToDiagnosticString()} currentActor={replacement.CurrentActor.ToDiagnosticString()} previousGameplay={replacement.PreviousGameplay.ToDiagnosticString()} currentGameplay={replacement.CurrentGameplay.ToDiagnosticString()}",
+                "ADR-024 terminal evidence did not prove a new prepared Actor and a new Gameplay admission.");
             if (!result.Ok)
             {
                 yield break;
@@ -564,35 +681,144 @@ namespace ImmersiveFrameworkQA.Player
             yield return WaitFor(
                 result,
                 "actor-replace",
-                () => TryResolveCurrentGameplayReader(
-                          result.PlayerOneHost,
-                          out PlayerGameplayInputReader alternateReader,
-                          out _) &&
-                      alternateReader.HasCurrentGameplayBinding &&
-                      !ReferenceEquals(alternateReader, previousReader) &&
-                      TryFindSlot(
-                          fixture,
-                          ExpectedSlotId(fixture),
-                          out PlayerSessionScopedSlotObservation alternateSlot) &&
-                          alternateReader.CurrentBindingToken ==
-                          alternateSlot.GameplayAdmission.InputBindingToken,
-                "FRAMEWORK CONTRACT GAP / REGRESSION: Actor replacement during an active completed GameplayReady Activity does not reconcile the current gameplay projection.");
+                () =>
+                    access.TryGetObservation(out PlayerSessionScopedObservationSnapshot projected) &&
+                    projected != null && projected.IsAvailable &&
+                    projected.ActivityOccurrence == previousActivityOccurrence &&
+                    TryFindSlot(
+                        fixture,
+                        ExpectedSlotId(fixture),
+                        out PlayerSessionScopedSlotObservation projectedP1) &&
+                    projectedP1.IsJoined &&
+                    projectedP1.Slot.Revision > previousPlayerRevision &&
+                    projectedP1.Slot.SelectedActorProfile == fixture.AlternateActor &&
+                    projectedP1.IsLogicalActorPrepared &&
+                    projectedP1.IsPhysicallyMaterialized &&
+                    projectedP1.CurrentActor.HasCurrentActor &&
+                    projectedP1.Preparation.Token == replacement.CurrentActor.Token &&
+                    projectedP1.HasGameplayAdmissionEvidence &&
+                    projectedP1.GameplayAdmission.GameplayReady &&
+                    projectedP1.GameplayAdmission.Token == replacement.CurrentGameplay.Token &&
+                    TryResolveCurrentGameplayReader(
+                        previousHost,
+                        out PlayerGameplayInputReader projectedReader,
+                        out _) &&
+                    projectedReader.HasCurrentGameplayBinding &&
+                    projectedReader.GameplayReady &&
+                    projectedReader.CurrentBindingToken ==
+                        projectedP1.GameplayAdmission.InputBindingToken,
+                "Timed out waiting for the public observation and Presentation gameplay reader to converge on the ADR-024 replacement result.");
             if (!result.Ok)
             {
                 yield break;
             }
 
-            string readerIssue = string.Empty;
             Require(result, "actor-replace",
-                (previousReader == null || !previousReader.HasCurrentGameplayBinding) &&
-                TryResolveCurrentGameplayReader(
-                    result.PlayerOneHost,
-                    out PlayerGameplayInputReader currentReader,
-                    out readerIssue) &&
-                currentReader.HasCurrentGameplayBinding,
-                "released Default reader and bound Alternate reader",
-                readerIssue,
-                "Actor replacement left the retired Presentation reader bound or did not bind the Alternate Presentation reader.");
+                access.TryGetObservation(out PlayerSessionScopedObservationSnapshot afterObservation) &&
+                afterObservation != null && afterObservation.IsAvailable,
+                "post-replacement scoped observation",
+                "unavailable",
+                "Could not recollect public evidence after prepared Actor replacement.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            PlayerSessionScopedSlotObservation after =
+                FindSlot(afterObservation, ExpectedSlotId(fixture));
+            PlayerActorRuntimeHost[] currentRuntimeHosts =
+                previousHost != null && previousHost.ActorMount != null
+                    ? previousHost.ActorMount.GetComponentsInChildren<PlayerActorRuntimeHost>(true)
+                    : Array.Empty<PlayerActorRuntimeHost>();
+            PlayerActorRuntimeHost currentRuntimeHost = currentRuntimeHosts.Length == 1
+                ? currentRuntimeHosts[0]
+                : null;
+            GameObject currentPresentation =
+                currentRuntimeHost != null &&
+                currentRuntimeHost.PresentationMount != null &&
+                currentRuntimeHost.PresentationMount.childCount == 1
+                    ? currentRuntimeHost.PresentationMount.GetChild(0).gameObject
+                    : null;
+            string currentReaderIssue = string.Empty;
+            bool hasCurrentReader = TryResolveCurrentGameplayReader(
+                previousHost,
+                out PlayerGameplayInputReader currentReader,
+                out currentReaderIssue);
+
+            Require(result, "actor-replace",
+                after.IsJoined &&
+                after.Slot.Revision > previousPlayerRevision &&
+                after.Slot.SelectionRevision == replacement.CurrentActor.SelectionRevision &&
+                after.Slot.SelectedActorProfile == fixture.AlternateActor &&
+                after.HasHostEvidence &&
+                after.HostEvidence.HostBindingIdentity.Equals(before.HostEvidence.HostBindingIdentity) &&
+                string.Equals(
+                    after.Preparation.SessionContextId,
+                    before.Preparation.SessionContextId,
+                    StringComparison.Ordinal) &&
+                afterObservation.SessionRevision >= previousSessionRevision &&
+                afterObservation.ActivityOccurrence == previousActivityOccurrence &&
+                after.IsLogicalActorPrepared &&
+                after.IsPhysicallyMaterialized &&
+                after.CurrentActor.HasCurrentActor &&
+                after.Preparation.Token == replacement.CurrentActor.Token &&
+                after.Preparation.Token != previousActorToken &&
+                after.HasGameplayAdmissionEvidence &&
+                after.GameplayAdmission.GameplayReady &&
+                after.GameplayAdmission.Token == replacement.CurrentGameplay.Token &&
+                after.GameplayAdmission.Token != previousGameplayToken &&
+                after.GameplayAdmission.InputBindingToken ==
+                    replacement.CurrentGameplay.InputBindingToken &&
+                after.GameplayAdmission.InputBindingToken != previousInputBinding,
+                "same P1 occurrence/session/activity with Alternate Actor and new Gameplay admission",
+                $"occurrence={after.Slot.Revision} selectionRevision={after.Slot.SelectionRevision} sessionRevision={afterObservation.SessionRevision} activityOccurrence={afterObservation.ActivityOccurrence} actor={DescribeObject(after.Slot.SelectedActorProfile)} gameplay={after.GameplayAdmission.ToDiagnosticString()}",
+                "Prepared Actor replacement changed scope ownership or failed to recollect the committed B-side evidence.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            Require(result, "actor-replace",
+                previousHost != null &&
+                previousHost.IsJoined &&
+                ReferenceEquals(previousHost, result.PlayerOneHost) &&
+                ReferenceEquals(previousHost.PlayerInput, previousPlayerInput) &&
+                currentRuntimeHost != null &&
+                !ReferenceEquals(currentRuntimeHost, previousRuntimeHost) &&
+                currentPresentation != null &&
+                !ReferenceEquals(currentPresentation, previousPresentation) &&
+                hasCurrentReader &&
+                currentReader != null &&
+                !ReferenceEquals(currentReader, previousReader) &&
+                currentReader.HasCurrentGameplayBinding &&
+                currentReader.GameplayReady &&
+                currentReader.CurrentBindingToken ==
+                    after.GameplayAdmission.InputBindingToken &&
+                (previousReader == null || !previousReader.HasCurrentGameplayBinding),
+                "same LocalPlayerHost/PlayerInput with replaced Runtime Host, Presentation and current reader",
+                currentReaderIssue,
+                "ADR-024 must physically replace Actor-owned composition while preserving Player-owned Host/Input authority and releasing reader A.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            bool p2Available = TryFindSlot(
+                fixture,
+                ExpectedSlotTwoId(fixture),
+                out PlayerSessionScopedSlotObservation p2) &&
+                !p2.IsJoined;
+            bool joiningOpen = afterObservation.Participation != null &&
+                afterObservation.Participation.JoiningOpen;
+            Require(result, "actor-replace",
+                p2Available && joiningOpen,
+                "P2 available and Joining open after prepared Actor replacement",
+                $"p2Available={p2Available} joiningOpen={joiningOpen}",
+                "ADR-024 replacement must not consume P2 membership or mutate Joining policy before the P2 lifecycle phase.");
+            if (result.Ok)
+            {
+                result.CurrentGameplayReader = currentReader;
+            }
         }
         private static IEnumerator ProveActorLifecycle(PlayerQaPanel fixture, Result result)
         {
@@ -879,25 +1105,37 @@ namespace ImmersiveFrameworkQA.Player
             }
 
             yield return RequestActivity(result, "reader-cardinality", fixture.GameplayReadyActivityTrigger,
-                expectSuccess: expectGameplayReady,
+                expectSuccess: true,
                 expectGameplayReady
                     ? $"GameplayReady Activity rejected the valid {fixtureName} Presentation."
-                    : "GameplayReady Activity did not reject the ambiguous Presentation.");
+                    : "GameplayReady Activity did not commit the ambiguous Presentation target.");
             if (!result.Ok)
             {
                 yield break;
             }
 
-            yield return WaitFor(result, "reader-cardinality", () =>
-                HasGameplayReaderCardinality(
-                    fixture, result.PlayerOneHost, actor, expectedReaderCount,
-                    expectGameplayReady) &&
-                (!expectGameplayReady || expectedReaderCount != 1 ||
-                    HasBoundCurrentGameplayReader(fixture, result, actor)) &&
-                (expectGameplayReady || HasNoBoundCurrentGameplayReader(result.PlayerOneHost)),
-                expectGameplayReady
-                    ? $"Timed out admitting the {fixtureName} Presentation under GameplayReady authority."
-                    : "Timed out waiting for the normal Player gameplay chain to reject ambiguous reader cardinality.");
+            if (expectGameplayReady)
+            {
+                yield return WaitFor(result, "reader-cardinality", () =>
+                    HasGameplayReaderCardinality(
+                        fixture, result.PlayerOneHost, actor, expectedReaderCount,
+                        expectedAdmission: true) &&
+                    (expectedReaderCount != 1 ||
+                     HasBoundCurrentGameplayReader(fixture, result, actor)),
+                    $"Timed out admitting the {fixtureName} Presentation under GameplayReady authority.");
+            }
+            else
+            {
+                AmbiguousReaderCardinalityEvidence evidence =
+                    CaptureAmbiguousReaderCardinalityEvidence(
+                        fixture, result.PlayerOneHost, actor);
+                Require(result, "reader-cardinality",
+                    evidence.IsSatisfied,
+                    "committed GameplayReady Activity with Player reader-cardinality blocking evidence",
+                    evidence.Diagnostic,
+                    "Ambiguous cardinality did not produce the required committed Activity, Player participant and unbound-reader evidence.");
+                EmitAmbiguousReaderCardinalityEvidence(fixture, evidence);
+            }
             if (!result.Ok)
             {
                 yield break;
@@ -922,21 +1160,6 @@ namespace ImmersiveFrameworkQA.Player
                 "zero-reader Presentation admitted without a current reader binding",
                 result.CurrentGameplayReader == null ? "no-current-reader" : result.CurrentGameplayReader.Diagnostic,
                 "A zero-reader Presentation retained gameplay input authority.");
-            if (!expectGameplayReady)
-            {
-                Require(result, "reader-cardinality",
-                    fixture.GameplayReadyActivityTrigger.LastMessage != null &&
-                    fixture.GameplayReadyActivityTrigger.LastMessage.Contains(
-                        "requires at most one PlayerGameplayInputReader"),
-                    "HostScoped Player gameplay endpoint cardinality rejection",
-                    fixture.GameplayReadyActivityTrigger.LastMessage ?? "missing",
-                    "Ambiguous cardinality was not rejected by the normal HostScoped Player gameplay endpoint resolution.");
-            }
-            if (!result.Ok)
-            {
-                yield break;
-            }
-
             EmitReaderCardinalityDiagnostic(
                 fixtureName, actor, join, selection, result,
                 DescribeActivityRequestOutcome(fixture.GameplayReadyActivityTrigger),
@@ -944,14 +1167,24 @@ namespace ImmersiveFrameworkQA.Player
             if (leaveAfterProof)
             {
                 yield return LeaveReaderCardinalityOccurrence(
-                    fixture, result, fixtureName);
+                    fixture, result, fixtureName,
+                    verifyAllReaderLeaks: !expectGameplayReady);
+                if (!expectGameplayReady && result.Ok)
+                {
+                    Require(result, "reader-cardinality",
+                        HasNoP1GameplayAdmissionOrInputToken(fixture),
+                        "ambiguous P1 gameplay admission and input token released",
+                        DescribeP1GameplayAdmission(fixture),
+                        "Public Leave left P1 gameplay admission evidence or an input token after the ambiguous occurrence ended.");
+                }
             }
         }
 
         private static IEnumerator LeaveReaderCardinalityOccurrence(
             PlayerQaPanel fixture,
             Result result,
-            string phase)
+            string phase,
+            bool verifyAllReaderLeaks = false)
         {
             if (!TryGetAccess(fixture, out IPlayerSessionScopedAccess access, out string issue) ||
                 !TryFindSlot(fixture, ExpectedSlotId(fixture), out PlayerSessionScopedSlotObservation current) ||
@@ -987,6 +1220,10 @@ namespace ImmersiveFrameworkQA.Player
             PlayerGameplayInputBindingToken previousBinding = previousReader != null
                 ? previousReader.CurrentBindingToken
                 : default;
+            PlayerGameplayInputReader[] previousReaders = Array.Empty<PlayerGameplayInputReader>();
+            string readerCaptureIssue = "previous Host missing";
+            bool capturedPreviousReaders = verifyAllReaderLeaks && previousHost != null &&
+                TryGetCurrentGameplayReaders(previousHost, out previousReaders, out readerCaptureIssue);
             SessionPlayerLeaveResult leave = access.RequestLeave(
                 new SessionPlayerLeaveRequest(
                     ExpectedSlotId(fixture), current.Slot.Revision, Source,
@@ -1006,16 +1243,34 @@ namespace ImmersiveFrameworkQA.Player
                 !released.IsLogicalActorPrepared &&
                 !released.IsPhysicallyMaterialized &&
                 (previousReader == null || !previousReader.HasCurrentGameplayBinding) &&
+                (!verifyAllReaderLeaks ||
+                 (capturedPreviousReaders && HaveReleasedGameplayReaders(previousReaders))) &&
                 previousRuntimeHost == null &&
                 previousPresentation == null &&
                 previousHost == null,
                 $"Public Leave did not release the {phase} Actor, Runtime Host, Presentation and gameplay binding.");
-            Require(result, "reader-cardinality",
-                !previousBinding.IsValid || previousReader == null ||
-                !previousReader.HasCurrentGameplayBinding,
-                $"{phase} gameplay binding released",
-                previousReader == null ? "destroyed" : previousReader.Diagnostic,
-                "A previous Player occurrence binding remained authoritative after Leave.");
+            if (verifyAllReaderLeaks)
+            {
+                Require(result, "reader-cardinality",
+                    capturedPreviousReaders && HaveReleasedGameplayReaders(previousReaders) &&
+                    (!previousBinding.IsValid || previousReader == null ||
+                     !previousReader.HasCurrentGameplayBinding),
+                    $"{phase} Actor, Presentation and gameplay reader bindings released",
+                    capturedPreviousReaders
+                        ? $"readerCount={previousReaders.Length} " +
+                          $"currentReader={(previousReader == null ? "destroyed" : previousReader.Diagnostic)}"
+                        : readerCaptureIssue,
+                    "Public Leave left an Actor/Presentation reader binding, or the canonical readers could not be captured for leak verification.");
+            }
+            else
+            {
+                Require(result, "reader-cardinality",
+                    !previousBinding.IsValid || previousReader == null ||
+                    !previousReader.HasCurrentGameplayBinding,
+                    $"{phase} gameplay binding released",
+                    previousReader == null ? "destroyed" : previousReader.Diagnostic,
+                    "A previous Player occurrence binding remained authoritative after Leave.");
+            }
             if (result.Ok)
             {
                 if (previousBinding.IsValid)
@@ -1111,6 +1366,185 @@ namespace ImmersiveFrameworkQA.Player
             return true;
         }
 
+        private static bool HaveReleasedGameplayReaders(
+            PlayerGameplayInputReader[] readers)
+        {
+            if (readers == null)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < readers.Length; index++)
+            {
+                PlayerGameplayInputReader reader = readers[index];
+                if (reader != null && reader.HasCurrentGameplayBinding)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private sealed class AmbiguousReaderCardinalityEvidence
+        {
+            internal bool RequestSucceeded;
+            internal bool ConfiguredTarget;
+            internal bool GameplayReadyPlayerParticipationConfigured;
+            internal bool CanonicalPresentationExists;
+            internal bool P1SlotFound;
+            internal bool P1SelectedActorMatches;
+            internal bool GameplayAdmissionAbsent;
+            internal bool InputTokenAbsent;
+            internal int ReaderCount;
+            internal int CurrentBoundReaderCount;
+            internal string ActivityRequestOutcome;
+            internal string ReaderTopology;
+
+            // O Framework não expõe o estado interno do participante de Activity nesta superfície.
+            // A QA prova apenas as consequências públicas estáveis da cardinalidade ambígua.
+            internal bool IsSatisfied =>
+                RequestSucceeded &&
+                ConfiguredTarget &&
+                GameplayReadyPlayerParticipationConfigured &&
+                CanonicalPresentationExists &&
+                P1SlotFound &&
+                P1SelectedActorMatches &&
+                GameplayAdmissionAbsent &&
+                InputTokenAbsent &&
+                ReaderCount == 2 &&
+                CurrentBoundReaderCount == 0;
+
+            internal string Diagnostic =>
+                $"requestSucceeded='{RequestSucceeded}' configuredTarget='{ConfiguredTarget}' " +
+                $"gameplayReadyPlayerParticipationConfigured='{GameplayReadyPlayerParticipationConfigured}' " +
+                $"canonicalPresentationExists='{CanonicalPresentationExists}' " +
+                $"p1SlotFound='{P1SlotFound}' p1SelectedActorMatches='{P1SelectedActorMatches}' " +
+                $"gameplayAdmissionAbsent='{GameplayAdmissionAbsent}' inputTokenAbsent='{InputTokenAbsent}' " +
+                $"readerCount='{ReaderCount}' currentBoundReaderCount='{CurrentBoundReaderCount}' " +
+                $"readerTopology='{ReaderTopology}'";
+        }
+
+        private static AmbiguousReaderCardinalityEvidence
+            CaptureAmbiguousReaderCardinalityEvidence(
+                PlayerQaPanel fixture,
+                LocalPlayerHostAuthoring host,
+                ActorProfile expectedActor)
+        {
+            ActivityRequestTrigger trigger = fixture != null
+                ? fixture.GameplayReadyActivityTrigger
+                : null;
+            var evidence = new AmbiguousReaderCardinalityEvidence
+            {
+                ActivityRequestOutcome = trigger != null ? trigger.LastOutcome.ToString() : "missing",
+                ReaderTopology = "missing",
+                ReaderCount = -1,
+                CurrentBoundReaderCount = -1,
+                RequestSucceeded = trigger != null && trigger.LastRequestSucceeded,
+                ConfiguredTarget = fixture != null &&
+                    fixture.GameplayReadyActivity != null &&
+                    fixture.GameplayReadyActivity.HasValidActivityId &&
+                    trigger != null &&
+                    ReferenceEquals(trigger.TargetActivity, fixture.GameplayReadyActivity)
+            };
+
+            evidence.GameplayReadyPlayerParticipationConfigured = fixture != null &&
+                fixture.GameplayReadyActivity != null &&
+                fixture.GameplayReadyActivity.PlayerParticipationRequirementLevel ==
+                    PlayerParticipationRequirementLevel.GameplayReady;
+
+            evidence.P1SlotFound = TryFindSlot(
+                fixture, ExpectedSlotId(fixture), out PlayerSessionScopedSlotObservation slot);
+            evidence.P1SelectedActorMatches = evidence.P1SlotFound &&
+                slot.Slot.SelectedActorProfile == expectedActor;
+            evidence.GameplayAdmissionAbsent = evidence.P1SlotFound &&
+                !slot.HasGameplayAdmissionEvidence;
+            evidence.InputTokenAbsent = evidence.GameplayAdmissionAbsent &&
+                !slot.GameplayAdmission.InputBindingToken.IsValid;
+
+            if (TryGetCurrentGameplayReaders(
+                    host,
+                    out PlayerGameplayInputReader[] readers,
+                    out string readerTopology))
+            {
+                evidence.CanonicalPresentationExists = true;
+                evidence.ReaderTopology = readerTopology;
+                evidence.ReaderCount = readers.Length;
+                evidence.CurrentBoundReaderCount = 0;
+                for (int index = 0; index < readers.Length; index++)
+                {
+                    if (readers[index] != null && readers[index].HasCurrentGameplayBinding)
+                    {
+                        evidence.CurrentBoundReaderCount++;
+                    }
+                }
+            }
+            else
+            {
+                evidence.ReaderTopology = readerTopology;
+            }
+
+            return evidence;
+        }
+
+        private static void EmitAmbiguousReaderCardinalityEvidence(
+            PlayerQaPanel fixture,
+            AmbiguousReaderCardinalityEvidence evidence)
+        {
+            Debug.Log(
+                "[QA_PLAYER_AMBIGUOUS_EVIDENCE] " +
+                $"predicateSatisfied='{evidence.IsSatisfied}' " +
+                $"requestSucceeded='{evidence.RequestSucceeded}' " +
+                $"configuredTarget='{evidence.ConfiguredTarget}' " +
+                $"gameplayReadyPlayerParticipationConfigured='{evidence.GameplayReadyPlayerParticipationConfigured}' " +
+                $"canonicalPresentationExists='{evidence.CanonicalPresentationExists}' " +
+                $"p1SlotFound='{evidence.P1SlotFound}' " +
+                $"p1SelectedActorMatches='{evidence.P1SelectedActorMatches}' " +
+                $"gameplayAdmissionAbsent='{evidence.GameplayAdmissionAbsent}' " +
+                $"inputTokenAbsent='{evidence.InputTokenAbsent}' " +
+                $"readerCountAmbiguous='{evidence.ReaderCount == 2}' " +
+                $"noReaderCurrentBound='{evidence.CurrentBoundReaderCount == 0}' " +
+                $"activityRequestOutcome='{evidence.ActivityRequestOutcome}' " +
+                $"readerCount='{evidence.ReaderCount}' " +
+                $"currentBoundReaderCount='{evidence.CurrentBoundReaderCount}' " +
+                $"readerTopology='{EscapeDiagnosticValue(evidence.ReaderTopology)}'",
+                fixture);
+        }
+
+        private static bool HasNoP1GameplayAdmissionOrInputToken(PlayerQaPanel fixture)
+        {
+            return TryFindSlot(
+                       fixture,
+                       ExpectedSlotId(fixture),
+                       out PlayerSessionScopedSlotObservation slot) &&
+                   !slot.HasGameplayAdmissionEvidence &&
+                   !slot.GameplayAdmission.InputBindingToken.IsValid;
+        }
+
+        private static string DescribeP1GameplayAdmission(PlayerQaPanel fixture)
+        {
+            if (!TryFindSlot(
+                    fixture,
+                    ExpectedSlotId(fixture),
+                    out PlayerSessionScopedSlotObservation slot))
+            {
+                return "P1 slot missing";
+            }
+
+            return $"hasGameplayAdmission='{slot.HasGameplayAdmissionEvidence}' " +
+                   $"inputTokenValid='{slot.GameplayAdmission.InputBindingToken.IsValid}'";
+        }
+
+
+        private static string EscapeDiagnosticValue(string value)
+        {
+            return (value ?? string.Empty)
+                .Replace("\\", "\\\\")
+                .Replace("'", "\\'")
+                .Replace("\r", " ")
+                .Replace("\n", " ");
+        }
+
         private static void EmitReaderCardinalityDiagnostic(
             string fixtureName,
             ActorProfile actor,
@@ -1180,6 +1614,19 @@ namespace ImmersiveFrameworkQA.Player
 
         private static IEnumerator ProveSecondPlayer(PlayerQaPanel fixture, Result result)
         {
+            if (!TryFindSlot(fixture, ExpectedSlotId(fixture), out PlayerSessionScopedSlotObservation p1) ||
+                !p1.IsJoined)
+            {
+                result.Fail(
+                    "second-player",
+                    "joined P1 before initial P2 Join",
+                    p1.Slot.PlayerSlotId.IsValid
+                        ? p1.Slot.AllocationState.ToString()
+                        : "missing",
+                    "Second-player provisioning requires the canonical retained P1 occurrence.");
+                yield break;
+            }
+
             if (fixture.PlayerTwoSlot == null)
             {
                 result.Fail("second-player", "P2 slot", "null", "Player QA requires the P2 Slot Profile.");
@@ -1219,7 +1666,9 @@ namespace ImmersiveFrameworkQA.Player
                     Source,
                     "player-qa-join-p2",
                     sharedKeyboard));
-            Require(result, "second-player", join != null && join.Succeeded,
+            Require(result, "second-player", join != null && join.Succeeded &&
+                join.HasLocalPlayerHostEvidence && join.LocalPlayerHost != null &&
+                join.PlayerInput != null,
                 "P2 joined",
                 join == null ? "null" : $"{join.Status} {join.Message}",
                 "Second-player RequestJoin failed.");
@@ -1238,7 +1687,8 @@ namespace ImmersiveFrameworkQA.Player
                 result,
                 "second-player",
                 fixture,
-                slot => slot.IsJoined,
+                slot => slot.IsJoined && slot.HasHostEvidence &&
+                        !slot.IsLogicalActorPrepared && !slot.IsPhysicallyMaterialized,
                 ExpectedSlotTwoId(fixture));
         }
 
@@ -1250,40 +1700,49 @@ namespace ImmersiveFrameworkQA.Player
                 yield break;
             }
 
-            if (TryFindSlot(
+            if (!TryFindSlot(
                     fixture,
                     ExpectedSlotTwoId(fixture),
-                    out PlayerSessionScopedSlotObservation occupiedP2) &&
-                occupiedP2.IsJoined)
+                    out PlayerSessionScopedSlotObservation occupiedP2) ||
+                !occupiedP2.IsJoined)
             {
-                SessionPlayerLeaveResult prepareLeave = access.RequestLeave(
-                    new SessionPlayerLeaveRequest(
-                        ExpectedSlotTwoId(fixture),
-                        occupiedP2.Slot.Revision,
-                        Source,
-                        "player-qa-prepare-joining-control"));
-                Require(result, "joining-control",
-                    prepareLeave != null && prepareLeave.Succeeded,
-                    "P2 available before JoiningClosed proof",
-                    prepareLeave == null
-                        ? "null"
-                        : $"{prepareLeave.Status} {prepareLeave.Message}",
-                    "Could not establish an available Slot for the JoiningClosed proof.");
-                if (!result.Ok)
-                {
-                    yield break;
-                }
-
-                yield return WaitFor(
-                    result,
+                result.Fail(
                     "joining-control",
-                    () => TryFindSlot(
-                              fixture,
-                              ExpectedSlotTwoId(fixture),
-                              out PlayerSessionScopedSlotObservation availableP2) &&
-                          !availableP2.IsJoined,
-                    "Timed out preparing an available P2 Slot for JoiningClosed proof.");
+                    "joined P2 from second-player",
+                    occupiedP2.Slot.PlayerSlotId.IsValid
+                        ? occupiedP2.Slot.AllocationState.ToString()
+                        : "missing",
+                    "Joining control must consume the explicit P2 occurrence created by second-player.");
+                yield break;
             }
+
+            SessionPlayerLeaveResult prepareLeave = access.RequestLeave(
+                new SessionPlayerLeaveRequest(
+                    ExpectedSlotTwoId(fixture),
+                    occupiedP2.Slot.Revision,
+                    Source,
+                    "player-qa-prepare-joining-control"));
+            Require(result, "joining-control",
+                prepareLeave != null && prepareLeave.Succeeded,
+                "P2 available before JoiningClosed proof",
+                prepareLeave == null
+                    ? "null"
+                    : $"{prepareLeave.Status} {prepareLeave.Message}",
+                "Joining control could not release its owned P2 occurrence.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            yield return WaitFor(
+                result,
+                "joining-control",
+                () => TryFindSlot(
+                          fixture,
+                          ExpectedSlotTwoId(fixture),
+                          out PlayerSessionScopedSlotObservation availableP2) &&
+                      !availableP2.IsJoined,
+                "Timed out releasing P2 before JoiningClosed proof.");
 
             PlayerParticipationOperationResult closed = access.CloseJoining(Source, "player-qa-close-joining");
             Require(result, "joining-control", closed != null && closed.Completed,
@@ -1326,7 +1785,61 @@ namespace ImmersiveFrameworkQA.Player
                 "joining opened",
                 opened == null ? "null" : $"{opened.Status} {opened.Message}",
                 "OpenJoining failed.");
-            yield return null;
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            Keyboard sharedKeyboard = Keyboard.current;
+            Require(result, "joining-control",
+                sharedKeyboard != null,
+                "explicit QA Keyboard device for P2 restoration",
+                "missing",
+                "Joining control must restore the P2 occurrence consumed to prove JoiningClosed.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            LocalPlayerJoinResult restored = joinAccess.RequestJoin(
+                new LocalPlayerJoinRequest(
+                    Source,
+                    "player-qa-restore-p2-after-joining-control",
+                    sharedKeyboard));
+            Require(result, "joining-control",
+                restored != null && restored.Succeeded &&
+                restored.Slot.PlayerSlotId == ExpectedSlotTwoId(fixture),
+                "P2 restored after JoiningClosed proof",
+                restored == null ? "null" : $"{restored.Status} {restored.Message}",
+                "Joining control must restore the P2 lifecycle continuity required by the public Leave proof.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            yield return WaitForSlot(
+                result,
+                "joining-control",
+                fixture,
+                slot => slot.IsJoined && slot.HasHostEvidence,
+                ExpectedSlotTwoId(fixture));
+            if (!result.Ok || !access.TryGetObservation(
+                    out PlayerSessionScopedObservationSnapshot restoredObservation) ||
+                restoredObservation == null ||
+                restoredObservation.Participation == null ||
+                !restoredObservation.Participation.JoiningOpen)
+            {
+                if (result.Ok)
+                {
+                    result.Fail(
+                        "joining-control",
+                        "Joining open after P2 restoration",
+                        "closed or observation unavailable",
+                        "Joining control must restore both the P2 occurrence and open Joining for the following Leave proof.");
+                }
+
+                yield break;
+            }
         }
 
         private static IEnumerator ProveCommands(PlayerQaPanel fixture, Result result)
@@ -1371,6 +1884,28 @@ namespace ImmersiveFrameworkQA.Player
             Require(result, "commands",
                 fixture.CloseJoiningCommand.TryValidateConfiguration(out string closeJoiningIssue),
                 "close-joining command valid", closeJoiningIssue, closeJoiningIssue);
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            bool p2Joined = TryFindSlot(
+                fixture,
+                ExpectedSlotTwoId(fixture),
+                out PlayerSessionScopedSlotObservation p2) &&
+                p2.IsJoined && p2.HasHostEvidence;
+            bool joiningOpen = TryGetAccess(
+                    fixture,
+                    out IPlayerSessionScopedAccess access,
+                    out _) &&
+                access.TryGetObservation(out PlayerSessionScopedObservationSnapshot observation) &&
+                observation != null && observation.Participation != null &&
+                observation.Participation.JoiningOpen;
+            Require(result, "commands",
+                p2Joined && joiningOpen,
+                "configuration-only commands preserve P2 Joined and Joining open",
+                $"p2Joined={p2Joined} joiningOpen={joiningOpen}",
+                "Command configuration validation must not mutate Player membership or Joining policy before Leave.");
             yield return null;
         }
 
@@ -1414,19 +1949,30 @@ namespace ImmersiveFrameworkQA.Player
                 result,
                 "leave",
                 () => TryFindSlot(fixture, ExpectedSlotTwoId(fixture), out PlayerSessionScopedSlotObservation after) &&
-                      !after.IsJoined,
+                      !after.IsJoined &&
+                      !after.Slot.HasSelectedActor &&
+                      !after.HasHostEvidence &&
+                      !after.IsLogicalActorPrepared &&
+                      !after.IsPhysicallyMaterialized &&
+                      !after.HasGameplayAdmissionEvidence,
                 "Timed out waiting for P2 to leave.");
         }
 
         private static IEnumerator ProveRejoin(PlayerQaPanel fixture, Result result)
         {
+            if (!TryGetAccess(fixture, out IPlayerSessionScopedAccess access, out string accessIssue))
+            {
+                result.Fail("rejoin", "available access", accessIssue, accessIssue);
+                yield break;
+            }
+
             if (!fixture.Probe.TryGetJoinAccess(out ILocalPlayerJoinAccess joinAccess, out string joinIssue))
             {
                 result.Fail("rejoin", "join access", joinIssue, joinIssue);
                 yield break;
             }
 
-            if (TryFindSlot(fixture, ExpectedSlotTwoId(fixture), out PlayerSessionScopedSlotObservation existing) &&
+            if (!TryFindSlot(fixture, ExpectedSlotTwoId(fixture), out PlayerSessionScopedSlotObservation existing) ||
                 existing.IsJoined)
             {
                 result.Fail(
@@ -1448,6 +1994,7 @@ namespace ImmersiveFrameworkQA.Player
                 yield break;
             }
 
+            int releasedRevision = existing.Slot.Revision;
             LocalPlayerJoinResult join = joinAccess.RequestJoin(
                 new LocalPlayerJoinRequest(
                     Source,
@@ -1461,7 +2008,57 @@ namespace ImmersiveFrameworkQA.Player
                 result,
                 "rejoin",
                 fixture,
-                slot => slot.IsJoined,
+                slot => slot.IsJoined &&
+                        slot.HasHostEvidence &&
+                        !slot.Slot.HasSelectedActor &&
+                        !slot.IsLogicalActorPrepared &&
+                        !slot.IsPhysicallyMaterialized,
+                ExpectedSlotTwoId(fixture));
+            if (!result.Ok || !TryFindSlot(
+                    fixture,
+                    ExpectedSlotTwoId(fixture),
+                    out PlayerSessionScopedSlotObservation rejoinedP2))
+            {
+                yield break;
+            }
+
+            Require(result, "rejoin",
+                rejoinedP2.Slot.Revision > releasedRevision &&
+                rejoinedP2.HasHostEvidence &&
+                !rejoinedP2.Slot.HasSelectedActor &&
+                !rejoinedP2.IsLogicalActorPrepared &&
+                !rejoinedP2.IsPhysicallyMaterialized &&
+                !rejoinedP2.HasGameplayAdmissionEvidence,
+                "fresh unprepared P2 occurrence with new revision",
+                $"previousRevision={releasedRevision} currentRevision={rejoinedP2.Slot.Revision}",
+                "Rejoin must establish a newer P2 occurrence without stale selection, Actor, Host projection or Gameplay admission.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            SessionPlayerLeaveResult cleanup = access.RequestLeave(
+                new SessionPlayerLeaveRequest(
+                    ExpectedSlotTwoId(fixture),
+                    rejoinedP2.Slot.Revision,
+                    Source,
+                    "player-qa-rejoin-p2-cleanup"));
+            Require(result, "rejoin", cleanup != null && cleanup.Succeeded,
+                "rejoined P2 cleanup succeeded",
+                cleanup == null ? "null" : $"{cleanup.Status} {cleanup.Message}",
+                "Rejoin proof must not leak the temporary P2 occurrence into later cases.");
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            yield return WaitForSlot(
+                result,
+                "rejoin",
+                fixture,
+                slot => !slot.IsJoined &&
+                        !slot.IsLogicalActorPrepared &&
+                        !slot.IsPhysicallyMaterialized,
                 ExpectedSlotTwoId(fixture));
         }
 
