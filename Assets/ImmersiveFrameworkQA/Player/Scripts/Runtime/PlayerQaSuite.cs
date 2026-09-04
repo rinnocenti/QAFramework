@@ -622,6 +622,13 @@ namespace ImmersiveFrameworkQA.Player
             PlayerGameplayAdmissionToken previousGameplayToken = before.GameplayAdmission.Token;
             PlayerGameplayInputBindingToken previousInputBinding =
                 before.GameplayAdmission.InputBindingToken;
+            Vector3 replacementPose = new Vector3(19.25f, 7.5f, -13.75f);
+            Quaternion replacementRotation = Quaternion.Euler(7f, 143f, 19f);
+            Vector3 previousRuntimeHostPosition = previousRuntimeHost.transform.position;
+            Quaternion previousRuntimeHostRotation = previousRuntimeHost.transform.rotation;
+            previousPresentation.transform.SetPositionAndRotation(
+                replacementPose,
+                replacementRotation);
 
             var request = new PlayerPreparedActorReplacementRequest(
                 ExpectedSlotId(fixture),
@@ -787,6 +794,10 @@ namespace ImmersiveFrameworkQA.Player
                 !ReferenceEquals(currentRuntimeHost, previousRuntimeHost) &&
                 currentPresentation != null &&
                 !ReferenceEquals(currentPresentation, previousPresentation) &&
+                Vector3.Distance(currentPresentation.transform.position, replacementPose) < 0.0001f &&
+                Quaternion.Angle(currentPresentation.transform.rotation, replacementRotation) < 0.001f &&
+                Vector3.Distance(currentRuntimeHost.transform.position, previousRuntimeHostPosition) < 0.0001f &&
+                Quaternion.Angle(currentRuntimeHost.transform.rotation, previousRuntimeHostRotation) < 0.001f &&
                 hasCurrentReader &&
                 currentReader != null &&
                 !ReferenceEquals(currentReader, previousReader) &&
@@ -795,9 +806,9 @@ namespace ImmersiveFrameworkQA.Player
                 currentReader.CurrentBindingToken ==
                     after.GameplayAdmission.InputBindingToken &&
                 (previousReader == null || !previousReader.HasCurrentGameplayBinding),
-                "same LocalPlayerHost/PlayerInput with replaced Runtime Host, Presentation and current reader",
+                "same LocalPlayerHost/PlayerInput with replaced Runtime Host, pose-preserved Presentation and current reader",
                 currentReaderIssue,
-                "ADR-024 must physically replace Actor-owned composition while preserving Player-owned Host/Input authority and releasing reader A.");
+                "ADR-024 must preserve the current Presentation world pose on B without using the Runtime Host as a spatial body.");
             if (!result.Ok)
             {
                 yield break;
@@ -870,9 +881,48 @@ namespace ImmersiveFrameworkQA.Player
                         slot.IsLogicalActorPrepared &&
                         slot.IsPhysicallyMaterialized &&
                         slot.CurrentActor.HasCurrentActor &&
-                        slot.HasHostEvidence &&
-                        slot.HostEvidence.AssignmentOrigin ==
-                            PlayerSlotAssignmentOrigin.ManagerProvisioned);
+                         slot.HasHostEvidence &&
+                         slot.HostEvidence.AssignmentOrigin ==
+                             PlayerSlotAssignmentOrigin.ManagerProvisioned);
+            if (!result.Ok)
+            {
+                yield break;
+            }
+
+            Transform relocationAnchor = null;
+            IReadOnlyList<ActivityPlayerRelocationAuthoring.Binding> relocationBindings =
+                fixture.Relocation != null ? fixture.Relocation.Bindings : null;
+            if (relocationBindings != null)
+            {
+                for (int index = 0; index < relocationBindings.Count; index++)
+                {
+                    ActivityPlayerRelocationAuthoring.Binding binding = relocationBindings[index];
+                    if (binding != null && binding.Activity == fixture.RelocateActivity &&
+                        binding.PlayerSlotProfile == fixture.PlayerOneSlot)
+                    {
+                        relocationAnchor = binding.RelocationAnchor;
+                        break;
+                    }
+                }
+            }
+
+            PlayerActorRuntimeHost[] runtimeHosts = result.PlayerOneHost != null &&
+                result.PlayerOneHost.ActorMount != null
+                ? result.PlayerOneHost.ActorMount.GetComponentsInChildren<PlayerActorRuntimeHost>(true)
+                : Array.Empty<PlayerActorRuntimeHost>();
+            PlayerActorRuntimeHost runtimeHost = runtimeHosts.Length == 1 ? runtimeHosts[0] : null;
+            GameObject presentation = runtimeHost != null && runtimeHost.PresentationMount != null &&
+                runtimeHost.PresentationMount.childCount == 1
+                ? runtimeHost.PresentationMount.GetChild(0).gameObject
+                : null;
+            Require(result, "actor-lifecycle",
+                relocationAnchor != null && runtimeHost != null && presentation != null &&
+                Vector3.Distance(presentation.transform.position, relocationAnchor.position) < 0.0001f &&
+                Quaternion.Angle(presentation.transform.rotation, relocationAnchor.rotation) < 0.001f &&
+                Vector3.Distance(runtimeHost.transform.position, relocationAnchor.position) >= 0.0001f,
+                "Activity relocation applies to exact Presentation, not Runtime Host",
+                $"anchor={DescribeObject(relocationAnchor)} presentation={DescribeObject(presentation)} runtimeHost={DescribeObject(runtimeHost)}",
+                "Activity relocation must move the exact Presentation spatial root and leave the generic Runtime Host outside the relocation target.");
         }
 
         private static IEnumerator ProveGameplayReadyReader(

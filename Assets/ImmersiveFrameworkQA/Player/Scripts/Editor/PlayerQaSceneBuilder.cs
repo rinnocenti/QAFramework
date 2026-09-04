@@ -516,7 +516,6 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 {
                     PlayerActorRuntimeHost host = root.AddComponent<PlayerActorRuntimeHost>();
                     PlayerActorDeclaration declaration = root.AddComponent<PlayerActorDeclaration>();
-                    root.AddComponent<CharacterController>();
                     SetString(declaration, "displayName", "QA Player Actor");
                     SetString(declaration, "reason", "qa.player.runtime-host");
                     var presentationMount = new GameObject("PresentationMount");

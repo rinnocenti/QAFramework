@@ -147,8 +147,8 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 ValidateGameplayInputReader();
                 completed.Add("gameplay-input-reader");
 
-                ValidateCharacterControllerRequirement();
-                completed.Add("character-controller-root");
+                ValidatePresentationEmbodimentVariation();
+                completed.Add("presentation-embodiment-variation");
 
                 Require(completed.Count == ExpectedCaseCount,
                     "Player QA authoring case count changed unexpectedly.");
@@ -335,12 +335,11 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 runtimeHostPrefab.GetComponentsInChildren<PlayerGameplayInputReader>(true).Length == 0 &&
                 runtimeHostPrefab.GetComponents<PlayerActorRuntimeHost>().Length == 1 &&
                 runtimeHostPrefab.GetComponents<PlayerActorDeclaration>().Length == 1 &&
-                runtimeHostPrefab.GetComponents<CharacterController>().Length == 1 &&
                 runtimeHost.PresentationMount != null &&
                 runtimeHost.PresentationMount.parent == runtimeHost.transform &&
                 runtimeHost.PresentationMount.childCount == 0 &&
                 runtimeHost.PlayerActorDeclaration != null,
-                "Runtime Host prefab must keep exactly one root Player Actor host, declaration and CharacterController; PlayerInput is absent and Presentation Mount is empty.");
+                "Runtime Host prefab must keep exactly one root Player Actor host and declaration; PlayerInput is absent and Presentation Mount is empty.");
             RequireEmptyAuthoredActorId(
                 runtimeHost.PlayerActorDeclaration,
                 "Runtime Host prefab");
@@ -532,58 +531,47 @@ namespace ImmersiveFrameworkQA.Player.Editor
             return false;
         }
 
-        private static void ValidateCharacterControllerRequirement()
+        private static void ValidatePresentationEmbodimentVariation()
         {
-            GameObject valid = CreateRuntimeHost("QA Player Actor valid root", true, false);
-            GameObject missing = CreateRuntimeHost("QA Player Actor missing controller", false, false);
-            GameObject childOnly = CreateRuntimeHost("QA Player Actor child controller", false, true);
+            GameObject noBody = CreateRuntimeHost("QA Player Actor no body", false);
+            GameObject characterControllerPresentation = CreateRuntimeHost(
+                "QA Player Actor presentation controller", true);
             try
             {
-                PlayerActorRuntimeHost validHost = valid.GetComponent<PlayerActorRuntimeHost>();
+                PlayerActorRuntimeHost noBodyHost = noBody.GetComponent<PlayerActorRuntimeHost>();
                 Require(
-                    validHost.TryValidateConfiguration(out string validIssue),
-                    $"Canonical Player Actor root with CharacterController must be valid. {validIssue}");
+                    noBodyHost.TryValidateConfiguration(out string noBodyIssue),
+                    $"Generic Player Actor Runtime Host without a physical body must be valid. {noBodyIssue}");
 
-                PlayerActorRuntimeHost missingHost = missing.GetComponent<PlayerActorRuntimeHost>();
+                PlayerActorRuntimeHost characterControllerPresentationHost =
+                    characterControllerPresentation.GetComponent<PlayerActorRuntimeHost>();
                 Require(
-                    !missingHost.TryValidateConfiguration(out string missingIssue) &&
-                    missingIssue.IndexOf("CharacterController", StringComparison.Ordinal) >= 0,
-                    "Player Actor root without CharacterController must fail with an explicit CharacterController configuration issue.");
-
-                PlayerActorRuntimeHost childOnlyHost = childOnly.GetComponent<PlayerActorRuntimeHost>();
-                Require(
-                    !childOnlyHost.TryValidateConfiguration(out string childOnlyIssue) &&
-                    childOnlyIssue.IndexOf("CharacterController", StringComparison.Ordinal) >= 0,
-                    "CharacterController only on a Player Actor child must be invalid; the Framework must not search descendants.");
+                    characterControllerPresentationHost.TryValidateConfiguration(
+                        out string characterControllerPresentationIssue),
+                    "Player Actor Runtime Host must not distinguish a Presentation body technology. " +
+                    characterControllerPresentationIssue);
             }
             finally
             {
-                UnityEngine.Object.DestroyImmediate(valid);
-                UnityEngine.Object.DestroyImmediate(missing);
-                UnityEngine.Object.DestroyImmediate(childOnly);
+                UnityEngine.Object.DestroyImmediate(noBody);
+                UnityEngine.Object.DestroyImmediate(characterControllerPresentation);
             }
         }
 
         private static GameObject CreateRuntimeHost(
             string name,
-            bool addRootCharacterController,
-            bool addChildCharacterController)
+            bool addPresentationCharacterController)
         {
             var root = new GameObject(name);
             PlayerActorRuntimeHost host = root.AddComponent<PlayerActorRuntimeHost>();
             PlayerActorDeclaration declaration = root.AddComponent<PlayerActorDeclaration>();
             var presentationMount = new GameObject("PresentationMount");
             presentationMount.transform.SetParent(root.transform, false);
-            if (addRootCharacterController)
+            if (addPresentationCharacterController)
             {
-                root.AddComponent<CharacterController>();
-            }
-
-            if (addChildCharacterController)
-            {
-                var child = new GameObject("ChildOnlyCharacterController");
-                child.transform.SetParent(root.transform, false);
-                child.AddComponent<CharacterController>();
+                var presentation = new GameObject("Presentation");
+                presentation.transform.SetParent(presentationMount.transform, false);
+                presentation.AddComponent<CharacterController>();
             }
 
             var serialized = new SerializedObject(host);

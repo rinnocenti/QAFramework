@@ -34,6 +34,7 @@ Manager-Provisioned runtime
 Spatial / Relocation
   RoutePlayerSpatialEntryAuthoring
   ActivityPlayerRelocationAuthoring
+  exact Presentation spatial authority and same-occurrence replacement pose
 ```
 
 The runtime suite uses official public components only:
@@ -56,6 +57,11 @@ PlayerActorRuntimeHost
 ```
 
 It does not use reflection, service locators or a parallel Player runtime.
+
+The generic Player Actor Runtime Host fixture has no required physical-body
+component. The exact materialized Presentation is the spatial target for Route
+placement and Activity relocation; prepared Actor replacement preserves its world
+pose on the replacement Presentation.
 
 ## Generated / maintained QA assets
 
