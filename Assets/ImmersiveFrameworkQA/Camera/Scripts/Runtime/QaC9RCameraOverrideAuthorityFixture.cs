@@ -15,7 +15,8 @@ namespace ImmersiveFrameworkQA.Camera
     public enum QaCameraAdr026TopologyMode
     {
         Shared = 10,
-        Split = 20
+        Split = 20,
+        Partial = 30
     }
 
     [DisallowMultipleComponent]
@@ -29,6 +30,7 @@ namespace ImmersiveFrameworkQA.Camera
         private const string Adr004CLogPrefix = "[QA_CAMERA_ADR004C]";
         private const int MaxReadinessFrames = 600;
         private const int ExpectedGenericCaseCount = 11;
+        private const int ExpectedPartialCaseCount = 8;
         private const string RouteLifecycleSurvivorRequestId =
             "qa.camera.adr004b.route-lifecycle-survivor";
 
@@ -55,6 +57,7 @@ namespace ImmersiveFrameworkQA.Camera
         private bool started;
         private bool awaitingRouteLifecycleCleanup;
         private bool awaitingSplitRouteExit;
+        private bool awaitingPartialRouteExit;
         private string routeRequestId;
         private readonly List<string> completedCases = new List<string>();
 
@@ -64,6 +67,9 @@ namespace ImmersiveFrameworkQA.Camera
         public static bool Adr026SplitExecuted { get; private set; }
         public static bool Adr026SplitPassed { get; private set; }
         public static string Adr026SplitDiagnostic { get; private set; } = string.Empty;
+        public static bool Adr026PartialExecuted { get; private set; }
+        public static bool Adr026PartialPassed { get; private set; }
+        public static string Adr026PartialDiagnostic { get; private set; } = string.Empty;
         public static bool GenericArbitrationExecuted { get; private set; }
         public static bool GenericArbitrationPassed { get; private set; }
 
@@ -142,6 +148,16 @@ namespace ImmersiveFrameworkQA.Camera
                 yield break;
             }
 
+            if (topologyMode == QaCameraAdr026TopologyMode.Partial)
+            {
+                yield return RunPartialOutputParticipationProof();
+                if (HasFailed) yield break;
+                awaitingPartialRouteExit = true;
+                lastStatus = "WaitingPartialRouteExit";
+                backToHubTrigger.RequestRoute();
+                yield break;
+            }
+
             Fail($"Unsupported ADR-026 topology mode '{topologyMode}'.");
         }
 
@@ -178,6 +194,36 @@ namespace ImmersiveFrameworkQA.Camera
             }
         }
 
+        private void RequireReplacementActorPreconditions(
+            PlayerSessionScopedObservationSnapshot initial)
+        {
+            Require(replacementActorProfile != null,
+                "ADR-026 Actor replacement proof requires an explicit replacement Actor Profile.");
+            Require(replacementActorProfile.TryGetActorProfileId(
+                    out ActorProfileId replacementId, out string replacementIssue),
+                $"ADR-026 replacement Actor identity is invalid. {replacementIssue}");
+            Require(initial.HasInitializationEvidence &&
+                    initial.InitializationConfiguration.SupportedSlotCount >= 2,
+                "ADR-026 Shared Camera requires captured default Actor configuration for at least two Slots.");
+            Require(initial.Participation.ActorSelectionDuplicatePolicy ==
+                    PlayerActorSelectionDuplicatePolicy.UniqueAcrossJoinedSlots,
+                "ADR-026 Shared Camera requires the canonical UniqueAcrossJoinedSlots policy.");
+
+            foreach (EffectivePlayerSlotProvisioning slot in
+                     initial.InitializationConfiguration.Slots)
+            {
+                Require(slot.DefaultActorProfile != null,
+                    $"ADR-026 Shared Camera requires a configured default Actor. slot='{slot.PlayerSlotId.StableText}'.");
+                Require(slot.DefaultActorProfile.TryGetActorProfileId(
+                        out ActorProfileId defaultId, out string defaultIssue),
+                    $"ADR-026 configured default Actor identity is invalid. slot='{slot.PlayerSlotId.StableText}' issue='{defaultIssue}'.");
+                Require(replacementId != defaultId,
+                    "ADR-026 Shared Camera replacement Actor conflicts with a Slot configured default Actor under UniqueAcrossJoinedSlots. " +
+                    $"replacementActor='{replacementId.StableText}' conflictingSlot='{slot.PlayerSlotId.StableText}' " +
+                    $"configuredActor='{defaultId.StableText}'.");
+            }
+        }
+
         private IEnumerator RunSharedCameraProofCore()
         {
             IPlayerSessionScopedAccess access = null;
@@ -208,6 +254,7 @@ namespace ImmersiveFrameworkQA.Camera
                 Require(SubjectSnapshot().Count == 0,
                     "Fresh Shared Camera phase contains unexpected Camera Subjects.");
                 RequireNoOrdinaryPlayerRequests("shared-baseline");
+                RequireReplacementActorPreconditions(initial);
 
                 p1Keyboard = InputSystem.AddDevice<Keyboard>();
                 p2Keyboard = InputSystem.AddDevice<Keyboard>();
@@ -255,14 +302,14 @@ namespace ImmersiveFrameworkQA.Camera
                 CameraSubjectAvailabilityEntry p1AEntry =
                     RequireSubjectForHost(SubjectSnapshot(), p1A.LocalPlayerHost, "P1-A");
                 RequireExplicitChildSubject(p1AEntry, p1A.LocalPlayerHost, "P1-A");
-                CameraRigComposer composer = SharedComposition.Composer;
+                CameraRigComposer composer = SharedComposition.Output.DefaultCameraRig;
                 CinemachineCamera cinemachine = composer.CinemachineCamera;
                 CameraOutputAuthoring output = SharedComposition.Output;
                 CameraViewId view = SharedComposition.ViewId;
                 RequireSharedIdentity(view, composer, cinemachine, output, "p1-join");
 
                 mountedAssignments = new CameraViewAssignmentContext(
-                    "qa.camera.adr026.mounted-assignments",
+                    new ViewAssignmentContextId("qa.camera.adr026.mounted-assignments"),
                     SubjectSnapshot().ContextId,
                     new CameraView(
                         mountedViewId,
@@ -274,8 +321,6 @@ namespace ImmersiveFrameworkQA.Camera
                     p1AEntry,
                     "p1-a-join");
 
-                Require(replacementActorProfile != null,
-                    "ADR-026 Actor replacement proof requires an explicit replacement Actor Profile.");
                 CameraSubjectId p1AOldSubjectId = p1AEntry.Subject.SubjectId;
                 Transform p1AOldObservation = p1AEntry.Subject.Observation;
                 PlayerPreparedActorReplacementResult replacement =
@@ -464,8 +509,9 @@ namespace ImmersiveFrameworkQA.Camera
             {
                 Require(OutputA != null && OutputB != null,
                     "Split proof requires both exact injected Outputs.");
-                Require(OutputA.OutputIdText == "camera.output.main" &&
-                        OutputB.OutputIdText == "camera.output.secondary" &&
+                Require(OutputA.OutputDefinition != null && OutputA.OutputDefinition.HasValidId &&
+                        OutputB.OutputDefinition != null && OutputB.OutputDefinition.HasValidId &&
+                        !ReferenceEquals(OutputA.OutputDefinition, OutputB.OutputDefinition) &&
                         OutputA.OutputIdText != OutputB.OutputIdText,
                     "Split proof requires exact distinct CameraOutputId values.");
                 Require(!ReferenceEquals(OutputA.UnityCamera, OutputB.UnityCamera) &&
@@ -489,7 +535,7 @@ namespace ImmersiveFrameworkQA.Camera
                 RequireSameContext(bBefore, OutputB.Context.CaptureSnapshot(),
                     "Output A request mutated Output B arbitration.");
 
-                splitOutputPublisher = CreateSplitOutputPublisher();
+                splitOutputPublisher = CreateOutputBPublisher();
                 CameraOutputContextSnapshot aBeforeB = OutputA.Context.CaptureSnapshot();
                 CameraRequestPublisherResult bPublish = splitOutputPublisher.Publish();
                 Require(bPublish.Succeeded && OutputB.Context.AdmittedRequestCount == 1,
@@ -510,7 +556,7 @@ namespace ImmersiveFrameworkQA.Camera
                 Adr026SplitExecuted = true;
                 Adr026SplitPassed = true;
                 Adr026SplitDiagnostic =
-                    "outputs='camera.output.main,camera.output.secondary' viewports='left,right' isolation='Passed' missingOutput='Rejected' automaticSplitScreen='RejectedByAuthoringValidation'.";
+                    $"outputs='{OutputA.OutputIdText},{OutputB.OutputIdText}' viewports='left,right' isolation='Passed' missingOutput='Rejected' automaticSplitScreen='RejectedByAuthoringValidation'.";
                 Debug.Log($"{Adr026Prefix} phase='split' status='Passed' {Adr026SplitDiagnostic}", this);
             }
             catch (Exception exception)
@@ -530,6 +576,246 @@ namespace ImmersiveFrameworkQA.Camera
                 if (routeBinding != null) routeBinding.ReleaseOverride();
             }
             yield break;
+        }
+
+        private IEnumerator RunPartialOutputParticipationProof()
+        {
+            IEnumerator proof = RunPartialOutputParticipationProofCore();
+            try
+            {
+                while (true)
+                {
+                    object current = null;
+                    bool hasNext = false;
+                    bool failed = false;
+                    try
+                    {
+                        hasNext = proof.MoveNext();
+                        if (hasNext) current = proof.Current;
+                    }
+                    catch (Exception exception)
+                    {
+                        Adr026PartialExecuted = true;
+                        Adr026PartialPassed = false;
+                        Adr026PartialDiagnostic = exception.Message;
+                        Fail(exception.Message);
+                        failed = true;
+                    }
+
+                    if (failed || !hasNext) yield break;
+                    yield return current;
+                }
+            }
+            finally
+            {
+                (proof as IDisposable)?.Dispose();
+            }
+        }
+
+        private IEnumerator RunPartialOutputParticipationProofCore()
+        {
+            IPlayerSessionScopedAccess access = null;
+            ILocalPlayerJoinAccess joinAccess = null;
+            LocalPlayerJoinResult joined = null;
+            Keyboard keyboard = null;
+            ICameraRequestPublisher outputBPublisher = null;
+            bool joiningOpenedByFixture = false;
+            var partialCases = new List<string>();
+
+            try
+            {
+                Require(outputAProbe != null && outputAProbe.IsAttached &&
+                        outputAProbe.AttachmentCount == 1 &&
+                        outputBProbe != null && outputBProbe.IsAttached &&
+                        outputBProbe.AttachmentCount == 1,
+                    "CAMERA-028-A requires each available physical Output probe to attach exactly once.");
+                CompletePartial(partialCases, "physical-output-probes-attached-once");
+
+                Require(OutputA != null && OutputA.IsInitialized &&
+                        OutputB != null && OutputB.IsInitialized,
+                    "CAMERA-028-A requires both available physical Outputs to initialize.");
+                CompletePartial(partialCases, "physical-outputs-initialized");
+
+                CameraSharedComposition composition = SharedComposition;
+                CameraViewOutputBinding explicitA = default;
+                string associationIssue = "Association projection was not evaluated.";
+                Require(composition != null &&
+                        ReferenceEquals(composition.Output, OutputA) &&
+                        composition.TryCreateAssociationBinding(
+                            out explicitA,
+                            out associationIssue) &&
+                        explicitA.ViewId == composition.ViewId &&
+                        explicitA.OutputId == OutputA.OutputId &&
+                        RectIs(OutputA.UnityCamera.rect, 0f, 0f, 1f, 1f),
+                    "CAMERA-028-A did not retain the exact explicit View-to-Output A association. " +
+                    associationIssue);
+                CameraViewId explicitViewId = explicitA.ViewId;
+                CompletePartial(partialCases, "output-a-explicit-association-retained");
+
+                Require(OutputA.GetComponents<CameraSharedComposition>().Length == 1 &&
+                        OutputB.GetComponents<CameraSharedComposition>().Length == 0 &&
+                        RectIs(OutputB.UnityCamera.rect, 0f, 0f, 1f, 1f),
+                    "CAMERA-028-A Output B must remain physically available without an implicit View association.");
+                CompletePartial(partialCases, "output-b-available-unassociated");
+
+                Require(missingOutputProbe != null &&
+                        !missingOutputProbe.IsAttached &&
+                        missingOutputProbe.AttachmentCount == 0 &&
+                        missingOutputProbe.LastDetachReason.IndexOf(
+                            "not part of the active Session topology",
+                            StringComparison.Ordinal) >= 0,
+                    "CAMERA-028-A unavailable Output probe was not explicitly rejected.");
+                CompletePartial(partialCases, "unavailable-output-probe-rejected");
+
+                yield return WaitFor(
+                    () => playerSessionObserver != null &&
+                        playerSessionObserver.TryGetAccess(out access, out _) &&
+                        playerSessionObserver.TryGetJoinAccess(out joinAccess, out _),
+                    "partial-public-player-session-access");
+                if (HasFailed) yield break;
+
+                PlayerSessionScopedObservationSnapshot initial = Observation(access);
+                Require(initial.Participation != null && initial.Participation.JoinedCount == 0,
+                    "CAMERA-028-A Partial phase requires a fresh Player Session.");
+                RequireNoOrdinaryPlayerRequests("partial-before-player-join");
+                CameraOutputContextSnapshot outputBBeforePlayer = OutputB.Context.CaptureSnapshot();
+
+                keyboard = InputSystem.AddDevice<Keyboard>();
+                Require(keyboard != null && keyboard.added,
+                    "CAMERA-028-A could not create its QA-owned Player input device.");
+                if (!initial.Participation.JoiningOpen)
+                {
+                    PlayerParticipationOperationResult opened = access.OpenJoining(
+                        nameof(QaCameraOverrideAuthorityFixture),
+                        "camera-028-a-partial-open-joining");
+                    Require(opened != null && opened.Status == PlayerParticipationOperationStatus.Succeeded,
+                        opened != null ? opened.ToDiagnosticString() : "OpenJoining returned no result.");
+                    joiningOpenedByFixture = true;
+                }
+
+                joined = joinAccess.RequestJoin(new LocalPlayerJoinRequest(
+                    nameof(QaCameraOverrideAuthorityFixture),
+                    "camera-028-a-partial-player-join",
+                    keyboard));
+                Require(joined != null && joined.Succeeded && joined.LocalPlayerHost != null,
+                    joined != null ? joined.ToDiagnosticString() : "Partial Player join returned no result.");
+                yield return WaitFor(() => SharedMembershipIs(1), "partial-player-subject-joined");
+                if (HasFailed) yield break;
+
+                RequireNoOrdinaryPlayerRequests("partial-after-player-join");
+                Require(composition.ViewId == explicitViewId &&
+                        ReferenceEquals(composition.Output, OutputA) &&
+                        OutputA.GetComponents<CameraSharedComposition>().Length == 1 &&
+                        OutputB.GetComponents<CameraSharedComposition>().Length == 0 &&
+                        outputAProbe.AttachmentCount == 1 &&
+                        outputBProbe.AttachmentCount == 1,
+                    "Ordinary Player join created or replaced a View-to-Output association.");
+                RequireSameContext(
+                    outputBBeforePlayer,
+                    OutputB.Context.CaptureSnapshot(),
+                    "Ordinary Player join mutated unassociated Output B arbitration.");
+
+                SessionPlayerLeaveResult left = access.RequestLeave(
+                    LeaveRequest(
+                        access,
+                        joined.Slot.PlayerSlotId,
+                        "camera-028-a-partial-player-leave"));
+                Require(left != null && left.Succeeded,
+                    left != null ? left.ToDiagnosticString() : "Partial Player leave returned no result.");
+                joined = null;
+                yield return WaitFor(() => SharedMembershipIs(0), "partial-player-subject-left");
+                if (HasFailed) yield break;
+
+                RequireNoOrdinaryPlayerRequests("partial-after-player-leave");
+                Require(composition.ViewId == explicitViewId &&
+                        ReferenceEquals(composition.Output, OutputA) &&
+                        OutputB.GetComponents<CameraSharedComposition>().Length == 0 &&
+                        outputAProbe.AttachmentCount == 1 &&
+                        outputBProbe.AttachmentCount == 1,
+                    "Ordinary Player lifecycle changed Partial View-to-Output participation.");
+                RequireSameContext(
+                    outputBBeforePlayer,
+                    OutputB.Context.CaptureSnapshot(),
+                    "Ordinary Player lifecycle mutated unassociated Output B arbitration.");
+                CompletePartial(partialCases, "player-lifecycle-created-no-association");
+
+                CameraOutputContextSnapshot outputBBeforeA = OutputB.Context.CaptureSnapshot();
+                Require(routeBinding.RequestOverride().Succeeded &&
+                        IsWinner(OutputA, routeBinding.RequestIdText),
+                    "CAMERA-028-A Output A isolation request was not selected.");
+                RequireSameContext(
+                    outputBBeforeA,
+                    OutputB.Context.CaptureSnapshot(),
+                    "Associated Output A request mutated unassociated Output B arbitration.");
+                CompletePartial(partialCases, "output-a-request-isolated-from-output-b");
+
+                outputBPublisher = CreateOutputBPublisher();
+                CameraOutputContextSnapshot outputAWithRoute = OutputA.Context.CaptureSnapshot();
+                CameraRequestPublisherResult bPublished = outputBPublisher.Publish();
+                Require(bPublished.Succeeded && OutputB.Context.AdmittedRequestCount == 1,
+                    "CAMERA-028-A unassociated Output B request was not admitted by its physical Output session.");
+                RequireSameContext(
+                    outputAWithRoute,
+                    OutputA.Context.CaptureSnapshot(),
+                    "Unassociated Output B request mutated Output A arbitration.");
+                CameraRequestPublisherResult bReleased = outputBPublisher.Release();
+                Require(bReleased.Succeeded && OutputB.Context.AdmittedRequestCount == 0 &&
+                        OutputB.Applicator.HasAppliedDefault,
+                    "CAMERA-028-A Output B release did not restore its physical Default.");
+                outputBPublisher = null;
+                RequireSameContext(
+                    outputAWithRoute,
+                    OutputA.Context.CaptureSnapshot(),
+                    "Unassociated Output B release mutated Output A arbitration.");
+                Require(routeBinding.ReleaseOverride().Succeeded &&
+                        OutputA.Context.AdmittedRequestCount == 0 &&
+                        OutputA.Applicator.HasAppliedDefault,
+                    "CAMERA-028-A Output A release did not restore its Default.");
+                CompletePartial(partialCases, "unassociated-output-b-does-not-mutate-output-a");
+
+                Require(partialCases.Count == ExpectedPartialCaseCount,
+                    $"CAMERA-028-A evidence cardinality diverged. actual='{partialCases.Count}' expected='{ExpectedPartialCaseCount}'.");
+                Adr026PartialExecuted = true;
+                Adr026PartialPassed = true;
+                Adr026PartialDiagnostic =
+                    $"availableOutputs='2' participatingBindings='1' probes='A:1,B:1' initialized='A:True,B:True' " +
+                    $"outputAView='{explicitViewId.Value}' outputB='AvailableUnassociated' " +
+                    $"implicitAssociation='AbsentAcrossPlayerCount0To1To0' missingOutput='Rejected' " +
+                    $"arbitrationIsolation='Passed' cases='{partialCases.Count}/{ExpectedPartialCaseCount}' " +
+                    $"completed='{string.Join(",", partialCases)}'.";
+                lastStatus = "Passed";
+                Debug.Log($"{Adr026Prefix} phase='partial' status='Passed' {Adr026PartialDiagnostic}", this);
+            }
+            finally
+            {
+                if (outputBPublisher != null)
+                {
+                    outputBPublisher.Release();
+                }
+                if (routeBinding != null)
+                {
+                    routeBinding.ReleaseOverride();
+                }
+                TryCleanupPlayer(access, ref joined, "partial-player-finally");
+                if (joiningOpenedByFixture && access != null)
+                {
+                    access.CloseJoining(
+                        nameof(QaCameraOverrideAuthorityFixture),
+                        "camera-028-a-partial-finally-close-joining");
+                }
+                if (keyboard != null && keyboard.added)
+                {
+                    InputSystem.RemoveDevice(keyboard);
+                }
+            }
+        }
+
+        private void CompletePartial(List<string> cases, string name)
+        {
+            cases.Add(name);
+            completedCaseCount = cases.Count;
+            completedCases.Add(name);
+            Debug.Log($"{Adr026Prefix} phase='partial' case='{name}' status='Passed'.", this);
         }
 
         private IEnumerator RunGenericArbitrationProof()
@@ -720,9 +1006,9 @@ namespace ImmersiveFrameworkQA.Camera
                 new CameraRequestId(RouteLifecycleSurvivorRequestId),
                 new CameraOutputId(OutputA.OutputIdText),
                 new CameraRequestOwner(CameraRequestOwnerKind.Session,
-                    "qa.camera.adr004b.route-lifecycle-survivor-owner"),
+                    new CameraRequestOwnerScopeId("qa.camera.adr004b.route-lifecycle-survivor-owner")),
                 new CameraRequestLifetime(CameraRequestLifetimeKind.Session,
-                    "qa.camera.adr004b.route-lifecycle-survivor-scope"),
+                    new CameraRequestLifetimeScopeId("qa.camera.adr004b.route-lifecycle-survivor-scope")),
                 CameraRigReference.FromComposer(SessionOverride.RigComposer),
                 CameraTargetSourceDescriptor.ExplicitTransform(
                     SessionOverride.TargetSource, "ADR004BRouteLifecycleSurvivor"),
@@ -739,16 +1025,24 @@ namespace ImmersiveFrameworkQA.Camera
                 "Route lifecycle survivor publication failed.");
         }
 
-        private ICameraRequestPublisher CreateSplitOutputPublisher()
+        private ICameraRequestPublisher CreateOutputBPublisher()
         {
-            Transform target = routeComposer != null ? routeComposer.ExplicitFollowTarget : null;
-            Require(target != null, "Split Output B request requires an explicit target.");
+            Require(OutputB != null, "Output B request requires Output B to be injected.");
+            Require(OutputB.IsInitialized, "Output B request requires Output B to be initialized.");
+            CameraRigComposer outputBRig = OutputB.DefaultCameraRig;
+            Require(outputBRig != null,
+                "Output B request requires Output B to own a DefaultCameraRig.");
+            Transform target = OutputB.transform;
+            Require(target != null,
+                "Output B request requires its Output Transform as request source evidence.");
             CameraRequestCreateResult request = CameraRequestCreateResult.Create(
                 new CameraRequestId("qa.camera.adr026.output-b.request"),
                 new CameraOutputId(OutputB.OutputIdText),
-                new CameraRequestOwner(CameraRequestOwnerKind.Session, "qa.camera.adr026.output-b.owner"),
-                new CameraRequestLifetime(CameraRequestLifetimeKind.Session, "qa.camera.adr026.output-b.scope"),
-                CameraRigReference.FromComposer(OutputB.DefaultCameraRig),
+                new CameraRequestOwner(CameraRequestOwnerKind.Session,
+                    new CameraRequestOwnerScopeId("qa.camera.adr026.output-b.owner")),
+                new CameraRequestLifetime(CameraRequestLifetimeKind.Session,
+                    new CameraRequestLifetimeScopeId("qa.camera.adr026.output-b.scope")),
+                CameraRigReference.FromComposer(outputBRig),
                 CameraTargetSourceDescriptor.ExplicitTransform(target, "ADR026OutputB"),
                 new CameraRequestPolicy(250, "adr026-output-b"),
                 CameraRequestReleaseCondition.ExplicitRelease,
@@ -1005,7 +1299,7 @@ namespace ImmersiveFrameworkQA.Camera
             string phase)
         {
             Require(SharedComposition.ViewId == view &&
-                    ReferenceEquals(SharedComposition.Composer, composer) &&
+                    ReferenceEquals(SharedComposition.Output.DefaultCameraRig, composer) &&
                     ReferenceEquals(composer.CinemachineCamera, cinemachine) &&
                     ReferenceEquals(SharedComposition.Output, output) && ReferenceEquals(output, OutputA),
                 $"Shared Camera changed View, Composer, Cinemachine Camera or Output at '{phase}'.");
@@ -1169,6 +1463,13 @@ namespace ImmersiveFrameworkQA.Camera
 
         private void OnDestroy()
         {
+            if (awaitingPartialRouteExit)
+            {
+                Debug.Log($"{LogPrefix} status='{(Adr026PartialPassed ? "Passed" : "Failed")}' " +
+                    $"phase='camera-028-a-partial-fixture' cases='{ExpectedPartialCaseCount}/{ExpectedPartialCaseCount}' " +
+                    $"diagnostic='{Escape(Adr026PartialDiagnostic)}'.", this);
+                return;
+            }
             if (awaitingSplitRouteExit)
             {
                 Debug.Log($"{LogPrefix} status='{(Adr026SplitPassed ? "Passed" : "Failed")}' " +
@@ -1208,9 +1509,23 @@ namespace ImmersiveFrameworkQA.Camera
                 Adr026SharedPassed = false;
                 Adr026SharedDiagnostic = reason;
             }
+            if (topologyMode == QaCameraAdr026TopologyMode.Partial && !Adr026PartialExecuted)
+            {
+                Adr026PartialExecuted = true;
+                Adr026PartialPassed = false;
+                Adr026PartialDiagnostic = reason;
+            }
+            int expectedCaseCount = topologyMode == QaCameraAdr026TopologyMode.Partial
+                ? ExpectedPartialCaseCount
+                : ExpectedGenericCaseCount;
+            string next = completedCaseCount < expectedCaseCount
+                ? topologyMode == QaCameraAdr026TopologyMode.Partial
+                    ? "partial-output-participation"
+                    : "generic-arbitration"
+                : "none";
             Debug.LogError($"{LogPrefix} status='Failed' phase='{topologyMode}' " +
-                $"cases='{completedCaseCount}/{ExpectedGenericCaseCount}' " +
-                $"next='{(completedCaseCount < ExpectedGenericCaseCount ? "generic-arbitration" : "none")}' " +
+                $"cases='{completedCaseCount}/{expectedCaseCount}' " +
+                $"next='{next}' " +
                 $"completed='{string.Join(",", completedCases)}' missing='{Escape(reason)}'.", this);
             if (throwOnFailure) throw new InvalidOperationException(reason);
         }
@@ -1253,6 +1568,9 @@ namespace ImmersiveFrameworkQA.Camera
             Adr026SplitExecuted = false;
             Adr026SplitPassed = false;
             Adr026SplitDiagnostic = string.Empty;
+            Adr026PartialExecuted = false;
+            Adr026PartialPassed = false;
+            Adr026PartialDiagnostic = string.Empty;
             GenericArbitrationExecuted = false;
             GenericArbitrationPassed = false;
             Adr004BActivityLifecycleExecuted = false;

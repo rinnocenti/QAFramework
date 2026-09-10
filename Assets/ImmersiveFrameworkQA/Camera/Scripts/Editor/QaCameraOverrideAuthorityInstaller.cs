@@ -41,6 +41,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 Debug.Log(
                     "[_CAMERA_OVERRIDE_AUTHORITY_SETUP] " +
                     $"status='Succeeded' adr026Mode='{mode}' outputs='2' " +
+                    $"participatingBindings='{QaCameraPersistentTopologyBuilder.ExpectedBindingCount(mode)}' " +
                     "persistentTopology='RebuiltAndSaved' sceneRail='Repaired'.");
             }
             catch (Exception exception)
