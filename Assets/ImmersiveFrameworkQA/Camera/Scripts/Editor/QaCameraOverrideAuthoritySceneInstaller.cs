@@ -12,6 +12,7 @@ using Immersive.Framework.GameFlow;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.RouteLifecycle;
 using ImmersiveFrameworkQA.Hub;
+using ImmersiveFrameworkQA.Player.Editor;
 using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -32,6 +33,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             CameraRoot + "/Activities/QA_PlayerCameraArbitrationActivity.asset";
         private const string HubScenePath =
             Root + "/Hub/Scenes/QA_Hub.unity";
+        private const string SceneProvidedScenePath =
+            Root + "/Player/Scenes/QA_PlayerSceneProvided.unity";
         private const string HubRoutePath =
             Root + "/Hub/Routes/QA_HubRoute.asset";
         private const string ReplacementActorProfilePath =
@@ -40,6 +43,18 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             CameraRoot + "/Prefabs/QA_SharedCameraReplacementPresentation.prefab";
         private const string ReplacementActorProfileId =
             "actor-profile.qa.camera.shared-replacement";
+        private const string FallbackActorProfilePath =
+            CameraRoot + "/Profiles/QA_Camera026I_FallbackActor.asset";
+        private const string FallbackPresentationPath =
+            CameraRoot + "/Prefabs/QA_Camera026I_FallbackPresentation.prefab";
+        private const string FallbackActorProfileId =
+            "actor-profile.qa.camera.026i-fallback";
+        private const string InvalidCameraActorProfilePath =
+            CameraRoot + "/Profiles/QA_Camera026I_InvalidCameraActor.asset";
+        private const string InvalidCameraPresentationPath =
+            CameraRoot + "/Prefabs/QA_Camera026I_InvalidCameraPresentation.prefab";
+        private const string InvalidCameraActorProfileId =
+            "actor-profile.qa.camera.026i-invalid-camera";
         private const string HubDomain = "Camera";
         private const string HubLabel = "Camera Override Authority";
         private const string HubTriggerName =
@@ -51,13 +66,27 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         {
             RepairAssets();
             RepairScene(mode);
-            EnsureBuildScene();
+            RepairSceneProvidedIntegration();
+            EnsureBuildScene(ScenePath);
+            EnsureBuildScene(SceneProvidedScenePath);
             RepairHub();
         }
 
         private static void RepairAssets()
         {
             RepairReplacementActor();
+            RepairCamera026IActor(
+                FallbackActorProfilePath,
+                FallbackPresentationPath,
+                FallbackActorProfileId,
+                "QA CAMERA-026-I Fallback Actor",
+                0);
+            RepairCamera026IActor(
+                InvalidCameraActorProfilePath,
+                InvalidCameraPresentationPath,
+                InvalidCameraActorProfileId,
+                "QA CAMERA-026-I Invalid Camera Actor",
+                2);
             ActivityAsset activity = LoadOrCreate<ActivityAsset>(ActivityPath);
             Set(activity, "activityName",
                 "QA C9R Camera Override Authority Activity");
@@ -153,6 +182,70 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             }
         }
 
+        private static void RepairCamera026IActor(
+            string profilePath,
+            string presentationPath,
+            string profileId,
+            string displayName,
+            int authoredSubjectCount)
+        {
+            var staging = new GameObject(Path.GetFileNameWithoutExtension(presentationPath));
+            try
+            {
+                staging.AddComponent<PlayerGameplayInputReader>();
+                for (int index = 0; index < authoredSubjectCount; index++)
+                {
+                    GameObject observation = new GameObject(
+                        $"Camera Subject {index + 1}");
+                    observation.transform.SetParent(staging.transform, false);
+                    observation.transform.localPosition =
+                        new Vector3(index, 1.6f, 0f);
+                    ActorCameraSubjectAuthoring subject =
+                        observation.AddComponent<ActorCameraSubjectAuthoring>();
+                    Set(subject, "observationTransform", observation.transform);
+                }
+
+                GameObject visual = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                visual.name = "Visual";
+                visual.transform.SetParent(staging.transform, false);
+                UnityEngine.Object.DestroyImmediate(visual.GetComponent<Collider>());
+                if (PrefabUtility.SaveAsPrefabAsset(staging, presentationPath) == null)
+                {
+                    throw new InvalidOperationException(
+                        $"CAMERA-026-I Presentation could not be saved at '{presentationPath}'.");
+                }
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(staging);
+            }
+
+            GameObject presentation = Require<GameObject>(presentationPath);
+            ActorProfile profile = LoadOrCreate<ActorProfile>(profilePath);
+            profile.name = Path.GetFileNameWithoutExtension(profilePath);
+            Set(profile, "actorProfileId", profileId);
+            Set(profile, "displayName", displayName);
+            Set(profile, "description",
+                authoredSubjectCount == 0
+                    ? "CAMERA-026-I accepted Actor-root fallback observation fixture."
+                    : "CAMERA-026-I Player-valid fixture with intentionally conflicting Camera Subject authoring.");
+            Set(profile, "actorKind", (int)ActorKind.Player);
+            Set(profile, "actorRole", (int)ActorRole.Protagonist);
+            Set(profile, "presentationPrefab", presentation);
+            AssetDatabase.SaveAssetIfDirty(profile);
+
+            ActorCameraSubjectAuthoring[] subjects =
+                presentation.GetComponentsInChildren<ActorCameraSubjectAuthoring>(true);
+            if (profile.ActorProfileId != ActorProfileId.From(profileId) ||
+                presentation.GetComponentsInChildren<PlayerGameplayInputReader>(true).Length != 1 ||
+                subjects.Length != authoredSubjectCount)
+            {
+                throw new InvalidOperationException(
+                    $"CAMERA-026-I Actor fixture '{profileId}' is invalid. " +
+                    $"subjects='{subjects.Length}' expected='{authoredSubjectCount}'.");
+            }
+        }
+
         private static void RepairScene(QaCameraAdr026TopologyMode mode)
         {
             Scene scene = AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath) != null
@@ -169,6 +262,10 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             RouteAsset hubRoute = Require<RouteAsset>(HubRoutePath);
             ActorProfile replacementActorProfile =
                 Require<ActorProfile>(ReplacementActorProfilePath);
+            ActorProfile fallbackActorProfile =
+                Require<ActorProfile>(FallbackActorProfilePath);
+            ActorProfile invalidCameraActorProfile =
+                Require<ActorProfile>(InvalidCameraActorProfilePath);
 
             Transform routeTarget = Target(
                 scene,
@@ -292,6 +389,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             Set(fixture, "routeComposer", routeRig);
             Set(fixture, "activityComposer", activityRig);
             Set(fixture, "playerSessionObserver", playerObserver);
+            Set(fixture, "fallbackActorProfile", fallbackActorProfile);
+            Set(fixture, "invalidCameraActorProfile", invalidCameraActorProfile);
             Set(fixture, "replacementActorProfile", replacementActorProfile);
             Set(fixture, "outputAProbe", outputAProbe);
             Set(fixture, "outputBProbe", outputBProbe);
@@ -328,6 +427,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             string cameraName)
         {
             GameObject root = RootObject(scene, rootName);
+            GameObjectUtility.RemoveMonoBehavioursWithMissingScript(root);
             CameraRigComposer composer = Component<CameraRigComposer>(root);
             CinemachineCamera camera = Component<CinemachineCamera>(
                 Child(root.transform, cameraName));
@@ -377,6 +477,57 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             Set(binding, "precedence", precedence);
             Set(binding, "tieBreakerId", tieBreaker);
             Set(binding, "logDiagnostics", true);
+        }
+
+        private static void RepairSceneProvidedIntegration()
+        {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(SceneProvidedScenePath) == null)
+            {
+                throw new InvalidOperationException(
+                    "CAMERA-026-I requires the canonical Player Scene-Provided scene. " +
+                    "Run the Player QA setup before Camera setup.");
+            }
+
+            Scene scene = EditorSceneManager.OpenScene(
+                SceneProvidedScenePath,
+                OpenSceneMode.Single);
+            ActivityPlayerRelocationAuthoring relocation =
+                Single<ActivityPlayerRelocationAuthoring>(scene);
+            SceneProvidedLocalPlayerAuthoring scenePlayer =
+                Single<SceneProvidedLocalPlayerAuthoring>(scene);
+            PlayerQaSceneBuilder.PrepareSceneProvidedCameraCertification(
+                relocation,
+                scenePlayer);
+            PlayerSessionObserver observer = Single<PlayerSessionObserver>(scene);
+            GameObject backObject = Find(scene, "RouteTrigger_Hub");
+            if (backObject == null)
+            {
+                throw new InvalidOperationException(
+                    "CAMERA-026-I Scene-Provided fixture requires the canonical Hub Route trigger.");
+            }
+
+            RouteRequestTrigger backToHub =
+                backObject.GetComponent<RouteRequestTrigger>();
+            if (backToHub == null)
+            {
+                throw new InvalidOperationException(
+                    "CAMERA-026-I Scene-Provided Hub object has no RouteRequestTrigger.");
+            }
+
+            GameObject fixtureObject = RootObject(
+                scene,
+                "QA_CAMERA026I_SceneProvided");
+            QaCamera026ISceneProvidedFixture fixture =
+                Component<QaCamera026ISceneProvidedFixture>(fixtureObject);
+            Set(fixture, "scenePlayer", scenePlayer);
+            Set(fixture, "playerSessionObserver", observer);
+            Set(fixture, "backToHubTrigger", backToHub);
+
+            if (!EditorSceneManager.SaveScene(scene, SceneProvidedScenePath))
+            {
+                throw new InvalidOperationException(
+                    "CAMERA-026-I Scene-Provided fixture scene could not be saved.");
+            }
         }
 
         private static void RepairHub()
@@ -779,7 +930,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             return null;
         }
 
-        private static void EnsureBuildScene()
+        private static void EnsureBuildScene(string scenePath)
         {
             var scenes = new List<EditorBuildSettingsScene>(
                 EditorBuildSettings.scenes);
@@ -788,7 +939,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             {
                 if (!string.Equals(
                         scenes[index].path,
-                        ScenePath,
+                        scenePath,
                         StringComparison.Ordinal))
                 {
                     continue;
@@ -796,14 +947,14 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
                 if (!scenes[index].enabled)
                 {
-                    scenes[index] = new EditorBuildSettingsScene(ScenePath, true);
+                    scenes[index] = new EditorBuildSettingsScene(scenePath, true);
                     EditorBuildSettings.scenes = scenes.ToArray();
                 }
 
                 return;
             }
 
-            scenes.Add(new EditorBuildSettingsScene(ScenePath, true));
+            scenes.Add(new EditorBuildSettingsScene(scenePath, true));
             EditorBuildSettings.scenes = scenes.ToArray();
         }
 

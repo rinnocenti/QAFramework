@@ -1,6 +1,7 @@
 using System;
 using Immersive.Framework.GameFlow;
 using ImmersiveFrameworkQA.GameFlow.Internal.Editor;
+using ImmersiveFrameworkQA.Player.Editor;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -8,7 +9,7 @@ using UnityEngine.SceneManagement;
 namespace ImmersiveFrameworkQA.Camera.Editor
 {
     /// <summary>
-    /// Coordinates the existing Camera rail across fresh Shared and Split Framework boots.
+    /// Coordinates the existing Camera rail across fresh Shared, Scene-Provided and Split Framework boots.
     /// Camera topology preparation is verified from disk and the shared QA baseline is
     /// restored after both successful and failed certification runs.
     /// </summary>
@@ -20,8 +21,12 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             "Assets/ImmersiveFrameworkQA/Hub/Scenes/QA_Hub.unity";
         private const string CanonicalScenePath =
             "Assets/ImmersiveFrameworkQA/Camera/Scenes/QA_PlayerCameraArbitration.unity";
+        private const string SceneProvidedScenePath =
+            "Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerSceneProvided.unity";
         private const string CameraRouteTriggerName =
             "RouteTrigger_Camera__Override_Authority";
+        private const string SceneProvidedRouteTriggerName =
+            "RouteTrigger_Player_Scene-Provided";
         private const string PhaseKey = "ImmersiveFrameworkQA.QA_CAMERA_FULL.Phase";
         private const string FailureKey = "ImmersiveFrameworkQA.QA_CAMERA_FULL.Failure";
         private const double TimeoutSeconds = 180d;
@@ -32,6 +37,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             Idle = 0,
             RunningShared = 10,
             SharedPassed = 20,
+            RunningSceneProvided = 21,
+            SceneProvidedPassed = 22,
             RunningSplit = 30,
             Certified = 40,
             Failed = 50
@@ -42,13 +49,19 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             WaitingForHub,
             WaitingForFrameworkReady,
             WaitingForCameraSceneEnter,
-            WaitingForCameraSceneExit
+            WaitingForCameraSceneExit,
+            WaitingForSceneProvidedHub,
+            WaitingForSceneProvidedFrameworkReady,
+            WaitingForSceneProvidedEnter,
+            WaitingForSceneProvidedExit
         }
 
         private static WatchStage watchStage;
         private static double startedAt;
         private static bool watching;
         private static RouteRequestTrigger pendingRouteTrigger;
+        private static IDisposable pendingRouteRequestBinding;
+        private static RouteRequestTriggerEvent pendingSceneProvidedRouteResult;
         private static string pendingReadinessStage = "framework-boot-unavailable";
         private static string pendingReadinessMessage =
             "Framework readiness has not been observed yet.";
@@ -91,7 +104,9 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         {
             Phase phase = CurrentPhase;
             if (state == PlayModeStateChange.EnteredPlayMode &&
-                phase is Phase.RunningShared or Phase.RunningSplit)
+                phase is Phase.RunningShared or
+                    Phase.RunningSceneProvided or
+                    Phase.RunningSplit)
             {
                 BeginWatching();
                 return;
@@ -99,12 +114,21 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             if (state == PlayModeStateChange.EnteredEditMode && phase == Phase.SharedPassed)
             {
+                EditorApplication.delayCall += PrepareSceneProvidedPhase;
+                return;
+            }
+
+            if (state == PlayModeStateChange.EnteredEditMode &&
+                phase == Phase.SceneProvidedPassed)
+            {
                 EditorApplication.delayCall += PrepareSplitPhase;
                 return;
             }
 
             if (state == PlayModeStateChange.EnteredEditMode &&
-                phase is Phase.RunningShared or Phase.RunningSplit)
+                phase is Phase.RunningShared or
+                    Phase.RunningSceneProvided or
+                    Phase.RunningSplit)
             {
                 Fail(
                     "play-mode-interrupted",
@@ -116,7 +140,9 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         {
             StopWatching();
             watching = true;
-            watchStage = WatchStage.WaitingForHub;
+            watchStage = CurrentPhase == Phase.RunningSceneProvided
+                ? WatchStage.WaitingForSceneProvidedHub
+                : WatchStage.WaitingForHub;
             startedAt = EditorApplication.timeSinceStartup;
             pendingRouteTrigger = null;
             pendingReadinessStage = "framework-boot-unavailable";
@@ -151,8 +177,11 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             if (EditorApplication.timeSinceStartup - startedAt > TimeoutSeconds)
             {
-                bool waitingOnReadiness =
-                    watchStage is WatchStage.WaitingForHub or WatchStage.WaitingForFrameworkReady;
+                bool waitingOnReadiness = watchStage is
+                    WatchStage.WaitingForHub or
+                    WatchStage.WaitingForFrameworkReady or
+                    WatchStage.WaitingForSceneProvidedHub or
+                    WatchStage.WaitingForSceneProvidedFrameworkReady;
                 string stage = waitingOnReadiness
                     ? pendingReadinessStage
                     : "runtime-timeout";
@@ -169,7 +198,10 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 pendingReadinessStage = "framework-boot-unavailable";
                 pendingReadinessMessage =
                     "QA Hub scene has not finished loading the canonical Camera Route trigger.";
-                if (!TryResolveHubTrigger(out RouteRequestTrigger trigger))
+                if (!TryResolveHubTrigger(
+                        CameraRouteTriggerName,
+                        "Camera",
+                        out RouteRequestTrigger trigger))
                 {
                     return;
                 }
@@ -212,6 +244,68 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                     "Camera Route trigger already has a request in flight.");
                 pendingRouteTrigger.RequestRoute();
                 watchStage = WatchStage.WaitingForCameraSceneEnter;
+                return;
+            }
+
+            if (watchStage == WatchStage.WaitingForSceneProvidedHub)
+            {
+                pendingReadinessStage = "scene-provided-framework-boot-unavailable";
+                pendingReadinessMessage =
+                    "QA Hub scene has not finished loading the canonical Scene-Provided Route trigger.";
+                if (!TryResolveHubTrigger(
+                        SceneProvidedRouteTriggerName,
+                        "Scene-Provided",
+                        out RouteRequestTrigger trigger))
+                {
+                    return;
+                }
+
+                pendingRouteTrigger = trigger;
+                watchStage = WatchStage.WaitingForSceneProvidedFrameworkReady;
+                return;
+            }
+
+            if (watchStage == WatchStage.WaitingForSceneProvidedFrameworkReady)
+            {
+                if (pendingRouteTrigger == null)
+                {
+                    watchStage = WatchStage.WaitingForSceneProvidedHub;
+                    return;
+                }
+
+                if (!QaH2FrameworkReadiness.TryGetReady(out string frameworkDiagnostic))
+                {
+                    pendingReadinessStage = "scene-provided-framework-boot-unavailable";
+                    pendingReadinessMessage =
+                        "Framework has not finished restoring the ready Hub Activity. " +
+                        frameworkDiagnostic;
+                    return;
+                }
+
+                if (!pendingRouteTrigger.HasRouteRuntimeBinding)
+                {
+                    pendingReadinessStage = "scene-provided-route-runtime-unavailable";
+                    pendingReadinessMessage =
+                        "Scene-Provided Route trigger has not been bound to the Game Flow route runtime port. " +
+                        pendingRouteTrigger.RouteRuntimeBindingDiagnostic;
+                    return;
+                }
+
+                Require(!pendingRouteTrigger.IsRequestInFlight,
+                    "Scene-Provided Route trigger already has a request in flight.");
+                pendingSceneProvidedRouteResult = null;
+                pendingRouteRequestBinding?.Dispose();
+                pendingRouteRequestBinding = pendingRouteTrigger.SubscribeRequestEvents(
+                    HandleSceneProvidedRouteRequestEvent);
+                pendingRouteTrigger.RequestRoute();
+                watchStage = WatchStage.WaitingForSceneProvidedEnter;
+                return;
+            }
+
+            if (watchStage is WatchStage.WaitingForSceneProvidedEnter or
+                WatchStage.WaitingForSceneProvidedExit)
+            {
+                TickSceneProvidedPhase();
                 return;
             }
 
@@ -271,6 +365,89 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
         private static void CompleteSharedPhase()
         {
+            ValidateSharedPhaseEvidence();
+            StopWatching();
+            SetPhase(Phase.SharedPassed);
+            Debug.Log($"{Prefix} status='SharedPassed' next='FreshSceneProvidedBoot'.");
+            EditorApplication.isPlaying = false;
+        }
+
+        private static void TickSceneProvidedPhase()
+        {
+            Scene scene = SceneManager.GetSceneByPath(SceneProvidedScenePath);
+            if (watchStage == WatchStage.WaitingForSceneProvidedEnter)
+            {
+                RouteRequestTriggerEvent routeResult =
+                    pendingSceneProvidedRouteResult;
+                if (routeResult == null)
+                {
+                    return;
+                }
+
+                pendingRouteRequestBinding?.Dispose();
+                pendingRouteRequestBinding = null;
+
+                if (!routeResult.Succeeded)
+                {
+                    Fail(
+                        "scene-provided-route-request-failed",
+                        routeResult.Message);
+                    EditorApplication.isPlaying = false;
+                    return;
+                }
+
+                if (!QaH2FrameworkReadiness.TryGetReady(
+                        out string readinessDiagnostic))
+                {
+                    Fail(
+                        "scene-provided-startup-not-ready",
+                        routeResult.Message + " " + readinessDiagnostic);
+                    EditorApplication.isPlaying = false;
+                    return;
+                }
+
+                if (!scene.IsValid() || !scene.isLoaded)
+                {
+                    Fail(
+                        "scene-provided-scene-unavailable",
+                        routeResult.Message + " " + readinessDiagnostic);
+                    EditorApplication.isPlaying = false;
+                    return;
+                }
+
+                watchStage = WatchStage.WaitingForSceneProvidedExit;
+                return;
+            }
+
+            if (scene.IsValid() && scene.isLoaded)
+            {
+                if (QaCamera026ISceneProvidedFixture.Executed &&
+                    !QaCamera026ISceneProvidedFixture.Passed)
+                {
+                    throw new InvalidOperationException(
+                        QaCamera026ISceneProvidedFixture.Diagnostic);
+                }
+                return;
+            }
+
+            CompleteSceneProvidedPhase();
+        }
+
+        private static void HandleSceneProvidedRouteRequestEvent(
+            RouteRequestTriggerEvent routeEvent)
+        {
+            if (routeEvent == null ||
+                !routeEvent.IsCompleted ||
+                !ReferenceEquals(routeEvent.Trigger, pendingRouteTrigger))
+            {
+                return;
+            }
+
+            pendingSceneProvidedRouteResult = routeEvent;
+        }
+
+        private static void ValidateSharedPhaseEvidence()
+        {
             Require(QaCameraOverrideAuthorityFixture.Adr026SharedExecuted &&
                     QaCameraOverrideAuthorityFixture.Adr026SharedPassed,
                 "ADR-026 Shared Camera proof failed. " +
@@ -284,16 +461,53 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 "ADR-004B Negative Integrity certification failed.");
             Require(QaCameraAdr004COwnerLifetimeIntegrityRegression.RunCertification(),
                 "ADR-004C Owner Lifetime certification failed.");
+        }
+
+        private static void CompleteSceneProvidedPhase()
+        {
+            Require(QaCamera026ISceneProvidedFixture.Executed &&
+                    QaCamera026ISceneProvidedFixture.Passed,
+                "CAMERA-026-I Scene-Provided proof failed. " +
+                QaCamera026ISceneProvidedFixture.Diagnostic);
 
             StopWatching();
-            SetPhase(Phase.SharedPassed);
-            Debug.Log($"{Prefix} status='SharedPassed' next='FreshSplitBoot'.");
+            SetPhase(Phase.SceneProvidedPassed);
+            Debug.Log("[CAMERA-026-I] status='Passed' " +
+                "playerIndependence='PASS' subjectPublication='PASS' " +
+                "authoredObservation='PASS' fallbackObservation='PASS' " +
+                "replacement='PASS' staleReplacement='PASS' releaseLeave='PASS' " +
+                "sceneProvided='PASS' idempotence='PASS' assignmentRegression='PASS' " +
+                "implicitCameraRequests='0' packageInternalPrerequisites='PASS'.");
+            Debug.Log($"{Prefix} status='SceneProvidedPassed' next='FreshSplitBoot'.");
             EditorApplication.isPlaying = false;
+        }
+
+        private static void PrepareSceneProvidedPhase()
+        {
+            if (EditorApplication.isPlaying || CurrentPhase != Phase.SharedPassed)
+            {
+                return;
+            }
+
+            try
+            {
+                QaCameraPersistentBaselineGuard.PrepareAndVerify(
+                    QaCameraAdr026TopologyMode.Shared,
+                    QaPlayerSessionBootProfile.SceneProvided);
+                SetPhase(Phase.RunningSceneProvided);
+                Debug.Log($"{Prefix} status='Running' phase='SceneProvided'.");
+                EditorApplication.isPlaying = true;
+            }
+            catch (Exception exception)
+            {
+                Fail("prepare-scene-provided", exception.GetBaseException().Message);
+            }
         }
 
         private static void PrepareSplitPhase()
         {
-            if (EditorApplication.isPlaying || CurrentPhase != Phase.SharedPassed)
+            if (EditorApplication.isPlaying ||
+                CurrentPhase != Phase.SceneProvidedPassed)
             {
                 return;
             }
@@ -334,7 +548,10 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             EditorApplication.isPlaying = false;
         }
 
-        private static bool TryResolveHubTrigger(out RouteRequestTrigger resolved)
+        private static bool TryResolveHubTrigger(
+            string triggerName,
+            string label,
+            out RouteRequestTrigger resolved)
         {
             resolved = null;
             Scene hub = SceneManager.GetSceneByPath(HubScenePath);
@@ -350,7 +567,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                     root.GetComponentsInChildren<RouteRequestTrigger>(true))
                 {
                     if (candidate == null ||
-                        candidate.gameObject.name != CameraRouteTriggerName)
+                        candidate.gameObject.name != triggerName)
                     {
                         continue;
                     }
@@ -361,7 +578,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             }
 
             Require(matches == 1 && resolved != null,
-                $"Expected one authored Camera Route trigger, found '{matches}'.");
+                $"Expected one authored {label} Route trigger, found '{matches}'.");
             return true;
         }
 
@@ -423,6 +640,9 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         private static void StopWatching()
         {
             EditorApplication.update -= Tick;
+            pendingRouteRequestBinding?.Dispose();
+            pendingRouteRequestBinding = null;
+            pendingSceneProvidedRouteResult = null;
             watching = false;
             startedAt = 0d;
         }

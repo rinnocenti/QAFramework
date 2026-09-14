@@ -17,7 +17,7 @@ MonoBehaviour:
   primaryScenePath: Assets/ImmersiveFrameworkQA/Player/Scenes/QA_PlayerSceneProvided.unity
   primarySceneName: QA_PlayerSceneProvided
   routeContentProfile: {fileID: 0}
-  startupActivity: {fileID: 11400000, guid: 7269ab50daecbe1469300a9111c11ad1, type: 2}
+  startupActivity: {fileID: 11400000, guid: 1e83eec281e11864e8d1951b7a605da8, type: 2}
   playerSpatialEntryPolicy: 1
   transitionGateMode: 30
   description: Scene-Provided Player QA route.

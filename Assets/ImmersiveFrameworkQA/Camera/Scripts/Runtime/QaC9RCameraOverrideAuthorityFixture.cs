@@ -40,6 +40,8 @@ namespace ImmersiveFrameworkQA.Camera
         [SerializeField] private CameraRigComposer routeComposer;
         [SerializeField] private CameraRigComposer activityComposer;
         [SerializeField] private PlayerSessionObserver playerSessionObserver;
+        [SerializeField] private ActorProfile fallbackActorProfile;
+        [SerializeField] private ActorProfile invalidCameraActorProfile;
         [SerializeField] private ActorProfile replacementActorProfile;
         [SerializeField] private QaCameraOutputProbe outputAProbe;
         [SerializeField] private QaCameraOutputProbe outputBProbe;
@@ -197,11 +199,20 @@ namespace ImmersiveFrameworkQA.Camera
         private void RequireReplacementActorPreconditions(
             PlayerSessionScopedObservationSnapshot initial)
         {
-            Require(replacementActorProfile != null,
-                "ADR-026 Actor replacement proof requires an explicit replacement Actor Profile.");
-            Require(replacementActorProfile.TryGetActorProfileId(
-                    out ActorProfileId replacementId, out string replacementIssue),
-                $"ADR-026 replacement Actor identity is invalid. {replacementIssue}");
+            ActorProfileId fallbackId = RequireActorProfileId(
+                fallbackActorProfile,
+                "CAMERA-026-I fallback");
+            ActorProfileId invalidCameraId = RequireActorProfileId(
+                invalidCameraActorProfile,
+                "CAMERA-026-I invalid Camera authoring");
+            ActorProfileId replacementId = RequireActorProfileId(
+                replacementActorProfile,
+                "ADR-026 replacement");
+            Require(
+                fallbackId != invalidCameraId &&
+                fallbackId != replacementId &&
+                invalidCameraId != replacementId,
+                "CAMERA-026-I dedicated Actor Profiles must have distinct typed identities.");
             Require(initial.HasInitializationEvidence &&
                     initial.InitializationConfiguration.SupportedSlotCount >= 2,
                 "ADR-026 Shared Camera requires captured default Actor configuration for at least two Slots.");
@@ -221,7 +232,24 @@ namespace ImmersiveFrameworkQA.Camera
                     "ADR-026 Shared Camera replacement Actor conflicts with a Slot configured default Actor under UniqueAcrossJoinedSlots. " +
                     $"replacementActor='{replacementId.StableText}' conflictingSlot='{slot.PlayerSlotId.StableText}' " +
                     $"configuredActor='{defaultId.StableText}'.");
+                Require(fallbackId != defaultId && invalidCameraId != defaultId,
+                    "CAMERA-026-I dedicated fallback/failure Actor conflicts with a configured Slot default. " +
+                    $"fallbackActor='{fallbackId.StableText}' invalidCameraActor='{invalidCameraId.StableText}' " +
+                    $"conflictingSlot='{slot.PlayerSlotId.StableText}' configuredActor='{defaultId.StableText}'.");
             }
+        }
+
+        private static ActorProfileId RequireActorProfileId(
+            ActorProfile profile,
+            string label)
+        {
+            Require(profile != null,
+                $"{label} proof requires an explicit Actor Profile.");
+            Require(profile.TryGetActorProfileId(
+                    out ActorProfileId profileId,
+                    out string issue),
+                $"{label} Actor identity is invalid. {issue}");
+            return profileId;
         }
 
         private IEnumerator RunSharedCameraProofCore()
@@ -321,8 +349,139 @@ namespace ImmersiveFrameworkQA.Camera
                     p1AEntry,
                     "p1-a-join");
 
-                CameraSubjectId p1AOldSubjectId = p1AEntry.Subject.SubjectId;
-                Transform p1AOldObservation = p1AEntry.Subject.Observation;
+                PlayerPreparedActorReplacementResult invalidCameraReplacement =
+                    access.RequestReplacePreparedActor(
+                        new PlayerPreparedActorReplacementRequest(
+                            p1A.Slot.PlayerSlotId,
+                            invalidCameraActorProfile,
+                            nameof(QaCameraOverrideAuthorityFixture),
+                            "camera-026-i-player-independent-invalid-camera-authoring"));
+                Require(
+                    invalidCameraReplacement != null &&
+                    invalidCameraReplacement.ReplacementCommitted &&
+                    invalidCameraReplacement.CurrentActor.IsPrepared,
+                    invalidCameraReplacement != null
+                        ? invalidCameraReplacement.Message
+                        : "Invalid-Camera Actor replacement returned no result.");
+                yield return WaitFor(
+                    () => SubjectSnapshot().Count == 0,
+                    "camera-026-i-invalid-camera-authoring-rejected");
+                if (HasFailed) yield break;
+
+                PlayerSessionScopedSlotObservation cameraFailurePlayer =
+                    RequireCurrentActorForSlot(
+                        Observation(access),
+                        p1A.Slot.PlayerSlotId,
+                        "invalid-camera-authoring");
+                Require(
+                    cameraFailurePlayer.CurrentActor.Preparation.Token ==
+                        invalidCameraReplacement.CurrentActor.Token &&
+                    cameraFailurePlayer.CurrentActor.Preparation.PreparedActorProfileId ==
+                        RequireActorProfileId(
+                            invalidCameraActorProfile,
+                            "CAMERA-026-I invalid Camera authoring") &&
+                    SubjectSnapshot().Count == 0,
+                    "Camera-side authoring failure rolled back or corrupted canonical Player Actor evidence.");
+                ReconcileMountedAssignments(
+                    mountedAssignments,
+                    mountedViewId,
+                    SubjectSnapshot(),
+                    expectedCount: 0,
+                    "invalid-camera-authoring");
+                ApplyMountedEmpty(
+                    mountedAssignments,
+                    mountedViewId,
+                    "invalid-camera-authoring");
+
+                int staleSelectionRevision =
+                    invalidCameraReplacement.CurrentActor.SelectionRevision;
+                PlayerPreparedActorReplacementResult fallbackReplacement =
+                    access.RequestReplacePreparedActor(
+                        new PlayerPreparedActorReplacementRequest(
+                            p1A.Slot.PlayerSlotId,
+                            fallbackActorProfile,
+                            nameof(QaCameraOverrideAuthorityFixture),
+                            "camera-026-i-fallback-observation"));
+                Require(
+                    fallbackReplacement != null &&
+                    fallbackReplacement.ReplacementCommitted &&
+                    fallbackReplacement.CurrentActor.IsPrepared,
+                    fallbackReplacement != null
+                        ? fallbackReplacement.Message
+                        : "Fallback Actor replacement returned no result.");
+                yield return WaitFor(
+                    () => SubjectSnapshot().Count == 1,
+                    "camera-026-i-fallback-subject");
+                if (HasFailed) yield break;
+
+                CameraSubjectAvailabilityEntry fallbackEntry =
+                    RequireSubjectForHost(
+                        SubjectSnapshot(),
+                        p1A.LocalPlayerHost,
+                        "P1-Fallback");
+                RequireFallbackActorRootSubject(
+                    fallbackEntry,
+                    p1A.LocalPlayerHost,
+                    "P1-Fallback");
+                PlayerSessionScopedSlotObservation fallbackPlayer =
+                    RequireCurrentActorForSlot(
+                        Observation(access),
+                        p1A.Slot.PlayerSlotId,
+                        "fallback-current");
+                Require(
+                    fallbackPlayer.CurrentActor.Preparation.Token ==
+                        fallbackReplacement.CurrentActor.Token,
+                    "Fallback Camera Subject was observed before its Actor became canonical current evidence.");
+                ApplyMountedSubject(
+                    mountedAssignments,
+                    mountedOwner,
+                    mountedViewId,
+                    fallbackEntry,
+                    "p1-fallback");
+
+                CameraSubjectAvailabilitySnapshot beforeStale = SubjectSnapshot();
+                PlayerPreparedActorReplacementRequest staleRequest =
+                    new PlayerPreparedActorReplacementRequest(
+                        p1A.Slot.PlayerSlotId,
+                        replacementActorProfile,
+                        nameof(QaCameraOverrideAuthorityFixture),
+                        "camera-026-i-stale-replacement",
+                        staleSelectionRevision);
+                PlayerPreparedActorReplacementResult staleFirst =
+                    access.RequestReplacePreparedActor(staleRequest);
+                PlayerPreparedActorReplacementResult staleSecond =
+                    access.RequestReplacePreparedActor(staleRequest);
+                Require(
+                    staleFirst != null && staleSecond != null &&
+                    staleFirst.Status ==
+                        PlayerPreparedActorReplacementStatus.RejectedStalePublicRevision &&
+                    staleSecond.Status ==
+                        PlayerPreparedActorReplacementStatus.RejectedStalePublicRevision &&
+                    !staleFirst.ReplacementCommitted &&
+                    !staleSecond.ReplacementCommitted,
+                    "Repeated stale replacement was not rejected by the typed public revision contract.");
+                CameraSubjectAvailabilitySnapshot afterStale = SubjectSnapshot();
+                PlayerSessionScopedSlotObservation afterStalePlayer =
+                    RequireCurrentActorForSlot(
+                        Observation(access),
+                        p1A.Slot.PlayerSlotId,
+                        "post-stale-replacement");
+                Require(
+                    afterStale.Count == 1 &&
+                    afterStale.Revision == beforeStale.Revision &&
+                    afterStale.TryGet(
+                        fallbackEntry.Subject.SubjectId,
+                        out CameraSubjectAvailabilityEntry stableFallback) &&
+                    stableFallback.Token == fallbackEntry.Token &&
+                    ReferenceEquals(
+                        stableFallback.Subject.Observation,
+                        fallbackEntry.Subject.Observation) &&
+                    afterStalePlayer.CurrentActor.Preparation.Token ==
+                        fallbackReplacement.CurrentActor.Token,
+                    "Stale replacement changed canonical Player evidence or duplicated/replaced the stable Camera Subject.");
+
+                CameraSubjectId p1AOldSubjectId = fallbackEntry.Subject.SubjectId;
+                Transform p1AOldObservation = fallbackEntry.Subject.Observation;
                 PlayerPreparedActorReplacementResult replacement =
                     access.RequestReplacePreparedActor(
                         new PlayerPreparedActorReplacementRequest(
@@ -467,8 +626,10 @@ namespace ImmersiveFrameworkQA.Camera
                 Adr026SharedPassed = true;
                 Adr026SharedDiagnostic =
                     $"view='{view}' output='{output.OutputIdText}' " +
-                    "subjects='P1-A -> P1-Replacement -> P1-Replacement/P2 -> P2 -> P1-B/P2' " +
-                    "explicitChild='True' mounted='ExactTransform' staleP1A='False' ordinaryPlayerRequests='0'.";
+                    "subjects='P1-A -> CameraInvalid/None -> Fallback -> AuthoredReplacement -> AuthoredReplacement/P2 -> P2 -> P1-B/P2' " +
+                    "playerIndependence='PASS' fallbackObservation='PASS' staleReplacement='PASS' " +
+                    "idempotence='PASS' explicitChild='True' mounted='ExactTransform' " +
+                    "staleP1A='False' ordinaryPlayerRequests='0'.";
                 Debug.Log($"{Adr026Prefix} phase='shared' status='Passed' {Adr026SharedDiagnostic}", this);
             }
             finally
@@ -1171,6 +1332,59 @@ namespace ImmersiveFrameworkQA.Camera
             Require(matches == 1,
                 $"Expected exactly one {label} Camera Subject for its exact Player Host, found '{matches}'.");
             return resolved;
+        }
+
+        private static PlayerSessionScopedSlotObservation RequireCurrentActorForSlot(
+            PlayerSessionScopedObservationSnapshot observation,
+            Immersive.Framework.PlayerSlots.PlayerSlotId playerSlotId,
+            string phase)
+        {
+            Require(observation != null && observation.IsAvailable,
+                $"Current Actor proof requires available Player observation at '{phase}'.");
+            for (int index = 0; index < observation.Slots.Count; index++)
+            {
+                PlayerSessionScopedSlotObservation slot = observation.Slots[index];
+                if (slot.Slot.PlayerSlotId != playerSlotId)
+                {
+                    continue;
+                }
+
+                Require(
+                    slot.HasCurrentActorEvidence &&
+                    slot.CurrentActor.HasCurrentActor &&
+                    slot.CurrentActor.Preparation.IsPrepared,
+                    $"Player Slot '{playerSlotId.StableText}' has no canonical current Actor at '{phase}'.");
+                return slot;
+            }
+
+            throw new InvalidOperationException(
+                $"Player Slot '{playerSlotId.StableText}' is absent at '{phase}'.");
+        }
+
+        private static void RequireFallbackActorRootSubject(
+            CameraSubjectAvailabilityEntry entry,
+            LocalPlayerHostAuthoring host,
+            string label)
+        {
+            Require(
+                entry.IsValid && host != null && host.ActorMount != null,
+                $"{label} fallback Camera Subject proof requires valid typed evidence.");
+            PlayerActorRuntimeHost[] runtimeHosts =
+                host.ActorMount.GetComponentsInChildren<PlayerActorRuntimeHost>(true);
+            Require(
+                runtimeHosts.Length == 1 &&
+                runtimeHosts[0].PlayerActorDeclaration != null &&
+                runtimeHosts[0].PresentationMount != null,
+                $"{label} requires exactly one prepared Player Actor Runtime Host.");
+            ActorCameraSubjectAuthoring[] authoredSubjects =
+                runtimeHosts[0].PresentationMount
+                    .GetComponentsInChildren<ActorCameraSubjectAuthoring>(true);
+            Require(
+                authoredSubjects.Length == 0 &&
+                ReferenceEquals(
+                    entry.Subject.Observation,
+                    runtimeHosts[0].PlayerActorDeclaration.transform),
+                $"{label} must use the exact accepted Actor-root fallback Transform when no Actor Camera Subject is authored.");
         }
 
         private static void RequireExplicitChildSubject(

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Immersive.Framework.Camera;
 using Immersive.Framework.CameraAuthoring;
+using ImmersiveFrameworkQA.Player.Editor;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -62,10 +63,34 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
         internal static void PrepareAndVerify(QaCameraAdr026TopologyMode mode)
         {
+            PrepareAndVerify(mode, QaPlayerSessionBootProfile.ManagerProvisioned);
+        }
+
+        internal static void PrepareAndVerify(
+            QaCameraAdr026TopologyMode mode,
+            QaPlayerSessionBootProfile playerSessionBootProfile)
+        {
             if (EditorApplication.isPlaying)
             {
                 throw new InvalidOperationException(
                     "Camera persistent topology can only be prepared and verified in Edit Mode.");
+            }
+
+            if (playerSessionBootProfile == QaPlayerSessionBootProfile.SceneProvided)
+            {
+                QaPlayerSessionBootProfileGuard.UseSceneProvided();
+            }
+            else if (playerSessionBootProfile ==
+                QaPlayerSessionBootProfile.ManagerProvisioned)
+            {
+                QaPlayerSessionBootProfileGuard.UseManagerProvisioned();
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(playerSessionBootProfile),
+                    playerSessionBootProfile,
+                    "Unsupported Player Session boot profile.");
             }
 
             QaCameraOverrideAuthorityInstaller.Install(mode);

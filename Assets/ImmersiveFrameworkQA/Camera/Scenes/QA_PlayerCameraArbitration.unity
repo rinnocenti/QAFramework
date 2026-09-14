@@ -157,6 +157,8 @@ MonoBehaviour:
   routeComposer: {fileID: 660878652}
   activityComposer: {fileID: 717848986}
   playerSessionObserver: {fileID: 74978033}
+  fallbackActorProfile: {fileID: 11400000, guid: 16adfd84010bb6b45959a7f05d9415d7, type: 2}
+  invalidCameraActorProfile: {fileID: 11400000, guid: ea2781cb2dd642644a9a9914a517c127, type: 2}
   replacementActorProfile: {fileID: 11400000, guid: af7a9b68fe6d4506ae1a5985a23b7883, type: 2}
   outputAProbe: {fileID: 151463270}
   outputBProbe: {fileID: 1356476062}
@@ -695,7 +697,6 @@ GameObject:
   m_Component:
   - component: {fileID: 660878653}
   - component: {fileID: 660878652}
-  - component: {fileID: 660878654}
   m_Layer: 0
   m_Name: QA_C9R_RouteRig
   m_TagString: Untagged
@@ -723,13 +724,13 @@ MonoBehaviour:
   frameworkOwnedRotationControl: {fileID: 446551432}
   frameworkOwnedSharedFollowTargetGroup: {fileID: 1579366088}
   frameworkOwnedSharedFollowGroupFraming: {fileID: 446551433}
-  materializationRevision: 57
+  materializationRevision: 73
   logApplyRebuildDiagnostics: 0
   lastApplyRebuildStatus: ApplySucceeded
   lastBlockingIssue: 
   lastMaterializationSummary: created='0' repaired='0' alreadyValid='4' skipped='2'
     blocked='0' presentation='Follow' cameraOwnership='ExternalOrUnknown' positionOwnership='ExternalOrUnknown'
-    rotationOwnership='FrameworkOwned' revision='57'
+    rotationOwnership='FrameworkOwned' revision='73'
 --- !u!4 &660878653
 Transform:
   m_ObjectHideFlags: 0
@@ -747,21 +748,6 @@ Transform:
   - {fileID: 1579366087}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &660878654
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 660878651}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 907d2e18b78c4a5889d79de4c11347dc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.CameraAuthoring.ExplicitCameraTargetSourceAuthoring
-  logicalSourceId: qa.c9r.route-target
-  followTarget: {fileID: 1926355593}
-  lookAtTarget: {fileID: 1926355593}
 --- !u!1 &717848985
 GameObject:
   m_ObjectHideFlags: 0
@@ -772,7 +758,6 @@ GameObject:
   m_Component:
   - component: {fileID: 717848987}
   - component: {fileID: 717848986}
-  - component: {fileID: 717848988}
   m_Layer: 0
   m_Name: QA_C9R_ActivityRig
   m_TagString: Untagged
@@ -800,13 +785,13 @@ MonoBehaviour:
   frameworkOwnedRotationControl: {fileID: 94951505}
   frameworkOwnedSharedFollowTargetGroup: {fileID: 629000481}
   frameworkOwnedSharedFollowGroupFraming: {fileID: 94951506}
-  materializationRevision: 57
+  materializationRevision: 73
   logApplyRebuildDiagnostics: 0
   lastApplyRebuildStatus: ApplySucceeded
   lastBlockingIssue: 
   lastMaterializationSummary: created='0' repaired='0' alreadyValid='4' skipped='2'
     blocked='0' presentation='Follow' cameraOwnership='ExternalOrUnknown' positionOwnership='ExternalOrUnknown'
-    rotationOwnership='FrameworkOwned' revision='57'
+    rotationOwnership='FrameworkOwned' revision='73'
 --- !u!4 &717848987
 Transform:
   m_ObjectHideFlags: 0
@@ -824,21 +809,6 @@ Transform:
   - {fileID: 629000480}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &717848988
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 717848985}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 907d2e18b78c4a5889d79de4c11347dc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.CameraAuthoring.ExplicitCameraTargetSourceAuthoring
-  logicalSourceId: qa.c9r.activity-target
-  followTarget: {fileID: 455465705}
-  lookAtTarget: {fileID: 455465705}
 --- !u!1 &1356476061
 GameObject:
   m_ObjectHideFlags: 0

@@ -67,7 +67,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     "QA Player Scene-Provided",
                     PlayerQaPaths.SceneProvidedScenePath,
                     "Scene-Provided Player QA route.",
-                    startup);
+                    relocate);
                 RouteAsset hubRoute = AssetDatabase.LoadAssetAtPath<RouteAsset>(
                     PlayerQaPaths.HubRoutePath);
 
@@ -78,7 +78,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
                     startup,
                     relocate,
                     gameplayReady);
-                CreateSceneProvidedScene(sceneRoute, primaryRoute, hubRoute, startup);
+                CreateSceneProvidedScene(sceneRoute, primaryRoute, hubRoute, relocate);
                 EnsureSceneInBuildSettings(PlayerQaPaths.PrimaryScenePath);
                 EnsureSceneInBuildSettings(PlayerQaPaths.SceneProvidedScenePath);
 
@@ -204,6 +204,93 @@ namespace ImmersiveFrameworkQA.Player.Editor
                 PlayerHostProvisioningMode.ManagerProvisioned,
                 PlayerActorResolutionPolicy.LeaveUnresolved);
             AssetDatabase.SaveAssets();
+        }
+
+        public static ActivityAsset PrepareSceneProvidedCameraCertification(
+            ActivityPlayerRelocationAuthoring relocation,
+            SceneProvidedLocalPlayerAuthoring scenePlayer)
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                throw new InvalidOperationException(
+                    "Scene-Provided Player certification can only be prepared in Edit Mode.");
+            }
+
+            if (relocation == null ||
+                !string.Equals(
+                    relocation.gameObject.scene.path,
+                    PlayerQaPaths.SceneProvidedScenePath,
+                    StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException(
+                    "Scene-Provided Player certification requires the relocation authoring from its canonical scene.");
+            }
+
+            if (scenePlayer == null ||
+                scenePlayer.gameObject.scene != relocation.gameObject.scene ||
+                scenePlayer.LocalPlayerHost == null)
+            {
+                throw new InvalidOperationException(
+                    "Scene-Provided Player certification requires its canonical Local Player Host declaration in the same scene.");
+            }
+
+            Transform localPlayerHost = scenePlayer.LocalPlayerHost.transform;
+            if (localPlayerHost.parent != null)
+            {
+                localPlayerHost.SetParent(null, true);
+                EditorUtility.SetDirty(localPlayerHost);
+            }
+
+            if (localPlayerHost.parent != null)
+            {
+                throw new InvalidOperationException(
+                    "Scene-Provided Local Player Host must be a scene composition root.");
+            }
+
+            ActivityAsset activity = EnsureActivity(
+                PlayerQaPaths.RelocateActivityPath,
+                "QA Player Relocate Activity",
+                "Dedicated Activity used to prove Player Actor lifecycle preparation and explicit relocation.",
+                ActivityPlayerRelocationPolicy.ApplyExplicitRelocation,
+                PlayerParticipationRequirementLevel.LogicalActorsPrepared);
+            RouteAsset route = Load<RouteAsset>(PlayerQaPaths.SceneProvidedRoutePath);
+            var serializedRoute = new SerializedObject(route);
+            SerializedProperty startupActivity =
+                serializedRoute.FindProperty("startupActivity");
+            if (startupActivity == null)
+            {
+                throw new InvalidOperationException(
+                    "Scene-Provided Route does not expose its Startup Activity.");
+            }
+
+            startupActivity.objectReferenceValue = activity;
+            serializedRoute.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(route);
+
+            PlayerSlotProfile playerOne =
+                Load<PlayerSlotProfile>(PlayerQaPaths.PlayerOneSlotPath);
+            var relocationState = new SerializedObject(relocation);
+            SerializedProperty bindings = relocationState.FindProperty("bindings");
+            if (bindings == null || bindings.arraySize != 1)
+            {
+                throw new InvalidOperationException(
+                    "Scene-Provided relocation authoring requires exactly one canonical P1 binding.");
+            }
+
+            Transform anchor = bindings.GetArrayElementAtIndex(0)
+                .FindPropertyRelative("relocationAnchor")
+                ?.objectReferenceValue as Transform;
+            if (anchor == null)
+            {
+                throw new InvalidOperationException(
+                    "Scene-Provided relocation authoring has no canonical P1 anchor.");
+            }
+
+            ConfigureRelocation(relocation, activity, playerOne, anchor);
+            EditorUtility.SetDirty(relocation);
+            AssetDatabase.SaveAssetIfDirty(activity);
+            AssetDatabase.SaveAssetIfDirty(route);
+            return activity;
         }
 
         private static void CreatePrimaryScene(
@@ -350,7 +437,7 @@ namespace ImmersiveFrameworkQA.Player.Editor
 
             var root = new GameObject("QA_PlayerSceneProvidedRoot");
             GameObject sceneHostPrefab = Load<GameObject>(PlayerQaPaths.SceneHostPath);
-            GameObject instance = PrefabUtility.InstantiatePrefab(sceneHostPrefab, root.transform) as GameObject;
+            GameObject instance = PrefabUtility.InstantiatePrefab(sceneHostPrefab, scene) as GameObject;
             if (instance != null)
             {
                 instance.name = "QA_SceneLocalPlayerHost";
