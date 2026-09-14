@@ -325,11 +325,11 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
             Debug.Log($"{Prefix} status='Completed' verdict='CAMERA QA CERTIFIED' " +
                 "subjectsOccurrenceSafety='PASS' sharedCamera='PASS' playerCameraDecoupling='PASS' " +
-                "multiOutput='PASS' outputIsolation='PASS' viewOutputBinding='PASS' " +
-                "viewportSplitTopology='PASS' genericArbitration='PASS' negativeValidation='PASS' " +
+                "multiOutput='PASS' outputIsolation='PASS' viewOutputAssociation='PASS' " +
+                "genericArbitration='PASS' negativeValidation='PASS' " +
                 $"mandatoryEstablishedCases='{EstablishedCaseCount}' " +
                 $"executedEstablishedCases='{EstablishedCaseCount}' " +
-                $"passedEstablishedCases='{EstablishedCaseCount}' adr026Phases='2/2' dimensions='9/9' " +
+                $"passedEstablishedCases='{EstablishedCaseCount}' adr026Phases='2/2' dimensions='8/8' " +
                 "next='RestoreCanonicalBaseline' missing='<none>' cleanup='Requested'.");
             EditorApplication.isPlaying = false;
         }

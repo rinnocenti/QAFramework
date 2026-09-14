@@ -37,11 +37,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         internal const string MountedBehaviorPath = DefinitionFolder + "/MountedBehavior.asset";
         private const string DefinitionFolder = "Assets/ImmersiveFrameworkQA/Camera/Definitions";
 
-        internal static CameraViewport SharedSimpleViewport => new CameraViewport(0f, 0f, 1f, 1f);
-        internal static CameraViewport SharedAdvancedViewport => new CameraViewport(0f, 0f, 1f, 1f);
-        internal static CameraViewport SplitSimpleViewport => new CameraViewport(0f, 0f, 0.5f, 1f);
-        internal static CameraViewport SplitAdvancedViewport => new CameraViewport(0.5f, 0f, 0.5f, 1f);
-
         internal static T RequireDefinition<T>(string path) where T : ScriptableObject
         {
             var definition = AssetDatabase.LoadAssetAtPath<T>(path);
@@ -134,9 +129,9 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 mountedBehavior);
 
             ConfigureSessionOverride(outputA);
-            ConfigureSharedComposition(outputA, viewA, SimpleViewport(mode));
+            ConfigureSharedComposition(outputA, viewA);
             if (mode != QaCameraAdr026TopologyMode.Partial)
-                ConfigurePolicy(scene, viewB, outputBDefinition, AdvancedViewport(mode));
+                ConfigurePolicy(scene, viewB, outputBDefinition);
             DisableAutomaticInputSplitScreen(scene);
             ValidateInMemory(scene, outputA, outputB, mode);
 
@@ -236,49 +231,39 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 
         private static void ConfigureSharedComposition(
             CameraOutputAuthoring outputA,
-            CameraViewDefinition view,
-            CameraViewport viewport)
+            CameraViewDefinition view)
         {
             CameraSharedComposition value =
                 outputA.gameObject.AddComponent<CameraSharedComposition>();
             value.Configure(
                 view,
                 outputA.OutputDefinition,
-                CameraSharedCompositionSubjectPolicyKind.AllAvailableSubjects,
-                viewport);
+                CameraSharedCompositionSubjectPolicyKind.AllAvailableSubjects);
             EditorUtility.SetDirty(value);
         }
 
         private static void ConfigurePolicy(
             Scene scene,
             CameraViewDefinition viewB,
-            CameraOutputDefinition outputB,
-            CameraViewport viewport)
+            CameraOutputDefinition outputB)
         {
             var root = new GameObject(PolicyRootName);
             SceneManager.MoveGameObjectToScene(root, scene);
             CameraViewOutputPolicyAuthoring policy =
                 root.AddComponent<CameraViewOutputPolicyAuthoring>();
-            policy.Configure(new[] { Binding(viewB, outputB, viewport) });
+            policy.Configure(new[] { Binding(viewB, outputB) });
             EditorUtility.SetDirty(policy);
             EditorUtility.SetDirty(root);
         }
 
         private static CameraViewOutputBindingAuthoring Binding(
             CameraViewDefinition view,
-            CameraOutputDefinition output,
-            CameraViewport viewport)
+            CameraOutputDefinition output)
         {
             var binding = new CameraViewOutputBindingAuthoring();
-            binding.Configure(view, output, viewport);
+            binding.Configure(view, output);
             return binding;
         }
-
-        internal static CameraViewport SimpleViewport(QaCameraAdr026TopologyMode mode) =>
-            mode == QaCameraAdr026TopologyMode.Split ? SplitSimpleViewport : SharedSimpleViewport;
-
-        internal static CameraViewport AdvancedViewport(QaCameraAdr026TopologyMode mode) =>
-            mode == QaCameraAdr026TopologyMode.Split ? SplitAdvancedViewport : SharedAdvancedViewport;
 
         internal static int ExpectedBindingCount(QaCameraAdr026TopologyMode mode) =>
             mode == QaCameraAdr026TopologyMode.Partial ? 1 : 2;
@@ -382,8 +367,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 mode == QaCameraAdr026TopologyMode.Partial
                     ? null
                     : RequireDefinition<CameraViewDefinition>(viewBPath),
-                SimpleViewport(mode),
-                AdvancedViewport(mode),
                 mode);
 
             foreach (PlayerInputManager manager in FindInScene<PlayerInputManager>(scene))
@@ -399,8 +382,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             CameraOutputAuthoring outputB,
             CameraViewDefinition viewA,
             CameraViewDefinition viewB,
-            CameraViewport simpleViewport,
-            CameraViewport advancedViewport,
             QaCameraAdr026TopologyMode mode)
         {
             if (composition == null)
@@ -411,10 +392,9 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 throw new InvalidOperationException(
                     "Simple Camera association is not bound to the exact Output A View and Output definitions.");
             if (!composition.TryCreateAssociationBinding(
-                    out CameraViewOutputBinding simple, out string simpleIssue) ||
-                simple.Viewport != simpleViewport)
+                    out CameraViewOutputBinding simple, out string simpleIssue))
                 throw new InvalidOperationException(
-                    $"Simple Camera association did not project the expected Output A viewport. {simpleIssue}");
+                    $"Simple Camera association did not project the exact View-to-Output A identity. {simpleIssue}");
 
             if (mode == QaCameraAdr026TopologyMode.Partial)
             {
@@ -435,7 +415,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                         viewA.ViewId,
                         outputA.OutputId,
                         out CameraViewOutputBinding partialA) ||
-                    partialA.Viewport != simpleViewport ||
+                    partialA.ViewId != viewA.ViewId ||
+                    partialA.OutputId != outputA.OutputId ||
                     partialTopology.TryGetBinding(outputB.OutputId, out _))
                     throw new InvalidOperationException(
                         "CAMERA-028-A aggregate topology did not retain only the explicit Output A association.");
@@ -454,7 +435,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 throw new InvalidOperationException(
                     "Advanced Camera policy must not bind Output A; Output A is owned by the simple association.");
             if (!advanced.TryGetBinding(viewB.ViewId, outputB.OutputId, out CameraViewOutputBinding policyBinding) ||
-                policyBinding.Viewport != advancedViewport)
+                policyBinding.ViewId != viewB.ViewId ||
+                policyBinding.OutputId != outputB.OutputId)
                 throw new InvalidOperationException(
                     "Advanced Camera policy did not project the exact Secondary View to Output B association.");
             if (!policy.TryValidateOutputs(new[] { outputA, outputB }, out string outputIssue))
@@ -471,9 +453,11 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 throw new InvalidOperationException(
                     $"Aggregate Camera View-to-Output topology is invalid. {topologyIssue}");
             if (!topology.TryGetBinding(viewA.ViewId, outputA.OutputId, out CameraViewOutputBinding boundA) ||
-                boundA.Viewport != simpleViewport ||
+                boundA.ViewId != viewA.ViewId ||
+                boundA.OutputId != outputA.OutputId ||
                 !topology.TryGetBinding(viewB.ViewId, outputB.OutputId, out CameraViewOutputBinding boundB) ||
-                boundB.Viewport != advancedViewport)
+                boundB.ViewId != viewB.ViewId ||
+                boundB.OutputId != outputB.OutputId)
                 throw new InvalidOperationException(
                     "Aggregate Camera topology did not retain exact simple Output A and advanced Output B associations.");
         }

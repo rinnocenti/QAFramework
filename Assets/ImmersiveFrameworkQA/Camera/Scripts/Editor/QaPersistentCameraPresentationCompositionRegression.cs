@@ -10,12 +10,14 @@ namespace ImmersiveFrameworkQA.Camera.Editor
 {
     /// <summary>
     /// ADR-026 public composition negatives that complement, rather than duplicate,
-    /// the real boot/viewport/injection proof in the canonical Camera fixture.
+    /// the real boot/injection proof in the canonical Camera fixture.
     /// </summary>
     internal static class QaPersistentCameraPresentationCompositionRegression
     {
         private const string MenuPath =
             "Immersive Framework/QA/Regressions/Camera/Run Persistent Camera Presentation Composition Regression";
+        private const string RetiredInvalidViewportCase =
+            "invalid-viewport:SupersededByCAMERA028B";
 
         [MenuItem(MenuPath, priority = 235)]
         private static void Run()
@@ -23,7 +25,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             IReadOnlyList<string> completed = RunForCertification();
             Debug.Log("[QA_PERSISTENT_CAMERA_PRESENTATION_COMPOSITION] " +
                 $"status='Passed' cases='{completed.Count}/{completed.Count}' " +
-                $"evidence='{string.Join(",", completed)}'.");
+                $"evidence='{string.Join(",", completed)}' " +
+                $"retired='{RetiredInvalidViewportCase}'.");
         }
 
         internal static IReadOnlyList<string> RunForCertification()
@@ -33,11 +36,16 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             VerifyOutputTopology(completed, "two-distinct-outputs", 2, false, true);
             VerifyOutputTopology(completed, "zero-outputs", 0, false, false);
             VerifyOutputTopology(completed, "duplicate-output-id", 2, true, false);
-            VerifyViewTopology(completed, "valid-split-viewports", false, false, true);
-            VerifyViewTopology(completed, "conflicting-output-binding", true, false, false);
-            VerifyViewTopology(completed, "invalid-viewport", false, true, false);
+            VerifyEmptyViewOutputTopology(completed);
+            VerifyFullDistinctViewOutputTopology(completed);
+            VerifyPartialOutputParticipation(completed);
+            VerifyOneViewMultipleOutputs(completed);
+            VerifyConflictingOutputBinding(completed);
+            VerifyUnavailableOutputBinding(completed);
             VerifySimpleAdvancedDistinctOutputs(completed);
             VerifySimpleAdvancedSameOutputConflict(completed);
+            Require(completed.Count == 12,
+                $"Logical Camera structural case count diverged. expected='12' actual='{completed.Count}'.");
             return completed;
         }
 
@@ -124,36 +132,152 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             return output;
         }
 
-        private static void VerifyViewTopology(
-            ICollection<string> completed,
-            string caseName,
-            bool conflict,
-            bool invalidViewport,
-            bool expectedSuccess)
+        private static void VerifyEmptyViewOutputTopology(ICollection<string> completed)
         {
-            CameraOutputId outputA = new CameraOutputId("qa.camera.output.a");
-            CameraOutputId outputB = new CameraOutputId(
-                conflict ? "qa.camera.output.a" : "qa.camera.output.b");
-            CameraViewport secondViewport = invalidViewport
-                ? new CameraViewport(0.5f, 0f, 0.75f, 1f)
-                : new CameraViewport(0.5f, 0f, 0.5f, 1f);
-            CameraViewOutputBinding[] bindings =
-            {
-                new CameraViewOutputBinding(
-                    new CameraViewId("qa.camera.view.a"), outputA,
-                    new CameraViewport(0f, 0f, 0.5f, 1f)),
-                new CameraViewOutputBinding(
-                    new CameraViewId("qa.camera.view.b"), outputB, secondViewport)
-            };
             bool succeeded = CameraViewOutputTopology.TryCreate(
-                bindings, out CameraViewOutputTopology topology, out string diagnostic);
-            Require(succeeded == expectedSuccess,
-                $"Case '{caseName}' returned unexpected success='{succeeded}' diagnostic='{diagnostic}'.");
-            Require(succeeded
-                    ? topology != null && topology.BindingCount == 2
-                    : !string.IsNullOrWhiteSpace(diagnostic),
-                $"Case '{caseName}' returned incomplete topology evidence.");
-            completed.Add(caseName);
+                Array.Empty<CameraViewOutputBinding>(),
+                out CameraViewOutputTopology topology,
+                out string diagnostic);
+            Require(succeeded && topology != null && topology.BindingCount == 0,
+                $"Empty logical View-to-Output topology must be valid. diagnostic='{diagnostic}'.");
+            completed.Add("empty-view-output-topology");
+        }
+
+        private static void VerifyFullDistinctViewOutputTopology(ICollection<string> completed)
+        {
+            var roots = new List<GameObject>();
+            var definitions = new List<ScriptableObject>();
+            try
+            {
+                CameraViewDefinition viewA = QaCameraAuthoringFixtures.CreateViewDefinition();
+                CameraViewDefinition viewB = QaCameraAuthoringFixtures.CreateViewDefinition();
+                CameraOutputDefinition outputA = QaCameraAuthoringFixtures.CreateOutputDefinition();
+                CameraOutputDefinition outputB = QaCameraAuthoringFixtures.CreateOutputDefinition();
+                definitions.Add(viewA);
+                definitions.Add(viewB);
+                definitions.Add(outputA);
+                definitions.Add(outputB);
+                CameraOutputAuthoring physicalA = CreateOutput(roots, outputA, 0);
+                CameraOutputAuthoring physicalB = CreateOutput(roots, outputB, 1);
+
+                var first = new CameraViewOutputBindingAuthoring();
+                var second = new CameraViewOutputBindingAuthoring();
+                first.Configure(viewA, outputA);
+                second.Configure(viewB, outputB);
+                var policyRoot = new GameObject("QA_ADR028B_FullLogicalTopology");
+                policyRoot.SetActive(false);
+                roots.Add(policyRoot);
+                CameraViewOutputPolicyAuthoring policy =
+                    policyRoot.AddComponent<CameraViewOutputPolicyAuthoring>();
+                policy.Configure(new[] { first, second });
+
+                Require(policy.TryValidateOutputs(new[] { physicalA, physicalB }, out string outputIssue),
+                    $"Full logical policy did not resolve both available physical Outputs. {outputIssue}");
+                Require(policy.TryBuildTopology(out CameraViewOutputTopology topology, out string topologyIssue) &&
+                        topology != null && topology.BindingCount == 2 &&
+                        topology.TryGetBinding(viewA.ViewId, outputA.OutputId, out _) &&
+                        topology.TryGetBinding(viewB.ViewId, outputB.OutputId, out _),
+                    $"Full distinct logical View-to-Output topology failed. {topologyIssue}");
+                completed.Add("full-distinct-view-output-associations");
+            }
+            finally
+            {
+                Destroy(roots, definitions);
+            }
+        }
+
+        private static void VerifyPartialOutputParticipation(ICollection<string> completed)
+        {
+            var roots = new List<GameObject>();
+            var definitions = new List<ScriptableObject>();
+            try
+            {
+                CameraViewDefinition view = QaCameraAuthoringFixtures.CreateViewDefinition();
+                CameraOutputDefinition outputA = QaCameraAuthoringFixtures.CreateOutputDefinition();
+                CameraOutputDefinition outputB = QaCameraAuthoringFixtures.CreateOutputDefinition();
+                definitions.Add(view);
+                definitions.Add(outputA);
+                definitions.Add(outputB);
+                CameraOutputAuthoring physicalA = CreateOutput(roots, outputA, 0);
+                CameraOutputAuthoring physicalB = CreateOutput(roots, outputB, 1);
+                CameraViewOutputPolicyAuthoring policy = CreatePolicy(roots, view, outputA);
+
+                Require(policy.TryValidateOutputs(new[] { physicalA, physicalB }, out string outputIssue),
+                    $"Partial policy did not accept its exact available Output subset. {outputIssue}");
+                Require(policy.TryBuildTopology(out CameraViewOutputTopology topology, out string topologyIssue) &&
+                        topology != null && topology.BindingCount == 1 &&
+                        topology.TryGetBinding(view.ViewId, outputA.OutputId, out _) &&
+                        !topology.TryGetBinding(outputB.OutputId, out _),
+                    $"Partial logical participation did not retain only Output A. {topologyIssue}");
+                completed.Add("partial-output-participation");
+            }
+            finally
+            {
+                Destroy(roots, definitions);
+            }
+        }
+
+        private static void VerifyOneViewMultipleOutputs(ICollection<string> completed)
+        {
+            var view = new CameraViewId("qa.camera.view.shared");
+            var outputA = new CameraOutputId("qa.camera.output.a");
+            var outputB = new CameraOutputId("qa.camera.output.b");
+            bool succeeded = CameraViewOutputTopology.TryCreate(
+                new[]
+                {
+                    new CameraViewOutputBinding(view, outputA),
+                    new CameraViewOutputBinding(view, outputB)
+                },
+                out CameraViewOutputTopology topology,
+                out string diagnostic);
+            Require(succeeded && topology != null && topology.BindingCount == 2 &&
+                    topology.GetBindings(view).Count == 2,
+                $"One View must retain two explicit logical Output associations. diagnostic='{diagnostic}'.");
+            completed.Add("one-view-multiple-outputs");
+        }
+
+        private static void VerifyConflictingOutputBinding(ICollection<string> completed)
+        {
+            var output = new CameraOutputId("qa.camera.output.shared");
+            bool succeeded = CameraViewOutputTopology.TryCreate(
+                new[]
+                {
+                    new CameraViewOutputBinding(new CameraViewId("qa.camera.view.a"), output),
+                    new CameraViewOutputBinding(new CameraViewId("qa.camera.view.b"), output)
+                },
+                out _,
+                out string diagnostic);
+            Require(!succeeded && !string.IsNullOrWhiteSpace(diagnostic) &&
+                    diagnostic.IndexOf("conflicting bindings", StringComparison.Ordinal) >= 0,
+                $"Two Views targeting one Output must be rejected explicitly. diagnostic='{diagnostic}'.");
+            completed.Add("conflicting-output-binding");
+        }
+
+        private static void VerifyUnavailableOutputBinding(ICollection<string> completed)
+        {
+            var roots = new List<GameObject>();
+            var definitions = new List<ScriptableObject>();
+            try
+            {
+                CameraViewDefinition view = QaCameraAuthoringFixtures.CreateViewDefinition();
+                CameraOutputDefinition available = QaCameraAuthoringFixtures.CreateOutputDefinition();
+                CameraOutputDefinition unavailable = QaCameraAuthoringFixtures.CreateOutputDefinition();
+                definitions.Add(view);
+                definitions.Add(available);
+                definitions.Add(unavailable);
+                CameraOutputAuthoring physical = CreateOutput(roots, available, 0);
+                CameraViewOutputPolicyAuthoring policy = CreatePolicy(roots, view, unavailable);
+
+                bool accepted = policy.TryValidateOutputs(new[] { physical }, out string diagnostic);
+                Require(!accepted && !string.IsNullOrWhiteSpace(diagnostic) &&
+                        diagnostic.IndexOf("no exact physical Output", StringComparison.Ordinal) >= 0,
+                    $"Binding to an unavailable physical Output must be rejected explicitly. diagnostic='{diagnostic}'.");
+                completed.Add("unavailable-output-binding-rejected");
+            }
+            finally
+            {
+                Destroy(roots, definitions);
+            }
         }
 
         private static void VerifySimpleAdvancedDistinctOutputs(ICollection<string> completed)
@@ -172,9 +296,9 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 definitions.Add(outputB);
 
                 CameraSharedComposition composition = CreateComposition(
-                    roots, viewA, outputA, new CameraViewport(0f, 0f, 1f, 1f));
+                    roots, viewA, outputA);
                 CameraViewOutputPolicyAuthoring policy = CreatePolicy(
-                    roots, viewB, outputB, new CameraViewport(0f, 0f, 1f, 1f));
+                    roots, viewB, outputB);
 
                 Require(composition.TryCreateAssociationBinding(
                         out CameraViewOutputBinding simple, out string simpleIssue),
@@ -223,9 +347,9 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 definitions.Add(output);
 
                 CameraSharedComposition composition = CreateComposition(
-                    roots, viewA, output, new CameraViewport(0f, 0f, 1f, 1f));
+                    roots, viewA, output);
                 CameraViewOutputPolicyAuthoring policy = CreatePolicy(
-                    roots, viewB, output, new CameraViewport(0.5f, 0f, 0.5f, 1f));
+                    roots, viewB, output);
 
                 Require(composition.TryCreateAssociationBinding(
                         out CameraViewOutputBinding simple, out string simpleIssue),
@@ -260,8 +384,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         private static CameraSharedComposition CreateComposition(
             ICollection<GameObject> roots,
             CameraViewDefinition view,
-            CameraOutputDefinition output,
-            CameraViewport viewport)
+            CameraOutputDefinition output)
         {
             var root = new GameObject("QA_ADR027D_SimpleAssociation");
             root.SetActive(false);
@@ -270,25 +393,33 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             composition.Configure(
                 view,
                 output,
-                CameraSharedCompositionSubjectPolicyKind.AllAvailableSubjects,
-                viewport);
+                CameraSharedCompositionSubjectPolicyKind.AllAvailableSubjects);
             return composition;
         }
 
         private static CameraViewOutputPolicyAuthoring CreatePolicy(
             ICollection<GameObject> roots,
             CameraViewDefinition view,
-            CameraOutputDefinition output,
-            CameraViewport viewport)
+            CameraOutputDefinition output)
         {
             var root = new GameObject("QA_ADR027D_AdvancedPolicy");
             root.SetActive(false);
             roots.Add(root);
             var binding = new CameraViewOutputBindingAuthoring();
-            binding.Configure(view, output, viewport);
+            binding.Configure(view, output);
             CameraViewOutputPolicyAuthoring policy = root.AddComponent<CameraViewOutputPolicyAuthoring>();
             policy.Configure(new[] { binding });
             return policy;
+        }
+
+        private static void Destroy(
+            IReadOnlyList<GameObject> roots,
+            IReadOnlyList<ScriptableObject> definitions)
+        {
+            for (int index = roots.Count - 1; index >= 0; index--)
+                UnityEngine.Object.DestroyImmediate(roots[index]);
+            for (int index = definitions.Count - 1; index >= 0; index--)
+                QaCameraAuthoringFixtures.Destroy(definitions[index]);
         }
 
         private static void Set(UnityEngine.Object target, string name, object value)

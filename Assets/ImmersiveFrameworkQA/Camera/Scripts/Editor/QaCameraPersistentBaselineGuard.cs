@@ -202,8 +202,6 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 mode == QaCameraAdr026TopologyMode.Partial
                     ? null
                     : QaCameraPersistentTopologyBuilder.RequireDefinition<CameraViewDefinition>(viewBPath),
-                QaCameraPersistentTopologyBuilder.SimpleViewport(mode),
-                QaCameraPersistentTopologyBuilder.AdvancedViewport(mode),
                 mode);
 
             // Capture persisted evidence before opening the Hub. OpenSceneMode.Single destroys

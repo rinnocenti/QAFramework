@@ -518,9 +518,18 @@ namespace ImmersiveFrameworkQA.Camera
                         !ReferenceEquals(OutputA.CinemachineBrain, OutputB.CinemachineBrain) &&
                         !ReferenceEquals(OutputA.DefaultCameraRig, OutputB.DefaultCameraRig),
                     "Split Outputs share a physical Camera, Brain or Default rig.");
-                Require(RectIs(OutputA.UnityCamera.rect, 0f, 0f, 0.5f, 1f) &&
-                        RectIs(OutputB.UnityCamera.rect, 0.5f, 0f, 0.5f, 1f),
-                    $"Framework split viewport policy was not applied exactly. A='{OutputA.UnityCamera.rect}' B='{OutputB.UnityCamera.rect}'.");
+                CameraSharedComposition splitComposition = SharedComposition;
+                string splitAssociationIssue = "Split association was not evaluated.";
+                Require(splitComposition != null &&
+                        ReferenceEquals(splitComposition.Output, OutputA) &&
+                        splitComposition.TryCreateAssociationBinding(
+                            out CameraViewOutputBinding splitA,
+                            out splitAssociationIssue) &&
+                        splitA.ViewId == splitComposition.ViewId &&
+                        splitA.OutputId == OutputA.OutputId &&
+                        OutputB.GetComponents<CameraSharedComposition>().Length == 0,
+                    "Split mode did not retain the exact logical Output A association. " +
+                    splitAssociationIssue);
                 Require(missingOutputProbe != null && !missingOutputProbe.IsAttached &&
                         missingOutputProbe.LastDetachReason.IndexOf(
                             "not part of the active Session topology",
@@ -556,7 +565,10 @@ namespace ImmersiveFrameworkQA.Camera
                 Adr026SplitExecuted = true;
                 Adr026SplitPassed = true;
                 Adr026SplitDiagnostic =
-                    $"outputs='{OutputA.OutputIdText},{OutputB.OutputIdText}' viewports='left,right' isolation='Passed' missingOutput='Rejected' automaticSplitScreen='RejectedByAuthoringValidation'.";
+                    $"outputs='{OutputA.OutputIdText},{OutputB.OutputIdText}' " +
+                    "viewOutputAssociation='Passed' outputParticipation='Full' " +
+                    "isolation='Passed' missingOutput='Rejected' " +
+                    "automaticSplitScreen='RejectedByAuthoringValidation'.";
                 Debug.Log($"{Adr026Prefix} phase='split' status='Passed' {Adr026SplitDiagnostic}", this);
             }
             catch (Exception exception)
@@ -645,16 +657,14 @@ namespace ImmersiveFrameworkQA.Camera
                             out explicitA,
                             out associationIssue) &&
                         explicitA.ViewId == composition.ViewId &&
-                        explicitA.OutputId == OutputA.OutputId &&
-                        RectIs(OutputA.UnityCamera.rect, 0f, 0f, 1f, 1f),
+                        explicitA.OutputId == OutputA.OutputId,
                     "CAMERA-028-A did not retain the exact explicit View-to-Output A association. " +
                     associationIssue);
                 CameraViewId explicitViewId = explicitA.ViewId;
                 CompletePartial(partialCases, "output-a-explicit-association-retained");
 
                 Require(OutputA.GetComponents<CameraSharedComposition>().Length == 1 &&
-                        OutputB.GetComponents<CameraSharedComposition>().Length == 0 &&
-                        RectIs(OutputB.UnityCamera.rect, 0f, 0f, 1f, 1f),
+                        OutputB.GetComponents<CameraSharedComposition>().Length == 0,
                     "CAMERA-028-A Output B must remain physically available without an implicit View association.");
                 CompletePartial(partialCases, "output-b-available-unassociated");
 
@@ -1303,8 +1313,6 @@ namespace ImmersiveFrameworkQA.Camera
                     ReferenceEquals(composer.CinemachineCamera, cinemachine) &&
                     ReferenceEquals(SharedComposition.Output, output) && ReferenceEquals(output, OutputA),
                 $"Shared Camera changed View, Composer, Cinemachine Camera or Output at '{phase}'.");
-            Require(RectIs(output.UnityCamera.rect, 0f, 0f, 1f, 1f),
-                $"Shared View Main is not fullscreen at '{phase}'. rect='{output.UnityCamera.rect}'.");
         }
 
         private static void RequireExactGroupMembers(CameraRigComposer composer, params Transform[] expected)
@@ -1362,10 +1370,6 @@ namespace ImmersiveFrameworkQA.Camera
             }
             join = null;
         }
-
-        private static bool RectIs(Rect value, float x, float y, float width, float height) =>
-            Mathf.Approximately(value.x, x) && Mathf.Approximately(value.y, y) &&
-            Mathf.Approximately(value.width, width) && Mathf.Approximately(value.height, height);
 
         private static bool PlayerInputOwnsDevice(PlayerInput playerInput, InputDevice expected)
         {

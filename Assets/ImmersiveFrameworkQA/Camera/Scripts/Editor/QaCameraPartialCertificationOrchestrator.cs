@@ -262,6 +262,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             Debug.Log(
                 $"{Prefix} status='Passed' availableOutputs='2' " +
                 "participatingBindings='1' cases='8/8' " +
+                "outputParticipation='PASS' " +
                 "cleanup='RequestedCanonicalRestore'.");
             EditorApplication.isPlaying = false;
         }
