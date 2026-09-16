@@ -21,6 +21,7 @@ namespace ImmersiveFrameworkQA.Camera
         [SerializeField] private RouteRequestTrigger backToHubTrigger;
 
         private ICameraSubjectAvailabilitySource subjectAvailability;
+        private bool started;
 
         public static bool Executed { get; private set; }
         public static bool Passed { get; private set; }
@@ -33,14 +34,26 @@ namespace ImmersiveFrameworkQA.Camera
                 throw new ArgumentNullException(nameof(availabilitySource));
         }
 
+        public void Begin()
+        {
+            if (started)
+            {
+                return;
+            }
+
+            started = true;
+            StartCoroutine(RunSafely());
+        }
+
         private void Awake()
         {
+            started = false;
             Executed = false;
             Passed = false;
             Diagnostic = string.Empty;
         }
 
-        private IEnumerator Start()
+        private IEnumerator RunSafely()
         {
             IEnumerator proof = RunProof();
             while (true)

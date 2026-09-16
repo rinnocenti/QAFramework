@@ -415,6 +415,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                     return;
                 }
 
+                RequireSceneProvidedFixture(scene).Begin();
                 watchStage = WatchStage.WaitingForSceneProvidedExit;
                 return;
             }
@@ -431,6 +432,32 @@ namespace ImmersiveFrameworkQA.Camera.Editor
             }
 
             CompleteSceneProvidedPhase();
+        }
+
+        private static QaCamera026ISceneProvidedFixture RequireSceneProvidedFixture(
+            Scene scene)
+        {
+            QaCamera026ISceneProvidedFixture resolved = null;
+            int matches = 0;
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                foreach (QaCamera026ISceneProvidedFixture candidate in
+                    root.GetComponentsInChildren<QaCamera026ISceneProvidedFixture>(true))
+                {
+                    if (candidate == null)
+                    {
+                        continue;
+                    }
+
+                    matches++;
+                    resolved ??= candidate;
+                }
+            }
+
+            Require(
+                matches == 1,
+                $"CAMERA-026-I requires exactly one Scene-Provided fixture, found '{matches}'.");
+            return resolved;
         }
 
         private static void HandleSceneProvidedRouteRequestEvent(
