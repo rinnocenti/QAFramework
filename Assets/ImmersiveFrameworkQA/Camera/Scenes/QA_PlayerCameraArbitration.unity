@@ -724,13 +724,13 @@ MonoBehaviour:
   frameworkOwnedRotationControl: {fileID: 446551432}
   frameworkOwnedSharedFollowTargetGroup: {fileID: 1579366088}
   frameworkOwnedSharedFollowGroupFraming: {fileID: 446551433}
-  materializationRevision: 99
+  materializationRevision: 103
   logApplyRebuildDiagnostics: 0
   lastApplyRebuildStatus: ApplySucceeded
   lastBlockingIssue: 
   lastMaterializationSummary: created='0' repaired='0' alreadyValid='4' skipped='2'
     blocked='0' presentation='Follow' cameraOwnership='ExternalOrUnknown' positionOwnership='ExternalOrUnknown'
-    rotationOwnership='FrameworkOwned' revision='99'
+    rotationOwnership='FrameworkOwned' revision='103'
 --- !u!4 &660878653
 Transform:
   m_ObjectHideFlags: 0
@@ -785,13 +785,13 @@ MonoBehaviour:
   frameworkOwnedRotationControl: {fileID: 94951505}
   frameworkOwnedSharedFollowTargetGroup: {fileID: 629000481}
   frameworkOwnedSharedFollowGroupFraming: {fileID: 94951506}
-  materializationRevision: 99
+  materializationRevision: 103
   logApplyRebuildDiagnostics: 0
   lastApplyRebuildStatus: ApplySucceeded
   lastBlockingIssue: 
   lastMaterializationSummary: created='0' repaired='0' alreadyValid='4' skipped='2'
     blocked='0' presentation='Follow' cameraOwnership='ExternalOrUnknown' positionOwnership='ExternalOrUnknown'
-    rotationOwnership='FrameworkOwned' revision='99'
+    rotationOwnership='FrameworkOwned' revision='103'
 --- !u!4 &717848987
 Transform:
   m_ObjectHideFlags: 0
