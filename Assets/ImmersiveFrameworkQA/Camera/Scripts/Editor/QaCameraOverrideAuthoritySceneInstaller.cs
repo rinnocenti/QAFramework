@@ -513,6 +513,7 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 throw new InvalidOperationException(
                     "CAMERA-026-I Scene-Provided Hub object has no RouteRequestTrigger.");
             }
+            backToHub.TargetRoute = Require<RouteAsset>(HubRoutePath);
 
             GameObject fixtureObject = RootObject(
                 scene,
