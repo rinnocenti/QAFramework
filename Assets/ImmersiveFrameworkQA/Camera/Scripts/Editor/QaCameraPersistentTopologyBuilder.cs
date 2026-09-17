@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Immersive.Framework.Camera;
 using Immersive.Framework.CameraAuthoring;
 using Immersive.Framework.Editor.CameraAuthoring;
+using Immersive.Framework.PlayerParticipation;
 using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -25,6 +26,8 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         private const string OutputARootName = "QA ADR026 Camera Output A";
         private const string OutputBRootName = "QA ADR026 Camera Output B";
         private const string PolicyRootName = "QA ADR026 Camera View Output Policy";
+        private const string PlayerLayoutPolicyRootName =
+            "QA CAMERA-028-D Player Camera Output Policy";
         private const string LegacyOutputRootName = "QA C9R Session Camera Output";
         internal const string OutputAPath = DefinitionFolder + "/MainOutput.asset";
         internal const string OutputBPath = DefinitionFolder + "/SecondaryOutput.asset";
@@ -36,6 +39,10 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         internal const string FollowBehaviorPath = DefinitionFolder + "/FollowBehavior.asset";
         internal const string MountedBehaviorPath = DefinitionFolder + "/MountedBehavior.asset";
         private const string DefinitionFolder = "Assets/ImmersiveFrameworkQA/Camera/Definitions";
+        private const string PlayerSlotP1Path =
+            "Assets/ImmersiveFrameworkQA/Player/Profiles/QA_PlayerSlot_P1.asset";
+        private const string PlayerSlotP2Path =
+            "Assets/ImmersiveFrameworkQA/Player/Profiles/QA_PlayerSlot_P2.asset";
 
         internal static T RequireDefinition<T>(string path) where T : ScriptableObject
         {
@@ -148,6 +155,118 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                 $"topology='{mode}' outputs='2' " +
                 $"participatingBindings='{ExpectedBindingCount(mode)}' " +
                 $"outputA='{Describe(outputA)}' outputB='{Describe(outputB)}'.");
+        }
+
+        internal static void ConfigurePlayerInputLayoutIntegration(
+            bool completeSlotCoverage)
+        {
+            if (EditorApplication.isPlaying)
+            {
+                throw new InvalidOperationException(
+                    "CAMERA-028-D layout integration can only be authored in Edit Mode.");
+            }
+
+            Scene scene = EditorSceneManager.OpenScene(
+                GlobalScenePath,
+                OpenSceneMode.Single);
+            List<CameraOutputAuthoring> outputs =
+                FindInScene<CameraOutputAuthoring>(scene);
+            CameraOutputAuthoring outputA = RequireOutput(
+                outputs,
+                RequireDefinition<CameraOutputDefinition>(OutputAPath));
+            CameraOutputAuthoring outputB = RequireOutput(
+                outputs,
+                RequireDefinition<CameraOutputDefinition>(OutputBPath));
+            CameraViewOutputPolicyAuthoring viewOutputPolicy =
+                RequireSingle<CameraViewOutputPolicyAuthoring>(
+                    scene,
+                    "CameraViewOutputPolicyAuthoring");
+            PlayerInputManager manager = RequireSingle<PlayerInputManager>(
+                scene,
+                "PlayerInputManager");
+            LocalPlayerProvisioningAuthoring provisioning =
+                RequireSingle<LocalPlayerProvisioningAuthoring>(
+                    scene,
+                    "LocalPlayerProvisioningAuthoring");
+            if (!ReferenceEquals(provisioning.PlayerInputManager, manager))
+            {
+                throw new InvalidOperationException(
+                    "CAMERA-028-D requires the canonical provisioning authoring to reference the exact PlayerInputManager.");
+            }
+
+            RemovePlayerInputLayoutIntegration(scene);
+            SetAutomaticInputSplitScreen(manager, true);
+
+            PlayerSlotProfile slotP1 =
+                AssetDatabase.LoadAssetAtPath<PlayerSlotProfile>(PlayerSlotP1Path);
+            PlayerSlotProfile slotP2 =
+                AssetDatabase.LoadAssetAtPath<PlayerSlotProfile>(PlayerSlotP2Path);
+            if (slotP1 == null || slotP2 == null ||
+                !slotP1.PlayerSlotId.IsValid || !slotP2.PlayerSlotId.IsValid ||
+                slotP1.PlayerSlotId == slotP2.PlayerSlotId)
+            {
+                throw new InvalidOperationException(
+                    "CAMERA-028-D requires two distinct valid authored Player Slot Profiles.");
+            }
+
+            var root = new GameObject(PlayerLayoutPolicyRootName);
+            SceneManager.MoveGameObjectToScene(root, scene);
+            PlayerCameraOutputPolicyAuthoring policy =
+                root.AddComponent<PlayerCameraOutputPolicyAuthoring>();
+            var bindings = new List<PlayerCameraOutputBindingAuthoring>
+            {
+                PlayerOutputBinding(slotP1, outputB.OutputDefinition)
+            };
+            if (completeSlotCoverage)
+            {
+                bindings.Add(PlayerOutputBinding(
+                    slotP2,
+                    outputA.OutputDefinition));
+            }
+            policy.Configure(bindings);
+
+            QaCamera028DPlayerInputLayoutFixture fixture =
+                root.AddComponent<QaCamera028DPlayerInputLayoutFixture>();
+            fixture.Configure(
+                provisioning,
+                manager,
+                policy,
+                viewOutputPolicy,
+                slotP1,
+                slotP2,
+                outputA,
+                outputB,
+                completeSlotCoverage);
+            QaCamera028DPlayerInputLayoutRegression regression =
+                root.AddComponent<QaCamera028DPlayerInputLayoutRegression>();
+            regression.Configure(
+                fixture,
+                completeSlotCoverage
+                    ? QaCamera028DPlayerInputLayoutMode.CompleteCoverage
+                    : QaCamera028DPlayerInputLayoutMode.IncompleteCoverage);
+
+            if (!fixture.TryValidateAuthoredSurface(out string fixtureIssue))
+            {
+                throw new InvalidOperationException(fixtureIssue);
+            }
+
+            EditorUtility.SetDirty(manager);
+            EditorUtility.SetDirty(policy);
+            EditorUtility.SetDirty(fixture);
+            EditorUtility.SetDirty(regression);
+            EditorUtility.SetDirty(root);
+            EditorSceneManager.MarkSceneDirty(scene);
+            if (!EditorSceneManager.SaveScene(scene, GlobalScenePath))
+            {
+                throw new InvalidOperationException(
+                    "CAMERA-028-D could not persist its PlayerInput layout integration fixture.");
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            EditorSceneManager.OpenScene(
+                "Assets/ImmersiveFrameworkQA/Hub/Scenes/QA_Hub.unity",
+                OpenSceneMode.Single);
         }
 
         private static CameraOutputAuthoring CreateOutput(
@@ -286,12 +405,21 @@ namespace ImmersiveFrameworkQA.Camera.Editor
                      FindInScene<SessionCameraOverride>(scene))
                 if (sessionOverride != null) destroy.Add(sessionOverride.gameObject);
 
+            foreach (PlayerCameraOutputPolicyAuthoring policy in
+                     FindInScene<PlayerCameraOutputPolicyAuthoring>(scene))
+                if (policy != null) destroy.Add(policy.gameObject);
+
+            foreach (QaCamera028DPlayerInputLayoutFixture fixture in
+                     FindInScene<QaCamera028DPlayerInputLayoutFixture>(scene))
+                if (fixture != null) destroy.Add(fixture.gameObject);
+
             foreach (GameObject root in scene.GetRootGameObjects())
             {
                 if (root == null) continue;
                 if (root.name == OutputARootName ||
                     root.name == OutputBRootName ||
                     root.name == PolicyRootName ||
+                    root.name == PlayerLayoutPolicyRootName ||
                     root.name == LegacyOutputRootName)
                 {
                     destroy.Add(root);
@@ -306,15 +434,85 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         {
             foreach (PlayerInputManager manager in FindInScene<PlayerInputManager>(scene))
             {
-                var serialized = new SerializedObject(manager);
-                serialized.Update();
-                SerializedProperty property = serialized.FindProperty("m_SplitScreen") ??
-                    throw new InvalidOperationException(
-                        "PlayerInputManager split-screen serialized field was not found.");
-                property.boolValue = false;
-                serialized.ApplyModifiedPropertiesWithoutUndo();
-                EditorUtility.SetDirty(manager);
+                SetAutomaticInputSplitScreen(manager, false);
             }
+        }
+
+        private static void SetAutomaticInputSplitScreen(
+            PlayerInputManager manager,
+            bool enabled)
+        {
+            var serialized = new SerializedObject(manager);
+            serialized.Update();
+            SerializedProperty property = serialized.FindProperty("m_SplitScreen") ??
+                throw new InvalidOperationException(
+                    "PlayerInputManager split-screen serialized field was not found.");
+            property.boolValue = enabled;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(manager);
+        }
+
+        private static void RemovePlayerInputLayoutIntegration(Scene scene)
+        {
+            var destroy = new HashSet<GameObject>();
+            foreach (PlayerCameraOutputPolicyAuthoring policy in
+                     FindInScene<PlayerCameraOutputPolicyAuthoring>(scene))
+                if (policy != null) destroy.Add(policy.gameObject);
+            foreach (QaCamera028DPlayerInputLayoutFixture fixture in
+                     FindInScene<QaCamera028DPlayerInputLayoutFixture>(scene))
+                if (fixture != null) destroy.Add(fixture.gameObject);
+            foreach (GameObject root in scene.GetRootGameObjects())
+                if (root != null && root.name == PlayerLayoutPolicyRootName)
+                    destroy.Add(root);
+            foreach (GameObject candidate in destroy)
+                if (candidate != null) UnityEngine.Object.DestroyImmediate(candidate);
+        }
+
+        private static PlayerCameraOutputBindingAuthoring PlayerOutputBinding(
+            PlayerSlotProfile slot,
+            CameraOutputDefinition output)
+        {
+            var binding = new PlayerCameraOutputBindingAuthoring();
+            binding.Configure(slot, output);
+            return binding;
+        }
+
+        private static CameraOutputAuthoring RequireOutput(
+            List<CameraOutputAuthoring> outputs,
+            CameraOutputDefinition definition)
+        {
+            CameraOutputAuthoring match = null;
+            for (int index = 0; index < outputs.Count; index++)
+            {
+                CameraOutputAuthoring candidate = outputs[index];
+                if (candidate == null ||
+                    !ReferenceEquals(candidate.OutputDefinition, definition))
+                {
+                    continue;
+                }
+
+                if (match != null)
+                {
+                    throw new InvalidOperationException(
+                        $"CAMERA-028-D found duplicate physical Output for definition '{definition.name}'.");
+                }
+                match = candidate;
+            }
+
+            return match ?? throw new InvalidOperationException(
+                $"CAMERA-028-D could not resolve physical Output '{definition.name}'.");
+        }
+
+        private static T RequireSingle<T>(Scene scene, string label)
+            where T : Component
+        {
+            List<T> candidates = FindInScene<T>(scene);
+            if (candidates.Count != 1 || candidates[0] == null)
+            {
+                throw new InvalidOperationException(
+                    $"CAMERA-028-D requires exactly one {label} in QA_UIGlobal; found '{candidates.Count}'.");
+            }
+            return candidates[0];
         }
 
         private static void ValidateInMemory(
@@ -535,8 +733,11 @@ namespace ImmersiveFrameworkQA.Camera.Editor
         private static List<T> FindInScene<T>(Scene scene) where T : Component
         {
             var results = new List<T>();
-            foreach (T value in Resources.FindObjectsOfTypeAll<T>())
-                if (value != null && value.gameObject.scene == scene) results.Add(value);
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                if (root == null) continue;
+                results.AddRange(root.GetComponentsInChildren<T>(true));
+            }
             return results;
         }
 

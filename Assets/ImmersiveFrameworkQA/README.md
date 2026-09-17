@@ -91,6 +91,21 @@ executes generic authority plus ADR-004B/004C evidence, exits Play Mode, authors
 Split topology and starts a second fresh boot. Manual execution can instead use
 the existing Hub entry after preparing either topology.
 
+The focused CAMERA-028-D certification is also one-button:
+
+```text
+Immersive Framework > QA > Camera >
+Run CAMERA-028-D PlayerInput Layout Certification
+```
+
+It authors the explicit inverted Player Slot-to-Output policy, runs the
+`0 -> 1 -> 2 -> 1` PlayerInput layout proof, boots again with deliberately
+incomplete Slot coverage, and restores the canonical Shared baseline. The
+two-Player proof rejects any `PlayerInput.camera == null` split-screen error
+and requires two positive, non-overlapping viewports inside the exact
+`PlayerInputManager.splitScreenArea`; changing only one `Camera.rect` is not
+accepted as a valid physical split.
+
 ### Camera certification documents
 
 - `Camera/Documentation/C9R-CAMERA-OVERRIDE-AUTHORITY-QA.md`

@@ -9,6 +9,7 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
+using Immersive.Framework.RuntimeContent;
 using Immersive.Framework.Transition;
 using ImmersiveFrameworkQA.Hub;
 using ImmersiveFrameworkQA.Lifecycle;
@@ -115,6 +116,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             int sessionRevisionFloor = 0;
             int selectionRevisionAtCapture = 0;
             bool joiningOpen = false;
+            Keyboard secondPlayerKeyboard = null;
             string publicNavigationDisposition = "unresolved";
             var ownedWaiting =
                 new QaOwnedAsyncOperation<FrameworkActivityRequestResult>(
@@ -788,8 +790,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 Require(
                     occurrenceSnapshotA.ActivityOccurrence !=
                         reentry.ActivityOccurrence &&
-                    reentry.Lifecycle.ActivityOccurrence ==
-                        reentry.ActivityOccurrence,
+                    reentry.ActivityOccurrence > occurrenceA &&
+                    MatchesCurrentActivity(reentry, lifecycleActivity),
                     "Current observation presented old occurrence as current. " +
                     $"old='{occurrenceSnapshotA.ActivityOccurrence}' " +
                     $"current='{reentry.ActivityOccurrence}'.");
@@ -927,31 +929,110 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 // WaitingForJoin projection. The public surface has no leave
                 // operation, so consume P2 only after every one-Player
                 // lifecycle observation has completed.
-                InputDevice sharedDevice =
-                    joined.PlayerInput != null &&
-                    joined.PlayerInput.devices.Count > 0
-                        ? joined.PlayerInput.devices[0]
-                        : null;
+                InputDevice[] firstPlayerDevices = null;
+                if (joined.PlayerInput != null &&
+                    joined.PlayerInput.devices.Count > 0)
+                {
+                    firstPlayerDevices = new InputDevice[
+                        joined.PlayerInput.devices.Count];
+                    for (int index = 0; index < firstPlayerDevices.Length; index++)
+                    {
+                        firstPlayerDevices[index] = joined.PlayerInput.devices[index];
+                    }
+                }
+
+                secondPlayerKeyboard = InputSystem.AddDevice<Keyboard>();
+                bool secondPlayerDeviceIsDistinct =
+                    secondPlayerKeyboard != null &&
+                    secondPlayerKeyboard.added &&
+                    firstPlayerDevices != null;
+                if (secondPlayerDeviceIsDistinct)
+                {
+                    for (int index = 0; index < firstPlayerDevices.Length; index++)
+                    {
+                        if (ReferenceEquals(
+                                secondPlayerKeyboard,
+                                firstPlayerDevices[index]))
+                        {
+                            secondPlayerDeviceIsDistinct = false;
+                            break;
+                        }
+                    }
+                }
                 Require(
-                    sharedDevice != null &&
-                    sharedDevice.added,
-                    "Second Supported Slot Join requires one explicit active InputDevice " +
-                    "from the first PlayerInput.");
+                    secondPlayerDeviceIsDistinct,
+                    "Second Supported Slot Join requires a QA-owned Keyboard distinct from " +
+                    "every device currently paired to the first PlayerInput.");
 
                 LocalPlayerJoinResult secondJoin = routeAccess.RequestJoin(
                     new LocalPlayerJoinRequest(
                         Source,
                         "qa-player-surface-02-second-supported-slot",
-                        sharedDevice));
+                        secondPlayerKeyboard));
+                bool firstPlayerDevicesRetained =
+                    joined.PlayerInput != null &&
+                    firstPlayerDevices != null &&
+                    joined.PlayerInput.devices.Count == firstPlayerDevices.Length;
+                if (firstPlayerDevicesRetained)
+                {
+                    for (int expectedIndex = 0;
+                         expectedIndex < firstPlayerDevices.Length;
+                         expectedIndex++)
+                    {
+                        bool retained = false;
+                        for (int actualIndex = 0;
+                             actualIndex < joined.PlayerInput.devices.Count;
+                             actualIndex++)
+                        {
+                            if (ReferenceEquals(
+                                    firstPlayerDevices[expectedIndex],
+                                    joined.PlayerInput.devices[actualIndex]))
+                            {
+                                retained = true;
+                                break;
+                            }
+                        }
+
+                        if (!retained)
+                        {
+                            firstPlayerDevicesRetained = false;
+                            break;
+                        }
+                    }
+                }
+
+                bool secondPlayerUsesOnlyOwnedDevice =
+                    secondJoin != null &&
+                    secondJoin.PlayerInput != null &&
+                    secondJoin.PlayerInput.devices.Count == 1 &&
+                    ReferenceEquals(
+                        secondJoin.PlayerInput.devices[0],
+                        secondPlayerKeyboard);
                 Require(
                     secondJoin != null &&
                     secondJoin.Succeeded &&
                     secondJoin.Slot.IsJoined &&
                     secondJoin.Slot.PlayerSlotId != joinedSlotId,
-                    secondJoin != null
+                    "Second Supported Slot Join did not allocate a distinct joined Slot. " +
+                    (secondJoin != null
                         ? secondJoin.ToDiagnosticString()
-                        : "Second Supported Slot Join returned no result.");
+                        : "Second Supported Slot Join returned no result."));
+                Require(
+                    firstPlayerDevicesRetained && secondPlayerUsesOnlyOwnedDevice,
+                    "Second Supported Slot Join changed the first PlayerInput pairing or " +
+                    "paired a device other than the QA-owned Keyboard to P2.");
                 cases.Complete("second-join-uses-next-supported-slot");
+
+                LocalPlayerProvisioningConsumerObservationSnapshot beforeFull =
+                    RequireObservation(routeAccess, "before-full-session-join");
+                int revisionBeforeFullJoin = beforeFull.SessionRevision;
+                Require(
+                    FindSlot(beforeFull.Participation, joinedSlotId).IsJoined &&
+                    FindSlot(beforeFull.Participation, secondJoin.Slot.PlayerSlotId).IsJoined &&
+                    beforeFull.Participation.JoinedCount == configuredSlots &&
+                    beforeFull.Participation.AvailableCount == 0,
+                    "Second Join did not preserve P1 and occupy the second Supported Slot. " +
+                    DescribeObservation(beforeFull));
 
                 LocalPlayerJoinResult noAvailableSlot = routeAccess.RequestJoin(
                     new LocalPlayerJoinRequest(
@@ -970,7 +1051,9 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                 Require(
                     afterFull.Participation.JoinedCount == configuredSlots &&
                     afterFull.Participation.AvailableCount == 0 &&
-                    afterFull.SessionRevision >= sessionRevisionFloor,
+                    afterFull.SessionRevision == revisionBeforeFullJoin &&
+                    FindSlot(afterFull.Participation, joinedSlotId).IsJoined &&
+                    FindSlot(afterFull.Participation, secondJoin.Slot.PlayerSlotId).IsJoined,
                     "Rejected full-Session Join changed occupancy unexpectedly. " +
                     DescribeObservation(afterFull));
                 cases.Complete("session-full-rejected-no-available-slot");
@@ -1135,6 +1218,18 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     catch (Exception exception)
                     {
                         failures.Add("fixture-cleanup", exception);
+                    }
+                }
+
+                if (secondPlayerKeyboard != null && secondPlayerKeyboard.added)
+                {
+                    try
+                    {
+                        InputSystem.RemoveDevice(secondPlayerKeyboard);
+                    }
+                    catch (Exception exception)
+                    {
+                        failures.Add("second-player-device-cleanup", exception);
                     }
                 }
 
@@ -1477,6 +1572,23 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             return host.ActorMount
                 .GetComponentsInChildren<PlayerActorDeclaration>(true)
                 .Length;
+        }
+
+        private static bool MatchesCurrentActivity(
+            LocalPlayerProvisioningConsumerObservationSnapshot observation,
+            ActivityAsset activity)
+        {
+            if (observation == null || activity == null || !activity.HasValidActivityId)
+            {
+                return false;
+            }
+
+            RuntimeContentOwner expectedOwner = RuntimeContentOwner.Activity(
+                activity.ActivityId.StableText,
+                activity.ActivityName,
+                RuntimeDefinitionToken.FromUnityObject(activity));
+            return observation.HasCurrentActivityOccurrence &&
+                observation.ActivityOwner == expectedOwner;
         }
 
         private static void RequirePublicSurfaceScanClean()

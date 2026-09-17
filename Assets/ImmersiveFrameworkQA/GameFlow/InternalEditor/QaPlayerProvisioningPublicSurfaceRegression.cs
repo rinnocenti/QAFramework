@@ -9,6 +9,7 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
+using Immersive.Framework.RuntimeContent;
 using Immersive.Framework.Transition;
 using ImmersiveFrameworkQA.Hub;
 using ImmersiveFrameworkQA.UnityBuildSurface;
@@ -456,11 +457,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         access,
                         observation =>
                             observation.IsAvailable &&
-                            observation.HasCurrentActivityOccurrence &&
-                            string.Equals(
-                                observation.Lifecycle.ActivityName,
-                                activity.ActivityName,
-                                StringComparison.Ordinal) &&
+                            MatchesCurrentActivity(observation, activity) &&
                             observation.Lifecycle.Status ==
                                 ManagerProvisionedPlayerLifecycleStatus
                                     .WaitingForJoin &&
@@ -485,6 +482,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         access,
                         observation =>
                             observation.IsAvailable &&
+                            MatchesCurrentActivity(observation, activity) &&
                             observation.ActivityOccurrence == firstOccurrence &&
                             observation.Lifecycle.Status ==
                                 ManagerProvisionedPlayerLifecycleStatus
@@ -608,8 +606,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         observation =>
                             observation.IsAvailable &&
                             observation.Lifecycle.IsReady &&
-                            observation.Lifecycle.ActivityOccurrence ==
-                                firstOccurrence &&
+                            MatchesCurrentActivity(observation, activity) &&
+                            observation.ActivityOccurrence == firstOccurrence &&
                             observation.Lifecycle.HasGateEvidence &&
                             !observation.Lifecycle.GateHeld &&
                             observation.AppliedSessionRevision ==
@@ -670,10 +668,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         access,
                         observation => observation.IsAvailable &&
                             observation.Lifecycle.IsReady &&
+                            MatchesCurrentActivity(observation, secondaryActivity) &&
                             observation.ActivityOccurrence > firstOccurrence &&
-                            string.Equals(observation.Lifecycle.ActivityName,
-                                secondaryActivity.ActivityName,
-                                StringComparison.Ordinal) &&
                             observation.Participation.JoinedCount == 1 &&
                             SlotIsFullyReady(observation, joinedSlotId),
                         "Manager Activity B did not acquire a fresh ready contextual occurrence.",
@@ -704,10 +700,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         access,
                         observation => observation.IsAvailable &&
                             observation.Lifecycle.IsReady &&
+                            MatchesCurrentActivity(observation, activity) &&
                             observation.ActivityOccurrence > activityB.ActivityOccurrence &&
-                            string.Equals(observation.Lifecycle.ActivityName,
-                                activity.ActivityName,
-                                StringComparison.Ordinal) &&
                             observation.Participation.JoinedCount == 1 &&
                             SlotIsFullyReady(observation, joinedSlotId),
                         "Manager Activity A2 did not reacquire a fresh ready contextual occurrence.",
@@ -776,12 +770,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         access,
                         observation =>
                             observation.IsAvailable &&
-                            observation.HasCurrentActivityOccurrence &&
+                            MatchesCurrentActivity(observation, activity) &&
                             observation.ActivityOccurrence > firstOccurrence &&
-                            string.Equals(
-                                observation.Lifecycle.ActivityName,
-                                activity.ActivityName,
-                                StringComparison.Ordinal) &&
                             observation.Participation.JoinedCount == 1 &&
                             HasJoinedSlot(observation, joinedSlotId),
                         "Reentry did not expose a newer Activity occurrence with the same Session Slot",
@@ -799,6 +789,7 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                         observation =>
                             observation.IsAvailable &&
                             observation.Lifecycle.IsReady &&
+                            MatchesCurrentActivity(observation, activity) &&
                             observation.ActivityOccurrence ==
                                 reentered.ActivityOccurrence &&
                             SlotIsFullyReady(observation, joinedSlotId),
@@ -830,10 +821,11 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     await AwaitObservationAsync(
                         access,
                         observation => observation.IsAvailable &&
-                            observation.HasCurrentActivityOccurrence &&
-                            string.Equals(observation.Lifecycle.ActivityName,
-                                playerExcludedActivity.ActivityName,
-                                StringComparison.Ordinal) &&
+                            MatchesCurrentActivity(
+                                observation,
+                                playerExcludedActivity) &&
+                            observation.ActivityOccurrence >
+                                reentered.ActivityOccurrence &&
                             observation.Participation.JoinedCount == 1 &&
                             observation.Lifecycle.SlotCount == 0 &&
                             !HasContextualAssignment(observation, joinedSlotId),
@@ -860,9 +852,8 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
                     await AwaitObservationAsync(
                         access,
                         observation => observation.IsAvailable && observation.Lifecycle.IsReady &&
+                            MatchesCurrentActivity(observation, activity) &&
                             observation.ActivityOccurrence > playerExcluded.ActivityOccurrence &&
-                            string.Equals(observation.Lifecycle.ActivityName, activity.ActivityName,
-                                StringComparison.Ordinal) &&
                             SlotIsFullyReady(observation, joinedSlotId),
                         "Player reentry after an excluded Activity did not produce a fresh ready context.",
                         FrameBudget);
@@ -1257,6 +1248,23 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             return false;
         }
 
+        private static bool MatchesCurrentActivity(
+            LocalPlayerProvisioningConsumerObservationSnapshot observation,
+            ActivityAsset activity)
+        {
+            if (observation == null || activity == null || !activity.HasValidActivityId)
+            {
+                return false;
+            }
+
+            RuntimeContentOwner expectedOwner = RuntimeContentOwner.Activity(
+                activity.ActivityId.StableText,
+                activity.ActivityName,
+                RuntimeDefinitionToken.FromUnityObject(activity));
+            return observation.HasCurrentActivityOccurrence &&
+                observation.ActivityOwner == expectedOwner;
+        }
+
         private static LocalPlayerProvisioningConsumerSlotObservation FindObservedSlot(
             LocalPlayerProvisioningConsumerObservationSnapshot observation,
             PlayerSlotId slotId)
@@ -1433,8 +1441,10 @@ namespace ImmersiveFrameworkQA.GameFlow.Internal.Editor
             return
                 $"available='{observation.IsAvailable}' " +
                 $"lifecycle='{observation.Lifecycle?.Status}' " +
-                $"activity='{observation.Lifecycle?.ActivityName}' " +
-                $"occurrence='{observation.ActivityOccurrence}' " +
+                $"activityOwner='{observation.ActivityOwner.StableText}' " +
+                $"activityOccurrence='{observation.ActivityOccurrence}' " +
+                $"lifecycleActivity='{observation.Lifecycle?.ActivityName}' " +
+                $"lifecycleOccurrence='{observation.Lifecycle?.ActivityOccurrence}' " +
                 $"sessionRevision='{observation.SessionRevision}' " +
                 $"appliedRevision='{observation.AppliedSessionRevision}' " +
                 $"joined='{observation.Participation?.JoinedCount}' " +
