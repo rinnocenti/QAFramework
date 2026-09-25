@@ -18,6 +18,23 @@ The new skills translate the ADR into repeatable workflows. They must link to th
 
 Legacy QA skills, agent instructions, smoke conventions, runners, panels, phase machines, fixtures, folder layouts, class names, and the historical Smoke/Regression split are not compatibility requirements. New repository-owned guidance supersedes older QA-specific guidance. Obsolete QA-specific skills and agent roles may be removed after the new set passes validation.
 
+## Repository reality principle
+
+Repository reality precedes QA design.
+
+Before designing, implementing, or reviewing a Scenario, the acting skill and agent must inspect:
+
+- the current tracked and relevant untracked state of QAFramework;
+- the current QA composition, documentation, asmdefs, setup, fixtures, and source files related to the requested contract;
+- the current public APIs and supported authoring surfaces of `com.immersive.framework` related to that contract;
+- current package manifests and package source resolution when needed to identify the actual framework version under test.
+
+The inspection must cite concrete files and symbols that establish the available composition, endpoints, lifecycle, observability, and capabilities. Absence must be reported as absence; it must not be filled from the ADR, a skill, historical source, generated project files, stale package caches, or prior architectural knowledge.
+
+The ADR governs classification and architectural constraints. It does not prove that a particular public API, endpoint, lifecycle, environment, fixture, or capability currently exists. A skill may prescribe how to inspect and reason, but its examples are never evidence about repository reality.
+
+When current repository evidence conflicts with a proposed Scenario, the agent must revise the design, classify an observability or supported-surface gap, or report that the Scenario is currently blocked. It must not fabricate the missing surface or silently substitute a historical contract.
+
 ## Intended users
 
 - An architect deciding where a contract should be proved and shaping a QA Scenario.
@@ -62,6 +79,8 @@ Repository-local skills use the portable `.agents/skills/` convention. `.codex/c
 
 Use when deciding whether a contract belongs in Package/NUnit, QAFramework, or FIRSTGAME, or when designing a new QAFramework Scenario.
 
+It must begin by applying the repository reality principle. Classification and Scenario design are based on the inspected QAFramework state and the current public `com.immersive.framework` contract, not on presumed architecture.
+
 It must produce a design brief containing:
 
 - verification level and justification;
@@ -85,6 +104,8 @@ Use after an approved Scenario design exists and the task explicitly requests im
 
 It must implement one complete vertical slice from a known valid baseline through terminal evidence and cleanup. It owns only QAFramework files unless evidence proves a separate framework defect and the user explicitly expands the task.
 
+Before editing, it must re-inspect the affected QAFramework files and the relevant current public framework APIs. The approved design is intent, not evidence that its referenced composition or surfaces still exist. If repository reality invalidates the design, implementation stops and reports the concrete mismatch for redesign or gap classification.
+
 It must require:
 
 - real framework lifecycle and supported authoring;
@@ -105,6 +126,8 @@ It must not generalize common Runner abstractions from a single slice. Shared ex
 
 Use for architecture reviews, implementation reviews, failed certification diagnosis, and readiness assessment before expanding coverage.
 
+It must independently inspect the current QAFramework state and the relevant current public framework APIs before evaluating the Scenario. It must not accept claims in the design, implementation notes, ADR, another skill, or historical code as proof of current capability.
+
 It must report:
 
 - verdict on ADR compliance;
@@ -123,15 +146,15 @@ The reviewer is read-only unless the user separately requests fixes.
 
 ### `qa-certification-architect`
 
-Selects and applies `qa-certification-design`. It may inspect framework public contracts and QA composition but does not implement runtime code. Its output is an actionable Scenario design brief and an explicit list of decisions that remain open.
+Selects and applies `qa-certification-design`. It first inspects current QAFramework reality and the relevant public framework contract, then produces an actionable Scenario design brief and an explicit list of decisions that remain open. It does not implement runtime code.
 
 ### `qa-certification-implementer`
 
-Selects and applies `qa-certification-implementation`. It receives an approved Scenario design and implements the complete QAFramework cut. It does not change framework packages, FIRSTGAME, or frozen technical packages unless the task explicitly authorizes that separate owner.
+Selects and applies `qa-certification-implementation`. It receives an approved Scenario design, verifies its assumptions against current repository reality, and implements the complete QAFramework cut only when those assumptions still hold. It does not change framework packages, FIRSTGAME, or frozen technical packages unless the task explicitly authorizes that separate owner.
 
 ### `qa-certification-reviewer`
 
-Selects and applies `qa-certification-review`. It performs an independent, evidence-based, read-only audit. It does not silently repair defects or reinterpret missing evidence as success.
+Selects and applies `qa-certification-review`. It performs an independent, evidence-based, read-only audit grounded in current QAFramework files and current public framework APIs. It does not silently repair defects, trust historical surfaces, or reinterpret missing evidence as success.
 
 ## Coordination model
 
@@ -157,6 +180,9 @@ Before writing a skill, a baseline scenario must demonstrate the failure that th
 - collapsing BLOCKED into FAIL;
 - changing the framework to make QA convenient;
 - coupling a Scenario to Full QA execution order.
+- designing against an endpoint remembered from legacy QA without locating its current public declaration;
+- treating generated `.csproj` files or a stale `Library/PackageCache` copy as authoritative when the active package source differs;
+- reviewing only the proposed diff while ignoring current composition and package reality.
 
 After creation, the same scenarios are rerun with the skill. Success requires correct level classification, a complete causal Scenario contract, preservation of unresolved decisions, and no unauthorized implementation.
 
@@ -169,6 +195,7 @@ Structural validation must check:
 - valid Codex TOML and relative role paths;
 - absence of unfinished placeholders;
 - absence of references to removed legacy QA architecture as a required implementation.
+- an explicit repository-reality gate in every skill and agent role.
 
 No Unity build, Play Mode, batchmode, smoke, or runtime certification is executed by this work.
 
@@ -194,6 +221,8 @@ No legacy QA implementation under untracked or user-owned files is deleted merel
 - Three focused repository-local skills exist and link to the ADR.
 - Three Codex agent roles exist and are declared by project configuration.
 - Each role has one narrow responsibility and routes to the matching skill.
+- Every design, implementation, and review begins by inspecting current QAFramework state and the relevant current public `com.immersive.framework` APIs.
+- Repository findings cite concrete current files and symbols; the ADR, skills, historical code, generated project files, and stale caches are not accepted as proof that a surface exists.
 - The skills preserve Package/NUnit, QAFramework, and FIRSTGAME boundaries.
 - The skills require known baselines, supported actions, explicit evidence, cleanup ownership, and restoration before verdict.
 - The skills preserve PASS, FAIL, and BLOCKED semantics and the first causal divergence.
@@ -201,4 +230,3 @@ No legacy QA implementation under untracked or user-owned files is deleted merel
 - Deliberately unresolved ADR decisions remain unresolved.
 - Obsolete QA-specific guidance is removed only after the replacement validates.
 - Static validation passes, and manual future-use checks are documented.
-
