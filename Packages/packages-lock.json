@@ -5,7 +5,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.immersive.pooling": "0.2.0"
+        "com.immersive.pooling": "0.2.2"
       }
     },
     "com.immersive.foundation": {
@@ -19,9 +19,9 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.immersive.foundation": "0.2.0",
-        "com.immersive.logging": "0.2.1",
-        "com.unity.cinemachine": "3.1.0",
+        "com.immersive.foundation": "0.2.2",
+        "com.immersive.logging": "0.2.3",
+        "com.unity.cinemachine": "3.1.7",
         "com.unity.inputsystem": "1.19.0"
       }
     },
