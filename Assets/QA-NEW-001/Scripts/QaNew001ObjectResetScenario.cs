@@ -5,6 +5,7 @@ using Immersive.Framework.GameFlow;
 using Immersive.Framework.ObjectReset;
 using Immersive.Framework.Reset;
 using Immersive.Framework.Reset.Unity;
+using Immersive.QaFramework.Certification;
 using UnityEngine;
 
 namespace Immersive.QaFramework.New001
@@ -47,8 +48,8 @@ namespace Immersive.QaFramework.New001
         private Vector3 _baselineLocalPosition;
         private Quaternion _baselineLocalRotation;
         private Vector3 _baselineLocalScale;
-        private string _firstCausalDivergence = string.Empty;
-        private QaVerdict _verdict;
+        private readonly QaCertificationRecorder _certification =
+            new QaCertificationRecorder();
         private int _submittedCount;
         private int _completedCount;
         private bool _executionStarted;
@@ -57,14 +58,6 @@ namespace Immersive.QaFramework.New001
         private bool _requestInvoked;
         private bool _frameworkRestoredBaseline;
         private bool _cleanupFinished;
-
-        private enum QaVerdict
-        {
-            None,
-            Pass,
-            Fail,
-            Blocked
-        }
 
         private void Start()
         {
@@ -401,11 +394,7 @@ namespace Immersive.QaFramework.New001
                 }
             }
 
-            if (_verdict == QaVerdict.None)
-            {
-                _verdict = QaVerdict.Pass;
-            }
-
+            _certification.RecordPass();
             _cleanupFinished = true;
             PublishVerdict(cleanupSucceeded, cleanupIssue);
         }
@@ -484,55 +473,55 @@ namespace Immersive.QaFramework.New001
 
         private void RecordFail(string issue)
         {
-            RecordFirstDivergence(QaVerdict.Fail, issue);
+            _certification.RecordFirstCausalDivergence(
+                QaCertificationVerdict.Fail,
+                issue);
         }
 
         private void RecordBlocked(string issue)
         {
-            RecordFirstDivergence(QaVerdict.Blocked, issue);
-        }
-
-        private void RecordFirstDivergence(QaVerdict verdict, string issue)
-        {
-            if (_verdict != QaVerdict.None)
-            {
-                return;
-            }
-
-            _verdict = verdict;
-            _firstCausalDivergence = issue ?? string.Empty;
+            _certification.RecordFirstCausalDivergence(
+                QaCertificationVerdict.Blocked,
+                issue);
         }
 
         private void PublishVerdict(bool cleanupSucceeded, string cleanupIssue)
         {
-            ResetExecutionResult result =
+            QaCertificationResult certificationResult =
+                _certification.CreateResult(
+                    ScenarioId,
+                    cleanupSucceeded
+                        ? QaCleanupDisposition.BaselineRestored
+                        : QaCleanupDisposition.FreshBootRequired,
+                    cleanupIssue);
+            ResetExecutionResult resetResult =
                 _terminalEvent != null && _terminalEvent.HasResult
                     ? _terminalEvent.Result
                     : default;
-            string status = _verdict switch
+            string status = certificationResult.Verdict switch
             {
-                QaVerdict.Pass => "Passed",
-                QaVerdict.Blocked => "Blocked",
+                QaCertificationVerdict.Pass => "Passed",
+                QaCertificationVerdict.Blocked => "Blocked",
                 _ => "Failed"
             };
             string message =
-                $"[{ScenarioId}] status='{status}' verdict='{_verdict.ToString().ToUpperInvariant()}' " +
+                $"[{certificationResult.ScenarioId}] status='{status}' verdict='{certificationResult.Verdict.ToString().ToUpperInvariant()}' " +
                 $"submitted='{_submittedCount}' completed='{_completedCount}' " +
                 $"resultStatus='{(_terminalEvent != null ? _terminalEvent.ResultStatus : ResetExecutionStatus.Unknown)}' " +
-                $"subjects='{result.SubjectCount}' subjectSucceeded='{result.SubjectSucceeded}' " +
-                $"participants='{result.ParticipantCount}' participantSucceeded='{result.ParticipantSucceeded}' " +
-                $"participantFailed='{result.ParticipantFailed}' blockingIssues='{result.BlockingIssueCount}' " +
+                $"subjects='{resetResult.SubjectCount}' subjectSucceeded='{resetResult.SubjectSucceeded}' " +
+                $"participants='{resetResult.ParticipantCount}' participantSucceeded='{resetResult.ParticipantSucceeded}' " +
+                $"participantFailed='{resetResult.ParticipantFailed}' blockingIssues='{resetResult.BlockingIssueCount}' " +
                 $"frameworkBaselineRestored='{_frameworkRestoredBaseline}' " +
-                $"cleanup='{(cleanupSucceeded ? "BaselineRestored" : "FreshBootRequired")}' " +
-                $"firstDivergence='{SanitizeDiagnostic(_firstCausalDivergence)}' " +
-                $"cleanupIssue='{SanitizeDiagnostic(cleanupIssue)}'.";
+                $"cleanup='{certificationResult.CleanupDisposition}' " +
+                $"firstDivergence='{SanitizeDiagnostic(certificationResult.FirstCausalDivergence)}' " +
+                $"cleanupIssue='{SanitizeDiagnostic(certificationResult.CleanupIssue)}'.";
 
-            switch (_verdict)
+            switch (certificationResult.Verdict)
             {
-                case QaVerdict.Pass:
+                case QaCertificationVerdict.Pass:
                     Debug.Log(message, this);
                     break;
-                case QaVerdict.Blocked:
+                case QaCertificationVerdict.Blocked:
                     Debug.LogWarning(message, this);
                     break;
                 default:
