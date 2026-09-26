@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed for implementation after user review.
+Implemented using the project-scoped custom-agent schema supported by the installed Codex.
 
 ## Purpose
 
@@ -60,7 +60,6 @@ When current repository evidence conflicts with a proposed Scenario, the agent m
       agents/openai.yaml
       references/review-contract.md
 .codex/
-  config.toml
   agents/
     qa-certification-architect.toml
     qa-certification-implementer.toml
@@ -71,7 +70,11 @@ docs/
     plans/
 ```
 
-Repository-local skills use the portable `.agents/skills/` convention. `.codex/config.toml` declares the three custom Codex roles and resolves each role configuration relative to that file.
+Repository-local skills use the portable `.agents/skills/` convention. Project-scoped custom agents are standalone TOML files discovered from `.codex/agents/`. Each agent file owns its required `name`, `description`, and `developer_instructions`. No repository `.codex/config.toml` is needed because the installed Codex enables multi-agent tools by default and discovers project-scoped agents directly.
+
+The association between a role and its workflow is explicit in the role's `developer_instructions` through `$qa-certification-design`, `$qa-certification-implementation`, or `$qa-certification-review`. Codex does not require or expose a separate agent-to-skill mapping field for this repository setup.
+
+The architect and reviewer set `sandbox_mode = "read-only"`. The implementer intentionally inherits the initiating session's sandbox: it can be smoke-tested read-only and receives write access only when the authorized parent session has write access.
 
 ## Skill boundaries
 
@@ -192,12 +195,12 @@ Structural validation must check:
 - discriminating descriptions beginning with `Use when...`;
 - discoverable references;
 - valid `agents/openai.yaml` metadata;
-- valid Codex TOML and relative role paths;
+- valid Codex TOML and the required standalone custom-agent fields (`name`, `description`, and `developer_instructions`);
 - absence of unfinished placeholders;
 - absence of references to removed legacy QA architecture as a required implementation.
 - an explicit repository-reality gate in every skill and agent role.
 
-No Unity build, Play Mode, batchmode, smoke, or runtime certification is executed by this work.
+No Unity build, Play Mode, batchmode, smoke, or runtime certification is executed by this work. Tooling acceptance additionally requires real Codex usage smokes: one normal session and one spawned read-only workspace-reading task for each custom agent.
 
 ## Replacement policy
 
@@ -219,7 +222,7 @@ No legacy QA implementation under untracked or user-owned files is deleted merel
 ## Acceptance criteria
 
 - Three focused repository-local skills exist and link to the ADR.
-- Three Codex agent roles exist and are declared by project configuration.
+- Three Codex agent roles exist as standalone project-scoped files under `.codex/agents/`.
 - Each role has one narrow responsibility and routes to the matching skill.
 - Every design, implementation, and review begins by inspecting current QAFramework state and the relevant current public `com.immersive.framework` APIs.
 - Repository findings cite concrete current files and symbols; the ADR, skills, historical code, generated project files, and stale caches are not accepted as proof that a surface exists.

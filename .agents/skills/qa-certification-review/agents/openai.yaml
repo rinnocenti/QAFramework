@@ -1,0 +1,6 @@
+interface:
+  display_name: "QA Certification Review"
+  short_description: "Audit QA certification evidence independently"
+  default_prompt: "Use $qa-certification-review to independently audit one QA certification Scenario."
+policy:
+  allow_implicit_invocation: true

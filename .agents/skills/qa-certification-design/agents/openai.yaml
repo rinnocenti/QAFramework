@@ -1,0 +1,6 @@
+interface:
+  display_name: "QA Certification Design"
+  short_description: "Design isolated QA certification scenarios"
+  default_prompt: "Use $qa-certification-design to investigate and design one QA certification Scenario."
+policy:
+  allow_implicit_invocation: true

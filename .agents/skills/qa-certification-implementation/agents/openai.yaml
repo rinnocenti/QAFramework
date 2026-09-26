@@ -1,0 +1,6 @@
+interface:
+  display_name: "QA Certification Implementation"
+  short_description: "Implement one complete QA certification slice"
+  default_prompt: "Use $qa-certification-implementation to implement one approved QA certification vertical slice."
+policy:
+  allow_implicit_invocation: true
