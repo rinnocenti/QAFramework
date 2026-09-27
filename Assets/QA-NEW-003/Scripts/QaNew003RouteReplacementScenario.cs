@@ -38,10 +38,10 @@ namespace Immersive.QaFramework.New003
         private SceneLifecycleEvents _routeBSceneEvents;
         private SceneLifecycleEvents _returnedASceneEvents;
 
-        private int _ownerInstanceId;
-        private int _ownerSceneHandle;
-        private int _initialAProbeInstanceId;
-        private int _returnedAProbeInstanceId;
+        private EntityId _ownerEntityId;
+        private ulong _ownerSceneHandle;
+        private EntityId _initialAProbeEntityId;
+        private EntityId _returnedAProbeEntityId;
         private int _sequence;
         private int _submittedB;
         private int _completedB;
@@ -90,7 +90,7 @@ namespace Immersive.QaFramework.New003
 
         private void Awake()
         {
-            _ownerInstanceId = GetInstanceID();
+            _ownerEntityId = GetEntityId();
             SceneManager.sceneLoaded += HandleSceneLoaded;
             SceneManager.sceneUnloaded += HandleSceneUnloaded;
             _observingScenes = true;
@@ -367,8 +367,8 @@ namespace Immersive.QaFramework.New003
 
             _initialAProbe = probe;
             _initialASceneEvents = sceneEvents;
-            _initialAProbeInstanceId = probe.GetInstanceID();
-            _ownerSceneHandle = ownerScene.handle;
+            _initialAProbeEntityId = probe.GetEntityId();
+            _ownerSceneHandle = ownerScene.handle.GetRawData();
             issue = string.Empty;
             return true;
         }
@@ -405,7 +405,7 @@ namespace Immersive.QaFramework.New003
                 Mark(ref _seqSceneAReturnLoaded);
                 if (TryResolveSceneEvidence(scene, routeA, out _returnedAProbe, out _returnedASceneEvents, out string issue))
                 {
-                    _returnedAProbeInstanceId = _returnedAProbe.GetInstanceID();
+                    _returnedAProbeEntityId = _returnedAProbe.GetEntityId();
                     _returnedAProbe.Entered += HandleReturnedARouteEntered;
                     _returnedASceneEvents.Available.AddListener(HandleReturnedASceneAvailable);
                 }
@@ -628,7 +628,7 @@ namespace Immersive.QaFramework.New003
             if (_routeBProbe != null || _returnedAProbe == null ||
                 _returnedAProbe.EnterCount != 1 || _returnedAProbe.ExitCount != 0 ||
                 !_returnedAProbe.IsRouteContentActive ||
-                _returnedAProbeInstanceId == _initialAProbeInstanceId ||
+                _returnedAProbeEntityId.Equals(_initialAProbeEntityId) ||
                 !IsExactSceneActive(routeA) || IsExactSceneLoaded(routeB) ||
                 !OwnerSurvived())
             {
@@ -725,8 +725,9 @@ namespace Immersive.QaFramework.New003
 
         private bool OwnerSurvived()
         {
-            return this != null && GetInstanceID() == _ownerInstanceId &&
-                gameObject.scene.IsValid() && gameObject.scene.handle == _ownerSceneHandle;
+            return this != null && GetEntityId().Equals(_ownerEntityId) &&
+                gameObject.scene.IsValid() &&
+                gameObject.scene.handle.GetRawData() == _ownerSceneHandle;
         }
 
         private static bool IsExactSceneLoaded(RouteAsset route)
@@ -872,7 +873,7 @@ namespace Immersive.QaFramework.New003
                 $"exitA='{_routeAExited}' releasingA='{_sceneAReleasing}' unloadA='{_sceneAUnloaded}' loadB='{_sceneBLoaded}' availableB='{_sceneBAvailable}' enterB='{_routeBEntered}' " +
                 $"submittedA='{_submittedA}' completedA='{_completedA}' succeededA='{_succeededA}' " +
                 $"exitB='{_routeBExited}' releasingB='{_sceneBReleasing}' unloadB='{_sceneBUnloaded}' loadA='{_sceneAReturnLoaded}' availableA='{_sceneAReturnAvailable}' enterA='{_routeAReturned}' " +
-                $"initialAInstance='{_initialAProbeInstanceId}' returnedAInstance='{_returnedAProbeInstanceId}' ownerInstance='{_ownerInstanceId}' ownerSurvived='{OwnerSurvived()}' " +
+                $"initialAInstance='{_initialAProbeEntityId}' returnedAInstance='{_returnedAProbeEntityId}' ownerInstance='{_ownerEntityId}' ownerSurvived='{OwnerSurvived()}' " +
                 $"baselineRestored='{baselineRestored}' cleanup='{result.CleanupDisposition}' " +
                 $"firstDivergence='{SanitizeDiagnostic(result.FirstCausalDivergence)}' cleanupIssue='{SanitizeDiagnostic(result.CleanupIssue)}'.";
 
