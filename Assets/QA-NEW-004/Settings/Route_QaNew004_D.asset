@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a35fe899a80d2d64dac72e8bfe3079df, type: 3}
+  m_Name: Route_QaNew004_D
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.RouteAsset
+  routeId: qa-new-004.route-d
+  routeName: QA-NEW-004 Route D
+  primaryScenePath: Assets/QA-NEW-004/Scenes/QA_NEW_004_RouteD.unity
+  primarySceneName: QA_NEW_004_RouteD
+  routeContentProfile: {fileID: 0}
+  startupActivity: {fileID: 11400000, guid: 590f19a13c53e864881b786cf95b80b3, type: 2}
+  playerSpatialEntryPolicy: 0
+  cameraPresentations: []
+  cameraPresentationSelections: []
+  transitionGateMode: 30
+  description: 

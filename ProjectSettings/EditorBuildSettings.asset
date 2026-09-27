@@ -35,6 +35,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/QA-NEW-004/Scenes/QA_NEW_004_RouteB.unity
     guid: 62aaa531ea689d649bb2631c966c3c83
+  - enabled: 1
+    path: Assets/QA-NEW-004/Scenes/QA_NEW_004_RouteC.unity
+    guid: 27107a759372d3c4dbe9e98780348a90
+  - enabled: 1
+    path: Assets/QA-NEW-004/Scenes/QA_NEW_004_RouteD.unity
+    guid: b1906f7131e33f04a858a0a3045efbb3
+  - enabled: 1
+    path: Assets/QA-NEW-004/Scenes/QA_NEW_004_ActivityDA.unity
+    guid: 63a6f2f3363cba94789db5732495e676
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
