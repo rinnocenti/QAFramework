@@ -11,9 +11,16 @@ This public QA intentionally does not inspect `RuntimeContent` internals. The
 package test owns the proof of Session owner/scope, handle and
 `RuntimeContentIdentity`.
 
-The certification preserves the Route A -> C and Activity D-A -> D-B legs,
-then proves CAMERA-037-E through the public Activity lifecycle:
-Activity E-A [Camera A] -> Activity E-C [Camera C, same Output].
+The certification executes the public B/C/D/E lifecycle matrix:
+
+- Route A -> Route B empty preserves Camera A;
+- Route A -> Route C replaces Camera A with Camera C on the same Output;
+- Activity D-A -> Activity D-B empty preserves Camera A;
+- Activity E-A -> Activity E-C replaces Camera A with Camera C on the same
+  Output.
+
+CAMERA-037-F keeps this public integration proof and adds package-only coverage
+for the nested pending Route + Startup Activity composition rule.
 
 ## Composition
 
@@ -25,9 +32,10 @@ Activity E-A [Camera A] -> Activity E-C [Camera C, same Output].
 6. Open `Assets/QA-NEW-004/Scenes/QA_NEW_004_Persistent.unity`.
 7. Enter Play Mode.
 
-The setup command creates only assets under `Assets/QA-NEW-004`, adds its three
-scenes to the Build Settings and never overwrites an existing QA-NEW-004
-composition.
+The setup commands create or repair only assets under `Assets/QA-NEW-004` and
+register the generated scenes in Build Settings idempotently. The C/D/E menus
+preserve the base composition; generated extension scenes are rebuilt when
+needed so a partial setup run is repaired without retaining stale references.
 
 ## PASS evidence
 
@@ -48,6 +56,12 @@ The scenario requires, before PASS:
   `CameraOutputContext`;
 - the winner is reapplied after transition force-default ends;
 - cleanup returns to Route A without recreating the selected occurrence.
+- Route C is submitted/completed/succeeded, Route A really exits, Camera C has
+  a fresh occurrence/request, Camera A is no longer admitted and the normal
+  winner never drops;
+- Activity D-A becomes active through its public lifecycle, Activity D-B is
+  submitted/completed/succeeded, Activity D-A really exits and the exact same
+  Camera A occurrence/request remains;
 - Activity E-A becomes active with Camera A as the Session-owned normal winner;
 - the Activity E-C request is submitted, completed and succeeds;
 - Activity E-A reports its exact public exit to E-C;
@@ -59,11 +73,14 @@ The scenario requires, before PASS:
 ## Required package evidence
 
 Run `CameraPresentationRouteSelectionContinuityTests` in package Editor tests.
-Its continuity case additionally proves the same materialization handle,
-`RuntimeContentIdentity`, full `CameraRequest`, Session owner/scope, removal of
-the Route A scope and absence of the occurrence under Route B.
+Its continuity/replacement/rollback cases additionally prove exact handle,
+`RuntimeContentIdentity`, complete `CameraRequest`, Session owner/scope, dead
+Route-scope removal and absence under the incoming Route. CAMERA-037-F also
+proves that same-Output Route + Startup Activity pending selections are rejected
+without residual Activity candidate/request while different-Output pending
+selections coexist and roll back independently.
 
 Run `CameraPresentationActivitySelectionContinuityTests` as well. Its three
-transition contracts prove A -> B empty continuity, A -> C successful
-replacement and pre-commit rollback with exact handle,
-`RuntimeContentIdentity`, request and winner preservation.
+transition contracts, plus the initial Activity-entry ownership case, prove
+A -> B empty continuity, A -> C successful replacement and pre-commit rollback
+with exact handle, `RuntimeContentIdentity`, request and winner preservation.
