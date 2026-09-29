@@ -1,5 +1,11 @@
 # QA-NEW-004 — Camera Selection Continuity and Replacement
 
+> **Retired by CAMERA-038-I.** This document records historical evidence for
+> the removed Presentation/Request and Route/Activity Camera selection path. Its
+> scenario and setup source were removed because they certified that obsolete
+> contract. Existing generated scenes, prefabs and assets remain migration input
+> for CAMERA-038-J and are not executable validation for IF-ADR-038.
+
 ## Contract
 
 `Route A [CameraPresentationSelections = Camera A]` transitions to
