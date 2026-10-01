@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using Immersive.Foundation.Events;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
+using Immersive.Framework.Identity;
+using Immersive.Framework.Reset.Unity;
+using Immersive.Framework.RuntimeContent;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.SceneLifecycle;
 using Immersive.QaFramework.Certification;
@@ -37,6 +40,8 @@ namespace Immersive.QaFramework.New003
         private SceneLifecycleEvents _initialASceneEvents;
         private SceneLifecycleEvents _routeBSceneEvents;
         private SceneLifecycleEvents _returnedASceneEvents;
+        private Resettable _initialResettable;
+        private Resettable _routeBResettable;
 
         private EntityId _ownerEntityId;
         private ulong _ownerSceneHandle;
@@ -356,6 +361,13 @@ namespace Immersive.QaFramework.New003
                 return false;
             }
 
+            _initialResettable = probe.GetComponent<Resettable>();
+            if (!HasRouteResetRegistration(_initialResettable, routeA))
+            {
+                issue = "Route A Resettable is not registered with Route A owner and one valid capability.";
+                return false;
+            }
+
             Scene ownerScene = gameObject.scene;
             if (!ownerScene.IsValid() ||
                 SceneMatches(ownerScene, routeA) ||
@@ -595,6 +607,14 @@ namespace Immersive.QaFramework.New003
                 return false;
             }
 
+            _routeBResettable = _routeBProbe.GetComponent<Resettable>();
+            if (!HasRouteResetRegistration(_routeBResettable, routeB) ||
+                ReferenceEquals(_initialResettable, null) || _initialResettable.IsRegistered)
+            {
+                issue = "Route B registration is missing or Route A registration remained after owner release.";
+                return false;
+            }
+
             issue = string.Empty;
             return true;
         }
@@ -633,6 +653,13 @@ namespace Immersive.QaFramework.New003
                 !OwnerSurvived())
             {
                 issue = "Route A terminal state did not prove a new A scene instance with the same persistent execution owner.";
+                return false;
+            }
+
+            if (!HasRouteResetRegistration(_returnedAProbe.GetComponent<Resettable>(), routeA) ||
+                ReferenceEquals(_routeBResettable, null) || _routeBResettable.IsRegistered)
+            {
+                issue = "Returned Route A registration is missing or Route B registration remained after owner release.";
                 return false;
             }
 
@@ -750,6 +777,20 @@ namespace Immersive.QaFramework.New003
         {
             return scene.IsValid() && route != null &&
                 string.Equals(scene.path, route.PrimaryScenePath, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool HasRouteResetRegistration(Resettable resettable, RouteAsset route)
+        {
+            if (resettable == null || route == null || !resettable.IsRegistered ||
+                !resettable.RuntimeSubjectId.IsValid || resettable.RegisteredCapabilityCount != 1)
+            {
+                return false;
+            }
+
+            RuntimeContentOwner owner = resettable.Owner;
+            return owner.IsValid && owner.Scope == RuntimeContentScope.Route &&
+                owner.OwnerIdentity == FrameworkIdentityKey.From(route.RouteId) &&
+                owner.DefinitionToken.IsValid;
         }
 
         private void Mark(ref int sequenceField)

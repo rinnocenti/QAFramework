@@ -4,9 +4,14 @@ using Immersive.Foundation.Events;
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
+using Immersive.Framework.Identity;
+using Immersive.Framework.Reset;
+using Immersive.Framework.Reset.Unity;
+using Immersive.Framework.RuntimeContent;
 using Immersive.Framework.Transition;
 using Immersive.QaFramework.Certification;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Immersive.QaFramework.New002
 {
@@ -24,6 +29,7 @@ namespace Immersive.QaFramework.New002
         [Header("Scene-authored Boundaries")]
         [SerializeField] private ActivityContentContribution contributionA;
         [SerializeField] private ActivityContentContribution contributionB;
+        private ActivityContentContribution invalidActivityContentContributionB;
         [SerializeField] private QaNew002ActivityLifecycleProbe lifecycleA;
         [SerializeField] private QaNew002ActivityLifecycleProbe lifecycleB;
         [SerializeField] private ActivityRequestTrigger requestB;
@@ -49,6 +55,7 @@ namespace Immersive.QaFramework.New002
         private bool _freshBootRequired;
         private bool _requestBAccepted;
         private bool _pendingProved;
+        private bool _preCommitRollbackProved;
         private bool _releaseIssued;
         private bool _requestAInvoked;
         private bool _baselineAReadinessNormalized;
@@ -80,6 +87,16 @@ namespace Immersive.QaFramework.New002
         private int _enterASequence;
         private int _completedASequence;
         private int _activityBReleaseCount;
+        private Resettable _activityAResettable;
+        private Resettable _activityBResettable;
+        private RuntimeContentOwner _activityAInitialOwner;
+        private ResetSubjectId _activityAInitialSubjectId;
+        private bool _activityBFoundBeforeRollback;
+        private bool _activityBRegistrationObservedBeforeRollback;
+        private bool _activityBRegisteredBeforeRollback;
+        private RuntimeContentOwner _activityBOwnerBeforeRollback;
+        private ResetSubjectId _activityBSubjectIdBeforeRollback;
+        private int _activityBCapabilityCountBeforeRollback;
 
         private IEnumerator Start()
         {
@@ -120,7 +137,151 @@ namespace Immersive.QaFramework.New002
                 yield break;
             }
 
+            if (!TryResolveActivityResettable(activityA, out _activityAResettable, out string preflightAResetIssue) ||
+                !HasActivityResetRegistration(_activityAResettable, activityA))
+            {
+                RecordBlocked("Activity A baseline Resettable registration is unavailable before rollback probe. " + preflightAResetIssue);
+                yield return FinishAfterCleanup();
+                yield break;
+            }
+            _activityAInitialOwner = _activityAResettable.Owner;
+            _activityAInitialSubjectId = _activityAResettable.RuntimeSubjectId;
+
+            ActivityRequestTriggerEvent preCommitTerminal = null;
+            _activityBResettable = null;
+            SceneManager.sceneLoaded += CaptureActivityBResettable;
+            using (requestB.SubscribeRequestEvents(evidence =>
+                   {
+                       if (evidence != null && evidence.IsCompleted)
+                       {
+                           preCommitTerminal = evidence;
+                       }
+                   }))
+            {
+                requestB.RequestActivity();
+                double rollbackDeadline = Time.realtimeSinceStartupAsDouble + pendingTimeoutSeconds;
+                while (preCommitTerminal == null && Time.realtimeSinceStartupAsDouble < rollbackDeadline)
+                {
+                    if (_activityBResettable != null)
+                    {
+                        _activityBFoundBeforeRollback = true;
+                        if (_activityBResettable.IsRegistered)
+                        {
+                            _activityBRegistrationObservedBeforeRollback = true;
+                            _activityBRegisteredBeforeRollback = true;
+                            _activityBOwnerBeforeRollback = _activityBResettable.Owner;
+                            _activityBSubjectIdBeforeRollback = _activityBResettable.RuntimeSubjectId;
+                            _activityBCapabilityCountBeforeRollback =
+                                _activityBResettable.RegisteredCapabilityCount;
+                        }
+                    }
+
+                    yield return null;
+                }
+            }
+            SceneManager.sceneLoaded -= CaptureActivityBResettable;
+
+            bool bAfterRollbackAvailable = TryResolveActivityResettable(
+                activityB,
+                out Resettable bAfterRollback,
+                out string bAfterRollbackIssue);
+            bool bAfterRollbackRegistered = bAfterRollbackAvailable && bAfterRollback.IsRegistered;
+            RuntimeContentOwner bOwnerAfterRollback = bAfterRollbackAvailable
+                ? bAfterRollback.Owner
+                : default;
+            ResetSubjectId bSubjectIdAfterRollback = bAfterRollbackAvailable
+                ? bAfterRollback.RuntimeSubjectId
+                : default;
+            _activityBResettable = bAfterRollbackAvailable ? bAfterRollback : null;
+
+            bool aAfterRollbackAvailable = TryResolveActivityResettable(
+                activityA,
+                out Resettable aAfterRollback,
+                out string aAfterRollbackIssue);
+            bool aAfterRollbackRegistered = aAfterRollbackAvailable &&
+                HasActivityResetRegistration(aAfterRollback, activityA);
+            RuntimeContentOwner aOwnerAfterRollback = aAfterRollbackAvailable
+                ? aAfterRollback.Owner
+                : default;
+            ResetSubjectId aSubjectIdAfterRollback = aAfterRollbackAvailable
+                ? aAfterRollback.RuntimeSubjectId
+                : default;
+
+            if (invalidActivityContentContributionB == null ||
+                !ReferenceEquals(invalidActivityContentContributionB.Activity, activityB) ||
+                invalidActivityContentContributionB.HasExplicitLocalContentId)
+            {
+                RecordFail("Pre-commit rollback fixture was not discovered as an intentionally invalid Activity B contribution in Activity B's materialized content scene.");
+            }
+
+            bool bWasRolledBack = bAfterRollbackAvailable && !bAfterRollbackRegistered &&
+                !bOwnerAfterRollback.IsValid && !bSubjectIdAfterRollback.IsValid;
+            bool expectedPreCommitFaultObserved = HasExpectedPreCommitFault(preCommitTerminal);
+            bool observedBRegistrationWasValid =
+                !_activityBRegistrationObservedBeforeRollback ||
+                (_activityBRegisteredBeforeRollback &&
+                 _activityBCapabilityCountBeforeRollback == 1 &&
+                 HasExpectedActivityOwner(_activityBOwnerBeforeRollback, activityB) &&
+                 _activityBSubjectIdBeforeRollback.IsValid);
+            bool aOccurrencePreserved = aAfterRollbackAvailable && aAfterRollbackRegistered &&
+                aOwnerAfterRollback == _activityAInitialOwner &&
+                aSubjectIdAfterRollback == _activityAInitialSubjectId;
+            _preCommitRollbackProved = expectedPreCommitFaultObserved &&
+                ReferenceEquals(preCommitTerminal.TargetActivity, activityB) &&
+                requestB.LastEventPhase == FlowRequestEventPhase.Completed &&
+                requestB.LastRequestFailed && requestB.LastOutcome == FlowRequestOutcome.Failed &&
+                _activityBFoundBeforeRollback && observedBRegistrationWasValid && bWasRolledBack &&
+                aOccurrencePreserved &&
+                lifecycleA.IsActivityContentActive && ReferenceEquals(lifecycleA.ActiveActivity, activityA) &&
+                !lifecycleB.IsActivityContentActive;
+            Debug.Log(
+                BuildPreCommitResettableEvidence(
+                    preCommitTerminal,
+                    _activityBRegistrationObservedBeforeRollback,
+                    bAfterRollbackAvailable,
+                    bAfterRollbackRegistered,
+                    bOwnerAfterRollback,
+                    bSubjectIdAfterRollback,
+                    bAfterRollbackIssue,
+                    aAfterRollbackAvailable,
+                    aAfterRollbackRegistered,
+                    aOwnerAfterRollback,
+                    aSubjectIdAfterRollback,
+                    aAfterRollbackIssue),
+                this);
+            if (!_preCommitRollbackProved)
+            {
+                RecordFail(
+                    "Pre-commit Activity B failure did not prove terminal rejection, B materialization and cleared registration evidence after rollback, and the unchanged Activity A owner/subject occurrence. " +
+                    BuildPreCommitResettableEvidence(
+                        preCommitTerminal,
+                        _activityBRegistrationObservedBeforeRollback,
+                        bAfterRollbackAvailable,
+                        bAfterRollbackRegistered,
+                        bOwnerAfterRollback,
+                        bSubjectIdAfterRollback,
+                        bAfterRollbackIssue,
+                        aAfterRollbackAvailable,
+                        aAfterRollbackRegistered,
+                        aOwnerAfterRollback,
+                        aSubjectIdAfterRollback,
+                        aAfterRollbackIssue));
+            }
+
+            if (invalidActivityContentContributionB != null)
+            {
+                Destroy(invalidActivityContentContributionB.gameObject);
+            }
+            yield return null;
+
             CaptureBaselineEvidence();
+            if (!TryResolveActivityResettable(activityA, out _activityAResettable, out string resetIssue) ||
+                !HasActivityResetRegistration(_activityAResettable, activityA))
+            {
+                RecordFail("Activity A Resettable owner registration is invalid. " + resetIssue);
+                yield return FinishAfterCleanup();
+                yield break;
+            }
             BindEvidence();
             Debug.Log(
                 $"[{ScenarioId}] expectations declared: Submitted(B)=1, Completed(B)=0 before release, " +
@@ -145,6 +306,12 @@ namespace Immersive.QaFramework.New002
             }
 
             TryCaptureActivityBOccurrence();
+            if (!TryResolveActivityResettable(activityB, out _activityBResettable, out string activityBResetIssue) ||
+                !HasActivityResetRegistration(_activityBResettable, activityB) ||
+                IsActivityContentSceneLoaded(activityA))
+            {
+                RecordFail("Activity B Resettable owner registration is invalid or Activity A content scene remained loaded after commit while B is held before readiness. " + activityBResetIssue);
+            }
             if (!HasCompletePendingEvidence())
             {
                 if (_requestBCompleted > 0)
@@ -689,7 +856,7 @@ namespace Immersive.QaFramework.New002
 
             ReleaseEvidenceBindings();
 
-            if (baselineRestored && _pendingProved)
+            if (baselineRestored && _pendingProved && _preCommitRollbackProved)
             {
                 _certification.RecordPass();
             }
@@ -811,6 +978,50 @@ namespace Immersive.QaFramework.New002
                 return false;
             }
 
+            if (!TryResolveActivityResettable(
+                    activityA,
+                    out Resettable currentActivityAResettable,
+                    out string currentActivityAIssue))
+            {
+                issue = "Restored Activity A Resettable could not be resolved from its current loaded Activity Content scene. " + currentActivityAIssue;
+                return false;
+            }
+
+            _activityAResettable = currentActivityAResettable;
+            bool currentARegistered = HasActivityResetRegistration(currentActivityAResettable, activityA);
+            bool currentAOwnerValid = currentARegistered &&
+                HasExpectedActivityOwner(currentActivityAResettable.Owner, activityA);
+
+            if (!TryResolveActivityResettable(
+                    activityB,
+                    out Resettable currentActivityBResettable,
+                    out string currentActivityBIssue))
+            {
+                issue = "Activity B Resettable registration absence cannot be verified because its retained Activity Content scene is unavailable. " + currentActivityBIssue;
+                return false;
+            }
+
+            _activityBResettable = currentActivityBResettable;
+            bool currentBRegistered = currentActivityBResettable.IsRegistered;
+            RuntimeContentOwner currentBOwner = currentActivityBResettable.Owner;
+            ResetSubjectId currentBSubjectId = currentActivityBResettable.RuntimeSubjectId;
+            Debug.Log(
+                $"[QA-NEW-002] final Resettable evidence activity='{lifecycleA.ActiveActivity.ActivityId.StableText}' " +
+                $"A(found=true registered='{currentActivityAResettable.IsRegistered}' owner='{currentActivityAResettable.Owner.StableText}' subject='{currentActivityAResettable.RuntimeSubjectId}' capabilityCount='{currentActivityAResettable.RegisteredCapabilityCount}') " +
+                $"B(found=true registered='{currentBRegistered}' owner='{currentBOwner.StableText}' subject='{currentBSubjectId}' capabilityCount='{currentActivityBResettable.RegisteredCapabilityCount}').",
+                this);
+
+            if (!currentAOwnerValid || currentBRegistered || currentBOwner.IsValid || currentBSubjectId.IsValid)
+            {
+                issue =
+                    "Restored Activity A owner registration is invalid or Activity B still has registration evidence. " +
+                    $"A.registered='{currentActivityAResettable.IsRegistered}' A.owner='{currentActivityAResettable.Owner.StableText}' " +
+                    $"A.subject='{currentActivityAResettable.RuntimeSubjectId}' A.capabilities='{currentActivityAResettable.RegisteredCapabilityCount}' " +
+                    $"B.registered='{currentBRegistered}' B.owner='{currentBOwner.StableText}' " +
+                    $"B.subject='{currentBSubjectId}' B.capabilities='{currentActivityBResettable.RegisteredCapabilityCount}'.";
+                return false;
+            }
+
             if (_requestBAccepted)
             {
                 if (lifecycleA.ExitCount - _aExitBaseline != 1 ||
@@ -849,6 +1060,181 @@ namespace Immersive.QaFramework.New002
 
             issue = string.Empty;
             return true;
+        }
+
+        private static bool TryResolveActivityResettable(
+            ActivityAsset activity,
+            out Resettable resettable,
+            out string issue)
+        {
+            resettable = null;
+            if (activity == null || activity.ActivityContentProfile == null ||
+                activity.ActivityContentProfile.SceneCount != 1)
+            {
+                issue = "Activity requires exactly one authored Activity Content scene for reset registration evidence.";
+                return false;
+            }
+
+            string path = activity.ActivityContentProfile.Scenes[0].ScenePath;
+            Scene scene = SceneManager.GetSceneByPath(path);
+            if (string.IsNullOrWhiteSpace(path) || !scene.IsValid() || !scene.isLoaded)
+            {
+                issue = $"Activity-owned Resettable scene is not loaded. path='{path}'.";
+                return false;
+            }
+
+            GameObject[] roots = scene.GetRootGameObjects();
+            Resettable[] found = new Resettable[0];
+            for (int index = 0; index < roots.Length; index++)
+            {
+                Resettable[] rootResettables = roots[index].GetComponentsInChildren<Resettable>(true);
+                if (rootResettables.Length == 0)
+                {
+                    continue;
+                }
+
+                if (found.Length != 0 || rootResettables.Length != 1)
+                {
+                    issue = "Activity-owned scene must expose exactly one Resettable boundary.";
+                    return false;
+                }
+
+                found = rootResettables;
+            }
+
+            if (found.Length != 1 || found[0].GetComponentsInChildren<MonoBehaviour>(true).Length < 3)
+            {
+                issue = "Activity-owned scene does not contain the expected Resettable and reset participant composition.";
+                return false;
+            }
+
+            resettable = found[0];
+            issue = string.Empty;
+            return true;
+        }
+
+        private static bool HasActivityResetRegistration(Resettable resettable, ActivityAsset activity)
+        {
+            if (resettable == null || activity == null || !resettable.IsRegistered ||
+                !resettable.RuntimeSubjectId.IsValid || resettable.RegisteredCapabilityCount != 1)
+            {
+                return false;
+            }
+
+            RuntimeContentOwner owner = resettable.Owner;
+            return HasExpectedActivityOwner(owner, activity);
+        }
+
+        private static bool HasExpectedActivityOwner(RuntimeContentOwner owner, ActivityAsset activity)
+        {
+            return activity != null && owner.IsValid &&
+                owner.Scope == RuntimeContentScope.Activity &&
+                owner.OwnerIdentity == FrameworkIdentityKey.From(activity.ActivityId) &&
+                owner.DefinitionToken.IsValid;
+        }
+
+        private static bool HasExpectedPreCommitFault(ActivityRequestTriggerEvent terminal)
+        {
+            if (terminal == null || !terminal.IsCompleted || !terminal.Failed)
+            {
+                return false;
+            }
+
+            string message = terminal.Message ?? string.Empty;
+            return message.IndexOf("terminal='FailedBeforeCommit'", StringComparison.Ordinal) >= 0 &&
+                message.IndexOf("commitReached='False'", StringComparison.Ordinal) >= 0 &&
+                message.IndexOf("previousContentExited='False'", StringComparison.Ordinal) >= 0 &&
+                message.IndexOf("MissingLocalContentId", StringComparison.Ordinal) >= 0 &&
+                message.IndexOf("QA-NEW-002 Invalid B Contribution (Pre-commit fault)", StringComparison.Ordinal) >= 0;
+        }
+
+        private static bool IsActivityContentSceneLoaded(ActivityAsset activity)
+        {
+            if (activity == null || activity.ActivityContentProfile == null)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < activity.ActivityContentProfile.SceneCount; index++)
+            {
+                string path = activity.ActivityContentProfile.Scenes[index].ScenePath;
+                Scene scene = SceneManager.GetSceneByPath(path);
+                if (scene.IsValid() && scene.isLoaded)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private string BuildPreCommitResettableEvidence(
+            ActivityRequestTriggerEvent terminal,
+            bool bRegistrationObserved,
+            bool bAfterRollbackAvailable,
+            bool bAfterRollbackRegistered,
+            RuntimeContentOwner bOwnerAfterRollback,
+            ResetSubjectId bSubjectIdAfterRollback,
+            string bAfterRollbackIssue,
+            bool aAfterRollbackAvailable,
+            bool aAfterRollbackRegistered,
+            RuntimeContentOwner aOwnerAfterRollback,
+            ResetSubjectId aSubjectIdAfterRollback,
+            string aAfterRollbackIssue)
+        {
+            return $"[QA-NEW-002] pre-commit rollback evidence expectedA='{activityA?.ActivityId.StableText}' " +
+                $"A.before(found='{(_activityAResettable != null)}' registered='{(_activityAResettable != null && _activityAResettable.IsRegistered)}' owner='{_activityAInitialOwner.StableText}' ownerNow='{(_activityAResettable != null ? _activityAResettable.Owner.StableText : "<unavailable>" )}' subject='{_activityAInitialSubjectId}' subjectNow='{(_activityAResettable != null ? _activityAResettable.RuntimeSubjectId.ToString() : "<unavailable>")}' capabilities='{(_activityAResettable != null ? _activityAResettable.RegisteredCapabilityCount : 0)}') " +
+                $"B.before(found='{_activityBFoundBeforeRollback}' registrationObserved='{bRegistrationObserved}' registered='{_activityBRegisteredBeforeRollback}' owner='{_activityBOwnerBeforeRollback.StableText}' subject='{_activityBSubjectIdBeforeRollback}' capabilities='{_activityBCapabilityCountBeforeRollback}' observationWindow='registration-validation-rollback are synchronous in one runtime continuation') " +
+                $"B.after(currentSceneFound='{bAfterRollbackAvailable}' registered='{bAfterRollbackRegistered}' owner='{bOwnerAfterRollback.StableText}' subject='{bSubjectIdAfterRollback}' issue='{SanitizeDiagnostic(bAfterRollbackIssue)}') " +
+                $"A.after(currentSceneFound='{aAfterRollbackAvailable}' registered='{aAfterRollbackRegistered}' owner='{aOwnerAfterRollback.StableText}' subject='{aSubjectIdAfterRollback}' issue='{SanitizeDiagnostic(aAfterRollbackIssue)}') " +
+                $"currentActivity='{lifecycleA?.ActiveActivity?.ActivityId.StableText}' " +
+                $"terminal(target='{terminal?.TargetActivity?.ActivityId.StableText}' phase='{terminal?.Phase}' outcome='{terminal?.Outcome}' expectedPreCommitFault='{HasExpectedPreCommitFault(terminal)}' message='{SanitizeDiagnostic(terminal?.Message)}') " +
+                $"trigger(phase='{requestB?.LastEventPhase}' failed='{requestB?.LastRequestFailed}' outcome='{requestB?.LastOutcome}' message='{SanitizeDiagnostic(requestB?.LastMessage)}').";
+        }
+
+        private void CaptureActivityBResettable(Scene scene, LoadSceneMode mode)
+        {
+            if (activityB?.ActivityContentProfile == null ||
+                activityB.ActivityContentProfile.SceneCount != 1 ||
+                !string.Equals(
+                    scene.path,
+                    activityB.ActivityContentProfile.Scenes[0].ScenePath,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            GameObject[] roots = scene.GetRootGameObjects();
+            for (int index = 0; index < roots.Length; index++)
+            {
+                Resettable[] found = roots[index].GetComponentsInChildren<Resettable>(true);
+                if (found.Length == 1)
+                {
+                    _activityBResettable = found[0];
+                    _activityBFoundBeforeRollback = true;
+                    if (_activityBResettable.IsRegistered)
+                    {
+                        _activityBRegistrationObservedBeforeRollback = true;
+                        _activityBRegisteredBeforeRollback = true;
+                        _activityBOwnerBeforeRollback = _activityBResettable.Owner;
+                        _activityBSubjectIdBeforeRollback = _activityBResettable.RuntimeSubjectId;
+                        _activityBCapabilityCountBeforeRollback =
+                            _activityBResettable.RegisteredCapabilityCount;
+                    }
+                }
+
+                ActivityContentContribution[] contributions =
+                    roots[index].GetComponentsInChildren<ActivityContentContribution>(true);
+                for (int contributionIndex = 0; contributionIndex < contributions.Length; contributionIndex++)
+                {
+                    ActivityContentContribution contribution = contributions[contributionIndex];
+                    if (contribution != null && ReferenceEquals(contribution.Activity, activityB) &&
+                        !contribution.HasExplicitLocalContentId)
+                    {
+                        invalidActivityContentContributionB = contribution;
+                    }
+                }
+            }
         }
 
         private bool HasRestoredAReadiness()

@@ -19,7 +19,5 @@ MonoBehaviour:
   routeContentProfile: {fileID: 0}
   startupActivity: {fileID: 11400000, guid: 590f19a13c53e864881b786cf95b80b3, type: 2}
   playerSpatialEntryPolicy: 0
-  cameraPresentations: []
-  cameraPresentationSelections: []
   transitionGateMode: 30
   description: 

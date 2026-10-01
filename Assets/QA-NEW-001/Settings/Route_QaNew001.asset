@@ -19,6 +19,5 @@ MonoBehaviour:
   routeContentProfile: {fileID: 0}
   startupActivity: {fileID: 0}
   playerSpatialEntryPolicy: 0
-  cameraPresentations: []
   transitionGateMode: 30
   description: Scene-authored Object Reset restores one Transform.

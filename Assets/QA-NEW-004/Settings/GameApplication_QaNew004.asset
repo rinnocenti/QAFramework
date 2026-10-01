@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ce6d27d442ac76449f283afbc33d04f, type: 3}
   m_Name: GameApplication_QaNew004
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.GameApplicationAsset
-  applicationName: QA-NEW-004 Route Camera Selection Continuity
+  applicationName: QA-NEW-004 Session Camera Continuity
   startupRoute: {fileID: 11400000, guid: 9487c1f2d8ef327439f9cf6b99535919, type: 2}
   playerSessionEnabled: 0
   defaultPlayerSessionProfile: {fileID: 0}
@@ -23,8 +23,16 @@ MonoBehaviour:
     outputPrefabs:
     - {fileID: 1206343617579575108, guid: 2b35fb86eeda8e548a74228d0a3fcb47, type: 3}
     playerOutputBindings: []
-    playerPresentationBindings: []
-  sessionCameraPresentations: []
+  sessionCameraAssignments:
+  - assignmentId: 94040000000000000000000000000005
+    definition: {fileID: 11400000, guid: 378d9828cf13cab40b826c7b3208ea58, type: 2}
+    occurrenceMode: 1
+    membershipPolicy: 1
+    targetPolicy: 1
+    memberSlots: []
+    outputDefinitions:
+    - {fileID: 11400000, guid: 833cfd8805fae0b4e895fe7493ca05f4, type: 2}
+    individualMemberOutputMappings: []
   persistentContent:
     containerScene: {fileID: 102900000, guid: 393ddd0d8391cc64192267ea58d6d10b, type: 3}
   validationMode: 1

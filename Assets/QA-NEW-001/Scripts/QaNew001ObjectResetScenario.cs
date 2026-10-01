@@ -1,10 +1,8 @@
 using System;
 using System.Collections;
-using Immersive.Foundation.Events;
-using Immersive.Framework.GameFlow;
-using Immersive.Framework.ObjectReset;
 using Immersive.Framework.Reset;
 using Immersive.Framework.Reset.Unity;
+using Immersive.Framework.RuntimeContent;
 using Immersive.QaFramework.Certification;
 using UnityEngine;
 
@@ -23,11 +21,10 @@ namespace Immersive.QaFramework.New001
         private const float ScaleTolerance = 0.0001f;
 
         [Header("Scene-authored contract")]
-        [SerializeField] private ObjectResetTrigger resetTrigger;
-        [SerializeField] private UnityResetSubjectAdapter subjectAdapter;
+        [SerializeField] private ResetRequestTrigger resetTrigger;
+        [SerializeField] private Resettable resettable;
         [SerializeField] private UnityTransformResetParticipant transformParticipant;
         [SerializeField] private Transform target;
-        [SerializeField] private string expectedSubjectId = "qa-new-001.object-reset.subject";
 
         [Header("Known baseline B")]
         [SerializeField] private Vector3 expectedBaselineLocalPosition = new Vector3(1f, 2f, 3f);
@@ -43,15 +40,14 @@ namespace Immersive.QaFramework.New001
         [SerializeField, Min(0.1f)] private float readinessTimeoutSeconds = 10f;
         [SerializeField, Min(0.1f)] private float terminalTimeoutSeconds = 5f;
 
-        private IEventBinding _eventBinding;
-        private ObjectResetTriggerEvent _terminalEvent;
+        private ResetExecutionResult _terminalResult;
+        private ResetSelectionResolution _terminalResolution;
         private Vector3 _baselineLocalPosition;
         private Quaternion _baselineLocalRotation;
         private Vector3 _baselineLocalScale;
         private readonly QaCertificationRecorder _certification =
             new QaCertificationRecorder();
-        private int _submittedCount;
-        private int _completedCount;
+        private int _requestCompletedCount;
         private bool _executionStarted;
         private bool _baselineCaptured;
         private bool _mutationApplied;
@@ -122,7 +118,6 @@ namespace Immersive.QaFramework.New001
             }
 
             transformParticipant.CaptureBaseline();
-            _eventBinding = resetTrigger.SubscribeRequestEvents(OnResetRequestEvent);
 
             ApplyPerturbation();
             if (!HasExpectedPerturbation())
@@ -133,22 +128,25 @@ namespace Immersive.QaFramework.New001
             }
 
             _requestInvoked = true;
-            resetTrigger.RequestObjectReset();
+            resetTrigger.RequestReset();
 
             double terminalDeadline = Time.realtimeSinceStartupAsDouble + terminalTimeoutSeconds;
-            while (_completedCount == 0 &&
+            while (resetTrigger.LastResult.Status == ResetExecutionStatus.Unknown &&
                    Time.realtimeSinceStartupAsDouble < terminalDeadline)
             {
                 yield return null;
             }
 
-            if (_submittedCount == 0)
+            if (resetTrigger.LastResult.Status != ResetExecutionStatus.Unknown)
             {
-                RecordFail("The supported Object Reset action did not emit the expected Submitted evidence.");
+                _terminalResult = resetTrigger.LastResult;
+                _terminalResolution = resetTrigger.LastResolution;
+                _requestCompletedCount = 1;
             }
-            else if (_completedCount == 0)
+
+            if (_requestCompletedCount == 0)
             {
-                RecordFail("The accepted Object Reset request did not emit Completed before the local timeout.");
+                RecordFail("The accepted Reset request did not produce a terminal typed result before the local timeout.");
             }
 
             ValidateTerminalEvidence();
@@ -165,43 +163,32 @@ namespace Immersive.QaFramework.New001
 
         private bool TryValidateSerializedComposition(out string issue)
         {
-            if (resetTrigger == null || subjectAdapter == null ||
+            if (resetTrigger == null || resettable == null ||
                 transformParticipant == null || target == null)
             {
                 issue = "Required scene-authored references are missing.";
                 return false;
             }
 
-            if (!ReferenceEquals(resetTrigger.TargetSubjectAdapter, subjectAdapter))
+            if (resetTrigger.Target.Kind != ResetTargetKind.Object ||
+                resetTrigger.Target.ObjectTarget.ReferenceMode != ResetReferenceMode.Direct ||
+                !ReferenceEquals(resetTrigger.Target.ObjectTarget.DirectResettable, resettable))
             {
-                issue = "ObjectResetTrigger does not explicitly target the declared UnityResetSubjectAdapter.";
+                issue = "ResetRequestTrigger must target this QA's Resettable using Object/Direct.";
                 return false;
             }
 
             if (!ReferenceEquals(transformParticipant.transform, target) ||
-                !ReferenceEquals(subjectAdapter.gameObject, target.gameObject) ||
+                !ReferenceEquals(resettable.gameObject, target.gameObject) ||
                 !ReferenceEquals(resetTrigger.gameObject, target.gameObject))
             {
-                issue = "QA-NEW-001 requires its trigger, adapter, single participant and target on the exact authored subject GameObject.";
+                issue = "QA-NEW-001 requires its trigger, Resettable, single participant and target on the exact authored subject GameObject.";
                 return false;
             }
 
-            if (subjectAdapter.Scope != ResetSubjectScope.Route)
+            if (resettable.Membership != ResetMembership.FollowOwner)
             {
-                issue = $"Subject scope must be Route, but was '{subjectAdapter.Scope}'.";
-                return false;
-            }
-
-            if (subjectAdapter.IdGeneration != UnityResetSubjectIdGenerationMode.AuthoredStableId)
-            {
-                issue = $"Subject identity must be AuthoredStableId, but was '{subjectAdapter.IdGeneration}'.";
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(expectedSubjectId) ||
-                !string.Equals(resetTrigger.AuthoringResetSubjectId, expectedSubjectId, StringComparison.Ordinal))
-            {
-                issue = "The authored Object Reset subject identity does not match the Scenario expectation.";
+                issue = $"QA-NEW-001 requires FollowOwner membership, but was '{resettable.Membership}'.";
                 return false;
             }
 
@@ -211,40 +198,33 @@ namespace Immersive.QaFramework.New001
 
         private bool IsReady(out string issue)
         {
-            if (resetTrigger == null || subjectAdapter == null)
+            if (resetTrigger == null || resettable == null)
             {
                 issue = "Scene-authored endpoints are missing.";
                 return false;
             }
 
-            if (!resetTrigger.HasResetExecutionRuntimeBinding)
+            if (!resettable.IsRegistered)
             {
-                issue = $"Object Reset execution binding is missing. diagnostic='{resetTrigger.ResetExecutionRuntimeBindingDiagnostic}'.";
+                issue = "The scene-authored Resettable is not registered for the current Route owner.";
                 return false;
             }
 
-            if (!subjectAdapter.HasResetRegistrationRuntimeBinding)
+            if (!resettable.Owner.IsValid || resettable.Owner.Scope != RuntimeContentScope.Route)
             {
-                issue = $"Reset registration binding is missing. diagnostic='{subjectAdapter.ResetRegistrationRuntimeBindingDiagnostic}'.";
+                issue = $"Expected a valid Route owner, but found '{resettable.Owner}'.";
                 return false;
             }
 
-            if (!subjectAdapter.IsRegistered)
+            if (!resettable.RuntimeSubjectId.IsValid)
             {
-                issue = "The scene-authored Reset subject is not registered for the current Route owner.";
+                issue = "The registered Resettable has no valid runtime subject identity.";
                 return false;
             }
 
-            if (subjectAdapter.RegisteredParticipantCount != 1)
+            if (resettable.RegisteredCapabilityCount != 1)
             {
-                issue = $"Expected exactly one registered participant, but found '{subjectAdapter.RegisteredParticipantCount}'.";
-                return false;
-            }
-
-            if (!subjectAdapter.SubjectId.IsValid ||
-                !string.Equals(subjectAdapter.SubjectId.StableText, expectedSubjectId, StringComparison.Ordinal))
-            {
-                issue = "The registered Reset subject identity differs from the predeclared identity.";
+                issue = $"Expected exactly one registered Reset capability, but found '{resettable.RegisteredCapabilityCount}'.";
                 return false;
             }
 
@@ -254,9 +234,10 @@ namespace Immersive.QaFramework.New001
                 return false;
             }
 
-            if (resetTrigger.HasLastResult)
+            if (resetTrigger.LastResult.Status != ResetExecutionStatus.Unknown ||
+                resetTrigger.LastResolution.Status != ResetSelectionResolutionStatus.Unknown)
             {
-                issue = "Residual Object Reset result state is present before the Scenario action.";
+                issue = "A residual Reset result is present before the Scenario action.";
                 return false;
             }
 
@@ -305,71 +286,32 @@ namespace Immersive.QaFramework.New001
             return valuesApplied && allDimensionsDiverged;
         }
 
-        private void OnResetRequestEvent(ObjectResetTriggerEvent evidence)
-        {
-            if (evidence == null || !ReferenceEquals(evidence.Trigger, resetTrigger))
-            {
-                RecordFail("Received Object Reset evidence from an unexpected trigger.");
-                return;
-            }
-
-            if (evidence.IsSubmitted)
-            {
-                if (_completedCount > 0 || _submittedCount > 0)
-                {
-                    RecordFail("Submitted evidence was duplicated or observed after Completed.");
-                }
-
-                _submittedCount++;
-                return;
-            }
-
-            if (evidence.IsCompleted)
-            {
-                if (_submittedCount != 1 || _completedCount > 0)
-                {
-                    RecordFail("Completed evidence was duplicated or did not follow exactly one Submitted event.");
-                }
-
-                _completedCount++;
-                _terminalEvent = evidence;
-                return;
-            }
-
-            RecordFail($"Unexpected Object Reset evidence phase '{evidence.Phase}'.");
-        }
-
         private void ValidateTerminalEvidence()
         {
-            if (_submittedCount != 1 || _completedCount != 1 || _terminalEvent == null)
+            if (_requestCompletedCount != 1)
             {
-                RecordFail($"Expected exactly one Submitted and one Completed event. submitted='{_submittedCount}' completed='{_completedCount}'.");
+                RecordFail($"Expected one terminal Reset result, but observed '{_requestCompletedCount}'.");
                 return;
             }
 
-            if (_terminalEvent.Outcome != FlowRequestOutcome.Succeeded ||
-                !_terminalEvent.HasResult ||
-                _terminalEvent.Result.Status != ResetExecutionStatus.Succeeded)
+            if (!_terminalResolution.Succeeded || _terminalResult.Status != ResetExecutionStatus.Succeeded)
             {
-                RecordFail($"Terminal Object Reset evidence was not successful. outcome='{_terminalEvent.Outcome}' hasResult='{_terminalEvent.HasResult}' status='{_terminalEvent.ResultStatus}'.");
+                RecordFail($"Terminal Reset request was not successful. resolution='{_terminalResolution.Status}' result='{_terminalResult.Status}'.");
                 return;
             }
 
             if (resetTrigger.IsRequestInFlight ||
-                resetTrigger.LastEventPhase != FlowRequestEventPhase.Completed ||
-                resetTrigger.LastOutcome != FlowRequestOutcome.Succeeded ||
-                !resetTrigger.HasLastResult ||
-                resetTrigger.LastExecutionStatus != ResetExecutionStatus.Succeeded)
+                resetTrigger.LastResolution.Status != _terminalResolution.Status ||
+                resetTrigger.LastResult.Status != _terminalResult.Status)
             {
                 RecordFail(
-                    $"Public trigger snapshot disagreed with terminal evidence. " +
-                    $"inFlight='{resetTrigger.IsRequestInFlight}' phase='{resetTrigger.LastEventPhase}' " +
-                    $"outcome='{resetTrigger.LastOutcome}' hasResult='{resetTrigger.HasLastResult}' " +
-                    $"status='{resetTrigger.LastExecutionStatus}'.");
+                    $"Public trigger snapshot disagreed with the awaited terminal result. " +
+                    $"inFlight='{resetTrigger.IsRequestInFlight}' resolution='{resetTrigger.LastResolution.Status}' " +
+                    $"result='{resetTrigger.LastResult.Status}'.");
                 return;
             }
 
-            ResetExecutionResult result = _terminalEvent.Result;
+            ResetExecutionResult result = _terminalResult;
             if (result.SubjectCount != 1 || result.SubjectSucceeded != 1 || result.SubjectFailed != 0 ||
                 result.ParticipantCount != 1 || result.ParticipantSucceeded != 1 ||
                 result.ParticipantSkipped != 0 || result.ParticipantFailed != 0 ||
@@ -406,13 +348,6 @@ namespace Immersive.QaFramework.New001
                 ContainQaOwnedState();
             }
 
-            ReleaseEventBinding();
-
-            if (_requestInvoked && resetTrigger != null && !resetTrigger.IsRequestInFlight)
-            {
-                resetTrigger.ClearLastResult();
-            }
-
             if (_baselineCaptured && !PoseMatchesBaseline())
             {
                 issue = "QA containment did not restore pose B.";
@@ -425,19 +360,12 @@ namespace Immersive.QaFramework.New001
                 return false;
             }
 
-            if (resetTrigger != null && resetTrigger.HasLastResult)
-            {
-                issue = "Object Reset result state remained after cleanup.";
-                return false;
-            }
-
             if (_requestInvoked &&
-                (!resetTrigger.HasResetExecutionRuntimeBinding ||
-                 !subjectAdapter.HasResetRegistrationRuntimeBinding ||
-                 !subjectAdapter.IsRegistered ||
-                 subjectAdapter.RegisteredParticipantCount != 1))
+                (!resettable.IsRegistered ||
+                 !resettable.Owner.IsValid ||
+                 resettable.RegisteredCapabilityCount != 1))
             {
-                issue = "Framework binding or registration baseline was not preserved after execution.";
+                issue = "Resettable registration or owner evidence was not preserved after execution.";
                 return false;
             }
 
@@ -455,12 +383,6 @@ namespace Immersive.QaFramework.New001
             target.localPosition = _baselineLocalPosition;
             target.localRotation = _baselineLocalRotation;
             target.localScale = _baselineLocalScale;
-        }
-
-        private void ReleaseEventBinding()
-        {
-            _eventBinding?.Dispose();
-            _eventBinding = null;
         }
 
         private bool PoseMatchesBaseline()
@@ -494,10 +416,7 @@ namespace Immersive.QaFramework.New001
                         ? QaCleanupDisposition.BaselineRestored
                         : QaCleanupDisposition.FreshBootRequired,
                     cleanupIssue);
-            ResetExecutionResult resetResult =
-                _terminalEvent != null && _terminalEvent.HasResult
-                    ? _terminalEvent.Result
-                    : default;
+            ResetExecutionResult resetResult = _terminalResult;
             string status = certificationResult.Verdict switch
             {
                 QaCertificationVerdict.Pass => "Passed",
@@ -506,8 +425,8 @@ namespace Immersive.QaFramework.New001
             };
             string message =
                 $"[{certificationResult.ScenarioId}] status='{status}' verdict='{certificationResult.Verdict.ToString().ToUpperInvariant()}' " +
-                $"submitted='{_submittedCount}' completed='{_completedCount}' " +
-                $"resultStatus='{(_terminalEvent != null ? _terminalEvent.ResultStatus : ResetExecutionStatus.Unknown)}' " +
+                $"requestInvoked='{_requestInvoked}' requestCompleted='{_requestCompletedCount}' " +
+                $"resolutionStatus='{_terminalResolution.Status}' resultStatus='{_terminalResult.Status}' " +
                 $"subjects='{resetResult.SubjectCount}' subjectSucceeded='{resetResult.SubjectSucceeded}' " +
                 $"participants='{resetResult.ParticipantCount}' participantSucceeded='{resetResult.ParticipantSucceeded}' " +
                 $"participantFailed='{resetResult.ParticipantFailed}' blockingIssues='{resetResult.BlockingIssueCount}' " +

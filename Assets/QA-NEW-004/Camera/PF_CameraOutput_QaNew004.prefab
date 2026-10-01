@@ -178,6 +178,7 @@ GameObject:
   - component: {fileID: 1091618075600251385}
   - component: {fileID: 4843606765154826425}
   - component: {fileID: 145525972283650305}
+  - component: {fileID: 1888888888888888888}
   m_Layer: 0
   m_Name: Output
   m_TagString: MainCamera
@@ -298,8 +299,21 @@ MonoBehaviour:
   outputDefinition: {fileID: 11400000, guid: 833cfd8805fae0b4e895fe7493ca05f4, type: 2}
   unityCamera: {fileID: 1091618075600251385}
   cinemachineBrain: {fileID: 4843606765154826425}
-  defaultCameraRig: {fileID: 2834408320199036840}
+  fallbackCameraRig: {fileID: 2834408320199036840}
   initializeOnAwake: 1
   logDiagnostics: 1
   lastStatus: NotInitialized
   lastDiagnostic: 
+--- !u!114 &1888888888888888888
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4130422076435036949}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94040000000000000000000000000008, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Immersive.QaFramework.New004.QaNew004CameraOutputProbe
+  evidence: {fileID: 11400000, guid: 94040000000000000000000000000007, type: 2}

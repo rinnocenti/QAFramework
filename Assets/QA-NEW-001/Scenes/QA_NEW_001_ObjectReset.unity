@@ -166,10 +166,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Immersive.QaFramework.New001.QaNew001ObjectResetScenario
   resetTrigger: {fileID: 1005}
-  subjectAdapter: {fileID: 1003}
+  resettable: {fileID: 1003}
   transformParticipant: {fileID: 1004}
   target: {fileID: 1001}
-  expectedSubjectId: qa-new-001.object-reset.subject
   expectedBaselineLocalPosition: {x: 1, y: 2, z: 3}
   expectedBaselineLocalEulerAngles: {x: 0, y: 0, z: 0}
   expectedBaselineLocalScale: {x: 1, y: 1, z: 1}
@@ -187,23 +186,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1000}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 71ee52cb6da64fb691d51a321688c072, type: 3}
+  m_Script: {fileID: 11500000, guid: ee8f539d675a41f4bbffa3139ed5aa62, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Reset.Unity.UnityResetSubjectAdapter
-  registerOnEnable: 1
-  unregisterOnDisable: 1
-  retryUntilRuntimeAvailable: 1
-  idGeneration: 10
-  subjectId: qa-new-001.object-reset.subject
-  runtimeSubjectIdPrefix: 
-  scope: 10
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Reset.Unity.Resettable
   displayName: QA-NEW-001 Transform Subject
-  diagnosticTag: QA-NEW-001
-  sourceActor: {fileID: 0}
-  sourcePlayerActor: {fileID: 0}
-  participantDiscovery: 10
-  includeInactiveParticipants: 1
-  includeUnityResettableComponents: 0
+  membership: 0
 --- !u!114 &1004
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -239,15 +226,28 @@ MonoBehaviour:
   m_GameObject: {fileID: 1000}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 88969144657e42acbe360c3395b0c6fa, type: 3}
+  m_Script: {fileID: 11500000, guid: 1b11862a30054c5c9d228a3e8b0a8074, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ObjectReset.ObjectResetTrigger
-  targetSubject:
-    subjectAdapter: {fileID: 1003}
-    subjectId: qa-new-001.object-reset.subject
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Reset.Unity.ResetRequestTrigger
+  target:
+    kind: 10
+    objectTarget:
+      referenceMode: 0
+      directResettable: {fileID: 1003}
+      stableReference:
+        objectEntryIdText: ""
+        ownerSelectorKind: 0
+        routeOwner: {fileID: 0}
+        activityOwner: {fileID: 0}
+    compositionTarget:
+      referenceMode: 0
+      directComposition: {fileID: 0}
+      stableReference:
+        objectEntryIdText: ""
+        ownerSelectorKind: 0
+        routeOwner: {fileID: 0}
+        activityOwner: {fileID: 0}
   reason: QA-NEW-001 supported Object Reset
-  allowNoParticipants: 0
-  stopOnFailure: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

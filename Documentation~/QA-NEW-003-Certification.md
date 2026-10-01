@@ -3,6 +3,8 @@
 **Estado:** CERTIFIED  
 **Resultado:** PASS ×2
 
+**Cobertura RESET-035-B adicionada:** pendente de execução Unity. O cenário agora também verifica owner registration e release dos Resettables das Routes A/B; essa extensão não está incluída nos dois resultados históricos acima.
+
 ## Evidência certificada
 
 - A substituição física da Primary Scene foi comprovada no ciclo `A → B → nova A`.

@@ -130,6 +130,8 @@ GameObject:
   - component: {fileID: 1002}
   - component: {fileID: 1003}
   - component: {fileID: 1004}
+  - component: {fileID: 1005}
+  - component: {fileID: 1006}
   m_Layer: 0
   m_Name: QA-NEW-003 Route A Content
   m_TagString: Untagged
@@ -200,6 +202,31 @@ MonoBehaviour:
   lastEvent: Initial
   availableCount: 0
   releasingCount: 0
+--- !u!114 &1005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee8f539d675a41f4bbffa3139ed5aa62, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Reset.Unity.Resettable
+  displayName: QA-NEW-003 Route Resettable
+--- !u!114 &1006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c38bb81ea60d475c8bd3479b0ce24e8f, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Reset.Unity.UnityTransformResetParticipant
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

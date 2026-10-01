@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &762654420001354123
+--- !u!1 &3164908629072024347
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,8 +8,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 7558514554263301896}
-  - component: {fileID: 2143391154534380403}
+  - component: {fileID: 5750173013905616223}
+  - component: {fileID: 4169006871591351618}
   m_Layer: 0
   m_Name: Cinemachine Camera
   m_TagString: Untagged
@@ -17,28 +17,28 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &7558514554263301896
+--- !u!4 &5750173013905616223
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 762654420001354123}
+  m_GameObject: {fileID: 3164908629072024347}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8756676257776040894}
+  m_Father: {fileID: 8862992303787662765}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2143391154534380403
+--- !u!114 &4169006871591351618
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 762654420001354123}
+  m_GameObject: {fileID: 3164908629072024347}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f9dfa5b682dcd46bda6128250e975f58, type: 3}
@@ -75,7 +75,7 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
---- !u!1 &7315148600616444511
+--- !u!1 &3986170223337693265
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -83,60 +83,47 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 8756676257776040894}
-  - component: {fileID: 2131745689614290974}
-  - component: {fileID: 5911148870438290656}
+  - component: {fileID: 8862992303787662765}
+  - component: {fileID: 7215804311841448790}
   m_Layer: 0
-  m_Name: PF_CameraPresentation_QaNew004_C
+  m_Name: PF_CameraRig_QaNew004Session
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &8756676257776040894
+--- !u!4 &8862992303787662765
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7315148600616444511}
+  m_GameObject: {fileID: 3986170223337693265}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 7558514554263301896}
+  - {fileID: 5750173013905616223}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2131745689614290974
+--- !u!114 &7215804311841448790
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7315148600616444511}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 94030000000000000000000000000003, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Immersive.QaFramework.New004.QaNew004CameraOccurrenceProbe
---- !u!114 &5911148870438290656
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7315148600616444511}
+  m_GameObject: {fileID: 3986170223337693265}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6d1bda0d2aa64f85a2a0d71755cd1003, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.CameraAuthoring.CameraRigComposer
   behaviorDefinition: {fileID: 11400000, guid: 7be2a76e1ffa16e46996114dfa533194, type: 2}
-  cinemachineCamera: {fileID: 2143391154534380403}
+  cinemachineCamera: {fileID: 4169006871591351618}
   materializedPresentationIntent: 20
-  frameworkOwnedCinemachineCamera: {fileID: 2143391154534380403}
+  frameworkOwnedCinemachineCamera: {fileID: 4169006871591351618}
   frameworkOwnedPositionControl: {fileID: 0}
   frameworkOwnedRotationControl: {fileID: 0}
   frameworkOwnedGroupTargetGroup: {fileID: 0}

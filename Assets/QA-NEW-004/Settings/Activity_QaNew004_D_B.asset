@@ -23,6 +23,4 @@ MonoBehaviour:
   playerRelocationPolicy: 0
   activityEntryReadinessPolicy: 0
   visualTransitionMode: 0
-  cameraPresentations: []
-  cameraPresentationSelections: []
   transitionGateMode: 10
