@@ -65,6 +65,42 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/QA-RESET-035-E-Shared/Scenes/QA_RESET_035_E_ActivityA.unity
     guid: 896df23e81af491a86921a809a93756d
+  - enabled: 1
+    path: Assets/QA-NEW-005/Scenes/QA_NEW_005_AfterSilence.unity
+    guid: b9b7615e327eea14cbd803b5991450b1
+  - enabled: 1
+    path: Assets/QA-NEW-005/Scenes/QA_NEW_005_Neutral.unity
+    guid: 46851d68f3aab6e45a8d54538432706a
+  - enabled: 1
+    path: Assets/QA-NEW-005/Scenes/QA_NEW_005_Own.unity
+    guid: c54b3c38b82923641a5226f2d7f3d6e1
+  - enabled: 1
+    path: Assets/QA-NEW-005/Scenes/QA_NEW_005_Persistent.unity
+    guid: c85fd4cf7e6eefa46abb8dce47c935c0
+  - enabled: 1
+    path: Assets/QA-NEW-005/Scenes/QA_NEW_005_Play.unity
+    guid: ef1e57c5ecca3af4880d8b086c7d983b
+  - enabled: 1
+    path: Assets/QA-NEW-005/Scenes/QA_NEW_005_Preserve.unity
+    guid: e6d53bd0ddcea51459afce48bd075b2f
+  - enabled: 1
+    path: Assets/QA-NEW-005/Scenes/QA_NEW_005_Silence.unity
+    guid: efe75e2f6bf09784395b1efff1e019f2
+  - enabled: 1
+    path: Assets/QA-NEW-005/Scenes/QA_NEW_005_StartupCue.unity
+    guid: 1069cdf58863952458f1d4bd705c81a3
+  - enabled: 1
+    path: Assets/QA-NEW-005/Scenes/QA_NEW_005_StartupEmpty.unity
+    guid: 039f9ab2dab041a4886abde787981c11
+  - enabled: 1
+    path: Assets/QA-NEW-005/Scenes/QA_NEW_005_StartupOwn.unity
+    guid: 3a9b9d599aec9794598d068659a25bc0
+  - enabled: 1
+    path: Assets/QA-NEW-005/Scenes/QA_NEW_005_UseRoute.unity
+    guid: c7737b1e5151c13489d723e418eccd11
+  - enabled: 1
+    path: Assets/QA-NEW-005/Scenes/QA_NEW_005_Activity_Neutral.unity
+    guid: 72d46f998fb516542b8602c5d84fdc6d
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

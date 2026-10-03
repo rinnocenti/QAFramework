@@ -346,12 +346,12 @@ namespace Immersive.QaFramework.New004
                 return false;
             }
 
-            if (gameApplication.SessionCameraAssignments.Count != 1)
+            if (gameApplication.StartupCameraAssignments.Count != 1)
             {
                 issue = "QA-NEW-004 requires one Session-scoped Camera Assignment for continuity coverage.";
                 return false;
             }
-            SessionCameraAssignmentAuthoring authoring = gameApplication.SessionCameraAssignments[0];
+            SessionCameraAssignmentAsset authoring = gameApplication.StartupCameraAssignments[0];
             if (authoring == null || authoring.AssignmentId.Value != expectedAssignmentId ||
                 !authoring.TryBuild(out SessionCameraAssignment assignment, out issue))
             {
@@ -367,8 +367,7 @@ namespace Immersive.QaFramework.New004
                 assignment.TargetPolicy != CameraTargetPolicy.NoSubject ||
                 assignment.Outputs.Count != 1 ||
                 assignment.Outputs[0].OutputId != outputs[0].OutputDefinition.OutputId ||
-                authoring.Definition == null ||
-                !authoring.Definition.TryValidateSessionCamera(CameraTargetPolicy.NoSubject, out issue))
+                authoring.RigPrefab == null)
             {
                 if (string.IsNullOrEmpty(issue))
                 {
@@ -418,8 +417,8 @@ namespace Immersive.QaFramework.New004
                 return false;
             }
 
-            if (gameApplication.SessionCameraAssignments.Count != 1 ||
-                gameApplication.SessionCameraAssignments[0].AssignmentId.Value != expectedAssignmentId)
+            if (gameApplication.StartupCameraAssignments.Count != 1 ||
+                gameApplication.StartupCameraAssignments[0].AssignmentId.Value != expectedAssignmentId)
             {
                 issue = $"{phase}: the authored Session Camera Assignment changed during a Route/Activity transition.";
                 return false;

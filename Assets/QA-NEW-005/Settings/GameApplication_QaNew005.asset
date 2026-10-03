@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1ce6d27d442ac76449f283afbc33d04f, type: 3}
-  m_Name: GameApplication_QaNew004
+  m_Name: GameApplication_QaNew005
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.GameApplicationAsset
-  applicationName: QA-NEW-004 Session Camera Continuity
-  startupRoute: {fileID: 11400000, guid: 9487c1f2d8ef327439f9cf6b99535919, type: 2}
+  applicationName: QA-NEW-005 Audio BGM Continuity
+  startupRoute: {fileID: 11400000, guid: e633c27bef8fd08418fcdb792b69826f, type: 2}
   playerSessionEnabled: 0
   defaultPlayerSessionProfile: {fileID: 0}
   playerActorSelectionDuplicatePolicy: 10
@@ -21,9 +21,8 @@ MonoBehaviour:
   defaultProgressionSaveProfile: {fileID: 0}
   cameraSession:
     outputPrefabs:
-    - {fileID: 1206343617579575108, guid: 2b35fb86eeda8e548a74228d0a3fcb47, type: 3}
-  startupCameraAssignments:
-  - {fileID: 11400000, guid: c385e2919e6f4d198b3d58116386502d, type: 2}
+    - {fileID: 627951520136573394, guid: a113f6097d4b48eaa125397407f8da62, type: 3}
+  startupCameraAssignments: []
   persistentContent:
-    containerScene: {fileID: 102900000, guid: 393ddd0d8391cc64192267ea58d6d10b, type: 3}
+    containerScene: {fileID: 102900000, guid: c85fd4cf7e6eefa46abb8dce47c935c0, type: 3}
   validationMode: 1
