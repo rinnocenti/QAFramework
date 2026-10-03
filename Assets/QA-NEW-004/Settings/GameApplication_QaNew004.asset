@@ -22,16 +22,8 @@ MonoBehaviour:
   cameraSession:
     outputPrefabs:
     - {fileID: 1206343617579575108, guid: 2b35fb86eeda8e548a74228d0a3fcb47, type: 3}
-  sessionCameraAssignments:
-  - assignmentId: 94040000000000000000000000000005
-    definition: {fileID: 11400000, guid: 378d9828cf13cab40b826c7b3208ea58, type: 2}
-    occurrenceMode: 1
-    membershipPolicy: 1
-    targetPolicy: 1
-    memberSlots: []
-    outputDefinitions:
-    - {fileID: 11400000, guid: 833cfd8805fae0b4e895fe7493ca05f4, type: 2}
-    individualMemberOutputMappings: []
+  startupCameraAssignments:
+  - {fileID: 11400000, guid: c385e2919e6f4d198b3d58116386502d, type: 2}
   persistentContent:
     containerScene: {fileID: 102900000, guid: 393ddd0d8391cc64192267ea58d6d10b, type: 3}
   validationMode: 1
