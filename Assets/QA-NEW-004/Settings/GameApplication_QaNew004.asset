@@ -22,7 +22,6 @@ MonoBehaviour:
   cameraSession:
     outputPrefabs:
     - {fileID: 1206343617579575108, guid: 2b35fb86eeda8e548a74228d0a3fcb47, type: 3}
-    playerOutputBindings: []
   sessionCameraAssignments:
   - assignmentId: 94040000000000000000000000000005
     definition: {fileID: 11400000, guid: 378d9828cf13cab40b826c7b3208ea58, type: 2}
