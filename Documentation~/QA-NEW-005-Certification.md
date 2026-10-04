@@ -1,6 +1,6 @@
 # QA-NEW-005 — Audio/BGM Continuity
 
-**Status: NOT RUN.** This certification has not been imported or executed in Unity.
+**Status: CERTIFIED / PASS — Play Mode 12/12.** Executed after the IF-ADR-040 Audio binding migration with terminal cleanup restored.
 
 ## Scope
 
@@ -53,6 +53,27 @@ Expected terminal format:
 
 Failure uses `status='Failed' verdict='FAIL'`; `firstDivergence` identifies the first functional divergence and `cleanupIssue` reports any independent cleanup problem.
 
+## Executed certification — 2026-10-03
+
+Final Play Mode verdict:
+
+```text
+[QA-NEW-005] status='Passed' verdict='PASS' cases='12/12' confirmedBgm='<null>' explicitSilence='true' neutralRouteCurrent='true' neutralRouteBaselineLoaded='true' routeDirectorAttached='true' routeContentEntered='true' routeContentExited='true' activityDirectorAttached='true' activityContentEntered='true' activityContentExited='true' routeLastOperationResult='operation=\'Release\' outcome=\'Released\' requestedCue=\'<null>\' confirmedCue=\'<null>\' explicitSilence=\'true\' reason=\'Stopped\'' activityLastOperationResult='operation=\'Apply\' outcome=\'Applied\' requestedCue=\'qa-new-005.startup-activity\' confirmedCue=\'qa-new-005.startup-activity\' explicitSilence=\'false\' reason=\'Succeeded\'' directorLastOperationResult='operation=\'Preserve\' outcome=\'NoChange\' requestedCue=\'<null>\' confirmedCue=\'<null>\' explicitSilence=\'true\' reason=\'Route owner exit does not mutate confirmed BGM.\'' routeProviderConfirmed='true' activityProviderConfirmed='true' loadedTemporaryScenes='<none>' routeConsumersBound='0' activityConsumersBound='0' consumersDestroyedWhileBound='0' cleanup='BaselineRestored' firstDivergence='' cleanupIssue=''
+```
+
+Accepted evidence:
+
+- 12/12 functional and cleanup cases passed;
+- Route and Activity consumers both received the Session-owned director and their content enter/exit callbacks;
+- provider-confirmed Route and Activity operations were observed;
+- final explicit silence was confirmed;
+- the neutral Route baseline was current and loaded;
+- no temporary Route/Activity scenes remained loaded;
+- no Route/Activity consumers remained bound or were destroyed while bound;
+- cleanup ended as `BaselineRestored` with no first divergence or cleanup issue.
+
+This closes the QA-NEW-005 execution gate for the current Audio/BGM integration boundary. The observability limits below remain normative: this certification proves the public logical/provider-confirmed contract, not physical fade/crossfade timing or an unobservable transient playback history.
+
 ## Observability limits
 
 `FrameworkBgmDirector` exposes the final confirmed cue, explicit-silence state, and last operation result. QA-NEW-005 uses those values and QA probes attached to the actual scene authorings to observe binding and detach. It does not infer physical playback position, audible output, fade completion, or crossfade shape from logical confirmation.
@@ -61,4 +82,4 @@ For Startup Activity with its own cue, the scenario verifies that the Route requ
 
 ## Historical 44/44
 
-The former Audio QA harness and its Hub/assets were removed; QA-NEW-005 is a new focused certification, not a restoration or case-for-case port. The historical 44/44 remains dated evidence for the pre-IF-ADR-040 implementation. QA-NEW-005 does not claim equivalence to those 44 cases and must not relabel that result. The IF-ADR-013 rerun gate remains open until this fixture is actually imported and executed successfully.
+The former Audio QA harness and its Hub/assets were removed; QA-NEW-005 is a new focused certification, not a restoration or case-for-case port. The historical 44/44 remains dated evidence for the pre-IF-ADR-040 implementation. QA-NEW-005 is the current focused post-migration Play Mode certification and does not claim case-for-case equivalence with those 44 cases.
