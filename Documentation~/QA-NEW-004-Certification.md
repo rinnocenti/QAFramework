@@ -1,5 +1,7 @@
 # QA-NEW-004 — Session Camera Continuity
 
+**Status: CERTIFIED / PASS — Play Mode 9/9 on 2026-10-06.**
+
 QA-NEW-004 verifies that one targetless, Session-scoped Camera Assignment and
 its physical Output remain available while public Route and Activity operations
 replace their owned content.
@@ -37,3 +39,11 @@ not reproduced through a hidden request or selection surface.
 
 Any missing output, invalid Fallback, Assignment drift, failed lifecycle
 request, or output recreation fails/blocks the run with the first causal issue.
+
+## Executed certification — 2026-10-06
+
+```text
+[QA-NEW-004] status='Passed' verdict='PASS' cases='9/9' outputId='94040000000000000000000000000001' outputToken='233dacc43f4140f5b3a6164cac0cb278' assignment='94040000000000000000000000000005' cleanup='BaselineRestored' firstDivergence='' cleanupIssue=''.
+```
+
+Accepted evidence: the same initialized Session Output and authored Session-scoped Assignment survived the complete Route/Activity matrix, zero-Player coverage remained valid, and cleanup restored the baseline with no causal divergence or cleanup issue.
