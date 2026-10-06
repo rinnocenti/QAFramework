@@ -12,4 +12,18 @@ The scenarios use the public evidence exposed by `Resettable`. They prove regist
 
 ## Execution status
 
-The scenarios were edited but have not been executed in Unity. A static `dotnet build` was unavailable because no .NET SDK is installed in this environment. Run QA-NEW-002 and QA-NEW-003 in Unity Play Mode and inspect their certification logs before treating RESET-035-B as validated.
+**PASS — Play Mode 2026-10-06.** Both extended scenarios were executed in Unity against the current integration boundary.
+
+`QA-NEW-002` completed the controlled Activity readiness/rollback cycle, proved the pending gate, issued release, observed Activity B release, restored baseline A, and ended with `cleanup='BaselineRestored'`, `firstDivergence=''`, `cleanupIssue=''`.
+
+```text
+[QA-NEW-002] status='Passed' verdict='PASS' submittedB='1' completedB='1' submittedA='1' completedA='1' pendingProved='True' releaseIssued='True' activityBReleased='True' participantState='Completed' baselineANormalized='True' baselineRestored='True' cleanup='BaselineRestored' firstDivergence='' cleanupIssue=''.
+```
+
+`QA-NEW-003` completed Route A → B → new A with successful public requests, exact exit/releasing/unload/load/available/enter observations in both directions, surviving execution owner, and baseline restoration.
+
+```text
+[QA-NEW-003] status='Passed' verdict='PASS' submittedB='1' completedB='1' succeededB='1' exitA='1' releasingA='1' unloadA='1' loadB='1' availableB='1' enterB='1' submittedA='1' completedA='1' succeededA='1' exitB='1' releasingB='1' unloadB='1' loadA='1' availableA='1' enterA='1' ownerSurvived='True' baselineRestored='True' cleanup='BaselineRestored' firstDivergence='' cleanupIssue=''.
+```
+
+This closes the RESET-035-B integration execution gate represented by these two scenarios. Focused helper-level owner-release idempotency remains separate evidence and is not relabeled by this run.
