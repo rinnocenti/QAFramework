@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6d702c1ba364e70ad76a85eb5f1b842, type: 3}
+  m_Name: Activity_QaIfAdr042_SharedGroup
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.ActivityAsset
+  activityId: qa-if-adr-042.shared-group
+  activityName: IF-ADR-042 SharedGroup Certification
+  description: 
+  playerParticipationProjectionMode: 20
+  playerParticipationZeroParticipantPolicy: 0
+  playerParticipationExplicitSlotProfiles:
+  - {fileID: 11400000, guid: 99a871a0c81b8ad43906108a2971d4f4, type: 2}
+  - {fileID: 11400000, guid: 1661144d89fc0fd4f91b0946ddecdd62, type: 2}
+  playerParticipationRequirementLevel: 30
+  activityContentProfile: {fileID: 11400000, guid: 9dce78c28e0ff7843937ee41a6ef7059, type: 2}
+  playerRelocationPolicy: 0
+  activityEntryReadinessPolicy: 0
+  visualTransitionMode: 0
+  transitionGateMode: 10

@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3227451430107503149
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8505321465656875346}
+  - component: {fileID: 2982240338012774394}
+  m_Layer: 0
+  m_Name: PF_QaIfAdr042_SharedGroupScenario
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8505321465656875346
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3227451430107503149}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2982240338012774394
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3227451430107503149}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ff8f20de464eac4498a62236edcaa9f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Immersive.QaFramework.IfAdr042.QaIfAdr042SharedGroupScenario
+  gameApplication: {fileID: 11400000, guid: 9927a2a637b89694b9303701b7af0d47, type: 2}
+  provisioning: {fileID: 0}
+  provisioningRegistration: {fileID: 0}
+  evidence: {fileID: 11400000, guid: d7af2ce2f3f2ca748832beb0d77bc14d, type: 2}
+  player1: {fileID: 11400000, guid: 99a871a0c81b8ad43906108a2971d4f4, type: 2}
+  player2: {fileID: 11400000, guid: 1661144d89fc0fd4f91b0946ddecdd62, type: 2}
+  player1Replacement: {fileID: 11400000, guid: 7d1394c46c986234d9f2fa20ee3775e8, type: 2}
+  assignment: {fileID: 11400000, guid: 8fd9041d1a3b3e943abfc90c2d92bafb, type: 2}
+  frameBudget: 180

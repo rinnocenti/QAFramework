@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1001 &977842927
+--- !u!1001 &1310241435
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -127,64 +127,64 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 180046026680203202, guid: c8939bf5d176d5c498d0e5a47099ac9e, type: 3}
+    - target: {fileID: 2982240338012774394, guid: 6bd92e82b7625de4d87f84cd9e6c3a4c, type: 3}
+      propertyPath: provisioning
+      value: 
+      objectReference: {fileID: 1710367923}
+    - target: {fileID: 2982240338012774394, guid: 6bd92e82b7625de4d87f84cd9e6c3a4c, type: 3}
+      propertyPath: provisioningRegistration
+      value: 
+      objectReference: {fileID: 1710367922}
+    - target: {fileID: 3227451430107503149, guid: 6bd92e82b7625de4d87f84cd9e6c3a4c, type: 3}
+      propertyPath: m_Name
+      value: PF_QaIfAdr042_SharedGroupScenario
+      objectReference: {fileID: 0}
+    - target: {fileID: 8505321465656875346, guid: 6bd92e82b7625de4d87f84cd9e6c3a4c, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 180046026680203202, guid: c8939bf5d176d5c498d0e5a47099ac9e, type: 3}
+    - target: {fileID: 8505321465656875346, guid: 6bd92e82b7625de4d87f84cd9e6c3a4c, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 180046026680203202, guid: c8939bf5d176d5c498d0e5a47099ac9e, type: 3}
+    - target: {fileID: 8505321465656875346, guid: 6bd92e82b7625de4d87f84cd9e6c3a4c, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 180046026680203202, guid: c8939bf5d176d5c498d0e5a47099ac9e, type: 3}
+    - target: {fileID: 8505321465656875346, guid: 6bd92e82b7625de4d87f84cd9e6c3a4c, type: 3}
       propertyPath: m_LocalRotation.w
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 180046026680203202, guid: c8939bf5d176d5c498d0e5a47099ac9e, type: 3}
+    - target: {fileID: 8505321465656875346, guid: 6bd92e82b7625de4d87f84cd9e6c3a4c, type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 180046026680203202, guid: c8939bf5d176d5c498d0e5a47099ac9e, type: 3}
+    - target: {fileID: 8505321465656875346, guid: 6bd92e82b7625de4d87f84cd9e6c3a4c, type: 3}
       propertyPath: m_LocalRotation.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 180046026680203202, guid: c8939bf5d176d5c498d0e5a47099ac9e, type: 3}
+    - target: {fileID: 8505321465656875346, guid: 6bd92e82b7625de4d87f84cd9e6c3a4c, type: 3}
       propertyPath: m_LocalRotation.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 180046026680203202, guid: c8939bf5d176d5c498d0e5a47099ac9e, type: 3}
+    - target: {fileID: 8505321465656875346, guid: 6bd92e82b7625de4d87f84cd9e6c3a4c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 180046026680203202, guid: c8939bf5d176d5c498d0e5a47099ac9e, type: 3}
+    - target: {fileID: 8505321465656875346, guid: 6bd92e82b7625de4d87f84cd9e6c3a4c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 180046026680203202, guid: c8939bf5d176d5c498d0e5a47099ac9e, type: 3}
+    - target: {fileID: 8505321465656875346, guid: 6bd92e82b7625de4d87f84cd9e6c3a4c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3027949588458561789, guid: c8939bf5d176d5c498d0e5a47099ac9e, type: 3}
-      propertyPath: m_Name
-      value: PF_QaIfAdr043_PhysicalParticipationScenario
-      objectReference: {fileID: 0}
-    - target: {fileID: 5078462370534627748, guid: c8939bf5d176d5c498d0e5a47099ac9e, type: 3}
-      propertyPath: provisioning
-      value: 
-      objectReference: {fileID: 1083829844}
-    - target: {fileID: 5078462370534627748, guid: c8939bf5d176d5c498d0e5a47099ac9e, type: 3}
-      propertyPath: provisioningRegistration
-      value: 
-      objectReference: {fileID: 1083829843}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: c8939bf5d176d5c498d0e5a47099ac9e, type: 3}
---- !u!1 &1083829842
+  m_SourcePrefab: {fileID: 100100000, guid: 6bd92e82b7625de4d87f84cd9e6c3a4c, type: 3}
+--- !u!1 &1710367921
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -192,51 +192,51 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1083829846}
-  - component: {fileID: 1083829845}
-  - component: {fileID: 1083829844}
-  - component: {fileID: 1083829843}
+  - component: {fileID: 1710367925}
+  - component: {fileID: 1710367924}
+  - component: {fileID: 1710367923}
+  - component: {fileID: 1710367922}
   m_Layer: 0
-  m_Name: IF-ADR-043 Provisioning
+  m_Name: IF-ADR-042 Player Provisioning and Scenario
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1083829843
+--- !u!114 &1710367922
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1083829842}
+  m_GameObject: {fileID: 1710367921}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f08330a12176478e8ac8020cd8e09feb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerProvisioningEndpointRegistration
-  provisioningAuthoring: {fileID: 1083829844}
---- !u!114 &1083829844
+  provisioningAuthoring: {fileID: 1710367923}
+--- !u!114 &1710367923
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1083829842}
+  m_GameObject: {fileID: 1710367921}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 90eccb4f117c4d5b8a2ef8284db2ad36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerProvisioningAuthoring
-  playerInputManager: {fileID: 1083829845}
-  localPlayerHostPrefab: {fileID: 2627002671044949212, guid: 7746e869486ba074b90fb594ce424877, type: 3}
---- !u!114 &1083829845
+  playerInputManager: {fileID: 1710367924}
+  localPlayerHostPrefab: {fileID: 3031915255742449409, guid: ea0174d9ccbfa9846997f2244122318e, type: 3}
+--- !u!114 &1710367924
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1083829842}
+  m_GameObject: {fileID: 1710367921}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 621567455fd1c4ceb811cc8a00b6a1a5, type: 3}
@@ -258,13 +258,13 @@ MonoBehaviour:
       m_Name: 
       m_Type: 0
       m_ExpectedControlType: 
-      m_Id: 47e7913e-d5ba-42a4-81da-8b52aa71afeb
+      m_Id: 8b96217a-bfcb-443f-bd20-8a18f5cd0982
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: 0}
-  m_PlayerPrefab: {fileID: 2627002671044949212, guid: 7746e869486ba074b90fb594ce424877, type: 3}
+  m_PlayerPrefab: {fileID: 3031915255742449409, guid: ea0174d9ccbfa9846997f2244122318e, type: 3}
   m_SplitScreen: 0
   m_MaintainAspectRatioInSplitScreen: 0
   m_FixedNumberOfSplitScreens: -1
@@ -274,13 +274,13 @@ MonoBehaviour:
     y: 0
     width: 1
     height: 1
---- !u!4 &1083829846
+--- !u!4 &1710367925
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1083829842}
+  m_GameObject: {fileID: 1710367921}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -293,5 +293,5 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1083829846}
-  - {fileID: 977842927}
+  - {fileID: 1710367925}
+  - {fileID: 1310241435}

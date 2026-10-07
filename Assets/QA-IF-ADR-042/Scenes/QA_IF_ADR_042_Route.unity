@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &554028136
+--- !u!1 &238581145
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,37 +127,37 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 554028138}
-  - component: {fileID: 554028137}
+  - component: {fileID: 238581147}
+  - component: {fileID: 238581146}
   m_Layer: 0
-  m_Name: IF-ADR-043 Route Content
+  m_Name: IF-ADR-042 Startup Route Content
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &554028137
+--- !u!114 &238581146
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 554028136}
+  m_GameObject: {fileID: 238581145}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f37a6125514e4491a7174d4372fc4c22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.RouteLifecycle.RouteContentContribution
-  route: {fileID: 11400000, guid: e157a91579de1e34a9f4fe83eb05bac0, type: 2}
-  localContentId: qa-if-adr-043.route-content
+  route: {fileID: 11400000, guid: d80fc3c0d632010428551dcf69891906, type: 2}
+  localContentId: qa-if-adr-042.route-content
   requiredness: 10
---- !u!4 &554028138
+--- !u!4 &238581147
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 554028136}
+  m_GameObject: {fileID: 238581145}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -170,4 +170,4 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 554028138}
+  - {fileID: 238581147}
