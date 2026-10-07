@@ -2,7 +2,7 @@
 
 ## Scope
 
-This Scenario certifies the physical participation of two Individual Player Camera Outputs through the real `GameApplication`, ManagerProvisioned Player Session, public Join/Leave APIs and public `CameraOutputAuthoring` state. It observes only physical Unity Camera enablement, `PlayerInput.camera`, active Assignment identity, Slot-to-Output identity and whether a rendered frame contains a QA Output Camera.
+This Scenario certifies the physical participation of two Individual Player Camera Outputs through the real `GameApplication`, ManagerProvisioned Player Session, public Join/Leave APIs and public `CameraOutputAuthoring` state. It observes only physical Unity Camera enablement, `PlayerInput.camera`, active Assignment identity, Slot-to-Output identity and continuous physical Output participation through direct Unity Camera enablement/active-hierarchy observation.
 
 The QA keyboards exist only to make Input System pairing deterministic. Action asset identity, gameplay input behavior and control-scheme behavior are not certification assertions. No Framework package files are changed.
 
@@ -26,7 +26,7 @@ The scenario certifies exactly these seven checkpoints:
 6. `P1` — public Join for P1 after zero.
 7. `P1+P2` — public Join for P2 after P1 rejoin.
 
-Each checkpoint checks exact public Session membership, active Assignment identity on both Outputs, each Output's authored Slot/Output identity, expected physical Camera enablement and `PlayerInput.camera` for every Joined Slot. At zero Players exactly one physical Output Camera must be enabled; with Players Joined, only the mapped Output Cameras may be enabled. A URP camera-render callback records every frame and the Scenario blocks PASS if any rendered frame lacks a QA Output Camera.
+Each checkpoint checks exact public Session membership, active Assignment identity on both Outputs, each Output's authored Slot/Output identity, expected physical Camera enablement and `PlayerInput.camera` for every Joined Slot. At zero Players exactly one physical Output Camera must be enabled; with Players Joined, only the mapped Output Cameras may be enabled. The Scenario samples the two registered QA Output Cameras every frame and blocks PASS if no Output is physically participating (`Camera.enabled && activeInHierarchy`). Render-pipeline callbacks are intentionally not part of this contract.
 
 Each Join pairs the profile's own QA-created virtual Keyboard with the required `QA.Keyboard` scheme. Cleanup issues public Leaves until no Slot is Joined, waits for the zero-Player camera baseline, then removes both virtual keyboards. If public Leaves cannot release the Players, keyboards remain paired and the terminal disposition is `FreshBootRequired`.
 
@@ -40,4 +40,4 @@ The single terminal line has the form:
 [IF-ADR-043] status='Passed|Failed|Blocked' verdict='PASS|FAIL|BLOCKED' cases='x/7' next='...' completed='x' missing='...' assignment='...' framesObserved='x' framesWithoutCamera='x' firstFrameWithoutCamera='...' execution='...' unwind='public-leave-requests' cleanup='BaselineRestored|FreshBootRequired' cleanupIssue='...'.
 ```
 
-`PASS` requires 7/7 checkpoints, no camera-less rendered frame, public Leave cleanup and `BaselineRestored`. A blocked setup is not a functional failure. Send the complete terminal line and preceding causal diagnostics for review.
+`PASS` requires 7/7 checkpoints, no observed frame without a physically participating QA Output, public Leave cleanup and `BaselineRestored`. A blocked setup is not a functional failure. Send the complete terminal line and preceding causal diagnostics for review.
