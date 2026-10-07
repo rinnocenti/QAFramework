@@ -10,7 +10,6 @@ using Immersive.Framework.PlayerSlots;
 using Immersive.QaFramework.Certification;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Rendering;
 
 namespace Immersive.QaFramework.IfAdr043
 {
@@ -52,7 +51,6 @@ namespace Immersive.QaFramework.IfAdr043
         private int _framesObserved;
         private int _framesWithoutCamera;
         private int _firstFrameWithoutCamera = -1;
-        private int _renderedOutputFrame = -1;
         private bool _started;
         private bool _terminal;
         private bool _coverageMonitoring;
@@ -505,29 +503,12 @@ namespace Immersive.QaFramework.IfAdr043
         private void StartFrameCoverageMonitoring()
         {
             _coverageMonitoring = true;
-            _renderedOutputFrame = -1;
-            RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
             StartCoroutine(ObserveOutputFrames());
         }
 
         private void StopFrameCoverageMonitoring()
         {
-            if (!_coverageMonitoring) return;
             _coverageMonitoring = false;
-            RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
-        }
-
-        private void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
-        {
-            if (!_coverageMonitoring || camera == null) return;
-            foreach (QaIfAdr043CameraOutputProbe probe in outputEvidence.Outputs)
-            {
-                if (probe != null && probe.IsReady && probe.Output.UnityCamera == camera && IsPhysicalCameraEnabled(camera))
-                {
-                    _renderedOutputFrame = Time.frameCount;
-                    return;
-                }
-            }
         }
 
         private IEnumerator ObserveOutputFrames()
@@ -538,12 +519,19 @@ namespace Immersive.QaFramework.IfAdr043
                 if (!_coverageMonitoring) yield break;
 
                 _framesObserved++;
-                if (_renderedOutputFrame == Time.frameCount) continue;
+                bool hasPhysicalOutput = outputEvidence != null &&
+                    outputEvidence.Outputs.Any(probe =>
+                        probe != null &&
+                        probe.IsReady &&
+                        IsPhysicalCameraEnabled(probe.Output.UnityCamera));
+                if (hasPhysicalOutput) continue;
+
                 _framesWithoutCamera++;
                 if (_firstFrameWithoutCamera < 0)
                     _firstFrameWithoutCamera = Time.frameCount;
                 if (string.IsNullOrEmpty(_frameCoverageIssue))
-                    _frameCoverageIssue = $"Rendered frame '{Time.frameCount}' contained no QA Output Camera.";
+                    _frameCoverageIssue =
+                        $"Frame '{Time.frameCount}' contained no physically participating QA Output Camera.";
             }
         }
 
