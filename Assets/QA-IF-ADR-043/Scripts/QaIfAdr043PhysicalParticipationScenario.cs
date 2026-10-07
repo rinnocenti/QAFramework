@@ -519,19 +519,25 @@ namespace Immersive.QaFramework.IfAdr043
                 if (!_coverageMonitoring) yield break;
 
                 _framesObserved++;
-                bool hasPhysicalOutput = outputEvidence != null &&
-                    outputEvidence.Outputs.Any(probe =>
-                        probe != null &&
-                        probe.IsReady &&
-                        IsPhysicalCameraEnabled(probe.Output.UnityCamera));
-                if (hasPhysicalOutput) continue;
+                int participatingOutputs = 0;
+                if (outputEvidence != null)
+                {
+                    foreach (QaIfAdr043CameraOutputProbe probe in outputEvidence.Outputs)
+                    {
+                        if (probe != null && probe.IsReady &&
+                            IsPhysicalCameraEnabled(probe.Output.UnityCamera))
+                        {
+                            participatingOutputs++;
+                        }
+                    }
+                }
 
+                if (participatingOutputs > 0) continue;
                 _framesWithoutCamera++;
                 if (_firstFrameWithoutCamera < 0)
                     _firstFrameWithoutCamera = Time.frameCount;
                 if (string.IsNullOrEmpty(_frameCoverageIssue))
-                    _frameCoverageIssue =
-                        $"Frame '{Time.frameCount}' contained no physically participating QA Output Camera.";
+                    _frameCoverageIssue = $"Frame '{Time.frameCount}' had no physically participating registered QA Output Camera (both Outputs were null, disabled, or inactive).";
             }
         }
 
