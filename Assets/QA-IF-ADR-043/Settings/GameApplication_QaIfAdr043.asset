@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ce6d27d442ac76449f283afbc33d04f, type: 3}
+  m_Name: GameApplication_QaIfAdr043
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.GameApplicationAsset
+  applicationName: IF-ADR-043 Physical Participation Certification
+  startupRoute: {fileID: 11400000, guid: e157a91579de1e34a9f4fe83eb05bac0, type: 2}
+  playerSessionEnabled: 1
+  defaultPlayerSessionProfile: {fileID: 11400000, guid: 336f60c769cefd24586699cb47c68aed, type: 2}
+  playerActorSelectionDuplicatePolicy: 10
+  progressionSaveEnabled: 0
+  defaultProgressionSaveProfile: {fileID: 0}
+  cameraSession:
+    outputPrefabs:
+    - {fileID: 6685007191226713200, guid: 05165a6412f55714ea17c13ebddcdafd, type: 3}
+    - {fileID: 5274350555309446527, guid: 44489c88ccc396a4b97d21ac1dd78f57, type: 3}
+  startupCameraAssignments:
+  - {fileID: 11400000, guid: f086a095babaa2947b8910499fb9c9d6, type: 2}
+  persistentContent:
+    containerScene: {fileID: 102900000, guid: 002e975497389c04aa0ca2fbcd858a8c, type: 3}
+  validationMode: 1

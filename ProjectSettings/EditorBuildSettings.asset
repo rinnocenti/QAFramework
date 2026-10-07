@@ -101,6 +101,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/QA-NEW-005/Scenes/QA_NEW_005_Activity_Neutral.unity
     guid: 72d46f998fb516542b8602c5d84fdc6d
+  - enabled: 1
+    path: Assets/QA-IF-ADR-043/Scenes/QA_IF_ADR_043_Route.unity
+    guid: e0a3b8431a2b3b44bb383bcedbccc606
+  - enabled: 1
+    path: Assets/QA-IF-ADR-043/Scenes/QA_IF_ADR_043_Persistent.unity
+    guid: 002e975497389c04aa0ca2fbcd858a8c
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

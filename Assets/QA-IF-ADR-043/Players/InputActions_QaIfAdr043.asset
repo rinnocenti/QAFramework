@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39fa3d8997a24136984ca6e2c99902bc, type: 3}
+  m_Name: InputActions_QaIfAdr043
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionAsset
+  m_ActionMaps:
+  - m_Name: Player
+    m_Id: dc5ffd67-d8aa-4f91-a229-6cfcc4a9d836
+    m_Asset: {fileID: 11400000}
+    m_Actions:
+    - m_Name: Move
+      m_Type: 0
+      m_ExpectedControlType: Vector2
+      m_Id: 706be6a5-ef31-40b0-952b-17ba7062a455
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Bindings:
+    - m_Name: 2DVector
+      m_Id: a39d1a33-e671-479c-a0bf-ba71fafb3f9d
+      m_Path: 2DVector
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Move
+      m_Flags: 4
+    - m_Name: Up
+      m_Id: 5c2ec34c-baa3-435a-a605-54a1c81874f4
+      m_Path: <Keyboard>/w
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: QA.Keyboard
+      m_Action: Move
+      m_Flags: 8
+    - m_Name: Down
+      m_Id: 1d06587e-6582-4e24-a3a6-2ccd69fba4bf
+      m_Path: <Keyboard>/s
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: QA.Keyboard
+      m_Action: Move
+      m_Flags: 8
+    - m_Name: Left
+      m_Id: 7a577d06-a3a1-4672-9935-9a20c2088699
+      m_Path: <Keyboard>/a
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: QA.Keyboard
+      m_Action: Move
+      m_Flags: 8
+    - m_Name: Right
+      m_Id: ce8bd734-d202-4c3c-b27f-592411fba6cc
+      m_Path: <Keyboard>/d
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: QA.Keyboard
+      m_Action: Move
+      m_Flags: 8
+  m_ControlSchemes:
+  - m_Name: QA.Keyboard
+    m_BindingGroup: QA.Keyboard
+    m_DeviceRequirements:
+    - m_ControlPath: <Keyboard>
+      m_Flags: 0
+  m_IsProjectWide: 0

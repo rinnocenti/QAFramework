@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77252ac8d7db46d0b832aeecc4e42c67, type: 3}
+  m_Name: CameraAssignment_QaIfAdr043_Individual
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.CameraAuthoring.SessionCameraAssignmentAsset
+  assignmentId: 0303ca8e5a7b44758de8f7632f8f051b
+  rigPrefab: {fileID: 7641165178761539101, guid: 1ec11a1053684b14d9d3b4ba6206eeff, type: 3}
+  occurrenceMode: 2
+  membershipPolicy: 2
+  targetPolicy: 1
+  memberSlots:
+  - {fileID: 11400000, guid: 24da17810cf0a624e9172c2ff1801fbc, type: 2}
+  - {fileID: 11400000, guid: 8105947cea1d04846abafd172c8ab653, type: 2}
+  outputDefinitions:
+  - {fileID: 11400000, guid: c6b099206e16e3640ae18a024d4e620d, type: 2}
+  - {fileID: 11400000, guid: fb121f3bc8b0abb48a51ad4d6cf7c81a, type: 2}
+  individualMemberOutputMappings:
+  - playerSlotProfile: {fileID: 11400000, guid: 24da17810cf0a624e9172c2ff1801fbc, type: 2}
+    outputDefinition: {fileID: 11400000, guid: c6b099206e16e3640ae18a024d4e620d, type: 2}
+  - playerSlotProfile: {fileID: 11400000, guid: 8105947cea1d04846abafd172c8ab653, type: 2}
+    outputDefinition: {fileID: 11400000, guid: fb121f3bc8b0abb48a51ad4d6cf7c81a, type: 2}
