@@ -1,0 +1,96 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39fa3d8997a24136984ca6e2c99902bc, type: 3}
+  m_Name: InputActions_QaIfAdr044
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionAsset
+  m_ActionMaps:
+  - m_Name: Player
+    m_Id: 157c4be2-37f5-4cc8-9620-1394a83178db
+    m_Asset: {fileID: 11400000}
+    m_Actions:
+    - m_Name: Move
+      m_Type: 0
+      m_ExpectedControlType: Vector2
+      m_Id: d210b634-a374-46c8-b9ae-7f148a9d238b
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Bindings:
+    - m_Name: 2DVector
+      m_Id: cbe4efbe-30fd-4f3d-8643-57b1be09076f
+      m_Path: 2DVector
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Move
+      m_Flags: 4
+    - m_Name: Up
+      m_Id: ebff65d7-40c9-4383-a180-735a4041bdb6
+      m_Path: <Keyboard>/w
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: QA.Keyboard
+      m_Action: Move
+      m_Flags: 8
+    - m_Name: Down
+      m_Id: 6c4dca30-702d-4ea4-b5b6-483909aeb2b7
+      m_Path: <Keyboard>/s
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: QA.Keyboard
+      m_Action: Move
+      m_Flags: 8
+    - m_Name: Left
+      m_Id: 6fe5b776-9b4a-4f3b-94ac-f7ccbab68d1a
+      m_Path: <Keyboard>/a
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: QA.Keyboard
+      m_Action: Move
+      m_Flags: 8
+    - m_Name: Right
+      m_Id: 2bfdf787-75cb-4b21-a1d9-626f469e8bc2
+      m_Path: <Keyboard>/d
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: QA.Keyboard
+      m_Action: Move
+      m_Flags: 8
+  - m_Name: Global
+    m_Id: a9ca5c64-0cca-43ed-8cb6-234459ae4c0d
+    m_Asset: {fileID: 11400000}
+    m_Actions:
+    - m_Name: Pause
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: f7b99d60-bd90-49d9-a427-f3f18be9a9fb
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Bindings:
+    - m_Name: 
+      m_Id: b6615751-dec0-4d85-b311-09bc4550c1b3
+      m_Path: <Keyboard>/escape
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: QA.Keyboard
+      m_Action: Pause
+      m_Flags: 0
+  m_ControlSchemes:
+  - m_Name: QA.Keyboard
+    m_BindingGroup: QA.Keyboard
+    m_DeviceRequirements:
+    - m_ControlPath: <Keyboard>
+      m_Flags: 0
+  m_IsProjectWide: 0
