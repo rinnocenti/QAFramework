@@ -1,0 +1,20 @@
+{
+  "name": "ImmersiveFrameworkQA.IFADR045.Editor",
+  "rootNamespace": "Immersive.QaFramework.IfAdr045.Editor",
+  "references": [
+    "Immersive.Framework.Runtime",
+    "Immersive.Framework.Editor",
+    "ImmersiveFrameworkQA.IFADR045.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
