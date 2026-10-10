@@ -114,3 +114,9 @@ descartadas pelo ADR (§17) que merecem esse alerta:
 - mockar o runtime do framework dentro do QAFramework
 - um harness especializado por domínio
 - recriar a arquitetura legada
+
+Quando uma slice exigir authoring de assets, cenas, prefabs ou composição
+serializada, consulte a referência compartilhada
+`../../../.agents/skills/qa-certification-implementation/references/unity-qa-authoring.md`.
+Use-a para identificar padrões existentes e seus limites. Ela não altera a
+sequência greenfield deste skill nem autoriza infraestrutura genérica.

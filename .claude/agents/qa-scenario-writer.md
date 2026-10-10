@@ -31,6 +31,14 @@ e não recrie arquitetura legada (§14, §17).
    duas vertical slices provadas, sinalize isso ao usuário em vez de
    construir por padrão.
 
+4. Se o cenário exigir authoring Unity, consulte
+   `.agents/skills/qa-certification-implementation/references/unity-qa-authoring.md`.
+   Faça preflight de tipos, referências e função na composição; construa na
+   ordem das dependências e reaquira wrappers após limites documentados ou
+   demonstrados como invalidantes; persista, recarregue e valide a composição
+   gerada; limite cleanup a estado QA-owned, inclusive em falhas parciais.
+   Não use recarga mecânica após cada operação do AssetDatabase.
+
 ## Inspecionar antes de inventar
 
 Antes de decidir nomes de classe, estrutura de pasta ou representação de

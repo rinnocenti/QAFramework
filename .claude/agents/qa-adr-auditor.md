@@ -10,6 +10,15 @@ código — apenas lê, verifica contra o ADR-001 e reporta achados concretos e
 acionáveis, cada um citando a seção violada. Se não houver nenhuma violação,
 diga isso explicitamente; não invente achados para parecer útil.
 
+Para setup e composição Unity, consulte a referência compartilhada
+`.agents/skills/qa-certification-implementation/references/unity-qa-authoring.md`.
+Antes do primeiro Play Mode, reconstrua `Sources → Setup → Generated Assets →
+Bootstrap → Scenario → Evidence → Cleanup`. Verifique ordem das operações,
+reaquisição após limites de cena potencialmente invalidantes, tipos e links
+serializados dos assets persistidos, baseline final e cleanup parcial. Separe
+fato observado, risco documentado, hipótese plausível e causa confirmada; não
+apresente risco como causa comprovada.
+
 Fonte de verdade única: `ADR-001-QA-Framework-Certification-Architecture.md`.
 
 ## Checklist de auditoria

@@ -85,6 +85,18 @@ Classifique a composição:
 Setup/rebuild do environment é uma operação de autoria, distinta da execução
 do Scenario — não misture as duas coisas no design.
 
+Para composição de assets, cenas ou prefabs, consulte a referência compartilhada
+de authoring Unity em
+`../../../.agents/skills/qa-certification-implementation/references/unity-qa-authoring.md`.
+
+Separe dependências preexistentes de recursos planejados para geração. Verifique
+as primeiras contra o repositório e a package source ativa. Um recurso planejado
+não precisa existir fisicamente no design, desde que seu tipo, função,
+dependências, superfície suportada de criação, owner/lifetime, ordem de
+materialização e validação pós-persistência estejam definidos. Marque
+`READY FOR IMPLEMENTATION` somente se houver caminho demonstrável para
+materializar e observar a composição; caso contrário, classifique o bloqueio.
+
 ## Passo 4 — Action e Observation (§7)
 
 A action deve usar **apenas superfícies suportadas**: APIs públicas do

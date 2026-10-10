@@ -7,33 +7,16 @@ description: Use when deciding whether an Immersive Framework contract belongs i
 
 ## Governing rule
 
-**Repository reality precedes QA design.** Read the complete [ADR-001](../../../Documentation~/ADR-001-QA-Framework-Certification-Architecture.md), then inspect the current workspace before proposing a Scenario. The ADR supplies architectural rules; it does not prove that an endpoint, lifecycle, composition, or capability exists.
+Repository reality precedes QA design. Read the complete [ADR-001](../../../Documentation~/ADR-001-QA-Framework-Certification-Architecture.md), inspect the current QAFramework state, and verify the relevant public `com.immersive.framework` contract. The ADR and this skill define constraints; neither proves a current endpoint, dependency, or composition.
 
-Respect the task's access restrictions. Locate the active package source from the current manifest, inspect the relevant QA composition and source, and trace the current public `com.immersive.framework` authoring, lifecycle, ownership, action, and observability surfaces. Cite concrete files and symbols. Do not treat historical QA, generated project files, stale caches, memory, or examples in this skill as current evidence.
+## Workflow
 
-## Classify first
+1. Classify the verification level: Package/NUnit for deterministic contracts without material runtime; QAFramework for controlled real-runtime certification; FIRSTGAME for an integrated consumer happy path.
+2. Compare relevant existing QAs and authoring patterns. Use the shared [Unity QA authoring reference](../qa-certification-implementation/references/unity-qa-authoring.md) when scenes, assets, prefabs, or serialized composition are involved.
+3. Produce the evidence-backed [Scenario design brief](references/scenario-contract.md). Verify preexisting dependencies against repository reality. Planned resources may be generated later if their type, role, dependencies, supported creation surface, owner/lifetime, materialization order, and post-persistence validation criteria are known.
+4. Mark `READY FOR IMPLEMENTATION` only when a supported, demonstrable path exists to materialize and observe the required composition. Otherwise report the concrete gap and use `BLOCKED`.
+5. Stop before implementation.
 
-- **Package/NUnit:** pure logic, value objects, policies, deterministic transitions, serialization, structural invariants, isolated negative contracts, or fake-based proofs that do not require a materially instantiated runtime.
-- **QAFramework:** controlled certification of the real framework runtime through supported public APIs and real authoring/lifecycle.
-- **FIRSTGAME:** integrated consumer happy path of a correctly authored game.
+## Boundaries
 
-Do not keep a deterministic contract in QAFramework for convenience. Do not turn QAFramework into a reference game.
-
-## Design workflow
-
-1. Establish the current repository and package reality.
-2. Identify the public contract and its correct verification level.
-3. Compare real candidate slices when selection is not predetermined.
-4. Design the smallest independently reproducible causal lifecycle.
-5. Classify any missing public observability or supported extension point.
-6. Stop before implementation.
-
-Use [the Scenario contract](references/scenario-contract.md) for the required design brief.
-
-## Hard boundaries
-
-Never solve a missing surface with reflection, internal-host access, service-locator bypass, opportunistic global lookup, private-state mutation, silent fallback, or a test-only framework backdoor. Do not depend on residual state or Full QA order.
-
-Do not choose a Runner, Scenario base/interface, Environment type, result model, registry, Suite, menu, persistence format, timeout policy, boot grouping, directory layout, or asmdef topology before evidence from representative vertical slices justifies it. QA-NEW-001 is evidence, not a reusable architecture.
-
-If the contract cannot be exercised or observed through supported surfaces, report the first concrete gap and its owner. Return a design verdict of `READY FOR IMPLEMENTATION` only when the complete causal contract is supported; otherwise return `BLOCKED`.
+Use only supported public actions and authoring. Do not solve gaps with reflection, internal hosts, service-locator bypass, opportunistic global lookup, private-state mutation, fallback, or test-only framework backdoors. Do not settle ADR-001's intentionally open Runner, Scenario, Environment, result, registry, folder, timeout, or boot-grouping decisions from a single slice.
