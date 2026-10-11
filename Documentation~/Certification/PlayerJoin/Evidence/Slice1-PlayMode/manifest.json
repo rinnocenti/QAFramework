@@ -53,19 +53,20 @@
     "execution": "",
     "cleanupIssue": "",
     "expectedWarning": "Invalid Join rejection warning reported as expected; not a Runtime failure.",
-    "qualification": "Reported result; not independently executed by Codex. The exact Console terminal/log has not been reconstructed here."
+    "runtimeBridgeCorrectionIncluded": false,
+    "qualification": "Earlier user-reported execution before the LocalPlayerProvisioningBridge callback-compensation correction; Slice 1 has not been rerun afterward. Not independently executed by Codex. Its exact Console terminal/log, execution SHA and timestamp remain unassociated; provenance stays partial."
   },
   "rawExecutionLog": {
     "path": null,
     "sha256": null,
-    "artifactState": "Original Console/Editor log not present; copy unchanged to originals/."
+    "artifactState": "Original Console/Editor log not copied into this repository; add unchanged bytes and hash to originals/ if available."
   },
   "additionalArtifacts": [
     {
       "kind": "terminal-capture",
       "path": null,
       "sha256": null,
-      "artifactState": "Original capture not present; copy unchanged to originals/."
+      "artifactState": "Prior capture was supplied/reported in the conversation; no local original file or SHA is associated with this record. Copy unchanged to originals/ if available."
     }
   ]
 }

@@ -11,7 +11,7 @@
   "startedAtUtc": null,
   "finishedAtUtc": null,
   "provenanceCompleteness": "partial",
-  "claimSource": "User-reported Unity Test Runner capture in this conversation; original capture not present in workspace.",
+  "claimSource": "User-reported Unity Test Runner capture supplied in this conversation; not independently executed by Codex.",
   "framework": {
     "repository": "C:/Projetos/ImmersivePackages/com.immersive.framework",
     "commitShaAtExecution": null,
@@ -29,25 +29,27 @@
     "unityEditorVersionCurrentlyDeclared": "6000.5.0f1"
   },
   "observedResult": {
-    "totalTestsPassed": 220,
+    "totalTestsPassed": 229,
     "totalTestsFailed": 0,
-    "playerParticipationTestsPassed": 29,
+    "playerParticipationTestsPassed": 38,
     "localPlayerJoinContractTestsPassed": 26,
+    "localPlayerProvisioningBridgeRollbackTestsPassed": 9,
     "activityPlayerActorLeaveLedgerTestsPassed": 3,
     "resultStatus": "PASS",
-    "qualification": "Reported result; not independently executed by Codex. New LocalPlayerProvisioningBridgeRollbackTests were added after this run and are not included."
+    "runtimeCorrectionIncluded": true,
+    "qualification": "User-reported 229/229 PASS after the LocalPlayerProvisioningBridge callback-compensation correction; not independently executed by Codex. Execution SHA, exact timestamp, original XML/log and capture file hash are not associated, so provenance remains partial."
   },
   "rawExecutionLog": {
     "path": null,
     "sha256": null,
-    "artifactState": "Original not present; copy original NUnit XML/log if available to originals/."
+    "artifactState": "Original NUnit XML/log not copied into this repository; add unchanged files and hashes to originals/ if available."
   },
   "additionalArtifacts": [
     {
       "kind": "test-runner-capture",
       "path": null,
       "sha256": null,
-      "artifactState": "Original capture not present; copy it unchanged to originals/."
+      "artifactState": "Capture was supplied in the conversation; no local original file or SHA is associated with this record. Copy unchanged to originals/ if available."
     }
   ]
 }
