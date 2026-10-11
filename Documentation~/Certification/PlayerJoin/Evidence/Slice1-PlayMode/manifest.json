@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "executionKind": "PlayMode",
+  "executionId": null,
+  "scenarioId": "QA-PLAYER-SESSION-JOIN / Slice 1 — Session / Join",
+  "contractCovered": [
+    "invalid Join typed rejection and Session revision preservation",
+    "Manager-Provisioned P1 Join and slot correlation",
+    "Actor selection, preparation and materialization boundaries",
+    "Leave and provisioning release",
+    "final Session baseline cleanup"
+  ],
+  "startedAtUtc": null,
+  "finishedAtUtc": null,
+  "provenanceCompleteness": "partial",
+  "claimSource": "User-reported Unity Console capture/log summary in this conversation; original artifacts not present in workspace.",
+  "framework": {
+    "repository": "C:/Projetos/ImmersivePackages/com.immersive.framework",
+    "commitShaAtExecution": null,
+    "branchAtExecution": null,
+    "dirtyAtExecution": null,
+    "packageVersionReportedByCurrentWorkspace": "1.1.0-preview.7",
+    "resolvedPathCurrentlyObserved": "C:/Projetos/ImmersivePackages/com.immersive.framework",
+    "executionBytesVerified": false
+  },
+  "qaFramework": {
+    "repository": "C:/Projetos/QAFramework",
+    "commitShaAtExecution": null,
+    "branchAtExecution": null,
+    "dirtyAtExecution": null,
+    "unityEditorVersionCurrentlyDeclared": "6000.5.0f1"
+  },
+  "observedResult": {
+    "configureRuns": [
+      "setup='Configured' baseline='Valid' assets='updated-in-place'",
+      "setup='Configured' baseline='Valid' assets='updated-in-place'"
+    ],
+    "verdict": "PASS",
+    "cases": "8/8",
+    "invalidJoinStatus": "RejectedInvalidRequest",
+    "invalidRevisionPreserved": true,
+    "joinStatus": "SucceededJoined",
+    "joinSlotMatched": true,
+    "actorSelected": true,
+    "actorPrepared": true,
+    "actorMaterialized": true,
+    "gameplayAdmitted": false,
+    "leaveStatus": "SucceededLeft",
+    "leaveProvisioningReleased": true,
+    "leaveTerminalCommitted": true,
+    "finalSession": "initialized:True,joined:0,available:1,reserved:0,leaving:0,joiningOpen:False",
+    "cleanup": "BaselineRestored",
+    "execution": "",
+    "cleanupIssue": "",
+    "expectedWarning": "Invalid Join rejection warning reported as expected; not a Runtime failure.",
+    "qualification": "Reported result; not independently executed by Codex. The exact Console terminal/log has not been reconstructed here."
+  },
+  "rawExecutionLog": {
+    "path": null,
+    "sha256": null,
+    "artifactState": "Original Console/Editor log not present; copy unchanged to originals/."
+  },
+  "additionalArtifacts": [
+    {
+      "kind": "terminal-capture",
+      "path": null,
+      "sha256": null,
+      "artifactState": "Original capture not present; copy unchanged to originals/."
+    }
+  ]
+}

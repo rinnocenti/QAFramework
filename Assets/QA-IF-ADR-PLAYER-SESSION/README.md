@@ -1,5 +1,7 @@
 # QA Player — Slice 1: Session / Join
 
+For new certification runs, first complete the [Player Join provenance procedure](../../Documentation~/Certification/PlayerJoin/README.md) and copy `provenance-manifest.template.json` into a unique execution evidence directory. The historical results below remain reported with partial provenance; this procedure does not retroactively bind them to a checkout.
+
 This focused QA-001 scenario certifies one Manager-Provisioned P1 Session lifecycle against the Framework package resolved by QAFramework. It uses the public Activity-scoped Join command and Session Observer. It does not certify gameplay input, camera behavior, Player movement, or gameplay admission.
 
 ## Configure and validate authoring

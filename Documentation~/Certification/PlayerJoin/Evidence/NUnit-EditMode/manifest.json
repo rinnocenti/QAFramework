@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "executionKind": "NUnitEditMode",
+  "executionId": null,
+  "scenarioId": "Immersive.Framework.PlayerParticipation.Editor.Tests",
+  "contractCovered": [
+    "LocalPlayerJoinContractTests",
+    "ActivityPlayerActorLeaveLedgerTests",
+    "QAFramework EditMode NUnit suite"
+  ],
+  "startedAtUtc": null,
+  "finishedAtUtc": null,
+  "provenanceCompleteness": "partial",
+  "claimSource": "User-reported Unity Test Runner capture in this conversation; original capture not present in workspace.",
+  "framework": {
+    "repository": "C:/Projetos/ImmersivePackages/com.immersive.framework",
+    "commitShaAtExecution": null,
+    "branchAtExecution": null,
+    "dirtyAtExecution": null,
+    "packageVersionReportedByCurrentWorkspace": "1.1.0-preview.7",
+    "resolvedPathCurrentlyObserved": "C:/Projetos/ImmersivePackages/com.immersive.framework",
+    "executionBytesVerified": false
+  },
+  "qaFramework": {
+    "repository": "C:/Projetos/QAFramework",
+    "commitShaAtExecution": null,
+    "branchAtExecution": null,
+    "dirtyAtExecution": null,
+    "unityEditorVersionCurrentlyDeclared": "6000.5.0f1"
+  },
+  "observedResult": {
+    "totalTestsPassed": 220,
+    "totalTestsFailed": 0,
+    "playerParticipationTestsPassed": 29,
+    "localPlayerJoinContractTestsPassed": 26,
+    "activityPlayerActorLeaveLedgerTestsPassed": 3,
+    "resultStatus": "PASS",
+    "qualification": "Reported result; not independently executed by Codex. New LocalPlayerProvisioningBridgeRollbackTests were added after this run and are not included."
+  },
+  "rawExecutionLog": {
+    "path": null,
+    "sha256": null,
+    "artifactState": "Original not present; copy original NUnit XML/log if available to originals/."
+  },
+  "additionalArtifacts": [
+    {
+      "kind": "test-runner-capture",
+      "path": null,
+      "sha256": null,
+      "artifactState": "Original capture not present; copy it unchanged to originals/."
+    }
+  ]
+}

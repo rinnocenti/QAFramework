@@ -1,0 +1,1 @@
+Copy the original Unity Console screenshot/capture and complete raw Editor/Console log here without editing or reconstructing them. Then put their relative paths and SHA-256 checksums in the sibling manifest.

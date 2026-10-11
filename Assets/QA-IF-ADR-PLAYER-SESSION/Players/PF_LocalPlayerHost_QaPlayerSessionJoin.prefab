@@ -96,7 +96,7 @@ MonoBehaviour:
   playerInput: {fileID: 313193027690045842}
   gameplayActionMap:
     actionAsset: {fileID: 11400000, guid: 9c30db30f1c355f458e4b935948e4158, type: 2}
-    actionMapId: c4141bc1-8fa6-4a3b-85f6-d24861eeabfb
+    actionMapId: 31ea9e2f-f5a4-47cc-a175-00893f356216
     cachedActionMapName: Player
   gameplayActionMapName: Player
   blockOnInputAcceptance: 0

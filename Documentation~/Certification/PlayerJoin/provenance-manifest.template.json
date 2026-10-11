@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "executionKind": "NUnitEditMode|PlayMode",
+  "executionId": "<unique-uuid-and-utc-start>",
+  "scenarioId": "<scenario-id>",
+  "contractCovered": ["<contract-or-slice>"],
+  "startedAtUtc": "<ISO-8601>",
+  "finishedAtUtc": "<ISO-8601>",
+  "provenanceCompleteness": "complete|partial",
+  "framework": {
+    "repository": "C:/Projetos/ImmersivePackages/com.immersive.framework",
+    "commitSha": "<full-sha>",
+    "branch": "<branch>",
+    "dirty": false,
+    "packageVersion": "<package.json-version>",
+    "resolvedPath": "<effective-package-path>",
+    "changedRelevantFiles": [
+      {
+        "relativePath": "<repository-relative-path>",
+        "sha256": ""
+      }
+    ],
+    "relevantContentFingerprintSha256": ""
+  },
+  "qaFramework": {
+    "repository": "C:/Projetos/QAFramework",
+    "commitSha": "<full-sha>",
+    "branch": "<branch>",
+    "dirty": false,
+    "unityEditorVersion": "<ProjectVersion.txt>"
+  },
+  "rawExecutionLog": {
+    "path": "<relative-path>",
+    "sha256": ""
+  },
+  "additionalArtifacts": [
+    {
+      "kind": "test-runner-capture|terminal-capture|supporting-log",
+      "path": "<relative-path>",
+      "sha256": ""
+    }
+  ],
+  "terminal": {
+    "status": "PASS|FAIL|BLOCKED|NOT_RUN",
+    "exactLine": "<copy-verbatim>",
+    "firstCause": "",
+    "cleanup": "<exact-value>"
+  }
+}
