@@ -9,13 +9,14 @@ Verify and report:
 3. Preexisting dependencies are actually resolvable; planned resources have a supported materialization path and post-persistence acceptance criteria.
 4. The known valid baseline is verified before the Scenario action.
 5. Setup order from source loads through scene operations and serialization does not reuse Unity wrappers across documented or demonstrated invalidation boundaries without reacquisition. For lifecycle identity claims, verify the retained Unity object reference, `EntityId`, Scene path/handle, and owner/lifetime independently as applicable.
-6. Saved outputs are independently reloaded and checked for correct type, exact serialized links, cardinality, and semantic validity before setup success.
+6. Saved outputs are independently reloaded and checked for correct type, exact serialized links, cardinality, and semantic validity before setup success. Compare those checks with the installed Framework Inspector/bootstrap validators. If they do not cover the same gates, call them scoped postflight checks and keep Framework validation pending.
 7. Causal order from supported action through intermediate and terminal evidence, including expected evidence declared before action and missing-evidence detection.
 8. Correct `PASS`, `FAIL`, and `BLOCKED` semantics and preservation of the first causal divergence.
 9. QA-owned versus Framework-owned state, cleanup after partial failure, reverse ownership release, and restoration before verdict.
 10. Isolation without residual-state or Full QA order dependency.
 11. No parallel runtime, private/internal access, hidden lookup, unowned environment mutation, or silent repair.
 12. ADR-001 decisions that remain deliberately unresolved.
+13. Compiler/API evidence: verify namespaces, exact signatures/overloads, Unity Editor API availability and assembly references against the active package/Unity version; do not treat an unexecuted compile as PASS.
 
 ### Checkpoints and aggregate terminal evidence
 

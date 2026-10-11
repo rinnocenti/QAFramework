@@ -7,9 +7,13 @@ description: Use when independently reviewing a QAFramework Scenario design, imp
 
 ## Independent evidence gate
 
+This skill reviews artifacts owned by QAFramework. For cross-repository ownership and baseline selection, follow immersive-ecosystem; inspect consumer versions only when consumer compatibility is part of the reviewed claim.
+
 Review is read-only unless the user separately requests fixes. Read [ADR-001](../../../Documentation~/ADR-001-QA-Framework-Certification-Architecture.md), then independently inspect current QAFramework composition, active package resolution, and relevant public Framework authoring/lifecycle/ownership/action/observability surfaces. Claims, skills, historical code, generated projects, and stale caches are not proof of current capability.
 
 Use the [review contract](references/review-contract.md). For Unity setup or composition, also use the shared [Unity QA authoring reference](../qa-certification-implementation/references/unity-qa-authoring.md).
+
+For compile-surface review, verify every called member against the resolved Framework/QA source, not only neighboring scenario call sites. Check enum members separately from result convenience properties, nested observation evidence flags and payloads, and the actual recorder API. Reconcile all available compiler diagnostics against the final source; classify cascading definite-assignment errors only after fixing the first invalid member. Do not claim compile success when Unity compilation was not run.
 
 ## Review sequence
 

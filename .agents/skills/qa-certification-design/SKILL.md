@@ -7,6 +7,8 @@ description: Use when deciding whether an Immersive Framework contract belongs i
 
 ## Governing rule
 
+This skill applies when the QAFramework owns the requested certification design. For cross-repository task routing and package baseline selection, follow immersive-ecosystem; do not use the caller workspace as the owner signal.
+
 Repository reality precedes QA design. Read the complete [ADR-001](../../../Documentation~/ADR-001-QA-Framework-Certification-Architecture.md), inspect the current QAFramework state, and verify the relevant public `com.immersive.framework` contract. The ADR and this skill define constraints; neither proves a current endpoint, dependency, or composition.
 
 ## Workflow

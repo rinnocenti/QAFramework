@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ce6d27d442ac76449f283afbc33d04f, type: 3}
+  m_Name: GameApplication_QaPlayerSessionJoin
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.GameApplicationAsset
+  applicationName: QA Player Session Join
+  startupRoute: {fileID: 11400000, guid: c937eebd82efd744f8217363b757c7d3, type: 2}
+  playerSessionEnabled: 1
+  defaultPlayerSessionProfile: {fileID: 11400000, guid: bb41d3a5c1a6d5f43a4c68b70c0762af, type: 2}
+  playerActorSelectionDuplicatePolicy: 10
+  progressionSaveEnabled: 0
+  defaultProgressionSaveProfile: {fileID: 0}
+  cameraSession:
+    outputPrefabs:
+    - {fileID: 2183009350030521578, guid: 328222bd1426529429cc000ef2f5c91f, type: 3}
+  startupCameraAssignments: []
+  persistentContent:
+    scenePath: Assets/QA-IF-ADR-PLAYER-SESSION/Scenes/QA_PlayerSessionJoin_Persistent.unity
+    sceneName: QA_PlayerSessionJoin_Persistent
+    containerScene: {fileID: 0}
+  validationMode: 1

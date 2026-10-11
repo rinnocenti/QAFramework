@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ce6d27d442ac76449f283afbc33d04f, type: 3}
+  m_Name: GameApplication_QaPlayerMultiplayerOwnership
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.GameApplicationAsset
+  applicationName: QA Player Multiplayer Ownership
+  startupRoute: {fileID: 11400000, guid: f1881228df35d194882a37887221e9a4, type: 2}
+  playerSessionEnabled: 1
+  defaultPlayerSessionProfile: {fileID: 11400000, guid: 48ad5f20d44430d4593f66149ddbb738, type: 2}
+  playerActorSelectionDuplicatePolicy: 10
+  progressionSaveEnabled: 0
+  defaultProgressionSaveProfile: {fileID: 0}
+  cameraSession:
+    outputPrefabs:
+    - {fileID: 1073481825863289327, guid: 6614d7eb018704e46ace6ba0d2298486, type: 3}
+  startupCameraAssignments: []
+  persistentContent:
+    scenePath: Assets/QA-IF-ADR-PLAYER-SESSION/Scenes/QA_PlayerMultiplayerOwnership_Persistent.unity
+    sceneName: QA_PlayerMultiplayerOwnership_Persistent
+    containerScene: {fileID: 0}
+  validationMode: 1
