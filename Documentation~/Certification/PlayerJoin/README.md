@@ -2,6 +2,8 @@
 
 This procedure applies to QAFramework Manager-Provisioned Join runs. It records new executions only. User-reported NUnit EditMode and Slice 1 results are now recorded under `Evidence/` as observed results with partial provenance; Slice 2–3 remain their earlier reported runs. No run is retroactively assigned a SHA or exact timestamp.
 
+The proposed I4 scoped-binding scenario is documented separately in [IF-ADR-046 I4 — Scoped Join Binding](IF-ADR-046-I4-Scoped-Binding-Scenario.md). It does not modify Slice 1 or authorize I3/QA implementation.
+
 ## Before each run
 
 1. Create a unique execution ID (UTC timestamp plus a random UUID) and record the scenario/slice and covered contract.
