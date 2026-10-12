@@ -236,6 +236,35 @@ Terminal semantics distinguish conceptually:
 
 Secondary failures must not replace the first causal divergence.
 
+### 12.1 Evidence reconciliation and additional proof
+
+Before requesting another test or creating a fixture, identify the property to
+certify and reconcile accessible package tests, QA results, consumer
+observations, static reviews, and applicable historical certifications. Map
+each source to what it actually demonstrates, including scope, provenance,
+and limitations. Consider complementary evidence together and identify any
+uncovered property or residual risk.
+
+Evidence formats are selected for the claim and risk. NUnit/Test Runner results,
+screenshots, structured QA terminal lines, raw logs, verifiable manual records,
+static review, and composite evidence may each contribute; no format is
+universally mandatory or sufficient. A composite disposition does not rewrite
+an individual result or turn static review into an executed test. Missing
+provenance is not a functional failure, and unknown execution metadata must not
+be reconstructed from a current checkout.
+
+Create or expand QA infrastructure only when a material property remains
+uncovered, the applicable gate requires direct proof, or current evidence
+reveals a defect or regression. Name the uncovered risk and the smallest
+intervention at its owning layer. Do not create a fixture just because no single
+existing fixture covers the whole claim.
+
+This section preserves ADR-001's scenario behavior, public-surface constraints,
+verdict semantics, and cleanup requirements. Applicable IF-GOV-001 evidence
+proportionality guidance supplements this certification procedure. A stricter
+accepted contract-specific gate remains in force until revised through its own
+amendment process.
+
 ## 13. Suite and Full QA
 
 A Suite selects independently valid Scenarios.

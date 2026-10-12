@@ -18,7 +18,8 @@ Verify and report:
 11. No parallel runtime, private/internal access, hidden lookup, unowned environment mutation, or silent repair.
 12. ADR-001 decisions that remain deliberately unresolved.
 13. Compiler/API evidence: verify namespaces, exact signatures/overloads, Unity Editor API availability and assembly references against the active package/Unity version; do not treat an unexecuted compile as PASS.
-14. Evidence-result, property-coverage, and gate-disposition separation; provenance and residual-risk preservation; compliance with any gate-specific mandatory proof.
+14. Evidence-result, property-coverage, provenance/access-limit, and gate-disposition separation; residual-risk preservation; compliance with any gate-specific mandatory proof.
+15. Reconciliation of existing evidence before any additional-test recommendation; each requested test must map to a material uncovered property, regression, or explicit gate.
 
 ### Checkpoints and aggregate terminal evidence
 

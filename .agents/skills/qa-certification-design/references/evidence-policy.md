@@ -1,6 +1,23 @@
 # QA Certification Evidence and Acceptance Policy
 
-This policy applies to certification design, implementation, and independent review. It governs how evidence informs a gate decision; it does not amend ADR-001's execution model or any contract-specific certification gate.
+This policy applies to certification design, implementation, and independent review. It operationalizes the evidence-proportionality guidance in IF-GOV-001 §8 and ADR-001 §12.1. It does not change ADR-001's execution model or waive a contract-specific certification gate.
+
+## Reconcile before requesting new proof
+
+Before asking for another execution or proposing a fixture, state the property
+and decision scope, locate accessible existing tests/results/observations and
+reviews, map what each source actually demonstrates, consider complementary
+evidence, and list uncovered properties and residual risks. Propose new proof
+only for a material technical gap that the applicable gate requires or that the
+responsible authority cannot accept. A lack of one fixture that covers an
+entire property is not by itself a gap. Name the risk and smallest viable
+intervention at its owning layer before recommending infrastructure.
+
+Evidence access is task-scoped. When relevant artifacts live in another
+conversation or session, identify what must be transferred, confirm the task
+can read the supplied originals, and distinguish originals from transcripts or
+summaries. If they are inaccessible, report the access limitation; do not
+conclude that evidence is absent or was never run.
 
 ## Keep three questions separate
 
@@ -16,10 +33,11 @@ Never rewrite an individual `PASS`, `FAIL`, or `BLOCKED`, promote a scoped resul
 
 Start by inventorying existing evidence and the current public, consumer-observable contract. Map every requirement of the gate to its evidence and identify the evidence type, exact scope, provenance, and limitation. Prefer existing deterministic tests, real public integration evidence, and focused source review when together they adequately address the relevant risks.
 
-Evidence types are complementary, not interchangeable:
+Evidence types are complementary, not interchangeable, and no format is
+universally required or sufficient:
 
 - Deterministic/unit tests support the behavior and boundaries they execute, often at package level; they do not establish real Unity lifecycle or consumer integration by themselves.
-- Executed public integration supports only the observed contract, configuration, runtime, candidate bytes, and conditions recorded for that run.
+- Executed public integration supports only the observed contract, configuration, runtime, candidate bytes when captured, and conditions recorded for that run.
 - Static source review supports code-path, ownership, invariant, and plausible defect analysis; it does not prove execution, compilation, import, runtime behavior, or integration.
 - User-reported or otherwise incomplete-provenance results retain that provenance limitation and must not be retrospectively attached to a commit or candidate.
 
@@ -35,16 +53,16 @@ Do not turn “some evidence exists” into coverage. An untested property may b
 
 ## Decision vocabulary
 
-- **PASS (direct):** required evidence directly exercises and satisfies the scoped requirement under its specified conditions, with required setup, cleanup, restoration, and provenance complete. Use only for the evidence item or gate whose criteria are actually met.
+- **PASS (direct):** required evidence directly exercises and satisfies the scoped requirement under its specified conditions, with required setup, cleanup, and restoration complete. Report provenance captured; completeness is required only to the extent an applicable gate explicitly requires it.
 - **ACCEPTED (composite):** a gate-level decision, not an execution verdict. The evidence map justifies acceptance under the conditions above while preserving individual results, uncovered properties, provenance limits, and residual risks. Do not relabel `BLOCKED` evidence as `PASS`.
 - **CONDITIONALLY ACCEPTED:** a bounded gate decision where current evidence supports only a narrower claim or acceptance depends on explicit follow-up/conditions. Name the accepted scope, excluded or unproven claims, owner/trigger for follow-up where known, and conditions that reopen the gate. This is not overall certification closure or Stable promotion unless the governing authority explicitly says so.
-- **BLOCKED:** the scoped requirement cannot be validly decided because a required precondition, supported exercise/observation path, mandated evidence, or provenance is unavailable. Preserve any partial evidence and name the concrete blocker. `FAIL` remains reserved for a validly exercised contract that diverged.
+- **BLOCKED:** the scoped requirement cannot be validly decided because a required precondition, supported exercise/observation path, or explicitly mandated evidence is unavailable. Missing provenance alone is a limitation, not a functional failure or blocker, unless an applicable gate explicitly makes that provenance a decision prerequisite. Preserve partial evidence and name the concrete blocker. `FAIL` remains reserved for a validly exercised contract that diverged.
 
 If the local reporting system only supports `PASS`/`FAIL`/`BLOCKED`, preserve those fields and record composite or conditional acceptance separately as the gate disposition. Do not invent a runtime verdict or alter serialized result semantics to fit this policy.
 
 ## Governance and distinct decisions
 
-Read applicable IF-GOV, ADR, amendment, release, and certification gates before disposition. Contract-specific mandatory proof, candidate SHA, replay, consumer import/Play Mode, regression, cleanup, or compatibility requirements remain mandatory. Where wording conflicts or scope is ambiguous, preserve the stricter requirement and report the clause for explicit resolution; this policy cannot waive it.
+Read applicable IF-GOV, ADR, amendment, release, and certification gates before disposition. Contract-specific mandatory proof, candidate identity, replay, consumer import/Play Mode, regression, cleanup, or compatibility requirements remain mandatory. Provenance fields are mandatory only when a governing gate states them or their risk-based purpose is explicit. Where wording conflicts or scope is ambiguous, preserve the accepted gate, identify the exact clause, and use its amendment process; do not silently waive it or repeat execution only to reconstruct historical metadata.
 
 Keep distinct:
 
