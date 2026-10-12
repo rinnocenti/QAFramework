@@ -28,15 +28,15 @@ The existing EditMode record is [Evidence/NUnit-EditMode/manifest.json](Evidence
 
 ## Before a new run
 
-1. Create a unique execution ID and record scenario, contract, start/end times, branches, full SHAs, dirty state, Unity version and resolved Framework source/version at execution time.
-2. For a dirty checkout, record fingerprints of relevant changed/untracked files. A commit SHA alone does not identify dirty bytes.
-3. Capture the complete raw Unity log before scenario start. Preserve it unchanged and record its path and SHA-256.
-4. Keep each execution in its own evidence directory. Do not overwrite earlier failures or combine separate Play Mode sessions into one execution record.
+1. Record the scenario/property, result, known Unity and resolved Framework source/version, cleanup/restoration, and available revision. Keep independently meaningful scenario lanes and Play Mode sessions identifiable.
+2. Choose additional provenance for the gate and risk. Use the [provenance manifest template](provenance-manifest.template.json) when execution identity, exact candidate association, or a structured record is required or materially useful. Exact timestamps, full SHAs, dirty-state fingerprints, raw log preservation, and artifact hashes are not universal requirements; leave unknown fields unknown.
+3. Preserve raw logs when an applicable gate requires them or when needed to diagnose a failure or ambiguity. When an artifact hash is collected, it establishes the archived bytes only and does not prove which source/package bytes ran.
+4. Do not overwrite earlier failures or combine separate executions in a way that obscures their individual results.
 
 ## After a new run
 
 1. Save exact terminal lines, first causes, execution/unwind diagnostics and cleanup results. Do not synthesize PASS from individual stages.
-2. Complete a copy of the provenance template only with values observed for that execution. Verify file fingerprints and log hash against original bytes.
+2. If the provenance template is used, fill it only with values observed for that execution. Verify recorded fingerprints or artifact hashes against the original bytes; do not fabricate missing metadata.
 3. Keep OBSERVABLE and LEASE results separate, including when one passes and the other is blocked.
 4. Retain failed, blocked and superseded evidence; a later result does not rewrite the earlier run.
 
