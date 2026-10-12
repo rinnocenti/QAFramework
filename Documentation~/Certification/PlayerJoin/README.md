@@ -1,67 +1,45 @@
 # Player Join provenance and certification
 
-This procedure applies to QAFramework Manager-Provisioned Join runs. It records new executions only. User-reported NUnit EditMode and Slice 1 results are recorded as observed results with partial provenance; Slice 2–3 remain their earlier reported runs. No run is retroactively assigned a SHA or exact timestamp. I4 minimal has a prior user-observed PASS 1/1. I4.2 has a user-reported partial Play Mode run (4/8 observable checks before the Route oracle failure, baseline cleanup restored, lease result BLOCKED); the current Route oracle correction has not been rerun, so no complete I4.2 certification is claimed.
+This procedure records observed Manager-Provisioned Join executions without assigning retrospective execution metadata. Unity Test Runner and Play Mode results below were reported by the user; Codex did not execute Unity, NUnit, Play Mode or build. The original run bytes are not currently linked to these summaries, so provenance remains **partial**.
 
-The I4 scoped-binding scenario and current coverage state are documented in [IF-ADR-046 I4 — Scoped Join Binding](IF-ADR-046-I4-Scoped-Binding-Scenario.md). Separate Configure commands create QA-owned copies and do not modify Slice 1. I4.2 waits for the public Activity readiness snapshot before acquiring scoped Session observation and reports publication, access binding, and owner/occurrence identity separately.
+The current I4 evidence is summarized in [IF-ADR-046 I4 — Scoped Join Binding](IF-ADR-046-I4-Scoped-Binding-Scenario.md). Keep its two lanes separate:
 
-## I4 current implementation baseline
+- **OBSERVABLE** covers public lifecycle, current Join/Leave, stale public rejection, no unintended Session revision change and cleanup.
+- **LEASE** concerns internal validation of a stale lease. It remains **BLOCKED** where a destroyed Unity component returns before the lease comparison; this is not an OBSERVABLE failure and must not be reported as PASS.
 
-The I4.2 occurrence lane is generated separately with **Configure Occurrence Binding Fixture**. It exercises Activity A→B→A, Route A→B→A, owner Route replacement, current Join/Leave, stale public rejection/no-effects, and final cleanup. Route re-entry evidence uses the public Route lifecycle `Entered` context, exact Route asset, and fresh scene/component identities; Activity occurrence numbers remain a separate domain. It publishes independent `OBSERVABLE` and `LEASE` terminal results; the lease result is expected to remain `Blocked` because a destroyed trigger's public guard can reject before lease validation. Follow the I4 scenario document for the manual run order and evidence fields.
+I4 is **accepted by composite evidence with documented limitations**. P1 (the exact identity tuple captured by the real binder) and P2 (a real stale port's zero delegation to the Manager) are supported by static review, not demonstrated directly by test. The LEASE lane remains BLOCKED 3/3 as historical coverage; this is not converted to PASS and does not invalidate the proportional I4 acceptance. I4 acceptance opens I5 consumer migration under approved plan v3; it does not promote an API to Stable or authorize legacy entrypoint retirement.
 
-- Scenario ID: `IF-ADR-046-I4-MINIMAL`; one Activity-scoped Join/Leave case.
-- Configure: `Immersive Framework > QA > Player > IF-ADR-046 I4 > Configure Minimal Join Fixture`.
-- Before changing `Assets/_Project/Settings/ImmersiveFramework/Resources/ImmersiveFrameworkSettings.asset`, record its current `activeGameApplication`. Select `Assets/QA-IF-ADR-046/Settings/GameApplication_I4.asset`, open `Assets/QA-IF-ADR-046/Scenes/I4_Persistent.unity`, and enter a fresh Play Mode session. Restore the recorded application selection after the run.
-- The expected terminal prefix is `[QA-IF-ADR-046-I4]`. `PASS` is emitted only after the public Session snapshot is empty/closed, no Slot is reserved/joined/leaving, recorded Host evidence is absent, `PlayerInput.all` returns to its captured count, and the scenario Keyboard is removed.
-- `PASS` for this one case is not I4 certification. I4.2's earlier user-reported run reached four independent observable passes before the Route A→B→A oracle failed; the corrected Route oracle awaits a fresh run. Negative configuration, unavailable Manager and separate legacy regression remain pending.
-- Before execution, copy `I4-provenance-manifest.template.json` to a unique evidence directory and record the actual SHAs, dirty fingerprints, Unity version, resolved package, raw log hash, terminal line and cleanup. Do not assign those values to earlier executions.
+## Current observed evidence
 
-## Before each run
+| Run | User-reported result | Qualification |
+|---|---|---|
+| Framework EditMode | 291/291 PASS; PlayerParticipation 100/100; zero failures | Partial provenance; no execution SHA, timestamp, raw XML/log, artifact hash or exact executed workspace bytes associated. |
+| I4 minimal | PASS 1/1; `BaselineRestored` | Partial provenance; exact terminal/log and execution metadata are not associated. |
+| I4.2 OBSERVABLE | PASS 8/8; `BaselineRestored`; five Join/Leave outcomes `Joined/Admitted`; Activity and Route A→B→A reentries observed; three stale calls `RejectedUnavailable` without Session revision change | Public behavior as reported. Stale-call rejection is not evidence that internal lease validation ran. |
+| I4.2 LEASE | BLOCKED 3/3 | Destroyed-object guard prevents attributing the rejection to the internal lease comparison. |
 
-1. Create a unique execution ID (UTC timestamp plus a random UUID) and record the scenario/slice and covered contract.
-2. Record the full Framework and QAFramework commit SHAs, branch names, dirty state, and whether relevant uncommitted changes exist. Do not label a dirty checkout by commit SHA alone.
-3. Record the Framework `package.json` version, QAFramework Unity Editor version, manifest/lock source, and effective resolved Framework path. For this project the manifest resolves Framework through the local `file:C:/Projetos/ImmersivePackages/com.immersive.framework` path, so record both the commit and the dirty state/content fingerprint.
-4. For a dirty Framework checkout, record SHA-256 for each changed/untracked file under the relevant Runtime, Editor, and package test paths, plus a deterministic aggregate of sorted relative paths and file hashes. If that cannot be captured, set `provenanceCompleteness` to `partial`.
-5. Start raw log capture before opening the tested Play Mode scenario. Preserve the complete Unity Editor log or captured raw stream unchanged; record its relative path and SHA-256 after execution.
+The existing EditMode record is [Evidence/NUnit-EditMode/manifest.json](Evidence/NUnit-EditMode/manifest.json). It records only reported values and leaves execution-specific provenance unknown. The I4 provenance manifest is a **template**, not a record of these completed runs; do not fill it with guessed SHAs, timestamps, hashes, or synthetic terminal lines.
 
-## After each run
+## Before a new run
 
-1. Save the exact terminal line, including status, first cause, execution diagnostic and cleanup state. Do not synthesize PASS from individual stages.
-2. Record the run start/end timestamps, execution ID, scenario ID, contract IDs, raw log path/hash and terminal result in a copy of `provenance-manifest.template.json`.
-3. Verify the manifest SHAs and file fingerprints against the actual repositories and raw log. A Git commit SHA identifies a commit tree; it does not identify dirty bytes loaded by Unity.
-4. Keep each execution in its own directory, for example `CertificationEvidence/PlayerJoin/<execution-id>/`, with the completed manifest, raw log and terminal text. Do not overwrite earlier failures.
+1. Create a unique execution ID and record scenario, contract, start/end times, branches, full SHAs, dirty state, Unity version and resolved Framework source/version at execution time.
+2. For a dirty checkout, record fingerprints of relevant changed/untracked files. A commit SHA alone does not identify dirty bytes.
+3. Capture the complete raw Unity log before scenario start. Preserve it unchanged and record its path and SHA-256.
+4. Keep each execution in its own evidence directory. Do not overwrite earlier failures or combine separate Play Mode sessions into one execution record.
 
-## Certification coverage status
+## After a new run
 
-- Slice 1 has a user-reported `PASS 8/8` with unchanged revision on invalid Join, subsequent valid Join, Actor preparation/materialization, Leave and `BaselineRestored`. This execution predates the bridge rollback correction and has not been replayed afterward. It remains partial-provenance until original artifacts and hashes are associated in `Evidence/Slice1-PlayMode/`.
-- Slices 2–3 preserve their separately reported outcomes; their recorded results are not upgraded by this procedure.
-- A package-owned fake backend already exists as an internal seam: `LocalPlayerProvisioningBridge` accepts `ILocalPlayerProvisioningBackend`; the test assembly has `InternalsVisibleTo`. The user reports all nine `LocalPlayerProvisioningBridgeRollbackTests` passed after the internal callback compensation correction. Fake `RejectPlayer` records a compensation request; it does not certify real Unity destruction.
-- The user reports Unity Test Runner `229/229 PASS`, zero failures; PlayerParticipation `38/38`; `LocalPlayerJoinContractTests` `26/26`; `LocalPlayerProvisioningBridgeRollbackTests` `9/9`. This agent did not execute Unity or NUnit. The capture is in the conversation; execution metadata, bytes and SHA are not associated with the manifest, so provenance stays partial.
-- Real PlayerInputManager behavior and actual Unity object destruction timing remain unproven by fake-backend EditMode tests. Integrated `BaselineRestored` requires original evidence and a provenance-complete run.
+1. Save exact terminal lines, first causes, execution/unwind diagnostics and cleanup results. Do not synthesize PASS from individual stages.
+2. Complete a copy of the provenance template only with values observed for that execution. Verify file fingerprints and log hash against original bytes.
+3. Keep OBSERVABLE and LEASE results separate, including when one passes and the other is blocked.
+4. Retain failed, blocked and superseded evidence; a later result does not rewrite the earlier run.
 
-## Package-owned rollback matrix
+## Related evidence
 
-The user reports the nine tests in `LocalPlayerProvisioningBridgeRollbackTests` passed after the callback compensation fix. The fake verifies compensation requests, not physical Unity object destruction.
+- Slice 1 has an earlier user-reported PASS 8/8 and `BaselineRestored`; it predates the callback-compensation correction and was not replayed by this task.
+- The rollback EditMode suite previously reported by the user used a fake backend that records compensation requests; it does not certify physical Unity object destruction.
+- I4/I4.2 observations here are not linked retrospectively to the current QAFramework or Framework HEAD. Do not claim same-candidate certification from checkout state alone.
 
-| Failure point | Test / induced condition | Expected typed result and evidence | Session/physical cleanup assertion | Subsequent Join | State |
-|---|---|---|---|---|---|
-| Before reservation | `JoiningClosed_RejectsBeforeReservationOrBackendCall` | `RejectedJoiningClosed`; reservation operation result is rejected, no successful reservation/rollback evidence | Snapshot confirms Joining closed, unchanged revision/counts, zero reservations; backend untouched | Not needed for unchanged baseline | User-reported 9/9; `HasReservationEvidence` means a reservation result exists, not that a reservation was acquired |
-| After reservation | `BackendThrowsAfterReservation_RollsBackSlotAndReturnsTypedFailure` | `FailedAdmission`; successful reservation and rollback evidence; same method also induces stale token and expects `FailedRollback` | Successful rollback returns Available; stale-token case records failed rollback result; zero Reserved/Joined | Available after successful rollback; stale-token mutation was consumed by the competing Session owner | User-reported 9/9; stale-token failure is synthetic reentrant contention, not an ordinary backend failure |
-| During creation, after callback | `BackendCreatesCallbackPlayerThenThrows_RollsBackAndRequestsCompensation` | `FailedAdmission`; callback PlayerInput exact reference reaches fake `RejectPlayer`; reservation rollback succeeds | Session Available; Host not staged/joined; operation pending cleared. Fake records request only, not destruction | Available baseline supports retry; not retried in this test | User-reported 9/9; real Unity destruction not proven |
-| Destroyed PlayerInput reference | `DestroyedPlayerInputReferenceAfterCallback_IsRejectedAndReservationReleased` | `RejectedMissingPlayerInput`; successful reservation and rollback evidence | Session Available; fake destroys object with `DestroyImmediate` before returning it | Available baseline supports retry; not retried in this test | User-reported 9/9; EditMode fake-null branch only, not frame timing |
-| Null provisioning result and recovery | `BackendReturnsNullAfterReservation_RollsBackAndAllowsLaterJoin` | First `RejectedProvisioningReturnedNull` with rollback; next result `SucceededJoined` with commit/callback evidence | Snapshot after first failure is Available; next Join reaches Joined | Explicitly succeeds | User-reported 9/9 |
-| Callback correlation | `DifferentCallbackAndReturnedPlayerInputs_RollsBackAndRejectsBothInputs` | `RejectedCorrelationMismatch`, `RejectedDifferentPlayerInput`, successful rollback | Session Available; fake receives both distinct rejection requests | Available baseline supports retry; not retried in this test | User-reported 9/9; real Manager callback timing not proven |
-| Host missing/invalid | `MissingLocalPlayerHost_RollsBackAndRequestsCompensation`; `InvalidLocalPlayerHostConfiguration_RollsBackAndRequestsCompensation` | Typed Host rejection and successful rollback | Session Available; fake receives rejection request for provisioned input | Available baseline supports retry; not retried in these tests | User-reported 9/9; destruction timing not proven |
-| Session commit then Host commit failure | `HostCommitThrowsAfterSessionCommit_CompensatesHostSlotAndProvisionedPlayer` | `FailedAdmission`, successful Session commit evidence plus successful rollback evidence | Host not Joined, Session Available, fake receives input rejection request | Available baseline supports retry; not retried in this test | User-reported 9/9; fault is injected by a package-owned Session change listener |
-| Session commit itself fails | No test | The concrete Session context has no injectable commit collaborator; no runtime mutation or authority-corrupting fake added | Failure and cleanup semantics remain unproven | Unknown | Blocked by test seam |
-| Rollback itself fails | `BackendThrowsAfterReservation_RollsBackSlotAndReturnsTypedFailure` stale-token subcase | `FailedRollback`, original `FailedAdmission`, failed rollback result `RejectedForeignOrStaleReservation` | Competing Session mutation consumes the reservation first; bridge does not claim its recovery succeeded | Slot is Available due to competing release, not bridge rollback | User-reported 9/9; physical compensation failure remains unrepresented because backend rejection is `void` |
+## Manual validation
 
-The fake backend records calls to `RejectPlayer`; it deliberately does not claim Unity PlayerInputManager ownership or physical destruction. The new tests do not replace integrated Play Mode evidence.
-
-## Manual Unity validation still required
-
-1. Open QAFramework in Unity `6000.5.0f1` and rerun `LocalPlayerJoinContractTests` (26) and `LocalPlayerProvisioningBridgeRollbackTests` (9) from Test Runner; retain the user-reported 229/229 capture separately and save fresh NUnit XML/logs with execution provenance.
-2. Run the Slice 1 Configure command twice and inspect authoring validators/idempotence as described in the Slice README.
-3. Select the Slice 1 GameApplication, run a fresh Play Mode session, capture the raw Unity log from before scenario start through `[QA-PLAYER-SESSION-JOIN]`, then complete the manifest with the exact terminal.
-4. Repeat Slice 1 under the recorded baseline if its cleanup/composition has changed. Preserve any FAIL/BLOCKED run and its evidence; do not replace it with a later result.
-
-The 229/229 NUnit result and Slice 1 PASS above were reported by the user from Unity, not executed independently by this agent. Slice 1 remains pending replay after the bridge correction; integrated failure scenarios and real Unity physical destruction remain unproven.
+For a fresh run, use the Configure commands and lane-specific procedure in the [I4 scenario specification](IF-ADR-046-I4-Scoped-Binding-Scenario.md). Run minimal and occurrence fixtures in separate fresh Play Mode sessions; capture both I4.2 terminal lines and restore the previous GameApplication setting. Do not declare the internal lease lane passed based on a public `RejectedUnavailable` result.

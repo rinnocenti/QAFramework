@@ -29,27 +29,27 @@
     "unityEditorVersionCurrentlyDeclared": "6000.5.0f1"
   },
   "observedResult": {
-    "totalTestsPassed": 229,
+    "totalTestsPassed": 291,
     "totalTestsFailed": 0,
-    "playerParticipationTestsPassed": 38,
-    "localPlayerJoinContractTestsPassed": 26,
-    "localPlayerProvisioningBridgeRollbackTestsPassed": 9,
-    "activityPlayerActorLeaveLedgerTestsPassed": 3,
+    "playerParticipationTestsPassed": 100,
+    "localPlayerJoinContractTestsPassed": null,
+    "localPlayerProvisioningBridgeRollbackTestsPassed": null,
+    "activityPlayerActorLeaveLedgerTestsPassed": null,
     "resultStatus": "PASS",
-    "runtimeCorrectionIncluded": true,
-    "qualification": "User-reported 229/229 PASS after the LocalPlayerProvisioningBridge callback-compensation correction; not independently executed by Codex. Execution SHA, exact timestamp, original XML/log and capture file hash are not associated, so provenance remains partial."
+    "runtimeCorrectionIncluded": null,
+    "qualification": "Latest user-reported Unity Test Runner result: EditMode 291/291 PASS, PlayerParticipation 100/100 PASS, zero failures. Suite-level breakdown beyond PlayerParticipation was not supplied. Not independently executed by Codex. Execution SHA, exact timestamp, original XML/log, capture file hash and exact executed workspace bytes are not associated, so provenance remains partial."
   },
   "rawExecutionLog": {
     "path": null,
     "sha256": null,
-    "artifactState": "Original NUnit XML/log not copied into this repository; add unchanged files and hashes to originals/ if available."
+    "artifactState": "No original NUnit XML/log or hash is associated with the latest reported execution. Add unchanged originals and hashes only if supplied; do not reconstruct them from the summary."
   },
   "additionalArtifacts": [
     {
       "kind": "test-runner-capture",
       "path": null,
       "sha256": null,
-      "artifactState": "Capture was supplied in the conversation; no local original file or SHA is associated with this record. Copy unchanged to originals/ if available."
+      "artifactState": "The result was reported by the user; no original capture file or SHA is associated with the latest result. Copy unchanged to originals/ only if available."
     }
   ]
 }
