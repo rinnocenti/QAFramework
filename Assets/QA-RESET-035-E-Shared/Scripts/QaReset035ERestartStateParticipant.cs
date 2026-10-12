@@ -12,7 +12,6 @@ namespace Immersive.QaFramework.Reset035E
         private bool _failNextReset;
 
         public event Action<int, int, bool> ResetExecuted;
-        public string ResetParticipantId => "qa-reset-035-e.route-survivor";
         public int BaselineValue => baselineValue;
         public int CurrentValue { get => currentValue; set => currentValue = value; }
         public int ResetCount { get; private set; }
