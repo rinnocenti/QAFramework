@@ -22,7 +22,9 @@ MonoBehaviour:
   cameraSession:
     outputPrefabs:
     - {fileID: 627951520136573394, guid: 92030000000000000000000000000003, type: 3}
-  sessionCameraAssignments: []
+  startupCameraAssignments: []
   persistentContent:
+    scenePath: Assets/QA-NEW-002/Scenes/QA_NEW_002_Persistent.unity
+    sceneName: QA_NEW_002_Persistent
     containerScene: {fileID: 102900000, guid: 92020000000000000000000000000001, type: 3}
   validationMode: 1

@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc5a9db0ceea4bf1beb9fdc048b40995, type: 3}
   m_Name: CameraBehavior_QaIfAdr042_Group
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.CameraAuthoring.GroupCameraRigBehaviorDefinition
+  followRequirement: 20
   lookAtRequirement: 10
   followOffset: {x: 0, y: 5, z: -8}
   memberWeight: 1.25

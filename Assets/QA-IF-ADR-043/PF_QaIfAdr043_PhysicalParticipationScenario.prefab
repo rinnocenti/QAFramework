@@ -45,8 +45,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Immersive.QaFramework.IfAdr043.QaIfAdr043PhysicalParticipationScenario
   gameApplication: {fileID: 11400000, guid: 0d71bd9987491ae4f8f99144db90c241, type: 2}
-  provisioning: {fileID: 0}
-  provisioningRegistration: {fileID: 0}
+  routeSessionObserver: {fileID: 0}
+  joinTrigger: {fileID: 0}
   outputEvidence: {fileID: 11400000, guid: 18a1f545221f7e44ba78b1c40eaadc90, type: 2}
   player1: {fileID: 11400000, guid: 24da17810cf0a624e9172c2ff1801fbc, type: 2}
   player2: {fileID: 11400000, guid: 8105947cea1d04846abafd172c8ab653, type: 2}

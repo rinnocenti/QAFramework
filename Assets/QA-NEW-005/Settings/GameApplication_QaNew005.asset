@@ -24,5 +24,7 @@ MonoBehaviour:
     - {fileID: 627951520136573394, guid: a113f6097d4b48eaa125397407f8da62, type: 3}
   startupCameraAssignments: []
   persistentContent:
+    scenePath: Assets/QA-NEW-005/Scenes/QA_NEW_005_Persistent.unity
+    sceneName: QA_NEW_005_Persistent
     containerScene: {fileID: 102900000, guid: c85fd4cf7e6eefa46abb8dce47c935c0, type: 3}
   validationMode: 1

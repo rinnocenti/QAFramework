@@ -26,5 +26,7 @@ MonoBehaviour:
   startupCameraAssignments:
   - {fileID: 11400000, guid: f086a095babaa2947b8910499fb9c9d6, type: 2}
   persistentContent:
+    scenePath: Assets/QA-IF-ADR-043/Scenes/QA_IF_ADR_043_Persistent.unity
+    sceneName: QA_IF_ADR_043_Persistent
     containerScene: {fileID: 102900000, guid: 002e975497389c04aa0ca2fbcd858a8c, type: 3}
   validationMode: 1

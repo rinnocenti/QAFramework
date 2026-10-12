@@ -340,7 +340,7 @@ namespace Immersive.QaFramework.IfAdr044
             int readerCount = 0;
             for (int frame = 0; frame < frameBudget; frame++)
             {
-                PlayerGameplayInputReader[] readers = joined.LocalPlayerHost.GetComponentsInChildren<PlayerGameplayInputReader>(true);
+                PlayerGameplayInputReader[] readers = joined.Host.GetComponentsInChildren<PlayerGameplayInputReader>(true);
                 readerCount = readers.Length;
                 if (readerCount > 1)
                 {

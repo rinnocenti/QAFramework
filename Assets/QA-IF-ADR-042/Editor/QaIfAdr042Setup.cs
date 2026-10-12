@@ -73,8 +73,8 @@ namespace Immersive.QaFramework.IfAdr042.Editor
             ActivityContentProfileAsset activityContent = CreateActivityContentProfile();
             ActivityAsset activity = CreateActivity(activityContent);
             RouteAsset route = CreateRoute(activity);
-            // Match the working IF-ADR-043 setup: compose the Route scene immediately
-            // from the Route asset just created, then reload and validate its saved scene.
+            // Create the Route contribution scaffold first. Route-scoped consumers are
+            // added later, then the complete composition is validated at the end.
             CreateRouteScene();
             route = LoadAsset<RouteAsset>(RouteAssetPath);
             if (route == null || !route.HasPrimaryScene ||
@@ -446,8 +446,6 @@ namespace Immersive.QaFramework.IfAdr042.Editor
                     throw new InvalidOperationException("Could not save IF-ADR-042 Route scene.");
             }
             finally { EditorSceneManager.RestoreSceneManagerSetup(previous); }
-
-            ValidateRouteScene();
         }
 
         private static void CreateActivityScene()
@@ -774,7 +772,7 @@ namespace Immersive.QaFramework.IfAdr042.Editor
         private static void ValidateRouteScene()
         {
             SceneSetup[] previousSetup = EditorSceneManager.GetSceneManagerSetup();
-            Scene scene = OpenFreshSceneForValidation(RouteScene);
+            Scene scene = OpenSceneForValidation(RouteScene);
             try
             {
                 RouteAsset route = LoadAsset<RouteAsset>(RouteAssetPath);
@@ -782,13 +780,36 @@ namespace Immersive.QaFramework.IfAdr042.Editor
                 PlayerSessionObserver[] observers = FindComponents<PlayerSessionObserver>(scene);
                 PlayerSessionJoinTrigger[] triggers = FindComponents<PlayerSessionJoinTrigger>(scene);
                 QaIfAdr042SharedGroupScenario[] scenarios = FindComponents<QaIfAdr042SharedGroupScenario>(scene);
-                if (contributions.Length != 1 || contributions[0].Route != route ||
-                    !contributions[0].HasExplicitLocalContentId || observers.Length != 1 ||
-                    observers[0].Scope != LocalPlayerProvisioningConsumerScope.Route ||
-                    triggers.Length != 1 || triggers[0].Scope != LocalPlayerProvisioningConsumerScope.Route ||
-                    scenarios.Length != 1 || !scenarios[0].isActiveAndEnabled)
+                var issues = new List<string>();
+                if (contributions.Length != 1)
+                    issues.Add("contributions=" + contributions.Length + " (expected exactly 1)");
+                else if (contributions[0] == null || contributions[0].Route != route ||
+                         !contributions[0].HasExplicitLocalContentId)
+                    issues.Add("the sole Route contribution is null, bound to a different Route, or lacks an explicit content ID");
+
+                if (observers.Length != 1)
+                    issues.Add("observers=" + observers.Length + " (expected exactly 1)");
+                else if (observers[0] == null || !observers[0].isActiveAndEnabled ||
+                         observers[0].Scope != LocalPlayerProvisioningConsumerScope.Route)
+                    issues.Add("the sole Observer is null/disabled or has scope='" +
+                        (observers[0] != null ? observers[0].Scope.ToString() : "<null>") + "' (expected enabled Route)");
+
+                if (triggers.Length != 1)
+                    issues.Add("joinTriggers=" + triggers.Length + " (expected exactly 1)");
+                else if (triggers[0] == null || !triggers[0].isActiveAndEnabled ||
+                         triggers[0].Scope != LocalPlayerProvisioningConsumerScope.Route)
+                    issues.Add("the sole Join trigger is null/disabled or has scope='" +
+                        (triggers[0] != null ? triggers[0].Scope.ToString() : "<null>") + "' (expected enabled Route)");
+
+                if (scenarios.Length != 1)
+                    issues.Add("scenarios=" + scenarios.Length + " (expected exactly 1)");
+                else if (scenarios[0] == null || !scenarios[0].isActiveAndEnabled)
+                    issues.Add("the sole Scenario is null or disabled");
+
+                if (issues.Count > 0)
                 {
-                    throw new InvalidOperationException("IF-ADR-042 setup validation failed: Route scene must own the contribution, one Route-scoped Observer, one Route-scoped Join trigger and one enabled Scenario.");
+                    throw new InvalidOperationException("IF-ADR-042 setup validation failed: Route composition invariant(s): " +
+                        string.Join("; ", issues) + ".");
                 }
                 SerializedObject scenario = new SerializedObject(scenarios[0]);
                 scenario.Update();
@@ -798,8 +819,7 @@ namespace Immersive.QaFramework.IfAdr042.Editor
             }
             finally
             {
-                if (scene.IsValid() && scene.isLoaded) EditorSceneManager.CloseScene(scene, true);
-                EditorSceneManager.RestoreSceneManagerSetup(previousSetup);
+                RestoreValidationSceneSetup(previousSetup, scene);
             }
         }
 
@@ -808,7 +828,8 @@ namespace Immersive.QaFramework.IfAdr042.Editor
             PlayerSlotProfile p2, ActorProfile replacement, SessionCameraAssignmentAsset assignment,
             QaIfAdr042SharedGroupEvidence evidence)
         {
-            Scene scene = OpenSceneForValidation(PersistentScene, out bool openedForValidation);
+            SceneSetup[] previousSetup = EditorSceneManager.GetSceneManagerSetup();
+            Scene scene = OpenSceneForValidation(PersistentScene);
             try
             {
                 LocalPlayerProvisioningAuthoring[] provisioning = FindComponents<LocalPlayerProvisioningAuthoring>(scene);
@@ -832,13 +853,13 @@ namespace Immersive.QaFramework.IfAdr042.Editor
                 if (application.DefaultPlayerSessionProfile != session)
                     throw new InvalidOperationException("IF-ADR-042 setup validation failed: Persistent provisioning and Game Application do not share the generated Player Session baseline.");
             }
-            finally { if (openedForValidation) EditorSceneManager.CloseScene(scene, false); }
+            finally { RestoreValidationSceneSetup(previousSetup, scene); }
         }
 
         private static void ValidateActivityScene()
         {
             SceneSetup[] previousSetup = EditorSceneManager.GetSceneManagerSetup();
-            Scene scene = OpenFreshSceneForValidation(ActivityScene);
+            Scene scene = OpenSceneForValidation(ActivityScene);
             try
             {
                 ActivityAsset activity = LoadAsset<ActivityAsset>(ActivityAssetPath);
@@ -875,29 +896,30 @@ namespace Immersive.QaFramework.IfAdr042.Editor
             }
             finally
             {
-                if (scene.IsValid() && scene.isLoaded) EditorSceneManager.CloseScene(scene, true);
-                EditorSceneManager.RestoreSceneManagerSetup(previousSetup);
+                RestoreValidationSceneSetup(previousSetup, scene);
             }
         }
 
-        private static Scene OpenFreshSceneForValidation(string path)
-        {
-            Scene existing = SceneManager.GetSceneByPath(path);
-            if (existing.IsValid() && existing.isLoaded)
-                EditorSceneManager.CloseScene(existing, true);
-            return EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
-        }
-
-        private static Scene OpenSceneForValidation(string path, out bool openedForValidation)
+        private static Scene OpenSceneForValidation(string path)
         {
             Scene scene = SceneManager.GetSceneByPath(path);
             if (scene.IsValid() && scene.isLoaded)
-            {
-                openedForValidation = false;
                 return scene;
-            }
-            openedForValidation = true;
             return EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
+        }
+
+        private static void RestoreValidationSceneSetup(SceneSetup[] previousSetup, Scene validationScene)
+        {
+            if (previousSetup != null && previousSetup.Any(setup => setup.isLoaded))
+            {
+                EditorSceneManager.RestoreSceneManagerSetup(previousSetup);
+                return;
+            }
+
+            // A Unity Editor session normally has a loaded scene. If it does not,
+            // keep the validation scene open rather than asking Unity to unload its last scene.
+            if (validationScene.IsValid() && validationScene.isLoaded)
+                SceneManager.SetActiveScene(validationScene);
         }
 
         private static void ValidateBuildSettingsScene(string path)

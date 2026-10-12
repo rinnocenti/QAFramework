@@ -236,14 +236,6 @@ namespace Immersive.QaFramework.IfAdr042
                 return false;
             }
 
-            ActorCameraSubjectAuthoring subject = host.PlayerActorRuntimeHostPrefab
-                .GetComponent<ActorCameraSubjectAuthoring>();
-            if (subject == null || !subject.TryValidateConfiguration(out issue))
-            {
-                issue = "Player Actor Runtime Host must carry an explicit valid Actor Camera Subject on its Actor root. " + issue;
-                return false;
-            }
-
             if (!player1.DefaultActorProfile || !player2.DefaultActorProfile ||
                 !player1Replacement.TryGetActorProfileId(out _, out issue) ||
                 player1Replacement.ActorKind != ActorKind.Player ||
@@ -919,8 +911,9 @@ namespace Immersive.QaFramework.IfAdr042
 
         private IEnumerator CleanupAndPublish()
         {
+            string accessIssue = string.Empty;
             if (routeSessionObserver == null || !routeSessionObserver.IsAvailable ||
-                !routeSessionObserver.TryGetAccess(out _sessionAccess, out string accessIssue))
+                !routeSessionObserver.TryGetAccess(out _sessionAccess, out accessIssue))
             {
                 SetCleanupIssue("Route-scoped Player Session access is unavailable; public Leaves cannot be confirmed. " + accessIssue);
                 PublishTerminal(false);

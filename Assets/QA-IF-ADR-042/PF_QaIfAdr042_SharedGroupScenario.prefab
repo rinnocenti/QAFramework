@@ -45,8 +45,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Immersive.QaFramework.IfAdr042.QaIfAdr042SharedGroupScenario
   gameApplication: {fileID: 11400000, guid: 9927a2a637b89694b9303701b7af0d47, type: 2}
-  provisioning: {fileID: 0}
-  provisioningRegistration: {fileID: 0}
+  routeSessionObserver: {fileID: 0}
+  joinTrigger: {fileID: 0}
   evidence: {fileID: 11400000, guid: d7af2ce2f3f2ca748832beb0d77bc14d, type: 2}
   player1: {fileID: 11400000, guid: 99a871a0c81b8ad43906108a2971d4f4, type: 2}
   player2: {fileID: 11400000, guid: 1661144d89fc0fd4f91b0946ddecdd62, type: 2}
