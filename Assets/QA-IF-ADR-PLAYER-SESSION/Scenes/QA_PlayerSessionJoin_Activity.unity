@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &1787820044
+--- !u!1 &931709484
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,11 +127,11 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1787820049}
-  - component: {fileID: 1787820048}
-  - component: {fileID: 1787820047}
-  - component: {fileID: 1787820046}
-  - component: {fileID: 1787820045}
+  - component: {fileID: 931709489}
+  - component: {fileID: 931709488}
+  - component: {fileID: 931709487}
+  - component: {fileID: 931709486}
+  - component: {fileID: 931709485}
   m_Layer: 0
   m_Name: QA Player Session Activity Content
   m_TagString: Untagged
@@ -139,30 +139,30 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1787820045
+--- !u!114 &931709485
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1787820044}
+  m_GameObject: {fileID: 931709484}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1bf488d7bcff454a8921db0b643d9cde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Immersive.QaFramework.PlayerSession.QaPlayerSessionJoinScenario
-  sessionObserver: {fileID: 1787820047}
-  joinTrigger: {fileID: 1787820046}
+  sessionObserver: {fileID: 931709487}
+  joinTrigger: {fileID: 931709486}
   expectedSlot: {fileID: 11400000, guid: 52a71563f23601c42af4f63a9e59615a, type: 2}
   expectedDefaultActor: {fileID: 11400000, guid: c1e412561c886c74d9c59b8dc08753a4, type: 2}
   frameBudget: 600
---- !u!114 &1787820046
+--- !u!114 &931709486
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1787820044}
+  m_GameObject: {fileID: 931709484}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5b9a5ffbb42643c3ab9ba6af6c43198d, type: 3}
@@ -171,13 +171,13 @@ MonoBehaviour:
   scope: 20
   reason: 
   controlScheme: QA.Keyboard
---- !u!114 &1787820047
+--- !u!114 &931709487
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1787820044}
+  m_GameObject: {fileID: 931709484}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 44d40c4cca356b446bf782279981c9dc, type: 3}
@@ -205,13 +205,13 @@ MonoBehaviour:
   onActorCleared:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &1787820048
+--- !u!114 &931709488
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1787820044}
+  m_GameObject: {fileID: 931709484}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7b946bb8df6944fdb886d3433c93d6b4, type: 3}
@@ -220,13 +220,13 @@ MonoBehaviour:
   activity: {fileID: 11400000, guid: 3ee71fbe06c459a41b8c6436c021c699, type: 2}
   localContentId: qa.player.session.activity.main
   requiredness: 10
---- !u!4 &1787820049
+--- !u!4 &931709489
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1787820044}
+  m_GameObject: {fileID: 931709484}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -239,4 +239,4 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1787820049}
+  - {fileID: 931709489}
