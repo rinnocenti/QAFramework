@@ -7,18 +7,21 @@ The current I4 evidence is summarized in [IF-ADR-046 I4 — Scoped Join Binding]
 - **OBSERVABLE** covers public lifecycle, current Join/Leave, stale public rejection, no unintended Session revision change and cleanup.
 - **LEASE** concerns internal validation of a stale lease. It remains **BLOCKED** where a destroyed Unity component returns before the lease comparison; this is not an OBSERVABLE failure and must not be reported as PASS.
 
-I4 is **accepted by composite evidence with documented limitations**. P1 (the exact identity tuple captured by the real binder) and P2 (a real stale port's zero delegation to the Manager) are supported by static review, not demonstrated directly by test. The LEASE lane remains BLOCKED 3/3 as historical coverage; this is not converted to PASS and does not invalidate the proportional I4 acceptance. I4 acceptance opens I5 consumer migration under approved plan v3; it does not promote an API to Stable or authorize legacy entrypoint retirement.
+I4 is **accepted by composite evidence with documented limitations**. P1 (the exact identity tuple captured by the real binder) and P2 (a real stale port's zero delegation to the Manager) are supported by static review, not demonstrated directly by test. The LEASE lane remains BLOCKED 3/3 as historical coverage; this is not converted to PASS and does not invalidate the proportional I4 acceptance. I5 migration and legacy Join entrypoint retirement have since been completed; neither action promotes an API to Stable. The final regression and consumer observations are recorded below with their provenance limits.
 
 ## Current observed evidence
 
 | Run | User-reported result | Qualification |
 |---|---|---|
-| Framework EditMode | 291/291 PASS; PlayerParticipation 100/100; zero failures | Partial provenance; no execution SHA, timestamp, raw XML/log, artifact hash or exact executed workspace bytes associated. |
+| Framework EditMode, after legacy entrypoint removal | 292/292 PASS; PlayerParticipation 101/101; zero failures | User-reported against the post-removal candidate; partial provenance, with no execution SHA, timestamp, raw XML/log, artifact hash or exact executed workspace bytes associated. |
 | I4 minimal | PASS 1/1; `BaselineRestored` | Partial provenance; exact terminal/log and execution metadata are not associated. |
 | I4.2 OBSERVABLE | PASS 8/8; `BaselineRestored`; five Join/Leave outcomes `Joined/Admitted`; Activity and Route A→B→A reentries observed; three stale calls `RejectedUnavailable` without Session revision change | Public behavior as reported. Stale-call rejection is not evidence that internal lease validation ran. |
 | I4.2 LEASE | BLOCKED 3/3 | Destroyed-object guard prevents attributing the rejection to the internal lease comparison. |
+| Post-removal QA regression: IF-ADR-042/043/044 | 22/22 PASS: 042 7/7, 043 7/7, 044 8/8; all `BaselineRestored`, cleanup 3/3 | User-reported after legacy entrypoint removal, with partial provenance; no retrospective SHA or raw log association. |
 
-The existing EditMode record is [Evidence/NUnit-EditMode/manifest.json](Evidence/NUnit-EditMode/manifest.json). It records only reported values and leaves execution-specific provenance unknown. The I4 provenance manifest is a **template**, not a record of these completed runs; do not fill it with guessed SHAs, timestamps, hashes, or synthetic terminal lines.
+The FirstGame Local Multiplayer flow was also reported functional after migration: keyboard/mouse and simulated gamepad Join, correct observed Slots/indices, Actor preparation, gameplay readiness, Leave and Rejoin. This consumer evidence is recorded by the Framework tracker; Character Selection was not independently validated. Neither consumer result supplies execution-byte provenance.
+
+The existing EditMode record is [Evidence/NUnit-EditMode/manifest.json](Evidence/NUnit-EditMode/manifest.json); its 291/291 and 100/100 values are an earlier historical report and are not overwritten. The later 292/292 and 101/101 summary has no raw execution artifact or execution metadata to attach, so no new manifest entry is fabricated. The I4 provenance manifest is a **template**, not a record of these completed runs; do not fill it with guessed SHAs, timestamps, hashes, or synthetic terminal lines.
 
 ## Before a new run
 
@@ -38,7 +41,7 @@ The existing EditMode record is [Evidence/NUnit-EditMode/manifest.json](Evidence
 
 - Slice 1 has an earlier user-reported PASS 8/8 and `BaselineRestored`; it predates the callback-compensation correction and was not replayed by this task.
 - The rollback EditMode suite previously reported by the user used a fake backend that records compensation requests; it does not certify physical Unity object destruction.
-- I4/I4.2 observations here are not linked retrospectively to the current QAFramework or Framework HEAD. Do not claim same-candidate certification from checkout state alone.
+- I4/I4.2 and post-removal regression observations here are not linked retrospectively to exact QAFramework or Framework bytes. The user reported the latter as post-removal candidate results, but no SHA/log/hash was captured; do not claim immutable same-candidate certification from checkout state alone.
 
 ## Manual validation
 
