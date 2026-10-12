@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a35fe899a80d2d64dac72e8bfe3079df, type: 3}
+  m_Name: Route_I4_Binding_B
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.RouteAsset
+  routeId: qa.if-adr-046.i4.binding.route-b
+  routeName: QA IF-ADR-046 I4 Binding Route B
+  primaryScenePath: Assets/QA-IF-ADR-046/OccurrenceBinding/Scenes/I4_Binding_Route_B.unity
+  primarySceneName: I4_Binding_Route_B
+  routeContentProfile: {fileID: 0}
+  startupActivity: {fileID: 11400000, guid: f73323d1a119e1848abb4a07f28f3a8b, type: 2}
+  playerSpatialEntryPolicy: 0
+  transitionGateMode: 30
+  description: 

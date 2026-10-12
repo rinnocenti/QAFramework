@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "executionKind": "PlayMode",
+  "executionId": "<unique-uuid-and-utc-start>",
+  "scenarioIds": [
+    "IF-ADR-046-I4-MINIMAL",
+    "IF-ADR-046-I4.2-SCOPED-BINDING-OBSERVABLE",
+    "IF-ADR-046-I4.2-SCOPED-BINDING-LEASE"
+  ],
+  "contractCovered": [
+    "I4-activity-scoped-join-leave",
+    "I4.2-activity-a-b-a",
+    "I4.2-route-a-b-a",
+    "I4.2-owner-route-change",
+    "I4.2-current-binding-join-leave",
+    "I4.2-stale-public-rejection-no-effects",
+    "I4.2-internal-lease-validation-blocked"
+  ],
+  "startedAtUtc": "<ISO-8601>",
+  "finishedAtUtc": "<ISO-8601>",
+  "provenanceCompleteness": "partial",
+  "framework": {
+    "repository": "C:/Projetos/ImmersivePackages/com.immersive.framework",
+    "commitSha": "325b73af06fd3fc7d273b6f7b5729dc92f7b9103",
+    "branch": "master",
+    "dirty": false,
+    "packageVersion": "1.1.0-preview.7",
+    "resolvedPath": "C:/Projetos/ImmersivePackages/com.immersive.framework",
+    "changedRelevantFiles": [],
+    "relevantContentFingerprintSha256": ""
+  },
+  "qaFramework": {
+    "repository": "C:/Projetos/QAFramework",
+    "commitSha": "6bb7d12aa22353041024742a03de9b121fc3e85b",
+    "branch": "main",
+    "dirty": true,
+    "unityEditorVersion": "6000.5.0f1",
+    "changedRelevantFiles": [
+      { "relativePath": "Assets/QA-IF-ADR-046/Editor/QaIfAdr046Setup.cs", "sha256": "<capture-before-run>" },
+      { "relativePath": "Assets/QA-IF-ADR-046/Scripts/QaIfAdr046JoinScenario.cs", "sha256": "<capture-before-run>" },
+      { "relativePath": "Assets/QA-IF-ADR-046/Editor/QaIfAdr046ScopedBindingSetup.cs", "sha256": "<capture-before-run>" },
+      { "relativePath": "Assets/QA-IF-ADR-046/Scripts/QaIfAdr046ScopedBindingScenario.cs", "sha256": "<capture-before-run>" },
+      { "relativePath": "Assets/QA-IF-ADR-046/OccurrenceBinding/Settings/", "sha256": "<capture-after-configure-each-asset>" },
+      { "relativePath": "Assets/QA-IF-ADR-046/OccurrenceBinding/Scenes/", "sha256": "<capture-after-configure-each-scene-and-meta>" },
+      { "relativePath": "Documentation~/Certification/PlayerJoin/IF-ADR-046-I4-Scoped-Binding-Scenario.md", "sha256": "<capture-before-run>" },
+      { "relativePath": "Documentation~/Certification/PlayerJoin/README.md", "sha256": "<capture-before-run>" }
+    ],
+    "relevantContentFingerprintSha256": "<capture-before-run>"
+  },
+  "fixture": {
+    "minimalGameApplication": "Assets/QA-IF-ADR-046/Settings/GameApplication_I4.asset",
+    "occurrenceGameApplication": "Assets/QA-IF-ADR-046/OccurrenceBinding/Settings/GameApplication_I4_ScopedBinding.asset",
+    "occurrenceScenes": [
+      "Assets/QA-IF-ADR-046/OccurrenceBinding/Scenes/I4_Binding_Persistent.unity",
+      "Assets/QA-IF-ADR-046/OccurrenceBinding/Scenes/I4_Binding_Route_A.unity",
+      "Assets/QA-IF-ADR-046/OccurrenceBinding/Scenes/I4_Binding_Route_B.unity",
+      "Assets/QA-IF-ADR-046/OccurrenceBinding/Scenes/I4_Binding_Activity_A.unity",
+      "Assets/QA-IF-ADR-046/OccurrenceBinding/Scenes/I4_Binding_Activity_B.unity"
+    ]
+  },
+  "rawExecutionLog": {
+    "path": "<relative-path>",
+    "sha256": ""
+  },
+  "additionalArtifacts": [],
+  "terminals": [
+    { "scenarioId": "IF-ADR-046-I4-MINIMAL", "status": "NOT_RUN", "exactLine": "", "firstCause": "", "cleanup": "NOT_RUN" },
+    { "scenarioId": "IF-ADR-046-I4.2-SCOPED-BINDING-OBSERVABLE", "status": "NOT_RUN", "exactLine": "", "firstCause": "", "cleanup": "NOT_RUN" },
+    { "scenarioId": "IF-ADR-046-I4.2-SCOPED-BINDING-LEASE", "status": "NOT_RUN", "expectedStatus": "BLOCKED", "exactLine": "", "firstCause": "", "cleanup": "NOT_RUN" }
+  ]
+}

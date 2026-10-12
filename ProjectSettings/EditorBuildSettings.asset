@@ -152,6 +152,30 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/QA-IF-ADR-PLAYER-SESSION/Scenes/QA_PlayerSessionJoin_Persistent.unity
     guid: 9ec3feb519f5d8846ae31d17d0178c6e
+  - enabled: 1
+    path: Assets/QA-IF-ADR-046/Scenes/I4_Persistent.unity
+    guid: 52a740dd90340ee4c9fd02932c8d66c9
+  - enabled: 1
+    path: Assets/QA-IF-ADR-046/Scenes/I4_Activity_A.unity
+    guid: eacdc9721bbe8da40852749a2be6f24e
+  - enabled: 1
+    path: Assets/QA-IF-ADR-046/Scenes/I4_Route_A.unity
+    guid: 9f72b4ea04182aa43ac2eea6af9b5766
+  - enabled: 1
+    path: Assets/QA-IF-ADR-046/OccurrenceBinding/Scenes/I4_Binding_Persistent.unity
+    guid: 4ed7fe816747a0a45b07579907abeba1
+  - enabled: 1
+    path: Assets/QA-IF-ADR-046/OccurrenceBinding/Scenes/I4_Binding_Route_A.unity
+    guid: 30a44f5060539ad49b394bc7671a7df8
+  - enabled: 1
+    path: Assets/QA-IF-ADR-046/OccurrenceBinding/Scenes/I4_Binding_Route_B.unity
+    guid: 6a1380befbe4081459f8a6d7b4406e0f
+  - enabled: 1
+    path: Assets/QA-IF-ADR-046/OccurrenceBinding/Scenes/I4_Binding_Activity_A.unity
+    guid: ff24dd04d64744d42bf27b21c9849aa9
+  - enabled: 1
+    path: Assets/QA-IF-ADR-046/OccurrenceBinding/Scenes/I4_Binding_Activity_B.unity
+    guid: 5c9a943eeda16354cba920ed561fb1d3
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

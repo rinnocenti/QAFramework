@@ -1,88 +1,46 @@
-# IF-ADR-046 I4 — Scoped Join Binding QA scenario proposal
+# IF-ADR-046 I4 — Scoped Join Binding QA scenario
 
-Status: **Proposed; no QA implementation authorized in this task**  
-Owner: **QAFramework**  
-Framework decision: [IF-ADR-046](../../../../ImmersivePackages/com.immersive.framework/Documentation~/Architecture/ADRs/IF-ADR-046-Stable-Manager-Provisioned-Player-Join-Boundary.md)  
-Execution route: [Framework IF-PLAN-ADR-046 v2](../../../../ImmersivePackages/com.immersive.framework/Documentation~/Architecture/Plans/IF-PLAN-ADR-046-STABLE-MANAGER-PROVISIONED-PLAYER-JOIN.v2.md)
+Status: **I4 minimal result previously user-observed; I4.2 partial run observed by user; Route oracle correction awaits Unity rerun**
+Owner: **QAFramework**
+Framework candidate: `325b73af06fd3fc7d273b6f7b5729dc92f7b9103`
 
-## Purpose and boundary
+## Fixture lanes
 
-Certify the public behavior of `PlayerSessionJoinTrigger` together with the Framework's scoped occurrence binding after I3 exists. This is a QAFramework scenario proposal for I4, not a new contract authority and not permission to implement I3 or the QA scenario. The internal `PlayerSessionJoinBindingLease` and `ValidateCurrent` remain package-owned and invisible to QA.
+The independent minimal lane remains `Assets/QA-IF-ADR-046/` and is configured with **Immersive Framework/QA/Player/IF-ADR-046 I4/Configure Minimal Join Fixture**. It uses the Activity-scoped Join scenario and retains its prior user-observed `PASS 1/1`, `outcome=Joined`, `sessionRestored=True`, `cleanup=BaselineRestored`. That observation predates I4.2 and is not a result for the new occurrence cases.
 
-Package/NUnit remains responsible for deterministic mapping and internal mechanics. QAFramework validates the product through its real bootstrap, authored scenes, public calls, public outcomes, Session observations and Unity-owned physical resources. It does not claim a literal zero count of internal bridge invocations unless a separately retained package test proves that detail.
+The separate occurrence lane is generated under `Assets/QA-IF-ADR-046/OccurrenceBinding/` by **Immersive Framework/QA/Player/IF-ADR-046 I4/Configure Occurrence Binding Fixture**. It has its own GameApplication, Route A/B, Activity A/B, Persistent Content scene and five registered scenes. Both Configure commands preserve unrelated Editor Build Settings entries, deduplicate only their own scene paths, enable their own scenes, validate scene names/paths and asset links, and log `Configured` only after postflight succeeds. A failure throws a path-specific diagnostic and does not log successful setup.
 
-## Concrete infrastructure to reuse
+Run the minimal and occurrence lanes independently in fresh Play Mode sessions. Both require selecting their respective GameApplication in `ImmersiveFrameworkSettings`. Slice 1 remains outside these setup commands and its scenes are not removed or rewritten.
 
-The existing Slice 1 at `Assets/QA-IF-ADR-PLAYER-SESSION/` already authors a `GameApplication`, Manager-Provisioned Session/P1 Slot, Player Host prefab, explicit Persistent Content PlayerInputManager/endpoint registration, required technical Camera Output, and Route/Activity scenes. Its Configure command is idempotent and preserves unrelated `EditorBuildSettings.scenes`. Keep its GameApplication, scenario and expected 8-case contract unchanged.
+## I4.2 observable cases
 
-Reuse its authoring conventions and share its validated Session/Slot/Host/Camera/Persistent assets only where a separate GameApplication can safely reference them without changing Slice 1's ownership or baseline. Add a separate QA-owned configuration/scenario area for IF-ADR-046, with its own Route/Activity assets and scenes. Do not add cases to Slice 1 or let Slice 1 setup delete/repair I4 assets.
+`QaIfAdr046ScopedBindingScenario` runs from Persistent Content and uses public `RouteRequestTrigger`, `ActivityRequestTrigger`, `PlayerSessionJoinTrigger`, Session observation and Unity device/scene APIs. It does not access lease internals, use reflection, or introduce another Join authority.
 
-Reuse two current causal patterns:
+The observable terminal counts eight checks: five current-occurrence Join/Leave cycles (Activity A1, Route A1, Activity A2, Route A2, Activity after owner change) and three lifecycle/rejection checks (Activity A→B→A, Route A→B→A, and Activity invalidation after owning Route replacement). It records Activity occurrence numbers separately from Route entry evidence, plus scene handles, exact asset identity, current Join outcomes, stale public outcomes and cleanup evidence. `Joined` is checked alongside one joined Slot, confirmed Manager-Provisioned Host evidence and `PlayerInput`; Leave must report physical provisioning released and terminal committed. Each terminal cleanup checks empty/closed Session, no Host evidence, baseline `PlayerInput` and Input System device counts, plus Route A / Activity A restoration.
 
-- `Assets/QA-NEW-003/Scripts/QaNew003RouteReplacementScenario.cs` for public Route request ordering, A→B→A, scene lifecycle evidence, frame budgets and restoration.
-- `Assets/QA-NEW-002/Scripts/QaNew002ControlledActivityReadinessScenario.cs` for Activity replacement/re-entry occurrence observation, pending/terminal ordering and independent cleanup evidence.
+### User-observed partial run
 
-These examples are patterns only; their runtime contracts and current assets must be rechecked against the exact resolved Framework before I4 implementation.
+The user reports a Play Mode run with bootstrap PASS; Activity A1 Join/Leave PASS; Route A1 Join/Leave PASS; Activity A→B→A PASS at Activity occurrence `1→3`; Activity A2 Join/Leave PASS; then Route A→B→A failed at `4/8`. Both Route transitions completed `Succeeded`, a new Activity A was published at Activity occurrence `7`, cleanup reported `BaselineRestored`, and the independent lease terminal remained `BLOCKED` with one old call observed. The old Route failure terminal did not include the component values from its compound predicate, so it cannot establish which individual check failed. These user-observed results are preserved as partial evidence only; they are not retroactively associated with a SHA, timestamp or artifact, and this correction has not been run in Unity.
 
-**Smallest proposed extension:** add an isolated `Assets/QA-IF-ADR-046/` owner with an idempotent `Editor/QaIfAdr046ScopedBindingSetup.cs`, a Persistent Content orchestrator in `Scripts/QaIfAdr046ScopedBindingScenario.cs`, and dedicated `Settings/` plus `Scenes/` for Route A/B, Activity A/B, and the Persistent Content composition. The dedicated GameApplication references the already validated Session/Slot/Host/Camera configuration where ownership permits. Keep the Manager endpoint and the orchestration object in the I4 Persistent scene so its lifetime spans transitions. A separate Manager-absent configuration omits the explicit registration and is run as an independent fresh boot. Keep Slice 1's generator and persisted scenes outside this extension. Do not create a general-purpose QA runner or shared runtime abstraction for these scenarios.
+The initial I4.2 failure came from treating four distinct states as one Boolean: missing Activity observer, not-yet-bound scoped access, an available observation without an Activity occurrence, and an owner/occurrence mismatch. `WaitForCurrentPair` previously synchronized only on loaded Route/Activity contributions, so scene composition could be visible before the scoped observer had received its binding. The scenario now waits for the public `ActivityReadinessEvents.LastSnapshot` to identify the exact Activity asset and a positive occurrence, then waits within the frame budget for `PlayerSessionObserver.TryGetAccess` and its public `IPlayerSessionScopedAccess.TryGetObservation` to converge on the same typed owner and occurrence. `NotReady` is accepted as a published Activity state; it is not interpreted as “Activity not started.” Timeout diagnostics report publication, observer binding state/diagnostic, observation availability, owner comparison and occurrence comparison separately. If readiness publishes an occurrence but the public Session observation omits it, the result is `BLOCKED` as a real public-observability gap; it is not counted as lease evidence. This QA-only synchronization uses no Framework internals, reflection or fabricated identity.
 
-The separate setup must be idempotent, validate exact serialized cardinalities and scene ownership, preserve unrelated Build Profile/Editor Scene List entries, and fail on ambiguous duplicate fixtures. Every new Unity-recognized file gets a `.meta`. A future test asmdef that consumes `InputDevice`, `Keyboard`, `PlayerInput`, or another Input System type must reference `Unity.InputSystem` directly; asmdef references do not propagate transitively.
+### Route A→B→A oracle
 
-## Scenario shape
+The previous compound predicate contained an inverted identity expectation: `!ReferenceEquals(routeJoinA1, routeJoinA2)` made the check fail when the reloaded Route A scene correctly supplied a new scene-owned `PlayerSessionJoinTrigger`. The old check also inferred scene re-entry solely from differing handles. The earlier terminal did not emit each predicate value, so its exact runtime subcondition cannot be reconstructed from that log; the contradictory trigger-identity requirement is the confirmed oracle defect.
 
-Use independent route-scope and activity-scope executions, each starting from a fresh valid GameApplication bootstrap and a known one-slot, Joining-closed, empty Session baseline. Separate runs avoid lifecycle contamination and keep each terminal causal.
+The revised check observes `SceneManager.sceneUnloaded` for the exact original Route A scene handle and `SceneManager.sceneLoaded` for the Route A path after that unload. It separately reports exact Route A asset reference, the observed unload/reload handles, an active `RouteContentLifecycleEvents.LastRouteContentContext` in `Entered` phase for the exact Route and `RouteContentContribution`, and new lifecycle/Join component instances. Scene handles are evidence of Unity scene instances, not a monotonic occurrence counter. The QA setup authors exactly one lifecycle observer on each generated Route contribution and validates the count. `ActivityReadinessSnapshot.Occurrence` remains reported only as Activity evidence and must advance independently; it is never used as a Route sequence.
 
-The orchestrator belongs to the QA-authored Persistent Content scene. It uses only public Route/Activity request mechanisms, `PlayerSessionJoinTrigger` methods/outcomes, public Session observation and Unity scene/device APIs. It captures the old trigger reference and occurrence-specific public evidence while that scope is active, then reacquires the current trigger only from the exact authored scene for the new scope. Exact owner/cardinality is mandatory; no global search or Runtime Host lookup.
+The installed public Route lifecycle context has no Route occurrence ordinal. `RouteRequestTriggerEvent` reports request target and terminal outcome, not a Route identity token or sequence. Therefore the terminal records `routeOccurrenceOrdinal='not-exposed-by-public-contract'`; it certifies re-entry from the public `Entered` callback plus exact asset and fresh scene/component identities, without inventing a Route counter. If that lifecycle context is absent or does not identify the current Route/contribution, this Route proof is `BLOCKED` specifically, while the existing Activity and Join evidence remains independently reported.
 
-### Route binding run
+A captured old `PlayerSessionJoinTrigger` is invoked with a valid QA-owned synthetic Keyboard after its scene has unloaded. `RejectedUnavailable`, unchanged Session revision/counts, no Host evidence and unchanged physical counts can establish only the public no-effect result. The Framework method's destroyed-`MonoBehaviour` guard can return before lease validation. Therefore the terminal always emits a separate `IF-ADR-046-I4.2-LEASE` result as `Blocked` (`0/3` lease checks), independently of the observable terminal. No public result is interpreted as proof that `PlayerSessionJoinBindingLease.ValidateCurrent` ran.
 
-1. Boot the QA-specific GameApplication through the installed Framework startup and wait for Route A plus its startup Activity and scoped trigger.
-2. Capture Session revision/counts and the public trigger. Open Joining through the configured public Manager-provisioning authoring surface; invoke the Route-scoped trigger with a QA-owned synthetic Keyboard; require `Joined` and exactly one joined Slot. Independently verify Actor/gameplay state is not implied by that outcome. Leave through the public lifecycle, remove/unpair the device, close Joining, and confirm the empty baseline before the transition.
-3. Request Route B, then Route A through public Route request triggers. Confirm the same Route A asset is active on return and the newly composed current trigger responds as a current binding (perform a controlled valid Join/Leave or equivalent public current-binding operation).
-4. Invoke the captured A1 trigger reference after the A→B→A transition. Require typed `RejectedUnavailable`, unchanged Session revision/state, zero reservation/join and no new Host/PlayerInput. If Unity destruction makes calling the retained component unsupported or throws before a public outcome is produced, report this assertion `BLOCKED`; do not substitute the new A2 result or claim stale-lease proof.
-5. Cleanup devices/Players, restore Joining closed and Route A baseline, then emit one terminal after resource checks.
+The internal same-owner/new-occurrence lease property remains for package-owned Framework tests, specifically A1→B→A2 with the same owner and new occurrence. I4.2 does not certify that internal property, Manager-absent setup, scope mismatch or FirstGame/PEGA compatibility.
 
-### Activity binding run
+## Manual execution
 
-1. Boot a separate valid GameApplication at Route A / Activity A and capture the Activity A1 trigger and Session baseline.
-2. Prove A1's current binding through a public valid Join and Leave, with Actor/gameplay states checked independently.
-3. Use supported Activity request triggers for A→B→A in the same Route. Confirm the Activity asset identity is the same on re-entry but the active scene consumer is a fresh current binding.
-4. Invoke the captured Activity A1 reference. Require `RejectedUnavailable`, unchanged Session, no reservation/Join/Host/PlayerInput effect. A Unity-destroyed trigger that cannot safely produce the public result is `BLOCKED`, not PASS.
-5. Change the owning Route occurrence and prove the previously captured Activity reference remains unavailable. Reacquire only the exact current Activity trigger and show current binding behavior.
-6. Restore the declared Activity/Route baseline, release synthetic devices and physical Player resources, then emit the terminal.
+1. Open QAFramework in Unity 6000.5.0f1. Run **Configure Minimal Join Fixture** twice; verify both runs log `scenes='3/3-registered'` and no duplicate entries appear. Run it once in a fresh Play Mode session and retain the minimal terminal.
+2. Run **Configure Occurrence Binding Fixture** twice; verify the five `I4_Binding_*` scenes are enabled exactly once and existing scene-list entries remain. The Configure command adds exactly one public `ActivityReadinessEvents` observer to each generated Activity scene and one `RouteContentLifecycleEvents` observer to each generated Route contribution, validating both cardinalities. Select `Assets/QA-IF-ADR-046/OccurrenceBinding/Settings/GameApplication_I4_Binding.asset` in `ImmersiveFrameworkSettings` and enter fresh Play Mode.
+3. Capture the complete Unity log and both terminal lines. Expected prefixes are `[QA-IF-ADR-046-I4.2-OBSERVABLE]` and `[QA-IF-ADR-046-I4.2-LEASE]`; inspect `routeEntry` dimensions independently from `activityOccurrences`. Do not record PASS before observing the first terminal as `Passed` with `BaselineRestored`; the lease line is expected `Blocked`.
+4. Restore the prior active GameApplication setting after execution. Copy `I4-provenance-manifest.template.json` to a unique evidence directory and fill it only with observed run identifiers, SHAs, dirty-file fingerprints, Unity/package resolution, log hash, terminal lines and cleanup.
 
-### Negative and compatibility cases
-
-Use explicit authored fixtures or supported lifecycle transitions; do not mutate Framework internals to invent states.
-
-- **No Manager capability:** separate valid Session bootstrap without the registered provisioning endpoint; public Join returns `RejectedUnavailable` and Session remains unchanged. Do not disable or replace the Manager behind an active lease.
-- **Scope mismatch:** a Route-discovered trigger authored for Activity scope (and the reciprocal case if needed) returns the specified configuration rejection; no Join effects occur.
-- **Released/destroyed recipient:** exercise release through normal composition teardown. Invoke a retained public reference only if the trigger's ordinary managed call is safe after Unity destruction; otherwise report the invocation-specific proof as BLOCKED and retain package-owned deterministic coverage.
-- **Legacy consumer:** keep the existing Experimental `PlayerSessionJoinCommandTrigger` in its current Slice 1 setup and independently rerun its regression; do not migrate serialized assets as part of this scenario.
-- **Scene-Provided:** do not include it in Manager-Provisioned proof or interpret the new Join outcome as a change to Scene-Provided behavior.
-
-There is no supported transition that makes an initialized Manager “not ready” or substitutes another Manager. Do not fabricate these states by disabling components, changing private fields or adding test-only Runtime controls. A bootstrap that cannot establish its required Manager is a BLOCKED precondition. Manager absence is tested as a separately authored valid configuration.
-
-## Evidence and terminal contract
-
-Before each action, record the Session revision, Joining state, Slot states/counts, currently active route/activity asset references, exact trigger/scene identity, synthetic device set, and any Host/PlayerInput evidence exposed by supported QA observation. After each action, record public outcome, Session revision/counts, Slot reservation/join state, current-scene trigger cardinality and physical host/device state.
-
-The terminal must include scenario/test ID, case count, current scope/owner, captured versus reacquired component identity, public outcome, Session before/after, physical cleanup, first cause, unwind result and cleanup result. Use the QA certification recorder and a single stable terminal line. Preserve the first causal failure if cleanup also fails. `BaselineRestored` requires the actual final Session and physical resource checks; a zero Join count alone is insufficient.
-
-For stale calls, public evidence can establish **no observable admission or side effect**: `RejectedUnavailable`, unchanged Session revision/state, zero Reserved/Joined delta and no new Host/PlayerInput/device ownership. It cannot, by itself, establish that an internal method was never called and then compensated. Do not phrase QA terminal fields or documentation as a literal invocation counter. If the exact no-delegation property remains a required Runtime invariant, prove that call boundary with package-owned deterministic tests, not a public test API.
-
-## I4 exit criteria and limitations
-
-I4 is accepted only when the user-run Unity execution records provenance for Framework/QA commits and dirty file fingerprints, Unity version, resolved package path/version, execution ID, raw log hash, each scenario terminal, and cleanup result. Retain FAIL/BLOCKED artifacts; never overwrite them with a later run. Run the public current/stale behavior on the same candidate bytes as the package tests.
-
-I2/I3 certification requires all of the following:
-
-1. Current scoped public trigger operates successfully in Route and Activity scopes.
-2. Same-asset Route and Activity re-entry never makes the captured old binding usable; a distinct current trigger/binding is usable.
-3. Stale/unavailable calls produce the exact public rejection with no Session or physical Player side effect.
-4. Owner Route change invalidates the former Activity binding.
-5. Manager-absent, mismatch, teardown and legacy consumer cases have their own evidence; impossible Manager transitions are not claimed as covered.
-6. Cleanup returns Session and physical resources to the exact declared baseline.
-7. FirstGame same-SHA compatibility remains a later I5 gate, not an inference from QA PASS.
-
-If Unity does not permit a safe public call on a retained destroyed trigger, this test cannot certify that specific old-object invocation. Record the gap and keep I4 BLOCKED until a supported public lifecycle seam is defined by ADR review; do not add test-only backdoors. I4 blocks I5 when any mandatory case is BLOCKED or when public effect evidence is incomplete.
+No Unity, NUnit, Play Mode or build execution was performed by the implementing agent. Setup and scenario source are statically reviewed only; successful compile/import and runtime behavior remain to be confirmed by the user's Unity run.

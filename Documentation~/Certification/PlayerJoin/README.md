@@ -1,8 +1,19 @@
 # Player Join provenance and certification
 
-This procedure applies to QAFramework Manager-Provisioned Join runs. It records new executions only. User-reported NUnit EditMode and Slice 1 results are now recorded under `Evidence/` as observed results with partial provenance; Slice 2–3 remain their earlier reported runs. No run is retroactively assigned a SHA or exact timestamp.
+This procedure applies to QAFramework Manager-Provisioned Join runs. It records new executions only. User-reported NUnit EditMode and Slice 1 results are recorded as observed results with partial provenance; Slice 2–3 remain their earlier reported runs. No run is retroactively assigned a SHA or exact timestamp. I4 minimal has a prior user-observed PASS 1/1. I4.2 has a user-reported partial Play Mode run (4/8 observable checks before the Route oracle failure, baseline cleanup restored, lease result BLOCKED); the current Route oracle correction has not been rerun, so no complete I4.2 certification is claimed.
 
-The proposed I4 scoped-binding scenario is documented separately in [IF-ADR-046 I4 — Scoped Join Binding](IF-ADR-046-I4-Scoped-Binding-Scenario.md). It does not modify Slice 1 or authorize I3/QA implementation.
+The I4 scoped-binding scenario and current coverage state are documented in [IF-ADR-046 I4 — Scoped Join Binding](IF-ADR-046-I4-Scoped-Binding-Scenario.md). Separate Configure commands create QA-owned copies and do not modify Slice 1. I4.2 waits for the public Activity readiness snapshot before acquiring scoped Session observation and reports publication, access binding, and owner/occurrence identity separately.
+
+## I4 current implementation baseline
+
+The I4.2 occurrence lane is generated separately with **Configure Occurrence Binding Fixture**. It exercises Activity A→B→A, Route A→B→A, owner Route replacement, current Join/Leave, stale public rejection/no-effects, and final cleanup. Route re-entry evidence uses the public Route lifecycle `Entered` context, exact Route asset, and fresh scene/component identities; Activity occurrence numbers remain a separate domain. It publishes independent `OBSERVABLE` and `LEASE` terminal results; the lease result is expected to remain `Blocked` because a destroyed trigger's public guard can reject before lease validation. Follow the I4 scenario document for the manual run order and evidence fields.
+
+- Scenario ID: `IF-ADR-046-I4-MINIMAL`; one Activity-scoped Join/Leave case.
+- Configure: `Immersive Framework > QA > Player > IF-ADR-046 I4 > Configure Minimal Join Fixture`.
+- Before changing `Assets/_Project/Settings/ImmersiveFramework/Resources/ImmersiveFrameworkSettings.asset`, record its current `activeGameApplication`. Select `Assets/QA-IF-ADR-046/Settings/GameApplication_I4.asset`, open `Assets/QA-IF-ADR-046/Scenes/I4_Persistent.unity`, and enter a fresh Play Mode session. Restore the recorded application selection after the run.
+- The expected terminal prefix is `[QA-IF-ADR-046-I4]`. `PASS` is emitted only after the public Session snapshot is empty/closed, no Slot is reserved/joined/leaving, recorded Host evidence is absent, `PlayerInput.all` returns to its captured count, and the scenario Keyboard is removed.
+- `PASS` for this one case is not I4 certification. I4.2's earlier user-reported run reached four independent observable passes before the Route A→B→A oracle failed; the corrected Route oracle awaits a fresh run. Negative configuration, unavailable Manager and separate legacy regression remain pending.
+- Before execution, copy `I4-provenance-manifest.template.json` to a unique evidence directory and record the actual SHAs, dirty fingerprints, Unity version, resolved package, raw log hash, terminal line and cleanup. Do not assign those values to earlier executions.
 
 ## Before each run
 
