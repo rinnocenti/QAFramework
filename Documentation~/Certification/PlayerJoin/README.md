@@ -14,6 +14,7 @@ I4 is **accepted by composite evidence with documented limitations**. P1 (the ex
 | Run | User-reported result | Qualification |
 |---|---|---|
 | Framework EditMode, after legacy entrypoint removal | 292/292 PASS; PlayerParticipation 101/101; zero failures | User-reported against the post-removal candidate; partial provenance, with no execution SHA, timestamp, raw XML/log, artifact hash or exact executed workspace bytes associated. |
+| Slice 1 — Session / Join, after bridge correction | PASS 8/8; `BaselineRestored` | Later user-reported replay; exact terminal/log, timestamp and execution SHAs were not supplied or associated. The historical `Slice1-PlayMode/manifest.json` remains the earlier pre-correction run and is not rewritten. |
 | I4 minimal | PASS 1/1; `BaselineRestored` | Partial provenance; exact terminal/log and execution metadata are not associated. |
 | I4.2 OBSERVABLE | PASS 8/8; `BaselineRestored`; five Join/Leave outcomes `Joined/Admitted`; Activity and Route A→B→A reentries observed; three stale calls `RejectedUnavailable` without Session revision change | Public behavior as reported. Stale-call rejection is not evidence that internal lease validation ran. |
 | I4.2 LEASE | BLOCKED 3/3 | Destroyed-object guard prevents attributing the rejection to the internal lease comparison. |
@@ -39,7 +40,7 @@ The existing EditMode record is [Evidence/NUnit-EditMode/manifest.json](Evidence
 
 ## Related evidence
 
-- Slice 1 has an earlier user-reported PASS 8/8 and `BaselineRestored`; it predates the callback-compensation correction and was not replayed by this task.
+- `Slice1-PlayMode/manifest.json` retains the earlier user-reported PASS 8/8 and `BaselineRestored`; that execution predates the callback-compensation correction. A later post-correction PASS 8/8 and `BaselineRestored` was reported, but its raw log, timestamp and execution SHAs were not supplied; the historical manifest is not rewritten and provenance remains partial.
 - The rollback EditMode suite previously reported by the user used a fake backend that records compensation requests; it does not certify physical Unity object destruction.
 - I4/I4.2 and post-removal regression observations here are not linked retrospectively to exact QAFramework or Framework bytes. The user reported the latter as post-removal candidate results, but no SHA/log/hash was captured; do not claim immutable same-candidate certification from checkout state alone.
 
