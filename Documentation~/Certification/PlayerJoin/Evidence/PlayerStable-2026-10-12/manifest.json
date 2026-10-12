@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "evidenceSet": "IF-ADR-046 Player Stable",
+  "reviewDate": "2026-10-12",
+  "sourceArchive": {
+    "originalName": "IF-ADR-046-Player-Stable-Evidencias.zip",
+    "archivedPath": "originals/IF-ADR-046-Player-Stable-Evidencias.zip",
+    "bytes": 81876,
+    "sha256": "57619e8055d591fb73c7927f7e71d6c9c18ef659a95d6745e25f2a03af372af4",
+    "sourceOrigin": "User-provided task attachment"
+  },
+  "executionProvenance": {
+    "completeness": "partial",
+    "frameworkShaAtExecution": null,
+    "qaFrameworkShaAtExecution": null,
+    "firstGameShaAtExecution": null,
+    "executionTimestamp": null,
+    "unityVersion": "6000.5.0f1 (reported in task context; not independently captured in these artifacts)",
+    "warning": "Review-time Git snapshots are recorded separately and are not substituted for missing execution SHAs."
+  },
+  "reportedResults": {
+    "frameworkEditMode": "292/292 PASS; screenshot shows QAFramework (292 tests), 0 failures",
+    "playerParticipation": "101 tests shown",
+    "qaAdr042": "7/7 PASS; BaselineRestored",
+    "qaAdr043": "7/7 PASS; BaselineRestored",
+    "qaAdr044": "8/8 PASS; BaselineRestored",
+    "slice1": "8/8 PASS; BaselineRestored",
+    "leaveRejoinOccurrence": "PASS; BaselineRestored",
+    "firstGame": "Local Multiplayer P1/P2 Join, Leave and Rejoin reported and corroborated by raw log markers"
+  },
+  "reviewObservations": {
+    "firstGameLogLines": 886,
+    "firstGameLogSeverityErrors": 0,
+    "firstGameLogSeverityWarnings": 0,
+    "exceptionTokens": 0,
+    "successfulJoinMarkers": 4,
+    "successfulLeaveMarkers": 4,
+    "partialReleaseFalseMarkers": 4,
+    "hostPlayerInputSameObjectObservations": 8,
+    "gameplayReadyCompletedMarkers": 6
+  },
+  "files": [
+    {
+      "path": "originals/README.md",
+      "bytes": 2302,
+      "sha256": "806f6e72a049b5c0e020be4a521dc0b8608a3dd6e97ac0de5c51743c536884fd",
+      "lines": 25
+    },
+    {
+      "path": "originals/FirstGame-LocalMultiplayer-console.txt",
+      "bytes": 339106,
+      "sha256": "b57c06ba57f9bc0df6312306faa76abc4e8728dc978d2aa470e62b3487f9919e",
+      "lines": 886
+    },
+    {
+      "path": "originals/QA-terminals.txt",
+      "bytes": 2051,
+      "sha256": "551589e3bbfc02b1a801ef0cc9325a9e834f4477ba0dd71f2a29d0fd190804f1",
+      "lines": 11
+    },
+    {
+      "path": "originals/Framework-EditMode-292of292.png",
+      "bytes": 63432,
+      "sha256": "d5258bcdd16f2d7954082b47c24809ef553ba3273fed9abd7b60f68cc5c81d76"
+    },
+    {
+      "path": "originals/SHA256SUMS.txt",
+      "bytes": 362,
+      "sha256": "c549b0d7d2eb33d361f0296ea463aa9f45f9d1f0a59e09a6e968add04f32b06f",
+      "lines": 4
+    }
+  ],
+  "reviewedGitSnapshot": {
+    "framework": {
+      "branch": "master",
+      "head": "c66be5709e669dfc71b5e9ea9320156496058490",
+      "reviewTree": "had prior uncommitted documentation-only Stable decision preparation; Runtime maturity attributes were Experimental before this decision",
+      "executionAssociation": null
+    },
+    "qaFramework": {
+      "branch": "main",
+      "head": "693e0d1048303f5fde26831b117ad4c82fd2cf7d",
+      "reviewTree": "modified Assets/_Project/Settings/ImmersiveFramework/Resources/ImmersiveFrameworkSettings.asset",
+      "executionAssociation": null
+    },
+    "firstGame": {
+      "branch": "main",
+      "head": "c0d14a057197624ff2f070a6e601d7d225f972db",
+      "reviewTree": "clean at review",
+      "executionAssociation": null
+    }
+  }
+}

@@ -1,0 +1,11 @@
+EVIDÊNCIAS TRANSCRITAS DAS MENSAGENS DO USUÁRIO — NÃO SÃO LOGS BRUTOS DE ARQUIVO
+
+[IF-ADR-042-SHARED-GROUP] status='Passed' verdict='PASS' cases='7/7' next='' completed='7' missing='' assignment='c1de6b74d45a4b04bff462646fbbb5c3' output='04200000000000000000000000000001' occurrence='c1de6b74d45a4b04bff462646fbbb5c3/04200000000000000000000000000001' targetMembers='0' cleanup='BaselineRestored' execution='' cleanupIssue=''.
+
+[IF-ADR-043] status='Passed' verdict='PASS' cases='7/7' next='<none>' completed='7' missing='<none>' assignment='0303ca8e5a7b44758de8f7632f8f051b' framesObserved='10' framesWithoutCamera='0' firstFrameWithoutCamera='-1' execution='' unwind='public-leave-requests' cleanup='BaselineRestored' cleanupIssue=''.
+
+[IF-ADR-044] status='Passed' verdict='PASS' cases='8/8' next='none' completed='8' missing='none' execution='' unwind='public-leave-requests' cleanup='BaselineRestored' cleanupIssue=''.
+
+[QA-PLAYER-SESSION-JOIN] status='Passed' verdict='PASS' cases='8/8' next='' completed='8' missing='' invalidJoinStatus='RejectedInvalidRequest' invalidRevisionPreserved='True' joinStatus='Joined' joinSlotMatched='True' actorSelected='True' actorPrepared='True' actorMaterialized='True' gameplayAdmitted='False' leaveStatus='SucceededLeft' leaveProvisioningReleased='True' leaveTerminalCommitted='True' finalSession='initialized:True,joined:0,available:1,reserved:0,leaving:0,joiningOpen:False' cleanup='BaselineRestored' execution='' cleanupIssue=''.
+
+[QA-PLAYER-LEAVE-REJOIN-OCCURRENCE][terminal] verdict='PASS' slot='PlayerSlot:player.1' actorA='Session:Session:QA Player Leave and Rejoin:player-actor-content:c60bf5203c734fbc8f37b1178e9e948a:Session:QA Player Leave and Rejoin:player.1:1' actorB='Session:Session:QA Player Leave and Rejoin:player-actor-content:c60bf5203c734fbc8f37b1178e9e948a:Session:QA Player Leave and Rejoin:player.1:2' joinA='Joined' leaveA='SucceededLeft' joinB='Joined' staleLeave='RejectedForeignOrStaleOccurrence' leaveB='SucceededLeft' cleanup='BaselineRestored' firstCause='' cleanupIssue=''

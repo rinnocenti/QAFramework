@@ -1,6 +1,6 @@
 # Player Join provenance and certification
 
-This procedure records observed Manager-Provisioned Join executions without assigning retrospective execution metadata. Unity Test Runner and Play Mode results below were reported by the user; Codex did not execute Unity, NUnit, Play Mode or build. The original run bytes are not currently linked to these summaries, so provenance remains **partial**.
+This record preserves observed Manager-Provisioned Join evidence without assigning retrospective execution metadata. Unity Test Runner, QA terminal and FirstGame results were supplied by the user; Codex did not execute Unity, NUnit, Play Mode or build. The original FirstGame log and Test Runner screenshot are now preserved in [PlayerStable-2026-10-12 evidence](Evidence/PlayerStable-2026-10-12/manifest.json). QA transcripts remain user-supplied terminal-line transcriptions, not full raw runner logs. Execution-time Framework/QA SHAs and exact run timestamps remain unknown, so provenance is **partial** and is accepted for the bounded Player Join decision only under IF-ADR-046 Amendment 003.
 
 The current I4 evidence is summarized in [IF-ADR-046 I4 — Scoped Join Binding](IF-ADR-046-I4-Scoped-Binding-Scenario.md). Keep its two lanes separate:
 
@@ -13,16 +13,18 @@ I4 is **accepted by composite evidence with documented limitations**. P1 (the ex
 
 | Run | User-reported result | Qualification |
 |---|---|---|
-| Framework EditMode, after legacy entrypoint removal | 292/292 PASS; PlayerParticipation 101/101; zero failures | User-reported against the post-removal candidate; partial provenance, with no execution SHA, timestamp, raw XML/log, artifact hash or exact executed workspace bytes associated. |
+| Framework EditMode, after legacy entrypoint removal | 292/292 PASS; PlayerParticipation 101/101; zero failures | Supplied Test Runner screenshot is archived in the Player Stable evidence set; no execution SHA, timestamp, raw XML/log or exact executed workspace bytes are associated. Provenance partial; risk explicitly accepted by IF-ADR-046 Amendment 003 for the bounded closure. |
 | Slice 1 — Session / Join, after bridge correction | PASS 8/8; `BaselineRestored` | Later user-reported replay; exact terminal/log, timestamp and execution SHAs were not supplied or associated. The historical `Slice1-PlayMode/manifest.json` remains the earlier pre-correction run and is not rewritten. |
 | I4 minimal | PASS 1/1; `BaselineRestored` | Partial provenance; exact terminal/log and execution metadata are not associated. |
 | I4.2 OBSERVABLE | PASS 8/8; `BaselineRestored`; five Join/Leave outcomes `Joined/Admitted`; Activity and Route A→B→A reentries observed; three stale calls `RejectedUnavailable` without Session revision change | Public behavior as reported. Stale-call rejection is not evidence that internal lease validation ran. |
 | I4.2 LEASE | BLOCKED 3/3 | Destroyed-object guard prevents attributing the rejection to the internal lease comparison. |
 | Post-removal QA regression: IF-ADR-042/043/044 | 22/22 PASS: 042 7/7, 043 7/7, 044 8/8; all `BaselineRestored`, cleanup 3/3 | User-reported after legacy entrypoint removal, with partial provenance; no retrospective SHA or raw log association. |
 
+The supplied [Player Stable evidence set](Evidence/PlayerStable-2026-10-12/manifest.json) includes the FirstGame raw log, EditMode screenshot, QA terminal transcript, supplied README and checksum list, plus the original ZIP. Their SHA-256 values were checked after preservation. The artifact hashes establish that these files were preserved unchanged; they do not establish the Framework/QA SHA or timestamp used during execution. The responsible authority accepted this residual provenance risk for this bounded maturity decision; no missing execution metadata is inferred.
+
 The FirstGame Local Multiplayer flow was also reported functional after migration: keyboard/mouse and simulated gamepad Join, correct observed Slots/indices, Actor preparation, gameplay readiness, Leave and Rejoin. This consumer evidence is recorded by the Framework tracker; Character Selection was not independently validated. Neither consumer result supplies execution-byte provenance.
 
-The existing EditMode record is [Evidence/NUnit-EditMode/manifest.json](Evidence/NUnit-EditMode/manifest.json); its 291/291 and 100/100 values are an earlier historical report and are not overwritten. The later 292/292 and 101/101 summary has no raw execution artifact or execution metadata to attach, so no new manifest entry is fabricated. The I4 provenance manifest is a **template**, not a record of these completed runs; do not fill it with guessed SHAs, timestamps, hashes, or synthetic terminal lines.
+The existing EditMode record is [Evidence/NUnit-EditMode/manifest.json](Evidence/NUnit-EditMode/manifest.json); its 291/291 and 100/100 values are an earlier historical report and are not overwritten. The later 292/292 and 101/101 screenshot is preserved in the Player Stable evidence set, but it does not supply execution metadata or raw XML. The I4 provenance manifest is a **template**, not a record of these completed runs; do not fill it with guessed SHAs, timestamps, hashes, or synthetic terminal lines.
 
 ## Before a new run
 
