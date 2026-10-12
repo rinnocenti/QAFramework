@@ -1,7 +1,7 @@
 # QA Certification Review Contract
 
 For Unity authoring details, use the single [Unity QA authoring reference](../../qa-certification-implementation/references/unity-qa-authoring.md).
-For evidence and gate disposition, apply the shared [evidence and acceptance policy](../../qa-certification-design/references/evidence-policy.md).
+For evidence and gate disposition, apply the shared [evidence review checklist](../../qa-certification-design/references/evidence-policy.md); follow its link to normative IF-GOV-001 §8.
 
 Verify and report:
 

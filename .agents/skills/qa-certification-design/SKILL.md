@@ -13,7 +13,7 @@ Repository reality precedes QA design. Read the complete [ADR-001](../../../Docu
 
 ## Workflow
 
-Apply the shared [evidence and acceptance policy](references/evidence-policy.md) when sizing proof or describing a design gate. Reconcile accessible evidence before recommending new execution or infrastructure. The Scenario brief must distinguish individual evidence results, property coverage, provenance/access limits, and gate disposition; do not prescribe infrastructure until its material uncovered risk is concrete.
+Apply the shared [evidence review checklist](references/evidence-policy.md), which links to the normative IF-GOV-001 policy, when sizing proof or describing a design gate. Reconcile accessible evidence before recommending new execution or infrastructure. The Scenario brief must distinguish individual evidence results, property coverage, provenance/access limits, and gate disposition; do not prescribe infrastructure until its material uncovered risk is concrete.
 
 1. Classify the verification level: Package/NUnit for deterministic contracts without material runtime; QAFramework for controlled real-runtime certification; FIRSTGAME for an integrated consumer happy path.
 2. Compare relevant existing QAs and authoring patterns. Use the shared [Unity QA authoring reference](../qa-certification-implementation/references/unity-qa-authoring.md) when scenes, assets, prefabs, or serialized composition are involved.

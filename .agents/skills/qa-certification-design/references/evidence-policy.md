@@ -1,6 +1,6 @@
-# QA Certification Evidence and Acceptance Policy
+# QA Certification Evidence Review Checklist
 
-This policy applies to certification design, implementation, and independent review. It operationalizes the evidence-proportionality guidance in IF-GOV-001 §8 and ADR-001 §12.1. It does not change ADR-001's execution model or waive a contract-specific certification gate.
+This checklist supports certification design, implementation, and independent review. [IF-GOV-001 §8](https://github.com/ImmersiveGames/com.immersive.framework/blob/master/Documentation~/Architecture/Governance/IF-GOV-001-API-MATURITY-AND-VALIDATION-GOVERNANCE.md#8-evidence-proportionality-and-certification) is the single normative source for general evidence proportionality; QA-specific procedure is defined by ADR-001 §12.1. This file operationalizes those requirements. It does not change ADR-001's execution model or waive a contract-specific certification gate.
 
 ## Reconcile before requesting new proof
 

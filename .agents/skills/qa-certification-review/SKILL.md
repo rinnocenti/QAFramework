@@ -17,7 +17,7 @@ For compile-surface review, verify every called member against the resolved Fram
 
 ## Review sequence
 
-Apply the shared evidence and acceptance policy at [design skill reference](../qa-certification-design/references/evidence-policy.md). Reconcile accessible evidence before recommending another test. Review individual results, property coverage, provenance/access limits, and gate disposition separately; assess any composite/conditional acceptance against applicable governance and preserve all limitations. Do not treat missing metadata as a functional failure or demand infrastructure without a material uncovered risk, applicable gate, and least-intervention analysis.
+Apply the shared [evidence review checklist](../qa-certification-design/references/evidence-policy.md), which links to the normative IF-GOV-001 policy. Reconcile accessible evidence before recommending another test. Review individual results, property coverage, provenance/access limits, and gate disposition separately; assess any composite/conditional acceptance against applicable governance and preserve all limitations. Do not treat missing metadata as a functional failure or demand infrastructure without a material uncovered risk, applicable gate, and least-intervention analysis.
 
 Before first Play Mode, reconstruct:
 
